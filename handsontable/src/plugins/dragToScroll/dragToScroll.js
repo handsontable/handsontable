@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { isRightClick } from '../../helpers/dom/event';
-import { getParentWindow } from '../../helpers/dom/element';
+import { getParentWindow, getScrollbarWidth } from '../../helpers/dom/element';
+import { AutoScroller } from './autoScroller';
 
 export const PLUGIN_KEY = 'dragToScroll';
 export const PLUGIN_PRIORITY = 100;
@@ -24,6 +25,18 @@ export class DragToScroll extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get DEFAULT_SETTINGS() {
+    return {
+      autoScroll: {
+        interval: {
+          min: 20,
+          max: 500,
+        },
+        rampDistance: 120,
+      },
+    };
+  }
+
   /**
    * Size of an element and its position relative to the viewport,
    * e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y:8}.
@@ -45,6 +58,18 @@ export class DragToScroll extends BasePlugin {
    * @type {boolean}
    */
   listening = false;
+  /**
+   * Auto scroller for managing independent horizontal and vertical scroll timers.
+   *
+   * @type {AutoScroller}
+   */
+  #autoScroller = new AutoScroller((...args) => this.hot._registerTimeout(...args));
+  /**
+   * Flag indicates if the mouse is outside the viewport.
+   *
+   * @type {boolean}
+   */
+  #isOutsideViewport = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -64,8 +89,17 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
-    this.addHook('afterOnCellMouseDown', event => this.#setupListening(event));
-    this.addHook('afterOnCellCornerMouseDown', event => this.#setupListening(event));
+    this.#autoScroller.configure({
+      intervalRange: this.getSetting('autoScroll.interval'),
+      rampDistance: this.getSetting('autoScroll.rampDistance'),
+    });
+    this.#autoScroller
+      .addLocalHook('scrollHorizontal', distance => this.#scrollHorizontal(distance))
+      .addLocalHook('scrollVertical', distance => this.#scrollVertical(distance));
+
+    this.addHook('beforeOnCellMouseDown', (...args) => this.#setupListening(...args));
+    this.addHook('afterOnCellCornerMouseDown', (...args) => this.#setupListening(...args));
+    this.addHook('afterSelection', (...args) => this.#onAfterSelection(...args));
 
     this.registerEvents();
 
@@ -89,6 +123,7 @@ export class DragToScroll extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#autoScroller.stop();
     this.unregisterEvents();
 
     super.disablePlugin();
@@ -147,6 +182,8 @@ export class DragToScroll extends BasePlugin {
       diffX = x - this.boundaries.right;
     }
 
+    this.#isOutsideViewport = diffY !== 0 || diffX !== 0;
+
     this.callback(diffX, diffY);
   }
 
@@ -166,6 +203,7 @@ export class DragToScroll extends BasePlugin {
    */
   unlisten() {
     this.listening = false;
+    this.#autoScroller.stop();
   }
 
   /**
@@ -191,7 +229,7 @@ export class DragToScroll extends BasePlugin {
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'contextmenu', () => this.unlisten());
       this.eventManager.addEventListener(frame.document, 'mouseup', () => this.unlisten());
-      this.eventManager.addEventListener(frame.document, 'mousemove', event => this.onMouseMove(event));
+      this.eventManager.addEventListener(frame.document, 'mousemove', event => this.#onMouseMove(event));
 
       frame = getParentWindow(frame);
     }
@@ -218,19 +256,67 @@ export class DragToScroll extends BasePlugin {
 
     const scrollHandler = this.hot.view._wt.wtOverlays.topOverlay.mainTableScrollableElement;
 
-    this.setBoundaries(scrollHandler !== this.hot.rootWindow ? scrollHandler.getBoundingClientRect() : undefined);
+    if (scrollHandler === this.hot.rootWindow) {
+      this.setBoundaries();
+    } else {
+      const boundaries = scrollHandler.getBoundingClientRect();
 
-    this.setCallback((scrollX, scrollY) => {
-      const horizontalScrollValue = scrollHandler.scrollLeft ?? scrollHandler.scrollX;
-      const verticalScrollValue = scrollHandler.scrollTop ?? scrollHandler.scrollY;
+      this.setBoundaries({
+        left: boundaries.left + this.hot.view.getRowHeaderWidth(),
+        right: boundaries.right - getScrollbarWidth(),
+        top: boundaries.top + this.hot.view.getColumnHeaderHeight(),
+        bottom: boundaries.bottom - getScrollbarWidth(),
+      });
+    }
 
-      scrollHandler.scroll(
-        horizontalScrollValue + (Math.sign(scrollX) * 50),
-        verticalScrollValue + (Math.sign(scrollY) * 20)
-      );
+    this.setCallback((diffX, diffY) => {
+      this.#autoScroller.update({ x: diffX, y: diffY });
     });
 
     this.listen();
+  }
+
+  /**
+   * Scrolls the viewport horizontally by one column.
+   *
+   * @param {number} distance Horizontal distance from viewport edge (positive = right, negative = left).
+   */
+  #scrollHorizontal(distance) {
+    const firstVisibleColumn = this.hot.getFirstFullyVisibleColumn();
+    const lastVisibleColumn = this.hot.getLastFullyVisibleColumn();
+    const scrollColumn = distance > 0 ? lastVisibleColumn + 1 : firstVisibleColumn - 1;
+
+    this.hot.scrollViewportTo({ col: scrollColumn });
+  }
+
+  /**
+   * Scrolls the viewport vertically by one row.
+   *
+   * @param {number} distance Vertical distance from viewport edge (positive = down, negative = up).
+   */
+  #scrollVertical(distance) {
+    const firstVisibleRow = this.hot.getFirstFullyVisibleRow();
+    const lastVisibleRow = this.hot.getLastFullyVisibleRow();
+    const scrollRow = distance > 0 ? lastVisibleRow + 1 : firstVisibleRow - 1;
+
+    this.hot.scrollViewportTo({ row: scrollRow });
+  }
+
+  /**
+   * Prevents viewport scroll when the cursor is outside the viewport.
+   *
+   * @param {number} row Selection start visual row index.
+   * @param {number} column Selection start visual column index.
+   * @param {number} endRow Selection end visual row index.
+   * @param {number} endColumn Selection end visual column index.
+   * @param {object} preventScrolling A reference to the observable object with the `value` property.
+   *                                  Property `preventScrolling.value` expects a boolean value that
+   *                                  Handsontable uses to control scroll behavior after selection.
+   */
+  #onAfterSelection(row, column, endRow, endColumn, preventScrolling) {
+    if (this.#isOutsideViewport) {
+      preventScrolling.value = true;
+    }
   }
 
   /**
@@ -239,7 +325,7 @@ export class DragToScroll extends BasePlugin {
    * @private
    * @param {MouseEvent} event `mousemove` event properties.
    */
-  onMouseMove(event) {
+  #onMouseMove(event) {
     if (!this.isListening()) {
       return;
     }
@@ -251,6 +337,9 @@ export class DragToScroll extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#autoScroller.destroy();
+    this.#autoScroller = null;
+
     super.destroy();
   }
 }

@@ -3,7 +3,6 @@ import {
   getMaximumScrollTop,
   getScrollbarWidth,
   getScrollTop,
-  getWindowScrollLeft,
   hasClass,
   outerHeight,
   removeClass,
@@ -120,19 +119,22 @@ export class TopOverlay extends Overlay {
   setScrollPosition(pos) {
     const { rootWindow } = this.domBindings;
     const scrollableElement = this.mainTableScrollableElement;
+    const getScrollPosition = () => {
+      return scrollableElement === rootWindow ? rootWindow.scrollY : scrollableElement.scrollTop;
+    };
+    const setScrollPosition = (newPosition) => {
+      if (scrollableElement === rootWindow) {
+        rootWindow.scrollTo(rootWindow.scrollX, newPosition);
+      } else {
+        scrollableElement.scrollTop = newPosition;
+      }
+    };
+    const oldScrollPosition = getScrollPosition();
     let result = false;
 
-    if (scrollableElement === rootWindow && pos !== rootWindow.scrollY) {
-      const oldScrollX = rootWindow.scrollY;
-
-      rootWindow.scrollTo(getWindowScrollLeft(rootWindow), pos);
-      result = oldScrollX !== rootWindow.scrollY;
-
-    } else if (pos !== scrollableElement.scrollTop) {
-      const oldScrollLeft = scrollableElement.scrollTop;
-
-      scrollableElement.scrollTop = pos;
-      result = oldScrollLeft !== scrollableElement.scrollTop;
+    if (pos !== oldScrollPosition) {
+      setScrollPosition(pos);
+      result = oldScrollPosition !== getScrollPosition();
     }
 
     return result;

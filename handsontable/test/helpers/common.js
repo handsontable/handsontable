@@ -10,6 +10,7 @@ const specContext = {};
 
 beforeEach(function() {
   specContext.spec = this;
+  cleanupDebugUI(true);
 
   if (!process.env.JEST_WORKER_ID) {
     this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
@@ -38,7 +39,20 @@ afterAll(() => {
   if (!process.env.JEST_WORKER_ID) {
     $('.jasmine_html-reporter').show();
   }
+
+  cleanupDebugUI();
 });
+
+/**
+ * Cleans up the debug UI elements if there are any.
+ *
+ * @param {boolean} force If true, the debug UI elements will be cleaned up even if DEBUG is false.
+ */
+function cleanupDebugUI(force = false) {
+  if (!DEBUG || force) {
+    document.querySelectorAll('.debug-ui').forEach(ui => ui.remove());
+  }
+}
 
 /**
  * @param {number} [delay=100] The delay in ms after which the Promise is resolved.
@@ -1266,6 +1280,188 @@ export function simulateTouch(target) {
       $(target).simulate('mouseup');
       $(target).simulate('click');
     }
+  }
+}
+
+/**
+ * Calculates event arguments for fill handle drag simulation.
+ *
+ * @param {jQuery|HTMLElement|string} targetElement The target cell element.
+ * @param {object} [options] Additional options.
+ * @param {number} [options.offsetX] X offset from the center of the target element (default: 0).
+ * @param {number} [options.offsetY] Y offset from the center of the target element (default: 0).
+ * @param {jQuery|HTMLElement} [options.container] Container element (default: spec().$container).
+ * @returns {object} Object containing event arguments and source/target elements.
+ */
+function getFillHandleDragEventArgs(targetElement, options = {}) {
+  const {
+    offsetX = 0,
+    offsetY = 0,
+    container = spec().$container,
+  } = options;
+  const $source = container.find('.ht_master .wtBorder.current.corner');
+  const $target = targetElement instanceof HTMLElement ? $(targetElement) : targetElement;
+
+  if ($target.length === 0) {
+    throw new Error('Target element not found');
+  }
+
+  const targetDomElement = $target[0];
+  const sourceDomElement = $source[0];
+  const targetRect = targetDomElement.getBoundingClientRect();
+  const sourceRect = sourceDomElement.getBoundingClientRect();
+  const clientX = targetRect.left + (targetRect.width / 2) + offsetX;
+  const clientY = targetRect.top + (targetRect.height / 2) + offsetY;
+  const screenX = clientX;
+  const screenY = clientY;
+  const pageX = clientX + window.scrollX;
+  const pageY = clientY + window.scrollY;
+  const sourceClientX = sourceRect.left + (sourceRect.width / 2);
+  const sourceClientY = sourceRect.top + (sourceRect.height / 2);
+  const eventArgs = {
+    clientX,
+    clientY,
+    screenX,
+    screenY,
+    pageX,
+    pageY,
+  };
+
+  return {
+    $source,
+    $target,
+    sourceDomElement,
+    targetDomElement,
+    eventArgs,
+    sourceClientX,
+    sourceClientY,
+  };
+}
+
+/**
+ * Starts a fill handle drag simulation (mousedown).
+ *
+ * @param {jQuery|HTMLElement|string} targetElement The target cell element to drag to.
+ * @param {object} [options] Additional options for the drag simulation.
+ * @param {number} [options.offsetX] X offset from the center of the target element (default: 0).
+ * @param {number} [options.offsetY] Y offset from the center of the target element (default: 0).
+ * @param {jQuery|HTMLElement} [options.container] Container element (default: spec().$container).
+ */
+export function simulateFillHandleDragStart(targetElement, options = {}) {
+  const {
+    $source,
+    sourceClientX,
+    sourceClientY,
+  } = getFillHandleDragEventArgs(targetElement, options);
+
+  $source.simulate('mousedown', {
+    clientX: sourceClientX,
+    clientY: sourceClientY,
+    screenX: sourceClientX,
+    screenY: sourceClientY,
+    button: 0
+  });
+}
+
+/**
+ * Continues a fill handle drag simulation with a mousemove event.
+ *
+ * @param {jQuery|HTMLElement|string} targetElement The target cell element to move to.
+ * @param {object} [options] Additional options for the drag simulation.
+ * @param {number} [options.offsetX] X offset from the center of the target element (default: 0).
+ * @param {number} [options.offsetY] Y offset from the center of the target element (default: 0).
+ * @param {jQuery|HTMLElement} [options.container] Container element (default: spec().$container).
+ */
+export function simulateFillHandleDragMove(targetElement, options = {}) {
+  const {
+    $target,
+    sourceDomElement,
+    eventArgs,
+  } = getFillHandleDragEventArgs(targetElement, options);
+
+  // Show clientX/clientY position as a red dot on the screen for debugging purposes
+  if (DEBUG) {
+    document.querySelectorAll('.debug-simulate-fill-handle-drag').forEach(ui => ui.remove());
+
+    const debugClientDot = document.createElement('div');
+
+    debugClientDot.style.position = 'absolute';
+    debugClientDot.style.left = `${eventArgs.pageX}px`;
+    debugClientDot.style.top = `${eventArgs.pageY}px`;
+    debugClientDot.style.width = '3px';
+    debugClientDot.style.height = '3px';
+    debugClientDot.style.backgroundColor = 'red';
+    debugClientDot.style.borderRadius = '50%';
+    debugClientDot.style.pointerEvents = 'none';
+    debugClientDot.style.zIndex = '99999';
+    debugClientDot.style.transform = 'translate(-50%, -50%)';
+    debugClientDot.classList.add('debug-ui', 'debug-simulate-fill-handle-drag');
+
+    document.body.appendChild(debugClientDot);
+  }
+
+  $(document.documentElement).simulate('mousemove', {
+    ...eventArgs,
+    button: 0
+  });
+  $target.simulate('mouseenter', {
+    ...eventArgs,
+    relatedTarget: sourceDomElement
+  });
+  $target.simulate('mouseover', {
+    ...eventArgs,
+    relatedTarget: sourceDomElement
+  });
+}
+
+/**
+ * Finishes a fill handle drag simulation (mouseup).
+ *
+ * @param {jQuery|HTMLElement|string} targetElement The target cell element.
+ * @param {object} [options] Additional options for the drag simulation.
+ * @param {number} [options.offsetX] X offset from the center of the target element (default: 0).
+ * @param {number} [options.offsetY] Y offset from the center of the target element (default: 0).
+ * @param {jQuery|HTMLElement} [options.container] Container element (default: spec().$container).
+ */
+export function simulateFillHandleDragFinish(targetElement, options = {}) {
+  const {
+    $target,
+    sourceDomElement,
+    eventArgs,
+  } = getFillHandleDragEventArgs(targetElement, options);
+
+  $(document.documentElement).simulate('mouseup', {
+    ...eventArgs,
+    button: 0
+  });
+  $target.simulate('mouseup', {
+    ...eventArgs,
+    button: 0
+  });
+  $target.simulate('mouseleave', {
+    ...eventArgs,
+    relatedTarget: sourceDomElement
+  });
+}
+
+/**
+ * Simulates dragging the fill handle from corner to a target element.
+ *
+ * @param {jQuery|HTMLElement|string} targetElement The target cell element to drag to.
+ * @param {object} [options] Additional options for the drag simulation.
+ * @param {number} [options.finish] Finish the drag simulation (default: true).
+ * @param {number} [options.offsetX] X offset from the center of the target element (default: 0).
+ * @param {number} [options.offsetY] Y offset from the center of the target element (default: 0).
+ * @param {jQuery|HTMLElement} [options.container] Container element (default: spec().$container).
+ */
+export function simulateFillHandleDrag(targetElement, options = {}) {
+  options.finish = options.finish ?? true;
+
+  simulateFillHandleDragStart(targetElement, options);
+  simulateFillHandleDragMove(targetElement, options);
+
+  if (options.finish) {
+    simulateFillHandleDragFinish(targetElement, options);
   }
 }
 

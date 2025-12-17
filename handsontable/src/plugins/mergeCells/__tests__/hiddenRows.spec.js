@@ -1378,8 +1378,8 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       // Click on the first visible cell (merged area).
       await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(1) td:eq(4)').simulate('mouseover').simulate('mouseup');
+
+      simulateFillHandleDrag(getCell(1, 4));
 
       // TODO Empty strings should be equal to the `null` probably.
       expect(getData()).toEqual([
@@ -1411,8 +1411,8 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       // Click on the first visible cell (merged area).
       await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(1) td:eq(4)').simulate('mouseover').simulate('mouseup');
+
+      simulateFillHandleDrag(getCell(1, 4));
 
       // TODO Empty strings should be equal to the `null` probably.
       expect(getData()).toEqual([
@@ -1444,8 +1444,8 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       // Click on the first visible cell (merged area).
       await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(1) td:eq(4)').simulate('mouseover').simulate('mouseup');
+
+      simulateFillHandleDrag(getCell(1, 4));
 
       // TODO Empty strings should be equal to the `null` probably.
       expect(getData()).toEqual([
@@ -1477,8 +1477,8 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       // Click on the first visible cell (merged area).
       await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(1) td:eq(4)').simulate('mouseover').simulate('mouseup');
+
+      simulateFillHandleDrag(getCell(1, 4));
 
       // TODO Empty strings should be equal to the `null` probably.
       expect(getData()).toEqual([
