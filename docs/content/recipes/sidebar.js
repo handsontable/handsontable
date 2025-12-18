@@ -12,6 +12,6 @@ module.exports = {
   sidebar: [
     //{ title: 'introduction', path: 'introduction', children: [] },
     'introduction',
-    { title: 'Cell Definitions', path: 'cells', children: cellsItems, collapsable: false },
+    { title: 'Cell Definitions', path: 'cells', children: cellsItems, collapsable: false, onlyFor: ['react', 'javascript'] },
   ],
 };
