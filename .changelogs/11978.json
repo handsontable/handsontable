@@ -4,5 +4,5 @@
   "type": "added",
   "issueOrPR": 11978,
   "breaking": false,
-  "framework": "react-wrapper"
+  "framework": "react"
 }
