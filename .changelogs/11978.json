@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Reacts Simple definition of custom editors using new `ComponentEditor`",
+  "type": "added",
+  "issueOrPR": 11978,
+  "breaking": false,
+  "framework": "react-wrapper"
+}
