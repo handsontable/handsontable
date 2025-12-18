@@ -25,7 +25,7 @@ describe('ContextMenu', () => {
     // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/context-menu/
 
     describe('menu opening', () => {
-      it('should open context menu in proper position in iframe', async() => {
+      it.forTheme('classic')('should open context menu in proper position in iframe', async() => {
         const iframeOutside = $('<iframe/>').css({ width: '500px', height: '500px' }).appendTo(spec().$container);
         const docOutside = iframeOutside[0].contentDocument;
 

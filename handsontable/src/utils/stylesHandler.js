@@ -1,9 +1,5 @@
 import { warn } from '../helpers/console';
 
-// TODO: Update this file to use the new theme builder.
-
-const CLASSIC_THEME_DEFAULT_HEIGHT = 23;
-
 /**
  * Handles the theme-related style operations.
  */
@@ -45,13 +41,6 @@ export class StylesHandler {
   #rootDocument;
 
   /**
-   * Whether the theme is inline styles.
-   *
-   * @type {boolean}
-   */
-  #isInlineStyles = false;
-
-  /**
    * An object to store CSS variable values.
    *
    * @type {object}
@@ -89,24 +78,6 @@ export class StylesHandler {
   }
 
   /**
-   * Sets the value of the `isInlineStyles` property.
-   *
-   * @param {boolean} isInlineStyles - The value to set for the `isInlineStyles` property.
-   */
-  setIsInlineStyles(isInlineStyles) {
-    this.#isInlineStyles = isInlineStyles;
-  }
-
-  /**
-   * Retrieves the value of the `isInlineStyles` property.
-   *
-   * @returns {boolean} The value of the `isInlineStyles` property.
-   */
-  getIsInlineStyles() {
-    return this.#isInlineStyles;
-  }
-
-  /**
    * Retrieves the value of a specified CSS variable.
    *
    * @param {string} variableName - The name of the CSS variable to retrieve.
@@ -135,7 +106,7 @@ export class StylesHandler {
    * @returns {number|string|undefined} The value of the specified CSS property, or `undefined` if not found.
    */
   getStyleForTD(cssProperty) {
-    return this.#computedStyles?.td[cssProperty];
+    return this.#computedStyles?.td?.[cssProperty];
   }
 
   /**
@@ -146,10 +117,6 @@ export class StylesHandler {
    */
   getDefaultRowHeight(visualRowIndex) {
     const rowHeight = this.#calculateRowHeight();
-
-    if (!rowHeight) {
-      return CLASSIC_THEME_DEFAULT_HEIGHT;
-    }
 
     if (
       visualRowIndex !== undefined &&
@@ -177,34 +144,20 @@ export class StylesHandler {
    * @param {string|undefined|boolean} [themeName] - The name of the theme to apply.
    */
   useTheme(themeName) {
-    if (!themeName || this.#isInlineStyles) {
-
-      this.#themeName = undefined;
-      this.#onThemeChange(this.#themeName, this.#isInlineStyles);
-      this.#cacheStylesheetValues();
+    if (!/ht-theme-.*/.test(themeName)) {
+      warn(`${themeName} isn't a valid theme name. Please ensure it follows the format ht-theme-<theme-name>.`);
 
       return;
     }
 
-    if (themeName && themeName !== this.#themeName && !this.#isInlineStyles) {
-      if (!/ht-theme-.*/.test(themeName)) {
-        warn(`Invalid theme name: ${themeName}. Please provide a valid theme name.`);
+    this.#clearCachedValues();
 
-        this.#themeName = undefined;
-        this.#onThemeChange(this.#themeName, this.#isInlineStyles);
-        this.#cacheStylesheetValues();
-
-        return;
-      }
-
-      if (this.#themeName) {
-        this.#clearCachedValues();
-      }
-
+    if (themeName && themeName !== this.#themeName) {
       this.#themeName = themeName;
-      this.#onThemeChange(this.#themeName, this.#isInlineStyles);
-      this.#cacheStylesheetValues();
     }
+
+    this.#onThemeChange(this.#themeName);
+    this.#cacheStylesheetValues();
   }
 
   /**
@@ -316,7 +269,7 @@ export class StylesHandler {
    * @returns {string|null} The value of the specified CSS property or `null` if non-existent.
    */
   #getCSSValue(property) {
-    const acquiredValue = this.#rootComputedStyle.getPropertyValue(property);
+    const acquiredValue = this.#rootComputedStyle?.getPropertyValue(property);
 
     return acquiredValue === '' ? null : acquiredValue;
   }

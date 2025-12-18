@@ -1,5 +1,4 @@
 import baseStyles from '../../themes/utils/styles';
-import { addClass } from '../../helpers/dom/element';
 import { iconsMap } from '../../themes/variables/helpers/iconsMap';
 import { toCssValue, flattenColors, toHyphen } from './helpers';
 
@@ -32,7 +31,7 @@ export class ThemeAPI {
    *
    * @type {string}
    */
-  stringInstanceID;
+  themeClassName;
   /**
    * The theme config.
    *
@@ -42,7 +41,29 @@ export class ThemeAPI {
 
   constructor({ instance, stringInstanceID, themeObject }) {
     this.instance = instance;
-    this.stringInstanceID = stringInstanceID;
+    this.themeClassName = `ht-theme-${stringInstanceID}`;
+
+    this.update(themeObject);
+  }
+
+  /**
+   * Gets the theme class name.
+   *
+   * @returns {string} The theme class name.
+   */
+  getClassName() {
+    return this.themeClassName;
+  }
+
+  /**
+   * Updates the theme API.
+   *
+   * @param {object} themeObject - The theme object.
+   */
+  update(themeObject) {
+    if (!this.instance) {
+      return;
+    }
 
     if (themeObject.getThemeConfig === undefined) {
       throw new Error('[ThemeAPI] The "theme" option must be an instance of ThemeBuilder.');
@@ -56,11 +77,12 @@ export class ThemeAPI {
         this.injectThemeStyles();
         this.instance.stylesHandler.clearCache();
         this.instance.render();
-        this.instance.runHooks('afterSetTheme', undefined, false);
+        this.instance.runHooks('afterSetTheme', this.themeClassName, false);
       });
     }
 
     this.mount();
+    this.instance.runHooks('afterSetTheme', this.themeClassName, true);
   }
 
   /**
@@ -72,24 +94,10 @@ export class ThemeAPI {
   }
 
   /**
-   * Sets the theme object.
-   *
-   * @param {object} themeObject - The theme object.
-   */
-  updateTheme(themeObject) {
-    if (themeObject.getThemeConfig === undefined) {
-      throw new Error('[ThemeAPI] The "theme" option must be an instance of ThemeBuilder.');
-    }
-
-    this.themeConfig = themeObject.getThemeConfig();
-    this.injectThemeStyles();
-  }
-
-  /**
    * Injects base styles into the document head.
    */
   injectBaseStyles() {
-    if (!this.instance.rootDocument || !this.instance.rootDocument.head) {
+    if (!this.instance || !this.instance.rootDocument || !this.instance.rootDocument.head) {
       return;
     }
 
@@ -111,14 +119,9 @@ export class ThemeAPI {
    * Injects theme styles into the DOM.
    */
   injectThemeStyles() {
-    if (!this.themeConfig) {
+    if (!this.themeConfig || !this.instance || !this.instance.rootDocument || !this.instance.rootWrapperElement) {
       return;
     }
-
-    const inlineThemeClassName = `ht-theme-${this.stringInstanceID}`;
-
-    addClass(this.instance.rootWrapperElement, inlineThemeClassName);
-    addClass(this.instance.rootPortalElement, inlineThemeClassName);
 
     const colorScheme = this.themeConfig.colorScheme === 'auto' ? 'light dark' : this.themeConfig.colorScheme;
 
@@ -128,7 +131,7 @@ export class ThemeAPI {
       this.themeStyles = this.instance.rootDocument.createElement('style');
     }
 
-    this.themeStyles.textContent = `:where(.${inlineThemeClassName}) {\n`;
+    this.themeStyles.textContent = `:where(.${this.themeClassName}) {\n`;
     this.themeStyles.textContent += `color-scheme: ${colorScheme};\n`;
     this.themeStyles.textContent += Object.entries(this.themeConfig.sizing || {}).map(
       ([key, value]) => `--ht-sizing-${toHyphen(key)}: ${value};`
@@ -165,5 +168,13 @@ export class ThemeAPI {
     if (this.themeStyles) {
       this.themeStyles.remove();
     }
+  }
+
+  /**
+   * Destroys the theme API.
+   */
+  destroy() {
+    this.unmount();
+    this.instance.themeAPI = null;
   }
 }

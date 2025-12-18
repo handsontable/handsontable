@@ -1,11 +1,14 @@
 import sizing from '../../themes/variables/sizing';
 import densitySizes from '../../themes/variables/density';
-import {
-  validateParams,
-  validateDensityType,
-  validateColorScheme,
-} from './helpers';
+import { validateParams, validateDensityType, validateColorScheme } from './helpers';
 import { isObject, deepClone, deepMerge } from '../../helpers/object';
+
+/**
+ * Config keys that support deep merging when updating theme params.
+ *
+ * @type {string[]}
+ */
+const MERGEABLE_CONFIG_KEYS = ['sizing', 'icons', 'colors', 'tokens'];
 
 /**
  * ThemeBuilder class provides methods to build and configure themes.
@@ -20,6 +23,7 @@ class ThemeBuilder {
    * @type {object}
    */
   #initThemeConfig;
+
   /**
    * Theme configuration object.
    *
@@ -79,9 +83,27 @@ class ThemeBuilder {
   #notifyChange() {
     const config = this.getThemeConfig();
 
-    this.#listeners.forEach((listener) => {
-      listener(config);
-    });
+    this.#listeners.forEach(listener => listener(config));
+  }
+
+  /**
+   * Applies density configuration from the params object.
+   *
+   * @private
+   * @param {object} config The config object to modify.
+   * @param {string|object} density The density value from params.
+   */
+  #applyDensityConfig(config, density) {
+    if (isObject(density)) {
+      config.density = deepMerge(config.density, density);
+
+      if (density.type !== undefined) {
+        this.#densityType = density.type;
+      }
+    } else if (typeof density === 'string') {
+      this.#densityType = density;
+      config.density.type = density;
+    }
   }
 
   /**
@@ -97,9 +119,7 @@ class ThemeBuilder {
 
     this.#listeners.add(listener);
 
-    return () => {
-      this.#listeners.delete(listener);
-    };
+    return () => this.#listeners.delete(listener);
   }
 
   /**
@@ -107,39 +127,32 @@ class ThemeBuilder {
    *
    * @param {object} paramsObject An object containing key-value pairs of parameters to set.
    * @returns {ThemeBuilder} Returns the ThemeBuilder instance for chaining.
-   *
    */
   params(paramsObject) {
     validateParams(paramsObject, 'params');
 
-    const config = deepClone(this.#initThemeConfig || this.#themeConfig);
+    const config = deepClone(this.#initThemeConfig ?? this.#themeConfig);
 
-    ['sizing', 'icons', 'colors', 'tokens'].forEach((key) => {
+    // Apply mergeable config keys
+    MERGEABLE_CONFIG_KEYS.forEach((key) => {
       if (paramsObject[key] !== undefined && isObject(paramsObject[key])) {
         config[key] = deepMerge(config[key], paramsObject[key]);
       }
     });
 
+    // Apply density (special handling for string or object)
     if (paramsObject.density !== undefined) {
-      if (isObject(paramsObject.density)) {
-        config.density = deepMerge(config.density, paramsObject.density);
-        this.#densityType = paramsObject.density.type;
-      } else if (typeof paramsObject.density === 'string') {
-        this.#densityType = paramsObject.density;
-        config.density.type = paramsObject.density;
-      }
+      this.#applyDensityConfig(config, paramsObject.density);
     }
 
+    // Apply color scheme
     if (paramsObject.colorScheme !== undefined) {
       this.#colorScheme = paramsObject.colorScheme;
       config.colorScheme = paramsObject.colorScheme;
     }
 
     this.#themeConfig = config;
-
-    if (!this.#initThemeConfig) {
-      this.#initThemeConfig = config;
-    }
+    this.#initThemeConfig ??= config;
 
     this.#notifyChange();
 

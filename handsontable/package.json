@@ -169,16 +169,13 @@
   "typings": "./index.d.ts",
   "handsontable": {
     "copy": [
-      "dist/handsontable.css",
-      "dist/handsontable.full.css",
       "dist/handsontable.full.js",
-      "dist/handsontable.full.min.css",
       "dist/handsontable.full.min.js",
       "dist/handsontable.js",
-      "dist/handsontable.min.css",
       "dist/handsontable.min.js",
       "dist/languages",
       "dist/themes",
+      "dist/chunks",
       "dist/README.md",
       "styles",
       "languages",

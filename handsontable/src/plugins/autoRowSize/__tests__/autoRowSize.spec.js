@@ -338,23 +338,23 @@ describe('AutoRowSize', () => {
     const hot1 = $container1.handsontable('getInstance');
     const hot2 = $container2.handsontable('getInstance');
 
-    expect(parseInt(hot1.getCell(0, 0).style.height, 10))
-      .toEqual(parseInt(hot2.getCell(0, 0).style.height, 10));
+    expect(hot1.getCell(0, 0).offsetHeight)
+      .toEqual(hot2.getCell(0, 0).offsetHeight);
 
     $container1.addClass('big');
     hot1.render();
     hot2.render();
 
-    expect(parseInt(hot1.getCell(2, 0).style.height, 10))
-      .toBeGreaterThan(parseInt(hot2.getCell(2, 0).style.height, 10));
+    expect(hot1.getCell(2, 0).offsetHeight)
+      .toBeGreaterThan(hot2.getCell(2, 0).offsetHeight);
 
     $container1.removeClass('big');
     hot1.render();
     $container2.addClass('big');
     hot2.render();
 
-    expect(parseInt(hot1.getCell(2, 0).style.height, 10))
-      .toBeLessThan(parseInt(hot2.getCell(2, 0).style.height, 10));
+    expect(hot1.getCell(2, 0).offsetHeight)
+      .toBeLessThan(hot2.getCell(2, 0).offsetHeight);
 
     $style.remove();
     $container1.handsontable('destroy');

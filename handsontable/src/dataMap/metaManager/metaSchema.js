@@ -4940,7 +4940,7 @@ export default () => {
      * - [Themes](@/guides/styling/themes/themes.md)
      *
      * @memberof Options#
-     * @type {string|boolean|undefined}
+     * @type {string|undefined}
      * @default undefined
      * @category Core
      * @since 15.0.0
@@ -4956,13 +4956,13 @@ export default () => {
      * The `theme` option allows enabling a theme.
      *
      * @memberof Options#
-     * @type {object|undefined}
-     * @default true
+     * @type {ThemeBuilder|string|undefined}
+     * @default undefined
      * @category Core
      * @since 17.0.0
      */
 
-    theme: true,
+    theme: undefined,
 
     /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.

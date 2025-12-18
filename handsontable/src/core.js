@@ -60,18 +60,8 @@ import {
 } from './utils/a11yAnnouncer';
 import { getValueSetterValue } from './utils/valueAccessors';
 import { createTheme } from './utils/themeBuilder';
-import mainIcons from './themes/variables/icons/main';
-import mainColors from './themes/variables/colors/main';
-import mainTokens from './themes/variables/tokens/main';
 
 let activeGuid = null;
-
-/**
- * A set of deprecated warn instances.
- *
- * @type {Set<string>}
- */
-const deprecatedWarnInstances = new WeakSet();
 
 /**
  * Keeps the collection of the all Handsontable instances created on the same page. The
@@ -360,18 +350,18 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     hot: instance,
     rootElement: instance.rootElement,
     rootDocument: instance.rootDocument,
-    onThemeChange: (validThemeName, isInlineStyles) => {
-      if (isRootInstance(this) && !isInlineStyles) {
+    onThemeChange: (themeName) => {
+      if (isRootInstance(this)) {
         removeClass(this.rootWrapperElement, /ht-theme-.*/g);
         removeClass(this.rootPortalElement, /ht-theme-.*/g);
 
-        if (validThemeName) {
-          addClass(this.rootWrapperElement, validThemeName);
-          addClass(this.rootPortalElement, validThemeName);
+        if (themeName) {
+          addClass(this.rootWrapperElement, themeName);
+          addClass(this.rootPortalElement, themeName);
 
           if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
-            warn(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
-              Import the correct CSS files in order to use that theme.`);
+            warn(`The "${themeName}" theme is enabled, but its stylesheets are missing` +
+              ' or not imported correctly. Import the correct CSS files in order to use that theme.');
           }
         }
       }
@@ -1373,37 +1363,57 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     };
 
     const theme = tableMeta.theme;
+    const themeName = tableMeta.themeName;
+    const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
 
     if (
       isRootInstance(instance) &&
-      !tableMeta.themeName && (isObject(theme) ||
-      (typeof theme === 'boolean' && theme === true))
+      !rootContainerThemeClassName &&
+      (isObject(theme) || (!theme && !themeName))
     ) {
-
-      instance.stylesHandler.setIsInlineStyles(true);
-
-      (async() => {
-        const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './utils/themeAPI');
-
-        const themeObject = typeof theme === 'boolean' ? createTheme({
-          icons: mainIcons,
-          colors: mainColors,
-          tokens: mainTokens,
-        }) : theme;
-
-        instance.themeAPI = new ThemeAPI({
-          instance,
-          stringInstanceID,
-          themeObject
-        });
-
-        initFunction();
-      })();
+      initializeThemeAPI(theme).then(initFunction);
     } else {
-      instance.stylesHandler.setIsInlineStyles(false);
       initFunction();
     }
   };
+
+  /**
+   * Initializes the ThemeAPI with the given theme configuration.
+   *
+   * @param {object|boolean} theme - The theme configuration object or `true` to use the default theme.
+   * @returns {Promise<void>}
+   */
+  async function initializeThemeAPI(theme) {
+    const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './utils/themeAPI');
+
+    let themeObject;
+
+    if (typeof theme === 'undefined') {
+      const { default: mainIcons } = await import(
+        /* webpackChunkName: "mainIcons" */ './themes/variables/icons/main'
+      );
+      const { default: mainColors } = await import(
+        /* webpackChunkName: "mainColors" */ './themes/variables/colors/main'
+      );
+      const { default: mainTokens } = await import(
+        /* webpackChunkName: "mainTokens" */ './themes/variables/tokens/main'
+      );
+
+      themeObject = createTheme({
+        icons: mainIcons,
+        colors: mainColors,
+        tokens: mainTokens,
+      });
+    } else {
+      themeObject = theme;
+    }
+
+    instance.themeAPI = new ThemeAPI({
+      instance,
+      stringInstanceID,
+      themeObject
+    });
+  }
 
   /**
    * @ignore
@@ -2795,38 +2805,59 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
-    if (init) {
-      const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
+    const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
+    const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
+    const themeOptionExists = hasOwnProperty(settings, 'theme');
 
-      if (typeof tableMeta.theme === 'string') {
-        instance.useTheme(tableMeta.theme);
-      } else if (tableMeta.themeName) {
-        instance.useTheme(tableMeta.themeName);
-      } else if (rootContainerThemeClassName) {
-        instance.useTheme(rootContainerThemeClassName);
-      } else {
-        instance.useTheme();
-      }
-    } else {
-      const currentThemeName = instance.getCurrentThemeName();
-      const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
-
-      if (
-        themeNameOptionExists &&
-        currentThemeName !== settings.themeName
-      ) {
-        instance.useTheme(settings.themeName);
-      }
-
-      const theme = settings.theme;
-
-      if (theme) {
-        instance.themeAPI.updateTheme(theme);
-      }
+    if (themeNameOptionExists && themeOptionExists) {
+      warn('Both `theme` and `themeName` are defined in your configuration. ' +
+      'These options are aliases and cannot be used together. ' +
+      'The `themeName` option will be ignored.');
     }
 
-    if (deprecatedWarnInstances.has(instance) && instance.stylesHandler.getThemeName() !== undefined) {
-      deprecatedWarnInstances.delete(instance);
+    // Update the theme via the `theme` or `themeName` option as a string or undefined.
+    if (init) {
+      let themeName;
+
+      if (themeOptionExists && typeof settings.theme === 'string') {
+        themeName = settings.theme;
+      } else if (themeNameOptionExists && !themeOptionExists) {
+        themeName = settings.themeName;
+      } else if (rootContainerThemeClassName) {
+        themeName = rootContainerThemeClassName;
+      } else if (instance.themeAPI) {
+        themeName = instance.themeAPI.getClassName();
+      }
+
+      instance.useTheme(themeName);
+    } else {
+      const currentThemeName = instance.getCurrentThemeName();
+
+      // Use `theme` option if it's a string and differs from current theme (takes priority over `themeName`).
+      if (themeOptionExists && typeof settings.theme === 'string' && currentThemeName !== settings.theme) {
+        instance.useTheme(settings.theme);
+        instance.themeAPI?.unmount();
+
+      // Use `themeName` option if `theme` is not provided and the name differs from current theme.
+      } else if (themeNameOptionExists && !themeOptionExists && currentThemeName !== settings.themeName) {
+        instance.useTheme(settings.themeName);
+        instance.themeAPI?.unmount();
+
+      // Initialize or update the themeAPI when theme is an object or no theme options are defined.
+      } else if (
+        isRootInstance(instance) &&
+        !rootContainerThemeClassName &&
+        (isObject(settings.theme) || (!themeNameOptionExists && !themeOptionExists))
+      ) {
+        if (instance.themeAPI === null) {
+          initializeThemeAPI(settings.theme).then(() => {
+            instance.useTheme(instance.themeAPI.getClassName());
+          });
+        } else {
+          instance.themeAPI.update(settings.theme);
+          instance.useTheme(instance.themeAPI.getClassName());
+        }
+      }
     }
 
     // Load data or create data map
@@ -4899,6 +4930,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     if (isRootInstance(this)) {
       uninstallAccessibilityAnnouncer();
       this.getFocusScopeManager().destroy();
+
+      if (instance.themeAPI) {
+        instance.themeAPI.destroy();
+      }
     }
 
     this.getShortcutManager().destroy();
@@ -5342,25 +5377,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     this.stylesHandler.useTheme(themeName);
 
-    const isInlineStyles = this.stylesHandler.getIsInlineStyles();
-
-    if (isInlineStyles) {
-      return;
-    }
-
     const validThemeName = this.stylesHandler.getThemeName();
 
-    if (!isFirstRun) {
-      instance.render();
-      instance.scrollViewportTo(0, 0);
-
+    if (!isFirstRun && validThemeName) {
       if (getThemeClassName(this.rootContainer)) {
         removeClass(this.rootContainer, /ht-theme-.*/g);
-
-        if (validThemeName) {
-          addClass(this.rootContainer, validThemeName);
-        }
+        addClass(this.rootContainer, validThemeName);
       }
+
+      instance.render();
+      instance.scrollViewportTo(0, 0);
     }
 
     this.runHooks('afterSetTheme', validThemeName, isFirstRun);
