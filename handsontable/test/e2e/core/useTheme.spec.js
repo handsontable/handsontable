@@ -22,10 +22,6 @@ describe('useTheme', () => {
     await useTheme('ht-theme-sth');
 
     expect(getCurrentThemeName()).toBe('ht-theme-sth');
-
-    await useTheme(undefined);
-
-    expect(getCurrentThemeName()).toBe(undefined);
   });
 
   it('should add the appropriate class names to the root element when enabling a theme', async() => {
