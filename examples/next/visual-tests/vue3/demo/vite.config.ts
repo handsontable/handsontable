@@ -8,7 +8,6 @@ export default defineConfig({
   plugins: [
     viteStaticCopy({
       targets: [
-        { src: '../node_modules/handsontable/dist/*.css', dest: 'assets/handsontable/dist' },
         { src: '../node_modules/handsontable/styles/*.css', dest: 'assets/handsontable/styles' },
       ]
     }),
