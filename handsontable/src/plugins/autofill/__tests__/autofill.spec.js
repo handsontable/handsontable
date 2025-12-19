@@ -1684,8 +1684,8 @@ describe('AutoFill', () => {
 
     describe('-> updating settings on 2. instance of Handsontable', () => {
       beforeAll(() => {
-        $container2.handsontable('updateSettings', { 
-          fillHandle: 'vertical', themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}` 
+        $container2.handsontable('updateSettings', {
+          fillHandle: 'vertical', themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
         });
       });
 

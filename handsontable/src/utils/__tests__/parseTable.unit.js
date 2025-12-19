@@ -6,7 +6,7 @@ registerCellType(TextCellType);
 
 describe('instanceToHTML', () => {
   it('should convert clear instance into HTML table', () => {
-    const hot = new Handsontable(document.createElement('div'), {theme: 'ht-theme-classic'});
+    const hot = new Handsontable(document.createElement('div'), { theme: 'ht-theme-classic' });
 
     expect(instanceToHTML(hot)).toBe([
       '<table><tbody>',
