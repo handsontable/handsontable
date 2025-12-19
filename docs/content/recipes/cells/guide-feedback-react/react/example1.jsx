@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { HotTable, HotColumn, EditorComponent } from '@handsontable/react-wrapper';
+import { useState, useEffect, useCallback, useContext } from 'react';
+import { HotTable, HotColumn, EditorComponent, EditorContext } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
@@ -25,6 +25,7 @@ export const data = inputData.map((el) => ({
 export const FeedbackEditor = () => {
   const [config, setConfig] = useState(['👍', '👎', '🤷‍♂️']);
   const [shortcuts, setShortcuts] = useState([]);
+  const { hotCustomEditorInstanceRef } = useContext(EditorContext);
   const onPrepare = (_row, _column, _prop, _TD, _originalValue, cellProperties) => {
     setConfig(cellProperties.config);
   };
@@ -66,48 +67,10 @@ export const FeedbackEditor = () => {
     [config]
   );
 
-  // const onClose = () => console.log('onClose');
-  // const onOpen = () => console.log('onOpen');
-  // const onFocus = () => console.log('onFocus');
   return (
     <EditorComponent onPrepare={onPrepare} shortcuts={shortcuts}>
       {({ value, setValue, finishEditing }) => (
         <>
-          <style>
-            {`
-            .editor {
-              box-sizing: border-box;
-              display: flex;
-              gap: 3px;
-              padding: 3px;
-              background: rgb(238, 238, 238);
-              border: 1px solid rgb(204, 204, 204);
-              border-radius: 4px;
-              height: 100%;
-              width: 100%;
-            }
-            .button.active:hover,
-            .button.active {
-              background: #007bff;
-              color: white;
-            }
-            .button:hover {
-              background: #f0f0f0;
-            }
-            .button {
-              background: #fff;
-              color: black;
-              border:none;
-              padding: 0;
-              margin: 0;
-              height: 100%;
-              width: 100%;
-              font-size: 16px;
-              font-weight: bold;
-              text-align: center;
-              cursor: pointer;
-            }`}
-          </style>
           <div className="editor">
             {config.map((item, _index, _array) => (
               <button

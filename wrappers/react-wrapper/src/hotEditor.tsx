@@ -53,8 +53,7 @@ export function makeEditorClass(
 ): typeof Handsontable.editors.BaseEditor {
   return class CustomEditor
     extends Handsontable.editors.BaseEditor
-    implements Handsontable.editors.BaseEditor
-  {
+    implements Handsontable.editors.BaseEditor {
     private value: any;
 
     constructor(hotInstance: Handsontable.Core) {
@@ -96,7 +95,7 @@ export function makeEditorClass(
       });
     }
 
-    focus() {}
+    focus() { }
 
     getValue() {
       return this.value;
@@ -106,9 +105,9 @@ export function makeEditorClass(
       this.value = newValue;
     }
 
-    open() {}
+    open() { }
 
-    close() {}
+    close() { }
   };
 }
 
@@ -120,7 +119,7 @@ interface EditorContextType {
 /**
  * Context to provide Handsontable-native custom editor class instance to overridden hooks object.
  */
-const EditorContext = createContext<EditorContextType | undefined>(
+export const EditorContext = createContext<EditorContextType | undefined>(
   undefined
 );
 
@@ -230,7 +229,7 @@ type EditorComponentProps = {
   shortcutsGroup?: string;
   shortcuts?: {
     keys: string[][];
-    callback: (props:any, event: KeyboardEvent) => boolean | void;
+    callback: (props: any, event: KeyboardEvent) => boolean | void;
     group?: string;
     runOnlyIf?: () => boolean;
     captureCtrl?: boolean;
@@ -253,15 +252,16 @@ export function EditorComponent<T = any>({
   shortcuts,
 }: EditorComponentProps & { children?: EditorRenderProp<T> }): React.ReactElement {
   const mainElementRef = useRef<HTMLDivElement>(null);
-  const instance = useRef<Handsontable.Core>(null);
+  //const instance = useRef<Handsontable.Core>(null);
   const currentValue = useRef<T>(undefined);
+  const { hotCustomEditorInstanceRef } = useContext(EditorContext)!;
 
   const registerShortcuts = useCallback(() => {
-    if (!instance.current) return;
+    if (!hotCustomEditorInstanceRef.current?.hot) return;
 
-    instance.current?.getShortcutManager().setActiveContextName("editor");
+    hotCustomEditorInstanceRef.current?.hot?.getShortcutManager().setActiveContextName("editor");
 
-    const shortcutManager = instance.current.getShortcutManager();
+    const shortcutManager = hotCustomEditorInstanceRef.current?.hot?.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
     const contextConfig = {
       group: shortcutsGroup,
@@ -285,9 +285,9 @@ export function EditorComponent<T = any>({
 
 
   const unRegisterShortcuts = useCallback(() => {
-    if (!instance.current) return;
-   
-    const shortcutManager = instance.current.getShortcutManager();
+    if (!hotCustomEditorInstanceRef.current?.hot) return;
+
+    const shortcutManager = hotCustomEditorInstanceRef.current?.hot?.getShortcutManager();
     const editorContext = shortcutManager.getContext("editor")!;
     editorContext.removeShortcutsByGroup(shortcutsGroup);
 
@@ -307,19 +307,13 @@ export function EditorComponent<T = any>({
       unRegisterShortcuts();
     },
     onPrepare: (_row, _column, _prop, TD, _originalValue, _cellProperties) => {
-      //@ts-ignore
-      instance.current = _cellProperties.instance;
-      const tdPosition = TD.getBoundingClientRect();
-      const rect = _cellProperties.editor;
+
       if (!mainElementRef.current) return;
-
-      // TODO: Implement RTL support, fix wrapper to get editor instance and use `const rect = editor.getEditedCellRect();` 
-      //mainElementRef.current.style[_cellProperties.instance.isRtl() ? 'right' : 'left'] = `${tdPosition.left}px`;
-
+      const tdPosition = TD.getBoundingClientRect();
       mainElementRef.current.style.left = `${tdPosition.left + window.pageXOffset - 1}px`;
       mainElementRef.current.style.top = `${tdPosition.top + window.pageYOffset - 1}px`;
-      mainElementRef.current.style.width = `${tdPosition.width}px`;
-      mainElementRef.current.style.height = `${tdPosition.height}px`;
+      mainElementRef.current.style.width = `${tdPosition.width + 1}px`;
+      mainElementRef.current.style.height = `${tdPosition.height + 1}px`;
       onPrepare?.(_row, _column, _prop, TD, _originalValue, _cellProperties);
     },
     onFocus: () => {
