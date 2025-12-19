@@ -252,7 +252,6 @@ export function EditorComponent<T = any>({
   shortcuts,
 }: EditorComponentProps & { children?: EditorRenderProp<T> }): React.ReactElement {
   const mainElementRef = useRef<HTMLDivElement>(null);
-  //const instance = useRef<Handsontable.Core>(null);
   const currentValue = useRef<T>(undefined);
   const { hotCustomEditorInstanceRef } = useContext(EditorContext)!;
 
