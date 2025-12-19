@@ -2823,6 +2823,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         themeName = settings.theme;
       } else if (themeNameOptionExists && !themeOptionExists) {
         themeName = settings.themeName;
+        tableMeta.theme = settings.themeName;
+        tableMeta.themeName = undefined;
       } else if (rootContainerThemeClassName) {
         themeName = rootContainerThemeClassName;
       } else if (instance.themeAPI) {
@@ -2840,14 +2842,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
       // Use `themeName` option if `theme` is not provided and the name differs from current theme.
       } else if (themeNameOptionExists && !themeOptionExists && currentThemeName !== settings.themeName) {
+        tableMeta.theme = settings.themeName;
+        tableMeta.themeName = undefined;
         instance.useTheme(settings.themeName);
         instance.themeAPI?.unmount();
 
-      // Initialize or update the themeAPI when theme is an object or no theme options are defined.
+      // Initialize or update the themeAPI when theme is an object.
       } else if (
         isRootInstance(instance) &&
         !rootContainerThemeClassName &&
-        (isObject(settings.theme) || (!themeNameOptionExists && !themeOptionExists))
+        isObject(settings.theme)
       ) {
         if (instance.themeAPI === null) {
           initializeThemeAPI(settings.theme).then(() => {
