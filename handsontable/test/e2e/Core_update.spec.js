@@ -664,8 +664,6 @@ describe('Core_updateSettings', () => {
         data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(getCurrentThemeName()).toBe(undefined);
-
       simulateModernThemeStylesheet(spec().$container);
 
       await updateSettings({

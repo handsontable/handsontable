@@ -610,7 +610,8 @@ describe('Comments', () => {
         },
         cell: [
           { row: 1, col: 1, comment: { value: 'Some comment' } },
-        ]
+        ],
+        themeName: spec()?.loadedTheme || 'ht-theme-classic',
       });
 
       testContainer
