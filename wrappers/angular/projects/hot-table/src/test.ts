@@ -21,3 +21,6 @@ getTestBed().initTestEnvironment(
   platformBrowserDynamicTesting(),
   { teardown: { destroyAfterEach: true }},
 );
+
+// Set up the theme for Handsontable tests
+document.body.classList.add('ht-theme-main');
