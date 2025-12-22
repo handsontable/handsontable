@@ -57,7 +57,9 @@ class ThemeBuilder {
   #densityType = 'default';
 
   /**
-   * @param {object} baseTheme The base theme object with sizing, icons, density, colors, and tokens properties.
+   * The theme builder constructor.
+   *
+   * @param {object} baseTheme - The base theme object with `sizing`, `density`, `icons`, `colors`, `tokens`, and `colorScheme` properties.
    */
   constructor(baseTheme) {
     this.#themeConfig = {
@@ -97,12 +99,19 @@ class ThemeBuilder {
     if (isObject(density)) {
       config.density = deepMerge(config.density, density);
 
-      if (density.type !== undefined) {
-        this.#densityType = density.type;
+      this.#densityType = density.type;
+
+      if (this.#initThemeConfig?.density) {
+        this.#initThemeConfig.density.type = density.type;
       }
     } else if (typeof density === 'string') {
-      this.#densityType = density;
       config.density.type = density;
+
+      this.#densityType = density;
+
+      if (this.#initThemeConfig?.density) {
+        this.#initThemeConfig.density.type = density;
+      }
     }
   }
 
@@ -147,8 +156,13 @@ class ThemeBuilder {
 
     // Apply color scheme
     if (paramsObject.colorScheme !== undefined) {
-      this.#colorScheme = paramsObject.colorScheme;
       config.colorScheme = paramsObject.colorScheme;
+
+      this.#colorScheme = paramsObject.colorScheme;
+
+      if (this.#initThemeConfig?.colorScheme) {
+        this.#initThemeConfig.colorScheme = paramsObject.colorScheme;
+      }
     }
 
     this.#themeConfig = config;
@@ -173,6 +187,7 @@ class ThemeBuilder {
   setColorScheme(mode) {
     this.#colorScheme = validateColorScheme(mode);
     this.#themeConfig.colorScheme = this.#colorScheme;
+    this.#initThemeConfig.colorScheme = this.#colorScheme;
 
     this.#notifyChange();
 
@@ -193,6 +208,7 @@ class ThemeBuilder {
   setDensityType(type) {
     this.#densityType = validateDensityType(type);
     this.#themeConfig.density.type = this.#densityType;
+    this.#initThemeConfig.density.type = this.#densityType;
 
     this.#notifyChange();
 

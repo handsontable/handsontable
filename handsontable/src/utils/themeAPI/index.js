@@ -1,6 +1,6 @@
 import baseStyles from '../../themes/utils/styles';
 import { iconsMap } from '../../themes/variables/helpers/iconsMap';
-import { toCssValue, flattenColors, toHyphen } from './helpers';
+import { flattenCssVariables } from './helpers';
 
 /**
  * ThemeAPI class.
@@ -39,6 +39,14 @@ export class ThemeAPI {
    */
   themeConfig;
 
+  /**
+   * The theme API constructor.
+   *
+   * @param {object} options - The options object.
+   * @param {Instance} options.instance - The instance.
+   * @param {string} options.stringInstanceID - The string instance ID.
+   * @param {object} options.themeObject - The theme object.
+   */
   constructor({ instance, stringInstanceID, themeObject }) {
     this.instance = instance;
     this.themeClassName = `ht-theme-${stringInstanceID}`;
@@ -133,21 +141,35 @@ export class ThemeAPI {
 
     this.themeStyles.textContent = `:where(.${this.themeClassName}) {\n`;
     this.themeStyles.textContent += `color-scheme: ${colorScheme};\n`;
-    this.themeStyles.textContent += Object.entries(this.themeConfig.sizing || {}).map(
-      ([key, value]) => `--ht-sizing-${toHyphen(key)}: ${value};`
-    ).join('\n');
-    this.themeStyles.textContent += '\n';
-    this.themeStyles.textContent += Object.entries(
-      this.themeConfig.density.sizes[this.themeConfig.density.type] || {}
-    ).map(
-      ([key, value]) => `--ht-density-${toHyphen(key)}: ${toCssValue(value)};`
-    ).join('\n');
-    this.themeStyles.textContent += '\n';
-    this.themeStyles.textContent += flattenColors(this.themeConfig.colors || {});
-    this.themeStyles.textContent += Object.entries(this.themeConfig.tokens || {}).map(
-      ([key, value]) => `--ht-${toHyphen(key)}: ${toCssValue(value)};`
-    ).join('\n');
-    this.themeStyles.textContent += iconsMap(this.themeConfig.icons || {});
+
+    if (this.themeConfig.sizing) {
+      this.themeStyles.textContent += flattenCssVariables(this.themeConfig.sizing, 'sizing');
+    }
+
+    if (
+      this.themeConfig.density &&
+      this.themeConfig.density.type &&
+      this.themeConfig.density.sizes &&
+      this.themeConfig.density.sizes[this.themeConfig.density.type]
+    ) {
+      this.themeStyles.textContent += flattenCssVariables(
+        this.themeConfig.density.sizes[this.themeConfig.density.type],
+        'density'
+      );
+    }
+
+    if (this.themeConfig.colors) {
+      this.themeStyles.textContent += flattenCssVariables(this.themeConfig.colors, 'colors');
+    }
+
+    if (this.themeConfig.tokens) {
+      this.themeStyles.textContent += flattenCssVariables(this.themeConfig.tokens);
+    }
+
+    if (this.themeConfig.icons) {
+      this.themeStyles.textContent += iconsMap(this.themeConfig.icons);
+    }
+
     this.themeStyles.textContent += '}';
 
     if (this.instance.rootWrapperElement && this.instance.rootWrapperElement.querySelector('style')) {

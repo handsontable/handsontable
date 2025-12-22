@@ -12,6 +12,10 @@ const VAR_REFERENCE_PREFIXES = ['themes.', 'colors.', 'sizing.', 'density.'];
  * @returns {string} - The converted string.
  */
 export function toHyphen(str) {
+  if (typeof str !== 'string') {
+    return str;
+  }
+
   return str.replace(/([A-Z])/g, '-$1').replace(/_/g, '-').toLowerCase();
 }
 
@@ -22,7 +26,7 @@ export function toHyphen(str) {
  * @returns {boolean} - True if the object is an object, false otherwise.
  */
 export function isObject(object) {
-  return Object.prototype.toString.call(object) === '[object Object]';
+  return Object.prototype.toString.call(object) === '[object Object]' && object !== null && !Array.isArray(object);
 }
 
 /**
@@ -51,6 +55,17 @@ function toVarReference(path) {
 }
 
 /**
+ * Converts a key to a CSS variable key.
+ *
+ * @param {string} prefix - The prefix to add to the CSS variable.
+ * @param {string} key - The key to convert.
+ * @returns {string} - The CSS variable key.
+ */
+export function toCssKey(prefix, key) {
+  return `--ht-${prefix ? `${prefix}-` : ''}${toHyphen(key)}`;
+}
+
+/**
  * Converts a value to a CSS variable declaration value.
  * Handles variable references, light/dark objects, and plain values.
  *
@@ -62,48 +77,62 @@ export function toCssValue(value) {
     return toVarReference(value);
   }
 
-  if (isObject(value) && value !== null && !Array.isArray(value)) {
-    if (value.light && value.dark) {
-      return `light-dark(${toCssValue(value.light)}, ${toCssValue(value.dark)})`;
+  if (Array.isArray(value)) {
+    if (value.length >= 2) {
+      const [light, dark] = value;
+
+      if (typeof light === 'string' && typeof dark === 'string') {
+        return `light-dark(${toCssValue(light)}, ${toCssValue(dark)})`;
+      }
+
+      if (typeof light === 'string') {
+        return toCssValue(light);
+      }
+
+      if (typeof dark === 'string') {
+        return toCssValue(dark);
+      }
+
+      return '';
     }
 
-    if (value.light) {
-      return toCssValue(value.light);
-    }
-
-    if (value.dark) {
-      return toCssValue(value.dark);
-    }
-
-    return '';
+    return toCssValue(value[0]);
   }
 
-  return typeof value === 'string' ? toHyphen(value) : value;
+  return toHyphen(value);
 }
 
 /**
- * Flattens the colors object into a string of CSS variables.
+ * Converts a key and value to a CSS variable line.
  *
- * @param {object} obj - The object to flatten.
+ * @param {string} prefix - The prefix to add to the CSS variable.
+ * @param {string} key - The key to convert.
+ * @param {string} value - The value to convert.
+ * @returns {string} - The CSS variable line.
+ */
+export function toCssLine(prefix, key, value) {
+  return `${toCssKey(prefix, key)}: ${toCssValue(value)};`;
+}
+
+/**
+ * Flattens the css variables object into a string of CSS variables.
+ *
+ * @param {object} cssVariables - The css variables object to flatten.
  * @param {string} [prefix='colors'] - The prefix to add to the CSS variables.
  * @param {string} [parentKey=''] - The parent key to add to the CSS variables.
- * @returns {string} - The flattened CSS variables.
+ * @returns {string} - The flattened css variables.
  */
-export function flattenColors(obj, prefix = 'colors', parentKey = '') {
+export function flattenCssVariables(cssVariables, prefix = '', parentKey = '') {
   let cssVars = '';
 
-  Object.entries(obj).forEach(([key, value]) => {
+  Object.entries(cssVariables).forEach(([key, value]) => {
     const normalizedKey = toHyphen(key);
     const fullKey = parentKey ? `${parentKey}-${normalizedKey}` : normalizedKey;
 
-    if (isObject(value) && value !== null && !Array.isArray(value)) {
-      // Recursively process nested objects
-      cssVars += flattenColors(value, prefix, fullKey);
+    if (isObject(value)) {
+      cssVars += flattenCssVariables(value, prefix, fullKey);
     } else {
-      const cssKey = `--ht-${prefix}-${fullKey}`;
-      const cssValue = typeof value === 'string' ? toHyphen(value) : value;
-
-      cssVars += `${cssKey}: ${cssValue};\n`;
+      cssVars += `${toCssLine(prefix, fullKey, value)}\n`;
     }
   });
 

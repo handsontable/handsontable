@@ -1,7 +1,4 @@
-export type ThemeLightDarkValue = {
-  light?: string;
-  dark?: string;
-};
+export type ThemeLightDarkValue = [string, string];
 
 export type SizingKey =
   | 'size0'

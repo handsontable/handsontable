@@ -8,46 +8,16 @@ export default {
   gapSize: "density.gap",
   iconSize: "sizing.size_4",
   tableTransition: "0.15s",
-  borderColor: {
-    light: "colors.palette.100",
-    dark: "colors.palette.700"
-  },
-  accentColor: {
-    light: "colors.primary.500",
-    dark: "colors.primary.300"
-  },
-  foregroundColor: {
-    light: "colors.palette.800",
-    dark: "colors.palette.300"
-  },
-  foregroundSecondaryColor: {
-    light: "colors.palette.400",
-    dark: "colors.palette.300"
-  },
-  backgroundColor: {
-    light: "colors.white",
-    dark: "colors.palette.950"
-  },
-  backgroundSecondaryColor: {
-    light: "colors.palette.50",
-    dark: "colors.palette.900"
-  },
-  placeholderColor: {
-    light: "colors.palette.300",
-    dark: "colors.palette.400"
-  },
-  readOnlyColor: {
-    light: "colors.palette.400",
-    dark: "colors.palette.300"
-  },
-  disabledColor: {
-    light: "colors.palette.300",
-    dark: "colors.palette.400"
-  },
-  shadowColor: {
-    light: "colors.palette.800",
-    dark: "colors.palette.300"
-  },
+  borderColor: ["colors.palette.100", "colors.palette.700"],
+  accentColor: ["colors.primary.500", "colors.primary.300"],
+  foregroundColor: ["colors.palette.800", "colors.palette.300"],
+  foregroundSecondaryColor: ["colors.palette.400", "colors.palette.300"],
+  backgroundColor: ["colors.white", "colors.palette.950"],
+  backgroundSecondaryColor: ["colors.palette.50", "colors.palette.900"],
+  placeholderColor: ["colors.palette.300", "colors.palette.400"],
+  readOnlyColor: ["colors.palette.400", "colors.palette.300"],
+  disabledColor: ["colors.palette.300", "colors.palette.400"],
+  shadowColor: ["colors.palette.800", "colors.palette.300"],
   shadowX: "sizing.size_0",
   shadowY: "sizing.size_2",
   shadowBlur: "sizing.size_4",
@@ -69,10 +39,7 @@ export default {
   cellVerticalPadding: "density.cellVertical",
   cellEditorBorderWidth: "2px",
   cellEditorBorderColor: "themes.accentColor",
-  cellEditorForegroundColor: {
-    light: "colors.palette.950",
-    dark: "colors.white"
-  },
+  cellEditorForegroundColor: ["colors.palette.950", "colors.white"],
   cellEditorBackgroundColor: "themes.backgroundColor",
   cellEditorShadowBlurRadius: "0px",
   cellEditorShadowColor: "themes.accentColor",
@@ -80,10 +47,7 @@ export default {
   cellErrorBackgroundColor: "#fa4d3233",
   cellReadOnlyBackgroundColor: "themes.backgroundSecondaryColor",
   cellSelectionBorderColor: "themes.accentColor",
-  cellSelectionBackgroundColor: {
-    light: "colors.primary.400",
-    dark: "colors.primary.200"
-  },
+  cellSelectionBackgroundColor: ["colors.primary.400", "colors.primary.200"],
   cellAutofillSize: "sizing.size_1_5",
   cellAutofillHitAreaSize: "sizing.size_3",
   cellAutofillBorderWidth: "sizing.size_0_25",
@@ -95,116 +59,59 @@ export default {
   cellMobileHandleBorderWidth: "sizing.size_0_25",
   cellMobileHandleBorderRadius: "sizing.size_3",
   cellMobileHandleBackgroundOpacity: "40%",
-  resizeIndicatorColor: {
-    light: "colors.palette.300",
-    dark: "colors.palette.400"
-  },
-  moveBacklightColor: {
-    light: "colors.palette.800",
-    dark: "colors.palette.300"
-  },
+  resizeIndicatorColor: ["colors.palette.300", "colors.palette.400"],
+  moveBacklightColor: ["colors.palette.800", "colors.palette.300"],
   moveBacklightOpacity: "8%",
   moveIndicatorColor: "themes.accentColor",
-  hiddenIndicatorColor: {
-    light: "colors.palette.300",
-    dark: "colors.palette.400"
-  },
+  hiddenIndicatorColor: ["colors.palette.300", "colors.palette.400"],
   scrollbarBorderRadius: "sizing.size_2",
   scrollbarTrackColor: "themes.backgroundSecondaryColor",
-  scrollbarThumbColor: {
-    light: "colors.palette.300",
-    dark: "colors.palette.400"
-  },
+  scrollbarThumbColor: ["colors.palette.300", "colors.palette.400"],
   headerFontWeight: "themes.fontWeight",
   headerForegroundColor: "themes.foregroundColor",
   headerBackgroundColor: "themes.backgroundSecondaryColor",
   headerHighlightedShadowSize: "0px",
-  headerHighlightedForegroundColor: {
-    light: "colors.palette.950",
-    dark: "colors.white"
-  },
-  headerHighlightedBackgroundColor: {
-    light: "colors.palette.100",
-    dark: "colors.palette.700"
-  },
-  headerActiveBorderColor: {
-    light: "colors.primary.400",
-    dark: "colors.primary.200"
-  },
+  headerHighlightedForegroundColor: ["colors.palette.950", "colors.white"],
+  headerHighlightedBackgroundColor: ["colors.palette.100", "colors.palette.700"],
+  headerActiveBorderColor: ["colors.primary.400", "colors.primary.200"],
   headerActiveForegroundColor: "colors.white",
   headerActiveBackgroundColor: "themes.accentColor",
   headerFilterBackgroundColor: "themes.cellSuccessBackgroundColor",
   headerRowForegroundColor: "themes.foregroundColor",
   headerRowBackgroundColor: "themes.backgroundSecondaryColor",
-  headerRowHighlightedForegroundColor: {
-    light: "colors.palette.950",
-    dark: "colors.white"
-  },
-  headerRowHighlightedBackgroundColor: {
-    light: "colors.palette.100",
-    dark: "colors.palette.700"
-  },
+  headerRowHighlightedForegroundColor: ["colors.palette.950", "colors.white"],
+  headerRowHighlightedBackgroundColor: ["colors.palette.100", "colors.palette.700"],
   headerRowActiveForegroundColor: "themes.backgroundColor",
   headerRowActiveBackgroundColor: "themes.accentColor",
   checkboxSize: "themes.iconSize",
   checkboxBorderRadius: "sizing.size_1",
-  checkboxBorderColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.500"
-  },
+  checkboxBorderColor: ["colors.palette.200", "colors.palette.500"],
   checkboxBackgroundColor: "themes.backgroundColor",
   checkboxIconColor: "colors.transparent",
-  checkboxFocusBorderColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.500"
-  },
+  checkboxFocusBorderColor: ["colors.palette.200", "colors.palette.500"],
   checkboxFocusBackgroundColor: "themes.backgroundColor",
   checkboxFocusIconColor: "colors.transparent",
   checkboxFocusRingColor: "themes.accentColor",
-  checkboxDisabledBorderColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.500"
-  },
-  checkboxDisabledBackgroundColor: {
-    light: "colors.palette.100",
-    dark: "colors.palette.700"
-  },
+  checkboxDisabledBorderColor: ["colors.palette.200", "colors.palette.500"],
+  checkboxDisabledBackgroundColor: ["colors.palette.100", "colors.palette.700"],
   checkboxDisabledIconColor: "colors.transparent",
-  checkboxCheckedBorderColor: {
-    light: "colors.primary.400",
-    dark: "colors.primary.200"
-  },
+  checkboxCheckedBorderColor: ["colors.primary.400", "colors.primary.200"],
   checkboxCheckedBackgroundColor: "themes.accentColor",
   checkboxCheckedIconColor: "colors.white",
   checkboxCheckedFocusBorderColor: "themes.backgroundColor",
   checkboxCheckedFocusBackgroundColor: "themes.accentColor",
   checkboxCheckedFocusIconColor: "colors.white",
-  checkboxCheckedDisabledBorderColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.500"
-  },
-  checkboxCheckedDisabledBackgroundColor: {
-    light: "colors.palette.100",
-    dark: "colors.palette.700"
-  },
+  checkboxCheckedDisabledBorderColor: ["colors.palette.200", "colors.palette.500"],
+  checkboxCheckedDisabledBackgroundColor: ["colors.palette.100", "colors.palette.700"],
   checkboxCheckedDisabledIconColor: "themes.disabledColor",
-  checkboxIndeterminateBorderColor: {
-    light: "colors.primary.400",
-    dark: "colors.primary.200"
-  },
+  checkboxIndeterminateBorderColor: ["colors.primary.400", "colors.primary.200"],
   checkboxIndeterminateBackgroundColor: "themes.accentColor",
   checkboxIndeterminateIconColor: "colors.white",
   checkboxIndeterminateFocusBorderColor: "themes.backgroundColor",
   checkboxIndeterminateFocusBackgroundColor: "themes.accentColor",
   checkboxIndeterminateFocusIconColor: "colors.white",
-  checkboxIndeterminateDisabledBorderColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.600"
-  },
-  checkboxIndeterminateDisabledBackgroundColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.500"
-  },
+  checkboxIndeterminateDisabledBorderColor: ["colors.palette.200", "colors.palette.600"],
+  checkboxIndeterminateDisabledBackgroundColor: ["colors.palette.200", "colors.palette.500"],
   checkboxIndeterminateDisabledIconColor: "themes.disabledColor",
   radioSize: "themes.iconSize",
   radioBorderColor: "themes.borderColor",
@@ -214,140 +121,50 @@ export default {
   radioFocusBackgroundColor: "themes.backgroundColor",
   radioFocusIconColor: "colors.transparent",
   radioFocusRingColor: "themes.accentColor",
-  radioDisabledBorderColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.500"
-  },
-  radioDisabledBackgroundColor: {
-    light: "colors.palette.100",
-    dark: "colors.palette.700"
-  },
+  radioDisabledBorderColor: ["colors.palette.200", "colors.palette.500"],
+  radioDisabledBackgroundColor: ["colors.palette.100", "colors.palette.700"],
   radioDisabledIconColor: "colors.transparent",
   radioCheckedBorderColor: "themes.accentColor",
   radioCheckedBackgroundColor: "themes.backgroundColor",
   radioCheckedIconColor: "themes.accentColor",
-  radioCheckedFocusBorderColor: {
-    light: "colors.primary.400",
-    dark: "colors.primary.200"
-  },
+  radioCheckedFocusBorderColor: ["colors.primary.400", "colors.primary.200"],
   radioCheckedFocusBackgroundColor: "themes.backgroundColor",
-  radioCheckedFocusIconColor: {
-    light: "colors.primary.400",
-    dark: "colors.primary.200"
-  },
-  radioCheckedDisabledBorderColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.500"
-  },
-  radioCheckedDisabledBackgroundColor: {
-    light: "colors.palette.100",
-    dark: "colors.palette.700"
-  },
+  radioCheckedFocusIconColor: ["colors.primary.400", "colors.primary.200"],
+  radioCheckedDisabledBorderColor: ["colors.palette.200", "colors.palette.500"],
+  radioCheckedDisabledBackgroundColor: ["colors.palette.100", "colors.palette.700"],
   radioCheckedDisabledIconColor: "themes.disabledColor",
   iconButtonBorderRadius: "sizing.size_0_5",
   iconButtonLargeBorderRadius: "sizing.size_1",
   iconButtonLargePadding: "sizing.size_1",
-  iconButtonBorderColor: {
-    light: "colors.palette.50",
-    dark: "colors.palette.900"
-  },
+  iconButtonBorderColor: ["colors.palette.50", "colors.palette.900"],
   iconButtonBackgroundColor: "themes.backgroundSecondaryColor",
-  iconButtonIconColor: {
-    light: "colors.palette.300",
-    dark: "colors.palette.400"
-  },
-  iconButtonHoverBorderColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.600"
-  },
-  iconButtonHoverBackgroundColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.600"
-  },
-  iconButtonHoverIconColor: {
-    light: "colors.palette.300",
-    dark: "colors.palette.400"
-  },
-  iconButtonActiveBorderColor: {
-    light: "colors.primary.400",
-    dark: "colors.primary.200"
-  },
+  iconButtonIconColor: ["colors.palette.300", "colors.palette.400"],
+  iconButtonHoverBorderColor: ["colors.palette.200", "colors.palette.600"],
+  iconButtonHoverBackgroundColor: ["colors.palette.200", "colors.palette.600"],
+  iconButtonHoverIconColor: ["colors.palette.300", "colors.palette.400"],
+  iconButtonActiveBorderColor: ["colors.primary.400", "colors.primary.200"],
   iconButtonActiveBackgroundColor: "themes.accentColor",
   iconButtonActiveIconColor: "colors.white",
-  iconButtonActiveHoverBorderColor: {
-    light: "colors.primary.400",
-    dark: "colors.primary.200"
-  },
-  iconButtonActiveHoverBackgroundColor: {
-    light: "colors.primary.400",
-    dark: "colors.primary.200"
-  },
+  iconButtonActiveHoverBorderColor: ["colors.primary.400", "colors.primary.200"],
+  iconButtonActiveHoverBackgroundColor: ["colors.primary.400", "colors.primary.200"],
   iconButtonActiveHoverIconColor: "colors.white",
   collapseButtonBorderRadius: "sizing.size_1",
-  collapseButtonOpenBorderColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.500"
-  },
-  collapseButtonOpenBackgroundColor: {
-    light: "colors.white",
-    dark: "colors.palette.950"
-  },
-  collapseButtonOpenIconColor: {
-    light: "colors.palette.400",
-    dark: "colors.palette.300"
-  },
-  collapseButtonOpenIconActiveColor: {
-    light: "colors.palette.400",
-    dark: "colors.palette.300"
-  },
-  collapseButtonOpenHoverBorderColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.500"
-  },
-  collapseButtonOpenHoverBackgroundColor: {
-    light: "colors.palette.50",
-    dark: "colors.palette.900"
-  },
-  collapseButtonOpenHoverIconColor: {
-    light: "colors.palette.400",
-    dark: "colors.palette.300"
-  },
-  collapseButtonOpenHoverIconActiveColor: {
-    light: "colors.palette.400",
-    dark: "colors.palette.300"
-  },
-  collapseButtonCloseBorderColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.500"
-  },
-  collapseButtonCloseBackgroundColor: {
-    light: "colors.palette.100",
-    dark: "colors.palette.700"
-  },
-  collapseButtonCloseIconColor: {
-    light: "colors.palette.400",
-    dark: "colors.palette.300"
-  },
-  collapseButtonCloseIconActiveColor: {
-    light: "colors.palette.400",
-    dark: "colors.palette.300"
-  },
-  collapseButtonCloseHoverBorderColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.500"
-  },
-  collapseButtonCloseHoverBackgroundColor: {
-    light: "colors.palette.100",
-    dark: "colors.palette.700"
-  },
-  collapseButtonCloseHoverIconColor: {
-    light: "colors.palette.400",
-    dark: "colors.palette.300"
-  },
-  collapseButtonCloseHoverIconActiveColor: {
-    light: "colors.palette.400",
-    dark: "colors.palette.300"
-  },
+  collapseButtonOpenBorderColor: ["colors.palette.200", "colors.palette.500"],
+  collapseButtonOpenBackgroundColor: ["colors.white", "colors.palette.950"],
+  collapseButtonOpenIconColor: ["colors.palette.400", "colors.palette.300"],
+  collapseButtonOpenIconActiveColor: ["colors.palette.400", "colors.palette.300"],
+  collapseButtonOpenHoverBorderColor: ["colors.palette.200", "colors.palette.500"],
+  collapseButtonOpenHoverBackgroundColor: ["colors.palette.50", "colors.palette.900"],
+  collapseButtonOpenHoverIconColor: ["colors.palette.400", "colors.palette.300"],
+  collapseButtonOpenHoverIconActiveColor: ["colors.palette.400", "colors.palette.300"],
+  collapseButtonCloseBorderColor: ["colors.palette.200", "colors.palette.500"],
+  collapseButtonCloseBackgroundColor: ["colors.palette.100", "colors.palette.700"],
+  collapseButtonCloseIconColor: ["colors.palette.400", "colors.palette.300"],
+  collapseButtonCloseIconActiveColor: ["colors.palette.400", "colors.palette.300"],
+  collapseButtonCloseHoverBorderColor: ["colors.palette.200", "colors.palette.500"],
+  collapseButtonCloseHoverBackgroundColor: ["colors.palette.100", "colors.palette.700"],
+  collapseButtonCloseHoverIconColor: ["colors.palette.400", "colors.palette.300"],
+  collapseButtonCloseHoverIconActiveColor: ["colors.palette.400", "colors.palette.300"],
   buttonBorderRadius: "sizing.size_1",
   buttonHorizontalPadding: "density.buttonHorizontal",
   buttonVerticalPadding: "density.buttonVertical",
@@ -356,16 +173,10 @@ export default {
   primaryButtonBackgroundColor: "themes.accentColor",
   primaryButtonDisabledBorderColor: "colors.transparent",
   primaryButtonDisabledForegroundColor: "themes.disabledColor",
-  primaryButtonDisabledBackgroundColor: {
-    light: "colors.palette.100",
-    dark: "colors.palette.700"
-  },
+  primaryButtonDisabledBackgroundColor: ["colors.palette.100", "colors.palette.700"],
   primaryButtonHoverBorderColor: "colors.transparent",
   primaryButtonHoverForegroundColor: "themes.backgroundColor",
-  primaryButtonHoverBackgroundColor: {
-    light: "colors.primary.600",
-    dark: "colors.primary.100"
-  },
+  primaryButtonHoverBackgroundColor: ["colors.primary.600", "colors.primary.100"],
   primaryButtonFocusBorderColor: "themes.backgroundColor",
   primaryButtonFocusForegroundColor: "themes.backgroundColor",
   primaryButtonFocusBackgroundColor: "themes.accentColor",
@@ -374,16 +185,10 @@ export default {
   secondaryButtonBackgroundColor: "themes.backgroundColor",
   secondaryButtonDisabledBorderColor: "themes.borderColor",
   secondaryButtonDisabledForegroundColor: "themes.disabledColor",
-  secondaryButtonDisabledBackgroundColor: {
-    light: "colors.palette.100",
-    dark: "colors.palette.700"
-  },
+  secondaryButtonDisabledBackgroundColor: ["colors.palette.100", "colors.palette.700"],
   secondaryButtonHoverBorderColor: "themes.borderColor",
   secondaryButtonHoverForegroundColor: "themes.foregroundColor",
-  secondaryButtonHoverBackgroundColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.600"
-  },
+  secondaryButtonHoverBackgroundColor: ["colors.palette.200", "colors.palette.600"],
   secondaryButtonFocusBorderColor: "themes.borderColor",
   secondaryButtonFocusForegroundColor: "themes.foregroundColor",
   secondaryButtonFocusBackgroundColor: "themes.backgroundColor",
@@ -403,10 +208,7 @@ export default {
   licenseVerticalPadding: "themes.barVerticalPadding",
   licenseForegroundColor: "themes.barForegroundColor",
   licenseBackgroundColor: "themes.barBackgroundColor",
-  linkColor: {
-    light: "colors.primary.600",
-    dark: "colors.primary.100"
-  },
+  linkColor: ["colors.primary.600", "colors.primary.100"],
   linkHoverColor: "themes.accentColor",
   inputBorderWidth: "1px",
   inputBorderRadius: "themes.checkboxBorderRadius",
@@ -420,10 +222,7 @@ export default {
   inputHoverBackgroundColor: "themes.backgroundColor",
   inputDisabledBorderColor: "themes.borderColor",
   inputDisabledForegroundColor: "themes.disabledColor",
-  inputDisabledBackgroundColor: {
-    light: "colors.palette.200",
-    dark: "colors.palette.500"
-  },
+  inputDisabledBackgroundColor: ["colors.palette.200", "colors.palette.500"],
   inputFocusBorderColor: "themes.accentColor",
   inputFocusForegroundColor: "themes.foregroundColor",
   inputFocusBackgroundColor: "themes.backgroundColor",
@@ -439,25 +238,13 @@ export default {
   menuShadowBlur: "themes.shadowBlur",
   menuShadowColor: "themes.shadowColor",
   menuShadowOpacity: "8%",
-  menuItemHoverColor: {
-    light: "colors.palette.950",
-    dark: "colors.white"
-  },
+  menuItemHoverColor: ["colors.palette.950", "colors.white"],
   menuItemHoverColorOpacity: "4%",
-  menuItemActiveColor: {
-    light: "colors.palette.800",
-    dark: "colors.palette.300"
-  },
+  menuItemActiveColor: ["colors.palette.800", "colors.palette.300"],
   menuItemActiveColorOpacity: "8%",
-  dialogSemiTransparentBackgroundColor: {
-    light: "colors.white",
-    dark: "colors.palette.950"
-  },
+  dialogSemiTransparentBackgroundColor: ["colors.white", "colors.palette.950"],
   dialogSemiTransparentBackgroundOpacity: "80%",
-  dialogSolidBackgroundColor: {
-    light: "colors.white",
-    dark: "colors.palette.950"
-  },
+  dialogSolidBackgroundColor: ["colors.white", "colors.palette.950"],
   dialogContentPaddingHorizontal: "density.dialogHorizontal",
   dialogContentPaddingVertical: "density.dialogVertical",
   dialogContentBorderRadius: "sizing.size_2",

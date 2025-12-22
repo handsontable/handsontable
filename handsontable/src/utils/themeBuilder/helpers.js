@@ -2,6 +2,20 @@ import { isObject } from '../../helpers/object';
 import { warn } from '../../helpers/console';
 
 /**
+ * Valid parameters keys.
+ *
+ * @type {Set<string>}
+ */
+export const VALID_PARAMS_KEYS = new Set([
+  'sizing',
+  'density',
+  'icons',
+  'colors',
+  'tokens',
+  'colorScheme',
+]);
+
+/**
  * Valid color scheme values.
  *
  * @type {Set<string>}
@@ -21,20 +35,20 @@ export const VALID_DENSITY_TYPES = new Set(['default', 'compact', 'comfortable']
  * @type {Set<string>}
  */
 export const VALID_SIZING_KEYS = new Set([
-  'size0',
-  'size0_25',
-  'size0_5',
-  'size1',
-  'size1_5',
-  'size2',
-  'size3',
-  'size4',
-  'size5',
-  'size6',
-  'size7',
-  'size8',
-  'size9',
-  'size10',
+  'size_0',
+  'size_0_25',
+  'size_0_5',
+  'size_1',
+  'size_1_5',
+  'size_2',
+  'size_3',
+  'size_4',
+  'size_5',
+  'size_6',
+  'size_7',
+  'size_8',
+  'size_9',
+  'size_10',
 ]);
 
 /**
@@ -495,18 +509,19 @@ export function validateIconKeys(icons, context) {
 }
 
 /**
- * Validates token keys and warns about unknown keys.
+ * Validates keys and warns about unknown keys.
  *
- * @param {object} tokens The tokens object to validate.
+ * @param {object} keys The keys object to validate.
+ * @param {Set<string>} keysToValidate The keys to validate.
  * @param {string} context The context name for warning messages.
  */
-export function validateTokenKeys(tokens, context) {
-  if (!tokens) {
+export function validateKeys(keys, keysToValidate, context) {
+  if (!keys) {
     return;
   }
 
-  Object.keys(tokens).forEach((key) => {
-    if (!VALID_TOKEN_KEYS.has(key)) {
+  Object.keys(keys).forEach((key) => {
+    if (!keysToValidate.has(key)) {
       warn(`[ThemeBuilder] Unknown token key: "${key}" in ${context}. ` +
         'This may be a custom token or a typo.');
     }
@@ -534,6 +549,8 @@ export function validateParams(parameters, context) {
     tokens,
     colorScheme,
   } = parameters;
+
+  validateKeys(parameters, VALID_PARAMS_KEYS, context);
 
   if (sizing !== undefined) {
     if (!isObject(sizing)) {
@@ -572,7 +589,7 @@ export function validateParams(parameters, context) {
       throw new Error(`[ThemeBuilder] ${context}.tokens must be an object.`);
     }
 
-    validateTokenKeys(tokens, `${context}.tokens`);
+    validateKeys(tokens, VALID_TOKEN_KEYS, `${context}.tokens`);
   }
 
   if (colorScheme !== undefined) {
