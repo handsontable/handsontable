@@ -79,5 +79,40 @@ describe('MultiSelectEditor autofill', () => {
       expect(getDataAtCell(2, 1)).toBe('yellow, green');
       expect(getSourceDataAtCell(2, 1)).toEqual([choices[0], choices[3]]);
     });
+
+    it('should autofill on multiselect-typed cells and paste the source data', async() => {
+      handsontable({
+        data: [
+          [[choices[0], choices[3]]],
+          [null],
+          [null],
+        ],
+        columns: [
+          {
+            type: 'multiSelect',
+            source: choices,
+          },
+        ],
+        fillHandle: true,
+      });
+
+      await selectCell(0, 0, 0, 0);
+
+      spec().$container.find('.wtBorder.corner').simulate('mousedown');
+      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
+      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseup');
+
+      await sleep(10);
+
+      // All multiselect-typed cells should have the same source data array copied by autofill.
+      expect(getDataAtCell(0, 0)).toBe('yellow, green');
+      expect(getSourceDataAtCell(0, 0)).toEqual([choices[0], choices[3]]);
+
+      expect(getDataAtCell(1, 0)).toBe('yellow, green');
+      expect(getSourceDataAtCell(1, 0)).toEqual([choices[0], choices[3]]);
+
+      expect(getDataAtCell(2, 0)).toBe('yellow, green');
+      expect(getSourceDataAtCell(2, 0)).toEqual([choices[0], choices[3]]);
+    });
   });
 });

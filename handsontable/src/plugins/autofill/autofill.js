@@ -601,13 +601,18 @@ export class Autofill extends BasePlugin {
         columnIndex <= Math.max(startOfDragCoords.col, endOfDragCoords.col);
         columnIndex += 1
       ) {
-        const sourceCell = this.hot.getSourceDataAtCell(rowIndex, columnIndex);
+        const targetCellSourceData = this.hot.getSourceDataAtCell(rowIndex, columnIndex);
+        const isComplexDataFormatCell = this.hot.getCellMeta(rowIndex, columnIndex)?._complexDataFormat;
         const relativeRowIndex = rowIndex - Math.min(startOfDragCoords.row, endOfDragCoords.row);
         const relativeColumnIndex = columnIndex - Math.min(startOfDragCoords.col, endOfDragCoords.col);
         const modRelativeRowIndex = relativeRowIndex % selectionSourceData.length;
         const modRelativeColumnIndex = relativeColumnIndex % selectionSourceData[0].length;
 
-        if (isObject(sourceCell) || Array.isArray(sourceCell)) {
+        if (
+          isObject(targetCellSourceData) ||
+          Array.isArray(targetCellSourceData) ||
+          isComplexDataFormatCell // TODO: Replace with extending the data schema generator capabilities.
+        ) {
           fullFillData[relativeRowIndex][relativeColumnIndex] =
             selectionSourceData[modRelativeRowIndex][modRelativeColumnIndex];
 

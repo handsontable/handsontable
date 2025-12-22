@@ -150,4 +150,37 @@ describe('AutocompleteEditor key/value source', () => {
       expect(getSourceDataAtCell(0, 0)).toEqual(airportKVChoices[1]);
     });
   });
+
+  describe('Autofill', () => {
+    it('should autofill on autocomplete-typed cells with key/value source and paste the source data', async() => {
+      handsontable({
+        data: [
+          [airportKVChoices[0]],
+          [null],
+          [null],
+        ],
+        columns: [{
+          type: 'autocomplete',
+          source: airportKVChoices,
+        }],
+        fillHandle: true,
+      });
+
+      await selectCell(0, 0, 0, 0);
+
+      spec().$container.find('.wtBorder.corner').simulate('mousedown');
+      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
+      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseup');
+
+      await sleep(10);
+
+      expect(getDataAtCell(0, 0)).toBe(airportKVChoices[0].value);
+      expect(getDataAtCell(1, 0)).toBe(airportKVChoices[0].value);
+      expect(getDataAtCell(2, 0)).toBe(airportKVChoices[0].value);
+
+      expect(getSourceDataAtCell(0, 0)).toEqual(airportKVChoices[0]);
+      expect(getSourceDataAtCell(1, 0)).toEqual(airportKVChoices[0]);
+      expect(getSourceDataAtCell(2, 0)).toEqual(airportKVChoices[0]);
+    });
+  });
 });
