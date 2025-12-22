@@ -29,11 +29,7 @@
           "options": {
             "main": "projects/hot-table/src/test.ts",
             "tsConfig": "projects/hot-table/tsconfig.spec.json",
-            "karmaConfig": "projects/hot-table/karma.conf.js",
-            "styles": [
-              "./node_modules/handsontable/styles/handsontable.css",
-              "./node_modules/handsontable/styles/ht-theme-main.css"
-            ]
+            "karmaConfig": "projects/hot-table/karma.conf.js"
           }
         },
         "lint": {
