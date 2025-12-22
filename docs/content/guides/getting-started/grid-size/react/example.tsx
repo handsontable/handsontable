@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { HotTable, HotColumn, useHotEditor } from '@handsontable/react-wrapper';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
