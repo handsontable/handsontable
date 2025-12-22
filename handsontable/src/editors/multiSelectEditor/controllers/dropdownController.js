@@ -52,6 +52,7 @@ export class DropdownController {
     entriesCount: 0,
     flippedVertically: false,
     currentlySelectedItemIndex: null,
+    checkboxChangeListeners: new Map(),
   };
 
   /**
@@ -185,7 +186,9 @@ export class DropdownController {
    * Resets the cache and the dropdown position and height.
    */
   reset() {
+    this.removeAllDropdownItems();
     this.#resetCache();
+
     this.containerElement.style.position = '';
     this.containerElement.style.top = '';
     this.containerElement.style.height = '';
@@ -363,6 +366,11 @@ export class DropdownController {
    */
   removeAllDropdownItems() {
     this.dropdownListElement.innerHTML = '';
+
+    this.#cache.checkboxChangeListeners.entries().forEach(([checkbox, listener]) => {
+      this.#eventManager.removeEventListener(checkbox, 'change', listener);
+      this.#cache.checkboxChangeListeners.delete(checkbox);
+    });
   }
 
   /**
@@ -399,7 +407,7 @@ export class DropdownController {
    * Deselects all items in the dropdown.
    */
   deselectAllItems() {
-    this.dropdownListElement.querySelectorAll(SELECTED_ITEM_CLASS).forEach(
+    this.dropdownListElement.querySelectorAll(`.${SELECTED_ITEM_CLASS}`).forEach(
       itemElement => this.deselectItem(itemElement)
     );
   }
@@ -411,8 +419,7 @@ export class DropdownController {
    */
   #registerEvents(itemElement) {
     const checkbox = getCheckboxElement(itemElement);
-
-    this.#eventManager.addEventListener(checkbox, 'change', () => {
+    const checkboxChangeListener = () => {
       if (checkbox.checked) {
         this.selectItem(itemElement);
 
@@ -423,7 +430,23 @@ export class DropdownController {
 
         this.runLocalHooks('dropdownItemUnchecked', checkbox.dataset.key, checkbox.dataset.value);
       }
-    });
+    };
+
+    this.#cache.checkboxChangeListeners.set(checkbox, checkboxChangeListener);
+
+    this.#eventManager.addEventListener(checkbox, 'change', checkboxChangeListener);
+  }
+
+  /**
+   * Unregisters events from the item element.
+   *
+   * @param {HTMLLIElement} itemElement Dropdown row element.
+   */
+  #unregisterEvents(itemElement) {
+    const checkbox = getCheckboxElement(itemElement);
+
+    this.#eventManager.removeEventListener(checkbox, 'change', this.#cache.checkboxChangeListeners.get(checkbox));
+    this.#cache.checkboxChangeListeners.delete(checkbox);
   }
 }
 

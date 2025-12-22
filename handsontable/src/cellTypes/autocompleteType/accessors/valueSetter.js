@@ -1,5 +1,4 @@
-import { isObject } from '../../../helpers/object';
-import { isDefined } from '../../../helpers/mixed';
+import { isKeyValueObject } from '../../../helpers/object';
 
 /**
  * Defines what value is set to an autocomplete-typed cell.
@@ -11,7 +10,6 @@ import { isDefined } from '../../../helpers/mixed';
  */
 export function valueSetter(newValue, row, column) {
   const sourceDataAtCell = this.getSourceDataAtCell(this.toPhysicalRow(row), this.toPhysicalColumn(column));
-  const isKeyValueObject = obj => isObject(obj) && isDefined(obj.key) && isDefined(obj.value);
 
   if (isKeyValueObject(sourceDataAtCell)) {
     return isKeyValueObject(newValue) ? newValue : { key: newValue, value: newValue };

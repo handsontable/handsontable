@@ -34,6 +34,15 @@ export class InputController {
   };
 
   /**
+   * Cached keyup listener bound to the controller instance.
+   * It must be the same function reference for add/remove event listener.
+   *
+   * @private
+   * @type {Function}
+   */
+  #onKeyUp = null;
+
+  /**
    * Input state.
    *
    * @private
@@ -51,20 +60,22 @@ export class InputController {
   constructor({ input, eventManager }) {
     this.input = input;
     this.eventManager = eventManager;
+
+    this.#onKeyUp = this.onKeyUp.bind(this);
   }
 
   /**
    * Listens to the input keyup event.
    */
   listen() {
-    this.eventManager.addEventListener(this.input, 'keyup', event => this.onKeyUp(event));
+    this.eventManager.addEventListener(this.input, 'keyup', this.#onKeyUp);
   }
 
   /**
    * Unlistens to the input keyup event.
    */
   unlisten() {
-    this.eventManager.removeEventListener(this.input, 'keyup', event => this.onKeyUp(event));
+    this.eventManager.removeEventListener(this.input, 'keyup', this.#onKeyUp);
   }
 
   /**

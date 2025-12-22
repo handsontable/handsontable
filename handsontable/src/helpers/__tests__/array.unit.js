@@ -351,8 +351,8 @@ describe('Array helper', () => {
         const array1 = [{ id: 1 }, { id: 2 }, { id: 3 }];
         const array2 = [{ id: 2 }, { id: 3 }, { id: 4 }];
         const comparator = (a, b) => a.id === b.id;
-
         const result = getIntersectionOfArrays(array1, array2, comparator);
+
         expect(result).toEqual([{ id: 2 }, { id: 3 }]);
       });
 
@@ -361,7 +361,6 @@ describe('Array helper', () => {
         const array2 = [{ id: 3, name: 'C' }, { id: 4, name: 'D' }];
         const array3 = [{ id: 3, name: 'C' }, { id: 4, name: 'D' }, { id: 5, name: 'E' }];
         const comparator = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-
         const result = getIntersectionOfArrays(array1, array2, array3, comparator);
 
         expect(result).toEqual([{ id: 3, name: 'C' }, { id: 4, name: 'D' }]);

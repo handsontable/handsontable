@@ -49,16 +49,6 @@ export class MultiSelectEditor extends TextEditor {
   inputController = this.inputController ?? null;
 
   /**
-   * Cache for the editor.
-   *
-   * @private
-   * @type {object}
-   */
-  #cache = {
-    lastTextareaValue: null,
-  };
-
-  /**
    * Returns the editor type.
    *
    * @returns {string} The editor type.
@@ -159,7 +149,6 @@ export class MultiSelectEditor extends TextEditor {
     super.close();
 
     this.dropdownController.reset();
-    this.#cache = {};
   }
 
   /**
@@ -225,7 +214,9 @@ export class MultiSelectEditor extends TextEditor {
    * @private
    */
   destroy() {
-    this.super.destroy();
+    super.destroy();
+
+    this.dropdownController.reset();
 
     this.inputController = null;
   }
