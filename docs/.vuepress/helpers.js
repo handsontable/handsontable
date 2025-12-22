@@ -86,14 +86,19 @@ function getThisDocsVersion() {
  */
 function getSidebars() {
   const filterByFramework = (guides, currentFramework) => {
-    const filterElementsForFramework = element =>
-      (Array.isArray(element.onlyFor) && element.onlyFor.includes(currentFramework)) ||
+
+    const filterElementsForFramework = (element) => {
+      return (Array.isArray(element.onlyFor) && element.onlyFor.includes(currentFramework)) ||
       (typeof element.onlyFor === 'string' && element.onlyFor === currentFramework) ||
       typeof element.onlyFor === 'undefined';
+    };
     const guidesSections = JSON.parse(JSON.stringify(guides)); // Copy sidebar definition
     const filteredGuidesSections = guidesSections.filter(filterElementsForFramework);
 
     filteredGuidesSections.forEach((filteredGuidesSection) => {
+      if (typeof filteredGuidesSection === 'string') {
+        return;
+      }
       filteredGuidesSection.children = filteredGuidesSection.children.reduce((newGuides, guide) => {
         if (filterElementsForFramework(guide)) {
           newGuides.push(guide.path);
@@ -113,8 +118,17 @@ function getSidebars() {
   getFrameworks().forEach((framework) => {
     Object.entries(sidebarConfig).forEach(([parentPath, subjectChildren]) => {
       const childrenClone = JSON.parse(JSON.stringify(subjectChildren));
-      const isGuidesPage = parentPath === 'guides';
-      const sidebarChildren = isGuidesPage ? filterByFramework(childrenClone, framework) : childrenClone;
+      const childrenClone2 = JSON.parse(JSON.stringify(subjectChildren));
+      const isGuidesPage = parentPath === 'guides'; // || parentPath === 'recipes';
+      const isRecipesPage = parentPath === 'recipes';
+      let sidebarChildren = childrenClone;
+
+      if (isGuidesPage) {
+        sidebarChildren = filterByFramework(childrenClone, framework);
+      }
+      if (isRecipesPage) {
+        sidebarChildren = filterByFramework(childrenClone2, framework);
+      }
       const fullPath = `/${framework}${FRAMEWORK_SUFFIX}/${isGuidesPage ? '' : `${parentPath}/`}`;
 
       sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}${fullPath}`] = sidebarChildren.map((child) => {
@@ -124,6 +138,7 @@ function getSidebars() {
 
         return child;
       });
+
     });
   });
 

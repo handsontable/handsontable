@@ -11,6 +11,10 @@ import React, {
   useImperativeHandle,
   useMemo,
   useState,
+  useRef,
+  useCallback,
+  useEffect,
+  Dispatch,
 } from 'react';
 import Handsontable from 'handsontable/base';
 import { HotEditorHooks, UseHotEditorImpl } from './types';
@@ -49,8 +53,7 @@ export function makeEditorClass(
 ): typeof Handsontable.editors.BaseEditor {
   return class CustomEditor
     extends Handsontable.editors.BaseEditor
-    implements Handsontable.editors.BaseEditor
-  {
+    implements Handsontable.editors.BaseEditor {
     private value: any;
 
     constructor(hotInstance: Handsontable.Core) {
@@ -92,7 +95,7 @@ export function makeEditorClass(
       });
     }
 
-    focus() {}
+    focus() { }
 
     getValue() {
       return this.value;
@@ -102,9 +105,9 @@ export function makeEditorClass(
       this.value = newValue;
     }
 
-    open() {}
+    open() { }
 
-    close() {}
+    close() { }
   };
 }
 
@@ -116,7 +119,7 @@ interface EditorContextType {
 /**
  * Context to provide Handsontable-native custom editor class instance to overridden hooks object.
  */
-const EditorContext = createContext<EditorContextType | undefined>(
+export const EditorContext = createContext<EditorContextType | undefined>(
   undefined
 );
 
@@ -202,3 +205,146 @@ export function useHotEditor<T>(
     [rerenderTrigger, hotCustomEditorInstanceRef, deferredValue]
   );
 }
+
+
+type EditorChildrenProps<T> = {
+  value: T;
+  setValue: Dispatch<T>;
+  finishEditing: () => void;
+  isOpen: boolean;
+  row: number | undefined;
+  col: number | undefined;
+  mainElementRef: React.RefObject<HTMLDivElement>;
+}
+
+// Render prop function type
+type EditorRenderProp<T> = (props: EditorChildrenProps<T>) => React.ReactNode;
+
+// EditorComponent props - children typed to work with JSX syntax
+type EditorComponentProps = {
+  onPrepare?: (row: number, column: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: Handsontable.CellProperties) => void;
+  onOpen?: () => void;
+  onClose?: () => void;
+  onFocus?: () => void;
+  shortcutsGroup?: string;
+  shortcuts?: {
+    keys: string[][];
+    callback: (props: any, event: KeyboardEvent) => boolean | void;
+    group?: string;
+    runOnlyIf?: () => boolean;
+    captureCtrl?: boolean;
+    preventDefault?: boolean;
+    stopPropagation?: boolean;
+    relativeToGroup?: string;
+    position?: "before" | "after";
+    forwardToContext?: any;
+  }[];
+}
+
+
+export function EditorComponent<T = any>({
+  onPrepare,
+  onClose,
+  onOpen,
+  onFocus,
+  children,
+  shortcutsGroup = "custom-editor",
+  shortcuts,
+}: EditorComponentProps & { children?: EditorRenderProp<T> }): React.ReactElement {
+  const mainElementRef = useRef<HTMLDivElement>(null);
+  const currentValue = useRef<T>(undefined);
+  const { hotCustomEditorInstanceRef } = useContext(EditorContext)!;
+
+  const registerShortcuts = useCallback(() => {
+    if (!hotCustomEditorInstanceRef.current?.hot) return;
+
+    hotCustomEditorInstanceRef.current?.hot?.getShortcutManager().setActiveContextName("editor");
+
+    const shortcutManager = hotCustomEditorInstanceRef.current?.hot?.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+    const contextConfig = {
+      group: shortcutsGroup,
+    };
+
+    if (shortcuts) {
+      editorContext?.addShortcuts(shortcuts.map(shortcut => ({
+        ...shortcut,
+        group: shortcut.group || shortcutsGroup,
+        relativeToGroup: shortcut.relativeToGroup ||
+          'editorManager.handlingEditor',
+        position: shortcut.position || 'before',
+        callback: (event: KeyboardEvent) =>
+          shortcut.callback({ value: currentValue.current, setValue, finishEditing }, event),
+      })),
+        //@ts-ignore
+        contextConfig
+      );
+    }
+  }, [shortcuts]);
+
+
+  const unRegisterShortcuts = useCallback(() => {
+    if (!hotCustomEditorInstanceRef.current?.hot) return;
+
+    const shortcutManager = hotCustomEditorInstanceRef.current?.hot?.getShortcutManager();
+    const editorContext = shortcutManager.getContext("editor")!;
+    editorContext.removeShortcutsByGroup(shortcutsGroup);
+
+  }, [shortcuts]);
+
+  const { value, setValue, finishEditing, isOpen, col, row } = useHotEditor<T>({
+    onOpen: () => {
+      if (!mainElementRef.current) return;
+      mainElementRef.current.style.display = 'block';
+      onOpen?.();
+      registerShortcuts();
+    },
+    onClose: () => {
+      if (!mainElementRef.current) return;
+      mainElementRef.current.style.display = 'none';
+      onClose?.();
+      unRegisterShortcuts();
+    },
+    onPrepare: (_row, _column, _prop, TD, _originalValue, _cellProperties) => {
+
+      if (!mainElementRef.current) return;
+      const tdPosition = TD.getBoundingClientRect();
+      mainElementRef.current.style.left = `${tdPosition.left + window.pageXOffset - 1}px`;
+      mainElementRef.current.style.top = `${tdPosition.top + window.pageYOffset - 1}px`;
+      mainElementRef.current.style.width = `${tdPosition.width + 1}px`;
+      mainElementRef.current.style.height = `${tdPosition.height + 1}px`;
+      onPrepare?.(_row, _column, _prop, TD, _originalValue, _cellProperties);
+    },
+    onFocus: () => {
+      onFocus?.();
+    },
+  });
+
+  useEffect(() => {
+    currentValue.current = value;
+  }, [value]);
+
+  const stopMousedownPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+
+  return (
+    <div
+      ref={mainElementRef}
+      style={{
+        display: 'none',
+        position: 'absolute',
+        background: '#fff',
+        border: '0px',
+        padding: '0px',
+        zIndex: 999,
+      }}
+      onMouseDown={stopMousedownPropagation}
+    >
+
+      {(children as EditorRenderProp<T>)({ value: value as T, setValue, finishEditing, mainElementRef: mainElementRef as React.RefObject<HTMLDivElement>, isOpen, col, row })}
+
+    </div>
+  );
+};
