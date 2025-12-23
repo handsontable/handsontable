@@ -23,6 +23,9 @@ beforeAll(() => {
   (window as any).IntersectionObserver = IntersectionObserverMock;
   (window as any).ResizeObserver = ResizeObserverMock;
 
+  // Set up the theme for Handsontable tests
+  document.body.classList.add('ht-theme-main');
+
   Object.defineProperty(window, 'scrollTo', { value: jest.fn() });
 });
 

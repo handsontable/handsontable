@@ -13,6 +13,8 @@ beforeEach(function() {
 
   if (!process.env.JEST_WORKER_ID) {
     this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
+    // Expose loaded theme globally for the jQuery wrapper to use
+    window.__HOT_TEST_THEME__ = this.loadedTheme;
 
     if (!DEBUG) {
       window.scrollTo(0, 0);
@@ -23,6 +25,7 @@ beforeEach(function() {
 afterEach(() => {
   if (!DEBUG) {
     specContext.spec = null;
+    delete window.__HOT_TEST_THEME__;
   }
 });
 
@@ -30,6 +33,29 @@ beforeAll(() => {
   // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
   if (!process.env.JEST_WORKER_ID) {
     $('.jasmine_html-reporter').hide();
+
+    // Wrap jQuery handsontable function to inject theme in tests
+    const originalHandsontable = $.fn.handsontable;
+
+    $.fn.handsontable = function(action, ...args) {
+      // Only inject theme on init (when action is an object or undefined)
+      if (typeof action !== 'string') {
+        const userSettings = action || {};
+
+        if (!userSettings.themeName && window.__HOT_TEST_THEME__) {
+          const hasThemeClass = this.is('[class*="ht-theme-"]') ||
+            this.parents('[class*="ht-theme-"]').length > 0;
+
+          if (!hasThemeClass) {
+            userSettings.themeName = `ht-theme-${window.__HOT_TEST_THEME__}`;
+          }
+        }
+
+        return originalHandsontable.call(this, userSettings);
+      }
+
+      return originalHandsontable.call(this, action, ...args);
+    };
   }
 });
 
@@ -475,20 +501,10 @@ export async function scrollWindowBy(x, y) {
  * @returns {Handsontable}
  */
 export function handsontable(options, explicitOptions = false, container = spec().$container) {
-  const loadedTheme = spec().loadedTheme;
-
   // Add a license key to every Handsontable instance.
   if (!explicitOptions) {
     if (!options) {
       options = {};
-    }
-
-    if (
-      !options.themeName &&
-      loadedTheme &&
-      loadedTheme !== 'classic'
-    ) {
-      options.themeName = `ht-theme-${loadedTheme}`;
     }
 
     options.licenseKey = 'non-commercial-and-evaluation';

@@ -32,7 +32,7 @@ describe('settings', () => {
       const element2 = $('<div id="hot2"></div>').appendTo('body');
 
       const hot1 = handsontable({}, true);
-      const hot2 = new Handsontable(element2[0], {});
+      const hot2 = new Handsontable(element2[0], { themeName: spec()?.loadedTheme || 'ht-theme-classic' });
 
       expect(document.querySelectorAll('.hot-display-license-info').length).toBe(2);
 

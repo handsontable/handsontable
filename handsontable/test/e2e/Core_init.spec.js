@@ -221,11 +221,10 @@ describe('Core_init', () => {
       simulateModernThemeStylesheet(spec().$container);
       spec().$container.addClass('ht-theme-sth');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
     });
 
@@ -237,7 +236,6 @@ describe('Core_init', () => {
         data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
       expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
     });

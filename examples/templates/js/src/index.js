@@ -1,5 +1,6 @@
 import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.css";
+import "handsontable/styles/handsontable.css";
+import "handsontable/styles/ht-theme-main.css";
 import "./styles.css";
 
 const getDebugInfo = () => {

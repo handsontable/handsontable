@@ -1,31 +1,35 @@
-.htBorders {
-  .wtBorder {
-    &.ht-border-style-dashed-vertical {
-      background-image: repeating-linear-gradient(
-        to bottom,
-        var(--ht-custom-border-color) 0 5px,
-        transparent 0 10px
-      );
-    }
+// Custom Borders
 
-    &.ht-border-style-dashed-horizontal {
-      background-image: repeating-linear-gradient(
-        to right,
-        var(--ht-custom-border-color) 0 5px,
-        transparent 0 10px
-      );
-    }
+@mixin output {
+  .htBorders {
+    .wtBorder {
+      &.ht-border-style-dashed-vertical {
+        background-image: repeating-linear-gradient(
+          to bottom,
+          var(--ht-custom-border-color) 0 5px,
+          transparent 0 10px
+        );
+      }
 
-    &.ht-border-style-dotted-horizontal {
-      background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
-      background-size: calc(var(--ht-custom-border-size) * 2) var(--ht-custom-border-size);
-      background-repeat: repeat-x;
-    }
+      &.ht-border-style-dashed-horizontal {
+        background-image: repeating-linear-gradient(
+          to right,
+          var(--ht-custom-border-color) 0 5px,
+          transparent 0 10px
+        );
+      }
 
-    &.ht-border-style-dotted-vertical {
-      background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
-      background-size: var(--ht-custom-border-size) calc(var(--ht-custom-border-size) * 2);
-      background-repeat: repeat-y;
+      &.ht-border-style-dotted-horizontal {
+        background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
+        background-size: calc(var(--ht-custom-border-size) * 2) var(--ht-custom-border-size);
+        background-repeat: repeat-x;
+      }
+
+      &.ht-border-style-dotted-vertical {
+        background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
+        background-size: var(--ht-custom-border-size) calc(var(--ht-custom-border-size) * 2);
+        background-repeat: repeat-y;
+      }
     }
   }
 }

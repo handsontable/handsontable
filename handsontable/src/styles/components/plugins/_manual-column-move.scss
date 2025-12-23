@@ -45,7 +45,7 @@
         display: none;
         z-index: 205;
         pointer-events: none;
-        background: var(--ht-move-backlight-color);
+        background: color-mix(in srgb, var(--ht-move-backlight-color) var(--ht-move-backlight-opacity, 100%), transparent);
       }
     }
 

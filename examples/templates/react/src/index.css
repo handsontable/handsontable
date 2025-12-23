@@ -1,4 +1,5 @@
-@import 'handsontable/dist/handsontable.full.css';
+@import 'handsontable/styles/handsontable.css';
+@import 'handsontable/styles/ht-theme-main.css';
 
 html, body, #root, #example {
   box-sizing: border-box;

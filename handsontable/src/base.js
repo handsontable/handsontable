@@ -1,5 +1,3 @@
-import './styles/handsontable.scss';
-
 import Core from './core';
 import { rootInstanceSymbol } from './utils/rootInstance';
 import { metaSchemaFactory } from './dataMap';
@@ -19,6 +17,7 @@ import { registerCellType } from './cellTypes/registry';
 import { TextCellType } from './cellTypes/textType';
 import { BaseEditor } from './editors/baseEditor';
 import { CellCoords, CellRange } from './3rdparty/walkontable/src';
+import { createTheme } from './utils/themeBuilder';
 
 // register default mandatory cell type for the Base package
 registerCellType(TextCellType);
@@ -61,8 +60,11 @@ Handsontable.languages = {
   getTranslatedPhrase,
 };
 
+Handsontable.createTheme = createTheme;
+
 export {
   CellCoords,
   CellRange,
+  createTheme,
 };
 export default Handsontable;

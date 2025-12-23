@@ -15,6 +15,7 @@ beforeEach(() => {
   container.id = 'hotContainer';
   document.body.appendChild(container);
   SPEC.container = container;
+  SPEC.container.classList.add('ht-theme-main');
   SPEC.root = createRoot(SPEC.container);
 });
 

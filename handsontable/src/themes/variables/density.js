@@ -1,0 +1,53 @@
+export default {
+  default: {
+    cellVertical: "sizing.size_1",
+    cellHorizontal: "sizing.size_2",
+    barsHorizontal: "sizing.size_4",
+    barsVertical: "sizing.size_2",
+    gap: "sizing.size_1",
+    buttonHorizontal: "sizing.size_3",
+    buttonVertical: "sizing.size_1_5",
+    dialogHorizontal: "sizing.size_2",
+    dialogVertical: "sizing.size_2",
+    inputHorizontal: "sizing.size_3",
+    inputVertical: "sizing.size_1_5",
+    menuVertical: "sizing.size_2",
+    menuHorizontal: "sizing.size_0",
+    menuItemVertical: "sizing.size_1",
+    menuItemHorizontal: "sizing.size_3"
+  },
+  compact: {
+    cellVertical: "sizing.size_0_5",
+    cellHorizontal: "sizing.size_1_5",
+    barsHorizontal: "sizing.size_2",
+    barsVertical: "sizing.size_1",
+    gap: "sizing.size_0_5",
+    buttonHorizontal: "sizing.size_2",
+    buttonVertical: "sizing.size_0_5",
+    dialogHorizontal: "sizing.size_1_5",
+    dialogVertical: "sizing.size_1_5",
+    inputHorizontal: "sizing.size_2",
+    inputVertical: "sizing.size_0_5",
+    menuVertical: "sizing.size_2",
+    menuHorizontal: "sizing.size_0",
+    menuItemVertical: "sizing.size_0_5",
+    menuItemHorizontal: "sizing.size_2"
+  },
+  comfortable: {
+    cellVertical: "sizing.size_2",
+    cellHorizontal: "sizing.size_3",
+    barsHorizontal: "sizing.size_4",
+    barsVertical: "sizing.size_2",
+    gap: "sizing.size_1_5",
+    buttonHorizontal: "sizing.size_4",
+    buttonVertical: "sizing.size_2",
+    dialogHorizontal: "sizing.size_3",
+    dialogVertical: "sizing.size_3",
+    inputHorizontal: "sizing.size_4",
+    inputVertical: "sizing.size_2",
+    menuVertical: "sizing.size_3",
+    menuHorizontal: "sizing.size_0",
+    menuItemVertical: "sizing.size_2",
+    menuItemHorizontal: "sizing.size_2"
+  }
+}

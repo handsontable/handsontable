@@ -344,7 +344,7 @@ describe('HotTableComponent', () => {
       });
 
       console.warn = (warningMessage) => {
-        if (!warningMessage.includes('Deprecated:')) {
+        if (!warningMessage.includes('Deprecated:') && !warningMessage.includes('stylesheets are missing')) {
           warnCalls.push(warningMessage);
         }
       };

@@ -9,7 +9,7 @@ import {
 } from '../../src/page-helpers';
 
 test('Test filtering', async({ tablePage }) => {
-  expect(await rowsCount()).toBe(22);
+  expect(await rowsCount()).toBe(19);
 
   await openHeaderDropdownMenu('Country');
   await filterByValue('India');

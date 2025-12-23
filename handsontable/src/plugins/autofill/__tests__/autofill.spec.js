@@ -1663,12 +1663,14 @@ describe('AutoFill', () => {
 
       $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
         data: getData(),
-        fillHandle: true
+        fillHandle: true,
+        themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
       });
 
       $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
         data: getData(),
-        fillHandle: 'horizontal'
+        fillHandle: 'horizontal',
+        themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
       });
     });
 
@@ -1682,7 +1684,9 @@ describe('AutoFill', () => {
 
     describe('-> updating settings on 2. instance of Handsontable', () => {
       beforeAll(() => {
-        $container2.handsontable('updateSettings', { fillHandle: 'vertical' });
+        $container2.handsontable('updateSettings', {
+          fillHandle: 'vertical', themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
+        });
       });
 
       it('checking drag vertically on 2. instance of Handsontable - should change cell value', async() => {
@@ -2287,7 +2291,7 @@ describe('AutoFill', () => {
 
       const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
       const hitAreaStyle = getComputedStyle(corner, '::after');
-      const expectedHitAreaSize = Math.max(autofillHandlerSize, 14);
+      const expectedHitAreaSize = Math.max(autofillHandlerSize, 12);
 
       expect(hitAreaStyle.width).toBe(`${expectedHitAreaSize}px`);
       expect(hitAreaStyle.height).toBe(`${expectedHitAreaSize}px`);
