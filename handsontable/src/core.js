@@ -2821,7 +2821,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
       if (themeOptionExists && typeof settings.theme === 'string') {
         themeName = settings.theme;
-      } else if (themeNameOptionExists && !themeOptionExists) {
+      } else if (
+        themeNameOptionExists &&
+        typeof settings.themeName === 'string' &&
+        settings.themeName &&
+        !themeOptionExists
+      ) {
         themeName = settings.themeName;
         tableMeta.theme = settings.themeName;
         tableMeta.themeName = undefined;
