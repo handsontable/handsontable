@@ -415,14 +415,13 @@ export class DropdownController {
     );
   }
 
-
   /**
    * Disables the unchecked checkboxes.
    */
   disableCheckboxes() {
     this.#cache.areCheckboxesDisabled = true;
 
-    this.dropdownListElement.querySelectorAll('input[type="checkbox"]:not(:checked)').forEach(checkbox => {
+    this.dropdownListElement.querySelectorAll('input[type="checkbox"]:not(:checked)').forEach((checkbox) => {
       checkbox.disabled = true;
     });
   }
@@ -433,7 +432,7 @@ export class DropdownController {
   enableCheckboxes() {
     this.#cache.areCheckboxesDisabled = false;
 
-    this.dropdownListElement.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+    this.dropdownListElement.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
       checkbox.disabled = false;
     });
   }

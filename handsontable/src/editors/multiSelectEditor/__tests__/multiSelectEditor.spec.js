@@ -417,7 +417,7 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        let editor = getActiveEditor();
+        const editor = getActiveEditor();
         let $dropdown = $('.htMultiSelectEditor');
 
         editor.TEXTAREA.value = 'yellow,';
@@ -465,7 +465,7 @@ describe('MultiSelectEditor', () => {
         expect($greenCheckbox.prop('checked')).toBe(false);
         expect(editor.TEXTAREA.value).toBe('yellow, red, green,');
 
-        keyDownUp('enter');
+        await awaitkeyDownUp('enter');
         await sleep(10);
 
         expect(getSourceDataAtCell(0, 0)).toEqual(choices.filter(
@@ -473,7 +473,7 @@ describe('MultiSelectEditor', () => {
         ));
         expect(getDataAtCell(0, 0)).toEqual('yellow, red');
 
-        selectCell(0, 0);
+        await selectCell(0, 0);
         await keyDownUp('enter');
         await sleep(10);
 
