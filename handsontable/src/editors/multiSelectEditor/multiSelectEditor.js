@@ -204,6 +204,10 @@ export class MultiSelectEditor extends TextEditor {
         return true;
       }
 
+      if (this.cellProperties.caseSensitiveFiltering) {
+        return value.includes(wordAtCaret);
+      }
+
       return value.toLowerCase().includes(wordAtCaret.toLowerCase());
     });
 

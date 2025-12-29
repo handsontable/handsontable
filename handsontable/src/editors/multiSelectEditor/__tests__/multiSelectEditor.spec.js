@@ -234,7 +234,7 @@ describe('MultiSelectEditor', () => {
         });
     });
 
-    describe('maxSelections option', () => {
+    describe('`maxSelections` option', () => {
       it('should disable unchecked checkboxes after reaching the maxSelections limit', async() => {
         handsontable({
           data: [
@@ -465,7 +465,7 @@ describe('MultiSelectEditor', () => {
         expect($greenCheckbox.prop('checked')).toBe(false);
         expect(editor.TEXTAREA.value).toBe('yellow, red, green,');
 
-        await awaitkeyDownUp('enter');
+        await keyDownUp('enter');
         await sleep(10);
 
         expect(getSourceDataAtCell(0, 0)).toEqual(choices.filter(
@@ -491,6 +491,78 @@ describe('MultiSelectEditor', () => {
         expect($redCheckbox.prop('checked')).toBe(true);
         expect($greenCheckbox.prop('checked')).toBe(true);
         expect(editor.TEXTAREA.value).toBe('red, green,');
+      });
+    });
+
+    describe('`caseSensitiveFiltering` option', () => {
+      it('should filter case-insensitively when the option is disabled', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              caseSensitiveFiltering: false,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const editor = getActiveEditor();
+        const $htContainer = $('.htMultiSelectEditor');
+
+        expect($htContainer.find('li').length).toBe(choices.length);
+
+        editor.TEXTAREA.value = 'Y';
+        editor.TEXTAREA.focus();
+        await keyDownUp('Y');
+        await sleep(10);
+
+        const items = Array.from($htContainer.find('li label')).map(label => label.textContent);
+
+        expect(items).toEqual(
+          choices
+            .map(choice => choice?.value || choice)
+            .filter(value => value.toLowerCase().includes('y'))
+        );
+      });
+
+      it('should filter case-sensitively when the option is enabled', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              caseSensitiveFiltering: true,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const editor = getActiveEditor();
+        const $htContainer = $('.htMultiSelectEditor');
+
+        expect($htContainer.find('li').length).toBe(choices.length);
+
+        editor.TEXTAREA.value = 'Y';
+        editor.TEXTAREA.focus();
+        await keyDownUp('Y');
+        await sleep(10);
+
+        const items = Array.from($htContainer.find('li label')).map(label => label.textContent);
+
+        expect(items).toEqual([]);
       });
     });
   });
