@@ -53,6 +53,7 @@ export class DropdownController {
     flippedVertically: false,
     currentlySelectedItemIndex: null,
     checkboxChangeListeners: new Map(),
+    areCheckboxesDisabled: false,
   };
 
   /**
@@ -316,9 +317,10 @@ export class DropdownController {
    *
    * @param {string} itemKey Key stored in the associated checkbox dataset.
    * @param {string} itemValue Text shown next to the checkbox.
+   * @param {boolean} [checked=false] Flag indicating whether the checkbox starts selected.
    * @returns {HTMLLIElement}
    */
-  #createListItemElement(itemKey, itemValue) {
+  #createListItemElement(itemKey, itemValue, checked = false) {
     const itemElement = this.#rootDocument.createElement('li');
     const innerContainer = this.#rootDocument.createElement('div');
     const checkboxElement = this.#rootDocument.createElement('input');
@@ -327,6 +329,7 @@ export class DropdownController {
     checkboxElement.id = `htMultiSelectItem-${itemValue}`;
     checkboxElement.type = 'checkbox';
     checkboxElement.dataset.value = itemValue;
+    checkboxElement.disabled = checked ? false : this.#cache.areCheckboxesDisabled;
 
     if (itemKey) {
       checkboxElement.dataset.key = itemKey;
@@ -350,7 +353,7 @@ export class DropdownController {
    * @param {boolean} [checked=false] Flag indicating whether the checkbox starts selected.
    */
   #addDropdownItem(itemKey, itemValue, checked = false) {
-    const itemElement = this.#createListItemElement(itemKey, itemValue);
+    const itemElement = this.#createListItemElement(itemKey, itemValue, checked);
 
     if (checked) {
       this.selectItem(itemElement);
@@ -410,6 +413,29 @@ export class DropdownController {
     this.dropdownListElement.querySelectorAll(`.${SELECTED_ITEM_CLASS}`).forEach(
       itemElement => this.deselectItem(itemElement)
     );
+  }
+
+
+  /**
+   * Disables the unchecked checkboxes.
+   */
+  disableCheckboxes() {
+    this.#cache.areCheckboxesDisabled = true;
+
+    this.dropdownListElement.querySelectorAll('input[type="checkbox"]:not(:checked)').forEach(checkbox => {
+      checkbox.disabled = true;
+    });
+  }
+
+  /**
+   * Enables the checkboxes.
+   */
+  enableCheckboxes() {
+    this.#cache.areCheckboxesDisabled = false;
+
+    this.dropdownListElement.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+      checkbox.disabled = false;
+    });
   }
 
   /**

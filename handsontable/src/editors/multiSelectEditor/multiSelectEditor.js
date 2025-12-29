@@ -95,6 +95,10 @@ export class MultiSelectEditor extends TextEditor {
     this.dropdownController.fillDropdown(this.cellProperties.source, valuesIntersection);
 
     this.dropdownController.setVisibleRowsNumber(this.#getEditorSetting('visibleRows'));
+
+    if (cellProperties.maxSelections) {
+      this.selectedItems.setMaxSelectionCount(cellProperties.maxSelections);
+    }
   }
 
   /**
@@ -121,10 +125,22 @@ export class MultiSelectEditor extends TextEditor {
     super.bindEvents();
 
     this.dropdownController.addLocalHook('dropdownItemChecked',
-      (selectedKey, selectedValue) => this.#addSelectedValue(selectedKey, selectedValue)
+      (selectedKey, selectedValue) => {
+        this.#addSelectedValue(selectedKey, selectedValue);
+
+        if (this.selectedItems.getSize() >= this.cellProperties.maxSelections) {
+          this.blockNewSelections();
+        }
+      }
     );
     this.dropdownController.addLocalHook('dropdownItemUnchecked',
-      (deselectedKey, deselectedValue) => this.#removeSelectedValue(deselectedKey, deselectedValue)
+      (deselectedKey, deselectedValue) => {
+        this.#removeSelectedValue(deselectedKey, deselectedValue);
+
+        if (this.selectedItems.getSize() < this.cellProperties.maxSelections) {
+          this.unblockNewSelections();
+        }
+      }
     );
     this.dropdownController.addLocalHook('dropdownFocus', () => this.#onDropdownFocus());
     this.dropdownController.addLocalHook('dropdownDefocus', () => this.#onDropdownDefocus());
@@ -158,6 +174,20 @@ export class MultiSelectEditor extends TextEditor {
    */
   getValue() {
     return this.selectedItems.getItemsArray();
+  }
+
+  /**
+   * Blocks new selections.
+   */
+  blockNewSelections() {
+    this.dropdownController.disableCheckboxes();
+  }
+
+  /**
+   * Unblocks new selections.
+   */
+  unblockNewSelections() {
+    this.dropdownController.enableCheckboxes();
   }
 
   /**
@@ -228,6 +258,10 @@ export class MultiSelectEditor extends TextEditor {
    * @param {string[]} values The values from the textarea.
    */
   #onTextareaCommit(values) {
+    if (values.length > this.cellProperties.maxSelections) {
+      return;
+    }
+
     this.selectedItems.clear();
     this.selectedItems.add(values.map(value => getSourceItemByValue(value, this.cellProperties.source)));
     this.dropdownController.removeAllDropdownItems();

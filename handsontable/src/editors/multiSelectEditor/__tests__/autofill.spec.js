@@ -80,7 +80,7 @@ describe('MultiSelectEditor autofill', () => {
       expect(getSourceDataAtCell(2, 1)).toEqual([choices[0], choices[3]]);
     });
 
-    it('should autofill on multiselect-typed cells and paste the source data', async() => {
+    it('should autofill on multiselect-typed cells and utilize the source data on the empty rows', async() => {
       handsontable({
         data: [
           [[choices[0], choices[3]]],

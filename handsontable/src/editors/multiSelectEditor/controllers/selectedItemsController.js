@@ -17,6 +17,14 @@ export class SelectedItemsController {
   selectedItems = this.selectedItems ?? new Set();
 
   /**
+   * Maximum number of selections.
+   *
+   * @private
+   * @type {number}
+   */
+  maxSelectionsCount = Infinity;
+
+  /**
    * Creates a new SelectedItemsController.
    *
    * @param {Array<*>|undefined} selectedItems Array of selected items.
@@ -31,11 +39,24 @@ export class SelectedItemsController {
   }
 
   /**
+   * Sets the maximum number of selections.
+   *
+   * @param {number} maxSelectionsCount Maximum number of selections.
+   */
+  setMaxSelectionCount(maxSelectionsCount) {
+    this.maxSelectionsCount = maxSelectionsCount;
+  }
+
+  /**
    * Adds selected values (single or array) to the set.
    *
    * @param {string|object|Array<string|object>} items Items to add.
    */
   add(items) {
+    if (this.selectedItems.size >= this.maxSelectionsCount) {
+      return;
+    }
+
     if (Array.isArray(items)) {
       items.forEach(item => this.selectedItems.add(item));
 
@@ -83,6 +104,15 @@ export class SelectedItemsController {
    */
   clear() {
     this.selectedItems.clear();
+  }
+
+  /**
+   * Gets the number of selected items.
+   *
+   * @returns {number}
+   */
+  getSize() {
+    return this.selectedItems.size;
   }
 
   /**

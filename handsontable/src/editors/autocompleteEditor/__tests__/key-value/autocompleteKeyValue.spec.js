@@ -152,7 +152,8 @@ describe('AutocompleteEditor key/value source', () => {
   });
 
   describe('Autofill', () => {
-    it('should autofill on autocomplete-typed cells with key/value source and paste the source data', async() => {
+    it('should autofill on autocomplete-typed cells with key/value source and utilize the ' +
+      'source data on the empty rows', async() => {
       handsontable({
         data: [
           [airportKVChoices[0]],
