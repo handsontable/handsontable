@@ -92,6 +92,8 @@ export class MultiSelectEditor extends TextEditor {
 
     this.#syncSelectedValues(valuesIntersection);
 
+    this.dropdownController.setSourceSortFunction(this.cellProperties.sourceSortFunction);
+
     this.dropdownController.fillDropdown(this.cellProperties.source, valuesIntersection);
 
     this.dropdownController.setVisibleRowsNumber(this.#getEditorSetting('visibleRows'));
@@ -204,7 +206,7 @@ export class MultiSelectEditor extends TextEditor {
         return true;
       }
 
-      if (this.cellProperties.caseSensitiveFiltering) {
+      if (this.cellProperties.filteringCaseSensitive) {
         return value.includes(wordAtCaret);
       }
 

@@ -494,7 +494,7 @@ describe('MultiSelectEditor', () => {
       });
     });
 
-    describe('`caseSensitiveFiltering` option', () => {
+    describe('`filteringCaseSensitive` option', () => {
       it('should filter case-insensitively when the option is disabled', async() => {
         handsontable({
           data: [
@@ -504,7 +504,7 @@ describe('MultiSelectEditor', () => {
             {
               type: 'multiSelect',
               source: choices,
-              caseSensitiveFiltering: false,
+              filteringCaseSensitive: false,
             },
           ],
         });
@@ -541,7 +541,7 @@ describe('MultiSelectEditor', () => {
             {
               type: 'multiSelect',
               source: choices,
-              caseSensitiveFiltering: true,
+              filteringCaseSensitive: true,
             },
           ],
         });
@@ -563,6 +563,52 @@ describe('MultiSelectEditor', () => {
         const items = Array.from($htContainer.find('li label')).map(label => label.textContent);
 
         expect(items).toEqual([]);
+      });
+    });
+
+    describe('`sourceSortFunction` option', () => {
+      it('should use provided function to sort dropdown options', async() => {
+        const sourceSortFunction = (entries) => entries
+          .slice()
+          .sort((a, b) => {
+            const valueA = a?.value ?? a;
+            const valueB = b?.value ?? b;
+
+            return valueA.localeCompare(valueB);
+          })
+          .reverse();
+
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              sourceSortFunction,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const $dropdown = $('.htMultiSelectEditor');
+        const items = Array.from($dropdown.find('li label')).map(label => label.textContent);
+        const expectedOrder = choices
+          .slice()
+          .sort((a, b) => {
+            const valueA = a?.value ?? a;
+            const valueB = b?.value ?? b;
+
+            return valueA.localeCompare(valueB);
+          })
+          .reverse()
+          .map(choice => choice?.value ?? choice);
+
+        expect(items).toEqual(expectedOrder);
       });
     });
   });

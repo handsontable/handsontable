@@ -54,6 +54,7 @@ export class DropdownController {
     currentlySelectedItemIndex: null,
     checkboxChangeListeners: new Map(),
     areCheckboxesDisabled: false,
+    sourceSortFunction: null,
   };
 
   /**
@@ -86,6 +87,16 @@ export class DropdownController {
   setVisibleRowsNumber(visibleRowsNumber) {
     this.#cache.visibleRowsNumber = visibleRowsNumber;
   }
+
+  /**
+   * Sets the source sort function.
+   *
+   * @param {Function} sourceSortFunction Source sort function.
+   */
+  setSourceSortFunction(sourceSortFunction) {
+    this.#cache.sourceSortFunction = sourceSortFunction ?? null;
+  }
+
   /**
    * Populates the dropdown with provided entries and marks selected ones.
    *
@@ -97,6 +108,10 @@ export class DropdownController {
 
     if (!Array.isArray(checkedValues)) {
       checkedValues = [];
+    }
+
+    if (this.#cache.sourceSortFunction) {
+      entries = this.#cache.sourceSortFunction(entries);
     }
 
     entries.forEach((elem) => {
