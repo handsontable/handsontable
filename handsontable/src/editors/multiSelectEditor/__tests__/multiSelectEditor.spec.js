@@ -492,6 +492,59 @@ describe('MultiSelectEditor', () => {
         expect($greenCheckbox.prop('checked')).toBe(true);
         expect(editor.TEXTAREA.value).toBe('red, green,');
       });
+
+      it('should disable unchecked checkboxes after reaching the maxSelections limit when committing from the TEXTAREA', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              maxSelections: 2,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const editor = getActiveEditor();
+        let $dropdown = $('.htMultiSelectEditor');
+
+        editor.TEXTAREA.value = 'yellow,';
+        editor.TEXTAREA.focus();
+        await keyDownUp(',');
+        await sleep(10);
+
+        $dropdown = $('.htMultiSelectEditor');
+
+        expect($dropdown.find('input[type="checkbox"]:checked').length).toBe(1);
+
+        $dropdown.find('input[type="checkbox"]:not(:checked)').each(function() {
+          expect($(this).prop('disabled')).toBe(false);
+        });
+
+        editor.TEXTAREA.value = 'yellow, red,';
+        editor.TEXTAREA.focus();
+        await keyDownUp(',');
+        await sleep(10);
+
+        $dropdown = $('.htMultiSelectEditor');
+
+        expect($dropdown.find('input[type="checkbox"]:checked').length).toBe(2);
+
+        const $uncheckedCheckboxes = $dropdown.find('input[type="checkbox"]:not(:checked)');
+
+        expect($uncheckedCheckboxes.length).toBe(choices.length - 2);
+
+        $uncheckedCheckboxes.each(function() {
+          expect($(this).prop('disabled')).toBe(true);
+        });
+      });
+
     });
 
     describe('`filteringCaseSensitive` option', () => {
@@ -568,7 +621,7 @@ describe('MultiSelectEditor', () => {
 
     describe('`sourceSortFunction` option', () => {
       it('should use provided function to sort dropdown options', async() => {
-        const sourceSortFunction = (entries) => entries
+        const sourceSortFunction = entries => entries
           .slice()
           .sort((a, b) => {
             const valueA = a?.value ?? a;
@@ -609,6 +662,120 @@ describe('MultiSelectEditor', () => {
           .map(choice => choice?.value ?? choice);
 
         expect(items).toEqual(expectedOrder);
+      });
+    });
+
+    describe('`validateOnCommit` option', () => {
+      it('should keep only values present in the source when enabled', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              validateOnCommit: true,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const editor = getActiveEditor();
+
+        editor.TEXTAREA.value = 'yellow, not-in-list, green,';
+        editor.TEXTAREA.focus();
+        await keyDownUp(',');
+        await sleep(10);
+
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const sourceData = getSourceDataAtCell(0, 0);
+        const visualData = getDataAtCell(0, 0);
+
+        const expectedSourceData = choices.filter(
+          choice => ['yellow', 'green'].includes(choice.value ?? choice)
+        );
+
+        expect(sourceData).toEqual(expectedSourceData);
+        expect(visualData).toEqual('yellow, green');
+      });
+
+      it('should keep only values present in the source when not defined (default behavior)', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const editor = getActiveEditor();
+
+        editor.TEXTAREA.value = 'yellow, not-in-list, green,';
+        editor.TEXTAREA.focus();
+        await keyDownUp(',');
+        await sleep(10);
+
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const sourceData = getSourceDataAtCell(0, 0);
+        const visualData = getDataAtCell(0, 0);
+
+        const expectedSourceData = choices.filter(
+          choice => ['yellow', 'green'].includes(choice.value ?? choice)
+        );
+
+        expect(sourceData).toEqual(expectedSourceData);
+        expect(visualData).toEqual('yellow, green');
+      });
+
+      it('should allow any committed values when disabled', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              validateOnCommit: false,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const editor = getActiveEditor();
+
+        editor.TEXTAREA.value = 'yellow, not-in-list, green,';
+        editor.TEXTAREA.focus();
+        await keyDownUp(',');
+        await sleep(10);
+
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const sourceData = getSourceDataAtCell(0, 0);
+        const visualData = getDataAtCell(0, 0);
+
+        expect(sourceData).toEqual(['yellow', 'not-in-list', 'green']);
+        expect(visualData).toEqual('yellow, not-in-list, green');
       });
     });
   });

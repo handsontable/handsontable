@@ -268,11 +268,26 @@ export class MultiSelectEditor extends TextEditor {
       return;
     }
 
+    let sanitizedValues = values;
+
+    if (this.cellProperties.validateOnCommit ?? true) {
+      sanitizedValues = values
+        .map(value => getSourceItemByValue(value, this.cellProperties.source))
+        .filter(item => item !== undefined);
+    }
+
     this.selectedItems.clear();
-    this.selectedItems.add(values.map(value => getSourceItemByValue(value, this.cellProperties.source)));
+    this.selectedItems.add(sanitizedValues);
     this.dropdownController.removeAllDropdownItems();
     this.dropdownController.fillDropdown(this.cellProperties.source, this.selectedItems.getItemsArray());
     this.dropdownController.updateDimensions(this.getAvailableSpace(), true);
+
+    if (this.selectedItems.getSize() >= this.cellProperties.maxSelections) {
+      this.blockNewSelections();
+
+    } else {
+      this.unblockNewSelections();
+    }
   }
 
   /**
