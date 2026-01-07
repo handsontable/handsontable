@@ -94,7 +94,15 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['_complexDataFormat', 'editor', 'validator', 'valueGetter', 'valueSetter']),
+        _automaticallyAssignedMetaProps: new Set(
+          [
+            '_complexDataFormat',
+            'editor',
+            'validator',
+            'valueGetter',
+            'valueSetter',
+          ]
+        ),
         _complexDataFormat: true,
         copyPaste: true,
         test: 'foo',
@@ -110,7 +118,14 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['_complexDataFormat', 'editor', 'validator', 'valueGetter', 'valueSetter', 'dataType']),
+        _automaticallyAssignedMetaProps: new Set([
+          '_complexDataFormat',
+          'editor',
+          'validator',
+          'valueGetter',
+          'valueSetter',
+          'dataType',
+        ]),
         _complexDataFormat: true,
         copyPaste: true,
         test: 'foo',
@@ -127,7 +142,14 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['_complexDataFormat', 'editor', 'validator', 'dataType', 'valueGetter', 'valueSetter']),
+        _automaticallyAssignedMetaProps: new Set([
+          '_complexDataFormat',
+          'editor',
+          'validator',
+          'dataType',
+          'valueGetter',
+          'valueSetter',
+        ]),
         _complexDataFormat: true,
         copyPaste: true,
         test: 'foo',
@@ -148,7 +170,14 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['_complexDataFormat', 'editor', 'renderer', 'validator', 'valueGetter', 'valueSetter']),
+        _automaticallyAssignedMetaProps: new Set([
+          '_complexDataFormat',
+          'editor',
+          'renderer',
+          'validator',
+          'valueGetter',
+          'valueSetter',
+        ]),
         _complexDataFormat: true,
         renderer: getCellType('autocomplete').renderer,
         editor: getCellType('autocomplete').editor,
@@ -164,7 +193,13 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['_complexDataFormat', 'editor', 'validator', 'valueGetter', 'valueSetter']),
+        _automaticallyAssignedMetaProps: new Set([
+          '_complexDataFormat',
+          'editor',
+          'validator',
+          'valueGetter',
+          'valueSetter',
+        ]),
         _complexDataFormat: true,
         renderer: 'my-renderer',
         editor: getCellType('autocomplete').editor,
