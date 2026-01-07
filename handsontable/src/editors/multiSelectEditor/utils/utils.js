@@ -114,8 +114,8 @@ export function includesValue(array, element) {
  */
 export function getWordAtCaret(textarea) {
   const upToCaret = textarea.value.slice(0, textarea.selectionStart);
-  const match = upToCaret.match(/([^,]*)$/);
-  const leftOfItem = match ? match[1] : '';
+  const lastCommaIndex = upToCaret.lastIndexOf(',');
+  const leftOfItem = lastCommaIndex === -1 ? upToCaret : upToCaret.slice(lastCommaIndex + 1);
   const rightOfItem = textarea.value.slice(textarea.selectionEnd).split(',')[0] ?? '';
 
   return `${leftOfItem}${rightOfItem}`.trim();
