@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added a \"settings\" entry to the Handsontable exports.",
-  "type": "added",
-  "issueOrPR": 11883,
-  "breaking": false,
-  "framework": "none"
-}

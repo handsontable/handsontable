@@ -54,3 +54,4 @@ export {
   hasEditor,
   registerEditor
 } from './registry';
+export { editorFactory } from './factory';

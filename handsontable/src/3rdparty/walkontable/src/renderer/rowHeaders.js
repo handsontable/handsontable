@@ -54,6 +54,7 @@ export class RowHeadersRenderer extends BaseRenderer {
       orderView = new SharedOrderView(
         rootNode,
         sourceColumnIndex => this.nodesPool.obtain(this.sourceRowIndex, sourceColumnIndex),
+        this.nodeType,
       );
       this.orderViews.set(rootNode, orderView);
     }

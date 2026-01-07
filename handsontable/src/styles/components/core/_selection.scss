@@ -39,7 +39,7 @@
       &:nth-child(4) {
         z-index: 1;
       }
-      
+
       &.hidden {
         display: none !important;
       }
@@ -74,6 +74,22 @@
         font-size: 0;
         cursor: crosshair;
         z-index: 10;
+
+        &::after {
+          content: '';
+          position: absolute;
+          border-radius: var(--ht-cell-autofill-border-radius);
+          inset: calc(max(0px, (var(--ht-cell-autofill-hit-area-size) - var(--ht-cell-autofill-size)) / 2) * -1);
+          background: transparent;
+        }
+
+        &.wtCornerInlineEndEdge::after {
+          inset-inline-end: 0;
+        }
+
+        &.wtCornerBlockEndEdge::after {
+          inset-block-end: 0;
+        }
       }
     }
   }

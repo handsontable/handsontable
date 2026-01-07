@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem, where adding a previously-removed hook callback would not work properly.",
-  "type": "fixed",
-  "issueOrPR": 11914,
-  "breaking": false,
-  "framework": "none"
-}

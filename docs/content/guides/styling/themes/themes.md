@@ -27,6 +27,7 @@ angular:
   metaTitle: Themes - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
+menuTag: updated
 ---
 
 # Themes

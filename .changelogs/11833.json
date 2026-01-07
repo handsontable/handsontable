@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Implemented a new \"auto\" option for the `roundFloat` setting of the Column Summary plugin and fixed issues with the plugin's endpoints not being recalculated on data updates.",
-  "type": "added",
-  "issueOrPR": 11833,
-  "breaking": false,
-  "framework": "none"
-}

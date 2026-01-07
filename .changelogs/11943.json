@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Revert the editors' `updateChoicesList` method typing",
+  "type": "changed",
+  "issueOrPR": 11943,
+  "breaking": false,
+  "framework": "none"
+}

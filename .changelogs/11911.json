@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem, where using `minSpareRows` would crash table table when configured alongside the Column Summary plugin.",
-  "type": "fixed",
-  "issueOrPR": 11911,
-  "breaking": false,
-  "framework": "none"
-}

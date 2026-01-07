@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added `minRowHeights` as an alias to `rowHeights`.",
-  "type": "added",
-  "issueOrPR": 11898,
-  "breaking": false,
-  "framework": "none"
-}

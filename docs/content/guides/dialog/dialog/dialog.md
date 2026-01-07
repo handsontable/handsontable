@@ -20,6 +20,7 @@ angular:
   metaTitle: Dialog - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
+menuTag: updated
 ---
 
 # Dialog

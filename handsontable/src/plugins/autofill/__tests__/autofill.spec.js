@@ -2251,4 +2251,119 @@ describe('AutoFill', () => {
       expect(Handsontable.dom.hasClass(getCell(5, 4), 'fill')).toBe(true);
     });
   });
+
+  using('autofill handler size', [
+    2, 4, 6, 8, 10, 12, 14, 16,
+  ], (autofillHandlerSize) => {
+    beforeEach(() => {
+      const style = document.createElement('style');
+      const styleText = `
+        .handsontable {
+          --ht-cell-autofill-size: ${autofillHandlerSize}px;
+        }`;
+
+      style.id = 'autofill-handler-size-style';
+      style.textContent = styleText;
+      document.head.appendChild(style);
+    });
+
+    afterEach(() => {
+      document.getElementById('autofill-handler-size-style').remove();
+    });
+
+    it('should render corner hit area with a proper size', async() => {
+      if (spec().loadedTheme === 'classic') {
+        return;
+      }
+
+      const hot = handsontable({
+        width: 200,
+        height: 200,
+        startRows: 10,
+        startCols: 10,
+      });
+
+      await selectCell(1, 1);
+
+      const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+      const hitAreaStyle = getComputedStyle(corner, '::after');
+      const expectedHitAreaSize = Math.max(autofillHandlerSize, 14);
+
+      expect(hitAreaStyle.width).toBe(`${expectedHitAreaSize}px`);
+      expect(hitAreaStyle.height).toBe(`${expectedHitAreaSize}px`);
+    });
+
+    it('should cut the hit area at the bottom of the table when the last row is selected', async() => {
+      if (spec().loadedTheme === 'classic') {
+        return;
+      }
+
+      const hot = handsontable({
+        width: 200,
+        height: 200,
+        startRows: 10,
+        startCols: 10,
+      });
+
+      await selectCell(9, 1);
+
+      const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+      const hitAreaStyle = getComputedStyle(corner, '::after');
+
+      expect(hitAreaStyle.insetBlockEnd).toBe('0px');
+    });
+
+    it('should cut the hit area at the right side of the table when the last column is selected', async() => {
+      if (spec().loadedTheme === 'classic') {
+        return;
+      }
+
+      const hot = handsontable({
+        width: 200,
+        height: 200,
+        startRows: 10,
+        startCols: 10,
+      });
+
+      await selectCell(1, 9);
+
+      const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+      const hitAreaStyle = getComputedStyle(corner, '::after');
+
+      expect(hitAreaStyle.insetInlineEnd).toBe('0px');
+    });
+  });
+
+  it('should be possible to change the hit area size', async() => {
+    if (spec().loadedTheme === 'classic') {
+      return;
+    }
+
+    const style = document.createElement('style');
+    const styleText = `
+      .handsontable {
+        --ht-cell-autofill-hit-area-size: 10px;
+      }`;
+
+    style.id = 'autofill-handler-size-style';
+    style.textContent = styleText;
+    document.head.appendChild(style);
+
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 10,
+      startCols: 10,
+    });
+
+    await selectCell(1, 1);
+
+    const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+    const hitAreaStyle = getComputedStyle(corner, '::after');
+
+    expect(hitAreaStyle.width).toBe('10px');
+    expect(hitAreaStyle.height).toBe('10px');
+
+    style.remove();
+  });
 });

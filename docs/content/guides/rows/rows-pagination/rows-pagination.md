@@ -111,7 +111,8 @@ You can configure the following options:
 ```javascript
 const configurationOptions = {
   pagination: {
-    // Set number of rows per page. If the value is `auto` then the page size is calculated
+    // Set number of rows per page. If the value is `auto` then the
+    // page size is calculated
     // based on available height.
     pageSize: 20,
     // Provide a list of selectable page sizes
@@ -124,7 +125,8 @@ const configurationOptions = {
     showCounter: true,
     // Show or hide the page navigation section
     showNavigation: true,
-    // Custom container where the pagination UI will be injected (optional)
+    // Custom container where the pagination UI will be injected
+    // (optional)
     uiContainer: null,
   }
 };

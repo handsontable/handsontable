@@ -597,7 +597,7 @@ class Border {
         trimmingContainer = rootDocument.documentElement;
       }
 
-      // -1 was initially removed from the base position to compansate for the table border. We need to exclude it from
+      // -1 was initially removed from the base position to compensate for the table border. We need to exclude it from
       // the corner width.
       const cornerBorderCompensation = parseInt(this.cornerDefaultStyle.borderWidth, 10) - 1;
       const cornerHalfWidth = Math.ceil(parseInt(this.cornerDefaultStyle.width, 10) / 2);
@@ -622,6 +622,8 @@ class Border {
             inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
           );
 
+          addClass(this.corner, 'wtCornerInlineEndEdge');
+
           if (isClassicTheme) {
             this.cornerStyle[inlinePosProperty] = `${inlineStartPosition}px`;
             this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
@@ -630,6 +632,8 @@ class Border {
             this.cornerStyle[inlinePosProperty] = `${inlineStartPosition - 1}px`;
           }
         }
+      } else {
+        removeClass(this.corner, 'wtCornerInlineEndEdge');
       }
 
       if (toRow === this.wot.getSetting('totalRows') - 1) {
@@ -642,6 +646,8 @@ class Border {
             top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation
           );
 
+          addClass(this.corner, 'wtCornerBlockEndEdge');
+
           if (isClassicTheme) {
             // styles for classic theme
             this.cornerStyle.top = `${cornerTopPosition}px`;
@@ -652,6 +658,8 @@ class Border {
             this.cornerStyle.top = `${cornerTopPosition - 1}px`;
           }
         }
+      } else {
+        removeClass(this.corner, 'wtCornerBlockEndEdge');
       }
 
       this.cornerStyle.display = 'block';

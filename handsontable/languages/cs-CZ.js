@@ -77,6 +77,8 @@ var _handsontable = _interopRequireDefault(__webpack_require__(2));
 const C = _handsontable.default.languages.dictionaryKeys;
 const dictionary = {
   languageCode: 'cs-CZ',
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Storno',
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Žádné volby nejsou dostupné',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Vložit řádek nad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Vložit řádek pod',
@@ -159,7 +161,12 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: 'Přejít na předchozí stránku',
   [C.PAGINATION_NEXT_PAGE]: 'Přejít na další stránku',
   [C.PAGINATION_LAST_PAGE]: 'Přejít na poslední stránku',
-  [C.LOADING_TITLE]: 'Načítání...'
+  [C.LOADING_TITLE]: 'Načítání...',
+  [C.EMPTY_DATA_STATE_TITLE]: 'Žádná data nejsou k dispozici',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Zatím není co zobrazit.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nebyly nalezeny žádné výsledky',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Vypadá to, že vaše současné filtry skrývají všechny výsledky.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetovat filtry'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;

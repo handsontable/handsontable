@@ -30,6 +30,8 @@ Handsontable supports the following Vue 3 versions:
 | `11.0.0` and lower   | No Vue 3 support   |
 | `11.1.0` and higher  | `3.2.0` and higher |
 
+Handsontable supports Vue 3 versions `3.2.0` and higher, including all minor and patch versions within the Vue 3.x release line (e.g., `3.2.x`, `3.3.x`, `3.4.x`, etc.).
+
 ## Install with npm
 
 This component needs the Handsontable library to work. Use npm to install the packages.

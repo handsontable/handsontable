@@ -9,14 +9,14 @@ import {GridSettings} from '@handsontable/angular-wrapper';
       [settings]="hotSettings!" [data]="hotData">
     </hot-table>
 
-    <ng-template #coverRenderer let-value>
+    <ng-template #myCellTpl let-value let-row="row" let-col="col">
       <img [src]="value" (mousedown)="$event.preventDefault()"/>
     </ng-template>
   `,
   standalone: false
 })
 export class AppComponent implements OnInit {
-  @ViewChild('coverRenderer', { static: true }) coverRendererTemplate!: TemplateRef<any>;
+  @ViewChild('myCellTpl', { static: true }) myCellTpl!: TemplateRef<any>;
 
   readonly hotData = [
     {
@@ -53,7 +53,7 @@ export class AppComponent implements OnInit {
       columns: [
         { data: 'title', renderer: 'html' },
         { data: 'description', renderer: 'html' },
-        { data: 'cover', renderer: this.coverRendererTemplate },
+        { data: 'cover', renderer: this.myCellTpl },
       ],
       autoWrapRow: true,
       autoWrapCol: true,

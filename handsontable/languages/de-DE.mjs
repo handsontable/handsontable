@@ -9,6 +9,8 @@ import Handsontable from "handsontable";
 const C = Handsontable.languages.dictionaryKeys;
 const dictionary = {
   languageCode: 'de-DE',
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Abbrechen',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Zeile einfügen oberhalb',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Zeile einfügen unterhalb',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Spalte einfügen links',
@@ -90,7 +92,12 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: 'Zur vorherigen Seite wechseln',
   [C.PAGINATION_NEXT_PAGE]: 'Zur nächsten Seite wechseln',
   [C.PAGINATION_LAST_PAGE]: 'Zur letzten Seite wechseln',
-  [C.LOADING_TITLE]: 'Lädt...'
+  [C.LOADING_TITLE]: 'Lädt...',
+  [C.EMPTY_DATA_STATE_TITLE]: 'Keine Daten verfügbar',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Es gibt noch nichts anzuzeigen.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Keine Ergebnisse gefunden',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Es scheint, als würden Ihre aktuellen Filter alle Ergebnisse ausblenden.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Filter zurücksetzen'
 };
 Handsontable.languages.registerLanguageDictionary(dictionary);
 export default dictionary;

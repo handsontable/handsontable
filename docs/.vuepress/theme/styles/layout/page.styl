@@ -316,6 +316,10 @@
         box-shadow: 0 0 0 1px $borderColor
         padding: 0 !important
         border-radius: $radius
+
+        code {
+            white-space: normal;
+        }
     }
 
     table:not(.htCore) {
@@ -468,6 +472,12 @@
 
 .page .theme-default-content a.header-link {
     color: $textColor
+
+    span.tag-deprecated {
+        display: inline-block
+        vertical-align: middle
+        margin-top: -4px
+    }
 }
 
 .page .ht-wrapper.docs-height-small > .ht_master,

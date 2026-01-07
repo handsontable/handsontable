@@ -24,7 +24,7 @@
   --ht-color-notification-success: rgba(55, 188, 108, 0.20);
   --ht-color-notification-warning: rgba(251, 233, 82, 0.20);
   --ht-color-notification-informational: rgba(142, 176, 231, 0.20);
-  --ht-common-background-secondary: #f0f0f0;
+  --ht-common-background-secondary: var(--ht-color-gray-200);
   --ht-common-foreground: var(--ht-color-gray-800);
   --ht-common-foreground-secondary: var(--ht-color-gray-500);
   --ht-common-background: var(--ht-color-gray-100);
@@ -63,7 +63,7 @@
   --ht-color-notification-success: rgba(66, 190, 101, 0.30);
   --ht-color-notification-warning: rgba(241, 194, 28, 0.30);
   --ht-color-notification-informational: rgba(122, 173, 255, 0.30);
-  --ht-common-background-secondary: #222222;
+  --ht-common-background-secondary: var(--ht-color-gray-200);
   --ht-common-foreground: var(--ht-color-gray-800);
   --ht-common-foreground-secondary: var(--ht-color-gray-500);
   --ht-common-background: var(--ht-color-gray-100);
@@ -125,6 +125,7 @@
   --ht-cell-selection-border-color: var(--ht-common-accent);
   --ht-cell-selection-background-color: var(--ht-color-accent-350);
   --ht-cell-autofill-size: 6px;
+  --ht-cell-autofill-hit-area-size: 14px;
   --ht-cell-autofill-border-width: 1px;
   --ht-cell-autofill-border-radius: 0;
   --ht-cell-autofill-border-color: var(--ht-common-background);
@@ -307,7 +308,7 @@
   --ht-menu-vertical-padding: 2px;
   --ht-menu-item-horizontal-padding: 8px;
   --ht-menu-item-vertical-padding: 2px;
-  --ht-menu-border-color: var(--ht-border-color);
+  --ht-menu-border-color: var(--ht-common-border);
   --ht-menu-shadow-x: var(--ht-shadow-x);
   --ht-menu-shadow-y: var(--ht-shadow-y);
   --ht-menu-shadow-blur: var(--ht-shadow-blur);

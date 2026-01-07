@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Add a new \"dotted\" style to the Custom Borders plugin.",
-  "type": "added",
-  "issueOrPR": 11877,
-  "breaking": false,
-  "framework": "none"
-}

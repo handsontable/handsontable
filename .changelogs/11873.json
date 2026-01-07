@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Modified the way in which the Autocomplete and Dropdown editors reactto clicking outside of the open editor.",
-  "type": "changed",
-  "issueOrPR": 11873,
-  "breaking": false,
-  "framework": "none"
-}

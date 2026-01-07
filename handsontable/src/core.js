@@ -2867,7 +2867,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
       } else if (height !== undefined) {
         instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
-        instance.rootElement.style.overflow = 'hidden';
+        instance.rootElement.style.overflow = 'clip';
       }
     }
 

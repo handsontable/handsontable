@@ -9,6 +9,8 @@ import Handsontable from "handsontable";
 const C = Handsontable.languages.dictionaryKeys;
 const dictionary = {
   languageCode: 'ru-RU',
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Отмена',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Вставить строку выше',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Вставить строку ниже',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Вставить столбец слева',
@@ -90,7 +92,12 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: 'Перейти на предыдущую страницу',
   [C.PAGINATION_NEXT_PAGE]: 'Перейти на следующую страницу',
   [C.PAGINATION_LAST_PAGE]: 'Перейти на последнюю страницу',
-  [C.LOADING_TITLE]: 'Загрузка...'
+  [C.LOADING_TITLE]: 'Загрузка...',
+  [C.EMPTY_DATA_STATE_TITLE]: 'Данные недоступны',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Пока нечего отображать.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Результаты не найдены',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Похоже, что ваши текущие фильтры скрывают все результаты.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Сбросить фильтры'
 };
 Handsontable.languages.registerLanguageDictionary(dictionary);
 export default dictionary;

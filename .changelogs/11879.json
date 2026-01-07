@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added EmptyDataState Plugin",
-  "type": "added",
-  "issueOrPR": 11879,
-  "breaking": false,
-  "framework": "none"
-}

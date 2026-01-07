@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where resizing the window vertically did not resize the table.",
-  "type": "fixed",
-  "issueOrPR": 11919,
-  "breaking": false,
-  "framework": "none"
-}

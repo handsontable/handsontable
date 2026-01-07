@@ -24,6 +24,7 @@ angular:
   metaTitle: Theme Customization - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
+menuTag: updated
 ---
 
 # Theme Customization
@@ -308,6 +309,7 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | Variable | Description |
 |----------|-------------|
 | `--ht-cell-autofill-size` | Size of the autofill handle |
+| `--ht-cell-autofill-hit-area-size` | Size of the autofill hit area |
 | `--ht-cell-autofill-border-width` | Border width of autofill elements |
 | `--ht-cell-autofill-border-radius` | Border radius of autofill elements |
 | `--ht-cell-autofill-border-color` | Border color of autofill elements |

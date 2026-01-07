@@ -120,8 +120,10 @@ export class Overlay {
   updateMainScrollableElement() {
     const { wtTable } = this.wot;
     const { rootWindow } = this.domBindings;
+    const computedOverflow = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
+      .getPropertyValue('overflow');
 
-    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+    if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
       this.mainTableScrollableElement = this.wot.wtTable.holder;
     } else {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
@@ -321,14 +323,17 @@ export class Overlay {
     tableParent.appendChild(clone);
 
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    const computedOverflow = rootWindow.getComputedStyle(tableParent)
+      .getPropertyValue('overflow');
 
     if (preventOverflow === true ||
       preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
       preventOverflow === 'vertical' && this.type === CLONE_INLINE_START) {
       this.mainTableScrollableElement = rootWindow;
 
-    } else if (rootWindow.getComputedStyle(tableParent).getPropertyValue('overflow') === 'hidden') {
+    } else if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
       this.mainTableScrollableElement = wtTable.holder;
+
     } else {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
     }

@@ -2441,6 +2441,7 @@ thead th.hiddenHeaderText .colHeader {
   overflow-y: auto;
   border: 1px solid #ccc;
   box-sizing: border-box;
+  background-color: #fff;
 }
 
 .ht-empty-data-state * {

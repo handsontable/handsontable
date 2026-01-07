@@ -290,6 +290,16 @@ If you'd like to register `asterixDecoratorRenderer` under alias `asterix` you h
 Handsontable.renderers.registerRenderer("asterix", asterixDecoratorRenderer);
 ```
 
+::: only-for angular
+
+::: tip
+
+When using `Handsontable.renderers.registerRenderer()`, remember to call it at startup (e.g. in `main.ts` or `AppModule`), not in the component constructor. This ensures the renderer is registered before the table is initialized.
+
+:::
+
+:::
+
 Choose aliases wisely. If you register your renderer under name that is already registered, the target function will be overwritten:
 
 ```js

@@ -280,7 +280,8 @@ hot.selectCell(1, 1);
 // copy the selected cells along with their nearest column headers
 copyPastePlugin.copy('with-column-headers');
 
-// copy the selected cells along with all their related columns headers
+// copy the selected cells along with all their related columns
+// headers
 copyPastePlugin.copy('with-all-column-headers');
 
 // copy the column headers nearest to the selected cells
