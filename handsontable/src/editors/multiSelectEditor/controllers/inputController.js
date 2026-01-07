@@ -1,16 +1,6 @@
-// ~TODO: Move selection -> update TEXTAREA logic here.~ (propably not needed)
-// ☑️ TODO: Removing a word should commit changes.
-// ~TODO: Modifying a word should commit changes.~ (probably not true)
-
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import { getWordAtCaret, getValuesFromString } from '../utils/utils';
-
-const INPUT_STATES = Object.freeze({
-  VIRGIN: 'STATE_VIRGIN', // before editing
-  EDITING: 'STATE_EDITING',
-  STABLE: 'STATE_STABLE', // not editing/adding new items
-});
 
 const COMMIT_KEYS = [','];
 const IRRELEVANT_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape', ' '];
@@ -41,14 +31,6 @@ export class InputController {
    * @type {Function}
    */
   #onKeyUp = null;
-
-  /**
-   * Input state.
-   *
-   * @private
-   * @type {string}
-   */
-  state = INPUT_STATES.VIRGIN;
 
   /**
    * Creates a new InputController.
@@ -91,7 +73,6 @@ export class InputController {
     this.#cache.lastInputValue = this.input.value;
 
     if (COMMIT_KEYS.includes(event.key)) {
-      this.state = INPUT_STATES.STABLE;
       this.#commit();
 
     } else if (IRRELEVANT_KEYS.includes(event.key)) {
@@ -99,8 +80,6 @@ export class InputController {
       return;
 
     } else {
-      this.state = INPUT_STATES.EDITING;
-
       const wordAtCaret = getWordAtCaret(this.input);
 
       if (wordAtCaret === '') {

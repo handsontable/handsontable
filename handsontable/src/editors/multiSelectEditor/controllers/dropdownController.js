@@ -16,20 +16,23 @@ export class DropdownController {
   /**
    * Element that wraps the dropdown list inside the editor UI.
    *
+   * @private
    * @type {HTMLDivElement|null}
    */
-  containerElement = null;
+  #containerElement = null;
 
   /**
    * `<ul>` element containing all checkbox rows.
    *
+   * @private
    * @type {HTMLUListElement|null}
    */
-  dropdownListElement = null;
+  #dropdownListElement = null;
 
   /**
    * Cached document reference used for DOM operations.
    *
+   * @private
    * @type {Document|null}
    */
   #rootDocument = null;
@@ -37,6 +40,7 @@ export class DropdownController {
   /**
    * Event manager for handling checkbox change events.
    *
+   * @private
    * @type {EventManager}
    */
   #eventManager = new EventManager(this);
@@ -63,9 +67,9 @@ export class DropdownController {
    * @param {HTMLDivElement} containerElement Host element created by the editor.
    */
   constructor(containerElement) {
-    this.containerElement = containerElement;
+    this.#containerElement = containerElement;
 
-    this.#rootDocument = this.containerElement.ownerDocument;
+    this.#rootDocument = this.#containerElement.ownerDocument;
 
     this.init();
   }
@@ -74,9 +78,9 @@ export class DropdownController {
    * Builds required DOM elements and inserts them into the container.
    */
   init() {
-    this.dropdownListElement = this.#createListElement();
+    this.#dropdownListElement = this.#createListElement();
 
-    this.containerElement.appendChild(this.dropdownListElement);
+    this.#containerElement.appendChild(this.#dropdownListElement);
   }
 
   /**
@@ -128,7 +132,7 @@ export class DropdownController {
    * @param {boolean} noFlip If true, the dropdown will not be flipped vertically.
    */
   updateDimensions(availableSpace, noFlip = false) {
-    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.containerElement);
+    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
     const entryHeight =
       (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'), 10)) +
       parseInt(computedStyle.getPropertyValue('--ht-line-height'), 10);
@@ -149,16 +153,16 @@ export class DropdownController {
     }
 
     if (this.#cache.visibleRowsNumber && this.#cache.entriesCount > this.#cache.visibleRowsNumber) {
-      this.containerElement.style.height = `${(this.#cache.visibleRowsNumber * entryHeight) +
+      this.#containerElement.style.height = `${(this.#cache.visibleRowsNumber * entryHeight) +
         (2 * parseInt(computedStyle.getPropertyValue('--ht-gap-size'), 10))}px`;
 
     } else {
-      this.containerElement.style.height = '';
+      this.#containerElement.style.height = '';
     }
 
     this.#toggleVerticalFlip();
 
-    this.containerElement.scrollTop = 0;
+    this.#containerElement.scrollTop = 0;
   }
 
   /**
@@ -205,10 +209,10 @@ export class DropdownController {
     this.removeAllDropdownItems();
     this.#resetCache();
 
-    this.containerElement.style.position = '';
-    this.containerElement.style.top = '';
-    this.containerElement.style.height = '';
-    this.containerElement.scrollTop = 0;
+    this.#containerElement.style.position = '';
+    this.#containerElement.style.top = '';
+    this.#containerElement.style.height = '';
+    this.#containerElement.scrollTop = 0;
   }
 
   /**
@@ -234,7 +238,7 @@ export class DropdownController {
 
     this.#cache.currentlySelectedItemIndex = index;
 
-    const itemElement = this.dropdownListElement.children[index];
+    const itemElement = this.#dropdownListElement.children[index];
 
     if (itemElement) {
       const checkbox = getCheckboxElement(itemElement);
@@ -251,7 +255,7 @@ export class DropdownController {
    * @param {number} index Index of the item to defocus.
    */
   #defocusItem(index) {
-    const itemElement = this.dropdownListElement.children[index];
+    const itemElement = this.#dropdownListElement.children[index];
 
     if (itemElement) {
       const checkbox = getCheckboxElement(itemElement);
@@ -291,12 +295,12 @@ export class DropdownController {
     const flipNeeded = this.#cache.flippedVertically;
 
     if (flipNeeded) {
-      this.containerElement.style.position = 'absolute';
-      this.containerElement.style.top = `${-this.getHeight()}px`;
+      this.#containerElement.style.position = 'absolute';
+      this.#containerElement.style.top = `${-this.getHeight()}px`;
 
     } else {
-      this.containerElement.style.position = '';
-      this.containerElement.style.top = '';
+      this.#containerElement.style.position = '';
+      this.#containerElement.style.top = '';
     }
   }
 
@@ -309,7 +313,7 @@ export class DropdownController {
     const visibleRowsNumber =
       this.#cache.visibleRowsNumber ?
         Math.min(this.#cache.visibleRowsNumber, this.#cache.entriesCount) : this.#cache.entriesCount;
-    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.containerElement);
+    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
     const entryHeight =
       (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'), 10)) +
       parseInt(computedStyle.getPropertyValue('--ht-line-height'), 10);
@@ -376,14 +380,14 @@ export class DropdownController {
 
     this.#registerEvents(itemElement);
 
-    this.dropdownListElement.appendChild(itemElement);
+    this.#dropdownListElement.appendChild(itemElement);
   }
 
   /**
    * Removes all dropdown rows.
    */
   removeAllDropdownItems() {
-    this.dropdownListElement.innerHTML = '';
+    this.#dropdownListElement.innerHTML = '';
 
     this.#cache.checkboxChangeListeners.entries().forEach(([checkbox, listener]) => {
       this.#eventManager.removeEventListener(checkbox, 'change', listener);
@@ -425,7 +429,7 @@ export class DropdownController {
    * Deselects all items in the dropdown.
    */
   deselectAllItems() {
-    this.dropdownListElement.querySelectorAll(`.${SELECTED_ITEM_CLASS}`).forEach(
+    this.#dropdownListElement.querySelectorAll(`.${SELECTED_ITEM_CLASS}`).forEach(
       itemElement => this.deselectItem(itemElement)
     );
   }
@@ -436,7 +440,7 @@ export class DropdownController {
   disableCheckboxes() {
     this.#cache.areCheckboxesDisabled = true;
 
-    this.dropdownListElement.querySelectorAll('input[type="checkbox"]:not(:checked)').forEach((checkbox) => {
+    this.#dropdownListElement.querySelectorAll('input[type="checkbox"]:not(:checked)').forEach((checkbox) => {
       checkbox.disabled = true;
     });
   }
@@ -447,7 +451,7 @@ export class DropdownController {
   enableCheckboxes() {
     this.#cache.areCheckboxesDisabled = false;
 
-    this.dropdownListElement.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+    this.#dropdownListElement.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
       checkbox.disabled = false;
     });
   }

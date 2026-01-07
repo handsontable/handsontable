@@ -18,12 +18,21 @@ const SHORTCUTS_GROUP = 'multiSelectEditor';
  */
 export class MultiSelectEditor extends TextEditor {
   /**
+   * Set of values that are currently checked in the dropdown.
+   *
+   * @private
+   * @type {SelectedItemsController}
+   */
+  #selectedItems = new SelectedItemsController();
+
+  /**
    * Container element that hosts the dropdown with checkbox options.
    *
    * @private
    * @type {HTMLDivElement}
    */
-  dropdownContainerElement;
+  dropdownContainerElement = null;
+
   /**
    * Dropdown controller responsible for rendering and syncing option states.
    *
@@ -31,14 +40,6 @@ export class MultiSelectEditor extends TextEditor {
    * @type {DropdownController|null}
    */
   dropdownController = this.dropdownController ?? null;
-
-  /**
-   * Set of values that are currently checked in the dropdown.
-   *
-   * @private
-   * @type {Set<*>}
-   */
-  selectedItems = new SelectedItemsController();
 
   /**
    * Input controller responsible for managing the input.
@@ -99,7 +100,7 @@ export class MultiSelectEditor extends TextEditor {
     this.dropdownController.setVisibleRowsNumber(this.#getEditorSetting('visibleRows'));
 
     if (cellProperties.maxSelections) {
-      this.selectedItems.setMaxSelectionCount(cellProperties.maxSelections);
+      this.#selectedItems.setMaxSelectionCount(cellProperties.maxSelections);
     }
   }
 
@@ -112,7 +113,7 @@ export class MultiSelectEditor extends TextEditor {
    */
   finishEditing(restoreOriginalValue, ctrlDown, callback) {
     if (!restoreOriginalValue) {
-      this.setValue(this.selectedItems.stringifyValues());
+      this.setValue(this.#selectedItems.stringifyValues());
     }
 
     super.finishEditing(restoreOriginalValue, ctrlDown, callback);
@@ -130,8 +131,8 @@ export class MultiSelectEditor extends TextEditor {
       (selectedKey, selectedValue) => {
         this.#addSelectedValue(selectedKey, selectedValue);
 
-        if (this.selectedItems.getSize() >= this.cellProperties.maxSelections) {
-          this.blockNewSelections();
+        if (this.#selectedItems.getSize() >= this.cellProperties.maxSelections) {
+          this.#blockNewSelections();
         }
       }
     );
@@ -139,8 +140,8 @@ export class MultiSelectEditor extends TextEditor {
       (deselectedKey, deselectedValue) => {
         this.#removeSelectedValue(deselectedKey, deselectedValue);
 
-        if (this.selectedItems.getSize() < this.cellProperties.maxSelections) {
-          this.unblockNewSelections();
+        if (this.#selectedItems.getSize() < this.cellProperties.maxSelections) {
+          this.#unblockNewSelections();
         }
       }
     );
@@ -148,7 +149,7 @@ export class MultiSelectEditor extends TextEditor {
     this.dropdownController.addLocalHook('dropdownDefocus', () => this.#onDropdownDefocus());
 
     this.inputController.addLocalHook('commit', (...args) => this.#onTextareaCommit(...args));
-    this.inputController.addLocalHook('triggerFilter', wordAtCaret => this.filterEntries(wordAtCaret));
+    this.inputController.addLocalHook('triggerFilter', wordAtCaret => this.#filterEntries(wordAtCaret));
   }
 
   /**
@@ -157,7 +158,7 @@ export class MultiSelectEditor extends TextEditor {
   open() {
     super.open();
 
-    this.dropdownController.updateDimensions(this.getAvailableSpace());
+    this.dropdownController.updateDimensions(this.#getAvailableSpace());
   }
 
   /**
@@ -175,137 +176,7 @@ export class MultiSelectEditor extends TextEditor {
    * @returns {string} The editor's value.
    */
   getValue() {
-    return this.selectedItems.getItemsArray();
-  }
-
-  /**
-   * Blocks new selections.
-   */
-  blockNewSelections() {
-    this.dropdownController.disableCheckboxes();
-  }
-
-  /**
-   * Unblocks new selections.
-   */
-  unblockNewSelections() {
-    this.dropdownController.enableCheckboxes();
-  }
-
-  /**
-   * Filters the dropdown entries.
-   *
-   * @param {string} wordAtCaret The word at the caret position.
-   * @param {boolean} keepSelectedItems If true, the selected items will be kept in the dropdown.
-   */
-  filterEntries(wordAtCaret, keepSelectedItems = true) {
-    const filteredItems = this.cellProperties.source.filter((item) => {
-      const value = item?.value ?? item;
-
-      if (keepSelectedItems && this.selectedItems.has(item)) {
-        return true;
-      }
-
-      if (this.cellProperties.filteringCaseSensitive) {
-        return value.includes(wordAtCaret);
-      }
-
-      return value.toLowerCase().includes(wordAtCaret.toLowerCase());
-    });
-
-    this.dropdownController.fillDropdown(filteredItems, this.selectedItems.getItemsArray());
-    this.dropdownController.updateDimensions(this.getAvailableSpace(), true);
-  }
-
-  /**
-   * Gets the available space for the dropdown.
-   *
-   * @returns {{spaceAbove: number, spaceBelow: number, cellHeight: number}} The available space.
-   */
-  getAvailableSpace() {
-    const cellRect = this.getEditedCellRect();
-    const isVerticallyScrollableByWindow = this.hot.view.isVerticallyScrollableByWindow();
-    const workspaceHeight = this.hot.view.getWorkspaceHeight();
-
-    let spaceAbove = cellRect.top;
-
-    if (isVerticallyScrollableByWindow) {
-      const topOffset = this.hot.view.getTableOffset().top - this.hot.rootWindow.scrollY;
-
-      spaceAbove = Math.max(spaceAbove + topOffset, 0);
-    }
-
-    const spaceBelow = workspaceHeight - spaceAbove - cellRect.height;
-
-    return {
-      spaceAbove,
-      spaceBelow,
-      cellHeight: cellRect.height,
-    };
-  }
-
-  /**
-   * Called when the editor is destroyed.
-   *
-   * @private
-   */
-  destroy() {
-    super.destroy();
-
-    this.dropdownController.reset();
-
-    this.inputController = null;
-  }
-
-  /**
-   * Handles textarea commit event.
-   *
-   * @private
-   * @param {string[]} values The values from the textarea.
-   */
-  #onTextareaCommit(values) {
-    if (values.length > this.cellProperties.maxSelections) {
-      return;
-    }
-
-    let sanitizedValues = values;
-
-    if (this.cellProperties.validateOnCommit ?? true) {
-      sanitizedValues = values
-        .map(value => getSourceItemByValue(value, this.cellProperties.source))
-        .filter(item => item !== undefined);
-    }
-
-    this.selectedItems.clear();
-    this.selectedItems.add(sanitizedValues);
-    this.dropdownController.removeAllDropdownItems();
-    this.dropdownController.fillDropdown(this.cellProperties.source, this.selectedItems.getItemsArray());
-    this.dropdownController.updateDimensions(this.getAvailableSpace(), true);
-
-    if (this.selectedItems.getSize() >= this.cellProperties.maxSelections) {
-      this.blockNewSelections();
-
-    } else {
-      this.unblockNewSelections();
-    }
-  }
-
-  /**
-   * Called when the dropdown is focused.
-   *
-   * @private
-   */
-  #onDropdownFocus() {
-    this.TEXTAREA.blur();
-  }
-
-  /**
-   * Called when the dropdown is defocused.
-   *
-   * @private
-   */
-  #onDropdownDefocus() {
-    this.TEXTAREA.focus();
+    return this.#selectedItems.getItemsArray();
   }
 
   /**
@@ -353,6 +224,136 @@ export class MultiSelectEditor extends TextEditor {
   }
 
   /**
+   * Called when the editor is destroyed.
+   *
+   * @private
+   */
+  destroy() {
+    super.destroy();
+
+    this.dropdownController.reset();
+
+    this.inputController = null;
+  }
+
+  /**
+   * Blocks new selections.
+   */
+  #blockNewSelections() {
+    this.dropdownController.disableCheckboxes();
+  }
+
+  /**
+   * Unblocks new selections.
+   */
+  #unblockNewSelections() {
+    this.dropdownController.enableCheckboxes();
+  }
+
+  /**
+   * Filters the dropdown entries.
+   *
+   * @param {string} wordAtCaret The word at the caret position.
+   * @param {boolean} keepSelectedItems If true, the selected items will be kept in the dropdown.
+   */
+  #filterEntries(wordAtCaret, keepSelectedItems = true) {
+    const filteredItems = this.cellProperties.source.filter((item) => {
+      const value = item?.value ?? item;
+
+      if (keepSelectedItems && this.#selectedItems.has(item)) {
+        return true;
+      }
+
+      if (this.cellProperties.filteringCaseSensitive) {
+        return value.includes(wordAtCaret);
+      }
+
+      return value.toLowerCase().includes(wordAtCaret.toLowerCase());
+    });
+
+    this.dropdownController.fillDropdown(filteredItems, this.#selectedItems.getItemsArray());
+    this.dropdownController.updateDimensions(this.#getAvailableSpace(), true);
+  }
+
+  /**
+   * Gets the available space for the dropdown.
+   *
+   * @returns {{spaceAbove: number, spaceBelow: number, cellHeight: number}} The available space.
+   */
+  #getAvailableSpace() {
+    const cellRect = this.getEditedCellRect();
+    const isVerticallyScrollableByWindow = this.hot.view.isVerticallyScrollableByWindow();
+    const workspaceHeight = this.hot.view.getWorkspaceHeight();
+
+    let spaceAbove = cellRect.top;
+
+    if (isVerticallyScrollableByWindow) {
+      const topOffset = this.hot.view.getTableOffset().top - this.hot.rootWindow.scrollY;
+
+      spaceAbove = Math.max(spaceAbove + topOffset, 0);
+    }
+
+    const spaceBelow = workspaceHeight - spaceAbove - cellRect.height;
+
+    return {
+      spaceAbove,
+      spaceBelow,
+      cellHeight: cellRect.height,
+    };
+  }
+
+  /**
+   * Handles textarea commit event.
+   *
+   * @private
+   * @param {string[]} values The values from the textarea.
+   */
+  #onTextareaCommit(values) {
+    if (values.length > this.cellProperties.maxSelections) {
+      return;
+    }
+
+    let sanitizedValues = values;
+
+    if (this.cellProperties.validateOnCommit ?? true) {
+      sanitizedValues = values
+        .map(value => getSourceItemByValue(value, this.cellProperties.source))
+        .filter(item => item !== undefined);
+    }
+
+    this.#selectedItems.clear();
+    this.#selectedItems.add(sanitizedValues);
+    this.dropdownController.removeAllDropdownItems();
+    this.dropdownController.fillDropdown(this.cellProperties.source, this.#selectedItems.getItemsArray());
+    this.dropdownController.updateDimensions(this.#getAvailableSpace(), true);
+
+    if (this.#selectedItems.getSize() >= this.cellProperties.maxSelections) {
+      this.#blockNewSelections();
+
+    } else {
+      this.#unblockNewSelections();
+    }
+  }
+
+  /**
+   * Called when the dropdown is focused.
+   *
+   * @private
+   */
+  #onDropdownFocus() {
+    this.TEXTAREA.blur();
+  }
+
+  /**
+   * Called when the dropdown is defocused.
+   *
+   * @private
+   */
+  #onDropdownDefocus() {
+    this.TEXTAREA.focus();
+  }
+
+  /**
    * Adds a value reported by the dropdown to the selection set and mirrors it in the textarea.
    *
    * @private
@@ -361,13 +362,13 @@ export class MultiSelectEditor extends TextEditor {
    */
   #addSelectedValue(selectedKey, selectedValue) {
     if (selectedKey) {
-      this.selectedItems.add({ key: selectedKey, value: selectedValue });
+      this.#selectedItems.add({ key: selectedKey, value: selectedValue });
 
     } else {
-      this.selectedItems.add(selectedValue);
+      this.#selectedItems.add(selectedValue);
     }
 
-    this.setValue(this.selectedItems.stringifyValues());
+    this.setValue(this.#selectedItems.stringifyValues());
     this.refreshDimensions();
   }
 
@@ -380,13 +381,13 @@ export class MultiSelectEditor extends TextEditor {
    */
   #removeSelectedValue(deselectedKey, deselectedValue) {
     if (deselectedKey) {
-      this.selectedItems.remove({ key: deselectedKey, value: deselectedValue });
+      this.#selectedItems.remove({ key: deselectedKey, value: deselectedValue });
 
     } else {
-      this.selectedItems.remove(deselectedValue);
+      this.#selectedItems.remove(deselectedValue);
     }
 
-    this.setValue(this.selectedItems.stringifyValues());
+    this.setValue(this.#selectedItems.stringifyValues());
     this.refreshDimensions();
   }
 
@@ -398,10 +399,10 @@ export class MultiSelectEditor extends TextEditor {
    */
   #syncSelectedValues(valuesArray) {
     if (valuesArray.length > 0) {
-      this.selectedItems = new SelectedItemsController(valuesArray);
+      this.#selectedItems = new SelectedItemsController(valuesArray);
 
     } else {
-      this.selectedItems = new SelectedItemsController();
+      this.#selectedItems = new SelectedItemsController();
     }
   }
 
