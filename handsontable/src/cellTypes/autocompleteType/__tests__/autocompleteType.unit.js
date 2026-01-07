@@ -56,6 +56,7 @@ describe('AutocompleteCellType', () => {
       expect(getCellType('autocomplete')).toEqual(AutocompleteCellType);
       expect(getCellType('autocomplete')).toEqual({
         CELL_TYPE,
+        _complexDataFormat: true,
         editor: getEditor('autocomplete'),
         renderer: getRenderer('autocomplete'),
         validator: getValidator('autocomplete'),

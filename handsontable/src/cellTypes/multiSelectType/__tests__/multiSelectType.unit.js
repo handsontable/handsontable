@@ -57,6 +57,7 @@ describe('MultiSelectCellType', () => {
       expect(getCellType('multiSelect')).toEqual(MultiSelectCellType);
       expect(getCellType('multiSelect')).toEqual({
         CELL_TYPE,
+        _complexDataFormat: true,
         editor: getEditor('multiSelect'),
         renderer: getRenderer('multiSelect'),
         valueGetter: MultiSelectCellType.valueGetter,
