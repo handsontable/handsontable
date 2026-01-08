@@ -5,6 +5,7 @@ import {
   getParent,
 } from '../../../helpers/dom/element';
 import { partial } from '../../../helpers/function';
+import { clamp } from '../../../helpers/number';
 import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
 import { isDefined } from '../../../helpers/mixed';
@@ -59,12 +60,16 @@ class Event {
    */
   constructor(facadeGetter, domBindings, wtSettings, eventManager, wtTable, selectionManager, parent = null) {
     this.#wtSettings = wtSettings;
+    this.wtSettings = wtSettings;
     this.#domBindings = domBindings;
     this.#wtTable = wtTable;
+    this.wtTable = wtTable;
     this.#selectionManager = selectionManager;
     this.#parent = parent;
+    this.parent = parent;
     this.#eventManager = eventManager;
     this.#facadeGetter = facadeGetter;
+    this.facadeGetter = facadeGetter;
 
     this.registerEvents();
   }
@@ -78,6 +83,10 @@ class Event {
     this.#eventManager.addEventListener(this.#wtTable.holder, 'contextmenu', event => this.onContextMenu(event));
     this.#eventManager.addEventListener(this.#wtTable.TABLE, 'mouseover', event => this.onMouseOver(event));
     this.#eventManager.addEventListener(this.#wtTable.TABLE, 'mouseout', event => this.onMouseOut(event));
+
+    if (this.#wtTable.isMaster) {
+      this.#eventManager.addEventListener(this.#domBindings.rootDocument, 'mousemove', event => this.onMouseMove(event));
+    }
 
     const initTouchEvents = () => {
       this.#eventManager.addEventListener(this.#wtTable.holder, 'touchstart', event => this.onTouchStart(event));
@@ -250,7 +259,233 @@ class Event {
     if (td && td !== parent.lastMouseOver && isChildOf(td, table)) {
       parent.lastMouseOver = td;
 
+      console.log('over');
+
       this.callListener('onCellMouseOver', event, this.#wtTable.getCoords(td), td);
+    }
+  }
+
+  onMouseMove(event) {
+    function findColumnAtX(wotInstance, row, startColumn, endColumn, relativeX) {
+      let accumulatedX = 0;
+
+      for (let column = startColumn; column <= endColumn; column++) {
+        const cellElement = wotInstance.getCell({ row, col: column }, true);
+
+        if (!(cellElement instanceof HTMLElement)) {
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+
+        const width = cellElement.offsetWidth;
+
+        if (relativeX < accumulatedX + width) {
+          return column;
+        }
+
+        accumulatedX += width;
+
+        // const { colspan } = wotInstance.getCellMeta(row, column);
+
+        // if (colspan > 1) {
+        //   column += colspan - 1;
+        // }
+      }
+
+      return null;
+    }
+
+    /**
+     * Finds which row the mouse is over within a given row range.
+     *
+     * @param {Handsontable} hotInstance The Handsontable instance.
+     * @param {number} column Column to use for measuring cell heights.
+     * @param {number} startRow First row in the range.
+     * @param {number} endRow Last row in the range (inclusive).
+     * @param {number} relativeY Mouse Y position relative to the first cell's edge.
+     * @returns {number | null} Row index, or null if mouse is outside the range.
+     */
+    function findRowAtY(wotInstance, column, startRow, endRow, relativeY) {
+      let accumulatedY = 0;
+
+      for (let row = startRow; row <= endRow; row++) {
+        const cellElement = wotInstance.getCell({ row, col: column }, true);
+
+        if (!(cellElement instanceof HTMLElement)) {
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+
+        const height = cellElement.offsetHeight;
+
+        if (relativeY < accumulatedY + height) {
+          return row;
+        }
+
+        accumulatedY += height;
+
+        // const { rowspan } = wotInstance.getCellMeta(row, column);
+
+        // if (rowspan > 1) {
+        //   row += rowspan - 1;
+        // }
+      }
+
+      return null;
+    }
+
+    /**
+     * Get the cell coordinates from the mouse position. When the mouse is outside of the table,
+     * the nearest cell is returned.
+     *
+     * @param {Handsontable} hotInstance The Handsontable instance.
+     * @param {number} mouseX The x coordinate of the mouse.
+     * @param {number} mouseY The y coordinate of the mouse.
+     * @returns {CellCoords} The cell coordinates.
+     */
+    const getCellCoordsFromMousePosition = (mouseX, mouseY) => {
+      const isRtl = this.#wtSettings.getSetting('rtlMode');
+
+      const wot = this.#facadeGetter();
+
+      const numberOfFixedColumnsStart = this.#wtSettings.getSetting('fixedColumnsStart');
+      const numberOfFixedRowsTop = this.#wtSettings.getSetting('fixedRowsTop');
+      const numberOfFixedRowsBottom = this.#wtSettings.getSetting('fixedRowsBottom');
+
+      const firstPartiallyVisibleRow = wot.wtScroll.getFirstPartiallyVisibleRow();
+      const lastPartiallyVisibleRow = wot.wtScroll.getLastPartiallyVisibleRow();
+      const firstPartiallyVisibleColumn = wot.wtScroll.getFirstPartiallyVisibleColumn();
+      const lastPartiallyVisibleColumn = wot.wtScroll.getLastPartiallyVisibleColumn();
+      const tableOffset = this.#wtTable.wtRootElement.getBoundingClientRect();
+
+      const tableViewportLeft = tableOffset.left;
+      const tableViewportTop = tableOffset.top;
+      const columnHeaderHeight = this.#wtSettings.getSetting('columnHeaders').length > 0 ? wot.wtViewport.getColumnHeaderHeight() : 0;
+      const rowHeaderWidth = this.#wtSettings.getSetting('rowHeaders').length > 0 ? wot.wtViewport.getRowHeaderWidth() : 0;
+      const tableViewportRight = tableViewportLeft + wot.wtViewport.getViewportWidth() + rowHeaderWidth;
+      const tableViewportBottom = tableViewportTop + wot.wtViewport.getViewportHeight() + columnHeaderHeight;
+
+      const clampedX = clamp(mouseX, tableViewportLeft, tableViewportRight);
+      const clampedY = clamp(mouseY, tableViewportTop, tableViewportBottom);
+
+      let foundColumn = null;
+
+      // Check fixed columns first
+      if (numberOfFixedColumnsStart > 0) {
+        const firstFixedColumn = 0;
+        const firstNonHiddenColumn = firstFixedColumn;
+        const fixedCell = wot.getCell({ row: firstPartiallyVisibleRow, col: firstNonHiddenColumn }, true);
+        const fixedCellRect = fixedCell.getBoundingClientRect();
+        const fixedRelativeX = isRtl ? fixedCellRect.right - clampedX : clampedX - fixedCellRect.left;
+
+        foundColumn = findColumnAtX(
+          wot,
+          firstPartiallyVisibleRow,
+          firstNonHiddenColumn,
+          numberOfFixedColumnsStart - 1,
+          fixedRelativeX,
+        );
+      }
+
+      // If not in fixed columns, check scrollable columns (main table)
+      if (foundColumn === null) {
+        const scrollCell = wot.getCell({ row: firstPartiallyVisibleRow, col: firstPartiallyVisibleColumn }, true);
+        const scrollCellRect = scrollCell.getBoundingClientRect();
+        const scrollRelativeX = isRtl ? scrollCellRect.right - clampedX : clampedX - scrollCellRect.left;
+
+        foundColumn = findColumnAtX(
+          wot,
+          firstPartiallyVisibleRow,
+          firstPartiallyVisibleColumn,
+          lastPartiallyVisibleColumn,
+          scrollRelativeX,
+        );
+
+        // Fallback to edge columns if still not found
+        if (foundColumn === null) {
+          foundColumn = scrollRelativeX < 0 ? firstPartiallyVisibleColumn : lastPartiallyVisibleColumn;
+        }
+      }
+
+      let foundRow = null;
+
+      // Check fixed top rows first
+      if (numberOfFixedRowsTop > 0) {
+        const firstFixedRow = 0;
+        const firstNonHiddenRow = firstFixedRow;
+        const fixedCell = wot.getCell({ row: firstNonHiddenRow, col: firstPartiallyVisibleColumn }, true);
+        const fixedCellRect = fixedCell.getBoundingClientRect();
+        const fixedRelativeY = clampedY - fixedCellRect.top;
+
+        foundRow = findRowAtY(
+          wot,
+          firstPartiallyVisibleColumn,
+          firstNonHiddenRow,
+          numberOfFixedRowsTop - 1,
+          fixedRelativeY,
+        );
+      }
+
+      // Check fixed bottom rows if not found in fixed top rows
+      if (foundRow === null && numberOfFixedRowsBottom > 0) {
+        const totalSourceRows = this.#wtSettings.getSetting('totalRows');
+        const bottomStartRow = totalSourceRows - numberOfFixedRowsBottom;
+        const bottomEndRow = totalSourceRows;
+        const bottomStartNonHiddenRow = bottomStartRow;
+        const bottomEndNonHiddenRow = bottomEndRow;
+        const fixedBottomCell = wot.getCell({ row: bottomStartNonHiddenRow, col: firstPartiallyVisibleColumn }, true);
+        const fixedBottomCellRect = fixedBottomCell.getBoundingClientRect();
+        const fixedBottomRelativeY = clampedY - fixedBottomCellRect.top;
+
+        if (fixedBottomRelativeY >= 0) {
+          foundRow = findRowAtY(
+            wot,
+            firstPartiallyVisibleColumn,
+            bottomStartNonHiddenRow,
+            bottomEndNonHiddenRow,
+            fixedBottomRelativeY
+          );
+
+          if (foundRow === null) {
+            foundRow = bottomEndNonHiddenRow;
+          }
+        }
+      }
+
+      // Check scrollable rows (main table)
+      if (foundRow === null) {
+        const scrollCell = wot.getCell({ row: firstPartiallyVisibleRow, col: firstPartiallyVisibleColumn }, true);
+        const scrollCellRect = scrollCell.getBoundingClientRect();
+        const scrollRelativeY = clampedY - scrollCellRect.top;
+
+        foundRow = findRowAtY(
+          wot,
+          firstPartiallyVisibleColumn,
+          firstPartiallyVisibleRow,
+          lastPartiallyVisibleRow,
+          scrollRelativeY,
+        );
+
+        // Fallback to edge rows if still not found
+        if (foundRow === null) {
+          foundRow = lastPartiallyVisibleRow;
+        }
+      }
+
+      return {
+        coords: wot.createCellCoords(foundRow, foundColumn),
+        isOutside: mouseX < tableViewportLeft ||
+                   mouseX > tableViewportRight ||
+                   mouseY < tableViewportTop ||
+                   mouseY > tableViewportBottom,
+      };
+    }
+
+    const { coords, isOutside } = getCellCoordsFromMousePosition(event.clientX, event.clientY);
+
+    if (isOutside) {
+      console.log(coords);
+      this.callListener('onCellMouseOverOutside', event, coords, this.#wtTable.getCell(coords, true));
     }
   }
 

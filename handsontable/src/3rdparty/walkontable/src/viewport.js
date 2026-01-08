@@ -333,11 +333,17 @@ class Viewport {
       height -= fixedRowsHeight;
     }
 
-    if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
-      scrollbarHeight = 0;
-    } else {
-      scrollbarHeight = getScrollbarWidth(this.domBindings.rootDocument);
+    // if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
+    //   scrollbarHeight = 0;
+    // } else {
+    //   scrollbarHeight = getScrollbarWidth(this.domBindings.rootDocument);
+    // }
+
+    if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {
+      // height -= getScrollbarWidth(this.domBindings.rootDocument);
     }
+
+    console.log('zzzzz', wtTable.getRowHeight(0), wtTable.getRowHeight(1), wtTable.getRowHeight(2));
 
     return new ViewportRowsCalculator({
       calculationTypes: calculatorTypes.map(type => [type, this.rowsCalculatorTypes.get(type)()]),
@@ -347,7 +353,7 @@ class Viewport {
       defaultRowHeight: wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
       rowHeightFn: sourceRow => wtTable.getRowHeight(sourceRow),
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
-      horizontalScrollbarHeight: scrollbarHeight,
+      // horizontalScrollbarHeight: scrollbarHeight,
     });
   }
 

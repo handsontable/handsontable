@@ -53,6 +53,7 @@ import { objectEach } from '../../../helpers/object';
  * @property {?Option} onCellMouseDown Option `onCellMouseDown`.
  * @property {?Option} onCellMouseOut Option `onCellMouseOut`.
  * @property {?Option} onCellMouseOver Option `onCellMouseOver`.
+ * @property {?Option} onCellMouseOverOutside Option `onCellMouseOverOutside`.
  * @property {?Option} onCellMouseUp Option `onCellMouseUp`.
  * @property {?Option} onDraw Option `onDraw`.
  * @property {?Option} onModifyGetCellCoords Option `onModifyGetCellCoords`.
@@ -202,6 +203,7 @@ export default class Settings {
       onCellMouseDown: null,
       onCellContextMenu: null,
       onCellMouseOver: null,
+      onCellMouseOverOutside: null,
       onCellMouseOut: null,
       onCellMouseUp: null,
 

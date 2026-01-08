@@ -48,13 +48,17 @@ export class FullyVisibleRowsCalculationType {
     const {
       totalCalculatedHeight,
       zeroBasedScrollOffset,
-      innerViewportHeight,
+      viewportHeight,
       rowHeight,
     } = viewportCalculator;
 
+    // const compensatedViewportHeight = zeroBasedScrollOffset > 0 ? viewportHeight : viewportHeight;
+
+    console.log('compensatedViewportHeight', row, rowHeight, totalCalculatedHeight, viewportHeight);
+
     if (
       totalCalculatedHeight >= zeroBasedScrollOffset &&
-      totalCalculatedHeight + rowHeight <= innerViewportHeight
+      totalCalculatedHeight + rowHeight <= zeroBasedScrollOffset + viewportHeight
     ) {
       if (this.startRow === null) {
         this.startRow = row;
@@ -73,7 +77,7 @@ export class FullyVisibleRowsCalculationType {
     const {
       scrollOffset,
       viewportHeight,
-      horizontalScrollbarHeight,
+      zeroBasedScrollOffset,
       totalRows,
       needReverse,
       startPositions,
@@ -90,11 +94,11 @@ export class FullyVisibleRowsCalculationType {
           rowHeight -
           startPositions[this.startRow - 1];
 
-        if (calculatedViewportHeight <= viewportHeight - horizontalScrollbarHeight) {
+        if (calculatedViewportHeight <= viewportHeight) {
           this.startRow -= 1;
         }
 
-        if (calculatedViewportHeight >= viewportHeight - horizontalScrollbarHeight) {
+        if (calculatedViewportHeight >= viewportHeight) {
           break;
         }
       }
@@ -102,7 +106,8 @@ export class FullyVisibleRowsCalculationType {
 
     this.startPosition = startPositions[this.startRow] ?? null;
 
-    const mostBottomScrollOffset = scrollOffset + viewportHeight - horizontalScrollbarHeight;
+    const compensatedViewportHeight = zeroBasedScrollOffset > 0 ? viewportHeight + 1 : viewportHeight;
+    const mostBottomScrollOffset = scrollOffset + viewportHeight - compensatedViewportHeight;
     const topRowOffset = this.startRow === null ? 0 : viewportCalculator.getRowHeight(this.startRow);
 
     if (mostBottomScrollOffset < topRowOffset || scrollOffset > startPositions.at(-1)) {

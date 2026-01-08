@@ -154,6 +154,7 @@ const handlers = new Map([
   ['touchend', mouseUp],
   ['mousedown', mouseDown],
   ['mouseover', mouseOver],
+  ['mousemove', mouseOver],
   ['mouseup', mouseUp],
 ]);
 

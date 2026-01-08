@@ -8,7 +8,6 @@ import { ViewportBaseCalculator } from './viewportBase';
  * @property {number} totalRows Total number of rows.
  * @property {Function} rowHeightFn Function that returns the height of the row at a given index (in px).
  * @property {Function} overrideFn Function that allows to adjust the `startRow` and `endRow` parameters.
- * @property {number} horizontalScrollbarHeight The scrollbar height.
  */
 /**
  * Calculates indexes of rows to render OR rows that are visible OR partially visible in the viewport.
@@ -23,8 +22,6 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
   rowHeightFn = null;
   rowHeight = 0;
   overrideFn = null;
-  horizontalScrollbarHeight = 0;
-  innerViewportHeight = 0;
   totalCalculatedHeight = 0;
   startPositions = [];
   needReverse = true;
@@ -40,7 +37,6 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     defaultRowHeight,
     rowHeightFn,
     overrideFn,
-    horizontalScrollbarHeight,
   }) {
     super(calculationTypes);
     this.defaultHeight = defaultRowHeight;
@@ -50,8 +46,6 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     this.totalRows = totalRows;
     this.rowHeightFn = rowHeightFn;
     this.overrideFn = overrideFn;
-    this.horizontalScrollbarHeight = horizontalScrollbarHeight ?? 0;
-    this.innerViewportHeight = this.zeroBasedScrollOffset + this.viewportHeight - this.horizontalScrollbarHeight;
 
     this.calculate();
   }
@@ -70,7 +64,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
       this.startPositions.push(this.totalCalculatedHeight);
       this.totalCalculatedHeight += this.rowHeight;
 
-      if (this.totalCalculatedHeight >= this.innerViewportHeight) {
+      if (this.totalCalculatedHeight >= this.zeroBasedScrollOffset + this.viewportHeight) {
         this.needReverse = false;
         break;
       }
@@ -88,8 +82,8 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
   getRowHeight(row) {
     const rowHeight = this.rowHeightFn(row);
 
-    if (isNaN(rowHeight)) {
-      return this.defaultHeight;
+    if (Number.isNaN(rowHeight)) {
+      return this.defaultHeight + (row === 0 ? 1 : 0);
     }
 
     return rowHeight;

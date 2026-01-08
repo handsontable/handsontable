@@ -7,10 +7,10 @@ import { isHTMLElement } from '../../helpers/dom/element';
  */
 export function scrollWindowToCell(element) {
   if (isHTMLElement(element)) {
-    element.scrollIntoView({
-      block: 'nearest',
-      inline: 'nearest',
-    });
+    // element.scrollIntoView({
+    //   block: 'nearest',
+    //   inline: 'nearest',
+    // });
   }
 }
 

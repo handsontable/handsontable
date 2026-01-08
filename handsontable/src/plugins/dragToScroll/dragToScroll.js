@@ -226,13 +226,13 @@ export class DragToScroll extends BasePlugin {
 
     let frame = rootWindow;
 
-    while (frame) {
-      this.eventManager.addEventListener(frame.document, 'contextmenu', () => this.unlisten());
-      this.eventManager.addEventListener(frame.document, 'mouseup', () => this.unlisten());
-      this.eventManager.addEventListener(frame.document, 'mousemove', event => this.#onMouseMove(event));
+    // while (frame) {
+    //   this.eventManager.addEventListener(frame.document, 'contextmenu', () => this.unlisten());
+    //   this.eventManager.addEventListener(frame.document, 'mouseup', () => this.unlisten());
+    //   this.eventManager.addEventListener(frame.document, 'mousemove', event => this.#onMouseMove(event));
 
-      frame = getParentWindow(frame);
-    }
+    //   frame = getParentWindow(frame);
+    // }
   }
 
   /**

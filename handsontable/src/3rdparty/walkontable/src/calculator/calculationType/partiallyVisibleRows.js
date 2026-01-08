@@ -48,6 +48,7 @@ export class PartiallyVisibleRowsCalculationType {
     const {
       totalCalculatedHeight,
       zeroBasedScrollOffset,
+      viewportHeight,
       innerViewportHeight,
     } = viewportCalculator;
 
@@ -55,11 +56,19 @@ export class PartiallyVisibleRowsCalculationType {
       this.startRow = row;
     }
 
+    const compensatedViewportHeight = zeroBasedScrollOffset > 0 ? viewportHeight + 1 : viewportHeight;
+
+    // console.log('compensatedViewportHeight', zeroBasedScrollOffset, viewportHeight, compensatedViewportHeight);
+
+    // if (
+    //   totalCalculatedHeight >= zeroBasedScrollOffset &&
+    //   totalCalculatedHeight <= innerViewportHeight + compensatedViewportHeight
+    // ) {
     if (
       totalCalculatedHeight >= zeroBasedScrollOffset &&
-      totalCalculatedHeight <= innerViewportHeight
+      totalCalculatedHeight <= zeroBasedScrollOffset + compensatedViewportHeight
     ) {
-      if (this.startRow === null) {
+      if (this.startRow === null || this.startRow === undefined) {
         this.startRow = row;
       }
     }
@@ -76,7 +85,7 @@ export class PartiallyVisibleRowsCalculationType {
     const {
       scrollOffset,
       viewportHeight,
-      horizontalScrollbarHeight,
+      zeroBasedScrollOffset,
       totalRows,
       needReverse,
       startPositions,
@@ -95,15 +104,19 @@ export class PartiallyVisibleRowsCalculationType {
 
         this.startRow -= 1;
 
-        if (calculatedViewportHeight >= viewportHeight - horizontalScrollbarHeight) {
+        if (calculatedViewportHeight >= viewportHeight) {
           break;
         }
       }
     }
 
+    console.log('startRow', this.startRow);
+    console.log('endRow', this.endRow);
+
     this.startPosition = startPositions[this.startRow] ?? null;
 
-    const mostBottomScrollOffset = scrollOffset + viewportHeight - horizontalScrollbarHeight;
+    const compensatedViewportHeight = zeroBasedScrollOffset > 0 ? viewportHeight + 1 : viewportHeight;
+    const mostBottomScrollOffset = scrollOffset + viewportHeight - compensatedViewportHeight;
 
     if (mostBottomScrollOffset < 0 || scrollOffset > startPositions.at(-1) + rowHeight) {
       this.isVisibleInTrimmingContainer = false;
