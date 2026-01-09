@@ -23,12 +23,10 @@ To utilize the full distribution of Handsontable, you can choose either the lega
 Include the following files in your project:
 ```html
 <script src="dist/handsontable.full.js"></script>
-<link href="dist/handsontable.full.css" rel="stylesheet">
 ```
 Alternatively, you can opt for the minified versions:
 ```html
 <script src="dist/handsontable.full.min.js"></script>
-<link href="dist/handsontable.full.min.css" rel="stylesheet">
 ```
 
 Both **handsontable.full.js** and **handsontable.full.css** are bundled with all necessary dependencies for seamless integration.

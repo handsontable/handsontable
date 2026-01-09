@@ -1,7 +1,6 @@
 // Custom configuration example for Empty Data State plugin
 // This example shows how to customize the empty data state message
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.getElementById('example2');
 const hot = new Handsontable(container, {

@@ -1,5 +1,4 @@
 import Handsontable from "handsontable";
-import 'handsontable/dist/handsontable.full.css';
 import "./styles.css";
 
 const data = [

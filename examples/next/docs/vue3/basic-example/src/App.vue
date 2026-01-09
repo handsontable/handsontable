@@ -7,7 +7,6 @@
 <script>
 import { defineComponent } from 'vue';
 import { HotTable } from '@handsontable/vue3';
-import 'handsontable/dist/handsontable.full.css';
 
 export default defineComponent({
   name: 'App',

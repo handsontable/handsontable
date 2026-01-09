@@ -24,8 +24,12 @@
           baseLink.href = `/assets/handsontable/styles/handsontable.css`;
           themeLink.href = `/assets/handsontable/styles/ht-theme-horizon.css`;
 
+        } else if (theme === 'classic' || theme === 'classic-dark') {
+          baseLink.href = `/assets/handsontable/styles/handsontable.css`;
+          themeLink.href = `/assets/handsontable/styles/ht-theme-classic.css`;
+
         } else {
-          baseLink.href = `/assets/handsontable/dist/handsontable.full.css`;
+          baseLink.href = `/assets/handsontable/styles/handsontable.css`;
         }
 
         [baseLink, themeLink].forEach((link) => {

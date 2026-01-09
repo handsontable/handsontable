@@ -1,7 +1,6 @@
 // Dynamic messages based on source example for Empty Data State plugin
 // This example shows how to provide different messages based on the source of empty state
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.getElementById('example3');
 const hot = new Handsontable(container, {
