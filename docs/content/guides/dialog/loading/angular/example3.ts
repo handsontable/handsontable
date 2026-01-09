@@ -6,8 +6,8 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
   selector: 'app-example3',
   template: `
     <div style="margin-bottom: 16px; display: flex; gap: 10px">
-      <button 
-        [disabled]="isLoading" 
+      <button
+        [disabled]="isLoading"
         (click)="loadData()"
         [innerHTML]="buttonText">
       </button>
@@ -25,7 +25,7 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
 
   hotData: any[] = [];
-  isLoading = false;  
+  isLoading = false;
   buttonText = 'Load Data';
 
   readonly hotSettings: GridSettings = {
@@ -43,8 +43,8 @@ export class AppComponent implements AfterViewInit {
         data: 'price',
         width: 80,
         numericFormat: {
-          pattern: '$0,0.00',
-          culture: 'en-US',
+          style: 'currency',
+          currency: 'USD',
         },
         className: 'htRight',
         headerClassName: 'htRight',

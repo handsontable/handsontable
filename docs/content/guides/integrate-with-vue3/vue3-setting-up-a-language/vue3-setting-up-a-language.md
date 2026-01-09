@@ -2,7 +2,7 @@
 id: 7ezlo7y5
 title: Setting up a translation in Vue 3
 metaTitle: Setting up a translation - Vue 3 Data Grid | Handsontable
-description: Configure your Vue 3 data grid with different number formats, depending on the specified language and culture.
+description: Configure your Vue 3 data grid with different number formats, depending on the specified language and locale.
 permalink: /vue3-setting-up-a-translation
 canonicalUrl: /vue3-setting-up-a-translation
 react:
@@ -17,7 +17,7 @@ category: Integrate with Vue 3
 
 # Setting up a translation in Vue 3
 
-Configure your Vue 3 data grid with different number formats, depending on the specified language and culture.
+Configure your Vue 3 data grid with different number formats, depending on the specified language and locale.
 
 [[toc]]
 
@@ -27,7 +27,7 @@ The following example shows a Handsontable instance with translations set up in 
 
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md#vue-3-version-support)
 
-::: example #example1 :vue3-numbro --html 1 --js 2
+::: example #example1 :vue3 --html 1 --js 2
 
 @[code](@/content/guides/integrate-with-vue3/vue3-setting-up-a-language/vue/example1.html)
 @[code](@/content/guides/integrate-with-vue3/vue3-setting-up-a-language/vue/example1.js)

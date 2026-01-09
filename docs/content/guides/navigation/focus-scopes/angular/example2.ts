@@ -219,8 +219,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         data: 'price',
         width: 80,
         numericFormat: {
-          pattern: '$0,0.00',
-          culture: 'en-US',
+          style: 'currency',
+          currency: 'USD',
         },
         className: 'htRight',
         headerClassName: 'htRight',

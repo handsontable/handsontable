@@ -60,24 +60,6 @@ module.exports.create = function create(envArgs) {
               flatten: true,
               force: true,
             },
-            { // numbro
-              from: `${getClosest('node_modules/numbro/')}@(LICENSE-Numeraljs|LICENSE)`,
-              to: 'numbro',
-              flatten: true,
-              force: true,
-            },
-            {
-              from: `${getClosest('node_modules/numbro/')}dist/@(numbro.js|languages.min.js)`,
-              to: 'numbro',
-              flatten: true,
-              force: true,
-            },
-            {
-              from: `${getClosest('node_modules/numbro/')}dist/languages/*.js`,
-              to: 'numbro/languages',
-              flatten: true,
-              force: true,
-            },
             { // pikaday
               from: `${getClosest('node_modules/@handsontable/pikaday/')}@(LICENSE|pikaday.js)`,
               to: 'pikaday',

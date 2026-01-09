@@ -2,7 +2,7 @@
 id: 6i276a7s
 title: Setting up a translation in Vue 2
 metaTitle: Setting up a translation - Vue 2 Data Grid | Handsontable
-description: Configure your Vue 2 data grid with different number formats, depending on the specified language and culture.
+description: Configure your Vue 2 data grid with different number formats, depending on the specified language and locale.
 permalink: /vue-setting-up-a-translation
 canonicalUrl: /vue-setting-up-a-translation
 react:
@@ -17,7 +17,7 @@ category: Integrate with Vue 2
 
 # Setting up a translation in Vue 2
 
-Configure your Vue 2 data grid with different number formats, depending on the specified language and culture.
+Configure your Vue 2 data grid with different number formats, depending on the specified language and locale.
 
 [[toc]]
 
@@ -25,7 +25,7 @@ Configure your Vue 2 data grid with different number formats, depending on the s
 
 The following example shows a Handsontable instance with translations set up in Vue 2.
 
-::: example #example1 :vue-numbro --html 1 --js 2
+::: example #example1 :vue --html 1 --js 2
 
 @[code](@/content/guides/integrate-with-vue/vue-setting-up-a-language/vue/example1.html)
 @[code](@/content/guides/integrate-with-vue/vue-setting-up-a-language/vue/example1.js)

@@ -41,8 +41,6 @@ module.exports.create = function create(envArgs) {
         },
         {
           test: [
-            // Disable loading languages from numbro and moment into final bundle
-            /numbro\/languages/,
             /moment\/locale/,
           ],
           loader: path.resolve(__dirname, 'loader/empty-loader.js'),

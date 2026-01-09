@@ -1,8 +1,12 @@
-import numbro from 'numbro';
 import { textRenderer } from '../textRenderer';
 import { isNumeric } from '../../helpers/number';
 
 export const RENDERER_TYPE = 'numeric';
+
+const DEFAULT_FORMAT = {
+  useGrouping: false,
+  maximumFractionDigits: 20,
+};
 
 /**
  * Get the rendered value.
@@ -13,22 +17,9 @@ export const RENDERER_TYPE = 'numeric';
  */
 export function getRenderedValue(value, cellProperties) {
   if (isNumeric(value)) {
-    const numericFormat = cellProperties.numericFormat;
-    const cellCulture = numericFormat && numericFormat.culture || '-';
-    const cellFormatPattern = numericFormat && numericFormat.pattern;
+    const { numericFormat, locale } = cellProperties;
 
-    if (typeof cellCulture !== 'undefined' && !numbro.languages()[cellCulture]) {
-      const shortTag = cellCulture.replace('-', '');
-      const langData = numbro.allLanguages ? numbro.allLanguages[cellCulture] : numbro[shortTag];
-
-      if (langData) {
-        numbro.registerLanguage(langData);
-      }
-    }
-
-    numbro.setLanguage(cellCulture);
-
-    value = numbro(value).format(cellFormatPattern || '0');
+    value = new Intl.NumberFormat(locale, numericFormat ?? DEFAULT_FORMAT).format(value);
   }
 
   return value;

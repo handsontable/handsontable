@@ -9,7 +9,8 @@
     <hot-column
       title="Price in Japan"
       type="numeric"
-      :numeric-format="formatJP"
+      :locale="ja-JP"
+      :numeric-format="currencyFormat"
       data="JP_price"
       width="120"
     ></hot-column>
@@ -17,7 +18,8 @@
       title="Price in Turkey"
       data="TR_price"
       type="numeric"
-      :numeric-format="formatTR"
+      :locale="tr-TR"
+      :numeric-format="currencyFormat"
       width="120"
     ></hot-column>
   </hot-table>

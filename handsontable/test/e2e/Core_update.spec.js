@@ -506,7 +506,8 @@ describe('Core_updateSettings', () => {
         {
           type: 'numeric',
           numericFormat: {
-            pattern: '0,0.00 $',
+            style: 'currency',
+            currency: 'USD',
           },
         },
         {
@@ -536,7 +537,8 @@ describe('Core_updateSettings', () => {
         {
           type: 'numeric',
           numericFormat: {
-            pattern: '0,0.00 $',
+            style: 'currency',
+            currency: 'USD',
           },
         }
       ]

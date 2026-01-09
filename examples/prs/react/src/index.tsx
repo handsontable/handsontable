@@ -79,7 +79,7 @@ const App = () => {
       <HotColumn
         data='valueStock'
         type='numeric'
-        numericFormat={{ pattern: '$0 0' }}
+        numericFormat={{ style: 'currency', currency: 'USD' }}
         className='htRight'
         width={150}
       />

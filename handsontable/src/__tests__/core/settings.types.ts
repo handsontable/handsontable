@@ -10,46 +10,6 @@ declare const true_or_false: true | false;
 // This can be replaced once `as const` context is shipped: https://github.com/Microsoft/TypeScript/pull/29510
 enum DisableVisualSelection { current = 'current', area = 'area', header = 'header' }
 
-const legacyNumericFormat: Handsontable.NumericFormatOptions = {
-  pattern: '0.00',
-  culture: 'en-US',
-};
-const numericFormatOptions: Handsontable.NumericFormatOptions = {
-  pattern: {
-    prefix: '2',
-    postfix: '3',
-    characteristic: 5,
-    forceAverage: oneOf('trillion', 'billion', 'million', 'thousand'),
-    average: true,
-    currencyPosition: oneOf('prefix', 'infix', 'postfix'),
-    currencySymbol: '€',
-    totalLength: 4,
-    mantissa: 5,
-    optionalMantissa: true,
-    trimMantissa: true,
-    optionalCharacteristic: true,
-    thousandSeparated: true,
-    abbreviations: {
-      thousand: '.',
-      million: '.',
-      billion: '.',
-      trillion: '.',
-    },
-    negative: oneOf('sign', 'parenthesis'),
-    forceSign: true,
-    spaceSeparated: true,
-    spaceSeparatedCurrency: true,
-    spaceSeparatedAbbreviation: true,
-    exponential: true,
-    prefixSymbol: true,
-    lowPrecision: true,
-    roundingFunction: () => 2,
-    output: oneOf('currency', 'percent', 'byte', 'time', 'ordinal', 'number'),
-    base: oneOf('decimal', 'binary', 'general'),
-  },
-  culture: 'en-US'
-};
-
 // Use `Required<GridSettings>` to ensure every defined setting is covered here.
 const allSettings: Required<Handsontable.GridSettings> = {
   activeHeaderClassName: 'foo',
@@ -90,7 +50,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   collapsibleColumns: true,
   columnHeaderHeight: oneOf(35, [35, undefined, 55]),
   columns: [
-    { type: 'numeric', numericFormat: { pattern: '0,0.00 $' } },
+    { type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } },
     { type: 'text', readOnly: true }
   ],
   columnSorting: true,
@@ -186,7 +146,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   nestedHeaders: [],
   nestedRows: true,
   noWordWrapClassName: 'foo',
-  numericFormat: oneOf(legacyNumericFormat, numericFormatOptions),
+  numericFormat: {
+    style: 'currency',
+    currency: 'USD',
+    currencyDisplay: 'symbol',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  },
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, (target: HTMLElement) => false),
   pagination: oneOf(true, {

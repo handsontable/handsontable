@@ -36,7 +36,6 @@ const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
     "@angular/animations": "^20.2.0",
     "@angular/compiler": "^20.2.0",
     "@angular/router": "^20.2.0",
-    "numbro": "^2.4.0",
     "rxjs": "^7.8.0",
     "tslib": "^2.6.2",
     "zone.js": "~0.15.0",
@@ -90,7 +89,6 @@ const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
             "allowedCommonJsDependencies": [
               "core-js",
               "@handsontable/pikaday",
-              "numbro"
             ]
           },
           "configurations": {

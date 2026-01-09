@@ -380,8 +380,8 @@ describe('NumericEditor', () => {
       columns: [
         { data: 'id' },
         { data: 'price_eur', type: 'numeric' },
-        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
-        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
+        { data: 'price_pln', locale: 'en-US', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } },
+        { data: 'price_aud', locale: 'de-DE', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' } }
       ]
     });
 
@@ -536,7 +536,7 @@ describe('NumericEditor', () => {
       data: arrayOfObjects(),
       columns: [
         { data: 'id', type: 'numeric' },
-        { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } },
+        { data: 'price', locale: 'de-DE', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' } },
         { data: 'lastName' }
       ]
     });
@@ -623,7 +623,7 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+        { data: 'id', locale: 'en-US', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } },
         { data: 'name' },
         { data: 'lastName' }
       ]
@@ -638,7 +638,7 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    expect(getCell(2, 0).innerHTML).toEqual('$2,456.22');
+    expect(getCell(2, 0).innerText).toEqual('$2,456.22');
   });
 
   it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
@@ -646,7 +646,7 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'id', locale: 'de-DE', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' } },
         { data: 'name' },
         { data: 'lastName' }
       ]
@@ -661,7 +661,7 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
+    expect(getCell(2, 0).innerText).toEqual('2.456,22\u00A0€');
   });
 
   it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX.XX\' as an ' +
@@ -671,7 +671,7 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'id', locale: 'de-DE', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' } },
         { data: 'name' },
         { data: 'lastName' }
       ],
@@ -687,7 +687,7 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
+    expect(getCell(2, 0).innerText).toEqual('2.456,22\u00A0€');
   });
 
   it('should display a string in a format \'X XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
@@ -706,10 +706,10 @@ describe('NumericEditor', () => {
         { id: 10, name: 'Eve', lastName: 'Branson', money: 0 }
       ],
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'id', locale: 'de-DE', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' } },
         { data: 'name' },
         { data: 'lastName' },
-        { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
+        { data: 'money', locale: 'en-US', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } }
       ]
     });
 
@@ -722,7 +722,7 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
+    expect(getCell(2, 0).innerText).toEqual('2.456,22\u00A0€');
 
     await selectCell(2, 3);
     await keyDownUp('enter');
@@ -733,7 +733,7 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    expect(getCell(2, 3).innerHTML).toEqual('$2,456.22');
+    expect(getCell(2, 3).innerText).toEqual('$2,456.22');
   });
 
   it('should display values as "float like" string with dot as determiner after pressing enter ' +
@@ -745,8 +745,8 @@ describe('NumericEditor', () => {
       columns: [
         { data: 'id', type: 'numeric' },
         { data: 'price_eur', type: 'numeric' },
-        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
-        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
+        { data: 'price_pln', locale: 'en-US', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } },
+        { data: 'price_aud', locale: 'de-DE', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' } }
       ]
     });
 
@@ -797,8 +797,8 @@ describe('NumericEditor', () => {
       columns: [
         { data: 'id', type: 'numeric' },
         { data: 'price_eur', type: 'numeric' },
-        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
-        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
+        { data: 'price_pln', locale: 'en-US', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } },
+        { data: 'price_aud', locale: 'de-DE', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' } }
       ]
     });
 
@@ -896,7 +896,7 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00', culture: 'en-US' } },
+        { data: 'id', locale: 'en-US', type: 'numeric', numericFormat: { style: 'decimal', minimumFractionDigits: 2 } },
         { data: 'name' },
         { data: 'lastName' }
       ],
@@ -991,7 +991,7 @@ describe('NumericEditor', () => {
           { data: 'id' },
           { data: 'name' },
           { data: 'lastName' },
-          { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
+          { data: 'money', locale: 'en-US', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } }
         ]
       });
 
@@ -1013,7 +1013,7 @@ describe('NumericEditor', () => {
           { data: 'id' },
           { data: 'name' },
           { data: 'lastName' },
-          { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
+          { data: 'money', locale: 'en-US', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } }
         ]
       });
 
@@ -1045,8 +1045,8 @@ describe('NumericEditor', () => {
       handsontable({
         type: 'numeric',
         numericFormat: {
-          pattern: '$0,0.00',
-          culture: 'en-US'
+          style: 'currency',
+          currency: 'USD',
         },
         imeFastEdit: true,
       });

@@ -35,7 +35,8 @@ const hot = new Handsontable(container, {
     {
       type: 'numeric',
       numericFormat: {
-        pattern: '$0,0.00',
+        style: 'currency',
+        currency: 'USD',
       },
     },
   ],

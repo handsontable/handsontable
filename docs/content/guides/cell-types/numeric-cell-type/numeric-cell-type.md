@@ -35,7 +35,7 @@ Click on the column names to sort them.
 
 ::: only-for javascript
 
-::: example #example1 :hot-numbro --js 1 --ts 2
+::: example #example1 :hot --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.js)
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.ts)
@@ -46,7 +46,7 @@ Click on the column names to sort them.
 
 ::: only-for react
 
-::: example #example1 :react-numbro --js 1 --ts 2
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/numeric-cell-type/react/example1.jsx)
 @[code](@/content/guides/cell-types/numeric-cell-type/react/example1.tsx)
@@ -57,7 +57,7 @@ Click on the column names to sort them.
 
 ::: only-for angular
 
-::: example #example1 :angular-numbro --ts 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-types/numeric-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/numeric-cell-type/angular/example1.html)
@@ -156,15 +156,63 @@ bigger numbers won't be calculated precisely, due to JavaScript's limitations.
 
 ## Format numbers
 
-To format the look of numeric values in [cell renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md),
-use the [`numericFormat`](@/api/options.md#numericformat) option.
+To format the display of numeric values in [cell renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md),
+use the [`numericFormat`](@/api/options.md#numericformat) option. It accepts all options supported by [`Intl.NumberFormat()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat).
+
+**Style options:**
+
+| Property          | Possible values                                           | Description                                                    |
+| ----------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+| `style`           | `'decimal'` (default), `'currency'`, `'percent'`, `'unit'`| The formatting style to use                                    |
+| `currency`        | ISO 4217 currency codes (e.g., `'USD'`, `'EUR'`, `'PLN'`) | Required when `style` is `'currency'`                          |
+| `currencyDisplay` | `'symbol'` (default), `'narrowSymbol'`, `'code'`, `'name'`| How to display the currency                                    |
+| `currencySign`    | `'standard'` (default), `'accounting'`                    | Use parentheses for negative values in accounting format       |
+| `unit`            | `'kilometer'`, `'liter'`, `'day'`, '`megabyte`' [etc.](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/supportedValuesOf#supported_unit_identifiers)        | Required when `style` is `'unit'`                              |
+| `unitDisplay`     | `'short'` (default), `'narrow'`, `'long'`                 | How to display the unit                                        |
+
+**Digit options:**
+
+| Property                   | Possible values                              | Description                                                                 |
+| -------------------------- | -------------------------------------------- | --------------------------------------------------------------------------- |
+| `minimumIntegerDigits`     | `1` (default) to `21`                        | Minimum number of integer digits; pads with leading zeros if needed         |
+| `minimumFractionDigits`    | `0` to `100`                                 | Minimum number of fraction digits                                           |
+| `maximumFractionDigits`    | `0` to `100`                                 | Maximum number of fraction digits                                           |
+| `minimumSignificantDigits` | `1` to `21`                                  | Minimum number of significant digits                                        |
+| `maximumSignificantDigits` | `1` to `21`                                  | Maximum number of significant digits                                        |
+| `roundingPriority`         | `'auto'` (default), `'morePrecision'`, `'lessPrecision'` | How to resolve conflicts between fraction and significant digit settings |
+
+**Rounding options:**
+
+| Property               | Possible values                                                                                               | Description                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `roundingMode`         | `'ceil'`, `'floor'`, `'expand'`, `'trunc'`, `'halfCeil'`, `'halfFloor'`, `'halfExpand'` (default), `'halfTrunc'`, `'halfEven'` | How to round numbers                    |
+| `roundingIncrement`    | `1` (default), `2`, `5`, `10`, `20`, `25`, `50`, `100`, `200`, `250`, `500`, `1000`, `2000`, `2500`, `5000`    | Increment for rounding (e.g., nearest 5 cents)                 |
+| `trailingZeroDisplay`  | `'auto'` (default), `'stripIfInteger'`                                                                        | Whether to remove trailing zeros on whole numbers              |
+
+**Other options:**
+
+| Property          | Possible values                                                            | Description                                                    |
+| ----------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `notation`        | `'standard'` (default), `'scientific'`, `'engineering'`, `'compact'`       | Formatting notation (e.g., `1.23E4` for scientific)            |
+| `compactDisplay`  | `'short'` (default), `'long'`                                              | How to display compact notation (e.g., `1K` vs `1 thousand`)   |
+| `useGrouping`     | `'auto'` (default), `true`, `false`, `'always'`, `'min2'`                  | Whether to use grouping separators (e.g., thousands separator) |
+| `signDisplay`     | `'auto'` (default), `'always'`, `'exceptZero'`, `'negative'`, `'never'`    | When to display the sign                                       |
+
+**Locale options:**
+
+| Property          | Possible values                                           | Description                                                    |
+| ----------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+| `localeMatcher`   | `'lookup'`, `'best fit'` (default)                        | The locale matching algorithm to use                           |
+| `numberingSystem` | `'arab'`, `'hans'`, `'mathsans'`, [etc.](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/supportedValuesOf#supported_numbering_system_types) | The numbering system to use (e.g., Arabic-Indic digits)        |
+
+When [`numericFormat`](@/api/options.md#numericformat) is not set, numbers are formatted with the defaults: `useGrouping: false` and `maximumFractionDigits: 20`.
 
 In the following demo, columns **Price in Japan** and **Price in Turkey** use two different
 [`numericFormat`](@/api/options.md#numericformat) configurations.
 
 ::: only-for javascript
 
-::: example #example3 :hot-numbro --js 1 --ts 2
+::: example #example3 :hot --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example3.js)
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example3.ts)
@@ -175,7 +223,7 @@ In the following demo, columns **Price in Japan** and **Price in Turkey** use tw
 
 ::: only-for react
 
-::: example #example3 :react-numbro --js 1 --ts 2
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/numeric-cell-type/react/example3.jsx)
 @[code](@/content/guides/cell-types/numeric-cell-type/react/example3.tsx)
@@ -186,7 +234,7 @@ In the following demo, columns **Price in Japan** and **Price in Turkey** use tw
 
 ::: only-for angular
 
-::: example #example3 :angular-numbro --ts 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-types/numeric-cell-type/angular/example3.ts)
 @[code](@/content/guides/cell-types/numeric-cell-type/angular/example3.html)
@@ -232,3 +280,5 @@ you edit a numeric cell:
   - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
   - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
   - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+- External references:
+  - [MDN: Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat)

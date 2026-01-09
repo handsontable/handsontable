@@ -41,7 +41,6 @@ module.exports.create = function create(envArgs) {
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
           '../dist/handsontable.full.min.js',
-          `${getClosest('../node_modules/numbro', true)}/dist/languages.min.js`,
           '../dist/languages/all.min.js',
         ],
       })

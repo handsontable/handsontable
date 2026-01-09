@@ -19,12 +19,6 @@ module.exports.create = function create(envArgs) {
     c.devtool = 'source-map';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css files)
     c.externals = {
-      numbro: {
-        root: 'numbro',
-        commonjs2: 'numbro',
-        commonjs: 'numbro',
-        amd: 'numbro',
-      },
       moment: {
         root: 'moment',
         commonjs2: 'moment',
@@ -61,20 +55,6 @@ module.exports.create = function create(envArgs) {
 
     // Export these dependencies to the window object. So they can be custom configured
     // before the Handsontable initializiation.
-    c.module.rules.unshift({
-      test: /numbro/,
-      use: [
-        {
-          loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
-          options: {
-            globals: {
-              numbro: 'numbro',
-            },
-            defaultExport: true
-          }
-        }
-      ]
-    });
     c.module.rules.unshift({
       test: /moment/,
       use: [

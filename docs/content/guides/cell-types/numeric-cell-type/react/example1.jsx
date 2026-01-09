@@ -1,14 +1,10 @@
 import { HotTable } from '@handsontable/react-wrapper';
-import numbro from 'numbro';
-import deDE from 'numbro/languages/de-DE';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
-// register the languages you need
-numbro.registerLanguage(deDE);
 
 const ExampleComponent = () => {
   return (
@@ -54,19 +50,20 @@ const ExampleComponent = () => {
         {
           data: 'price_usd',
           type: 'numeric',
+          locale: 'en-US',
           numericFormat: {
-            pattern: '$0,0.00',
-            culture: 'en-US', // this is the default culture, set up for USD
+            style: 'currency',
+            currency: 'USD',
           },
           allowEmpty: false,
         },
         {
           data: 'price_eur',
           type: 'numeric',
+          locale: 'de-DE',
           numericFormat: {
-            pattern: '0,0.00 $',
-            culture: 'de-DE', // use this for EUR (German),
-            // more cultures available on http://numbrojs.com/languages.html
+            style: 'currency',
+            currency: 'EUR',
           },
         },
       ]}

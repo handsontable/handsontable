@@ -3611,19 +3611,22 @@ describe('Formulas general', () => {
         columns: [{
           type: 'numeric',
           numericFormat: {
-            pattern: '0,0.00000'
+            style: 'decimal',
+            minimumFractionDigits: 5,
           }
         },
         {
           type: 'numeric',
           numericFormat: {
-            pattern: '0,0.00000'
+            style: 'decimal',
+            minimumFractionDigits: 5,
           }
         },
         {
           type: 'numeric',
           numericFormat: {
-            pattern: '0,0.00 $',
+            style: 'currency',
+            currency: 'USD',
           }
         }],
       });

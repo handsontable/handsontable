@@ -477,10 +477,10 @@ describe('manualColumnMove (RTL mode)', () => {
             { data: 'id', type: 'numeric', width: 40 },
             { data: 'currencyCode', type: 'text' },
             { data: 'currency', type: 'text' },
-            { data: 'level', type: 'numeric', numericFormat: { pattern: '0.0000' } },
+            { data: 'level', type: 'numeric', numericFormat: { style: 'decimal', minimumFractionDigits: 4 } },
             { data: 'units', type: 'text' },
             { data: 'asOf', type: 'date', dateFormat: 'MM/DD/YYYY' },
-            { data: 'onedChng', type: 'numeric', numericFormat: { pattern: '0.00%' } }
+            { data: 'onedChng', type: 'numeric', numericFormat: { style: 'percent', minimumFractionDigits: 2 } }
           ]
         });
 

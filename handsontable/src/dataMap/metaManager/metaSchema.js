@@ -828,7 +828,8 @@ export default () => {
      *     // column options for the first (by physical index) column
      *     type: 'numeric',
      *     numericFormat: {
-     *       pattern: '0,0.00 $'
+     *       style: 'currency',
+     *       currency: 'USD',
      *     }
      *   },
      *   {
@@ -3842,24 +3843,71 @@ export default () => {
     noWordWrapClassName: 'htNoWrap',
 
     /**
-     * The `numericFormat` option configures the number format and the currency format
+     * The `numericFormat` option configures the number format including currency, units, and other options
      * of [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cells` displayed output
      * in the numeric cell renderer.
      *
-     * You can set the `numericFormat` option to an object with the following properties:
+     * The `numericFormat` option accepts all properties of the [`Intl.NumberFormatOptions`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat) object.
      *
-     * | Property    | Possible values                                                               | Description     |
-     * | ----------- | ----------------------------------------------------------------------------- | --------------- |
-     * | `pattern`   | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Number format   |
-     * | `culture`   | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Currency format |
+     * **Style options:**
      *
-     * The `numericFormat` option as no effect on the numeric cell editor.
+     * | Property          | Possible values                                           | Description                                                    |
+     * | ----------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+     * | `style`           | `'decimal'` (default), `'currency'`, `'percent'`, `'unit'`| The formatting style to use                                    |
+     * | `currency`        | ISO 4217 currency codes (e.g., `'USD'`, `'EUR'`, `'PLN'`) | Required when `style` is `'currency'`                          |
+     * | `currencyDisplay` | `'symbol'` (default), `'narrowSymbol'`, `'code'`, `'name'`| How to display the currency                                    |
+     * | `currencySign`    | `'standard'` (default), `'accounting'`                    | Use parentheses for negative values in accounting format       |
+     * | `unit`            | Unit identifiers (e.g., `'kilometer'`, `'liter'`)         | Required when `style` is `'unit'`                              |
+     * | `unitDisplay`     | `'short'` (default), `'narrow'`, `'long'`                 | How to display the unit                                        |
+     *
+     * **Notation options:**
+     *
+     * | Property          | Possible values                                               | Description                                              |
+     * | ----------------- | ------------------------------------------------------------- | -------------------------------------------------------- |
+     * | `notation`        | `'standard'` (default), `'scientific'`, `'engineering'`, `'compact'` | The formatting notation                           |
+     * | `compactDisplay`  | `'short'` (default), `'long'`                                 | Display style for compact notation (e.g., `1.5M` vs `1.5 million`) |
+     *
+     * **Sign and grouping options:**
+     *
+     * | Property          | Possible values                                                     | Description                                        |
+     * | ----------------- | ------------------------------------------------------------------- | -------------------------------------------------- |
+     * | `signDisplay`     | `'auto'` (default), `'never'`, `'always'`, `'exceptZero'`, `'negative'` | When to display the sign                       |
+     * | `useGrouping`     | `true`, `false` (default), `'always'`, `'auto'`, `'min2'`           | Whether to use grouping separators (e.g., `1,000`) |
+     *
+     * **Digit options:**
+     *
+     * | Property                  | Possible values | Description                                                   |
+     * | ------------------------- | --------------- | ------------------------------------------------------------- |
+     * | `minimumIntegerDigits`    | `1` to `21`     | Minimum number of integer digits (pads with zeros)            |
+     * | `minimumFractionDigits`   | `0` to `100`    | Minimum number of fraction digits                             |
+     * | `maximumFractionDigits`   | `0` to `100`    | Maximum number of fraction digits                             |
+     * | `minimumSignificantDigits`| `1` to `21`     | Minimum number of significant digits                          |
+     * | `maximumSignificantDigits`| `1` to `21`     | Maximum number of significant digits                          |
+     *
+     * **Rounding options:**
+     *
+     * | Property              | Possible values                                                                                     | Description                          |
+     * | --------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------ |
+     * | `roundingMode`        | `'halfExpand'` (default), `'ceil'`, `'floor'`, `'expand'`, `'trunc'`, `'halfCeil'`, `'halfFloor'`, `'halfTrunc'`, `'halfEven'` | Rounding algorithm |
+     * | `roundingPriority`    | `'auto'` (default), `'morePrecision'`, `'lessPrecision'`                                            | Priority between fraction and significant digits |
+     * | `roundingIncrement`   | `1`, `2`, `5`, `10`, `20`, `25`, `50`, `100`, `200`, `250`, `500`, `1000`, `2000`, `2500`, `5000`    | Increment for rounding (e.g., nickel rounding) |
+     * | `trailingZeroDisplay` | `'auto'` (default), `'stripIfInteger'`                                                              | Whether to strip trailing zeros for integers |
+     *
+     * **Locale options:**
+     *
+     * | Property          | Possible values                                           | Description                                        |
+     * | ----------------- | --------------------------------------------------------- | -------------------------------------------------- |
+     * | `localeMatcher`   | `'best fit'` (default), `'lookup'`                        | Locale matching algorithm                          |
+     * | `numberingSystem` | `'latn'`, `'arab'`, `'hans'`, `'deva'`, `'thai'`, etc.    | Numbering system to use                            |
+     *
+     * For full documentation, see [MDN: Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options).
+     *
+     * The `numericFormat` option has no effect on the numeric cell editor.
      *
      * In the source data, numeric data is stored as JavaScript numbers.
      *
      * Read more:
      * - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
-     * - [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md)
      *
      * @memberof Options#
      * @since 0.35.0
@@ -3873,12 +3921,12 @@ export default () => {
      *   {
      *     // set the `type` of each cell in this column to `numeric`
      *     type: 'numeric',
+     *     locale: 'en-US',
      *     // set the `numericFormat` option for every `numeric` cell of this column
      *     numericFormat: {
      *       // set the number format
-     *       pattern: '0,00',
-     *       // set the currency format
-     *       culture: 'en-US'
+     *       style: 'currency',
+     *       currency: 'USD',
      *     }
      *   }
      * ],

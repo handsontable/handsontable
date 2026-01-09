@@ -18,12 +18,6 @@ module.exports.create = function create(envArgs) {
     c.output.filename = PACKAGE_FILENAME + '.js';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css)
     c.externals = {
-      numbro: {
-        root: 'numbro',
-        commonjs2: 'numbro',
-        commonjs: 'numbro',
-        amd: 'numbro',
-      },
       moment: {
         root: 'moment',
         commonjs2: 'moment',

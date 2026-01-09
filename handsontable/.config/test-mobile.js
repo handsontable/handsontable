@@ -41,8 +41,6 @@ module.exports.create = function create(envArgs) {
           'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          `${getClosest('../node_modules/numbro', true)}/dist/numbro.js`,
-          `${getClosest('../node_modules/numbro', true)}/dist/languages.min.js`,
           `${getClosest('../node_modules/moment', true)}/moment.js`,
           `${getClosest('../node_modules/@handsontable/pikaday', true)}/pikaday.js`,
           `${getClosest('../node_modules/dompurify', true)}/dist/purify.js`,

@@ -145,8 +145,8 @@ const hot = new Handsontable(container, {
       type: 'numeric',
       data: 'price',
       numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US',
+        style: 'currency',
+        currency: 'USD',
       },
     },
     {

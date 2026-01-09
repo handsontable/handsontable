@@ -37,8 +37,8 @@ new Handsontable(container, {
     {
       type: 'numeric',
       numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US', // this is the default culture, set up for USD
+        style: 'currency',
+        currency: 'USD',
       },
     },
     { type: 'checkbox' },

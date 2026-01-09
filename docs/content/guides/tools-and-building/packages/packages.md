@@ -40,7 +40,7 @@ For projects utilizing themes, include the following files in the specified orde
 <link href="styles/handsontable.css" rel="stylesheet">
 <link href="styles/ht-theme-[name].css" rel="stylesheet">
 ```
-Here, `[name]` represents the desired theme. Currently, the available themes are **main** and **horizon**. 
+Here, `[name]` represents the desired theme. Currently, the available themes are **main** and **horizon**.
 
 Minified versions of these files are also available:
 ```html
@@ -64,7 +64,6 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 <!-- Required dependencies (as external scripts) -->
 <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/pikaday@1.0.0/pikaday.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/numbro@2.1.2/dist/numbro.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.5/dist/purify.js"></script>
 
 <!-- Handsontable bare files -->
@@ -73,7 +72,7 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 <link href="styles/ht-theme-main.css" rel="stylesheet">
 ```
 
-**handsontable.js** is compiled ___without___ the needed dependencies. You will have to include `pikaday.js`, `moment.js`, `numbro.js`, and `dompurify` on your own, ie. from JSDelivr CDN.
+**handsontable.js** is compiled ___without___ the needed dependencies. You will have to include `pikaday.js`, `moment.js`, and `dompurify` on your own, ie. from JSDelivr CDN.
 
 ## Internationalization
 It is possible to include files which will register languages dictionaries. They allow to translate parts of Handsontable UI. You can either use only particular languages files or include all of them at once as a single file.

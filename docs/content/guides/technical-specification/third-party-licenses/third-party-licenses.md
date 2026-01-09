@@ -25,11 +25,6 @@ Learn about the licensing terms of Handsontable's software dependencies.
 
 <div class="boxes-list gray">
 
-- **numbro.js** (handles numeric data)<br>
-    Author: Benjamin Van Ryseghem<br>
-    License: Open source (MIT)<br>
-    [http://numbrojs.com/](http://numbrojs.com/)
-
 - **Pikaday** (displays a date picker)<br>
     Author: David Bushell<br>
     License: Open source (MIT)<br>

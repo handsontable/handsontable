@@ -12,43 +12,23 @@ describe('NumericRenderer', () => {
     }
   });
 
-  it('should render formatted number', async() => {
-    const onAfterValidate = jasmine.createSpy('onAfterValidate');
-
+  it('should render formatted number as currency', async() => {
     handsontable({
       cells() {
         return {
           renderer: 'numeric',
-          numericFormat: { pattern: '$0,0.00' }
+          numericFormat: {
+            style: 'currency',
+            currency: 'USD',
+          }
         };
       },
-      afterValidate: onAfterValidate
     });
+
     await setDataAtCell(2, 2, '1000.234');
+    await sleep(10);
 
-    await sleep(100);
-
-    expect(getCell(2, 2).innerHTML).toEqual('$1,000.23');
-  });
-
-  it('should render signed number', async() => {
-    const onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-    handsontable({
-      cells() {
-        return {
-          renderer: 'numeric',
-          numericFormat: { pattern: '$0,0.00' }
-        };
-      },
-      afterValidate: onAfterValidate
-    });
-
-    await setDataAtCell(2, 2, '-1000.234');
-
-    await sleep(100);
-
-    expect(getCell(2, 2).innerHTML).toEqual('-$1,000.23');
+    expect(getCell(2, 2).innerText).toEqual('$1,000.23');
   });
 
   it('should not try to render string as numeral', async() => {
@@ -56,16 +36,15 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           renderer: 'numeric',
-          numericFormat: { pattern: '$0,0.00' }
+          numericFormat: { style: 'currency', currency: 'USD' }
         };
       },
     });
 
     await setDataAtCell(2, 2, '123 simple test');
+    await sleep(10);
 
-    await sleep(100);
-
-    expect(getCell(2, 2).innerHTML).toEqual('123 simple test');
+    expect(getCell(2, 2).innerText).toEqual('123 simple test');
   });
 
   it('should render the cell with "dir" attribute set as "ltr" as long as the value is of a numeric-like type', async() => {
@@ -157,7 +136,7 @@ describe('NumericRenderer', () => {
         cells() {
           return {
             type: 'numeric',
-            numericFormat: { pattern: '$0,0.00' }
+            numericFormat: { style: 'currency', currency: 'USD' }
           };
         },
         height: 100

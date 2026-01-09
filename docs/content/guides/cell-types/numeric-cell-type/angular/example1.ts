@@ -52,19 +52,20 @@ export class Example1NumericCellTypeComponent {
       {
         data: 'price_usd',
         type: 'numeric',
+        locale: 'en-US',
         numericFormat: {
-          pattern: '$0,0.00',
-          culture: 'en-US', // this is the default culture, set up for USD
+          style: 'currency',
+          currency: 'USD',
         },
         allowEmpty: false,
       },
       {
         data: 'price_eur',
         type: 'numeric',
+        locale: 'de-DE',
         numericFormat: {
-          pattern: '0,0.00 $',
-          culture: 'de-DE', // use this for EUR (German),
-          // more cultures available on http://numbrojs.com/languages.html
+          style: 'currency',
+          currency: 'EUR',
         },
       },
     ]

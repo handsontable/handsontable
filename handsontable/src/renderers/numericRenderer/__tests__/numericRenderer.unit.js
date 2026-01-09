@@ -1,5 +1,3 @@
-import numbro from 'numbro';
-import deDE from 'numbro/languages/de-DE';
 import Core from 'handsontable/core';
 import {
   RENDERER_TYPE,
@@ -46,20 +44,17 @@ describe('numericRenderer', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
         const cellMeta = {
+          locale: 'de-DE',
           numericFormat: {
-            culture: 'de-DE',
-            pattern: {
-              mantissa: 2,
-              output: 'currency',
-            }
+            style: 'currency',
+            currency: 'EUR',
+            minimumFractionDigits: 2,
           }
         };
 
-        numbro.registerLanguage(deDE);
-
         numericRenderer(instance, TD, undefined, undefined, undefined, 1.002, cellMeta);
 
-        expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htRight htNumeric">1,00€</td>', toMatchHTMLConfig);
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htRight htNumeric">1,00&nbsp;€</td>', toMatchHTMLConfig);
       });
     });
 

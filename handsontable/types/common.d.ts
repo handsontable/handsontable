@@ -1,5 +1,3 @@
-import numbro from 'numbro';
-
 // These types represent default known values, but users can extend with their own, leading to the need for assertions.
 // Using type arguments (ex `_GridSettings<CellValue, CellType, SourceData>`) would solve this and provide very strict
 // type-checking, but adds a lot of noise for no benefit in the most common use cases.
@@ -63,10 +61,7 @@ export interface LabelOptions {
   value?: string | (() => string);
 }
 
-export interface NumericFormatOptions {
-  pattern: string | numbro.Format;
-  culture?: string;
-}
+export type NumericFormatOptions = Intl.NumberFormatOptions;
 
 export interface ColumnDataGetterSetterFunction {
   (row: RowObject | CellValue[]): CellValue;
