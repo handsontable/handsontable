@@ -136,7 +136,7 @@ describe('Comments', () => {
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
         expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left, 0);
+          classic.toBeCloseTo(cellOffset.left - 1, 0);
           main.toBeCloseTo(cellOffset.left - 1, 0);
           horizon.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
         });
@@ -172,7 +172,7 @@ describe('Comments', () => {
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
         expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left, 0);
+          classic.toBeCloseTo(cellOffset.left - 1, 0);
           main.toBeCloseTo(cellOffset.left - 1, 0);
           horizon.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
         });
@@ -197,7 +197,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).toBeCloseTo(cellOffset.left, 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
 
       it.forTheme('main')('should display the comment editor on the right of the cell when the ' +
@@ -270,7 +270,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).toBeCloseTo(cellOffset.left, 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
 
       it.forTheme('main')('should display the comment editor on the right of the cell when the ' +
@@ -362,7 +362,7 @@ describe('Comments', () => {
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
         expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
+          classic.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
           main.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
           horizon.toBeCloseTo(cellOffset.left - editorWidth - 2, 0); // border compensation?
         });
@@ -405,7 +405,7 @@ describe('Comments', () => {
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
         expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
+          classic.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
           main.toBeCloseTo(cellOffset.left - editorWidth - 2, 0); // border compensation?
           horizon.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
         });
@@ -428,7 +428,7 @@ describe('Comments', () => {
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
         expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
+          classic.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
           main.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
           horizon.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
         });
@@ -480,7 +480,7 @@ describe('Comments', () => {
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
         expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left + cellWidth, 0);
+          classic.toBeCloseTo(cellOffset.left + cellWidth - 1, 0);
           main.toBeCloseTo(cellOffset.left + cellWidth - 1, 0);
           horizon.toBeCloseTo(cellOffset.left + cellWidth - 1, 0);
         });
@@ -519,7 +519,7 @@ describe('Comments', () => {
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
         expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left, 0);
+          classic.toBeCloseTo(cellOffset.left - 1, 0);
           main.toBeCloseTo(cellOffset.left - 1, 0);
           horizon.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
         });
@@ -633,7 +633,10 @@ describe('Comments', () => {
         top: commentEditorOffset.top,
         left: commentEditorOffset.left - cell.outerWidth(),
       }).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(cell.offset());
+        classic.toEqual({
+          top: cell.offset().top,
+          left: cell.offset().left - 1, // border compensation?
+        });
         main.toEqual({
           top: cell.offset().top,
           left: cell.offset().left - 1, // border compensation?
@@ -1198,7 +1201,7 @@ describe('Comments', () => {
 
       expect(afterSetCellMeta).forThemes(({ classic, main, horizon }) => {
         classic.toHaveBeenCalledWith(1, 1, 'comment', jasmine.objectContaining({
-          style: { width: 313, height: 60 }
+          style: { width: 314, height: 56 }
         }));
         main.toHaveBeenCalledWith(1, 1, 'comment', jasmine.objectContaining({
           style: { width: 318, height: 60 }

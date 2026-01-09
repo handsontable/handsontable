@@ -45,7 +45,7 @@ describe('Core.scrollViewportTo', () => {
         horizon.toBe(2826);
       });
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(3216);
+        classic.toBe(3669);
         main.toBe(4125);
         horizon.toBe(5341);
       });
@@ -80,7 +80,7 @@ describe('Core.scrollViewportTo', () => {
         horizon.toBe(3000);
       });
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(3216);
+        classic.toBe(3669);
         main.toBe(4125);
         horizon.toBe(5341);
       });
@@ -115,7 +115,7 @@ describe('Core.scrollViewportTo', () => {
         horizon.toBe(3000);
       });
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(3450);
+        classic.toBe(3900);
         main.toBe(4350);
         horizon.toBe(5550);
       });
@@ -150,7 +150,7 @@ describe('Core.scrollViewportTo', () => {
         horizon.toBe(2826);
       });
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(3450);
+        classic.toBe(3900);
         main.toBe(4350);
         horizon.toBe(5550);
       });
@@ -218,7 +218,7 @@ describe('Core.scrollViewportTo', () => {
     expect(result).toBe(true);
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(3216);
+      classic.toBe(3669);
       main.toBe(4125);
       horizon.toBe(5341);
     });
@@ -241,7 +241,7 @@ describe('Core.scrollViewportTo', () => {
     expect(result).toBe(true);
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(3450);
+      classic.toBe(3900);
       main.toBe(4350);
       horizon.toBe(5550);
     });
@@ -356,7 +356,7 @@ describe('Core.scrollViewportTo', () => {
     });
 
     expect(tableView()._wt.wtScroll.getFirstVisibleColumn()).toBe(47);
-    expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBe(70);
+    expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBe(72);
   });
 
   it.forTheme('main')('should scroll the viewport only horizontally', async() => {
@@ -422,7 +422,7 @@ describe('Core.scrollViewportTo', () => {
     });
 
     expect(tableView()._wt.wtScroll.getFirstVisibleColumn()).toBe(77);
-    expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBe(40);
+    expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBe(42);
   });
 
   it.forTheme('main')('should scroll the viewport only vertically', async() => {

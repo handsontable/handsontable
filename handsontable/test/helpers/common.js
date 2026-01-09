@@ -259,8 +259,9 @@ export function getDefaultRowHeight() {
       return 29;
     case 'horizon':
       return 37;
+    case 'classic':
     default:
-      return 23;
+      return 26;
   }
 }
 

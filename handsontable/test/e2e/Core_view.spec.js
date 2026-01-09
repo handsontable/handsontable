@@ -743,7 +743,7 @@ describe('Core_view', () => {
       .simulate('mouseup')
       .simulate('click');
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,0']);
   });
 
   it.forTheme('main')('should not extend the selection to the cell under the mouse pointer after ' +

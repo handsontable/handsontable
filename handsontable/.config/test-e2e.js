@@ -44,14 +44,11 @@ module.exports.create = function create(envArgs) {
         baseJasminePath: '../../',
         externalCssFiles: [
           'lib/normalize.css',
-          ...((envArgs.HOT_THEME && envArgs.HOT_THEME !== 'classic') ? [
+          ...((envArgs.HOT_THEME) ? [
               '../styles/handsontable.css',
               `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
               'helpers/common-themes.css',
-            ] : [
-              '../dist/handsontable.css',
-              'helpers/common-classic.css',
-            ]
+            ] : []
           ),
           `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
         ],

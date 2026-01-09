@@ -118,7 +118,7 @@ describe('Comments keyboard shortcut', () => {
       // 2050 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
       expect(inlineStartOverlay().getScrollPosition()).toBe(1816);
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(8966);
+        classic.toBe(10169);
         main.toBe(11375);
         horizon.toBe(14591);
       });

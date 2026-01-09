@@ -901,12 +901,12 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(288);
+      classic.toBe(328);
       main.toBe(360);
       horizon.toBe(384);
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(166);
+      classic.toBe(195);
       main.toBe(212);
       horizon.toBe(260);
     });
@@ -942,12 +942,12 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(288);
+      classic.toBe(328);
       main.toBe(360);
       horizon.toBe(384);
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(166);
+      classic.toBe(195);
       main.toBe(212);
       horizon.toBe(260);
     });

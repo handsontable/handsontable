@@ -38,7 +38,10 @@ describe('Core_init', () => {
     doc.write(`
       <!doctype html>
       <head>
-        <link type="text/css" rel="stylesheet" href="../dist/handsontable.full.min.css">
+        <link type="text/css" rel="stylesheet" href="../styles/handsontable.css">
+        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
+        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
+        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
       </head>`);
     doc.close();
 

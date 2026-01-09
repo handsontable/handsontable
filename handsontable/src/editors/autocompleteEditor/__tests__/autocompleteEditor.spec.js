@@ -532,12 +532,12 @@ describe('AutocompleteEditor', () => {
       const container = getActiveEditor().htContainer;
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(120);
+        classic.toBe(118);
         main.toBe(118);
         horizon.toBe(133);
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118);
+        classic.toBe(131);
         main.toBe(146);
         horizon.toBe(148);
       });
@@ -563,12 +563,12 @@ describe('AutocompleteEditor', () => {
       const container = getActiveEditor().htContainer;
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
+        classic.toBe(55);
         main.toBe(62);
         horizon.toBe(85);
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118);
+        classic.toBe(131);
         main.toBe(146);
         horizon.toBe(148);
       });
@@ -593,12 +593,12 @@ describe('AutocompleteEditor', () => {
       const container = getActiveEditor().htContainer;
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
+        classic.toBe(118 + Handsontable.dom.getScrollbarWidth());
         main.toBe(118 + Handsontable.dom.getScrollbarWidth());
         horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(72);
+        classic.toBe(79);
         main.toBe(88);
         horizon.toBe(112);
       });
@@ -624,12 +624,12 @@ describe('AutocompleteEditor', () => {
       const container = getActiveEditor().htContainer;
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
+        classic.toBe(118 + Handsontable.dom.getScrollbarWidth());
         main.toBe(118 + Handsontable.dom.getScrollbarWidth());
         horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(69);
+        classic.toBe(78);
         main.toBe(87);
         horizon.toBe(111);
       });
@@ -655,12 +655,12 @@ describe('AutocompleteEditor', () => {
       const container = getActiveEditor().htContainer;
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52 + Handsontable.dom.getScrollbarWidth());
+        classic.toBe(55 + Handsontable.dom.getScrollbarWidth());
         main.toBe(62 + Handsontable.dom.getScrollbarWidth());
         horizon.toBe(70 + Handsontable.dom.getScrollbarWidth());
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(72);
+        classic.toBe(79);
         main.toBe(88);
         horizon.toBe(112);
       });
@@ -974,7 +974,7 @@ describe('AutocompleteEditor', () => {
       expect(editor.find('.autocompleteEditor .htCore td').width())
         .toEqual(editor.find('.handsontableInput').width() - 2);
       expect(editor.find('.autocompleteEditor .htCore td').width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeGreaterThan(187);
+        classic.toBeGreaterThan(183);
         main.toEqual(180);
         horizon.toEqual(172);
       });
@@ -1246,7 +1246,7 @@ describe('AutocompleteEditor', () => {
       await sleep(50);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 23, left: 0 });
+        classic.toEqual({ top: 26, left: 0 });
         main.toEqual({ top: 29, left: 0 });
         horizon.toEqual({ top: 37, left: 0 });
       });
@@ -1257,7 +1257,7 @@ describe('AutocompleteEditor', () => {
       await sleep(50);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 139, left: 0 });
+        classic.toEqual({ top: 157, left: 0 });
         main.toEqual({ top: 175, left: 0 });
         horizon.toEqual({ top: 223, left: 0 });
       });
@@ -1278,7 +1278,7 @@ describe('AutocompleteEditor', () => {
       await sleep(50);
 
       expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(115);
+        classic.toEqual(132);
         main.toEqual(147);
         horizon.toEqual(185);
       });
@@ -1299,7 +1299,7 @@ describe('AutocompleteEditor', () => {
       await sleep(50);
 
       expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(115);
+        classic.toEqual(132);
         main.toEqual(147);
         horizon.toEqual(185);
       });
@@ -1326,7 +1326,7 @@ describe('AutocompleteEditor', () => {
       const container = $(getActiveEditor().htContainer);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 365, left: 0 });
+        classic.toEqual({ top: 335, left: 0 });
         main.toEqual({ top: 287, left: 0 });
         horizon.toEqual({ top: 184, left: 0 });
       });
@@ -1359,7 +1359,7 @@ describe('AutocompleteEditor', () => {
       await sleep(50);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 480, left: 0 });
+        classic.toEqual({ top: 465, left: 0 });
         main.toEqual({ top: 432, left: 0 });
         horizon.toEqual({ top: 369, left: 0 });
       });
@@ -1370,7 +1370,7 @@ describe('AutocompleteEditor', () => {
       await sleep(50);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 622, left: 0 });
+        classic.toEqual({ top: 625, left: 0 });
         main.toEqual({ top: 610, left: 0 });
         horizon.toEqual({ top: 593, left: 0 });
       });
@@ -1401,7 +1401,7 @@ describe('AutocompleteEditor', () => {
       await sleep(50);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 2090, left: 0 });
+        classic.toEqual({ top: 2363, left: 0 });
         main.toEqual({ top: 2636, left: 0 });
         horizon.toEqual({ top: 3366, left: 0 });
       });
@@ -1412,7 +1412,7 @@ describe('AutocompleteEditor', () => {
       await sleep(50);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 2232, left: 0 });
+        classic.toEqual({ top: 2523, left: 0 });
         main.toEqual({ top: 2814, left: 0 });
         horizon.toEqual({ top: 3590, left: 0 });
       });
