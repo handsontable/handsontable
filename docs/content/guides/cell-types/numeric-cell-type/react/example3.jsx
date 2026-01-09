@@ -6,6 +6,7 @@ import 'handsontable/styles/ht-theme-main.css';
 // register Handsontable's modules
 registerAllModules();
 
+// define formats
 const currencyFormat = {
   style: 'currency',
   currency: 'USD',
