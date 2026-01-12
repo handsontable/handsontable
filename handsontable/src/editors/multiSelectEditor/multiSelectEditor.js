@@ -127,7 +127,7 @@ export class MultiSelectEditor extends TextEditor {
   bindEvents() {
     super.bindEvents();
 
-    this.dropdownController.addLocalHook('dropdownItemChecked',
+    this.dropdownController.addLocalHook('afterDropdownItemChecked',
       (selectedKey, selectedValue) => {
         this.#addSelectedValue(selectedKey, selectedValue);
 
@@ -136,7 +136,7 @@ export class MultiSelectEditor extends TextEditor {
         }
       }
     );
-    this.dropdownController.addLocalHook('dropdownItemUnchecked',
+    this.dropdownController.addLocalHook('afterDropdownItemUnchecked',
       (deselectedKey, deselectedValue) => {
         this.#removeSelectedValue(deselectedKey, deselectedValue);
 
@@ -145,8 +145,9 @@ export class MultiSelectEditor extends TextEditor {
         }
       }
     );
-    this.dropdownController.addLocalHook('dropdownFocus', () => this.#onDropdownFocus());
-    this.dropdownController.addLocalHook('dropdownDefocus', () => this.#onDropdownDefocus());
+    this.dropdownController.addLocalHook('afterDropdownFocus', () => this.#onAfterDropdownFocus());
+    this.dropdownController.addLocalHook('afterDropdownDefocus', () => this.#onAfterDropdownDefocus());
+    this.dropdownController.addLocalHook('afterDropdownFill', () => this.#onAfterDropdownFill());
 
     this.inputController.addLocalHook('commit', (...args) => this.#onTextareaCommit(...args));
     this.inputController.addLocalHook('triggerFilter', wordAtCaret => this.#filterEntries(wordAtCaret));
@@ -167,6 +168,7 @@ export class MultiSelectEditor extends TextEditor {
   close() {
     super.close();
 
+    this.TEXTAREA.style.maxWidth = '';
     this.dropdownController.reset();
   }
 
@@ -335,12 +337,23 @@ export class MultiSelectEditor extends TextEditor {
     }
   }
 
+
+  /**
+   * Called when the dropdown is filled.
+   *
+   * @private
+   */
+  #onAfterDropdownFill() {
+    const dropdownWidth = this.dropdownController.getDropdownWidth();
+
+    this.TEXTAREA.style.maxWidth = `${dropdownWidth}px`;
+  }
   /**
    * Called when the dropdown is focused.
    *
    * @private
    */
-  #onDropdownFocus() {
+  #onAfterDropdownFocus() {
     this.TEXTAREA.blur();
   }
 
@@ -349,7 +362,7 @@ export class MultiSelectEditor extends TextEditor {
    *
    * @private
    */
-  #onDropdownDefocus() {
+  #onAfterDropdownDefocus() {
     this.TEXTAREA.focus();
   }
 

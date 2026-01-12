@@ -777,6 +777,88 @@ describe('MultiSelectEditor', () => {
       });
     });
 
+    describe('dropdown width', () => {
+      it('should have a minimum width of 120px when source entries are short', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: ['a', 'b', 'c'],
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const $dropdown = $('.htMultiSelectEditor');
+        const dropdownWidth = $dropdown.outerWidth();
+
+        expect(dropdownWidth).toEqual(120);
+      });
+
+      it('should size to content width when source entries are longer than min-width', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: ['This is a very long option text'],
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const $dropdown = $('.htMultiSelectEditor');
+        const dropdownWidth = $dropdown.outerWidth();
+
+        expect(dropdownWidth).toEqual(219);
+      });
+
+      it('should size to content width and not expand to match a longer INPUT value', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: ['This is a very long option text'],
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const editor = getActiveEditor();
+        const $dropdown = $('.htMultiSelectEditor');
+        const initialDropdownWidth = $dropdown.outerWidth();
+
+        editor.TEXTAREA.value =
+          'This is a very very very long text that should not affect dropdown width, This is a very';
+        editor.TEXTAREA.focus();
+
+        await keyDownUp('y');
+        await sleep(10);
+
+        const dropdownWidthAfterTyping = $('.htMultiSelectEditor').outerWidth();
+
+        expect(dropdownWidthAfterTyping).toBe(initialDropdownWidth);
+        expect(dropdownWidthAfterTyping).toBeGreaterThan(120);
+      });
+    });
+
     describe('`validateOnCommit` option', () => {
       it('should keep only values present in the source when enabled', async() => {
         handsontable({

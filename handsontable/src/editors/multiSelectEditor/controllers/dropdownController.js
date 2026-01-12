@@ -123,6 +123,8 @@ export class DropdownController {
     });
 
     this.#cache.entriesCount = entries.length;
+
+    this.runLocalHooks('afterDropdownFill');
   }
 
   /**
@@ -163,6 +165,15 @@ export class DropdownController {
     this.#toggleVerticalFlip();
 
     this.#containerElement.scrollTop = 0;
+  }
+
+  /**
+   * Gets the width of the dropdown.
+   *
+   * @returns {number} Width of the dropdown.
+   */
+  getDropdownWidth() {
+    return this.#dropdownListElement.offsetWidth;
   }
 
   /**
@@ -231,9 +242,9 @@ export class DropdownController {
    */
   #focusItem(index) {
     if (this.#cache.currentlySelectedItemIndex === null && index === 0) {
-      this.runLocalHooks('dropdownFocus');
+      this.runLocalHooks('afterDropdownFocus');
     } else if (index === null) {
-      this.runLocalHooks('dropdownDefocus');
+      this.runLocalHooks('afterDropdownDefocus');
     }
 
     this.#cache.currentlySelectedItemIndex = index;
@@ -465,11 +476,11 @@ export class DropdownController {
     const checkboxChangeListener = () => {
       if (checkbox.checked) {
         this.selectItem(itemElement);
-        this.runLocalHooks('dropdownItemChecked', checkbox.dataset.key, checkbox.dataset.value);
+        this.runLocalHooks('afterDropdownItemChecked', checkbox.dataset.key, checkbox.dataset.value);
 
       } else {
         this.deselectItem(itemElement);
-        this.runLocalHooks('dropdownItemUnchecked', checkbox.dataset.key, checkbox.dataset.value);
+        this.runLocalHooks('afterDropdownItemUnchecked', checkbox.dataset.key, checkbox.dataset.value);
       }
     };
 
