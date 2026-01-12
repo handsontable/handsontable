@@ -124,6 +124,17 @@
       } else if (/^handsontable\/dist|styles\/.+\.css$/.test(key)) { // ignore CSS imports
         ns = '';
 
+      } else if (key === 'numbro') {
+        ns = 'numbro';
+
+      } else if (/^numbro\/dist\/languages\.min(\.js)?$/.test(key)) {
+        ns = 'numbro.allLanguages';
+
+      } else if (/^numbro\/languages\/(.+)$/.test(key)) {
+        const match = key.match(/^numbro\/languages\/(.+)$/);
+
+        ns = `numbro.allLanguages.${match[1]}`;
+
       } else if (/^handsontable\/registry$/.test(key)) {
         // The wrappers are run in the environment where the full Handsontable
         // exists. The `handsontable/registry` imports are only use as an example how to
@@ -153,16 +164,22 @@
 
       } else if (/^handsontable\/i18n(\/(.+))?$/.test(key)) {
         ns = 'Handsontable.languages';
+
       } else if (key === 'date-fns') {
         ns = 'dateFns';
+
       } else if (key === '@melloware/coloris') {
         ns = 'Coloris';
+
       } else if (key === 'flatpickr') {
         ns = 'flatpickr';
+
       } if (key === 'moment') {
         ns = 'moment';
+
       } else if (key === '@handsontable/pikaday') {
         ns = 'Pikaday';
+
       } else if (key === 'multiple-select-vanilla') {
         ns = 'multipleSelect';
       }

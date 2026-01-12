@@ -1,13 +1,46 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { rendererFactory } from 'handsontable/renderers';
+import { rendererFactory, getRenderer } from 'handsontable/renderers';
+import { getEditor } from 'handsontable/editors';
+import { getValidator } from 'handsontable/validators';
+import { registerCellType } from 'handsontable/cellTypes';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import numbro from 'numbro';
-import 'numbro/languages';
+import languages from 'numbro/dist/languages.min.js';
 
 // Register all Handsontable's modules.
 registerAllModules();
+
+Object.values(languages).forEach((language) => numbro.registerLanguage(language));
+
+function isNumeric(value: any): boolean {
+  const type = typeof value;
+
+  if (type === 'number') {
+    return !isNaN(value) && isFinite(value);
+
+  } else if (type === 'string') {
+    if (value.length === 0) {
+      return false;
+
+    } else if (value.length === 1) {
+      return /\d/.test(value);
+    }
+
+    const delimiter = Array.from(new Set(['.']))
+      .map(d => `\\${d}`)
+      .join('|');
+
+    return new RegExp(`^[+-]?(((${delimiter})?\\d+((${delimiter})\\d+)?(e[+-]?\\d+)?)|(0x[a-f\\d]+))$`, 'i')
+      .test(value.trim());
+
+  } else if (type === 'object') {
+    return !!value && typeof value.valueOf() === 'number' && !(value instanceof Date);
+  }
+
+  return false;
+}
 
 /* start:skip-in-preview */
 const data = [
@@ -113,294 +146,96 @@ const data = [
     restockDate: '2026-01-25',
     operationalStatus: 'Operational',
   },
-  {
-    id: 954632,
-    itemName: 'Oxygen Unit',
-    itemNo: 'FK-87',
-    leadEngineer: 'Dr. Grace Augustine',
-    cost: 600000,
-    inStock: true,
-    category: 'Life Support',
-    itemQuality: 85,
-    origin: '🇺🇸 USA',
-    quantity: 15,
-    valueStock: 9000000,
-    repairable: true,
-    supplierName: 'OxyGenius',
-    restockDate: '2026-03-02',
-    operationalStatus: 'Awaiting Parts',
-  },
-  {
-    id: 734944,
-    itemName: 'Processing Rig',
-    itemNo: 'LK-13',
-    leadEngineer: 'Jake Sully',
-    cost: 350000,
-    inStock: true,
-    category: 'Mining',
-    itemQuality: 81,
-    origin: '🇦🇺 Australia',
-    quantity: 25,
-    valueStock: 8750000,
-    repairable: true,
-    supplierName: 'RigTech',
-    restockDate: '2026-04-15',
-    operationalStatus: 'Ready for Testing',
-  },
-  {
-    id: 834662,
-    itemName: 'Navigation Module',
-    itemNo: 'XP-24',
-    leadEngineer: 'Dr. Ellie Arroway',
-    cost: 450000,
-    inStock: true,
-    category: 'Navigation',
-    itemQuality: 89,
-    origin: '🇫🇷 France',
-    quantity: 8,
-    valueStock: 3600000,
-    repairable: false,
-    supplierName: 'NavSolutions',
-    restockDate: '2026-05-30',
-    operationalStatus: 'In Maintenance',
-  },
-  {
-    id: 714329,
-    itemName: 'Surveyor Arm',
-    itemNo: 'QA-86',
-    leadEngineer: 'Mark Watney',
-    cost: 100000,
-    inStock: true,
-    category: 'Exploration',
-    itemQuality: 78,
-    origin: '🇺🇸 USA',
-    quantity: 40,
-    valueStock: 4000000,
-    repairable: true,
-    supplierName: 'ExploreTech',
-    restockDate: '2026-07-12',
-    operationalStatus: 'Decommissioned',
-  },
-  {
-    id: 291439,
-    itemName: 'Habitat Dome',
-    itemNo: 'UJ-24',
-    leadEngineer: 'Jane Doe',
-    cost: 1100000,
-    inStock: true,
-    category: 'Shelter',
-    itemQuality: 92,
-    origin: '🇬🇧 UK',
-    quantity: 4,
-    valueStock: 4400000,
-    repairable: false,
-    supplierName: 'DomeInnovate',
-    restockDate: '2026-02-01',
-    operationalStatus: 'Operational',
-  },
-  {
-    id: 485199,
-    itemName: 'Power Generator',
-    itemNo: 'PG-11',
-    leadEngineer: 'John Smith',
-    cost: 500000,
-    inStock: true,
-    category: 'Energy',
-    itemQuality: 85,
-    origin: '🇨🇳 China',
-    quantity: 7,
-    valueStock: 3500000,
-    repairable: true,
-    supplierName: 'PowerCo',
-    restockDate: '2026-03-10',
-    operationalStatus: 'Operational',
-  },
-  {
-    id: 271418,
-    itemName: 'Life Support System',
-    itemNo: 'LS-22',
-    leadEngineer: 'Mike Johnson',
-    cost: 800000,
-    inStock: false,
-    category: 'Life Support',
-    itemQuality: 80,
-    origin: '🇯🇵 Japan',
-    quantity: 0,
-    valueStock: 0,
-    repairable: true,
-    supplierName: 'LifeTech',
-    restockDate: '2026-04-20',
-    operationalStatus: 'Awaiting Parts',
-  },
-  {
-    id: 390776,
-    itemName: 'Mars Rover',
-    itemNo: 'MR-33',
-    leadEngineer: 'Anna Davis',
-    cost: 2000000,
-    inStock: true,
-    category: 'Exploration',
-    itemQuality: 90,
-    origin: '🇮🇳 India',
-    quantity: 5,
-    valueStock: 10000000,
-    repairable: false,
-    supplierName: 'RoverWorks',
-    restockDate: '2026-05-15',
-    operationalStatus: 'Operational',
-  },
-  {
-    id: 672342,
-    itemName: 'Hydroponics Module',
-    itemNo: 'HM-44',
-    leadEngineer: 'Robert Brown',
-    cost: 450000,
-    inStock: true,
-    category: 'Life Support',
-    itemQuality: 88,
-    origin: '🇦🇺 Australia',
-    quantity: 6,
-    valueStock: 2700000,
-    repairable: true,
-    supplierName: 'GreenGrow',
-    restockDate: '2026-06-25',
-    operationalStatus: 'Operational',
-  },
-  {
-    id: 907454,
-    itemName: 'Satellite Dish',
-    itemNo: 'SD-55',
-    leadEngineer: 'Emily Wilson',
-    cost: 300000,
-    inStock: false,
-    category: 'Communication',
-    itemQuality: 70,
-    origin: '🇺🇸 USA',
-    quantity: 0,
-    valueStock: 0,
-    repairable: true,
-    supplierName: 'CommTech',
-    restockDate: '2026-07-05',
-    operationalStatus: 'Decommissioned',
-  },
-  {
-    id: 841637,
-    itemName: 'Thermal Regulator',
-    itemNo: 'TR-66',
-    leadEngineer: 'Olivia Taylor',
-    cost: 650000,
-    inStock: true,
-    category: 'Energy',
-    itemQuality: 82,
-    origin: '🇷🇺 Russia',
-    quantity: 8,
-    valueStock: 5200000,
-    repairable: false,
-    supplierName: 'ThermoTech',
-    restockDate: '2026-08-15',
-    operationalStatus: 'Operational',
-  },
-  {
-    id: 947335,
-    itemName: 'Landing Gear',
-    itemNo: 'LG-77',
-    leadEngineer: 'David Lee',
-    cost: 250000,
-    inStock: true,
-    category: 'Lander',
-    itemQuality: 75,
-    origin: '🇫🇷 France',
-    quantity: 10,
-    valueStock: 2500000,
-    repairable: false,
-    supplierName: 'LandingWorks',
-    restockDate: '2026-09-20',
-    operationalStatus: 'Operational',
-  },
-  {
-    id: 629849,
-    itemName: 'Radiation Shield',
-    itemNo: 'RS-88',
-    leadEngineer: 'Sophia Martinez',
-    cost: 900000,
-    inStock: true,
-    category: 'Equipment',
-    itemQuality: 95,
-    origin: '🇧🇷 Brazil',
-    quantity: 3,
-    valueStock: 2700000,
-    repairable: false,
-    supplierName: 'ShieldPro',
-    restockDate: '2026-10-30',
-    operationalStatus: 'Operational',
-  },
-  {
-    id: 519304,
-    itemName: 'Fuel Cell',
-    itemNo: 'FC-99',
-    leadEngineer: 'James Anderson',
-    cost: 550000,
-    inStock: true,
-    category: 'Propulsion',
-    itemQuality: 89,
-    origin: '🇨🇦 Canada',
-    quantity: 5,
-    valueStock: 2750000,
-    repairable: true,
-    supplierName: 'FuelWorks',
-    restockDate: '2026-11-22',
-    operationalStatus: 'Operational',
-  },
 ];
 /* end:skip-in-preview */
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
-const container = document.querySelector('#example1');
-const cellDefinition = {
-  renderer: rendererFactory(({ td, value, cellProperties }) => {
-    const numericFormat = cellProperties.numericFormat;
-    const cellCulture = numericFormat && numericFormat.culture || 'en-US';
-    const cellFormatPattern = numericFormat && numericFormat.pattern;
+const container = document.querySelector('#example1')!;
+const cellTypeDefinition = {
+  renderer: rendererFactory(({ hotInstance, td, row, col, prop, value, cellProperties }) => {
+    if (isNumeric(value)) {
+      let classArr = [];
 
-    // Register the language if it's not already registered
-    if (cellCulture && !numbro.languages()[cellCulture]) {
-      const shortTag = cellCulture.replace('-', '');
-      const langData = numbro.allLanguages ? numbro.allLanguages[cellCulture] : numbro[shortTag];
+      if (Array.isArray(cellProperties.className)) {
+        classArr = cellProperties.className;
+      } else {
+        const className = cellProperties.className ?? '';
 
-      if (langData) {
-        numbro.registerLanguage(langData);
+        if (className.length) {
+          classArr = className.split(' ');
+        }
       }
+
+      const numericFormat = cellProperties.numericFormat;
+      const cellCulture = numericFormat && numericFormat.culture || 'en-US';
+      const cellFormatPattern = numericFormat && numericFormat.pattern;
+
+      // Register the language if it's not already registered
+      if (cellCulture && !numbro.languages()[cellCulture]) {
+        const shortTag = cellCulture.replace('-', '');
+        const langData = numbro.allLanguages ? numbro.allLanguages[cellCulture] : numbro[shortTag];
+
+        if (langData) {
+          numbro.registerLanguage(langData);
+        }
+      }
+
+      numbro.setLanguage(cellCulture);
+
+      value = numbro(value).format(cellFormatPattern ?? '0');
+
+      if (
+        classArr.indexOf('htLeft') < 0 &&
+        classArr.indexOf('htCenter') < 0 &&
+        classArr.indexOf('htRight') < 0 &&
+        classArr.indexOf('htJustify') < 0
+      ) {
+        classArr.push('htRight');
+      }
+
+      if (classArr.indexOf('htNumeric') < 0) {
+        classArr.push('htNumeric');
+      }
+
+      cellProperties.className = classArr.join(' ');
+      td.dir = 'ltr';
     }
 
-    numbro.setLanguage(cellCulture);
-
-    value = numbro(value).format(cellFormatPattern ?? '0');
-
-    td.classList.add('htNumeric');
-    td.classList.add('htRight');
-    td.innerText = value;
-    td.dir = 'ltr';
+    getRenderer('text')(hotInstance, td, row, col, prop, value, cellProperties);
   }),
-  validator: 'numeric',
-  editor: 'numeric',
+  validator: getValidator('numeric'),
+  editor: getEditor('numeric'),
 };
+
+registerCellType('numbro', cellTypeDefinition);
 
 // Define configuration options for the Handsontable
 const hotOptions = {
   themeName: 'ht-theme-main',
   data,
-  colHeaders: ['ID', 'Item Name', 'Item Price'],
+  colHeaders: ['ID', 'Item Name', 'Item Cost'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
   columns: [
-    { data: 'id', type: 'numeric' },
+    {
+      data: 'id',
+      type: 'numbro',
+      numericFormat: {
+        pattern: '0,0',
+        culture: 'en-US',
+      },
+    },
     {
       data: 'itemName',
       type: 'text',
     },
     {
-      data: 'price',
-      ...cellDefinition,
+      data: 'cost',
+      type: 'numbro',
+      numericFormat: {
+        pattern: '$0,0.00',
+        culture: 'en-US',
+      },
     },
   ],
   licenseKey: 'non-commercial-and-evaluation',
