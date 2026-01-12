@@ -499,9 +499,10 @@ export class DropdownController {
    */
   #unregisterEvents(itemElement) {
     const checkbox = getCheckboxElement(itemElement);
+    const checkboxListeners = this.#cache.checkboxChangeListeners.get(checkbox);
 
-    this.#eventManager.removeEventListener(checkbox, 'change', this.#cache.checkboxChangeListeners.get(checkbox).change);
-    this.#eventManager.removeEventListener(itemElement, 'click', this.#cache.checkboxChangeListeners.get(checkbox).click);
+    this.#eventManager.removeEventListener(checkbox, 'change', checkboxListeners.change);
+    this.#eventManager.removeEventListener(itemElement, 'click', checkboxListeners.click);
 
     this.#cache.checkboxChangeListeners.delete(checkbox);
   }
