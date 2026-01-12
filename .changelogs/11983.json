@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Removeed numbro.js from dependencies",
+  "type": "changed",
+  "issueOrPR": 11983,
+  "breaking": true,
+  "framework": "none"
+}
