@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import {Component, CUSTOM_ELEMENTS_SCHEMA, EnvironmentInjector} from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, EnvironmentInjector } from '@angular/core';
 
 import { DynamicComponentService } from '../renderer/hot-dynamic-renderer-component.service';
 import { HotSettingsResolver } from './hot-settings-resolver.service';
@@ -8,6 +8,8 @@ import { ColumnSettings, ColumnSettingsInternal } from '../models/column-setting
 import { HotCellEditorComponent } from '../editor/hot-cell-editor.component';
 import { HotCellRendererComponent } from '../renderer/hot-cell-renderer.component';
 import { TextEditor } from 'handsontable/editors';
+import { RendererRenderMode } from '../renderer/renderer-render-mode.enum';
+import { EditorRendererMode } from '../editor/models/editor-renderer-mode.enum';
 
 @Component({})
 class TestRendererComponent extends HotCellRendererComponent {}
@@ -27,15 +29,12 @@ describe('HotSettingsResolver', () => {
   beforeEach(() => {
     const dynamicServiceSpy = {
       createRendererFromComponent: jest.fn(),
+      createRendererWithFactory: jest.fn(),
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        HotSettingsResolver,
-        { provide: DynamicComponentService, useValue: dynamicServiceSpy },
-        EnvironmentInjector
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
+      providers: [HotSettingsResolver, { provide: DynamicComponentService, useValue: dynamicServiceSpy }, EnvironmentInjector],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
     });
 
     dynamicComponentService = TestBed.inject(DynamicComponentService);
@@ -57,6 +56,23 @@ describe('HotSettingsResolver', () => {
     };
     service.applyCustomSettings(mergedSettings, undefined);
     expect(dynamicComponentService.createRendererFromComponent).toHaveBeenCalled();
+  });
+
+  it('should use advanced renderer mode when rendererRenderMode is Advanced', () => {
+    const mergedSettings: GridSettings = {
+      columns: [
+        {
+          renderer: TestRendererComponent,
+          rendererRenderMode: RendererRenderMode.Advanced,
+          rendererProps: { prop: 'value' },
+        } as ColumnSettings,
+      ],
+    };
+
+    service.applyCustomSettings(mergedSettings, undefined);
+
+    expect(dynamicComponentService.createRendererWithFactory).toHaveBeenCalledWith(TestRendererComponent, { prop: 'value' });
+    expect(dynamicComponentService.createRendererFromComponent).not.toHaveBeenCalled();
   });
 
   it('should not update column renderer when no renderer set', () => {
@@ -110,6 +126,25 @@ describe('HotSettingsResolver', () => {
     expect(settings.editor).toBeDefined();
     expect(settings._editorComponentReference.instance instanceof TestEditorComponent).toBe(true);
     expect(settings._environmentInjector).toBe(envInjector);
+  });
+
+  it('should use advanced editor mode when editorRenderMode is Advanced', () => {
+    const mergedSettings: GridSettings = {
+      columns: [
+        {
+          editor: TestEditorComponent,
+          editorRenderMode: EditorRendererMode.Advanced,
+        } as ColumnSettings,
+      ],
+    };
+
+    service.applyCustomSettings(mergedSettings, undefined);
+
+    const settings = mergedSettings.columns[0] as ColumnSettingsInternal;
+    expect(settings.editor).toBeDefined();
+    expect(typeof settings.editor).toBe('function');
+    expect(settings._editorComponentReference).toBeUndefined();
+    expect(settings._environmentInjector).toBeUndefined();
   });
 
   it('should not update column editor when no custom editor set', () => {
@@ -173,5 +208,56 @@ describe('HotSettingsResolver', () => {
     };
     service.applyCustomSettings(mergedSettings, undefined);
     expect(mergedSettings.columns[0].validator.length).toBe(2);
+  });
+
+  it('should handle multiple columns with different renderer render modes', () => {
+    const mergedSettings: GridSettings = {
+      columns: [
+        {
+          renderer: TestRendererComponent,
+          rendererRenderMode: RendererRenderMode.Advanced,
+        } as ColumnSettings,
+        {
+          renderer: TestRendererComponent,
+          rendererRenderMode: RendererRenderMode.Base,
+        } as ColumnSettings,
+        {
+          renderer: TestRendererComponent,
+        } as ColumnSettings,
+      ],
+    };
+
+    service.applyCustomSettings(mergedSettings, undefined);
+
+    expect(dynamicComponentService.createRendererWithFactory).toHaveBeenCalledTimes(1);
+    expect(dynamicComponentService.createRendererFromComponent).toHaveBeenCalledTimes(2);
+  });
+
+  it('should handle multiple columns with different editor render modes', () => {
+    const mergedSettings: GridSettings = {
+      columns: [
+        {
+          editor: TestEditorComponent,
+          editorRenderMode: EditorRendererMode.Advanced,
+        } as ColumnSettings,
+        {
+          editor: TestEditorComponent,
+          editorRenderMode: EditorRendererMode.Base,
+        } as ColumnSettings,
+        {
+          editor: TestEditorComponent,
+        } as ColumnSettings,
+      ],
+    };
+
+    service.applyCustomSettings(mergedSettings, undefined);
+
+    const settings0 = mergedSettings.columns[0] as ColumnSettingsInternal;
+    const settings1 = mergedSettings.columns[1] as ColumnSettingsInternal;
+    const settings2 = mergedSettings.columns[2] as ColumnSettingsInternal;
+
+    expect(settings0._editorComponentReference).toBeUndefined();
+    expect(settings1._editorComponentReference).toBeDefined();
+    expect(settings2._editorComponentReference).toBeDefined();
   });
 });

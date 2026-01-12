@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ComponentRef,
-  Input,
-  ViewChild,
-  ViewContainerRef,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ComponentRef, Input, ViewChild, ViewContainerRef } from '@angular/core';
 import { HotCellEditorComponent } from './hot-cell-editor.component';
 
 /**
@@ -14,7 +7,7 @@ import { HotCellEditorComponent } from './hot-cell-editor.component';
  */
 @Component({
   template: ` <div
-    class="handsontableInputHolder ht_clone_master"
+    [class]="placeholderCustomClass"
     [style.display]="display"
     [style.width.px]="width"
     [style.height.px]="height"
@@ -46,10 +39,10 @@ export class CustomEditorPlaceholderComponent {
     this._isVisible = value;
   }
 
+  @Input() placeholderCustomClass = 'handsontableInputHolder ht_clone_master';
+
   /** The reference to the component instance of the editor. */
-  @Input() set componentRef(
-    hotEditorComponentRef: ComponentRef<HotCellEditorComponent<any>>
-  ) {
+  @Input() set componentRef(hotEditorComponentRef: ComponentRef<HotCellEditorComponent<any>>) {
     if (hotEditorComponentRef) {
       this.container.insert(hotEditorComponentRef.hostView);
     }

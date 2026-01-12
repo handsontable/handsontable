@@ -1,15 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  Input,
-  NgZone,
-  OnChanges,
-  OnDestroy,
-  SimpleChanges,
-  ViewChild,
-  ViewEncapsulation
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EnvironmentInjector, Input, NgZone, OnChanges, OnDestroy, SimpleChanges, ViewChild, ViewEncapsulation } from '@angular/core';
 import Handsontable from 'handsontable/base';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
 import { HotGlobalConfigService } from './services/hot-global-config.service';
@@ -46,7 +35,12 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   private __hotInstance: Handsontable | null = null;
   private configSubscription: Subscription;
 
-  constructor(private _hotSettingsResolver: HotSettingsResolver, private _hotConfig: HotGlobalConfigService, public ngZone: NgZone) {}
+  constructor(
+    private _hotSettingsResolver: HotSettingsResolver,
+    private _hotConfig: HotGlobalConfigService,
+    public ngZone: NgZone,
+    private readonly environmentInjector: EnvironmentInjector
+  ) {}
 
   /**
    * Gets the Handsontable instance.
@@ -83,6 +77,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.ngZone.runOutsideAngular(() => {
       this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
 
+      (this.hotInstance as any)._angularEnvironmentInjector = this.environmentInjector;
+
       this.hotInstance.init();
     });
 
@@ -100,10 +96,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     if (changes.settings && !changes.settings.firstChange) {
-      const newOptions: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(
-        changes.settings.currentValue,
-        this.ngZone
-      );
+      const newOptions: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(changes.settings.currentValue, this.ngZone);
 
       this.updateHotTable(newOptions);
     }

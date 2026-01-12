@@ -1,11 +1,8 @@
-import {
-  ApplicationRef, ComponentRef, createComponent,
-  EmbeddedViewRef, EnvironmentInjector, Injectable,
-  TemplateRef, Type
-} from '@angular/core';
-import {baseRenderer, BaseRenderer} from 'handsontable/renderers';
+import { ApplicationRef, ComponentRef, createComponent, EmbeddedViewRef, EnvironmentInjector, Injectable, TemplateRef, Type } from '@angular/core';
+import { baseRenderer, BaseRenderer } from 'handsontable/renderers';
 import Handsontable from 'handsontable/base';
-import {HotCellRendererComponent} from './hot-cell-renderer.component';
+import { HotCellRendererComponent } from './hot-cell-renderer.component';
+import { rendererFactory } from 'handsontable/renderers';
 
 type BaseRendererParameters = Parameters<BaseRenderer>;
 
@@ -61,10 +58,7 @@ export function isHotCellRendererComponent(obj: any): obj is Type<HotCellRendere
   providedIn: 'root',
 })
 export class DynamicComponentService {
-  constructor(
-    private appRef: ApplicationRef,
-    private environmentInjector: EnvironmentInjector
-  ) {}
+  constructor(private appRef: ApplicationRef, private environmentInjector: EnvironmentInjector) {}
 
   /**
    * Creates a custom renderer function for Handsontable from an Angular component or TemplateRef.
@@ -75,31 +69,23 @@ export class DynamicComponentService {
    * @param register - If true, registers the renderer with Handsontable using the component's name.
    * @returns A renderer function that can be used in Handsontable's configuration.
    */
-  createRendererFromComponent(
-    component: Type<HotCellRendererComponent> | TemplateRef<any>,
-    componentProps: Record<string, any> = {},
-    register: boolean = false
-  ) {
-    return (
-      instance: Handsontable.Core,
-      td: HTMLTableCellElement,
-      row: number,
-      col: number,
-      prop: string | number,
-      value: any,
-      cellProperties: Handsontable.CellProperties
-    ) => {
+  createRendererFromComponent(component: Type<HotCellRendererComponent> | TemplateRef<any>, componentProps: Record<string, any> = {}, register: boolean = false) {
+    return (instance: Handsontable.Core, td: HTMLTableCellElement, row: number, col: number, prop: string | number, value: any, cellProperties: Handsontable.CellProperties) => {
       const properties: BaseRendererParametersObject = {
-        value, instance, td, row, col, prop, cellProperties
+        value,
+        instance,
+        td,
+        row,
+        col,
+        prop,
+        cellProperties,
       };
 
       if (componentProps) {
-        Object.assign(cellProperties, {rendererProps: componentProps});
+        Object.assign(cellProperties, { rendererProps: componentProps });
       }
 
-      const rendererParameters: BaseRendererParameters = [
-        instance, td, row, col, prop, value, cellProperties
-      ];
+      const rendererParameters: BaseRendererParameters = [instance, td, row, col, prop, value, cellProperties];
 
       baseRenderer.apply(this, rendererParameters);
 
@@ -107,22 +93,63 @@ export class DynamicComponentService {
 
       if (isTemplateRef(component)) {
         this.attachTemplateToElement(component, td, properties);
-      } else if (isHotCellRendererComponent(component)){
+      } else if (isHotCellRendererComponent(component)) {
         const componentRef = this.createComponent(component, properties);
         this.attachComponentToElement(componentRef, td);
       } else {
-        console.warn(INVALID_RENDERER_WARNING)
+        console.warn(INVALID_RENDERER_WARNING);
       }
 
       if (register && isHotCellRendererComponent(component)) {
-        Handsontable.renderers.registerRenderer(
-          component.constructor.name,
-          component as any as BaseRenderer
-        );
+        Handsontable.renderers.registerRenderer(component.constructor.name, component as any as BaseRenderer);
       }
 
       return td;
     };
+  }
+
+  /**
+   * Creates a custom renderer function using rendererFactory from Handsontable.
+   * This is an alternative implementation that uses the factory pattern.
+   *
+   * @param component - The Angular component type or TemplateRef to use as renderer.
+   * @param componentProps - An object containing additional properties to use by the renderer.
+   * @param register - If true, registers the renderer with Handsontable using the component's name.
+   * @returns A renderer function that can be used in Handsontable's configuration.
+   */
+  createRendererWithFactory(component: Type<HotCellRendererComponent> | TemplateRef<any>, componentProps: Record<string, any> = {}, register: boolean = false) {
+    return rendererFactory(({ instance, td, row, column, prop, value, cellProperties }) => {
+      const properties: BaseRendererParametersObject = {
+        value,
+        instance,
+        td,
+        row,
+        col: column,
+        prop,
+        cellProperties,
+      };
+
+      if (componentProps) {
+        Object.assign(cellProperties, { rendererProps: componentProps });
+      }
+
+      td.innerHTML = '';
+
+      if (isTemplateRef(component)) {
+        this.attachTemplateToElement(component, td, properties);
+      } else if (isHotCellRendererComponent(component)) {
+        const componentRef = this.createComponent(component, properties);
+        this.attachComponentToElement(componentRef, td);
+      } else {
+        console.warn(INVALID_RENDERER_WARNING);
+      }
+
+      if (register && isHotCellRendererComponent(component)) {
+        Handsontable.renderers.registerRenderer(component.constructor.name, component as any as BaseRenderer);
+      }
+
+      return td;
+    });
   }
 
   /**
@@ -132,11 +159,7 @@ export class DynamicComponentService {
    * @param tdEl - The target DOM element (a table cell) to which the view will be appended.
    * @param properties - Context object providing properties to be used within the template.
    */
-  private attachTemplateToElement(
-    template: TemplateRef<any>,
-    tdEl: HTMLTableCellElement,
-    properties: BaseRendererParametersObject
-  ) {
+  private attachTemplateToElement(template: TemplateRef<any>, tdEl: HTMLTableCellElement, properties: BaseRendererParametersObject) {
     const embeddedView: EmbeddedViewRef<any> = template.createEmbeddedView({
       $implicit: properties.value,
       ...properties,
@@ -155,21 +178,18 @@ export class DynamicComponentService {
    * @param rendererParameters - An object containing input properties to assign to the component instance.
    * @returns The ComponentRef of the dynamically created component.
    */
-  private createComponent<T extends HotCellRendererComponent>(
-    component: Type<T>,
-    rendererParameters: BaseRendererParametersObject
-  ): ComponentRef<T> {
+  private createComponent<T extends HotCellRendererComponent>(component: Type<T>, rendererParameters: BaseRendererParametersObject): ComponentRef<T> {
     const componentRef = createComponent(component, {
-      environmentInjector: this.environmentInjector
+      environmentInjector: this.environmentInjector,
     });
 
-    Object.keys(rendererParameters).forEach(key => {
+    Object.keys(rendererParameters).forEach((key) => {
       if (rendererParameters.hasOwnProperty(key)) {
-        componentRef.setInput(key, rendererParameters[key])
+        componentRef.setInput(key, rendererParameters[key]);
       } else {
         console.warn(`Input property "${key}" does not exist on component instance: ${component?.name}.`);
       }
-    })
+    });
     componentRef.changeDetectorRef.detectChanges();
 
     this.appRef.attachView(componentRef.hostView);
@@ -183,12 +203,8 @@ export class DynamicComponentService {
    * @param componentRef - The reference to the dynamically created component.
    * @param container - The target DOM element to which the component's root node will be appended.
    */
-  private attachComponentToElement<T>(
-    componentRef: ComponentRef<T>,
-    container: HTMLElement
-  ): void {
-    const domElem = (componentRef.hostView as EmbeddedViewRef<T>)
-      .rootNodes[0] as HTMLElement;
+  private attachComponentToElement<T>(componentRef: ComponentRef<T>, container: HTMLElement): void {
+    const domElem = (componentRef.hostView as EmbeddedViewRef<T>).rootNodes[0] as HTMLElement;
     container.appendChild(domElem);
   }
 

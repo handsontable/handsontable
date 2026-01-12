@@ -1,4 +1,4 @@
-import {createComponent, EnvironmentInjector, Injectable, NgZone, TemplateRef, Type} from '@angular/core';
+import { createComponent, EnvironmentInjector, Injectable, NgZone, TemplateRef, Type } from '@angular/core';
 import { DynamicComponentService } from '../renderer/hot-dynamic-renderer-component.service';
 import { BaseEditorAdapter } from '../editor/base-editor-adapter';
 import { GridSettings, GridSettingsInternal } from '../models/grid-settings';
@@ -6,6 +6,9 @@ import { CustomValidatorFn, ColumnSettings } from '../models/column-settings';
 import { HotCellRendererComponent } from '../renderer/hot-cell-renderer.component';
 import { HotCellEditorComponent } from '../editor/hot-cell-editor.component';
 import Handsontable from 'handsontable/base';
+import { FactoryEditorAdapter } from '../editor/editor-factory-adapter';
+import { RendererRenderMode } from '../renderer/renderer-render-mode.enum';
+import { EditorRendererMode } from '../editor/models/editor-renderer-mode.enum';
 
 const AVAILABLE_OPTIONS: string[] = Object.keys(Handsontable.DefaultSettings);
 const AVAILABLE_HOOKS: string[] = Handsontable.hooks.getRegistered();
@@ -44,7 +47,7 @@ export class HotSettingsResolver {
   private wrapHooksInNgZone(settings: GridSettings, ngZone: NgZone) {
     const options = AVAILABLE_HOOKS.concat(AVAILABLE_OPTIONS);
 
-    options.forEach(key => {
+    options.forEach((key) => {
       const isHook = AVAILABLE_HOOKS.indexOf(key) > -1;
       let option;
 
@@ -54,12 +57,10 @@ export class HotSettingsResolver {
 
       if (option === void 0) {
         return;
-
-      } else if (!!ngZone && (typeof option === 'function' && isHook)) {
-        settings[key] = function(...args: any) {
+      } else if (!!ngZone && typeof option === 'function' && isHook) {
+        settings[key] = function (...args: any) {
           return ngZone.run(() => option.apply(this, args));
         };
-
       } else {
         settings[key] = option;
       }
@@ -82,7 +83,12 @@ export class HotSettingsResolver {
           ? (cellSettings.renderer as TemplateRef<any>)
           : (cellSettings.renderer as Type<HotCellRendererComponent<any, any>>);
         const props: any = cellSettings.rendererProps ?? {};
-        cellSettings.renderer = this.dynamicComponentService.createRendererFromComponent(renderer, props);
+
+        if (cellSettings?.rendererRenderMode === RendererRenderMode.Advanced) {
+          cellSettings.renderer = this.dynamicComponentService.createRendererWithFactory(renderer, props);
+        } else {
+          cellSettings.renderer = this.dynamicComponentService.createRendererFromComponent(renderer, props);
+        }
       });
   }
 
@@ -99,11 +105,17 @@ export class HotSettingsResolver {
       ?.filter((settings) => this.isEditorComponentRefType(settings.editor))
       ?.forEach((cellSettings) => {
         const customEditor = cellSettings.editor as Type<HotCellEditorComponent<any>>;
-        cellSettings['_editorComponentReference'] = createComponent(customEditor, {
+        const component = createComponent(customEditor, {
           environmentInjector: this.environmentInjector,
         });
-        cellSettings['_environmentInjector'] = this.environmentInjector;
-        cellSettings.editor = BaseEditorAdapter;
+
+        if (cellSettings?.editorRenderMode === EditorRendererMode.Advanced) {
+          cellSettings.editor = FactoryEditorAdapter(component);
+        } else {
+          cellSettings['_editorComponentReference'] = component;
+          cellSettings['_environmentInjector'] = this.environmentInjector;
+          cellSettings.editor = BaseEditorAdapter;
+        }
       });
   }
 
