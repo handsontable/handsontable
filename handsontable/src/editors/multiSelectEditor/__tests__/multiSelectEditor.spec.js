@@ -665,6 +665,118 @@ describe('MultiSelectEditor', () => {
       });
     });
 
+    describe('clicking on dropdown items', () => {
+      it('should toggle selection when clicking on the checkbox', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const $dropdown = $('.htMultiSelectEditor');
+        const $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
+
+        expect($checkbox.prop('checked')).toBe(false);
+        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+
+        await simulateClick($checkbox);
+        await sleep(10);
+
+        expect($checkbox.prop('checked')).toBe(true);
+        expect($dropdown.find('li.htItemSelected').length).toBe(1);
+
+        await simulateClick($checkbox);
+        await sleep(10);
+
+        expect($checkbox.prop('checked')).toBe(false);
+        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+      });
+
+      it('should toggle selection when clicking on the label', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const $dropdown = $('.htMultiSelectEditor');
+        const $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
+        const $label = $dropdown.find('label[for="htMultiSelectItem-yellow"]');
+
+        expect($checkbox.prop('checked')).toBe(false);
+        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+
+        await simulateClick($label);
+        await sleep(10);
+
+        expect($checkbox.prop('checked')).toBe(true);
+        expect($dropdown.find('li.htItemSelected').length).toBe(1);
+
+        await simulateClick($label);
+        await sleep(10);
+
+        expect($checkbox.prop('checked')).toBe(false);
+        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+      });
+
+      it('should toggle selection when clicking on the list item element', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const $dropdown = $('.htMultiSelectEditor');
+        const $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
+        const $listItem = $checkbox.closest('li');
+
+        expect($checkbox.prop('checked')).toBe(false);
+        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+
+        await simulateClick($listItem);
+        await sleep(10);
+
+        expect($checkbox.prop('checked')).toBe(true);
+        expect($dropdown.find('li.htItemSelected').length).toBe(1);
+
+        await simulateClick($listItem);
+        await sleep(10);
+
+        expect($checkbox.prop('checked')).toBe(false);
+        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+      });
+    });
+
     describe('`validateOnCommit` option', () => {
       it('should keep only values present in the source when enabled', async() => {
         handsontable({

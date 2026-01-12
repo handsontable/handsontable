@@ -602,7 +602,11 @@ export class Autofill extends BasePlugin {
         columnIndex += 1
       ) {
         const targetCellSourceData = this.hot.getSourceDataAtCell(rowIndex, columnIndex);
-        const isComplexDataFormatCell = this.hot.getCellMeta(rowIndex, columnIndex)?._complexDataFormat;
+        const cellSource = this.hot.getCellMeta(rowIndex, columnIndex).source;
+        const isComplexDataFormatCell =
+          this.hot.getCellMeta(rowIndex, columnIndex)._complexDataFormat ||
+          isObject(cellSource?.[0]) ||
+          Array.isArray(cellSource?.[0]);
         const relativeRowIndex = rowIndex - Math.min(startOfDragCoords.row, endOfDragCoords.row);
         const relativeColumnIndex = columnIndex - Math.min(startOfDragCoords.col, endOfDragCoords.col);
         const modRelativeRowIndex = relativeRowIndex % selectionSourceData.length;

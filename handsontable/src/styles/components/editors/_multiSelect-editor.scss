@@ -26,6 +26,7 @@
           background: var(--ht-background-color);
           padding: var(--ht-menu-item-vertical-padding) var(--ht-cell-horizontal-padding);
           gap: var(--ht-gap-size);
+          user-select: none;
 
           &.htItemSelected {
             background: var(--ht-menu-item-active-color);

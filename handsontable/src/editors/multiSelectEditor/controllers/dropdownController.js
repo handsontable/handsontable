@@ -387,12 +387,10 @@ export class DropdownController {
    * Removes all dropdown rows.
    */
   removeAllDropdownItems() {
-    this.#dropdownListElement.innerHTML = '';
+    Array.from(this.#dropdownListElement.children).forEach(itemElement => this.#unregisterEvents(itemElement));
 
-    this.#cache.checkboxChangeListeners.entries().forEach(([checkbox, listener]) => {
-      this.#eventManager.removeEventListener(checkbox, 'change', listener);
-      this.#cache.checkboxChangeListeners.delete(checkbox);
-    });
+    this.#cache.checkboxChangeListeners.clear();
+    this.#dropdownListElement.innerHTML = '';
   }
 
   /**
@@ -463,22 +461,35 @@ export class DropdownController {
    */
   #registerEvents(itemElement) {
     const checkbox = getCheckboxElement(itemElement);
+
     const checkboxChangeListener = () => {
       if (checkbox.checked) {
         this.selectItem(itemElement);
-
         this.runLocalHooks('dropdownItemChecked', checkbox.dataset.key, checkbox.dataset.value);
 
       } else {
         this.deselectItem(itemElement);
-
         this.runLocalHooks('dropdownItemUnchecked', checkbox.dataset.key, checkbox.dataset.value);
       }
     };
 
-    this.#cache.checkboxChangeListeners.set(checkbox, checkboxChangeListener);
+    const itemClickListener = (event) => {
+      if (
+        event.target === checkbox ||
+        checkbox.disabled ||
+        event.target.tagName === 'LABEL'
+      ) {
+        return;
+      }
+
+      checkbox.checked = !checkbox.checked;
+      checkbox.dispatchEvent(new Event('change'));
+    };
+
+    this.#cache.checkboxChangeListeners.set(checkbox, { change: checkboxChangeListener, click: itemClickListener });
 
     this.#eventManager.addEventListener(checkbox, 'change', checkboxChangeListener);
+    this.#eventManager.addEventListener(itemElement, 'click', itemClickListener);
   }
 
   /**
@@ -489,9 +500,12 @@ export class DropdownController {
   #unregisterEvents(itemElement) {
     const checkbox = getCheckboxElement(itemElement);
 
-    this.#eventManager.removeEventListener(checkbox, 'change', this.#cache.checkboxChangeListeners.get(checkbox));
+    this.#eventManager.removeEventListener(checkbox, 'change', this.#cache.checkboxChangeListeners.get(checkbox).change);
+    this.#eventManager.removeEventListener(itemElement, 'click', this.#cache.checkboxChangeListeners.get(checkbox).click);
+
     this.#cache.checkboxChangeListeners.delete(checkbox);
   }
 }
 
 mixin(DropdownController, localHooks);
+
