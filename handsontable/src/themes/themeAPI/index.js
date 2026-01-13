@@ -1,0 +1,167 @@
+import { iconsMap } from '../static/variables/helpers/iconsMap';
+import { flattenCssVariables } from './utils';
+
+/**
+ * ThemeAPI class.
+ *
+ * @class ThemeAPI
+ */
+export class ThemeAPI {
+  /**
+   * The Handsontable instance.
+   *
+   * @type {Handsontable}
+   */
+  hot;
+  /**
+   * The theme styles.
+   *
+   * @type {HTMLStyleElement}
+   */
+  themeStyles;
+  /**
+   * The theme class name.
+   *
+   * @type {string}
+   */
+  themeClassName;
+  /**
+   * The theme config.
+   *
+   * @type {object}
+   */
+  themeConfig;
+
+  /**
+   * The theme API constructor.
+   *
+   * @param {object} options - The options object.
+   * @param {Handsontable} options.hot - The Handsontable instance.
+   * @param {object} options.themeObject - The theme object.
+   */
+  constructor({ hot, themeObject }) {
+    this.hot = hot;
+
+    this.update(themeObject);
+  }
+
+  /**
+   * Injects theme styles into the DOM.
+   */
+  #injectThemeStyles() {
+    if (!this.themeConfig || !this.hot || !this.hot.rootDocument || !this.hot.rootWrapperElement) {
+      return;
+    }
+
+    const colorScheme = this.themeConfig.colorScheme === 'auto' ? 'light dark' : this.themeConfig.colorScheme;
+
+    if (this.themeStyles) {
+      this.themeStyles.textContent = '';
+    } else {
+      this.themeStyles = this.hot.rootDocument.createElement('style');
+    }
+
+    this.themeStyles.textContent = `:where(.${this.themeClassName}) {\n`;
+    this.themeStyles.textContent += `color-scheme: ${colorScheme};\n`;
+
+    if (this.themeConfig.sizing) {
+      this.themeStyles.textContent += flattenCssVariables(this.themeConfig.sizing, 'sizing');
+    }
+
+    if (
+      this.themeConfig.density &&
+      this.themeConfig.density.type &&
+      this.themeConfig.density.sizes &&
+      this.themeConfig.density.sizes[this.themeConfig.density.type]
+    ) {
+      this.themeStyles.textContent += flattenCssVariables(
+        this.themeConfig.density.sizes[this.themeConfig.density.type],
+        'density'
+      );
+    }
+
+    if (this.themeConfig.colors) {
+      this.themeStyles.textContent += flattenCssVariables(this.themeConfig.colors, 'colors');
+    }
+
+    if (this.themeConfig.tokens) {
+      this.themeStyles.textContent += flattenCssVariables(this.themeConfig.tokens);
+    }
+
+    if (this.themeConfig.icons) {
+      this.themeStyles.textContent += iconsMap(this.themeConfig.icons);
+    }
+
+    this.themeStyles.textContent += '}';
+
+    if (this.hot.rootWrapperElement && this.hot.rootWrapperElement.querySelector('style')) {
+      this.hot.rootWrapperElement.querySelector('style').textContent = this.themeStyles.textContent;
+    } else {
+      this.hot.rootWrapperElement.prepend(this.themeStyles);
+    }
+  }
+
+  /**
+   * Gets the theme class name.
+   *
+   * @returns {string} The theme class name.
+   */
+  getClassName() {
+    return this.themeClassName;
+  }
+
+  /**
+   * Updates the theme API.
+   *
+   * @param {object} themeObject - The theme object.
+   */
+  update(themeObject) {
+    if (!this.hot) {
+      return;
+    }
+
+    if (themeObject.getThemeConfig === undefined) {
+      throw new Error('[ThemeAPI] The "theme" option must be an instance of ThemeBuilder.');
+    }
+
+    this.themeConfig = themeObject.getThemeConfig();
+    this.themeClassName = `ht-theme-${this.themeConfig.name}`;
+
+    if (typeof themeObject.subscribe === 'function') {
+      themeObject.subscribe((config) => {
+        this.themeConfig = config;
+        this.#injectThemeStyles();
+        this.hot.stylesHandler.clearCache();
+        this.hot.render();
+        this.hot.runHooks('afterSetTheme', this.themeClassName, false);
+      });
+    }
+
+    this.mount();
+    this.hot.runHooks('afterSetTheme', this.themeClassName, true);
+  }
+
+  /**
+   * Mounts the theme API.
+   */
+  mount() {
+    this.#injectThemeStyles();
+  }
+
+  /**
+   * Unmounts the theme API.
+   */
+  unmount() {
+    if (this.themeStyles) {
+      this.themeStyles.remove();
+    }
+  }
+
+  /**
+   * Destroys the theme API.
+   */
+  destroy() {
+    this.unmount();
+    this.hot.themeAPI = null;
+  }
+}

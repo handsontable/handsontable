@@ -2,7 +2,6 @@ const path = require('path');
 const configFactory = require('./base');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
-const SCSSToESModulePlugin = require('./plugin/webpack/scss-to-es-module-plugin');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -37,13 +36,6 @@ module.exports.create = function create(envArgs) {
       new MiniCssExtractPlugin({
         filename: '../styles/handsontable.css',
       }),
-      // Plugin to write simple ES module file
-      // This compiles SCSS directly and writes a simple ES module without webpack wrapper
-      new SCSSToESModulePlugin({
-        scssPath: path.resolve(__dirname, '../src/styles/handsontable.scss'),
-        outputPath: path.resolve(__dirname, '../src/themes'),
-        outputFilename: 'utils/styles.js',
-      })
     );
   });
 

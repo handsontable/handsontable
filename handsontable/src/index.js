@@ -1,4 +1,4 @@
-import Handsontable, { CellCoords, CellRange, createTheme } from './base';
+import Handsontable, { CellCoords, CellRange } from './base';
 import { registerAllModules } from './registry';
 import EventManager, { getListenersCounter } from './eventManager';
 import { getRegisteredMapsCounter } from './translations';
@@ -47,6 +47,10 @@ import {
   registerPlugin,
 } from './plugins/registry';
 import { BasePlugin } from './plugins/base';
+import {
+  getTheme,
+  registerTheme,
+} from './themes/registry';
 
 registerAllModules();
 jQueryWrapper(Handsontable);
@@ -162,9 +166,15 @@ Handsontable.plugins[`${stringHelpers.toUpperCaseFirst(BasePlugin.PLUGIN_KEY)}Pl
 Handsontable.plugins.registerPlugin = registerPlugin;
 Handsontable.plugins.getPlugin = getPlugin;
 
+// Export themes namespace.
+// Themes are registered on-demand (e.g., when ThemeAPI is used or via UMD theme files).
+Handsontable.themes = Handsontable.themes ?? {};
+
+Handsontable.themes.registerTheme = registerTheme;
+Handsontable.themes.getTheme = getTheme;
+
 export {
   CellCoords,
   CellRange,
-  createTheme,
 };
 export default Handsontable;

@@ -175,7 +175,6 @@
       "dist/handsontable.min.js",
       "dist/languages",
       "dist/themes",
-      "dist/chunks",
       "dist/README.md",
       "styles",
       "languages",
@@ -204,7 +203,8 @@
       "./i18n/languages/*",
       "./dist/**/*.+(js|css)",
       "./styles/**/*.+(css)",
-      "./themes/**/*",
+      "./themes/+(index|registry)*",
+      "./themes/static/variables/**/*",
       {
         ".": {
           "types": "./index.d.ts",

@@ -4934,8 +4934,6 @@ export default () => {
     /**
      * The `themeName` option allows enabling a theme by that name.
      *
-     * If no `themeName` is provided, the table will use the classic (legacy) theme (if the correct CSS files are imported).
-     *
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
      *
@@ -4960,8 +4958,16 @@ export default () => {
      * @default undefined
      * @category Core
      * @since 17.0.0
+     *
+     * @example
+     * ```js
+     * theme: {
+     *   colors: {
+     *     primary: '#000000',
+     *   },
+     * },
+     * ```
      */
-
     theme: undefined,
 
     /**

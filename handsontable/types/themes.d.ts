@@ -1,20 +1,20 @@
 export type ThemeLightDarkValue = [string, string];
 
 export type SizingKey =
-  | 'size0'
-  | 'size0_25'
-  | 'size0_5'
-  | 'size1'
-  | 'size1_5'
-  | 'size2'
-  | 'size3'
-  | 'size4'
-  | 'size5'
-  | 'size6'
-  | 'size7'
-  | 'size8'
-  | 'size9'
-  | 'size10';
+  | 'size_0'
+  | 'size_0_25'
+  | 'size_0_5'
+  | 'size_1'
+  | 'size_1_5'
+  | 'size_2'
+  | 'size_3'
+  | 'size_4'
+  | 'size_5'
+  | 'size_6'
+  | 'size_7'
+  | 'size_8'
+  | 'size_9'
+  | 'size_10';
 
 export type ThemeSizingConfig = Partial<Record<SizingKey, string>> & Record<string, string>;
 
@@ -370,6 +370,7 @@ export type ThemeTokensConfig = Partial<Record<TokenKey, ThemeTokenValue>>;
 export type ThemeColorScheme = 'light' | 'dark' | 'auto';
 
 export interface ThemeConfig {
+  name: string;
   sizing: ThemeSizingConfig;
   density: ThemeDensityConfig;
   icons: ThemeIconsConfig;
@@ -379,6 +380,7 @@ export interface ThemeConfig {
 }
 
 export interface ThemeParams {
+  name?: string;
   sizing?: Partial<ThemeSizingConfig>;
   density?: DensityType | Partial<ThemeDensityConfig>;
   icons?: Partial<ThemeIconsConfig>;
@@ -397,65 +399,102 @@ export interface ThemeBuilder {
   getThemeConfig(): ThemeConfig;
 }
 
-export function createTheme(baseTheme?: BaseTheme): ThemeBuilder;
+// Theme config objects (raw configs, not ThemeBuilder instances)
+export const classic: BaseTheme;
+export const main: BaseTheme;
+export const horizon: BaseTheme;
 
-export const classicTheme: ThemeBuilder;
-export const mainTheme: ThemeBuilder;
-export const horizonTheme: ThemeBuilder;
+// Icon configs
 export const mainIcons: ThemeIconsConfig;
 export const horizonIcons: ThemeIconsConfig;
 
-declare module 'handsontable/themes/variables/colors/horizon' {
+// Theme registry functions
+export function hasTheme(themeName: string): boolean;
+export function getTheme(themeName: string): ThemeBuilder | undefined;
+export function getRegisteredThemeNames(): string[];
+export function getRegisteredThemes(): ThemeBuilder[];
+export function registerTheme(themeNameOrConfig: string | BaseTheme, themeConfig?: BaseTheme): ThemeBuilder;
+
+declare module 'handsontable/themes/theme/classic' {
+  const theme: BaseTheme;
+  export default theme;
+}
+
+declare module 'handsontable/themes/theme/main' {
+  const theme: BaseTheme;
+  export default theme;
+}
+
+declare module 'handsontable/themes/theme/horizon' {
+  const theme: BaseTheme;
+  export default theme;
+}
+
+declare module 'handsontable/themes/static/variables/colors/horizon' {
   const colors: ThemeColorsConfig;
   export default colors;
 }
 
-declare module 'handsontable/themes/variables/colors/classic' {
+declare module 'handsontable/themes/static/variables/colors/classic' {
   const colors: ThemeColorsConfig;
   export default colors;
 }
 
-declare module 'handsontable/themes/variables/colors/main' {
+declare module 'handsontable/themes/static/variables/colors/main' {
   const colors: ThemeColorsConfig;
   export default colors;
 }
 
-declare module 'handsontable/themes/variables/colors/ant' {
+declare module 'handsontable/themes/static/variables/colors/ant' {
   const colors: ThemeColorsConfig;
   export default colors;
 }
 
-declare module 'handsontable/themes/variables/colors/material' {
+declare module 'handsontable/themes/static/variables/colors/material' {
   const colors: ThemeColorsConfig;
   export default colors;
 }
 
-declare module 'handsontable/themes/variables/colors/shadcn' {
+declare module 'handsontable/themes/static/variables/colors/shadcn' {
   const colors: ThemeColorsConfig;
   export default colors;
 }
 
-declare module 'handsontable/themes/variables/icons/horizon' {
+declare module 'handsontable/themes/static/variables/icons/horizon' {
   const icons: ThemeIconsConfig;
   export default icons;
 }
 
-declare module 'handsontable/themes/variables/icons/main' {
+declare module 'handsontable/themes/static/variables/icons/main' {
   const icons: ThemeIconsConfig;
   export default icons;
 }
 
-declare module 'handsontable/themes/variables/tokens/horizon' {
+declare module 'handsontable/themes/static/variables/tokens/horizon' {
   const tokens: ThemeTokensConfig;
   export default tokens;
 }
 
-declare module 'handsontable/themes/variables/tokens/classic' {
+declare module 'handsontable/themes/static/variables/tokens/classic' {
   const tokens: ThemeTokensConfig;
   export default tokens;
 }
 
-declare module 'handsontable/themes/variables/tokens/main' {
+declare module 'handsontable/themes/static/variables/tokens/main' {
   const tokens: ThemeTokensConfig;
   export default tokens;
+}
+
+declare module 'handsontable/themes/static/variables/density' {
+  const density: ThemeDensitySizes;
+  export default density;
+}
+
+declare module 'handsontable/themes/static/variables/sizing' {
+  const sizing: ThemeSizingConfig;
+  export default sizing;
+}
+
+declare module 'handsontable/themes/static/variables/helpers/iconsMap' {
+  export function iconsMap(icons: ThemeIconsConfig, themePrefix?: string): string;
 }

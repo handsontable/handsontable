@@ -8,7 +8,7 @@ const configFactory = require('./base');
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
 
-  const entry = glob.sync('./src/themes/css/**/*.css').reduce((obj, el) => {
+  const entry = glob.sync('./src/themes/static/css/**/*.css').reduce((obj, el) => {
     obj[path.parse(el).name] = el;
 
     return obj;

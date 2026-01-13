@@ -18,7 +18,6 @@ module.exports.create = function create(envArgs) {
     const isFullBuild = /\.full\.js$/.test(c.output.filename);
     c.devtool = false;
     c.output.filename = c.output.filename.replace(/\.js$/, '.min.js');
-    c.output.chunkFilename = c.output.chunkFilename.replace(/\.js$/, '.min.js');
 
     c.mode = 'production';
     c.optimization = {

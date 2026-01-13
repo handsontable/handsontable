@@ -28,7 +28,14 @@ import {
   ThemeBuilder,
   ThemeParams,
   BaseTheme,
-  createTheme,
+  hasTheme,
+  getTheme,
+  getRegisteredThemeNames,
+  getRegisteredThemes,
+  registerTheme,
+  classic,
+  main,
+  horizon,
 } from './themes';
 import * as RecordTranslation from './translations';
 import {
@@ -316,7 +323,14 @@ declare namespace Handsontable {
     ThemeBuilder,
     ThemeParams,
     BaseTheme,
-    createTheme,
+    hasTheme,
+    getTheme,
+    getRegisteredThemeNames,
+    getRegisteredThemes,
+    registerTheme,
+    classic,
+    main,
+    horizon,
     // coords
     CellCoords,
     CellRange,
@@ -396,6 +410,14 @@ declare namespace Handsontable {
     export { timeValidator as TimeValidator };
     export { registerValidator };
     export { getValidator };
+  }
+
+  export namespace themes {
+    export { hasTheme };
+    export { getTheme };
+    export { getRegisteredThemeNames };
+    export { getRegisteredThemes };
+    export { registerTheme };
   }
 
   export namespace plugins {
@@ -622,6 +644,13 @@ export {
   CellCoords,
   CellRange,
   Events,
-  createTheme,
+  hasTheme,
+  getTheme,
+  getRegisteredThemeNames,
+  getRegisteredThemes,
+  registerTheme,
+  classic,
+  main,
+  horizon,
 };
 export default Handsontable;

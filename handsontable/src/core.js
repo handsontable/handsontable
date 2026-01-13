@@ -59,7 +59,8 @@ import {
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
 import { getValueSetterValue } from './utils/valueAccessors';
-import { createTheme } from './utils/themeBuilder';
+import { ThemeAPI } from './themes/themeAPI';
+import { getTheme, hasTheme, registerTheme, main } from './themes';
 
 let activeGuid = null;
 
@@ -396,9 +397,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
   this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
 
-  const stringInstanceID = randomString();
-
-  this.guid = `ht_${stringInstanceID}`; // this is the namespace for global events
+  this.guid = `ht_${randomString()}`; // this is the namespace for global events
 
   foreignHotInstances.set(this.guid, this);
 
@@ -1317,51 +1316,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   }
 
   this.init = function() {
-    const initFunction = () => {
-      dataSource.setData(tableMeta.data);
-      instance.runHooks('beforeInit');
-
-      if (isMobileBrowser() || isIpadOS()) {
-        addClass(instance.rootElement, 'mobile');
-      }
-
-      this.updateSettings(mergedUserSettings, true);
-
-      this.view = new TableView(this);
-
-      editorManager = EditorManager.getInstance(instance, tableMeta, selection);
-      viewportScroller = createViewportScroller(instance);
-
-      focusGridManager.init();
-
-      if (isRootInstance(this)) {
-        installAccessibilityAnnouncer(instance.rootPortalElement);
-        _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
-      }
-
-      instance.runHooks('init');
-
-      this.render();
-
-      // Run the logic only if it's the table's initialization and the root element is not visible.
-      if (!!firstRun && instance.rootElement.offsetParent === null) {
-        observeVisibilityChangeOnce(instance.rootElement, () => {
-          // Update the spreader size cache before rendering.
-          instance.view._wt.wtOverlays.updateLastSpreaderSize();
-          instance.view.adjustElementsSize();
-          instance.render();
-        });
-      }
-
-      if (typeof firstRun === 'object') {
-        instance.runHooks('afterChange', firstRun[0], firstRun[1]);
-
-        firstRun = false;
-      }
-
-      instance.runHooks('afterInit');
-    };
-
     const theme = tableMeta.theme;
     const themeName = tableMeta.themeName;
     const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
@@ -1371,46 +1325,75 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       !rootContainerThemeClassName &&
       (isObject(theme) || (!theme && !themeName))
     ) {
-      initializeThemeAPI(theme).then(initFunction);
-    } else {
-      initFunction();
+      initializeThemeAPI(theme);
     }
+
+    dataSource.setData(tableMeta.data);
+    instance.runHooks('beforeInit');
+
+    if (isMobileBrowser() || isIpadOS()) {
+      addClass(instance.rootElement, 'mobile');
+    }
+
+    this.updateSettings(mergedUserSettings, true);
+
+    this.view = new TableView(this);
+
+    editorManager = EditorManager.getInstance(instance, tableMeta, selection);
+    viewportScroller = createViewportScroller(instance);
+
+    focusGridManager.init();
+
+    if (isRootInstance(this)) {
+      installAccessibilityAnnouncer(instance.rootPortalElement);
+      _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
+    }
+
+    instance.runHooks('init');
+
+    this.render();
+
+    // Run the logic only if it's the table's initialization and the root element is not visible.
+    if (!!firstRun && instance.rootElement.offsetParent === null) {
+      observeVisibilityChangeOnce(instance.rootElement, () => {
+        // Update the spreader size cache before rendering.
+        instance.view._wt.wtOverlays.updateLastSpreaderSize();
+        instance.view.adjustElementsSize();
+        instance.render();
+      });
+    }
+
+    if (typeof firstRun === 'object') {
+      instance.runHooks('afterChange', firstRun[0], firstRun[1]);
+
+      firstRun = false;
+    }
+
+    instance.runHooks('afterInit');
   };
 
   /**
    * Initializes the ThemeAPI with the given theme configuration.
    *
    * @param {object|boolean} theme - The theme configuration object or `true` to use the default theme.
-   * @returns {Promise<void>}
    */
-  async function initializeThemeAPI(theme) {
-    const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './utils/themeAPI');
-
+  function initializeThemeAPI(theme) {
     let themeObject;
 
     if (typeof theme === 'undefined') {
-      const { default: mainIcons } = await import(
-        /* webpackChunkName: "mainIcons" */ './themes/variables/icons/main'
-      );
-      const { default: mainColors } = await import(
-        /* webpackChunkName: "mainColors" */ './themes/variables/colors/main'
-      );
-      const { default: mainTokens } = await import(
-        /* webpackChunkName: "mainTokens" */ './themes/variables/tokens/main'
-      );
+      if (hasTheme('main')) {
+        themeObject = getTheme('main');
+      } else {
+        themeObject = registerTheme(main);
+      }
 
-      themeObject = createTheme({
-        icons: mainIcons,
-        colors: mainColors,
-        tokens: mainTokens,
-      });
+      themeObject = getTheme('main');
     } else {
       themeObject = theme;
     }
 
     instance.themeAPI = new ThemeAPI({
-      instance,
-      stringInstanceID,
+      hot: instance,
       themeObject
     });
   }
@@ -2821,6 +2804,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
       if (themeOptionExists && typeof settings.theme === 'string') {
         themeName = settings.theme;
+
       } else if (
         themeNameOptionExists &&
         typeof settings.themeName === 'string' &&
@@ -2830,8 +2814,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         themeName = settings.themeName;
         tableMeta.theme = settings.themeName;
         tableMeta.themeName = undefined;
+
       } else if (rootContainerThemeClassName) {
         themeName = rootContainerThemeClassName;
+
       } else if (instance.themeAPI) {
         themeName = instance.themeAPI.getClassName();
       }
@@ -2859,9 +2845,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         isObject(settings.theme)
       ) {
         if (instance.themeAPI === null) {
-          initializeThemeAPI(settings.theme).then(() => {
-            instance.useTheme(instance.themeAPI.getClassName());
-          });
+          initializeThemeAPI(settings.theme);
+          instance.useTheme(instance.themeAPI.getClassName());
+
         } else {
           instance.themeAPI.update(settings.theme);
           instance.useTheme(instance.themeAPI.getClassName());
@@ -4940,9 +4926,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       uninstallAccessibilityAnnouncer();
       this.getFocusScopeManager().destroy();
 
-      if (instance.themeAPI) {
-        instance.themeAPI.destroy();
-      }
+      instance.themeAPI?.destroy();
     }
 
     this.getShortcutManager().destroy();

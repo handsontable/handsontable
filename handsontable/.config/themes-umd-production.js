@@ -1,10 +1,7 @@
 /**
  * Config responsible for building Handsontable theme UMD modules (minified):
- *  - dist/themes/mainTheme.min.js
- *  - dist/themes/horizonTheme.min.js
- *  - dist/themes/classicTheme.min.js
- *  - dist/themes/mainIcons.min.js
- *  - dist/themes/horizonIcons.min.js
+ *  - dist/themes/*.min.js (theme files)
+ *  - dist/themes/static/variables/*.min.js (variable files)
  */
 const TerserPlugin = require('terser-webpack-plugin');
 const configFactory = require('./themes-umd-development');

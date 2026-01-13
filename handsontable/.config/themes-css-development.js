@@ -14,7 +14,7 @@ module.exports.create = function create(envArgs) {
       new CopyPlugin({
         patterns: [
           {
-            from: 'src/themes/css/**/*.css',
+            from: 'src/themes/static/css/**/*.css',
             to: '../styles/[name].css',
           },
         ],

@@ -17,7 +17,13 @@ import { registerCellType } from './cellTypes/registry';
 import { TextCellType } from './cellTypes/textType';
 import { BaseEditor } from './editors/baseEditor';
 import { CellCoords, CellRange } from './3rdparty/walkontable/src';
-import { createTheme } from './utils/themeBuilder';
+import {
+  hasTheme,
+  getTheme,
+  getRegisteredThemeNames,
+  getRegisteredThemes,
+  registerTheme,
+} from './themes/registry';
 
 // register default mandatory cell type for the Base package
 registerCellType(TextCellType);
@@ -60,11 +66,16 @@ Handsontable.languages = {
   getTranslatedPhrase,
 };
 
-Handsontable.createTheme = createTheme;
+Handsontable.themes = {
+  hasTheme,
+  getTheme,
+  getRegisteredThemeNames,
+  getRegisteredThemes,
+  registerTheme,
+};
 
 export {
   CellCoords,
   CellRange,
-  createTheme,
 };
 export default Handsontable;
