@@ -262,7 +262,7 @@
   --ht-link-color: var(--ht-accent-color);
   --ht-link-hover-color: light-dark(var(--ht-colors-primary-600), var(--ht-colors-primary-100));
   --ht-input-border-width: 1px;
-  --ht-input-border-radius: var(--ht-checkbox-border-radius);
+  --ht-input-border-radius: var(--ht-sizing-size-1);
   --ht-input-horizontal-padding: var(--ht-density-input-horizontal);
   --ht-input-vertical-padding: var(--ht-density-input-vertical);
   --ht-input-border-color: var(--ht-border-color);

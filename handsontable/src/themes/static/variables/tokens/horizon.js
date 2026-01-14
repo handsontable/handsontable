@@ -211,7 +211,7 @@ export default {
   linkColor: 'themes.accentColor',
   linkHoverColor: ['colors.primary.600', 'colors.primary.100'],
   inputBorderWidth: '1px',
-  inputBorderRadius: 'themes.checkboxBorderRadius',
+  inputBorderRadius: 'sizing.size_1',
   inputHorizontalPadding: 'density.inputHorizontal',
   inputVerticalPadding: 'density.inputVertical',
   inputBorderColor: 'themes.borderColor',

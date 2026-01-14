@@ -262,7 +262,7 @@
   --ht-link-color: light-dark(var(--ht-colors-primary-600), var(--ht-colors-primary-100));
   --ht-link-hover-color: var(--ht-accent-color);
   --ht-input-border-width: 1px;
-  --ht-input-border-radius: var(--ht-checkbox-border-radius);
+  --ht-input-border-radius: var(--ht-sizing-size-1);
   --ht-input-horizontal-padding: var(--ht-density-input-horizontal);
   --ht-input-vertical-padding: var(--ht-density-input-vertical);
   --ht-input-border-color: var(--ht-border-color);
@@ -289,10 +289,10 @@
   --ht-menu-shadow-blur: var(--ht-shadow-blur);
   --ht-menu-shadow-color: var(--ht-shadow-color);
   --ht-menu-shadow-opacity: 8%;
-  --ht-menu-item-hover-color: light-dark(var(--ht-colors-palette-950), var(--ht-colors-white));
-  --ht-menu-item-hover-color-opacity: 4%;
+  --ht-menu-item-hover-color: light-dark(var(--ht-colors-palette-800), var(--ht-colors-palette-300));
+  --ht-menu-item-hover-color-opacity: 8%;
   --ht-menu-item-active-color: light-dark(var(--ht-colors-palette-800), var(--ht-colors-palette-300));
-  --ht-menu-item-active-color-opacity: 8%;
+  --ht-menu-item-active-color-opacity: 12%;
   --ht-dialog-semi-transparent-background-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));
   --ht-dialog-semi-transparent-background-opacity: 80%;
   --ht-dialog-solid-background-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));
