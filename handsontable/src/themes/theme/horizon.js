@@ -10,4 +10,4 @@ const horizonTheme = {
   tokens: horizonTokens,
 };
 
-export default horizonTheme;
+export { horizonTheme };

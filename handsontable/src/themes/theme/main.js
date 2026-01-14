@@ -10,4 +10,4 @@ const mainTheme = {
   tokens: mainTokens,
 };
 
-export default mainTheme;
+export { mainTheme };

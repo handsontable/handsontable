@@ -1,5 +1,3 @@
-import classic from './classic';
-import main from './main';
-import horizon from './horizon';
-
-export { classic, main, horizon };
+export { classicTheme } from './classic';
+export { mainTheme } from './main';
+export { horizonTheme } from './horizon';

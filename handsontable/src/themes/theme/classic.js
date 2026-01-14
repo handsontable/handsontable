@@ -10,4 +10,4 @@ const classicTheme = {
   tokens: classicTokens,
 };
 
-export default classicTheme;
+export { classicTheme };
