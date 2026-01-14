@@ -59,7 +59,7 @@ import {
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
 import { getValueSetterValue } from './utils/valueAccessors';
-import { ThemeAPI } from './themes/themeAPI';
+import { createThemeManager } from './themes/engine';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 
 let activeGuid = null;
@@ -370,12 +370,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   });
 
   /**
-   * ThemeAPI instance.
+   * ThemeManager instance.
    *
    * @private
-   * @type {ThemeAPI|null}
+   * @type {ThemeManager|null}
    */
-  this.themeAPI = null;
+  this.themeManager = null;
 
   mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language);
 
@@ -1325,7 +1325,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       !rootContainerThemeClassName &&
       (isObject(theme) || (!theme && !themeName))
     ) {
-      initializeThemeAPI(theme);
+      initializeThemeManager(theme);
     }
 
     dataSource.setData(tableMeta.data);
@@ -1373,11 +1373,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
-   * Initializes the ThemeAPI with the given theme configuration.
+   * Initializes the ThemeManager with the given theme configuration.
    *
    * @param {object|boolean} theme - The theme configuration object or `true` to use the default theme.
    */
-  function initializeThemeAPI(theme) {
+  function initializeThemeManager(theme) {
     let themeObject;
 
     if (typeof theme === 'undefined') {
@@ -1392,7 +1392,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       themeObject = theme;
     }
 
-    instance.themeAPI = new ThemeAPI({
+    instance.themeManager = createThemeManager({
       hot: instance,
       themeObject
     });
@@ -2818,8 +2818,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       } else if (rootContainerThemeClassName) {
         themeName = rootContainerThemeClassName;
 
-      } else if (instance.themeAPI) {
-        themeName = instance.themeAPI.getClassName();
+      } else if (instance.themeManager) {
+        themeName = instance.themeManager.getClassName();
       }
 
       instance.useTheme(themeName);
@@ -2829,28 +2829,28 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       // Use `theme` option if it's a string and differs from current theme (takes priority over `themeName`).
       if (themeOptionExists && typeof settings.theme === 'string' && currentThemeName !== settings.theme) {
         instance.useTheme(settings.theme);
-        instance.themeAPI?.unmount();
+        instance.themeManager?.unmount();
 
       // Use `themeName` option if `theme` is not provided and the name differs from current theme.
       } else if (themeNameOptionExists && !themeOptionExists && currentThemeName !== settings.themeName) {
         tableMeta.theme = settings.themeName;
         tableMeta.themeName = undefined;
         instance.useTheme(settings.themeName);
-        instance.themeAPI?.unmount();
+        instance.themeManager?.unmount();
 
-      // Initialize or update the themeAPI when theme is an object.
+      // Initialize or update the themeManager when theme is an object.
       } else if (
         isRootInstance(instance) &&
         !rootContainerThemeClassName &&
         isObject(settings.theme)
       ) {
-        if (instance.themeAPI === null) {
-          initializeThemeAPI(settings.theme);
-          instance.useTheme(instance.themeAPI.getClassName());
+        if (instance.themeManager === null) {
+          initializeThemeManager(settings.theme);
+          instance.useTheme(instance.themeManager.getClassName());
 
         } else {
-          instance.themeAPI.update(settings.theme);
-          instance.useTheme(instance.themeAPI.getClassName());
+          instance.themeManager.update(settings.theme);
+          instance.useTheme(instance.themeManager.getClassName());
         }
       }
     }
@@ -4926,7 +4926,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       uninstallAccessibilityAnnouncer();
       this.getFocusScopeManager().destroy();
 
-      instance.themeAPI?.destroy();
+      instance.themeManager?.destroy();
     }
 
     this.getShortcutManager().destroy();

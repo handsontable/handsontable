@@ -1,12 +1,12 @@
 import { iconsMap } from '../static/variables/helpers/iconsMap';
-import { flattenCssVariables } from './utils';
+import { flattenCssVariables } from './utils/cssVariables';
 
 /**
- * ThemeAPI class.
+ * ThemeManager class.
  *
- * @class ThemeAPI
+ * @class ThemeManager
  */
-export class ThemeAPI {
+export class ThemeManager {
   /**
    * The Handsontable instance.
    *
@@ -164,4 +164,16 @@ export class ThemeAPI {
     this.unmount();
     this.hot.themeAPI = null;
   }
+}
+
+/**
+ * Creates a new ThemeManager instance.
+ *
+ * @param {object} options - The options object.
+ * @param {Handsontable} options.hot - The Handsontable instance.
+ * @param {object} options.themeObject - The theme object.
+ * @returns {ThemeManager} The ThemeManager instance.
+ */
+export function createThemeManager({ hot, themeObject }) {
+  return new ThemeManager({ hot, themeObject });
 }

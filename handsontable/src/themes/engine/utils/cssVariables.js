@@ -1,5 +1,5 @@
-import { isObject } from '../../helpers/object';
-import { toHyphen } from '../../helpers/string';
+import { isObject } from '../../../helpers/object';
+import { toHyphen } from '../../../helpers/string';
 
 /**
  * List of prefixes that indicate a value should be converted to a CSS variable reference.
@@ -14,7 +14,7 @@ const VAR_REFERENCE_PREFIXES = ['themes.', 'colors.', 'sizing.', 'density.'];
  * @param {string} value - The value to check.
  * @returns {boolean} - True if the value is a variable reference.
  */
-export function isVarReference(value) {
+function isVarReference(value) {
   return typeof value === 'string' && VAR_REFERENCE_PREFIXES.some(prefix => value.includes(prefix));
 }
 
@@ -40,7 +40,7 @@ function toVarReference(path) {
  * @param {string} key - The key to convert.
  * @returns {string} - The CSS variable key.
  */
-export function toCssKey(prefix, key) {
+function toCssKey(prefix, key) {
   return `--ht-${prefix ? `${prefix}-` : ''}${toHyphen(key)}`;
 }
 
@@ -51,7 +51,7 @@ export function toCssKey(prefix, key) {
  * @param {string|object} value - The value to convert.
  * @returns {string} - The CSS value.
  */
-export function toCssValue(value) {
+function toCssValue(value) {
   if (isVarReference(value)) {
     return toVarReference(value);
   }
@@ -89,7 +89,7 @@ export function toCssValue(value) {
  * @param {string} value - The value to convert.
  * @returns {string} - The CSS variable line.
  */
-export function toCssLine(prefix, key, value) {
+function toCssLine(prefix, key, value) {
   return `${toCssKey(prefix, key)}: ${toCssValue(value)};`;
 }
 

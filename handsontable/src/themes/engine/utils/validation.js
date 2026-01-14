@@ -1,5 +1,5 @@
-import { isObject } from '../../helpers/object';
-import { warn } from '../../helpers/console';
+import { isObject } from '../../../helpers/object';
+import { warn } from '../../../helpers/console';
 
 /**
  * Valid parameters keys.

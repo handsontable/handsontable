@@ -1,7 +1,7 @@
+import { isObject, deepClone, deepMerge } from '../../helpers/object';
 import sizing from '../static/variables/sizing';
 import densitySizes from '../static/variables/density';
-import { validateParams, validateDensityType, validateColorScheme } from './utils';
-import { isObject, deepClone, deepMerge } from '../../helpers/object';
+import { validateParams, validateDensityType, validateColorScheme } from './utils/validation';
 
 /**
  * Config keys that support deep merging when updating theme params.

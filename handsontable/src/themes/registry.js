@@ -1,7 +1,7 @@
 import { deepClone, isObject } from '../helpers/object';
 import { warn } from '../helpers/console';
 import { staticRegister } from '../utils/staticRegister';
-import { createTheme } from './themeBuilder';
+import { createTheme } from './engine';
 
 const {
   hasItem,
