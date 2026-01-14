@@ -1,4 +1,4 @@
-describe('Core_updateData', () => {
+describe('Core.updateData', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -69,14 +69,6 @@ describe('Core_updateData', () => {
     ['<b>H&M</b>']
   ];
 
-  it('should allow array of arrays', async() => {
-    handsontable();
-
-    await updateData(arrayOfArrays());
-
-    expect(getDataAtCell(0, 2)).toEqual('Nissan');
-  });
-
   it('should load data properly when it is defined as an array of objects #4204', async() => {
     handsontable({});
 
@@ -96,6 +88,14 @@ describe('Core_updateData', () => {
     ]);
   });
 
+  it('should allow array of arrays', async() => {
+    handsontable();
+
+    await updateData(arrayOfArrays());
+
+    expect(getDataAtCell(0, 2)).toEqual('Nissan');
+  });
+
   it('should allow array of objects', async() => {
     handsontable({
       columns: [
@@ -104,6 +104,7 @@ describe('Core_updateData', () => {
         { data: 'name' }
       ]
     });
+
     await updateData(arrayOfObjects());
 
     expect(getDataAtCell(0, 2)).toEqual('Ted');
@@ -186,10 +187,11 @@ describe('Core_updateData', () => {
     });
 
     await updateData(arrayOfNestedObjects());
+
     expect(getDataAtCell(0, 2)).toEqual('Right');
   });
 
-  it('should trigger onChange callback when loaded array of arrays', async() => {
+  it('should trigger afterChange callback when loaded array of arrays', async() => {
     let called = false;
 
     handsontable({
@@ -205,7 +207,7 @@ describe('Core_updateData', () => {
     expect(called).toEqual(true);
   });
 
-  it('should trigger onChange callback when loaded array of objects', async() => {
+  it('should trigger afterChange callback when loaded array of objects', async() => {
     let called = false;
 
     handsontable({
@@ -221,7 +223,7 @@ describe('Core_updateData', () => {
     expect(called).toEqual(true);
   });
 
-  it('should trigger onChange callback when loaded array of nested objects', async() => {
+  it('should trigger afterChange callback when loaded array of nested objects', async() => {
     let called = false;
 
     handsontable({
@@ -243,6 +245,7 @@ describe('Core_updateData', () => {
     });
 
     await updateData(arrayOfArrays());
+
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
   });
 
@@ -252,6 +255,7 @@ describe('Core_updateData', () => {
     });
 
     await updateData(arrayOfNestedObjects());
+
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
   });
 
@@ -269,6 +273,7 @@ describe('Core_updateData', () => {
     });
 
     await updateData(arrayOfObjects());
+
     expect(getCell(9, 1).innerHTML).toEqual('Eve');
   });
 
@@ -335,9 +340,7 @@ describe('Core_updateData', () => {
     });
 
     await updateData(data1);
-
     await selectCell(7, 0);
-
     await updateData(data2);
 
     expect(countRows()).toBe(data2.length);
@@ -371,9 +374,7 @@ describe('Core_updateData', () => {
     });
 
     await updateData(data1);
-
     await selectCell(8, 0);
-
     await updateData(data2);
 
     expect(countRows()).toBe(6); // +1 because of minSpareRows
@@ -400,9 +401,7 @@ describe('Core_updateData', () => {
     });
 
     await updateData(data1);
-
     await selectCell(7, 0);
-
     await updateData(data2);
 
     expect(countRows()).toBe(0);
@@ -602,8 +601,9 @@ describe('Core_updateData', () => {
     expect(countRows()).toBe(3);
   });
 
-  it('should NOT clear cell properties after updateData', async() => {
+  it('should not clear cell properties after updateData', async() => {
     handsontable();
+
     await updateData(arrayOfArrays());
 
     getCellMeta(0, 0).foo = 'bar';
@@ -613,6 +613,22 @@ describe('Core_updateData', () => {
     await updateData(arrayOfArrays());
 
     expect(getCellMeta(0, 0).foo).toEqual('bar');
+  });
+
+  it('should not clear cell properties after updateData, but before rendering new data', async() => {
+    handsontable();
+
+    await updateData(arrayOfArrays());
+
+    getCellMeta(0, 0).valid = false;
+
+    await render();
+
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+
+    await updateData(arrayOfArrays());
+
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
   });
 
   it('should not reinitialize index mappers after calling updateData', async() => {
@@ -658,15 +674,20 @@ describe('Core_updateData', () => {
     });
 
     await updateData(objectData);
-
     await mouseDoubleClick(getCell(1, 1));
+
     document.activeElement.value = 'Harry';
+
     await deselectCell();
+
     expect(objectData[1].user.name.first).toEqual('Harry');
 
     await mouseDoubleClick(getCell(2, 1));
+
     document.activeElement.value = 'Barry';
+
     await deselectCell();
+
     expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
@@ -697,19 +718,24 @@ describe('Core_updateData', () => {
     });
 
     await updateData(objectData);
-
     await mouseDoubleClick(getCell(1, 1));
+
     document.activeElement.value = 'Harry';
+
     await deselectCell();
+
     expect(objectData[1].user.name.first).toEqual('Harry');
 
     await mouseDoubleClick(getCell(2, 1));
+
     document.activeElement.value = 'Barry';
+
     await deselectCell();
+
     expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
-  it('should create new data schema after loading data', async() => {
+  it('should create new data schema after updating data', async() => {
     handsontable({
     });
 
@@ -718,6 +744,28 @@ describe('Core_updateData', () => {
 
     expect(getSourceData()).toEqual(arrayOfArrays());
     expect(getData()).toEqual(arrayOfArrays());
+  });
+
+  it('should pass the `source` argument to the `beforeUpdateData` and `afterUpdateData` hooks', async() => {
+    let correctSourceCount = 0;
+
+    handsontable({
+      data: arrayOfObjects(),
+      beforeUpdateData: (data, firstRun, source) => {
+        if (source === 'testSource') {
+          correctSourceCount += 1;
+        }
+      },
+      afterUpdateData: (data, firstRun, source) => {
+        if (source === 'testSource') {
+          correctSourceCount += 1;
+        }
+      }
+    });
+
+    await updateData(arrayOfArrays(), 'testSource');
+
+    expect(correctSourceCount).toEqual(2);
   });
 
   it('should pass the `source` argument to the `beforeUpdateData` and `afterUpdateData` hooks', async() => {
@@ -737,9 +785,52 @@ describe('Core_updateData', () => {
     });
 
     await updateData(arrayOfObjects());
-
     await updateData(arrayOfArrays(), 'testSource');
 
     expect(correctSourceCount).toEqual(2);
+  });
+
+  it('should adjust the container size after loading new data (loading more columns)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+    });
+
+    await updateData(createSpreadsheetData(5, 7));
+
+    expect(tableView().getTotalTableWidth()).toBe(getDefaultColumnWidth() * 7);
+    expect(tableView().getTotalTableHeight()).toBe((getDefaultRowHeight() * 5) + 1);
+  });
+
+  it('should adjust the container size after loading new data (loading more rows)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+    });
+
+    await updateData(createSpreadsheetData(7, 5));
+
+    expect(tableView().getTotalTableWidth()).toBe(getDefaultColumnWidth() * 5);
+    expect(tableView().getTotalTableHeight()).toBe((getDefaultRowHeight() * 7) + 1);
+  });
+
+  it('should not scroll the viewport to the focused cell after updating new data', async() => {
+    handsontable({
+      data: createSpreadsheetData(20, 20),
+      width: 200,
+      height: 200,
+    });
+
+    await selectCell(0, 0);
+    await scrollViewportTo({
+      row: 19,
+      col: 19,
+    });
+
+    const inlineStartPosition = inlineStartOverlay().getScrollPosition();
+    const topPosition = topOverlay().getScrollPosition();
+
+    await updateData(createSpreadsheetData(20, 20));
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(inlineStartPosition);
+    expect(topOverlay().getScrollPosition()).toBe(topPosition);
   });
 });

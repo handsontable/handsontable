@@ -1315,8 +1315,11 @@ class Selection {
     }
 
     const ranges = this.selectedRange.ranges.map(range => range.clone());
+    const selectionSource = this.getSelectionSource();
 
-    this.markSource('refresh');
+    if (selectionSource === 'unknown') {
+      this.markSource('refresh');
+    }
 
     const selectedByRowHeader = new Set(this.selectedByRowHeader);
     const selectedByColumnHeader = new Set(this.selectedByColumnHeader);
