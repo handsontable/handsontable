@@ -415,21 +415,6 @@ export function getRegisteredThemeNames(): string[];
 export function getRegisteredThemes(): ThemeBuilder[];
 export function registerTheme(themeNameOrConfig: string | BaseTheme, themeConfig?: BaseTheme): ThemeBuilder;
 
-declare module 'handsontable/themes/theme/classic' {
-  const theme: BaseTheme;
-  export default theme;
-}
-
-declare module 'handsontable/themes/theme/main' {
-  const theme: BaseTheme;
-  export default theme;
-}
-
-declare module 'handsontable/themes/theme/horizon' {
-  const theme: BaseTheme;
-  export default theme;
-}
-
 declare module 'handsontable/themes/static/variables/colors/horizon' {
   const colors: ThemeColorsConfig;
   export default colors;
