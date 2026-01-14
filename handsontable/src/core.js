@@ -60,7 +60,7 @@ import {
 } from './utils/a11yAnnouncer';
 import { getValueSetterValue } from './utils/valueAccessors';
 import { ThemeAPI } from './themes/themeAPI';
-import { getTheme, hasTheme, registerTheme, main } from './themes';
+import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 
 let activeGuid = null;
 
@@ -1384,7 +1384,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       if (hasTheme('main')) {
         themeObject = getTheme('main');
       } else {
-        themeObject = registerTheme(main);
+        themeObject = registerTheme(mainTheme);
       }
 
       themeObject = getTheme('main');
