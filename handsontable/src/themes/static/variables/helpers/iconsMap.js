@@ -1,4 +1,9 @@
 /* eslint-disable max-len, quotes */
+
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
 const icon = (icons, name) => {
   return `width: var(--ht-icon-size);
   height: var(--ht-icon-size);

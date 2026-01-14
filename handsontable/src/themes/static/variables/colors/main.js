@@ -1,3 +1,7 @@
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
 export default {
   white: '#ffffffff',
   black: '#000000ff',

@@ -1,3 +1,7 @@
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
 export default {
   primary: {
     100: '#7aadffff',

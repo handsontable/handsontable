@@ -1,4 +1,9 @@
 /* eslint-disable max-len, quotes */
+
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
 export default {
   arrowRight: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.64648 10.9393L9.93938 7.64644L6.64648 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
   arrowRightWithBar: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.9292 4.64188L8.27934 7.99203L4.9292 11.3422M11.0711 4.08353V11.3422' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",

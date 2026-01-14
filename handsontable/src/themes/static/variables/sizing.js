@@ -1,3 +1,7 @@
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
 export default {
   size_0: '0px',
   size_0_5: '2px',
