@@ -24,7 +24,7 @@ describe('HotGlobalConfigService', () => {
   it('should return default configuration', () => {
     const config = service.getConfig();
     expect(config.license).toBeUndefined();
-    expect(config.themeName).toEqual('');
+    expect(config.themeName).toBeUndefined();
   });
 
   it('should update license when provided', () => {
@@ -67,7 +67,7 @@ describe('HotGlobalConfigService', () => {
     service.setConfig({ license: 'updated-license' });
     const config = service.getConfig();
     expect(config.license).toEqual('updated-license');
-    expect(config.themeName).toEqual('');
+    expect(config.themeName).toBeUndefined();
   });
 
   it('should emit configuration changes via config$', (done) => {
@@ -119,7 +119,7 @@ describe('HotGlobalConfigService', () => {
 
     currentConfig = service.getConfig();
     expect(currentConfig.license).toBeUndefined();
-    expect(currentConfig.themeName).toEqual('');
+    expect(currentConfig.themeName).toBeUndefined();
   });
 
   it('should override configuration for this test only', () => {

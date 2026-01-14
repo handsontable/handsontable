@@ -79,7 +79,6 @@ export class HotGlobalConfigService {
    */
   private defaultConfig: HotGlobalConfig = {
     license: undefined,
-    themeName: ''
   };
 
   /**

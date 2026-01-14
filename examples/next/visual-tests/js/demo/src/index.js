@@ -65,9 +65,12 @@ function loadThemeCSS() {
     baseLink.href = `/assets/handsontable/styles/handsontable.css`;
     themeLink.href = `/assets/handsontable/styles/ht-theme-horizon.css`;
 
-  } else {
+  } else if (theme === 'classic' || theme === 'classic-dark') {
     baseLink.href = `/assets/handsontable/styles/handsontable.css`;
     themeLink.href = `/assets/handsontable/styles/ht-theme-classic.css`;
+
+  } else {
+    baseLink.href = `/assets/handsontable/styles/handsontable.css`;
   }
 
   const baseLinkPromise = new Promise((resolve, reject) => {

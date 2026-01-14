@@ -1,5 +1,6 @@
 import React from 'react';
 import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
 import { HotTable } from '@handsontable/react';
 
 function getDebugInfo() {
@@ -26,7 +27,7 @@ function App() {
       <HotTable
         data={data}
         width="100%"
-        height="100%"
+        height="auto"
         colHeaders={true}
         rowHeaders={true}
         licenseKey="non-commercial-and-evaluation"

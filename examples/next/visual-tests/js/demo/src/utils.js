@@ -12,9 +12,7 @@ export function getDirectionFromURL() {
 export function getThemeNameFromURL() {
   const theme = getFromURL("theme");
 
-  // Return 'ht-theme-classic' as default to ensure external CSS is used
-  // instead of the inline ThemeAPI (which activates when themeName is undefined)
-  return theme ? `ht-theme-${theme}` : 'ht-theme-classic';
+  return theme ? `ht-theme-${theme}` : undefined;
 }
 
 export function generateExampleData() {
