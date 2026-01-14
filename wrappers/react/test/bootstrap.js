@@ -17,8 +17,29 @@ beforeAll(() => {
     if (typeof message === 'string' && message.includes('Deprecated:') && message.includes('stylesheet')) {
       return; // Suppress this specific warning
     }
+    // Suppress theme stylesheet missing warning (jsdom doesn't support modern CSS features)
+    if (typeof message === 'string' && message.includes('theme is enabled') && message.includes('stylesheets are missing')) {
+      return;
+    }
 
     originalWarn(message);
+  };
+
+  // Suppress jsdom CSS parsing errors for modern CSS features (like light-dark())
+  const originalError = console.error;
+
+  console.error = (...args) => {
+    const message = args[0];
+
+    // Handle both Error objects and strings
+    if (message instanceof Error && message.message === 'Could not parse CSS stylesheet') {
+      return; // Suppress jsdom CSS parsing errors
+    }
+    if (typeof message === 'string' && message.includes('Could not parse CSS stylesheet')) {
+      return; // Suppress jsdom CSS parsing errors (string format)
+    }
+
+    originalError(...args);
   };
 });
 
