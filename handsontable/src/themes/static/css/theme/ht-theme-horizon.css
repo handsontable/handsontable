@@ -61,14 +61,14 @@
   --ht-table-transition: 0.2s;
   --ht-border-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-800));
   --ht-accent-color: light-dark(var(--ht-colors-primary-500), var(--ht-colors-primary-200));
-  --ht-foreground-color: light-dark(var(--ht-colors-palette-600), var(--ht-colors-palette-300));
-  --ht-foreground-secondary-color: light-dark(var(--ht-colors-palette-700), var(--ht-colors-palette-400));
+  --ht-foreground-color: light-dark(var(--ht-colors-palette-700), var(--ht-colors-palette-200));
+  --ht-foreground-secondary-color: light-dark(var(--ht-colors-palette-500), var(--ht-colors-palette-400));
   --ht-background-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));
   --ht-background-secondary-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
   --ht-placeholder-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
-  --ht-read-only-color: light-dark(var(--ht-colors-palette-600), var(--ht-colors-palette-300));
+  --ht-read-only-color: light-dark(var(--ht-colors-palette-700), var(--ht-colors-palette-200));
   --ht-disabled-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
-  --ht-shadow-color: light-dark(var(--ht-colors-palette-600), var(--ht-colors-palette-300));
+  --ht-shadow-color: light-dark(var(--ht-colors-palette-700), var(--ht-colors-palette-200));
   --ht-shadow-x: var(--ht-sizing-size-0);
   --ht-shadow-y: var(--ht-sizing-size-2);
   --ht-shadow-blur: var(--ht-sizing-size-4);
@@ -202,7 +202,7 @@
   --ht-collapse-button-border-radius: var(--ht-sizing-size-4);
   --ht-collapse-button-open-border-color: var(--ht-colors-transparent);
   --ht-collapse-button-open-background-color: var(--ht-colors-transparent);
-  --ht-collapse-button-open-icon-color: light-dark(var(--ht-colors-palette-700), var(--ht-colors-palette-400));
+  --ht-collapse-button-open-icon-color: light-dark(var(--ht-colors-palette-500), var(--ht-colors-palette-400));
   --ht-collapse-button-open-icon-active-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
   --ht-collapse-button-open-hover-border-color: var(--ht-colors-transparent);
   --ht-collapse-button-open-hover-background-color: var(--ht-colors-transparent);
@@ -210,7 +210,7 @@
   --ht-collapse-button-open-hover-icon-active-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));
   --ht-collapse-button-close-border-color: var(--ht-colors-transparent);
   --ht-collapse-button-close-background-color: var(--ht-colors-transparent);
-  --ht-collapse-button-close-icon-color: light-dark(var(--ht-colors-palette-700), var(--ht-colors-palette-400));
+  --ht-collapse-button-close-icon-color: light-dark(var(--ht-colors-palette-500), var(--ht-colors-palette-400));
   --ht-collapse-button-close-icon-active-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
   --ht-collapse-button-close-hover-border-color: var(--ht-colors-transparent);
   --ht-collapse-button-close-hover-background-color: var(--ht-colors-transparent);

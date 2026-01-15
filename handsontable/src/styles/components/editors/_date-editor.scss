@@ -108,7 +108,7 @@
         &.is-selected {
           .pika-button {
             background: var(--ht-accent-color, #1a42e8);
-            color: var(--ht-background-color, #ffffff);
+            color: var(--ht-primary-button-foreground-color, #ffffff);
           }
         }
 

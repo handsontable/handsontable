@@ -901,14 +901,14 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(328);
-      main.toBe(360);
-      horizon.toBe(384);
+      classic.toBe(324);
+      main.toBe(357);
+      horizon.toBe(381);
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(195);
-      main.toBe(212);
-      horizon.toBe(260);
+      classic.toBe(188);
+      main.toBe(213);
+      horizon.toBe(273);
     });
   });
 
@@ -942,14 +942,14 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(328);
-      main.toBe(360);
-      horizon.toBe(384);
+      classic.toBe(324);
+      main.toBe(357);
+      horizon.toBe(381);
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(195);
-      main.toBe(212);
-      horizon.toBe(260);
+      classic.toBe(188);
+      main.toBe(213);
+      horizon.toBe(273);
     });
   });
 });

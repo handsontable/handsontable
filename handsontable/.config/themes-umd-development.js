@@ -20,7 +20,7 @@ licenseBody += '\nRelease date: ' + process.env.HOT_RELEASE_DATE + ' (built at '
 
 /**
  * Rule for injecting Handsontable import and theme registration into theme files.
- * Theme files export plain config objects with `export default`.
+ * Theme files export plain config objects with named exports `export { themeName }`.
  * This rule:
  * 1. Adds Handsontable import at the top
  * 2. Registers the theme before export using Handsontable.themes.registerTheme
@@ -40,11 +40,9 @@ const ruleForThemeRegistration = {
       },
       {
         // Register theme before the export statement
-        // Matches: export default someTheme;
-        search: /(export default \w+;)/,
-        replace(match, exportStatement) {
-          // Extract theme name from "export default themeName;"
-          const themeName = exportStatement.match(/export default (\w+);/)[1];
+        // Matches: export { someTheme };
+        search: /(export \{ (\w+) \};)/,
+        replace(match, exportStatement, themeName) {
           const snippet = `Handsontable.themes.registerTheme(${themeName});`;
 
           return `${snippet}${NEW_LINE_CHAR}${NEW_LINE_CHAR}${exportStatement}`;
@@ -76,10 +74,17 @@ function getThemeEntryFiles() {
     // Skip index.js - only process individual theme files
     if (jsExtensionRegExp.test(fileName) && fileName !== 'index.js') {
       const fileNameWithoutExtension = fileName.replace(jsExtensionRegExp, '');
+      const filePath = path.resolve(themesDir, fileName);
+      const fileContent = fs.readFileSync(filePath, 'utf8');
+
+      // Extract the named export from the file (e.g., "export { classicTheme };" -> "classicTheme")
+      const namedExportMatch = fileContent.match(/export \{ (\w+) \};/);
+      const exportName = namedExportMatch ? namedExportMatch[1] : `${fileNameWithoutExtension}Theme`;
 
       entryObject[fileNameWithoutExtension] = {
-        entryPath: path.resolve(themesDir, fileName),
-        libraryName: `${fileNameWithoutExtension}Theme`,
+        entryPath: filePath,
+        libraryName: exportName,
+        exportName,
         isThemeFile: true,
       };
     }
@@ -134,9 +139,10 @@ function getVariablesEntryFiles() {
  * @param {string} libraryName The UMD library name.
  * @param {object} envArgs Environment arguments.
  * @param {boolean} isThemeFile Whether this is a theme file that needs auto-registration.
+ * @param {string} exportName The export name to use (named export for themes, 'default' for variables).
  * @returns {object} Webpack configuration object.
  */
-function createConfig(entryName, entryPath, libraryName, envArgs, isThemeFile = false) {
+function createConfig(entryName, entryPath, libraryName, envArgs, isThemeFile = false, exportName = 'default') {
   const config = {
     mode: 'none',
     entry: { [entryName]: entryPath },
@@ -145,7 +151,7 @@ function createConfig(entryName, entryPath, libraryName, envArgs, isThemeFile = 
       globalObject: `typeof self !== 'undefined' ? self : this`,
       library: {
         type: 'umd',
-        export: 'default',
+        export: exportName,
         name: libraryName,
       },
       path: path.resolve(__dirname, '../dist'),
@@ -191,6 +197,8 @@ module.exports.create = function create(envArgs) {
   const allEntries = { ...themeEntries, ...variablesEntries };
 
   return Object.entries(allEntries).map(([entryName, config]) => {
-    return createConfig(entryName, config.entryPath, config.libraryName, envArgs, config.isThemeFile);
+    const exportName = config.exportName || 'default';
+
+    return createConfig(entryName, config.entryPath, config.libraryName, envArgs, config.isThemeFile, exportName);
   });
 };

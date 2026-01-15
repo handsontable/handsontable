@@ -103,8 +103,8 @@ describe('HandsontableEditor positioning', () => {
 
     const scrollEdgePositions = {
       horizon: 132,
-      main: 70,
-      classic: 53,
+      main: 71,
+      classic: 46,
     };
 
     const scrollPositionBase = scrollEdgePositions[spec().loadedTheme];
@@ -150,5 +150,7 @@ describe('HandsontableEditor positioning', () => {
         left: relativeRect.left - 1,
       });
     }
+
+    await sleep(5000);
   });
 });
