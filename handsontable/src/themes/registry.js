@@ -42,7 +42,7 @@ export function getTheme(themeName) {
  *
  * @returns {string[]}
  */
-export function getRegisteredThemeNames() {
+export function getThemeNames() {
   return getNames();
 }
 
@@ -51,7 +51,7 @@ export function getRegisteredThemeNames() {
  *
  * @returns {object[]}
  */
-export function getRegisteredThemes() {
+export function getThemes() {
   return getValues();
 }
 

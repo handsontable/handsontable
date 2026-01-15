@@ -48,7 +48,10 @@ import {
 } from './plugins/registry';
 import { BasePlugin } from './plugins/base';
 import {
+  hasTheme,
   getTheme,
+  getThemeNames,
+  getThemes,
   registerTheme,
 } from './themes/registry';
 
@@ -167,11 +170,13 @@ Handsontable.plugins.registerPlugin = registerPlugin;
 Handsontable.plugins.getPlugin = getPlugin;
 
 // Export themes namespace.
-// Themes are registered on-demand (e.g., when ThemeAPI is used or via UMD theme files).
 Handsontable.themes = Handsontable.themes ?? {};
 
-Handsontable.themes.registerTheme = registerTheme;
+Handsontable.themes.hasTheme = hasTheme;
 Handsontable.themes.getTheme = getTheme;
+Handsontable.themes.getThemeNames = getThemeNames;
+Handsontable.themes.getThemes = getThemes;
+Handsontable.themes.registerTheme = registerTheme;
 
 export {
   CellCoords,

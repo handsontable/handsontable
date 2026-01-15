@@ -20,8 +20,8 @@ import { CellCoords, CellRange } from './3rdparty/walkontable/src';
 import {
   hasTheme,
   getTheme,
-  getRegisteredThemeNames,
-  getRegisteredThemes,
+  getThemeNames,
+  getThemes,
   registerTheme,
 } from './themes/registry';
 
@@ -69,8 +69,8 @@ Handsontable.languages = {
 Handsontable.themes = {
   hasTheme,
   getTheme,
-  getRegisteredThemeNames,
-  getRegisteredThemes,
+  getThemeNames,
+  getThemes,
   registerTheme,
 };
 
