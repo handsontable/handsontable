@@ -7,8 +7,8 @@ import { HotCellRendererComponent } from '../renderer/hot-cell-renderer.componen
 import { HotCellEditorComponent } from '../editor/hot-cell-editor.component';
 import Handsontable from 'handsontable/base';
 import { FactoryEditorAdapter } from '../editor/editor-factory-adapter';
-import { RendererRenderMode } from '../renderer/renderer-render-mode.enum';
-import { EditorRendererMode } from '../editor/models/editor-renderer-mode.enum';
+import { HotCellRendererAdvancedComponent } from '../renderer/hot-cell-renderer-advanced.component';
+import { HotCellEditorAdvancedComponent } from '../editor/hot-cell-editor-advanced.component';
 
 const AVAILABLE_OPTIONS: string[] = Object.keys(Handsontable.DefaultSettings);
 const AVAILABLE_HOOKS: string[] = Handsontable.hooks.getRegistered();
@@ -77,16 +77,14 @@ export class HotSettingsResolver {
     }
 
     (mergedSettings?.columns as ColumnSettings[])
-      ?.filter((settings) => this.isRendererComponentRefType(settings.renderer) || this.isTemplateRef(settings.renderer))
+      ?.filter((settings) => this.isCustomRenderer(settings.renderer))
       ?.forEach((cellSettings) => {
-        const renderer = this.isTemplateRef(cellSettings.renderer)
-          ? (cellSettings.renderer as TemplateRef<any>)
-          : (cellSettings.renderer as Type<HotCellRendererComponent<any, any>>);
+        const renderer = cellSettings.renderer;
         const props: any = cellSettings.rendererProps ?? {};
 
-        if (cellSettings?.rendererRenderMode === RendererRenderMode.Advanced) {
+        if (this.isAdvancedRendererComponentRefType(renderer)) {
           cellSettings.renderer = this.dynamicComponentService.createRendererWithFactory(renderer, props);
-        } else {
+        } else if (this.isRendererComponentRefType(renderer) || this.isTemplateRef(renderer)) {
           cellSettings.renderer = this.dynamicComponentService.createRendererFromComponent(renderer, props);
         }
       });
@@ -102,16 +100,17 @@ export class HotSettingsResolver {
     }
 
     (mergedSettings?.columns as ColumnSettings[])
-      ?.filter((settings) => this.isEditorComponentRefType(settings.editor))
+      ?.filter((settings) => this.isEditorComponentRefType(settings.editor) || this.isAdvancedEditorComponentRefType(settings.editor))
       ?.forEach((cellSettings) => {
-        const customEditor = cellSettings.editor as Type<HotCellEditorComponent<any>>;
-        const component = createComponent(customEditor, {
-          environmentInjector: this.environmentInjector,
-        });
-
-        if (cellSettings?.editorRenderMode === EditorRendererMode.Advanced) {
+        if (this.isAdvancedEditorComponentRefType(cellSettings.editor)) {
+          const component = createComponent(cellSettings.editor, {
+            environmentInjector: this.environmentInjector,
+          });
           cellSettings.editor = FactoryEditorAdapter(component);
         } else {
+          const component = createComponent(cellSettings.editor as Type<HotCellEditorComponent<any>>, {
+            environmentInjector: this.environmentInjector,
+          });
           cellSettings['_editorComponentReference'] = component;
           cellSettings['_environmentInjector'] = this.environmentInjector;
           cellSettings.editor = BaseEditorAdapter;
@@ -145,15 +144,29 @@ export class HotSettingsResolver {
 
   private isEditorComponentRefType(editor: any): editor is Type<HotCellEditorComponent<any>> {
     // ecmp - we need it to check if the editor is a component
-    return typeof editor === 'function' && !!(editor as any)?.ɵcmp;
+    return typeof editor === 'function' && !!(editor as any)?.ɵcmp && (editor as any)?.EDITOR_MARKER === HotCellEditorComponent.EDITOR_MARKER;
+  }
+
+  private isAdvancedEditorComponentRefType(editor: any): editor is Type<HotCellEditorAdvancedComponent<any>> {
+    // ecmp - we need it to check if the editor is a component
+    return typeof editor === 'function' && !!(editor as any)?.ɵcmp && (editor as any)?.EDITOR_MARKER === HotCellEditorAdvancedComponent.EDITOR_MARKER;
   }
 
   private isRendererComponentRefType(renderer: any): renderer is Type<HotCellRendererComponent<any, any>> {
     // ecmp - we need it to check if the renderer is a component
-    return typeof renderer === 'function' && !!(renderer as any)?.ɵcmp;
+    return typeof renderer === 'function' && !!(renderer as any)?.ɵcmp && (renderer as any)?.RENDERER_MARKER === HotCellRendererComponent.RENDERER_MARKER;
+  }
+
+  private isAdvancedRendererComponentRefType(renderer: any): renderer is Type<HotCellRendererAdvancedComponent<any, any>> {
+    // ecmp - we need it to check if the renderer is a component
+    return typeof renderer === 'function' && !!(renderer as any)?.ɵcmp && (renderer as any)?.RENDERER_MARKER === HotCellRendererAdvancedComponent.RENDERER_MARKER;
   }
 
   private isTemplateRef(renderer: any): renderer is TemplateRef<any> {
     return renderer && typeof renderer.createEmbeddedView === 'function';
+  }
+
+  private isCustomRenderer(renderer: any): renderer is Type<HotCellRendererComponent<any, any>> | TemplateRef<any> | Type<HotCellRendererAdvancedComponent<any, any>> {
+    return this.isRendererComponentRefType(renderer) || this.isTemplateRef(renderer) || this.isAdvancedRendererComponentRefType(renderer);
   }
 }

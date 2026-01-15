@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable/base';
-import { Component, Input } from '@angular/core';
+import {Component, Input} from '@angular/core';
 
 /**
  * Abstract base component for creating custom cell renderer components for Handsontable.
@@ -11,9 +11,9 @@ import { Component, Input } from '@angular/core';
  */
 @Component({
   selector: 'hot-cell-renderer',
-  template: `<!-- This is an abstract component. Extend this component and provide your own template. -->`,
-}) //TODO: do want Array support here?
-export abstract class HotCellRendererComponent<TValue extends string | number | boolean | Record<string, any> | Array<any> = string, TProps extends {} = any> {
+  template: `<!-- This is an abstract component. Extend this component and provide your own template. -->`
+})
+export abstract class HotCellRendererComponent<TValue extends string | number | boolean = string, TProps extends {} = any> {
   static readonly RENDERER_MARKER = Symbol('HotCellRendererComponent');
 
   @Input() value: TValue = '' as TValue;

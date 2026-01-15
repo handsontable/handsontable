@@ -1,13 +1,11 @@
 import { Directive, EventEmitter, HostBinding, Input, Output } from '@angular/core';
-import { ExtendedEditor } from 'handsontable/editors/factory';
 import { CellProperties } from 'handsontable/settings';
-import { Shortcut } from './models/shortcut.model';
 
 /**
  * Abstract class representing a Handsontable editor in angular.
  */
-@Directive() //TODO: do want Array support here?
-export abstract class HotCellEditorComponent<T extends string | number | boolean | Record<string, any> | Array<any>> {
+@Directive()
+export abstract class HotCellEditorComponent<T extends string | number | boolean> {
   /** The tabindex attribute for the editor. */
   @HostBinding('attr.tabindex') protected tabindex = -1;
 
@@ -15,9 +13,7 @@ export abstract class HotCellEditorComponent<T extends string | number | boolean
   @HostBinding('attr.data-hot-input') protected dataHotInput = '';
 
   /** The handsontableInput class for the editor. */
-  @Input()
-  @HostBinding('class.handsontableInput')
-  protected handsontableInputClass = true;
+  @HostBinding('class.handsontableInput') protected handsontableInputClass = true;
 
   /** The height of the editor as a percentage of the parent container. */
   @HostBinding('style.height.%') protected heightFitParentContainer = 100;
@@ -79,7 +75,7 @@ export abstract class HotCellEditorComponent<T extends string | number | boolean
    * }
    * ```
    */
-  abstract onFocus(editor?: ExtendedEditor<T>): void;
+  abstract onFocus(): void;
 
   /**
    * Gets the current value of the editor.
@@ -96,42 +92,4 @@ export abstract class HotCellEditorComponent<T extends string | number | boolean
   setValue(value: T): void {
     this._value = value;
   }
-
-  /** The position of the editor in the DOM. Used by Handsontable API */
-  position: 'container' | 'portal' = 'container';
-
-  /** The shortcuts available for the editor. */
-  shortcuts?: Shortcut[];
-
-  /** The group name for the shortcuts. */
-  shortcutsGroup?: string;
-
-  /** Lifecycle hook called after the editor is opened. */
-  afterOpen(editor: ExtendedEditor<T>, event?: Event): void {}
-
-  /** Lifecycle hook called after the editor is closed. */
-  afterClose(editor: ExtendedEditor<T>): void {}
-
-  /** Lifecycle hook called after the editor is initialized. */
-  afterInit(editor: ExtendedEditor<T>): void {}
-
-  /** Lifecycle hook called before the editor is opened. */
-  beforeOpen(
-    editor: ExtendedEditor<T>,
-    {
-      row,
-      col,
-      prop,
-      td,
-      originalValue,
-      cellProperties,
-    }: {
-      row: number;
-      col: number;
-      prop: string | number;
-      td: HTMLTableCellElement;
-      originalValue: any;
-      cellProperties: CellProperties;
-    }
-  ): void {}
 }

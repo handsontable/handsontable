@@ -3,12 +3,18 @@ import { baseRenderer, BaseRenderer } from 'handsontable/renderers';
 import Handsontable from 'handsontable/base';
 import { HotCellRendererComponent } from './hot-cell-renderer.component';
 import { rendererFactory } from 'handsontable/renderers';
+import { HotCellRendererAdvancedComponent } from './hot-cell-renderer-advanced.component';
 
 type BaseRendererParameters = Parameters<BaseRenderer>;
 
 export const INVALID_RENDERER_WARNING =
   'The provided renderer component was not recognized as a valid custom renderer. ' +
   'It must either extend HotCellRendererComponent or be a valid TemplateRef. ' +
+  'Please ensure that your custom renderer is implemented correctly and imported from the proper source.';
+
+export const INVALID_ADVANCED_RENDERER_WARNING =
+  'The provided renderer component was not recognized as a valid custom renderer. ' +
+  'It must either extend HotCellRendererAdvancedComponent. ' +
   'Please ensure that your custom renderer is implemented correctly and imported from the proper source.';
 
 /**
@@ -42,6 +48,16 @@ export function isTemplateRef<T>(obj: any): obj is TemplateRef<T> {
  */
 export function isHotCellRendererComponent(obj: any): obj is Type<HotCellRendererComponent> {
   return obj?.RENDERER_MARKER === HotCellRendererComponent.RENDERER_MARKER;
+}
+
+/**
+ * Type guard to check if an object is an instance of HotCellRendererAdvancedComponent.
+ *
+ * @param obj - The object to check.
+ * @returns True if the object is a HotCellRendererAdvancedComponent, false otherwise.
+ */
+export function isAdvancedHotCellRendererComponent(obj: any): obj is Type<HotCellRendererAdvancedComponent> {
+  return obj?.RENDERER_MARKER === HotCellRendererAdvancedComponent.RENDERER_MARKER;
 }
 
 /**
@@ -112,12 +128,12 @@ export class DynamicComponentService {
    * Creates a custom renderer function using rendererFactory from Handsontable.
    * This is an alternative implementation that uses the factory pattern.
    *
-   * @param component - The Angular component type or TemplateRef to use as renderer.
+   * @param component - The Angular component type to use as renderer.
    * @param componentProps - An object containing additional properties to use by the renderer.
    * @param register - If true, registers the renderer with Handsontable using the component's name.
    * @returns A renderer function that can be used in Handsontable's configuration.
    */
-  createRendererWithFactory(component: Type<HotCellRendererComponent> | TemplateRef<any>, componentProps: Record<string, any> = {}, register: boolean = false) {
+  createRendererWithFactory(component: Type<HotCellRendererAdvancedComponent>, componentProps: Record<string, any> = {}, register: boolean = false) {
     return rendererFactory(({ instance, td, row, column, prop, value, cellProperties }) => {
       const properties: BaseRendererParametersObject = {
         value,
@@ -135,16 +151,14 @@ export class DynamicComponentService {
 
       td.innerHTML = '';
 
-      if (isTemplateRef(component)) {
-        this.attachTemplateToElement(component, td, properties);
-      } else if (isHotCellRendererComponent(component)) {
+      if (isAdvancedHotCellRendererComponent(component)) {
         const componentRef = this.createComponent(component, properties);
         this.attachComponentToElement(componentRef, td);
       } else {
-        console.warn(INVALID_RENDERER_WARNING);
+        console.warn(INVALID_ADVANCED_RENDERER_WARNING);
       }
 
-      if (register && isHotCellRendererComponent(component)) {
+      if (register && isAdvancedHotCellRendererComponent(component)) {
         Handsontable.renderers.registerRenderer(component.constructor.name, component as any as BaseRenderer);
       }
 

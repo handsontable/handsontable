@@ -1,14 +1,16 @@
 import { ComponentRef } from '@angular/core';
-import { HotCellEditorComponent } from '../hot-cell-editor.component';
 import { CustomEditorPlaceholderComponent } from '../custom-editor-placeholder.component';
 import { Subscription } from 'rxjs';
+import { HotCellEditorAdvancedComponent } from '../hot-cell-editor-advanced.component';
 
 /**
  * Angular-specific properties that will be added to the editor instance.
  */
 export interface AngularEditorProperties {
+  input: HTMLElement;
+
   /** Reference to the custom Angular editor component. */
-  _componentRef?: ComponentRef<HotCellEditorComponent<any>>;
+  _componentRef?: ComponentRef<HotCellEditorAdvancedComponent<any>>;
 
   /** Reference to the editor placeholder component. */
   _editorPlaceHolderRef?: ComponentRef<CustomEditorPlaceholderComponent>;

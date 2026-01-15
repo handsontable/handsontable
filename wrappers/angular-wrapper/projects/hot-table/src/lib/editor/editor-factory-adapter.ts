@@ -3,17 +3,13 @@ import { editorFactory } from 'handsontable/editors';
 import { CustomEditorPlaceholderComponent } from './custom-editor-placeholder.component';
 import { AngularEditorProperties } from './models/factory-editor-properties';
 import { ExtendedEditor } from 'handsontable/editors/factory';
-import { HotCellEditorComponent } from './hot-cell-editor.component';
 import { take } from 'rxjs';
+import { HotCellEditorAdvancedComponent } from './hot-cell-editor-advanced.component';
 
 /**
  * Combined type for the editor instance used throughout the adapter.
  */
-type EditorInstance = ExtendedEditor<AngularEditorProperties & Record<string, any>> &
-  AngularEditorProperties & {
-    container: HTMLDivElement;
-    input: HTMLElement;
-  };
+type EditorInstance = ExtendedEditor<AngularEditorProperties & HotCellEditorAdvancedComponent<any>>;
 
 /**
  * Factory function to create a custom Handsontable editor adapter for Angular components.
@@ -25,12 +21,12 @@ type EditorInstance = ExtendedEditor<AngularEditorProperties & Record<string, an
  * @returns A custom editor class that can be used in Handsontable column settings.
  *
  */
-export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorComponent<any>>) => {
-  return editorFactory<EditorInstance>({
+export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdvancedComponent<any>>) => {
+  return editorFactory<ExtendedEditor<any>>({
     position: componentRef.instance.position,
     shortcuts: componentRef.instance.shortcuts,
-    value: componentRef.instance.originalValue,
-    init(editor): void {
+    config: componentRef.instance.config,
+    init(editor: EditorInstance): void {
       editor._componentRef = componentRef;
       editor._editorPlaceHolderRef = undefined;
       editor._finishEditSubscription = undefined;
@@ -57,13 +53,14 @@ export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorCom
         }
       };
 
+      // Hooks are automatically removed by Handsontable on table destroy
       editor.hot.addHook('afterRowResize', editor._afterRowResizeCallback);
       editor.hot.addHook('afterColumnResize', editor._afterColumnResizeCallback);
       editor.hot.addHook('afterDestroy', editor._afterDestroyCallback);
     },
 
     afterInit: (editor) => editor._componentRef.instance.afterInit?.(editor),
-    beforeOpen: (editor, context) => {
+    beforeOpen: (editor: EditorInstance, context) => {
       cleanupSubscriptions(editor);
 
       applyPropsToEditor(editor);
@@ -81,14 +78,14 @@ export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorCom
       editor._componentRef.instance.afterOpen?.(editor, event);
     },
     onFocus: (editor) => editor._componentRef.instance.onFocus?.(editor),
-    afterClose: (editor) => {
+    afterClose: (editor: EditorInstance) => {
       resetEditorState(editor);
       editor._editorPlaceHolderRef.changeDetectorRef.detectChanges();
       editor._editorPlaceHolderRef.instance.detachEditor();
-      editor._componentRef.instance.afterClose(editor);
+      editor._componentRef.instance.afterClose?.(editor);
     },
     getValue: (editor) => editor._componentRef.instance.getValue(),
-    setValue: (editor, value) => {
+    setValue: (editor: EditorInstance, value) => {
       editor.value = value;
       editor._componentRef.instance.setValue(value);
       editor._componentRef.changeDetectorRef.detectChanges();
@@ -126,7 +123,6 @@ function applyPropsToEditor(editor: EditorInstance): void {
   editor._componentRef.setInput('column', editor.col);
   editor._componentRef.setInput('prop', editor.prop);
   editor._componentRef.setInput('cellProperties', editor.cellProperties);
-  editor._componentRef.setInput('handsontableInputClass', false);
 
   const rect = editor.hot.getCell(editor.row, editor.col)?.getBoundingClientRect();
 
