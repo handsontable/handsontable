@@ -1,5 +1,5 @@
 import { BaseTheme } from 'handsontable/themes';
 
-export const classic: BaseTheme;
-export const main: BaseTheme;
-export const horizon: BaseTheme;
+export const classicTheme: BaseTheme;
+export const mainTheme: BaseTheme;
+export const horizonTheme: BaseTheme;

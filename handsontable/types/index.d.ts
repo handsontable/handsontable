@@ -30,12 +30,12 @@ import {
   BaseTheme,
   hasTheme,
   getTheme,
-  getRegisteredThemeNames,
-  getRegisteredThemes,
+  getThemeNames,
+  getThemes,
   registerTheme,
-  classic,
-  main,
-  horizon,
+  classicTheme,
+  mainTheme,
+  horizonTheme,
 } from './themes';
 import * as RecordTranslation from './translations';
 import {
@@ -325,12 +325,12 @@ declare namespace Handsontable {
     BaseTheme,
     hasTheme,
     getTheme,
-    getRegisteredThemeNames,
-    getRegisteredThemes,
+    getThemeNames,
+    getThemes,
     registerTheme,
-    classic,
-    main,
-    horizon,
+    classicTheme,
+    mainTheme,
+    horizonTheme,
     // coords
     CellCoords,
     CellRange,
@@ -415,8 +415,8 @@ declare namespace Handsontable {
   export namespace themes {
     export { hasTheme };
     export { getTheme };
-    export { getRegisteredThemeNames };
-    export { getRegisteredThemes };
+    export { getThemeNames };
+    export { getThemes };
     export { registerTheme };
   }
 
@@ -646,11 +646,11 @@ export {
   Events,
   hasTheme,
   getTheme,
-  getRegisteredThemeNames,
-  getRegisteredThemes,
+  getThemeNames,
+  getThemes,
   registerTheme,
-  classic,
-  main,
-  horizon,
+  classicTheme,
+  mainTheme,
+  horizonTheme,
 };
 export default Handsontable;

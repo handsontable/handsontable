@@ -400,9 +400,9 @@ export interface ThemeBuilder {
 }
 
 // Theme config objects (raw configs, not ThemeBuilder instances)
-export const classic: BaseTheme;
-export const main: BaseTheme;
-export const horizon: BaseTheme;
+export const classicTheme: BaseTheme;
+export const mainTheme: BaseTheme;
+export const horizonTheme: BaseTheme;
 
 // Icon configs
 export const mainIcons: ThemeIconsConfig;
@@ -411,8 +411,8 @@ export const horizonIcons: ThemeIconsConfig;
 // Theme registry functions
 export function hasTheme(themeName: string): boolean;
 export function getTheme(themeName: string): ThemeBuilder | undefined;
-export function getRegisteredThemeNames(): string[];
-export function getRegisteredThemes(): ThemeBuilder[];
+export function getThemeNames(): string[];
+export function getThemes(): ThemeBuilder[];
 export function registerTheme(themeNameOrConfig: string | BaseTheme, themeConfig?: BaseTheme): ThemeBuilder;
 
 declare module 'handsontable/themes/static/variables/colors/horizon' {
