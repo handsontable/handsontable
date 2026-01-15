@@ -14,9 +14,43 @@ const SOURCE_THEMES_DIRECTORY = 'src/themes/theme';
 const SOURCE_VARIABLES_DIRECTORY = 'src/themes/static/variables';
 const OUTPUT_THEMES_DIRECTORY = 'themes';
 
-let licenseBody = fs.readFileSync(path.resolve(__dirname, '../../LICENSE.txt'), 'utf8');
-licenseBody += '\nVersion: ' + process.env.HOT_VERSION;
-licenseBody += '\nRelease date: ' + process.env.HOT_RELEASE_DATE + ' (built at ' + process.env.HOT_BUILD_DATE + ')';
+/**
+ * Generate the license body text with version and date info.
+ *
+ * @returns {string} The formatted license text.
+ */
+function getLicenseBody() {
+  const license = fs.readFileSync(path.resolve(__dirname, '../../LICENSE.txt'), 'utf8');
+  const version = `Version: ${process.env.HOT_VERSION}`;
+  const releaseDate = `Release date: ${process.env.HOT_RELEASE_DATE} (built at ${process.env.HOT_BUILD_DATE})`;
+
+  return [license, version, releaseDate].join(NEW_LINE_CHAR);
+}
+
+/**
+ * Create the Handsontable import statement.
+ *
+ * @returns {string} Import statement string.
+ */
+function createHandsontableImport() {
+  return `import Handsontable from '${PACKAGE_FILENAME}';`;
+}
+
+/**
+ * Create externals configuration for Handsontable.
+ *
+ * @returns {object} Webpack externals config.
+ */
+function createHandsontableExternals() {
+  return {
+    [PACKAGE_FILENAME]: {
+      root: 'Handsontable',
+      commonjs2: PACKAGE_FILENAME,
+      commonjs: PACKAGE_FILENAME,
+      amd: PACKAGE_FILENAME,
+    },
+  };
+}
 
 /**
  * Rule for injecting Handsontable import and theme registration into theme files.
@@ -33,19 +67,22 @@ const ruleForThemeRegistration = {
       {
         // Add Handsontable import at the very beginning of the file
         search: /^(import )/,
-        replace(match, capturedImport) {
-          return `import Handsontable from '${PACKAGE_FILENAME}';${NEW_LINE_CHAR}${NEW_LINE_CHAR}${capturedImport}`;
-        },
+        replace: (match, capturedImport) =>
+          `${createHandsontableImport()}${NEW_LINE_CHAR}${NEW_LINE_CHAR}${capturedImport}`,
         flags: ''
       },
       {
         // Register theme before the export statement
         // Matches: export { someTheme };
         search: /(export \{ (\w+) \};)/,
-        replace(match, exportStatement, themeName) {
-          const snippet = `Handsontable.themes.registerTheme(${themeName});`;
+        replace: (match, exportStatement, themeName) => {
+          const registrationSnippet = [
+            `if (typeof Handsontable !== 'undefined') {`,
+            `  Handsontable.themes.registerTheme(${themeName});`,
+            `}`
+          ].join(NEW_LINE_CHAR);
 
-          return `${snippet}${NEW_LINE_CHAR}${NEW_LINE_CHAR}${exportStatement}`;
+          return `${registrationSnippet}${NEW_LINE_CHAR}${NEW_LINE_CHAR}${exportStatement}`;
         },
         flags: 'g'
       }
@@ -54,43 +91,142 @@ const ruleForThemeRegistration = {
 };
 
 /**
+ * Build namespace initialization lines for nested paths.
+ *
+ * @param {string} namespacePath The path within variables namespace (e.g., 'colors/tokens').
+ * @param {string} variableName The variable name to assign.
+ * @returns {string[]} Array of initialization lines.
+ */
+function buildNamespaceLines(namespacePath, variableName) {
+  const lines = [
+    '  Handsontable.themes.variables = Handsontable.themes.variables || {};',
+  ];
+
+  if (namespacePath) {
+    let currentPath = 'Handsontable.themes.variables';
+
+    for (const part of namespacePath.split('/')) {
+      lines.push(`  ${currentPath}.${part} = ${currentPath}.${part} || {};`);
+      currentPath = `${currentPath}.${part}`;
+    }
+
+    lines.push(`  ${currentPath}.${variableName} = ${variableName};`);
+  } else {
+    lines.push(`  Handsontable.themes.variables.${variableName} = ${variableName};`);
+  }
+
+  return lines;
+}
+
+/**
+ * Create rule for injecting Handsontable import and variables registration into variable files.
+ *
+ * @param {string} variableName The name to use for the variable in the namespace.
+ * @param {string} namespacePath The path within variables namespace (e.g., 'colors' for colors/ant.js).
+ * @returns {object} Webpack rule configuration.
+ */
+function createRuleForVariablesRegistration(variableName, namespacePath) {
+  return {
+    test: /static\/variables\/.*\.js$/,
+    loader: 'string-replace-loader',
+    options: {
+      multiple: [
+        {
+          // Add Handsontable import after the comment block at the top
+          search: /^(\/\*[\s\S]*?\*\/\s*)/,
+          replace: (match, comment) =>
+            `${comment}${createHandsontableImport()}${NEW_LINE_CHAR}${NEW_LINE_CHAR}`,
+          flags: ''
+        },
+        {
+          // Transform default export to namespace registration (no export, just side effect)
+          search: /export default (\{[\s\S]*\});/,
+          replace: (match, objectBody) => {
+            const lines = [
+              `const ${variableName} = ${objectBody};`,
+              '',
+              `if (typeof Handsontable !== 'undefined' && Handsontable.themes) {`,
+              ...buildNamespaceLines(namespacePath, variableName),
+              '}',
+            ];
+
+            return lines.join(NEW_LINE_CHAR);
+          },
+          flags: ''
+        }
+      ]
+    }
+  };
+}
+
+/**
+ * Resolve a path relative to the config directory.
+ *
+ * @param {string} relativePath Path relative to the config directory.
+ * @returns {string} Absolute path.
+ */
+function resolveFromConfig(relativePath) {
+  return path.resolve(__dirname, '..', relativePath);
+}
+
+/**
+ * Check if a directory exists.
+ *
+ * @param {string} dirPath Directory path to check.
+ * @returns {boolean} True if directory exists.
+ */
+function directoryExists(dirPath) {
+  return fs.existsSync(dirPath);
+}
+
+/**
+ * Extract named export from a theme file content.
+ *
+ * @param {string} content File content.
+ * @param {string} fallbackName Fallback export name.
+ * @returns {string} The export name.
+ */
+function extractNamedExport(content, fallbackName) {
+  const match = content.match(/export \{ (\w+) \};/);
+
+  return match ? match[1] : fallbackName;
+}
+
+/**
  * Get all theme entry files from src/themes/theme/ directory.
  *
  * @returns {object} Entry configurations for theme files.
  */
 function getThemeEntryFiles() {
-  const entryObject = {};
-  const themesDir = path.resolve(__dirname, `../${SOURCE_THEMES_DIRECTORY}`);
+  const themesDir = resolveFromConfig(SOURCE_THEMES_DIRECTORY);
 
-  if (!fs.existsSync(themesDir)) {
-    return entryObject;
+  if (!directoryExists(themesDir)) {
+    return {};
   }
 
-  const filesInThemesDirectory = fs.readdirSync(themesDir);
+  const entries = {};
+  const JS_EXTENSION = /\.js$/;
 
-  filesInThemesDirectory.forEach((fileName) => {
-    const jsExtensionRegExp = /\.js$/;
-
+  for (const fileName of fs.readdirSync(themesDir)) {
     // Skip index.js - only process individual theme files
-    if (jsExtensionRegExp.test(fileName) && fileName !== 'index.js') {
-      const fileNameWithoutExtension = fileName.replace(jsExtensionRegExp, '');
-      const filePath = path.resolve(themesDir, fileName);
-      const fileContent = fs.readFileSync(filePath, 'utf8');
-
-      // Extract the named export from the file (e.g., "export { classicTheme };" -> "classicTheme")
-      const namedExportMatch = fileContent.match(/export \{ (\w+) \};/);
-      const exportName = namedExportMatch ? namedExportMatch[1] : `${fileNameWithoutExtension}Theme`;
-
-      entryObject[fileNameWithoutExtension] = {
-        entryPath: filePath,
-        libraryName: exportName,
-        exportName,
-        isThemeFile: true,
-      };
+    if (!JS_EXTENSION.test(fileName) || fileName === 'index.js') {
+      continue;
     }
-  });
 
-  return entryObject;
+    const baseName = fileName.replace(JS_EXTENSION, '');
+    const filePath = path.resolve(themesDir, fileName);
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const exportName = extractNamedExport(fileContent, `${baseName}Theme`);
+
+    entries[baseName] = {
+      entryPath: filePath,
+      libraryName: exportName,
+      exportName,
+      isThemeFile: true,
+    };
+  }
+
+  return entries;
 }
 
 /**
@@ -99,63 +235,97 @@ function getThemeEntryFiles() {
  * @returns {object} Entry configurations for variables files.
  */
 function getVariablesEntryFiles() {
-  const entryObject = {};
-  const variablesDir = path.resolve(__dirname, `../${SOURCE_VARIABLES_DIRECTORY}`);
+  const variablesDir = resolveFromConfig(SOURCE_VARIABLES_DIRECTORY);
 
-  if (!fs.existsSync(variablesDir)) {
-    return entryObject;
+  if (!directoryExists(variablesDir)) {
+    return {};
   }
 
-  const scanDir = (dir, prefix = 'static/variables') => {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const entries = {};
 
-    entries.forEach((entry) => {
-      if (entry.isFile() && entry.name.endsWith('.js')) {
-        const fileName = entry.name.replace('.js', '');
-        const entryName = `${prefix}/${fileName}`;
-        const entryPath = path.resolve(dir, entry.name);
+  const scanDirectory = (dir, prefix = 'static/variables', namespacePath = '') => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const { name } = entry;
 
-        entryObject[entryName] = {
-          entryPath,
-          libraryName: fileName,
+      if (entry.isFile() && name.endsWith('.js')) {
+        const baseName = name.replace('.js', '');
+
+        entries[`${prefix}/${baseName}`] = {
+          entryPath: path.resolve(dir, name),
+          libraryName: baseName,
+          namespacePath,
           isThemeFile: false,
         };
       } else if (entry.isDirectory()) {
-        scanDir(path.join(dir, entry.name), `${prefix}/${entry.name}`);
+        const newNamespacePath = namespacePath ? `${namespacePath}/${name}` : name;
+
+        scanDirectory(path.join(dir, name), `${prefix}/${name}`, newNamespacePath);
       }
-    });
+    }
   };
 
-  scanDir(variablesDir);
+  scanDirectory(variablesDir);
 
-  return entryObject;
+  return entries;
+}
+
+/**
+ * Create library output configuration.
+ *
+ * @param {boolean} isThemeFile Whether this is a theme file.
+ * @param {string} exportName Export name for themes.
+ * @param {string} libraryName Library name for UMD.
+ * @returns {object} Library configuration.
+ */
+function createLibraryConfig(isThemeFile, exportName, libraryName) {
+  // Theme files get full UMD export to window (e.g., window.classicTheme)
+  // Variables get UMD wrapper (for Handsontable external) but no named global export
+  if (isThemeFile) {
+    return {
+      type: 'umd',
+      export: exportName,
+      name: libraryName,
+    };
+  }
+
+  return { type: 'umd' };
 }
 
 /**
  * Create webpack configuration for a single entry.
  *
- * @param {string} entryName The entry name (output filename without extension).
- * @param {string} entryPath The entry file path.
- * @param {string} libraryName The UMD library name.
- * @param {object} envArgs Environment arguments.
- * @param {boolean} isThemeFile Whether this is a theme file that needs auto-registration.
- * @param {string} exportName The export name to use (named export for themes, 'default' for variables).
+ * @param {object} options Configuration options.
+ * @param {string} options.entryName The entry name (output filename without extension).
+ * @param {string} options.entryPath The entry file path.
+ * @param {string} options.libraryName The UMD library name.
+ * @param {object} options.envArgs Environment arguments.
+ * @param {boolean} [options.isThemeFile=false] Whether this is a theme file that needs auto-registration.
+ * @param {string} [options.exportName='default'] The export name to use.
+ * @param {string} [options.namespacePath=''] The namespace path for variables.
  * @returns {object} Webpack configuration object.
  */
-function createConfig(entryName, entryPath, libraryName, envArgs, isThemeFile = false, exportName = 'default') {
-  const config = {
+function createConfig({
+  entryName,
+  entryPath,
+  libraryName,
+  envArgs,
+  isThemeFile = false,
+  exportName = 'default',
+  namespacePath = '',
+}) {
+  const registrationRule = isThemeFile
+    ? ruleForThemeRegistration
+    : createRuleForVariablesRegistration(libraryName, namespacePath);
+
+  return {
     mode: 'none',
     entry: { [entryName]: entryPath },
     output: {
       filename: `${OUTPUT_THEMES_DIRECTORY}/${entryName}.js`,
       globalObject: `typeof self !== 'undefined' ? self : this`,
-      library: {
-        type: 'umd',
-        export: exportName,
-        name: libraryName,
-      },
-      path: path.resolve(__dirname, '../dist'),
+      path: resolveFromConfig('dist'),
       umdNamedDefine: true,
+      library: createLibraryConfig(isThemeFile, exportName, libraryName),
     },
     module: {
       rules: [
@@ -164,41 +334,41 @@ function createConfig(entryName, entryPath, libraryName, envArgs, isThemeFile = 
           loader: 'babel-loader',
           exclude: /node_modules/,
         },
+        registrationRule,
       ],
     },
+    externals: createHandsontableExternals(),
     plugins: [
-      new webpack.BannerPlugin(licenseBody),
+      new webpack.BannerPlugin(getLicenseBody()),
       new webpack.DefinePlugin({
-        '__ENV_ARGS__': JSON.stringify(envArgs),
+        __ENV_ARGS__: JSON.stringify(envArgs),
       }),
       compilationDoneMarker(),
     ],
   };
-
-  // Add theme registration rule and Handsontable external for theme files
-  if (isThemeFile) {
-    config.module.rules.push(ruleForThemeRegistration);
-    config.externals = {
-      [PACKAGE_FILENAME]: {
-        root: 'Handsontable',
-        commonjs2: PACKAGE_FILENAME,
-        commonjs: PACKAGE_FILENAME,
-        amd: PACKAGE_FILENAME,
-      },
-    };
-  }
-
-  return config;
 }
 
+/**
+ * Create webpack configurations for all theme and variable entries.
+ *
+ * @param {object} envArgs Environment arguments.
+ * @returns {object[]} Array of webpack configuration objects.
+ */
 module.exports.create = function create(envArgs) {
-  const themeEntries = getThemeEntryFiles();
-  const variablesEntries = getVariablesEntryFiles();
-  const allEntries = { ...themeEntries, ...variablesEntries };
+  const allEntries = {
+    ...getThemeEntryFiles(),
+    ...getVariablesEntryFiles(),
+  };
 
-  return Object.entries(allEntries).map(([entryName, config]) => {
-    const exportName = config.exportName || 'default';
-
-    return createConfig(entryName, config.entryPath, config.libraryName, envArgs, config.isThemeFile, exportName);
-  });
+  return Object.entries(allEntries).map(([entryName, config]) =>
+    createConfig({
+      entryName,
+      entryPath: config.entryPath,
+      libraryName: config.libraryName,
+      envArgs,
+      isThemeFile: config.isThemeFile,
+      exportName: config.exportName || 'default',
+      namespacePath: config.namespacePath || '',
+    })
+  );
 };
