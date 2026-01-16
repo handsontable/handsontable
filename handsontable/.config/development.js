@@ -19,12 +19,6 @@ module.exports.create = function create(envArgs) {
     c.devtool = 'source-map';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css files)
     c.externals = {
-      moment: {
-        root: 'moment',
-        commonjs2: 'moment',
-        commonjs: 'moment',
-        amd: 'moment',
-      },
       '@handsontable/pikaday': {
         root: 'Pikaday',
         commonjs2: '@handsontable/pikaday',
@@ -53,21 +47,6 @@ module.exports.create = function create(envArgs) {
       return !(plugin instanceof MiniCssExtractPlugin);
     });
 
-    // Export these dependencies to the window object. So they can be custom configured
-    // before the Handsontable initializiation.
-    c.module.rules.unshift({
-      test: /moment/,
-      use: [
-        {
-          loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
-          options: {
-            globals: {
-              moment: 'moment',
-            }
-          }
-        }
-      ]
-    });
     c.module.rules.unshift({
       test: /dompurify/,
       use: [

@@ -202,10 +202,10 @@ export class TextEditor extends BaseEditor {
   /**
    * Creates an editor's elements and adds necessary CSS classnames.
    */
-  createElements() {
+  createElements(type = 'textarea') {
     const { rootDocument } = this.hot;
 
-    this.TEXTAREA = rootDocument.createElement('TEXTAREA');
+    this.TEXTAREA = rootDocument.createElement(type);
 
     // Makes the element recognizable by Hot as its own
     // component's element.
@@ -233,7 +233,6 @@ export class TextEditor extends BaseEditor {
     this.textareaParentStyle = this.TEXTAREA_PARENT.style;
 
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
-
     this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
   }
 
@@ -246,8 +245,8 @@ export class TextEditor extends BaseEditor {
     if (isEdge()) {
       this.textareaStyle.textIndent = '-99999px';
     }
-    this.textareaStyle.overflowY = 'visible';
 
+    this.textareaStyle.overflowY = 'visible';
     this.textareaParentStyle.opacity = '0';
     this.textareaParentStyle.height = '1px';
 

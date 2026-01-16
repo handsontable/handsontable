@@ -1,4 +1,3 @@
-import moment from 'moment';
 import * as C from '../../../../i18n/constants';
 import { registerCondition } from '../../conditionRegisterer';
 
@@ -11,14 +10,14 @@ export const CONDITION_NAME = 'date_before';
  * @returns {boolean}
  */
 export function condition(dataRow, [value]) {
-  const date = moment(dataRow.value, dataRow.meta.dateFormat);
-  const inputDate = moment(value, dataRow.meta.dateFormat);
+  const dateTime = new Date(dataRow.value).getTime();
+  const inputDateTime = new Date(value).getTime();
 
-  if (!date.isValid() || !inputDate.isValid()) {
+  if (Number.isNaN(dateTime) || Number.isNaN(inputDateTime)) {
     return false;
   }
 
-  return date.diff(inputDate) <= 0;
+  return dateTime <= inputDateTime;
 }
 
 registerCondition(CONDITION_NAME, condition, {

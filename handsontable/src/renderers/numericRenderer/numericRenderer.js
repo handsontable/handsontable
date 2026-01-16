@@ -9,13 +9,13 @@ const DEFAULT_FORMAT = {
 };
 
 /**
- * Get the rendered value.
+ * Formats the value using the numeric format.
  *
  * @param {*} value Value to be rendered.
  * @param {CellMeta} cellProperties Cell meta object.
  * @returns {*} Returns the rendered value.
  */
-export function getRenderedValue(value, cellProperties) {
+export function valueFormatter(value, cellProperties) {
   if (isNumeric(value)) {
     const { numericFormat, locale } = cellProperties;
 
@@ -54,7 +54,7 @@ export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProp
       }
     }
 
-    newValue = getRenderedValue(newValue, cellProperties);
+    newValue = cellProperties.valueFormatter(newValue, cellProperties);
 
     if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 &&
       classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {

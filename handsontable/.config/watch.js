@@ -18,12 +18,6 @@ module.exports.create = function create(envArgs) {
     c.output.filename = PACKAGE_FILENAME + '.js';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css)
     c.externals = {
-      moment: {
-        root: 'moment',
-        commonjs2: 'moment',
-        commonjs: 'moment',
-        amd: 'moment',
-      },
       '@handsontable/pikaday': {
         root: 'Pikaday',
         commonjs2: '@handsontable/pikaday',

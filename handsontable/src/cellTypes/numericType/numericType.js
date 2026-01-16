@@ -1,5 +1,5 @@
 import { NumericEditor } from '../../editors/numericEditor';
-import { numericRenderer } from '../../renderers/numericRenderer';
+import { numericRenderer, valueFormatter } from '../../renderers/numericRenderer';
 import { numericValidator } from '../../validators/numericValidator';
 import { valueSetter } from './accessors';
 
@@ -11,4 +11,5 @@ export const NumericCellType = {
   validator: numericValidator,
   dataType: 'number',
   valueSetter,
+  valueFormatter,
 };

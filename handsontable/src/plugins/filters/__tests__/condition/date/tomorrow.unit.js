@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { condition } from 'handsontable/plugins/filters/condition/date/tomorrow';
 import { dateRowFactory } from '../../helpers/utils';
 

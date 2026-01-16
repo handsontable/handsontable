@@ -130,7 +130,7 @@ describe('Mixed helper', () => {
   });
 
   describe('_injectProductInfo', () => {
-    const LICENSE_TEST_KEY = 'd0134-95841-770f2-c4f21-3751d'; // expired on 24/05/2011
+    const LICENSE_TEST_KEY = 'd0134-95841-770f2-c4f21-3751d'; // expired on 23/05/2011
     let _injectProductInfo;
 
     beforeEach(() => {
@@ -141,8 +141,6 @@ describe('Mixed helper', () => {
     });
 
     it('should not print any information if the license key is not expired (1 day to expire)', () => {
-      mockMoment = jest.requireActual('moment')('23/05/2011', 'DD/MM/YYYY');
-
       spyOn(console, 'warn');
       spyOn(console, 'info');
       spyOn(console, 'log');
@@ -150,7 +148,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element);
+      _injectProductInfo(LICENSE_TEST_KEY, element, '22/05/2011');
 
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
@@ -160,8 +158,6 @@ describe('Mixed helper', () => {
     });
 
     it('should not print any information if the license key is not expired (2 day to expire)', () => {
-      mockMoment = jest.requireActual('moment')('22/05/2011', 'DD/MM/YYYY');
-
       spyOn(console, 'warn');
       spyOn(console, 'info');
       spyOn(console, 'log');
@@ -169,7 +165,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element);
+      _injectProductInfo(LICENSE_TEST_KEY, element, '21/05/2011');
 
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
@@ -179,8 +175,6 @@ describe('Mixed helper', () => {
     });
 
     it('should not print any information if the license key is not expired (1 year to expire)', () => {
-      mockMoment = jest.requireActual('moment')('24/05/2010', 'DD/MM/YYYY');
-
       spyOn(console, 'warn');
       spyOn(console, 'info');
       spyOn(console, 'log');
@@ -188,7 +182,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element);
+      _injectProductInfo(LICENSE_TEST_KEY, element, '23/05/2010');
 
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
@@ -198,8 +192,6 @@ describe('Mixed helper', () => {
     });
 
     it('should not print any information if the expiration date is the same as the release date', () => {
-      mockMoment = jest.requireActual('moment')('24/05/2010', 'DD/MM/YYYY');
-
       spyOn(console, 'warn');
       spyOn(console, 'info');
       spyOn(console, 'log');
@@ -207,7 +199,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element);
+      _injectProductInfo(LICENSE_TEST_KEY, element, '23/05/2010');
 
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
@@ -217,8 +209,6 @@ describe('Mixed helper', () => {
     });
 
     it('should print information about expiration of the the license key (key expired 1 day ago)', () => {
-      mockMoment = jest.requireActual('moment')('25/05/2011', 'DD/MM/YYYY');
-
       spyOn(console, 'warn');
       spyOn(console, 'info');
       spyOn(console, 'log');
@@ -226,27 +216,25 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element);
+      _injectProductInfo(LICENSE_TEST_KEY, element, '24/05/2011');
 
       expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
-        'The license key for Handsontable expired on May 25, 2011, and is not valid for the installed ',
+        'The license key for Handsontable expired on May 24, 2011, and is not valid for the installed ',
         `version ${process.env.HOT_VERSION}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> `,
-        'your license key or downgrade to a version released prior to May 25, 2011. If you need any ',
+        'your license key or downgrade to a version released prior to May 24, 2011. If you need any ',
         'help, contact us at <a href="mailto:sales@handsontable.com">sales@handsontable.com</a>.',
       ].join(''));
       expect(console.error).not.toHaveBeenCalled();
       expect(console.info).not.toHaveBeenCalled();
       expect(console.log).not.toHaveBeenCalled();
       expect(console.warn).toHaveBeenCalledWith([
-        'The license key for Handsontable expired on May 25, 2011, and is not valid for the installed ',
+        'The license key for Handsontable expired on May 24, 2011, and is not valid for the installed ',
         `version ${process.env.HOT_VERSION}. Renew your license key at handsontable.com or downgrade `,
-        'to a version released prior to May 25, 2011. If you need any help, contact us at sales@handsontable.com.',
+        'to a version released prior to May 24, 2011. If you need any help, contact us at sales@handsontable.com.',
       ].join(''));
     });
 
     it('should print information about expiration of the the license key (key expired 2 days ago)', () => {
-      mockMoment = jest.requireActual('moment')('26/05/2011', 'DD/MM/YYYY');
-
       spyOn(console, 'warn');
       spyOn(console, 'info');
       spyOn(console, 'log');
@@ -254,27 +242,25 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element);
+      _injectProductInfo(LICENSE_TEST_KEY, element, '25/05/2011');
 
       expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
-        'The license key for Handsontable expired on May 26, 2011, and is not valid for the installed ',
+        'The license key for Handsontable expired on May 24, 2011, and is not valid for the installed ',
         `version ${process.env.HOT_VERSION}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> `,
-        'your license key or downgrade to a version released prior to May 26, 2011. If you need any ',
+        'your license key or downgrade to a version released prior to May 24, 2011. If you need any ',
         'help, contact us at <a href="mailto:sales@handsontable.com">sales@handsontable.com</a>.',
       ].join(''));
       expect(console.error).not.toHaveBeenCalled();
       expect(console.info).not.toHaveBeenCalled();
       expect(console.log).not.toHaveBeenCalled();
       expect(console.warn).toHaveBeenCalledWith([
-        'The license key for Handsontable expired on May 26, 2011, and is not valid for the installed ',
+        'The license key for Handsontable expired on May 24, 2011, and is not valid for the installed ',
         `version ${process.env.HOT_VERSION}. Renew your license key at handsontable.com or downgrade `,
-        'to a version released prior to May 26, 2011. If you need any help, contact us at sales@handsontable.com.',
+        'to a version released prior to May 24, 2011. If you need any help, contact us at sales@handsontable.com.',
       ].join(''));
     });
 
     it('should print information about expiration of the the license key (key expired 1 year ago)', () => {
-      mockMoment = jest.requireActual('moment')('24/05/2012', 'DD/MM/YYYY');
-
       spyOn(console, 'warn');
       spyOn(console, 'info');
       spyOn(console, 'log');
@@ -282,21 +268,21 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element);
+      _injectProductInfo(LICENSE_TEST_KEY, element, '23/05/2012');
 
       expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
-        'The license key for Handsontable expired on May 24, 2012, and is not valid for the installed ',
+        'The license key for Handsontable expired on May 24, 2011, and is not valid for the installed ',
         `version ${process.env.HOT_VERSION}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> `,
-        'your license key or downgrade to a version released prior to May 24, 2012. If you need any ',
+        'your license key or downgrade to a version released prior to May 24, 2011. If you need any ',
         'help, contact us at <a href="mailto:sales@handsontable.com">sales@handsontable.com</a>.',
       ].join(''));
       expect(console.error).not.toHaveBeenCalled();
       expect(console.info).not.toHaveBeenCalled();
       // expect(console.log).not.toHaveBeenCalled();
       expect(console.warn).toHaveBeenCalledWith([
-        'The license key for Handsontable expired on May 24, 2012, and is not valid for the installed ',
+        'The license key for Handsontable expired on May 24, 2011, and is not valid for the installed ',
         `version ${process.env.HOT_VERSION}. Renew your license key at handsontable.com or downgrade `,
-        'to a version released prior to May 24, 2012. If you need any help, contact us at sales@handsontable.com.',
+        'to a version released prior to May 24, 2011. If you need any help, contact us at sales@handsontable.com.',
       ].join(''));
     });
 
@@ -308,7 +294,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo('', element);
+      _injectProductInfo('', element, '23/05/2010');
 
       expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
         'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
@@ -337,7 +323,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo('invalidKey', element);
+      _injectProductInfo('invalidKey', element, '23/05/2010');
 
       expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
         'The license key for Handsontable is invalid. ',
@@ -362,7 +348,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo('invalidKey', element);
+      _injectProductInfo('invalidKey', element, '23/05/2010');
 
       expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
         'The license key for Handsontable is invalid. ',
@@ -381,7 +367,7 @@ describe('Mixed helper', () => {
 
       const element2 = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo('invalidKey', element2);
+      _injectProductInfo('invalidKey', element2, '23/05/2010');
 
       expect(element2.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
         'The license key for Handsontable is invalid. ',
@@ -403,7 +389,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo('non-commercial-and-evaluation', element);
+      _injectProductInfo('non-commercial-and-evaluation', element, '23/05/2010');
 
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();

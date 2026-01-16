@@ -1,4 +1,3 @@
-import moment from 'moment';
 import * as C from '../../../../i18n/constants';
 import { registerCondition } from '../../conditionRegisterer';
 
@@ -9,13 +8,19 @@ export const CONDITION_NAME = 'date_yesterday';
  * @returns {boolean}
  */
 export function condition(dataRow) {
-  const date = moment(dataRow.value, dataRow.meta.dateFormat);
+  const date = new Date(dataRow.value);
 
-  if (!date.isValid()) {
+  if (Number.isNaN(date.getTime())) {
     return false;
   }
 
-  return date.isSame(moment().subtract(1, 'days').startOf('day'), 'd');
+  const yesterday = new Date();
+
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  return date.getFullYear() === yesterday.getFullYear() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getDate() === yesterday.getDate();
 }
 
 registerCondition(CONDITION_NAME, condition, {

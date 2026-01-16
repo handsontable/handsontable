@@ -1,6 +1,24 @@
-import moment from 'moment';
+import { toDateObject, isValidDateObject } from '../../helpers/date';
 
 const DEFAULT_DATE_FORMAT_HYPERFORMULA = 'DD/MM/YYYY';
+
+/**
+ * Formats a Date object according to the given format pattern.
+ *
+ * @param {Date} date The Date object to format.
+ * @param {string} format The format pattern (e.g., 'DD/MM/YYYY').
+ * @returns {string} Formatted date string.
+ */
+function formatDate(date, format) {
+  const pad = (n) => String(n).padStart(2, '0');
+
+  return format
+    .replace('YYYY', date.getFullYear())
+    .replace('MM', pad(date.getMonth() + 1))
+    .replace('DD', pad(date.getDate()))
+    .replace('M', date.getMonth() + 1)
+    .replace('D', date.getDate());
+}
 
 /**
  * Checks if provided formula expression is escaped.
@@ -44,51 +62,50 @@ export function isDate(value, cellType) {
 }
 
 /**
- * Checks if provided date is a valid date according to cell date format.
+ * Checks if provided date is a valid date.
  *
- * @param {*} date Checked date.
- * @param {object} dateFormat Handled format for a date.
+ * @param {Date|number|string} date Date object, timestamp, or ISO string.
  * @returns {boolean}
  */
-export function isDateValid(date, dateFormat) {
-  return moment(date, dateFormat, true).isValid();
+export function isDateValid(date) {
+  return isValidDateObject(toDateObject(date));
 }
 
 /**
- * Returns date formatted in HF's default format.
+ * Returns date formatted in HF's default format (DD/MM/YYYY).
  *
- * @param {string} date Date formatted according to Handsontable cell date format.
- * @param {string} dateFormat The format used for the date passed.
+ * @param {Date|number|string} date Date object, timestamp, or ISO string.
  * @returns {string}
  */
-export function getDateInHfFormat(date, dateFormat) {
-  return moment(date, dateFormat, true).format(DEFAULT_DATE_FORMAT_HYPERFORMULA);
+export function getDateInHfFormat(date) {
+  const parsed = toDateObject(date);
+
+  return parsed ? formatDate(parsed, DEFAULT_DATE_FORMAT_HYPERFORMULA) : '';
 }
 
 /**
- * Returns date formatted in HF's default format.
+ * Returns date formatted in the specified format.
  *
- * @param {string} date Date formatted according to Handsontable cell date format.
- * @param {string} dateFormat The format used for the date passed.
+ * @param {Date|number|string} date Date object, timestamp, or ISO string.
+ * @param {string} dateFormat The format to output (e.g., 'DD/MM/YYYY').
  * @returns {string}
  */
 export function getDateInHotFormat(date, dateFormat) {
-  return moment(date, DEFAULT_DATE_FORMAT_HYPERFORMULA, true).format(dateFormat);
+  const parsed = toDateObject(date);
+
+  return parsed ? formatDate(parsed, dateFormat) : '';
 }
 
 /**
  * Converts Excel-like dates into strings and formats them based on the handled date format.
  *
  * @param {number} numericDate An integer representing numbers of days from January 1, 1900.
- * @param {string} dateFormat The format used for parsing an output.
+ * @param {string} dateFormat The format used for output (e.g., 'DD/MM/YYYY').
  * @returns {string}
  */
 export function getDateFromExcelDate(numericDate, dateFormat) {
-  // To replicate the behavior from the HyperFormula. UTC starts from 31/12/1899, while HF from 30/12/1899.
-  const dateOffset = -1;
+  // HyperFormula uses 30/12/1899 as epoch (Excel's 1900 date system with leap year bug)
+  const date = new Date(1899, 11, 30 + numericDate);
 
-  // Based on solution from: https://stackoverflow.com/a/67130235.
-  const dateForFormatting = new Date(Date.UTC(0, 0, numericDate + dateOffset));
-
-  return moment(dateForFormatting).format(dateFormat);
+  return formatDate(date, dateFormat);
 }

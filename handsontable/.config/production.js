@@ -48,18 +48,6 @@ module.exports.create = function create(envArgs) {
       c.plugins.push(
         new CopyWebpackPlugin({
           patterns: [
-            { // moment
-              from: `${getClosest('node_modules/moment/')}@(moment.js|LICENSE)`,
-              to: 'moment',
-              flatten: true,
-              force: true,
-            },
-            {
-              from: `${getClosest('node_modules/moment/')}locale/*.js`,
-              to: 'moment/locale',
-              flatten: true,
-              force: true,
-            },
             { // pikaday
               from: `${getClosest('node_modules/@handsontable/pikaday/')}@(LICENSE|pikaday.js)`,
               to: 'pikaday',

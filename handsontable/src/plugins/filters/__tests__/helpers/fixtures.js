@@ -1,6 +1,34 @@
 export const FILTERS_DATE_FORMAT = 'YYYY-MM-DD';
 
 /**
+ * Formats a Date as YYYY-MM-DD.
+ *
+ * @param {Date} date The date to format.
+ * @returns {string}
+ */
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Returns a date string offset by the given number of days from today.
+ *
+ * @param {number} days Number of days to add (negative to subtract).
+ * @returns {string}
+ */
+function getDateOffset(days) {
+  const date = new Date();
+
+  date.setDate(date.getDate() + days);
+
+  return formatDate(date);
+}
+
+/**
  * @returns {object[]}
  */
 export function getDataForFilters() {
@@ -216,7 +244,7 @@ export function getDataForFilters() {
       id: 24,
       name: 'Greta Patterson',
       address: 'Bartonsville',
-      registered: moment().add(-2, 'days').format(FILTERS_DATE_FORMAT),
+      registered: getDateOffset(-2),
       eyeColor: { color: 'green' },
       balance: 2437.58,
       active: false,
@@ -234,7 +262,7 @@ export function getDataForFilters() {
       id: 26,
       name: 'Stanton Britt',
       address: 'Nipinnawasee',
-      registered: moment().add(-1, 'days').format(FILTERS_DATE_FORMAT),
+      registered: getDateOffset(-1),
       eyeColor: { color: 'green' },
       balance: 3592.18,
       active: false,
@@ -243,7 +271,7 @@ export function getDataForFilters() {
       id: 27,
       name: 'Peterson Bowers',
       address: 'Nelson',
-      registered: moment().add(-1, 'days').format(FILTERS_DATE_FORMAT),
+      registered: getDateOffset(-1),
       eyeColor: { color: 'green' },
       balance: 3710.07,
       active: false,
@@ -288,7 +316,7 @@ export function getDataForFilters() {
       id: 32,
       name: 'Long Mathews',
       address: 'Masthope',
-      registered: moment().add(-1, 'days').format(FILTERS_DATE_FORMAT),
+      registered: getDateOffset(-1),
       eyeColor: { color: 'green' },
       balance: 3379.52,
       active: false,
@@ -306,7 +334,7 @@ export function getDataForFilters() {
       id: 34,
       name: 'Rocha Maddox',
       address: 'Machias',
-      registered: moment().add(1, 'days').format(FILTERS_DATE_FORMAT),
+      registered: getDateOffset(1),
       eyeColor: { color: 'green' },
       balance: 3365.53,
       active: false,
@@ -315,7 +343,7 @@ export function getDataForFilters() {
       id: 35,
       name: 'Craft Keith',
       address: 'Summerfield',
-      registered: moment().add(-3, 'days').format(FILTERS_DATE_FORMAT),
+      registered: getDateOffset(-3),
       eyeColor: { color: 'blue' },
       balance: 3468.15,
       active: false,
@@ -324,7 +352,7 @@ export function getDataForFilters() {
       id: 36,
       name: 'Alyssa Francis',
       address: 'Nord',
-      registered: moment().add(-2, 'days').format(FILTERS_DATE_FORMAT),
+      registered: getDateOffset(-2),
       eyeColor: { color: 'blue' },
       balance: 3414.37,
       active: true,
@@ -333,7 +361,7 @@ export function getDataForFilters() {
       id: 37,
       name: 'Milagros Parsons',
       address: 'Dunlo',
-      registered: moment().add(2, 'days').format(FILTERS_DATE_FORMAT),
+      registered: getDateOffset(2),
       eyeColor: { color: 'brown' },
       balance: 1230.63,
       active: false,
@@ -351,7 +379,7 @@ export function getDataForFilters() {
       id: 39,
       name: 'Everett James',
       address: 'Manitou',
-      registered: moment().add(1, 'days').format(FILTERS_DATE_FORMAT),
+      registered: getDateOffset(1),
       eyeColor: { color: 'blue' },
       balance: 3347,
       active: false,

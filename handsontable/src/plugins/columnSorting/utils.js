@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { isObject } from '../../helpers/object';
 import { isRightClick } from '../../helpers/dom/event';
 import { isEmpty } from '../../helpers/mixed';
@@ -145,22 +144,22 @@ export function createDateTimeCompareFunction(sortOrder, format, columnPluginSet
       return FIRST_BEFORE_SECOND;
     }
 
-    const firstDate = moment(value, format);
-    const nextDate = moment(nextValue, format);
+    const firstTime = new Date(value).getTime();
+    const nextTime = new Date(nextValue).getTime();
 
-    if (!firstDate.isValid()) {
+    if (Number.isNaN(firstTime)) {
       return FIRST_AFTER_SECOND;
     }
 
-    if (!nextDate.isValid()) {
+    if (Number.isNaN(nextTime)) {
       return FIRST_BEFORE_SECOND;
     }
 
-    if (nextDate.isAfter(firstDate)) {
+    if (nextTime > firstTime) {
       return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
     }
 
-    if (nextDate.isBefore(firstDate)) {
+    if (nextTime < firstTime) {
       return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
     }
 

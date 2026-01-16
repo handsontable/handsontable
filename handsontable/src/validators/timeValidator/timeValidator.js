@@ -1,11 +1,4 @@
-import moment from 'moment';
-
-// Formats which are correctly parsed to time (supported by momentjs)
-const STRICT_FORMATS = [
-  'YYYY-MM-DDTHH:mm:ss.SSSZ',
-  'X', // Unix timestamp
-  'x' // Unix ms timestamp
-];
+import { isValidDateObject, isValidTimestamp, isValidISODate } from '../../helpers/date';
 
 export const VALIDATOR_TYPE = 'time';
 
@@ -17,51 +10,32 @@ export const VALIDATOR_TYPE = 'time';
  * @param {Function} callback Callback called with validation result.
  */
 export function timeValidator(value, callback) {
-  const timeFormat = this.timeFormat || 'h:mm:ss a';
-  let valid = true;
-  let valueToValidate = value;
+  // Empty values are considered valid
+  if (value === null || value === undefined || value === '') {
+    callback(true);
 
-  if (valueToValidate === null) {
-    valueToValidate = '';
+    return;
   }
 
-  valueToValidate = /^\d{3,}$/.test(valueToValidate) ? parseInt(valueToValidate, 10) : valueToValidate;
+  if (value instanceof Date) {
+    callback(isValidDateObject(value));
 
-  const twoDigitValue = /^\d{1,2}$/.test(valueToValidate);
-
-  if (twoDigitValue) {
-    valueToValidate += ':00';
+    return;
   }
 
-  const date = moment(valueToValidate, STRICT_FORMATS, true).isValid() ?
-    moment(valueToValidate) : moment(valueToValidate, timeFormat);
-  let isValidTime = date.isValid();
+  if (typeof value === 'number') {
+    callback(isValidTimestamp(value));
 
-  // is it in the specified format
-  let isValidFormat = moment(valueToValidate, timeFormat, true).isValid() && !twoDigitValue;
-
-  if (this.allowEmpty && valueToValidate === '') {
-    isValidTime = true;
-    isValidFormat = true;
-  }
-  if (!isValidTime) {
-    valid = false;
-  }
-  if (!isValidTime && isValidFormat) {
-    valid = true;
-  }
-  if (isValidTime && !isValidFormat) {
-    if (this.correctFormat === true) { // if format correction is enabled
-      const correctedValue = date.format(timeFormat);
-
-      this.instance.setDataAtCell(this.visualRow, this.visualCol, correctedValue, 'timeValidator');
-      valid = true;
-    } else {
-      valid = false;
-    }
+    return;
   }
 
-  callback(valid);
+  if (typeof value === 'string' && isValidISODate(value)) {
+    callback(true);
+
+    return;
+  }
+
+  callback(false);
 }
 
 timeValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;

@@ -828,16 +828,26 @@ class TableView {
           value = this.hot.runHooks('beforeValueRender', value, cellProperties);
         }
 
+        // value = cellProperties.valueFormatter ? cellProperties.valueFormatter(value, cellProperties) : value;
+
         this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
-        this.hot.getCellRenderer(cellProperties)(
+
+        const rendererArgs = [
           this.hot,
           TD,
           visualRowIndex,
           visualColumnIndex,
           prop,
           value,
-          cellProperties
-        );
+          cellProperties,
+        ];
+
+        this.hot.getCellRenderer(cellProperties)(...rendererArgs);
+
+        if (!cellProperties._isBaseRendererCalled) {
+          this.hot.getCellRenderer({ renderer: 'base' })(...rendererArgs);
+          cellProperties._isBaseRendererCalled = false;
+        }
 
         this.hot.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
       },
