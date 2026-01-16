@@ -10,7 +10,7 @@ import { Component, Input } from '@angular/core';
  * @template TProps - The type of additional renderer properties.
  */
 @Component({
-  selector: 'hot-cell-renderer',
+  selector: 'hot-cell-renderer-advanced',
   template: `<!-- This is an abstract component. Extend this component and provide your own template. -->`,
 })
 export abstract class HotCellRendererAdvancedComponent<TValue extends string | number | boolean | Record<string, any> | Array<any> = string, TProps extends {} = any> {

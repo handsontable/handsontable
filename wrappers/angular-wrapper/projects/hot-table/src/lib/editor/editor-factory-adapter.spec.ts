@@ -2,14 +2,14 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import Handsontable from 'handsontable';
 import { Component, EnvironmentInjector } from '@angular/core';
 import { FactoryEditorAdapter } from './editor-factory-adapter';
-import { HotCellEditorComponent } from './hot-cell-editor.component';
+import { HotCellEditorAdvancedComponent } from './hot-cell-editor-advanced.component';
 
 @Component({
   selector: 'hot-mock-custom-editor',
   template: '<input />',
   standalone: false,
 })
-class CustomEditorComponent extends HotCellEditorComponent<number> {
+class CustomEditorComponent extends HotCellEditorAdvancedComponent<number> {
   onFocus(): void {}
 }
 

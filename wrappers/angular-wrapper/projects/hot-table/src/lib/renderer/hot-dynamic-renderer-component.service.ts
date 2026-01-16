@@ -2,7 +2,6 @@ import { ApplicationRef, ComponentRef, createComponent, EmbeddedViewRef, Environ
 import { baseRenderer, BaseRenderer } from 'handsontable/renderers';
 import Handsontable from 'handsontable/base';
 import { HotCellRendererComponent } from './hot-cell-renderer.component';
-import { rendererFactory } from 'handsontable/renderers';
 import { HotCellRendererAdvancedComponent } from './hot-cell-renderer-advanced.component';
 
 type BaseRendererParameters = Parameters<BaseRenderer>;
@@ -134,7 +133,7 @@ export class DynamicComponentService {
    * @returns A renderer function that can be used in Handsontable's configuration.
    */
   createRendererWithFactory(component: Type<HotCellRendererAdvancedComponent>, componentProps: Record<string, any> = {}, register: boolean = false) {
-    return rendererFactory(({ instance, td, row, column, prop, value, cellProperties }) => {
+    return Handsontable.renderers.rendererFactory(({ instance, td, row, column, prop, value, cellProperties }) => {
       const properties: BaseRendererParametersObject = {
         value,
         instance,

@@ -3,6 +3,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DynamicComponentService } from './hot-dynamic-renderer-component.service';
 import Handsontable from 'handsontable';
 import { HotCellRendererComponent } from './hot-cell-renderer.component';
+import { rendererFactory } from 'handsontable/renderers';
+import { HotCellRendererAdvancedComponent } from './hot-cell-renderer-advanced.component';
 
 // Dummy component to be used as a dynamic renderer.
 @Component({
@@ -10,6 +12,13 @@ import { HotCellRendererComponent } from './hot-cell-renderer.component';
   template: `<div>Component Renderer: {{ value }}</div>`,
 })
 class DummyRendererComponent extends HotCellRendererComponent {}
+
+// Dummy advanced component to be used as a dynamic renderer.
+@Component({
+  selector: 'hot-dummy-renderer-advanced',
+  template: `<div>Component Renderer: {{ value }}</div>`,
+})
+class DummyRendererAdvancedComponent extends HotCellRendererAdvancedComponent {}
 
 // Dummy host component to provide a TemplateRef.
 @Component({
@@ -98,27 +107,27 @@ describe('DynamicComponentService - createRendererFromComponent', () => {
 
 describe('DynamicComponentService - createRendererWithFactory', () => {
   let service: DynamicComponentService;
-  let fixtureTemplate: ComponentFixture<DummyTemplateHostComponent>;
-  let templateHost: DummyTemplateHostComponent;
   let appRef: ApplicationRef;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [DummyRendererComponent, DummyTemplateHostComponent],
+      declarations: [DummyRendererAdvancedComponent],
       providers: [DynamicComponentService],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
 
     appRef = TestBed.inject(ApplicationRef);
     service = TestBed.inject(DynamicComponentService);
-    fixtureTemplate = TestBed.createComponent(DummyTemplateHostComponent);
-    templateHost = fixtureTemplate.componentInstance;
-    fixtureTemplate.detectChanges();
+
+    if (!Handsontable.renderers) {
+      Handsontable.renderers = {} as any;
+    }
+    Handsontable.renderers.rendererFactory = rendererFactory;
   });
 
   describe('when using a component as renderer', () => {
     it('should create a renderer function that attaches a component to the TD element', () => {
-      const rendererFn = service.createRendererWithFactory(DummyRendererComponent, { custom: 'dummy' }, false);
+      const rendererFn = service.createRendererWithFactory(DummyRendererAdvancedComponent, { custom: 'dummy' }, false);
 
       const td = createDummyTD();
 
@@ -131,27 +140,7 @@ describe('DynamicComponentService - createRendererWithFactory', () => {
       rendererFn(dummyHTInstance, td, row, col, prop, value, cellProperties);
       appRef.tick();
 
-      expect(td.innerHTML).toContain('<hot-dummy-renderer><div>Component Renderer: Component Test</div></hot-dummy-renderer>');
-    });
-  });
-
-  describe('when using a TemplateRef as renderer', () => {
-    it('should create a renderer function that attaches an embedded view to the TD element', () => {
-      const rendererFn = service.createRendererWithFactory(templateHost.dummyTemplate, {}, false);
-
-      const td = createDummyTD();
-
-      const row = 3;
-      const col = 4;
-      const prop = 'testProp';
-      const value = 'Template Test';
-      const cellProperties: Handsontable.CellProperties = {} as any;
-
-      rendererFn(dummyHTInstance, td, row, col, prop, value, cellProperties);
-      appRef.tick();
-
-      expect(td.innerHTML).toContain('Template Renderer: Template Test');
-      expect(td.innerHTML).toContain('(Row: 3, Col: 4)');
+      expect(td.innerHTML).toContain('<hot-dummy-renderer-advanced><div>Component Renderer: Component Test</div></hot-dummy-renderer-advanced>');
     });
   });
 });

@@ -1,10 +1,10 @@
 import { ComponentRef, createComponent, EnvironmentInjector } from '@angular/core';
-import { editorFactory } from 'handsontable/editors';
 import { CustomEditorPlaceholderComponent } from './custom-editor-placeholder.component';
 import { AngularEditorProperties } from './models/factory-editor-properties';
 import { ExtendedEditor } from 'handsontable/editors/factory';
-import { take } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { HotCellEditorAdvancedComponent } from './hot-cell-editor-advanced.component';
+import Handsontable from 'handsontable';
 
 /**
  * Combined type for the editor instance used throughout the adapter.
@@ -22,7 +22,7 @@ type EditorInstance = ExtendedEditor<AngularEditorProperties & HotCellEditorAdva
  *
  */
 export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdvancedComponent<any>>) => {
-  return editorFactory<ExtendedEditor<any>>({
+  return Handsontable.editors.editorFactory<ExtendedEditor<any>>({
     position: componentRef.instance.position,
     shortcuts: componentRef.instance.shortcuts,
     config: componentRef.instance.config,
