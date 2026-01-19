@@ -2,7 +2,14 @@ import { iconsMap } from '../static/variables/helpers/iconsMap';
 import { flattenCssVariables } from './utils/cssVariables';
 
 /**
- * ThemeManager class.
+ * The theme prefix.
+ *
+ * @type {string}
+ */
+const THEME_PREFIX = 'ht-theme-';
+
+/**
+ * ThemeManager class provides methods to manage the theme styles.
  *
  * @class ThemeManager
  */
@@ -14,7 +21,7 @@ export class ThemeManager {
    */
   hot;
   /**
-   * The theme styles.
+   * The theme styles element.
    *
    * @type {HTMLStyleElement}
    */
@@ -33,7 +40,7 @@ export class ThemeManager {
   themeConfig;
 
   /**
-   * The theme API constructor.
+   * The theme manager constructor.
    *
    * @param {object} options - The options object.
    * @param {Handsontable} options.hot - The Handsontable instance.
@@ -111,7 +118,7 @@ export class ThemeManager {
   }
 
   /**
-   * Updates the theme API.
+   * Updates the theme manager.
    *
    * @param {object} themeObject - The theme object.
    */
@@ -121,11 +128,11 @@ export class ThemeManager {
     }
 
     if (themeObject.getThemeConfig === undefined) {
-      throw new Error('[ThemeAPI] The "theme" option must be an instance of ThemeBuilder.');
+      throw new Error('[ThemeManager] The "theme" option must be an instance of ThemeBuilder.');
     }
 
     this.themeConfig = themeObject.getThemeConfig();
-    this.themeClassName = `ht-theme-${this.themeConfig.name}`;
+    this.themeClassName = `${THEME_PREFIX}${this.themeConfig.name}`;
 
     if (typeof themeObject.subscribe === 'function') {
       themeObject.subscribe((config) => {
@@ -142,14 +149,14 @@ export class ThemeManager {
   }
 
   /**
-   * Mounts the theme API.
+   * Mounts the theme manager.
    */
   mount() {
     this.#injectThemeStyles();
   }
 
   /**
-   * Unmounts the theme API.
+   * Unmounts the theme manager.
    */
   unmount() {
     if (this.themeStyles) {
@@ -158,11 +165,11 @@ export class ThemeManager {
   }
 
   /**
-   * Destroys the theme API.
+   * Destroys the theme manager.
    */
   destroy() {
     this.unmount();
-    this.hot.themeAPI = null;
+    this.hot.themeManager = null;
   }
 }
 

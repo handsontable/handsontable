@@ -4951,7 +4951,27 @@ export default () => {
     themeName: undefined,
 
     /**
-     * The `theme` option allows enabling a theme.
+     * The `theme` option configures the visual theme for your Handsontable instance.
+     *
+     * You can set the `theme` option to one of the following:
+     *
+     * | Setting                               | Description                                                                           |
+     * | ------------------------------------- | ------------------------------------------------------------------------------------- |
+     * | `undefined` (default)                 | Don't apply any theme and use the default main theme                                  |
+     * | A string (e.g., `'ht-theme-horizon'`) | Apply a registered theme by name (required to import CSS file)                        |
+     * | A `ThemeBuilder` object               | Apply a theme with runtime configuration (recommended)                                |
+     *
+     * When using a `ThemeBuilder` object, you can configure the theme at runtime using these methods:
+     *
+     * | Method                           | Description                                                                                |
+     * | -------------------------------- | ------------------------------------------------------------------------------------------ |
+     * | `setColorScheme(mode)`           | Sets the color scheme: `'light'`, `'dark'`, or `'auto'` (default: `'auto'`)                |
+     * | `setDensityType(type)`           | Sets the row density: `'compact'`, `'default'`, or `'comfortable'` (default: `'default'`)  |
+     * | `params(paramsObject)`           | Sets custom theme parameters e.g. `icons`, `colors`, `tokens`                              |
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     * - [`themeName`](#themeName)
      *
      * @memberof Options#
      * @type {ThemeBuilder|string|undefined}
@@ -4961,11 +4981,25 @@ export default () => {
      *
      * @example
      * ```js
-     * theme: {
-     *   colors: {
-     *     primary: '#000000',
-     *   },
-     * },
+     * // enable a theme by name (required to import CSS file)
+     * theme: 'ht-theme-horizon',
+     *
+     * // enable a theme using a ThemeBuilder object (recommended)
+     * const horizonTheme = registerTheme(horizonTheme);
+     *
+     * // configure the theme settings at runtime
+     * horizonTheme.setColorScheme('dark');
+     * horizonTheme.setDensityType('compact');
+     * horizonTheme.params({
+     *  tokens: {
+     *    fontSize: '14px',
+     *    iconSize: 'size_5',
+     *    borderColor: ['colors.palette.100', 'colors.palette.800'],
+     *  },
+     * })
+     *
+     * // use the configured theme
+     * theme: horizonTheme,
      * ```
      */
     theme: undefined,

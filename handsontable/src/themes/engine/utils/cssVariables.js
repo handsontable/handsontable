@@ -22,7 +22,7 @@ function isVarReference(value) {
  * Converts a dot notation path to a CSS variable reference.
  * Handles special case for 'themes.' prefix which strips the first segment.
  *
- * @param {string} path - The dot notation path (e.g., 'colors.primary' or 'themes.dark.background').
+ * @param {string} path - The dot notation path (e.g., 'colors.primary').
  * @returns {string} - The CSS variable reference (e.g., 'var(--ht-colors-primary)').
  */
 function toVarReference(path) {
@@ -45,8 +45,8 @@ function toCssKey(prefix, key) {
 }
 
 /**
- * Converts a value to a CSS variable declaration value.
- * Handles variable references, light/dark objects, and plain values.
+ * Converts a value to a CSS variable value.
+ * Handles variable references, light/dark values, and single values.
  *
  * @param {string|object} value - The value to convert.
  * @returns {string} - The CSS value.
@@ -94,12 +94,12 @@ function toCssLine(prefix, key, value) {
 }
 
 /**
- * Flattens the css variables object into a string of CSS variables.
+ * Flattens the CSS variables object into a string of CSS variables.
  *
- * @param {object} cssVariables - The css variables object to flatten.
+ * @param {object} cssVariables - The CSS variables object to flatten.
  * @param {string} [prefix='colors'] - The prefix to add to the CSS variables.
  * @param {string} [parentKey=''] - The parent key to add to the CSS variables.
- * @returns {string} - The flattened css variables.
+ * @returns {string} - The flattened CSS variables.
  */
 export function flattenCssVariables(cssVariables, prefix = '', parentKey = '') {
   let cssVars = '';

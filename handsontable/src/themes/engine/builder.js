@@ -11,6 +11,13 @@ import { validateParams, validateDensityType, validateColorScheme } from './util
 const MERGEABLE_CONFIG_KEYS = ['sizing', 'icons', 'colors', 'tokens'];
 
 /**
+ * Required config keys.
+ *
+ * @type {string[]}
+ */
+const REQUIRED_CONFIG_KEYS = ['name', 'icons', 'colors', 'tokens'];
+
+/**
  * ThemeBuilder class provides methods to build and configure themes.
  *
  * @class ThemeBuilder
@@ -65,7 +72,7 @@ class ThemeBuilder {
    */
   constructor(themeConfig) {
     validateParams(themeConfig, 'themeConfig', {
-      requiredFields: ['name', 'icons', 'colors', 'tokens'],
+      requiredFields: REQUIRED_CONFIG_KEYS,
     });
 
     this.#initThemeConfig = {
@@ -179,10 +186,10 @@ class ThemeBuilder {
   }
 
   /**
-   * Sets multiple theme parameters at once.
+   * Sets theme configuration parameters.
    *
-   * @param {object} paramsObject An object containing key-value pairs of parameters to set.
-   * @returns {ThemeBuilder} Returns the ThemeBuilder instance for chaining.
+   * @param {object} paramsObject An object with theme configuration parameters.
+   * @returns {ThemeBuilder} The ThemeBuilder instance for chaining.
    */
   params(paramsObject) {
     validateParams(paramsObject, 'params');
@@ -197,12 +204,7 @@ class ThemeBuilder {
    * Sets the color mode (light, dark, or auto).
    *
    * @param {string} mode The color mode ('light', 'dark', or 'auto').
-   * @returns {ThemeBuilder} Returns the ThemeBuilder instance for chaining.
-   *
-   * @example
-   * ```js
-   * const myTheme = mainTheme.setColorScheme('dark');
-   * ```
+   * @returns {ThemeBuilder} The ThemeBuilder instance for chaining.
    */
   setColorScheme(mode) {
     this.#colorScheme = validateColorScheme(mode);
@@ -218,12 +220,7 @@ class ThemeBuilder {
    * Sets the density type (compact, default, or comfortable).
    *
    * @param {string} type The density type ('compact', 'default', or 'comfortable').
-   * @returns {ThemeBuilder} Returns the ThemeBuilder instance for chaining.
-   *
-   * @example
-   * ```js
-   * const myTheme = mainTheme.setDensity('compact');
-   * ```
+   * @returns {ThemeBuilder} The ThemeBuilder instance for chaining.
    */
   setDensityType(type) {
     this.#densityType = validateDensityType(type);
@@ -238,7 +235,7 @@ class ThemeBuilder {
   /**
    * Gets the current theme configuration.
    *
-   * @returns {object} The theme configuration object.
+   * @returns {ThemeConfig} The theme configuration object.
    */
   getThemeConfig() {
     return this.#themeConfig;
@@ -248,7 +245,7 @@ class ThemeBuilder {
 /**
  * Creates a new ThemeBuilder instance.
  *
- * @param {object} baseTheme The base theme object with density, icons, colors, and tokens properties.
+ * @param {object} baseTheme The base theme object with theme configuration parameters.
  * @returns {ThemeBuilder} The ThemeBuilder instance.
  */
 export function createTheme(baseTheme) {
