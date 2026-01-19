@@ -1,4 +1,16 @@
-import { AfterViewInit, Component, ElementRef, EnvironmentInjector, Input, NgZone, OnChanges, OnDestroy, SimpleChanges, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EnvironmentInjector,
+  Input,
+  NgZone,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  ViewChild,
+  ViewEncapsulation
+} from '@angular/core';
 import Handsontable from 'handsontable/base';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
 import { HotGlobalConfigService } from './services/hot-global-config.service';
@@ -96,7 +108,10 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     if (changes.settings && !changes.settings.firstChange) {
-      const newOptions: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(changes.settings.currentValue, this.ngZone);
+      const newOptions: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(
+        changes.settings.currentValue,
+        this.ngZone
+      );
 
       this.updateHotTable(newOptions);
     }

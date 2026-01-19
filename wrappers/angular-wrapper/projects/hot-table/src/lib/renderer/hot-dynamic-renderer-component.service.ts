@@ -1,4 +1,13 @@
-import { ApplicationRef, ComponentRef, createComponent, EmbeddedViewRef, EnvironmentInjector, Injectable, TemplateRef, Type } from '@angular/core';
+import {
+  ApplicationRef,
+  ComponentRef,
+  createComponent,
+  EmbeddedViewRef,
+  EnvironmentInjector,
+  Injectable,
+  TemplateRef,
+  Type
+} from '@angular/core';
 import { baseRenderer, BaseRenderer } from 'handsontable/renderers';
 import Handsontable from 'handsontable/base';
 import { HotCellRendererComponent } from './hot-cell-renderer.component';
@@ -84,8 +93,20 @@ export class DynamicComponentService {
    * @param register - If true, registers the renderer with Handsontable using the component's name.
    * @returns A renderer function that can be used in Handsontable's configuration.
    */
-  createRendererFromComponent(component: Type<HotCellRendererComponent> | TemplateRef<any>, componentProps: Record<string, any> = {}, register: boolean = false) {
-    return (instance: Handsontable.Core, td: HTMLTableCellElement, row: number, col: number, prop: string | number, value: any, cellProperties: Handsontable.CellProperties) => {
+  createRendererFromComponent(
+    component: Type<HotCellRendererComponent> | TemplateRef<any>,
+    componentProps: Record<string, any> = {},
+    register: boolean = false
+  ) {
+    return (
+      instance: Handsontable.Core,
+      td: HTMLTableCellElement,
+      row: number,
+      col: number,
+      prop: string | number,
+      value: any,
+      cellProperties: Handsontable.CellProperties
+    ) => {
       const properties: BaseRendererParametersObject = {
         value,
         instance,
@@ -132,8 +153,20 @@ export class DynamicComponentService {
    * @param register - If true, registers the renderer with Handsontable using the component's name.
    * @returns A renderer function that can be used in Handsontable's configuration.
    */
-  createRendererWithFactory(component: Type<HotCellRendererAdvancedComponent>, componentProps: Record<string, any> = {}, register: boolean = false) {
-    return Handsontable.renderers.rendererFactory(({ instance, td, row, column, prop, value, cellProperties }) => {
+  createRendererWithFactory(
+    component: Type<HotCellRendererAdvancedComponent>,
+    componentProps: Record<string, any> = {},
+    register: boolean = false
+  ) {
+    return Handsontable.renderers.rendererFactory(({
+      instance,
+      td,
+      row,
+      column,
+      prop,
+      value,
+      cellProperties
+    }) => {
       const properties: BaseRendererParametersObject = {
         value,
         instance,
@@ -191,7 +224,10 @@ export class DynamicComponentService {
    * @param rendererParameters - An object containing input properties to assign to the component instance.
    * @returns The ComponentRef of the dynamically created component.
    */
-  private createComponent<T extends HotCellRendererComponent>(component: Type<T>, rendererParameters: BaseRendererParametersObject): ComponentRef<T> {
+  private createComponent<T extends HotCellRendererComponent>(
+    component: Type<T>,
+    rendererParameters: BaseRendererParametersObject
+  ): ComponentRef<T> {
     const componentRef = createComponent(component, {
       environmentInjector: this.environmentInjector,
     });

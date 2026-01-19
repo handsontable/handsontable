@@ -144,29 +144,41 @@ export class HotSettingsResolver {
 
   private isEditorComponentRefType(editor: any): editor is Type<HotCellEditorComponent<any>> {
     // ecmp - we need it to check if the editor is a component
-    return typeof editor === 'function' && !!(editor as any)?.ɵcmp && (editor as any)?.EDITOR_MARKER === HotCellEditorComponent.EDITOR_MARKER;
+    return typeof editor === 'function' &&
+      !!(editor as any)?.ɵcmp &&
+      (editor as any)?.EDITOR_MARKER === HotCellEditorComponent.EDITOR_MARKER;
   }
 
   private isAdvancedEditorComponentRefType(editor: any): editor is Type<HotCellEditorAdvancedComponent<any>> {
     // ecmp - we need it to check if the editor is a component
-    return typeof editor === 'function' && !!(editor as any)?.ɵcmp && (editor as any)?.EDITOR_MARKER === HotCellEditorAdvancedComponent.EDITOR_MARKER;
+    return typeof editor === 'function' &&
+      !!(editor as any)?.ɵcmp &&
+      (editor as any)?.EDITOR_MARKER === HotCellEditorAdvancedComponent.EDITOR_MARKER;
   }
 
   private isRendererComponentRefType(renderer: any): renderer is Type<HotCellRendererComponent<any, any>> {
     // ecmp - we need it to check if the renderer is a component
-    return typeof renderer === 'function' && !!(renderer as any)?.ɵcmp && (renderer as any)?.RENDERER_MARKER === HotCellRendererComponent.RENDERER_MARKER;
+    return typeof renderer === 'function' &&
+      !!(renderer as any)?.ɵcmp &&
+      (renderer as any)?.RENDERER_MARKER === HotCellRendererComponent.RENDERER_MARKER;
   }
 
   private isAdvancedRendererComponentRefType(renderer: any): renderer is Type<HotCellRendererAdvancedComponent<any, any>> {
     // ecmp - we need it to check if the renderer is a component
-    return typeof renderer === 'function' && !!(renderer as any)?.ɵcmp && (renderer as any)?.RENDERER_MARKER === HotCellRendererAdvancedComponent.RENDERER_MARKER;
+    return typeof renderer === 'function' &&
+      !!(renderer as any)?.ɵcmp &&
+      (renderer as any)?.RENDERER_MARKER === HotCellRendererAdvancedComponent.RENDERER_MARKER;
   }
 
   private isTemplateRef(renderer: any): renderer is TemplateRef<any> {
     return renderer && typeof renderer.createEmbeddedView === 'function';
   }
 
-  private isCustomRenderer(renderer: any): renderer is Type<HotCellRendererComponent<any, any>> | TemplateRef<any> | Type<HotCellRendererAdvancedComponent<any, any>> {
-    return this.isRendererComponentRefType(renderer) || this.isTemplateRef(renderer) || this.isAdvancedRendererComponentRefType(renderer);
+  private isCustomRenderer(renderer: any): renderer is Type<HotCellRendererComponent<any, any>> |
+    TemplateRef<any> |
+    Type<HotCellRendererAdvancedComponent<any, any>> {
+    return this.isRendererComponentRefType(renderer) ||
+      this.isTemplateRef(renderer) ||
+      this.isAdvancedRendererComponentRefType(renderer);
   }
 }

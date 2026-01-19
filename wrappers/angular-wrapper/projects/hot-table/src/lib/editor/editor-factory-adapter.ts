@@ -21,8 +21,8 @@ type EditorInstance = ExtendedEditor<AngularEditorProperties & HotCellEditorAdva
  * @returns A custom editor class that can be used in Handsontable column settings.
  *
  */
-export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdvancedComponent<any>>) => {
-  return Handsontable.editors.editorFactory<ExtendedEditor<any>>({
+export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdvancedComponent<any>>) =>
+  Handsontable.editors.editorFactory<ExtendedEditor<any>>({
     position: componentRef.instance.position,
     shortcuts: componentRef.instance.shortcuts,
     config: componentRef.instance.config,
@@ -91,7 +91,6 @@ export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdv
       editor._componentRef.changeDetectorRef.detectChanges();
     },
   });
-};
 
 /**
  * Creates the editor placeholder component.

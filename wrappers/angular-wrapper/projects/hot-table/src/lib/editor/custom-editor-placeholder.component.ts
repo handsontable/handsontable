@@ -43,7 +43,9 @@ export class CustomEditorPlaceholderComponent {
   @Input() placeholderCustomClass = 'handsontableInputHolder ht_clone_master';
 
   /** The reference to the component instance of the editor. */
-  @Input() set componentRef(hotEditorComponentRef: ComponentRef<HotCellEditorComponent<any>> | ComponentRef<HotCellEditorAdvancedComponent<any>>) {
+  @Input() set componentRef(
+    hotEditorComponentRef: ComponentRef<HotCellEditorComponent<any>> |
+    ComponentRef<HotCellEditorAdvancedComponent<any>>) {
     if (hotEditorComponentRef) {
       this.container.insert(hotEditorComponentRef.hostView);
     }

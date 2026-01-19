@@ -100,6 +100,14 @@
       else if (key === '@handsontable/angular-wrapper') {
         ns = 'Handsontable.angular';
 
+      } else if (/^@angular\/material\//.test(key)) {
+        const moduleName = key.split('/')[2];
+        ns = `ng.material-${moduleName}`;
+
+      } else if (/^@angular\/cdk\//.test(key)) {
+        const moduleName = key.split('/')[2];
+        ns = `ng.cdk-${moduleName}`;
+
       } else if (key === '@handsontable/react-wrapper') {
         ns = 'Handsontable.react';
 

@@ -13,7 +13,13 @@ import { Component, Input } from '@angular/core';
   selector: 'hot-cell-renderer-advanced',
   template: `<!-- This is an abstract component. Extend this component and provide your own template. -->`,
 })
-export abstract class HotCellRendererAdvancedComponent<TValue extends string | number | boolean | Record<string, any> | Array<any> = string, TProps extends {} = any> {
+export abstract class HotCellRendererAdvancedComponent<
+  TValue extends string |
+  number |
+  boolean |
+  Record<string, any> | Array<any> = string,
+  TProps extends {} = any
+> {
   static readonly RENDERER_MARKER = Symbol('HotCellRendererAdvancedComponent');
 
   @Input() value: TValue = '' as TValue;

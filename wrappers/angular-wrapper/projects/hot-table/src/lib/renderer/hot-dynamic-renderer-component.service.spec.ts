@@ -140,6 +140,7 @@ describe('DynamicComponentService - createRendererWithFactory', () => {
       rendererFn(dummyHTInstance, td, row, col, prop, value, cellProperties);
       appRef.tick();
 
+      // eslint-disable-next-line max-len
       expect(td.innerHTML).toContain('<hot-dummy-renderer-advanced><div>Component Renderer: Component Test</div></hot-dummy-renderer-advanced>');
     });
   });

@@ -177,14 +177,14 @@ export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<{
   }
 }
 
-Component({
+@Component({
   selector: "example1-multi-select-renderer",
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<div>
     {{ displayValue }}
   </div>`,
   standalone: false,
-});
+})
 export class MultiSelectRendererComponent extends HotCellRendererAdvancedComponent<{ value: string; label: string }[]> {
   get displayValue(): string {
     return this.value && this.value.length > 0 ? this.value.map((el) => el.label).join(", ") : "No elements";
