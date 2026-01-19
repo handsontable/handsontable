@@ -10,6 +10,7 @@
 
 <script lang="ts">
 import { HotTable } from "@handsontable/vue";
+import "handsontable/styles/handsontable.css";
 
 import { getData } from "../utils/constants";
 

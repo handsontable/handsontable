@@ -27,6 +27,7 @@
             "tsConfig": "tsconfig.app.json",
             "aot": true,
             "styles": [
+              "node_modules/handsontable/styles/handsontable.css",
               "src/styles.scss"
             ],
             "scripts": [],

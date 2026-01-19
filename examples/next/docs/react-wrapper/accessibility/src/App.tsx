@@ -4,6 +4,8 @@ import { useState } from "react";
 import { countries, data } from "./data";
 import DemoOptions from "./DemoOptions";
 
+import "handsontable/styles/handsontable.css";
+
 import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
