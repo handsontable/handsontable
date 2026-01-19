@@ -78,9 +78,6 @@ export class MultiSelectEditor extends BaseEditor {
 
     this.createElements();
     this.bindEvents();
-
-    this.hot.addHook('afterDestroy', () => this.destroy());
-    this.hot.addHook('afterSetSourceDataAtCell', (...args) => this.#onAfterSetSourceDataAtCell(...args));
   }
 
   /**
@@ -166,7 +163,12 @@ export class MultiSelectEditor extends BaseEditor {
         }
       }
     );
-    // this.dropdownController.addLocalHook('afterDropdownFill', () => this.#onAfterDropdownFill());
+
+    this.hot.addHook('afterDestroy', () => this.destroy());
+    this.hot.addHook('afterSetSourceDataAtCell', (...args) => this.#onAfterSetSourceDataAtCell(...args));
+    this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
+    this.addHook('afterScrollVertically', () => this.refreshDimensions());
+
     this.dropdownController.getInputController().addLocalHook('triggerFilter', value => this.#filterEntries(value));
   }
 
