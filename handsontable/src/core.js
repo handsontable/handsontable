@@ -1403,7 +1403,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let shouldBeCanceled = true;
 
     waitingForValidator.onQueueEmpty = () => {
-      if (activeEditor && shouldBeCanceled) {
+      if (activeEditor && shouldBeCanceled && activeEditor._closeAfterDataChange) {
         activeEditor.cancelChanges();
       }
 
@@ -1512,17 +1512,25 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     const hasChanges = changes.length > 0;
+    const activeEditor = editorManager.getActiveEditor();
+    const closeEditorAfterDataChange = activeEditor?._closeAfterDataChange;
 
     if (hasChanges) {
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
-      editorManager.closeEditor();
+
+      if (closeEditorAfterDataChange) {
+        editorManager.closeEditor();
+      }
+
       instance.view.adjustElementsSize();
       instance.render();
-      editorManager.prepareEditor();
-      instance.runHooks('afterChange', changes, source || 'edit');
 
-      const activeEditor = instance.getActiveEditor();
+      if (closeEditorAfterDataChange) {
+        editorManager.prepareEditor();
+      }
+
+      instance.runHooks('afterChange', changes, source || 'edit');
 
       if (activeEditor && isDefined(activeEditor.refreshValue)) {
         activeEditor.refreshValue();

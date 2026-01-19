@@ -3,8 +3,15 @@ import localHooks from '../../../mixins/localHooks';
 import { addClass, removeClass } from '../../../helpers/dom/element';
 import { getCheckboxElement, includesValue } from '../utils/utils';
 import EventManager from '../../../eventManager';
+import { InputController } from './inputController';
 
 const SELECTED_ITEM_CLASS = 'htItemSelected';
+const SEARCH_INPUT_WRAPPER_CLASS = 'htMultiSelectEditorSearchInputWrapper';
+const SEARCH_ICON_CLASS = 'htMultiSelectEditorSearchIcon';
+const SEARCH_INPUT_CLASS = 'htMultiSelectEditorSearchInput';
+const SEPARATOR_CLASS = 'htMultiSelectEditorSeparator';
+const CHECKBOX_ID_PREFIX = 'htMultiSelectItem-';
+const SEARCH_INPUT_PLACEHOLDER = 'Search...';
 
 /**
  * Renders and manages the dropdown list used by the `MultiSelectEditor`.
@@ -28,6 +35,22 @@ export class DropdownController {
    * @type {HTMLUListElement|null}
    */
   #dropdownListElement = null;
+
+  /**
+   * Search input element for filtering dropdown entries.
+   *
+   * @private
+   * @type {HTMLInputElement|null}
+   */
+  #searchInputElement = null;
+
+  /**
+   * Input controller for managing the search input.
+   *
+   * @private
+   * @type {InputController|null}
+   */
+  #inputController = null;
 
   /**
    * Cached document reference used for DOM operations.
@@ -55,7 +78,7 @@ export class DropdownController {
     visibleRowsNumber: null,
     entriesCount: 0,
     flippedVertically: false,
-    currentlySelectedItemIndex: null,
+    currentlySelectedItemIndex: 0,
     checkboxChangeListeners: new Map(),
     areCheckboxesDisabled: false,
     sourceSortFunction: null,
@@ -78,9 +101,23 @@ export class DropdownController {
    * Builds required DOM elements and inserts them into the container.
    */
   init() {
+    this.#searchInputElement = this.#createSearchInputElement();
+    const searchIcon = this.#createSearchIcon();
+    const searchInputWrapper = this.#createSearchInputWrapper();
+    const separatorElement = this.#createSeparatorElement();
+
     this.#dropdownListElement = this.#createListElement();
 
+    searchInputWrapper.appendChild(searchIcon);
+    searchInputWrapper.appendChild(this.#searchInputElement);
+    this.#containerElement.appendChild(searchInputWrapper);
+    this.#containerElement.appendChild(separatorElement);
     this.#containerElement.appendChild(this.#dropdownListElement);
+
+    this.#inputController = new InputController({
+      input: this.#searchInputElement,
+      eventManager: this.#eventManager,
+    });
   }
 
   /**
@@ -88,8 +125,8 @@ export class DropdownController {
    *
    * @param {number} visibleRowsNumber Number of visible rows.
    */
-  setVisibleRowsNumber(visibleRowsNumber) {
-    this.#cache.visibleRowsNumber = visibleRowsNumber;
+  setVisibleRowsNumberSetting(visibleRowsNumber) {
+    this.#cache.visibleRowsNumberSetting = visibleRowsNumber;
   }
 
   /**
@@ -109,6 +146,7 @@ export class DropdownController {
    */
   fillDropdown(entries, checkedValues = []) {
     this.removeAllDropdownItems();
+    this.#cache.currentlySelectedItemIndex = 0;
 
     if (!Array.isArray(checkedValues)) {
       checkedValues = [];
@@ -134,10 +172,7 @@ export class DropdownController {
    * @param {boolean} noFlip If true, the dropdown will not be flipped vertically.
    */
   updateDimensions(availableSpace, noFlip = false) {
-    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
-    const entryHeight =
-      (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'), 10)) +
-      parseInt(computedStyle.getPropertyValue('--ht-line-height'), 10);
+    const entryHeight = this.#getEntryHeight();
     const requiresFlippingVertically = this.#requiresFlippingVertically(availableSpace);
     const availableHeight = requiresFlippingVertically ? availableSpace.spaceAbove : availableSpace.spaceBelow;
 
@@ -145,24 +180,21 @@ export class DropdownController {
       this.#cache.flippedVertically = true;
     }
 
-    if (
-      this.#cache.entriesCount > 0 &&
-      availableHeight < (
-        this.#cache.visibleRowsNumber ? this.#cache.visibleRowsNumber : this.#cache.entriesCount
-      ) * entryHeight
-    ) {
-      this.#cache.visibleRowsNumber = Math.max(Math.floor(availableHeight / entryHeight) - 1, 1);
+    if (this.#cache.entriesCount > 0 && availableHeight < this.getHeight(true)) {
+      this.#cache.actualRenderedItemsCount =
+        Math.max(Math.floor((availableHeight - this.#getSearchInputWrapperHeight()) / entryHeight) - 1, 1);
+    } else {
+      this.#cache.actualRenderedItemsCount = Math.min(this.#cache.entriesCount, this.#cache.visibleRowsNumberSetting);
     }
 
-    if (this.#cache.visibleRowsNumber && this.#cache.entriesCount > this.#cache.visibleRowsNumber) {
-      this.#containerElement.style.height = `${(this.#cache.visibleRowsNumber * entryHeight) +
-        (2 * parseInt(computedStyle.getPropertyValue('--ht-gap-size'), 10))}px`;
+    if (this.#cache.actualRenderedItemsCount && this.#cache.entriesCount > this.#cache.actualRenderedItemsCount) {
+      this.#containerElement.style.height = `${this.getHeight()}px`;
 
     } else {
       this.#containerElement.style.height = '';
     }
 
-    this.#toggleVerticalFlip();
+    this.#toggleVerticalFlip(availableSpace);
 
     this.#containerElement.scrollTop = 0;
   }
@@ -177,22 +209,26 @@ export class DropdownController {
   }
 
   /**
+   * Focuses the first item in the dropdown.
+   */
+  focusFirstItem() {
+    if (this.#cache.entriesCount > 0) {
+      this.#focusItem(0);
+    }
+  }
+
+  /**
    * Selects the previous item in the dropdown.
    */
   focusPreviousItem() {
-    if (this.#cache.currentlySelectedItemIndex === null) {
-      // eslint-disable-next-line no-useless-return
+    if (this.#cache.currentlySelectedItemIndex === 0) {
+      this.#focusSearchInput();
+
       return;
     }
 
     this.#defocusItem(this.#cache.currentlySelectedItemIndex);
-
-    if (this.#cache.currentlySelectedItemIndex === 0) {
-      this.#focusItem(null);
-
-    } else if (this.#cache.currentlySelectedItemIndex !== null) {
-      this.#focusItem(this.#cache.currentlySelectedItemIndex - 1);
-    }
+    this.#focusItem(this.#cache.currentlySelectedItemIndex - 1);
   }
 
   /**
@@ -200,17 +236,11 @@ export class DropdownController {
    */
   focusNextItem() {
     if (this.#cache.currentlySelectedItemIndex === this.#cache.entriesCount - 1) {
-      // eslint-disable-next-line no-useless-return
       return;
-
-    } else if (this.#cache.currentlySelectedItemIndex !== null) {
-      this.#defocusItem(this.#cache.currentlySelectedItemIndex);
-
-      this.#focusItem(this.#cache.currentlySelectedItemIndex + 1);
-
-    } else if (this.#cache.currentlySelectedItemIndex === null) {
-      this.#focusItem(0);
     }
+
+    this.#defocusItem(this.#cache.currentlySelectedItemIndex);
+    this.#focusItem(this.#cache.currentlySelectedItemIndex + 1);
   }
 
   /**
@@ -219,6 +249,10 @@ export class DropdownController {
   reset() {
     this.removeAllDropdownItems();
     this.#resetCache();
+
+    if (this.#searchInputElement) {
+      this.#searchInputElement.value = '';
+    }
 
     this.#containerElement.style.position = '';
     this.#containerElement.style.top = '';
@@ -241,12 +275,6 @@ export class DropdownController {
    * @param {number} index Index of the item to focus.
    */
   #focusItem(index) {
-    if (this.#cache.currentlySelectedItemIndex === null && index === 0) {
-      this.runLocalHooks('afterDropdownFocus');
-    } else if (index === null) {
-      this.runLocalHooks('afterDropdownDefocus');
-    }
-
     this.#cache.currentlySelectedItemIndex = index;
 
     const itemElement = this.#dropdownListElement.children[index];
@@ -281,10 +309,10 @@ export class DropdownController {
    * Resets the cache.
    */
   #resetCache() {
-    this.#cache.visibleRowsNumber = null;
+    this.#cache.visibleRowsNumberSetting = null;
     this.#cache.entriesCount = 0;
     this.#cache.flippedVertically = false;
-    this.#cache.currentlySelectedItemIndex = null;
+    this.#cache.currentlySelectedItemIndex = 0;
   }
 
   /**
@@ -296,18 +324,21 @@ export class DropdownController {
   #requiresFlippingVertically(availableSpace) {
     const { spaceAbove, spaceBelow, cellHeight } = availableSpace;
 
-    return this.getHeight() > spaceBelow && spaceAbove > spaceBelow + cellHeight;
+    return (this.getHeight(true) > spaceBelow) && (spaceAbove > (spaceBelow + cellHeight));
   }
 
   /**
    * Toggles the vertical flip.
+   *
+   * @param {object} availableSpace Available space object.
    */
-  #toggleVerticalFlip() {
+  #toggleVerticalFlip(availableSpace) {
+    const { cellHeight } = availableSpace;
     const flipNeeded = this.#cache.flippedVertically;
 
     if (flipNeeded) {
       this.#containerElement.style.position = 'absolute';
-      this.#containerElement.style.top = `${-this.getHeight()}px`;
+      this.#containerElement.style.top = `${-this.getHeight() - cellHeight}px`;
 
     } else {
       this.#containerElement.style.position = '';
@@ -318,19 +349,111 @@ export class DropdownController {
   /**
    * Gets the height of the dropdown.
    *
+   * @param {boolean} maxRowsCalculation If true, the height will be calculated for the maximum number of rows.
    * @returns {number} Height of the dropdown.
    */
-  getHeight() {
-    const visibleRowsNumber =
-      this.#cache.visibleRowsNumber ?
-        Math.min(this.#cache.visibleRowsNumber, this.#cache.entriesCount) : this.#cache.entriesCount;
-    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
-    const entryHeight =
-      (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'), 10)) +
-      parseInt(computedStyle.getPropertyValue('--ht-line-height'), 10);
+  getHeight(maxRowsCalculation = false) {
+    return this.#getListHeight(maxRowsCalculation) + this.#getSearchInputWrapperHeight();
+  }
 
-    return (visibleRowsNumber * entryHeight) +
+  /**
+   * Gets the height of an entry.
+   *
+   * @returns {number} Height of an entry.
+   */
+  #getEntryHeight() {
+    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
+
+    return (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'), 10)) +
+      parseInt(computedStyle.getPropertyValue('--ht-line-height'), 10);
+  }
+
+  /**
+   * Gets the height of the list.
+   *
+   * @param {boolean} maxRowsCalculation If true, the height will be calculated for the maximum number of rows.
+   * @returns {number} Height of the list.
+   */
+  #getListHeight(maxRowsCalculation = false) {
+    const maxRenderedItems =
+    this.#cache.visibleRowsNumberSetting ?
+      Math.min(this.#cache.visibleRowsNumberSetting, this.#cache.entriesCount) : this.#cache.entriesCount;
+    const actualRenderedItems =
+      maxRowsCalculation ? maxRenderedItems : this.#cache.actualRenderedItemsCount ?? maxRenderedItems;
+    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
+    const entryHeight = this.#getEntryHeight();
+    const listHeight = (actualRenderedItems * entryHeight) +
       (2 * parseInt(computedStyle.getPropertyValue('--ht-gap-size'), 10));
+
+    return listHeight;
+  }
+
+  /**
+   * Gets the height of the search input wrapper.
+   *
+   * @returns {number} Height of the search input wrapper.
+   */
+  #getSearchInputWrapperHeight() {
+    const searchInputWrapper = this.#containerElement.querySelector(`.${SEARCH_INPUT_WRAPPER_CLASS}`);
+    const searchInputWrapperHeight = searchInputWrapper ? searchInputWrapper.offsetHeight : 0;
+    const separatorHeight = 1;
+
+    return searchInputWrapperHeight + separatorHeight;
+  }
+
+  /**
+   * Creates the wrapper div for the search input.
+   *
+   * @returns {HTMLDivElement}
+   */
+  #createSearchInputWrapper() {
+    const wrapperElement = this.#rootDocument.createElement('div');
+
+    wrapperElement.className = SEARCH_INPUT_WRAPPER_CLASS;
+
+    return wrapperElement;
+  }
+
+  /**
+   * Creates the search icon element.
+   *
+   * @returns {HTMLElement}
+   */
+  #createSearchIcon() {
+    const iconElement = this.#rootDocument.createElement('div');
+
+    iconElement.className = SEARCH_ICON_CLASS;
+
+    return iconElement;
+  }
+
+  /**
+   * Creates the search input element.
+   *
+   * @returns {HTMLInputElement}
+   */
+  #createSearchInputElement() {
+    const inputElement = this.#rootDocument.createElement('input');
+
+    inputElement.type = 'text';
+    inputElement.size = 5;
+    inputElement.className = SEARCH_INPUT_CLASS;
+    inputElement.placeholder = SEARCH_INPUT_PLACEHOLDER;
+
+    return inputElement;
+  }
+
+  /**
+   * Creates the separator line element.
+   *
+   * @returns {HTMLElement}
+   */
+  #createSeparatorElement() {
+    const separatorElement = this.#rootDocument.createElement('div');
+
+    separatorElement.className = SEPARATOR_CLASS;
+
+    return separatorElement;
   }
 
   /**
@@ -356,7 +479,7 @@ export class DropdownController {
     const checkboxElement = this.#rootDocument.createElement('input');
     const labelElement = this.#rootDocument.createElement('label');
 
-    checkboxElement.id = `htMultiSelectItem-${itemValue}`;
+    checkboxElement.id = `${CHECKBOX_ID_PREFIX}${itemValue}`;
     checkboxElement.type = 'checkbox';
     checkboxElement.dataset.value = itemValue;
     checkboxElement.disabled = checked ? false : this.#cache.areCheckboxesDisabled;
@@ -516,6 +639,26 @@ export class DropdownController {
     this.#eventManager.removeEventListener(itemElement, 'click', checkboxListeners.click);
 
     this.#cache.checkboxChangeListeners.delete(checkbox);
+  }
+
+  /**
+   * Gets the input controller instance.
+   *
+   * @returns {InputController|null} The input controller instance.
+   */
+  getInputController() {
+    return this.#inputController;
+  }
+
+  /**
+   * Focuses the search input element.
+   *
+   * @private
+   */
+  #focusSearchInput() {
+    if (this.#searchInputElement) {
+      this.#searchInputElement.focus();
+    }
   }
 }
 

@@ -1,0 +1,74 @@
+// MultiSelect - Cell Renderer
+
+@mixin output {
+  .handsontable {
+    .htMultiSelectRenderer {
+      padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
+      overflow: hidden;
+    }
+
+    .htMultiSelectChipsContainer {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: var(--ht-gap-size);
+      overflow: hidden;
+      max-width: 100%;
+    }
+
+    .htMultiSelectChip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--ht-gap-size);
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: var(--ht-color-gray-250);
+      font-size: calc(var(--ht-font-size) - 1px);
+      line-height: 1.2;
+      white-space: nowrap;
+      flex-shrink: 0;
+      max-width: 100px;
+      box-sizing: border-box;
+    }
+
+    .htMultiSelectChipLabel {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--ht-foreground-color);
+      font-style: normal;
+      font-weight: var(--ht-font-weight);
+      line-height: var(--ht-line-height, 40px);
+      letter-spacing: var(--ht-letter-spacing, 0);
+    }
+
+    .htMultiSelectChipRemove {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: calc(var(--ht-line-height) - 4px);
+      height: calc(var(--ht-line-height) - 4px);
+      cursor: pointer;
+      flex-shrink: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' fill='none'%3E%3Cpath d='M24 8L8 24M8 8L24 24' stroke='%23A3A3A3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    .htMultiSelectOverflow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 6px;
+      background: var(--ht-color-gray-250, #EBEBED); // TODO: create variable
+      border-radius: 8px;
+      font-size: calc(var(--ht-font-size) - 2px);
+      font-weight: var(--ht-font-weight);
+      color: var(--ht-foreground-color);
+      opacity: 0.7;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+  }
+}
+

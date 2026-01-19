@@ -1,22 +1,31 @@
-import { TextEditor } from '../textEditor';
+import { BaseEditor } from '../baseEditor';
+import EventManager from '../../eventManager';
 import { DropdownController } from './controllers/dropdownController';
 import { SelectedItemsController } from './controllers/selectedItemsController';
-import { InputController } from './controllers/inputController';
+import { addClass } from '../../helpers/dom/element';
 import {
   getValuesIntersection,
   parseStringifiedValue,
-  getSourceItemByValue,
 } from './utils/utils';
 
 export const EDITOR_TYPE = 'multiSelect';
+
 const DROPDOWN_ELEMENT_CSS_CLASSNAME = 'htMultiSelectEditor';
 const SHORTCUTS_GROUP = 'multiSelectEditor';
+const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 
 /**
  * @private
  * @class MultiSelectEditor
  */
-export class MultiSelectEditor extends TextEditor {
+export class MultiSelectEditor extends BaseEditor {
+  /**
+   * Prevent the editor from closing after data change.
+   *
+   * @type {boolean}
+   */
+  _closeAfterDataChange = false;
+
   /**
    * Set of values that are currently checked in the dropdown.
    *
@@ -24,6 +33,14 @@ export class MultiSelectEditor extends TextEditor {
    * @type {SelectedItemsController}
    */
   #selectedItems = new SelectedItemsController();
+
+  /**
+   * Container element that hosts the editor.
+   *
+   * @private
+   * @type {HTMLDivElement}
+   */
+  #editorContainer = null;
 
   /**
    * Container element that hosts the dropdown with checkbox options.
@@ -42,14 +59,6 @@ export class MultiSelectEditor extends TextEditor {
   dropdownController = this.dropdownController ?? null;
 
   /**
-   * Input controller responsible for managing the input.
-   *
-   * @private
-   * @type {InputController}
-   */
-  inputController = this.inputController ?? null;
-
-  /**
    * Returns the editor type.
    *
    * @returns {string} The editor type.
@@ -59,19 +68,35 @@ export class MultiSelectEditor extends TextEditor {
   }
 
   /**
+   * @param {Core} hotInstance The Handsontable instance.
+   */
+  constructor(hotInstance) {
+    super(hotInstance);
+
+    this.eventManager = new EventManager(this);
+
+    this.createElements();
+    this.bindEvents();
+
+    this.hot.addHookOnce('afterDestroy', () => this.destroy());
+  }
+
+  /**
    * Creates an editor's elements and adds necessary CSS classnames.
    */
   createElements() {
-    super.createElements();
+    const { rootDocument } = this.hot;
+
+    this.#editorContainer = rootDocument.createElement('div');
+    addClass(this.#editorContainer, 'handsontableEditor');
 
     this.dropdownContainerElement = this.hot.rootDocument.createElement('div');
     this.dropdownContainerElement.className = `${DROPDOWN_ELEMENT_CSS_CLASSNAME} handsontableEditor`;
 
-    this.TEXTAREA_PARENT.appendChild(this.dropdownContainerElement);
+    this.#editorContainer.appendChild(this.dropdownContainerElement);
+    this.hot.rootElement.appendChild(this.#editorContainer);
 
     this.dropdownController = new DropdownController(this.dropdownContainerElement);
-
-    this.inputController = new InputController({ input: this.TEXTAREA, eventManager: this.eventManager });
   }
 
   /**
@@ -97,7 +122,7 @@ export class MultiSelectEditor extends TextEditor {
 
     this.dropdownController.fillDropdown(this.cellProperties.source, valuesIntersection);
 
-    this.dropdownController.setVisibleRowsNumber(this.#getEditorSetting('visibleRows'));
+    this.dropdownController.setVisibleRowsNumberSetting(this.#getEditorSetting('visibleRows'));
 
     if (cellProperties.maxSelections) {
       this.#selectedItems.setMaxSelectionCount(cellProperties.maxSelections);
@@ -125,8 +150,6 @@ export class MultiSelectEditor extends TextEditor {
    * @private
    */
   bindEvents() {
-    super.bindEvents();
-
     this.dropdownController.addLocalHook('afterDropdownItemChecked',
       (selectedKey, selectedValue) => {
         this.#addSelectedValue(selectedKey, selectedValue);
@@ -145,30 +168,31 @@ export class MultiSelectEditor extends TextEditor {
         }
       }
     );
-    this.dropdownController.addLocalHook('afterDropdownFocus', () => this.#onAfterDropdownFocus());
-    this.dropdownController.addLocalHook('afterDropdownDefocus', () => this.#onAfterDropdownDefocus());
-    this.dropdownController.addLocalHook('afterDropdownFill', () => this.#onAfterDropdownFill());
-
-    this.inputController.addLocalHook('commit', (...args) => this.#onTextareaCommit(...args));
-    this.inputController.addLocalHook('triggerFilter', wordAtCaret => this.#filterEntries(wordAtCaret));
+    // this.dropdownController.addLocalHook('afterDropdownFill', () => this.#onAfterDropdownFill());
+    this.dropdownController.getInputController().addLocalHook('triggerFilter', value => this.#filterEntries(value));
   }
 
   /**
    * Opens the editor.
    */
   open() {
-    super.open();
+    this.#showEditableElement();
+    this.refreshDimensions();
+    this.hot.getShortcutManager().setActiveContextName('editor');
+    this.#registerShortcuts();
+    this.dropdownController.getInputController().listen();
 
     this.dropdownController.updateDimensions(this.#getAvailableSpace());
+    this.dropdownController.focusFirstItem();
   }
 
   /**
    * Closes the editor.
    */
   close() {
-    super.close();
-
-    this.TEXTAREA.style.maxWidth = '';
+    this.#hideEditableElement();
+    this.#unregisterShortcuts();
+    this.dropdownController.getInputController().unlisten();
     this.dropdownController.reset();
   }
 
@@ -182,13 +206,54 @@ export class MultiSelectEditor extends TextEditor {
   }
 
   /**
+   * Sets the editor's value.
+   */
+  setValue() {
+    // TODO: implement
+  }
+
+  /**
+   * Refreshes the editor's dimensions.
+   */
+  refreshDimensions() {
+    // TD is outside of the viewport.
+    if (!this.getEditedCell()) {
+      this.close();
+
+      return;
+    }
+
+    const { top, start, height } = this.getEditedCellRect();
+    const editorStyle = this.#editorContainer.style;
+
+    editorStyle.top = `${top + height}px`;
+    editorStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
+
+    addClass(this.#editorContainer, EDITOR_VISIBLE_CLASS_NAME);
+  }
+
+  /**
+   * Focuses the editor.
+   */
+  focus() {
+    // TODO: implement
+  }
+
+  /**
+   * Gets the input element.
+   *
+   * @returns {HTMLInputElement} The input element.
+   */
+  getInputElement() {
+    return this.dropdownController.getInputController().getInputElement();
+  }
+
+  /**
    * Register shortcuts responsible for handling editor.
    *
    * @private
    */
-  registerShortcuts() {
-    super.registerShortcuts();
-
+  #registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
@@ -200,13 +265,15 @@ export class MultiSelectEditor extends TextEditor {
     }, {
       keys: [['ArrowDown']],
       callback: () => {
-        this.dropdownController.focusNextItem();
+        if (this.hot.rootDocument.activeElement === this.getInputElement()) {
+          this.dropdownController.focusFirstItem();
+        } else {
+          this.dropdownController.focusNextItem();
+        }
       },
     }], {
       group: SHORTCUTS_GROUP,
     });
-
-    this.inputController.listen();
   }
 
   /**
@@ -214,15 +281,11 @@ export class MultiSelectEditor extends TextEditor {
    *
    * @private
    */
-  unregisterShortcuts() {
-    super.unregisterShortcuts();
-
+  #unregisterShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
-
-    this.inputController.unlisten();
   }
 
   /**
@@ -231,11 +294,22 @@ export class MultiSelectEditor extends TextEditor {
    * @private
    */
   destroy() {
-    super.destroy();
-
+    this.close();
     this.dropdownController.reset();
+  }
 
-    this.inputController = null;
+  /**
+   * Shows the editable element.
+   */
+  #showEditableElement() {
+    this.#editorContainer.style.display = '';
+  }
+
+  /**
+   * Hides the editable element.
+   */
+  #hideEditableElement() {
+    this.#editorContainer.style.display = 'none';
   }
 
   /**
@@ -255,10 +329,10 @@ export class MultiSelectEditor extends TextEditor {
   /**
    * Filters the dropdown entries.
    *
-   * @param {string} wordAtCaret The word at the caret position.
+   * @param {string} query The value of the input.
    * @param {boolean} keepSelectedItems If true, the selected items will be kept in the dropdown.
    */
-  #filterEntries(wordAtCaret, keepSelectedItems = true) {
+  #filterEntries(query, keepSelectedItems = true) {
     const filteredItems = this.cellProperties.source.filter((item) => {
       const value = item?.value ?? item;
 
@@ -267,10 +341,10 @@ export class MultiSelectEditor extends TextEditor {
       }
 
       if (this.cellProperties.filteringCaseSensitive) {
-        return value.includes(wordAtCaret);
+        return value.includes(query);
       }
 
-      return value.toLowerCase().includes(wordAtCaret.toLowerCase());
+      return value.toLowerCase().includes(query.toLowerCase());
     });
 
     this.dropdownController.fillDropdown(filteredItems, this.#selectedItems.getItemsArray());
@@ -305,69 +379,18 @@ export class MultiSelectEditor extends TextEditor {
   }
 
   /**
-   * Handles textarea commit event.
-   *
-   * @private
-   * @param {string[]} values The values from the textarea.
-   */
-  #onTextareaCommit(values) {
-    if (values.length > this.cellProperties.maxSelections) {
-      return;
-    }
-
-    let sanitizedValues = values;
-
-    if (this.cellProperties.validateOnCommit ?? true) {
-      sanitizedValues = values
-        .map(value => getSourceItemByValue(value, this.cellProperties.source))
-        .filter(item => item !== undefined);
-    }
-
-    this.#selectedItems.clear();
-    this.#selectedItems.add(sanitizedValues);
-    this.dropdownController.removeAllDropdownItems();
-    this.dropdownController.fillDropdown(this.cellProperties.source, this.#selectedItems.getItemsArray());
-    this.dropdownController.updateDimensions(this.#getAvailableSpace(), true);
-
-    if (this.#selectedItems.getSize() >= this.cellProperties.maxSelections) {
-      this.#blockNewSelections();
-
-    } else {
-      this.#unblockNewSelections();
-    }
-  }
-
-
-  /**
-   * Called when the dropdown is filled.
+   * Saves the current selection state to the cell without closing the editor.
    *
    * @private
    */
-  #onAfterDropdownFill() {
-    const dropdownWidth = this.dropdownController.getDropdownWidth();
+  #saveCurrentSelection() {
+    const value = this.#selectedItems.getItemsArray();
 
-    this.TEXTAREA.style.maxWidth = `${dropdownWidth}px`;
-  }
-  /**
-   * Called when the dropdown is focused.
-   *
-   * @private
-   */
-  #onAfterDropdownFocus() {
-    this.TEXTAREA.blur();
+    this.saveValue([[value]]);
   }
 
   /**
-   * Called when the dropdown is defocused.
-   *
-   * @private
-   */
-  #onAfterDropdownDefocus() {
-    this.TEXTAREA.focus();
-  }
-
-  /**
-   * Adds a value reported by the dropdown to the selection set and mirrors it in the textarea.
+   * Adds a value reported by the dropdown to the selection set and saves to the cell.
    *
    * @private
    * @param {string} selectedKey Key of the selected value.
@@ -381,12 +404,12 @@ export class MultiSelectEditor extends TextEditor {
       this.#selectedItems.add(selectedValue);
     }
 
-    this.setValue(this.#selectedItems.stringifyValues());
+    this.#saveCurrentSelection();
     this.refreshDimensions();
   }
 
   /**
-   * Removes a deselected dropdown value from the selection set and updates the textarea.
+   * Removes a deselected dropdown value from the selection set and saves to the cell.
    *
    * @private
    * @param {string} deselectedKey Key of the deselected value.
@@ -400,7 +423,7 @@ export class MultiSelectEditor extends TextEditor {
       this.#selectedItems.remove(deselectedValue);
     }
 
-    this.setValue(this.#selectedItems.stringifyValues());
+    this.#saveCurrentSelection();
     this.refreshDimensions();
   }
 

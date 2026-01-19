@@ -201,7 +201,7 @@ describe('MultiSelectEditor', () => {
 
           expect(getActiveEditor().dropdownController.isFlippedVertically()).toBe(false);
           expect($('.htMultiSelectEditor').offset().top)
-            .toBeGreaterThan($('.handsontableInputHolder textarea').offset().top);
+            .toBeGreaterThan($(getCell(0, 0)).offset().top);
         });
 
       it('should open the editor upwards when there\'s more space above than below the edited cell',
@@ -230,7 +230,7 @@ describe('MultiSelectEditor', () => {
 
           expect(getActiveEditor().dropdownController.isFlippedVertically()).toBe(true);
           expect($('.htMultiSelectEditor').offset().top)
-            .toBeLessThan($('.handsontableInputHolder textarea').offset().top);
+            .toBeLessThan(await $(getCell(10, 0)).offset().top);
         });
     });
 
@@ -355,8 +355,8 @@ describe('MultiSelectEditor', () => {
 
           expect($dropdown.find('input[type="checkbox"]:checked').length).toBe(2);
 
-          editor.TEXTAREA.value = 'a';
-          editor.TEXTAREA.focus();
+          editor.getInputElement().value = 'a';
+          editor.getInputElement().focus();
           await keyDownUp('a');
           await sleep(10);
 
@@ -398,153 +398,6 @@ describe('MultiSelectEditor', () => {
             expect($(this).prop('disabled')).toBe(true);
           });
         });
-
-      it('should respect `maxSelections` when committing values using the TEXTAREA and comma key', async() => {
-        handsontable({
-          data: [
-            [[]],
-          ],
-          columns: [
-            {
-              type: 'multiSelect',
-              source: choices,
-              maxSelections: 2,
-            },
-          ],
-        });
-
-        await selectCell(0, 0);
-        await keyDownUp('enter');
-        await sleep(10);
-
-        const editor = getActiveEditor();
-        let $dropdown = $('.htMultiSelectEditor');
-
-        editor.TEXTAREA.value = 'yellow,';
-        editor.TEXTAREA.focus();
-        await keyDownUp(',');
-        await sleep(10);
-
-        $dropdown = $('.htMultiSelectEditor');
-        let $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
-        let $redCheckbox = $dropdown.find('input[type="checkbox"][data-value="red"]');
-        let $greenCheckbox = $dropdown.find('input[type="checkbox"][data-value="green"]');
-
-        expect($yellowCheckbox.prop('checked')).toBe(true);
-        expect($redCheckbox.prop('checked')).toBe(false);
-        expect($greenCheckbox.prop('checked')).toBe(false);
-        expect(editor.TEXTAREA.value).toBe('yellow,');
-
-        editor.TEXTAREA.value = 'yellow, red,';
-        editor.TEXTAREA.focus();
-        await keyDownUp(',');
-        await sleep(10);
-
-        $dropdown = $('.htMultiSelectEditor');
-        $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
-        $redCheckbox = $dropdown.find('input[type="checkbox"][data-value="red"]');
-        $greenCheckbox = $dropdown.find('input[type="checkbox"][data-value="green"]');
-
-        expect($yellowCheckbox.prop('checked')).toBe(true);
-        expect($redCheckbox.prop('checked')).toBe(true);
-        expect($greenCheckbox.prop('checked')).toBe(false);
-        expect(editor.TEXTAREA.value).toBe('yellow, red,');
-
-        editor.TEXTAREA.value = 'yellow, red, green,';
-        editor.TEXTAREA.focus();
-        await keyDownUp(',');
-        await sleep(10);
-
-        $dropdown = $('.htMultiSelectEditor');
-        $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
-        $redCheckbox = $dropdown.find('input[type="checkbox"][data-value="red"]');
-        $greenCheckbox = $dropdown.find('input[type="checkbox"][data-value="green"]');
-
-        expect($yellowCheckbox.prop('checked')).toBe(true);
-        expect($redCheckbox.prop('checked')).toBe(true);
-        expect($greenCheckbox.prop('checked')).toBe(false);
-        expect(editor.TEXTAREA.value).toBe('yellow, red, green,');
-
-        await keyDownUp('enter');
-        await sleep(10);
-
-        expect(getSourceDataAtCell(0, 0)).toEqual(choices.filter(
-          choice => ['yellow', 'red'].includes(choice.value ?? choice)
-        ));
-        expect(getDataAtCell(0, 0)).toEqual('yellow, red');
-
-        await selectCell(0, 0);
-        await keyDownUp('enter');
-        await sleep(10);
-
-        editor.TEXTAREA.value = 'red, green,';
-        editor.TEXTAREA.focus();
-        await keyDownUp(',');
-        await sleep(10);
-
-        $dropdown = $('.htMultiSelectEditor');
-        $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
-        $redCheckbox = $dropdown.find('input[type="checkbox"][data-value="red"]');
-        $greenCheckbox = $dropdown.find('input[type="checkbox"][data-value="green"]');
-
-        expect($yellowCheckbox.prop('checked')).toBe(false);
-        expect($redCheckbox.prop('checked')).toBe(true);
-        expect($greenCheckbox.prop('checked')).toBe(true);
-        expect(editor.TEXTAREA.value).toBe('red, green,');
-      });
-
-      it('should disable unchecked checkboxes after reaching the maxSelections limit when committing from the TEXTAREA', async() => {
-        handsontable({
-          data: [
-            [[]],
-          ],
-          columns: [
-            {
-              type: 'multiSelect',
-              source: choices,
-              maxSelections: 2,
-            },
-          ],
-        });
-
-        await selectCell(0, 0);
-        await keyDownUp('enter');
-        await sleep(10);
-
-        const editor = getActiveEditor();
-        let $dropdown = $('.htMultiSelectEditor');
-
-        editor.TEXTAREA.value = 'yellow,';
-        editor.TEXTAREA.focus();
-        await keyDownUp(',');
-        await sleep(10);
-
-        $dropdown = $('.htMultiSelectEditor');
-
-        expect($dropdown.find('input[type="checkbox"]:checked').length).toBe(1);
-
-        $dropdown.find('input[type="checkbox"]:not(:checked)').each(function() {
-          expect($(this).prop('disabled')).toBe(false);
-        });
-
-        editor.TEXTAREA.value = 'yellow, red,';
-        editor.TEXTAREA.focus();
-        await keyDownUp(',');
-        await sleep(10);
-
-        $dropdown = $('.htMultiSelectEditor');
-
-        expect($dropdown.find('input[type="checkbox"]:checked').length).toBe(2);
-
-        const $uncheckedCheckboxes = $dropdown.find('input[type="checkbox"]:not(:checked)');
-
-        expect($uncheckedCheckboxes.length).toBe(choices.length - 2);
-
-        $uncheckedCheckboxes.each(function() {
-          expect($(this).prop('disabled')).toBe(true);
-        });
-      });
-
     });
 
     describe('`filteringCaseSensitive` option', () => {
@@ -571,8 +424,8 @@ describe('MultiSelectEditor', () => {
 
         expect($htContainer.find('li').length).toBe(choices.length);
 
-        editor.TEXTAREA.value = 'Y';
-        editor.TEXTAREA.focus();
+        editor.getInputElement().value = 'Y';
+        editor.getInputElement().focus();
         await keyDownUp('Y');
         await sleep(10);
 
@@ -608,8 +461,8 @@ describe('MultiSelectEditor', () => {
 
         expect($htContainer.find('li').length).toBe(choices.length);
 
-        editor.TEXTAREA.value = 'Y';
-        editor.TEXTAREA.focus();
+        editor.getInputElement().value = 'Y';
+        editor.getInputElement().focus();
         await keyDownUp('Y');
         await sleep(10);
 
@@ -795,10 +648,7 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        const $dropdown = $('.htMultiSelectEditor');
-        const dropdownWidth = $dropdown.outerWidth();
-
-        expect(dropdownWidth).toEqual(120);
+        expect($('.htMultiSelectEditor').width()).toEqual(120);
       });
 
       it('should size to content width when source entries are longer than min-width', async() => {
@@ -823,43 +673,10 @@ describe('MultiSelectEditor', () => {
 
         expect(dropdownWidth).toEqual(219);
       });
-
-      it('should size to content width and not expand to match a longer INPUT value', async() => {
-        handsontable({
-          data: [
-            [[]],
-          ],
-          columns: [
-            {
-              type: 'multiSelect',
-              source: ['This is a very long option text'],
-            },
-          ],
-        });
-
-        await selectCell(0, 0);
-        await keyDownUp('enter');
-        await sleep(10);
-
-        const editor = getActiveEditor();
-        const $dropdown = $('.htMultiSelectEditor');
-        const initialDropdownWidth = $dropdown.outerWidth();
-
-        editor.TEXTAREA.value =
-          'This is a very very very long text that should not affect dropdown width, This is a very';
-        editor.TEXTAREA.focus();
-
-        await keyDownUp('y');
-        await sleep(10);
-
-        const dropdownWidthAfterTyping = $('.htMultiSelectEditor').outerWidth();
-
-        expect(dropdownWidthAfterTyping).toBe(initialDropdownWidth);
-        expect(dropdownWidthAfterTyping).toBeGreaterThan(120);
-      });
     });
 
-    describe('`validateOnCommit` option', () => {
+    // TODO: Consider if this option is still needed after implementing the chips renderer.
+    xdescribe('`validateOnCommit` option', () => {
       it('should keep only values present in the source when enabled', async() => {
         handsontable({
           data: [

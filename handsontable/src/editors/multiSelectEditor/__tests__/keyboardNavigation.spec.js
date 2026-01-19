@@ -30,7 +30,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
     });
 
     describe('navigating the dropdown with arrow keys', () => {
-      it('should move focus inside the dropdown with ArrowDown and ArrowUp, then return focus to the input when leaving the list', async() => {
+      it('should move focus inside the dropdown with ArrowDown and ArrowUp', async() => {
         handsontable({
           data: [
             [[]],
@@ -50,15 +50,11 @@ describe('MultiSelectEditor keyboard navigation', () => {
         const editor = getActiveEditor();
         const $dropdown = $('.htMultiSelectEditor');
 
-        expect(document.activeElement).toBe(editor.TEXTAREA);
+        const checkbox1 = $dropdown.find('input[type="checkbox"]').first()[0];
 
-        await keyDownUp('ArrowDown');
-        await sleep(10);
-
-        const focusedCheckbox1 = $dropdown.find('input[type="checkbox"]:focus')[0];
-
-        expect(focusedCheckbox1).toBeDefined();
-        expect(focusedCheckbox1.dataset.value).toBe('yellow');
+        expect(checkbox1).toBeDefined();
+        expect(document.activeElement).toBe(checkbox1);
+        expect(checkbox1.dataset.value).toBe('yellow');
 
         await keyDownUp('ArrowDown');
         await sleep(10);
@@ -66,6 +62,8 @@ describe('MultiSelectEditor keyboard navigation', () => {
         const focusedCheckbox2 = $dropdown.find('input[type="checkbox"]:focus')[0];
 
         expect(focusedCheckbox2).toBeDefined();
+        expect(document.activeElement).toBe(focusedCheckbox2);
+        expect(focusedCheckbox2).toBe($dropdown.find('input[type="checkbox"]').eq(1)[0]);
         expect(focusedCheckbox2.dataset.value).toBe('red');
 
         await keyDownUp('ArrowUp');
@@ -74,18 +72,21 @@ describe('MultiSelectEditor keyboard navigation', () => {
         const focusedCheckbox3 = $dropdown.find('input[type="checkbox"]:focus')[0];
 
         expect(focusedCheckbox3).toBeDefined();
+        expect(document.activeElement).toBe(focusedCheckbox3);
+        expect(focusedCheckbox3).toBe($dropdown.find('input[type="checkbox"]').first()[0]);
         expect(focusedCheckbox3.dataset.value).toBe('yellow');
 
         await keyDownUp('ArrowUp');
         await sleep(10);
 
         expect($dropdown.find('input[type="checkbox"]:focus').length).toBe(0);
-        expect(document.activeElement).toBe(editor.TEXTAREA);
+        expect(document.activeElement).toBe(editor.getInputElement());
       });
     });
 
     describe('confirming the selection with Enter', () => {
-      it('should save the selection to the cell when pressing Enter and close the editor', async() => {
+      // TODO: Depends on the future `enterSelects` (?) option.
+      it('should keep the original data when pressing Enter twice on a cell.', async() => {
         handsontable({
           data: [
             [getSampleInitialCellValue('yellow', 'red')],
@@ -101,11 +102,6 @@ describe('MultiSelectEditor keyboard navigation', () => {
         await selectCell(0, 0);
         await keyDownUp('enter');
         await sleep(10);
-
-        const editor = getActiveEditor();
-
-        expect(editor.TEXTAREA.value).toBe('yellow, red');
-
         await keyDownUp('enter');
         await sleep(10);
 
@@ -113,6 +109,8 @@ describe('MultiSelectEditor keyboard navigation', () => {
         expect(getSourceDataAtCell(0, 0)).toEqual(getSampleInitialCellValue('yellow', 'red'));
         expect(getActiveEditor().isOpened()).toBe(false);
       });
+
+      // TODO: add more tests for Enter key
     });
   });
 });

@@ -1,9 +1,5 @@
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
-import { getWordAtCaret, getValuesFromString } from '../utils/utils';
-
-const COMMIT_KEYS = [','];
-const IRRELEVANT_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape', ' '];
 
 /**
  * Controller for managing the input.
@@ -12,17 +8,6 @@ const IRRELEVANT_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Ent
  * @class InputController
  */
 export class InputController {
-
-  /**
-   * Cache for the input controller.
-   *
-   * @private
-   * @type {object}
-   */
-  #cache = {
-    lastInputValue: null,
-  };
-
   /**
    * Cached keyup listener bound to the controller instance.
    * It must be the same function reference for add/remove event listener.
@@ -47,6 +32,15 @@ export class InputController {
   }
 
   /**
+   * Gets the input element.
+   *
+   * @returns {HTMLInputElement} The input element.
+   */
+  getInputElement() {
+    return this.input;
+  }
+
+  /**
    * Listens to the input keyup event.
    */
   listen() {
@@ -62,48 +56,18 @@ export class InputController {
 
   /**
    * OnKeyUp listener.
-   *
-   * @param {KeyboardEvent} event The keyboard event object.
    */
-  onKeyUp(event) {
-    if (this.#cache.lastInputValue === this.input.value) {
-      return;
-    }
-
-    this.#cache.lastInputValue = this.input.value;
-
-    if (COMMIT_KEYS.includes(event.key)) {
-      this.#commit();
-
-    } else if (IRRELEVANT_KEYS.includes(event.key)) {
-      // eslint-disable-next-line no-useless-return
-      return;
-
-    } else {
-      const wordAtCaret = getWordAtCaret(this.input);
-
-      if (wordAtCaret === '') {
-        this.#commit();
-      }
-
-      this.#triggerFilter(wordAtCaret);
-    }
-  }
-
-  /**
-   * Commits the input value.
-   */
-  #commit() {
-    this.runLocalHooks('commit', getValuesFromString(this.input.value));
+  onKeyUp() {
+    this.#triggerFilter(this.input.value);
   }
 
   /**
    * Triggers the filtering.
    *
-   * @param {string} wordAtCaret The word at the caret position.
+   * @param {string} value The value of the input.
    */
-  #triggerFilter(wordAtCaret) {
-    this.runLocalHooks('triggerFilter', wordAtCaret);
+  #triggerFilter(value) {
+    this.runLocalHooks('triggerFilter', value);
   }
 }
 

@@ -1,7 +1,9 @@
 // MultiSelect Editor
 
 @mixin output {
-  .handsontableInputHolder {
+  .handsontableEditor {
+    position: absolute;
+
     .htMultiSelectEditor {
       overflow-y: auto;
       border-radius: 0 0 var(--ht-menu-border-radius) var(--ht-menu-border-radius);
@@ -11,6 +13,61 @@
       width: max-content;
       min-width: 120px;
       box-sizing: border-box;
+
+      .htMultiSelectEditorSearchInputWrapper {
+        display: flex;
+        padding: 6px 10px;
+        align-items: center;
+        gap: var(--ht-gap-size);
+        align-self: stretch;
+        position: relative;
+      }
+
+      .htMultiSelectEditorSearchIcon {
+        position: absolute;
+        left: calc(var(--ht-menu-item-horizontal-padding) + 10px);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' fill='none'%3E%3Cg opacity='0.5'%3E%3Cpath d='M28 28L20 20M4 13.3333C4 14.559 4.24141 15.7727 4.71046 16.905C5.1795 18.0374 5.86699 19.0663 6.73367 19.933C7.60035 20.7997 8.62925 21.4872 9.76162 21.9562C10.894 22.4253 12.1077 22.6667 13.3333 22.6667C14.559 22.6667 15.7727 22.4253 16.905 21.9562C18.0374 21.4872 19.0663 20.7997 19.933 19.933C20.7997 19.0663 21.4872 18.0374 21.9562 16.905C22.4253 15.7727 22.6667 14.559 22.6667 13.3333C22.6667 12.1077 22.4253 10.894 21.9562 9.76162C21.4872 8.62925 20.7997 7.60035 19.933 6.73367C19.0663 5.86699 18.0374 5.1795 16.905 4.71046C15.7727 4.24141 14.559 4 13.3333 4C12.1077 4 10.894 4.24141 9.76162 4.71046C8.62925 5.1795 7.60035 5.86699 6.73367 6.73367C5.86699 7.60035 5.1795 8.62925 4.71046 9.76162C4.24141 10.894 4 12.1077 4 13.3333Z' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        opacity: 0.5;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .htMultiSelectEditorSearchInput {
+        box-sizing: border-box;
+        min-width: 100px;
+        width: 100%;
+        border-radius: var(--ht-input-border-radius);
+        border: 1px solid var(--ht-input-border-color);
+        background: var(--ht-input-background-color, #F7F7F9);
+        line-height: var(--ht-line-height);
+        font-size: var(--ht-font-size);
+        color: var(--ht-foreground-color);
+        padding: var(--ht-input-vertical-padding) var(--ht-menu-item-horizontal-padding) var(--ht-input-vertical-padding) 32px;
+
+        &::placeholder {
+          color: var(--ht-foreground-color);
+          opacity: 0.6;
+        }
+
+        &:focus {
+          outline: none;
+        }
+      }
+
+      .htMultiSelectEditorSeparator {
+        width: 100%;
+        height: 1px;
+        background-color: var(--ht-menu-border-color);
+        margin: 0;
+        padding: 0;
+      }
 
       ul {
         list-style: none;
