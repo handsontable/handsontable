@@ -1,11 +1,13 @@
 import { isKeyValueObject } from '../../../helpers/object';
 import { A11Y_HIDDEN } from '../../../helpers/a11y';
+import { EDITOR_CONTROLLER_CLASS } from '../../../helpers/mixed';
+import { addClass } from '../../../helpers/dom/element';
 
-export const CHIP_CLASS = 'htMultiSelectChip';
-export const CHIP_REMOVE_CLASS = 'htMultiSelectChipRemove';
+export const CHIP_CLASS = 'ht-multi-select-chip';
+export const CHIP_REMOVE_CLASS = 'ht-multi-select-chip-remove';
 
-const CHIP_LABEL_CLASS = 'htMultiSelectChipLabel';
-const OVERFLOW_INDICATOR_CLASS = 'htMultiSelectOverflow';
+const CHIP_LABEL_CLASS = 'ht-multi-select-chip-label';
+const OVERFLOW_INDICATOR_CLASS = 'ht-multi-select-overflow';
 
 /**
  * Extracts the property from a value item - default to the item itself.
@@ -53,22 +55,26 @@ export function parseValue(value) {
  * @param {Document} rootDocument The document object.
  * @param {string|object} item The value item.
  * @param {boolean} isAriaEnabled Whether ARIA is enabled.
+ * @param {number} row The row index.
+ * @param {number} prop The property index.
  * @returns {HTMLElement} The chip element.
  */
-export function createChipElement(rootDocument, item, isAriaEnabled) {
+export function createChipElement(rootDocument, item, isAriaEnabled, row, prop) {
   const chip = rootDocument.createElement('span');
 
-  chip.className = CHIP_CLASS;
+  addClass(chip, CHIP_CLASS);
+  chip.dataset.row = row;
+  chip.dataset.prop = prop;
 
   const label = rootDocument.createElement('span');
 
-  label.className = CHIP_LABEL_CLASS;
+  addClass(label, CHIP_LABEL_CLASS);
   label.textContent = getItemProperty(item, 'value');
   chip.appendChild(label);
 
   const removeBtn = rootDocument.createElement('span');
 
-  removeBtn.className = CHIP_REMOVE_CLASS;
+  addClass(removeBtn, `${CHIP_REMOVE_CLASS} ${EDITOR_CONTROLLER_CLASS}`);
 
   if (isAriaEnabled) {
     removeBtn.setAttribute(...A11Y_HIDDEN());
@@ -90,7 +96,7 @@ export function createChipElement(rootDocument, item, isAriaEnabled) {
 export function createOverflowIndicator(rootDocument, count) {
   const indicator = rootDocument.createElement('span');
 
-  indicator.className = OVERFLOW_INDICATOR_CLASS;
+  addClass(indicator, OVERFLOW_INDICATOR_CLASS);
   indicator.textContent = `+${count}`;
 
   return indicator;

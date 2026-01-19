@@ -13,8 +13,8 @@ import {
 export { CHIP_CLASS };
 export const RENDERER_TYPE = 'multiSelect';
 
-const MULTISELECT_RENDERER_CLASS = 'htMultiSelectRenderer';
-const CHIPS_CONTAINER_CLASS = 'htMultiSelectChipsContainer';
+const MULTISELECT_RENDERER_CLASS = 'ht-multi-select-renderer';
+const CHIPS_CONTAINER_CLASS = 'ht-multi-select-chips-container';
 
 const chipsEventManagers = new WeakMap();
 const latestColumnWidthCache = new WeakMap();
@@ -53,7 +53,7 @@ export function multiSelectRenderer(hotInstance, TD, row, col, prop, value, cell
   chipsContainer.className = CHIPS_CONTAINER_CLASS;
 
   values.forEach((item) => {
-    const chip = createChipElement(rootDocument, item, isAriaEnabled);
+    const chip = createChipElement(rootDocument, item, isAriaEnabled, row, prop);
 
     chipsContainer.appendChild(chip);
   });
@@ -80,14 +80,13 @@ export function multiSelectRenderer(hotInstance, TD, row, col, prop, value, cell
         return;
       }
 
-      const cellSelectedLast = hotInstance.getSelectedLast();
-      const physicalRow = hotInstance.toPhysicalRow(cellSelectedLast[0]);
-      const physicalCol = hotInstance.toPhysicalColumn(cellSelectedLast[1]);
-      const currentData = hotInstance.getSourceDataAtCell(physicalRow, physicalCol);
+      const rowIndex = chip.dataset.row;
+      const columnProp = chip.dataset.prop;
+      const currentData = hotInstance.getSourceDataAtCell(rowIndex, columnProp);
       const keyToRemove = chip.dataset.key;
       const newData = removeValueByKey(parseValue(currentData), keyToRemove);
 
-      hotInstance.setSourceDataAtCell(physicalRow, physicalCol, newData);
+      hotInstance.setSourceDataAtCell(rowIndex, columnProp, newData, `${RENDERER_TYPE}-renderer`);
       hotInstance.render();
     });
   }

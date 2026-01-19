@@ -3,6 +3,7 @@ import EventManager from '../../eventManager';
 import { DropdownController } from './controllers/dropdownController';
 import { SelectedItemsController } from './controllers/selectedItemsController';
 import { addClass } from '../../helpers/dom/element';
+import { EDITOR_EDIT_GROUP } from '../../shortcutContexts/constants';
 import {
   getValuesIntersection,
   parseStringifiedValue,
@@ -10,7 +11,7 @@ import {
 
 export const EDITOR_TYPE = 'multiSelect';
 
-const DROPDOWN_ELEMENT_CSS_CLASSNAME = 'htMultiSelectEditor';
+const DROPDOWN_ELEMENT_CSS_CLASSNAME = 'ht-multi-select-editor';
 const SHORTCUTS_GROUP = 'multiSelectEditor';
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 
@@ -78,7 +79,8 @@ export class MultiSelectEditor extends BaseEditor {
     this.createElements();
     this.bindEvents();
 
-    this.hot.addHookOnce('afterDestroy', () => this.destroy());
+    this.hot.addHook('afterDestroy', () => this.destroy());
+    this.hot.addHook('afterSetSourceDataAtCell', (...args) => this.#onAfterSetSourceDataAtCell(...args));
   }
 
   /**
@@ -137,10 +139,6 @@ export class MultiSelectEditor extends BaseEditor {
    * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue, ctrlDown, callback) {
-    if (!restoreOriginalValue) {
-      this.setValue(this.#selectedItems.stringifyValues());
-    }
-
     super.finishEditing(restoreOriginalValue, ctrlDown, callback);
   }
 
@@ -273,6 +271,33 @@ export class MultiSelectEditor extends BaseEditor {
       },
     }], {
       group: SHORTCUTS_GROUP,
+    });
+
+    editorContext.addShortcuts([{
+      keys: [['enter'], ['shift', 'enter'], ['control/meta', 'enter'], ['control/meta', 'shift', 'enter']],
+      runOnlyIf: () => !this.#getEditorSetting('enterCommits'),
+      callback: (event) => {
+        const activeElement = this.hot.rootDocument.activeElement;
+
+        if (activeElement.tagName === 'INPUT' && activeElement.type === 'checkbox') {
+          activeElement.checked = !activeElement.checked;
+          activeElement.dispatchEvent(new Event('change'));
+        }
+
+        event.preventDefault();
+
+        return false;
+      },
+    }, {
+      keys: [['space']],
+      runOnlyIf: () => !this.#getEditorSetting('enterCommits'),
+      callback: (event) => {
+        event.preventDefault();
+      },
+    }], {
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: EDITOR_EDIT_GROUP,
+      position: 'before',
     });
   }
 
@@ -451,5 +476,21 @@ export class MultiSelectEditor extends BaseEditor {
    */
   #getEditorSetting(settingKey) {
     return this.cellProperties[settingKey];
+  }
+
+  /**
+   * `afterSetSourceDataAtCell` hook callback.
+   *
+   * @private
+   * @param {Array<*>} changes The changes.
+   * @param {string} source The source of the change.
+   */
+  #onAfterSetSourceDataAtCell(changes, source) {
+    if (source === `${EDITOR_TYPE}-renderer`) {
+
+      this.#syncSelectedValues(changes[0][3]);
+      this.dropdownController.fillDropdown(this.cellProperties.source, this.#selectedItems.getItemsArray());
+      this.dropdownController.focusItem(0);
+    }
   }
 }

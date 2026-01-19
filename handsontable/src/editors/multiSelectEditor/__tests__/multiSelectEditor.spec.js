@@ -71,11 +71,11 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        const $dropdown = $('.htMultiSelectEditor');
+        const $dropdown = $('.ht-multi-select-editor');
         const $checkboxes = $dropdown.find('input[type="checkbox"]');
 
         expect($checkboxes.length).toBe(choices.length);
-        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
 
         $checkboxes.each(function() {
           expect(this.checked).toBe(false);
@@ -99,9 +99,9 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        const $dropdown = $('.htMultiSelectEditor');
+        const $dropdown = $('.ht-multi-select-editor');
 
-        expect($dropdown.find('li.htItemSelected').length).toBe(2);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(2);
 
         const $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
         const $redCheckbox = $dropdown.find('input[type="checkbox"][data-value="red"]');
@@ -131,11 +131,11 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        const $dropdown = $('.htMultiSelectEditor');
+        const $dropdown = $('.ht-multi-select-editor');
         const $checkboxes = $dropdown.find('input[type="checkbox"]');
 
         expect($checkboxes.length).toBe(choices.length);
-        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
 
         $checkboxes.each(function() {
           expect(this.checked).toBe(false);
@@ -160,9 +160,9 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        const $dropdown = $('.htMultiSelectEditor');
+        const $dropdown = $('.ht-multi-select-editor');
 
-        expect($dropdown.find('li.htItemSelected').length).toBe(2);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(2);
 
         const $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
         const $redCheckbox = $dropdown.find('input[type="checkbox"][data-value="red"]');
@@ -200,7 +200,7 @@ describe('MultiSelectEditor', () => {
           await sleep(10);
 
           expect(getActiveEditor().dropdownController.isFlippedVertically()).toBe(false);
-          expect($('.htMultiSelectEditor').offset().top)
+          expect($('.ht-multi-select-editor').offset().top)
             .toBeGreaterThan($(getCell(0, 0)).offset().top);
         });
 
@@ -229,7 +229,7 @@ describe('MultiSelectEditor', () => {
           await sleep(10);
 
           expect(getActiveEditor().dropdownController.isFlippedVertically()).toBe(true);
-          expect($('.htMultiSelectEditor').offset().top)
+          expect($('.ht-multi-select-editor').offset().top)
             .toBeLessThan(await $(getCell(10, 0)).offset().top);
         });
     });
@@ -253,7 +253,7 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        const $dropdown = $('.htMultiSelectEditor');
+        const $dropdown = $('.ht-multi-select-editor');
         const $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
         const $redCheckbox = $dropdown.find('input[type="checkbox"][data-value="red"]');
         const $orangeCheckbox = $dropdown.find('input[type="checkbox"][data-value="orange"]');
@@ -296,7 +296,7 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        const $dropdown = $('.htMultiSelectEditor');
+        const $dropdown = $('.ht-multi-select-editor');
         const $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
         const $redCheckbox = $dropdown.find('input[type="checkbox"][data-value="red"]');
         const $orangeCheckbox = $dropdown.find('input[type="checkbox"][data-value="orange"]');
@@ -345,7 +345,7 @@ describe('MultiSelectEditor', () => {
           await sleep(10);
 
           const editor = getActiveEditor();
-          const $dropdown = $('.htMultiSelectEditor');
+          const $dropdown = $('.ht-multi-select-editor');
           const $redCheckbox = $dropdown.find('input[type="checkbox"][data-value="red"]');
           let $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
 
@@ -360,7 +360,7 @@ describe('MultiSelectEditor', () => {
           await keyDownUp('a');
           await sleep(10);
 
-          const $filteredDropdown = $('.htMultiSelectEditor');
+          const $filteredDropdown = $('.ht-multi-select-editor');
           const $visibleCheckboxes = $filteredDropdown.find('input[type="checkbox"]');
 
           $visibleCheckboxes.each(function() {
@@ -420,7 +420,7 @@ describe('MultiSelectEditor', () => {
         await sleep(10);
 
         const editor = getActiveEditor();
-        const $htContainer = $('.htMultiSelectEditor');
+        const $htContainer = $('.ht-multi-select-editor');
 
         expect($htContainer.find('li').length).toBe(choices.length);
 
@@ -457,7 +457,7 @@ describe('MultiSelectEditor', () => {
         await sleep(10);
 
         const editor = getActiveEditor();
-        const $htContainer = $('.htMultiSelectEditor');
+        const $htContainer = $('.ht-multi-select-editor');
 
         expect($htContainer.find('li').length).toBe(choices.length);
 
@@ -501,7 +501,7 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        const $dropdown = $('.htMultiSelectEditor');
+        const $dropdown = $('.ht-multi-select-editor');
         const items = Array.from($dropdown.find('li label')).map(label => label.textContent);
         const expectedOrder = choices
           .slice()
@@ -536,23 +536,23 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        const $dropdown = $('.htMultiSelectEditor');
+        const $dropdown = $('.ht-multi-select-editor');
         const $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
 
         expect($checkbox.prop('checked')).toBe(false);
-        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
 
         await simulateClick($checkbox);
         await sleep(10);
 
         expect($checkbox.prop('checked')).toBe(true);
-        expect($dropdown.find('li.htItemSelected').length).toBe(1);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(1);
 
         await simulateClick($checkbox);
         await sleep(10);
 
         expect($checkbox.prop('checked')).toBe(false);
-        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
       });
 
       it('should toggle selection when clicking on the label', async() => {
@@ -572,24 +572,24 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        const $dropdown = $('.htMultiSelectEditor');
+        const $dropdown = $('.ht-multi-select-editor');
         const $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
-        const $label = $dropdown.find('label[for="htMultiSelectItem-yellow"]');
+        const $label = $dropdown.find('label[for="ht-multi-select-editor-item-yellow"]');
 
         expect($checkbox.prop('checked')).toBe(false);
-        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
 
         await simulateClick($label);
         await sleep(10);
 
         expect($checkbox.prop('checked')).toBe(true);
-        expect($dropdown.find('li.htItemSelected').length).toBe(1);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(1);
 
         await simulateClick($label);
         await sleep(10);
 
         expect($checkbox.prop('checked')).toBe(false);
-        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
       });
 
       it('should toggle selection when clicking on the list item element', async() => {
@@ -609,24 +609,24 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        const $dropdown = $('.htMultiSelectEditor');
+        const $dropdown = $('.ht-multi-select-editor');
         const $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
         const $listItem = $checkbox.closest('li');
 
         expect($checkbox.prop('checked')).toBe(false);
-        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
 
         await simulateClick($listItem);
         await sleep(10);
 
         expect($checkbox.prop('checked')).toBe(true);
-        expect($dropdown.find('li.htItemSelected').length).toBe(1);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(1);
 
         await simulateClick($listItem);
         await sleep(10);
 
         expect($checkbox.prop('checked')).toBe(false);
-        expect($dropdown.find('li.htItemSelected').length).toBe(0);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
       });
     });
 
@@ -648,7 +648,7 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        expect($('.htMultiSelectEditor').width()).toEqual(120);
+        expect($('.ht-multi-select-editor').width()).toEqual(120);
       });
 
       it('should size to content width when source entries are longer than min-width', async() => {
@@ -668,10 +668,57 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        const $dropdown = $('.htMultiSelectEditor');
+        const $dropdown = $('.ht-multi-select-editor');
         const dropdownWidth = $dropdown.outerWidth();
 
         expect(dropdownWidth).toEqual(219);
+      });
+    });
+
+    describe('removing a chip', () => {
+      it('the dropdown selections should reflect the cells state after removing a chip ' +
+        'by clicking on the chip\'s remove button', async() => {
+        handsontable({
+          data: [[choices.filter(
+            choice => ['yellow', 'red', 'orange'].includes(choice.value ?? choice)
+          )]],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              width: 250,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        let $dropdown = $('.ht-multi-select-editor');
+        let $checkedCheckboxes = $dropdown.find('input[type="checkbox"]:checked');
+
+        expect($checkedCheckboxes.length).toEqual(3);
+        expect($checkedCheckboxes.eq(0).data('value')).toBe('yellow');
+        expect($checkedCheckboxes.eq(1).data('value')).toBe('red');
+        expect($checkedCheckboxes.eq(2).data('value')).toBe('orange');
+
+        const chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+        const renderedChips = chipsContainer.find('.ht-multi-select-chip');
+        const visibleChips = renderedChips.filter(':visible');
+
+        const removeButton = visibleChips.eq(0).find('.ht-multi-select-chip-remove');
+
+        removeButton.click();
+        await sleep(10);
+
+        $dropdown = $('.ht-multi-select-editor');
+        $checkedCheckboxes = $dropdown.find('input[type="checkbox"]:checked');
+
+        expect($checkedCheckboxes.length).toEqual(2);
+        expect($checkedCheckboxes.eq(0).data('value')).toBe('red');
+        expect($checkedCheckboxes.eq(1).data('value')).toBe('orange');
+
       });
     });
 

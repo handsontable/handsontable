@@ -48,7 +48,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
         await sleep(10);
 
         const editor = getActiveEditor();
-        const $dropdown = $('.htMultiSelectEditor');
+        const $dropdown = $('.ht-multi-select-editor');
 
         const checkbox1 = $dropdown.find('input[type="checkbox"]').first()[0];
 
@@ -84,9 +84,8 @@ describe('MultiSelectEditor keyboard navigation', () => {
       });
     });
 
-    describe('confirming the selection with Enter', () => {
-      // TODO: Depends on the future `enterSelects` (?) option.
-      it('should keep the original data when pressing Enter twice on a cell.', async() => {
+    describe('utilizing the Enter key', () => {
+      it('should keep the original data when pressing Enter twice on a cell when `enterCommits` is enabled.', async() => {
         handsontable({
           data: [
             [getSampleInitialCellValue('yellow', 'red')],
@@ -110,7 +109,40 @@ describe('MultiSelectEditor keyboard navigation', () => {
         expect(getActiveEditor().isOpened()).toBe(false);
       });
 
-      // TODO: add more tests for Enter key
+      it('should select a dropdown entry when pressing Enter if `enterCommits` is disabled.', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              enterCommits: false,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const editor = getActiveEditor();
+        const $dropdown = $('.ht-multi-select-editor');
+        const checkbox1 = $dropdown.find('input[type="checkbox"]').first()[0];
+
+        expect(checkbox1).toBeDefined();
+        expect(document.activeElement).toBe(checkbox1);
+        expect(checkbox1.dataset.value).toBe('yellow');
+        expect(checkbox1.checked).toBe(false);
+
+        await keyDownUp('enter');
+        await sleep(10);
+
+        expect(checkbox1.checked).toBe(true);
+        expect(getSourceDataAtCell(0, 0)).toEqual(getSampleInitialCellValue('yellow'));
+        expect(editor.isOpened()).toBe(true);
+      });
     });
   });
 });

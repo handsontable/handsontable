@@ -2,12 +2,12 @@
 
 @mixin output {
   .handsontable {
-    .htMultiSelectRenderer {
+    .ht-multi-select-renderer {
       padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
       overflow: hidden;
     }
 
-    .htMultiSelectChipsContainer {
+    .ht-multi-select-chips-container {
       display: flex;
       flex-wrap: nowrap;
       align-items: center;
@@ -16,7 +16,7 @@
       max-width: 100%;
     }
 
-    .htMultiSelectChip {
+    .ht-multi-select-chip {
       display: inline-flex;
       align-items: center;
       gap: var(--ht-gap-size);
@@ -31,7 +31,7 @@
       box-sizing: border-box;
     }
 
-    .htMultiSelectChipLabel {
+    .ht-multi-select-chip-label {
       overflow: hidden;
       text-overflow: ellipsis;
       color: var(--ht-foreground-color);
@@ -41,7 +41,7 @@
       letter-spacing: var(--ht-letter-spacing, 0);
     }
 
-    .htMultiSelectChipRemove {
+    .ht-multi-select-chip-remove {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -55,7 +55,7 @@
       background-position: center;
     }
 
-    .htMultiSelectOverflow {
+    .ht-multi-select-overflow {
       display: inline-flex;
       align-items: center;
       justify-content: center;

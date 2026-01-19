@@ -2266,6 +2266,16 @@ export default () => {
     enterBeginsEditing: true,
 
     /**
+     * The `enterCommits` option configures whether the <kbd>**Enter**</kbd> key commits and closes the MultiSelect editor.
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category MultiSelect
+     */
+    enterCommits: true,
+
+    /**
      * The `enterMoves` option configures the action of the <kbd>**Enter**</kbd> key.
      *
      * If the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `true`,
@@ -3423,6 +3433,16 @@ export default () => {
      * ```
      */
     maxRows: Infinity,
+
+    /**
+     * The `maxSelections` option sets a maximum number of selections for the multiSelect editor.
+     *
+     * @memberof Options#
+     * @type {number}
+     * @default undefined
+     * @category MultiSelect
+     */
+    maxSelections: undefined,
 
     /**
      * @description

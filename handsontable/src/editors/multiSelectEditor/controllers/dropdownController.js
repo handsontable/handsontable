@@ -5,12 +5,13 @@ import { getCheckboxElement, includesValue } from '../utils/utils';
 import EventManager from '../../../eventManager';
 import { InputController } from './inputController';
 
-const SELECTED_ITEM_CLASS = 'htItemSelected';
-const SEARCH_INPUT_WRAPPER_CLASS = 'htMultiSelectEditorSearchInputWrapper';
-const SEARCH_ICON_CLASS = 'htMultiSelectEditorSearchIcon';
-const SEARCH_INPUT_CLASS = 'htMultiSelectEditorSearchInput';
-const SEPARATOR_CLASS = 'htMultiSelectEditorSeparator';
-const CHECKBOX_ID_PREFIX = 'htMultiSelectItem-';
+const classPrefix = 'ht-multi-select-editor';
+const SELECTED_ITEM_CLASS = `${classPrefix}-item-selected`;
+const SEARCH_INPUT_WRAPPER_CLASS = `${classPrefix}-search-input-wrapper`;
+const SEARCH_ICON_CLASS = `${classPrefix}-search-icon`;
+const SEARCH_INPUT_CLASS = `${classPrefix}-search-input`;
+const SEPARATOR_CLASS = `${classPrefix}-separator`;
+const CHECKBOX_ID_PREFIX = `${classPrefix}-item-`;
 const SEARCH_INPUT_PLACEHOLDER = 'Search...';
 
 /**
@@ -156,8 +157,8 @@ export class DropdownController {
       entries = this.#cache.sourceSortFunction(entries);
     }
 
-    entries.forEach((elem) => {
-      this.#addDropdownItem(elem?.key, elem?.value ?? elem, includesValue(checkedValues, elem));
+    entries.forEach((elem, indexWithinList) => {
+      this.#addDropdownItem(elem?.key, elem?.value ?? elem, indexWithinList, includesValue(checkedValues, elem));
     });
 
     this.#cache.entriesCount = entries.length;
@@ -215,6 +216,15 @@ export class DropdownController {
     if (this.#cache.entriesCount > 0) {
       this.#focusItem(0);
     }
+  }
+
+  /**
+   * Focuses the item at the given index.
+   *
+   * @param {number} index Index of the item to focus.
+   */
+  focusItem(index) {
+    this.#focusItem(index);
   }
 
   /**
@@ -470,10 +480,11 @@ export class DropdownController {
    *
    * @param {string} itemKey Key stored in the associated checkbox dataset.
    * @param {string} itemValue Text shown next to the checkbox.
+   * @param {number} indexWithinList Index of the item within the list.
    * @param {boolean} [checked=false] Flag indicating whether the checkbox starts selected.
    * @returns {HTMLLIElement}
    */
-  #createListItemElement(itemKey, itemValue, checked = false) {
+  #createListItemElement(itemKey, itemValue, indexWithinList, checked = false) {
     const itemElement = this.#rootDocument.createElement('li');
     const innerContainer = this.#rootDocument.createElement('div');
     const checkboxElement = this.#rootDocument.createElement('input');
@@ -482,6 +493,7 @@ export class DropdownController {
     checkboxElement.id = `${CHECKBOX_ID_PREFIX}${itemValue}`;
     checkboxElement.type = 'checkbox';
     checkboxElement.dataset.value = itemValue;
+    checkboxElement.dataset.index = indexWithinList;
     checkboxElement.disabled = checked ? false : this.#cache.areCheckboxesDisabled;
 
     if (itemKey) {
@@ -503,10 +515,11 @@ export class DropdownController {
    *
    * @param {string} itemKey Key stored in the associated checkbox dataset.
    * @param {string} itemValue Text content rendered next to the checkbox.
+   * @param {number} indexWithinList Index of the item within the list.
    * @param {boolean} [checked=false] Flag indicating whether the checkbox starts selected.
    */
-  #addDropdownItem(itemKey, itemValue, checked = false) {
-    const itemElement = this.#createListItemElement(itemKey, itemValue, checked);
+  #addDropdownItem(itemKey, itemValue, indexWithinList, checked = false) {
+    const itemElement = this.#createListItemElement(itemKey, itemValue, indexWithinList, checked);
 
     if (checked) {
       this.selectItem(itemElement);

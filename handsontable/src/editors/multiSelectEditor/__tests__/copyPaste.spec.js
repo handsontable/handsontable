@@ -58,9 +58,9 @@ describe('MultiSelectEditor copy & paste', () => {
       await keyDownUp('enter');
       await sleep(10);
 
-      const $dropdown = $('.htMultiSelectEditor');
+      const $dropdown = $('.ht-multi-select-editor');
 
-      expect($dropdown.find('li.htItemSelected').length).toBe(2);
+      expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(2);
 
       const $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
       const $redCheckbox = $dropdown.find('input[type="checkbox"][data-value="red"]');

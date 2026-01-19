@@ -31,7 +31,7 @@ export function getValuesFromString(stringValue) {
  */
 export function getItemElementByValue(value, listElement) {
   return listElement
-    .querySelector(`input[type="checkbox"][id="htMultiSelectItem-${value}"]`)
+    .querySelector(`input[type="checkbox"][id="ht-multi-select-item-${value}"]`)
     ?.closest('li') || null;
 }
 

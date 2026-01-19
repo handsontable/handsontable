@@ -4,7 +4,7 @@
   .handsontableEditor {
     position: absolute;
 
-    .htMultiSelectEditor {
+    .ht-multi-select-editor {
       overflow-y: auto;
       border-radius: 0 0 var(--ht-menu-border-radius) var(--ht-menu-border-radius);
       border: var(--ht-menu-border-width) solid var(--ht-menu-border-color);
@@ -14,7 +14,7 @@
       min-width: 120px;
       box-sizing: border-box;
 
-      .htMultiSelectEditorSearchInputWrapper {
+      .ht-multi-select-editor-search-input-wrapper {
         display: flex;
         padding: 6px 10px;
         align-items: center;
@@ -23,7 +23,7 @@
         position: relative;
       }
 
-      .htMultiSelectEditorSearchIcon {
+      .ht-multi-select-editor-search-icon {
         position: absolute;
         left: calc(var(--ht-menu-item-horizontal-padding) + 10px);
         top: 50%;
@@ -39,7 +39,7 @@
         z-index: 1;
       }
 
-      .htMultiSelectEditorSearchInput {
+      .ht-multi-select-editor-search-input {
         box-sizing: border-box;
         min-width: 100px;
         width: 100%;
@@ -61,7 +61,7 @@
         }
       }
 
-      .htMultiSelectEditorSeparator {
+      .ht-multi-select-editor-separator {
         width: 100%;
         height: 1px;
         background-color: var(--ht-menu-border-color);
@@ -87,7 +87,7 @@
           gap: var(--ht-gap-size);
           user-select: none;
 
-          &.htItemSelected {
+          &.ht-multi-select-editor-item-selected {
             background: var(--ht-menu-item-active-color);
           }
 
