@@ -46,7 +46,7 @@ describe('MultiSelectEditor', () => {
   ], ({ choices, longChoices }) => {
     beforeEach(function() {
       this.$container =
-        $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
+        $(`<div id="${id}" style=""></div>`).appendTo('body');
     });
 
     afterEach(function() {
@@ -580,7 +580,7 @@ describe('MultiSelectEditor', () => {
 
         const $dropdown = $('.ht-multi-select-editor');
         const $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
-        const $label = $dropdown.find('label[for="ht-multi-select-editor-item-yellow"]');
+        const $label = $dropdown.find('label[for="ht-multi-select-editor-item-0"]');
 
         expect($checkbox.prop('checked')).toBe(false);
         expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
@@ -675,9 +675,14 @@ describe('MultiSelectEditor', () => {
         await sleep(10);
 
         const $dropdown = $('.ht-multi-select-editor');
-        const dropdownWidth = $dropdown.outerWidth();
+        const dropdownWidth = $dropdown.width();
 
-        expect(dropdownWidth).toEqual(219);
+        expect(dropdownWidth).toEqual(
+          $dropdown.find('li:first-child label').width() +
+          $dropdown.find('li:first-child input').width() +
+          hot().stylesHandler.getCSSVariableValue('gap-size') +
+          hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2
+        );
       });
     });
 
