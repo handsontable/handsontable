@@ -1,4 +1,4 @@
-import { stringToArray, getIntersectionOfArrays } from '../../../helpers/array';
+import { getIntersectionOfArrays } from '../../../helpers/array';
 import { isObjectEqual, isKeyValueObject } from '../../../helpers/object';
 import { isJSON } from '../../../helpers/string';
 

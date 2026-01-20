@@ -494,7 +494,7 @@ export class DropdownController {
     const checkboxElement = this.#rootDocument.createElement('input');
     const labelElement = this.#rootDocument.createElement('label');
 
-    const sanitizeForId = (str) => String(str).replace(/[^a-zA-Z0-9\-_:.]/g, '-');
+    const sanitizeForId = str => String(str).replace(/[^a-zA-Z0-9\-_:.]/g, '-');
     const safeValue = sanitizeForId(itemValue);
 
     checkboxElement.id = `${CHECKBOX_ID_PREFIX}${safeValue}`;

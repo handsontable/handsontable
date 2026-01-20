@@ -49,7 +49,6 @@ export class InputController {
    * OnInput listener.
    */
   onInput() {
-    debugger;
     this.#triggerFilter(this.input.value);
   }
 

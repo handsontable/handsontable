@@ -356,6 +356,7 @@ describe('MultiSelectEditor', () => {
           expect($dropdown.find('input[type="checkbox"]:checked').length).toBe(2);
 
           const input = editor.getInputElement();
+
           input.value = 'a';
           input.focus();
           input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -426,6 +427,7 @@ describe('MultiSelectEditor', () => {
         expect($htContainer.find('li').length).toBe(choices.length);
 
         const input = editor.getInputElement();
+
         input.value = 'Y';
         input.focus();
         input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -464,6 +466,7 @@ describe('MultiSelectEditor', () => {
         expect($htContainer.find('li').length).toBe(choices.length);
 
         const input = editor.getInputElement();
+
         input.value = 'Y';
         input.focus();
         input.dispatchEvent(new Event('input', { bubbles: true }));
