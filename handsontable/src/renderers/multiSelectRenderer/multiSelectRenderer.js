@@ -1,13 +1,12 @@
 import { baseRenderer } from '../baseRenderer';
-import { addClass, empty, hasClass } from '../../helpers/dom/element';
-import EventManager from '../../eventManager';
+import { addClass, empty } from '../../helpers/dom/element';
 import {
   parseValue,
   createChipElement,
+  registerChipRemovingEvents,
+  cacheColumnWidthAndRegisterResizeHook,
   handleChipsOverflow,
-  removeValueByKey,
   CHIP_CLASS,
-  CHIP_REMOVE_CLASS,
 } from './utils/utils';
 
 export { CHIP_CLASS };
@@ -15,9 +14,6 @@ export const RENDERER_TYPE = 'multiSelect';
 
 const MULTISELECT_RENDERER_CLASS = 'ht-multi-select-renderer';
 const CHIPS_CONTAINER_CLASS = 'ht-multi-select-chips-container';
-
-const chipsEventManagers = new WeakMap();
-const latestColumnWidthCache = new WeakMap();
 
 /**
  * Multi-select renderer that displays values as chips.
@@ -60,54 +56,11 @@ export function multiSelectRenderer(hotInstance, TD, row, col, prop, value, cell
 
   TD.appendChild(chipsContainer);
 
-  // Handle the chip-removing buttons' events.
-  if (!chipsEventManagers.has(hotInstance)) {
-    chipsEventManagers.set(hotInstance, new EventManager(hotInstance));
+  registerChipRemovingEvents(hotInstance, RENDERER_TYPE);
 
-    const eventManager = chipsEventManagers.get(hotInstance);
+  const columnWidth = cacheColumnWidthAndRegisterResizeHook(hotInstance, col);
 
-    eventManager.addEventListener(hotInstance.rootElement, 'click', (event) => {
-      if (!hasClass(event.target, CHIP_REMOVE_CLASS)) {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      const chip = event.target.closest(`.${CHIP_CLASS}`);
-
-      if (!chip) {
-        return;
-      }
-
-      const rowIndex = chip.dataset.row;
-      const columnProp = chip.dataset.prop;
-      const currentData = hotInstance.getSourceDataAtCell(rowIndex, columnProp);
-      const keyToRemove = chip.dataset.key;
-      const newData = removeValueByKey(parseValue(currentData), keyToRemove);
-
-      hotInstance.setSourceDataAtCell(rowIndex, columnProp, newData, `${RENDERER_TYPE}-renderer`);
-      hotInstance.render();
-    });
-  }
-
-  // Cache the column width (required to know the column width before it's rendered - e.g. ManualColumnResize)
-  if (!latestColumnWidthCache.has(hotInstance)) {
-    latestColumnWidthCache.set(hotInstance, { [col]: { width: hotInstance.getColWidth(col) } });
-
-  } else if (latestColumnWidthCache.get(hotInstance)?.[col]?.width !== hotInstance.getColWidth(col)) {
-    latestColumnWidthCache.set(hotInstance,
-      { ...latestColumnWidthCache.get(hotInstance), [col]: { width: hotInstance.getColWidth(col) } }
-    );
-  }
-
-  hotInstance.addHookOnce('beforeColumnResize', (newSize, columnIndex) => {
-    if (latestColumnWidthCache.get(hotInstance)?.[columnIndex]?.width !== newSize) {
-      latestColumnWidthCache.set(hotInstance, { ...latestColumnWidthCache.get(hotInstance), [columnIndex]: newSize });
-    }
-  });
-
-  handleChipsOverflow(latestColumnWidthCache.get(hotInstance)?.[col]?.width, chipsContainer, rootDocument);
+  handleChipsOverflow(columnWidth, chipsContainer, rootDocument);
 }
 
 multiSelectRenderer.RENDERER_TYPE = RENDERER_TYPE;

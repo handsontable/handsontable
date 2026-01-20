@@ -19,6 +19,7 @@ const SEARCH_INPUT_PLACEHOLDER = 'Search...';
  * Responsible for rendering checkbox rows and emitting hooks when values change.
  *
  * @private
+ * @class DropdownController
  */
 export class DropdownController {
   /**
@@ -323,6 +324,9 @@ export class DropdownController {
     this.#cache.entriesCount = 0;
     this.#cache.flippedVertically = false;
     this.#cache.currentlySelectedItemIndex = 0;
+    this.#cache.checkboxChangeListeners.clear();
+    this.#cache.areCheckboxesDisabled = false;
+    this.#cache.sourceSortFunction = null;
   }
 
   /**
@@ -490,7 +494,10 @@ export class DropdownController {
     const checkboxElement = this.#rootDocument.createElement('input');
     const labelElement = this.#rootDocument.createElement('label');
 
-    checkboxElement.id = `${CHECKBOX_ID_PREFIX}${itemValue}`;
+    const sanitizeForId = (str) => String(str).replace(/[^a-zA-Z0-9\-_:.]/g, '-');
+    const safeValue = sanitizeForId(itemValue);
+
+    checkboxElement.id = `${CHECKBOX_ID_PREFIX}${safeValue}`;
     checkboxElement.type = 'checkbox';
     checkboxElement.dataset.value = itemValue;
     checkboxElement.dataset.index = indexWithinList;

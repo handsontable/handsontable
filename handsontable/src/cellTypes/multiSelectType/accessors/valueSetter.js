@@ -12,7 +12,11 @@ export function valueSetter(newValue, row, column) {
   if (Array.isArray(newValue)) {
     const sourceDataAtCell = this.getSourceDataAtCell(this.toPhysicalRow(row), this.toPhysicalColumn(column));
 
-    if (isKeyValueObject(sourceDataAtCell)) {
+    if (
+      Array.isArray(sourceDataAtCell) &&
+      sourceDataAtCell.length > 0 &&
+      isKeyValueObject(sourceDataAtCell[0])
+    ) {
       return newValue.map((val) => {
         return isKeyValueObject(val) ? val : { key: val, value: val };
       });

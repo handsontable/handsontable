@@ -1,13 +1,17 @@
 import { isKeyValueObject } from '../../../helpers/object';
 import { A11Y_HIDDEN } from '../../../helpers/a11y';
 import { EDITOR_CONTROLLER_CLASS } from '../../../helpers/mixed';
-import { addClass } from '../../../helpers/dom/element';
+import { addClass, hasClass } from '../../../helpers/dom/element';
+import EventManager from '../../../eventManager';
 
 export const CHIP_CLASS = 'ht-multi-select-chip';
 export const CHIP_REMOVE_CLASS = 'ht-multi-select-chip-remove';
 
 const CHIP_LABEL_CLASS = 'ht-multi-select-chip-label';
 const OVERFLOW_INDICATOR_CLASS = 'ht-multi-select-overflow';
+const beforeColumnResizeHookRegistered = new WeakSet();
+const latestColumnWidthCache = new WeakMap();
+const chipsEventManagers = new WeakMap();
 
 /**
  * Extracts the property from a value item - default to the item itself.
@@ -100,6 +104,86 @@ export function createOverflowIndicator(rootDocument, count) {
   indicator.textContent = `+${count}`;
 
   return indicator;
+}
+
+/**
+ * Registers a single click listener responsible for removing chips.
+ * Uses a per-instance EventManager cache to avoid duplicate listeners.
+ *
+ * @param {Core} hotInstance The Handsontable instance.
+ * @param {string} rendererType The renderer type (used as source id).
+ */
+export function registerChipRemovingEvents(hotInstance, rendererType) {
+  if (chipsEventManagers.has(hotInstance)) {
+    return;
+  }
+
+  chipsEventManagers.set(hotInstance, new EventManager(hotInstance));
+
+  const eventManager = chipsEventManagers.get(hotInstance);
+
+  eventManager.addEventListener(hotInstance.rootElement, 'click', (event) => {
+    if (!hasClass(event.target, CHIP_REMOVE_CLASS)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const chip = event.target.closest(`.${CHIP_CLASS}`);
+
+    if (!chip) {
+      return;
+    }
+
+    const rowIndex = chip.dataset.row;
+    const columnProp = chip.dataset.prop;
+    const currentData = hotInstance.getSourceDataAtCell(rowIndex, columnProp);
+    const keyToRemove = chip.dataset.key;
+    const newData = removeValueByKey(parseValue(currentData), keyToRemove);
+
+    hotInstance.setSourceDataAtCell(rowIndex, columnProp, newData, `${rendererType}-renderer`);
+    hotInstance.render();
+  });
+}
+
+/**
+ * Caches the latest column width for a specific column and registers a one-time hook
+ * for keeping the cache in sync during column resizing (e.g. ManualColumnResize).
+ *
+ * @param {Core} hotInstance The Handsontable instance.
+ * @param {number} col The visual column index.
+ * @returns {number} The cached column width.
+ */
+export function cacheColumnWidthAndRegisterResizeHook(
+  hotInstance,
+  col
+) {
+  const currentWidth = hotInstance.getColWidth(col);
+
+  // Cache the column width (required to know the column width before it's rendered - e.g. ManualColumnResize)
+  if (!latestColumnWidthCache.has(hotInstance)) {
+    latestColumnWidthCache.set(hotInstance, { [col]: { width: currentWidth } });
+
+  } else if (latestColumnWidthCache.get(hotInstance)?.[col]?.width !== currentWidth) {
+    latestColumnWidthCache.set(hotInstance,
+      { ...latestColumnWidthCache.get(hotInstance), [col]: { width: currentWidth } }
+    );
+  }
+
+  if (!beforeColumnResizeHookRegistered.has(hotInstance)) {
+    hotInstance.addHook('beforeColumnResize', (newSize, columnIndex) => {
+      if (latestColumnWidthCache.get(hotInstance)?.[columnIndex]?.width !== newSize) {
+        latestColumnWidthCache.set(
+          hotInstance, { ...latestColumnWidthCache.get(hotInstance), [columnIndex]: { width: newSize } }
+        );
+      }
+    });
+
+    beforeColumnResizeHookRegistered.add(hotInstance);
+  }
+
+  return latestColumnWidthCache.get(hotInstance)?.[col]?.width ?? currentWidth;
 }
 
 /**

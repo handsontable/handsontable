@@ -9,15 +9,6 @@ import localHooks from '../../../mixins/localHooks';
  */
 export class InputController {
   /**
-   * Cached keyup listener bound to the controller instance.
-   * It must be the same function reference for add/remove event listener.
-   *
-   * @private
-   * @type {Function}
-   */
-  #onKeyUp = null;
-
-  /**
    * Creates a new InputController.
    *
    * @param {object} options Options object.
@@ -28,7 +19,7 @@ export class InputController {
     this.input = input;
     this.eventManager = eventManager;
 
-    this.#onKeyUp = this.onKeyUp.bind(this);
+    this.onInput = this.onInput.bind(this);
   }
 
   /**
@@ -44,20 +35,21 @@ export class InputController {
    * Listens to the input keyup event.
    */
   listen() {
-    this.eventManager.addEventListener(this.input, 'keyup', this.#onKeyUp);
+    this.eventManager.addEventListener(this.input, 'input', this.onInput);
   }
 
   /**
    * Unlistens to the input keyup event.
    */
   unlisten() {
-    this.eventManager.removeEventListener(this.input, 'keyup', this.#onKeyUp);
+    this.eventManager.removeEventListener(this.input, 'input', this.onInput);
   }
 
   /**
-   * OnKeyUp listener.
+   * OnInput listener.
    */
-  onKeyUp() {
+  onInput() {
+    debugger;
     this.#triggerFilter(this.input.value);
   }
 

@@ -5,6 +5,7 @@ import { includesValue } from '../utils/utils';
 /**
  * Controller for managing the selected items.
  *
+ * @private
  * @class SelectedItemsController
  */
 export class SelectedItemsController {
@@ -122,25 +123,5 @@ export class SelectedItemsController {
    */
   getItemsArray() {
     return Array.from(this.selectedItems);
-  }
-
-  /**
-   * Stringifies the selected items.
-   *
-   * @returns {string}
-   */
-  stringifyValues() {
-    return arrayToString(this.getItemsArray().map((item) => {
-      return isKeyValueObject(item) ? item.value : item;
-    }), ', ');
-  }
-
-  /**
-   * Stringifies the selected items.
-   *
-   * @returns {string}
-   */
-  stringifyItems() {
-    return JSON.stringify(this.getItemsArray());
   }
 }

@@ -355,9 +355,10 @@ describe('MultiSelectEditor', () => {
 
           expect($dropdown.find('input[type="checkbox"]:checked').length).toBe(2);
 
-          editor.getInputElement().value = 'a';
-          editor.getInputElement().focus();
-          await keyDownUp('a');
+          const input = editor.getInputElement();
+          input.value = 'a';
+          input.focus();
+          input.dispatchEvent(new Event('input', { bubbles: true }));
           await sleep(10);
 
           const $filteredDropdown = $('.ht-multi-select-editor');
@@ -424,9 +425,10 @@ describe('MultiSelectEditor', () => {
 
         expect($htContainer.find('li').length).toBe(choices.length);
 
-        editor.getInputElement().value = 'Y';
-        editor.getInputElement().focus();
-        await keyDownUp('Y');
+        const input = editor.getInputElement();
+        input.value = 'Y';
+        input.focus();
+        input.dispatchEvent(new Event('input', { bubbles: true }));
         await sleep(10);
 
         const items = Array.from($htContainer.find('li label')).map(label => label.textContent);
@@ -461,9 +463,10 @@ describe('MultiSelectEditor', () => {
 
         expect($htContainer.find('li').length).toBe(choices.length);
 
-        editor.getInputElement().value = 'Y';
-        editor.getInputElement().focus();
-        await keyDownUp('Y');
+        const input = editor.getInputElement();
+        input.value = 'Y';
+        input.focus();
+        input.dispatchEvent(new Event('input', { bubbles: true }));
         await sleep(10);
 
         const items = Array.from($htContainer.find('li label')).map(label => label.textContent);

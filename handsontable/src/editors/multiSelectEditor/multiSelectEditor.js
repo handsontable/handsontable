@@ -123,7 +123,7 @@ export class MultiSelectEditor extends BaseEditor {
 
     this.dropdownController.setVisibleRowsNumberSetting(this.#getEditorSetting('visibleRows'));
 
-    if (cellProperties.maxSelections) {
+    if (cellProperties.maxSelections !== undefined) {
       this.#selectedItems.setMaxSelectionCount(cellProperties.maxSelections);
     }
   }
@@ -209,7 +209,12 @@ export class MultiSelectEditor extends BaseEditor {
    * Sets the editor's value.
    */
   setValue() {
-    // TODO: implement
+    // Currently not implemented.
+    //
+    // As the MultiSelectEditor saves data after every change, there's no need to set the value when
+    // the editor is closed.
+    //
+    // TODO: discuss this behavior and consider implementing an option for the data-saving strategy.
   }
 
   /**
@@ -236,7 +241,7 @@ export class MultiSelectEditor extends BaseEditor {
    * Focuses the editor.
    */
   focus() {
-    // TODO: implement
+    this.dropdownController.focusFirstItem();
   }
 
   /**
@@ -488,7 +493,7 @@ export class MultiSelectEditor extends BaseEditor {
    * @param {string} source The source of the change.
    */
   #onAfterSetSourceDataAtCell(changes, source) {
-    if (source === `${EDITOR_TYPE}-renderer`) {
+    if (this.isOpened() && source === `${EDITOR_TYPE}-renderer`) {
 
       this.#syncSelectedValues(changes[0][3]);
       this.dropdownController.fillDropdown(this.cellProperties.source, this.#selectedItems.getItemsArray());
