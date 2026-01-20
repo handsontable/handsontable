@@ -100,7 +100,7 @@ describe('multiSelectRenderer', () => {
         });
 
         hot().updateSettings({
-          colWidths: [hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2 + 250],
+          colWidths: [(hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) + 250],
         });
 
         let chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
@@ -121,7 +121,7 @@ describe('multiSelectRenderer', () => {
             {
               type: 'multiSelect',
               source: longChoices,
-              width: hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2 + 450,
+              width: (hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) + 450,
             },
           ],
         });

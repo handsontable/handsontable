@@ -681,7 +681,7 @@ describe('MultiSelectEditor', () => {
           $dropdown.find('li:first-child label').width() +
           $dropdown.find('li:first-child input').width() +
           hot().stylesHandler.getCSSVariableValue('gap-size') +
-          hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2
+          (hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2)
         );
       });
     });
