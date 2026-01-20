@@ -96,14 +96,12 @@ describe('MetaManager utils', () => {
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set(
           [
-            '_complexDataFormat',
             'editor',
             'validator',
             'valueGetter',
             'valueSetter',
           ]
         ),
-        _complexDataFormat: true,
         copyPaste: true,
         test: 'foo',
         renderer: 'type-renderer',
@@ -119,14 +117,12 @@ describe('MetaManager utils', () => {
 
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set([
-          '_complexDataFormat',
           'editor',
           'validator',
           'valueGetter',
           'valueSetter',
           'dataType',
         ]),
-        _complexDataFormat: true,
         copyPaste: true,
         test: 'foo',
         renderer: 'type-renderer',
@@ -143,14 +139,12 @@ describe('MetaManager utils', () => {
 
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set([
-          '_complexDataFormat',
           'editor',
           'validator',
           'dataType',
           'valueGetter',
           'valueSetter',
         ]),
-        _complexDataFormat: true,
         copyPaste: true,
         test: 'foo',
         renderer: 'type-renderer',
@@ -171,14 +165,12 @@ describe('MetaManager utils', () => {
 
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set([
-          '_complexDataFormat',
           'editor',
           'renderer',
           'validator',
           'valueGetter',
           'valueSetter',
         ]),
-        _complexDataFormat: true,
         renderer: getCellType('autocomplete').renderer,
         editor: getCellType('autocomplete').editor,
         validator: getCellType('autocomplete').validator,
@@ -194,13 +186,11 @@ describe('MetaManager utils', () => {
 
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set([
-          '_complexDataFormat',
           'editor',
           'validator',
           'valueGetter',
           'valueSetter',
         ]),
-        _complexDataFormat: true,
         renderer: 'my-renderer',
         editor: getCellType('autocomplete').editor,
         validator: getCellType('autocomplete').validator,
