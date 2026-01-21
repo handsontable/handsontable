@@ -2,11 +2,18 @@ import { isObject } from '../../../helpers/object';
 import { toHyphen } from '../../../helpers/string';
 
 /**
+ * The theme prefix.
+ *
+ * @type {string}
+ */
+const VAR_PREFIX = '--ht-';
+
+/**
  * List of prefixes that indicate a value should be converted to a CSS variable reference.
  *
  * @type {string[]}
  */
-const VAR_REFERENCE_PREFIXES = ['themes.', 'colors.', 'sizing.', 'density.'];
+const VAR_REFERENCE_PREFIXES = ['tokens.', 'colors.', 'sizing.', 'density.'];
 
 /**
  * Checks if a value is a reference to another CSS variable (e.g., 'colors.primary').
@@ -20,17 +27,17 @@ function isVarReference(value) {
 
 /**
  * Converts a dot notation path to a CSS variable reference.
- * Handles special case for 'themes.' prefix which strips the first segment.
+ * Handles special case for 'tokens.' prefix which strips the first segment.
  *
  * @param {string} path - The dot notation path (e.g., 'colors.primary').
  * @returns {string} - The CSS variable reference (e.g., 'var(--ht-colors-primary)').
  */
 function toVarReference(path) {
-  if (path.includes('themes.')) {
-    return `var(--ht-${toHyphen(path.split('.').slice(1).join('-'))})`;
+  if (path.includes('tokens.')) {
+    return `var(${VAR_PREFIX}${toHyphen(path.split('.').slice(1).join('-'))})`;
   }
 
-  return `var(--ht-${toHyphen(path.split('.').join('-'))})`;
+  return `var(${VAR_PREFIX}${toHyphen(path.split('.').join('-'))})`;
 }
 
 /**
@@ -41,7 +48,7 @@ function toVarReference(path) {
  * @returns {string} - The CSS variable key.
  */
 function toCssKey(prefix, key) {
-  return `--ht-${prefix ? `${prefix}-` : ''}${toHyphen(key)}`;
+  return `${VAR_PREFIX}${prefix ? `${prefix}-` : ''}${toHyphen(key)}`;
 }
 
 /**
