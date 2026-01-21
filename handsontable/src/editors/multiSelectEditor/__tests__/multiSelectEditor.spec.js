@@ -46,7 +46,7 @@ describe('MultiSelectEditor', () => {
   ], ({ choices, longChoices }) => {
     beforeEach(function() {
       this.$container =
-        $(`<div id="${id}" style=""></div>`).appendTo('body');
+        $(`<div id="${id}" style="width: 300px; height: 600px; overflow: auto"></div>`).appendTo('body');
     });
 
     afterEach(function() {
