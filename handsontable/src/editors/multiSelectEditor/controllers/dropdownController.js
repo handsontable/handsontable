@@ -212,8 +212,14 @@ export class DropdownController {
     }
 
     if (this.#cache.entriesCount > 0 && availableHeight < this.getHeight(true)) {
-      this.#cache.actualRenderedItemsCount =
-        Math.max(Math.floor((availableHeight - this.#getSearchInputWrapperHeight()) / entryHeight) - 1, 1);
+      const maxRenderableItems = Math.max(
+        Math.floor((availableHeight - this.#getSearchInputWrapperHeight()) / entryHeight) - 1,
+        1
+      );
+
+      this.#cache.actualRenderedItemsCount = this.#cache.visibleRowsNumberSetting ?
+        Math.min(maxRenderableItems, this.#cache.visibleRowsNumberSetting) : maxRenderableItems;
+
     } else {
       this.#cache.actualRenderedItemsCount = Math.min(this.#cache.entriesCount, this.#cache.visibleRowsNumberSetting);
     }
@@ -427,9 +433,7 @@ export class DropdownController {
    * @returns {number} Height of the list.
    */
   #getListHeight(maxRowsCalculation = false) {
-    const maxRenderedItems =
-    this.#cache.visibleRowsNumberSetting ?
-      Math.min(this.#cache.visibleRowsNumberSetting, this.#cache.entriesCount) : this.#cache.entriesCount;
+    const maxRenderedItems = this.#cache.entriesCount;
     const actualRenderedItems =
       maxRowsCalculation ? maxRenderedItems : this.#cache.actualRenderedItemsCount ?? maxRenderedItems;
     const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
