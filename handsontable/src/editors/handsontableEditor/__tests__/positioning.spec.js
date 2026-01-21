@@ -150,7 +150,5 @@ describe('HandsontableEditor positioning', () => {
         left: relativeRect.left - 1,
       });
     }
-
-    await sleep(5000);
   });
 });

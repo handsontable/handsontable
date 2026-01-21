@@ -404,10 +404,6 @@ export const classicTheme: BaseTheme;
 export const mainTheme: BaseTheme;
 export const horizonTheme: BaseTheme;
 
-// Icon configs
-export const mainIcons: ThemeIconsConfig;
-export const horizonIcons: ThemeIconsConfig;
-
 // Theme registry functions
 export function hasTheme(themeName: string): boolean;
 export function getTheme(themeName: string): ThemeBuilder | undefined;
