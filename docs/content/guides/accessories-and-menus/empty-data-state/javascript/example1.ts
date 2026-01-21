@@ -1,4 +1,6 @@
 import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.getElementById('example1') as HTMLElement;
 
