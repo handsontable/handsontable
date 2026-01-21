@@ -131,10 +131,10 @@
 
               &::before {
                 @include mixins.pseudo;
+
                 position: absolute;
                 top: 0;
                 left: 0;
-
                 box-sizing: border-box;
                 width: var(--ht-checkbox-size);
                 height: var(--ht-checkbox-size);
