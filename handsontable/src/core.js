@@ -4357,7 +4357,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedRows = function() {
-    return instance?.view?._wt?.drawn ? instance.view._wt.wtTable.getRenderedRowsCount() : -1;
+    return instance.view._wt.drawn ? instance.view._wt.wtTable.getRenderedRowsCount() : -1;
   };
 
   /**
