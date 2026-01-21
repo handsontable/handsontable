@@ -86,9 +86,9 @@ describe('CSS Variables utilities', () => {
       expect(result).toContain('--ht-tokens-cell-background: var(--ht-colors-primary);');
     });
 
-    it('should handle themes. prefix in variable references', () => {
+    it('should handle tokens. prefix in variable references', () => {
       const input = {
-        cellColor: 'themes.main.foreground',
+        cellColor: 'tokens.main.foreground',
       };
 
       const result = flattenCssVariables(input, 'tokens');
