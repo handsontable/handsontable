@@ -30,6 +30,56 @@ describe('MultiSelectEditor keyboard navigation', () => {
     });
 
     describe('navigating the dropdown with arrow keys', () => {
+      it('should focus the search input element after opening the editor if search input is enabled', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const searchInput = $dropdown.find('.ht-multi-select-editor-search-input')[0];
+
+        expect(searchInput).toBeDefined();
+        expect(document.activeElement).toBe(searchInput);
+      });
+
+      it('should focus the first item\'s checkbox after opening the editor if search input is disabled', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              searchInput: false,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const checkbox1 = $dropdown.find('input[type="checkbox"]').first()[0];
+
+        expect(checkbox1).toBeDefined();
+        expect(document.activeElement).toBe(checkbox1);
+        expect(checkbox1.dataset.value).toBe('yellow');
+      });
+
       it('should move focus inside the dropdown with ArrowDown and ArrowUp', async() => {
         handsontable({
           data: [
@@ -50,6 +100,9 @@ describe('MultiSelectEditor keyboard navigation', () => {
         const editor = getActiveEditor();
         const $dropdown = $('.ht-multi-select-editor');
 
+        await keyDownUp('ArrowDown');
+        await sleep(10);
+
         const checkbox1 = $dropdown.find('input[type="checkbox"]').first()[0];
 
         expect(checkbox1).toBeDefined();
@@ -59,28 +112,27 @@ describe('MultiSelectEditor keyboard navigation', () => {
         await keyDownUp('ArrowDown');
         await sleep(10);
 
-        const focusedCheckbox2 = $dropdown.find('input[type="checkbox"]:focus')[0];
+        let activeElement = document.activeElement;
 
-        expect(focusedCheckbox2).toBeDefined();
-        expect(document.activeElement).toBe(focusedCheckbox2);
-        expect(focusedCheckbox2).toBe($dropdown.find('input[type="checkbox"]').eq(1)[0]);
-        expect(focusedCheckbox2.dataset.value).toBe('red');
-
-        await keyDownUp('ArrowUp');
-        await sleep(10);
-
-        const focusedCheckbox3 = $dropdown.find('input[type="checkbox"]:focus')[0];
-
-        expect(focusedCheckbox3).toBeDefined();
-        expect(document.activeElement).toBe(focusedCheckbox3);
-        expect(focusedCheckbox3).toBe($dropdown.find('input[type="checkbox"]').first()[0]);
-        expect(focusedCheckbox3.dataset.value).toBe('yellow');
+        expect(activeElement).toBeDefined();
+        expect(activeElement).toBe($dropdown.find('input[type="checkbox"]').eq(1)[0]);
+        expect(activeElement.dataset.value).toBe('red');
 
         await keyDownUp('ArrowUp');
         await sleep(10);
 
-        expect($dropdown.find('input[type="checkbox"]:focus').length).toBe(0);
-        expect(document.activeElement).toBe(editor.getInputElement());
+        activeElement = document.activeElement;
+
+        expect(activeElement).toBeDefined();
+        expect(activeElement).toBe($dropdown.find('input[type="checkbox"]').first()[0]);
+        expect(activeElement.dataset.value).toBe('yellow');
+
+        await keyDownUp('ArrowUp');
+        await sleep(10);
+
+        activeElement = document.activeElement;
+
+        expect(activeElement).toBe(editor.getInputElement());
       });
     });
 
@@ -119,6 +171,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
               type: 'multiSelect',
               source: choices,
               enterCommits: false,
+              searchInput: false,
             },
           ],
         });

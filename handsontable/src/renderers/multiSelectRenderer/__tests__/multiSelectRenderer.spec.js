@@ -100,7 +100,8 @@ describe('multiSelectRenderer', () => {
         });
 
         hot().updateSettings({
-          colWidths: [(hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) + 250],
+          // TODO: make the calculation based on the theme variables.
+          colWidths: [(hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) + 220],
         });
 
         let chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
@@ -121,7 +122,8 @@ describe('multiSelectRenderer', () => {
             {
               type: 'multiSelect',
               source: longChoices,
-              width: (hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) + 450,
+              // TODO: make the calculation based on the theme variables.
+              width: (hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) + 420,
             },
           ],
         });
@@ -153,7 +155,8 @@ describe('multiSelectRenderer', () => {
             {
               type: 'multiSelect',
               source: choices,
-              width: 250,
+              // TODO: make the calculation based on the theme variables.
+              width: 220,
             },
           ],
         });

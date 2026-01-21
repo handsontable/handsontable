@@ -87,6 +87,7 @@ export class MultiSelectEditor extends BaseEditor {
     const { rootDocument } = this.hot;
 
     this.#editorContainer = rootDocument.createElement('div');
+    this.#editorContainer.style.display = 'none';
     addClass(this.#editorContainer, 'handsontableEditor');
 
     this.dropdownContainerElement = this.hot.rootDocument.createElement('div');
@@ -122,6 +123,8 @@ export class MultiSelectEditor extends BaseEditor {
     this.dropdownController.fillDropdown(this.cellProperties.source, valuesIntersection);
 
     this.dropdownController.setVisibleRowsNumberSetting(this.#getEditorSetting('visibleRows'));
+
+    this.dropdownController.setSearchInputVisibility(this.#getEditorSetting('searchInput'));
 
     if (cellProperties.maxSelections !== undefined) {
       this.#selectedItems.setMaxSelectionCount(cellProperties.maxSelections);
@@ -183,7 +186,6 @@ export class MultiSelectEditor extends BaseEditor {
     this.dropdownController.getInputController().listen();
 
     this.dropdownController.updateDimensions(this.#getAvailableSpace());
-    this.dropdownController.focusFirstItem();
   }
 
   /**
@@ -241,7 +243,12 @@ export class MultiSelectEditor extends BaseEditor {
    * Focuses the editor.
    */
   focus() {
-    this.dropdownController.focusFirstItem();
+    if (this.#getEditorSetting('searchInput') === false) {
+      this.dropdownController.focusFirstItem();
+
+    } else {
+      this.dropdownController.focusSearchInput();
+    }
   }
 
   /**

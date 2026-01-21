@@ -20,7 +20,7 @@
       display: inline-flex;
       align-items: center;
       gap: var(--ht-gap-size);
-      padding: 2px 6px;
+      padding: 0 6px;
       border-radius: 8px;
       background: var(--ht-color-gray-250);
       font-size: calc(var(--ht-font-size) - 1px);
@@ -45,11 +45,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: calc(var(--ht-line-height) - 4px);
-      height: calc(var(--ht-line-height) - 4px);
+      width: calc(var(--ht-line-height) - 10px) !important;
+      height: calc(var(--ht-line-height) - 10px) !important;
       cursor: pointer;
       flex-shrink: 0;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' fill='none'%3E%3Cpath d='M24 8L8 24M8 8L24 24' stroke='%23A3A3A3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      color: #A3A3A3;
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;

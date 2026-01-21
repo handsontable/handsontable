@@ -126,4 +126,16 @@
   .htUIRadio > input[type="radio"]::after {
     @include icon($icons, "radio");
   }
+
+  .ht-multi-select-chip-remove {
+    @include icon($icons, "chip-close");
+  }
+
+  .ht-multi-select-editor-search-icon {
+    @include icon($icons, "search");
+  }
+
+  .ht-multi-select-editor-item-selected input::after {
+    @include icon($icons, "checkbox");
+  }
 }

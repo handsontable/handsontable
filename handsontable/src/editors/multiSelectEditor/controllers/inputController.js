@@ -32,6 +32,22 @@ export class InputController {
   }
 
   /**
+   * Toggles the input.
+   *
+   * @param {boolean} enabled If true, the input will be enabled.
+   */
+  toggle(enabled) {
+    if (this.input) {
+      if (enabled) {
+        this.listen();
+
+      } else {
+        this.unlisten();
+      }
+    }
+  }
+
+  /**
    * Listens to the input keyup event.
    */
   listen() {

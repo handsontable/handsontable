@@ -654,7 +654,7 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        expect($('.ht-multi-select-editor').width()).toEqual(120);
+        expect($('.ht-multi-select-editor')[0].clientWidth).toEqual(120);
       });
 
       it('should size to content width when source entries are longer than min-width', async() => {

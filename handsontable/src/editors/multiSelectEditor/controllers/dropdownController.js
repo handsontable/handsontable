@@ -47,6 +47,22 @@ export class DropdownController {
   #searchInputElement = null;
 
   /**
+   * Separator element between the search input and the dropdown list.
+   *
+   * @private
+   * @type {HTMLDivElement|null}
+   */
+  #separatorElement = null;
+
+  /**
+   * Wrapper element for the search input.
+   *
+   * @private
+   * @type {HTMLDivElement|null}
+   */
+  #searchInputWrapper = null;
+
+  /**
    * Input controller for managing the search input.
    *
    * @private
@@ -93,7 +109,6 @@ export class DropdownController {
    */
   constructor(containerElement) {
     this.#containerElement = containerElement;
-
     this.#rootDocument = this.#containerElement.ownerDocument;
 
     this.init();
@@ -103,17 +118,19 @@ export class DropdownController {
    * Builds required DOM elements and inserts them into the container.
    */
   init() {
-    this.#searchInputElement = this.#createSearchInputElement();
-    const searchIcon = this.#createSearchIcon();
-    const searchInputWrapper = this.#createSearchInputWrapper();
-    const separatorElement = this.#createSeparatorElement();
-
     this.#dropdownListElement = this.#createListElement();
+    this.#searchInputElement = this.#createSearchInputElement();
 
-    searchInputWrapper.appendChild(searchIcon);
-    searchInputWrapper.appendChild(this.#searchInputElement);
-    this.#containerElement.appendChild(searchInputWrapper);
-    this.#containerElement.appendChild(separatorElement);
+    const searchIcon = this.#createSearchIcon();
+
+    this.#searchInputWrapper = this.#createSearchInputWrapper();
+    this.#separatorElement = this.#createSeparatorElement();
+
+    this.#searchInputWrapper.appendChild(searchIcon);
+    this.#searchInputWrapper.appendChild(this.#searchInputElement);
+    this.#containerElement.appendChild(this.#searchInputWrapper);
+    this.#containerElement.appendChild(this.#separatorElement);
+
     this.#containerElement.appendChild(this.#dropdownListElement);
 
     this.#inputController = new InputController({
@@ -138,6 +155,18 @@ export class DropdownController {
    */
   setSourceSortFunction(sourceSortFunction) {
     this.#cache.sourceSortFunction = sourceSortFunction ?? null;
+  }
+
+  /**
+   * Sets the visibility of the search input.
+   *
+   * @param {boolean} [searchInput=true] If true, the search input will be displayed.
+   */
+  setSearchInputVisibility(searchInput = true) {
+    this.#searchInputWrapper.style.display = searchInput ? '' : 'none';
+    this.#separatorElement.style.display = searchInput ? '' : 'none';
+
+    this.#inputController.toggle(searchInput);
   }
 
   /**
@@ -233,7 +262,7 @@ export class DropdownController {
    */
   focusPreviousItem() {
     if (this.#cache.currentlySelectedItemIndex === 0) {
-      this.#focusSearchInput();
+      this.focusSearchInput();
 
       return;
     }
@@ -252,6 +281,15 @@ export class DropdownController {
 
     this.#defocusItem(this.#cache.currentlySelectedItemIndex);
     this.#focusItem(this.#cache.currentlySelectedItemIndex + 1);
+  }
+
+  /**
+   * Focuses the search input element.
+   */
+  focusSearchInput() {
+    if (this.#searchInputElement) {
+      this.#searchInputElement.focus();
+    }
   }
 
   /**
@@ -408,9 +446,8 @@ export class DropdownController {
    * @returns {number} Height of the search input wrapper.
    */
   #getSearchInputWrapperHeight() {
-    const searchInputWrapper = this.#containerElement.querySelector(`.${SEARCH_INPUT_WRAPPER_CLASS}`);
-    const searchInputWrapperHeight = searchInputWrapper ? searchInputWrapper.offsetHeight : 0;
-    const separatorHeight = 1;
+    const searchInputWrapperHeight = this.#searchInputWrapper ? this.#searchInputWrapper.offsetHeight : 0;
+    const separatorHeight = this.#separatorElement ? this.#separatorElement.offsetHeight : 0;
 
     return searchInputWrapperHeight + separatorHeight;
   }
@@ -665,17 +702,6 @@ export class DropdownController {
    */
   getInputController() {
     return this.#inputController;
-  }
-
-  /**
-   * Focuses the search input element.
-   *
-   * @private
-   */
-  #focusSearchInput() {
-    if (this.#searchInputElement) {
-      this.#searchInputElement.focus();
-    }
   }
 }
 

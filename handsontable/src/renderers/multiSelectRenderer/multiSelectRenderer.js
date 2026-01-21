@@ -1,5 +1,6 @@
 import { baseRenderer } from '../baseRenderer';
-import { addClass, empty } from '../../helpers/dom/element';
+import { addClass, empty, fastInnerText } from '../../helpers/dom/element';
+import { stringify } from '../../helpers/mixed';
 import {
   parseValue,
   createChipElement,
@@ -29,6 +30,18 @@ const CHIPS_CONTAINER_CLASS = 'ht-multi-select-chips-container';
  */
 export function multiSelectRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   baseRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
+
+  let escaped = value;
+
+  if (!escaped && cellProperties.placeholder) {
+    escaped = cellProperties.placeholder;
+
+    escaped = stringify(escaped);
+
+    fastInnerText(TD, escaped);
+
+    return;
+  }
 
   const { rootDocument } = hotInstance;
   const isAriaEnabled = hotInstance.getSettings().ariaTags;
