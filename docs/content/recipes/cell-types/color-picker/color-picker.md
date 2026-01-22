@@ -1,25 +1,25 @@
 ---
 id: 2d2b22ef
 title: Color picker
-metaTitle: Color Picker Cell - JavaScript Data Grid | Handsontable
+metaTitle: Color Picker Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom color picker cell using the Coloris library, supporting live preview, validation, and custom themes.
-permalink: /recipes/color-picker
-canonicalUrl: /recipes/color-picker
+permalink: /recipes/cell-types/color-picker
+canonicalUrl: /recipes/cell-types/color-picker
 tags:
   - guides
   - tutorial
   - recipes
 react:
   id: 050bc847
-  metaTitle: Color Picker Cell - React Data Grid | Handsontable
+  metaTitle: Color Picker Cell Type - React Data Grid | Handsontable
 angular:
   id: a471c83c
-  metaTitle: Color Picker Cell - Angular Data Grid | Handsontable
+  metaTitle: Color Picker Cell Type - Angular Data Grid | Handsontable
 searchCategory: Recipes
-category: Cells
+category: Cell Types
 ---
 
-# Color Picker Cell - Step-by-Step Guide
+# Color Picker Cell Type - Step-by-Step Guide
 
 [[toc]]
 
@@ -37,8 +37,8 @@ This guide shows how to create a custom color picker cell using the [Coloris](ht
 
 ::: example #example1 :hot-recipe --js 1 --ts 2
 
-@[code](@/content/recipes/cells/guide-color-picker/javascript/example1.js)
-@[code](@/content/recipes/cells/guide-color-picker/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/color-picker/javascript/example1.js)
+@[code](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
 
 :::
 
@@ -85,7 +85,6 @@ The renderer controls how the cell looks when not being edited.
 renderer: rendererFactory(({ td, value }) => {
   td.style.backgroundColor = `${value}`;
   td.innerHTML = `<b>${value}</b>`;
-  return td;
 })
 ```
 
@@ -240,8 +239,6 @@ const cellDefinition = {
   renderer: rendererFactory(({ td, value }) => {
     td.style.backgroundColor = `${value}`;
     td.innerHTML = `<b>${value}</b>`;
-
-    return td;
   }),
   validator: (value, callback) => {
     callback(value.length === 7 && value[0] == '#'); // validate color format

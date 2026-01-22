@@ -1,25 +1,25 @@
 ---
 id: c757a3b3
-title: "Recipe: Date picker flatpickr"
-metaTitle: "Recipe: Date picker flatpickr - JavaScript Data Grid | Handsontable"
+title: Flatpickr
+metaTitle: Flatpickr Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type using Flatpickr for a powerful, customizable date picker experience directly inside your data grid.
-permalink: /recipes/flatpickr
-canonicalUrl: /recipes/flatpickr
+permalink: /recipes/cell-types/flatpickr
+canonicalUrl: /recipes/cell-types/flatpickr
 tags:
   - guides
   - tutorial
   - recipes
 react:
   id: 580a2104
-  metaTitle: Custom builds - React Data Grid | Handsontable
+  metaTitle: Flatpickr Cell Type - React Data Grid | Handsontable
 angular:
   id: 8748f2d9
-  metaTitle: Custom builds - Angular Data Grid | Handsontable
+  metaTitle: Flatpickr Cell Type - Angular Data Grid | Handsontable
 searchCategory: Recipes
-category: Cells
+category: Cell Types
 ---
 
-# Flatpickr Date Picker Cell - Step-by-Step Guide
+# Flatpickr Cell Type - Step-by-Step Guide
 
 [[toc]]
 
@@ -54,8 +54,8 @@ npm install flatpickr date-fns
 
 ::: example #example1 :hot-recipe --js 1 --ts 2
 
-@[code](@/content/recipes/cells/guide-flatpickr/javascript/example1.js)
-@[code](@/content/recipes/cells/guide-flatpickr/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/flatpickr/javascript/example1.js)
+@[code](@/content/recipes/cell-types/flatpickr/javascript/example1.ts)
 
 :::
 
@@ -100,8 +100,6 @@ The renderer displays the date in a human-readable format.
 ```typescript
 renderer: rendererFactory(({ td, value, cellProperties }) => {
   td.innerText = format(new Date(value), cellProperties.renderFormat);
-
-  return td;
 })
 ```
 
@@ -122,7 +120,7 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
   if (!value) {
     td.innerText = '';
 
-    return td;
+    return;
   }
 
   try {
@@ -131,8 +129,6 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = 'Invalid date';
     td.style.color = 'red';
   }
-
-  return td;
 })
 ```
 
@@ -298,8 +294,6 @@ const cellDefinition = {
   },
   renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = format(new Date(value), cellProperties.renderFormat);
-
-    return td;
   }),
   editor: editorFactory<{
     input: HTMLInputElement,

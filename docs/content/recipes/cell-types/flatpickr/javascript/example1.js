@@ -1,17 +1,17 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { editorFactory } from 'handsontable/editors';
-import { rendererFactory } from 'handsontable/renderers';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
-// CSS must be imported for the color picker to work in production
-// import "@melloware/coloris/dist/coloris.css";
-import Coloris from '@melloware/coloris';
+import { format, isDate } from 'date-fns';
+import flatpickr from 'flatpickr';
+import { editorFactory } from 'handsontable/editors';
+import { rendererFactory } from 'handsontable/renderers';
 
-Coloris.init();
 // Register all Handsontable's modules.
 registerAllModules();
 
+const DATE_FORMAT_US = 'MM/dd/yyyy';
+const DATE_FORMAT_EU = 'dd/MM/yyyy';
 /* start:skip-in-preview */
 const inputData = [
   {
@@ -358,48 +358,50 @@ const inputData = [
 
 export const data = inputData.map((el) => ({
   ...el,
-  // eslint-disable-next-line no-mixed-operators
-  color: `#${
-    // eslint-disable-next-line no-mixed-operators
-    Math.round(0x1000000 + 0xffffff * Math.random())
-      .toString(16)
-      .slice(1)
-      .toUpperCase()
-  }`,
 }));
 /* end:skip-in-preview */
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1');
 const cellDefinition = {
-  renderer: rendererFactory(({ td, value }) => {
-    td.style.backgroundColor = `${value}`;
-    td.innerHTML = `<b>${value}</b>`;
-
-    return td;
-  }),
   validator: (value, callback) => {
-    callback(value.length === 7 && value[0] == '#'); // validate color format
+    callback(isDate(new Date(value)));
   },
+  renderer: rendererFactory(({ td, value, cellProperties }) => {
+    td.innerText = format(new Date(value), cellProperties.renderFormat);
+  }),
   editor: editorFactory({
     init(editor) {
       // create the input element on init. This is a text input that color picker will be attached to.
       editor.input = editor.hot.rootDocument.createElement('INPUT');
-      editor.input.setAttribute('data-coloris', '');
-    },
-    afterInit(editor) {
-      Coloris({ el: editor.input, closeButton: true, closeLabel: 'Apply Colour', alpha: false, wrap: false });
-      editor.input.addEventListener('close', (event) => {
-        editor.finishEditing(); // close the color picker and save value on pressing "Apply Colour"
+      editor.flatpickr = flatpickr(editor.input, {
+        dateFormat: 'Y-m-d',
+        enableTime: false,
+        onChange: () => {
+          editor.finishEditing();
+        },
+      });
+      /**
+       * Prevent recognizing clicking on datepicker as clicking outside of table.
+       */
+      editor.hot.rootDocument.addEventListener('mousedown', (event) => {
+        if (editor.flatpickr.calendarContainer.contains(event.target)) {
+          event.stopPropagation();
+        }
       });
     },
-    afterOpen(editor) {
-      editor.input.click();
+    beforeOpen(editor, { originalValue, cellProperties }) {
+      editor.setValue(originalValue);
+
+      for (const key in cellProperties.flatpickrSettings) {
+        editor.flatpickr.set(key, cellProperties.flatpickrSettings[key]);
+      }
     },
     getValue(editor) {
       return editor.input.value;
     },
     setValue(editor, value) {
       editor.input.value = value;
+      editor.flatpickr.setDate(new Date(value));
     },
   }),
 };
@@ -408,19 +410,41 @@ const cellDefinition = {
 const hotOptions = {
   themeName: 'ht-theme-main',
   data,
-  colHeaders: ['ID', 'Item Name', 'Item Color'],
+  colHeaders: ['ID', 'Item Name', 'Restock Date UE', 'Restock Date US'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  autoWrapRow: true,
   columns: [
-    { data: 'id', type: 'numeric' },
+    { data: 'id', type: 'numeric', width: 150 },
     {
       data: 'itemName',
       type: 'text',
+      width: 150,
     },
     {
-      data: 'color',
+      data: 'restockDate',
+      width: 150,
+      allowInvalid: false,
       ...cellDefinition,
+      renderFormat: DATE_FORMAT_EU,
+      flatpickrSettings: {
+        locale: {
+          firstDayOfWeek: 1,
+        },
+      },
+    },
+    {
+      data: 'restockDate',
+      width: 150,
+      allowInvalid: false,
+      ...cellDefinition,
+      renderFormat: DATE_FORMAT_US,
+      flatpickrSettings: {
+        locale: {
+          firstDayOfWeek: 0,
+        },
+      },
     },
   ],
   licenseKey: 'non-commercial-and-evaluation',

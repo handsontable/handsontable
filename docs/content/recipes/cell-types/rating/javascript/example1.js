@@ -365,8 +365,6 @@ const cellDefinition = {
       { length: 5 },
       (_, index) => `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
     ).join('');
-
-    return td;
   }),
   validator: (value, callback) => {
     value = parseInt(value);

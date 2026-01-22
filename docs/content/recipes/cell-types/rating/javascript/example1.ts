@@ -2,16 +2,11 @@ import Handsontable from "handsontable/base";
 import { registerAllModules } from "handsontable/registry";
 import "handsontable/styles/handsontable.css";
 import "handsontable/styles/ht-theme-main.css";
-import { format, isDate } from "date-fns";
-import flatpickr from "flatpickr";
 import { CellProperties } from "handsontable/settings";
 import { editorFactory } from "handsontable/editors";
 import { rendererFactory } from "handsontable/renderers";
 // Register all Handsontable's modules.
 registerAllModules();
-
-const DATE_FORMAT_US = "MM/dd/yyyy";
-const DATE_FORMAT_EU = "dd/MM/yyyy";
 
 /* start:skip-in-preview */
 
@@ -360,6 +355,7 @@ const inputData = [
 
 export const data = inputData.map((el) => ({
   ...el,
+  stars: Math.floor(Math.random() * 5) + 1,
 }));
 
 /* end:skip-in-preview */
@@ -371,56 +367,72 @@ const cellDefinition: Pick<
   CellProperties,
   "renderer" | "validator" | "editor"
 > = {
-  validator: (value, callback) => {
-    callback(isDate(new Date(value)));
-  },
-  renderer: rendererFactory(({ td, value, cellProperties }) => {
-    td.innerText = format(new Date(value), cellProperties.renderFormat);
-
-    return td;
+  renderer: rendererFactory(({ td, value }) => {
+    td.innerHTML = Array.from(
+      { length: 5 },
+      (_, index) =>
+        `<span style="opacity: ${index < value ? "1" : "0.4"}">⭐</span>`,
+    ).join("");
   }),
-  editor: editorFactory<{
-    input: HTMLInputElement;
-    flatpickr: flatpickr.Instance;
-    flatpickrSettings: flatpickr.Options.Options;
-  }>({
-    init(editor) {
-      // create the input element on init. This is a text input that color picker will be attached to.
-      editor.input = editor.hot.rootDocument.createElement(
-        "INPUT",
-      ) as HTMLInputElement;
-      editor.flatpickr = flatpickr(editor.input, {
-        dateFormat: "Y-m-d",
-        enableTime: false,
-        onChange: () => {
-          editor.finishEditing();
+  validator: (value, callback) => {
+    value = parseInt(value);
+    callback(value >= 0 && value <= 100);
+  },
+
+  editor: editorFactory<{ input: HTMLDivElement }>({
+    shortcuts: [
+      {
+        keys: [["1"], ["2"], ["3"], ["4"], ["5"]],
+        callback: (editor, _event) => {
+          editor.setValue((_event as KeyboardEvent).key);
         },
-      });
-      /**
-       * Prevent recognizing clicking on datepicker as clicking outside of table.
-       */
-      editor.hot.rootDocument.addEventListener("mousedown", (event) => {
-        if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
-          event.stopPropagation();
+      },
+      {
+        keys: [["ArrowRight"]],
+        callback: (editor, _event) => {
+          if (parseInt(editor.value) < 5) {
+            editor.setValue(parseInt(editor.value) + 1);
+          }
+        },
+      },
+      {
+        keys: [["ArrowLeft"]],
+        callback: (editor, _event) => {
+          if (parseInt(editor.value) > 1) {
+            editor.setValue(parseInt(editor.value) - 1);
+          }
+        },
+      },
+    ],
+    init(editor) {
+      editor.input = editor.hot.rootDocument.createElement(
+        "DIV",
+      ) as HTMLDivElement;
+      editor.input.style =
+        "background: #eee; padding: 5px 8px; border:1px solid blue; cursor: pointer; border-radius: 4px; font-size: 16px;";
+    },
+    afterInit(editor) {
+      editor.input.addEventListener("mouseover", (event) => {
+        if (
+          event.target instanceof HTMLSpanElement &&
+          event.target.dataset.value &&
+          parseInt(editor.value) !== parseInt(event.target.dataset.value)
+        ) {
+          editor.setValue(event.target.dataset.value);
         }
       });
+      editor.input.addEventListener("mousedown", () => {
+        editor.finishEditing();
+      });
     },
-    beforeOpen(editor, { originalValue, cellProperties }) {
-      editor.setValue(originalValue);
-
-      for (const key in cellProperties.flatpickrSettings) {
-        editor.flatpickr.set(
-          key as keyof flatpickr.Options.Options,
-          cellProperties.flatpickrSettings[key],
-        );
-      }
-    },
-    getValue(editor) {
-      return editor.input.value;
-    },
-    setValue(editor, value) {
-      editor.input.value = value;
-      editor.flatpickr.setDate(new Date(value));
+    render(editor) {
+      editor.input.innerHTML = Array.from(
+        { length: 5 },
+        (_, index) =>
+          `<span data-value="${index + 1}" style="opacity: ${
+            index < editor.value ? "1" : "0.4"
+          }">⭐</span>`,
+      ).join("");
     },
   }),
 };
@@ -429,41 +441,21 @@ const cellDefinition: Pick<
 const hotOptions: Handsontable.GridSettings = {
   themeName: "ht-theme-main",
   data,
-  colHeaders: ["ID", "Item Name", "Restock Date UE", "Restock Date US"],
+  colHeaders: ["ID", "Item Name", "Restock Date"],
   autoRowSize: true,
   rowHeaders: true,
   height: "auto",
   autoWrapRow: true,
   columns: [
-    { data: "id", type: "numeric", width: 150 },
+    { data: "id", type: "numeric" },
     {
       data: "itemName",
       type: "text",
-      width: 150,
     },
     {
-      data: "restockDate",
-      width: 150,
-      allowInvalid: false,
+      data: "stars",
+      width: 100,
       ...cellDefinition,
-      renderFormat: DATE_FORMAT_EU,
-      flatpickrSettings: {
-        locale: {
-          firstDayOfWeek: 1,
-        },
-      },
-    },
-    {
-      data: "restockDate",
-      width: 150,
-      allowInvalid: false,
-      ...cellDefinition,
-      renderFormat: DATE_FORMAT_US,
-      flatpickrSettings: {
-        locale: {
-          firstDayOfWeek: 0,
-        },
-      },
     },
   ],
   licenseKey: "non-commercial-and-evaluation",

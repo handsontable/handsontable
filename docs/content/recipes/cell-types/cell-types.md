@@ -1,8 +1,8 @@
 ---
-title: Cell Recipes
+title: Cell Type Recipes
 metaTitle: Cell Recipes - JavaScript Data Grid | Handsontable
-permalink: /recipes/cells
-canonicalUrl: /recipes/cells
+permalink: /recipes/cell-types
+canonicalUrl: /recipes/cell-types
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
@@ -16,7 +16,7 @@ angular:
   metaTitle: Cell Recipes - Angular Data Grid | Handsontable
 ---
 
-# Cell Recipes
+# Cell Types Recipes
 
 [[toc]]
 
@@ -33,11 +33,8 @@ Before diving into specific recipes, we recommend reading our [Simplified Custom
 Our recipes cover common use cases and demonstrate best practices for:
 
 - **Input Controls** - Date pickers, color pickers, range sliders
-- **Selection Controls** - Multi-select dropdowns, custom dropdowns  
+- **Selection Controls** - Multi-select dropdowns, custom dropdowns
 - **Data Validation** - Custom validators and error handling
 - **UI Integration** - Third-party library integration
 
-Each recipe includes complete code examples, configuration options, and troubleshooting tips to help you implement custom cells quickly and effectively. 
-
-
-
+Each recipe includes complete code examples, configuration options, and troubleshooting tips to help you implement custom cells quickly and effectively.

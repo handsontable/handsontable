@@ -1,25 +1,25 @@
 ---
 id: b5f02fb2
-title: "Recipe: Star Rating Editor"
-metaTitle:  "Recipe: Star Rating Editor - JavaScript Data Grid | Handsontable"
+title: Star Rating
+metaTitle:  Star Rating Cell Type - JavaScript Data Grid | Handsontable"
 description: Learn how to create a custom Handsontable cell type using star emojis for intuitive 1-5 star ratings directly in your data grid.
-permalink: /recipes/stars-rating
-canonicalUrl: /recipes/stars-rating
+permalink: /recipes/cell-types/rating
+canonicalUrl: /recipes/cell-types/rating
 tags:
   - guides
   - tutorial
   - recipes
 react:
   id: dd56fc85
-  metaTitle: "Recipe: Star Rating Editor - React Data Grid | Handsontable"
+  metaTitle: Star Rating Cell Type - React Data Grid | Handsontable"
 angular:
   id: e51f625c
-  metaTitle: "Recipe: Star Rating Editor - Angular Data Grid | Handsontable"
+  metaTitle: Star Rating Cell Type - Angular Data Grid | Handsontable"
 searchCategory: Recipes
-category: Cells
+category: Cell Types
 ---
 
-# Star Rating Editor Cell - Step-by-Step Guide
+# Star Rating Cell Type - Step-by-Step Guide
 
 [[toc]]
 
@@ -47,8 +47,8 @@ A cell that:
 
 ::: example #example1 :hot-recipe --js 1 --ts 2
 
-@[code](@/content/recipes/cells/guide-rating/javascript/example1.js)
-@[code](@/content/recipes/cells/guide-rating/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/rating/javascript/example1.js)
+@[code](@/content/recipes/cell-types/rating/javascript/example1.ts)
 
 :::
 
@@ -84,8 +84,6 @@ renderer: rendererFactory(({ td, value }) => {
   td.innerHTML = Array.from({ length: 5 }, (_, index) =>
     `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
   ).join('');
-
-  return td;
 })
 ```
 
@@ -277,8 +275,6 @@ const cellDefinition = {
     td.innerHTML = Array.from({ length: 5 }, (_, index) =>
       `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
     ).join('');
-
-    return td;
   }),
 
   validator: (value, callback) => {
@@ -414,8 +410,6 @@ renderer: rendererFactory(({ td, value }) => {
       <span style="font-weight: bold; color: #666;">${value}/5</span>
     </div>
   `;
-
-  return td;
 })
 ```
 
@@ -433,8 +427,6 @@ renderer: rendererFactory(({ td, value }) => {
   td.innerHTML = Array.from({ length: 5 }, (_, index) =>
     `<span style="opacity: ${index < value ? '1' : '0.4'}; color: ${color};">⭐</span>`
   ).join('');
-
-  return td;
 })
 ```
 
@@ -457,8 +449,6 @@ renderer: rendererFactory(({ td, value }) => {
 
     return '<span style="opacity: 0.4;">⭐</span>';
   }).join('');
-
-  return td;
 })
 
 // Update validator
@@ -481,8 +471,6 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
   td.innerHTML = Array.from({ length: maxStars }, (_, index) =>
     `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
   ).join('');
-
-  return td;
 })
 
 // Usage
@@ -512,8 +500,6 @@ renderer: rendererFactory(({ td, value }) => {
       <span style="font-size: 0.9em; color: #666;">${label}</span>
     </div>
   `;
-
-  return td;
 })
 ```
 
@@ -664,8 +650,6 @@ renderer: rendererFactory(({ td, value }) => {
       ).join('')}
     </div>
   `;
-
-  return td;
 })
 ```
 
@@ -682,8 +666,6 @@ renderer: rendererFactory(({ td, value }) => {
       display: inline-block;
     ">⭐</span>`
   ).join('');
-
-  return td;
 })
 ```
 
