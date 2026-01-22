@@ -764,7 +764,18 @@ describe('MultiSelectEditor', () => {
         await keyDownUp('enter');
         await sleep(10);
 
-        expect($('.ht-multi-select-editor')[0].clientWidth).toEqual(120);
+        expect($('.ht-multi-select-editor')[0].clientWidth).toEqual({
+          rect: JSON.stringify($('.ht-multi-select-editor')[0].getBoundingClientRect()),
+          clientWidth: $('.ht-multi-select-editor')[0].clientWidth,
+          outerWidth: $('.ht-multi-select-editor')[0].outerWidth,
+          outerHeight: $('.ht-multi-select-editor')[0].outerHeight,
+          offsetWidth: $('.ht-multi-select-editor')[0].offsetWidth,
+          offsetHeight: $('.ht-multi-select-editor')[0].offsetHeight,
+          scrollWidth: $('.ht-multi-select-editor')[0].scrollWidth,
+          scrollHeight: $('.ht-multi-select-editor')[0].scrollHeight,
+          scrollTop: $('.ht-multi-select-editor')[0].scrollTop,
+          scrollLeft: $('.ht-multi-select-editor')[0].scrollLeft,
+        });
       });
 
       it('should size to content width when source entries are longer than min-width', async() => {
