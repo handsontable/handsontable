@@ -73,7 +73,26 @@ pnpm add handsontable @handsontable/angular-wrapper
 
 ## Import Handsontable's CSS
 
-Import Handsontable's CSS into your application to `styles.scss`.
+Import Handsontable's CSS into your application to `angular.json`.
+
+```json
+"projects": {
+    "<app_name>": {
+      "architect": {
+        "build": {
+          "options": {
+            "styles": [
+              "handsontable/styles/handsontable.min.css",
+              "handsontable/styles/ht-theme-main.min.css"
+            ]
+          }
+        }
+      }
+    }
+  }
+```
+
+Another option for adding CSS to your application is to import them in the `styles.scss` file.
 
 ```scss
 @import "handsontable/styles/handsontable.min.css";
@@ -197,6 +216,55 @@ For more information on `@handsontable/angular`, see the [15.3 documentation](ht
 
 ### Troubleshooting
 If you're using Angular 21 or newer, please note that older versions of `@handsontable/angular-wrapper` are incompatible due to recent breaking changes in Angular. To ensure smooth integration, upgrade to `@handsontable/angular-wrapper@16.2` or later.
+
+## Server Side Rendering (SSR)
+
+Currently, `HotTable` does not work with SSR applications. However, if you are using SSR, you can use a simple workaround and force the table to be rendered on the browser side.
+
+```ts
+import { CommonModule, isPlatformBrowser } from "@angular/common";
+import { Component, inject, PLATFORM_ID } from "@angular/core";
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
+
+import { registerAllModules } from "handsontable/registry";
+
+registerAllModules();
+
+@Component({
+  selector: "app-root",
+  imports: [HotTableModule, CommonModule],
+  templateUrl: "./app.html",
+  styleUrl: "./app.scss",
+})
+export class App {
+  private platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
+
+  readonly data = [
+    ["", "Tesla", "Volvo", "Toyota", "Ford"],
+    ["2019", 10, 11, 12, 13],
+    ["2020", 20, 11, 14, 13],
+    ["2021", 30, 15, 12, 13],
+  ];
+  readonly gridSettings: GridSettings = {
+    rowHeaders: true,
+    colHeaders: true,
+    height: "auto",
+    autoWrapRow: true,
+    autoWrapCol: true,
+    manualRowResize: true,
+    manualColumnResize: true,
+  };
+}
+```
+
+```html
+<div>
+  @if (isBrowser) {
+  <hot-table [data]="data" [settings]="gridSettings" />
+  }
+</div>
+```
 
 :::
 
