@@ -1,5 +1,7 @@
 // TODO: add tests about modifying the dataset
 
+import { seal } from "core-js/core/object";
+
 describe('MultiSelectEditor', () => {
   const id = 'testContainer';
 
@@ -758,6 +760,7 @@ describe('MultiSelectEditor', () => {
             {
               type: 'multiSelect',
               source: ['a', 'b', 'c'],
+              searchInput: false,
             },
           ],
         });
@@ -767,9 +770,10 @@ describe('MultiSelectEditor', () => {
         await sleep(10);
 
         expect($('.ht-multi-select-editor')[0].clientWidth).toEqual({
-          // rect: JSON.stringify($('.ht-multi-select-editor')[0].getBoundingClientRect()),
-          scrollWidth: $('.ht-multi-select-editor')[0].scrollWidth,
-          offsetWidth: $('.ht-multi-select-editor')[0].offsetWidth,
+          total: $('.ht-multi-select-editor')[0].clientWidth,
+          ul: $('.ht-multi-select-editor ul')[0].clientWidth,
+          li: $('.ht-multi-select-editor ul li')[0].clientWidth,
+          innerLi: $('.ht-multi-select-editor ul li div')[0].clientWidth,
         });
       });
 
