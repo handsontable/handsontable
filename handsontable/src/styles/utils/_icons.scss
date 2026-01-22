@@ -127,7 +127,7 @@
     @include icon($icons, "radio");
   }
 
-  .ht-multi-select-chip-remove {
+  .ht-multi-select-chip-remove::before {
     @include icon($icons, "chip-close");
   }
 

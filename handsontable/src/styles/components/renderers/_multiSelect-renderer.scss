@@ -1,7 +1,16 @@
-// MultiSelect - Cell Renderer
+@use "../../utils/mixins";
 
+// MultiSelect - Cell Renderer
 @mixin output {
   .handsontable {
+    // TODO: Implement these as proper theme variables.
+    // ------------------ Variables ------------------
+    --tmp-chip-border-radius: 2px;
+    --tmp-chip-vertical-padding: 0;
+    --tmp-chip-horizontal-padding: 8px;
+    --tmp-chip-background: var(--ht-common-background-secondary);
+    // ------------------------------------------------
+
     .ht-multi-select-renderer {
       padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
       overflow: hidden;
@@ -20,11 +29,9 @@
       display: inline-flex;
       align-items: center;
       gap: var(--ht-gap-size);
-      padding: 0 6px;
-      border-radius: 8px;
-      background: var(--ht-color-gray-250);
-      font-size: calc(var(--ht-font-size) - 1px);
-      line-height: 1.2;
+      padding: var(--tmp-chip-vertical-padding) calc((var(--ht-line-height) - var(--ht-icon-size)) / 2) var(--tmp-chip-vertical-padding) var(--tmp-chip-horizontal-padding);
+      border-radius: var(--tmp-chip-border-radius);
+      background: var(--tmp-chip-background);
       white-space: nowrap;
       flex-shrink: 0;
       max-width: 100px;
@@ -42,30 +49,41 @@
     }
 
     .ht-multi-select-chip-remove {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: calc(var(--ht-line-height) - 10px) !important;
-      height: calc(var(--ht-line-height) - 10px) !important;
+      width: var(--ht-icon-size) !important;
+      height: var(--ht-icon-size) !important;
+      padding: 0;
       cursor: pointer;
       flex-shrink: 0;
-      color: #A3A3A3;
+      color: var(--ht-icon-button-icon-color);
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
+
+      &::before {
+        @include mixins.pseudo;
+
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      &:hover {
+        background-color: var(--ht-icon-button-hover-background-color);
+      }
     }
 
     .ht-multi-select-overflow {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 2px 6px;
-      background: var(--ht-color-gray-250, #EBEBED); // TODO: create variable
-      border-radius: 8px;
-      font-size: calc(var(--ht-font-size) - 2px);
-      font-weight: var(--ht-font-weight);
+      padding: 0 calc(var(--ht-gap-size) * 2);
+      background: var(--tmp-chip-background);
+      border-radius: var(--tmp-chip-border-radius);
       color: var(--ht-foreground-color);
-      opacity: 0.7;
       white-space: nowrap;
       flex-shrink: 0;
     }

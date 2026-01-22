@@ -87,32 +87,47 @@ describe('multiSelectRenderer', () => {
       });
 
       it('should display only as many chips as fit in the column width and add an overflow indicator', async() => {
+        const longChoicesLongOptions = longChoices.map(choice =>
+          (
+            choice.value ?
+              { key: choice.key, value: `${choice.value} very long option text` } :
+              `${choice} very long option text`
+          )
+        );
+
         handsontable({
           data: [
-            [longChoices],
+            [longChoicesLongOptions],
           ],
           columns: [
             {
               type: 'multiSelect',
-              source: longChoices,
+              source: longChoicesLongOptions,
             },
           ],
-        });
-
-        hot().updateSettings({
-          // TODO: make the calculation based on the theme variables.
-          colWidths: [(hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) + 220],
         });
 
         let chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
         let renderedChips = chipsContainer.find('.ht-multi-select-chip');
         let visibleChips = renderedChips.filter(':visible');
 
+        hot().updateSettings({
+          colWidths: [
+            (hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) +
+            // TODO: replace `8` with the theme variable for the chips horizontal padding.
+            ((visibleChips.eq(0).outerWidth() + 8) * 3) + 50
+          ],
+        });
+
+        chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+        renderedChips = chipsContainer.find('.ht-multi-select-chip');
+        visibleChips = renderedChips.filter(':visible');
+
         expect(visibleChips.length).toEqual(3);
 
-        expect(visibleChips.eq(0).text()).toEqual('yellow');
-        expect(visibleChips.eq(1).text()).toEqual('red');
-        expect(visibleChips.eq(2).text()).toEqual('orange');
+        expect(visibleChips.eq(0).text()).toEqual('yellow very long option text');
+        expect(visibleChips.eq(1).text()).toEqual('red very long option text');
+        expect(visibleChips.eq(2).text()).toEqual('orange very long option text');
 
         expect(chipsContainer.find('.ht-multi-select-overflow').length).toEqual(1);
         expect(chipsContainer.find('.ht-multi-select-overflow').text()).toEqual('+21');
@@ -121,9 +136,10 @@ describe('multiSelectRenderer', () => {
           columns: [
             {
               type: 'multiSelect',
-              source: longChoices,
-              // TODO: make the calculation based on the theme variables.
-              width: (hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) + 420,
+              source: longChoicesLongOptions,
+              width: (hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) +
+              // TODO: replace `8` with the theme variable for the chips horizontal padding.
+                ((visibleChips.eq(0).outerWidth() + 8) * 6) + 50,
             },
           ],
         });
@@ -135,12 +151,12 @@ describe('multiSelectRenderer', () => {
         visibleChips = renderedChips.filter(':visible');
 
         expect(visibleChips.length).toEqual(6);
-        expect(visibleChips.eq(0).text()).toEqual('yellow');
-        expect(visibleChips.eq(1).text()).toEqual('red');
-        expect(visibleChips.eq(2).text()).toEqual('orange');
-        expect(visibleChips.eq(3).text()).toEqual('green');
-        expect(visibleChips.eq(4).text()).toEqual('blue');
-        expect(visibleChips.eq(5).text()).toEqual('gray');
+        expect(visibleChips.eq(0).text()).toEqual('yellow very long option text');
+        expect(visibleChips.eq(1).text()).toEqual('red very long option text');
+        expect(visibleChips.eq(2).text()).toEqual('orange very long option text');
+        expect(visibleChips.eq(3).text()).toEqual('green very long option text');
+        expect(visibleChips.eq(4).text()).toEqual('blue very long option text');
+        expect(visibleChips.eq(5).text()).toEqual('gray very long option text');
 
         expect(chipsContainer.find('.ht-multi-select-overflow').length).toEqual(1);
         expect(chipsContainer.find('.ht-multi-select-overflow').text()).toEqual('+18');
@@ -149,14 +165,18 @@ describe('multiSelectRenderer', () => {
 
     describe('removing a chip', () => {
       it('should remove the chip from the cell data when clicking the remove button', async() => {
+        const choicesLongOptions = choices.map(choice => (choice.value ?
+          { key: choice.key, value: `${choice.value} very long option text` } :
+          `${choice} very long option text`
+        ));
+
         handsontable({
-          data: [[choices]],
+          data: [[choicesLongOptions]],
           columns: [
             {
               type: 'multiSelect',
-              source: choices,
-              // TODO: make the calculation based on the theme variables.
-              width: 220,
+              source: choicesLongOptions,
+              width: 600,
             },
           ],
         });
@@ -165,12 +185,28 @@ describe('multiSelectRenderer', () => {
         let renderedChips = chipsContainer.find('.ht-multi-select-chip');
         let visibleChips = renderedChips.filter(':visible');
 
-        expect(getSourceDataAtCell(0, 0)).toEqual(choices);
+        hot().updateSettings({
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choicesLongOptions,
+              width: (hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) +
+              // TODO: replace `8` with the theme variable for the chips horizontal padding.
+              ((visibleChips.eq(0).outerWidth() + 8) * 3) + 50,
+            },
+          ],
+        });
+
+        chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+        renderedChips = chipsContainer.find('.ht-multi-select-chip');
+        visibleChips = renderedChips.filter(':visible');
+
+        expect(getSourceDataAtCell(0, 0)).toEqual(choicesLongOptions);
 
         expect(visibleChips.length).toEqual(3);
-        expect(visibleChips.eq(0).text()).toEqual('yellow');
-        expect(visibleChips.eq(1).text()).toEqual('red');
-        expect(visibleChips.eq(2).text()).toEqual('orange');
+        expect(visibleChips.eq(0).text()).toEqual('yellow very long option text');
+        expect(visibleChips.eq(1).text()).toEqual('red very long option text');
+        expect(visibleChips.eq(2).text()).toEqual('orange very long option text');
 
         expect(chipsContainer.find('.ht-multi-select-overflow').length).toEqual(1);
         expect(chipsContainer.find('.ht-multi-select-overflow:visible').size()).toEqual(1);
@@ -184,16 +220,16 @@ describe('multiSelectRenderer', () => {
         renderedChips = chipsContainer.find('.ht-multi-select-chip');
         visibleChips = renderedChips.filter(':visible');
 
-        const expectedSourceData = choices.filter(
-          choice => choice.value !== 'yellow' && choice !== 'yellow'
+        const expectedSourceData = choicesLongOptions.filter(
+          choice => choice.value !== 'yellow very long option text' && choice !== 'yellow very long option text'
         );
 
         expect(getSourceDataAtCell(0, 0)).toEqual(expectedSourceData);
 
         expect(chipsContainer.find('.ht-multi-select-chip').length).toEqual(3);
-        expect(chipsContainer.find('.ht-multi-select-chip').eq(0).text()).toEqual('red');
-        expect(chipsContainer.find('.ht-multi-select-chip').eq(1).text()).toEqual('orange');
-        expect(chipsContainer.find('.ht-multi-select-chip').eq(2).text()).toEqual('green');
+        expect(chipsContainer.find('.ht-multi-select-chip').eq(0).text()).toEqual('red very long option text');
+        expect(chipsContainer.find('.ht-multi-select-chip').eq(1).text()).toEqual('orange very long option text');
+        expect(chipsContainer.find('.ht-multi-select-chip').eq(2).text()).toEqual('green very long option text');
 
         expect(chipsContainer.find('.ht-multi-select-overflow').length).toEqual(1);
         expect(chipsContainer.find('.ht-multi-select-overflow:visible').size()).toEqual(0);

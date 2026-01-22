@@ -675,13 +675,13 @@ describe('MultiSelectEditor', () => {
         await sleep(10);
 
         const $dropdown = $('.ht-multi-select-editor');
-        const dropdownWidth = $dropdown.width();
+        const dropdownWidth = $dropdown.outerWidth();
 
         expect(dropdownWidth).toEqual(
-          $dropdown.find('li:first-child label').width() +
-          $dropdown.find('li:first-child input').width() +
-          hot().stylesHandler.getCSSVariableValue('gap-size') +
-          (hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2)
+          $dropdown.find('li:first-child label').outerWidth() +
+          $dropdown.find('li:first-child input').outerWidth() +
+          (hot().stylesHandler.getCSSVariableValue('menu-item-horizontal-padding') * 2) +
+          (hot().stylesHandler.getCSSVariableValue('menu-border-width') * 2)
         );
       });
     });

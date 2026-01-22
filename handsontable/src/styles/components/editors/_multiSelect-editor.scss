@@ -3,6 +3,10 @@
 // MultiSelect Editor
 @mixin output {
   .handsontableEditor {
+  // TODO: Implement these as proper theme variables.
+  // ------------------ Variables ------------------
+  --tmp-menu-separator-vertical-padding: 8px;
+  // ------------------------------------------------
     position: absolute;
 
     .ht-multi-select-editor {
@@ -13,11 +17,11 @@
       box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) 0 var(--ht-menu-shadow-color);
       width: max-content;
       min-width: 120px;
-      box-sizing: border-box;
+      padding: var(--ht-menu-vertical-padding) var(--ht-menu-horizontal-padding);
 
       .ht-multi-select-editor-search-input-wrapper {
         display: flex;
-        padding: 6px 10px;
+        padding: var(--ht-menu-item-vertical-padding) var(--ht-menu-item-horizontal-padding);
         align-items: center;
         gap: var(--ht-gap-size);
         align-self: stretch;
@@ -41,7 +45,6 @@
 
       .ht-multi-select-editor-search-input {
         box-sizing: border-box;
-        min-width: 100px;
         width: 100%;
         border-radius: var(--ht-input-border-radius);
         color: var(--ht-input-foreground-color);
@@ -80,7 +83,7 @@
         width: 100%;
         height: 1px;
         background-color: var(--ht-menu-border-color);
-        margin: 0;
+        margin: var(--tmp-menu-separator-vertical-padding) 0 var(--tmp-menu-separator-vertical-padding) 0;
         padding: 0;
       }
 
@@ -98,8 +101,7 @@
           align-items: center;
           align-self: stretch;
           background: var(--ht-background-color);
-          padding: var(--ht-menu-item-vertical-padding) var(--ht-cell-horizontal-padding);
-          gap: var(--ht-gap-size);
+          padding: var(--ht-menu-item-vertical-padding) var(--ht-menu-item-horizontal-padding);
           user-select: none;
 
           &.ht-multi-select-editor-item-selected {
@@ -109,7 +111,6 @@
           div {
             display: flex;
             align-items: center;
-            gap: var(--ht-gap-size);
             flex: 1 0 0;
 
             input {
@@ -170,7 +171,7 @@
               line-height: var(--ht-line-height);
               letter-spacing: var(--ht-letter-spacing);
               width: 100%;
-              padding: 0 0 0 var(--ht-gap-size);
+              padding: 0 0 0 calc(var(--ht-gap-size) * 2);
             }
           }
 

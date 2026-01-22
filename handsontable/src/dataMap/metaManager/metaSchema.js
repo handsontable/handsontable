@@ -2266,12 +2266,25 @@ export default () => {
     enterBeginsEditing: true,
 
     /**
-     * The `enterCommits` option configures whether the <kbd>**Enter**</kbd> key commits and closes the MultiSelect editor.
+     * The `enterCommits` option configures whether the <kbd>**Enter**</kbd> key closes the [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editor.
      *
      * @memberof Options#
      * @type {boolean}
      * @default true
      * @category MultiSelect
+     * @example
+     * ```js
+     * columns: [{
+     *   type: 'multiSelect',
+     *   // press Enter to close the `multiSelect` editor and Space to select an option
+     *   enterCommits: true,
+     * }, {
+     *   type: 'multiSelect',
+     *   // press Enter to select an option
+     *   enterCommits: false,
+     * }],
+     * ],
+     * ```
      */
     enterCommits: true,
 
@@ -2414,8 +2427,8 @@ export default () => {
     filter: true,
 
     /**
-     * The `filteringCaseSensitive` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) cells'
-     * input is case-sensitive.
+     * The `filteringCaseSensitive` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) and [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells'
+     * search inputs are case-sensitive.
      *
      * You can set the `filteringCaseSensitive` option to one of the following:
      *
@@ -2441,6 +2454,12 @@ export default () => {
      *     type: 'autocomplete',
      *     source: [ ... ],
      *     // match case while searching autocomplete options
+     *     filteringCaseSensitive: true
+     *   },
+     *   {
+     *     type: 'multiSelect',
+     *     source: [ ... ],
+     *     // match case while searching multiSelect options
      *     filteringCaseSensitive: true
      *   }
      * ],
@@ -3435,12 +3454,22 @@ export default () => {
     maxRows: Infinity,
 
     /**
-     * The `maxSelections` option sets a maximum number of selections for the multiSelect editor.
+     * The `maxSelections` option sets a maximum number of selections for the [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells.
      *
      * @memberof Options#
      * @type {number}
      * @default undefined
      * @category MultiSelect
+     *
+     * @example
+     * ```js
+     * columns: [{
+     *   // set the `type` of each cell in this column to `multiSelect`
+     *   type: 'multiSelect',
+     *   // set the maximum number of selections to 3
+     *   maxSelections: 3,
+     * }],
+     * ```
      */
     maxSelections: undefined,
 
@@ -4514,6 +4543,24 @@ export default () => {
     search: false,
 
     /**
+     * The `searchInput` option configures whether the [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editor's search input is visible.
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category MultiSelect
+     * @example
+     * ```js
+     * columns: [{
+     *   type: 'multiSelect',
+     *   // hide the `multiSelect` editor's search input
+     *   searchInput: false,
+     * }],
+     * ```
+     */
+    searchInput: true,
+
+    /**
      * @description
      * The `selectionMode` option configures how [selection](@/guides/cell-features/selection/selection.md) works.
      *
@@ -4709,6 +4756,30 @@ export default () => {
      * ```
      */
     sortByRelevance: true,
+
+    /**
+     * The `sourceSortFunction` option sets a function to sort the options available in [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells.
+     *
+     * @memberof Options#
+     * @type {Function}
+     * @default undefined
+     * @category MultiSelect
+     *
+     * @example
+     * ```js
+     * columns: [{
+     *   // set the `type` of each cell in this column to `multiSelect`
+     *   type: 'multiSelect',
+     *   // set options available in every `multiSelect` cell of this column
+     *   source: ['A', 'B', 'C', 'D'],
+     *   // sort the `multiSelect` options in this order: D, C, B, A
+     *   sourceSortFunction: (entries) => {
+     *     return entries.sort((a, b) => b.localeCompare(a));
+     *   }
+     * }],
+     * ```
+     */
+    sourceSortFunction: undefined,
 
     /**
      * The `source` option sets options available in [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -5508,13 +5579,14 @@ export default () => {
 
     /**
      * The `visibleRows` option sets the height of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
-     * and [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) lists.
+     * , [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) and [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells' lists.
      *
      * When the number of list options exceeds the `visibleRows` number, a scrollbar appears.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
+     * - [MultiSelect cell type](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)
      *
      * @memberof Options#
      * @type {number}
@@ -5533,6 +5605,12 @@ export default () => {
      *   {
      *     type: 'dropdown',
      *     // set the `dropdown` list's height to 5 options
+     *     // for each cell of this column
+     *     visibleRows: 5,
+     *   },
+     *   {
+     *     type: 'multiSelect',
+     *     // set the `multiSelect` list's height to 5 options
      *     // for each cell of this column
      *     visibleRows: 5,
      *   }
