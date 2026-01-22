@@ -641,8 +641,6 @@ const container = document.querySelector('#example1');
 const cellDefinition = {
   renderer: rendererFactory(({ td, value }) => {
     td.innerHTML = value.length > 0 ? value.map((el) => el.label).join(', ') : 'No elements';
-
-    return td;
   }),
   editor: editorFactory({
     init(editor) {

@@ -1,25 +1,25 @@
 ---
 id: 1c5546c8
-title: "Recipe: Multiple Select Dropdown"
-metaTitle:  "Recipe: Multiple Select Dropdown - JavaScript Data Grid | Handsontable"
+title: Multiple Select Dropdown
+metaTitle:  Multiple Select Dropdown Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type featuring a searchable, multi-select dropdown using the multiple-select-vanilla library.
-permalink: /recipes/select-multiple
-canonicalUrl: /recipes/select-multiple
+permalink: /recipes/cell-types/select-multiple
+canonicalUrl: /recipes/cell-types/select-multiple
 tags:
   - guides
   - tutorial
   - recipes
 react:
   id: 44c6adde
-  metaTitle: "Recipe: Multiple Select Dropdown - React Data Grid | Handsontable"
+  metaTitle: Multiple Select Dropdown Cell Type - React Data Grid | Handsontable
 angular:
   id: 9b00d73d
-  metaTitle: "Recipe: Multiple Select Dropdown - Angular Data Grid | Handsontable"
+  metaTitle: Multiple Select Dropdown Cell Type - Angular Data Grid | Handsontable
 searchCategory: Recipes
-category: Cells
+category: Cell Types
 ---
 
-# Multiple Select Dropdown Cell - Step-by-Step Guide
+# Multiple Select Dropdown Cell Type - Step-by-Step Guide
 
 [[toc]]
 
@@ -54,8 +54,8 @@ npm install multiple-select-vanilla
 
 ::: example #example1 :hot-recipe --js 1 --ts 2
 
-@[code](@/content/recipes/cells/guide-select-multiple/javascript/example1.js)
-@[code](@/content/recipes/cells/guide-select-multiple/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/select-multiple/javascript/example1.js)
+@[code](@/content/recipes/cell-types/select-multiple/javascript/example1.ts)
 
 :::
 
@@ -496,7 +496,6 @@ const cellDefinition = {
     td.innerHTML = value.length > 0
       ? value.map((el: { label: string }) => el.label).join(', ')
       : 'No elements';
-    return td;
   }),
   editor: editorFactory<{input: HTMLSelectElement, multiselect: MultipleSelectInstance}>({
     init(editor) {

@@ -438,7 +438,6 @@ const cellDefinition: Pick<
     td.innerText = moment(new Date(value), cellProperties.renderFormat).format(
       cellProperties.renderFormat,
     );
-    return td;
   }),
 
   editor: editorFactory<

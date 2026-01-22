@@ -1,25 +1,25 @@
 ---
 id: e23f98e7
-title: "Recipe: Feedback Editor"
-metaTitle:  "Recipe: Feedback Editor - JavaScript Data Grid | Handsontable"
+title: Feedback
+metaTitle:  Feedback Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type using emoji buttons for quick feedback selection directly in your data grid.
-permalink: /recipes/feedback
-canonicalUrl: /recipes/feedback
+permalink: /recipes/cell-types/feedback
+canonicalUrl: /recipes/cell-types/feedback
 tags:
   - guides
   - tutorial
   - recipes
 react:
   id: 034db272
-  metaTitle: "Recipe: Feedback Editor - React Data Grid | Handsontable"
+  metaTitle: Feedback Cell Type - React Data Grid | Handsontable
 angular:
   id: 8e13e6d5
-  metaTitle: "Recipe: Feedback Editor - Angular Data Grid | Handsontable"
+  metaTitle: Feedback Cell Type - Angular Data Grid | Handsontable
 searchCategory: Recipes
-category: Cells
+category: Cell Types
 ---
 
-# Feedback Editor Cell - Step-by-Step Guide
+# Feedback Cell Type - Step-by-Step Guide
 
 [[toc]]
 
@@ -46,8 +46,8 @@ A cell that:
 
 ::: example #example1 :hot-recipe --js 1 --ts 2
 
-@[code](@/content/recipes/cells/guide-feedback/javascript/example1.js)
-@[code](@/content/recipes/cells/guide-feedback/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/feedback/javascript/example1.js)
+@[code](@/content/recipes/cell-types/feedback/javascript/example1.ts)
 
 :::
 
@@ -355,8 +355,6 @@ renderer: rendererFactory(({ td, value }) => {
       ${value || '🤷‍♂️'}
     </div>
   `;
-
-  return td;
 })
 ```
 
@@ -631,7 +629,6 @@ renderer: rendererFactory(({ td, value }) => {
       ${value || '🤷‍♂️'}
     </div>
   `;
-  return td;
 })
 ```
 

@@ -1,20 +1,18 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import  { editorFactory }  from 'handsontable/editors';
-import  { rendererFactory }  from 'handsontable/renderers';
+import { editorFactory } from 'handsontable/editors';
+import { rendererFactory } from 'handsontable/renderers';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 // CSS must be imported for the color picker to work in production
 // import "@melloware/coloris/dist/coloris.css";
 import Coloris from '@melloware/coloris';
-import { CellProperties } from 'handsontable/settings';
 
 Coloris.init();
 // Register all Handsontable's modules.
 registerAllModules();
 
 /* start:skip-in-preview */
-
 const inputData = [
   {
     id: 640329,
@@ -370,24 +368,20 @@ export const data = inputData.map((el) => ({
   }`,
 }));
 /* end:skip-in-preview */
-
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
-const container = document.querySelector('#example1')!;
-
-const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> = {
+const container = document.querySelector('#example1');
+const cellDefinition = {
   renderer: rendererFactory(({ td, value }) => {
     td.style.backgroundColor = `${value}`;
     td.innerHTML = `<b>${value}</b>`;
-
-    return td;
   }),
   validator: (value, callback) => {
     callback(value.length === 7 && value[0] == '#'); // validate color format
   },
-  editor: editorFactory<{ input: HTMLInputElement }>({
+  editor: editorFactory({
     init(editor) {
       // create the input element on init. This is a text input that color picker will be attached to.
-      editor.input = editor.hot.rootDocument.createElement('INPUT') as HTMLInputElement;
+      editor.input = editor.hot.rootDocument.createElement('INPUT');
       editor.input.setAttribute('data-coloris', '');
     },
     afterInit(editor) {
@@ -409,7 +403,7 @@ const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> 
 };
 
 // Define configuration options for the Handsontable
-const hotOptions: Handsontable.GridSettings = {
+const hotOptions = {
   themeName: 'ht-theme-main',
   data,
   colHeaders: ['ID', 'Item Name', 'Item Color'],

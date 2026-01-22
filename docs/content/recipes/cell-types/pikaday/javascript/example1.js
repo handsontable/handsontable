@@ -395,8 +395,6 @@ const container = document.querySelector('#example1');
 const cellDefinition = {
   renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = moment(new Date(value), cellProperties.renderFormat).format(cellProperties.renderFormat);
-
-    return td;
   }),
   editor: editorFactory({
     position: 'portal',

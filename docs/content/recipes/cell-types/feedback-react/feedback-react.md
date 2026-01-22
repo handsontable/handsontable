@@ -1,25 +1,25 @@
 ---
 id: e107bb0d
-title: "Recipe: Feedback Editor"
-metaTitle:  "Recipe: Feedback Editor - JavaScript Data Grid | Handsontable"
+title: Feedback
+metaTitle:  Feedback Cell Type - React Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type using emoji buttons for quick feedback selection directly in your data grid.
-permalink: /recipes/feedback-react
-canonicalUrl: /recipes/feedback-react
+permalink: /recipes/cell-types/feedback-react
+canonicalUrl: /recipes/cell-types/feedback-react
 tags:
   - guides
   - tutorial
   - recipes
 react:
   id: 41d9ca30
-  metaTitle: "Recipe: Feedback Editor - React Data Grid | Handsontable"
+  metaTitle: Feedback Cell Type - React Data Grid | Handsontable
 angular:
   id: 6af717ed
-  metaTitle: "Recipe: Feedback Editor - Angular Data Grid | Handsontable"
+  metaTitle: Feedback Cell Type - Angular Data Grid | Handsontable
 searchCategory: Recipes
-category: Cells
+category: Cell Types
 ---
 
-# Feedback Editor Cell - Step-by-Step Guide (React)
+# Feedback Cell Type - Step-by-Step Guide (React)
 
 [[toc]]
 
@@ -47,9 +47,9 @@ A cell that:
 
 ::: example #example1 :react --css 1 --js 2 --ts 3
 
-@[code](@/content/recipes/cells/guide-feedback-react/react/example1.css)
-@[code](@/content/recipes/cells/guide-feedback-react/react/example1.jsx)
-@[code](@/content/recipes/cells/guide-feedback-react/react/example1.tsx)
+@[code](@/content/recipes/cell-types/feedback-react/react/example1.css)
+@[code](@/content/recipes/cell-types/feedback-react/react/example1.jsx)
+@[code](@/content/recipes/cell-types/feedback-react/react/example1.tsx)
 
 :::
 
@@ -93,7 +93,7 @@ type EditorComponentProps = ComponentProps<typeof EditorComponent<string>>;
 
 const FeedbackEditor = () => {
   const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
-  
+
   return (
     <EditorComponent<string>>
       {({ value, setValue, finishEditing }) => (
@@ -138,7 +138,7 @@ Style the editor container and buttons using CSS or inline styles.
 ```tsx
 const FeedbackEditor = () => {
   const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
-  
+
   return (
     <EditorComponent<string>>
       {({ value, setValue, finishEditing }) => (
@@ -219,7 +219,7 @@ Use `onPrepare` to read per-column configuration.
 ```tsx
 const FeedbackEditor = () => {
   const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
-  
+
   const onPrepare: EditorComponentProps['onPrepare'] = (
     _row,
     _column,
@@ -233,7 +233,7 @@ const FeedbackEditor = () => {
       setConfig(cellProperties.config as string[]);
     }
   };
-  
+
   return (
     <EditorComponent<string> onPrepare={onPrepare}>
       {({ value, setValue, finishEditing }) => (
@@ -263,17 +263,17 @@ Add keyboard navigation using the `shortcuts` prop.
 const FeedbackEditor = () => {
   const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
   const [shortcuts, setShortcuts] = useState<EditorComponentProps['shortcuts']>([]);
-  
+
   const getNextValue = useCallback((value: string) => {
     const index = config.indexOf(value);
     return index === config.length - 1 ? config[0] : config[index + 1];
   }, [config]);
-  
+
   const getPrevValue = useCallback((value: string) => {
     const index = config.indexOf(value);
     return index === 0 ? config[config.length - 1] : config[index - 1];
   }, [config]);
-  
+
   useEffect(() => {
     setShortcuts([
       {
@@ -291,7 +291,7 @@ const FeedbackEditor = () => {
       }
     ]);
   }, [config, getNextValue, getPrevValue]);
-  
+
   return (
     <EditorComponent<string> shortcuts={shortcuts}>
       {({ value, setValue, finishEditing }) => (
@@ -324,7 +324,7 @@ type EditorComponentProps = ComponentProps<typeof EditorComponent<string>>;
 const FeedbackEditor = () => {
   const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
   const [shortcuts, setShortcuts] = useState<EditorComponentProps['shortcuts']>([]);
-  
+
   const onPrepare: EditorComponentProps['onPrepare'] = (
     _row,
     _column,
@@ -337,17 +337,17 @@ const FeedbackEditor = () => {
       setConfig(cellProperties.config as string[]);
     }
   };
-  
+
   const getNextValue = useCallback((value: string) => {
     const index = config.indexOf(value);
     return index === config.length - 1 ? config[0] : config[index + 1];
   }, [config]);
-  
+
   const getPrevValue = useCallback((value: string) => {
     const index = config.indexOf(value);
     return index === 0 ? config[config.length - 1] : config[index - 1];
   }, [config]);
-  
+
   useEffect(() => {
     setShortcuts([
       {
@@ -365,7 +365,7 @@ const FeedbackEditor = () => {
       }
     ]);
   }, [config, getNextValue, getPrevValue]);
-  
+
   return (
     <EditorComponent<string> onPrepare={onPrepare} shortcuts={shortcuts}>
       {({ value, setValue, finishEditing }) => (
@@ -512,7 +512,6 @@ const cellDefinition = {
         ${value || '🤷‍♂️'}
       </div>
     `;
-    return td;
   })
 };
 
@@ -595,7 +594,7 @@ Add tooltips to buttons:
     '👎': 'Negative feedback',
     '🤷‍♂️': 'Neutral feedback'
   };
-  
+
   return (
     <button
       key={item}

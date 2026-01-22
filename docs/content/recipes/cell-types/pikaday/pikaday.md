@@ -1,25 +1,25 @@
 ---
 id: 01620d5a
-title: "Recipe: Date picker `pikaday`"
-metaTitle: "Recipe: Date picker pikaday - JavaScript Data Grid | Handsontable"
+title: Pikaday
+metaTitle: Pikaday Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type using Pikaday for a powerful, customizable date picker experience directly inside your data grid. This guide serves as a migration path for users migrating from the built-in date cell type.
-permalink: /recipes/pikaday
-canonicalUrl: /recipes/pikaday
+permalink: /recipes/cell-types/pikaday
+canonicalUrl: /recipes/cell-types/pikaday
 tags:
   - guides
   - tutorial
   - recipes
 react:
   id: 9ac52da1
-  metaTitle: Custom builds - React Data Grid | Handsontable
+  metaTitle: Pikaday Cell Type - React Data Grid | Handsontable
 angular:
   id: b83502de
-  metaTitle: Custom builds - Angular Data Grid | Handsontable
+  metaTitle: Pikaday Cell Type - Angular Data Grid | Handsontable
 searchCategory: Recipes
-category: Cells
+category: Cell Types
 ---
 
-# Pikaday Date Picker Cell - Step-by-Step Guide
+# Pikaday Cell Type - Step-by-Step Guide
 
 [[toc]]
 
@@ -47,8 +47,8 @@ A cell that:
 
 ::: example #example1 :hot-recipe --js 1 --ts 2
 
-@[code](@/content/recipes/cells/guide-pikaday/javascript/example1.js)
-@[code](@/content/recipes/cells/guide-pikaday/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/pikaday/javascript/example1.js)
+@[code](@/content/recipes/cell-types/pikaday/javascript/example1.ts)
 
 :::
 
@@ -202,8 +202,6 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
   td.innerText = moment(new Date(value), cellProperties.renderFormat).format(
     cellProperties.renderFormat,
   );
-
-  return td;
 })
 ```
 
@@ -224,7 +222,7 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
   if (!value) {
     td.innerText = '';
 
-    return td;
+    return;
   }
   try {
     td.innerText = moment(new Date(value), cellProperties.renderFormat || DEFAULT_DATE_FORMAT).format(
@@ -234,8 +232,6 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = 'Invalid date';
     td.style.color = 'red';
   }
-
-  return td;
 })
 ```
 
@@ -673,7 +669,6 @@ const cellDefinition: Pick<
     td.innerText = moment(new Date(value), cellProperties.renderFormat).format(
       cellProperties.renderFormat,
     );
-    return td;
   }),
 
   editor: editorFactory<
@@ -871,8 +866,6 @@ import { format, parse } from 'date-fns';
 // In renderer
 renderer: rendererFactory(({ td, value, cellProperties }) => {
   td.innerText = format(new Date(value), cellProperties.renderFormat);
-
-  return td;
 })
 
 // In getDatePickerConfig
