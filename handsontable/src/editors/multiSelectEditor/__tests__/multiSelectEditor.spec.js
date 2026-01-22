@@ -1,7 +1,5 @@
 // TODO: add tests about modifying the dataset
 
-import { seal } from "core-js/core/object";
-
 describe('MultiSelectEditor', () => {
   const id = 'testContainer';
 
