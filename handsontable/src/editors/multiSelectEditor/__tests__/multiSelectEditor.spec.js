@@ -1,3 +1,5 @@
+// TODO: add tests about modifying the dataset
+
 describe('MultiSelectEditor', () => {
   const id = 'testContainer';
 
@@ -765,16 +767,9 @@ describe('MultiSelectEditor', () => {
         await sleep(10);
 
         expect($('.ht-multi-select-editor')[0].clientWidth).toEqual({
-          rect: JSON.stringify($('.ht-multi-select-editor')[0].getBoundingClientRect()),
-          clientWidth: $('.ht-multi-select-editor')[0].clientWidth,
-          outerWidth: $('.ht-multi-select-editor')[0].outerWidth,
-          outerHeight: $('.ht-multi-select-editor')[0].outerHeight,
-          offsetWidth: $('.ht-multi-select-editor')[0].offsetWidth,
-          offsetHeight: $('.ht-multi-select-editor')[0].offsetHeight,
+          // rect: JSON.stringify($('.ht-multi-select-editor')[0].getBoundingClientRect()),
           scrollWidth: $('.ht-multi-select-editor')[0].scrollWidth,
-          scrollHeight: $('.ht-multi-select-editor')[0].scrollHeight,
-          scrollTop: $('.ht-multi-select-editor')[0].scrollTop,
-          scrollLeft: $('.ht-multi-select-editor')[0].scrollLeft,
+          offsetWidth: $('.ht-multi-select-editor')[0].offsetWidth,
         });
       });
 

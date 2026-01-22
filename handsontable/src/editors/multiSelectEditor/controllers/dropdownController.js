@@ -325,6 +325,100 @@ export class DropdownController {
   }
 
   /**
+   * Gets the height of the dropdown.
+   *
+   * @param {boolean} maxRowsCalculation If true, the height will be calculated for the maximum number of rows.
+   * @returns {number} Height of the dropdown.
+   */
+  getHeight(maxRowsCalculation = false) {
+    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
+
+    return this.#getListHeight(maxRowsCalculation) +
+      this.#getSearchInputWrapperHeight() +
+      parseInt(computedStyle.getPropertyValue('--ht-menu-vertical-padding'), 10);
+  }
+
+  /**
+   * Gets the input controller instance.
+   *
+   * @returns {InputController|null} The input controller instance.
+   */
+  getInputController() {
+    return this.#inputController;
+  }
+
+  /**
+   * Removes all dropdown rows.
+   */
+  removeAllDropdownItems() {
+    Array.from(this.#dropdownListElement.children).forEach(itemElement => this.#unregisterEvents(itemElement));
+
+    this.#cache.checkboxChangeListeners.clear();
+    this.#dropdownListElement.innerHTML = '';
+  }
+
+  /**
+   * Applies visual selection state and checks the checkbox.
+   *
+   * @param {HTMLLIElement} itemElement Dropdown row element.
+   */
+  selectItem(itemElement) {
+    const checkbox = getCheckboxElement(itemElement);
+
+    addClass(itemElement, SELECTED_ITEM_CLASS);
+
+    if (!checkbox.checked) {
+      checkbox.checked = true;
+    }
+  }
+
+  /**
+   * Clears selection classes and unchecks the checkbox.
+   *
+   * @param {HTMLLIElement} itemElement Dropdown row element.
+   */
+  deselectItem(itemElement) {
+    const checkbox = getCheckboxElement(itemElement);
+
+    removeClass(itemElement, SELECTED_ITEM_CLASS);
+
+    if (checkbox.checked) {
+      checkbox.checked = false;
+    }
+  }
+
+  /**
+   * Deselects all items in the dropdown.
+   */
+  deselectAllItems() {
+    this.#dropdownListElement.querySelectorAll(`.${SELECTED_ITEM_CLASS}`).forEach(
+      itemElement => this.deselectItem(itemElement)
+    );
+  }
+
+  /**
+   * Disables the unchecked checkboxes.
+   */
+  disableCheckboxes() {
+    this.#cache.areCheckboxesDisabled = true;
+
+    this.#dropdownListElement.querySelectorAll('input[type="checkbox"]:not(:checked)').forEach((checkbox) => {
+      checkbox.disabled = true;
+    });
+  }
+
+  /**
+   * Enables the checkboxes.
+   */
+  enableCheckboxes() {
+    this.#cache.areCheckboxesDisabled = false;
+
+    this.#dropdownListElement.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+      checkbox.disabled = false;
+    });
+  }
+
+  /**
    * Selects the item at the given index.
    *
    * @param {number} index Index of the item to focus.
@@ -402,20 +496,6 @@ export class DropdownController {
       this.#containerElement.style.position = '';
       this.#containerElement.style.top = '';
     }
-  }
-
-  /**
-   * Gets the height of the dropdown.
-   *
-   * @param {boolean} maxRowsCalculation If true, the height will be calculated for the maximum number of rows.
-   * @returns {number} Height of the dropdown.
-   */
-  getHeight(maxRowsCalculation = false) {
-    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
-
-    return this.#getListHeight(maxRowsCalculation) +
-      this.#getSearchInputWrapperHeight() +
-      parseInt(computedStyle.getPropertyValue('--ht-menu-vertical-padding'), 10);
   }
 
   /**
@@ -580,77 +660,6 @@ export class DropdownController {
   }
 
   /**
-   * Removes all dropdown rows.
-   */
-  removeAllDropdownItems() {
-    Array.from(this.#dropdownListElement.children).forEach(itemElement => this.#unregisterEvents(itemElement));
-
-    this.#cache.checkboxChangeListeners.clear();
-    this.#dropdownListElement.innerHTML = '';
-  }
-
-  /**
-   * Applies visual selection state and checks the checkbox.
-   *
-   * @param {HTMLLIElement} itemElement Dropdown row element.
-   */
-  selectItem(itemElement) {
-    const checkbox = getCheckboxElement(itemElement);
-
-    addClass(itemElement, SELECTED_ITEM_CLASS);
-
-    if (!checkbox.checked) {
-      checkbox.checked = true;
-    }
-  }
-
-  /**
-   * Clears selection classes and unchecks the checkbox.
-   *
-   * @param {HTMLLIElement} itemElement Dropdown row element.
-   */
-  deselectItem(itemElement) {
-    const checkbox = getCheckboxElement(itemElement);
-
-    removeClass(itemElement, SELECTED_ITEM_CLASS);
-
-    if (checkbox.checked) {
-      checkbox.checked = false;
-    }
-  }
-
-  /**
-   * Deselects all items in the dropdown.
-   */
-  deselectAllItems() {
-    this.#dropdownListElement.querySelectorAll(`.${SELECTED_ITEM_CLASS}`).forEach(
-      itemElement => this.deselectItem(itemElement)
-    );
-  }
-
-  /**
-   * Disables the unchecked checkboxes.
-   */
-  disableCheckboxes() {
-    this.#cache.areCheckboxesDisabled = true;
-
-    this.#dropdownListElement.querySelectorAll('input[type="checkbox"]:not(:checked)').forEach((checkbox) => {
-      checkbox.disabled = true;
-    });
-  }
-
-  /**
-   * Enables the checkboxes.
-   */
-  enableCheckboxes() {
-    this.#cache.areCheckboxesDisabled = false;
-
-    this.#dropdownListElement.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
-      checkbox.disabled = false;
-    });
-  }
-
-  /**
    * Wires checkbox change events to toggle selection and emit hooks.
    *
    * @param {HTMLLIElement} itemElement Dropdown row element.
@@ -701,15 +710,6 @@ export class DropdownController {
     this.#eventManager.removeEventListener(itemElement, 'click', checkboxListeners.click);
 
     this.#cache.checkboxChangeListeners.delete(checkbox);
-  }
-
-  /**
-   * Gets the input controller instance.
-   *
-   * @returns {InputController|null} The input controller instance.
-   */
-  getInputController() {
-    return this.#inputController;
   }
 }
 
