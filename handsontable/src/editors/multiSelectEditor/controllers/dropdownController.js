@@ -575,7 +575,7 @@ export class DropdownController {
     const inputElement = this.#rootDocument.createElement('input');
 
     inputElement.type = 'text';
-    inputElement.size = 5;
+    inputElement.size = 3;
     inputElement.className = SEARCH_INPUT_CLASS;
     inputElement.placeholder = SEARCH_INPUT_PLACEHOLDER;
 

@@ -758,7 +758,6 @@ describe('MultiSelectEditor', () => {
             {
               type: 'multiSelect',
               source: ['a', 'b', 'c'],
-              searchInput: false,
             },
           ],
         });
