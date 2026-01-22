@@ -524,6 +524,116 @@ describe('MultiSelectEditor', () => {
       });
     });
 
+    describe('`visibleRows` option', () => {
+      it('should display as many entries as possible within the trimming container, when the `visibleRows` option is not set', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          width: 400,
+          height: 500,
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const dropdown = $('.ht-multi-select-editor')[0];
+        const bottomOfDropdown = dropdown.getBoundingClientRect().top + dropdown.getBoundingClientRect().height;
+        const lastItem = dropdown.querySelector('li:last-child');
+        const bottomOfLastItem = lastItem.getBoundingClientRect().top + lastItem.getBoundingClientRect().height;
+
+        expect(bottomOfLastItem).toBeLessThan(bottomOfDropdown);
+      });
+
+      it('should limit the number of visible rows in the dropdown, when the `visibleRows` option is set', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              visibleRows: 2,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const dropdown = $('.ht-multi-select-editor')[0];
+        const bottomOfDropdown = dropdown.getBoundingClientRect().top + dropdown.getBoundingClientRect().height;
+        const getBottomOfItem = item => item.getBoundingClientRect().top + item.getBoundingClientRect().height;
+
+        const items = dropdown.querySelectorAll('li');
+
+        expect(getBottomOfItem(items[0])).toBeLessThan(bottomOfDropdown);
+        expect(getBottomOfItem(items[1])).toBeLessThan(bottomOfDropdown);
+        expect(getBottomOfItem(items[2])).toBeGreaterThan(bottomOfDropdown);
+      });
+    });
+
+    describe('`searchInput` option', () => {
+      it('should display the search input when the `searchInput` option is enabled', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              searchInput: true,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const $searchInput = $dropdown.find('.ht-multi-select-editor-search-input');
+
+        expect($searchInput.is(':visible')).toBe(true);
+        expect($searchInput.val()).toBe('');
+        expect($searchInput.attr('placeholder')).toBe('Search...');
+      });
+
+      it('should hide the search input when the `searchInput` option is disabled', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              searchInput: false,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const $searchInput = $dropdown.find('.ht-multi-select-editor-search-input');
+
+        expect($searchInput.is(':visible')).toBe(false);
+      });
+    });
+
     describe('clicking on dropdown items', () => {
       it('should toggle selection when clicking on the checkbox', async() => {
         handsontable({
@@ -730,121 +840,6 @@ describe('MultiSelectEditor', () => {
         expect($checkedCheckboxes.eq(0).data('value')).toBe('red');
         expect($checkedCheckboxes.eq(1).data('value')).toBe('orange');
 
-      });
-    });
-
-    // TODO: Consider if this option is still needed after implementing the chips renderer.
-    xdescribe('`validateOnCommit` option', () => {
-      it('should keep only values present in the source when enabled', async() => {
-        handsontable({
-          data: [
-            [[]],
-          ],
-          columns: [
-            {
-              type: 'multiSelect',
-              source: choices,
-              validateOnCommit: true,
-            },
-          ],
-        });
-
-        await selectCell(0, 0);
-        await keyDownUp('enter');
-        await sleep(10);
-
-        const editor = getActiveEditor();
-
-        editor.TEXTAREA.value = 'yellow, not-in-list, green,';
-        editor.TEXTAREA.focus();
-        await keyDownUp(',');
-        await sleep(10);
-
-        await keyDownUp('enter');
-        await sleep(10);
-
-        const sourceData = getSourceDataAtCell(0, 0);
-        const visualData = getDataAtCell(0, 0);
-
-        const expectedSourceData = choices.filter(
-          choice => ['yellow', 'green'].includes(choice.value ?? choice)
-        );
-
-        expect(sourceData).toEqual(expectedSourceData);
-        expect(visualData).toEqual('yellow, green');
-      });
-
-      it('should keep only values present in the source when not defined (default behavior)', async() => {
-        handsontable({
-          data: [
-            [[]],
-          ],
-          columns: [
-            {
-              type: 'multiSelect',
-              source: choices,
-            },
-          ],
-        });
-
-        await selectCell(0, 0);
-        await keyDownUp('enter');
-        await sleep(10);
-
-        const editor = getActiveEditor();
-
-        editor.TEXTAREA.value = 'yellow, not-in-list, green,';
-        editor.TEXTAREA.focus();
-        await keyDownUp(',');
-        await sleep(10);
-
-        await keyDownUp('enter');
-        await sleep(10);
-
-        const sourceData = getSourceDataAtCell(0, 0);
-        const visualData = getDataAtCell(0, 0);
-
-        const expectedSourceData = choices.filter(
-          choice => ['yellow', 'green'].includes(choice.value ?? choice)
-        );
-
-        expect(sourceData).toEqual(expectedSourceData);
-        expect(visualData).toEqual('yellow, green');
-      });
-
-      it('should allow any committed values when disabled', async() => {
-        handsontable({
-          data: [
-            [[]],
-          ],
-          columns: [
-            {
-              type: 'multiSelect',
-              source: choices,
-              validateOnCommit: false,
-            },
-          ],
-        });
-
-        await selectCell(0, 0);
-        await keyDownUp('enter');
-        await sleep(10);
-
-        const editor = getActiveEditor();
-
-        editor.TEXTAREA.value = 'yellow, not-in-list, green,';
-        editor.TEXTAREA.focus();
-        await keyDownUp(',');
-        await sleep(10);
-
-        await keyDownUp('enter');
-        await sleep(10);
-
-        const sourceData = getSourceDataAtCell(0, 0);
-        const visualData = getDataAtCell(0, 0);
-
-        expect(sourceData).toEqual(['yellow', 'not-in-list', 'green']);
-        expect(visualData).toEqual('yellow, not-in-list, green');
       });
     });
   });

@@ -411,7 +411,11 @@ export class DropdownController {
    * @returns {number} Height of the dropdown.
    */
   getHeight(maxRowsCalculation = false) {
-    return this.#getListHeight(maxRowsCalculation) + this.#getSearchInputWrapperHeight();
+    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
+
+    return this.#getListHeight(maxRowsCalculation) +
+      this.#getSearchInputWrapperHeight() +
+      parseInt(computedStyle.getPropertyValue('--ht-menu-vertical-padding'), 10);
   }
 
   /**
