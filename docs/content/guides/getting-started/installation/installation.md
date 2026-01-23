@@ -219,7 +219,7 @@ If you're using Angular 21 or newer, please note that older versions of `@handso
 
 ## Server Side Rendering (SSR)
 
-Currently, `HotTable` does not work with SSR applications. However, if you are using SSR, you can use a simple workaround and force the table to be rendered on the browser side.
+Currently, `HotTable` cannot be rendered on the server-side. If your application uses SSR, render it only in the browser using an `*ngIf*` statement.
 
 ```ts
 import { CommonModule, isPlatformBrowser } from "@angular/common";
@@ -260,9 +260,9 @@ export class App {
 
 ```html
 <div>
-  @if (isBrowser) {
-  <hot-table [data]="data" [settings]="gridSettings" />
-  }
+  <ng-container *ngIf="isBrowser">
+    <hot-table [data]="data" [settings]="gridSettings" />
+  </ng-container>
 </div>
 ```
 
