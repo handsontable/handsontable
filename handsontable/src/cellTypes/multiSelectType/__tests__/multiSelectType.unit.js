@@ -16,6 +16,7 @@ import {
   getRenderer,
 } from '../../../renderers';
 import {
+  getValidator,
   getRegisteredValidatorNames,
 } from '../../../validators';
 
@@ -51,7 +52,7 @@ describe('MultiSelectCellType', () => {
       expect(getRegisteredRendererNames()).toEqual(['multiSelect']);
       expect(getRenderer('multiSelect')).toBeInstanceOf(Function);
 
-      expect(getRegisteredValidatorNames()).toEqual([]);
+      expect(getRegisteredValidatorNames()).toEqual(['multiSelect']);
 
       expect(getRegisteredCellTypeNames()).toEqual(['multiSelect']);
       expect(getCellType('multiSelect')).toEqual(MultiSelectCellType);
@@ -62,6 +63,7 @@ describe('MultiSelectCellType', () => {
         renderer: getRenderer('multiSelect'),
         valueGetter: MultiSelectCellType.valueGetter,
         valueSetter: MultiSelectCellType.valueSetter,
+        validator: getValidator('multiSelect'),
       });
     });
   });

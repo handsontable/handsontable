@@ -55,6 +55,7 @@ describe('`registerAllCellTypes`', () => {
       'autocomplete',
       'date',
       'dropdown',
+      'multiSelect',
       'numeric',
       'time',
     ]);
