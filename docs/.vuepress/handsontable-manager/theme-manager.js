@@ -16,13 +16,11 @@ const setTheme = () => {
         if (
           document.documentElement.classList.contains('theme-dark')
           && mainTheme.getThemeConfig().colorScheme !== 'dark'
-          && mainTheme.getThemeConfig().colorScheme !== 'auto'
         ) {
           mainTheme.setColorScheme('dark');
         } else if (
           !document.documentElement.classList.contains('theme-dark')
           && mainTheme.getThemeConfig().colorScheme !== 'light'
-          && mainTheme.getThemeConfig().colorScheme !== 'auto'
         ) {
           mainTheme.setColorScheme('light');
         }
