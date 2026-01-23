@@ -64,19 +64,31 @@ module.exports = {
     ]
   },
   externals: [
-    function({ request }, callback) {
-      // Externalize any handsontable module
-      if (request === 'handsontable' || request.startsWith('handsontable/')) {
-        return callback(null, {
-          root: 'Handsontable',
-          commonjs: 'handsontable',
-          commonjs2: 'handsontable',
-          amd: 'handsontable'
-        });
-      }
-      callback();
-    },
     {
+      'handsontable/editors/factory': {
+        root: ['Handsontable', 'editors'],
+        commonjs: 'handsontable/editors/factory',
+        commonjs2: 'handsontable/editors/factory',
+        amd: 'handsontable/editors/factory'
+      },
+      'handsontable/editors': {
+        root: ['Handsontable', 'editors'],
+        commonjs: 'handsontable/editors',
+        commonjs2: 'handsontable/editors',
+        amd: 'handsontable/editors'
+      },
+      'handsontable/renderers/factory': {
+        root: ['Handsontable', 'renderers'],
+        commonjs: 'handsontable/renderers/factory',
+        commonjs2: 'handsontable/renderers/factory',
+        amd: 'handsontable/renderers/factory'
+      },
+      'handsontable/renderers': {
+        root: ['Handsontable', 'renderers'],
+        commonjs: 'handsontable/renderers',
+        commonjs2: 'handsontable/renderers',
+        amd: 'handsontable/editors'
+      },
       rxjs: 'rxjs',
       'rxjs/operators': {
         root: ['rxjs', 'operators'],
@@ -174,6 +186,18 @@ module.exports = {
         commonjs2: '@angular/common/http',
         amd: '@angular/common/http'
       }
-    }
+    },
+    function({ request }, callback) {
+      // Externalize any handsontable module
+      if (request === 'handsontable' || request.startsWith('handsontable/')) {
+        return callback(null, {
+          root: 'Handsontable',
+          commonjs: 'handsontable',
+          commonjs2: 'handsontable',
+          amd: 'handsontable'
+        });
+      }
+      callback();
+    },
   ],
 };

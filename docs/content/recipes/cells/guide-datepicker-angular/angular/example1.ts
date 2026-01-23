@@ -171,7 +171,7 @@ export class Example1GuideDatepickerAngularComponent {
     height: "auto",
     manualColumnResize: true,
     manualRowResize: true,
-    colHeaders: ["ID", "Item Name", "Restock Date UE", "Restock Date US"],
+    colHeaders: ["ID", "Item Name", "Restock Date EU", "Restock Date US"],
     columns: [
       { data: "id", type: "numeric" },
       {

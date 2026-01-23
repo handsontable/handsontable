@@ -63,52 +63,51 @@ npm install multiple-select-vanilla
 ## Step 1: Import Dependencies
 
 ```typescript
-import Handsontable from "handsontable/base";
+import { Component, ChangeDetectorRef, inject } from "@angular/core";
+import {
+  GridSettings,
+  HotCellEditorAdvancedComponent,
+  HotCellRendererAdvancedComponent,
+} from "@handsontable/angular-wrapper";
 import { registerAllModules } from "handsontable/registry";
-import "handsontable/styles/handsontable.css";
-import "handsontable/styles/ht-theme-main.css";
-import multipleSelect from "multiple-select-vanilla";
-import type { MultipleSelectInstance } from "multiple-select-vanilla";
 
 registerAllModules();
 ```
 
-**About multiple-select-vanilla:**
+**About Angular components:**
 
-- Fork of the popular Multiple Select plugin
-- Pure JavaScript, no jQuery dependency
-- Rich features: search, select all, keyboard navigation
-- Accessible and mobile-friendly
+- **HotCellRendererAdvancedComponent**: Base class for custom cell renderers
+- **HotCellEditorAdvancedComponent**: Base class for custom cell editors
+- Use Angular's template system and change detection
+- Full access to Angular features (services, lifecycle hooks, etc.)
 
 ## Step 2: Prepare Your Data
 
 Define the data structure with arrays of objects for multi-select values:
 
 ```typescript
-const data = [
-  {
-    id: 1,
-    itemName: "Product A",
-    components: [
-      { value: "cpu", label: "CPU" },
-      { value: "ram", label: "RAM" },
-    ],
-  },
-  {
-    id: 2,
-    itemName: "Product B",
-    components: [{ value: "gpu", label: "GPU" }],
-  },
+export const inputData = [
+  { id: 640329, itemName: "Lunar Core" },
+  { id: 863104, itemName: "Zero Thrusters" },
+  { id: 395603, itemName: "EVA Suits" },
 ];
 
 // Define available options
 const components = [
-  { value: "cpu", label: "CPU" },
-  { value: "ram", label: "RAM" },
-  { value: "gpu", label: "GPU" },
-  { value: "ssd", label: "SSD" },
-  { value: "hdd", label: "HDD" },
+  { value: "1", label: "Component 1" },
+  { value: "2", label: "Component 2" },
+  { value: "3", label: "Component 3" },
 ];
+
+// Generate data with random components
+const data = inputData.map((el) => ({
+  ...el,
+  components: components
+    .map((n) => [Math.random(), n])
+    .sort()
+    .map((n) => n[1])
+    .slice(0, Math.ceil(Math.random() * components.length)),
+}));
 ```
 
 **Data structure rationale:**
@@ -145,84 +144,71 @@ components: [
 - Easy to iterate and display
 - Maps naturally to `<select multiple>`
 
-## Step 3: Create the Renderer
+## Step 3: Create the Renderer Component
 
-Display selected items as comma-separated text.
+Create an Angular component that extends `HotCellRendererAdvancedComponent` to display selected items.
 
 ```typescript
-renderer: rendererFactory(({ td, value }) => {
-  td.innerHTML = value.length > 0 ? value.map((el: { label: string }) => el.label).join(", ") : "No elements";
-
-  return td;
-});
+@Component({
+  selector: "multi-select-renderer",
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `<div>{{ displayValue }}</div>`,
+  standalone: false,
+})
+export class MultiSelectRendererComponent extends HotCellRendererAdvancedComponent<{ value: string; label: string }[]> {
+  get displayValue(): string {
+    return this.value && this.value.length > 0 ? this.value.map((el) => el.label).join(", ") : "No elements";
+  }
+}
 ```
 
 **What's happening:**
 
-### Array check
+### Extend HotCellRendererAdvancedComponent
 
 ```typescript
-value.length > 0;
+export class MultiSelectRendererComponent extends HotCellRendererAdvancedComponent<
+  { value: string; label: string }[]
+>
 ```
 
-- Check if any items selected
-- Show message if empty
+- Generic type specifies the value type (array of objects)
+- Provides `@Input() value` automatically
+- Access to other inputs: `instance`, `td`, `row`, `col`, `prop`, `cellProperties`
 
-### Extract labels
+### Use Angular template
 
 ```typescript
-value.map((el: { label: string }) => el.label);
+template: `<div>{{ displayValue }}</div>`;
 ```
 
-- Get only the label from each object
-- Example: `[{value: 'cpu', label: 'CPU'}]` → `['CPU']`
+- Angular template binding
+- Automatic change detection
+- Clean separation of logic and presentation
 
-### Join with commas
+### Computed property for display
 
 ```typescript
-.join(', ')
+get displayValue(): string {
+  return this.value && this.value.length > 0
+    ? this.value.map((el) => el.label).join(", ")
+    : "No elements";
+}
 ```
 
-- Convert array to string: `['CPU', 'RAM']` → `'CPU, RAM'`
-
-**Enhanced renderer with badges:**
-
-```typescript
-renderer: Handsontable.renderers.factor(({ td, value }) => {
-  if (!value || value.length === 0) {
-    td.innerHTML = '<span style="color: #999;">No selection</span>';
-
-    return td;
-  }
-
-  const badges = value
-    .map(
-      (el: { label: string }) =>
-        `<span style="
-        display: inline-block;
-        padding: 2px 8px;
-        margin: 2px;
-        background: #e3f2fd;
-        border-radius: 12px;
-        font-size: 12px;
-        color: #1976d2;
-      ">${el.label}</span>`
-    )
-    .join("");
-
-  td.innerHTML = badges;
-
-  return td;
-});
-```
+- Check if value exists and has items
+- Extract labels and join with commas
+- Show fallback message if empty
 
 ## Step 4: Create the Validator (Optional)
 
+For the Angular wrapper, validators use the `CustomValidatorFn<T>` type, which is simpler than the standard Handsontable validator. It takes a value and returns a boolean directly (no callback).
+
 ```typescript
-validator: (value, callback) => {
-  // Accept any selection (even empty)
-  callback(true);
-};
+import { CustomValidatorFn } from "@handsontable/angular-wrapper";
+
+// Accept any selection (even empty)
+validator: (value) => true;
 ```
 
 **Custom validation examples:**
@@ -230,597 +216,724 @@ validator: (value, callback) => {
 ### Require at least one selection:
 
 ```typescript
-validator: (value, callback) => {
-  callback(Array.isArray(value) && value.length > 0);
+validator: (value: { value: string; label: string }[]) => {
+  return Array.isArray(value) && value.length > 0;
 };
 ```
 
 ### Limit maximum selections:
 
 ```typescript
-validator: (value, callback) => {
-  callback(Array.isArray(value) && value.length <= 3);
+validator: (value: { value: string; label: string }[]) => {
+  return Array.isArray(value) && value.length <= 3;
 };
 ```
 
 ### Require specific item:
 
 ```typescript
-validator: (value, callback) => {
+validator: (value: { value: string; label: string }[]) => {
   const hasRequired = value.some((el) => el.value === "cpu");
-
-  callback(hasRequired);
+  return hasRequired;
 };
 ```
 
-## Step 5: Editor - Initialize (`init`)
+## Step 5: Create the Editor Component Structure
 
-Create the select element and initialize the multiple-select plugin.
+Create an Angular component that extends `HotCellEditorAdvancedComponent` with a custom dropdown UI.
 
 ```typescript
-init(editor) {
-  // Create select element
-  editor.input = editor.hot.rootDocument.createElement('select') as HTMLSelectElement;
-  editor.input.setAttribute('multiple', 'multiple');
-  editor.input.setAttribute('data-multi-select', '');
+@Component({
+  template: `
+    <div class="multiselect-editor-container" (click)="$event.stopPropagation()">
+      <div class="multiselect-wrapper">
+        <label>Select options:</label>
+        <div class="dropdown">
+          <div class="dropdown-header" (click)="toggleDropdown()">
+            <span>{{ getSelectedLabel() }}</span>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-list" *ngIf="isOpen">
+            <div *ngFor="let option of config" class="dropdown-item" (click)="toggleOption(option)">
+              <input type="checkbox" [checked]="isSelected(option.value)" (click)="$event.stopPropagation()" />
+              <label>{{ option.label }}</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [
+    /* CSS styles */
+  ],
+  standalone: false,
+  selector: "multi-select-editor",
+})
+export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<{ value: string; label: string }[]> {
+  selectedValues: { value: string; label: string }[] = [];
+  isOpen = false;
 
-  // Initialize multiple select plugin
-  editor.multiselect = multipleSelect(editor.input) as MultipleSelectInstance;
+  private readonly cdr = inject(ChangeDetectorRef);
 }
 ```
 
 **What's happening:**
 
-1. Create a `<select>` element using `editor.hot.rootDocument.createElement()`
-2. Set `multiple` attribute to allow multiple selections
-3. Set custom `data-multi-select` attribute for CSS targeting
-4. Initialize the multiple-select plugin on the select element
-5. The `editorFactory` helper handles container creation and DOM insertion
-
-**Key concepts:**
-
-### The `multiple` attribute
+### Extend HotCellEditorAdvancedComponent
 
 ```typescript
-editor.input.setAttribute("multiple", "multiple");
+export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<
+  { value: string; label: string }[]
+>
 ```
 
-- Allows selecting multiple options
-- Native HTML5 feature
-- Without it, only single selection works
+- Generic type specifies the value type
+- Provides lifecycle hooks: `beforeOpen`, `afterOpen`, `afterClose`
+- Access to `@Input()` properties: `row`, `column`, `originalValue`, `cellProperties`
+- `@Output()` events: `finishEdit`, `cancelEdit`
 
-### Custom data attribute
+### Custom dropdown UI with Angular
 
 ```typescript
-editor.input.setAttribute("data-multi-select", "");
+template: `
+  <div class="dropdown-header" (click)="toggleDropdown()">
+    <span>{{ getSelectedLabel() }}</span>
+  </div>
+  <div class="dropdown-list" *ngIf="isOpen">
+    <div *ngFor="let option of config" (click)="toggleOption(option)">
+      <input type="checkbox" [checked]="isSelected(option.value)" />
+      <label>{{ option.label }}</label>
+    </div>
+  </div>
+`;
 ```
 
-- Optional marker for CSS targeting
-- Helps identify multi-select elements
-- Useful for custom styling
+- Full Angular template with bindings
+- Custom dropdown instead of native `<select>`
+- Checkboxes for visual feedback
+- Click handlers for toggling options
 
-### Why initialize plugin in `init()`?
-
-- Called once when editor is created
-- Plugin instance is reused across all edits
-- Better performance than recreating each time
-
-### Empty `<select></select>` at creation
-
-- No `<option>` elements yet
-- Options added in `beforeOpen` method
-- Different cells can have different options
-
-## Step 6: Editor - Before Open Hook (`beforeOpen`)
-
-Populate the dropdown with options for the current cell.
+### State management
 
 ```typescript
-beforeOpen(editor, { cellProperties }) {
-  // Get options for this cell
-  editor.input.innerHTML = cellProperties?.selectMultipleOptions?.map((
-    el: { value: string; label: string },
-  ) => `<option value="${el.value}">${el.label}</option>`).join('');
+selectedValues: {
+  value: string;
+  label: string;
+}
+[] = [];
+isOpen = false;
+```
 
-  // Tell plugin to refresh with new options
-  editor.multiselect.refresh();
+- Track currently selected values
+- Control dropdown visibility
+- Use ChangeDetectorRef for manual updates
+
+## Step 6: Editor - Lifecycle Hook `beforeOpen`
+
+Load configuration when the editor is about to open.
+
+```typescript
+override beforeOpen(editor: any): void {
+  this.config = editor.cellProperties.config || [];
+  this.selectedValues = [...editor.originalValue];
 }
 ```
 
 **What's happening:**
 
-1. Get options from `cellProperties.selectMultipleOptions`
-2. Generate `<option>` elements from the option objects
-3. Set the innerHTML of the select element
-4. Refresh the plugin to update its UI
+### Get options from cell properties
+
+```typescript
+this.config = editor.cellProperties.config || [];
+```
+
+- `editor.cellProperties` contains column configuration
+- `config` property holds available options for this column
+- Different columns can have different option lists
+- Fallback to empty array if not defined
+
+### Initialize selected values
+
+```typescript
+this.selectedValues = [...editor.originalValue];
+```
+
+- `editor.originalValue` is the current cell value
+- Create a copy using spread operator
+- Avoid mutating the original value
+- Populate UI with current selections
 
 **Key points:**
 
-- `beforeOpen` is called before the editor opens
-- `cellProperties.selectMultipleOptions` contains column-specific options
-- `refresh()` must be called after changing select content
-- Allows different columns to have different option lists
+- Called before editor becomes visible
+- Perfect for loading data and initializing state
+- Access to cell properties and original value
+- `override` keyword required for lifecycle hooks
 
-**Why generate options in `beforeOpen` not `init`?**
+## Step 7: Editor - Lifecycle Hook `afterClose`
 
-1. **Dynamic options**: Different cells can have different option lists
-2. **Data-driven**: Options might depend on other cell values
-3. **Performance**: Only create when needed
-
-## Step 7: Editor - After Open Hook (`afterOpen`)
-
-Open the multiselect dropdown when the editor is opened.
+Clean up and finalize the edit when the editor closes.
 
 ```typescript
-afterOpen(editor) {
-  editor.multiselect.open();
+override afterClose(): void {
+  this.selectedValues = [];
+  this.isOpen = false;
+  this.finishEdit.emit();
 }
 ```
 
 **What's happening:**
 
-- Called after the editor container is positioned and shown
-- Programmatically opens the multiselect dropdown
-- User can immediately start selecting options
-
-**Why `afterOpen` instead of `open`?**
-
-- `afterOpen` runs after positioning is complete
-- Ensures the select element is ready before opening
-- The `editorFactory` helper handles positioning in `open`
-
-**Note:** The `editorFactory` helper automatically positions the editor container over the cell, so we only need to open the dropdown.
-
-## Step 8: Editor - Get Value (`getValue`)
-
-Extract selected items from the dropdown.
+### Reset state
 
 ```typescript
-getValue(editor) {
-  return Array.from(editor.input.options).filter((option) =>
-    option.selected
-  ).map((option) => ({ value: option.value, label: option.label }));
+this.selectedValues = [];
+this.isOpen = false;
+```
+
+- Clear selected values array
+- Close dropdown if still open
+- Prepare for next edit
+
+### Emit finishEdit event
+
+```typescript
+this.finishEdit.emit();
+```
+
+- Signal Handsontable that editing is complete
+- Triggers `getValue()` to save the value
+- Cell will be updated with new value
+
+**Key points:**
+
+- Called after editor is hidden
+- Perfect for cleanup and saving
+- `finishEdit` saves the data
+- `cancelEdit` would discard changes
+
+## Step 8: Editor - Selection Management Methods
+
+Implement methods to handle user interactions with the dropdown.
+
+```typescript
+toggleDropdown(): void {
+  this.isOpen = !this.isOpen;
+  this.cdr.detectChanges();
+}
+
+toggleOption(option: { value: string; label: string }): void {
+  const index = this.selectedValues.findIndex((item) => item.value === option.value);
+  if (index > -1) {
+    this.selectedValues.splice(index, 1);
+  } else {
+    this.selectedValues.push(option);
+  }
+
+  this.setValue(this.selectedValues);
+  this.cdr.detectChanges();
+}
+
+isSelected(value: string): boolean {
+  return this.selectedValues.some((item) => item.value === value);
+}
+
+getSelectedLabel(): string {
+  if (this.selectedValues.length === 0) {
+    return "Select options...";
+  }
+  return this.selectedValues.map((item) => item.label).join(", ");
 }
 ```
 
 **What's happening:**
 
-1. Get all options from the select element
-2. Filter to keep only selected options
-3. Map each option to an object with `value` and `label`
-4. Return array of objects matching the data structure
-
-**Breaking it down:**
-
-### Get all options
+### Toggle dropdown visibility
 
 ```typescript
-Array.from(editor.input.options);
-```
-
-- `editor.input.options` is an HTMLOptionsCollection
-- Not a real array, so convert it
-- Now we can use array methods
-
-### Filter selected ones
-
-```typescript
-.filter((option) => option.selected)
-```
-
-- Keep only options where `selected` is `true`
-- Native HTML property set by the plugin
-
-### Convert to our data format
-
-```typescript
-.map((option) => ({ value: option.value, label: option.label }))
-```
-
-- Extract `value` and `label` (text content)
-- Return array of objects matching our data structure
-
-**Flow example:**
-
-```
-User selects: CPU, RAM
-
-HTML state:
-<option value="cpu" selected>CPU</option>
-<option value="ram" selected>RAM</option>
-<option value="gpu">GPU</option>
-
-getValue() returns:
-[
-  { value: 'cpu', label: 'CPU' },
-  { value: 'ram', label: 'RAM' }
-]
-```
-
-## Step 9: Editor - Set Value (`setValue`)
-
-Set which items are selected when editor opens.
-
-```typescript
-setValue(editor, value) {
-  // Handle Handsontable bug where value might be string
-  // https://github.com/handsontable/handsontable/issues/3510
-  value = typeof value === 'string' ? editor.originalValue : value;
-
-  // Set selected state for each option
-  Array.from(editor.input.options).forEach((option) =>
-    option.selected = value.some((el: { value: string }) =>
-      el.value === option.value
-    )
-  );
-
-  // Update plugin UI
-  editor.multiselect.refresh();
+toggleDropdown(): void {
+  this.isOpen = !this.isOpen;
+  this.cdr.detectChanges();
 }
 ```
 
-**What's happening:**
+- Invert `isOpen` state
+- Trigger Angular change detection
+- Show/hide dropdown in template with `*ngIf="isOpen"`
 
-1. Handle Handsontable bug where rendered string is passed instead of array
-2. Use `editor.originalValue` if value is a string
-3. Iterate through all options and set `selected` property based on matches
-4. Refresh the plugin to update the UI
-
-**Key concepts:**
-
-### The Handsontable quirk
+### Toggle option selection
 
 ```typescript
-value = typeof value === "string" ? editor.originalValue : value;
+toggleOption(option: { value: string; label: string }): void {
+  const index = this.selectedValues.findIndex((item) => item.value === option.value);
+  if (index > -1) {
+    this.selectedValues.splice(index, 1); // Remove if already selected
+  } else {
+    this.selectedValues.push(option); // Add if not selected
+  }
+
+  this.setValue(this.selectedValues); // Update editor value
+  this.cdr.detectChanges();
+}
 ```
 
-**Why is this needed?**
+- Find option in selected values
+- Remove if already selected (uncheck)
+- Add if not selected (check)
+- Call `setValue` to update internal value
+- Trigger change detection for UI update
 
-- Handsontable sometimes passes the **rendered** value (string) instead of actual value
-- Related to [Handsontable issue #3510](https://github.com/handsontable/handsontable/issues/3510)
-- `editor.originalValue` has the actual array from the data source
-- This workaround ensures we always work with the array
-
-**Without this fix:**
+### Check if option is selected
 
 ```typescript
-// Cell value: [{ value: 'cpu', label: 'CPU' }]
-// Renderer shows: 'CPU'
-// setValue gets: 'CPU' (string) ❌ should be array
-// Fix: Use editor.originalValue instead
+isSelected(value: string): boolean {
+  return this.selectedValues.some((item) => item.value === value);
+}
 ```
 
-### The matching logic
+- Used in template: `[checked]="isSelected(option.value)"`
+- Returns true if value exists in selectedValues
+- Controls checkbox state
+
+### Get display label
 
 ```typescript
-option.selected = value.some((el: { value: string }) => el.value === option.value);
+getSelectedLabel(): string {
+  if (this.selectedValues.length === 0) {
+    return "Select options...";
+  }
+  return this.selectedValues.map((item) => item.label).join(", ");
+}
 ```
 
-- `value.some()`: Check if array contains any matching element
-- Compare `value` properties
-- Set `option.selected` to true/false
+- Show placeholder when nothing selected
+- Otherwise show comma-separated labels
+- Displayed in dropdown header
 
-**Flow example:**
-
-```
-Cell value: [
-  { value: 'cpu', label: 'CPU' },
-  { value: 'ram', label: 'RAM' }
-]
-
-For each <option>:
-  <option value="cpu">  → Check: "cpu" in array? YES → selected = true
-  <option value="ram">  → Check: "ram" in array? YES → selected = true
-  <option value="gpu">  → Check: "gpu" in array? NO  → selected = false
-```
-
-### Refresh UI
+**Change Detection:**
 
 ```typescript
-editor.multiselect.refresh();
+private readonly cdr = inject(ChangeDetectorRef);
 ```
 
-- Update plugin to show correct selections
-- Without this, UI shows old state
+- Inject Angular's ChangeDetectorRef
+- Call `detectChanges()` after state updates
+- Ensures UI reflects current state immediately
 
-## Step 10: Complete Cell Definition
+## Step 9: Complete Editor Component
 
-Put it all together:
-
-```typescript
-const cellDefinition = {
-  renderer: rendererFactory(({ td, value }) => {
-    td.innerHTML = value.length > 0 ? value.map((el: { label: string }) => el.label).join(", ") : "No elements";
-    return td;
-  }),
-  editor: editorFactory<{ input: HTMLSelectElement; multiselect: MultipleSelectInstance }>({
-    init(editor) {
-      editor.input = editor.hot.rootDocument.createElement("select") as HTMLSelectElement;
-      editor.input.setAttribute("multiple", "multiple");
-      editor.input.setAttribute("data-multi-select", "");
-      editor.multiselect = multipleSelect(editor.input) as MultipleSelectInstance;
-    },
-    beforeOpen(editor, { cellProperties }) {
-      editor.input.innerHTML = cellProperties?.selectMultipleOptions
-        ?.map((el: { value: string; label: string }) => `<option value="${el.value}">${el.label}</option>`)
-        .join("");
-      editor.multiselect.refresh();
-    },
-    afterOpen(editor) {
-      editor.multiselect.open();
-    },
-    getValue(editor) {
-      return Array.from(editor.input.options)
-        .filter((option) => option.selected)
-        .map((option) => ({ value: option.value, label: option.label }));
-    },
-    setValue(editor, value) {
-      // https://github.com/handsontable/handsontable/issues/3510
-      value = typeof value === "string" ? editor.originalValue : value;
-
-      Array.from(editor.input.options).forEach(
-        (option) => (option.selected = value.some((el: { value: string }) => el.value === option.value))
-      );
-
-      editor.multiselect.refresh();
-    },
-  }),
-};
-```
-
-**What's happening:**
-
-- **renderer**: Displays selected items as comma-separated text
-- **editor**: Uses `editorFactory` helper with:
-  - `init`: Creates select element and initializes multiple-select plugin
-  - `beforeOpen`: Populates options from column config and refreshes plugin
-  - `afterOpen`: Opens the multiselect dropdown
-  - `getValue`: Returns selected options as array of objects
-  - `setValue`: Sets selected state, handles Handsontable bug, refreshes plugin
-
-**Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
-
-## Step 11: Use in Handsontable
+Here's the complete editor component with all methods:
 
 ```typescript
-const container = document.querySelector("#example1")!;
-
-const hotOptions: Handsontable.GridSettings = {
-  themeName: "ht-theme-main",
-  data: [
-    {
-      id: 1,
-      itemName: "Lunar Core",
-      components: [
-        { value: "1", label: "Component 1" },
-        { value: "2", label: "Component 2" },
-      ],
-      countries: [{ value: "US", label: "United States of America (the)" }],
-    },
+@Component({
+  template: `
+    <div class="multiselect-editor-container" (click)="$event.stopPropagation()">
+      <div class="multiselect-wrapper">
+        <label>Select options:</label>
+        <div class="dropdown">
+          <div class="dropdown-header" (click)="toggleDropdown()">
+            <span>{{ getSelectedLabel() }}</span>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-list" *ngIf="isOpen">
+            <div *ngFor="let option of config" class="dropdown-item" (click)="toggleOption(option)">
+              <input type="checkbox" [checked]="isSelected(option.value)" (click)="$event.stopPropagation()" />
+              <label>{{ option.label }}</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [
+    /* CSS styles */
   ],
-  colHeaders: ["ID", "Item Name", "Components", "Countries"],
-  autoRowSize: true,
-  rowHeaders: true,
-  height: "auto",
-  columns: [
-    { data: "id", type: "numeric" },
-    {
-      data: "countries",
-      width: 150,
-      allowInvalid: false,
-      ...cellDefinition,
-      selectMultipleOptions: countries, // Custom property
-    },
-    {
-      data: "itemName",
-      type: "text",
-    },
-    {
-      data: "components",
-      width: 150,
-      allowInvalid: false,
-      ...cellDefinition,
-      selectMultipleOptions: components, // Different options!
-    },
-  ],
-  licenseKey: "non-commercial-and-evaluation",
-};
+  standalone: false,
+  selector: "multi-select-editor",
+})
+export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<{ value: string; label: string }[]> {
+  selectedValues: { value: string; label: string }[] = [];
+  isOpen = false;
 
-const hot = new Handsontable(container, hotOptions);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  override afterClose(): void {
+    this.selectedValues = [];
+    this.isOpen = false;
+    this.finishEdit.emit();
+  }
+
+  override beforeOpen(editor: any): void {
+    this.config = editor.cellProperties.config || [];
+    this.selectedValues = [...editor.originalValue];
+  }
+
+  toggleDropdown(): void {
+    this.isOpen = !this.isOpen;
+    this.cdr.detectChanges();
+  }
+
+  toggleOption(option: { value: string; label: string }): void {
+    const index = this.selectedValues.findIndex((item) => item.value === option.value);
+    if (index > -1) {
+      this.selectedValues.splice(index, 1);
+    } else {
+      this.selectedValues.push(option);
+    }
+
+    this.setValue(this.selectedValues);
+    this.cdr.detectChanges();
+  }
+
+  isSelected(value: string): boolean {
+    return this.selectedValues.some((item) => item.value === value);
+  }
+
+  getSelectedLabel(): string {
+    if (this.selectedValues.length === 0) {
+      return "Select options...";
+    }
+    return this.selectedValues.map((item) => item.label).join(", ");
+  }
+}
 ```
+
+**Key points:**
+
+- Extends `HotCellEditorAdvancedComponent` with array of objects as value type
+- Uses Angular template with data bindings and event handlers
+- Lifecycle hooks: `beforeOpen` and `afterClose`
+- Custom dropdown UI instead of native select element
+- Change detection managed with `ChangeDetectorRef`
+- Emits `finishEdit` to save changes
+
+## Step 10: Use Components in Grid Configuration
+
+Configure Handsontable to use your custom renderer and editor components.
+
+```typescript
+@Component({
+  selector: "app-multi-select-example",
+  standalone: false,
+  template: `
+    <div>
+      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
+    </div>
+  `,
+})
+export class ExampleComponent {
+  readonly data = inputData.map((el) => ({
+    ...el,
+    components: components
+      .map((n) => [Math.random(), n])
+      .sort()
+      .map((n) => n[1])
+      .slice(0, Math.ceil(Math.random() * components.length)),
+  }));
+
+  readonly gridSettings: GridSettings = {
+    autoRowSize: true,
+    rowHeaders: true,
+    height: "auto",
+    colHeaders: ["ID", "Item Name", "Components"],
+    columns: [
+      { data: "id", type: "numeric" },
+      { data: "itemName", type: "text" },
+      {
+        data: "components",
+        width: 150,
+        renderer: MultiSelectRendererComponent,
+        editor: MultiSelectEditorComponent,
+        config: components,
+      },
+    ],
+  };
+}
+```
+
+**What's happening:**
+
+### Pass component classes directly
+
+```typescript
+renderer: MultiSelectRendererComponent,
+editor: MultiSelectEditorComponent,
+```
+
+- Angular wrapper handles component instantiation
+- Type-safe references to component classes
+
+### Pass configuration via `config` property
+
+```typescript
+config: components,
+```
+
+- Available in editor via `editor.cellProperties.config`
+- Different columns can have different configs
+- Accessed in `beforeOpen` lifecycle hook
 
 **Key features:**
 
-- Same cell definition for multiple columns
-- Different options per column via `selectMultipleOptions`
-- Type-safe (with proper TypeScript setup)
+- **Type safety**: GridSettings interface provides IntelliSense
+- **Reusability**: Use same components across multiple columns
+- **Flexibility**: Different configs per column
+- **Angular integration**: Full access to Angular features in components
+
+## Step 11: Register Components in Module
+
+Register your custom components in the Angular module.
+
+```typescript
+import { NgModule, ApplicationConfig } from "@angular/core";
+import { BrowserModule } from "@angular/platform-browser";
+import { registerAllModules } from "handsontable/registry";
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from "@handsontable/angular-wrapper";
+import { CommonModule } from "@angular/common";
+import { NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
+
+registerAllModules();
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    {
+      provide: HOT_GLOBAL_CONFIG,
+      useValue: {
+        themeName: "ht-theme-main",
+        license: NON_COMMERCIAL_LICENSE,
+      } as HotGlobalConfig,
+    },
+  ],
+};
+
+@NgModule({
+  imports: [BrowserModule, HotTableModule, CommonModule],
+  declarations: [ExampleComponent, MultiSelectEditorComponent, MultiSelectRendererComponent],
+  providers: [...appConfig.providers],
+  bootstrap: [ExampleComponent],
+})
+export class AppModule {}
+```
+
+**What's happening:**
+
+### Import required modules
+
+```typescript
+imports: [BrowserModule, HotTableModule, CommonModule];
+```
+
+- **BrowserModule**: Required for Angular apps
+- **HotTableModule**: Provides `<hot-table>` component
+- **CommonModule**: Provides `*ngFor`, `*ngIf` directives
+
+### Declare custom components
+
+```typescript
+declarations: [ExampleComponent, MultiSelectEditorComponent, MultiSelectRendererComponent];
+```
+
+- All custom components must be declared
+- Makes them available for use in the module
+
+### Configure Handsontable globally
+
+```typescript
+providers: [
+  {
+    provide: HOT_GLOBAL_CONFIG,
+    useValue: {
+      themeName: "ht-theme-main",
+      license: NON_COMMERCIAL_LICENSE,
+    } as HotGlobalConfig,
+  },
+];
+```
+
+- Set global theme
+- Configure license key
+- Applied to all Handsontable instances in the app
 
 ## How It Works - Complete Flow
 
-1. **Initial Render**: Cell displays comma-separated labels (e.g., "Component 1, Component 2")
-2. **User Double-Clicks or F2**: Editor opens, container positioned over cell
-3. **Before Open**: `beforeOpen` populates options from `cellProperties.selectMultipleOptions` and refreshes plugin
-4. **After Open**: `afterOpen` opens the multiselect dropdown automatically
-5. **Current Values Selected**: Previously selected items are checked in the dropdown
-6. **User Changes Selection**: User checks/unchecks options
-7. **User Clicks Away or Presses Enter**: Editor closes
-8. **GetValue Called**: Returns array of selected objects `[{value: '1', label: 'Component 1'}, ...]`
-9. **Validation**: Validator runs (optional, if defined)
+1. **Initial Render**: Renderer component displays comma-separated labels (e.g., "Component 1, Component 2")
+2. **User Opens Editor**: Double-click or press F2 on cell
+3. **Before Open**: `beforeOpen()` loads config from cell properties and initializes `selectedValues`
+4. **Editor Opens**: Angular renders dropdown with checkboxes, showing current selections
+5. **User Interacts**: User clicks to toggle dropdown, clicks checkboxes to select/deselect options
+6. **Toggle Option**: `toggleOption()` updates `selectedValues` array and calls `setValue()`
+7. **User Finishes**: Clicks outside editor or presses Enter/Escape
+8. **After Close**: `afterClose()` emits `finishEdit`, triggering Handsontable to call `getValue()`
+9. **Get Value**: Base class `getValue()` returns the current value from `setValue()`
 10. **Save**: New array saved to cell data
-11. **Re-render**: Cell displays updated comma-separated labels
+11. **Re-render**: Renderer component displays updated comma-separated labels
 
-## Plugin Features
+**Key differences from vanilla JS:**
 
-Multiple Select Vanilla provides many features out of the box:
+- No `init()` method - Angular handles component instantiation
+- No `setValue()` override needed - called internally by `toggleOption()`
+- Change detection managed by `ChangeDetectorRef`
+- Template-driven UI instead of DOM manipulation
+- Full access to Angular features (dependency injection, services, etc.)
 
-### Search/Filter
+## Customization Options
 
-```typescript
-editor.multiselect = multipleSelect(editor.input, {
-  filter: true, // Enable search box
-  filterPlaceholder: "Search...",
-}) as MultipleSelectInstance;
-```
+You can enhance the editor component with additional features:
 
 ### Select All Button
 
-```typescript
-editor.multiselect = multipleSelect(editor.input, {
-  selectAll: true, // Add "Select All" checkbox
-  selectAllText: "All Components",
-}) as MultipleSelectInstance;
-```
-
-### Custom Placeholder
+Add a button to select or deselect all options:
 
 ```typescript
-editor.multiselect = multipleSelect(editor.input, {
-  placeholder: "Choose components...",
-}) as MultipleSelectInstance;
-```
+@Component({
+  template: `
+    <div class="multiselect-editor-container">
+      <button (click)="selectAll()">Select All</button>
+      <button (click)="deselectAll()">Deselect All</button>
+      <!-- rest of template -->
+    </div>
+  `,
+})
+export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<{ value: string; label: string }[]> {
+  selectAll(): void {
+    this.selectedValues = [...this.config];
+    this.setValue(this.selectedValues);
+    this.cdr.detectChanges();
+  }
 
-### Single Selection Limit
-
-```typescript
-editor.multiselect = multipleSelect(editor.input, {
-  single: true, // Only one selection allowed
-}) as MultipleSelectInstance;
-```
-
-### Maximum Selections
-
-```typescript
-editor.multiselect = multipleSelect(editor.input, {
-  maxHeight: 300, // Dropdown max height
-  minimumCountSelected: 3, // Show "3 items selected" instead of names
-  countSelected: "# of % selected", // Custom format
-}) as MultipleSelectInstance;
+  deselectAll(): void {
+    this.selectedValues = [];
+    this.setValue(this.selectedValues);
+    this.cdr.detectChanges();
+  }
+}
 ```
 
 ## Advanced Enhancements
 
 ### 1. Dynamic Options Based on Other Cells
 
+Load different options based on values in other columns:
+
 ```typescript
-beforeOpen(editor, { row, cellProperties }) {
-  const rowData = editor.hot.getDataAtRow(row);
-  const category = rowData.category; // Category column
+override beforeOpen(editor: any): void {
+  const rowData = editor.instance.getDataAtRow(editor.row);
+  const category = rowData[0]; // Assuming category is in first column
 
   // Different options based on category
-  let options = cellProperties.selectMultipleOptions;
+  let options = this.cellProperties.config || [];
 
   if (category === 'Electronics') {
-    options = electronicsComponents;
-  } else if (category === 'Furniture') {
-    options = furnitureComponents;
-  }
-
-  editor.input.innerHTML = options.map((el) =>
-    `<option value="${el.value}">${el.label}</option>`
-  ).join('');
-
-  editor.multiselect.refresh();
-}
-```
-
-### 2. Grouped Options
-
-```typescript
-const groupedOptions = [
-  {
-    label: 'Hardware',
-    children: [
+    options = [
       { value: 'cpu', label: 'CPU' },
-      { value: 'ram', label: 'RAM' }
-    ]
-  },
-  {
-    label: 'Storage',
-    children: [
-      { value: 'ssd', label: 'SSD' },
-      { value: 'hdd', label: 'HDD' }
-    ]
+      { value: 'ram', label: 'RAM' },
+    ];
+  } else if (category === 'Furniture') {
+    options = [
+      { value: 'wood', label: 'Wood' },
+      { value: 'metal', label: 'Metal' },
+    ];
   }
-];
 
-beforeOpen(editor, { cellProperties }) {
-  editor.input.innerHTML = groupedOptions.map(group =>
-    `<optgroup label="${group.label}">
-      ${group.children.map(opt =>
-        `<option value="${opt.value}">${opt.label}</option>`
-      ).join('')}
-    </optgroup>`
-  ).join('');
-
-  editor.multiselect.refresh();
+  this.config = options;
+  this.selectedValues = [...editor.originalValue];
 }
 ```
 
-### 3. Icons in Options
+### 2. Renderer with Badges
+
+Enhance the renderer to display items as styled badges:
 
 ```typescript
-const optionsWithIcons = [
-  { value: 'cpu', label: 'CPU', icon: '🔧' },
-  { value: 'ram', label: 'RAM', icon: '💾' },
-  { value: 'gpu', label: 'GPU', icon: '🎮' },
-];
-
-beforeOpen(editor, { cellProperties }) {
-  editor.input.innerHTML = optionsWithIcons.map(opt =>
-    `<option value="${opt.value}" data-icon="${opt.icon}">
-      ${opt.icon} ${opt.label}
-    </option>`
-  ).join('');
-
-  editor.multiselect.refresh();
-}
+@Component({
+  selector: "multi-select-renderer",
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <div class="badges-container">
+      <span *ngIf="!value || value.length === 0" class="no-selection"> No selection </span>
+      <span *ngFor="let item of value" class="badge">
+        {{ item.label }}
+      </span>
+    </div>
+  `,
+  styles: [
+    `
+      .badges-container {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        background: #e3f2fd;
+        border-radius: 12px;
+        font-size: 12px;
+        color: #1976d2;
+      }
+      .no-selection {
+        color: #999;
+        font-style: italic;
+      }
+    `,
+  ],
+  standalone: false,
+})
+export class MultiSelectRendererComponent extends HotCellRendererAdvancedComponent<
+  { value: string; label: string }[]
+> {}
 ```
 
-<!--
+### 3. Grouped Options with Template
 
-### 4. Async Options Loading
-
-TODO: prepare actual example how to make this async.
+Use Angular templates for more complex option displays:
 
 ```typescript
-async prepare(editor, row, col, prop, td, originalValue, cellProperties) {
-  // Show loading state
-  editor.input.innerHTML = '<option>Loading...</option>';
-  editor.multiselect.refresh();
+@Component({
+  template: `
+    <div class="multiselect-editor-container" (click)="$event.stopPropagation()">
+      <div class="multiselect-wrapper">
+        <label>Select options:</label>
+        <div class="dropdown">
+          <div class="dropdown-header" (click)="toggleDropdown()">
+            <span>{{ getSelectedLabel() }}</span>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-list" *ngIf="isOpen">
+            <div *ngFor="let group of groupedConfig" class="option-group">
+              <div class="group-label">{{ group.label }}</div>
+              <div *ngFor="let option of group.options" class="dropdown-item" (click)="toggleOption(option)">
+                <input type="checkbox" [checked]="isSelected(option.value)" />
+                <label>{{ option.label }}</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+})
+export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<{ value: string; label: string }[]> {
+  groupedConfig: Array<{ label: string; options: Array<{ value: string; label: string }> }> = [];
 
-  // Fetch options from API
-  const options = await fetchOptionsFromAPI(cellProperties.optionsEndpoint);
-
-  // Update with real options
-  editor.input.innerHTML = options.map(el =>
-    `<option value="${el.value}">${el.label}</option>`
-  ).join('');
-
-  editor.multiselect.refresh();
+  override beforeOpen(editor: any): void {
+    // Transform flat config into grouped structure
+    this.groupedConfig = [
+      {
+        label: "Hardware",
+        options: editor.cellProperties.config.filter((opt: any) => opt.category === "hardware"),
+      },
+      {
+        label: "Software",
+        options: editor.cellProperties.config.filter((opt: any) => opt.category === "software"),
+      },
+    ];
+    this.selectedValues = [...editor.originalValue];
+  }
 }
 ```
 
--->
-
-### 4. Save on Every Selection Change
-
-```typescript
-afterInit(editor) {
-  // Set up change listener after plugin is initialized
-  editor.input.addEventListener('change', () => {
-    // Auto-save on selection change
-    editor.finishEditing();
-  });
-}
-```
-
-**Why `afterInit`?**
-
-- Runs after the plugin is initialized
-- Ensures the select element is fully set up
-- Event listener attached after plugin creates its UI
-
-## TypeScript Improvements
+## TypeScript Type Definitions
 
 Add proper type definitions for cell properties:
 
@@ -828,38 +941,78 @@ Add proper type definitions for cell properties:
 // Extend Handsontable's CellProperties type
 declare module "handsontable/settings" {
   interface CellProperties {
-    selectMultipleOptions?: Array<{ value: string; label: string }>;
+    config?: Array<{ value: string; label: string }>;
   }
 }
 
-// Now TypeScript knows about selectMultipleOptions
+// Now TypeScript knows about the config property
 columns: [
   {
     data: "components",
-    ...cellDefinition,
-    selectMultipleOptions: components, // ✅ Fully typed!
+    renderer: MultiSelectRendererComponent,
+    editor: MultiSelectEditorComponent,
+    config: components, // ✅ Fully typed!
   },
 ];
 ```
 
 ## Accessibility
 
-Multiple Select Vanilla has good accessibility support:
-
-```typescript
-editor.multiselect = multipleSelect(editor.input, {
-  ariaLabel: "Select components",
-  ariaPlaceholder: "No components selected",
-}) as MultipleSelectInstance;
-```
+The Angular implementation provides good accessibility support:
 
 **Keyboard shortcuts:**
 
-- **Arrow Up/Down**: Navigate options
-- **Space**: Toggle selection
-- **Enter**: Close dropdown (save)
-- **Escape**: Close dropdown (cancel)
-- **Type to search**: Filter options
+- **Enter**: Open/close dropdown
+- **Escape**: Close dropdown and finish editing
+- **Click outside**: Close dropdown and finish editing
+- **Space/Click**: Toggle checkbox selection
+
+**Improvements for better accessibility:**
+
+```typescript
+@Component({
+  template: `
+    <div class="multiselect-editor-container"
+         role="listbox"
+         [attr.aria-label]="'Select components'"
+         (click)="$event.stopPropagation()">
+      <div class="dropdown">
+        <button
+          class="dropdown-header"
+          (click)="toggleDropdown()"
+          [attr.aria-expanded]="isOpen"
+          aria-haspopup="listbox">
+          <span>{{ getSelectedLabel() }}</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div class="dropdown-list"
+             *ngIf="isOpen"
+             role="list">
+          <div *ngFor="let option of config"
+               class="dropdown-item"
+               role="listitem"
+               [attr.aria-selected]="isSelected(option.value)"
+               (click)="toggleOption(option)">
+            <input
+              type="checkbox"
+              [checked]="isSelected(option.value)"
+              [attr.aria-label]="option.label"
+              (click)="$event.stopPropagation()" />
+            <label>{{ option.label }}</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+})
+```
+
+**Benefits:**
+
+- Proper ARIA roles and attributes
+- Screen reader support
+- Keyboard navigation
+- Semantic HTML structure
 
 ---
 

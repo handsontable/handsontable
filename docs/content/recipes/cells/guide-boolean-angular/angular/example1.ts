@@ -42,7 +42,6 @@ export const inputData = [
 
 @Component({
   selector: "example1-boolean-editor",
-  standalone: true,
   template: `
     <div
       style="background-color: white; border: 2px solid #1a42e8;  display: flex; align-items: center; justify-content: center; height: 100%; width: 100%;"

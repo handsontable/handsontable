@@ -8,7 +8,7 @@ import {
   TemplateRef,
   Type
 } from '@angular/core';
-import { baseRenderer, BaseRenderer } from 'handsontable/renderers';
+import { baseRenderer, BaseRenderer, registerRenderer, rendererFactory } from 'handsontable/renderers';
 import Handsontable from 'handsontable/base';
 import { HotCellRendererComponent } from './hot-cell-renderer.component';
 import { HotCellRendererAdvancedComponent } from './hot-cell-renderer-advanced.component';
@@ -158,7 +158,7 @@ export class DynamicComponentService {
     componentProps: Record<string, any> = {},
     register: boolean = false
   ) {
-    return Handsontable.renderers.rendererFactory(({
+    return rendererFactory(({
       instance,
       td,
       row,
@@ -191,10 +191,8 @@ export class DynamicComponentService {
       }
 
       if (register && isAdvancedHotCellRendererComponent(component)) {
-        Handsontable.renderers.registerRenderer(component.constructor.name, component as any as BaseRenderer);
+        registerRenderer(component.constructor.name, component as any as BaseRenderer);
       }
-
-      return td;
     });
   }
 
