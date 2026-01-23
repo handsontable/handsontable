@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
@@ -6,7 +6,6 @@ import { mainTheme, horizonTheme, classicTheme, registerTheme, getTheme } from '
 
 // register Handsontable's modules
 registerAllModules();
-
 registerTheme(mainTheme);
 registerTheme(horizonTheme);
 registerTheme(classicTheme);
@@ -120,8 +119,8 @@ const ExampleComponent = () => {
   const currentTheme = document.querySelector('html')?.classList.contains('theme-dark')
     ? 'horizon-dark'
     : 'horizon-light';
-  const [themeName, setThemeName] = useState(currentTheme);
 
+  const [themeName, setThemeName] = useState(currentTheme);
   const handleOnChange = (event) => {
     const theme = event.target.value;
 

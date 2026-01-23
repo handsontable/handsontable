@@ -22,7 +22,6 @@ myTheme.params({
     accentColor: ['colors.primary.500', 'colors.primary.600'],
   },
 });
-
 // Set color scheme and density type
 myTheme.setColorScheme('light');
 myTheme.setDensityType('default');

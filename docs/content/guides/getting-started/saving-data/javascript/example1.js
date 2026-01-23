@@ -10,7 +10,6 @@ const exampleConsole = document.querySelector('#output');
 const autosave = document.querySelector('#autosave');
 const load = document.querySelector('#load');
 const save = document.querySelector('#save');
-
 const hot = new Handsontable(container, {
   startRows: 8,
   startCols: 6,

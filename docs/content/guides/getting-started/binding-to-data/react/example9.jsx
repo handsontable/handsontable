@@ -6,12 +6,7 @@ import 'handsontable/styles/handsontable.css';
 registerAllModules();
 
 const ExampleComponent = () => (
-  <HotTable
-    autoWrapRow={true}
-    autoWrapCol={true}
-    height="auto"
-    licenseKey="non-commercial-and-evaluation"
-  />
+  <HotTable autoWrapRow={true} autoWrapCol={true} height="auto" licenseKey="non-commercial-and-evaluation" />
 );
 
 export default ExampleComponent;

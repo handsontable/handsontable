@@ -25,7 +25,7 @@ const ExampleComponent = () => {
       `}</style>
 
       <HotTable
-        theme="ht-theme-main"
+        themeName="ht-theme-main"
         data={[
           ['John Doe', 'johndoe@example.com', 'New York', 32, 'Engineer'],
           ['Jane Smith', 'janesmith@example.com', 'Los Angeles', 29, 'Designer'],

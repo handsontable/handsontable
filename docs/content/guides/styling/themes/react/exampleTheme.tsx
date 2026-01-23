@@ -120,6 +120,7 @@ const ExampleComponent = () => {
   const currentTheme = document.querySelector('html')?.classList.contains('theme-dark')
     ? 'horizon-dark'
     : 'horizon-light';
+
   const [themeName, setThemeName] = useState(currentTheme);
 
   const handleOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {

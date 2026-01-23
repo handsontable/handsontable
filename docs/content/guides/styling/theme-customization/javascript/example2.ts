@@ -1,20 +1,25 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import { mainTheme, registerTheme } from 'handsontable/themes';
+import { horizonTheme, registerTheme } from 'handsontable/themes';
 
 // Register all Handsontable's modules.
 registerAllModules();
 
 // Register the main theme with custom parameters
-const myTheme = registerTheme(mainTheme);
+const myTheme = registerTheme(horizonTheme);
 
 // Configure theme parameters using the params() method
 myTheme.params({
   colors: {
     primary: {
-      500: '#9333ea', // Purple accent color
+      500: '#9333ea', // Change primary color
     },
+  },
+  tokens: {
+    fontSize: '16px',
+    iconSize: 'sizing.size_5',
+    accentColor: ['colors.primary.500', 'colors.primary.600'],
   },
 });
 
@@ -42,6 +47,7 @@ new Handsontable(container, {
     { data: 4, type: 'text' },
   ],
   rowHeaders: true,
+  dropdownMenu: true,
   width: '100%',
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
