@@ -824,20 +824,40 @@ class TableView {
         const prop = this.hot.colToProp(visualColumnToCheck);
         let value = this.hot.getDataAtRowProp(visualRowToCheck, prop);
 
+        cellProperties.rawValue = value;
+
         if (this.hot.hasHook('beforeValueRender')) {
           value = this.hot.runHooks('beforeValueRender', value, cellProperties);
         }
 
+        const renderer = this.hot.getCellRenderer(cellProperties);
+        let formattedValue = value;
+
+        if (typeof cellProperties.valueFormatter === 'function') {
+          formattedValue = cellProperties.valueFormatter(formattedValue, cellProperties);
+
+        } else if (typeof renderer.valueFormatter === 'function') {
+          formattedValue = renderer.valueFormatter.call(cellProperties, formattedValue, cellProperties);
+        }
+
         this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
-        this.hot.getCellRenderer(cellProperties)(
+
+        const rendererArgs = [
           this.hot,
           TD,
           visualRowIndex,
           visualColumnIndex,
           prop,
-          value,
-          cellProperties
-        );
+          formattedValue,
+          cellProperties,
+        ];
+
+        renderer(...rendererArgs);
+
+        if (!cellProperties._isBaseRendererCalled) {
+          this.hot.getCellRenderer({ renderer: 'base' })(...rendererArgs);
+          cellProperties._isBaseRendererCalled = false;
+        }
 
         this.hot.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
       },

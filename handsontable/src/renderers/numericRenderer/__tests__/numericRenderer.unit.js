@@ -42,10 +42,12 @@ describe('numericRenderer', () => {
     }
 
     describe('formatting', () => {
-      it('should format value with numericFormat', () => {
+      it('should format value with numericFormat (numbro.js format)', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
         const cellMeta = {
+          instance,
+          rawValue: 1.002,
           numericFormat: {
             culture: 'de-DE',
             pattern: {
@@ -57,9 +59,32 @@ describe('numericRenderer', () => {
 
         numbro.registerLanguage(deDE);
 
-        numericRenderer(instance, TD, undefined, undefined, undefined, 1.002, cellMeta);
+        const formattedValue = numericRenderer.valueFormatter(cellMeta.rawValue, cellMeta);
 
-        expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htRight htNumeric">1,00€</td>', toMatchHTMLConfig);
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
+
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr">1,00€</td>', toMatchHTMLConfig);
+        expect(cellMeta.className).toBe('htRight htNumeric');
+      });
+
+      it('should format value with numericFormat (Intl.NumberFormat format)', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+        const cellMeta = {
+          instance,
+          rawValue: 1.002,
+          locale: 'de-DE',
+          numericFormat: {
+            style: 'currency',
+            currency: 'EUR',
+          }
+        };
+        const formattedValue = numericRenderer.valueFormatter(cellMeta.rawValue, cellMeta);
+
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
+
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr">1,00&nbsp;€</td>', toMatchHTMLConfig);
+        expect(cellMeta.className).toBe('htRight htNumeric');
       });
     });
 
@@ -67,43 +92,62 @@ describe('numericRenderer', () => {
       it('should add default class names for numeric values', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
-        const cellMeta = {};
+        const cellMeta = {
+          instance,
+          rawValue: 1,
+        };
+        const formattedValue = numericRenderer.valueFormatter(cellMeta.rawValue, cellMeta);
 
-        numericRenderer(instance, TD, undefined, undefined, undefined, 1, cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
-        expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htRight htNumeric">1</td>', toMatchHTMLConfig);
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr">1</td>', toMatchHTMLConfig);
+        expect(cellMeta.className).toBe('htRight htNumeric');
       });
 
       it('should add default class names for numeric values passed as a string', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
-        const cellMeta = {};
+        const cellMeta = {
+          instance,
+          rawValue: 100,
+        };
+        const formattedValue = numericRenderer.valueFormatter(cellMeta.rawValue, cellMeta);
 
-        numericRenderer(instance, TD, undefined, undefined, undefined, '100', cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
-        expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htRight htNumeric">100</td>', toMatchHTMLConfig);
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr">100</td>', toMatchHTMLConfig);
+        expect(cellMeta.className).toBe('htRight htNumeric');
       });
 
       it('should add default class names only if value is numeric', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
-        const cellMeta = {};
+        const cellMeta = {
+          instance,
+          rawValue: 'A',
+        };
+        const formattedValue = numericRenderer.valueFormatter(cellMeta.rawValue, cellMeta);
 
-        numericRenderer(instance, TD, undefined, undefined, undefined, 'A', cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
         expect(TD.outerHTML).toMatchHTML('<td>A</td>');
+        expect(cellMeta.className).toBe(undefined);
       });
 
       it('should add only htNumeric class name if any alignment was defined', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
         const cellMeta = {
+          instance,
+          rawValue: 1,
           className: 'htCenter'
         };
+        const formattedValue = numericRenderer.valueFormatter(cellMeta.rawValue, cellMeta);
 
-        numericRenderer(instance, TD, undefined, undefined, undefined, 1, cellMeta);
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
-        expect(TD.outerHTML).toMatchHTML('<td dir="ltr" class="htCenter htNumeric">1</td>', toMatchHTMLConfig);
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr">1</td>', toMatchHTMLConfig);
+        expect(cellMeta.className).toBe('htCenter htNumeric');
       });
     });
   });
