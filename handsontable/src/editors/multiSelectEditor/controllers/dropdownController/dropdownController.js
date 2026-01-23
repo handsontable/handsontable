@@ -1,18 +1,24 @@
-import { mixin } from '../../../helpers/object';
-import localHooks from '../../../mixins/localHooks';
-import { addClass, removeClass } from '../../../helpers/dom/element';
-import { getCheckboxElement, includesValue } from '../utils/utils';
-import EventManager from '../../../eventManager';
-import { InputController } from './inputController';
-
-const classPrefix = 'ht-multi-select-editor';
-const SELECTED_ITEM_CLASS = `${classPrefix}-item-selected`;
-const SEARCH_INPUT_WRAPPER_CLASS = `${classPrefix}-search-input-wrapper`;
-const SEARCH_ICON_CLASS = `${classPrefix}-search-icon`;
-const SEARCH_INPUT_CLASS = `${classPrefix}-search-input`;
-const SEPARATOR_CLASS = `${classPrefix}-separator`;
-const CHECKBOX_ID_PREFIX = `${classPrefix}-item-`;
-const SEARCH_INPUT_PLACEHOLDER = 'Search...';
+import { mixin } from '../../../../helpers/object';
+import localHooks from '../../../../mixins/localHooks';
+import { getCheckboxElement, includesValue } from '../../utils/utils';
+import EventManager from '../../../../eventManager';
+import { InputController } from '../inputController/inputController';
+import {
+  selectItem,
+  deselectItem,
+  createSearchInputWrapper,
+  createSearchIcon,
+  createSearchInputElement,
+  createSeparatorElement,
+  createListElement,
+  getDropdownWidth,
+  deselectAllItems,
+  defocusItem,
+  focusItemAt,
+  disableUncheckedCheckboxes,
+  enableAllCheckboxes,
+  createListItemElement,
+} from './utils/utils';
 
 /**
  * Renders and manages the dropdown list used by the `MultiSelectEditor`.
@@ -118,13 +124,13 @@ export class DropdownController {
    * Builds required DOM elements and inserts them into the container.
    */
   init() {
-    this.#dropdownListElement = this.#createListElement();
-    this.#searchInputElement = this.#createSearchInputElement();
+    this.#dropdownListElement = createListElement({ root: this.#rootDocument });
+    this.#searchInputElement = createSearchInputElement({ root: this.#rootDocument });
 
-    const searchIcon = this.#createSearchIcon();
+    const searchIcon = createSearchIcon({ root: this.#rootDocument });
 
-    this.#searchInputWrapper = this.#createSearchInputWrapper();
-    this.#separatorElement = this.#createSeparatorElement();
+    this.#searchInputWrapper = createSearchInputWrapper({ root: this.#rootDocument });
+    this.#separatorElement = createSeparatorElement({ root: this.#rootDocument });
 
     this.#searchInputWrapper.appendChild(searchIcon);
     this.#searchInputWrapper.appendChild(this.#searchInputElement);
@@ -188,7 +194,14 @@ export class DropdownController {
     }
 
     entries.forEach((elem, indexWithinList) => {
-      this.#addDropdownItem(elem?.key, elem?.value ?? elem, indexWithinList, includesValue(checkedValues, elem));
+      this.#addDropdownItem({
+        rootElement: this.#rootDocument,
+        itemKey: elem?.key,
+        itemValue: elem?.value ?? elem,
+        indexWithinList,
+        checked: includesValue(checkedValues, elem),
+        disabled: this.#cache.areCheckboxesDisabled,
+      });
     });
 
     this.#cache.entriesCount = entries.length;
@@ -242,7 +255,14 @@ export class DropdownController {
    * @returns {number} Width of the dropdown.
    */
   getDropdownWidth() {
-    return this.#dropdownListElement.offsetWidth;
+    return getDropdownWidth({ dropdownListElement: this.#dropdownListElement });
+  }
+
+  /**
+   * Deselects all items in the dropdown.
+   */
+  deselectAllItems() {
+    deselectAllItems({ dropdownListElement: this.#dropdownListElement });
   }
 
   /**
@@ -273,7 +293,7 @@ export class DropdownController {
       return;
     }
 
-    this.#defocusItem(this.#cache.currentlySelectedItemIndex);
+    defocusItem({ dropdownListElement: this.#dropdownListElement, index: this.#cache.currentlySelectedItemIndex });
     this.#focusItem(this.#cache.currentlySelectedItemIndex - 1);
   }
 
@@ -285,7 +305,7 @@ export class DropdownController {
       return;
     }
 
-    this.#defocusItem(this.#cache.currentlySelectedItemIndex);
+    defocusItem({ dropdownListElement: this.#dropdownListElement, index: this.#cache.currentlySelectedItemIndex });
     this.#focusItem(this.#cache.currentlySelectedItemIndex + 1);
   }
 
@@ -358,53 +378,12 @@ export class DropdownController {
   }
 
   /**
-   * Applies visual selection state and checks the checkbox.
-   *
-   * @param {HTMLLIElement} itemElement Dropdown row element.
-   */
-  selectItem(itemElement) {
-    const checkbox = getCheckboxElement(itemElement);
-
-    addClass(itemElement, SELECTED_ITEM_CLASS);
-
-    if (!checkbox.checked) {
-      checkbox.checked = true;
-    }
-  }
-
-  /**
-   * Clears selection classes and unchecks the checkbox.
-   *
-   * @param {HTMLLIElement} itemElement Dropdown row element.
-   */
-  deselectItem(itemElement) {
-    const checkbox = getCheckboxElement(itemElement);
-
-    removeClass(itemElement, SELECTED_ITEM_CLASS);
-
-    if (checkbox.checked) {
-      checkbox.checked = false;
-    }
-  }
-
-  /**
-   * Deselects all items in the dropdown.
-   */
-  deselectAllItems() {
-    this.#dropdownListElement.querySelectorAll(`.${SELECTED_ITEM_CLASS}`).forEach(
-      itemElement => this.deselectItem(itemElement)
-    );
-  }
-
-  /**
    * Disables the unchecked checkboxes.
    */
   disableCheckboxes() {
     this.#cache.areCheckboxesDisabled = true;
 
-    this.#dropdownListElement.querySelectorAll('input[type="checkbox"]:not(:checked)').forEach((checkbox) => {
-      checkbox.disabled = true;
-    });
+    disableUncheckedCheckboxes({ dropdownListElement: this.#dropdownListElement });
   }
 
   /**
@@ -413,9 +392,7 @@ export class DropdownController {
   enableCheckboxes() {
     this.#cache.areCheckboxesDisabled = false;
 
-    this.#dropdownListElement.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
-      checkbox.disabled = false;
-    });
+    enableAllCheckboxes({ dropdownListElement: this.#dropdownListElement });
   }
 
   /**
@@ -426,45 +403,7 @@ export class DropdownController {
   #focusItem(index) {
     this.#cache.currentlySelectedItemIndex = index;
 
-    const itemElement = this.#dropdownListElement.children[index];
-
-    if (itemElement) {
-      const checkbox = getCheckboxElement(itemElement);
-
-      if (checkbox) {
-        checkbox.focus();
-      }
-    }
-  }
-
-  /**
-   * Defocuses the item at the given index.
-   *
-   * @param {number} index Index of the item to defocus.
-   */
-  #defocusItem(index) {
-    const itemElement = this.#dropdownListElement.children[index];
-
-    if (itemElement) {
-      const checkbox = getCheckboxElement(itemElement);
-
-      if (checkbox) {
-        checkbox.blur();
-      }
-    }
-  }
-
-  /**
-   * Resets the cache.
-   */
-  #resetCache() {
-    this.#cache.visibleRowsNumberSetting = null;
-    this.#cache.entriesCount = 0;
-    this.#cache.flippedVertically = false;
-    this.#cache.currentlySelectedItemIndex = 0;
-    this.#cache.checkboxChangeListeners.clear();
-    this.#cache.areCheckboxesDisabled = false;
-    this.#cache.sourceSortFunction = null;
+    focusItemAt({ dropdownListElement: this.#dropdownListElement, index });
   }
 
   /**
@@ -541,117 +480,28 @@ export class DropdownController {
   }
 
   /**
-   * Creates the wrapper div for the search input.
-   *
-   * @returns {HTMLDivElement}
-   */
-  #createSearchInputWrapper() {
-    const wrapperElement = this.#rootDocument.createElement('div');
-
-    wrapperElement.className = SEARCH_INPUT_WRAPPER_CLASS;
-
-    return wrapperElement;
-  }
-
-  /**
-   * Creates the search icon element.
-   *
-   * @returns {HTMLElement}
-   */
-  #createSearchIcon() {
-    const iconElement = this.#rootDocument.createElement('div');
-
-    iconElement.className = SEARCH_ICON_CLASS;
-
-    return iconElement;
-  }
-
-  /**
-   * Creates the search input element.
-   *
-   * @returns {HTMLInputElement}
-   */
-  #createSearchInputElement() {
-    const inputElement = this.#rootDocument.createElement('input');
-
-    inputElement.type = 'text';
-    inputElement.size = 3;
-    inputElement.className = SEARCH_INPUT_CLASS;
-    inputElement.placeholder = SEARCH_INPUT_PLACEHOLDER;
-
-    return inputElement;
-  }
-
-  /**
-   * Creates the separator line element.
-   *
-   * @returns {HTMLElement}
-   */
-  #createSeparatorElement() {
-    const separatorElement = this.#rootDocument.createElement('div');
-
-    separatorElement.className = SEPARATOR_CLASS;
-
-    return separatorElement;
-  }
-
-  /**
-   * Creates the list element that holds dropdown items.
-   *
-   * @returns {HTMLUListElement}
-   */
-  #createListElement() {
-    return this.#rootDocument.createElement('ul');
-  }
-
-  /**
-   * Creates a single dropdown row with a checkbox and label.
-   *
-   * @param {string} itemKey Key stored in the associated checkbox dataset.
-   * @param {string} itemValue Text shown next to the checkbox.
-   * @param {number} indexWithinList Index of the item within the list.
-   * @param {boolean} [checked=false] Flag indicating whether the checkbox starts selected.
-   * @returns {HTMLLIElement}
-   */
-  #createListItemElement(itemKey, itemValue, indexWithinList, checked = false) {
-    const itemElement = this.#rootDocument.createElement('li');
-    const innerContainer = this.#rootDocument.createElement('div');
-    const checkboxElement = this.#rootDocument.createElement('input');
-    const labelElement = this.#rootDocument.createElement('label');
-
-    checkboxElement.id = `${CHECKBOX_ID_PREFIX}${indexWithinList}`;
-    checkboxElement.type = 'checkbox';
-    checkboxElement.dataset.value = itemValue;
-    checkboxElement.dataset.index = indexWithinList;
-    checkboxElement.disabled = checked ? false : this.#cache.areCheckboxesDisabled;
-
-    if (itemKey) {
-      checkboxElement.dataset.key = itemKey;
-    }
-
-    labelElement.htmlFor = checkboxElement.id;
-    labelElement.textContent = itemValue;
-
-    innerContainer.appendChild(checkboxElement);
-    innerContainer.appendChild(labelElement);
-    itemElement.appendChild(innerContainer);
-
-    return itemElement;
-  }
-
-  /**
    * Adds a single row to the dropdown and optionally marks it as checked.
    *
-   * @param {string} itemKey Key stored in the associated checkbox dataset.
-   * @param {string} itemValue Text content rendered next to the checkbox.
-   * @param {number} indexWithinList Index of the item within the list.
-   * @param {boolean} [checked=false] Flag indicating whether the checkbox starts selected.
+   * @param {object} options Options object.
+   * @param {Document} options.rootElement Root document element.
+   * @param {string} options.itemKey Key stored in the associated checkbox dataset.
+   * @param {string} options.itemValue Text content rendered next to the checkbox.
+   * @param {number} options.indexWithinList Index of the item within the list.
+   * @param {boolean} [options.checked=false] Flag indicating whether the checkbox starts selected.
+   * @param {boolean} [options.disabled=false] Flag indicating whether the checkbox starts disabled.
    */
-  #addDropdownItem(itemKey, itemValue, indexWithinList, checked = false) {
-    const itemElement = this.#createListItemElement(itemKey, itemValue, indexWithinList, checked);
+  #addDropdownItem({ rootElement, itemKey, itemValue, indexWithinList, checked = false, disabled = false }) {
+    const itemElement = createListItemElement({
+      rootElement,
+      itemKey,
+      itemValue,
+      indexWithinList,
+      checked,
+      disabled,
+    });
 
     if (checked) {
-      this.selectItem(itemElement);
+      selectItem(itemElement);
     }
 
     this.#registerEvents(itemElement);
@@ -669,11 +519,11 @@ export class DropdownController {
 
     const checkboxChangeListener = () => {
       if (checkbox.checked) {
-        this.selectItem(itemElement);
+        selectItem(itemElement);
         this.runLocalHooks('afterDropdownItemChecked', checkbox.dataset.key, checkbox.dataset.value);
 
       } else {
-        this.deselectItem(itemElement);
+        deselectItem(itemElement);
         this.runLocalHooks('afterDropdownItemUnchecked', checkbox.dataset.key, checkbox.dataset.value);
       }
     };
@@ -710,6 +560,19 @@ export class DropdownController {
     this.#eventManager.removeEventListener(itemElement, 'click', checkboxListeners.click);
 
     this.#cache.checkboxChangeListeners.delete(checkbox);
+  }
+
+  /**
+   * Resets the cache.
+   */
+  #resetCache() {
+    this.#cache.visibleRowsNumberSetting = null;
+    this.#cache.entriesCount = 0;
+    this.#cache.flippedVertically = false;
+    this.#cache.currentlySelectedItemIndex = 0;
+    this.#cache.checkboxChangeListeners.clear();
+    this.#cache.areCheckboxesDisabled = false;
+    this.#cache.sourceSortFunction = null;
   }
 }
 

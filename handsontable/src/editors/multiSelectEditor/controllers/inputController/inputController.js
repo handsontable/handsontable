@@ -1,5 +1,5 @@
-import { mixin } from '../../../helpers/object';
-import localHooks from '../../../mixins/localHooks';
+import { mixin } from '../../../../helpers/object';
+import localHooks from '../../../../mixins/localHooks';
 
 /**
  * Controller for managing the input.

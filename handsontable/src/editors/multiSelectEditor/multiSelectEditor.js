@@ -1,7 +1,7 @@
 import { BaseEditor } from '../baseEditor';
 import EventManager from '../../eventManager';
-import { DropdownController } from './controllers/dropdownController';
-import { SelectedItemsController } from './controllers/selectedItemsController';
+import { DropdownController } from './controllers/dropdownController/dropdownController';
+import { SelectedItemsController } from './controllers/selectedItemsController/selectedItemsController';
 import { addClass } from '../../helpers/dom/element';
 import { EDITOR_EDIT_GROUP } from '../../shortcutContexts/constants';
 import {
@@ -261,6 +261,16 @@ export class MultiSelectEditor extends BaseEditor {
   }
 
   /**
+   * Called when the editor is destroyed.
+   *
+   * @private
+   */
+  destroy() {
+    this.close();
+    this.dropdownController.reset();
+  }
+
+  /**
    * Register shortcuts responsible for handling editor.
    *
    * @private
@@ -325,16 +335,6 @@ export class MultiSelectEditor extends BaseEditor {
     const editorContext = shortcutManager.getContext('editor');
 
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
-  }
-
-  /**
-   * Called when the editor is destroyed.
-   *
-   * @private
-   */
-  destroy() {
-    this.close();
-    this.dropdownController.reset();
   }
 
   /**

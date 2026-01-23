@@ -51,10 +51,11 @@ describe('MultiSelectEditor copy & paste', () => {
       copyPastePlugin.onCopy(copyEvent);
 
       await selectCell(1, 1);
+      await sleep(10);
 
       copyPastePlugin.onPaste(copyEvent);
+      await sleep(10);
 
-      await selectCell(1, 1);
       await keyDownUp('enter');
       await sleep(10);
 

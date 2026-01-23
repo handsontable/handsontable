@@ -1,5 +1,6 @@
 import { MultiSelectEditor } from '../../editors/multiSelectEditor';
 import { multiSelectRenderer } from '../../renderers/multiSelectRenderer';
+import { multiSelectValidator } from '../../validators/multiSelectValidator';
 import { valueGetter, valueSetter } from './accessors';
 
 export const CELL_TYPE = 'multiSelect';
@@ -8,6 +9,7 @@ export const MultiSelectCellType = {
   _complexDataFormat: true, // TODO: Replace with extending the data schema generator capabilities.
   editor: MultiSelectEditor,
   renderer: multiSelectRenderer,
+  validator: multiSelectValidator,
   valueGetter,
   valueSetter,
 };

@@ -1519,14 +1519,17 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
 
-      if (closeEditorAfterDataChange) {
+      if (activeEditor?.isOpened() && closeEditorAfterDataChange) {
         editorManager.closeEditor();
       }
 
       instance.view.adjustElementsSize();
       instance.render();
 
-      if (closeEditorAfterDataChange) {
+      if (
+        (activeEditor?.isOpened() && closeEditorAfterDataChange) ||
+        !activeEditor?.isOpened()
+      ) {
         editorManager.prepareEditor();
       }
 
