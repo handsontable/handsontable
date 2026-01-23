@@ -5,13 +5,25 @@ const setTheme = () => {
       return;
     }
 
+    // eslint-disable-next-line no-undef
     if (typeof Handsontable !== 'undefined' && Handsontable.themes) {
-      const mainTheme = Handsontable.themes.getThemeNames().includes('main') ? Handsontable.themes.getTheme('main') : undefined;
+      // eslint-disable-next-line no-undef
+      const themeNames = Handsontable.themes.getThemeNames();
+      // eslint-disable-next-line no-undef
+      const mainTheme = themeNames.includes('main') ? Handsontable.themes.getTheme('main') : undefined;
 
       if (mainTheme) {
-        if (document.documentElement.classList.contains('theme-dark') && mainTheme.getThemeConfig().colorScheme !== 'dark') {
+        if (
+          document.documentElement.classList.contains('theme-dark')
+          && mainTheme.getThemeConfig().colorScheme !== 'dark'
+          && mainTheme.getThemeConfig().colorScheme !== 'auto'
+        ) {
           mainTheme.setColorScheme('dark');
-        } else if (!document.documentElement.classList.contains('theme-dark') && mainTheme.getThemeConfig().colorScheme !== 'light') {
+        } else if (
+          !document.documentElement.classList.contains('theme-dark')
+          && mainTheme.getThemeConfig().colorScheme !== 'light'
+          && mainTheme.getThemeConfig().colorScheme !== 'auto'
+        ) {
           mainTheme.setColorScheme('light');
         }
       }
