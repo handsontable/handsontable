@@ -194,7 +194,7 @@ const currentTheme = document.querySelector('html')?.classList.contains('theme-d
 const setTheme = (theme) => {
   const [themeName, colorScheme] = theme.split('-');
 
-  colorBox.classList.value = `color-box ht-theme-${themeName}${colorScheme === 'dark' ? `-${colorScheme}` : ''}`;
+  colorBox.classList.value = `color-box ht-theme-${themeName}`;
   hotInstance.updateSettings({ theme: getTheme(themeName).setColorScheme(colorScheme || 'auto') });
 };
 

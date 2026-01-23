@@ -126,8 +126,10 @@
         const cssId = `dynamic-css-${cssFileName.replace('.', '-')}`;
 
         if (!document.getElementById(cssId)) {
-          // Find base URL from existing handsontable CSS link or script
-          const existingHotCss = document.querySelector('link[href*="handsontable"]');
+          // Find base URL from existing handsontable CSS link
+          // Use a more specific selector to match the actual Handsontable CSS file path,
+          // not just any link containing "handsontable" (which could match the domain name)
+          const existingHotCss = document.querySelector('link[href*="/styles/handsontable"]');
           let baseUrl = '';
 
           if (existingHotCss) {

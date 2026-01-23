@@ -197,13 +197,12 @@ const currentTheme = document.querySelector('html')?.classList.contains('theme-d
 const setTheme = (theme: string) => {
   const [themeName, colorScheme] = theme.split('-');
 
-  colorBox.classList.value = `color-box ht-theme-${themeName}${colorScheme === 'dark' ? `-${colorScheme}` : ''}`;
+  colorBox.classList.value = `color-box ht-theme-${themeName}`;
   hotInstance.updateSettings({ theme: getTheme(themeName).setColorScheme(colorScheme || 'auto') });
 };
 
 (themeSelect as HTMLSelectElement).value = currentTheme;
 setTheme(currentTheme);
-
 themeSelect.addEventListener('change', (event) => {
   const themeName = (event.target as HTMLSelectElement).value;
 
