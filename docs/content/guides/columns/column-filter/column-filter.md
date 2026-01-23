@@ -865,7 +865,6 @@ import Handsontable from 'handsontable/base';
 
 // import Handsontable's CSS
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // import the filtering plugins
 import { registerPlugin, Filters, DropdownMenu } from 'handsontable/plugins';

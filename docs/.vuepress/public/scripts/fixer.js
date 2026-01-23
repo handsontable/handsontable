@@ -120,7 +120,35 @@
       } else if (key === 'vue-class-component') {
         ns = 'VueClassComponent';
 
-      } else if (/^handsontable\/dist|styles\/.+\.css$/.test(key)) { // ignore CSS imports
+      } else if (/^handsontable\/styles\/ht-theme-.+\.css$/.test(key)) {
+        // Dynamically inject CSS for ht-theme-* files
+        const cssFileName = key.split('/').pop();
+        const cssId = `dynamic-css-${cssFileName.replace('.', '-')}`;
+
+        if (!document.getElementById(cssId)) {
+          // Find base URL from existing handsontable CSS link or script
+          const existingHotCss = document.querySelector('link[href*="handsontable"]');
+          let baseUrl = '';
+
+          if (existingHotCss) {
+            // Extract base URL from existing CSS (e.g., /docs/handsontable/styles/ or CDN URL)
+            const href = existingHotCss.getAttribute('href');
+            baseUrl = href.substring(0, href.lastIndexOf('/') + 1);
+          }
+
+          if (baseUrl) {
+            const link = document.createElement('link');
+            link.id = cssId;
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = baseUrl + cssFileName;
+            document.head.appendChild(link);
+          }
+        }
+
+        ns = '';
+
+      } else if (/^handsontable\/(dist|styles)\/.+\.css$/.test(key)) { // ignore other CSS imports
         ns = '';
 
       } else if (key === 'numbro') {
@@ -163,6 +191,9 @@
 
       } else if (/^handsontable\/i18n(\/(.+))?$/.test(key)) {
         ns = 'Handsontable.languages';
+
+      } else if (/^handsontable\/themes(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.themes';
       }
 
       let moduleToReturn = window;
@@ -185,6 +216,30 @@
           Handsontable.languages.getLanguagesDictionaries().forEach((lang) => {
             moduleToReturn[lang.languageCode.replace('-', '')] = lang;
           });
+
+        // Covers `import { mainTheme } from 'handsontable/themes'` expressions
+        } else if (ns === 'Handsontable.themes') {
+          Handsontable.themes.getThemeNames().forEach((themeName) => {
+            const exportName = themeName + 'Theme';
+
+            // Get theme config from window global (e.g., window.mainTheme)
+            if (window[exportName]) {
+              moduleToReturn[exportName] = window[exportName];
+            }
+          });
+
+          // Wrap registerTheme to silently skip already-registered themes (since bundles auto-register)
+          const originalRegisterTheme = moduleToReturn.registerTheme;
+
+          moduleToReturn.registerTheme = (themeOrName, themeConfig) => {
+            const name = typeof themeOrName === 'string' ? themeOrName : themeOrName?.name;
+
+            if (name && Handsontable.themes.hasTheme(name)) {
+              return Handsontable.themes.getTheme(name);
+            }
+
+            return originalRegisterTheme(themeOrName, themeConfig);
+          };
 
         // Covers `import { textRenderer } from 'handsontable/renderers'` expressions
         } else if (ns === 'Handsontable.renderers') {

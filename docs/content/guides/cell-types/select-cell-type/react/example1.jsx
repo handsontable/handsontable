@@ -1,7 +1,6 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -9,7 +8,6 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
-      themeName="ht-theme-main"
       data={[
         ['2017', 'Honda', 10],
         ['2018', 'Toyota', 20],

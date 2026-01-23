@@ -380,7 +380,6 @@ import Handsontable from 'handsontable/base';
 
 // import Handsontable's CSS
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // import the Pagination plugin
 import { registerPlugin, Pagination } from 'handsontable/plugins';

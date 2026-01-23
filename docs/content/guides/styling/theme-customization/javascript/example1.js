@@ -9,7 +9,7 @@ registerAllModules();
 const container = document.querySelector('#example1');
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
+  theme: 'ht-theme-main',
   data: [
     ['John Doe', 'johndoe@example.com', 'New York', 32, 'Engineer'],
     ['Jane Smith', 'janesmith@example.com', 'Los Angeles', 29, 'Designer'],

@@ -4,7 +4,6 @@ import numbro from 'numbro';
 import jaJP from 'numbro/languages/ja-JP';
 import trTR from 'numbro/languages/tr-TR';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -27,7 +26,6 @@ const formatTR = {
 const container = document.querySelector('#example3')!;
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [
     {
       productName: 'Product A',

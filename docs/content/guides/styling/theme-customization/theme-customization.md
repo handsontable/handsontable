@@ -2,7 +2,7 @@
 id: x2u15qpx
 title: Theme Customization
 metaTitle: Theme Customization - JavaScript Data Grid | Handsontable
-description: Customize Handsontable's appearance using CSS variables to create consistent themes and styles across your application.
+description: Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
 permalink: /theme-customization
 canonicalUrl: /theme-customization
 tags:
@@ -29,25 +29,175 @@ menuTag: updated
 
 # Theme Customization
 
-Customize Handsontable's appearance using CSS variables to create consistent themes and styles across your application.
+Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
 
 [[toc]]
+
+## Overview
 
 CSS variables provide a powerful and flexible way to customize Handsontable's appearance by adjusting design elements such as colors, spacing, borders, and typography to match your application's design system. These variables give you granular control over every visual aspect of the data grid, from basic styling to advanced component customization.
 
 We provide multiple approaches for leveraging CSS variables to create any look that your designer can imagine. From quick theme modifications to completely custom designs, your options include:
 
-1. **Override built-in theme variables** to quickly customize existing themes like `ht-theme-main`.
-2. **Create custom theme files** by copying and modifying existing theme SCSS files.
-3. Use the **Figma Theme Generator** to convert design tokens into CSS variables automatically.
+1. **Theme API** – Modify themes via configuration parameters or register your own custom theme programmatically.
+2. **Figma Theme Generator** – Modify design variables in Figma and export them using the Figma Theme Generator tool.
+3. **Override CSS variables** – Directly override CSS variables or edit CSS files from the `/styles` directory for full control.
+4. **Theme Builder UI** – Use the online [Theme Builder](https://handsontable.com/theme-builder) to visually customize and export your theme without writing code.
 
 The data grid's styling system is built entirely on CSS variables, with over 200 variables organized into logical categories covering typography, colors, spacing, borders, and component-specific styling listed below.
 
-## Usage Examples
+## Option 1: Theme API
 
-### Basic theme customization by overriding CSS variables
+The Theme API allows you to customize themes programmatically by registering custom themes and configuring them at runtime. You can use the `theme` option with a `ThemeBuilder` object for dynamic configuration.
 
-Follow these [steps](@/guides/styling/themes/themes.md#use-a-theme) to apply a theme, then override the variables for your chosen theme.
+### Register a custom theme
+
+Use `registerTheme` to create a custom theme with your own configuration:
+
+::: only-for javascript
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+// Register main theme
+const myTheme = registerTheme(mainTheme);
+
+// Configure the theme at runtime
+myTheme.setColorScheme('light'); // 'light', 'dark', or 'auto'
+myTheme.setDensityType('default'); // 'compact', 'default', or 'comfortable'
+
+const hot = new Handsontable(container, {
+  theme: myTheme,
+  // other options
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+import { HotTable } from '@handsontable/react';
+
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+// Register main theme
+const myTheme = registerTheme(mainTheme);
+
+// Configure the theme at runtime
+myTheme.setColorScheme('light');
+myTheme.setDensityType('default');
+
+function App() {
+  return (
+    <HotTable
+      theme={myTheme}
+      // other options
+    />
+  );
+}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+// Register main theme
+const myTheme = registerTheme(mainTheme);
+
+// Configure the theme at runtime
+myTheme.setColorScheme('light');
+myTheme.setDensityType('default');
+```
+
+```html
+<hot-table [theme]="myTheme">
+</hot-table>
+```
+
+:::
+
+### Configure theme parameters
+
+Use the `params()` method to update theme parameters dynamically:
+
+```js
+myTheme.params({
+  colors: {
+    primary: {
+      500: '#9333ea', // Change primary color
+    },
+  },
+  tokens: {
+    fontSize: '16px',
+    iconSize: 'sizing.size_5',
+    borderColor: ['colors.primary.500', 'colors.primary.600'],
+  },
+});
+```
+
+### Theme API example
+
+The following example demonstrates using the Theme API to register a theme with a custom purple accent color:
+
+::: only-for javascript
+
+::: example #example2 --html 1 --js 2 --ts 3
+@[code](@/content/guides/styling/theme-customization/javascript/example2.html)
+@[code](@/content/guides/styling/theme-customization/javascript/example2.js)
+@[code](@/content/guides/styling/theme-customization/javascript/example2.ts)
+:::
+
+:::
+
+::: only-for react
+
+::: example #example2 .disable-auto-theme :react --js 1 --ts 2
+@[code](@/content/guides/styling/theme-customization/react/example2.jsx)
+@[code](@/content/guides/styling/theme-customization/react/example2.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+@[code](@/content/guides/styling/theme-customization/angular/example2.ts)
+@[code](@/content/guides/styling/theme-customization/angular/example2.html)
+:::
+
+:::
+
+## Option 2: Figma Theme Generator
+
+The Figma Theme Generator allows designers and developers to work together seamlessly by exporting design tokens directly from Figma into a CSS theme file.
+
+### Export themes from Figma
+
+To create a new theme or modify an existing one in Figma:
+
+1. Open your Figma design file and modify the design variables (colors, spacing, typography, etc.) to match your requirements.
+2. Export the design tokens as JSON using Figma's built-in variables export or a plugin.
+3. Visit the [Handsontable Theme Generator](https://github.com/handsontable/handsontable-figma) and follow the instructions to convert your Figma tokens into CSS theme files or JS variable objects.
+
+The Theme Generator transforms JSON tokens exported from Figma into properly formatted theme files that work with Handsontable. It outputs CSS files (with or without icons) and JS variable files for colors, tokens, and icons. This approach is ideal for teams where designers define the visual language in Figma and developers implement it in code.
+
+## Option 3: Override CSS variables
+
+For full control over your theme, you can override CSS variables directly. Follow these [steps](@/guides/styling/themes/themes.md#use-a-theme) to apply a theme, then override the variables for your chosen theme.
+
+You can also directly modify the CSS theme files located in `handsontable/dist/styles/themes/`. This gives you immediate access to all CSS variables and allows for quick iterations.
 
 Here's an example for `.ht-theme-main`:
 
@@ -79,123 +229,77 @@ Here's an example for `.ht-theme-main`:
 
 :::
 
-### Create a custom theme based on an existing SCSS file
+## Option 4: Use the Theme Builder UI
 
-Creating a custom theme is straightforward. You just need a local clone of the [Handsontable repository](https://github.com/handsontable/handsontable) and follow these steps to set up your custom design:
-
-#### 1. Create a new SCSS file
-
-Start by copying one of the existing SCSS theme files from `handsontable/src/styles/themes`, for example [`theme-main.scss`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/theme-main.scss). Rename the copied file to something unique for your project — in this example, call it `theme-falcon.scss`. The theme filename must include the `theme-` prefix (e.g., `theme-falcon.scss`). The prefix is required for proper theme recognition.
-
-Next, create a variables file at `utils/falcon/_variables.scss`, based on the existing [`main/_variables.scss`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/utils/main/_variables.scss) file. Adjust it to match your design requirements.
-
-If your theme needs custom icons, you can either reuse the icons from the main theme or create your own in `utils/falcon/_icons.scss`. To use your custom icons, update the import path in your theme file with `@use "utils/falcon/icons";`.
-
-#### 2. Compile your SCSS file
-
-After customizing your theme file, you'll need to compile it into CSS. To do this, run the build command in the `handsontable/handsontable` directory.
-
-
-#### 3. Load and apply the theme
-
-Include the new CSS file into your project, ensuring it's loaded after the base CSS file (`handsontable/styles/handsontable.min.css`). If you're using imports, it might look like this:
-
-```js
-import 'handsontable/styles/handsontable.min.css';
-import './ht-theme-falcon.min.css';
-```
-
-To apply a theme, use the `themeName` option by specifying it in the configuration, like this:
-
-::: only-for javascript
-
-```js
-const hot = new Handsontable(container, {
-  // theme name with obligatory `ht-theme-*` prefix
-  themeName: 'ht-theme-falcon',
-  // other options
-});
-```
-
-:::
-
-::: only-for react
-
-```jsx
-<HotTable
-  // theme name with obligatory `ht-theme-*` prefix
-  themeName="ht-theme-falcon"
-  // other options
-/>
-```
-
-:::
-
-::: only-for angular
-
-```html
-<hot-table [settings]="{
-  // theme name with obligatory `ht-theme-*` prefix
-  themeName: 'ht-theme-falcon'
-  // other options
-}">
-</hot-table>
-```
-
-:::
-
-### Generate a CSS theme file from Figma
-
-To create a new theme or modify an existing one in Figma, visit the [Handsontable Theme Generator](https://github.com/handsontable/handsontable-figma) and follow the instructions to convert your Figma tokens into a CSS theme file that works with Handsontable. The Theme Generator will help you transform the JSON tokens exported from Figma into a properly formatted CSS theme file.
+If you prefer a visual approach to creating themes, use the [Handsontable Theme Builder](https://handsontable.com/theme-builder). This online tool provides an intuitive interface for customizing colors, spacing, and other theme properties without writing code. Once you're satisfied with your design, you can export the generated your theme and integrate it into your project.
 
 ## CSS Variables Reference
 
 Handsontable provides a comprehensive set of CSS variables that allow you to customize the appearance of every component. These variables are organized into logical categories for easy reference.
 
-### Color Variables
+### Sizing Variables
 
-| Variable                                | Description                                    |
-|-----------------------------------------|------------------------------------------------|
-| `--ht-color-transparent-0`              | Fully transparent background (light mode)      |
-| `--ht-color-transparent-80`             | 80% transparent background (light mode)        |
-| `--ht-color-gray-100`                   | Main white background                          |
-| `--ht-color-gray-200`                   | Lightest gray background                       |
-| `--ht-color-gray-250`                   | Very light gray background                     |
-| `--ht-color-gray-300`                   | Light gray border                              |
-| `--ht-color-gray-350`                   | Soft gray                                      |
-| `--ht-color-gray-400`                   | Placeholder and disabled text                  |
-| `--ht-color-gray-500`                   | Read-only or secondary text                    |
-| `--ht-color-gray-800`                   | Main text and icon color                       |
-| `--ht-color-gray-900`                   | Strongest black text                           |
-| `--ht-color-gray-800-40`                | Shadow, overlays - 40% opacity                 |
-| `--ht-color-gray-800-8`                 | Subtle divider or shadow - 8% opacity          |
-| `--ht-color-gray-800-4`                 | Subtle border or background highlight - 4%     |
-| `--ht-color-accent-300`                 | Light accent color                             |
-| `--ht-color-accent-350`                 | Lighter primary accent                         |
-| `--ht-color-accent-400`                 | Main accent color                              |
-| `--ht-color-accent-500`                 | Strong accent color                            |
-| `--ht-color-accent-400-40`              | Accent color at 40% opacity                    |
-| `--ht-color-notification-search`        | Background for search highlights               |
-| `--ht-color-notification-error`         | Background for error notifications             |
-| `--ht-color-notification-success`       | Background for success messages                |
-| `--ht-color-notification-warning`       | Background for warning messages                |
-| `--ht-color-notification-informational` | Background for informational messages          |
+| Variable | Description |
+|----------|-------------|
+| `--ht-sizing-size-0` | Zero size (0px) |
+| `--ht-sizing-size-0-25` | Quarter unit size (1px) |
+| `--ht-sizing-size-0-5` | Half unit size (2px) |
+| `--ht-sizing-size-1` | Base unit size (4px) |
+| `--ht-sizing-size-1-5` | 1.5x unit size (6px) |
+| `--ht-sizing-size-2` | 2x unit size (8px) |
+| `--ht-sizing-size-3` | 3x unit size (12px) |
+| `--ht-sizing-size-4` | 4x unit size (16px) |
+| `--ht-sizing-size-5` | 5x unit size (20px) |
+| `--ht-sizing-size-6` | 6x unit size (24px) |
+| `--ht-sizing-size-7` | 7x unit size (28px) |
+| `--ht-sizing-size-8` | 8x unit size (32px) |
+| `--ht-sizing-size-9` | 9x unit size (36px) |
+| `--ht-sizing-size-10` | 10x unit size (40px) |
 
-### Common Color Variables
+### Density Variables
 
-| Variable                                | Description                                    |
-|-----------------------------------------|------------------------------------------------|
-| `--ht-common-accent`                    | Reference to accent color                      |
-| `--ht-common-background`                | Main background                                |
-| `--ht-common-foreground`                | Main foreground (text/icons)                   |
-| `--ht-common-border`                    | Default border color                           |
-| `--ht-common-disabled`                  | Disabled color                                 |
-| `--ht-common-read-only`                 | Read-only coloring                             |
-| `--ht-common-placeholder`               | Placeholder text color                         |
-| `--ht-common-shadow`                    | Shadow effect color                            |
-| `--ht-common-background-secondary`      | Secondary background                           |
-| `--ht-common-overlay`                   | Overlay color                                  |
-| `--ht-common-foreground-secondary`      | Secondary foreground (subtle text/icons)       |
+| Variable | Description |
+|----------|-------------|
+| `--ht-density-cell-vertical` | Vertical padding for cells |
+| `--ht-density-cell-horizontal` | Horizontal padding for cells |
+| `--ht-density-bars-horizontal` | Horizontal padding for bars |
+| `--ht-density-bars-vertical` | Vertical padding for bars |
+| `--ht-density-gap` | Standard gap size |
+| `--ht-density-button-horizontal` | Horizontal padding for buttons |
+| `--ht-density-button-vertical` | Vertical padding for buttons |
+| `--ht-density-dialog-horizontal` | Horizontal padding for dialogs |
+| `--ht-density-dialog-vertical` | Vertical padding for dialogs |
+| `--ht-density-input-horizontal` | Horizontal padding for inputs |
+| `--ht-density-input-vertical` | Vertical padding for inputs |
+| `--ht-density-menu-vertical` | Vertical padding for menus |
+| `--ht-density-menu-horizontal` | Horizontal padding for menus |
+| `--ht-density-menu-item-vertical` | Vertical padding for menu items |
+| `--ht-density-menu-item-horizontal` | Horizontal padding for menu items |
+
+### Color Palette Variables
+
+| Variable | Description |
+|----------|-------------|
+| `--ht-colors-white` | Pure white color |
+| `--ht-colors-black` | Pure black color |
+| `--ht-colors-transparent` | Transparent color |
+| `--ht-colors-primary-100` | Lightest primary accent |
+| `--ht-colors-primary-200` | Light primary accent |
+| `--ht-colors-primary-300` | Medium-light primary accent |
+| `--ht-colors-primary-400` | Medium primary accent |
+| `--ht-colors-primary-500` | Main primary accent |
+| `--ht-colors-primary-600` | Dark primary accent |
+| `--ht-colors-palette-50` | Lightest gray |
+| `--ht-colors-palette-100` | Very light gray |
+| `--ht-colors-palette-200` | Light gray |
+| `--ht-colors-palette-300` | Medium-light gray |
+| `--ht-colors-palette-400` | Medium gray |
+| `--ht-colors-palette-500` | Medium-dark gray |
+| `--ht-colors-palette-600` | Dark gray |
+| `--ht-colors-palette-700` | Darker gray |
+| `--ht-colors-palette-800` | Very dark gray |
+| `--ht-colors-palette-900` | Near black |
+| `--ht-colors-palette-950` | Darkest gray |
 
 ### Typography Variables
 
@@ -225,6 +329,7 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-foreground-color` | Primary text color |
 | `--ht-foreground-secondary-color` | Secondary text color |
 | `--ht-background-color` | Primary background color |
+| `--ht-background-secondary-color` | Secondary background color |
 | `--ht-placeholder-color` | Color for placeholder text |
 | `--ht-read-only-color` | Color for read-only text |
 | `--ht-disabled-color` | Color for disabled elements |
@@ -237,6 +342,7 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-shadow-x` | Horizontal offset of shadows |
 | `--ht-shadow-y` | Vertical offset of shadows |
 | `--ht-shadow-blur` | Blur radius of shadows |
+| `--ht-shadow-opacity` | Opacity of shadows |
 
 ### Bar Variables
 
@@ -323,8 +429,7 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-cell-mobile-handle-size` | Size of mobile touch handles |
 | `--ht-cell-mobile-handle-border-width` | Border width of mobile handles |
 | `--ht-cell-mobile-handle-border-radius` | Border radius of mobile handles |
-| `--ht-cell-mobile-handle-border-color` | Border color of mobile handles |
-| `--ht-cell-mobile-handle-background-color` | Background color of mobile handles |
+| `--ht-cell-mobile-handle-background-opacity` | Background opacity of mobile handles |
 
 ### Indicator Variables
 
@@ -332,6 +437,7 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 |----------|-------------|
 | `--ht-resize-indicator-color` | Color of resize indicators |
 | `--ht-move-backlight-color` | Background color for move operations |
+| `--ht-move-backlight-opacity` | Opacity of move backlight |
 | `--ht-move-indicator-color` | Color of move indicators |
 | `--ht-hidden-indicator-color` | Color of hidden element indicators |
 
@@ -582,14 +688,18 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-menu-shadow-y` | Vertical shadow offset of menus |
 | `--ht-menu-shadow-blur` | Shadow blur radius of menus |
 | `--ht-menu-shadow-color` | Shadow color of menus |
+| `--ht-menu-shadow-opacity` | Shadow opacity of menus |
 | `--ht-menu-item-hover-color` | Background color of hovered menu items |
+| `--ht-menu-item-hover-color-opacity` | Opacity of hovered menu item background |
 | `--ht-menu-item-active-color` | Background color of active menu items |
+| `--ht-menu-item-active-color-opacity` | Opacity of active menu item background |
 
 ### Dialog Variables
 
 | Variable | Description |
 |----------|-------------|
 | `--ht-dialog-semi-transparent-background-color` | Semi-transparent background color of dialog overlay |
+| `--ht-dialog-semi-transparent-background-opacity` | Opacity of semi-transparent dialog background |
 | `--ht-dialog-solid-background-color` | Solid background color of dialog overlay |
 | `--ht-dialog-content-padding-horizontal` | Horizontal padding of dialog content |
 | `--ht-dialog-content-padding-vertical` | Vertical padding of dialog content |

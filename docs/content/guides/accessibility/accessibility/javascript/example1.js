@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -482,7 +481,6 @@ const countries = products.reduce((acc, curr) => {
 const app = document.getElementById('example1');
 // Define configuration options for the Handsontable
 const hotOptions = {
-  themeName: 'ht-theme-main',
   data: products,
   height: 464,
   colWidths: [160, 165, 130, 120, 100, 110, 216],

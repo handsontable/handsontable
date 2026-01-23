@@ -3,7 +3,6 @@ import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import Handsontable from 'handsontable/base';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -75,7 +74,6 @@ const ExampleComponent: React.FC = () => {
         </output>
       </div>
       <HotTable
-        themeName="ht-theme-main"
         ref={hotRef}
         startRows={8}
         startCols={6}

@@ -17,19 +17,21 @@ Instantly add Handsontable to your web app, using pre-built UMD packages of Java
 
 ## Full distribution (recommended)
 
-To utilize the full distribution of Handsontable, you can choose either the legacy styles or the theme-based styles. Do not mix files from both options.
+To utilize the full distribution of Handsontable, you can choose either the default (main) styles or other theme styles.
 
-### Option 1: Legacy Styles
+### Option 1: Default (main) Styles
 Include the following files in your project:
 ```html
 <script src="dist/handsontable.full.js"></script>
+<link href="styles/handsontable.css" rel="stylesheet">
 ```
 Alternatively, you can opt for the minified versions:
 ```html
 <script src="dist/handsontable.full.min.js"></script>
+<link href="styles/handsontable.min.css" rel="stylesheet">
 ```
 
-Both **handsontable.full.js** and **handsontable.full.css** are bundled with all necessary dependencies for seamless integration.
+The **handsontable.full.js** are bundled with all necessary dependencies for seamless integration.
 
 ### Option 2: Theme-Based Styles
 For projects utilizing themes, include the following files in the specified order:
@@ -49,9 +51,9 @@ Minified versions of these files are also available:
 
 ::: tip
 
-Let's assume we're using the `main` theme for the rest of this page.
+Let's assume we're using the `horizon` theme for the rest of this page.
 
-If you'd rather use a different theme or legacy styles, replace the `css` files accordingly.
+If you'd rather use a different theme, replace the `css` files accordingly.
 
 :::
 
@@ -68,7 +70,7 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 <!-- Handsontable bare files -->
 <script src="dist/handsontable.js"></script>
 <link href="styles/handsontable.css" rel="stylesheet">
-<link href="styles/ht-theme-main.css" rel="stylesheet">
+<link href="styles/ht-theme-horizon.css" rel="stylesheet">
 ```
 
 **handsontable.js** is compiled ___without___ the needed dependencies. You will have to include `pikaday.js`, `moment.js`, `numbro.js`, and `dompurify` on your own, ie. from JSDelivr CDN.

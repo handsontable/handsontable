@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 registerAllModules();
 
@@ -503,7 +502,6 @@ const countries = data.reduce<string[]>((acc, curr) => {
 
 // Handsontable options
 const hotOptions = {
-  themeName: 'ht-theme-main',
   data,
   height: 464,
   colWidths: [160, 165, 130, 120, 100, 110, 216],

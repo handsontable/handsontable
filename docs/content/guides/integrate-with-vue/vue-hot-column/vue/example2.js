@@ -1,7 +1,6 @@
 import { HotTable, HotColumn } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -10,7 +9,6 @@ const ExampleComponent = {
   data() {
     return {
       
-      themeName: 'ht-theme-main',
       hotData: [
         { id: 1, name: 'Table tennis racket', payment: { price: 13, currency: 'PLN' } },
         { id: 2, name: 'Outdoor game ball', payment: { price: 14, currency: 'USD' } },

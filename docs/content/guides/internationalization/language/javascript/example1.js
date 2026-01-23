@@ -2,7 +2,6 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -18,7 +17,6 @@ const data = [
 ];
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   contextMenu: true,
   height: 'auto',

@@ -50,8 +50,8 @@ The building processes transform the source files located in the `/handsontable/
 
 - `/handsontable/dist/`
     - handsontable UMD files, including minified versions
-    - legacy CSS files, including minified versions
     - the language file
+    - the themes and variables files
 - `/handsontable/styles/`
     - modern theme CSS files, including minified versions
 - `handsontable/tmp/`

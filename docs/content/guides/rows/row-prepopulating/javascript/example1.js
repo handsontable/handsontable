@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -39,7 +38,6 @@ const defaultValueRenderer = (instance, td, row, col, prop, value, cellPropertie
 
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   startRows: 8,
   startCols: 5,
   minSpareRows: 1,

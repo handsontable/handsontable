@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import { BaseRenderer } from 'handsontable/renderers';
 
 // Register all Handsontable's modules.
@@ -23,7 +22,6 @@ const greenRenderer: BaseRenderer = (instance, td, ...rest) => {
 const container = document.querySelector('#example1')!;
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [
     { id: 1, name: 'Ted', isActive: true, color: 'orange', date: '2015-01-01' },
     { id: 2, name: 'John', isActive: false, color: 'black', date: null },

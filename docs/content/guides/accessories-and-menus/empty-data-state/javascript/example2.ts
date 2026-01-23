@@ -3,12 +3,10 @@
 
 import Handsontable from 'handsontable';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.getElementById('example2') as HTMLElement;
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [], // Empty data to trigger empty state
   height: 'auto',
   colHeaders: ['First Name', 'Last Name', 'Email'],

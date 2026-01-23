@@ -44,8 +44,7 @@ npm install handsontable @handsontable/vue3
 
 ```js
 <template>
-  <hot-table 
-    theme="ht-theme-main"
+  <hot-table
     :data="data"
     :rowHeaders="true"
     :colHeaders="true"
@@ -58,7 +57,6 @@ npm install handsontable @handsontable/vue3
   import { HotTable } from '@handsontable/vue3';
   import { registerAllModules } from 'handsontable/registry';
   import 'handsontable/styles/handsontable.min.css';
-  import 'handsontable/styles/ht-theme-main.min.css';
 
   // register Handsontable's modules
   registerAllModules();

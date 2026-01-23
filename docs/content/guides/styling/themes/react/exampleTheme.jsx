@@ -1,14 +1,17 @@
 import { useRef, useState, useEffect } from 'react';
-import { HotTable, HotColumn } from '@handsontable/react-wrapper';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
-import 'handsontable/styles/ht-theme-horizon.css';
+import { mainTheme, horizonTheme, classicTheme, registerTheme, getTheme } from 'handsontable/themes';
 
 // register Handsontable's modules
 registerAllModules();
 
-// constants.ts
+registerTheme(mainTheme);
+registerTheme(horizonTheme);
+registerTheme(classicTheme);
+
+// constants.js
 export const data = [
   [false, 'Tagcat', 'United Kingdom', 'Classic Vest', '11/10/2025', '01-2331942', true, '172', 2, 2],
   [true, 'Zoomzone', 'Indonesia', 'Cycling Cap', '03/05/2025', '88-2768633', true, '188', 6, 2],
@@ -114,35 +117,31 @@ export const data = [
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-  const [themeName, setThemeName] = useState(
-    document.querySelector('html')?.classList.contains('theme-dark') ? 'ht-theme-horizon-dark' : 'ht-theme-horizon'
-  );
+  const currentTheme = document.querySelector('html')?.classList.contains('theme-dark')
+    ? 'horizon-dark'
+    : 'horizon-light';
+  const [themeName, setThemeName] = useState(currentTheme);
 
   const handleOnChange = (event) => {
-    setThemeName(event.target.value);
+    const theme = event.target.value;
+
+    setThemeName(theme);
   };
-
-  useEffect(() => {
-    if (!hotRef.current?.hotInstance) {
-      return;
-    }
-
-    hotRef.current.hotInstance.useTheme(themeName === 'ht-no-theme' ? undefined : themeName);
-  }, [themeName]);
 
   return (
     <>
       <div className="theme-examples-controls">
         <div className="example-container">
           <label className="color-select">
-            <select value={themeName} onChange={handleOnChange}>
-              <option value="ht-theme-main">Main Light</option>
-              <option value="ht-theme-horizon">Horizon Light</option>
-              <option value="ht-theme-main-dark">Main Dark</option>
-              <option value="ht-theme-horizon-dark">Horizon Dark</option>
-              <option value="ht-no-theme">No theme</option>
+            <select value={`${themeName}`} onChange={handleOnChange}>
+              <option value="main-light">Main Light</option>
+              <option value="main-dark">Main Dark</option>
+              <option value="horizon-light">Horizon Light</option>
+              <option value="horizon-dark">Horizon Dark</option>
+              <option value="classic-light">Classic Light</option>
+              <option value="classic-dark">Classic Dark</option>
             </select>
-            <div className={`color-box ${themeName}`}>
+            <div className={`color-box ht-theme-${themeName.split('-')[0]}`}>
               <span className="color" style={{ background: 'var(--ht-foreground-color)' }} />
               <span className="color" style={{ background: 'var(--ht-background-color)' }} />
               <span className="color" style={{ background: 'var(--ht-accent-color)' }} />
@@ -154,6 +153,7 @@ const ExampleComponent = () => {
       <HotTable
         key={themeName}
         ref={hotRef}
+        theme={getTheme(themeName.split('-')[0]).setColorScheme(themeName.split('-')[1] || 'auto')}
         data={data}
         height={450}
         colWidths={[180, 220, 140, 120, 120, 120, 140]}
@@ -170,6 +170,46 @@ const ExampleComponent = () => {
           'make_read_only',
           'clear_column',
         ]}
+        columns={[
+          {
+            data: 1,
+            type: 'text',
+            headerClassName: 'htLeft',
+          },
+          {
+            data: 3,
+            type: 'text',
+            headerClassName: 'htLeft',
+          },
+          {
+            data: 4,
+            type: 'date',
+            allowInvalid: false,
+            dateFormat: 'DD/MM/YYYY',
+            headerClassName: 'htLeft',
+          },
+          {
+            data: 6,
+            type: 'checkbox',
+            className: 'htCenter',
+            headerClassName: 'htLeft',
+          },
+          {
+            data: 7,
+            type: 'numeric',
+            headerClassName: 'htLeft',
+          },
+          {
+            data: 5,
+            type: 'text',
+            headerClassName: 'htLeft',
+          },
+          {
+            data: 2,
+            type: 'text',
+            headerClassName: 'htLeft',
+          },
+        ]}
         dropdownMenu={true}
         hiddenColumns={{
           indicators: true,
@@ -177,23 +217,15 @@ const ExampleComponent = () => {
         multiColumnSorting={true}
         filters={true}
         rowHeaders={true}
-        headerClassName="htLeft"
         manualRowMove={true}
+        headerClassName="htLeft"
         autoWrapRow={true}
         autoWrapCol={true}
         manualRowResize={true}
         manualColumnResize={true}
         navigableHeaders={true}
         licenseKey="non-commercial-and-evaluation"
-      >
-        <HotColumn data={1} />
-        <HotColumn data={3} />
-        <HotColumn data={4} type="date" allowInvalid={false} />
-        <HotColumn data={6} type="checkbox" className="htCenter" />
-        <HotColumn data={7} type="numeric" />
-        <HotColumn data={5} />
-        <HotColumn data={2} />
-      </HotTable>
+      />
     </>
   );
 };

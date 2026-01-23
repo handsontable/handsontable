@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -18,7 +17,6 @@ const data = new Array(100) // number of rows
 const container = document.querySelector('#example2');
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   colWidths: 100,
   width: '100%',

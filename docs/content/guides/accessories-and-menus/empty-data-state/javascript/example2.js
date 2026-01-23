@@ -2,11 +2,9 @@
 // This example shows how to customize the empty data state message
 import Handsontable from 'handsontable';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.getElementById('example2');
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [],
   height: 'auto',
   colHeaders: ['First Name', 'Last Name', 'Email'],

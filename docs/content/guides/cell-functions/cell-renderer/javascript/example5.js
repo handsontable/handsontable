@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -20,7 +19,6 @@ const customRenderer = (instance, td, ...rest) => {
 };
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   height: 'auto',
   columns: [{}, { renderer: customRenderer }],
   colHeaders(col) {

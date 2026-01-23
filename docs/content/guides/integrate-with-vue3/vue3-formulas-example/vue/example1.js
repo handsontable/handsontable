@@ -3,7 +3,6 @@ import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -19,7 +18,6 @@ const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
-        themeName: 'ht-theme-main',
         data: [
           ['4', '=IF(A1>4, "TRUE", "FALSE")', 'C1'],
           ['2', 'B2', '=A1+A2'],

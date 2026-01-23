@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -10,7 +9,6 @@ const container = document.getElementById('example4')!;
 const paginationContainer = document.getElementById('example4-pagination')!;
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [],
   colHeaders: true,
   rowHeaders: true,

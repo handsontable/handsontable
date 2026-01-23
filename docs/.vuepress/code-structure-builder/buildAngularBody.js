@@ -82,8 +82,7 @@ const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "styles": [
-              "node_modules/handsontable/styles/handsontable.min.css",
-              "node_modules/handsontable/styles/ht-theme-main.min.css"
+              "node_modules/handsontable/styles/handsontable.min.css"
             ],
             "scripts": [],
             "preserveSymlinks": true,

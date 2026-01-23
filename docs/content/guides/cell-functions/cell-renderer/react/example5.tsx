@@ -4,7 +4,6 @@ import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -39,7 +38,6 @@ const ExampleComponent = () => {
   return (
     <div id="exampleContainer5" onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}>
       <HotTable
-        themeName="ht-theme-main"
         ref={hotRef}
         height="auto"
         columns={[{}, { renderer: customRenderer }]}

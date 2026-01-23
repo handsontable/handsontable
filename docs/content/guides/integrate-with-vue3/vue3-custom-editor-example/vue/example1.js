@@ -3,7 +3,6 @@ import { HotTable } from '@handsontable/vue3';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -25,7 +24,6 @@ const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
-        themeName: 'ht-theme-main',
         startRows: 5,
         columns: [
           {

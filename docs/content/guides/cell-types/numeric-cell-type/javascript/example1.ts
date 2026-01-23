@@ -3,7 +3,6 @@ import { registerAllModules } from 'handsontable/registry';
 import numbro from 'numbro';
 import deDE from 'numbro/languages/de-DE';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -14,7 +13,6 @@ numbro.registerLanguage(deDE);
 const container = document.querySelector('#example1')!;
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [
     { car: 'Mercedes A 160', year: 2017, price_usd: 7000, price_eur: 7000 },
     { car: 'Citroen C4 Coupe', year: 2018, price_usd: 8330, price_eur: 8330 },

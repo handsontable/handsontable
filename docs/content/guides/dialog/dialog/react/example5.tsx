@@ -2,7 +2,6 @@ import React, { useRef, useEffect } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -74,7 +73,6 @@ const ExampleComponent = () => {
       </div>
       <HotTable
         ref={hotTableRef}
-        themeName="ht-theme-main"
         data={data}
         width="100%"
         height={300}

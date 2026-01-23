@@ -2,7 +2,6 @@ import Vue from "vue";
 import Vuex from "vuex";
 import { HotTable, HotColumn, BaseEditorComponent } from "@handsontable/vue";
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import StarRating from "vue-star-rating";
 import { Chrome } from "vue-color";
 
@@ -131,7 +130,6 @@ const ExampleComponent = {
   data() {
     return {
       hotSettings: {
-        themeName: 'ht-theme-main',        
         data: [
           [1, "#2269EC", "#E1E7F3"],
           [2, "#A1E3CD", "#E5ECE4"],

@@ -1,7 +1,6 @@
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -91,7 +90,6 @@ const ExampleComponent = {
   data() {
     return {
       hotSettings: {
-        themeName: 'ht-theme-main',    
         data: [
           ['Obrien Fischer'], ['Alexandria Gordon'], ['John Stafford'], ['Regina Waters'], ['Kay Bentley'], ['Emerson Drake'], ['Deann Stapleton']
         ],

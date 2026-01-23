@@ -7,7 +7,6 @@ import { createStore, combineReducers } from 'redux';
 import { HotTable, HotColumn, useHotEditor } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -243,7 +242,6 @@ const ExampleComponent = () => {
   return (
     <Provider store={reduxStore}>
       <HotTable
-        themeName="ht-theme-main"
         data={data}
         rowHeaders={true}
         rowHeights={30}

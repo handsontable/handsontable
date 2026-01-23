@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import { NestedRows } from 'handsontable/plugins';
 import { DetailedSettings } from 'handsontable/plugins/columnSummary';
 
@@ -11,7 +10,6 @@ registerAllModules();
 const container = document.querySelector('#example8')!;
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     {

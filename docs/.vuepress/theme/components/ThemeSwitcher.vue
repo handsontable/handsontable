@@ -13,7 +13,7 @@
 </template>
 
 <script>
-/* global instanceRegister, hotThemeManager */
+/* global hotThemeManager */
 const CLASS_THEME_DARK = 'theme-dark';
 const CLASS_DISABLE_TRANSITION = 'disable-transition';
 const STORAGE_KEY = 'handsontable/docs::color-scheme';
@@ -40,7 +40,7 @@ export default {
         document.documentElement.setAttribute('data-theme', 'light');
       }
 
-      hotThemeManager.switchExamplesTheme(instanceRegister.getAllHotInstances());
+      hotThemeManager.switchExamplesTheme();
 
       requestAnimationFrame(() => {
         document.documentElement.classList.remove(CLASS_DISABLE_TRANSITION);
