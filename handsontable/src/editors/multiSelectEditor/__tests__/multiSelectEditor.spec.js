@@ -1,5 +1,3 @@
-// TODO: add tests about modifying the dataset
-
 describe('MultiSelectEditor', () => {
   const id = 'testContainer';
 
@@ -234,6 +232,50 @@ describe('MultiSelectEditor', () => {
           expect($('.ht-multi-select-editor').offset().top)
             .toBeLessThan(await $(getCell(10, 0)).offset().top);
         });
+    });
+
+    describe('saving data', () => {
+      it('should save the selection data after each change in the editor (unlike the other editors)', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+            },
+          ],
+        });
+
+        expect(getSourceDataAtCell(0, 0)).toEqual([]);
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        let $dropdown = $('.ht-multi-select-editor');
+        let $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
+
+        expect($checkbox.prop('checked')).toBe(false);
+
+        await simulateClick($checkbox);
+        await sleep(10);
+
+        expect($checkbox.prop('checked')).toBe(true);
+        expect(getSourceDataAtCell(0, 0)).toEqual([choices[0]]);
+
+        $dropdown = $('.ht-multi-select-editor');
+        $checkbox = $dropdown.find('input[type="checkbox"][data-value="red"]');
+
+        expect($checkbox.prop('checked')).toBe(false);
+
+        await simulateClick($checkbox);
+        await sleep(10);
+
+        expect($checkbox.prop('checked')).toBe(true);
+        expect(getSourceDataAtCell(0, 0)).toEqual([choices[0], choices[1]]);
+      });
     });
 
     describe('`maxSelections` option', () => {
