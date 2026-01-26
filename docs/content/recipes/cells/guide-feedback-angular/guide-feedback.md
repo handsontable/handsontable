@@ -25,7 +25,7 @@ category: Cells
 
 ## Overview
 
-This guide shows how to create a simple feedback editor cell using emoji buttons with Angular's `HotCellEditorAdvancedComponent`. Perfect for quick feedback selection, status indicators, or any scenario where users need to choose from a small set of visual options.
+This guide shows how to create a simple feedback editor cell using emoji buttons with Angular's [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent). Perfect for quick feedback selection, status indicators, or any scenario where users need to choose from a small set of visual options.
 
 **Difficulty:** Beginner
 **Time:** ~15 minutes
@@ -63,7 +63,7 @@ npm install @handsontable/angular-wrapper
 
 **What you need:**
 
-- Angular 14+ (decorators support)
+- Angular 16+ (decorators support)
 - `@handsontable/angular-wrapper` package
 - Basic Angular knowledge (components, decorators, change detection)
 
@@ -73,15 +73,13 @@ npm install @handsontable/angular-wrapper
 import { Component, ChangeDetectorRef } from "@angular/core";
 import { HotTableModule, HotCellEditorAdvancedComponent, KeyboardShortcutConfig } from "@handsontable/angular-wrapper";
 import { registerAllModules } from "handsontable/registry";
-import "handsontable/styles/handsontable.css";
-import "handsontable/styles/ht-theme-main.css";
 
 registerAllModules();
 ```
 
 **What we're importing:**
 
-- `HotCellEditorAdvancedComponent` - Base class for creating custom editors
+- [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent) - Base class for creating custom editors
 - `HotTableModule` - Angular wrapper module
 - `ChangeDetectorRef` - For manual change detection
 - `KeyboardShortcutConfig` - Type definitions for keyboard shortcuts
@@ -89,9 +87,7 @@ registerAllModules();
 
 ## Step 2: Create the Editor Component
 
-Create an Angular component that extends `HotCellEditorAdvancedComponent`.
-
-**TypeScript (.ts):**
+Create an Angular component that extends [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent).
 
 ```typescript
 @Component({
@@ -124,7 +120,7 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 
 **What's happening:**
 
-1. Class extends `HotCellEditorAdvancedComponent<string>` - base class for custom editors
+1. Class extends [`HotCellEditorAdvancedComponent<string>`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent) - base class for custom editors
 2. `@Component` decorator with inline template
 3. `override config` - array of options to display
 4. `override value` - default value for the editor
@@ -136,7 +132,7 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 
 **Key concepts:**
 
-- **Class-based component**: Extends from `HotCellEditorAdvancedComponent<T>`
+- **Class-based component**: Extends from [`HotCellEditorAdvancedComponent<T>`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent)
 - **State management**: `value` is a class property, managed by base class
 - **Angular patterns**: Template syntax, property binding, event binding
 
@@ -164,7 +160,6 @@ Style the editor container and buttons using inline styles or Angular style bind
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
   override config = ["👍", "👎", "🤷‍♂️"];
   override value = "👍";
-  override onFocus(): void {}
 
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -194,6 +189,35 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 The Angular wrapper automatically handles per-column configuration through the base class.
 
 ```typescript
+import { Component } from "@angular/core";
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+@Component({
+  selector: "app-example",
+  template: ` <hot-table [data]="data" [settings]="gridSettings"></hot-table> `,
+})
+export class ExampleComponent {
+  readonly data = [
+    { id: 1, itemName: "Product A", feedback: "👍" },
+    { id: 2, itemName: "Product B", feedback: "👎" },
+  ];
+
+  readonly gridSettings: GridSettings = {
+    ...,
+    columns: [
+      ...,
+      {
+        data: "feedback",
+        width: 150,
+        editor: FeedbackEditorComponent,
+        config: ["👍", "👎", "🤷‍♂️"],
+      }
+    ],
+  };
+}
+```
+
+```typescript
 @Component({
   standalone: false,
   template: `...`,
@@ -202,7 +226,6 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
   // Config will be automatically populated from cellProperties.config
   override config?: string[];
   override value = "👍";
-  override onFocus(): void {}
 
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -238,7 +261,6 @@ Add keyboard navigation using the `shortcuts` property.
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
   override config = ["👍", "👎", "🤷‍♂️"];
   override value = "👍";
-  override onFocus(): void {}
 
   override shortcuts: KeyboardShortcutConfig[] = [
     {
@@ -355,8 +377,6 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 
 Use the editor component in your Angular component:
 
-**TypeScript (.ts):**
-
 ```typescript
 import { Component } from "@angular/core";
 import { GridSettings } from "@handsontable/angular-wrapper";
@@ -417,21 +437,6 @@ export class ExampleComponent {
 - Per-column configuration
 - Type-safe with TypeScript
 - Declarative settings object
-
-## How It Works - Complete Flow
-
-1. **Initial Render**: Cell displays the emoji value (👍, 👎, or 🤷‍♂️)
-2. **User Double-Clicks or Enter**: Editor opens, Angular wrapper reads column config
-3. **Editor Opens**: Component template rendered over cell
-4. **Button Display**: All options visible, current value highlighted
-5. **User Interaction**:
-   - Click a button → `setValue(item)` and `finishEdit.emit()` called
-   - Press ArrowLeft/Right → Shortcut callback updates value, `cdr.detectChanges()` triggers UI update
-   - Press Tab → Cycles through options (prevents default cell navigation)
-6. **Visual Feedback**: Selected button highlighted with different background color
-7. **User Confirms**: Press Enter, click button, or click away
-8. **Save**: Value saved to cell via `finishEdit.emit()`
-9. **Editor Closes**: Cell shows selected emoji
 
 ## Enhancements
 
@@ -521,7 +526,6 @@ To read custom config from column definition, implement the `beforeOpen` lifecyc
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
   override config?: string[];
   override value = "👍";
-  override onFocus(): void {}
 
   override beforeOpen(editor: ExtendedEditor<any>, { cellProperties }: any): void {
     this.config = cellProperties.config as string[];
@@ -690,93 +694,6 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 - `[attr.aria-pressed]`: Indicates selected state
 - `[tabIndex]`: Controls keyboard focus order
 
-## Performance Considerations
-
-### Why This Is Fast
-
-1. **Class-based approach**: Minimal overhead, no virtual DOM reconciliation
-2. **No External Libraries**: Zero overhead beyond Angular
-3. **Manual Change Detection**: Control when UI updates occur
-4. **Native Events**: Browser-optimized click handlers
-5. **Simple Template**: Lightweight rendering with `*ngFor`
-
-### Angular Change Detection
-
-Manual change detection ensures updates only when needed:
-
-```typescript
-override shortcuts: KeyboardShortcutConfig[] = [
-  {
-    keys: [['ArrowRight'], ['Tab']],
-    callback: (editor, _event) => {
-      let index = this.config.indexOf(this.getValue());
-      index = index === this.config.length - 1 ? 0 : index + 1;
-      this.setValue(this.config[index]);
-      this.cdr.detectChanges(); // Trigger change detection only when needed
-      return false;
-    },
-  },
-];
-```
-
-**Why it's efficient:**
-
-- Change detection only triggered when value changes
-- No unnecessary re-renders
-- Direct property access without state management overhead
-
-## TypeScript Support
-
-`HotCellEditorAdvancedComponent` is fully typed. You can specify the value type:
-
-```typescript
-export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
-  // TypeScript knows value is string | undefined
-  // TypeScript knows setValue accepts string
-  // TypeScript knows getValue returns string | undefined
-}
-```
-
-For number-based feedback:
-
-```typescript
-export class RatingEditorComponent extends HotCellEditorAdvancedComponent<number> {
-  override config = [1, 2, 3, 4, 5];
-  override value = 3;
-
-  // TypeScript knows value is number | undefined
-  // TypeScript knows setValue accepts number
-  // TypeScript knows getValue returns number | undefined
-}
-```
-
-For complex types:
-
-```typescript
-interface FeedbackOption {
-  emoji: string;
-  label: string;
-}
-
-export class ComplexFeedbackEditor extends HotCellEditorAdvancedComponent<FeedbackOption> {
-  override config: FeedbackOption[] = [
-    { emoji: "👍", label: "Good" },
-    { emoji: "👎", label: "Bad" },
-  ];
-}
-```
-
-## Best Practices
-
-1. **Use `override` keyword** - For properties and methods from base class
-2. **Handle keyboard events properly** - Use shortcuts property for navigation
-3. **Call `finishEdit.emit()` appropriately** - When user confirms changes (button click)
-4. **Use `ChangeDetectorRef.detectChanges()`** - After value changes in shortcuts
-5. **Inject dependencies as `readonly`** - For better code safety
-6. **Extend with proper type parameter** - `HotCellEditorAdvancedComponent<T>` with correct type
-7. **Keep template simple** - Use component methods for complex logic
-8. **Declare shortcuts as class property** - No need for lifecycle hooks
-
 ---
 
-**Congratulations!** You've created a simple feedback editor with emoji buttons using React's `EditorComponent`, perfect for quick feedback selection in your data grid!
+**Congratulations!** You've created a simple feedback editor with emoji buttons using Angular's [`HotCellEditorAdvancedComponent<`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent), perfect for quick feedback selection in your data grid!

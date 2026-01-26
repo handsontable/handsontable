@@ -41,7 +41,7 @@ export const inputData = [
 ];
 
 @Component({
-  selector: "example1-boolean-editor",
+  selector: "example1-checkbox-editor",
   template: `
     <div
       style="background-color: white; border: 2px solid #1a42e8;  display: flex; align-items: center; justify-content: center; height: 100%; width: 100%;"
@@ -51,7 +51,7 @@ export const inputData = [
   `,
   standalone: false,
 })
-export class BooleanEditorComponent extends HotCellEditorAdvancedComponent<boolean> {
+export class CheckboxEditorComponent extends HotCellEditorAdvancedComponent<boolean> {
   override onFocus(): void {}
 
   onCheckboxChange(checked: boolean): void {
@@ -69,13 +69,13 @@ export class BooleanEditorComponent extends HotCellEditorAdvancedComponent<boole
 }
 
 @Component({
-  selector: "example1-guide-boolean-angular",
+  selector: "example1-guide-checkbox-angular",
   standalone: false,
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class Example1GuideBooleanAngularComponent {
+export class Example1GuideCheckboxAngularComponent {
   readonly data = inputData.map((el) => ({
     ...el,
   }));
@@ -97,7 +97,7 @@ export class Example1GuideBooleanAngularComponent {
       {
         data: "inStock",
         width: 150,
-        editor: BooleanEditorComponent,
+        editor: CheckboxEditorComponent,
       },
     ],
   };
@@ -113,7 +113,7 @@ import { CommonModule } from "@angular/common";
 import { NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 /* start:skip-in-compilation */
-import { Example1GuideBooleanAngularComponent, BooleanEditorComponent } from "./app.component";
+import { Example1GuideCheckboxAngularComponent, CheckboxEditorComponent } from "./app.component";
 /* end:skip-in-compilation */
 
 // register Handsontable's modules
@@ -133,9 +133,9 @@ export const appConfig: ApplicationConfig = {
 
 @NgModule({
   imports: [BrowserModule, HotTableModule, CommonModule, MatCheckboxModule],
-  declarations: [Example1GuideBooleanAngularComponent, BooleanEditorComponent],
+  declarations: [Example1GuideCheckboxAngularComponent, CheckboxEditorComponent],
   providers: [...appConfig.providers],
-  bootstrap: [Example1GuideBooleanAngularComponent],
+  bootstrap: [Example1GuideCheckboxAngularComponent],
 })
 export class AppModule {}
 /* end-file */

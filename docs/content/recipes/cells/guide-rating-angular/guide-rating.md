@@ -55,10 +55,6 @@ A cell that:
 
 :::
 
-## Prerequisites
-
-None!
-
 ## Step 1: Import Dependencies
 
 ```typescript
@@ -67,7 +63,7 @@ import {
   GridSettings,
   HotCellEditorAdvancedComponent,
   KeyboardShortcutConfig,
-  HotCellRendererComponent,
+  HotCellRendererAdvancedComponent,
 } from "@handsontable/angular-wrapper";
 import { registerAllModules } from "handsontable/registry";
 
@@ -76,8 +72,8 @@ registerAllModules();
 
 **What we're importing:**
 
-- `HotCellRendererComponent` - Base class for custom renderers
-- `HotCellEditorAdvancedComponent` - Base class for custom editors with advanced features
+- [`HotCellRendererAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcellrendereradvancedcomponent) - Base class for custom renderers
+- [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent) - Base class for custom editors with advanced features
 - `KeyboardShortcutConfig` - Type for keyboard shortcuts configuration
 - `GridSettings` - Type for Handsontable configuration
 - Angular core modules for component creation
@@ -97,13 +93,13 @@ The renderer displays 5 stars with filled stars (opacity 1.0) and unfilled stars
   selector: "star-renderer",
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: ` <div>
-    @for (star of stars; track $index) {
-    <span [attr.data-value]="$index + 1" [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
-    }
+    <span *ngFor="let star of stars; let i = index" [attr.data-value]="i + 1" [style.opacity]="i < value ? '1' : '0.4'"
+      >⭐</span
+    >
   </div>`,
   standalone: false,
 })
-export class StarRendererComponent extends HotCellRendererComponent<number> {
+export class StarRendererComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
 }
 ```
@@ -112,17 +108,14 @@ export class StarRendererComponent extends HotCellRendererComponent<number> {
 
 ### Key concepts:
 
-- `extends HotCellRendererComponent<number>` - Inherits base renderer functionality with typed value
+- `extends HotCellRendererAdvancedComponent<number>` - Inherits base renderer functionality with typed value
 - `value` property - Automatically provided by the base class (1-5 rating)
-- `@for (star of stars; track $index)` - Angular's control flow to iterate 5 times
 - `[style.opacity]` - Angular property binding for dynamic styles
 - `$index < value ? '1' : '0.4'` - Stars up to the rating are filled (opacity 1.0), rest are unfilled (0.4)
 
 **Template structure:**
 
 - `stars = Array(5)` - Creates an array with 5 elements for iteration
-- `@for` - Angular's modern loop syntax (replaces `*ngFor`)
-- `track $index` - Performance optimization for Angular's change detection
 - `[attr.data-value]` - Sets HTML data attribute for potential interactions
 
 **Visual example:**
@@ -177,7 +170,7 @@ columns: [
 
 ## Step 4: Create the Editor Component
 
-The editor component extends `HotCellEditorAdvancedComponent` and provides interactive star selection.
+The editor component extends [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent) and provides interactive star selection.
 
 ```typescript
 @Component({
@@ -188,9 +181,12 @@ The editor component extends `HotCellEditorAdvancedComponent` and provides inter
       (mouseover)="onMouseOver($event)"
       (mousedown)="onMouseDown()"
     >
-      @for (star of stars; track $index) {
-      <span [attr.data-value]="$index + 1" [style.opacity]="$index < getValue() ? '1' : '0.4'">⭐</span>
-      }
+      <span
+        *ngFor="let star of stars; let i = index"
+        [attr.data-value]="i + 1"
+        [style.opacity]="i < getValue() ? '1' : '0.4'"
+        >⭐</span
+      >
     </div>
   `,
 })
@@ -207,8 +203,7 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
 
 1. **Container div** - Styled with background, padding, border, and cursor pointer
 2. **Event bindings** - `(mouseover)` for hover preview, `(mousedown)` for selection
-3. **Star loop** - `@for` creates 5 star spans with dynamic opacity
-4. **getValue()** - Method from base class returns current editor value
+3. **getValue()** - Method from base class returns current editor value
 
 ### Key styling:
 
@@ -484,18 +479,6 @@ export class AppModule {}
 3. **Register Handsontable modules** - Call `registerAllModules()` before module creation
 4. **Configure global settings** - Use `HOT_GLOBAL_CONFIG` provider for theme and license
 
-## How It Works - Complete Flow
-
-1. **Initial Render**: Cell displays 5 stars with filled stars based on rating
-2. **User Double-Clicks or F2**: Editor opens over cell showing interactive stars
-3. **Mouse Hover**: User hovers over stars → preview rating updates in real-time
-4. **Click Selection**: User clicks → rating selected and editor closes
-5. **Keyboard Input**: User presses 1-5 keys → rating set directly
-6. **Arrow Navigation**: User presses ArrowLeft/Right → rating increments/decrements
-7. **Validation**: Validator checks range (1-5)
-8. **Save**: Valid value saved to cell
-9. **Editor Closes**: Cell shows updated star rating
-
 ## Enhancements
 
 ### 1. Show Numeric Value
@@ -508,16 +491,14 @@ Display the numeric rating alongside stars:
   template: `
     <div style="display: flex; align-items: center; gap: 8px;">
       <div>
-        @for (star of stars; track $index) {
-        <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
-        }
+        <span *ngFor="let star of stars; let i = index" [style.opacity]="i < value ? '1' : '0.4'">⭐</span>
       </div>
       <span style="color: #666; font-size: 14px;">({{ value }}/5)</span>
     </div>
   `,
   standalone: false,
 })
-export class StarRendererWithNumberComponent extends HotCellRendererComponent<number> {
+export class StarRendererWithNumberComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
 }
 ```
@@ -531,14 +512,17 @@ Change star color based on rating value:
   selector: "star-renderer-colored",
   template: `
     <div>
-      @for (star of stars; track $index) {
-      <span [style.opacity]="$index < value ? '1' : '0.4'" [style.color]="getColor()">⭐</span>
-      }
+      <span
+        *ngFor="let star of stars; let i = index"
+        [style.opacity]="i < value ? '1' : '0.4'"
+        [style.color]="getColor()"
+        >⭐</span
+      >
     </div>
   `,
   standalone: false,
 })
-export class StarRendererColoredComponent extends HotCellRendererComponent<number> {
+export class StarRendererColoredComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
 
   get getColor(): string {
@@ -558,18 +542,15 @@ Support half-star ratings (0.5 increments):
   selector: "star-renderer-half",
   template: `
     <div>
-      @for (star of stars; track $index) { @if ($index < fullStars) {
-      <span style="opacity: 1">⭐</span>
-      } @else if ($index === fullStars && hasHalf) {
-      <span style="opacity: 0.7">⭐</span>
-      } @else {
-      <span style="opacity: 0.4">⭐</span>
-      } }
+      <span *ngFor="let star of stars; let i = index">
+      <span *ngIf="i < fullStars" style="opacity: 1">⭐</span>
+      <span *ngIf="i === fullStars && hasHalf" style="opacity: 0.7">⭐</span>
+      <span *ngIf="i >= fullStars && !(i === fullStars && hasHalf)" style="opacity: 0.4">⭐</span>
     </div>
   `,
   standalone: false,
 })
-export class StarRendererHalfComponent extends HotCellRendererComponent<number> {
+export class StarRendererHalfComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
 
   get fullStars(): number {
@@ -603,14 +584,12 @@ Configurable number of stars per column using `rendererProps`:
   selector: "star-renderer-custom",
   template: `
     <div>
-      @for (star of getStarsArray(); track $index) {
-      <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
-      }
+      <span *ngFor="let star of getStarsArray(); let i = index" [style.opacity]="i < value ? '1' : '0.4'">⭐</span>
     </div>
   `,
   standalone: false,
 })
-export class StarRendererCustomComponent extends HotCellRendererComponent<number, { maxStars?: number }> {
+export class StarRendererCustomComponent extends HotCellRendererAdvancedComponent<number, { maxStars?: number }> {
   getStarsArray(): any[] {
     const maxStars = this.getProps().maxStars || 5;
     return Array(maxStars);
@@ -638,9 +617,7 @@ Add text labels like "Excellent", "Good", etc.:
   template: `
     <div style="display: flex; flex-direction: column; gap: 4px;">
       <div>
-        @for (star of stars; track $index) {
-        <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
-        }
+        <span *ngFor="let star of stars; let i = index" [style.opacity]="i < value ? '1' : '0.4'">⭐</span>
       </div>
       <div style="font-size: 12px; color: #666;">
         {{ getLabel() }}
@@ -649,7 +626,7 @@ Add text labels like "Excellent", "Good", etc.:
   `,
   standalone: false,
 })
-export class StarRendererLabelsComponent extends HotCellRendererComponent<number> {
+export class StarRendererLabelsComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
   readonly labels = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
 
@@ -674,17 +651,16 @@ Add ARIA attributes for screen readers:
       (mouseover)="onMouseOver($event)"
       (mousedown)="onMouseDown()"
     >
-      @for (star of stars; track $index) {
       <span
-        [attr.data-value]="$index + 1"
-        [style.opacity]="$index < getValue() ? '1' : '0.4'"
+        *ngFor="let star of stars; let i = index"
+        [attr.data-value]="i + 1"
+        [style.opacity]="i < getValue() ? '1' : '0.4'"
         role="radio"
-        [attr.aria-checked]="$index < getValue()"
-        [attr.aria-label]="$index + 1 + ' star' + ($index > 0 ? 's' : '')"
+        [attr.aria-checked]="i < getValue()"
+        [attr.aria-label]="i + 1 + ' star' + (i > 0 ? 's' : '')"
         tabindex="0"
         >⭐</span
       >
-      }
     </div>
   `,
   standalone: false,
@@ -713,204 +689,6 @@ export class StarEditorAccessibleComponent extends HotCellEditorAdvancedComponen
 - `aria-label`: Describes each star (e.g., "1 star", "2 stars")
 - `aria-pressed`: Indicates selected stars
 - `tabindex`: Controls keyboard focus order
-
-## Performance Considerations
-
-### Why This Is Fast
-
-1. **Simple DOM**: Just 5 span elements, minimal markup
-2. **No External Libraries**: Zero overhead
-3. **Efficient Updates**: Only re-renders when value changes
-4. ## Performance Considerations
-
-### Why This Is Fast
-
-1. **Simple DOM**: Just 5 span elements, minimal markup
-2. **No External Libraries**: Zero overhead
-3. **Efficient Updates**: Only re-renders when value changes
-4. **Native Events**: Browser-optimized mouse/keyboard handlers
-
-### The Angular Template
-
-```typescript
-template: `
-  <div>
-    @for (star of stars; track $index) {
-    <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
-    }
-  </div>
-`;
-```
-
-**Is this expensive?**
-
-- **Angular's @for**: Highly optimized loop directive
-- **track $index**: Helps Angular reuse DOM elements efficiently
-- **Property binding**: Only updates when value changes
-- **Change Detection**: With OnPush strategy, only checks when inputs change
-
-**Performance verdict**: Extremely fast!
-
-- Angular reuses existing DOM elements
-- Only updates opacity styles, not entire DOM
-- No string concatenation or innerHTML manipulation
-- OnPush change detection minimizes checks
-
-**Why Angular is efficient here:**
-
-1. **Virtual DOM diffing** - Only updates what changed
-2. **Track by index** - Reuses span elements across renders
-3. **OnPush strategy** - Skips unnecessary change detection
-4. **Property binding** - Direct style updates, no DOM recreation
-
-**Already optimized!** No further optimization needed for typical use cases.
-
-## Styling Tips
-
-### Custom Star Appearance (Component Styles)
-
-Add styles directly to your Angular component:
-
-```typescript
-@Component({
-  selector: "star-editor-styled",
-  styles: [
-    `
-      .star-container {
-        background: #eee;
-        padding: 5px 8px;
-        border: 1px solid blue;
-        cursor: pointer;
-        border-radius: 8px;
-        font-size: 16px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-
-      .star {
-        display: inline-block;
-        transition: all 0.2s ease;
-        cursor: pointer;
-      }
-
-      .star:hover {
-        transform: scale(1.2);
-        filter: brightness(1.2);
-      }
-
-      .star-filled {
-        filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.5));
-      }
-    `,
-  ],
-  template: `
-    <div class="star-container" (mouseover)="onMouseOver($event)" (mousedown)="onMouseDown()">
-      @for (star of stars; track $index) {
-      <span
-        class="star"
-        [class.star-filled]="$index < getValue()"
-        [attr.data-value]="$index + 1"
-        [style.opacity]="$index < getValue() ? '1' : '0.4'"
-        >⭐</span
-      >
-      }
-    </div>
-  `,
-  standalone: false,
-})
-export class StarEditorStyledComponent extends HotCellEditorAdvancedComponent<number> {
-  // ... implementation
-}
-```
-
-**Benefits of component styles:**
-
-- **Scoped styles** - Won't affect other components
-- **Type-safe** - Part of component definition
-- **Bundled** - Included in component build
-
-### Custom Cell Renderer Styling
-
-```typescript
-@Component({
-  selector: "star-renderer-fancy",
-  styles: [
-    `
-      .stars-container {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px;
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        border-radius: 4px;
-      }
-
-      .star {
-        font-size: 18px;
-        transition: all 0.3s ease;
-      }
-    `,
-  ],
-  template: `
-    <div class="stars-container">
-      @for (star of stars; track $index) {
-      <span class="star" [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
-      }
-    </div>
-  `,
-  standalone: false,
-})
-export class StarRendererFancyComponent extends HotCellRendererComponent<number> {
-  readonly stars = Array(5);
-}
-```
-
-### Animated Star Fills
-
-Add smooth transitions when rating changes:
-
-```typescript
-@Component({
-  selector: "star-renderer-animated",
-  styles: [
-    `
-      .star {
-        display: inline-block;
-        transition: opacity 0.3s ease, transform 0.3s ease;
-      }
-
-      .star-filled {
-        animation: fillStar 0.3s ease forwards;
-      }
-
-      @keyframes fillStar {
-        0% {
-          opacity: 0.4;
-          transform: scale(0.8);
-        }
-        50% {
-          transform: scale(1.2);
-        }
-        100% {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-    `,
-  ],
-  template: `
-    <div>
-      @for (star of stars; track $index) {
-      <span class="star" [class.star-filled]="$index < value" [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
-      }
-    </div>
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
-})
-export class StarRendererAnimatedComponent extends HotCellRendererComponent<number> {
-  readonly stars = Array(5);
-}
-```
 
 ---
 

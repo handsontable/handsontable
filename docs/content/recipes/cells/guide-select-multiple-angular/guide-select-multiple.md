@@ -2,7 +2,7 @@
 id: xs3x77mj
 title: "Recipe: Multiple Select Dropdown"
 metaTitle: "Recipe: Multiple Select Dropdown - JavaScript Data Grid | Handsontable"
-description: Learn how to create a custom Handsontable cell type featuring a searchable, multi-select dropdown using the multiple-select-vanilla library.
+description: Learn how to create a custom Handsontable cell type featuring a searchable, multi-select dropdown using the native HTML5.
 permalink: /recipes/select-multiple-angular
 canonicalUrl: /recipes/select-multiple-angular
 tags:
@@ -25,11 +25,11 @@ category: Cells
 
 ## Overview
 
-This guide shows how to create a custom multi-select dropdown cell using the [multiple-select-vanilla](https://github.com/leviwheatcroft/multiple-select-vanilla) library. Users can select multiple items from a dropdown list, with a clean, searchable interface.
+This guide shows how to create a custom multi-select dropdown cell using the native HTML5.
 
 **Difficulty:** Intermediate
 **Time:** ~25 minutes
-**Libraries:** `multiple-select-vanilla`
+**Libraries:** none
 
 ## What You'll Build
 
@@ -40,12 +40,6 @@ A cell that:
 - Handles array of objects as values
 - Supports per-column option lists
 - Provides filtering and selection features
-
-## Prerequisites
-
-```bash
-npm install multiple-select-vanilla
-```
 
 ## Complete Example
 
@@ -76,10 +70,8 @@ registerAllModules();
 
 **About Angular components:**
 
-- **HotCellRendererAdvancedComponent**: Base class for custom cell renderers
-- **HotCellEditorAdvancedComponent**: Base class for custom cell editors
-- Use Angular's template system and change detection
-- Full access to Angular features (services, lifecycle hooks, etc.)
+- [**HotCellRendererAdvancedComponent**](@/guides/cell-functions/custom-cells/custom-cells.md#hotcellrendereradvancedcomponent): Base class for custom cell renderers
+- [**HotCellEditorAdvancedComponent**](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent): Base class for custom cell editors
 
 ## Step 2: Prepare Your Data
 
@@ -109,40 +101,6 @@ const data = inputData.map((el) => ({
     .slice(0, Math.ceil(Math.random() * components.length)),
 }));
 ```
-
-**Data structure rationale:**
-
-### Why `{ value, label }` objects?
-
-- **Value**: Unique identifier, stored in database
-- **Label**: Display text, shown to user
-- **Flexibility**: Value can be ID, label can be localized text
-
-**Example scenarios:**
-
-```typescript
-// IDs vs Names
-{ value: '123', label: 'John Smith' }
-
-// Codes vs Descriptions
-{ value: 'US', label: 'United States' }
-
-// Keys vs Localized Text
-{ value: 'save', label: 'Ušetřit peníze' } // Czech
-```
-
-### Why arrays in data?
-
-```typescript
-components: [
-  { value: "cpu", label: "CPU" },
-  { value: "ram", label: "RAM" },
-];
-```
-
-- Represents multiple selections
-- Easy to iterate and display
-- Maps naturally to `<select multiple>`
 
 ## Step 3: Create the Renderer Component
 
@@ -200,7 +158,7 @@ get displayValue(): string {
 - Extract labels and join with commas
 - Show fallback message if empty
 
-## Step 4: Create the Validator (Optional)
+## Validator (Optional)
 
 For the Angular wrapper, validators use the `CustomValidatorFn<T>` type, which is simpler than the standard Handsontable validator. It takes a value and returns a boolean directly (no callback).
 
@@ -238,291 +196,9 @@ validator: (value: { value: string; label: string }[]) => {
 };
 ```
 
-## Step 5: Create the Editor Component Structure
+## Step 4: Create the Editor Component
 
-Create an Angular component that extends `HotCellEditorAdvancedComponent` with a custom dropdown UI.
-
-```typescript
-@Component({
-  template: `
-    <div class="multiselect-editor-container" (click)="$event.stopPropagation()">
-      <div class="multiselect-wrapper">
-        <label>Select options:</label>
-        <div class="dropdown">
-          <div class="dropdown-header" (click)="toggleDropdown()">
-            <span>{{ getSelectedLabel() }}</span>
-            <span class="arrow">▼</span>
-          </div>
-          <div class="dropdown-list" *ngIf="isOpen">
-            <div *ngFor="let option of config" class="dropdown-item" (click)="toggleOption(option)">
-              <input type="checkbox" [checked]="isSelected(option.value)" (click)="$event.stopPropagation()" />
-              <label>{{ option.label }}</label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: [
-    /* CSS styles */
-  ],
-  standalone: false,
-  selector: "multi-select-editor",
-})
-export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<{ value: string; label: string }[]> {
-  selectedValues: { value: string; label: string }[] = [];
-  isOpen = false;
-
-  private readonly cdr = inject(ChangeDetectorRef);
-}
-```
-
-**What's happening:**
-
-### Extend HotCellEditorAdvancedComponent
-
-```typescript
-export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<
-  { value: string; label: string }[]
->
-```
-
-- Generic type specifies the value type
-- Provides lifecycle hooks: `beforeOpen`, `afterOpen`, `afterClose`
-- Access to `@Input()` properties: `row`, `column`, `originalValue`, `cellProperties`
-- `@Output()` events: `finishEdit`, `cancelEdit`
-
-### Custom dropdown UI with Angular
-
-```typescript
-template: `
-  <div class="dropdown-header" (click)="toggleDropdown()">
-    <span>{{ getSelectedLabel() }}</span>
-  </div>
-  <div class="dropdown-list" *ngIf="isOpen">
-    <div *ngFor="let option of config" (click)="toggleOption(option)">
-      <input type="checkbox" [checked]="isSelected(option.value)" />
-      <label>{{ option.label }}</label>
-    </div>
-  </div>
-`;
-```
-
-- Full Angular template with bindings
-- Custom dropdown instead of native `<select>`
-- Checkboxes for visual feedback
-- Click handlers for toggling options
-
-### State management
-
-```typescript
-selectedValues: {
-  value: string;
-  label: string;
-}
-[] = [];
-isOpen = false;
-```
-
-- Track currently selected values
-- Control dropdown visibility
-- Use ChangeDetectorRef for manual updates
-
-## Step 6: Editor - Lifecycle Hook `beforeOpen`
-
-Load configuration when the editor is about to open.
-
-```typescript
-override beforeOpen(editor: any): void {
-  this.config = editor.cellProperties.config || [];
-  this.selectedValues = [...editor.originalValue];
-}
-```
-
-**What's happening:**
-
-### Get options from cell properties
-
-```typescript
-this.config = editor.cellProperties.config || [];
-```
-
-- `editor.cellProperties` contains column configuration
-- `config` property holds available options for this column
-- Different columns can have different option lists
-- Fallback to empty array if not defined
-
-### Initialize selected values
-
-```typescript
-this.selectedValues = [...editor.originalValue];
-```
-
-- `editor.originalValue` is the current cell value
-- Create a copy using spread operator
-- Avoid mutating the original value
-- Populate UI with current selections
-
-**Key points:**
-
-- Called before editor becomes visible
-- Perfect for loading data and initializing state
-- Access to cell properties and original value
-- `override` keyword required for lifecycle hooks
-
-## Step 7: Editor - Lifecycle Hook `afterClose`
-
-Clean up and finalize the edit when the editor closes.
-
-```typescript
-override afterClose(): void {
-  this.selectedValues = [];
-  this.isOpen = false;
-  this.finishEdit.emit();
-}
-```
-
-**What's happening:**
-
-### Reset state
-
-```typescript
-this.selectedValues = [];
-this.isOpen = false;
-```
-
-- Clear selected values array
-- Close dropdown if still open
-- Prepare for next edit
-
-### Emit finishEdit event
-
-```typescript
-this.finishEdit.emit();
-```
-
-- Signal Handsontable that editing is complete
-- Triggers `getValue()` to save the value
-- Cell will be updated with new value
-
-**Key points:**
-
-- Called after editor is hidden
-- Perfect for cleanup and saving
-- `finishEdit` saves the data
-- `cancelEdit` would discard changes
-
-## Step 8: Editor - Selection Management Methods
-
-Implement methods to handle user interactions with the dropdown.
-
-```typescript
-toggleDropdown(): void {
-  this.isOpen = !this.isOpen;
-  this.cdr.detectChanges();
-}
-
-toggleOption(option: { value: string; label: string }): void {
-  const index = this.selectedValues.findIndex((item) => item.value === option.value);
-  if (index > -1) {
-    this.selectedValues.splice(index, 1);
-  } else {
-    this.selectedValues.push(option);
-  }
-
-  this.setValue(this.selectedValues);
-  this.cdr.detectChanges();
-}
-
-isSelected(value: string): boolean {
-  return this.selectedValues.some((item) => item.value === value);
-}
-
-getSelectedLabel(): string {
-  if (this.selectedValues.length === 0) {
-    return "Select options...";
-  }
-  return this.selectedValues.map((item) => item.label).join(", ");
-}
-```
-
-**What's happening:**
-
-### Toggle dropdown visibility
-
-```typescript
-toggleDropdown(): void {
-  this.isOpen = !this.isOpen;
-  this.cdr.detectChanges();
-}
-```
-
-- Invert `isOpen` state
-- Trigger Angular change detection
-- Show/hide dropdown in template with `*ngIf="isOpen"`
-
-### Toggle option selection
-
-```typescript
-toggleOption(option: { value: string; label: string }): void {
-  const index = this.selectedValues.findIndex((item) => item.value === option.value);
-  if (index > -1) {
-    this.selectedValues.splice(index, 1); // Remove if already selected
-  } else {
-    this.selectedValues.push(option); // Add if not selected
-  }
-
-  this.setValue(this.selectedValues); // Update editor value
-  this.cdr.detectChanges();
-}
-```
-
-- Find option in selected values
-- Remove if already selected (uncheck)
-- Add if not selected (check)
-- Call `setValue` to update internal value
-- Trigger change detection for UI update
-
-### Check if option is selected
-
-```typescript
-isSelected(value: string): boolean {
-  return this.selectedValues.some((item) => item.value === value);
-}
-```
-
-- Used in template: `[checked]="isSelected(option.value)"`
-- Returns true if value exists in selectedValues
-- Controls checkbox state
-
-### Get display label
-
-```typescript
-getSelectedLabel(): string {
-  if (this.selectedValues.length === 0) {
-    return "Select options...";
-  }
-  return this.selectedValues.map((item) => item.label).join(", ");
-}
-```
-
-- Show placeholder when nothing selected
-- Otherwise show comma-separated labels
-- Displayed in dropdown header
-
-**Change Detection:**
-
-```typescript
-private readonly cdr = inject(ChangeDetectorRef);
-```
-
-- Inject Angular's ChangeDetectorRef
-- Call `detectChanges()` after state updates
-- Ensures UI reflects current state immediately
-
-## Step 9: Complete Editor Component
-
-Here's the complete editor component with all methods:
+Use a single Angular component that extends [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent).
 
 ```typescript
 @Component({
@@ -600,14 +276,13 @@ export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<{
 
 **Key points:**
 
-- Extends `HotCellEditorAdvancedComponent` with array of objects as value type
-- Uses Angular template with data bindings and event handlers
-- Lifecycle hooks: `beforeOpen` and `afterClose`
-- Custom dropdown UI instead of native select element
-- Change detection managed with `ChangeDetectorRef`
-- Emits `finishEdit` to save changes
+- Lifecycle: `beforeOpen` loads `config` and current value; `afterClose` resets state and emits `finishEdit`.
+- State: `selectedValues` tracks selections; `isOpen` controls dropdown.
+- Interaction: `toggleOption()` adds/removes items and calls `setValue()`.
+- Change detection: `ChangeDetectorRef.detectChanges()` updates the view immediately.
+- Config: per-column options available via `editor.cellProperties.config`.
 
-## Step 10: Use Components in Grid Configuration
+## Step 5: Use Components in Grid Configuration
 
 Configure Handsontable to use your custom renderer and editor components.
 
@@ -680,7 +355,7 @@ config: components,
 - **Flexibility**: Different configs per column
 - **Angular integration**: Full access to Angular features in components
 
-## Step 11: Register Components in Module
+## Step 6: Register Components in Module
 
 Register your custom components in the Angular module.
 
@@ -753,28 +428,6 @@ providers: [
 - Set global theme
 - Configure license key
 - Applied to all Handsontable instances in the app
-
-## How It Works - Complete Flow
-
-1. **Initial Render**: Renderer component displays comma-separated labels (e.g., "Component 1, Component 2")
-2. **User Opens Editor**: Double-click or press F2 on cell
-3. **Before Open**: `beforeOpen()` loads config from cell properties and initializes `selectedValues`
-4. **Editor Opens**: Angular renders dropdown with checkboxes, showing current selections
-5. **User Interacts**: User clicks to toggle dropdown, clicks checkboxes to select/deselect options
-6. **Toggle Option**: `toggleOption()` updates `selectedValues` array and calls `setValue()`
-7. **User Finishes**: Clicks outside editor or presses Enter/Escape
-8. **After Close**: `afterClose()` emits `finishEdit`, triggering Handsontable to call `getValue()`
-9. **Get Value**: Base class `getValue()` returns the current value from `setValue()`
-10. **Save**: New array saved to cell data
-11. **Re-render**: Renderer component displays updated comma-separated labels
-
-**Key differences from vanilla JS:**
-
-- No `init()` method - Angular handles component instantiation
-- No `setValue()` override needed - called internally by `toggleOption()`
-- Change detection managed by `ChangeDetectorRef`
-- Template-driven UI instead of DOM manipulation
-- Full access to Angular features (dependency injection, services, etc.)
 
 ## Customization Options
 
@@ -931,29 +584,6 @@ export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<{
     this.selectedValues = [...editor.originalValue];
   }
 }
-```
-
-## TypeScript Type Definitions
-
-Add proper type definitions for cell properties:
-
-```typescript
-// Extend Handsontable's CellProperties type
-declare module "handsontable/settings" {
-  interface CellProperties {
-    config?: Array<{ value: string; label: string }>;
-  }
-}
-
-// Now TypeScript knows about the config property
-columns: [
-  {
-    data: "components",
-    renderer: MultiSelectRendererComponent,
-    editor: MultiSelectEditorComponent,
-    config: components, // ✅ Fully typed!
-  },
-];
 ```
 
 ## Accessibility

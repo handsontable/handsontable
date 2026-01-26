@@ -401,7 +401,7 @@ Both components provide:
 
 ### `HotCellRendererAdvancedComponent`
 
-A base class for creating custom cell renderers in Angular. Extend this class to create your own renderer components.
+A base class for creating custom cell renderers in Angular. Extend this class to create your own renderer components. 
 
 #### Basic Structure
 
@@ -468,9 +468,7 @@ import { HotCellRendererAdvancedComponent } from "@handsontable/angular-wrapper"
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div>
-      @for (star of stars; track $index) {
-      <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
-      }
+      <span *ngFor="let star of stars; let i = index" [style.opacity]="i < value ? '1' : '0.4'">⭐</span>
     </div>
   `,
   standalone: false,
@@ -487,6 +485,10 @@ columns: [
   },
 ];
 ```
+
+#### When should I use [`HotCellRendererComponent`](@/guides/cell-functions/cell-renderer/cell-renderer.md) and when should I use `HotCellRendererAdvancedComponent`?
+
+TODO
 
 ## Custom Editors
 
@@ -565,6 +567,10 @@ Override these methods to customize editor behavior:
 - **`shortcutsGroup?: string`** - Group name for shortcuts
 - **`config?: any`** - Custom configuration object
 
+#### When should I use [`HotCellEditorComponent`](@/guides/cell-functions/cell-editor/cell-editor.md) and when should I use `HotCellEditorAdvancedComponent`?
+
+TODO
+
 ### Common Patterns
 
 #### Pattern 1: Simple Input Editor
@@ -606,9 +612,7 @@ import { CommonModule } from "@angular/common";
   selector: "select-editor",
   template: `
     <select [(ngModel)]="value" (change)="finishEdit.emit()" style="width: 100%; height: 100%;">
-      @for (option of options; track option) {
-      <option [value]="option">{{ option }}</option>
-      }
+      <option *ngFor="let option of options" [value]="option">{{ option }}</option>
     </select>
   `,
   standalone: true,
@@ -646,11 +650,9 @@ import { CommonModule } from "@angular/common";
   selector: "button-editor",
   template: `
     <div style="display: flex; gap: 4px; background: #eee; padding: 4px;">
-      @for (option of options; track option) {
-      <button [style.backgroundColor]="option === value ? '#90f5e7' : '#fff'" (click)="onSelect(option)">
+      <button *ngFor="let option of options" [style.backgroundColor]="option === value ? '#90f5e7' : '#fff'" (click)="onSelect(option)">
         {{ option }}
       </button>
-      }
     </div>
   `,
   standalone: true,
@@ -822,13 +824,12 @@ export class ProductEditor extends HotCellEditorAdvancedComponent<Product> {
 ### Best Practices
 
 1. **Use ChangeDetectorRef for manual updates** - Inject and call `detectChanges()` after programmatic value changes
-2. **Leverage Angular's dependency injection** - Use `inject()` for services like `ChangeDetectorRef`
-3. **Use standalone components when possible** - Better tree-shaking and module isolation
-4. **Handle keyboard events with shortcuts** - Define shortcuts in the `shortcuts` array for consistent behavior
-5. **Call `finishEdit.emit()` appropriately** - When user confirms changes (Enter, blur, button click)
-6. **Use `getProps()` for renderer configuration** - Pass custom properties via `rendererProps`
-7. **Override lifecycle methods as needed** - `beforeOpen`, `afterOpen`, `afterClose`, `onFocus`
-8. **Type your components with generics** - Specify value type for type safety: `HotCellEditorAdvancedComponent<YourType>`
+2. **Use standalone components when possible** - Better tree-shaking and module isolation
+3. **Handle keyboard events with shortcuts** - Define shortcuts in the `shortcuts` array for consistent behavior
+4. **Call `finishEdit.emit()` appropriately** - When user confirms changes (Enter, blur, button click)
+5. **Use `getProps()` for renderer configuration** - Pass custom properties via `rendererProps`
+6. **Override lifecycle methods as needed** - `beforeOpen`, `afterOpen`, `afterClose`, `onFocus`
+7. **Type your components with generics** - Specify value type for type safety: `HotCellEditorAdvancedComponent<YourType>`
 
 ### Column Configuration
 

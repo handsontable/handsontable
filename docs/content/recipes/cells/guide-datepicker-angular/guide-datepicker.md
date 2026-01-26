@@ -117,13 +117,12 @@ export class DateRendererComponent extends HotCellRendererAdvancedComponent<stri
 
 **What's happening:**
 
-- **Extends HotCellRendererAdvancedComponent**: Generic types specify:
+- [**Extends HotCellRendererAdvancedComponent**](@/guides/cell-functions/custom-cells/custom-cells.md#hotcellrendereradvancedcomponent): Generic types specify:
   - `TValue = string`: The cell value type (date as string)
   - `TProps = { renderFormat: string }`: Custom renderer properties
 - **@Input() value**: Automatically provided by Handsontable (inherited from base class)
 - **getProps()**: Returns `rendererProps` from column configuration
 - **OnPush strategy**: Optimizes change detection for better performance
-- **standalone: false**: Component must be declared in NgModule
 
 **Key benefits:**
 
@@ -166,7 +165,7 @@ The editor component handles user input with a native HTML5 date picker.
       style="width: 100%; height: 100%; padding: 8px; border: 2px solid #4CAF50; border-radius: 4px; font-size: 14px; box-sizing: border-box;"
     />
   `,
-  standalone: true,
+  standalone: false,
 })
 export class DateEditorComponent extends HotCellEditorAdvancedComponent<string> {
   dateValue: string = "";
@@ -311,124 +310,7 @@ onDateChange(): void {
 4. `onDateChange`: Converts back to "12/31/2024"
 5. Saved to cell: "12/31/2024"
 
-## Step 8: Editor - Lifecycle Hooks `afterClose` & `onFocus`
-
-```typescript
-override afterClose(): void {
-  this.finishEdit.emit();
-}
-
-override onFocus(): void {
-  this.editorInput.nativeElement.focus();
-}
-```
-
-**What's happening:**
-
-- **afterClose**: Called when editor is closing
-  - Emits `finishEdit` to save the value
-  - Ensures data is committed to the cell
-- **onFocus**: Called by Handsontable to focus the editor
-  - Uses ViewChild reference to focus the native input
-  - Required for proper keyboard navigation
-
-## Step 9: Complete Editor Component
-
-Here's the complete editor component:
-
-```typescript
-@Component({
-  selector: "date-editor",
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <input
-      type="date"
-      [(ngModel)]="dateValue"
-      #editorInput
-      (change)="onDateChange()"
-      style="width: 100%; height: 100%; padding: 8px; border: 2px solid #4CAF50; 
-             border-radius: 4px; font-size: 14px; box-sizing: border-box;"
-    />
-  `,
-  standalone: false,
-})
-export class DateEditorComponent extends HotCellEditorAdvancedComponent<string> {
-  dateValue: string = "";
-
-  @ViewChild("editorInput", { static: true })
-  protected editorInput!: ElementRef<HTMLInputElement>;
-
-  private readonly cdr = inject(ChangeDetectorRef);
-
-  override afterOpen(): void {
-    setTimeout(() => {
-      this.editorInput.nativeElement.showPicker?.();
-    }, 0);
-  }
-
-  override beforeOpen(_: any, { originalValue }: any) {
-    if (originalValue) {
-      try {
-        let parsedDate: Date;
-
-        if (typeof originalValue === "string" && originalValue.includes("/")) {
-          parsedDate = parse(originalValue, "MM/dd/yyyy", new Date());
-        } else if (typeof originalValue === "string" && originalValue.includes("-")) {
-          parsedDate = parse(originalValue, "yyyy-MM-dd", new Date());
-        } else {
-          parsedDate = new Date(originalValue);
-        }
-
-        if (isValid(parsedDate)) {
-          this.dateValue = format(parsedDate, "yyyy-MM-dd");
-        } else {
-          this.dateValue = "";
-        }
-      } catch (error) {
-        console.error("Error parsing date:", error);
-        this.dateValue = "";
-      }
-    } else {
-      this.dateValue = "";
-    }
-
-    this.cdr.detectChanges();
-  }
-
-  override afterClose(): void {
-    this.finishEdit.emit();
-  }
-
-  onDateChange(): void {
-    if (this.dateValue) {
-      try {
-        const parsedDate = parse(this.dateValue, "yyyy-MM-dd", new Date());
-
-        if (isValid(parsedDate)) {
-          const formattedDate = format(parsedDate, "MM/dd/yyyy");
-          this.setValue(formattedDate);
-        }
-      } catch (error) {
-        console.error("Error formatting date:", error);
-      }
-    }
-  }
-
-  override onFocus(): void {
-    this.editorInput.nativeElement.focus();
-  }
-}
-```
-
-**Component architecture:**
-
-- **Inheritance**: Extends `HotCellEditorAdvancedComponent<string>` for type safety
-- **Lifecycle**: Hooks into Handsontable's editor lifecycle
-- **Change Detection**: OnPush strategy with manual `detectChanges()`
-- **Template**: Native HTML5 date input with Angular bindings
-- **Value Management**: Format conversion between display and storage formats
-
-## Step 10: Configure Grid with Multiple Date Formats
+## Step 8: Configure Grid with Multiple Date Formats
 
 ```typescript
 const DATE_FORMAT_US = "MM/dd/yyyy";
@@ -503,7 +385,7 @@ export class DatePickerExampleComponent {
 - Same editor and renderer components
 - Configuration-driven behavior
 
-## Step 11: Module Configuration
+## Step 9: Module Configuration
 
 Register components in your Angular module:
 
@@ -547,48 +429,6 @@ export class AppModule {}
 - **Component declarations**: Both DateEditorComponent and DateRendererComponent must be declared in the NgModule declarations array
 - **registerAllModules()**: Registers all Handsontable features
 - **HOT_GLOBAL_CONFIG**: Global configuration for all tables in the app
-
-## How It Works - Complete Flow
-
-1. **Initial Load**:
-
-   - Renderer displays formatted date ("31/12/2024" EU or "12/31/2024" US)
-   - `formattedDate` getter called with `this.value` and `getProps().renderFormat`
-
-2. **User Double-Clicks or F2**:
-
-   - Handsontable creates editor component instance
-   - Angular renders template with `<input type="date">`
-
-3. **Before Open**:
-
-   - `beforeOpen()` lifecycle hook called
-   - Parses `originalValue` (MM/dd/yyyy)
-   - Converts to YYYY-MM-DD for native input
-   - `cdr.detectChanges()` updates view
-
-4. **Editor Opens**:
-
-   - `afterOpen()` lifecycle hook called
-   - `showPicker()` displays native date picker
-
-5. **User Selects Date**:
-
-   - `[(ngModel)]` updates `dateValue`
-   - `(change)` event triggers `onDateChange()`
-   - Converts YYYY-MM-DD back to MM/dd/yyyy
-   - Calls `setValue()` to update internal value
-
-6. **Editor Closes**:
-
-   - `afterClose()` lifecycle hook called
-   - Emits `finishEdit` to save value
-   - Handsontable destroys editor component
-
-7. **Renderer Updates**:
-   - New value passed to renderer
-   - `formattedDate` getter re-evaluated
-   - Displays updated date in configured format
 
 ## Advanced Enhancements
 
@@ -668,7 +508,7 @@ Use component styles:
       box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
     }
   `],
-  standalone: true,
+  standalone: false,
 })
 ```
 

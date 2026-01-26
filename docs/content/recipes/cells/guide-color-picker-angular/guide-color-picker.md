@@ -75,12 +75,7 @@ import { registerAllModules } from "handsontable/registry";
 registerAllModules();
 ```
 
-**Why this matters:**
-
-- `HotCellRendererAdvancedComponent` - base class for custom renderers
-- `HotCellEditorAdvancedComponent` - base class for custom editors
-- `GridSettings` - TypeScript interface for Handsontable configuration
-- `registerAllModules()` - registers all Handsontable features
+- `registerAllModules()` registers all Handsontable features
 
 ## Step 2: Create the Renderer Component
 
@@ -103,21 +98,8 @@ The renderer component controls how the cell looks when not being edited.
 export class ColorRendererComponent extends HotCellRendererAdvancedComponent<string> {}
 ```
 
-**What's happening:**
-
-- Extends `HotCellRendererAdvancedComponent<string>` - provides `@Input() value` automatically
-- `value` is the cell's current value (e.g., "#ff0000")
-- Template uses Angular binding `[style.background]="value"` to set background color
-- <code v-pre>{{ value }}</code> displays the hex code in bold text
-- `ChangeDetectionStrategy.OnPush` optimizes performance
-- `:host` styles ensure the component fills the cell
-
-**Customization ideas:**
-
-- Add a color swatch with additional HTML elements
-- Handle empty values: <code v-pre>{{ value || 'No color' }}</code>
-- Use `[style.color]` for contrast-aware text color
-- Add tooltips or icons
+- The template uses Angular's `[style.background]="value"` binding to set the background color from the cell's value.
+- `ChangeDetectionStrategy.OnPush` is used to optimize performance.
 
 ## Step 3: Create the Editor Component
 
@@ -145,7 +127,7 @@ export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<s
 
 **What's happening:**
 
-- Extends `HotCellEditorAdvancedComponent<string>` - provides editor lifecycle
+- Extends [`HotCellEditorAdvancedComponent<string>`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent) - provides editor lifecycle
 - `<input type="color">` is the native HTML5 color picker
 - `[value]="value"` binds the current cell value to the input
 - `(input)="onColorChange($event)"` updates value on every change
@@ -312,138 +294,6 @@ export class AppComponent {
 - Angular wrapper handles component creation automatically
 - Validator is optional but recommended for data integrity
 - `width: 150` gives enough space for color display
-
-## Step 7: Complete Example
-
-Here's the full implementation with all components:
-
-**app.component.ts:**
-
-```typescript
-import { Component, ChangeDetectionStrategy } from "@angular/core";
-import {
-  GridSettings,
-  HotCellEditorAdvancedComponent,
-  HotCellRendererAdvancedComponent,
-} from "@handsontable/angular-wrapper";
-
-export const inputData = [
-  { id: 640329, itemName: "Lunar Core" },
-  { id: 863104, itemName: "Zero Thrusters" },
-  { id: 395603, itemName: "EVA Suits" },
-];
-
-const colorValidator = (value: string): boolean => {
-  return /^#[0-9A-Fa-f]{6}$/.test(value);
-};
-
-@Component({
-  selector: "app-color-renderer",
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<div style="height: 100%; width: 100%;" [style.background]="value">
-    <b>{{ value }}</b>
-  </div>`,
-  styles: `:host { height: 100%; width: 100%; }`,
-})
-export class ColorRendererComponent extends HotCellRendererAdvancedComponent<string> {}
-
-@Component({
-  selector: "app-color-picker-editor",
-  template: `
-    <input style="width: 100%; height: 100%;" type="color" [value]="value" (input)="onColorChange($event)" />
-  `,
-  standalone: false,
-})
-export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<string> {
-  override afterClose(): void {
-    this.finishEdit.emit();
-  }
-
-  onColorChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.setValue(input.value);
-  }
-}
-
-@Component({
-  selector: "app-root",
-  standalone: false,
-  template: ` <div>
-    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
-  </div>`,
-})
-export class AppComponent {
-  readonly data = inputData.map((el) => ({
-    ...el,
-    color: `#${Math.round(0x1000000 + 0xffffff * Math.random())
-      .toString(16)
-      .slice(1)
-      .toUpperCase()}`,
-  }));
-
-  readonly gridSettings: GridSettings = {
-    autoRowSize: true,
-    rowHeaders: true,
-    height: "auto",
-    colHeaders: ["ID", "Item Name", "Item color"],
-    columns: [
-      { data: "id", type: "numeric" },
-      { data: "itemName", type: "text" },
-      {
-        data: "color",
-        width: 150,
-        editor: ColorPickerEditorComponent,
-        renderer: ColorRendererComponent,
-        validator: colorValidator,
-      },
-    ],
-  };
-}
-```
-
-**app.module.ts:**
-
-```typescript
-import { NgModule, ApplicationConfig } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
-import { registerAllModules } from "handsontable/registry";
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from "@handsontable/angular-wrapper";
-import { NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
-import { AppComponent, ColorPickerEditorComponent, ColorRendererComponent } from "./app.component";
-
-registerAllModules();
-
-export const appConfig: ApplicationConfig = {
-  providers: [
-    {
-      provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        themeName: "ht-theme-main",
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig,
-    },
-  ],
-};
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule],
-  declarations: [AppComponent, ColorPickerEditorComponent, ColorRendererComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
-```
-
-## How It Works - Complete Flow
-
-1. **Initial Render**: Renderer component displays hex color code with colored background
-2. **User Double-Clicks or F2**: Editor component opens
-3. **Color Picker Displays**: Native HTML5 color input shows with current value
-4. **User Selects Color**: `(input)` event fires, `onColorChange()` updates value via `setValue()`
-5. **User Clicks Outside or Presses Enter**: `afterClose()` is called
-6. **Save Triggered**: `finishEdit.emit()` tells Handsontable to save the value
-7. **Validation**: `colorValidator` checks hex format (# followed by 6 hex characters)
-8. **Render Update**: If valid, value is saved and renderer displays new color
 
 ## Enhancements
 

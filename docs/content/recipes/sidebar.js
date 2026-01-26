@@ -11,7 +11,7 @@ const cellsItems = [
   { path: 'cells/guide-select-multiple/guide-select-multiple', title: 'Multiple Select Dropdown', onlyFor: ['javascript'] },
   { path: 'cells/guide-select-multiple-angular/guide-select-multiple', title: 'Multiple Select Dropdown', onlyFor: ['angular'] },
   { path: 'cells/guide-pikaday/guide-pikaday', title: 'Date picker pikaday', onlyFor: ['javascript'] },
-  { path: 'cells/guide-boolean-angular/guide-boolean', title: 'Boolean Editor', onlyFor: ['angular'] },
+  { path: 'cells/guide-checkbox-angular/guide-checkbox', title: 'Checkbox Editor', onlyFor: ['angular'] },
 ];
 
 module.exports = {
