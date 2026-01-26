@@ -305,6 +305,7 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 
 | Variable | Description |
 |----------|-------------|
+| `--ht-font-family` | Font family for all text elements |
 | `--ht-font-size` | Base font size for all text elements |
 | `--ht-font-size-small` | Font size for smaller text |
 | `--ht-line-height` | Line height for text elements |
@@ -429,6 +430,8 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-cell-mobile-handle-size` | Size of mobile touch handles |
 | `--ht-cell-mobile-handle-border-width` | Border width of mobile handles |
 | `--ht-cell-mobile-handle-border-radius` | Border radius of mobile handles |
+| `--ht-cell-mobile-handle-border-color` | Border color of mobile handles |
+| `--ht-cell-mobile-handle-background-color` | Background color of mobile handles |
 | `--ht-cell-mobile-handle-background-opacity` | Background opacity of mobile handles |
 
 ### Indicator Variables
