@@ -3,7 +3,7 @@ import { Hooks } from '../../core/hooks';
 import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
 import { sanitize, isJSON } from '../../helpers/string';
-import { isObject } from '../../helpers/object';
+import { isObject, deepClone } from '../../helpers/object';
 import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
@@ -532,18 +532,20 @@ export class CopyPaste extends BasePlugin {
    * Prepares new values to populate them into datasource.
    *
    * @private
-   * @param {Array} inputArray An array of the data to populate.
-   * @param {Array} sourceInputArray An array of the source data to populate.
-   * @param {Array} [selection] The selection which indicates from what position the data will be populated.
-   * @returns {Array} Range coordinates after populate data.
+   * @param {object} pasteData An object with the data to populate.
+   * @param {object} pasteData.plainData The plain data to populate.
+   * @param {object} pasteData.sourceData The source data to populate.
+   * @param {object} pasteData.originalPlainData The original plain data before user modifications in beforePaste.
+   * @returns {number[]} Range coordinates after populate data.
    */
-  populateValues(inputArray, sourceInputArray, selection = this.hot.getSelectedRangeActive()) {
-    if (!inputArray.length) {
+  populateValues({ plainData, originalPlainData, sourceData }) {
+    if (!plainData.length) {
       return [null, null, null, null];
     }
 
-    const populatedRowsLength = inputArray.length;
-    const populatedColumnsLength = inputArray[0].length;
+    const selection = this.hot.getSelectedRangeActive();
+    const populatedRowsLength = plainData.length;
+    const populatedColumnsLength = plainData[0].length;
     const newRows = [];
 
     const { row: startRow, col: startColumn } = selection.getTopStartCorner();
@@ -590,10 +592,11 @@ export class CopyPaste extends BasePlugin {
 
         lastVisualColumn = visualCol;
 
-        const sourceCellValue = sourceInputArray?.[insertedRow]?.[insertedColumn];
-        let cellValue = inputArray[insertedRow][insertedColumn];
+        const sourceCellValue = sourceData?.[insertedRow]?.[insertedColumn];
+        const originalCellValue = originalPlainData?.[insertedRow]?.[insertedColumn];
+        let cellValue = plainData[insertedRow][insertedColumn];
 
-        if (sourceInputArray && isJSON(sourceCellValue)) {
+        if (sourceData && isJSON(sourceCellValue) && cellValue === originalCellValue) {
           const parsedCellValue = JSON.parse(sourceCellValue);
 
           if (isObject(sourceDataAtTarget) || sourceDataAtTarget === null) {
@@ -801,11 +804,19 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
+    // Store a copy of the original pasted data before user can modify it in beforePaste hook.
+    // This is needed to detect if user modified values and respect their modifications over source data.
+    const originalPastedData = deepClone(pastedData);
+
     if (this.hot.runHooks('beforePaste', pastedData, this.copyableRanges) === false) {
       return;
     }
 
-    const [startRow, startColumn, endRow, endColumn] = this.populateValues(pastedData, pastedSourceData);
+    const [startRow, startColumn, endRow, endColumn] = this.populateValues({
+      plainData: pastedData,
+      sourceData: pastedSourceData,
+      originalPlainData: originalPastedData,
+    });
 
     if (startRow !== null && startColumn !== null) {
       this.hot.selectCell(

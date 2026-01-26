@@ -1,4 +1,4 @@
-describe('Core.loadData', () => {
+describe('Core.updateData', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -69,18 +69,10 @@ describe('Core.loadData', () => {
     ['<b>H&M</b>']
   ];
 
-  it('should allow array of arrays', async() => {
-    handsontable();
-
-    await loadData(arrayOfArrays());
-
-    expect(getDataAtCell(0, 2)).toEqual('Nissan');
-  });
-
   it('should load data properly when it is defined as an array of objects #4204', async() => {
     handsontable({});
 
-    await loadData(arrayOfObjects());
+    await updateData(arrayOfObjects());
 
     expect(getData()).toEqual([
       [1, 'Ted', 'Right'],
@@ -96,6 +88,14 @@ describe('Core.loadData', () => {
     ]);
   });
 
+  it('should allow array of arrays', async() => {
+    handsontable();
+
+    await updateData(arrayOfArrays());
+
+    expect(getDataAtCell(0, 2)).toEqual('Nissan');
+  });
+
   it('should allow array of objects', async() => {
     handsontable({
       columns: [
@@ -104,7 +104,9 @@ describe('Core.loadData', () => {
         { data: 'name' }
       ]
     });
-    await loadData(arrayOfObjects());
+
+    await updateData(arrayOfObjects());
+
     expect(getDataAtCell(0, 2)).toEqual('Ted');
   });
 
@@ -126,13 +128,14 @@ describe('Core.loadData', () => {
         return colMeta;
       }
     });
-    await loadData(arrayOfObjects());
+
+    await updateData(arrayOfObjects());
+
     expect(getDataAtCell(0, 2)).toEqual('Ted');
   });
 
   it('should allow array of nested objects', async() => {
     handsontable({
-      data: arrayOfNestedObjects(),
       colHeaders: true,
       columns: [
         { data: 'id' },
@@ -141,22 +144,8 @@ describe('Core.loadData', () => {
         { data: 'full.street' },
       ]
     });
-    expect(getDataAtCell(0, 2)).toEqual('Ted');
-    expect(getDataAtCell(1, 3)).toEqual('Street II');
-    expect(getDataAtRowProp(2, 'full.street')).toEqual('Street III');
-  });
 
-  it('should allow array of nested objects (separate `loadData` call)', async() => {
-    handsontable({
-      colHeaders: true,
-      columns: [
-        { data: 'id' },
-        { data: 'name.last' },
-        { data: 'name.first' },
-        { data: 'full.street' },
-      ]
-    });
-    await loadData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
 
     expect(getDataAtCell(0, 2)).toEqual('Ted');
     expect(getDataAtCell(1, 3)).toEqual('Street II');
@@ -165,7 +154,6 @@ describe('Core.loadData', () => {
 
   it('should allow array of nested objects when columns as a function', async() => {
     handsontable({
-      data: arrayOfNestedObjects(),
       colHeaders: true,
       columns(column) {
         let colMeta = {};
@@ -185,33 +173,8 @@ describe('Core.loadData', () => {
         return colMeta;
       }
     });
-    expect(getDataAtCell(0, 2)).toEqual('Ted');
-    expect(getDataAtCell(1, 3)).toEqual('Street II');
-    expect(getDataAtRowProp(2, 'full.street')).toEqual('Street III');
-  });
 
-  it('should allow array of nested objects when columns as a function (separate `loadData` call)', async() => {
-    handsontable({
-      colHeaders: true,
-      columns(column) {
-        let colMeta = {};
-
-        if (column === 0) {
-          colMeta.data = 'id';
-        } else if (column === 1) {
-          colMeta.data = 'name.last';
-        } else if (column === 2) {
-          colMeta.data = 'name.first';
-        } else if (column === 3) {
-          colMeta.data = 'full.street';
-        } else {
-          colMeta = null;
-        }
-
-        return colMeta;
-      }
-    });
-    await loadData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
 
     expect(getDataAtCell(0, 2)).toEqual('Ted');
     expect(getDataAtCell(1, 3)).toEqual('Street II');
@@ -220,62 +183,58 @@ describe('Core.loadData', () => {
 
   it('should figure out default column names for array of nested objects', async() => {
     handsontable({
-      data: arrayOfNestedObjects(),
       colHeaders: true
     });
-    expect(getDataAtCell(0, 2)).toEqual('Right');
-  });
 
-  it('should figure out default column names for array of nested objects (separate `loadData` call)', async() => {
-    handsontable({
-      colHeaders: true
-    });
-    await loadData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
 
     expect(getDataAtCell(0, 2)).toEqual('Right');
   });
 
-  it('should trigger onChange callback when loaded array of arrays', async() => {
+  it('should trigger afterChange callback when loaded array of arrays', async() => {
     let called = false;
 
     handsontable({
       afterChange(changes, source) {
-        if (source === 'loadData') {
+        if (source === 'updateData') {
           called = true;
         }
       }
     });
-    await loadData(arrayOfArrays());
+
+    await updateData(arrayOfArrays());
 
     expect(called).toEqual(true);
   });
 
-  it('should trigger onChange callback when loaded array of objects', async() => {
+  it('should trigger afterChange callback when loaded array of objects', async() => {
     let called = false;
 
     handsontable({
       afterChange(changes, source) {
-        if (source === 'loadData') {
+        if (source === 'updateData') {
           called = true;
         }
       }
     });
-    await loadData(arrayOfObjects());
+
+    await updateData(arrayOfObjects());
 
     expect(called).toEqual(true);
   });
 
-  it('should trigger onChange callback when loaded array of nested objects', async() => {
+  it('should trigger afterChange callback when loaded array of nested objects', async() => {
     let called = false;
 
     handsontable({
       afterChange(changes, source) {
-        if (source === 'loadData') {
+        if (source === 'updateData') {
           called = true;
         }
       }
     });
-    await loadData(arrayOfNestedObjects());
+
+    await updateData(arrayOfNestedObjects());
 
     expect(called).toEqual(true);
   });
@@ -283,18 +242,9 @@ describe('Core.loadData', () => {
   it('should create new rows for array of arrays (and respect minRows)', async() => {
     handsontable({
       minRows: 20, // minRows should be respected
-      data: arrayOfArrays()
     });
 
-    expect(countRows()).toEqual(20); // TODO why this must be checked after render?
-  });
-
-  it('should create new rows for array of arrays (and respect minRows) - separate `loadData` call', async() => {
-    handsontable({
-      minRows: 20, // minRows should be respected
-    });
-
-    await loadData(arrayOfArrays());
+    await updateData(arrayOfArrays());
 
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
   });
@@ -302,25 +252,17 @@ describe('Core.loadData', () => {
   it('should create new rows for array of nested objects (and respect minRows)', async() => {
     handsontable({
       minRows: 20, // minRows should be respected
-      data: arrayOfNestedObjects()
     });
 
-    expect(countRows()).toEqual(20); // TODO why this must be checked after render?
-  });
-
-  it('should create new rows for array of nested objects (and respect minRows) - separate `loadData` call', async() => {
-    handsontable({
-      minRows: 20, // minRows should be respected
-    });
-
-    await loadData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
 
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
   });
 
   it('HTML special chars should be escaped by default', async() => {
     handsontable();
-    await loadData(htmlData);
+
+    await updateData(htmlData);
 
     expect(getCell(0, 0).innerHTML).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
   });
@@ -328,18 +270,9 @@ describe('Core.loadData', () => {
   it('should create as many rows as needed by array of objects', async() => {
     handsontable({
       minRows: 6,
-      data: arrayOfObjects()
     });
 
-    expect(getCell(9, 1).innerHTML).toEqual('Eve');
-  });
-
-  it('should create as many rows as needed by array of objects (separate `loadData` call)', async() => {
-    handsontable({
-      minRows: 6,
-    });
-
-    await loadData(arrayOfObjects());
+    await updateData(arrayOfObjects());
 
     expect(getCell(9, 1).innerHTML).toEqual('Eve');
   });
@@ -349,21 +282,6 @@ describe('Core.loadData', () => {
     const cellsSpy = jasmine.createSpy('cellsSpy');
 
     handsontable({
-      data: arrayOfNestedObjects(),
-      colWidths: [90, 90, 90, 90],
-      rowHeights: [23, 23, 23, 23],
-      cells: cellsSpy,
-    });
-
-    expect(cellsSpy.calls.count()).toBe(12);
-  });
-
-  // https://github.com/handsontable/handsontable/pull/233
-  it('should not invoke the cells callback multiple times with the same row/col (without overlays) - separate' +
-    ' `loadData` call', async() => {
-    const cellsSpy = jasmine.createSpy('cellsSpy');
-
-    handsontable({
       colWidths: [90, 90, 90, 90],
       rowHeights: [23, 23, 23, 23],
       cells: cellsSpy,
@@ -372,7 +290,7 @@ describe('Core.loadData', () => {
     // Default `cells` calls (table initializes with default values)
     const afterInitCellsSpy = cellsSpy.calls.count();
 
-    await loadData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
 
     expect(cellsSpy.calls.count() - afterInitCellsSpy).toBe(12);
   });
@@ -381,22 +299,6 @@ describe('Core.loadData', () => {
     const cellsSpy = jasmine.createSpy('cellsSpy');
 
     handsontable({
-      data: arrayOfNestedObjects(),
-      colHeaders: true,
-      rowHeaders: true,
-      colWidths: [90, 90, 90, 90],
-      rowHeights: [90, 90, 90, 90],
-      cells: cellsSpy
-    });
-
-    expect(cellsSpy.calls.count()).toBe(12);
-  });
-
-  it('should not invoke the cells callback multiple times with the same row/col (with overlays, separate `loadData`' +
-    ' call)', async() => {
-    const cellsSpy = jasmine.createSpy('cellsSpy');
-
-    handsontable({
       colHeaders: true,
       rowHeaders: true,
       colWidths: [90, 90, 90, 90],
@@ -407,7 +309,7 @@ describe('Core.loadData', () => {
     // Default `cells` calls (table initializes with default values)
     const afterInitCellsSpy = cellsSpy.calls.count();
 
-    await loadData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
 
     expect(cellsSpy.calls.count() - afterInitCellsSpy).toBe(12);
   });
@@ -433,49 +335,13 @@ describe('Core.loadData', () => {
     ];
 
     handsontable({
-      data: data1,
       rowHeaders: true,
       colHeaders: true
     });
 
+    await updateData(data1);
     await selectCell(7, 0);
-
-    await loadData(data2);
-
-    expect(countRows()).toBe(data2.length);
-    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
-  });
-
-  it('should remove grid rows if new data source has less of them (separate `loadData` call)', async() => {
-    const data1 = [
-      ['a'],
-      ['b'],
-      ['c'],
-      ['d'],
-      ['e'],
-      ['f'],
-      ['g'],
-      ['h']
-    ];
-
-    const data2 = [
-      ['a'],
-      ['b'],
-      ['c'],
-      ['d'],
-      ['e']
-    ];
-
-    handsontable({
-      rowHeaders: true,
-      colHeaders: true
-    });
-
-    await loadData(data1);
-
-    await selectCell(7, 0);
-
-    await loadData(data2);
+    await updateData(data2);
 
     expect(countRows()).toBe(data2.length);
     expect(getSelected()).toEqual([[4, 0, 4, 0]]);
@@ -501,52 +367,15 @@ describe('Core.loadData', () => {
     ];
 
     handsontable({
-      data: data1,
       minSpareCols: 1,
       minSpareRows: 1,
       rowHeaders: true,
       colHeaders: true
     });
 
+    await updateData(data1);
     await selectCell(8, 0);
-
-    await loadData(data2);
-
-    expect(countRows()).toBe(6); // +1 because of minSpareRows
-    expect(getSelected()).toEqual([[5, 0, 5, 0]]);
-  });
-
-  it('should remove grid rows if new data source has less of them (with minSpareRows, separate `loadData` call)', async() => {
-    const data1 = [
-      ['a'],
-      ['b'],
-      ['c'],
-      ['d'],
-      ['e'],
-      ['f'],
-      ['g'],
-      ['h']
-    ];
-    const data2 = [
-      ['a'],
-      ['b'],
-      ['c'],
-      ['d'],
-      ['e']
-    ];
-
-    handsontable({
-      minSpareCols: 1,
-      minSpareRows: 1,
-      rowHeaders: true,
-      colHeaders: true
-    });
-
-    await loadData(data1);
-
-    await selectCell(8, 0);
-
-    await loadData(data2);
+    await updateData(data2);
 
     expect(countRows()).toBe(6); // +1 because of minSpareRows
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
@@ -567,43 +396,13 @@ describe('Core.loadData', () => {
     const data2 = [];
 
     handsontable({
-      data: data1,
       rowHeaders: true,
       colHeaders: true
     });
 
+    await updateData(data1);
     await selectCell(7, 0);
-
-    await loadData(data2);
-
-    expect(countRows()).toBe(0);
-    expect(getSelected()).toBeUndefined();
-  });
-
-  it('loading empty data should remove all rows (separate `loadData` call)', async() => {
-    const data1 = [
-      ['a'],
-      ['b'],
-      ['c'],
-      ['d'],
-      ['e'],
-      ['f'],
-      ['g'],
-      ['h']
-    ];
-
-    const data2 = [];
-
-    handsontable({
-      rowHeaders: true,
-      colHeaders: true
-    });
-
-    await loadData(data1);
-
-    await selectCell(7, 0);
-
-    await loadData(data2);
+    await updateData(data2);
 
     expect(countRows()).toBe(0);
     expect(getSelected()).toBeUndefined();
@@ -613,27 +412,13 @@ describe('Core.loadData', () => {
     const data1 = arrayOfArrays();
 
     handsontable({
-      data: data1,
       columns: [
         { data: 1 },
         { data: 3 }
       ]
     });
 
-    expect(countCols()).toBe(2);
-  });
-
-  it('should only have as many columns as in settings (separate `loadData` call)', async() => {
-    const data1 = arrayOfArrays();
-
-    handsontable({
-      columns: [
-        { data: 1 },
-        { data: 3 }
-      ]
-    });
-
-    await loadData(data1);
+    await updateData(data1);
 
     expect(countCols()).toBe(2);
   });
@@ -642,7 +427,6 @@ describe('Core.loadData', () => {
     const data1 = arrayOfArrays();
 
     handsontable({
-      data: data1,
       columns(column) {
         let colMeta = {
           data: column
@@ -656,51 +440,18 @@ describe('Core.loadData', () => {
       }
     });
 
-    expect(countCols()).toBe(2);
-  });
-
-  it('should throw error when trying to load a string (constructor)', async() => {
-    let errors = 0;
-
-    try {
-      handsontable({
-        data: 'string'
-      });
-    } catch (e) {
-      errors += 1;
-    }
-
-    expect(errors).toBe(1);
-  });
-
-  it('should only have as many columns as in settings when columns is a function (separate `loadData` call)', async() => {
-    const data1 = arrayOfArrays();
-
-    handsontable({
-      columns(column) {
-        let colMeta = {
-          data: column
-        };
-
-        if ([1, 3].indexOf(column) < 0) {
-          colMeta = null;
-        }
-
-        return colMeta;
-      }
-    });
-
-    await loadData(data1);
+    await updateData(data1);
 
     expect(countCols()).toBe(2);
   });
 
-  it('should throw error when trying to load a string (loadData)', async() => {
+  it('should throw error when trying to load a string (updateData)', async() => {
     let errors = 0;
 
     try {
       handsontable();
-      await loadData('string');
+      await updateData('string');
+
     } catch (e) {
       errors += 1;
     }
@@ -748,7 +499,10 @@ describe('Core.loadData', () => {
     cars.push({ make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808 });
 
     handsontable({
-      data: cars,
+    });
+
+    await updateData(cars);
+    await updateSettings({
       columns: [
         attr('make'),
         attr('model'),
@@ -813,7 +567,6 @@ describe('Core.loadData', () => {
     cars.push({ make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808 });
 
     handsontable({
-      data: cars,
       columns(column) {
         let colMeta = null;
 
@@ -828,6 +581,8 @@ describe('Core.loadData', () => {
         return colMeta;
       }
     });
+
+    await updateData(cars);
 
     // normally, you'd get these from the server with .fetch()
     function attr(attribute) {
@@ -846,34 +601,37 @@ describe('Core.loadData', () => {
     expect(countRows()).toBe(3);
   });
 
-  it('should clear cell properties after loadData', async() => {
+  it('should not clear cell properties after updateData', async() => {
     handsontable();
-    await loadData(arrayOfArrays());
+
+    await updateData(arrayOfArrays());
 
     getCellMeta(0, 0).foo = 'bar';
 
     expect(getCellMeta(0, 0).foo).toEqual('bar');
 
-    await loadData(arrayOfArrays());
+    await updateData(arrayOfArrays());
 
-    expect(getCellMeta(0, 0).foo).toBeUndefined();
+    expect(getCellMeta(0, 0).foo).toEqual('bar');
   });
 
-  it('should clear cell properties after loadData, but before rendering new data', async() => {
+  it('should not clear cell properties after updateData, but before rendering new data', async() => {
     handsontable();
-    await loadData(arrayOfArrays());
+
+    await updateData(arrayOfArrays());
 
     getCellMeta(0, 0).valid = false;
+
     await render();
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
 
-    await loadData(arrayOfArrays());
+    await updateData(arrayOfArrays());
 
-    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
   });
 
-  it('should reinitialize index mappers after calling loadData', async() => {
+  it('should not reinitialize index mappers after calling updateData', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -881,20 +639,20 @@ describe('Core.loadData', () => {
     rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
     columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
-    await loadData(createSpreadsheetData(5, 5));
+    await updateData(createSpreadsheetData(5, 5));
 
-    expect(rowIndexMapper().getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
-    expect(columnIndexMapper().getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
+    expect(rowIndexMapper().getIndexesSequence()).toEqual([4, 3, 2, 1, 0]);
+    expect(columnIndexMapper().getIndexesSequence()).toEqual([4, 3, 2, 1, 0]);
 
-    await loadData(createSpreadsheetData(3, 3));
+    await updateData(createSpreadsheetData(3, 3));
 
-    expect(rowIndexMapper().getIndexesSequence()).toEqual([0, 1, 2]);
-    expect(columnIndexMapper().getIndexesSequence()).toEqual([0, 1, 2]);
+    expect(rowIndexMapper().getIndexesSequence()).toEqual([2, 1, 0]);
+    expect(columnIndexMapper().getIndexesSequence()).toEqual([2, 1, 0]);
 
-    await loadData(createSpreadsheetData(5, 5));
+    await updateData(createSpreadsheetData(5, 5));
 
-    expect(rowIndexMapper().getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
-    expect(columnIndexMapper().getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
+    expect(rowIndexMapper().getIndexesSequence()).toEqual([2, 1, 0, 3, 4]);
+    expect(columnIndexMapper().getIndexesSequence()).toEqual([2, 1, 0, 3, 4]);
   });
 
   // https://github.com/handsontable/handsontable/issues/1700
@@ -908,7 +666,6 @@ describe('Core.loadData', () => {
     ];
 
     handsontable({
-      data: objectData,
       columns: [
         { data: 'id' },
         { data: 'user.name.first' },
@@ -916,43 +673,7 @@ describe('Core.loadData', () => {
       ]
     });
 
-    await mouseDoubleClick(getCell(1, 1));
-
-    document.activeElement.value = 'Harry';
-
-    await deselectCell();
-
-    expect(objectData[1].user.name.first).toEqual('Harry');
-
-    await mouseDoubleClick(getCell(2, 1));
-
-    document.activeElement.value = 'Barry';
-
-    await deselectCell();
-
-    expect(objectData[2].user.name.first).toEqual('Barry');
-  });
-
-  // https://github.com/handsontable/handsontable/issues/1700
-  // can't edit anything after starting editing cell with no nested object
-  it('should correct behave with cell with no nested object data source corresponding to column mapping (separate' +
-    ' `loadData` call)', async() => {
-
-    const objectData = [
-      { id: 1, user: { name: { first: 'Ted', last: 'Right' } } },
-      { id: 2, user: { name: {} } },
-      { id: 3 }
-    ];
-
-    handsontable({
-      columns: [
-        { data: 'id' },
-        { data: 'user.name.first' },
-        { data: 'user.name.last' }
-      ]
-    });
-
-    await loadData(objectData);
+    await updateData(objectData);
     await mouseDoubleClick(getCell(1, 1));
 
     document.activeElement.value = 'Harry';
@@ -979,7 +700,6 @@ describe('Core.loadData', () => {
     ];
 
     handsontable({
-      data: objectData,
       columns(column) {
         let colMeta = null;
 
@@ -997,6 +717,7 @@ describe('Core.loadData', () => {
       }
     });
 
+    await updateData(objectData);
     await mouseDoubleClick(getCell(1, 1));
 
     document.activeElement.value = 'Harry';
@@ -1014,103 +735,57 @@ describe('Core.loadData', () => {
     expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
-  it('should correct behave with cell with no nested object data source corresponding to column mapping when columns' +
-    ' is a function (separate `loadData` call)', async() => {
-
-    const objectData = [
-      { id: 1, user: { name: { first: 'Ted', last: 'Right' } } },
-      { id: 2, user: { name: {} } },
-      { id: 3 }
-    ];
-
-    handsontable({
-      columns(column) {
-        let colMeta = null;
-
-        if (column === 0) {
-          colMeta = { data: 'id' };
-
-        } else if (column === 1) {
-          colMeta = { data: 'user.name.first' };
-
-        } else if (column === 2) {
-          colMeta = { data: 'user.name.last' };
-        }
-
-        return colMeta;
-      }
-    });
-
-    await loadData(objectData);
-    await mouseDoubleClick(getCell(1, 1));
-
-    document.activeElement.value = 'Harry';
-
-    await deselectCell();
-
-    expect(objectData[1].user.name.first).toEqual('Harry');
-
-    await mouseDoubleClick(getCell(2, 1));
-
-    document.activeElement.value = 'Barry';
-
-    await deselectCell();
-
-    expect(objectData[2].user.name.first).toEqual('Barry');
-  });
-
-  it('should create new data schema after loading data', async() => {
+  it('should create new data schema after updating data', async() => {
     handsontable({
     });
 
-    await loadData(arrayOfObjects());
-    await loadData(arrayOfArrays());
+    await updateData(arrayOfObjects());
+    await updateData(arrayOfArrays());
 
     expect(getSourceData()).toEqual(arrayOfArrays());
     expect(getData()).toEqual(arrayOfArrays());
   });
 
-  it('should pass the `source` argument to the `beforeLoadData` and `afterLoadData` hooks', async() => {
+  it('should pass the `source` argument to the `beforeUpdateData` and `afterUpdateData` hooks', async() => {
     let correctSourceCount = 0;
 
     handsontable({
       data: arrayOfObjects(),
-      beforeLoadData: (data, firstRun, source) => {
+      beforeUpdateData: (data, firstRun, source) => {
         if (source === 'testSource') {
           correctSourceCount += 1;
         }
       },
-      afterLoadData: (data, firstRun, source) => {
+      afterUpdateData: (data, firstRun, source) => {
         if (source === 'testSource') {
           correctSourceCount += 1;
         }
       }
     });
 
-    await loadData(arrayOfArrays(), 'testSource');
+    await updateData(arrayOfArrays(), 'testSource');
 
     expect(correctSourceCount).toEqual(2);
   });
 
-  it('should pass the `source` argument to the `beforeLoadData` and `afterLoadData` hooks (separate `loadData`' +
-    ' calls)', async() => {
+  it('should pass the `source` argument to the `beforeUpdateData` and `afterUpdateData` hooks', async() => {
     let correctSourceCount = 0;
 
     handsontable({
-      beforeLoadData: (data, firstRun, source) => {
+      beforeUpdateData: (data, firstRun, source) => {
         if (source === 'testSource') {
           correctSourceCount += 1;
         }
       },
-      afterLoadData: (data, firstRun, source) => {
+      afterUpdateData: (data, firstRun, source) => {
         if (source === 'testSource') {
           correctSourceCount += 1;
         }
       }
     });
 
-    await loadData(arrayOfObjects());
-    await loadData(arrayOfArrays(), 'testSource');
+    await updateData(arrayOfObjects());
+    await updateData(arrayOfArrays(), 'testSource');
 
     expect(correctSourceCount).toEqual(2);
   });
@@ -1120,7 +795,7 @@ describe('Core.loadData', () => {
       data: createSpreadsheetData(5, 5),
     });
 
-    await loadData(createSpreadsheetData(5, 7));
+    await updateData(createSpreadsheetData(5, 7));
 
     expect(tableView().getTotalTableWidth()).toBe(getDefaultColumnWidth() * 7);
     expect(tableView().getTotalTableHeight()).toBe((getDefaultRowHeight() * 5) + 1);
@@ -1131,13 +806,13 @@ describe('Core.loadData', () => {
       data: createSpreadsheetData(5, 5),
     });
 
-    await loadData(createSpreadsheetData(7, 5));
+    await updateData(createSpreadsheetData(7, 5));
 
     expect(tableView().getTotalTableWidth()).toBe(getDefaultColumnWidth() * 5);
     expect(tableView().getTotalTableHeight()).toBe((getDefaultRowHeight() * 7) + 1);
   });
 
-  it('should not scroll the viewport to the focused cell after loading new data', async() => {
+  it('should not scroll the viewport to the focused cell after updating new data', async() => {
     handsontable({
       data: createSpreadsheetData(20, 20),
       width: 200,
@@ -1153,7 +828,7 @@ describe('Core.loadData', () => {
     const inlineStartPosition = inlineStartOverlay().getScrollPosition();
     const topPosition = topOverlay().getScrollPosition();
 
-    await loadData(createSpreadsheetData(20, 20));
+    await updateData(createSpreadsheetData(20, 20));
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(inlineStartPosition);
     expect(topOverlay().getScrollPosition()).toBe(topPosition);

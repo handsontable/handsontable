@@ -154,5 +154,63 @@ describe('Selection', () => {
         | - ║   :   :   :   :   : 0 :   :   |
         `).toBeMatchToSelectionPattern();
     });
+
+    it('should mark the source as "refresh" by default', async() => {
+      let selectionSource = null;
+
+      handsontable({
+        data: createSpreadsheetData(8, 8),
+        rowHeaders: true,
+        colHeaders: true,
+        afterSelection() {
+          selectionSource = selection().getSelectionSource();
+        },
+      });
+
+      await selectCell(1, 1, 3, 3);
+
+      selection().refresh();
+
+      expect(selectionSource).toBe('refresh');
+    });
+
+    it('should be possible to change the source of the refresh call', async() => {
+      let selectionSource = null;
+
+      handsontable({
+        data: createSpreadsheetData(8, 8),
+        rowHeaders: true,
+        colHeaders: true,
+        afterSelection() {
+          selectionSource = selection().getSelectionSource();
+        },
+      });
+
+      await selectCell(1, 1, 3, 3);
+
+      selection().markSource('test');
+      selection().refresh();
+
+      expect(selectionSource).toBe('test');
+    });
+
+    it('should scroll the viewport to the focused cell after refresh call with default source', async() => {
+      handsontable({
+        data: createSpreadsheetData(20, 20),
+        width: 200,
+        height: 200,
+      });
+
+      await selectCell(0, 0);
+      await scrollViewportTo({
+        row: 19,
+        col: 19,
+      });
+
+      selection().refresh();
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(topOverlay().getScrollPosition()).toBe(0);
+    });
   });
 });
