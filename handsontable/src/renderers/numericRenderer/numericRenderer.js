@@ -52,7 +52,7 @@ export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProp
     );
   }
 
-  if (isNumeric(cellProperties.rawValue)) {
+  if (isNumeric(hotInstance.getDataAtCell(row, col))) {
     let classArr = [];
 
     if (Array.isArray(cellProperties.className)) {

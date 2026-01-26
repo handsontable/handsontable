@@ -45,9 +45,9 @@ describe('numericRenderer', () => {
       it('should format value with numericFormat (numbro.js format)', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
+        const cellValue = 1.002;
         const cellMeta = {
           instance,
-          rawValue: 1.002,
           numericFormat: {
             culture: 'de-DE',
             pattern: {
@@ -57,9 +57,11 @@ describe('numericRenderer', () => {
           }
         };
 
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
+
         numbro.registerLanguage(deDE);
 
-        const formattedValue = numericRenderer.valueFormatter(cellMeta.rawValue, cellMeta);
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
 
         numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
@@ -72,14 +74,16 @@ describe('numericRenderer', () => {
         const instance = getInstance();
         const cellMeta = {
           instance,
-          rawValue: 1.002,
           locale: 'de-DE',
           numericFormat: {
             style: 'currency',
             currency: 'EUR',
           }
         };
-        const formattedValue = numericRenderer.valueFormatter(cellMeta.rawValue, cellMeta);
+        const cellValue = 1.002;
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
 
         numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
@@ -94,9 +98,11 @@ describe('numericRenderer', () => {
         const instance = getInstance();
         const cellMeta = {
           instance,
-          rawValue: 1,
         };
-        const formattedValue = numericRenderer.valueFormatter(cellMeta.rawValue, cellMeta);
+        const cellValue = 1;
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
 
         numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
@@ -109,9 +115,11 @@ describe('numericRenderer', () => {
         const instance = getInstance();
         const cellMeta = {
           instance,
-          rawValue: 100,
         };
-        const formattedValue = numericRenderer.valueFormatter(cellMeta.rawValue, cellMeta);
+        const cellValue = 100;
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
 
         numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
@@ -124,9 +132,11 @@ describe('numericRenderer', () => {
         const instance = getInstance();
         const cellMeta = {
           instance,
-          rawValue: 'A',
         };
-        const formattedValue = numericRenderer.valueFormatter(cellMeta.rawValue, cellMeta);
+        const cellValue = 'A';
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
 
         numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
@@ -139,10 +149,12 @@ describe('numericRenderer', () => {
         const instance = getInstance();
         const cellMeta = {
           instance,
-          rawValue: 1,
           className: 'htCenter'
         };
-        const formattedValue = numericRenderer.valueFormatter(cellMeta.rawValue, cellMeta);
+        const cellValue = 1;
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
 
         numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 

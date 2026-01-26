@@ -824,8 +824,6 @@ class TableView {
         const prop = this.hot.colToProp(visualColumnToCheck);
         let value = this.hot.getDataAtRowProp(visualRowToCheck, prop);
 
-        cellProperties.rawValue = value;
-
         if (this.hot.hasHook('beforeValueRender')) {
           value = this.hot.runHooks('beforeValueRender', value, cellProperties);
         }
