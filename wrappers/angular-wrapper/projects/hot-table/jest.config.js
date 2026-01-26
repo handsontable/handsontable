@@ -23,8 +23,6 @@ module.exports = {
     html: `
         <html>
             <link href="handsontable/styles/handsontable.min.css"/>
-            <link href="handsontable/styles/ht-theme-main.min.css"/>
-            <link href="handsontable/styles/ht-theme-horizon.min.css"/>
         </html>
     `
   }

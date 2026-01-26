@@ -78,7 +78,6 @@ Import Handsontable's CSS into your application's `styles.scss`:
 
 ```scss
 @import "handsontable/styles/handsontable.min.css";
-@import "handsontable/styles/ht-theme-main.min.css";
 ```
 
 ### Register Handsontable's modules

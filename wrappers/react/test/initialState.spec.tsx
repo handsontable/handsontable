@@ -94,7 +94,6 @@ describe("Initial state", () => {
       return (
         <HotTable
           ref={hotRef}
-          themeName="ht-theme-main"
           colHeaders={true}
           rowHeaders={true}
           colWidths={60}

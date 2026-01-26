@@ -78,7 +78,6 @@ You can load it directly from [jsDelivr](https:jsdelivr.com/package/npm/@handson
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/vue3/dist/vue-handsontable.min.js"></script>
 
 <link href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" rel="stylesheet">
 ```
 
 The component will be available as `Handsontable.vue.HotTable`.
@@ -90,14 +89,12 @@ Use this data grid as you would any other component in your application. [Option
 **Styles**
 ```css
 @import '~handsontable/styles/handsontable.min.css';
-@import '~handsontable/styles/ht-theme-main.min.css';
 ```
 
 **Vue 3 Component**
 ```vue
 <template>
   <hot-table
-    theme="ht-theme-main-dark-auto"
     :data="data"
     :row-headers=true
     :col-headers=true
@@ -118,7 +115,6 @@ Use this data grid as you would any other component in your application. [Option
   import { HotTable, HotColumn } from '@handsontable/vue3';
   import { registerAllModules } from 'handsontable/registry';
   import 'handsontable/styles/handsontable.min.css';
-  import 'handsontable/styles/ht-theme-main.min.css';
 
   // register Handsontable's modules
   registerAllModules();
