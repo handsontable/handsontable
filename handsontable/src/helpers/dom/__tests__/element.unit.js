@@ -14,6 +14,8 @@ import {
   isVisible,
   findFirstParentWithClass,
   isHTMLElement,
+  outerHeight,
+  outerWidth,
 } from 'handsontable/helpers/dom/element';
 import { setPlatformMeta } from 'handsontable/helpers/browser';
 
@@ -834,6 +836,40 @@ describe('DomElement helper', () => {
       const element = document.createElement('div');
 
       expect(isHTMLElement(element)).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.helper.outerHeight
+  //
+  describe('outerHeight', () => {
+    // Make sure that the value is returned from the element's offsetHeight property,
+    // not from getBoundingClientRect().height. The second returns a value after applying
+    // the CSS transform matrix, which when passed to element.style.height for example
+    // results in a different value, hence misalignments.
+    it('should return value from offsetHeight', () => {
+      const elementMock = {
+        offsetHeight: 100,
+      };
+
+      expect(outerHeight(elementMock)).toBe(100);
+    });
+  });
+
+  //
+  // Handsontable.helper.outerWidth
+  //
+  describe('outerWidth', () => {
+    // Make sure that the value is returned from the element's offsetHeight property,
+    // not from getBoundingClientRect().height. The second returns a value after applying
+    // the CSS transform matrix, which when passed to element.style.height for example
+    // results in a different value, hence misalignments.
+    it('should return value from offsetWidth', () => {
+      const elementMock = {
+        offsetWidth: 100,
+      };
+
+      expect(outerWidth(elementMock)).toBe(100);
     });
   });
 
