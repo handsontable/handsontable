@@ -114,7 +114,7 @@ Or, to reduce the size of your JavaScript bundle, [import only the modules that 
 
 ## Configure global settings
 
-You can set global configuration values for the table during the application setup (`app.config.ts`). Using the `HOT_GLOBAL_CONFIG` token, you can define an object that will be read within the wrapper. At any time, you can modify these values using the `HotGlobalConfigService` or override them at the individual table level.
+You can set global configuration values for the table during the application setup (`app.config.ts`). Using the `HOT_GLOBAL_CONFIG` token, you can define an object that will be read within the wrapper. At any time, you can modify these values using the `HotGlobalConfigService` or override them at the individual table level. All properties of `HotGlobalConfig` object are optional.
 
 ```ts
 import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
@@ -126,18 +126,20 @@ import {
   HotGlobalConfig,
   NON_COMMERCIAL_LICENSE,
 } from "@handsontable/angular-wrapper";
+import { registerLanguageDictionary, enUS } from "handsontable/i18n";
+
+registerLanguageDictionary(enUS);
 
 const globalHotConfig: HotGlobalConfig = {
   license: NON_COMMERCIAL_LICENSE,
   layoutDirection: "ltr",
-  language: "en",
+  language: enUS.languageCode,
   themeName: "ht-theme-main",
 };
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    //other providers,
     { provide: HOT_GLOBAL_CONFIG, useValue: globalHotConfig },
   ],
 };
