@@ -9,6 +9,13 @@ import { toHyphen } from '../../../helpers/string';
 const VAR_PREFIX = '--ht-';
 
 /**
+ * List of keys that should not be converted to CSS variable references.
+ *
+ * @type {string[]}
+ */
+const CSS_KEY_EXCEPTIONS = ['font-family'];
+
+/**
  * List of prefixes that indicate a value should be converted to a CSS variable reference.
  *
  * @type {string[]}
@@ -56,9 +63,10 @@ function toCssKey(prefix, key) {
  * Handles variable references, light/dark values, and single values.
  *
  * @param {string|object} value - The value to convert.
+ * @param {string} [key] - The CSS key name (used for exceptions like font-family).
  * @returns {string} - The CSS value.
  */
-function toCssValue(value) {
+function toCssValue(value, key) {
   if (isVarReference(value)) {
     return toVarReference(value);
   }
@@ -68,21 +76,25 @@ function toCssValue(value) {
       const [light, dark] = value;
 
       if (typeof light === 'string' && typeof dark === 'string') {
-        return `light-dark(${toCssValue(light)}, ${toCssValue(dark)})`;
+        return `light-dark(${toCssValue(light, key)}, ${toCssValue(dark, key)})`;
       }
 
       if (typeof light === 'string') {
-        return toCssValue(light);
+        return toCssValue(light, key);
       }
 
       if (typeof dark === 'string') {
-        return toCssValue(dark);
+        return toCssValue(dark, key);
       }
 
       return '';
     }
 
-    return toCssValue(value[0]);
+    return toCssValue(value[0], key);
+  }
+
+  if (key && CSS_KEY_EXCEPTIONS.includes(key)) {
+    return String(value);
   }
 
   return toHyphen(value);
@@ -97,7 +109,7 @@ function toCssValue(value) {
  * @returns {string} - The CSS variable line.
  */
 function toCssLine(prefix, key, value) {
-  return `${toCssKey(prefix, key)}: ${toCssValue(value)};`;
+  return `${toCssKey(prefix, key)}: ${toCssValue(value, key)};`;
 }
 
 /**

@@ -52,8 +52,7 @@
 }
 
 @mixin font-family {
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Helvetica Neue, Arial, sans-serif;
+  font-family: var(--ht-font-family);
 }
 
 @mixin menu-box-shadow {

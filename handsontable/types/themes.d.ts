@@ -78,6 +78,7 @@ export interface ThemeColorsConfig {
 
 export type TokenKey =
   // Typography
+  | 'fontFamily'
   | 'fontSize'
   | 'fontSizeSmall'
   | 'lineHeight'
@@ -149,6 +150,8 @@ export type TokenKey =
   | 'cellMobileHandleSize'
   | 'cellMobileHandleBorderWidth'
   | 'cellMobileHandleBorderRadius'
+  | 'cellMobileHandleBorderColor'
+  | 'cellMobileHandleBackgroundColor'
   | 'cellMobileHandleBackgroundOpacity'
   // Resize/Move indicators
   | 'resizeIndicatorColor'
