@@ -136,6 +136,10 @@ export class ThemeManager {
 
     if (typeof themeObject.subscribe === 'function') {
       themeObject.subscribe((config) => {
+        if (!this.hot?.stylesHandler) {
+          return;
+        }
+
         this.themeConfig = config;
         this.#injectThemeStyles();
         this.hot.stylesHandler.clearCache();

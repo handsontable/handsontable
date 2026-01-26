@@ -284,6 +284,21 @@ describe('ThemeBuilder', () => {
 
       consoleSpy.mockRestore();
     });
+
+    it('should warn and not update when trying to change name after initialization', () => {
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const theme = createTheme(createValidConfig({ name: 'original-name' }));
+
+      theme.params({ name: 'new-name' });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[ThemeBuilder] The "name" property can only be set during ' +
+        '`registerTheme()` and cannot be updated via `params()`.'
+      );
+      expect(theme.getThemeConfig().name).toBe('original-name');
+
+      consoleSpy.mockRestore();
+    });
   });
 
   describe('setColorScheme', () => {
