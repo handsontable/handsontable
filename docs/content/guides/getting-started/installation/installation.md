@@ -139,7 +139,6 @@ const globalHotConfig: HotGlobalConfig = {
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    //other providers,
     { provide: HOT_GLOBAL_CONFIG, useValue: globalHotConfig },
   ],
 };
