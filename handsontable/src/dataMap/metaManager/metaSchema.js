@@ -3845,6 +3845,12 @@ export default () => {
      * Configures the number format for [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
      * cells, including currency, units, precision, and other display options.
      *
+     * ::: warning
+     * The `numericFormat.pattern` and `numericFormat.culture` options are deprecated and will be
+     * removed in the next major release. Pass `Intl.NumberFormat` options directly to `numericFormat`
+     * and use the `locale` cell property instead of `culture`.
+     * :::
+     *
      * Since v17.0.0, this option accepts all properties of the
      * [`Intl.NumberFormatOptions`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat)
      * object. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
@@ -3902,9 +3908,20 @@ export default () => {
      *
      * For complete reference, see [MDN: Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options).
      *
+     * This option affects only the displayed output in the cell renderer.
+     * It has no effect on the numeric cell editor. In the source data, numeric values
+     * are stored as JavaScript numbers.
+     *
+     * Read more:
+     * - [`locale`](@/api/options.md#locale)
+     * - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
+     * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
+     * - [Numbro cell type](@/recipes/cell-types/numbro/numbro.md)
+     * - [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md)
+     *
      * ---
      *
-     * **Deprecation notice:**
+     * **Deprecated options:**
      *
      * The `pattern` and `culture` properties (numbro.js-based formatting) are deprecated and will be
      * removed in the next major release. Migrate to the `Intl.NumberFormat` API shown above.
@@ -3931,16 +3948,6 @@ export default () => {
      *   minimumFractionDigits: 2
      * }
      * ```
-     *
-     * ---
-     *
-     * This option affects only the displayed output in the cell renderer.
-     * It has no effect on the numeric cell editor. In the source data, numeric values
-     * are stored as JavaScript numbers.
-     *
-     * Read more:
-     * - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
-     * - [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md)
      *
      * @memberof Options#
      * @since 0.35.0
@@ -4425,15 +4432,14 @@ export default () => {
      *
      * **When to use `valueFormatter` vs `renderer`:**
      *
-     * | Use case                                      | Recommended option   |
-     * | --------------------------------------------- | -------------------- |
-     * | Transform displayed value (add prefix, units) | `valueFormatter`     |
-     * | Custom date/number/text formatting            | `valueFormatter`     |
-     * | Modify DOM structure (add icons, elements)    | `renderer`           |
+     * | Use case                                          | Recommended option   |
+     * | ------------------------------------------------- | -------------------- |
+     * | Transform displayed value (add prefix, units)     | `valueFormatter`     |
+     * | Custom date/number/text formatting                | `valueFormatter`     |
+     * | Modify DOM structure (add icons, custom elements) | `renderer`           |
      *
      * The function receives the raw value and cell properties, and should return the formatted value
-     * to be displayed. The formatting can be applied to a single cell, column, or the entire grid
-     * using the built-in cascading configuration.
+     * to be displayed. The formatting can be applied to a single cell, column, or the entire grid.
      *
      * **Function signature:**
      * ```js
@@ -4447,7 +4453,6 @@ export default () => {
      * | Returns          | `*`        | The formatted value to display                 |
      *
      * Read more:
-     * - [Value formatter](@/guides/cell-functions/value-formatter/value-formatter.md)
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
      * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
      *

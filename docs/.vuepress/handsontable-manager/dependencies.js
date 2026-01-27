@@ -135,13 +135,13 @@ const buildDependencyGetter = (version) => {
       'react-redux': ['https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.2.4/react-redux.min.js'],
       'react-colorful': ['https://cdn.jsdelivr.net/npm/react-colorful@5.5.1/dist/index.min.js'],
       'react-star-rating-component': ['https://cdn.jsdelivr.net/npm/react-star-rating-component@1.4.1/dist/react-star-rating-component.min.js'],
-      numbro: ['https://cdn.jsdelivr.net/npm/numbro@2.5.0/dist/languages.min.js', ['numbro.allLanguages', 'numbro']],
+      numbro: ['https://cdn.jsdelivr.net/npm/numbro@2.5.0/dist/numbro.min.js', ['numbro']],
+      'numbro-languages': ['https://cdn.jsdelivr.net/npm/numbro@2.5.0/dist/languages.min.js', ['numbro.allLanguages']],
       redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js', []],
       rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.min.js', [/* todo */]],
       'core-js': ['https://cdn.jsdelivr.net/npm/core-js@2/client/core.min.js', [/* todo */]],
       zone: ['https://cdn.jsdelivr.net/npm/zone.js@0.15.0/bundles/zone.umd.min.js', [/* todo */]],
-      'angular-compiler': [getPrebuiltUmdUrl('angular-compiler.umd.min.js'), [/* todo
-       */]],
+      'angular-compiler': [getPrebuiltUmdUrl('angular-compiler.umd.min.js'), [/* todo */]],
       'angular-core': [getPrebuiltUmdUrl('angular-core.umd.min.js'), [/* todo */]],
       'angular-common': [getPrebuiltUmdUrl('angular-common.umd.min.js'), [/* todo */]],
       'angular-forms': [getPrebuiltUmdUrl('angular-forms.umd.min.js'), [/* todo */]],
@@ -175,7 +175,7 @@ const buildDependencyGetter = (version) => {
 
 const presetMap = {
   /* eslint-disable max-len */
-  'hot-recipe': ['hot', 'moment', 'pikaday', 'date-fns', 'fixer', 'coloris', 'flatpickr', 'multiple-select-vanilla'],
+  'hot-recipe': ['hot', 'moment', 'pikaday', 'date-fns', 'coloris', 'flatpickr', 'multiple-select-vanilla', 'numbro', 'numbro-languages', 'fixer'],
   hot: ['hot', 'fixer'],
   'hot-lang': ['hot', 'languages', 'fixer'],
   'hot-numbro': ['hot', 'numbro', 'fixer'],

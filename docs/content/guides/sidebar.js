@@ -191,6 +191,7 @@ const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/migrating-from-9.0-to-10.0/migrating-from-9.0-to-10.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0' },
 ];
 
 module.exports = {
