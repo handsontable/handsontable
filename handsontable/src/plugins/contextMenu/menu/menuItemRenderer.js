@@ -39,6 +39,7 @@ export function createMenuItemRenderer(mainTableHot) {
    * @param {number} col The visual index.
    * @param {string} prop The column property if used.
    * @param {string} value The cell value.
+   * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
   return (menuHot, TD, row, col, prop, value, cellProperties) => {
     const item = menuHot.getSourceDataAtRow(row);

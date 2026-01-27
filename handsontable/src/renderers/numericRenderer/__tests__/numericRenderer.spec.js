@@ -122,7 +122,7 @@ describe('NumericRenderer', () => {
       'Deprecated: The `numericFormat.pattern` and `numericFormat.culture` options are deprecated ' +
       'and will be removed in the next major release. Pass `Intl.NumberFormat` options ' +
       'directly to `numericFormat` and use the `locale` cell property instead of `culture`.\n\n' +
-      'Migration guide: TODO_MIGRATION_GUIDE_URL\n' +
+      'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
       '`numericFormat` documentation: https://handsontable.com/docs/api/options/#numericformat\n' +
       '`locale` documentation: https://handsontable.com/docs/api/options/#locale'
     );
@@ -141,7 +141,7 @@ describe('NumericRenderer', () => {
       'Deprecated: The `numericFormat.pattern` and `numericFormat.culture` options are deprecated ' +
       'and will be removed in the next major release. Pass `Intl.NumberFormat` options ' +
       'directly to `numericFormat` and use the `locale` cell property instead of `culture`.\n\n' +
-      'Migration guide: TODO_MIGRATION_GUIDE_URL\n' +
+      'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
       '`numericFormat` documentation: https://handsontable.com/docs/api/options/#numericformat\n' +
       '`locale` documentation: https://handsontable.com/docs/api/options/#locale'
     );

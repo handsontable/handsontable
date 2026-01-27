@@ -226,4 +226,4 @@ If you need numbro.js-specific formatting features that aren't available in `Int
 ### Timeline
 
 - **Version 17.0**: Numbro format deprecated with warnings
-- **Version 18.0**: Numbro format will be removed
+- **Version 18.0**: Numbro format options (including dependencies) will be removed
