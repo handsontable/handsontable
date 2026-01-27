@@ -854,10 +854,10 @@ class TableView {
 
         if (!cellProperties._isBaseRendererCalled) {
           this.hot.getCellRenderer({ renderer: 'base' })(...rendererArgs);
-          cellProperties._isBaseRendererCalled = false;
         }
 
         this.hot.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
+        cellProperties._isBaseRendererCalled = false;
       },
       selections: this.hot.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,

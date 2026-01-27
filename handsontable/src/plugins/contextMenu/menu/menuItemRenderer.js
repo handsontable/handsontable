@@ -40,12 +40,14 @@ export function createMenuItemRenderer(mainTableHot) {
    * @param {string} prop The column property if used.
    * @param {string} value The cell value.
    */
-  return (menuHot, TD, row, col, prop, value) => {
+  return (menuHot, TD, row, col, prop, value, cellProperties) => {
     const item = menuHot.getSourceDataAtRow(row);
     const wrapper = mainTableHot.rootDocument.createElement('div');
     const itemValue = typeof value === 'function' ? value.call(mainTableHot) : value;
     const ariaLabel = typeof item.ariaLabel === 'function' ? item.ariaLabel.call(mainTableHot) : item.ariaLabel;
     const ariaChecked = typeof item.ariaChecked === 'function' ? item.ariaChecked.call(mainTableHot) : item.ariaChecked;
+
+    cellProperties.readOnlyCellClassName = '';
 
     empty(TD);
     addClass(wrapper, 'htItemWrapper');
