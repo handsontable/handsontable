@@ -420,7 +420,7 @@ declare namespace Handsontable {
     export { getThemeNames };
     export { getThemes };
     export { registerTheme };
-    export { updateTheme };
+    export { reinitTheme };
   }
 
   export namespace plugins {
