@@ -413,6 +413,7 @@ export function getTheme(themeName: string): ThemeBuilder | undefined;
 export function getThemeNames(): string[];
 export function getThemes(): ThemeBuilder[];
 export function registerTheme(themeNameOrConfig: string | BaseTheme, themeConfig?: BaseTheme): ThemeBuilder;
+export function reinitTheme(themeNameOrConfig: string | BaseTheme, themeConfig?: BaseTheme): ThemeBuilder | undefined;
 
 declare module 'handsontable/themes/static/variables/colors/horizon' {
   const colors: ThemeColorsConfig;

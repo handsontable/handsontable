@@ -4,6 +4,7 @@ import {
   getThemeNames,
   getThemes,
   registerTheme,
+  reinitTheme,
 } from '../registry';
 import { staticRegister } from '../../utils/staticRegister';
 import mainIcons from '../static/variables/icons/main';
@@ -173,6 +174,81 @@ describe('Theme Registry', () => {
         expect(typeof theme.getThemeConfig).toBe('function');
         expect(typeof theme.params).toBe('function');
       });
+    });
+  });
+
+  describe('reinitTheme', () => {
+    it('should reinitialize an existing theme with name and config', () => {
+      const originalConfig = createValidConfig('reinit-theme');
+
+      registerTheme(originalConfig);
+
+      const reinitConfig = {
+        ...createValidConfig('reinit-theme'),
+        colors: {
+          ...mainColors,
+          primary: '#ff0000',
+        },
+      };
+
+      const reinitializedTheme = reinitTheme('reinit-theme', reinitConfig);
+
+      expect(reinitializedTheme).toBeDefined();
+      expect(hasTheme('reinit-theme')).toBe(true);
+      expect(reinitializedTheme.getThemeConfig().colors.primary).toBe('#ff0000');
+    });
+
+    it('should reinitialize an existing theme with config object containing name', () => {
+      const originalConfig = createValidConfig('reinit-config-theme');
+
+      registerTheme(originalConfig);
+
+      const reinitConfig = createValidConfig('reinit-config-theme');
+
+      reinitConfig.colors = {
+        ...mainColors,
+        primary: '#00ff00',
+      };
+
+      const reinitializedTheme = reinitTheme(reinitConfig);
+
+      expect(reinitializedTheme).toBeDefined();
+      expect(hasTheme('reinit-config-theme')).toBe(true);
+      expect(reinitializedTheme.getThemeConfig().colors.primary).toBe('#00ff00');
+    });
+
+    it('should return undefined and warn when reinitializing non-existing theme', () => {
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = reinitTheme('non-existing-theme', createValidConfig('non-existing-theme'));
+
+      expect(result).toBeUndefined();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Theme "non-existing-theme" is not registered. Cannot reinitialize a non-existent theme.'
+        )
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should replace the existing theme instance', () => {
+      const originalTheme = registerTheme(createValidConfig('replace-theme'));
+      const reinitializedTheme = reinitTheme('replace-theme', createValidConfig('replace-theme'));
+
+      expect(reinitializedTheme).not.toBe(originalTheme);
+      expect(getTheme('replace-theme')).toBe(reinitializedTheme);
+      expect(getTheme('replace-theme')).not.toBe(originalTheme);
+    });
+
+    it('should return a ThemeBuilder instance', () => {
+      registerTheme(createValidConfig('builder-theme'));
+      const reinitializedTheme = reinitTheme('builder-theme', createValidConfig('builder-theme'));
+
+      expect(typeof reinitializedTheme.getThemeConfig).toBe('function');
+      expect(typeof reinitializedTheme.params).toBe('function');
+      expect(typeof reinitializedTheme.setColorScheme).toBe('function');
+      expect(typeof reinitializedTheme.setDensityType).toBe('function');
     });
   });
 

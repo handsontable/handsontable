@@ -53,6 +53,7 @@ import {
   getThemeNames,
   getThemes,
   registerTheme,
+  reinitTheme,
 } from './themes/registry';
 
 registerAllModules();
@@ -177,6 +178,7 @@ Handsontable.themes.getTheme = getTheme;
 Handsontable.themes.getThemeNames = getThemeNames;
 Handsontable.themes.getThemes = getThemes;
 Handsontable.themes.registerTheme = registerTheme;
+Handsontable.themes.reinitTheme = reinitTheme;
 
 export {
   CellCoords,

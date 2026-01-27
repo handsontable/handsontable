@@ -56,13 +56,14 @@ export function getThemes() {
 }
 
 /**
- * Register a theme.
+ * Parse theme name and config from arguments.
  *
+ * @private
  * @param {string|object} themeNameOrConfig Theme name for specific theme or object representing theme config.
  * @param {object} [themeConfig] The theme config object (optional if first parameter has already theme config).
- * @returns {object} The registered theme (ThemeBuilder instance).
+ * @returns {{themeName: string, themeConfigObject: object}} Parsed theme name and config object.
  */
-export function registerTheme(themeNameOrConfig, themeConfig) {
+function parseThemeArgs(themeNameOrConfig, themeConfig) {
   let themeName = themeNameOrConfig;
   let themeConfigObject = deepClone(themeConfig);
 
@@ -72,6 +73,19 @@ export function registerTheme(themeNameOrConfig, themeConfig) {
     themeConfigObject = deepClone(themeNameOrConfig);
     themeName = themeConfigObject.name;
   }
+
+  return { themeName, themeConfigObject };
+}
+
+/**
+ * Register a theme.
+ *
+ * @param {string|object} themeNameOrConfig Theme name for specific theme or object representing theme config.
+ * @param {object} [themeConfig] The theme config object (optional if first parameter has already theme config).
+ * @returns {object} The registered theme (ThemeBuilder instance).
+ */
+export function registerTheme(themeNameOrConfig, themeConfig) {
+  const { themeName, themeConfigObject } = parseThemeArgs(themeNameOrConfig, themeConfig);
 
   const theme = createTheme(themeConfigObject);
 
@@ -85,3 +99,29 @@ export function registerTheme(themeNameOrConfig, themeConfig) {
 
   return theme;
 }
+
+/**
+ * Reinitialize an existing theme with a new configuration.
+ *
+ * @param {string|object} themeNameOrConfig Theme name for specific theme or object representing theme config.
+ * @param {object} [themeConfig] The theme config object to reinitialize (optional if first parameter has already theme config).
+ * @returns {object|undefined} The reinitialized theme (ThemeBuilder instance) or undefined if theme not found.
+ */
+export function reinitTheme(themeNameOrConfig, themeConfig) {
+  const { themeName, themeConfigObject } = parseThemeArgs(themeNameOrConfig, themeConfig);
+
+  if (!hasTheme(themeName)) {
+    warn(`Theme "${themeName}" is not registered. Cannot reinitialize a non-existent theme.`);
+
+    return undefined;
+  }
+
+  // Create a new theme with the new config
+  const reinitializedTheme = createTheme(themeConfigObject);
+
+  // Re-register the theme (this will replace the existing one)
+  register(themeName, reinitializedTheme);
+
+  return reinitializedTheme;
+}
+

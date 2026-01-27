@@ -33,6 +33,7 @@ import {
   getThemeNames,
   getThemes,
   registerTheme,
+  reinitTheme,
   classicTheme,
   mainTheme,
   horizonTheme,
@@ -328,6 +329,7 @@ declare namespace Handsontable {
     getThemeNames,
     getThemes,
     registerTheme,
+    reinitTheme,
     classicTheme,
     mainTheme,
     horizonTheme,
@@ -418,6 +420,7 @@ declare namespace Handsontable {
     export { getThemeNames };
     export { getThemes };
     export { registerTheme };
+    export { updateTheme };
   }
 
   export namespace plugins {
@@ -649,6 +652,7 @@ export {
   getThemeNames,
   getThemes,
   registerTheme,
+  reinitTheme,
   classicTheme,
   mainTheme,
   horizonTheme,
