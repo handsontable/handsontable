@@ -9,7 +9,6 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const [locale, setLocale] = useState('en-US');
-
   // Sample data with various numeric types
   const data = [
     {
@@ -20,7 +19,7 @@ const ExampleComponent = () => {
       distance_km: 125000,
       fuel_liters: 45.5,
       discount_percent: 0.15,
-      quantity: 1250
+      quantity: 1250,
     },
     {
       car: 'Citroen C4 Coupe',
@@ -30,7 +29,7 @@ const ExampleComponent = () => {
       distance_km: 98000,
       fuel_liters: 52.3,
       discount_percent: 0.08,
-      quantity: 2100
+      quantity: 2100,
     },
     {
       car: 'Audi A4 Avant',
@@ -40,7 +39,7 @@ const ExampleComponent = () => {
       distance_km: 45000,
       fuel_liters: 60.0,
       discount_percent: 0.05,
-      quantity: 850
+      quantity: 850,
     },
     {
       car: 'Opel Astra',
@@ -50,7 +49,7 @@ const ExampleComponent = () => {
       distance_km: 156000,
       fuel_liters: 48.7,
       discount_percent: 0.12,
-      quantity: 3200
+      quantity: 3200,
     },
     {
       car: 'BMW 320i Coupe',
@@ -60,7 +59,7 @@ const ExampleComponent = () => {
       distance_km: 32000,
       fuel_liters: 55.2,
       discount_percent: 0.03,
-      quantity: 1500
+      quantity: 1500,
     },
   ];
 

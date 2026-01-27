@@ -8,7 +8,6 @@ registerAllModules();
 
 const container = document.querySelector('#example1');
 const localeSelect = document.querySelector('#localeSelect');
-
 // Sample data with various numeric types
 const data = [
   {
@@ -19,7 +18,7 @@ const data = [
     distance_km: 125000,
     fuel_liters: 45.5,
     discount_percent: 0.15,
-    quantity: 1250
+    quantity: 1250,
   },
   {
     car: 'Citroen C4 Coupe',
@@ -29,7 +28,7 @@ const data = [
     distance_km: 98000,
     fuel_liters: 52.3,
     discount_percent: 0.08,
-    quantity: 2100
+    quantity: 2100,
   },
   {
     car: 'Audi A4 Avant',
@@ -39,7 +38,7 @@ const data = [
     distance_km: 45000,
     fuel_liters: 60.0,
     discount_percent: 0.05,
-    quantity: 850
+    quantity: 850,
   },
   {
     car: 'Opel Astra',
@@ -49,7 +48,7 @@ const data = [
     distance_km: 156000,
     fuel_liters: 48.7,
     discount_percent: 0.12,
-    quantity: 3200
+    quantity: 3200,
   },
   {
     car: 'BMW 320i Coupe',
@@ -59,14 +58,14 @@ const data = [
     distance_km: 32000,
     fuel_liters: 55.2,
     discount_percent: 0.03,
-    quantity: 1500
+    quantity: 1500,
   },
 ];
 
 // Initialize Handsontable
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
-  data: data,
+  data,
   colHeaders: ['Car', 'Year', 'Price (USD)', 'Price (EUR)', 'Distance', 'Fuel', 'Discount', 'Quantity'],
   columns: [
     {
