@@ -38,6 +38,7 @@ describe('`registerAllCellTypes`', () => {
     expect(getPluginsNames()).toEqual([]);
     expect(getRegisteredRendererNames()).toEqual([
       'text',
+      'base',
       'autocomplete',
       'checkbox',
       'date',
