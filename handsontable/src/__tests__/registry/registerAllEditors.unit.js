@@ -22,6 +22,7 @@ describe('`registerAllEditors`', () => {
       'date',
       'dropdown',
       'handsontable',
+      'intlDate',
       'numeric',
       'password',
       'select',

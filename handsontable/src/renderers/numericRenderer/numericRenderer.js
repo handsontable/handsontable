@@ -79,7 +79,7 @@ export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProp
     TD.dir = 'ltr';
   }
 
-  textRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
+  textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
 }
 
 numericRenderer.valueFormatter = valueFormatter;

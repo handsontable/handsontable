@@ -26,6 +26,7 @@ describe('`registerAllRenderers`', () => {
       'dropdown',
       'handsontable',
       'html',
+      'intlDate',
       'numeric',
       'password',
       'select',
