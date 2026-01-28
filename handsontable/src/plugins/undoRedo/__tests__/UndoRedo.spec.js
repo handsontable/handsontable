@@ -2298,4 +2298,78 @@ describe('UndoRedo', () => {
 
     expect(getPlugin('undoRedo').isUndoAvailable()).toBe(true);
   });
+
+  it('should only record changes in undo stack that are not nullified by beforeChange hook', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      beforeChange(changes) {
+        // Nullify changes made in the second column (index 1)
+        for (let i = 0; i < changes.length; i++) {
+          if (changes[i] && changes[i][1] === 1) {
+            changes[i] = null;
+          }
+        }
+      }
+    });
+
+    await setDataAtCell([
+      [0, 0, 'X1'],
+      [0, 1, 'Y1'], // Will be nullified
+      [1, 0, 'X2'],
+      [1, 1, 'Y2'], // Will be nullified
+    ]);
+
+    const undoPlugin = getPlugin('undoRedo');
+    const lastAction = undoPlugin.doneActions[undoPlugin.doneActions.length - 1];
+
+    expect(lastAction.changes.length).toBe(2);
+
+    expect(lastAction.changes.every(change => change[1] === 0)).toBe(true);
+  });
+
+  it('should undo only changes that are not nullified by beforeChange hook', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      beforeChange(changes) {
+        // Nullify changes made in the second column (index 1)
+        for (let i = 0; i < changes.length; i++) {
+          if (changes[i] && changes[i][1] === 1) {
+            changes[i] = null;
+          }
+        }
+      }
+    });
+
+    await setDataAtCell(0, 0, 'X1');
+    await setDataAtCell(0, 1, 'Y1'); // Will be nullified
+
+    expect(getDataAtCell(0, 0)).toBe('X1');
+    expect(getDataAtCell(0, 1)).toBe('B1'); // Unchanged because nullified
+
+    expect(getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+
+    getPlugin('undoRedo').undo();
+
+    expect(getDataAtCell(0, 0)).toBe('A1');
+    expect(getDataAtCell(0, 1)).toBe('B1');
+
+    expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+  });
+
+  it('should not add to undo stack when all changes are nullified by beforeChange hook', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      beforeChange(changes) {
+        for (let i = 0; i < changes.length; i++) {
+          changes[i] = null;
+        }
+      }
+    });
+
+    await setDataAtCell(0, 0, 'X1');
+
+    expect(getDataAtCell(0, 0)).toBe('A1');
+
+    expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+  });
 });
