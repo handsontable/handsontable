@@ -193,7 +193,7 @@ columns={[{
   valueFormatter(value) {
     return `$${value.toFixed(2)}`;
   },
-  renderer(hotInstance, td, row, col, prop, value, cellProperties) {
+  renderer(hotInstance, TD, row, col, prop, value, cellProperties) {
     TD.innerHTML = `<div class="amount-cell"><span class="currency">${value}</span></div>`;
   }
 }]}
