@@ -39,6 +39,31 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 [Vue 2](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
 - <i class="ico i-vue"></i> 
 [Vue 3](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
+s
+
+</div>
+
+## Examples 
+
+<div class="boxes-list gray col3">
+
+- [Angular](https://handsontable.com/stackblitz?example-dir=angular&handsontable-version={{$currentVersion}})
+- [Vanilla JS](https://handsontable.com/stackblitz?example-dir=javascript&handsontable-version={{$currentVersion}})
+- [React TS](https://handsontable.com/stackblitz?example-dir=react&handsontable-version={{$currentVersion}})
+- [React JS](https://handsontable.com/codesandbox?example-dir=react-js&handsontable-version={{$currentVersion}})
+- [TypeScript](https://handsontable.com/stackblitz?example-dir=typescript&handsontable-version={{$currentVersion}})
+- [Vue 3](https://handsontable.com/stackblitz?example-dir=vue&handsontable-version={{$currentVersion}})
+
+</div>
+
+Examples with SSR (Server Side Rendering): 
+
+<div class="boxes-list gray col3">
+
+- [Next.js](https://handsontable.com/stackblitz?example-dir=next.js&handsontable-version={{$currentVersion}})
+- [Astro](https://handsontable.com/stackblitz?example-dir=astro&handsontable-version={{$currentVersion}}) 
+- [Remix](https://handsontable.com/stackblitz?example-dir=remix&handsontable-version={{$currentVersion}})
+- [Nuxt](https://handsontable.com/stackblitz?example-dir=nuxt&handsontable-version={{$currentVersion}})
 
 </div>
 
