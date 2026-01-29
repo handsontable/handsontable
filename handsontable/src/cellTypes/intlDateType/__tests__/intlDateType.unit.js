@@ -60,7 +60,9 @@ describe('IntlDateCellType', () => {
         editor: getEditor('intlDate'),
         renderer: getRenderer('intlDate'),
         validator: getValidator('intlDate'),
+        sourceDataValidator: IntlDateCellType.sourceDataValidator,
         valueFormatter: IntlDateCellType.valueFormatter,
+        sourceDataWarningMessage: IntlDateCellType.sourceDataWarningMessage,
       });
     });
   });

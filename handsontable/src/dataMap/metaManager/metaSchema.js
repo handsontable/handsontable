@@ -1322,6 +1322,7 @@ export default () => {
      * - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
      * - [`dateFormat`](#dateFormat)
      *
+     * @deprecated
      * @memberof Options#
      * @type {boolean}
      * @default false
@@ -1762,6 +1763,7 @@ export default () => {
      * - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
      * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration)
      *
+     * @deprecated
      * @memberof Options#
      * @type {object}
      * @default undefined
@@ -1779,6 +1781,7 @@ export default () => {
      * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
      * - [`dateFormat`](#dateFormat)
      *
+     * @deprecated
      * @memberof Options#
      * @type {string}
      * @default undefined
@@ -5478,6 +5481,57 @@ export default () => {
      * ```
      */
     validator: undefined,
+
+    /**
+     * @description
+     * The [`sourceDataValidator`](@/api/options.md#sourcedatavalidator) option configures a function that validates source data when
+     * loading or updating data (for example, `loadData`, `updateData`) or when calling
+     * `setSourceDataAtCell`. It is not triggered by the `setData*` family of methods.
+     *
+     * To signal that the source data is valid, return `true`.
+     * The warning message can be configured using the [`sourceDataWarningMessage`](@/api/options.md#sourcedatawarningmessage) option.
+     *
+     * @example
+     * ```js
+     * sourceDataWarningMessage: 'The source data is invalid.',
+     * sourceDataValidator: (value, cellMeta) => {
+     *   if (cellMeta.allowEmpty && value == null) {
+     *     return true;
+     *   }
+     *
+     *   if (typeof value === 'string') {
+     *     return true;
+     *   }
+     *
+     *   return false;
+     * }
+     * ```
+     *
+     * @memberof Options#
+     * @since 17.0.0
+     * @type {function(*, CellMeta): (boolean)}
+     * @default undefined
+     * @category Core
+     */
+    sourceDataValidator: undefined,
+
+    /**
+     * @description
+     * The [`sourceDataWarningMessage`](@/api/options.md#sourcesatawarningmessage) option configures a message that will be displayed when the source data is invalid.
+     * The option is used together with the [`sourceDataValidator`](@/api/options.md#sourcedatavalidator) option.
+     *
+     * @example
+     * ```js
+     * sourceDataWarningMessage: 'The source data is invalid.',
+     * ```
+     *
+     * @memberof Options#
+     * @since 17.0.0
+     * @type {string}
+     * @default undefined
+     * @category Core
+     */
+    sourceDataWarningMessage: undefined,
 
     /**
      * @description

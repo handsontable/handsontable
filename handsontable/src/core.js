@@ -24,7 +24,6 @@ import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
-import DataSource from './dataMap/dataSource';
 import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
@@ -33,10 +32,13 @@ import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
 import {
+  DataSource,
   MetaManager,
   DynamicCellMetaMod,
   ExtendMetaPropertiesMod,
   replaceData,
+  runSourceDataValidator,
+  runSourceDataValidators,
 } from './dataMap';
 import {
   createViewportScroller,
@@ -2831,6 +2833,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
+    // for the first run, we need to run the source data warnings after cell meta initialization
+    // otherwise there is no access to `sourceDataValidator` function
+    if (firstRun) {
+      runSourceDataValidators(instance, 'init');
+    }
+
     if (isDefined(settings.cell)) {
       objectEach(settings.cell, (cell) => {
         instance.setCellMetaObject(cell.row, cell.col, cell);
@@ -3396,12 +3404,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+      const cellMeta = getCellProperties(changeRow, changeProp);
       const newValue = getValueSetterValue(
         changeValue,
-        getCellProperties(changeRow, changeProp)
+        cellMeta
       );
 
-      dataSource.setAtCell(changeRow, changeProp, newValue);
+      if (runSourceDataValidator(newValue, cellMeta, source ?? 'setSourceDataAtCell')) {
+        dataSource.setAtCell(changeRow, changeProp, newValue);
+      }
     });
 
     if (isThereAnySetSourceListener) {
@@ -5426,6 +5437,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this._getEditorManager = function() {
     return editorManager;
+  };
+
+  /**
+   * Gets the instance of the DataSource.
+   *
+   * @private
+   * @returns {DataSource}
+   */
+  this._getDataSource = function() {
+    return dataSource;
   };
 
   const shortcutManager = createShortcutManager({

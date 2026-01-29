@@ -4,7 +4,7 @@ import DataMap from './dataMap';
 import { deepClone } from '../helpers/object';
 import { setAttribute } from '../helpers/dom/element';
 import { A11Y_COLCOUNT, A11Y_ROWCOUNT } from '../helpers/a11y';
-
+import { runSourceDataValidators } from './sourceDataValidator';
 /**
  * Loads new data to Handsontable.
  *
@@ -114,6 +114,10 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
 
   // Run the logic for reassuring that the table structure fits the new dataset.
   callbackFunction(newDataMap);
+
+  if (!firstRun) {
+    runSourceDataValidators(hotInstance, source);
+  }
 
   hotInstance.runHooks(`after${capitalizedInternalSource}`, data, firstRun, source);
 

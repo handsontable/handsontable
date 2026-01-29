@@ -1,3 +1,8 @@
+import { deprecatedWarn } from '../../../helpers/console';
+
+const defaultDateDeprecatedMessageShown = new WeakSet();
+const correctFormatDeprecatedMessageShown = new WeakSet();
+
 /**
  * @class ExtendMetaPropertiesMod
  */
@@ -31,6 +36,28 @@ export class ExtendMetaPropertiesMod {
         if (this.usageTracker.has('fixedColumnsLeft') && this.usageTracker.has('fixedColumnsStart')) {
           throw new Error('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
             'Please use only the option `fixedColumnsStart`.');
+        }
+      }
+    }],
+    ['defaultDate', {
+      onChange() {
+        if (!defaultDateDeprecatedMessageShown.has(this.metaManager.hot)) {
+          defaultDateDeprecatedMessageShown.add(this.metaManager.hot);
+          deprecatedWarn(
+            'The `defaultDate` option is deprecated and will be removed in the next major release.\n\n' +
+            'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/'
+          );
+        }
+      }
+    }],
+    ['correctFormat', {
+      onChange() {
+        if (!correctFormatDeprecatedMessageShown.has(this.metaManager.hot)) {
+          correctFormatDeprecatedMessageShown.add(this.metaManager.hot);
+          deprecatedWarn(
+            'The `correctFormat` option is deprecated and will be removed in the next major release.\n\n' +
+            'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/'
+          );
         }
       }
     }],

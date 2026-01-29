@@ -5,7 +5,7 @@ import { isEmpty } from './mixed';
  *
  * @type {RegExp}
  */
-export const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+export const ISO_DATE_REGEX = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
 /**
  * Get normalized Date object for the ISO formatted date strings.
@@ -61,5 +61,5 @@ export function isValidISODate(value) {
 
   const date = new Date(value);
 
-  return !Number.isNaN(date.getTime());
+  return !Number.isNaN(date.getTime()) && value === date.toISOString().slice(0, 10);
 }

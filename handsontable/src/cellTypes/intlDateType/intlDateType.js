@@ -1,6 +1,10 @@
 import { IntlDateEditor } from '../../editors/intlDateEditor';
 import { intlDateRenderer, valueFormatter } from '../../renderers/intlDateRenderer';
-import { intlDateValidator } from '../../validators/intlDateValidator';
+import {
+  SOURCE_DATA_WARNING_MESSAGE,
+  intlDateValidator,
+  sourceDataValidator,
+} from '../../validators/intlDateValidator';
 
 export const CELL_TYPE = 'intlDate';
 export const IntlDateCellType = {
@@ -8,5 +12,7 @@ export const IntlDateCellType = {
   editor: IntlDateEditor,
   renderer: intlDateRenderer,
   validator: intlDateValidator,
+  sourceDataValidator,
+  sourceDataWarningMessage: SOURCE_DATA_WARNING_MESSAGE,
   valueFormatter,
 };
