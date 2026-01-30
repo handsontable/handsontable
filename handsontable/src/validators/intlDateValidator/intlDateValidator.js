@@ -19,11 +19,7 @@ export function sourceDataValidator(value, cellMeta) {
     return true;
   }
 
-  if (isValidISODate(value)) {
-    return true;
-  }
-
-  return false;
+  return isValidISODate(value);
 }
 
 /**

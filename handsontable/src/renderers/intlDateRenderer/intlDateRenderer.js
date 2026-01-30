@@ -23,10 +23,10 @@ export function valueFormatter(value, cellProperties) {
     return value;
   }
 
-  const { dateFormat, locale } = cellProperties;
+  const { dateFormat, locale, allowEmpty } = cellProperties;
   const date = parseToLocalDate(value);
 
-  if (date === null) {
+  if (date === null && allowEmpty === false) {
     return BAD_VALUE_TEXT;
   }
 

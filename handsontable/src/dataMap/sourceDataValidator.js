@@ -10,7 +10,7 @@ import { stringify } from '../helpers/mixed';
  * @param {string} [source] The call source identifier.
  * @returns {boolean|string} True if valid, a message/false otherwise.
  */
-export function runSourceDataValidator(value, cellMeta, source) {
+export function runSourceDataValidator(value, cellMeta, source, logWarning = true) {
   const validator = cellMeta.sourceDataValidator;
 
   if (!isFunction(validator)) {
@@ -18,17 +18,22 @@ export function runSourceDataValidator(value, cellMeta, source) {
   }
 
   const isValid = validator(value, cellMeta, source);
+
+  if (isValid === true) {
+    return true;
+  }
+
   const {
     row,
     col,
     sourceDataWarningMessage,
   } = cellMeta;
 
-  if (!isValid && sourceDataWarningMessage) {
+  if (logWarning && !isValid && sourceDataWarningMessage) {
     logSourceDataWarning(sourceDataWarningMessage, [{ row, col, value }]);
   }
 
-  return isValid;
+  return cellMeta.allowInvalid === true ? true : false;
 }
 
 /**
@@ -60,16 +65,11 @@ export function runSourceDataValidators(hotInstance, source) {
       const cellMeta = hotInstance.getCellMeta(visualRow, visualColumn);
       const {
         sourceDataWarningMessage,
-        sourceDataValidator,
       } = cellMeta;
       const dataSource = hotInstance._getDataSource();
       const value = dataSource.getAtCell(row, col, null);
 
-      if (!isFunction(sourceDataValidator)) {
-        continue;
-      }
-
-      const validationResult = sourceDataValidator(value, cellMeta, source);
+      const validationResult = runSourceDataValidator(value, cellMeta, source, false);
 
       if (validationResult === true) {
         continue;
