@@ -549,12 +549,12 @@ This example shows how to use custom cell renderers to display HTML content in a
 
 ::: only-for angular
 
-<!-- ::: example #example5 :angular --ts 1 --html 2
+::: example #example5 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example5.ts)
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example5.html)
 
-::: -->
+:::
 
 :::
 
@@ -587,12 +587,12 @@ You can also put HTML into row and column headers. If you need to attach events 
 
 ::: only-for angular
 
-<!-- ::: example #example6 :angular --ts 1 --html 2
+::: example #example6 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example6.ts)
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example6.html)
 
-::: -->
+:::
 
 :::
 
