@@ -59,6 +59,7 @@ describe('`registerAllPlugins`', () => {
     ]);
     expect(getRegisteredRendererNames()).toEqual([
       'text',
+      'base',
     ]);
     expect(getRegisteredValidatorNames()).toEqual([]);
   });

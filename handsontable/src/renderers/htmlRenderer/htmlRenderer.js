@@ -1,4 +1,3 @@
-import { baseRenderer } from '../baseRenderer';
 import { fastInnerHTML } from '../../helpers/dom/element';
 
 export const RENDERER_TYPE = 'html';
@@ -11,11 +10,8 @@ export const RENDERER_TYPE = 'html';
  * @param {number} col The visual column index.
  * @param {number|string} prop The column property (passed when datasource is an array of objects).
  * @param {*} value The rendered value.
- * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
-export function htmlRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
-  baseRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
-
+export function htmlRenderer(hotInstance, TD, row, col, prop, value) {
   fastInnerHTML(TD, value === null || value === undefined ? '' : value, false);
 }
 
