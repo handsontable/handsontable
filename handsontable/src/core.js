@@ -2833,12 +2833,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
-    // for the first run, we need to run the source data warnings after cell meta initialization
-    // otherwise there is no access to `sourceDataValidator` function
-    if (firstRun) {
-      runSourceDataValidators(instance, 'init');
-    }
-
     if (isDefined(settings.cell)) {
       objectEach(settings.cell, (cell) => {
         instance.setCellMetaObject(cell.row, cell.col, cell);
@@ -2846,6 +2840,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     instance.runHooks('afterCellMetaReset');
+
+    // for the first run, we need to run the source data warnings after cell meta initialization
+    // otherwise there is no access to `sourceDataValidator` function
+    if (firstRun) {
+      runSourceDataValidators(instance, 'init');
+    }
 
     let currentHeight = instance.rootElement.style.height;
 

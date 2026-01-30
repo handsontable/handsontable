@@ -22,6 +22,7 @@ import {
   DateCellType,
   DropdownCellType,
   HandsontableCellType,
+  IntlDateCellType,
   NumericCellType,
   PasswordCellType,
   SelectCellType,
@@ -37,6 +38,7 @@ import {
   DateEditor,
   DropdownEditor,
   HandsontableEditor,
+  IntlDateEditor,
   NumericEditor,
   PasswordEditor,
   SelectEditor,
@@ -56,6 +58,7 @@ import {
   checkboxRenderer,
   htmlRenderer,
   handsontableRenderer,
+  intlDateRenderer,
   numericRenderer,
   passwordRenderer,
   selectRenderer,
@@ -70,6 +73,7 @@ import {
   autocompleteValidator,
   dropdownValidator,
   dateValidator,
+  intlDateValidator,
   numericValidator,
   timeValidator ,
   getValidator,
@@ -316,6 +320,7 @@ declare namespace Handsontable {
     export { DateCellType as date };
     export { DropdownCellType as dropdown };
     export { HandsontableCellType as handsontable };
+    export { IntlDateCellType as intlDate };
     export { NumericCellType as numeric };
     export { PasswordCellType as password };
     export { TextCellType as text };
@@ -332,6 +337,7 @@ declare namespace Handsontable {
     export { DateEditor };
     export { DropdownEditor };
     export { HandsontableEditor };
+    export { IntlDateEditor };
     export { NumericEditor };
     export { PasswordEditor };
     export { SelectEditor };
@@ -350,6 +356,7 @@ declare namespace Handsontable {
     export { checkboxRenderer as CheckboxRenderer };
     export { htmlRenderer as HtmlRenderer };
     export { handsontableRenderer as HandsontableRenderer };
+    export { intlDateRenderer as IntlDateRenderer };
     export { numericRenderer as NumericRenderer };
     export { passwordRenderer as PasswordRenderer };
     export { textRenderer as TextRenderer };
@@ -365,6 +372,7 @@ declare namespace Handsontable {
     export { autocompleteValidator as AutocompleteValidator };
     export { dropdownValidator as DropdownValidator };
     export { dateValidator as DateValidator };
+    export { intlDateValidator as IntlDateValidator };
     export { numericValidator as NumericValidator };
     export { timeValidator as TimeValidator };
     export { registerValidator };

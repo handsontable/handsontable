@@ -1,1 +1,1 @@
-export { RENDERER_TYPE, numericRenderer } from './numericRenderer';
+export { RENDERER_TYPE, numericRenderer, valueFormatter } from './numericRenderer';

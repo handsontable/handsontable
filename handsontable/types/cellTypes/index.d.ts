@@ -3,6 +3,7 @@ import { CheckboxCellType, CELL_TYPE as CHECKBOX_TYPE } from './checkboxType';
 import { DateCellType, CELL_TYPE as DATE_TYPE } from './dateType';
 import { DropdownCellType, CELL_TYPE as DROPDOWN_TYPE } from './dropdownType';
 import { HandsontableCellType, CELL_TYPE as HANDSONTABLE_TYPE } from './handsontableType';
+import { IntlDateCellType, CELL_TYPE as INTL_DATE_TYPE } from './intlDateType';
 import { NumericCellType, CELL_TYPE as NUMERIC_TYPE } from './numericType';
 import { PasswordCellType, CELL_TYPE as PASSWORD_TYPE } from './passwordType';
 import { SelectCellType, CELL_TYPE as SELECT_TYPE } from './selectType';
@@ -17,6 +18,7 @@ export interface CellTypes {
   date: typeof DateCellType;
   dropdown: typeof DropdownCellType;
   handsontable: typeof HandsontableCellType;
+  intlDate: typeof IntlDateCellType;
   numeric: typeof NumericCellType;
   password: typeof PasswordCellType;
   select: typeof SelectCellType;
@@ -35,6 +37,7 @@ export {
   DateCellType, DATE_TYPE,
   DropdownCellType, DROPDOWN_TYPE,
   HandsontableCellType, HANDSONTABLE_TYPE,
+  IntlDateCellType, INTL_DATE_TYPE,
   NumericCellType, NUMERIC_TYPE,
   PasswordCellType, PASSWORD_TYPE,
   SelectCellType, SELECT_TYPE,

@@ -8,7 +8,8 @@ import { stringify } from '../helpers/mixed';
  * @param {*} value The value of the cell.
  * @param {CellProperties} cellMeta The cell meta object.
  * @param {string} [source] The call source identifier.
- * @returns {boolean|string} True if valid, a message/false otherwise.
+ * @param {boolean} [logWarning] Whether to log a warning if the value is invalid.
+ * @returns {boolean} True if valid, false otherwise.
  */
 export function runSourceDataValidator(value, cellMeta, source, logWarning = true) {
   const validator = cellMeta.sourceDataValidator;
@@ -33,7 +34,7 @@ export function runSourceDataValidator(value, cellMeta, source, logWarning = tru
     logSourceDataWarning(sourceDataWarningMessage, [{ row, col, value }]);
   }
 
-  return cellMeta.allowInvalid === true ? true : false;
+  return cellMeta.allowInvalid === true;
 }
 
 /**
@@ -65,7 +66,13 @@ export function runSourceDataValidators(hotInstance, source) {
       const cellMeta = hotInstance.getCellMeta(visualRow, visualColumn);
       const {
         sourceDataWarningMessage,
+        sourceDataValidator,
       } = cellMeta;
+
+      if (!isFunction(sourceDataValidator)) {
+        continue;
+      }
+
       const dataSource = hotInstance._getDataSource();
       const value = dataSource.getAtCell(row, col, null);
 

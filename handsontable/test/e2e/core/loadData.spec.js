@@ -355,7 +355,7 @@ describe('Core.loadData', () => {
       cells: cellsSpy,
     });
 
-    expect(cellsSpy.calls.count()).toBe(12);
+    expect(cellsSpy.calls.count()).toBe(24); // 12 calls x 2 (for rendering engine and data source validation)
   });
 
   // https://github.com/handsontable/handsontable/pull/233
@@ -389,7 +389,7 @@ describe('Core.loadData', () => {
       cells: cellsSpy
     });
 
-    expect(cellsSpy.calls.count()).toBe(12);
+    expect(cellsSpy.calls.count()).toBe(24); // 12 calls x 2 (for rendering engine and data source validation)
   });
 
   it('should not invoke the cells callback multiple times with the same row/col (with overlays, separate `loadData`' +
