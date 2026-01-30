@@ -165,6 +165,150 @@ settings = {
 
 Using both `renderer` and `valueFormatter` together is recommended when you need both value formatting and custom DOM structure. This approach separates concerns: `valueFormatter` handles value transformation, while `renderer` focuses on DOM manipulation. This separation improves maintainability and code clarity. The `valueFormatter` executes first, transforming the value, and then the `renderer` receives the formatted value:
 
+## Overview
+
+A renderer is a function that determines how a cell looks. It's responsible for the complete cell rendering process, including DOM structure creation, content insertion, applying CSS classes, setting accessibility attributes, and managing all visual aspects of the cell.
+
+::: tip
+
+If you only need to format the displayed value (e.g., add units, format dates, or apply text transformations), consider using the [`valueFormatter`](@/api/options.md#valueformatter) option instead. It's more performant and simpler for value-only transformations. Use a renderer when you need to modify the DOM structure, add custom HTML elements, or handle complex visual layouts. See the [`renderer` vs `valueFormatter`](#renderer-vs-valueformatter) section for a detailed comparison.
+
+:::
+
+### Built-in renderers
+
+Handsontable provides 10 built-in renderers that you can use by their alias names. Each renderer is designed for a specific use case:
+
+| Alias | What the renderer does |
+|-------|------------------------|
+| `autocomplete` | Renders autocomplete cells with suggestions |
+| `checkbox` | Renders checkbox cells for boolean values or values defined by [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate) options |
+| `date` | Renders date values with date formatting |
+| `dropdown` | Renders dropdown cells with select options |
+| `html` | Renders HTML content in cells (allows raw HTML) |
+| `numeric` | Renders numeric values with number formatting |
+| `password` | Renders password fields (masks the displayed value) |
+| `text` | Renders plain text (default renderer) |
+| `time` | Renders time values with time formatting |
+
+Using aliases provides a convenient way to specify which renderer should be used without needing to reference the full renderer function. You can change the renderer function associated with an alias without modifying the code that uses it.
+
+## `renderer` vs `valueFormatter`
+
+As mentioned in the [Overview](#overview), Handsontable provides two distinct options for controlling how cell values are displayed: [`valueFormatter`](@/api/options.md#valueformatter) and [`renderer`](@/api/options.md#renderer). This section provides a detailed comparison to help you choose the right tool for your use case.
+
+### What is `renderer`?
+
+The `renderer` option is a function responsible for the complete cell rendering process. It handles DOM structure creation, content insertion (via `innerText` or `innerHTML`), applying CSS classes, setting accessibility attributes, and managing all visual aspects of the cell.
+
+**Function signature:**
+```js
+renderer(hotInstance, td, row, col, prop, value, cellProperties)
+```
+
+**When to use `renderer`:**
+- Modify DOM structure (add icons, custom HTML elements, complex layouts)
+- Apply custom styling or CSS classes dynamically
+- Handle accessibility attributes
+- Create interactive elements within cells
+- When you need full control over the cell's HTML structure
+
+**Example:**
+
+```js
+function customRenderer(hotInstance, td, row, col, prop, value, cellProperties) {
+  // Create custom DOM structure
+  td.innerHTML = `
+    <div class="custom-wrapper">
+      <span class="icon">📊</span>
+      <span class="value">${value}</span>
+    </div>
+  `;
+}
+```
+
+### What is `valueFormatter`?
+
+The `valueFormatter` option (available since v17.0.0) is a function that transforms cell values before they are displayed. It focuses solely on value transformation and is called by the rendering engine right before the renderer function executes.
+
+**Function signature:**
+```js
+valueFormatter(value, cellProperties) => formattedValue
+```
+
+**When to use `valueFormatter`:**
+- Transform displayed values (add prefix, suffix, units)
+- Format dates, numbers, or text in a custom way
+- Apply simple text transformations
+- When you only need to change what is displayed, not how it's rendered
+
+**Example:**
+
+::: only-for javascript
+
+```js
+columns: [
+  {
+    data: 'price',
+    valueFormatter(value) {
+      return value ? `$${value.toFixed(2)}` : '';
+    }
+  },
+  {
+    data: 'weight',
+    valueFormatter(value) {
+      return value ? `${value} kg` : '';
+    }
+  }
+]
+```
+
+:::
+
+::: only-for react
+
+```jsx
+columns={[{
+  data: 'price',
+  valueFormatter(value) {
+    return value ? `$${value.toFixed(2)}` : '';
+  }
+}]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      data: 'price',
+      valueFormatter(value) {
+        return value ? `$${value.toFixed(2)}` : '';
+      }
+    }
+  ]
+};
+```
+
+:::
+
+### Key differences
+
+| Aspect | `valueFormatter` | `renderer` |
+|--------|------------------|------------|
+| **Purpose** | Transform the value | Complete cell rendering |
+| **Scope** | Value transformation only | DOM structure, styling, accessibility |
+| **Performance** | Faster (called before renderer) | More overhead (full DOM manipulation) |
+| **Use case** | Simple formatting (units, prefixes) | Complex layouts, custom HTML |
+| **Returns** | Formatted value | Nothing (modifies DOM directly) |
+
+### Using `renderer` and `valueFormatter` together
+
+Using both `renderer` and `valueFormatter` together is recommended when you need both value formatting and custom DOM structure. This approach separates concerns: `valueFormatter` handles value transformation, while `renderer` focuses on DOM manipulation. This separation improves maintainability and code clarity. The `valueFormatter` executes first, transforming the value, and then the `renderer` receives the formatted value:
+
 ::: only-for javascript
 
 ```js
@@ -245,6 +389,34 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
+```jsx
+<HotTable
+  data={someData}
+  columns={[
+    {
+      renderer: "numeric",
+    },
+  ]}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      renderer: "numeric",
+    },
+  ]
+};
+```
+
+:::
+
+::: only-for react
 ```jsx
 <HotTable
   data={someData}
@@ -390,17 +562,23 @@ All the sections below describe how to utilize the features available for the Ha
 :::
 
 :::
+:::
 
 ## Register custom cell renderer
 
+To register your own alias use `registerRenderer()` function from the `@handsontable/renderers` package. It takes two arguments:
 To register your own alias use `registerRenderer()` function from the `@handsontable/renderers` package. It takes two arguments:
 
 - `rendererName` - a string representing a renderer function
 - `renderer` - a renderer function that will be represented by `rendererName`
 
 If you'd like to register `asteriskDecoratorRenderer` under alias `asterisk` you have to call:
+If you'd like to register `asteriskDecoratorRenderer` under alias `asterisk` you have to call:
 
 ```js
+import { registerRenderer } from "@handsontable/renderers";
+
+registerRenderer("asterisk", asteriskDecoratorRenderer);
 import { registerRenderer } from "@handsontable/renderers";
 
 registerRenderer("asterisk", asteriskDecoratorRenderer);
@@ -410,6 +588,7 @@ registerRenderer("asterisk", asteriskDecoratorRenderer);
 
 ::: tip
 
+When using `registerRenderer()`, remember to call it at startup (e.g. in `main.ts` or `AppModule`), not in the component constructor. This ensures the renderer is registered before the table is initialized.
 When using `registerRenderer()`, remember to call it at startup (e.g. in `main.ts` or `AppModule`), not in the component constructor. This ensures the renderer is registered before the table is initialized.
 
 :::
@@ -422,8 +601,12 @@ Choose aliases wisely. If you register your renderer under name that is already 
 import { registerRenderer } from "@handsontable/renderers";
 
 registerRenderer("text", asteriskDecoratorRenderer);
+import { registerRenderer } from "@handsontable/renderers";
+
+registerRenderer("text", asteriskDecoratorRenderer);
 ```
 
+Now `"text"` alias points to `asteriskDecoratorRenderer` function, not the built-in `textRenderer`.
 Now `"text"` alias points to `asteriskDecoratorRenderer` function, not the built-in `textRenderer`.
 
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your renderer, because you never know aliases has been registered by the user who uses your renderer.
@@ -432,11 +615,17 @@ So, unless you intentionally want to overwrite an existing alias, try to choose 
 import { registerRenderer } from "@handsontable/renderers";
 
 registerRenderer("asterisk", asteriskDecoratorRenderer);
+import { registerRenderer } from "@handsontable/renderers";
+
+registerRenderer("asterisk", asteriskDecoratorRenderer);
 ```
 
 Someone might already registered such alias
 
 ```js
+import { registerRenderer } from "@handsontable/renderers";
+
+registerRenderer("my.asterisk", asteriskDecoratorRenderer);
 import { registerRenderer } from "@handsontable/renderers";
 
 registerRenderer("my.asterisk", asteriskDecoratorRenderer);
@@ -453,6 +642,8 @@ To sum up, a well prepared renderer function should look like this:
 ```js
 import { registerRenderer } from "@handsontable/renderers";
 
+import { registerRenderer } from "@handsontable/renderers";
+
 function customRenderer(
   hotInstance,
   td,
@@ -466,6 +657,7 @@ function customRenderer(
 }
 
 // Register an alias
+registerRenderer("my.custom", customRenderer);
 registerRenderer("my.custom", customRenderer);
 ```
 
@@ -506,10 +698,12 @@ const hot = new Handsontable(container, {
 
 ```ts
 settings = {
+settings = {
   columns: [
     {
       renderer: "my.custom",
     },
+  ]
   ]
 };
 ```
@@ -614,8 +808,11 @@ If you did't find a suitable _Handsontable event_ put the cell content into a wr
 Cell renderers are called separately for every displayed cell, during every table render. Table can be rendered multiple times during its lifetime (after table scroll, after table sorting, after cell edit etc.), therefore you should keep your `renderer` functions as simple and fast as possible or you might experience a performance drop, especially when dealing with large sets of data.
 
 If you only need to format the displayed value (e.g., add units, format dates, or apply text transformations), consider using the [`valueFormatter`](@/api/options.md#valueformatter) option instead of a custom renderer. The `valueFormatter` is called before the renderer and focuses solely on value transformation, making it more performant for simple formatting tasks. Use a renderer when you need to modify the DOM structure, add custom HTML elements, or handle complex visual layouts.
+If you only need to format the displayed value (e.g., add units, format dates, or apply text transformations), consider using the [`valueFormatter`](@/api/options.md#valueformatter) option instead of a custom renderer. The `valueFormatter` is called before the renderer and focuses solely on value transformation, making it more performant for simple formatting tasks. Use a renderer when you need to modify the DOM structure, add custom HTML elements, or handle complex visual layouts.
 
 ## Related articles
+
+::: only-for javascript
 
 ::: only-for javascript
 
@@ -632,12 +829,15 @@ If you only need to format the displayed value (e.g., add units, format dates, o
 
 :::
 
+:::
+
 ### Related API reference
 
 - APIs:
   - [`BasePlugin`](@/api/basePlugin.md)
 - Configuration options:
   - [`renderer`](@/api/options.md#renderer)
+  - [`valueFormatter`](@/api/options.md#valueformatter)
   - [`valueFormatter`](@/api/options.md#valueformatter)
 - Core methods:
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
