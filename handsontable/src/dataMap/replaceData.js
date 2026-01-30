@@ -116,7 +116,7 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
   callbackFunction(newDataMap);
 
   if (!firstRun) {
-    runSourceDataValidators(hotInstance, source);
+    runSourceDataValidators(hotInstance, internalSource);
   }
 
   hotInstance.runHooks(`after${capitalizedInternalSource}`, data, firstRun, source);

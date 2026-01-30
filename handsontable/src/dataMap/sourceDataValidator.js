@@ -8,10 +8,9 @@ import { stringify } from '../helpers/mixed';
  * @param {*} value The value of the cell.
  * @param {CellProperties} cellMeta The cell meta object.
  * @param {string} [source] The call source identifier.
- * @param {boolean} [logWarning] Whether to log a warning if the value is invalid.
  * @returns {boolean} True if valid, false otherwise.
  */
-export function runSourceDataValidator(value, cellMeta, source, logWarning = true) {
+export function runSourceDataValidator(value, cellMeta, source) {
   const validator = cellMeta.sourceDataValidator;
 
   if (!isFunction(validator)) {
@@ -28,13 +27,14 @@ export function runSourceDataValidator(value, cellMeta, source, logWarning = tru
     row,
     col,
     sourceDataWarningMessage,
+    allowInvalid,
   } = cellMeta;
 
-  if (logWarning && !isValid && sourceDataWarningMessage) {
+  if (sourceDataWarningMessage) {
     logSourceDataWarning(sourceDataWarningMessage, [{ row, col, value }]);
   }
 
-  return cellMeta.allowInvalid === true;
+  return allowInvalid === true;
 }
 
 /**
@@ -67,6 +67,7 @@ export function runSourceDataValidators(hotInstance, source) {
       const {
         sourceDataWarningMessage,
         sourceDataValidator,
+        allowInvalid,
       } = cellMeta;
 
       if (!isFunction(sourceDataValidator)) {
@@ -75,14 +76,15 @@ export function runSourceDataValidators(hotInstance, source) {
 
       const dataSource = hotInstance._getDataSource();
       const value = dataSource.getAtCell(row, col, null);
+      const isValid = sourceDataValidator(value, cellMeta, source);
 
-      const validationResult = runSourceDataValidator(value, cellMeta, source, false);
-
-      if (validationResult === true) {
+      if (isValid === true) {
         continue;
       }
 
-      dataSource.setAtCell(row, col, null);
+      if (allowInvalid === false) {
+        dataSource.setAtCell(row, col, null);
+      }
 
       if (sourceDataWarningMessage) {
         const message = sourceDataWarningMessage;
@@ -114,7 +116,7 @@ function logSourceDataWarning(message, items) {
       const rawValue = stringify(value);
       const shortValue = rawValue.length > 64 ? `${rawValue.slice(0, 64)}...` : rawValue;
 
-      return `row ${row}, col ${col}, value: ${shortValue}`;
+      return `row ${row}, col ${col}, value: "${shortValue}"`;
     },
   });
 }

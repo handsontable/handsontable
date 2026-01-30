@@ -19,14 +19,15 @@ const DEFAULT_INTL_FORMAT = {
  * @returns {*} Returns the rendered value.
  */
 export function valueFormatter(value, cellProperties) {
+  const { dateFormat, locale, allowEmpty } = cellProperties;
+
   if (isEmpty(value)) {
-    return value;
+    return allowEmpty ? value : BAD_VALUE_TEXT;
   }
 
-  const { dateFormat, locale, allowEmpty } = cellProperties;
   const date = parseToLocalDate(value);
 
-  if (date === null && allowEmpty === false) {
+  if (date === null) {
     return BAD_VALUE_TEXT;
   }
 

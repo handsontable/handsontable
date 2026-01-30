@@ -1,4 +1,7 @@
 import { TextEditor } from '../textEditor';
+import { isValidISODate } from '../../helpers/date';
+import { warn } from '../../helpers/console';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 export const EDITOR_TYPE = 'intlDate';
 
@@ -31,6 +34,22 @@ export class IntlDateEditor extends TextEditor {
   }
 
   /**
+   * Set the value of the editor.
+   *
+   * @param {*} value The value to set.
+   */
+  setValue(value) {
+    if (!isValidISODate(value)) {
+      warn(toSingleLine`IntlDateEditor: value must be in ISO date format (YYYY-MM-DD)\x20
+        required by the native date input. Received:`, value);
+
+      return;
+    }
+
+    super.setValue(value);
+  }
+
+  /**
    * Sets focus state on the select element.
    */
   focus() {
@@ -45,6 +64,11 @@ export class IntlDateEditor extends TextEditor {
    */
   open() {
     super.open();
-    this.TEXTAREA.showPicker();
+
+    // Prevents "Failed to execute 'showPicker' on 'HTMLInputElement': HTMLInputElement::showPicker() requires a user gesture." errors
+    // when running tests or calling the method directly out of the event-loop cycle.
+    try {
+      this.TEXTAREA.showPicker();
+    } catch {} // eslint-disable-line no-empty
   }
 }

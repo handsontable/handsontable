@@ -4507,6 +4507,80 @@ export default () => {
     valueFormatter: undefined,
 
     /**
+     * @description
+     * The `valueParser` option sets a custom function for converting editor output into the source data format.
+     *
+     * Unlike [`valueFormatter`](#valueformatter), which formats values for display, `valueParser` runs only when a
+     * value comes from the [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) - after the user finishes
+     * editing. It maps whatever the editor returns (e.g. a localized date string, a formatted number) into the
+     * canonical shape stored in the data source (e.g. ISO date string, raw number).
+     *
+     * **When to use `valueParser` vs `valueFormatter`:**
+     *
+     * | Use case                               | Option           |
+     * | -------------------------------------- | ---------------- |
+     * | Display: raw value -> shown text       | `valueFormatter` |
+     * | Edit: editor value -> source data      | `valueParser`    |
+     *
+     * **Function signature:**
+     * ```js
+     * valueParser(value, cellProperties) => sourceValue
+     * ```
+     *
+     * | Parameter        | Type     | Description                                    |
+     * | ---------------- | -------- | ---------------------------------------------- |
+     * | `value`          | `*`      | The value produced by the editor               |
+     * | `cellProperties` | `object` | The cell's meta object (see {@link Core#getCellMeta}) |
+     * | Returns          | `*`      | The value to store in the source data          |
+     *
+     * Read more:
+     * - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
+     * - [`editor`](#editor)
+     * - [`renderer`](#renderer)
+     * - [`valueFormatter`](#valueformatter)
+     * - [`sourceDataValidator`](#sourcedatavalidator)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     *
+     * @memberof Options#
+     * @since 17.0.0
+     * @type {Function}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // parse editor string to ISO date (e.g. intlDate: display format => source format)
+     * valueParser(value, cellProperties) {
+     *   if (value == null || value === '') {
+     *     return null;
+     *   }
+     *
+     *   const date = new Date(value);
+     *
+     *   return Number.isNaN(date.getTime()) ? value : date.toISOString().slice(0, 10);
+     * }
+     *
+     * // parse formatted number string to number
+     * valueParser(value, cellProperties) {
+     *   if (value == null || value === '') {
+     *     return null;
+     *   }
+     *
+     *   const num = Number(value.replace(/[^\d.-]/g, ''));
+     *
+     *   return Number.isNaN(num) ? value : num;
+     * }
+     *
+     * // apply valueParser per column
+     * columns: [
+     *   { data: 'date', valueParser: (value) => value ? new Date(value).toISOString().slice(0, 10) : null },
+     *   { data: 'amount', valueParser: (value) => value != null ? Number(value) : null }
+     * ]
+     * ```
+     */
+    valueParser: undefined,
+
+    /**
      * The `rowHeaders` option configures your grid's row headers.
      *
      * You can set the `rowHeaders` option to one of the following:
@@ -5484,12 +5558,21 @@ export default () => {
 
     /**
      * @description
-     * The [`sourceDataValidator`](@/api/options.md#sourcedatavalidator) option configures a function that validates source data when
-     * loading or updating data (for example, `loadData`, `updateData`) or when calling
-     * `setSourceDataAtCell`. It is not triggered by the `setData*` family of methods.
+     * The [`sourceDataValidator`](@/api/options.md#sourcedatavalidator) option sets a function that validates values
+     * when they are written to the source data layer. Validation runs on table initialization and when calling
+     * [`loadData`](@/api/core.md#loaddata), [`updateData`](@/api/core.md#updatedata), or
+     * [`setSourceDataAtCell`](@/api/core.md#setsourcedataatcell). It does not run for the `setData*` family of methods.
      *
-     * To signal that the source data is valid, return `true`.
-     * The warning message can be configured using the [`sourceDataWarningMessage`](@/api/options.md#sourcedatawarningmessage) option.
+     * Return `true` from the function to mark the value as valid, or `false` to mark it invalid. When a value is
+     * invalid and [`allowInvalid`](@/api/options.md#allowinvalid) is `false`, it is replaced with `null` in the
+     * source (on initialization and when calling `loadData` or `updateData`). When `allowInvalid` is `true`, invalid
+     * values are kept; a warning is still logged when the validator returns `false`. An exception:
+     * [`setSourceDataAtCell`](@/api/core.md#setsourcedataatcell) - when the validator returns `false`, the write is
+     * skipped and the cell is not nullified; the previous value in the source remains unchanged. Use
+     * [`allowEmpty`](@/api/options.md#allowempty) to treat `null`, `undefined`, or `''` as valid when appropriate.
+     *
+     * Optionally set [`sourceDataWarningMessage`](@/api/options.md#sourcedatawarningmessage) to customize the
+     * message logged for invalid values.
      *
      * @example
      * ```js
@@ -5517,8 +5600,8 @@ export default () => {
 
     /**
      * @description
-     * The [`sourceDataWarningMessage`](@/api/options.md#sourcesatawarningmessage) option configures a message that will be displayed when the source data is invalid.
-     * The option is used together with the [`sourceDataValidator`](@/api/options.md#sourcedatavalidator) option.
+     * The [`sourceDataWarningMessage`](@/api/options.md#sourcedatawarningmessage) option sets the message used when
+     * a value fails [`sourceDataValidator`](@/api/options.md#sourcedatavalidator). When not set, no message is logged.
      *
      * @example
      * ```js
