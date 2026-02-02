@@ -58,37 +58,37 @@ describe('MultiSelectEditor', () => {
 
     describe('opening the editor', () => {
       it('should open the editor, display an empty dropdown and not throw any errors when the source ' +
-        'is not provided', async () => {
-          const spy = jasmine.createSpyObj('error', ['test']);
-          const prevError = window.onerror;
+      'is not provided', async() => {
+        const spy = jasmine.createSpyObj('error', ['test']);
+        const prevError = window.onerror;
 
-          window.onerror = function () {
-            spy.test();
+        window.onerror = function() {
+          spy.test();
 
-            return true;
-          };
+          return true;
+        };
 
-          handsontable({
-            columns: [
-              {
-                type: 'multiSelect',
-              },
-            ],
-          });
-
-          await selectCell(0, 0);
-          await keyDownUp('enter');
-          await sleep(10);
-
-          const $dropdown = $('.ht-multi-select-editor');
-          const $checkboxes = $dropdown.find('input[type="checkbox"]');
-
-          expect($checkboxes.length).toBe(0);
-          expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
-          expect(spy.test.calls.count()).toBe(0);
-
-          window.onerror = prevError;
+        handsontable({
+          columns: [
+            {
+              type: 'multiSelect',
+            },
+          ],
         });
+
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const $checkboxes = $dropdown.find('input[type="checkbox"]');
+
+        expect($checkboxes.length).toBe(0);
+        expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
+        expect(spy.test.calls.count()).toBe(0);
+
+        window.onerror = prevError;
+      });
 
       it('should open empty editor with no items checked when cell value is empty', async() => {
         handsontable({
