@@ -1,5 +1,5 @@
-import { isObjectEqual, isKeyValueObject } from '../../../../helpers/object';
-import { includesValue } from '../../utils/utils';
+import { isObjectEqual, isKeyValueObject } from '../../../helpers/object';
+import { includesValue } from '../utils/utils';
 
 /**
  * Controller for managing the selected items.

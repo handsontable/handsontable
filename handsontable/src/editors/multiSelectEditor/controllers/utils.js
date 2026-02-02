@@ -1,5 +1,5 @@
-import { addClass, removeClass } from '../../../../../helpers/dom/element';
-import { getCheckboxElement } from '../../../utils/utils';
+import { addClass, removeClass } from '../../../helpers/dom/element';
+import { getCheckboxElement } from '../utils/utils';
 
 const classPrefix = 'ht-multi-select-editor';
 const SEARCH_INPUT_WRAPPER_CLASS = `${classPrefix}-search-input-wrapper`;

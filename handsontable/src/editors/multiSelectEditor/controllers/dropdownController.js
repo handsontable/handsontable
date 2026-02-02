@@ -1,8 +1,8 @@
-import { mixin } from '../../../../helpers/object';
-import localHooks from '../../../../mixins/localHooks';
-import { getCheckboxElement, includesValue } from '../../utils/utils';
-import EventManager from '../../../../eventManager';
-import { InputController } from '../inputController/inputController';
+import { mixin } from '../../../helpers/object';
+import localHooks from '../../../mixins/localHooks';
+import { getCheckboxElement, includesValue } from '../utils/utils';
+import EventManager from '../../../eventManager';
+import { InputController } from './inputController';
 import {
   selectItem,
   deselectItem,
@@ -18,7 +18,7 @@ import {
   disableUncheckedCheckboxes,
   enableAllCheckboxes,
   createListItemElement,
-} from './utils/utils';
+} from './utils';
 
 /**
  * Renders and manages the dropdown list used by the `MultiSelectEditor`.

@@ -1,7 +1,7 @@
 import { BaseEditor } from '../baseEditor';
 import EventManager from '../../eventManager';
-import { DropdownController } from './controllers/dropdownController/dropdownController';
-import { SelectedItemsController } from './controllers/selectedItemsController/selectedItemsController';
+import { DropdownController } from './controllers/dropdownController';
+import { SelectedItemsController } from './controllers/selectedItemsController';
 import { addClass } from '../../helpers/dom/element';
 import { EDITOR_EDIT_GROUP } from '../../shortcutContexts/constants';
 import {
@@ -114,13 +114,13 @@ export class MultiSelectEditor extends BaseEditor {
 
     const parsedValue = parseStringifiedValue(value);
     const valuesArray = Array.isArray(parsedValue) ? parsedValue : [parsedValue];
-    const valuesIntersection = getValuesIntersection(valuesArray, this.cellProperties.source);
+    const valuesIntersection = getValuesIntersection(valuesArray, this.#getSource());
 
     this.#syncSelectedValues(valuesIntersection);
 
     this.dropdownController.setSourceSortFunction(this.cellProperties.sourceSortFunction);
 
-    this.dropdownController.fillDropdown(this.cellProperties.source, valuesIntersection);
+    this.dropdownController.fillDropdown(this.#getSource(), valuesIntersection);
 
     this.dropdownController.setVisibleRowsNumberSetting(this.#getEditorSetting('visibleRows'));
 
@@ -271,6 +271,15 @@ export class MultiSelectEditor extends BaseEditor {
   }
 
   /**
+   * Gets the source (options) for the editor.
+   *
+   * @returns {Array} The source (options) for the editor.
+   */
+  #getSource() {
+    return this.cellProperties.source ?? [];
+  }
+
+  /**
    * Register shortcuts responsible for handling editor.
    *
    * @private
@@ -372,7 +381,7 @@ export class MultiSelectEditor extends BaseEditor {
    * @param {boolean} keepSelectedItems If true, the selected items will be kept in the dropdown.
    */
   #filterEntries(query, keepSelectedItems = true) {
-    const filteredItems = this.cellProperties.source.filter((item) => {
+    const filteredItems = this.#getSource().filter((item) => {
       const value = item?.value ?? item;
 
       if (keepSelectedItems && this.#selectedItems.has(item)) {
@@ -503,7 +512,7 @@ export class MultiSelectEditor extends BaseEditor {
     if (this.isOpened() && source === `${EDITOR_TYPE}-renderer`) {
 
       this.#syncSelectedValues(changes[0][3]);
-      this.dropdownController.fillDropdown(this.cellProperties.source, this.#selectedItems.getItemsArray());
+      this.dropdownController.fillDropdown(this.#getSource(), this.#selectedItems.getItemsArray());
       this.dropdownController.focusItem(0);
     }
   }
