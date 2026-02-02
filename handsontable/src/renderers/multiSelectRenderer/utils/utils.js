@@ -1,14 +1,15 @@
 import { isKeyValueObject } from '../../../helpers/object';
 import { A11Y_HIDDEN } from '../../../helpers/a11y';
-import { EDITOR_CONTROLLER_CLASS } from '../../../helpers/mixed';
 import { addClass, hasClass } from '../../../helpers/dom/element';
+import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import EventManager from '../../../eventManager';
 
-export const CHIP_CLASS = 'ht-multi-select-chip';
-export const CHIP_REMOVE_CLASS = 'ht-multi-select-chip-remove';
+export const CLASS_PREFIX = 'ht-multi-select';
+export const CHIP_CLASS = `${CLASS_PREFIX}-chip`;
+export const CHIP_REMOVE_CLASS = `${CLASS_PREFIX}-chip-remove`;
 
-const CHIP_LABEL_CLASS = 'ht-multi-select-chip-label';
-const OVERFLOW_INDICATOR_CLASS = 'ht-multi-select-overflow';
+const CHIP_LABEL_CLASS = `${CLASS_PREFIX}-chip-label`;
+const OVERFLOW_INDICATOR_CLASS = `${CLASS_PREFIX}-overflow`;
 const beforeColumnResizeHookRegistered = new WeakSet();
 const latestColumnWidthCache = new WeakMap();
 const chipsEventManagers = new WeakMap();
@@ -78,7 +79,7 @@ export function createChipElement(rootDocument, item, isAriaEnabled, row, prop) 
 
   const removeBtn = rootDocument.createElement('span');
 
-  addClass(removeBtn, `${CHIP_REMOVE_CLASS} ${EDITOR_CONTROLLER_CLASS}`);
+  addClass(removeBtn, CHIP_REMOVE_CLASS);
 
   if (isAriaEnabled) {
     removeBtn.setAttribute(...A11Y_HIDDEN());
@@ -144,6 +145,12 @@ export function registerChipRemovingEvents(hotInstance, rendererType) {
 
     hotInstance.setSourceDataAtCell(rowIndex, columnProp, newData, `${rendererType}-renderer`);
     hotInstance.render();
+  });
+
+  hotInstance.addHook('beforeOnCellMouseDown', (event) => {
+    if (hasClass(event.target, CHIP_REMOVE_CLASS)) {
+      stopImmediatePropagation(event);
+    }
   });
 }
 

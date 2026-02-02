@@ -7,7 +7,7 @@ import {
 import { partial } from '../../../helpers/function';
 import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
-import { isDefined, EDITOR_CONTROLLER_CLASS } from '../../../helpers/mixed';
+import { isDefined } from '../../../helpers/mixed';
 
 /**
  * @class Event
@@ -188,7 +188,6 @@ class Event {
     if (!['TD', 'TH'].includes(activeElement.nodeName) &&
       (
         realTarget === activeElement ||
-        hasClass(realTarget, EDITOR_CONTROLLER_CLASS) ||
         getParentNode(0) === activeElement ||
         getParentNode(1) === activeElement
       )

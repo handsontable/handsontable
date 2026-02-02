@@ -348,14 +348,14 @@ export class DropdownController {
    * Gets the height of the dropdown.
    *
    * @param {boolean} maxRowsCalculation If true, the height will be calculated for the maximum number of rows.
+   * @param {boolean} outerWidth If true, the width will be calculated for the outer width.
    * @returns {number} Height of the dropdown.
    */
-  getHeight(maxRowsCalculation = false) {
+  getHeight(maxRowsCalculation = false, outerWidth = false) {
     const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
 
-    return this.#getListHeight(maxRowsCalculation) +
-      this.#getSearchInputWrapperHeight() +
-      parseInt(computedStyle.getPropertyValue('--ht-menu-vertical-padding'), 10);
+    return this.#getListHeight(maxRowsCalculation) + this.#getSearchInputWrapperHeight() +
+      (outerWidth === true ? 2 * parseInt(computedStyle.getPropertyValue('--ht-menu-vertical-padding'), 10) : 0);
   }
 
   /**
@@ -429,7 +429,7 @@ export class DropdownController {
 
     if (flipNeeded) {
       this.#containerElement.style.position = 'absolute';
-      this.#containerElement.style.top = `${-this.getHeight() - cellHeight}px`;
+      this.#containerElement.style.top = `${-this.getHeight(false, true) - cellHeight - 2}px`;
 
     } else {
       this.#containerElement.style.position = '';
@@ -459,10 +459,8 @@ export class DropdownController {
     const maxRenderedItems = this.#cache.entriesCount;
     const actualRenderedItems =
       maxRowsCalculation ? maxRenderedItems : this.#cache.actualRenderedItemsCount ?? maxRenderedItems;
-    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
     const entryHeight = this.#getEntryHeight();
-    const listHeight = (actualRenderedItems * entryHeight) +
-      (2 * parseInt(computedStyle.getPropertyValue('--ht-gap-size'), 10));
+    const listHeight = (actualRenderedItems * entryHeight);
 
     return listHeight;
   }
@@ -473,8 +471,16 @@ export class DropdownController {
    * @returns {number} Height of the search input wrapper.
    */
   #getSearchInputWrapperHeight() {
-    const searchInputWrapperHeight = this.#searchInputWrapper ? this.#searchInputWrapper.offsetHeight : 0;
-    const separatorHeight = this.#separatorElement ? this.#separatorElement.offsetHeight : 0;
+    if (!this.#inputController.enabled) {
+      return 0;
+    }
+
+    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.#containerElement);
+    const searchInputWrapperHeight = this.#searchInputWrapper.offsetHeight;
+    const separatorHeight =
+    this.#separatorElement.offsetHeight + (
+      2 * parseInt(computedStyle.getPropertyValue('--tmp-menu-separator-vertical-padding'), 10)
+    );
 
     return searchInputWrapperHeight + separatorHeight;
   }

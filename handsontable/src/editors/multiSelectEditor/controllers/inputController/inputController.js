@@ -18,6 +18,7 @@ export class InputController {
   constructor({ input, eventManager }) {
     this.input = input;
     this.eventManager = eventManager;
+    this.enabled = true;
 
     this.onInput = this.onInput.bind(this);
   }
@@ -37,6 +38,8 @@ export class InputController {
    * @param {boolean} enabled If true, the input will be enabled.
    */
   toggle(enabled) {
+    this.enabled = enabled;
+
     if (this.input) {
       if (enabled) {
         this.listen();

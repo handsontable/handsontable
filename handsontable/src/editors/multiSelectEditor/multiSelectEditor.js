@@ -167,8 +167,8 @@ export class MultiSelectEditor extends BaseEditor {
       }
     );
 
-    this.hot.addHook('afterDestroy', () => this.destroy());
-    this.hot.addHook('afterSetSourceDataAtCell', (...args) => this.#onAfterSetSourceDataAtCell(...args));
+    this.addHook('afterDestroy', () => this.destroy());
+    this.addHook('afterSetSourceDataAtCell', (...args) => this.#onAfterSetSourceDataAtCell(...args));
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());
 

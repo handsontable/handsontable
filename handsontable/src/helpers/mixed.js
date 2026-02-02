@@ -1,8 +1,6 @@
 import moment from 'moment';
 import { toSingleLine } from './templateLiteralTag';
 
-export const EDITOR_CONTROLLER_CLASS = 'ht-editor-controller';
-
 /**
  * Converts any value to string.
  *
