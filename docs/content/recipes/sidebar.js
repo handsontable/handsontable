@@ -8,7 +8,7 @@ const cellTypesItems = [
   { path: 'cell-types/pikaday/pikaday', title: 'Date picker pikaday', onlyFor: ['javascript'] },
   { path: 'cell-types/rating/rating', title: 'Stars Rating', onlyFor: ['javascript'] },
   { path: 'cells/guide-feedback-angular/guide-feedback', title: 'Simple Feedback', onlyFor: ['angular'] },
-  { path: 'cells/guide-rating-angular/guide-rating', title: 'Stars Rating', onlyFor: ['angular'] },,
+  { path: 'cells/guide-rating-angular/guide-rating', title: 'Stars Rating', onlyFor: ['angular'] },
   { path: 'cells/guide-color-picker-angular/guide-color-picker', title: 'Color picker', onlyFor: ['angular'] },
   { path: 'cells/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] },
   { path: 'cells/guide-select-multiple-angular/guide-select-multiple', title: 'Multiple Select Dropdown', onlyFor: ['angular'] },
