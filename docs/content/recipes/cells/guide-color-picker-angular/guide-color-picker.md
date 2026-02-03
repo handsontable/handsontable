@@ -308,12 +308,13 @@ Provide preset color options using a custom dropdown:
     <div style="display: flex; flex-direction: column; height: 100%;">
       <input style="width: 100%; flex: 1;" type="color" [value]="value" (input)="onColorChange($event)" />
       <div style="display: flex; gap: 2px; padding: 2px;">
+        @for (preset of presetColors; track preset) {
         <button
-          *ngFor="let preset of presetColors"
           [style.background]="preset"
           style="width: 20px; height: 20px; border: 1px solid #ccc; cursor: pointer;"
           (click)="selectPreset(preset)"
         ></button>
+        }
       </div>
     </div>
   `,
@@ -428,7 +429,9 @@ Pass configuration to renderer via `rendererProps`:
       style="height: 100%; width: 100%;"
       [style.background]="value"
       [style.border]="props.showBorder ? '2px solid #333' : 'none'">
-      <b *ngIf="props.showLabel">{{ value }}</b>
+      @if (props.showLabel) {
+        <b>{{ value }}</b>
+      }
     </div>
   `,
   styles: `:host { height: 100%; width: 100%; }`,

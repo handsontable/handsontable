@@ -211,12 +211,16 @@ Use a single Angular component that extends [`HotCellEditorAdvancedComponent`](@
             <span>{{ getSelectedLabel() }}</span>
             <span class="arrow">▼</span>
           </div>
-          <div class="dropdown-list" *ngIf="isOpen">
-            <div *ngFor="let option of config" class="dropdown-item" (click)="toggleOption(option)">
+          @if (isOpen) {
+          <div class="dropdown-list">
+            @for (option of config; track option.value) {
+            <div class="dropdown-item" (click)="toggleOption(option)">
               <input type="checkbox" [checked]="isSelected(option.value)" (click)="$event.stopPropagation()" />
               <label>{{ option.label }}</label>
             </div>
+            }
           </div>
+          }
         </div>
       </div>
     </div>
@@ -400,7 +404,7 @@ imports: [BrowserModule, HotTableModule, CommonModule];
 
 - **BrowserModule**: Required for Angular apps
 - **HotTableModule**: Provides `<hot-table>` component
-- **CommonModule**: Provides `*ngFor`, `*ngIf` directives
+- **CommonModule**: Required for Angular apps
 
 ### Declare custom components
 
@@ -503,10 +507,13 @@ Enhance the renderer to display items as styled badges:
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="badges-container">
-      <span *ngIf="!value || value.length === 0" class="no-selection"> No selection </span>
-      <span *ngFor="let item of value" class="badge">
+      @if (!value || value.length === 0) {
+      <span class="no-selection"> No selection </span>
+      } @for (item of value; track item.value) {
+      <span class="badge">
         {{ item.label }}
       </span>
+      }
     </div>
   `,
   styles: [
@@ -552,15 +559,21 @@ Use Angular templates for more complex option displays:
             <span>{{ getSelectedLabel() }}</span>
             <span class="arrow">▼</span>
           </div>
-          <div class="dropdown-list" *ngIf="isOpen">
-            <div *ngFor="let group of groupedConfig" class="option-group">
+          @if (isOpen) {
+          <div class="dropdown-list">
+            @for (group of groupedConfig; track group.label) {
+            <div class="option-group">
               <div class="group-label">{{ group.label }}</div>
-              <div *ngFor="let option of group.options" class="dropdown-item" (click)="toggleOption(option)">
+              @for (option of group.options; track option.value) {
+              <div class="dropdown-item" (click)="toggleOption(option)">
                 <input type="checkbox" [checked]="isSelected(option.value)" />
                 <label>{{ option.label }}</label>
               </div>
+              }
             </div>
+            }
           </div>
+          }
         </div>
       </div>
     </div>
@@ -615,22 +628,24 @@ The Angular implementation provides good accessibility support:
           <span>{{ getSelectedLabel() }}</span>
           <span class="arrow">▼</span>
         </button>
-        <div class="dropdown-list"
-             *ngIf="isOpen"
-             role="list">
-          <div *ngFor="let option of config"
-               class="dropdown-item"
-               role="listitem"
-               [attr.aria-selected]="isSelected(option.value)"
-               (click)="toggleOption(option)">
-            <input
-              type="checkbox"
-              [checked]="isSelected(option.value)"
-              [attr.aria-label]="option.label"
-              (click)="$event.stopPropagation()" />
-            <label>{{ option.label }}</label>
+        @if (isOpen) {
+          <div class="dropdown-list" role="list">
+            @for (option of config; track option.value) {
+              <div
+                class="dropdown-item"
+                role="listitem"
+                [attr.aria-selected]="isSelected(option.value)"
+                (click)="toggleOption(option)">
+                <input
+                  type="checkbox"
+                  [checked]="isSelected(option.value)"
+                  [attr.aria-label]="option.label"
+                  (click)="$event.stopPropagation()" />
+                <label>{{ option.label }}</label>
+              </div>
+            }
           </div>
-        </div>
+        }
       </div>
     </div>
   `,

@@ -521,7 +521,9 @@ Add validation messages:
   template: `
     <div class="editor-container">
       <input type="date" [(ngModel)]="dateValue" #editorInput (change)="onDateChange()" />
-      <span *ngIf="hasError" class="error-message">Invalid date format</span>
+      @if (hasError) {
+      <span class="error-message">Invalid date format</span>
+      }
     </div>
   `,
 })

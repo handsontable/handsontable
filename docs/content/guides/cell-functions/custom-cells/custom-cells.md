@@ -468,7 +468,9 @@ import { HotCellRendererAdvancedComponent } from "@handsontable/angular-wrapper"
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div>
-      <span *ngFor="let star of stars; let i = index" [style.opacity]="i < value ? '1' : '0.4'">⭐</span>
+      @for (star of stars; track $index) {
+        <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
+      }
     </div>
   `,
   standalone: false,
@@ -488,7 +490,15 @@ columns: [
 
 #### When should I use [`HotCellRendererComponent`](@/guides/cell-functions/cell-renderer/cell-renderer.md) and when should I use `HotCellRendererAdvancedComponent`?
 
-TODO
+The choice between `HotCellRendererComponent` and `HotCellRendererAdvancedComponent` depends on the underlying Handsontable API you intend to use.
+
+`HotCellRendererComponent`: This is the base component for creating renderers that are compatible with the `baseRenderer` API from Handsontable. It is suitable for most standard rendering use cases.
+
+`HotCellRendererAdvancedComponent`: This component is designed to work with the newer [`rendererFactory`](@/guides/cell-functions/custom-cells/custom-cells.md#rendererfactory) API from Handsontable. While both components offer similar configuration options at the Angular level, `HotCellRendererAdvancedComponent` aligns with the more modern, factory-based approach in the core Handsontable library, which can be more optimized.
+
+In short:
+- Use `HotCellRendererComponent` for renderers based on the traditional `baseRenderer`.
+- Use `HotCellRendererAdvancedComponent` when you want to align with the newer `rendererFactory` pattern for potential performance benefits and a more modern API approach.
 
 ## Custom Editors
 
@@ -569,7 +579,19 @@ Override these methods to customize editor behavior:
 
 #### When should I use [`HotCellEditorComponent`](@/guides/cell-functions/cell-editor/cell-editor.md) and when should I use `HotCellEditorAdvancedComponent`?
 
-TODO
+The choice between HotCellEditorComponent and HotCellEditorAdvancedComponent depends on your cell editor requirements.
+
+`HotCellEditorComponent`: This is the basic component for creating simple editors. It is based on the older [`BaseEditor`](@/api/baseEditor.md) from `Handsontable` and is ideal for simple use cases.
+
+`HotCellEditorAdvancedComponent`: This component is built on the newer [`editorFactory`](@/guides/cell-functions/custom-cells/custom-cells.md#using-editorfactory) API from `Handsontable`. It offers significantly more configuration and customization options, such as:
+
+Defining custom keyboard shortcuts.
+Choosing the editor's positioning strategy ('container' or 'portal').
+Access to additional lifecycle hooks like afterInit and beforeOpen.
+
+In short:
+- Use `HotCellEditorComponent` for simple, standard editors.
+- Use `HotCellEditorAdvancedComponent` when you need advanced control over the editor's behavior, positioning, and keyboard shortcuts.
 
 ### Common Patterns
 
@@ -612,7 +634,9 @@ import { CommonModule } from "@angular/common";
   selector: "select-editor",
   template: `
     <select [(ngModel)]="value" (change)="finishEdit.emit()" style="width: 100%; height: 100%;">
-      <option *ngFor="let option of options" [value]="option">{{ option }}</option>
+      @for (option of options; track option) {
+        <option [value]="option">{{ option }}</option>
+      }
     </select>
   `,
   standalone: true,
@@ -650,9 +674,11 @@ import { CommonModule } from "@angular/common";
   selector: "button-editor",
   template: `
     <div style="display: flex; gap: 4px; background: #eee; padding: 4px;">
-      <button *ngFor="let option of options" [style.backgroundColor]="option === value ? '#90f5e7' : '#fff'" (click)="onSelect(option)">
-        {{ option }}
-      </button>
+      @for (option of options; track option) {
+        <button [style.backgroundColor]="option === value ? '#90f5e7' : '#fff'" (click)="onSelect(option)">
+          {{ option }}
+        </button>
+      }
     </div>
   `,
   standalone: true,

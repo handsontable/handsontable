@@ -87,7 +87,7 @@ module.exports = {
         root: ['Handsontable', 'renderers'],
         commonjs: 'handsontable/renderers',
         commonjs2: 'handsontable/renderers',
-        amd: 'handsontable/editors'
+        amd: 'handsontable/renderers'
       },
       rxjs: 'rxjs',
       'rxjs/operators': {

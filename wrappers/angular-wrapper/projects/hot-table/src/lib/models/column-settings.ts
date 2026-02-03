@@ -1,5 +1,8 @@
 import { ComponentRef, EnvironmentInjector, Type, TemplateRef } from '@angular/core';
 import Handsontable from 'handsontable/base';
+import { ExtendedEditor } from 'handsontable/editors/factory';
+import { CellProperties } from 'handsontable/settings';
+import Core from 'handsontable/core';
 import { HotCellRendererComponent } from '../renderer/hot-cell-renderer.component';
 import { HotCellEditorComponent } from '../editor/hot-cell-editor.component';
 import { HotCellRendererAdvancedComponent } from '../renderer/hot-cell-renderer-advanced.component';
@@ -12,11 +15,20 @@ export type ColumnSettings =
   | {
       editor?: Type<HotCellEditorComponent<any>> |
         Type<HotCellEditorAdvancedComponent<any>> |
-        Handsontable.ColumnSettings['editor'];
+        Handsontable.ColumnSettings['editor'] |
+        ExtendedEditor<any>;
       renderer?: Type<HotCellRendererComponent<any, any>> |
         Type<HotCellRendererAdvancedComponent<any, any>> |
         TemplateRef<any> |
-        Handsontable.ColumnSettings['renderer'];
+        Handsontable.ColumnSettings['renderer'] |
+        (
+          (instance: Core,
+            td: HTMLTableCellElement,
+            row: number, column: number,
+            prop: string | number,
+            value: any,
+            cellProperties: CellProperties
+          ) => void);
       validator?: CustomValidatorFn<any> | Handsontable.ColumnSettings['validator'];
       rendererProps?: any;
     };

@@ -42,9 +42,9 @@ export const inputData = [
   selector: "example1-guide-star-renderer",
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: ` <div>
-    <span *ngFor="let star of stars; let i = index" [attr.data-value]="i + 1" [style.opacity]="i < value ? '1' : '0.4'"
-      >⭐</span
-    >
+    @for (star of stars; track $index) {
+    <span [attr.data-value]="$index + 1" [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
+    }
   </div>`,
   standalone: false,
 })
@@ -61,12 +61,9 @@ export class StarRendererComponent extends HotCellRendererAdvancedComponent<numb
       (mouseover)="onMouseOver($event)"
       (mousedown)="onMouseDown()"
     >
-      <span
-        *ngFor="let star of stars; let i = index"
-        [attr.data-value]="i + 1"
-        [style.opacity]="i < getValue() ? '1' : '0.4'"
-        >⭐</span
-      >
+      @for (star of stars; track $index) {
+      <span [attr.data-value]="$index + 1" [style.opacity]="$index < getValue() ? '1' : '0.4'">⭐</span>
+      }
     </div>
   `,
 })

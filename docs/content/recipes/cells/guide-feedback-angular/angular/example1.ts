@@ -38,15 +38,16 @@ export const inputData = [
   standalone: false,
   template: `
     <div style="display: flex; gap: 4px; background:#eee; border: 1px solid #ccc; border-radius: 4px;">
+      @for (option of config; track option) {
       <button
         style="width:33%;"
         [style.backgroundColor]="option === getValue() ? '#90f5e7ff' : '#fff'"
         [style.color]="option === getValue() ? '#ffffffff' : '#000'"
-        *ngFor="let option of config"
         (click)="onClick(option)"
       >
         {{ option }}
       </button>
+      }
     </div>
   `,
 })

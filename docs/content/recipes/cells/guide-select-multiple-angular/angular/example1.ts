@@ -46,12 +46,16 @@ export const inputData = [
           <span>{{ getSelectedLabel() }}</span>
           <span class="arrow">▼</span>
         </div>
-        <div class="dropdown-list" *ngIf="isOpen">
-          <div *ngFor="let option of config" class="dropdown-item" (click)="toggleOption(option)">
+        @if (isOpen) {
+        <div class="dropdown-list">
+          @for (option of config; track option.value) {
+          <div class="dropdown-item" (click)="toggleOption(option)">
             <input type="checkbox" [checked]="isSelected(option.value)" (click)="$event.stopPropagation()" />
             <label>{{ option.label }}</label>
           </div>
+          }
         </div>
+        }
       </div>
     </div>
   </div>`,

@@ -93,9 +93,9 @@ The renderer displays 5 stars with filled stars (opacity 1.0) and unfilled stars
   selector: "star-renderer",
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: ` <div>
-    <span *ngFor="let star of stars; let i = index" [attr.data-value]="i + 1" [style.opacity]="i < value ? '1' : '0.4'"
-      >⭐</span
-    >
+    @for (star of stars; track $index) {
+    <span [attr.data-value]="$index + 1" [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
+    }
   </div>`,
   standalone: false,
 })
@@ -181,12 +181,9 @@ The editor component extends [`HotCellEditorAdvancedComponent`](@/guides/cell-fu
       (mouseover)="onMouseOver($event)"
       (mousedown)="onMouseDown()"
     >
-      <span
-        *ngFor="let star of stars; let i = index"
-        [attr.data-value]="i + 1"
-        [style.opacity]="i < getValue() ? '1' : '0.4'"
-        >⭐</span
-      >
+      @for (star of stars; track $index) {
+      <span [attr.data-value]="$index + 1" [style.opacity]="$index < getValue() ? '1' : '0.4'">⭐</span>
+      }
     </div>
   `,
 })
@@ -491,7 +488,9 @@ Display the numeric rating alongside stars:
   template: `
     <div style="display: flex; align-items: center; gap: 8px;">
       <div>
-        <span *ngFor="let star of stars; let i = index" [style.opacity]="i < value ? '1' : '0.4'">⭐</span>
+        @for (star of stars; track $index) {
+        <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
+        }
       </div>
       <span style="color: #666; font-size: 14px;">({{ value }}/5)</span>
     </div>
@@ -512,12 +511,9 @@ Change star color based on rating value:
   selector: "star-renderer-colored",
   template: `
     <div>
-      <span
-        *ngFor="let star of stars; let i = index"
-        [style.opacity]="i < value ? '1' : '0.4'"
-        [style.color]="getColor()"
-        >⭐</span
-      >
+      @for (star of stars; track $index) {
+      <span [style.opacity]="$index < value ? '1' : '0.4'" [style.color]="getColor()">⭐</span>
+      }
     </div>
   `,
   standalone: false,
@@ -542,10 +538,17 @@ Support half-star ratings (0.5 increments):
   selector: "star-renderer-half",
   template: `
     <div>
-      <span *ngFor="let star of stars; let i = index">
-      <span *ngIf="i < fullStars" style="opacity: 1">⭐</span>
-      <span *ngIf="i === fullStars && hasHalf" style="opacity: 0.7">⭐</span>
-      <span *ngIf="i >= fullStars && !(i === fullStars && hasHalf)" style="opacity: 0.4">⭐</span>
+      @for (star of stars; track $index) {
+      <span>
+        @if ($index < fullStars) {
+        <span style="opacity: 1">⭐</span>
+        } @if ($index === fullStars && hasHalf) {
+        <span style="opacity: 0.7">⭐</span>
+        } @if ($index >= fullStars && !($index === fullStars && hasHalf)) {
+        <span style="opacity: 0.4">⭐</span>
+        }
+      </span>
+      }
     </div>
   `,
   standalone: false,
@@ -584,7 +587,9 @@ Configurable number of stars per column using `rendererProps`:
   selector: "star-renderer-custom",
   template: `
     <div>
-      <span *ngFor="let star of getStarsArray(); let i = index" [style.opacity]="i < value ? '1' : '0.4'">⭐</span>
+      @for (star of getStarsArray(); track $index) {
+      <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
+      }
     </div>
   `,
   standalone: false,
@@ -617,7 +622,9 @@ Add text labels like "Excellent", "Good", etc.:
   template: `
     <div style="display: flex; flex-direction: column; gap: 4px;">
       <div>
-        <span *ngFor="let star of stars; let i = index" [style.opacity]="i < value ? '1' : '0.4'">⭐</span>
+        @for (star of stars; track $index) {
+        <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
+        }
       </div>
       <div style="font-size: 12px; color: #666;">
         {{ getLabel() }}
@@ -651,16 +658,17 @@ Add ARIA attributes for screen readers:
       (mouseover)="onMouseOver($event)"
       (mousedown)="onMouseDown()"
     >
+      @for (star of stars; track $index) {
       <span
-        *ngFor="let star of stars; let i = index"
-        [attr.data-value]="i + 1"
-        [style.opacity]="i < getValue() ? '1' : '0.4'"
+        [attr.data-value]="$index + 1"
+        [style.opacity]="$index < getValue() ? '1' : '0.4'"
         role="radio"
-        [attr.aria-checked]="i < getValue()"
-        [attr.aria-label]="i + 1 + ' star' + (i > 0 ? 's' : '')"
+        [attr.aria-checked]="$index < getValue()"
+        [attr.aria-label]="$index + 1 + ' star' + ($index > 0 ? 's' : '')"
         tabindex="0"
         >⭐</span
       >
+      }
     </div>
   `,
   standalone: false,

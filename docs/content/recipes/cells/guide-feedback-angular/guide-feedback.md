@@ -94,14 +94,15 @@ Create an Angular component that extends [`HotCellEditorAdvancedComponent`](@/gu
   standalone: false,
   template: `
     <div style="display: flex; gap: 4px; background:#eee; border: 1px solid #ccc; border-radius: 4px;">
+      @for (option of config; track option) {
       <button
-        *ngFor="let option of config"
         [style.backgroundColor]="option === getValue() ? '#90f5e7ff' : '#fff'"
         [style.color]="option === getValue() ? '#ffffffff' : '#000'"
         (click)="onClick(option)"
       >
         {{ option }}
       </button>
+      }
     </div>
   `,
 })
@@ -127,7 +128,7 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 5. `getValue()` / `setValue()` - inherited methods for value management
 6. `finishEdit.emit()` - emits event to save and close the editor
 7. `ChangeDetectorRef` - injected for manual change detection
-8. `*ngFor` - loops through config options
+8. `@for` - loops through config options
 9. Angular style binding - `[style.backgroundColor]`, `[style.color]`
 
 **Key concepts:**
@@ -145,15 +146,16 @@ Style the editor container and buttons using inline styles or Angular style bind
   standalone: false,
   template: `
     <div style="display: flex; gap: 4px; background:#eee; border: 1px solid #ccc; border-radius: 4px;">
+      @for (option of config; track option) {
       <button
         style="width:33%;"
         [style.backgroundColor]="option === getValue() ? '#90f5e7ff' : '#fff'"
         [style.color]="option === getValue() ? '#ffffffff' : '#000'"
-        *ngFor="let option of config"
         (click)="onClick(option)"
       >
         {{ option }}
       </button>
+      }
     </div>
   `,
 })
@@ -318,15 +320,16 @@ Put it all together:
   standalone: false,
   template: `
     <div style="display: flex; gap: 4px; background:#eee; border: 1px solid #ccc; border-radius: 4px;">
+      @for (option of config; track option) {
       <button
         style="width:33%;"
         [style.backgroundColor]="option === getValue() ? '#90f5e7ff' : '#fff'"
         [style.color]="option === getValue() ? '#ffffffff' : '#000'"
-        *ngFor="let option of config"
         (click)="onClick(option)"
       >
         {{ option }}
       </button>
+      }
     </div>
   `,
 })
@@ -467,14 +470,11 @@ Enhanced button appearance with inline styles or component styles:
   standalone: false,
   template: `
     <div class="editor-container">
-      <button
-        class="feedback-button"
-        [class.active]="option === getValue()"
-        *ngFor="let option of config"
-        (click)="onClick(option)"
-      >
+      @for (option of config; track option) {
+      <button class="feedback-button" [class.active]="option === getValue()" (click)="onClick(option)">
         {{ option }}
       </button>
+      }
     </div>
   `,
   styles: [
@@ -662,8 +662,8 @@ HTML buttons are inherently accessible, but you can enhance them:
   standalone: false,
   template: `
     <div style="display: flex; gap: 4px; background:#eee; border: 1px solid #ccc; border-radius: 4px;">
+      @for (option of config; track $index) {
       <button
-        *ngFor="let option of config; let i = index"
         [attr.aria-label]="option + ' feedback option'"
         [attr.aria-pressed]="option === getValue()"
         [tabIndex]="option === getValue() ? 0 : -1"
@@ -672,6 +672,7 @@ HTML buttons are inherently accessible, but you can enhance them:
       >
         {{ option }}
       </button>
+      }
     </div>
   `,
 })
