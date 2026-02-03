@@ -56,8 +56,8 @@ Ensure you have `@handsontable/angular-wrapper` installed in your Angular projec
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/recipes/cells/guide-datepicker-angular/angular/example1.ts)
-@[code](@/content/recipes/cells/guide-datepicker-angular/angular/example1.html)
+@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.ts)
+@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.html)
 
 :::
 

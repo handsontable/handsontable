@@ -48,8 +48,8 @@ A cell that:
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/recipes/cells/guide-feedback-angular/angular/example1.ts)
-@[code](@/content/recipes/cells/guide-feedback-angular/angular/example1.html)
+@[code](@/content/recipes/cell-types/guide-feedback-angular/angular/example1.ts)
+@[code](@/content/recipes/cell-types/guide-feedback-angular/angular/example1.html)
 
 :::
 
