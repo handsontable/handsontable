@@ -1,23 +1,24 @@
-const cellsItems = [
-  { path: 'cells/guide-feedback-react/guide-feedback', title: 'Simple Feedback', onlyFor: ['react'] },
+const cellTypesItems = [
+  { path: 'cell-types/color-picker/color-picker', title: 'Color picker', onlyFor: ['javascript'] },
+  { path: 'cell-types/feedback-react/feedback', title: 'Simple Feedback', onlyFor: ['react'] },
+  { path: 'cell-types/feedback/feedback', title: 'Simple Feedback', onlyFor: ['javascript'] },
+  { path: 'cell-types/flatpickr/flatpickr', title: 'Datetime `flatpickr` picker', onlyFor: ['javascript'] },
+  { path: 'cell-types/select-multiple/select-multiple', title: 'Multiple Select Dropdown', onlyFor: ['javascript'] },
+  { path: 'cell-types/numbro/numbro', title: 'Numbro', onlyFor: ['javascript'] },
+  { path: 'cell-types/pikaday/pikaday', title: 'Date picker pikaday', onlyFor: ['javascript'] },
+  { path: 'cell-types/rating/rating', title: 'Stars Rating', onlyFor: ['javascript'] },
   { path: 'cells/guide-feedback-angular/guide-feedback', title: 'Simple Feedback', onlyFor: ['angular'] },
-  { path: 'cells/guide-feedback/guide-feedback', title: 'Simple Feedback', onlyFor: ['javascript'] },
-  { path: 'cells/guide-rating/guide-rating', title: 'Stars Rating', onlyFor: ['javascript'] },
-  { path: 'cells/guide-rating-angular/guide-rating', title: 'Stars Rating', onlyFor: ['angular'] },
-  { path: 'cells/guide-color-picker/guide-color-picker', title: 'Color picker', onlyFor: ['javascript'] },
+  { path: 'cells/guide-rating-angular/guide-rating', title: 'Stars Rating', onlyFor: ['angular'] },,
   { path: 'cells/guide-color-picker-angular/guide-color-picker', title: 'Color picker', onlyFor: ['angular'] },
-  { path: 'cells/guide-flatpickr/guide-flatpickr', title: 'Datetime `flatpickr` picker', onlyFor: ['javascript'] },
   { path: 'cells/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] },
-  { path: 'cells/guide-select-multiple/guide-select-multiple', title: 'Multiple Select Dropdown', onlyFor: ['javascript'] },
   { path: 'cells/guide-select-multiple-angular/guide-select-multiple', title: 'Multiple Select Dropdown', onlyFor: ['angular'] },
-  { path: 'cells/guide-pikaday/guide-pikaday', title: 'Date picker pikaday', onlyFor: ['javascript'] },
-  { path: 'cells/guide-checkbox-angular/guide-checkbox', title: 'Checkbox Editor', onlyFor: ['angular'] },
+  { path: 'cells/guide-checkbox-angular/guide-checkbox', title: 'Checkbox Editor', onlyFor: ['angular'] }
+
 ];
 
 module.exports = {
   sidebar: [
-    //{ title: 'introduction', path: 'introduction', children: [] },
     'introduction',
-    { title: 'Cell Definitions', path: 'cells', children: cellsItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };

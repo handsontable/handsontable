@@ -1,8 +1,27 @@
-import { textRenderer } from '../textRenderer';
 import { fastInnerHTML } from '../../helpers/dom/element';
-import { rangeEach } from '../../helpers/number';
+import { stringify } from '../../helpers/mixed';
 
 export const RENDERER_TYPE = 'password';
+
+/**
+ * Formats the value using the password format.
+ *
+ * @param {*} value Value to be formatted.
+ * @param {CellMeta} cellProperties Cell meta object.
+ * @returns {*} Returns the formatted value.
+ */
+export function valueFormatter(value, cellProperties) {
+  const hashLength = cellProperties.hashLength || stringify(value).length;
+  const hashSymbol = cellProperties.hashSymbol || '*';
+
+  let hash = '';
+
+  for (let i = 0; i < hashLength; i++) {
+    hash += hashSymbol;
+  }
+
+  return hash;
+}
 
 /**
  * @private
@@ -12,20 +31,10 @@ export const RENDERER_TYPE = 'password';
  * @param {number} col The visual column index.
  * @param {number|string} prop The column property (passed when datasource is an array of objects).
  * @param {*} value The rendered value.
- * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
-export function passwordRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
-  textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
-
-  const hashLength = cellProperties.hashLength || TD.innerHTML.length;
-  const hashSymbol = cellProperties.hashSymbol || '*';
-
-  let hash = '';
-
-  rangeEach(hashLength - 1, () => {
-    hash += hashSymbol;
-  });
-  fastInnerHTML(TD, hash);
+export function passwordRenderer(hotInstance, TD, row, col, prop, value) {
+  fastInnerHTML(TD, value);
 }
 
+passwordRenderer.valueFormatter = valueFormatter;
 passwordRenderer.RENDERER_TYPE = RENDERER_TYPE;

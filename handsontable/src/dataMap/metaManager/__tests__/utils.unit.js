@@ -109,7 +109,9 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'valueGetter', 'valueSetter', 'dataType']),
+        _automaticallyAssignedMetaProps: new Set([
+          'editor', 'validator', 'valueGetter', 'valueSetter', 'dataType', 'valueFormatter',
+        ]),
         copyPaste: true,
         test: 'foo',
         renderer: 'type-renderer',
@@ -118,6 +120,7 @@ describe('MetaManager utils', () => {
         validator: getCellType('numeric').validator,
         valueGetter: getCellType('autocomplete').valueGetter,
         valueSetter: getCellType('numeric').valueSetter,
+        valueFormatter: getCellType('numeric').valueFormatter,
       });
 
       extendByMetaType(metaObject, {
@@ -125,7 +128,9 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'dataType', 'valueGetter', 'valueSetter']),
+        _automaticallyAssignedMetaProps: new Set([
+          'editor', 'validator', 'valueGetter', 'valueSetter', 'dataType', 'valueFormatter',
+        ]),
         copyPaste: true,
         test: 'foo',
         renderer: 'type-renderer',
@@ -134,6 +139,7 @@ describe('MetaManager utils', () => {
         validator: getCellType('numeric').validator,
         valueGetter: getCellType('autocomplete').valueGetter,
         valueSetter: getCellType('numeric').valueSetter,
+        valueFormatter: getCellType('numeric').valueFormatter,
       });
     });
 
@@ -145,7 +151,9 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'renderer', 'validator', 'valueGetter', 'valueSetter']),
+        _automaticallyAssignedMetaProps: new Set([
+          'editor', 'renderer', 'validator', 'valueGetter', 'valueSetter',
+        ]),
         renderer: getCellType('autocomplete').renderer,
         editor: getCellType('autocomplete').editor,
         validator: getCellType('autocomplete').validator,
@@ -160,7 +168,9 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'valueGetter', 'valueSetter']),
+        _automaticallyAssignedMetaProps: new Set([
+          'editor', 'validator', 'valueGetter', 'valueSetter',
+        ]),
         renderer: 'my-renderer',
         editor: getCellType('autocomplete').editor,
         validator: getCellType('autocomplete').validator,

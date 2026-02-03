@@ -37,7 +37,7 @@ Our goal: **Make custom cell creation so simple that any developer can create a 
 
 ::: only-for react
 
-## React 
+## React
 
 For React applications, Handsontable provides `EditorComponent`, a high-level React component that simplifies creating custom editors. It handles container creation, positioning, lifecycle management, and shortcuts automatically, allowing you to focus on your editor's UI and logic.
 
@@ -187,7 +187,7 @@ const SelectEditor = () => {
     >
       {({ value, setValue, finishEditing }) => {
         const options = ['Option 1', 'Option 2', 'Option 3'];
-        
+
         return (
           <select
             value={value || ''}
@@ -278,7 +278,7 @@ import SomePickerLibrary from 'some-picker-library';
 
 const PickerEditor = () => {
   const pickerRef = useRef(null);
-  
+
   return (
     <EditorComponent
       onOpen={() => {
@@ -300,12 +300,12 @@ const PickerEditor = () => {
               finishEditing();
             }
           });
-          
+
           return () => {
             pickerRef.current?.destroy();
           };
         }, []);
-        
+
         return <div ref={mainElementRef} />;
       }}
     </EditorComponent>
@@ -1428,12 +1428,12 @@ validator: (value, callback) => {
 
 We provide complete working examples for common use cases. All examples use the `editorFactory` helper:
 
-1. **[Color Picker](@/recipes/cells/guide-color-picker/guide-color-picker.md)** - Integrate a color picker library using `factoryEditor`
-2. **[Flatpickr Date Picker](@/recipes/cells/guide-flatpickr/guide-flatpickr.md)** - Advanced date picker with options using `factoryEditor`
-3. **[Native Date Input](@/recipes/cells/guide-input-date/guide-input-date.md)** - HTML5 date input using `factoryEditor`
-4. **[Feedback Editor](@/recipes/cells/guide-feedback/guide-feedback.md)** - Emoji feedback buttons using `factoryEditor`
-5. **[Star Rating](@/recipes/cells/guide-rating/guide-rating.md)** - Interactive star rating using `factoryEditor`
-6. **[Multiple Select](@/recipes/cells/guide-select-multiple/guide-select-multiple.md)** - Multi-select dropdown using `factoryEditor`
+1. **[Color Picker](@/recipes/cell-types/color-picker/color-picker.md)** - Integrate a color picker library using `factoryEditor`
+2. **[Feedback Editor](@/recipes/cell-types/feedback/feedback.md)** - Emoji feedback buttons using `factoryEditor`
+3. **[Flatpickr Date Picker](@/recipes/cell-types/flatpickr/flatpickr.md)** - Advanced date picker with options using `factoryEditor`
+4. **[Pikaday Date Picker](@/recipes/cell-types/pikaday/pikaday.md)** - Integrate Pikaday date picker using `factoryEditor`
+5. **[Star Rating](@/recipes/cell-types/rating/rating.md)** - Interactive star rating using `factoryEditor`
+6. **[Multiple Select](@/recipes/cell-types/select-multiple/select-multiple.md)** - Multi-select dropdown using `factoryEditor`
 
 ## Migration from Traditional Approach
 

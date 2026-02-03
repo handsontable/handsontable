@@ -140,8 +140,7 @@ const buildDependencyGetter = (version) => {
       rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.min.js', [/* todo */]],
       'core-js': ['https://cdn.jsdelivr.net/npm/core-js@2/client/core.min.js', [/* todo */]],
       zone: ['https://cdn.jsdelivr.net/npm/zone.js@0.15.0/bundles/zone.umd.min.js', [/* todo */]],
-      'angular-compiler': [getPrebuiltUmdUrl('angular-compiler.umd.min.js'), [/* todo
-       */]],
+      'angular-compiler': [getPrebuiltUmdUrl('angular-compiler.umd.min.js'), [/* todo */]],
       'angular-core': [getPrebuiltUmdUrl('angular-core.umd.min.js'), [/* todo */]],
       'angular-common': [getPrebuiltUmdUrl('angular-common.umd.min.js'), [/* todo */]],
       'angular-forms': [getPrebuiltUmdUrl('angular-forms.umd.min.js'), [/* todo */]],
@@ -179,7 +178,7 @@ const buildDependencyGetter = (version) => {
 
 const presetMap = {
   /* eslint-disable max-len */
-  'hot-recipe': ['hot', 'moment', 'pikaday', 'date-fns', 'fixer', 'coloris', 'flatpickr', 'multiple-select-vanilla'],
+  'hot-recipe': ['hot', 'moment', 'pikaday', 'date-fns', 'coloris', 'flatpickr', 'multiple-select-vanilla', 'fixer'],
   hot: ['hot', 'fixer'],
   'hot-lang': ['hot', 'languages', 'fixer'],
   'hot-numbro': ['hot', 'numbro', 'fixer'],

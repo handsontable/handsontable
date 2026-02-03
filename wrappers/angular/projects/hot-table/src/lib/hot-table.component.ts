@@ -159,6 +159,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() uncheckedTemplate: Handsontable.GridSettings['uncheckedTemplate'];
   @Input() undo: Handsontable.GridSettings['undo'];
   @Input() validator: Handsontable.GridSettings['validator'];
+  @Input() valueFormatter: Handsontable.GridSettings['valueFormatter'];
   @Input() valueGetter: Handsontable.GridSettings['valueGetter'];
   @Input() valueSetter: Handsontable.GridSettings['valueSetter'];
   @Input() viewportColumnRenderingOffset: Handsontable.GridSettings['viewportColumnRenderingOffset'];

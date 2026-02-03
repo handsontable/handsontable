@@ -124,12 +124,14 @@ export function init() {
         data: 8,
         renderer: progressBarRenderer,
         readOnly: true,
+        readOnlyCellClassName: "",
         className: "htMiddle"
       },
       {
         data: 9,
         renderer: starRenderer,
         readOnly: true,
+        readOnlyCellClassName: "",
         className: "star htCenter",
         headerClassName: "htCenter"
       },

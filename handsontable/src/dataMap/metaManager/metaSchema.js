@@ -3842,24 +3842,112 @@ export default () => {
     noWordWrapClassName: 'htNoWrap',
 
     /**
-     * The `numericFormat` option configures the number format and the currency format
-     * of [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cells` displayed output
-     * in the numeric cell renderer.
+     * Configures the number format for [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
+     * cells, including currency, units, precision, and other display options.
      *
-     * You can set the `numericFormat` option to an object with the following properties:
+     * ::: warning
+     * The `numericFormat.pattern` and `numericFormat.culture` options are deprecated and will be
+     * removed in the next major release. Pass `Intl.NumberFormat` options directly to `numericFormat`
+     * and use the `locale` cell property instead of `culture`.
+     * :::
      *
-     * | Property    | Possible values                                                               | Description     |
-     * | ----------- | ----------------------------------------------------------------------------- | --------------- |
-     * | `pattern`   | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Number format   |
-     * | `culture`   | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Currency format |
+     * Since v17.0.0, this option accepts all properties of the
+     * [`Intl.NumberFormatOptions`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat)
+     * object. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
      *
-     * The `numericFormat` option as no effect on the numeric cell editor.
+     * **Style options:**
      *
-     * In the source data, numeric data is stored as JavaScript numbers.
+     * | Property          | Possible values                                           | Description                                                    |
+     * | ----------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+     * | `style`           | `'decimal'` (default), `'currency'`, `'percent'`, `'unit'`| The formatting style to use                                    |
+     * | `currency`        | ISO 4217 currency codes (e.g., `'USD'`, `'EUR'`, `'PLN'`) | Required when `style` is `'currency'`                          |
+     * | `currencyDisplay` | `'symbol'` (default), `'narrowSymbol'`, `'code'`, `'name'`| How to display the currency                                    |
+     * | `currencySign`    | `'standard'` (default), `'accounting'`                    | Use parentheses for negative values in accounting format       |
+     * | `unit`            | Unit identifiers (e.g., `'kilometer'`, `'liter'`)         | Required when `style` is `'unit'`                              |
+     * | `unitDisplay`     | `'short'` (default), `'narrow'`, `'long'`                 | How to display the unit                                        |
+     *
+     * **Notation options:**
+     *
+     * | Property          | Possible values                                               | Description                                              |
+     * | ----------------- | ------------------------------------------------------------- | -------------------------------------------------------- |
+     * | `notation`        | `'standard'` (default), `'scientific'`, `'engineering'`, `'compact'` | The formatting notation                           |
+     * | `compactDisplay`  | `'short'` (default), `'long'`                                 | Display style for compact notation (e.g., `1.5M` vs `1.5 million`) |
+     *
+     * **Sign and grouping options:**
+     *
+     * | Property          | Possible values                                                     | Description                                        |
+     * | ----------------- | ------------------------------------------------------------------- | -------------------------------------------------- |
+     * | `signDisplay`     | `'auto'` (default), `'never'`, `'always'`, `'exceptZero'`, `'negative'` | When to display the sign                       |
+     * | `useGrouping`     | `true`, `false` (default), `'always'`, `'auto'`, `'min2'`           | Whether to use grouping separators (e.g., `1,000`) |
+     *
+     * **Digit options:**
+     *
+     * | Property                  | Possible values | Description                                                   |
+     * | ------------------------- | --------------- | ------------------------------------------------------------- |
+     * | `minimumIntegerDigits`    | `1` to `21`     | Minimum number of integer digits (pads with zeros)            |
+     * | `minimumFractionDigits`   | `0` to `100`    | Minimum number of fraction digits                             |
+     * | `maximumFractionDigits`   | `0` to `100`    | Maximum number of fraction digits                             |
+     * | `minimumSignificantDigits`| `1` to `21`     | Minimum number of significant digits                          |
+     * | `maximumSignificantDigits`| `1` to `21`     | Maximum number of significant digits                          |
+     *
+     * **Rounding options:**
+     *
+     * | Property              | Possible values                                                                                     | Description                          |
+     * | --------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------ |
+     * | `roundingMode`        | `'halfExpand'` (default), `'ceil'`, `'floor'`, `'expand'`, `'trunc'`, `'halfCeil'`, `'halfFloor'`, `'halfTrunc'`, `'halfEven'` | Rounding algorithm |
+     * | `roundingPriority`    | `'auto'` (default), `'morePrecision'`, `'lessPrecision'`                                            | Priority between fraction and significant digits |
+     * | `roundingIncrement`   | `1`, `2`, `5`, `10`, `20`, `25`, `50`, `100`, `200`, `250`, `500`, `1000`, `2000`, `2500`, `5000`    | Increment for rounding (e.g., nickel rounding) |
+     * | `trailingZeroDisplay` | `'auto'` (default), `'stripIfInteger'`                                                              | Whether to strip trailing zeros for integers |
+     *
+     * **Locale options:**
+     *
+     * | Property          | Possible values                                           | Description                                        |
+     * | ----------------- | --------------------------------------------------------- | -------------------------------------------------- |
+     * | `localeMatcher`   | `'best fit'` (default), `'lookup'`                        | Locale matching algorithm                          |
+     * | `numberingSystem` | `'latn'`, `'arab'`, `'hans'`, `'deva'`, `'thai'`, etc.    | Numbering system to use                            |
+     *
+     * For complete reference, see [MDN: Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options).
+     *
+     * This option affects only the displayed output in the cell renderer.
+     * It has no effect on the numeric cell editor. In the source data, numeric values
+     * are stored as JavaScript numbers.
      *
      * Read more:
+     * - [`locale`](@/api/options.md#locale)
      * - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
+     * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
+     * - [Numbro cell type](@/recipes/cell-types/numbro/numbro.md)
      * - [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md)
+     *
+     * ---
+     *
+     * **Deprecated options:**
+     *
+     * The `pattern` and `culture` properties (numbro.js-based formatting) are deprecated and will be
+     * removed in the next major release. Migrate to the `Intl.NumberFormat` API shown above.
+     *
+     * | Deprecated property | Possible values                                                               | Replacement                                           |
+     * | ------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------- |
+     * | `pattern`           | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Use `Intl.NumberFormat` options (see tables above)    |
+     * | `culture`           | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Use the [`locale`](@/api/options.md#locale) option    |
+     *
+     * **Migration example:**
+     *
+     * ```js
+     * // Before (deprecated)
+     * numericFormat: {
+     *   pattern: '0,0.00 $',
+     *   culture: 'en-US'
+     * }
+     *
+     * // After (recommended)
+     * locale: 'en-US',
+     * numericFormat: {
+     *   style: 'currency',
+     *   currency: 'USD',
+     *   minimumFractionDigits: 2
+     * }
+     * ```
      *
      * @memberof Options#
      * @since 0.35.0
@@ -3871,14 +3959,11 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of each cell in this column to `numeric`
      *     type: 'numeric',
-     *     // set the `numericFormat` option for every `numeric` cell of this column
+     *     locale: 'en-US',
      *     numericFormat: {
-     *       // set the number format
-     *       pattern: '0,00',
-     *       // set the currency format
-     *       culture: 'en-US'
+     *       style: 'currency',
+     *       currency: 'USD',
      *     }
      *   }
      * ],
@@ -4330,6 +4415,93 @@ export default () => {
      * ```
      */
     renderer: undefined,
+
+    /**
+     * @description
+     * The `valueFormatter` option sets a custom function for formatting cell values before display.
+     *
+     * Unlike the [`renderer`](#renderer) option, which is responsible for the complete cell rendering process
+     * (DOM structure, performance-optimized content insertion via `innerText`/`innerHTML`, a11y attributes, applying
+     * styles from `className`, `readOnlyCellClassName`, `textEllipsis`, and other options), the `valueFormatter`
+     * focuses solely on transforming the cell's value.
+     *
+     * The `valueFormatter` function is called by the rendering engine right before the actual renderer function is
+     * called. Separating the value formatting from the renderer logic allows for more flexibility and reuse.
+     * This simplifies common formatting use cases where you only need to transform
+     * the displayed value (e.g., adding units, formatting dates, or applying custom text transformations).
+     *
+     * **When to use `valueFormatter` vs `renderer`:**
+     *
+     * | Use case                                          | Recommended option   |
+     * | ------------------------------------------------- | -------------------- |
+     * | Transform displayed value (add prefix, units)     | `valueFormatter`     |
+     * | Custom date/number/text formatting                | `valueFormatter`     |
+     * | Modify DOM structure (add icons, custom elements) | `renderer`           |
+     *
+     * The function receives the raw value and cell properties, and should return the formatted value
+     * to be displayed. The formatting can be applied to a single cell, column, or the entire grid.
+     *
+     * **Function signature:**
+     * ```js
+     * valueFormatter(value, cellProperties) => formattedValue
+     * ```
+     *
+     * | Parameter        | Type       | Description                                    |
+     * | ---------------- | ---------- | ---------------------------------------------- |
+     * | `value`          | `*`        | The raw cell value                             |
+     * | `cellProperties` | `object`   | The cell's meta object (see {@link Core#getCellMeta}) |
+     * | Returns          | `*`        | The formatted value to display                 |
+     *
+     * Read more:
+     * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     *
+     * @memberof Options#
+     * @since 17.0.0
+     * @type {Function}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // add a currency symbol to numeric values
+     * valueFormatter(value, cellProperties) {
+     *   if (value === null || value === undefined) {
+     *     return '';
+     *   }
+     *
+     *   return `$${value}`;
+     * }
+     *
+     * // format dates in a custom format
+     * valueFormatter(value, cellProperties) {
+     *   if (!value) {
+     *     return '';
+     *   }
+     *
+     *   const date = new Date(value);
+     *
+     *   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+     * }
+     *
+     * // apply valueFormatter to individual columns
+     * columns: [
+     *   {
+     *     // add "kg" suffix to weight values
+     *     valueFormatter(value) {
+     *       return value ? `${value} kg` : '';
+     *     }
+     *   },
+     *   {
+     *     // format percentages
+     *     valueFormatter(value) {
+     *       return value !== null ? `${(value * 100).toFixed(1)}%` : '';
+     *     }
+     *   }
+     * ]
+     * ```
+     */
+    valueFormatter: undefined,
 
     /**
      * The `rowHeaders` option configures your grid's row headers.
