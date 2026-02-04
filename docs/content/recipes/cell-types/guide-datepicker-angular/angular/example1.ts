@@ -1,52 +1,52 @@
 /* file: app.component.ts */
-import { Component, ChangeDetectorRef, ChangeDetectionStrategy, inject, ViewChild, ElementRef } from "@angular/core";
+import { Component, ChangeDetectorRef, ChangeDetectionStrategy, inject, ViewChild, ElementRef } from '@angular/core';
 import {
   GridSettings,
   HotCellEditorAdvancedComponent,
   HotCellRendererAdvancedComponent,
-} from "@handsontable/angular-wrapper";
-import { format, parse, isValid } from "date-fns";
+} from '@handsontable/angular-wrapper';
+import { format, parse, isValid } from 'date-fns';
 
 export const inputData = [
   {
     id: 640329,
-    itemName: "Lunar Core",
-    restockDate: "2025-08-01",
+    itemName: 'Lunar Core',
+    restockDate: '2025-08-01',
   },
   {
     id: 863104,
-    itemName: "Zero Thrusters",
-    restockDate: "2025-09-15",
+    itemName: 'Zero Thrusters',
+    restockDate: '2025-09-15',
   },
   {
     id: 395603,
-    itemName: "EVA Suits",
-    restockDate: "2025-10-05",
+    itemName: 'EVA Suits',
+    restockDate: '2025-10-05',
   },
   {
     id: 679083,
-    itemName: "Solar Panels",
-    restockDate: "2025-11-10",
+    itemName: 'Solar Panels',
+    restockDate: '2025-11-10',
   },
   {
     id: 912663,
-    itemName: "Comm Array",
-    restockDate: "2025-12-20",
+    itemName: 'Comm Array',
+    restockDate: '2025-12-20',
   },
   {
     id: 315806,
-    itemName: "Habitat Dome",
-    restockDate: "2026-01-25",
+    itemName: 'Habitat Dome',
+    restockDate: '2026-01-25',
   },
   {
     id: 954632,
-    itemName: "Oxygen Unit",
-    restockDate: "2026-03-02",
+    itemName: 'Oxygen Unit',
+    restockDate: '2026-03-02',
   },
 ];
 
 @Component({
-  selector: "example1-date-editor",
+  selector: 'example1-date-editor',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <input
@@ -60,9 +60,9 @@ export const inputData = [
   standalone: false,
 })
 export class DateEditorComponent extends HotCellEditorAdvancedComponent<string> {
-  dateValue: string = "";
+  dateValue: string = '';
 
-  @ViewChild("editorInput", { static: true })
+  @ViewChild('editorInput', { static: true })
   protected editorInput!: ElementRef<HTMLInputElement>;
 
   private readonly cdr = inject(ChangeDetectorRef);
@@ -79,12 +79,12 @@ export class DateEditorComponent extends HotCellEditorAdvancedComponent<string> 
         let parsedDate: Date;
 
         // Try to parse MM/DD/YYYY format
-        if (typeof originalValue === "string" && originalValue.includes("/")) {
-          parsedDate = parse(originalValue, "MM/dd/yyyy", new Date());
+        if (typeof originalValue === 'string' && originalValue.includes('/')) {
+          parsedDate = parse(originalValue, 'MM/dd/yyyy', new Date());
         }
         // Try to parse YYYY-MM-DD format
-        else if (typeof originalValue === "string" && originalValue.includes("-")) {
-          parsedDate = parse(originalValue, "yyyy-MM-dd", new Date());
+        else if (typeof originalValue === 'string' && originalValue.includes('-')) {
+          parsedDate = parse(originalValue, 'yyyy-MM-dd', new Date());
         }
         // Fallback to generic date parsing
         else {
@@ -92,17 +92,17 @@ export class DateEditorComponent extends HotCellEditorAdvancedComponent<string> 
         }
 
         if (isValid(parsedDate)) {
-          // Format as YYYY-MM-DD for native input type="date"
-          this.dateValue = format(parsedDate, "yyyy-MM-dd");
+          // Format as YYYY-MM-DD for native input type='date'
+          this.dateValue = format(parsedDate, 'yyyy-MM-dd');
         } else {
-          this.dateValue = "";
+          this.dateValue = '';
         }
       } catch (error) {
-        console.error("Error parsing date:", error);
-        this.dateValue = "";
+        console.error('Error parsing date:', error);
+        this.dateValue = '';
       }
     } else {
-      this.dateValue = "";
+      this.dateValue = '';
     }
 
     this.cdr.detectChanges();
@@ -116,15 +116,15 @@ export class DateEditorComponent extends HotCellEditorAdvancedComponent<string> 
     if (this.dateValue) {
       try {
         // Parse YYYY-MM-DD from input
-        const parsedDate = parse(this.dateValue, "yyyy-MM-dd", new Date());
+        const parsedDate = parse(this.dateValue, 'yyyy-MM-dd', new Date());
 
         if (isValid(parsedDate)) {
           // Format as MM/DD/YYYY for Handsontable
-          const formattedDate = format(parsedDate, "MM/dd/yyyy");
+          const formattedDate = format(parsedDate, 'MM/dd/yyyy');
           this.setValue(formattedDate);
         }
       } catch (error) {
-        console.error("Error formatting date:", error);
+        console.error('Error formatting date:', error);
       }
     }
   }
@@ -135,7 +135,7 @@ export class DateEditorComponent extends HotCellEditorAdvancedComponent<string> 
 }
 
 @Component({
-  selector: "example1-date-renderer",
+  selector: 'example1-date-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: ` <div>
     {{ formattedDate }}
@@ -148,11 +148,11 @@ export class DateRendererComponent extends HotCellRendererAdvancedComponent<stri
   }
 }
 
-const DATE_FORMAT_US = "MM/dd/yyyy";
-const DATE_FORMAT_EU = "dd/MM/yyyy";
+const DATE_FORMAT_US = 'MM/dd/yyyy';
+const DATE_FORMAT_EU = 'dd/MM/yyyy';
 
 @Component({
-  selector: "example1-guide-datepicker-angular",
+  selector: 'example1-guide-datepicker-angular',
   standalone: false,
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
@@ -168,18 +168,18 @@ export class Example1GuideDatepickerAngularComponent {
     autoRowSize: true,
     rowHeaders: true,
     autoWrapRow: true,
-    height: "auto",
+    height: 'auto',
     manualColumnResize: true,
     manualRowResize: true,
-    colHeaders: ["ID", "Item Name", "Restock Date EU", "Restock Date US"],
+    colHeaders: ['ID', 'Item Name', 'Restock Date EU', 'Restock Date US'],
     columns: [
-      { data: "id", type: "numeric" },
+      { data: 'id', type: 'numeric' },
       {
-        data: "itemName",
-        type: "text",
+        data: 'itemName',
+        type: 'text',
       },
       {
-        data: "restockDate",
+        data: 'restockDate',
         width: 150,
         allowInvalid: false,
         rendererProps: {
@@ -189,7 +189,7 @@ export class Example1GuideDatepickerAngularComponent {
         renderer: DateRendererComponent,
       },
       {
-        data: "restockDate",
+        data: 'restockDate',
         width: 150,
         allowInvalid: false,
         rendererProps: {
@@ -204,15 +204,15 @@ export class Example1GuideDatepickerAngularComponent {
 /* end-file */
 
 /* file: app.module.ts */
-import { NgModule, ApplicationConfig } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
-import { registerAllModules } from "handsontable/registry";
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from "@handsontable/angular-wrapper";
-import { CommonModule } from "@angular/common";
-import { NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
-import { FormsModule } from "@angular/forms";
+import { NgModule, ApplicationConfig } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
+import { CommonModule } from '@angular/common';
+import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { FormsModule } from '@angular/forms';
 /* start:skip-in-compilation */
-import { Example1GuideDatepickerAngularComponent, DateEditorComponent, DateRendererComponent } from "./app.component";
+import { Example1GuideDatepickerAngularComponent, DateEditorComponent, DateRendererComponent } from './app.component';
 /* end:skip-in-compilation */
 
 // register Handsontable's modules
@@ -223,7 +223,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: "ht-theme-main",
+        themeName: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig,
     },

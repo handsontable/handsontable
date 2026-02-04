@@ -1,44 +1,44 @@
 /* file: app.component.ts */
-import { Component, ChangeDetectionStrategy } from "@angular/core";
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import {
   GridSettings,
   HotCellEditorAdvancedComponent,
   HotCellRendererAdvancedComponent,
-} from "@handsontable/angular-wrapper";
+} from '@handsontable/angular-wrapper';
 
 export const inputData = [
   {
     id: 640329,
-    itemName: "Lunar Core",
+    itemName: 'Lunar Core',
   },
   {
     id: 863104,
-    itemName: "Zero Thrusters",
+    itemName: 'Zero Thrusters',
   },
   {
     id: 395603,
-    itemName: "EVA Suits",
+    itemName: 'EVA Suits',
   },
   {
     id: 679083,
-    itemName: "Solar Panels",
+    itemName: 'Solar Panels',
   },
   {
     id: 912663,
-    itemName: "Comm Array",
+    itemName: 'Comm Array',
   },
   {
     id: 315806,
-    itemName: "Habitat Dome",
+    itemName: 'Habitat Dome',
   },
   {
     id: 954632,
-    itemName: "Oxygen Unit",
+    itemName: 'Oxygen Unit',
   },
 ];
 
 @Component({
-  selector: "example1-color-renderer",
+  selector: 'example1-color-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<div style="height: 100%; width: 100%;" [style.background]="value">
     <b>{{ value }}</b>
@@ -54,7 +54,7 @@ export const inputData = [
 export class ColorRendererComponent extends HotCellRendererAdvancedComponent<string> {}
 
 @Component({
-  selector: "example1-color-picker-editor",
+  selector: 'example1-color-picker-editor',
   template: `
     <input style="width: 100%; height: 100%;" type="color" [value]="value" (input)="onColorChange($event)" />
   `,
@@ -72,7 +72,7 @@ export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<s
 }
 
 @Component({
-  selector: "example1-guide-color-picker-angular",
+  selector: 'example1-guide-color-picker-angular',
   standalone: false,
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
@@ -91,18 +91,18 @@ export class Example1GuideColorPickerAngularComponent {
     autoRowSize: true,
     rowHeaders: true,
     autoWrapRow: true,
-    height: "auto",
+    height: 'auto',
     manualColumnResize: true,
     manualRowResize: true,
-    colHeaders: ["ID", "Item Name", "Item color"],
+    colHeaders: ['ID', 'Item Name', 'Item color'],
     columns: [
-      { data: "id", type: "numeric" },
+      { data: 'id', type: 'numeric' },
       {
-        data: "itemName",
-        type: "text",
+        data: 'itemName',
+        type: 'text',
       },
       {
-        data: "color",
+        data: 'color',
         width: 150,
         editor: ColorPickerEditorComponent,
         renderer: ColorRendererComponent,
@@ -113,18 +113,18 @@ export class Example1GuideColorPickerAngularComponent {
 /* end-file */
 
 /* file: app.module.ts */
-import { NgModule, ApplicationConfig } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
-import { registerAllModules } from "handsontable/registry";
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from "@handsontable/angular-wrapper";
-import { CommonModule } from "@angular/common";
-import { NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
+import { NgModule, ApplicationConfig } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
+import { CommonModule } from '@angular/common';
+import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 /* start:skip-in-compilation */
 import {
   Example1GuideColorPickerAngularComponent,
   ColorPickerEditorComponent,
   ColorRendererComponent,
-} from "./app.component";
+} from './app.component';
 /* end:skip-in-compilation */
 
 // register Handsontable's modules
@@ -135,7 +135,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: "ht-theme-main",
+        themeName: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig,
     },

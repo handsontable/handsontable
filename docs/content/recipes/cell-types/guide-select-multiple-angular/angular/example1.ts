@@ -1,39 +1,39 @@
 /* file: app.component.ts */
-import { Component, ChangeDetectorRef, ChangeDetectionStrategy, inject } from "@angular/core";
+import { Component, ChangeDetectorRef, ChangeDetectionStrategy, inject } from '@angular/core';
 import {
   GridSettings,
   HotCellEditorAdvancedComponent,
   HotCellRendererAdvancedComponent,
-} from "@handsontable/angular-wrapper";
+} from '@handsontable/angular-wrapper';
 
 export const inputData = [
   {
     id: 640329,
-    itemName: "Lunar Core",
+    itemName: 'Lunar Core',
   },
   {
     id: 863104,
-    itemName: "Zero Thrusters",
+    itemName: 'Zero Thrusters',
   },
   {
     id: 395603,
-    itemName: "EVA Suits",
+    itemName: 'EVA Suits',
   },
   {
     id: 679083,
-    itemName: "Solar Panels",
+    itemName: 'Solar Panels',
   },
   {
     id: 912663,
-    itemName: "Comm Array",
+    itemName: 'Comm Array',
   },
   {
     id: 315806,
-    itemName: "Habitat Dome",
+    itemName: 'Habitat Dome',
   },
   {
     id: 954632,
-    itemName: "Oxygen Unit",
+    itemName: 'Oxygen Unit',
   },
 ];
 
@@ -122,7 +122,7 @@ export const inputData = [
       .dropdown-item:hover {
         background: #f5f5f5;
       }
-      .dropdown-item input[type="checkbox"] {
+      .dropdown-item input[type='checkbox'] {
         cursor: pointer;
       }
       .dropdown-item label {
@@ -133,7 +133,7 @@ export const inputData = [
     `,
   ],
   standalone: false,
-  selector: "example1-multi-select-editor",
+  selector: 'example1-multi-select-editor',
 })
 export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<{ value: string; label: string }[]> {
   selectedValues: { value: string; label: string }[] = [];
@@ -175,14 +175,14 @@ export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<{
 
   getSelectedLabel(): string {
     if (this.selectedValues.length === 0) {
-      return "Select options...";
+      return 'Select options...';
     }
-    return this.selectedValues.map((item) => item.label).join(", ");
+    return this.selectedValues.map((item) => item.label).join(', ');
   }
 }
 
 @Component({
-  selector: "example1-multi-select-renderer",
+  selector: 'example1-multi-select-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<div>
     {{ displayValue }}
@@ -191,18 +191,18 @@ export class MultiSelectEditorComponent extends HotCellEditorAdvancedComponent<{
 })
 export class MultiSelectRendererComponent extends HotCellRendererAdvancedComponent<{ value: string; label: string }[]> {
   get displayValue(): string {
-    return this.value && this.value.length > 0 ? this.value.map((el) => el.label).join(", ") : "No elements";
+    return this.value && this.value.length > 0 ? this.value.map((el) => el.label).join(', ') : 'No elements';
   }
 }
 
 const components = [
-  { value: "1", label: "Component 1" },
-  { value: "2", label: "Component 2" },
-  { value: "3", label: "Component 3" },
+  { value: '1', label: 'Component 1' },
+  { value: '2', label: 'Component 2' },
+  { value: '3', label: 'Component 3' },
 ];
 
 @Component({
-  selector: "example1-guide-multi-select-angular",
+  selector: 'example1-guide-multi-select-angular',
   standalone: false,
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
@@ -226,18 +226,18 @@ export class Example1GuideMultiSelectAngularComponent {
     autoRowSize: true,
     rowHeaders: true,
     autoWrapRow: true,
-    height: "auto",
+    height: 'auto',
     manualColumnResize: true,
     manualRowResize: true,
-    colHeaders: ["ID", "Item Name", "Components"],
+    colHeaders: ['ID', 'Item Name', 'Components'],
     columns: [
-      { data: "id", type: "numeric" },
+      { data: 'id', type: 'numeric' },
       {
-        data: "itemName",
-        type: "text",
+        data: 'itemName',
+        type: 'text',
       },
       {
-        data: "components",
+        data: 'components',
         width: 150,
         allowInvalid: false,
         renderer: MultiSelectRendererComponent,
@@ -250,19 +250,19 @@ export class Example1GuideMultiSelectAngularComponent {
 /* end-file */
 
 /* file: app.module.ts */
-import { NgModule, ApplicationConfig } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
-import { registerAllModules } from "handsontable/registry";
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from "@handsontable/angular-wrapper";
-import { CommonModule } from "@angular/common";
-import { NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
-import { FormsModule } from "@angular/forms";
+import { NgModule, ApplicationConfig } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
+import { CommonModule } from '@angular/common';
+import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { FormsModule } from '@angular/forms';
 /* start:skip-in-compilation */
 import {
   Example1GuideMultiSelectAngularComponent,
   MultiSelectEditorComponent,
   MultiSelectRendererComponent,
-} from "./app.component";
+} from './app.component';
 /* end:skip-in-compilation */
 
 // register Handsontable's modules
@@ -273,7 +273,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: "ht-theme-main",
+        themeName: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig,
     },

@@ -1,45 +1,45 @@
 /* file: app.component.ts */
-import { Component, ChangeDetectorRef, ChangeDetectionStrategy, inject } from "@angular/core";
+import { Component, ChangeDetectorRef, ChangeDetectionStrategy, inject } from '@angular/core';
 import {
   GridSettings,
   HotCellEditorAdvancedComponent,
   KeyboardShortcutConfig,
   HotCellRendererAdvancedComponent,
-} from "@handsontable/angular-wrapper";
+} from '@handsontable/angular-wrapper';
 
 export const inputData = [
   {
     id: 640329,
-    itemName: "Lunar Core",
+    itemName: 'Lunar Core',
   },
   {
     id: 863104,
-    itemName: "Zero Thrusters",
+    itemName: 'Zero Thrusters',
   },
   {
     id: 395603,
-    itemName: "EVA Suits",
+    itemName: 'EVA Suits',
   },
   {
     id: 679083,
-    itemName: "Solar Panels",
+    itemName: 'Solar Panels',
   },
   {
     id: 912663,
-    itemName: "Comm Array",
+    itemName: 'Comm Array',
   },
   {
     id: 315806,
-    itemName: "Habitat Dome",
+    itemName: 'Habitat Dome',
   },
   {
     id: 954632,
-    itemName: "Oxygen Unit",
+    itemName: 'Oxygen Unit',
   },
 ];
 
 @Component({
-  selector: "example1-guide-star-renderer",
+  selector: 'example1-guide-star-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: ` <div>
     @for (star of stars; track $index) {
@@ -53,7 +53,7 @@ export class StarRendererComponent extends HotCellRendererAdvancedComponent<numb
 }
 
 @Component({
-  selector: "example1-guide-star-editor",
+  selector: 'example1-guide-star-editor',
   standalone: false,
   template: `
     <div
@@ -72,13 +72,13 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
 
   override shortcuts?: KeyboardShortcutConfig[] = [
     {
-      keys: [["1"], ["2"], ["3"], ["4"], ["5"]],
+      keys: [['1'], ['2'], ['3'], ['4'], ['5']],
       callback: (editor, _event) => {
         editor.setValue(_event.key);
       },
     },
     {
-      keys: [["ArrowRight"]],
+      keys: [['ArrowRight']],
       callback: (editor, _event) => {
         if (parseInt(editor.value) < 5) {
           editor.setValue(parseInt(editor.value) + 1);
@@ -86,7 +86,7 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
       },
     },
     {
-      keys: [["ArrowLeft"]],
+      keys: [['ArrowLeft']],
       callback: (editor, _event) => {
         if (parseInt(editor.value) > 1) {
           editor.setValue(parseInt(editor.value) - 1);
@@ -101,10 +101,10 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
     const target = event.target as HTMLElement;
     if (
       target instanceof HTMLSpanElement &&
-      target.dataset["value"] &&
-      parseInt(this.getValue().toString()) !== parseInt(target.dataset["value"])
+      target.dataset['value'] &&
+      parseInt(this.getValue().toString()) !== parseInt(target.dataset['value'])
     ) {
-      this.setValue(parseInt(target.dataset["value"]));
+      this.setValue(parseInt(target.dataset['value']));
     }
     this.cdr.detectChanges();
   }
@@ -115,7 +115,7 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
 }
 
 @Component({
-  selector: "example1-guide-star-angular",
+  selector: 'example1-guide-star-angular',
   standalone: false,
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
@@ -131,18 +131,18 @@ export class Example1GuideStarAngularComponent {
     autoRowSize: true,
     rowHeaders: true,
     autoWrapRow: true,
-    height: "auto",
+    height: 'auto',
     manualColumnResize: true,
     manualRowResize: true,
-    colHeaders: ["ID", "Item Name", "Stars Rating"],
+    colHeaders: ['ID', 'Item Name', 'Stars Rating'],
     columns: [
-      { data: "id", type: "numeric" },
+      { data: 'id', type: 'numeric' },
       {
-        data: "itemName",
-        type: "text",
+        data: 'itemName',
+        type: 'text',
       },
       {
-        data: "stars",
+        data: 'stars',
         width: 200,
         renderer: StarRendererComponent,
         editor: StarEditorComponent,
@@ -153,14 +153,14 @@ export class Example1GuideStarAngularComponent {
 /* end-file */
 
 /* file: app.module.ts */
-import { NgModule, ApplicationConfig } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
-import { registerAllModules } from "handsontable/registry";
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from "@handsontable/angular-wrapper";
-import { CommonModule } from "@angular/common";
-import { NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
+import { NgModule, ApplicationConfig } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
+import { CommonModule } from '@angular/common';
+import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 /* start:skip-in-compilation */
-import { Example1GuideStarAngularComponent, StarEditorComponent, StarRendererComponent } from "./app.component";
+import { Example1GuideStarAngularComponent, StarEditorComponent, StarRendererComponent } from './app.component';
 /* end:skip-in-compilation */
 
 // register Handsontable's modules
@@ -171,7 +171,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: "ht-theme-main",
+        themeName: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig,
     },
