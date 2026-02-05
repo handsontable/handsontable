@@ -22,7 +22,7 @@ export function init() {
         language: getDirectionFromURL() === "rtl" ? arAR.languageCode : "en-US",
         themeName: getThemeNameFromURL(),
         width: '100%',
-        height: 'auto',
+        height: '100%',
         colWidths: 100,
         rowHeaders: true,
         colHeaders: true,
