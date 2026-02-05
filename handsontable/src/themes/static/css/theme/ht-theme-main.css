@@ -50,7 +50,7 @@
   --ht-colors-palette-900: #1e1e1fff;
   --ht-colors-palette-950: #050506ff;
   --ht-colors-transparent: #ffffff00;
-  --ht-font-family: Inter, -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Arial,sans-serif;
+  --ht-font-family: Inter;
   --ht-font-size: 14px;
   --ht-font-size-small: 12px;
   --ht-line-height: 20px;

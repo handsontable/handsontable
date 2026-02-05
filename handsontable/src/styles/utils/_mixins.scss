@@ -52,7 +52,7 @@
 }
 
 @mixin font-family {
-  font-family: var(--ht-font-family);
+  font-family: var(--ht-font-family),-apple-system,sans-serif;
 }
 
 @mixin menu-box-shadow {

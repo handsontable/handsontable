@@ -3,7 +3,7 @@
  */
 
 export default {
-  fontFamily: 'Inter, -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Arial,sans-serif',
+  fontFamily: 'Inter',
   fontSize: '14px',
   fontSizeSmall: '12px',
   lineHeight: '20px',

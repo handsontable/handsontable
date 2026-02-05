@@ -23,5 +23,8 @@ export default {
     400: '#4096ffff',
     500: '#1677ffff',
     600: '#0958d9ff'
-  }
+  },
+  white: '#ffffffff',
+  black: '#000000ff',
+  transparent: '#ffffff00'
 };

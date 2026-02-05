@@ -3,7 +3,7 @@
  */
 
 export default {
-  fontFamily: 'Inter, -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Arial,sans-serif',
+  fontFamily: 'Inter',
   fontSize: '14px',
   fontSizeSmall: '12px',
   lineHeight: '20px',
@@ -115,9 +115,9 @@ export default {
   iconButtonBorderColor: ['colors.palette.50', 'colors.palette.900'],
   iconButtonBackgroundColor: 'tokens.backgroundSecondaryColor',
   iconButtonIconColor: ['colors.palette.400', 'colors.palette.500'],
-  iconButtonHoverBorderColor: ['colors.palette.200', 'colors.palette.700'],
-  iconButtonHoverBackgroundColor: ['colors.palette.200', 'colors.palette.700'],
-  iconButtonHoverIconColor: 'tokens.foregroundColor',
+  iconButtonHoverBorderColor: ['colors.palette.50', 'colors.palette.900'],
+  iconButtonHoverBackgroundColor: ['colors.palette.50', 'colors.palette.900'],
+  iconButtonHoverIconColor: ['colors.palette.700', 'colors.palette.200'],
   iconButtonActiveBorderColor: 'colors.transparent',
   iconButtonActiveBackgroundColor: 'colors.transparent',
   iconButtonActiveIconColor: 'tokens.backgroundColor',

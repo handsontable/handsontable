@@ -50,7 +50,7 @@
   --ht-colors-white: #ffffffff;
   --ht-colors-black: #000000ff;
   --ht-colors-transparent: #ffffff00;
-  --ht-font-family: Inter, -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Helvetica Neue,Arial,sans-serif;
+  --ht-font-family: Inter;
   --ht-font-size: 14px;
   --ht-font-size-small: 12px;
   --ht-line-height: 20px;
@@ -162,9 +162,9 @@
   --ht-icon-button-border-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
   --ht-icon-button-background-color: var(--ht-background-secondary-color);
   --ht-icon-button-icon-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
-  --ht-icon-button-hover-border-color: light-dark(var(--ht-colors-palette-200), var(--ht-colors-palette-700));
-  --ht-icon-button-hover-background-color: light-dark(var(--ht-colors-palette-200), var(--ht-colors-palette-700));
-  --ht-icon-button-hover-icon-color: var(--ht-foreground-color);
+  --ht-icon-button-hover-border-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
+  --ht-icon-button-hover-background-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
+  --ht-icon-button-hover-icon-color: light-dark(var(--ht-colors-palette-700), var(--ht-colors-palette-200));
   --ht-icon-button-active-border-color: var(--ht-colors-transparent);
   --ht-icon-button-active-background-color: var(--ht-colors-transparent);
   --ht-icon-button-active-icon-color: var(--ht-background-color);
