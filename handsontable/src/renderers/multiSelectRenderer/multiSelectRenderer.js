@@ -11,7 +11,7 @@ import {
 } from './utils/utils';
 
 export { CHIP_CLASS };
-export const RENDERER_TYPE = 'multiSelect';
+export const RENDERER_TYPE = 'multiselect';
 
 const MULTISELECT_RENDERER_CLASS = 'ht-multi-select-renderer';
 const CHIPS_CONTAINER_CLASS = 'ht-multi-select-chips-container';

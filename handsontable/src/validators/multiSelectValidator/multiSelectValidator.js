@@ -1,6 +1,6 @@
 import { isObjectEqual, isKeyValueObject } from '../../helpers/object';
 
-export const VALIDATOR_TYPE = 'multiSelect';
+export const VALIDATOR_TYPE = 'multiselect';
 
 /**
  * The MultiSelect cell validator.

@@ -26,7 +26,7 @@ describe('`registerAllEditors`', () => {
       'password',
       'select',
       'time',
-      'multiSelect',
+      'multiselect',
     ]);
     expect(getPluginsNames()).toEqual([]);
     expect(getRegisteredRendererNames()).toEqual([

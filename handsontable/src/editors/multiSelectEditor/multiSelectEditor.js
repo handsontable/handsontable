@@ -9,10 +9,10 @@ import {
   parseStringifiedValue,
 } from './utils/utils';
 
-export const EDITOR_TYPE = 'multiSelect';
+export const EDITOR_TYPE = 'multiselect';
 
 const DROPDOWN_ELEMENT_CSS_CLASSNAME = 'ht-multi-select-editor';
-const SHORTCUTS_GROUP = 'multiSelectEditor';
+const SHORTCUTS_GROUP = 'multiselectEditor';
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 
 /**
