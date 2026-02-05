@@ -73,7 +73,26 @@ pnpm add handsontable @handsontable/angular-wrapper
 
 ## Import Handsontable's CSS
 
-Import Handsontable's CSS into your application to `styles.scss`.
+Import Handsontable's CSS into your application to `angular.json`.
+
+```json
+"projects": {
+    "<app_name>": {
+      "architect": {
+        "build": {
+          "options": {
+            "styles": [
+              "handsontable/styles/handsontable.min.css",
+              "handsontable/styles/ht-theme-main.min.css"
+            ]
+          }
+        }
+      }
+    }
+  }
+```
+
+Another option for adding CSS to your application is to import them in the `styles.scss` file.
 
 ```scss
 @import "handsontable/styles/handsontable.min.css";
@@ -95,7 +114,7 @@ Or, to reduce the size of your JavaScript bundle, [import only the modules that 
 
 ## Configure global settings
 
-You can set global configuration values for the table during the application setup (`app.config.ts`). Using the `HOT_GLOBAL_CONFIG` token, you can define an object that will be read within the wrapper. At any time, you can modify these values using the `HotGlobalConfigService` or override them at the individual table level.
+You can set global configuration values for the table during the application setup (`app.config.ts`). Using the `HOT_GLOBAL_CONFIG` token, you can define an object that will be read within the wrapper. At any time, you can modify these values using the `HotGlobalConfigService` or override them at the individual table level. All properties of `HotGlobalConfig` object are optional.
 
 ```ts
 import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
@@ -107,18 +126,19 @@ import {
   HotGlobalConfig,
   NON_COMMERCIAL_LICENSE,
 } from "@handsontable/angular-wrapper";
+import { registerLanguageDictionary, enUS } from "handsontable/i18n";
+
+registerLanguageDictionary(enUS);
 
 const globalHotConfig: HotGlobalConfig = {
   license: NON_COMMERCIAL_LICENSE,
   layoutDirection: "ltr",
-  language: "en",
+  language: enUS.languageCode,
   themeName: "ht-theme-main",
 };
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
     { provide: HOT_GLOBAL_CONFIG, useValue: globalHotConfig },
   ],
 };
@@ -197,6 +217,55 @@ For more information on `@handsontable/angular`, see the [15.3 documentation](ht
 
 ### Troubleshooting
 If you're using Angular 21 or newer, please note that older versions of `@handsontable/angular-wrapper` are incompatible due to recent breaking changes in Angular. To ensure smooth integration, upgrade to `@handsontable/angular-wrapper@16.2` or later.
+
+## Server Side Rendering (SSR)
+
+Currently, `HotTable` cannot be rendered on the server-side. If your application uses SSR, render it only in the browser using an `*ngIf*` statement.
+
+```ts
+import { CommonModule, isPlatformBrowser } from "@angular/common";
+import { Component, inject, PLATFORM_ID } from "@angular/core";
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
+
+import { registerAllModules } from "handsontable/registry";
+
+registerAllModules();
+
+@Component({
+  selector: "app-root",
+  imports: [HotTableModule, CommonModule],
+  templateUrl: "./app.html",
+  styleUrl: "./app.scss",
+})
+export class App {
+  private platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
+
+  readonly data = [
+    ["", "Tesla", "Volvo", "Toyota", "Ford"],
+    ["2019", 10, 11, 12, 13],
+    ["2020", 20, 11, 14, 13],
+    ["2021", 30, 15, 12, 13],
+  ];
+  readonly gridSettings: GridSettings = {
+    rowHeaders: true,
+    colHeaders: true,
+    height: "auto",
+    autoWrapRow: true,
+    autoWrapCol: true,
+    manualRowResize: true,
+    manualColumnResize: true,
+  };
+}
+```
+
+```html
+<div>
+  <ng-container *ngIf="isBrowser">
+    <hot-table [data]="data" [settings]="gridSettings" />
+  </ng-container>
+</div>
+```
 
 :::
 
