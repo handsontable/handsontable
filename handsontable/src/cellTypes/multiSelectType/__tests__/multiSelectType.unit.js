@@ -25,45 +25,45 @@ describe('MultiSelectCellType', () => {
     it('should not auto-register after import', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
-        getEditor('multiSelect');
+        getEditor('multiselect');
       }).toThrowError();
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
-        getRenderer('multiSelect');
+        getRenderer('multiselect');
       }).toThrowError();
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
-        getValidator('multiSelect');
+        getValidator('multiselect');
       }).toThrowError();
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
-        getCellType('multiSelect');
+        getCellType('multiselect');
       }).toThrowError();
     });
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, MultiSelectCellType);
 
-      expect(getRegisteredEditorNames()).toEqual(['multiSelect']);
-      expect(getEditor('multiSelect')).toBeInstanceOf(Function);
+      expect(getRegisteredEditorNames()).toEqual(['multiselect']);
+      expect(getEditor('multiselect')).toBeInstanceOf(Function);
 
-      expect(getRegisteredRendererNames()).toEqual(['multiSelect']);
-      expect(getRenderer('multiSelect')).toBeInstanceOf(Function);
+      expect(getRegisteredRendererNames()).toEqual(['multiselect']);
+      expect(getRenderer('multiselect')).toBeInstanceOf(Function);
 
-      expect(getRegisteredValidatorNames()).toEqual(['multiSelect']);
+      expect(getRegisteredValidatorNames()).toEqual(['multiselect']);
 
-      expect(getRegisteredCellTypeNames()).toEqual(['multiSelect']);
-      expect(getCellType('multiSelect')).toEqual(MultiSelectCellType);
-      expect(getCellType('multiSelect')).toEqual({
+      expect(getRegisteredCellTypeNames()).toEqual(['multiselect']);
+      expect(getCellType('multiselect')).toEqual(MultiSelectCellType);
+      expect(getCellType('multiselect')).toEqual({
         CELL_TYPE,
         _complexDataFormat: true,
-        editor: getEditor('multiSelect'),
-        renderer: getRenderer('multiSelect'),
+        editor: getEditor('multiselect'),
+        renderer: getRenderer('multiselect'),
         valueGetter: MultiSelectCellType.valueGetter,
         valueSetter: MultiSelectCellType.valueSetter,
-        validator: getValidator('multiSelect'),
+        validator: getValidator('multiselect'),
       });
     });
   });

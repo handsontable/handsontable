@@ -3,7 +3,7 @@ import { multiSelectRenderer } from '../../renderers/multiSelectRenderer';
 import { multiSelectValidator } from '../../validators/multiSelectValidator';
 import { valueGetter, valueSetter } from './accessors';
 
-export const CELL_TYPE = 'multiSelect';
+export const CELL_TYPE = 'multiselect';
 export const MultiSelectCellType = {
   CELL_TYPE,
   _complexDataFormat: true, // TODO: Replace with extending the data schema generator capabilities.

@@ -36,14 +36,14 @@ describe('MultiSelectEditor autofill', () => {
             type: 'text',
           },
           {
-            type: 'multiSelect',
+            type: 'multiselect',
             source: choices,
           },
         ],
         fillHandle: true,
       });
 
-      setCellMeta(0, 0, 'type', 'multiSelect');
+      setCellMeta(0, 0, 'type', 'multiselect');
       setCellMeta(0, 0, 'source', choices);
 
       await selectCell(0, 0, 0, 0);
@@ -89,7 +89,7 @@ describe('MultiSelectEditor autofill', () => {
         ],
         columns: [
           {
-            type: 'multiSelect',
+            type: 'multiselect',
             source: choices,
           },
         ],

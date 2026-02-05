@@ -37,7 +37,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
             },
           ],
@@ -61,7 +61,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
               searchInput: false,
             },
@@ -87,7 +87,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
             },
           ],
@@ -144,7 +144,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
             },
           ],
@@ -168,7 +168,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
               enterCommits: false,
               searchInput: false,

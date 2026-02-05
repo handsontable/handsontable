@@ -31,11 +31,11 @@ describe('MultiSelectEditor copy & paste', () => {
         ],
         columns: [
           {
-            type: 'multiSelect',
+            type: 'multiselect',
             source: choices,
           },
           {
-            type: 'multiSelect',
+            type: 'multiselect',
             source: choices,
           },
         ],

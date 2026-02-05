@@ -75,6 +75,20 @@
 }
 
 @mixin theme {
+  --ht-sizing-size-0: 0px;
+  --ht-sizing-size-0-5: 2px;
+  --ht-sizing-size-1: 4px;
+  --ht-sizing-size-2: 8px;
+  --ht-sizing-size-1-5: 6px;
+  --ht-sizing-size-3: 12px;
+  --ht-sizing-size-4: 16px;
+  --ht-sizing-size-5: 20px;
+  --ht-sizing-size-6: 24px;
+  --ht-sizing-size-7: 28px;
+  --ht-sizing-size-8: 32px;
+  --ht-sizing-size-9: 36px;
+  --ht-sizing-size-10: 40px;
+  --ht-sizing-size-0-25: 1px;
   --ht-font-size: 14px;
   --ht-font-size-small: 12px;
   --ht-line-height: 20px;
@@ -319,6 +333,11 @@
   --ht-dialog-content-padding-vertical: 8px;
   --ht-dialog-content-border-radius: 8px;
   --ht-dialog-content-background-color: var(--ht-common-background-secondary);
+  --ht-chip-background: var(--ht-common-background-secondary);
+  --ht-chip-border-radius: var(--ht-sizing-size-0-5);
+  --ht-chip-vertical-padding: var(--ht-sizing-size-0);
+  --ht-chip-horizontal-padding: var(--ht-sizing-size-0-5);
+  --ht-chip-gap: var(--ht-sizing-size-1);
   --ht-pagination-bar-foreground-color: var(--ht-common-foreground);
   --ht-pagination-bar-background-color: var(--ht-common-background-secondary);
   --ht-pagination-bar-horizontal-padding: var(--ht-bar-horizontal-padding);

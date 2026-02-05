@@ -65,7 +65,7 @@ describe('multiSelectRenderer', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
               width: 500,
             },
@@ -101,7 +101,7 @@ describe('multiSelectRenderer', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: longChoicesLongOptions,
             },
           ],
@@ -135,7 +135,7 @@ describe('multiSelectRenderer', () => {
         await updateSettings({
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: longChoicesLongOptions,
               width: (hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) +
               // TODO: replace `8` with the theme variable for the chips horizontal padding.
@@ -174,7 +174,7 @@ describe('multiSelectRenderer', () => {
           data: [[choicesLongOptions]],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choicesLongOptions,
               width: 600,
             },
@@ -188,7 +188,7 @@ describe('multiSelectRenderer', () => {
         hot().updateSettings({
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choicesLongOptions,
               width: (hot().stylesHandler.getCSSVariableValue('cell-horizontal-padding') * 2) +
               // TODO: replace `8` with the theme variable for the chips horizontal padding.

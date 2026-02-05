@@ -2271,7 +2271,8 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
-     * @category MultiSelect
+     * @since 17.0.0
+     * @category Core
      * @example
      * ```js
      * columns: [{
@@ -3456,10 +3457,11 @@ export default () => {
     /**
      * The `maxSelections` option sets a maximum number of selections for the [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells.
      *
+     * @since 17.0.0
      * @memberof Options#
      * @type {number}
      * @default undefined
-     * @category MultiSelect
+     * @category Core
      *
      * @example
      * ```js
@@ -4545,10 +4547,11 @@ export default () => {
     /**
      * The `searchInput` option configures whether the [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editor's search input is visible.
      *
+     * @since 17.0.0
      * @memberof Options#
      * @type {boolean}
      * @default true
-     * @category MultiSelect
+     * @category Core
      * @example
      * ```js
      * columns: [{
@@ -4760,10 +4763,11 @@ export default () => {
     /**
      * The `sourceSortFunction` option sets a function to sort the options available in [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells.
      *
+     * @since 17.0.0
      * @memberof Options#
      * @type {Function}
      * @default undefined
-     * @category MultiSelect
+     * @category Core
      *
      * @example
      * ```js

@@ -514,6 +514,12 @@ export class MultiSelectEditor extends BaseEditor {
       this.#syncSelectedValues(changes[0][3]);
       this.dropdownController.fillDropdown(this.#getSource(), this.#selectedItems.getItemsArray());
       this.dropdownController.focusItem(0);
+
+      if (this.#selectedItems.getSize() >= this.cellProperties.maxSelections) {
+        this.#blockNewSelections();
+      } else {
+        this.#unblockNewSelections();
+      }
     }
   }
 }

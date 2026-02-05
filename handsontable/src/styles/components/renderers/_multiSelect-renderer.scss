@@ -3,14 +3,6 @@
 // MultiSelect - Cell Renderer
 @mixin output {
   .handsontable {
-    // TODO: Implement these as proper theme variables.
-    // ------------------ Variables ------------------
-    --tmp-chip-border-radius: 2px;
-    --tmp-chip-vertical-padding: 0;
-    --tmp-chip-horizontal-padding: 8px;
-    --tmp-chip-background: var(--ht-common-background-secondary);
-    // ------------------------------------------------
-
     .ht-multi-select-renderer {
       padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
       overflow: hidden;
@@ -29,9 +21,9 @@
       display: inline-flex;
       align-items: center;
       gap: var(--ht-gap-size);
-      padding: var(--tmp-chip-vertical-padding) calc((var(--ht-line-height) - var(--ht-icon-size)) / 2) var(--tmp-chip-vertical-padding) var(--tmp-chip-horizontal-padding);
-      border-radius: var(--tmp-chip-border-radius);
-      background: var(--tmp-chip-background);
+      padding: var(--ht-chip-vertical-padding) calc((var(--ht-line-height) - var(--ht-icon-size)) / 2) var(--ht-chip-vertical-padding) var(--ht-chip-horizontal-padding);
+      border-radius: var(--ht-chip-border-radius);
+      background: var(--ht-chip-background);
       white-space: nowrap;
       flex-shrink: 0;
       max-width: 100px;
@@ -46,6 +38,7 @@
       font-weight: var(--ht-font-weight);
       line-height: var(--ht-line-height, 40px);
       letter-spacing: var(--ht-letter-spacing, 0);
+      padding: 0 var(--ht-chip-gap);
     }
 
     .ht-multi-select-chip-remove {
@@ -81,8 +74,8 @@
       align-items: center;
       justify-content: center;
       padding: 0 calc(var(--ht-gap-size) * 2);
-      background: var(--tmp-chip-background);
-      border-radius: var(--tmp-chip-border-radius);
+      background: var(--ht-chip-background);
+      border-radius: var(--ht-chip-border-radius);
       color: var(--ht-foreground-color);
       white-space: nowrap;
       flex-shrink: 0;

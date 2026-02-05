@@ -108,6 +108,7 @@ const cellTypesItems = [
   { path: 'guides/cell-types/select-cell-type/select-cell-type' },
   { path: 'guides/cell-types/dropdown-cell-type/dropdown-cell-type' },
   { path: 'guides/cell-types/autocomplete-cell-type/autocomplete-cell-type' },
+  { path: 'guides/cell-types/multiselect-cell-type/multiselect-cell-type' },
   { path: 'guides/cell-types/password-cell-type/password-cell-type' },
   { path: 'guides/cell-types/handsontable-cell-type/handsontable-cell-type' },
 ];

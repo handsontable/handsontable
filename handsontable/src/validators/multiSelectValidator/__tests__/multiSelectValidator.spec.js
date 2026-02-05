@@ -20,7 +20,7 @@ describe('multiSelectValidator', () => {
         data: [
           [['yellow', 'red']],
         ],
-        type: 'multiSelect',
+        type: 'multiselect',
         source: ['yellow', 'red', 'orange', 'green'],
         afterValidate,
       });
@@ -39,7 +39,7 @@ describe('multiSelectValidator', () => {
         data: [
           [['yellow', 'red']],
         ],
-        type: 'multiSelect',
+        type: 'multiselect',
         source: ['yellow', 'red', 'orange', 'green'],
         allowEmpty: true,
         afterValidate,
@@ -59,7 +59,7 @@ describe('multiSelectValidator', () => {
         data: [
           [['yellow', 'red']],
         ],
-        type: 'multiSelect',
+        type: 'multiselect',
         source: ['yellow', 'red', 'orange', 'green'],
         allowEmpty: false,
         afterValidate,
@@ -81,16 +81,16 @@ describe('multiSelectValidator', () => {
         ],
         columns: [
           {
-            type: 'multiSelect',
+            type: 'multiselect',
             source: ['yellow', 'red', 'orange', 'green'],
           },
           {
-            type: 'multiSelect',
+            type: 'multiselect',
             source: ['yellow', 'red', 'orange', 'green'],
             allowEmpty: false
           },
           {
-            type: 'multiSelect',
+            type: 'multiselect',
             source: ['yellow', 'red', 'orange', 'green'],
           }
         ],
@@ -117,15 +117,15 @@ describe('multiSelectValidator', () => {
         ],
         columns: [
           {
-            type: 'multiSelect',
+            type: 'multiselect',
             source: ['yellow', 'red', 'orange', 'green'],
           },
           {
-            type: 'multiSelect',
+            type: 'multiselect',
             source: ['yellow', 'red', 'orange', 'green'],
           },
           {
-            type: 'multiSelect',
+            type: 'multiselect',
             source: ['yellow', 'red', 'orange', 'green'],
           }
         ],
@@ -153,7 +153,7 @@ describe('multiSelectValidator', () => {
         data: [
           [[]],
         ],
-        type: 'multiSelect',
+        type: 'multiselect',
         source: ['yellow', 'red', 'orange', 'green'],
         afterValidate,
       });
@@ -178,7 +178,7 @@ describe('multiSelectValidator', () => {
         data: [
           [[]],
         ],
-        type: 'multiSelect',
+        type: 'multiselect',
         source,
         afterValidate,
       });
@@ -203,7 +203,7 @@ describe('multiSelectValidator', () => {
         data: [
           [['yellow', 'red']],
         ],
-        type: 'multiSelect',
+        type: 'multiselect',
         source: ['yellow', 'red', 'orange', 'green'],
         afterValidate,
       });
@@ -222,7 +222,7 @@ describe('multiSelectValidator', () => {
         data: [
           [[]],
         ],
-        type: 'multiSelect',
+        type: 'multiselect',
         source: ['yellow', 'red', 'orange', 'green'],
         afterValidate,
       });
@@ -247,7 +247,7 @@ describe('multiSelectValidator', () => {
         data: [
           [[]],
         ],
-        type: 'multiSelect',
+        type: 'multiselect',
         source,
         afterValidate,
       });
@@ -274,7 +274,7 @@ describe('multiSelectValidator', () => {
         data: [
           [[]],
         ],
-        type: 'multiSelect',
+        type: 'multiselect',
         source: ['yellow', 'red', 'orange', 'green'],
         afterValidate,
       });
@@ -299,7 +299,7 @@ describe('multiSelectValidator', () => {
         data: [
           [[]],
         ],
-        type: 'multiSelect',
+        type: 'multiselect',
         source,
         afterValidate,
       });
@@ -318,7 +318,7 @@ describe('multiSelectValidator', () => {
         data: [
           [[]],
         ],
-        type: 'multiSelect',
+        type: 'multiselect',
         source: ['yellow', 'red', 'orange', 'green'],
         afterValidate,
       });
@@ -349,7 +349,7 @@ describe('multiSelectValidator', () => {
         data: [
           [[]],
         ],
-        type: 'multiSelect',
+        type: 'multiselect',
         source,
         afterValidate,
       });

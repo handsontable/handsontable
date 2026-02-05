@@ -3,10 +3,6 @@
 // MultiSelect Editor
 @mixin output {
   .handsontableEditor {
-  // TODO: Implement these as proper theme variables.
-  // ------------------ Variables ------------------
-  --tmp-menu-separator-vertical-padding: 8px;
-  // ------------------------------------------------
     position: absolute;
 
     .ht-multi-select-editor {
@@ -43,7 +39,7 @@
         z-index: 1;
       }
 
-      .ht-multi-select-editor-search-input {
+      input.ht-multi-select-editor-search-input {
         box-sizing: border-box;
         width: 100%;
         border-radius: var(--ht-input-border-radius);
@@ -83,7 +79,7 @@
         width: 100%;
         height: 1px;
         background-color: var(--ht-menu-border-color);
-        margin: var(--tmp-menu-separator-vertical-padding) 0 var(--tmp-menu-separator-vertical-padding) 0;
+        margin: var(--ht-menu-vertical-padding) 0 var(--ht-menu-vertical-padding) 0;
         padding: 0;
       }
 

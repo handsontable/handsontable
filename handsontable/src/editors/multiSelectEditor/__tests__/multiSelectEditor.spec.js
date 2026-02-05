@@ -71,7 +71,7 @@ describe('MultiSelectEditor', () => {
         handsontable({
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
             },
           ],
         });
@@ -94,7 +94,7 @@ describe('MultiSelectEditor', () => {
         handsontable({
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
             },
           ],
@@ -122,7 +122,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
             },
           ],
@@ -154,7 +154,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
             },
           ],
@@ -183,7 +183,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
             },
           ],
@@ -224,7 +224,7 @@ describe('MultiSelectEditor', () => {
 
           handsontable({
             data,
-            type: 'multiSelect',
+            type: 'multiselect',
             source: longChoices,
           });
 
@@ -253,7 +253,7 @@ describe('MultiSelectEditor', () => {
 
           handsontable({
             data,
-            type: 'multiSelect',
+            type: 'multiselect',
             source: longChoices,
           });
 
@@ -275,7 +275,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
             },
           ],
@@ -319,7 +319,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
               maxSelections: 2,
             },
@@ -362,7 +362,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
               maxSelections: 2,
             },
@@ -410,7 +410,7 @@ describe('MultiSelectEditor', () => {
             ],
             columns: [
               {
-                type: 'multiSelect',
+                type: 'multiselect',
                 source: choices,
                 maxSelections: 2,
               },
@@ -487,7 +487,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
               filteringCaseSensitive: false,
             },
@@ -526,7 +526,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
               filteringCaseSensitive: true,
             },
@@ -573,7 +573,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
               sourceSortFunction,
             },
@@ -611,7 +611,7 @@ describe('MultiSelectEditor', () => {
           height: 500,
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
             },
           ],
@@ -636,7 +636,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
               visibleRows: 2,
             },
@@ -667,7 +667,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
               searchInput: true,
             },
@@ -693,7 +693,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
               searchInput: false,
             },
@@ -719,7 +719,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
             },
           ],
@@ -755,7 +755,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
             },
           ],
@@ -792,7 +792,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
             },
           ],
@@ -831,7 +831,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: ['a', 'b', 'c'],
             },
           ],
@@ -851,7 +851,7 @@ describe('MultiSelectEditor', () => {
           ],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: ['This is a very long option text'],
             },
           ],
@@ -882,7 +882,7 @@ describe('MultiSelectEditor', () => {
           )]],
           columns: [
             {
-              type: 'multiSelect',
+              type: 'multiselect',
               source: choices,
               width: 250,
             },
