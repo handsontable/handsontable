@@ -28,6 +28,9 @@ export function baseRenderer(hotInstance, TD, row, col, prop, value, cellPropert
   const attributesToRemove = [];
   const attributesToAdd = [];
 
+  // Indicates that the base renderer has been called and should not be called again in TableView.cellRenderer.
+  cellProperties._isBaseRendererCalled = true;
+
   if (cellProperties.className) {
     addClass(TD, cellProperties.className);
   }

@@ -1,4 +1,3 @@
-import { baseRenderer } from '../baseRenderer';
 import { fastInnerText } from '../../helpers/dom/element';
 import { stringify } from '../../helpers/mixed';
 
@@ -17,7 +16,6 @@ export const RENDERER_TYPE = 'text';
  * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
 export function textRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
-  baseRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
   let escaped = value;
 
   if (!escaped && cellProperties.placeholder) {

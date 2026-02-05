@@ -234,6 +234,7 @@ export interface GridSettings extends Events {
   emptyDataState?: EmptyDataStateSettings;
   undo?: UndoRedoSettings;
   validator?: BaseValidator | RegExp | ValidatorType | string;
+  valueFormatter?: (this: Core, value: CellValue, cellProperties: CellProperties) => CellValue;
   valueGetter?: (this: Core, value: CellValue, row: number, column: number, cellProperties: CellProperties) => CellValue;
   valueSetter?: (this: Core, value: CellValue, row: number, column: number, cellProperties: CellProperties) => CellValue;
   viewportColumnRenderingOffset?: number | 'auto';

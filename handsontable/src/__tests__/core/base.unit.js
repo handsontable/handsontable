@@ -12,7 +12,7 @@ describe('`handsontable/base` entry point', () => {
     expect(getRegisteredCellTypeNames()).toEqual(['text']);
     expect(getRegisteredEditorNames()).toEqual(['text']);
     expect(getPluginsNames()).toEqual([]);
-    expect(getRegisteredRendererNames()).toEqual(['text']);
+    expect(getRegisteredRendererNames()).toEqual(['text', 'base']);
     expect(getRegisteredValidatorNames()).toEqual([]);
   });
 

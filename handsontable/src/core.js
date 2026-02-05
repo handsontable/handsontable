@@ -561,8 +561,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       selectionLayerLevel
     );
 
+    const selectionSource = selection.getSelectionSource();
+    const ignoreScrollSources = ['loadData', 'updateData'];
+
     if (
       isLastSelectionLayer &&
+      !ignoreScrollSources.includes(selectionSource) &&
       (!preventScrolling.isTouched() || preventScrolling.isTouched() && !preventScrolling.value)
     ) {
       viewportScroller.scrollTo(cellCoords);
@@ -589,11 +593,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
-    if (!['shift', 'refresh'].includes(selection.getSelectionSource())) {
+    if (!['shift', 'refresh', 'loadData', 'updateData'].includes(selectionSource)) {
       editorManager.closeEditor(null);
     }
 
-    if (selection.getSelectionSource() !== 'refresh') {
+    if (!['refresh', 'loadData', 'updateData'].includes(selectionSource)) {
       instance.view.render();
       editorManager.prepareEditor();
     }
@@ -2474,7 +2478,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         instance.rowIndexMapper.fitToLength(this.countSourceRows());
 
         grid.adjustRowsAndCols();
+        selection.markSource('updateData');
         selection.refresh();
+        selection.markEndSource();
       }, {
         hotInstance: instance,
         dataMap: datamap,
@@ -2518,7 +2524,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         metaManager.clearCellsCache();
         instance.initIndexMappers();
         grid.adjustRowsAndCols();
+        selection.markSource('loadData');
         selection.refresh();
+        selection.markEndSource();
 
         if (firstRun) {
           firstRun = [null, 'loadData'];

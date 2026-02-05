@@ -3,6 +3,7 @@
 .idea
 .vscode
 .cache
+.cursor
 dev*.html
 dev*.js
 npm-debug.log

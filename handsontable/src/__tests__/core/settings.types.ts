@@ -10,11 +10,11 @@ declare const true_or_false: true | false;
 // This can be replaced once `as const` context is shipped: https://github.com/Microsoft/TypeScript/pull/29510
 enum DisableVisualSelection { current = 'current', area = 'area', header = 'header' }
 
-const legacyNumericFormat: Handsontable.NumericFormatOptions = {
+const legacyNumbroNumericFormat: Handsontable.NumericFormatOptions = {
   pattern: '0.00',
   culture: 'en-US',
 };
-const numericFormatOptions: Handsontable.NumericFormatOptions = {
+const numericNumbroFormatOptions: Handsontable.NumericFormatOptions = {
   pattern: {
     prefix: '2',
     postfix: '3',
@@ -48,6 +48,16 @@ const numericFormatOptions: Handsontable.NumericFormatOptions = {
     base: oneOf('decimal', 'binary', 'general'),
   },
   culture: 'en-US'
+};
+const numericIntlFormatOptions: Handsontable.NumericFormatOptions = {
+  style: 'currency',
+  currency: 'USD',
+  useGrouping: false,
+  maximumFractionDigits: 20,
+  minimumFractionDigits: 2,
+  maximumSignificantDigits: 20,
+  minimumSignificantDigits: 2,
+  localeMatcher: 'best fit',
 };
 
 // Use `Required<GridSettings>` to ensure every defined setting is covered here.
@@ -186,7 +196,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   nestedHeaders: [],
   nestedRows: true,
   noWordWrapClassName: 'foo',
-  numericFormat: oneOf(legacyNumericFormat, numericFormatOptions),
+  numericFormat: oneOf(legacyNumbroNumericFormat, numericNumbroFormatOptions, numericIntlFormatOptions),
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, (target: HTMLElement) => false),
   pagination: oneOf(true, {
@@ -319,6 +329,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     /^[0-9]$/,
     'autocomplete', 'date', 'numeric', 'time', 'custom.validator'
   ),
+  valueFormatter: (value: any, cellMeta: CellProperties) => value,
   valueGetter: (value: any, row: number, column: number, cellMeta: CellProperties) => value,
   valueSetter: (value: any, row: number, column: number, cellMeta: CellProperties) => `${value} at row ${row}, column ${column}`,
   viewportColumnRenderingOffset: oneOf(100, 'auto'),

@@ -40,6 +40,7 @@ describe('NumericCellType', () => {
         getCellType('numeric');
       }).toThrowError();
     });
+
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, NumericCellType);
 
@@ -59,6 +60,7 @@ describe('NumericCellType', () => {
         editor: getEditor('numeric'),
         renderer: getRenderer('numeric'),
         validator: getValidator('numeric'),
+        valueFormatter: NumericCellType.valueFormatter,
         dataType: 'number',
         valueSetter: NumericCellType.valueSetter,
       });

@@ -164,6 +164,7 @@ const ExampleComponent = () => {
   - [`renderer`](@/api/options.md#renderer)
   - [`type`](@/api/options.md#type)
   - [`validator`](@/api/options.md#validator)
+  - [`valueFormatter`](@/api/options.md#valueformatter)
 - Core methods:
   - [`destroyEditor()`](@/api/core.md#destroyeditor)
   - [`getActiveEditor()`](@/api/core.md#getactiveeditor)

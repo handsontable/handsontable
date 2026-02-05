@@ -65,19 +65,15 @@ describe('TextRenderer', () => {
   });
 
   it('should add class name `htDimmed` to a read only cell', async() => {
-    const DIV = document.createElement('DIV');
-    const instance = new Handsontable.Core(DIV, {});
-
-    const TD = document.createElement('TD');
-
-    TD.className = 'someClass';
-    Handsontable.renderers.TextRenderer(instance, TD, 0, 0, 0, '', {
+    handsontable({
+      data: [['foo']],
+      renderer: 'text',
       readOnly: true,
       readOnlyCellClassName: 'htDimmed',
+      className: 'someClass',
     });
-    expect(TD.className).toEqual('someClass htDimmed');
 
-    instance.destroy();
+    expect(getCell(0, 0).className).toEqual('someClass htDimmed');
   });
 
   it('should render a multiline string', async() => {
@@ -117,5 +113,21 @@ describe('TextRenderer', () => {
     const newRowHeight = $(getCell(0, 1)).height();
 
     expect(newRowHeight).toBeGreaterThan(oldRowHeight);
+  });
+
+  it('should internally call base renderer once', async() => {
+    const originalBaseRenderer = Handsontable.renderers.BaseRenderer;
+
+    spyOn(Handsontable.renderers, 'BaseRenderer');
+
+    Handsontable.renderers.registerRenderer('base', Handsontable.renderers.BaseRenderer);
+    handsontable({
+      data: [['test']],
+      renderer: 'text',
+    });
+
+    expect(Handsontable.renderers.BaseRenderer).toHaveBeenCalledTimes(1);
+
+    Handsontable.renderers.registerRenderer('base', originalBaseRenderer);
   });
 });
