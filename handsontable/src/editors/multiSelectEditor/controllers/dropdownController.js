@@ -479,7 +479,7 @@ export class DropdownController {
     const searchInputWrapperHeight = this.#searchInputWrapper.offsetHeight;
     const separatorHeight =
     this.#separatorElement.offsetHeight + (
-      2 * parseInt(computedStyle.getPropertyValue('--tmp-menu-separator-vertical-padding'), 10)
+      2 * parseInt(computedStyle.getPropertyValue('--ht-menu-vertical-padding'), 10)
     );
 
     return searchInputWrapperHeight + separatorHeight;
