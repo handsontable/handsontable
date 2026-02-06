@@ -1,7 +1,8 @@
 <template>
   <main class="page" v-bind:class="{ api: isApi }">
     <Breadcrumbs />
-
+    <CopyMarkdown />
+    
     <Content class="theme-default-content" />
     <slot name="top" />
     <PageEdit />
@@ -14,11 +15,13 @@
 /* global instanceRegister */
 import PageEdit from '@theme/components/PageEdit.vue';
 import Breadcrumbs from '@theme/components/Breadcrumbs.vue';
+import CopyMarkdown from '@theme/components/CopyMarkdown.vue';
 
 export default {
   components: {
     PageEdit,
     Breadcrumbs,
+    CopyMarkdown,
   },
   props: ['sidebarItems'],
   data() {
