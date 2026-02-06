@@ -5005,6 +5005,36 @@ export default () => {
     theme: undefined,
 
     /**
+     * The `injectCoreCss` option controls whether Handsontable injects its core CSS into the document.
+     *
+     * You can set the `injectCoreCss` option to one of the following:
+     *
+     * | Setting            | Description                                                                                                      |
+     * | ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default)   | Inject core styles into the document head                                                                        |
+     * | `false`            | Do not inject core styles (use when you load CSS yourself, e.g. `import 'handsontable/styles/handsontable.css'`) |
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category Core
+     * @since 17.0.0
+     *
+     * @example
+     * ```js
+     * // inject core CSS (default)
+     * injectCoreCss: true,
+     *
+     * // skip injection when you load Handsontable CSS yourself
+     * injectCoreCss: false,
+     * ```
+     */
+    injectCoreCss: true,
+
+    /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
      *
      * You can set the `tabMoves` option to an object with the following properties

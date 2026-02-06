@@ -366,7 +366,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           }
         }
       }
-    }
+    },
+    injectCoreCss: typeof userSettings?.injectCoreCss === 'boolean' ? userSettings.injectCoreCss : true,
   });
 
   /**

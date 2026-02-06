@@ -1,4 +1,3 @@
-const path = require('path');
 const configFactory = require('./base');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
