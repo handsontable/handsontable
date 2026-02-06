@@ -111,7 +111,7 @@ jobs:
           cp -r ./wrappers/vue docs/.vuepress/public/@handsontable
           cp -r ./wrappers/vue3 docs/.vuepress/public/@handsontable
 
-          cr ./wrappers/angular-wrapper/angular-wrapper/dist/hot-table docs/.vuepress/public/@handsontable
+          cp -r ./wrappers/angular-wrapper/angular-wrapper/dist/hot-table docs/.vuepress/public/@handsontable
           mv docs/.vuepress/public/@handsontable/hot-table docs/.vuepress/public/@handsontable/angular-wrapper
 
           ls -la  docs/.vuepress/public/@handsontable/angular-wrapper
