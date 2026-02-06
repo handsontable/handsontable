@@ -102,6 +102,17 @@ jobs:
           pnpm install
           npm run all build -- --e examples visual-tests
 
+          mkdir -p docs/.vuepress/public/@handsontable
+   
+          cp -r ./wrappers/angular docs/.vuepress/public/@handsontable
+          cp -r ./wrappers/angular-wrapper docs/.vuepress/public/@handsontable
+          cp -r ./wrappers/react docs/.vuepress/public/@handsontable
+          cp -r ./wrappers/react-wrapper docs/.vuepress/public/@handsontable
+          cp -r ./wrappers/vue docs/.vuepress/public/@handsontable
+          cp -r ./wrappers/vue3 docs/.vuepress/public/@handsontable
+
+          ls -la docs/.vuepress 
+
       - name: Generate API references
         run: |
           npm run docs:api
