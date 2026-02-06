@@ -1,8 +1,9 @@
 <template>
   <main class="page" v-bind:class="{ api: isApi }">
-    <Breadcrumbs />
-    <CopyMarkdown />
-    
+    <header>
+      <Breadcrumbs />
+      <CopyMarkdown />
+    </header>
     <Content class="theme-default-content" />
     <slot name="top" />
     <PageEdit />
@@ -10,6 +11,19 @@
     <slot name="bottom" />
   </main>
 </template>
+
+<style scoped>
+  header {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    align-content: flex-start;
+    padding-top: 28px;
+    align-items: center;
+  }
+</style>
 
 <script>
 /* global instanceRegister */
