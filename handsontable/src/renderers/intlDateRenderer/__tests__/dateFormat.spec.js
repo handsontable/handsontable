@@ -74,7 +74,7 @@ describe('IntlDateRenderer dateFormat options', () => {
         dateFormat: { dateStyle: 'short', timeZone: 'UTC' },
       });
 
-      // ISO_DATE is parsed as local midnight (parseToLocalDate), so the UTC date depends on runner TZ
+      // ISO_DATE is parsed as local midnight, so the UTC date depends on runner TZ
       expect(['12/19/20', '12/20/20']).toContain(getCell(0, 0).innerText);
     });
 

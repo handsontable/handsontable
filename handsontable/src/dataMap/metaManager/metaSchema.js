@@ -1682,7 +1682,7 @@ export default () => {
     /**
      * Configures the date format for date cells. Accepts either a string (legacy, for [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md)
      * cells) or an object of [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
-     * options (for [`intlDate`](@/guides/cell-types/intl-date-cell-type/intl-date-cell-type.md) cells).
+     * options (for [`intlDate`](@/guides/cell-types/date-cell-type/date-cell-type.md) cells).
      *
      * ::: warning
      * The string form of `dateFormat` is deprecated and will be removed in the next major release.
@@ -1740,7 +1740,6 @@ export default () => {
      *
      * Read more:
      * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
-     * - [Intl date cell type](@/guides/cell-types/intl-date-cell-type/intl-date-cell-type.md)
      * - [`locale`](@/api/options.md#locale)
      *
      * ---

@@ -7,7 +7,7 @@ export const EDITOR_TYPE = 'intlDate';
 
 /**
  * @private
- * @class DateEditor
+ * @class IntlDateEditor
  */
 export class IntlDateEditor extends TextEditor {
   static get EDITOR_TYPE() {
