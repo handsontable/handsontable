@@ -57,6 +57,7 @@ export function init() {
       'Repairable',
       'Supplier Name',
       'Restock Date',
+      'Restock Date Intl',
       'Test result',
       'Operational Status',
     ],
@@ -109,7 +110,7 @@ export function init() {
         numericFormat: { pattern: '$0,0.00' },
         headerClassName: 'htRight',
         className: 'htRight',
-        width: 150,
+        width: 100,
       },
       {
         data: 'inStock',
@@ -150,14 +151,14 @@ export function init() {
         type: 'text',
         headerClassName: 'htLeft',
         className: 'htLeft',
-        width: 150,
+        width: 100,
       },
       {
         data: 'quantity',
         type: 'numeric',
         headerClassName: 'htRight',
         className: 'htRight',
-        width: 100,
+        width: 60,
       },
       {
         data: 'valueStock',
@@ -165,14 +166,14 @@ export function init() {
         numericFormat: { pattern: '$0,0.00' },
         headerClassName: 'htRight',
         className: 'htRight',
-        width: 150,
+        width: 130,
       },
       {
         data: 'repairable',
         type: 'checkbox',
         headerClassName: 'htCenter',
         className: 'htCenter',
-        width: 100,
+        width: 80,
       },
       {
         data: 'supplierName',
@@ -187,7 +188,7 @@ export function init() {
         dateFormat: 'YYYY-MM-DD',
         headerClassName: 'htRight',
         className: 'htRight',
-        width: 150,
+        width: 130,
       },
       {
         data: 'restockDate',
@@ -200,7 +201,7 @@ export function init() {
         },
         headerClassName: 'htRight',
         className: 'htRight',
-        width: 150,
+        width: 130,
       },
       {
         data: 'details',
