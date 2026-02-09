@@ -22,7 +22,6 @@ module.exports = {
   testEnvironmentOptions: {
     html: `
         <html>
-            <link href="handsontable/styles/handsontable.min.css"/>
         </html>
     `
   }

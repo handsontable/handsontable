@@ -8,7 +8,6 @@
 import Handsontable from 'handsontable';
 import { HotTable } from '@handsontable/vue';
 import Vue from 'vue';
-import 'handsontable/styles/handsontable.css';
 import './assets/styles.css';
 
 function getDebugInfo() {

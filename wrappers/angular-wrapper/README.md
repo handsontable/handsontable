@@ -72,14 +72,6 @@ Below is the installation guide for the Angular wrapper. If you're using a diffe
 npm install handsontable @handsontable/angular-wrapper
 ```
 
-### Import CSS files
-
-Import Handsontable's CSS into your application's `styles.scss`:
-
-```scss
-@import "handsontable/styles/handsontable.min.css";
-```
-
 ### Register Handsontable's modules
 
 Import and register all of Handsontable's modules with a single function call (for example, in `app.component.ts`):

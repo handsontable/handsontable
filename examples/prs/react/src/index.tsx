@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import './styles.css';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { data } from './data';
-import 'handsontable/styles/handsontable.css';
 import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();

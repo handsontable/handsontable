@@ -88,8 +88,6 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
 
   ```js
   import Handsontable from 'handsontable';
-  // Base CSS rules
-  import 'handsontable/styles/handsontable.min.css';
   
   const element = document.getElementById('handsontable-grid');
   
@@ -131,10 +129,6 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>Handsontable - JavaScript Data Grid Example</title>
-      <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css"
-      />
     </head>
     <body>
       <div id="handsontable-grid"></div>

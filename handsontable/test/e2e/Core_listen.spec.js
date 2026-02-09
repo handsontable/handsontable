@@ -136,7 +136,6 @@ describe('Core_listen', () => {
     doc.write(`
       <!doctype html>
       <head>
-        <link type="text/css" rel="stylesheet" href="../styles/handsontable.css">
         <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
         <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
         <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">

@@ -26,7 +26,6 @@ module.exports.create = function create(envArgs) {
         externalCssFiles: [
           'lib/normalize.css',
           ...((envArgs.HOT_THEME) ? [
-              '../styles/handsontable.css',
               `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
               'helpers/common-themes.css',
             ] : []

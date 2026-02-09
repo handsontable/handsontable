@@ -67,13 +67,6 @@ Below is the installation guide for the React functional component.
 npm install handsontable @handsontable/react-wrapper
 ```
 
-### Import CSS files
-
-```jsx
-// Base CSS rules
-import 'handsontable/styles/handsontable.min.css';
-```
-
 ### Register Handsontable's modules
 
 ```jsx
@@ -95,7 +88,6 @@ To set Handsontable's [configuration options](https://handsontable.com/docs/reac
 ```jsx
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.min.css';
 
 registerAllModules();
 

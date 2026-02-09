@@ -82,13 +82,6 @@ Below is the installation guide for the React class-based component. If you're u
 npm install handsontable @handsontable/react
 ```
 
-### Import CSS files
-
-```jsx
-// Base CSS rules
-import 'handsontable/styles/handsontable.min.css';
-```
-
 ### Register Handsontable's modules
 
 ```jsx
@@ -110,7 +103,6 @@ To set Handsontable's [configuration options](https://handsontable.com/docs/reac
 ```jsx
 import { HotTable, HotColumn } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.min.css';
 
 registerAllModules();
 

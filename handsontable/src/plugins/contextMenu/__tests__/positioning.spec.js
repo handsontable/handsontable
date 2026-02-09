@@ -33,7 +33,6 @@ describe('ContextMenu', () => {
         docOutside.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="../styles/handsontable.css">
             <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
           </head>`);
         docOutside.close();
@@ -46,7 +45,6 @@ describe('ContextMenu', () => {
         docInside.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="../styles/handsontable.css">
             <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
           </head>`);
         docInside.close();

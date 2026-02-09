@@ -1,6 +1,5 @@
 import React from 'react';
 import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
 import { HotTable } from '@handsontable/react';
 
 function getDebugInfo() {
