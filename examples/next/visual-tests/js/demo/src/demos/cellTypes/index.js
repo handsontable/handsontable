@@ -190,6 +190,19 @@ export function init() {
         width: 150,
       },
       {
+        data: 'restockDate',
+        type: 'intlDate',
+        locale: 'en-US',
+        dateFormat: {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        },
+        headerClassName: 'htRight',
+        className: 'htRight',
+        width: 150,
+      },
+      {
         data: 'details',
         type: 'handsontable',
         width: 200,

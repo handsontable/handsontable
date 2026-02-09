@@ -1680,32 +1680,125 @@ export default () => {
     dataSchema: undefined,
 
     /**
-     * The `dateFormat` option configures the date format accepted by [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cells.
+     * Configures the date format for date cells. Accepts either a string (legacy, for [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md)
+     * cells) or an object of [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
+     * options (for [`intlDate`](@/guides/cell-types/intl-date-cell-type/intl-date-cell-type.md) cells).
      *
-     * You can set the `dateFormat` option to a string with a proper date format. The default value is: `'DD/MM/YYYY'`.
+     * ::: warning
+     * The string form of `dateFormat` is deprecated and will be removed in the next major release.
+     * It is used only by the `date` cell type (moment.js-based). Use the `intlDate` cell type
+     * with an `Intl.DateTimeFormat` options object instead. In the next major release, `intlDate`
+     * will become the default `date` cell type, and `intlDate` will be an alias for `date`.
+     * :::
      *
-     * To automatically correct dates whose format doesn't match the `dateFormat` setting, use the [`correctFormat`](#correctFormat) option.
+     * **Object form (Intl.DateTimeFormat options):**
+     *
+     * The object form is supported only when the cell type is `intlDate`. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+     *
+     * ::: tip Source data format
+     * For `intlDate` cells, source data must be in an ISO 8601 date format (`YYYY-MM-DD`). Otherwise operations such
+     * as sorting and filtering can be unstable or unpredictable. The `dateFormat` object affects only how dates are
+     * displayed and edited; the underlying value should remain ISO.
+     * :::
+     *
+     * **Style shortcuts:**
+     *
+     * | Property     | Possible values                                    | Description                                              |
+     * | ------------ | -------------------------------------------------- | -------------------------------------------------------- |
+     * | `dateStyle`  | `'full'`, `'long'`, `'medium'`, `'short'`          | Date formatting style (expands to weekday, day, month, year, era) |
+     * | `timeStyle`  | `'full'`, `'long'`, `'medium'`, `'short'`          | Time formatting style (expands to hour, minute, second, timeZoneName) |
+     *
+     * **Date-time component options:**
+     *
+     * | Property                 | Possible values                                                                 | Description                          |
+     * | ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------ |
+     * | `weekday`                | `'long'`, `'short'`, `'narrow'`                                                 | Representation of the weekday        |
+     * | `era`                    | `'long'`, `'short'`, `'narrow'`                                                 | Representation of the era            |
+     * | `year`                   | `'numeric'`, `'2-digit'`                                                        | Representation of the year           |
+     * | `month`                  | `'numeric'`, `'2-digit'`, `'long'`, `'short'`, `'narrow'`                       | Representation of the month          |
+     * | `day`                    | `'numeric'`, `'2-digit'`                                                        | Representation of the day            |
+     * | `dayPeriod`              | `'narrow'`, `'short'`, `'long'`                                                 | Day period (e.g. "am", "noon")       |
+     * | `hour`                   | `'numeric'`, `'2-digit'`                                                        | Representation of the hour           |
+     * | `minute`                 | `'numeric'`, `'2-digit'`                                                        | Representation of the minute         |
+     * | `second`                 | `'numeric'`, `'2-digit'`                                                        | Representation of the second         |
+     * | `fractionalSecondDigits` | `1`, `2`, `3`                                                                   | Fraction-of-second digits            |
+     * | `timeZoneName`           | `'long'`, `'short'`, `'shortOffset'`, `'longOffset'`, `'shortGeneric'`, `'longGeneric'` | Time zone display                 |
+     *
+     * **Locale and other options:**
+     *
+     * | Property          | Possible values                                    | Description                    |
+     * | ----------------- | -------------------------------------------------- | ------------------------------ |
+     * | `localeMatcher`   | `'best fit'` (default), `'lookup'`                  | Locale matching algorithm      |
+     * | `calendar`        | `'chinese'`, `'gregory'`, `'persian'`, etc.        | Calendar to use                |
+     * | `numberingSystem` | `'latn'`, `'arab'`, `'hans'`, etc.                 | Numbering system               |
+     * | `timeZone`        | IANA time zone (e.g. `'UTC'`, `'America/New_York'`) | Time zone for formatting       |
+     * | `hour12`          | `true`, `false`                                    | Use 12-hour vs 24-hour time   |
+     * | `hourCycle`       | `'h11'`, `'h12'`, `'h23'`, `'h24'`                 | Hour cycle                     |
+     * | `formatMatcher`   | `'basic'`, `'best fit'` (default)                  | Format matching algorithm      |
+     *
+     * For complete reference, see [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
      *
      * Read more:
      * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
-     * - [`correctFormat`](#correctFormat)
-     * - [`defaultDate`](#defaultDate)
+     * - [Intl date cell type](@/guides/cell-types/intl-date-cell-type/intl-date-cell-type.md)
+     * - [`locale`](@/api/options.md#locale)
+     *
+     * ---
+     *
+     * **Deprecated: string form**
+     *
+     * Passing a string (e.g. `'DD/MM/YYYY'`, `'YYYY-MM-DD'`) is deprecated and works only with the `date` cell type.
+     * Migrate to the `intlDate` cell type and pass an `Intl.DateTimeFormat` options object.
+     *
+     * **Migration example:**
+     *
+     * ```js
+     * // Before (deprecated)
+     * columns: [{
+     *   type: 'date',
+     *   dateFormat: 'YYYY-MM-DD'
+     * }]
+     *
+     * // After (recommended)
+     * columns: [{
+     *   type: 'intlDate',
+     *   locale: 'en-US',
+     *   dateFormat: {
+     *     year: 'numeric',
+     *     month: '2-digit',
+     *     day: '2-digit'
+     *   }
+     * }]
+     * ```
      *
      * @memberof Options#
-     * @type {string}
+     * @type {string|object}
      * @default 'DD/MM/YYYY'
      * @category Core
      *
      * @example
      * ```js
+     * // intlDate cell type with Intl options
      * columns: [
      *   {
-     *   // set the `type` of each cell in this column to `date`
-     *   type: 'date',
-     *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
-     *   dateFormat: 'YYYY-MM-DD',
-     *   },
-     * ],
+     *     type: 'intlDate',
+     *     locale: 'en-US',
+     *     dateFormat: {
+     *       dateStyle: 'short'
+     *     }
+     *   }
+     * ]
+     * ```
+     *
+     * @example
+     * ```js
+     * // Legacy: date cell type with string format (deprecated)
+     * columns: [
+     *   {
+     *     type: 'date',
+     *     dateFormat: 'YYYY-MM-DD'
+     *   }
+     * ]
      * ```
      */
     dateFormat: 'DD/MM/YYYY',
