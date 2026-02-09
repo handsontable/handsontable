@@ -1,4 +1,12 @@
 import { warn } from '../helpers/console';
+import handsontableStyles from '../styles/handsontableStyles';
+
+/**
+ * The id of the core styles element injected into the document head.
+ *
+ * @type {string}
+ */
+const CORE_STYLES_ID = 'handsontable-core-styles';
 
 /**
  * Handles the theme-related style operations.
@@ -69,12 +77,17 @@ export class StylesHandler {
    * @param {HTMLElement} options.rootElement The root element of the instance.
    * @param {Document} options.rootDocument The root document of the instance.
    * @param {function(string)} options.onThemeChange The callback function to be called when the theme changes.
+   * @param {boolean} options.injectCoreCss Whether to inject the core styles into the document head.
    */
-  constructor({ hot, rootElement, rootDocument, onThemeChange = () => {} }) {
+  constructor({ hot, rootElement, rootDocument, onThemeChange = () => {}, injectCoreCss = true }) {
     this.#hot = hot;
     this.#rootElement = rootElement;
     this.#rootDocument = rootDocument;
     this.#onThemeChange = onThemeChange;
+
+    if (injectCoreCss) {
+      this.#injectCoreStyles();
+    }
   }
 
   /**
@@ -167,6 +180,24 @@ export class StylesHandler {
    */
   getThemeName() {
     return this.#themeName;
+  }
+
+  #injectCoreStyles() {
+    if (!this.#hot || !this.#rootDocument || !this.#rootDocument.head) {
+      return;
+    }
+
+    const existing = this.#rootDocument.getElementById(CORE_STYLES_ID);
+
+    if (existing && existing instanceof HTMLStyleElement) {
+      return;
+    }
+
+    const baseStyles = this.#rootDocument.createElement('style');
+
+    baseStyles.id = CORE_STYLES_ID;
+    baseStyles.textContent = handsontableStyles;
+    this.#rootDocument.head.appendChild(baseStyles);
   }
 
   /**

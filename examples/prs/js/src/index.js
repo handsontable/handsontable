@@ -1,6 +1,5 @@
 import Handsontable from "handsontable/base";
 import { registerAllModules } from "handsontable/registry";
-import "handsontable/styles/handsontable.css";
 
 // Register all available Handsontable modules
 registerAllModules();

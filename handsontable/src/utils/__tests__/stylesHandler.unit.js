@@ -1,4 +1,7 @@
 import { StylesHandler } from '../stylesHandler';
+import handsontableStyles from '../../styles/handsontableStyles';
+
+const CORE_STYLES_ID = 'handsontable-core-styles';
 
 describe('StylesHandler', () => {
   const createMockHot = () => ({
@@ -39,6 +42,113 @@ describe('StylesHandler', () => {
       });
 
       expect(handler).toBeInstanceOf(StylesHandler);
+    });
+  });
+
+  describe('injectCoreStyles (constructor with injectCoreCss)', () => {
+    it('should inject core styles into document head when injectCoreCss is true', () => {
+      const doc = document.implementation.createHTMLDocument('');
+
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement: doc.body,
+        rootDocument: doc,
+        injectCoreCss: true,
+      });
+
+      const injected = doc.getElementById(CORE_STYLES_ID);
+
+      expect(handler).toBeDefined();
+      expect(injected).not.toBeNull();
+      expect(injected).toBeInstanceOf(HTMLStyleElement);
+      expect(injected.textContent).toBe(handsontableStyles);
+      expect(doc.head.contains(injected)).toBe(true);
+    });
+
+    it('should not inject core styles when injectCoreCss is false', () => {
+      const doc = document.implementation.createHTMLDocument('');
+
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement: doc.body,
+        rootDocument: doc,
+        injectCoreCss: false,
+      });
+
+      expect(handler).toBeDefined();
+      expect(doc.getElementById(CORE_STYLES_ID)).toBeNull();
+    });
+
+    it('should not inject when hot is null', () => {
+      const doc = document.implementation.createHTMLDocument('');
+
+      const handler = new StylesHandler({
+        hot: null,
+        rootElement: doc.body,
+        rootDocument: doc,
+      });
+
+      expect(handler).toBeDefined();
+      expect(doc.getElementById(CORE_STYLES_ID)).toBeNull();
+    });
+
+    it('should not inject when rootDocument has no head', () => {
+      const docWithoutHead = {
+        head: null,
+        getElementById: jest.fn().mockReturnValue(null),
+      };
+
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement: document.createElement('div'),
+        rootDocument: docWithoutHead,
+      });
+
+      expect(handler).toBeDefined();
+      expect(docWithoutHead.getElementById).not.toHaveBeenCalled();
+    });
+
+    it('should not add duplicate when a style element with CORE_STYLES_ID already exists', () => {
+      const doc = document.implementation.createHTMLDocument('');
+      const existingStyle = doc.createElement('style');
+
+      existingStyle.id = CORE_STYLES_ID;
+      existingStyle.textContent = '/* existing */';
+      doc.head.appendChild(existingStyle);
+
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement: doc.body,
+        rootDocument: doc,
+      });
+
+      const styleElements = doc.head.querySelectorAll(`#${CORE_STYLES_ID}`);
+
+      expect(handler).toBeDefined();
+      expect(styleElements.length).toBe(1);
+      expect(styleElements[0]).toBe(existingStyle);
+      expect(styleElements[0].textContent).toBe('/* existing */');
+    });
+
+    it('should inject when an element with CORE_STYLES_ID exists but is not an HTMLStyleElement', () => {
+      const doc = document.implementation.createHTMLDocument('');
+      const existingDiv = doc.createElement('div');
+
+      existingDiv.id = CORE_STYLES_ID;
+      doc.head.appendChild(existingDiv);
+
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement: doc.body,
+        rootDocument: doc,
+      });
+
+      const styleElements = doc.head.querySelectorAll('style');
+
+      expect(handler).toBeDefined();
+      expect(styleElements.length).toBe(1);
+      expect(styleElements[0].id).toBe(CORE_STYLES_ID);
+      expect(styleElements[0].textContent).toBe(handsontableStyles);
     });
   });
 

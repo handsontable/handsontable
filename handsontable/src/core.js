@@ -146,7 +146,7 @@ const deprecationWarns = new Set();
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -366,7 +366,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           }
         }
       }
-    }
+    },
+    injectCoreCss: typeof userSettings?.injectCoreCss === 'boolean' ? userSettings.injectCoreCss : true,
   });
 
   /**
@@ -4357,7 +4358,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedRows = function() {
-    return instance?.view?._wt?.drawn ? instance.view._wt.wtTable.getRenderedRowsCount() : -1;
+    return instance.view._wt.drawn ? instance.view._wt.wtTable.getRenderedRowsCount() : -1;
   };
 
   /**

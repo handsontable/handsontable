@@ -15,8 +15,8 @@ export default {
   },
   palette: {
     50: '#f7f7f9ff',
-    100: '#e7e7e9ff',
-    200: '#ebebedff',
+    100: '#ebebedff',
+    200: '#e7e7e9ff',
     300: '#a3a3a3ff',
     400: '#68696cff',
     500: '#404144ff',

@@ -2,6 +2,7 @@ import { isObject, deepClone, deepMerge } from '../../helpers/object';
 import sizing from '../static/variables/sizing';
 import densitySizes from '../static/variables/density';
 import { validateParams, validateDensityType, validateColorScheme } from './utils/validation';
+import { warn } from '../../helpers/console';
 
 /**
  * Config keys that support deep merging when updating theme params.
@@ -140,7 +141,12 @@ class ThemeBuilder {
     const config = deepClone(this.#initThemeConfig);
 
     if (paramsObject.name !== undefined) {
-      config.name = paramsObject.name;
+      if (this.#initThemeConfig.name !== undefined) {
+        warn('[ThemeBuilder] The "name" property can only be set during ' +
+          '`registerTheme()` and cannot be updated via `params()`.');
+      } else {
+        config.name = paramsObject.name;
+      }
     }
 
     // Apply mergeable config keys

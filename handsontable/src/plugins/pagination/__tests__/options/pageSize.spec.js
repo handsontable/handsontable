@@ -16,7 +16,6 @@ describe('Pagination `pageSize` option', () => {
       .appendTo(spec().$container);
     const doc = iframe[0].contentDocument;
     const styles = `
-      <link type="text/css" rel="stylesheet" href="../styles/handsontable.css">
       <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
       <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
       <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">

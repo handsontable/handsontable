@@ -63,6 +63,7 @@ export const VALID_ICON_KEYS = new Set([
  */
 const VALID_TOKEN_KEYS = new Set([
   // Typography
+  'fontFamily',
   'fontSize',
   'fontSizeSmall',
   'lineHeight',
@@ -134,6 +135,8 @@ const VALID_TOKEN_KEYS = new Set([
   'cellMobileHandleSize',
   'cellMobileHandleBorderWidth',
   'cellMobileHandleBorderRadius',
+  'cellMobileHandleBorderColor',
+  'cellMobileHandleBackgroundColor',
   'cellMobileHandleBackgroundOpacity',
   // Resize/Move indicators
   'resizeIndicatorColor',
