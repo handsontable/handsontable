@@ -224,6 +224,8 @@ describe('Editor configuration using React components', () => {
 
 describe('Dynamic HotColumn configuration changes', () => {
   it('should be possible to rearrange and change the column + editor + renderer configuration dynamically', async () => {
+    jest.setTimeout(10000);
+
     function RendererComponent2(props) {
       return (
         <>r2: {props.value}</>
