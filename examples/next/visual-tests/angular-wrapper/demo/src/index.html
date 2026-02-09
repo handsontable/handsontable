@@ -9,10 +9,8 @@
     (function () {
       const urlParams = new URLSearchParams(window.location.search);
       const theme = urlParams.get('theme');
-      const baseLink = document.createElement('link');
       const themeLink = document.createElement('link');
 
-      baseLink.rel = 'stylesheet';
       themeLink.rel = 'stylesheet';
 
       if (theme === 'main' || theme === 'main-dark') {
@@ -26,7 +24,7 @@
 
       }
 
-      [baseLink, themeLink].forEach((link) => {
+      [themeLink].forEach((link) => {
         if (link.href) {
           document.head.appendChild(link);
         }

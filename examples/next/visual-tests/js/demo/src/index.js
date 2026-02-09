@@ -49,11 +49,8 @@ function removeCSS() {
 function loadThemeCSS() {
   const urlParams = new URLSearchParams(window.location.search);
   const theme = urlParams.get('theme');
-  const baseLink = document.createElement('link');
   const themeLink = document.createElement('link');
 
-  baseLink.rel = 'stylesheet';
-  baseLink.className = 'dynamic-css';
   themeLink.rel = 'stylesheet';
   themeLink.className = 'dynamic-css';
 
@@ -68,22 +65,18 @@ function loadThemeCSS() {
 
   }
 
-  const baseLinkPromise = new Promise((resolve, reject) => {
-    baseLink.onload = resolve;
-    baseLink.onerror = reject;
-  });
   const themeLinkPromise = new Promise((resolve, reject) => {
     themeLink.onload = resolve;
     themeLink.onerror = reject;
   });
 
-  [baseLink, themeLink].forEach((link) => {
+  [themeLink].forEach((link) => {
     if (link.href) {
       document.head.appendChild(link);
     }
   });
 
-  return Promise.all([baseLinkPromise, themeLink.href ? themeLinkPromise : null]);
+  return Promise.all([themeLink.href ? themeLinkPromise : null]);
 }
 
 // Initialize the router
