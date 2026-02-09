@@ -1,6 +1,38 @@
 import Handsontable, { CellCoords } from 'handsontable';
 import HyperFormula from 'hyperformula';
-import { CellProperties } from '../../../types/settings';
+import { HotInstance, GridSettings } from 'handsontable/common';
+
+// Local interface definitions to replace namespace references
+interface CellProperties {
+  row: number;
+  col: number;
+  instance: HotInstance;
+  visualRow: number;
+  visualCol: number;
+  prop: string | number;
+  type?: string;
+  [key: string]: unknown;
+}
+
+interface NumericFormatOptions {
+  pattern?: string | Record<string, unknown>;
+  culture?: string;
+  style?: string;
+  currency?: string;
+  useGrouping?: boolean;
+  maximumFractionDigits?: number;
+  minimumFractionDigits?: number;
+  maximumSignificantDigits?: number;
+  minimumSignificantDigits?: number;
+  localeMatcher?: string;
+  [key: string]: unknown;
+}
+
+interface CellMeta {
+  readOnly?: boolean;
+  type?: string;
+  [key: string]: unknown;
+}
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
 declare function oneOf<T extends Array<string | number | boolean | undefined | null | object>>(...args: T): T[number];
@@ -10,11 +42,11 @@ declare const true_or_false: true | false;
 // This can be replaced once `as const` context is shipped: https://github.com/Microsoft/TypeScript/pull/29510
 enum DisableVisualSelection { current = 'current', area = 'area', header = 'header' }
 
-const legacyNumbroNumericFormat: Handsontable.NumericFormatOptions = {
+const legacyNumbroNumericFormat: NumericFormatOptions = {
   pattern: '0.00',
   culture: 'en-US',
 };
-const numericNumbroFormatOptions: Handsontable.NumericFormatOptions = {
+const numericNumbroFormatOptions: NumericFormatOptions = {
   pattern: {
     prefix: '2',
     postfix: '3',
@@ -49,7 +81,7 @@ const numericNumbroFormatOptions: Handsontable.NumericFormatOptions = {
   },
   culture: 'en-US'
 };
-const numericIntlFormatOptions: Handsontable.NumericFormatOptions = {
+const numericIntlFormatOptions: NumericFormatOptions = {
   style: 'currency',
   currency: 'USD',
   useGrouping: false,
@@ -61,7 +93,8 @@ const numericIntlFormatOptions: Handsontable.NumericFormatOptions = {
 };
 
 // Use `Required<GridSettings>` to ensure every defined setting is covered here.
-const allSettings: Required<Handsontable.GridSettings> = {
+const allSettings: Required<GridSettings> = {
+  _automaticallyAssignedMetaProps: new Set<string>(),
   activeHeaderClassName: 'foo',
   allowEmpty: true,
   allowHtml: true,
@@ -83,8 +116,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
       readOnly: true
     }
   ],
-  cells(row, column, prop) {
-    const cellProperties: Handsontable.CellMeta = {};
+  cells(row: any, column: any, prop: any) {
+    const cellProperties: CellMeta = {};
     const visualRowIndex = this.instance.toVisualRow(row);
     const visualColIndex = this.instance.toVisualColumn(column);
 
@@ -124,7 +157,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     firstDay: 0,
     showWeekNumber: true,
     numberOfMonths: 3,
-    disableDayFn(date) {
+    disableDayFn(date: any) {
       return date.getDay() === 0 || date.getDay() === 6;
     }
   },
@@ -171,8 +204,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   invalidCellClassName: 'foo',
   imeFastEdit: true,
-  isEmptyCol: (col) => col === 0,
-  isEmptyRow: (row) => row === 0,
+  isEmptyCol: (col: any) => col === 0,
+  isEmptyRow: (row: any) => row === 0,
   label: {property: 'name.last', position: 'after', value: oneOf('My label: ', () => 'My label')},
   language: 'foo',
   layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
@@ -219,8 +252,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   renderAllRows: true,
   renderer: oneOf(
     'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 'time', 'custom.renderer',
-    (instance: Handsontable, TD: HTMLTableCellElement, row: number, col: number,
-      prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
+    (instance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
+      prop: number | string, value: any, cellProperties: CellProperties) => TD
   ),
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
@@ -248,6 +281,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   tabMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 2, col: 2})),
   textEllipsis: false,
   themeName: 'ht-theme-some-theme',
+  timeFormat: 'h:mm:ss a',
   title: 'foo',
   trimDropdown: true,
   trimRows: true,
@@ -341,13 +375,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   wordWrap: true,
 
   // Hooks via settings object
-  afterAddChild: (parent, element, index) => {},
-  afterAutofill: (start, end, data) => {},
-  afterBeginEditing: (row, column) => {},
+  afterAddChild: (parent: any, element: any, index: any) => {},
+  afterAutofill: (start: any, end: any, data: any) => {},
+  afterBeginEditing: (row: any, column: any) => {},
   afterCellMetaReset: () => {},
-  afterChange: (changes, source) => {
+  afterChange: (changes: any, source: any) => {
     if (changes !== null) {
-      changes.forEach(change => change[0].toFixed());
+      changes.forEach((change: any) => change[0].toFixed());
     }
 
     switch (source) {
@@ -378,218 +412,218 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   },
   afterChangesObserved: () => {},
-  afterColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible,
-    successfullyCollapsed) => {},
-  afterColumnExpand: (currentCollapsedColumn, destinationCollapsedColumns, expandPossible,
-    successfullyExpanded) => {},
-  afterColumnFreeze: (columnIndex, isFreezingPerformed) => {},
-  afterColumnMove: (columns, target) => {},
-  afterColumnResize: (newSize, column, isDoubleClick) => {},
-  afterColumnSequenceChange: (source) => {},
-  afterColumnSequenceCacheUpdate: (indexesChangesState) => {},
-  afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
-  afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
-  beforeCompositionStart: (event) => {
+  afterColumnCollapse: (currentCollapsedColumn: any, destinationCollapsedColumns: any, collapsePossible: any,
+    successfullyCollapsed: any) => {},
+  afterColumnExpand: (currentCollapsedColumn: any, destinationCollapsedColumns: any, expandPossible: any,
+    successfullyExpanded: any) => {},
+  afterColumnFreeze: (columnIndex: any, isFreezingPerformed: any) => {},
+  afterColumnMove: (columns: any, target: any) => {},
+  afterColumnResize: (newSize: any, column: any, isDoubleClick: any) => {},
+  afterColumnSequenceChange: (source: any) => {},
+  afterColumnSequenceCacheUpdate: (indexesChangesState: any) => {},
+  afterColumnSort: (currentSortConfig: any, destinationSortConfigs: any) => {},
+  afterColumnUnfreeze: (columnIndex: any, isFreezingPerformed: any) => {},
+  beforeCompositionStart: (event: any) => {
     const _event: CompositionEvent = event;
   },
-  afterContextMenuDefaultOptions: (predefinedItems) => {},
-  afterContextMenuHide: (context) => {},
-  afterContextMenuShow: (context) => {},
-  afterCopy: (data, coords) => {},
-  afterCopyLimit: (selectedRows, selectedColumns, copyRowsLimit, copyColumnsLimit) => {},
-  afterCreateCol: (index, amount, source) => {},
-  afterCreateRow: (index, amount, source) => {},
-  afterCut: (data, coords) => {},
+  afterContextMenuDefaultOptions: (predefinedItems: any) => {},
+  afterContextMenuHide: (context: any) => {},
+  afterContextMenuShow: (context: any) => {},
+  afterCopy: (data: any, coords: any) => {},
+  afterCopyLimit: (selectedRows: any, selectedColumns: any, copyRowsLimit: any, copyColumnsLimit: any) => {},
+  afterCreateCol: (index: any, amount: any, source: any) => {},
+  afterCreateRow: (index: any, amount: any, source: any) => {},
+  afterCut: (data: any, coords: any) => {},
   afterDeselect: () => {},
   afterDestroy: () => {},
-  afterDetachChild: (parent, element) => {},
-  afterDialogFocus: (focusSource) => {},
+  afterDetachChild: (parent: any, element: any) => {},
+  afterDialogFocus: (focusSource: any) => {},
   afterDialogHide: () => {},
   afterDialogShow: () => {},
-  afterDocumentKeyDown: (event) => {},
-  afterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {
+  afterDocumentKeyDown: (event: any) => {},
+  afterDrawSelection: (currentRow: any, currentColumn: any, cornersOfSelection: any, layerLevel: any) => {
     const _currentRow: number = currentRow;
     const _currentColumn: number = currentColumn;
     const _cornersOfSelection: number[] = cornersOfSelection;
     const _layerLevel: number | undefined = layerLevel;
   },
-  afterDropdownMenuDefaultOptions: (predefinedItems) => {},
-  afterDropdownMenuHide: (instance) => {},
-  afterDropdownMenuShow: (instance) => {},
+  afterDropdownMenuDefaultOptions: (predefinedItems: any) => {},
+  afterDropdownMenuHide: (instance: any) => {},
+  afterDropdownMenuShow: (instance: any) => {},
   afterEmptyDataStateShow: () => {},
   afterEmptyDataStateHide: () => {},
-  afterFilter: (conditionsStack) => conditionsStack[0].column,
-  afterFormulasValuesUpdate: (changes) => {},
-  afterGetCellMeta: (row, col, cellProperties) => {},
-  afterGetColHeader: (col, TH, headerLevel) => {},
-  afterGetColumnHeaderRenderers: (array) => {},
-  afterGetRowHeader: (row, TH) => {},
-  afterGetRowHeaderRenderers: (array) => {},
-  afterHideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
-  afterHideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
+  afterFilter: (conditionsStack: any) => conditionsStack[0].column,
+  afterFormulasValuesUpdate: (changes: any) => {},
+  afterGetCellMeta: (row: any, col: any, cellProperties: any) => {},
+  afterGetColHeader: (col: any, TH: any, headerLevel: any) => {},
+  afterGetColumnHeaderRenderers: (array: any) => {},
+  afterGetRowHeader: (row: any, TH: any) => {},
+  afterGetRowHeaderRenderers: (array: any) => {},
+  afterHideColumns: (currentHideConfig: any, destinationHideConfig: any, actionPossible: any, stateChanged: any) => {},
+  afterHideRows: (currentHideConfig: any, destinationHideConfig: any, actionPossible: any, stateChanged: any) => {},
   afterInit: () => {},
-  afterLanguageChange: (languageCode) => {},
+  afterLanguageChange: (languageCode: any) => {},
   afterListen: () => {},
-  afterLoadData: (sourceData, firstTime, source) => {},
-  afterMergeCells: (cellRange, mergeParent, auto) => {},
+  afterLoadData: (sourceData: any, firstTime: any, source: any) => {},
+  afterMergeCells: (cellRange: any, mergeParent: any, auto: any) => {},
   beforeLoadingShow: () => {},
   afterLoadingShow: () => {},
   beforeLoadingHide: () => {},
   afterLoadingHide: () => {},
-  modifySourceData: (row, col, valueHolder, ioMode) => {},
-  afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {
+  modifySourceData: (row: any, col: any, valueHolder: any, ioMode: any) => {},
+  afterModifyTransformEnd: (coords: any, rowTransformDir: any, colTransformDir: any) => {
     const row: number = coords.row;
     const col: number = coords.col;
     const rowTransform: number = rowTransformDir;
     const colTransform: number = colTransformDir;
   },
-  afterModifyTransformFocus: (coords, rowTransformDir, colTransformDir) => {
+  afterModifyTransformFocus: (coords: any, rowTransformDir: any, colTransformDir: any) => {
     const row: number = coords.row;
     const col: number = coords.col;
     const rowTransform: number = rowTransformDir;
     const colTransform: number = colTransformDir;
   },
-  afterModifyTransformStart: (coords, rowTransformDir, colTransformDir) => {
+  afterModifyTransformStart: (coords: any, rowTransformDir: any, colTransformDir: any) => {
     const row: number = coords.row;
     const col: number = coords.col;
     const rowTransform: number = rowTransformDir;
     const colTransform: number = colTransformDir;
   },
   afterMomentumScroll: () => {},
-  afterNamedExpressionAdded: (namedExpressionName, changes) => {},
-  afterNamedExpressionRemoved: (namedExpressionName, changes) => {},
-  afterOnCellContextMenu: (event, coords, TD) => {},
-  afterOnCellCornerDblClick: (event) => {},
-  afterOnCellCornerMouseDown: (event) => {},
-  afterOnCellMouseDown: (event, coords, TD) => {},
-  afterOnCellMouseOver: (event, coords, TD) => {},
-  afterOnCellMouseOut: (event, coords, TD) => {},
-  afterOnCellMouseUp: (event, coords, TD) => {},
-  afterPageChange(oldPage, newPage) {
+  afterNamedExpressionAdded: (namedExpressionName: any, changes: any) => {},
+  afterNamedExpressionRemoved: (namedExpressionName: any, changes: any) => {},
+  afterOnCellContextMenu: (event: any, coords: any, TD: any) => {},
+  afterOnCellCornerDblClick: (event: any) => {},
+  afterOnCellCornerMouseDown: (event: any) => {},
+  afterOnCellMouseDown: (event: any, coords: any, TD: any) => {},
+  afterOnCellMouseOver: (event: any, coords: any, TD: any) => {},
+  afterOnCellMouseOut: (event: any, coords: any, TD: any) => {},
+  afterOnCellMouseUp: (event: any, coords: any, TD: any) => {},
+  afterPageChange(oldPage: any, newPage: any) {
     const _oldPage: number = oldPage;
     const _newPage: number = newPage;
   },
-  afterPageSizeChange(oldPageSize, newPageSize) {
+  afterPageSizeChange(oldPageSize: any, newPageSize: any) {
     const _oldPageSize: number | 'auto' = oldPageSize;
     const _newPageSize: number | 'auto' = newPageSize;
   },
-  afterPageSizeVisibilityChange(isVisible) {
+  afterPageSizeVisibilityChange(isVisible: any) {
     const _isVisible: boolean = isVisible;
   },
-  afterPageCounterVisibilityChange(isVisible) {
+  afterPageCounterVisibilityChange(isVisible: any) {
     const _isVisible: boolean = isVisible;
   },
-  afterPageNavigationVisibilityChange(isVisible) {
+  afterPageNavigationVisibilityChange(isVisible: any) {
     const _isVisible: boolean = isVisible;
   },
-  afterPaste: (data, coords) => {},
+  afterPaste: (data: any, coords: any) => {},
   afterPluginsInitialized: () => {},
-  afterRedo: (action) => {},
-  afterRedoStackChange: (undoneActionsBefore, undoneActionsAfter) => {},
-  afterRefreshDimensions: (previousDimensions, currentDimensions, stateChanged) => {},
-  afterRemoveCellMeta: (row, column, key, value) => {},
-  afterRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
-  afterRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
-  afterRender: (isForced) => {},
-  afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
-  afterRowMove: (movedRows, finalIndex, dropIndex, movePossible,
-    orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
-  afterRowResize: (newSize, row, isDoubleClick) => {},
-  afterRowSequenceChange: (source) => {},
-  afterRowSequenceCacheUpdate: (indexesChangesState) => {},
+  afterRedo: (action: any) => {},
+  afterRedoStackChange: (undoneActionsBefore: any, undoneActionsAfter: any) => {},
+  afterRefreshDimensions: (previousDimensions: any, currentDimensions: any, stateChanged: any) => {},
+  afterRemoveCellMeta: (row: any, column: any, key: any, value: any) => {},
+  afterRemoveCol: (index: any, amount: any, physicalColumns: any = [1, 2, 3], source: any) => {},
+  afterRemoveRow: (index: any, amount: any, physicalRows: any = [1, 2, 3], source: any) => {},
+  afterRender: (isForced: any) => {},
+  afterRenderer: (TD: any, row: any, col: any, prop: any, value: any, cellProperties: any) => {},
+  afterRowMove: (movedRows: any, finalIndex: any, dropIndex: any, movePossible: any,
+    orderChanged: any) => movedRows.forEach((row: any) => row.toFixed(1) === finalIndex.toFixed(1)),
+  afterRowResize: (newSize: any, row: any, isDoubleClick: any) => {},
+  afterRowSequenceChange: (source: any) => {},
+  afterRowSequenceCacheUpdate: (indexesChangesState: any) => {},
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
   afterScroll: () => {},
-  afterSelectAll: (from, to, highlight) => {
+  afterSelectAll: (from: any, to: any, highlight: any) => {
     const _from: CellCoords = from;
     const _to: CellCoords = to;
     const _highlight: CellCoords | undefined = highlight;
   },
-  afterSelectColumns: (from, to, highlight) => {
+  afterSelectColumns: (from: any, to: any, highlight: any) => {
     const _from: CellCoords = from;
     const _to: CellCoords = to;
     const _highlight: CellCoords = highlight;
   },
-  afterSelection: (r, c, r2, c2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
-  afterSelectionByProp: (r, p, r2, p2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
-  afterSelectionEnd: (r, c, r2, c2, selectionLayerLevel) => {},
-  afterSelectionEndByProp: (r, p, r2, p2, selectionLayerLevel) => {},
-  afterSelectionFocusSet: (row, column, preventScrolling) => {
+  afterSelection: (r: any, c: any, r2: any, c2: any, preventScrolling: any, selectionLayerLevel: any) => preventScrolling.value = true,
+  afterSelectionByProp: (r: any, p: any, r2: any, p2: any, preventScrolling: any, selectionLayerLevel: any) => preventScrolling.value = true,
+  afterSelectionEnd: (r: any, c: any, r2: any, c2: any, selectionLayerLevel: any) => {},
+  afterSelectionEndByProp: (r: any, p: any, r2: any, p2: any, selectionLayerLevel: any) => {},
+  afterSelectionFocusSet: (row: any, column: any, preventScrolling: any) => {
     row.toFixed();
     column.toFixed();
     preventScrolling.value = true;
   },
-  afterSelectRows: (from, to, highlight) => {},
-  afterSetCellMeta: (row, col, key, value) => {},
-  afterSetDataAtCell: (changes, source) => {},
-  afterSetDataAtRowProp: (changes, source) => {},
-  afterSetSourceDataAtCell: (changes, source) => {},
-  afterSetTheme: (themeName, firstRun) => {},
-  afterSheetAdded: (addedSheetDisplayName) => {},
-  afterSheetRemoved: (removedSheetDisplayName, changes) => {},
-  afterSheetRenamed: (oldDisplayName, newDisplayName) => {},
-  afterTrimRow: (rows) => {},
-  afterUndo: (action) => {},
-  afterUndoStackChange: (doneActionsBefore, doneActionsAfter) => {},
-  afterUnhideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
-  afterUnhideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
+  afterSelectRows: (from: any, to: any, highlight: any) => {},
+  afterSetCellMeta: (row: any, col: any, key: any, value: any) => {},
+  afterSetDataAtCell: (changes: any, source: any) => {},
+  afterSetDataAtRowProp: (changes: any, source: any) => {},
+  afterSetSourceDataAtCell: (changes: any, source: any) => {},
+  afterSetTheme: (themeName: any, firstRun: any) => {},
+  afterSheetAdded: (addedSheetDisplayName: any) => {},
+  afterSheetRemoved: (removedSheetDisplayName: any, changes: any) => {},
+  afterSheetRenamed: (oldDisplayName: any, newDisplayName: any) => {},
+  afterTrimRow: (rows: any) => {},
+  afterUndo: (action: any) => {},
+  afterUndoStackChange: (doneActionsBefore: any, doneActionsAfter: any) => {},
+  afterUnhideColumns: (currentHideConfig: any, destinationHideConfig: any, actionPossible: any, stateChanged: any) => {},
+  afterUnhideRows: (currentHideConfig: any, destinationHideConfig: any, actionPossible: any, stateChanged: any) => {},
   afterUnlisten: () => {},
-  afterUnmergeCells: (cellRange, auto) => {},
-  afterUntrimRow: (rows) => {},
-  afterUpdateData: (sourceData, firstTime, source) => {},
+  afterUnmergeCells: (cellRange: any, auto: any) => {},
+  afterUntrimRow: (rows: any) => {},
+  afterUpdateData: (sourceData: any, firstTime: any, source: any) => {},
   afterUpdateSettings: () => {},
   afterValidate: () => {},
-  afterViewportColumnCalculatorOverride: (calc) => {},
-  afterViewportRowCalculatorOverride: (calc) => {},
-  afterViewRender: (isForced) => {},
-  beforeAddChild: (parent, element, index) => {},
-  beforeAutofill: (start, end, data) => {},
-  beforeBeginEditing: (row: number, column: number, initialValue, event, fullEditMode: boolean) => {
+  afterViewportColumnCalculatorOverride: (calc: any) => {},
+  afterViewportRowCalculatorOverride: (calc: any) => {},
+  afterViewRender: (isForced: any) => {},
+  beforeAddChild: (parent: any, element: any, index: any) => {},
+  beforeAutofill: (start: any, end: any, data: any) => {},
+  beforeBeginEditing: (row: number, column: number, initialValue: any, event: any, fullEditMode: boolean) => {
     event.preventDefault();
 
     return true;
   },
-  beforeCellAlignment: (stateBefore, range, type, alignmentClass) => {},
-  beforeChange: (changes, source) => { if (changes?.[0] !== null) { changes[0][3] = 10; } return false; },
-  beforeChangeRender: (changes, source) => {},
-  beforeColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible) => {},
-  beforeColumnExpand: (currentCollapsedColumn, destinationCollapsedColumns, expandPossible) => {},
-  beforeColumnFreeze: (columnIndex, isFreezingPerformed) => false,
-  beforeColumnMove: (columns, target) => {},
-  beforeColumnResize: (newSize, column, isDoubleClick) => {},
-  beforeColumnSort: (currentSortConfig, destinationSortConfigs) => {},
-  beforeColumnWrap: (isActionInterrupted, newCoords, isColumnFlipped) => {
+  beforeCellAlignment: (stateBefore: any, range: any, type: any, alignmentClass: any) => {},
+  beforeChange: (changes: any, source: any) => { if (changes?.[0] !== null) { changes[0][3] = 10; } return false; },
+  beforeChangeRender: (changes: any, source: any) => {},
+  beforeColumnCollapse: (currentCollapsedColumn: any, destinationCollapsedColumns: any, collapsePossible: any) => {},
+  beforeColumnExpand: (currentCollapsedColumn: any, destinationCollapsedColumns: any, expandPossible: any) => {},
+  beforeColumnFreeze: (columnIndex: any, isFreezingPerformed: any) => false,
+  beforeColumnMove: (columns: any, target: any) => {},
+  beforeColumnResize: (newSize: any, column: any, isDoubleClick: any) => {},
+  beforeColumnSort: (currentSortConfig: any, destinationSortConfigs: any) => {},
+  beforeColumnWrap: (isActionInterrupted: any, newCoords: any, isColumnFlipped: any) => {
     const _isActionInterrupted: boolean = isActionInterrupted.value;
     const _isColumnFlipped: boolean = isColumnFlipped;
 
     isActionInterrupted.value = false;
     newCoords.clone();
   },
-  beforeColumnUnfreeze: (columnIndex, isFreezingPerformed) => false,
-  beforeContextMenuSetItems: (menuItems) => {},
-  beforeContextMenuShow: (context) => {},
-  beforeCopy: (data, coords) => { data.splice(0, 1); return false; },
-  beforeCreateCol: (index, amount, source) => {},
-  beforeCreateRow: (index, amount, source) => {},
-  beforeCut: (data, coords) => { data.splice(0, 1); return false; },
-  beforeDetachChild: (parent, element) => {},
+  beforeColumnUnfreeze: (columnIndex: any, isFreezingPerformed: any) => false,
+  beforeContextMenuSetItems: (menuItems: any) => {},
+  beforeContextMenuShow: (context: any) => {},
+  beforeCopy: (data: any, coords: any) => { data.splice(0, 1); return false; },
+  beforeCreateCol: (index: any, amount: any, source: any) => {},
+  beforeCreateRow: (index: any, amount: any, source: any) => {},
+  beforeCut: (data: any, coords: any) => { data.splice(0, 1); return false; },
+  beforeDetachChild: (parent: any, element: any) => {},
   beforeDialogHide: () => {},
   beforeDialogShow: () => {},
-  beforeDrawBorders: (corners, borderClassName) => {},
-  beforeDropdownMenuSetItems: (menuItems) => {},
-  beforeDropdownMenuShow: (instance) => {},
+  beforeDrawBorders: (corners: any, borderClassName: any) => {},
+  beforeDropdownMenuSetItems: (menuItems: any) => {},
+  beforeDropdownMenuShow: (instance: any) => {},
   beforeEmptyDataStateShow: () => {},
   beforeEmptyDataStateHide: () => {},
-  beforeFilter: (conditionsStack, previousConditionStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
-  beforeGetCellMeta: (row, col, cellProperties) => {},
-  beforeHeightChange: (height) => {
+  beforeFilter: (conditionsStack: any, previousConditionStack: any) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
+  beforeGetCellMeta: (row: any, col: any, cellProperties: any) => {},
+  beforeHeightChange: (height: any) => {
     const _height: number | string = height;
 
     return height;
   },
-  beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
-  beforeHideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
-  beforeHighlightingColumnHeader: (column, headerLevel, highlightMeta) => {
+  beforeHideColumns: (currentHideConfig: any, destinationHideConfig: any, actionPossible: any) => {},
+  beforeHideRows: (currentHideConfig: any, destinationHideConfig: any, actionPossible: any) => {},
+  beforeHighlightingColumnHeader: (column: any, headerLevel: any, highlightMeta: any) => {
     const _column: number = column;
     const _headerLevel: number = headerLevel;
     const selectionType: string = highlightMeta.selectionType;
@@ -598,7 +632,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return 10;
   },
-  beforeHighlightingRowHeader: (row, headerLevel, highlightMeta) => {
+  beforeHighlightingRowHeader: (row: any, headerLevel: any, highlightMeta: any) => {
     const _row: number = row;
     const _headerLevel: number = headerLevel;
     const selectionType: string = highlightMeta.selectionType;
@@ -608,95 +642,95 @@ const allSettings: Required<Handsontable.GridSettings> = {
     return 10;
   },
   beforeInit: () => {},
-  beforeInitWalkontable: (walkontableConfig) => {},
-  beforeKeyDown: (event) => {},
-  beforeLanguageChange: (languageCode) => {},
-  beforeLoadData: (sourceData, firstTime, source) => {},
-  beforeMergeCells: (cellRange, auto) => {},
-  beforeOnCellContextMenu: (event, coords, TD) => {},
-  beforeOnCellMouseDown: (event, coords, TD, controller) => {},
-  beforeOnCellMouseOut: (event, coords, TD) => {},
-  beforeOnCellMouseOver: (event, coords, TD, controller) => {},
-  beforeOnCellMouseUp: (event, coords, TD) => {},
-  beforePageChange(oldPage, newPage) {
+  beforeInitWalkontable: (walkontableConfig: any) => {},
+  beforeKeyDown: (event: any) => {},
+  beforeLanguageChange: (languageCode: any) => {},
+  beforeLoadData: (sourceData: any, firstTime: any, source: any) => {},
+  beforeMergeCells: (cellRange: any, auto: any) => {},
+  beforeOnCellContextMenu: (event: any, coords: any, TD: any) => {},
+  beforeOnCellMouseDown: (event: any, coords: any, TD: any, controller: any) => {},
+  beforeOnCellMouseOut: (event: any, coords: any, TD: any) => {},
+  beforeOnCellMouseOver: (event: any, coords: any, TD: any, controller: any) => {},
+  beforeOnCellMouseUp: (event: any, coords: any, TD: any) => {},
+  beforePageChange(oldPage: any, newPage: any) {
     const _oldPage: number = oldPage;
     const _newPage: number = newPage;
 
     return true;
   },
-  beforePageSizeChange(oldPageSize, newPageSize) {
+  beforePageSizeChange(oldPageSize: any, newPageSize: any) {
     const _oldPageSize: number | 'auto' = oldPageSize;
     const _newPageSize: number | 'auto' = newPageSize;
 
     return true;
   },
-  beforePaste: (data, coords) => { data.splice(0, 1); return false; },
-  beforeRedo: (action) => {},
-  beforeRedoStackChange: (undoneActions) => {},
-  beforeRefreshDimensions: (previousDimensions, currentDimensions, actionPossible) => {},
+  beforePaste: (data: any, coords: any) => { data.splice(0, 1); return false; },
+  beforeRedo: (action: any) => {},
+  beforeRedoStackChange: (undoneActions: any) => {},
+  beforeRefreshDimensions: (previousDimensions: any, currentDimensions: any, actionPossible: any) => {},
   beforeRemoveCellClassNames: () => {},
-  beforeRemoveCellMeta: (row, column, key, value) => {},
-  beforeRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
-  beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
-  beforeRender: (isForced) => {},
-  beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
-  beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
-  beforeRowResize: (newSize, row, isDoubleClick) => {},
-  beforeRowWrap: (isActionInterrupted, newCoords, isRowFlipped) => {
+  beforeRemoveCellMeta: (row: any, column: any, key: any, value: any) => {},
+  beforeRemoveCol: (index: any, amount: any, physicalColumns: any = [1, 2, 3], source: any) => {},
+  beforeRemoveRow: (index: any, amount: any, physicalRows: any = [1, 2, 3], source: any) => {},
+  beforeRender: (isForced: any) => {},
+  beforeRenderer: (TD: any, row: any, col: any, prop: any, value: any, cellProperties: any) => {},
+  beforeRowMove: (movedRows: any, finalIndex: any, dropIndex: any, movePossible: any) => {},
+  beforeRowResize: (newSize: any, row: any, isDoubleClick: any) => {},
+  beforeRowWrap: (isActionInterrupted: any, newCoords: any, isRowFlipped: any) => {
     const _isActionInterrupted: boolean = isActionInterrupted.value;
     const _isRowFlipped: boolean = isRowFlipped;
 
     isActionInterrupted.value = false;
     newCoords.clone();
   },
-  beforeSelectAll: (from, to, highlight) => {
+  beforeSelectAll: (from: any, to: any, highlight: any) => {
     const _from: CellCoords = from;
     const _to: CellCoords = to;
     const _highlight: CellCoords | undefined = highlight;
   },
-  beforeSelectColumns: (from, to, highlight) => {
+  beforeSelectColumns: (from: any, to: any, highlight: any) => {
     const _from: CellCoords = from;
     const _to: CellCoords = to;
     const _highlight: CellCoords = highlight;
   },
-  beforeSelectionFocusSet: (coords) => {
+  beforeSelectionFocusSet: (coords: any) => {
     const row: number = coords.row;
     const col: number = coords.col;
   },
   beforeSelectionHighlightSet: () => {},
-  beforeSelectRows: (from, to, highlight) => {},
-  beforeSetCellMeta: (row, col, key, value) => {},
-  beforeSetRangeEnd: (coords) => {},
-  beforeSetRangeStart: (coords) => {},
-  beforeSetRangeStartOnly: (coords) => {},
-  beforeStretchingColumnWidth: (stretchedWidth, column) => {
+  beforeSelectRows: (from: any, to: any, highlight: any) => {},
+  beforeSetCellMeta: (row: any, col: any, key: any, value: any) => {},
+  beforeSetRangeEnd: (coords: any) => {},
+  beforeSetRangeStart: (coords: any) => {},
+  beforeSetRangeStartOnly: (coords: any) => {},
+  beforeStretchingColumnWidth: (stretchedWidth: any, column: any) => {
     const _stretchedWidth: number = stretchedWidth;
     const _column: number = column;
   },
   beforeTouchScroll: () => {},
-  beforeTrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
-  beforeUndo: (action) => {},
-  beforeUndoStackChange: (doneActions, source) => {},
-  beforeUnhideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
-  beforeUnhideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
-  beforeUnmergeCells: (cellRange, auto) => {},
-  beforeUntrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
-  beforeUpdateData: (sourceData, firstTime, source) => {},
-  beforeValidate: (value, row, prop, source) => {},
-  beforeValueRender: (value) => {},
-  beforeViewportScrollVertically: (visualRow, snapping) => {
+  beforeTrimRow: (currentTrimConfig: any, destinationTrimConfig: any, actionPossible: any) => {},
+  beforeUndo: (action: any) => {},
+  beforeUndoStackChange: (doneActions: any, source: any) => {},
+  beforeUnhideColumns: (currentHideConfig: any, destinationHideConfig: any, actionPossible: any) => {},
+  beforeUnhideRows: (currentHideConfig: any, destinationHideConfig: any, actionPossible: any) => {},
+  beforeUnmergeCells: (cellRange: any, auto: any) => {},
+  beforeUntrimRow: (currentTrimConfig: any, destinationTrimConfig: any, actionPossible: any) => {},
+  beforeUpdateData: (sourceData: any, firstTime: any, source: any) => {},
+  beforeValidate: (value: any, row: any, prop: any, source: any) => {},
+  beforeValueRender: (value: any) => {},
+  beforeViewportScrollVertically: (visualRow: any, snapping: any) => {
     const _snapping: 'auto' | 'top' | 'bottom' = snapping;
 
     return visualRow === 0 ? visualRow + 1 : false;
   },
-  beforeViewportScrollHorizontally: (visualColumn, snapping) => {
+  beforeViewportScrollHorizontally: (visualColumn: any, snapping: any) => {
     const _snapping: 'auto' | 'start' | 'end' = snapping;
 
     return visualColumn === 0 ? visualColumn + 1 : false;
   },
   beforeViewportScroll: () => {},
-  beforeViewRender: (isForced, skipRender) => {},
-  beforeWidthChange: (width) => {
+  beforeViewRender: (isForced: any, skipRender: any) => {},
+  beforeWidthChange: (width: any) => {
     const _width: number | string = width;
 
     return width;
@@ -705,22 +739,22 @@ const allSettings: Required<Handsontable.GridSettings> = {
   dialogFocusNextElement: () => {},
   dialogFocusPreviousElement: () => {},
   init: () => {},
-  modifyAutoColumnSizeSeed: (seed, cellProperties, cellValue) => '1',
-  modifyAutofillRange: (startArea, entireArea) => {},
-  modifyColHeader: (column) => {},
+  modifyAutoColumnSizeSeed: (seed: any, cellProperties: any, cellValue: any) => '1',
+  modifyAutofillRange: (startArea: any, entireArea: any) => {},
+  modifyColHeader: (column: any) => {},
   modifyColumnHeaderHeight: () => {},
-  modifyColumnHeaderValue: (headerValue, visualColumnIndex, headerLevel) => {},
-  modifyColWidth: (width, column, source) => {
+  modifyColumnHeaderValue: (headerValue: any, visualColumnIndex: any, headerLevel: any) => {},
+  modifyColWidth: (width: any, column: any, source: any) => {
     const _width: number = width;
     const _column: number = column;
     const _source: string | undefined = source;
   },
-  modifyCopyableRange: (copyableRanges) => {},
-  modifyFiltersMultiSelectValue: (value, meta) => '123',
-  modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
+  modifyCopyableRange: (copyableRanges: any) => {},
+  modifyFiltersMultiSelectValue: (value: any, meta: any) => '123',
+  modifyFocusedElement: (row: any, column: any, focusedElement: any) => document.createElement('TD'),
   modifyData: () => {},
-  modifyFocusOnTabNavigation: (tabActivationDir, visualCoords) => {},
-  modifyGetCellCoords: (row, column, topmost, source) => {
+  modifyFocusOnTabNavigation: (tabActivationDir: any, visualCoords: any) => {},
+  modifyGetCellCoords: (row: any, column: any, topmost: any, source: any) => {
     const _row: number = row;
     const _column: number = column;
     const _topmost: boolean = topmost;
@@ -728,34 +762,34 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return [_row, _column, _row + 1, _column + 1];
   },
-  modifyGetCoordsElement: (row, column) => {
+  modifyGetCoordsElement: (row: any, column: any) => {
     const _row: number = row;
     const _column: number = column;
 
     return [_row, _column];
   },
-  modifyRowData: (row) => {},
-  modifyRowHeader: (row) => {},
-  modifyRowHeaderWidth: (rowHeaderWidth) => {},
-  modifyRowHeight: (height, row, source) => {
+  modifyRowData: (row: any) => {},
+  modifyRowHeader: (row: any) => {},
+  modifyRowHeaderWidth: (rowHeaderWidth: any) => {},
+  modifyRowHeight: (height: any, row: any, source: any) => {
     const _height: number = height;
     const _row: number = row;
     const _source: string | undefined = source;
   },
-  modifyRowHeightByOverlayName: (height, row, overlayType) => {
+  modifyRowHeightByOverlayName: (height: any, row: any, overlayType: any) => {
     const _height: number = height;
     const _row: number = row;
     const _overlayType: string = overlayType;
   },
-  modifyTransformEnd: (delta) => {
+  modifyTransformEnd: (delta: any) => {
     const rowDelta: number = delta.row;
     const colDelta: number = delta.row;
   },
-  modifyTransformFocus: (delta) => {
+  modifyTransformFocus: (delta: any) => {
     const rowDelta: number = delta.row;
     const colDelta: number = delta.row;
   },
-  modifyTransformStart: (delta) => {
+  modifyTransformStart: (delta: any) => {
     const rowDelta: number = delta.row;
     const colDelta: number = delta.row;
   },

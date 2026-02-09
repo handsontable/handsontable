@@ -27,6 +27,7 @@ module.exports.create = function create(envArgs) {
     },
     resolve: {
       alias: {},
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
     },
     mode: 'none',
     module: {
@@ -48,7 +49,7 @@ module.exports.create = function create(envArgs) {
           loader: path.resolve(__dirname, 'loader/empty-loader.js'),
         },
         {
-          test: /\.js$/,
+          test: /\.(js|ts|tsx)$/,
           loader: 'babel-loader',
           exclude: [
             /node_modules/,
@@ -63,6 +64,11 @@ module.exports.create = function create(envArgs) {
       new webpack.BannerPlugin(licenseBody),
       new webpack.DefinePlugin({
         '__ENV_ARGS__': JSON.stringify(envArgs),
+        'process.env.HOT_VERSION': JSON.stringify(process.env.HOT_VERSION),
+        'process.env.HOT_BUILD_DATE': JSON.stringify(process.env.HOT_BUILD_DATE),
+        'process.env.HOT_RELEASE_DATE': JSON.stringify(process.env.HOT_RELEASE_DATE),
+        'process.env.HOT_PACKAGE_NAME': JSON.stringify(process.env.HOT_PACKAGE_NAME),
+        'process.env.HOT_FILENAME': JSON.stringify(process.env.HOT_FILENAME),
       }),
       compilationDoneMarker(),
     ],

@@ -1,19 +1,12 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "lib": [
-      "es2015",
-      "dom"
-    ],
-    "module": "commonjs",
-    "target": "es2015",
     "noEmit": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
     "baseUrl": "./",
     "paths": {
-      "handsontable": [ "../../types" ],
-      "handsontable/*": [ "../../types/*" ]
+      "handsontable": [ "../../src/index" ],
+      "handsontable/base": [ "../../src/base" ],
+      "handsontable/*": [ "../../src/*" ]
     },
     "typeRoots": [
       "../../node_modules/@types",
@@ -23,7 +16,7 @@
   },
   "include": [
     "./common.d.ts",
-    "**/*.types.ts",
     "../../src/**/*.types.ts"
-  ]
+  ],
+  "exclude": []
 }

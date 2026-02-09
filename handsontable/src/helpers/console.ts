@@ -1,0 +1,66 @@
+/* eslint-disable no-console */
+/* eslint-disable no-restricted-globals */
+
+/**
+ * "In Internet Explorer 9 (and 8), the console object is only exposed when the developer tools are opened
+ * for a particular tab.".
+ *
+ * Source: https://stackoverflow.com/a/5473193.
+ */
+
+import { isDefined } from './mixed';
+
+/**
+ * Logs message to the console if the `console` object is exposed.
+ *
+ * @param {...*} args Values which will be logged.
+ */
+export function log(...args: unknown[]): void {
+  if (isDefined(console)) {
+    console.log(...args);
+  }
+}
+
+/**
+ * Logs warn to the console if the `console` object is exposed.
+ *
+ * @param {...*} args Values which will be logged.
+ */
+export function warn(...args: unknown[]): void {
+  if (isDefined(console)) {
+    console.warn(...args);
+  }
+}
+
+/**
+ * Logs deprecated warn to the console if the `console` object is exposed.
+ *
+ * @param {string} message The message to log.
+ */
+export function deprecatedWarn(message: string) {
+  if (isDefined(console)) {
+    console.warn(`Deprecated: ${message}`);
+  }
+}
+
+/**
+ * Logs info to the console if the `console` object is exposed.
+ *
+ * @param {...*} args Values which will be logged.
+ */
+export function info(...args: unknown[]): void {
+  if (isDefined(console)) {
+    console.info(...args);
+  }
+}
+
+/**
+ * Logs error to the console if the `console` object is exposed.
+ *
+ * @param {...*} args Values which will be logged.
+ */
+export function error(...args: unknown[]): void {
+  if (isDefined(console)) {
+    console.error(...args);
+  }
+}

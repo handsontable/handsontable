@@ -22,13 +22,13 @@ new Handsontable(document.createElement('div'), {
 
 new Handsontable(document.createElement('div'), {
   contextMenu: {
-    callback(key, selection, clickEvent) {},
+    callback(key: string, selection: unknown, clickEvent: MouseEvent) {},
   },
 });
 
 new Handsontable(document.createElement('div'), {
   contextMenu: {
-    callback(key, selection, clickEvent) {},
+    callback(key: string, selection: unknown, clickEvent: MouseEvent) {},
     items: {
       sep1: '---------',
       row_above: 'row_above',
@@ -46,14 +46,14 @@ new Handsontable(document.createElement('div'), {
         },
         disableSelection: true,
         isCommand: false,
-        callback(key, selection, clickEvent) {
+        callback(key: string, selection: unknown, clickEvent: MouseEvent) {
           const isSelected = !!this.getSelectedLast();
 
           key.toUpperCase();
-          selection[0].start.row;
+          (selection as any)[0].start.row;
           clickEvent.preventDefault();
         },
-        renderer(hot, wrapper, row, col, prop, itemValue) {
+        renderer(hot: ReturnType<typeof Handsontable>, wrapper: HTMLElement, row: number, col: number, prop: string | number, itemValue: unknown) {
           this.key;
           hot.getSelected();
 
@@ -73,7 +73,7 @@ new Handsontable(document.createElement('div'), {
 
 new Handsontable(document.createElement('div'), {
   contextMenu: {
-    callback(key, selection, clickEvent) {},
+    callback(key: string, selection: unknown, clickEvent: MouseEvent) {},
     items: {
       sep1: '---------',
       row_above: 'row_above',

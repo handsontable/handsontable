@@ -4,6 +4,13 @@ module.exports = {
   plugins: [
     'handsontable',
   ],
+  settings: {
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.jsx', '.ts', '.tsx', '.mjs'],
+      },
+    },
+  },
   rules: {
     'handsontable/restricted-module-imports': [
       'error',

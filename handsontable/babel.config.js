@@ -27,7 +27,12 @@ const allowedE2EModules = [
 ];
 
 module.exports = {
-  extends: '../babel.config.js',
+  presets: [
+    ['@babel/preset-typescript', { allowDeclareFields: true }],
+  ],
+  plugins: [
+    'babel-plugin-transform-inline-environment-variables',
+  ],
   assumptions: {
     // save 21 kB (July 12, 2023) https://babeljs.io/docs/assumptions#noincompletensimportdetection
     noIncompleteNsImportDetection: true,

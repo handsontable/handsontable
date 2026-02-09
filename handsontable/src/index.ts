@@ -1,0 +1,176 @@
+import Handsontable, { CellCoords, CellRange } from './base';
+import { registerAllModules } from './registry';
+import EventManager, { getListenersCounter } from './eventManager';
+import { getRegisteredMapsCounter } from './translations';
+
+import jQueryWrapper from './helpers/wrappers/jquery';
+
+import GhostTable from './utils/ghostTable';
+import * as parseTableHelpers from './utils/parseTable';
+import * as arrayHelpers from './helpers/array';
+import * as browserHelpers from './helpers/browser';
+import * as dataHelpers from './helpers/data';
+import * as dateHelpers from './helpers/date';
+import * as featureHelpers from './helpers/feature';
+import * as functionHelpers from './helpers/function';
+import * as mixedHelpers from './helpers/mixed';
+import * as numberHelpers from './helpers/number';
+import * as objectHelpers from './helpers/object';
+import * as stringHelpers from './helpers/string';
+import * as unicodeHelpers from './helpers/unicode';
+import * as domHelpers from './helpers/dom/element';
+import * as domEventHelpers from './helpers/dom/event';
+
+import {
+  getRegisteredEditorNames,
+  getEditor,
+  registerEditor,
+} from './editors/registry';
+import { editorFactory } from './editors/factory';
+import {
+  getRegisteredRendererNames,
+  getRenderer,
+  registerRenderer,
+} from './renderers/registry';
+import { rendererFactory } from './renderers/factory';
+import {
+  getRegisteredValidatorNames,
+  getValidator,
+  registerValidator,
+} from './validators/registry';
+import {
+  getRegisteredCellTypeNames,
+  getCellType,
+  registerCellType,
+} from './cellTypes/registry';
+import {
+  getPluginsNames,
+  getPlugin,
+  registerPlugin,
+} from './plugins/registry';
+import { BasePlugin } from './plugins/base';
+
+registerAllModules();
+jQueryWrapper(Handsontable as unknown as Record<string, unknown>);
+
+// Use Record-typed alias to allow dynamic property assignments on the Handsontable namespace.
+const HOT = Handsontable as unknown as Record<string, Record<string, unknown>>;
+
+// TODO: Remove this exports after rewrite tests about this module
+HOT.__GhostTable = GhostTable as unknown as Record<string, unknown>;
+
+HOT._getListenersCounter = getListenersCounter as unknown as Record<string, unknown>; // For MemoryLeak tests
+HOT._getRegisteredMapsCounter = getRegisteredMapsCounter as unknown as Record<string, unknown>; // For MemoryLeak tests
+HOT.EventManager = EventManager as unknown as Record<string, unknown>;
+
+// Export all helpers to the Handsontable object
+const HELPERS = [
+  arrayHelpers,
+  browserHelpers,
+  dataHelpers,
+  dateHelpers,
+  featureHelpers,
+  functionHelpers,
+  mixedHelpers,
+  numberHelpers,
+  objectHelpers,
+  stringHelpers,
+  unicodeHelpers,
+  parseTableHelpers,
+];
+const DOM = [
+  domHelpers,
+  domEventHelpers,
+];
+
+HOT.helper = {};
+HOT.dom = {};
+
+// Fill general helpers.
+arrayHelpers.arrayEach(HELPERS, (helper) => {
+  arrayHelpers.arrayEach(Object.getOwnPropertyNames(helper), (key) => {
+    if ((key as string).charAt(0) !== '_') {
+      HOT.helper[key as string] = (helper as Record<string, unknown>)[key as string] as unknown as Record<string, unknown>;
+    }
+  });
+});
+
+// Fill DOM helpers.
+arrayHelpers.arrayEach(DOM, (helper) => {
+  arrayHelpers.arrayEach(Object.getOwnPropertyNames(helper), (key) => {
+    if ((key as string).charAt(0) !== '_') {
+      HOT.dom[key as string] = (helper as Record<string, unknown>)[key as string] as unknown as Record<string, unknown>;
+    }
+  });
+});
+
+// Export cell types.
+HOT.cellTypes = HOT.cellTypes ?? {};
+
+arrayHelpers.arrayEach(getRegisteredCellTypeNames(), (cellTypeName) => {
+  HOT.cellTypes[cellTypeName as string] = getCellType(cellTypeName as string) as unknown as Record<string, unknown>;
+});
+
+HOT.cellTypes.registerCellType = registerCellType as unknown;
+HOT.cellTypes.getCellType = getCellType as unknown;
+
+// Export all registered editors from the Handsontable.
+HOT.editors = HOT.editors ?? {};
+
+arrayHelpers.arrayEach(getRegisteredEditorNames(), (editorName) => {
+  HOT.editors[`${stringHelpers.toUpperCaseFirst(editorName as string)}Editor`] = getEditor(editorName as string) as unknown as Record<string, unknown>;
+});
+
+HOT.editors.registerEditor = registerEditor as unknown;
+HOT.editors.getEditor = getEditor as unknown;
+HOT.editors.editorFactory = editorFactory as unknown;
+
+// Export all registered renderers from the Handsontable.
+HOT.renderers = HOT.renderers ?? {};
+
+arrayHelpers.arrayEach(getRegisteredRendererNames(), (rendererName) => {
+  const renderer = getRenderer(rendererName as string);
+
+  if (rendererName === 'base') {
+    HOT.renderers.cellDecorator = renderer as unknown;
+  }
+  HOT.renderers[`${stringHelpers.toUpperCaseFirst(rendererName as string)}Renderer`] = renderer as unknown as Record<string, unknown>;
+});
+
+HOT.renderers.registerRenderer = registerRenderer as unknown;
+HOT.renderers.getRenderer = getRenderer as unknown;
+HOT.renderers.rendererFactory = rendererFactory as unknown;
+
+// Export all registered validators from the Handsontable.
+HOT.validators = HOT.validators ?? {};
+
+arrayHelpers.arrayEach(getRegisteredValidatorNames(), (validatorName) => {
+  HOT.validators[`${stringHelpers.toUpperCaseFirst(validatorName as string)}Validator`] = getValidator(validatorName as string) as unknown as Record<string, unknown>;
+});
+
+HOT.validators.registerValidator = registerValidator as unknown;
+HOT.validators.getValidator = getValidator as unknown;
+
+// Export all registered plugins from the Handsontable.
+// Make sure to initialize the plugin dictionary as an empty object. Otherwise, while
+// transpiling the files into ES and CommonJS format, the injected CoreJS helper
+// `import "core-js/modules/es.object.get-own-property-names";` won't be processed
+// by the `./config/plugin/babel/add-import-extension` babel plugin. Thus, the distribution
+// files will be broken. The reason is not known right now (probably it's caused by bug in
+// the Babel or missing something in the plugin).
+HOT.plugins = HOT.plugins ?? {};
+
+arrayHelpers.arrayEach(getPluginsNames(), (pluginName) => {
+  HOT.plugins[pluginName as string] = getPlugin(pluginName as string) as unknown as Record<string, unknown>;
+});
+
+HOT.plugins[`${stringHelpers.toUpperCaseFirst(BasePlugin.PLUGIN_KEY)}Plugin`] = BasePlugin as unknown as Record<string, unknown>;
+
+HOT.plugins.registerPlugin = registerPlugin as unknown;
+HOT.plugins.getPlugin = getPlugin as unknown;
+
+export {
+  CellCoords,
+  CellRange,
+};
+export default Handsontable;

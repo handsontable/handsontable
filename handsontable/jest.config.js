@@ -8,7 +8,7 @@ module.exports = {
   setupFilesAfterEnv: [
     '<rootDir>/test/bootstrap.js'
   ],
-  testRegex: '\\.unit\\.js$',
+  testRegex: '\\.unit\\.ts$',
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/'
   ],

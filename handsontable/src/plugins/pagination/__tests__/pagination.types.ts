@@ -19,33 +19,33 @@ const hot3 = new Handsontable(document.createElement('div'), {
     showNavigation: true,
     uiContainer: document.createElement('div'),
   },
-  beforePageChange(oldPage, newPage) {
+  beforePageChange(oldPage: number, newPage: number) {
     const _oldPage: number = oldPage;
     const _newPage: number = newPage;
 
     return true;
   },
-  afterPageChange(oldPage, newPage) {
+  afterPageChange(oldPage: number, newPage: number) {
     const _oldPage: number = oldPage;
     const _newPage: number = newPage;
   },
-  beforePageSizeChange(oldPageSize, newPageSize) {
+  beforePageSizeChange(oldPageSize: number | 'auto', newPageSize: number | 'auto') {
     const _oldPageSize: number | 'auto' = oldPageSize;
     const _newPageSize: number | 'auto' = newPageSize;
 
     return true;
   },
-  afterPageSizeChange(oldPageSize, newPageSize) {
+  afterPageSizeChange(oldPageSize: number | 'auto', newPageSize: number | 'auto') {
     const _oldPageSize: number | 'auto' = oldPageSize;
     const _newPageSize: number | 'auto' = newPageSize;
   },
-  afterPageSizeVisibilityChange(isVisible) {
+  afterPageSizeVisibilityChange(isVisible: boolean) {
     const _isVisible: boolean = isVisible;
   },
-  afterPageCounterVisibilityChange(isVisible) {
+  afterPageCounterVisibilityChange(isVisible: boolean) {
     const _isVisible: boolean = isVisible;
   },
-  afterPageNavigationVisibilityChange(isVisible) {
+  afterPageNavigationVisibilityChange(isVisible: boolean) {
     const _isVisible: boolean = isVisible;
   },
 });

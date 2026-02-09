@@ -1,12 +1,12 @@
-import Handsontable from 'handsontable';
+import { TextEditor } from 'handsontable/editors';
 
-class PasswordEditor extends Handsontable.editors.TextEditor {
+class CustomPasswordEditor extends TextEditor {
   createElements() {
     // Call the original createElements method
     super.createElements();
 
     // Create password input and update relevant properties
-    this.TEXTAREA = document.createElement('input');
+    this.TEXTAREA = document.createElement('input') as unknown as HTMLTextAreaElement;
     this.TEXTAREA.setAttribute('type', 'password');
     this.TEXTAREA.setAttribute('data-hot-input', '');
     this.TEXTAREA.className = 'handsontableInput';
@@ -15,7 +15,7 @@ class PasswordEditor extends Handsontable.editors.TextEditor {
     this.textareaStyle.height = '0';
 
     // replace textarea with password input
-    Handsontable.dom.empty(this.TEXTAREA_PARENT);
+    this.TEXTAREA_PARENT.textContent = '';
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }

@@ -1,12 +1,12 @@
 import Handsontable from 'handsontable';
 
 const elem = document.createElement('div');
-const hot = new Handsontable(elem, {});
+const hot = Handsontable(elem, {});
 
 {
   const observer = hot.rowIndexMapper.createChangesObserver('hiding');
 
-  observer.subscribe((changes) => {
+  observer.subscribe((changes: { op: string; index: number; oldValue: unknown; newValue: unknown }[]) => {
     changes.forEach(({ op, index, oldValue, newValue }) => { });
   });
   observer.unsubscribe();
@@ -53,7 +53,7 @@ hot.rowIndexMapper.isHidden(0);
 {
   const observer = hot.columnIndexMapper.createChangesObserver('hiding');
 
-  observer.subscribe((changes) => {
+  observer.subscribe((changes: { op: string; index: number; oldValue: unknown; newValue: unknown }[]) => {
     changes.forEach(({ op, index, oldValue, newValue }) => { });
   });
   observer.unsubscribe();

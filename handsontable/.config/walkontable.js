@@ -19,10 +19,13 @@ module.exports.create = function create() {
       libraryTarget: 'var',
       path: path.resolve(wotPath, 'dist'),
     },
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    },
     module: {
       rules: [
         {
-          test: /\.js$/,
+          test: /\.(js|ts|tsx)$/,
           loader: 'babel-loader',
           exclude: [
             /node_modules/,

@@ -140,7 +140,7 @@ dialog.showAlert({
   title: 'Alert',
   description: 'This is an alert'
 });
-dialog.showAlert('Alert', (event) => {
+dialog.showAlert('Alert', (event: MouseEvent) => {
   const myEvent: MouseEvent = event;
 });
 
@@ -153,15 +153,15 @@ dialog.showConfirm({
 dialog.showConfirm({
   title: 'Confirm',
 });
-dialog.showConfirm('Confirm', (event) => {
+dialog.showConfirm('Confirm', (event: MouseEvent) => {
   const myEvent: MouseEvent = event;
 });
 dialog.showConfirm(
   'Confirm',
-  (event) => {
+  (event: MouseEvent) => {
     const myEvent: MouseEvent = event;
   },
-  (event) => {
+  (event: MouseEvent) => {
     const myEvent: MouseEvent = event;
   }
 );

@@ -1,5 +1,19 @@
 import Handsontable from 'handsontable';
-import { Endpoint } from 'handsontable/plugins/columnSummary';
+
+interface Endpoint {
+  destinationRow: number;
+  destinationColumn: number;
+  forceNumeric: boolean;
+  reversedRowCoords: boolean;
+  suppressDataTypeErrors: boolean;
+  readOnly: boolean;
+  roundFloat: number | false | 'auto';
+  ranges: number[][];
+  sourceColumn: number;
+  type: string;
+  result: number;
+  customFunction: null | ((endpoint: unknown) => number);
+}
 
 const hot = new Handsontable(document.createElement('div'), {
   columnSummary: [
@@ -21,7 +35,7 @@ const hot = new Handsontable(document.createElement('div'), {
       type: 'custom',
       destinationRow: 3,
       destinationColumn: 2,
-      customFunction(endpoint) {
+      customFunction(endpoint: unknown) {
         return 1;
       }
     },

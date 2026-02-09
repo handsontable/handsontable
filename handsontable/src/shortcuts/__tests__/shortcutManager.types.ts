@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 
 const elem = document.createElement('div');
-const hot = new Handsontable(elem, {});
+const hot = Handsontable(elem, {});
 const shortcutManager = hot.getShortcutManager();
 const context = shortcutManager.addContext('contextName');
 

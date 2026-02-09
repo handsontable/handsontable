@@ -1,6 +1,6 @@
 import {
   registerLanguageDictionary,
-  arAr,
+  arAR,
   csCZ,
   deCH,
   deDE,
@@ -23,29 +23,29 @@ import {
   zhTW,
 } from 'handsontable/i18n';
 
-const arArCode: 'ar-AR' = arAr.languageCode;
-const csCZCode: 'cs-CZ' = csCZ.languageCode;
-const deCHCode: 'de-CH' = deCH.languageCode;
-const deDECode: 'de-DE' = deDE.languageCode;
-const enUSCode: 'en-US' = enUS.languageCode;
-const esMXCode: 'es-MX' = esMX.languageCode;
-const faIRCode: 'fa-IR' = faIR.languageCode;
-const frFRCode: 'fr-FR' = frFR.languageCode;
-const hrHRCode: 'hr-HR' = hrHR.languageCode;
-const itITCode: 'it-IT' = itIT.languageCode;
-const jaJPCode: 'ja-JP' = jaJP.languageCode;
-const koKRCode: 'ko-KR' = koKR.languageCode;
-const lvLVCode: 'lv-LV' = lvLV.languageCode;
-const nbNOCode: 'nb-NO' = nbNO.languageCode;
-const nlNLCode: 'nl-NL' = nlNL.languageCode;
-const plPLCode: 'pl-PL' = plPL.languageCode;
-const ptBRCode: 'pt-BR' = ptBR.languageCode;
-const ruRUCode: 'ru-RU' = ruRU.languageCode;
-const srSPCode: 'sr-SP' = srSP.languageCode;
-const zhCNCode: 'zh-CN' = zhCN.languageCode;
-const zhTWCode: 'zh-TW' = zhTW.languageCode;
+const arARCode: string = arAR.languageCode;
+const csCZCode: string = csCZ.languageCode;
+const deCHCode: string = deCH.languageCode;
+const deDECode: string = deDE.languageCode;
+const enUSCode: string = enUS.languageCode;
+const esMXCode: string = esMX.languageCode;
+const faIRCode: string = faIR.languageCode;
+const frFRCode: string = frFR.languageCode;
+const hrHRCode: string = hrHR.languageCode;
+const itITCode: string = itIT.languageCode;
+const jaJPCode: string = jaJP.languageCode;
+const koKRCode: string = koKR.languageCode;
+const lvLVCode: string = lvLV.languageCode;
+const nbNOCode: string = nbNO.languageCode;
+const nlNLCode: string = nlNL.languageCode;
+const plPLCode: string = plPL.languageCode;
+const ptBRCode: string = ptBR.languageCode;
+const ruRUCode: string = ruRU.languageCode;
+const srSPCode: string = srSP.languageCode;
+const zhCNCode: string = zhCN.languageCode;
+const zhTWCode: string = zhTW.languageCode;
 
-registerLanguageDictionary(arAr);
+registerLanguageDictionary(arAR);
 registerLanguageDictionary(csCZ);
 registerLanguageDictionary(deCH);
 registerLanguageDictionary(deDE);

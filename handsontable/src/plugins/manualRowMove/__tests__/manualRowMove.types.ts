@@ -8,7 +8,7 @@ new Handsontable(document.createElement('div'), {
   manualRowMove: [1, 4],
 });
 
-const manualRowMove = new Handsontable.plugins.ManualRowMove(hot);
+const manualRowMove = new (Handsontable.plugins as any).ManualRowMove(hot);
 
 manualRowMove.isMovePossible([0], 3);
 
