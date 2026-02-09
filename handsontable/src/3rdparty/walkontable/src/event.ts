@@ -303,7 +303,7 @@ class Event {
       return;
     }
 
-    if (cell.TD === this.#dblClickOrigin[0] && cell.TD === this.#dblClickOrigin[1]) {
+    if (cell.TD && cell.TD === this.#dblClickOrigin[0] && cell.TD === this.#dblClickOrigin[1]) {
       if (hasClass(event.target as HTMLElement, 'corner')) {
         this.callListener('onCellCornerDblClick', event, cell.coords!, cell.TD);
       } else {
@@ -313,7 +313,7 @@ class Event {
       this.#dblClickOrigin[0] = null;
       this.#dblClickOrigin[1] = null;
 
-    } else if (cell.TD === this.#dblClickOrigin[0]) {
+    } else if (cell.TD && cell.TD === this.#dblClickOrigin[0]) {
       this.#dblClickOrigin[1] = cell.TD as HTMLElement;
 
       clearTimeout(this.#dblClickTimeout[1]);

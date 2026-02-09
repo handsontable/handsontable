@@ -325,8 +325,8 @@ class EditorManager {
    * @param {MouseEvent} event The mouse event object.
    * @param {object} coords The cell coordinates.
    */
-  #onCellDblClick(event: MouseEvent, coords: { isCell: () => boolean }) {
-    if (coords.isCell()) {
+  #onCellDblClick(event: MouseEvent, coords: { isCell: () => boolean } | null) {
+    if (coords?.isCell()) {
       if (this.hot.getShortcutManager().isCtrlPressed()) {
         this.clearActiveEditor();
       } else {
