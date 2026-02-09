@@ -169,9 +169,9 @@ function patchHTMLStyleElement() {
   }
 }
 
-/**
+/** .
  * Returns a minimal CSSStyleDeclaration-like object when getComputedStyle throws
- * (e.g. due to unsupported :has() selector in JSDOM). Provides getPropertyValue
+ * (e.g. Due to unsupported :has() selector in JSDOM). Provides getPropertyValue
  * and avoids crashes when reading computed styles.
  *
  * @param {Element} element The element (used for inline style fallback).
