@@ -33,6 +33,15 @@ export class InputController {
   }
 
   /**
+   * Sets the value of the input.
+   *
+   * @param {string} value The value to set.
+   */
+  setValue(value) {
+    this.input.value = value;
+  }
+
+  /**
    * Toggles the input.
    *
    * @param {boolean} enabled If true, the input will be enabled.

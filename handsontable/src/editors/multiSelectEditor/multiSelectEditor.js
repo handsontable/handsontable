@@ -3,6 +3,7 @@ import EventManager from '../../eventManager';
 import { DropdownController } from './controllers/dropdownController';
 import { SelectedItemsController } from './controllers/selectedItemsController';
 import { addClass } from '../../helpers/dom/element';
+import { isPrintableChar } from '../../helpers/unicode';
 import { EDITOR_EDIT_GROUP } from '../../shortcutContexts/constants';
 import {
   getValuesIntersection,
@@ -116,6 +117,8 @@ export class MultiSelectEditor extends BaseEditor {
     const valuesArray = Array.isArray(parsedValue) ? parsedValue : [parsedValue];
     const valuesIntersection = getValuesIntersection(valuesArray, this.#getSource());
 
+    this.dropdownController.reset();
+
     this.#syncSelectedValues(valuesIntersection);
 
     this.dropdownController.setSourceSortFunction(this.cellProperties.sourceSortFunction);
@@ -177,8 +180,21 @@ export class MultiSelectEditor extends BaseEditor {
 
   /**
    * Opens the editor.
+   *
+   * @param {Event} event The event object.
    */
-  open() {
+  open(event) {
+    if (isPrintableChar(event?.keyCode) && this.dropdownController.getInputController().enabled) {
+      const character = event.key.length === 1 ? event.key : String.fromCharCode(event.keyCode);
+
+      this.dropdownController.getInputController().setValue(character);
+      this.#filterEntries(character);
+
+      event.preventDefault();
+
+      this.enableFullEditMode();
+    }
+
     this.#showEditableElement();
     this.refreshDimensions();
     this.hot.getShortcutManager().setActiveContextName('editor');
@@ -195,7 +211,6 @@ export class MultiSelectEditor extends BaseEditor {
     this.#hideEditableElement();
     this.#unregisterShortcuts();
     this.dropdownController.getInputController().unlisten();
-    this.dropdownController.reset();
   }
 
   /**

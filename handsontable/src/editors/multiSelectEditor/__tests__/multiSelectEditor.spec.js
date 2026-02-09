@@ -265,6 +265,38 @@ describe('MultiSelectEditor', () => {
           expect($('.ht-multi-select-editor').offset().top)
             .toBeLessThan(await $(getCell(10, 0)).offset().top);
         });
+
+      describe('re-opening the editor after closing with ESC', () => {
+        it('should show the same dropdown items when opening with ENTER after closing with ESC', async() => {
+          handsontable({
+            data: [[[]]],
+            columns: [
+              {
+                type: 'multiselect',
+                source: choices,
+              },
+            ],
+          });
+
+          await selectCell(0, 0);
+          await keyDownUp('enter');
+          await sleep(10);
+
+          const $dropdownFirst = $('.ht-multi-select-editor');
+          const itemsBeforeEsc = Array.from($dropdownFirst.find('li label')).map(label => label.textContent);
+
+          await keyDownUp('escape');
+          await sleep(10);
+
+          await keyDownUp('enter');
+          await sleep(10);
+
+          const $dropdownSecond = $('.ht-multi-select-editor');
+          const itemsAfterReopen = Array.from($dropdownSecond.find('li label')).map(label => label.textContent);
+
+          expect(itemsAfterReopen).toEqual(itemsBeforeEsc);
+        });
+      });
     });
 
     describe('saving data', () => {
@@ -708,6 +740,156 @@ describe('MultiSelectEditor', () => {
         const $searchInput = $dropdown.find('.ht-multi-select-editor-search-input');
 
         expect($searchInput.is(':visible')).toBe(false);
+      });
+
+      it('should open the editor with the pressed character in the search input and filter the dropdown when ' +
+        'search input is enabled (key: "Y")', async() => {
+        handsontable({
+          data: [[[]]],
+          columns: [
+            {
+              type: 'multiselect',
+              source: choices,
+              searchInput: true,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('Y');
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const $searchInput = $dropdown.find('.ht-multi-select-editor-search-input');
+        const visibleItems = Array.from($dropdown.find('li label')).map(label => label.textContent);
+        const expectedValues = choices
+          .map(choice => choice?.value ?? choice)
+          .filter(value => value.toLowerCase().includes('y'));
+
+        expect($searchInput.is(':visible')).toBe(true);
+        expect($searchInput.val()).toBe('Y');
+        expect(visibleItems).toEqual(expectedValues);
+      });
+
+      it('should open the editor with the pressed character in the search input and filter the dropdown when ' +
+        'search input is enabled (key: space)', async() => {
+        handsontable({
+          data: [[[]]],
+          columns: [
+            {
+              type: 'multiselect',
+              source: [...choices, 'with space'],
+              searchInput: true,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('space');
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const $searchInput = $dropdown.find('.ht-multi-select-editor-search-input');
+        const visibleItems = $dropdown.find('li').length;
+        const searchValue = $searchInput.val();
+
+        expect($searchInput.is(':visible')).toBe(true);
+        expect(searchValue === ' ').toBe(true);
+        expect(visibleItems).toBe(1);
+      });
+
+      it('should open the editor with the pressed character in the search input and filter the dropdown when ' +
+        'search input is enabled (key: "#")', async() => {
+        handsontable({
+          data: [[[]]],
+          columns: [
+            {
+              type: 'multiselect',
+              source: [...choices, 'with #'],
+              searchInput: true,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('#', { extend: { key: '#', keyCode: 226 } });
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const $searchInput = $dropdown.find('.ht-multi-select-editor-search-input');
+        const visibleItems = $dropdown.find('li').length;
+
+        expect($searchInput.is(':visible')).toBe(true);
+        expect($searchInput.val()).toBe('#');
+        expect(visibleItems).toBe(1);
+      });
+    });
+
+    describe('opening the editor with a printable character when search input is disabled', () => {
+      it('should open the dropdown without filtering when opening with "Y"', async() => {
+        handsontable({
+          data: [[[]]],
+          columns: [
+            {
+              type: 'multiselect',
+              source: choices,
+              searchInput: false,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('Y');
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const visibleCount = $dropdown.find('li').length;
+
+        expect(visibleCount).toBe(choices.length);
+      });
+
+      it('should open the dropdown without filtering when opening with space', async() => {
+        handsontable({
+          data: [[[]]],
+          columns: [
+            {
+              type: 'multiselect',
+              source: [...choices, 'with space'],
+              searchInput: false,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('space');
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const visibleCount = $dropdown.find('li').length;
+
+        expect(visibleCount).toBe(choices.length + 1);
+      });
+
+      it('should open the dropdown without filtering when opening with "#"', async() => {
+        handsontable({
+          data: [[[]]],
+          columns: [
+            {
+              type: 'multiselect',
+              source: [...choices, 'with #'],
+              searchInput: false,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('#', { extend: { key: '#', keyCode: 226 } });
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const visibleCount = $dropdown.find('li').length;
+
+        expect(visibleCount).toBe(choices.length + 1);
       });
     });
 

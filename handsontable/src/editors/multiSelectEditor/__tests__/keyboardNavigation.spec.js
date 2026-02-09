@@ -197,5 +197,48 @@ describe('MultiSelectEditor keyboard navigation', () => {
         expect(editor.isOpened()).toBe(true);
       });
     });
+
+    describe('opening the editor with a printable character', () => {
+      it('should open the editor with a printable character and allow keyboard navigation', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiselect',
+              source: choices,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('E');
+        await sleep(10);
+
+        const editor = getActiveEditor();
+        const $dropdown = $('.ht-multi-select-editor');
+
+        expect(editor.isOpened()).toBe(true);
+        expect($dropdown.find('.ht-multi-select-editor-search-input').val()).toBe('E');
+        expect(document.activeElement).toBe(editor.getInputElement());
+
+        await keyDownUp('ArrowDown');
+        await sleep(10);
+
+        let activeCheckbox = $dropdown.find('input[type="checkbox"]:visible').first()[0];
+
+        expect(document.activeElement).toBe(activeCheckbox);
+        expect(activeCheckbox.dataset.value).toBe('yellow');
+
+        await keyDownUp('ArrowDown');
+        await sleep(10);
+
+        activeCheckbox = $dropdown.find('input[type="checkbox"]:visible').eq(1)[0];
+
+        expect(document.activeElement).toBe(activeCheckbox);
+        expect(activeCheckbox.dataset.value).toBe('red');
+      });
+    });
   });
 });
