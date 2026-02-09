@@ -25,6 +25,13 @@ To start a local Handsontable documentation server:
     ```bash
     npm install
     ```
+
+    > **Note:** If `npm install` fails with an `ERESOLVE` peer dependency conflict (e.g., due to Vue 2/Vue 3 wrapper packages in the monorepo), run:
+    >
+    > ```bash
+    > npm install --legacy-peer-deps
+    > ```
+    
 3. Generate the API reference:
    ```bash
    npm run docs:api
