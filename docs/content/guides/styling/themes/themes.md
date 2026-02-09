@@ -55,7 +55,7 @@ The `classic` theme is a replacement for the old legacy style. It retains the fa
 Keep in mind that starting from version `15.0`, importing a theme is required.
 
 ::: tip Default theme
-If you want to use the `main` theme without any modifications, you don't need to configure anything. Simply import the base styles (`handsontable/styles/handsontable.min.css`) and Handsontable will automatically use the `main` theme with default settings.
+If you want to use the `main` theme without any modifications, you don't need to configure anything. Handsontable will automatically use the `main` theme with default settings.
 :::
 
 ::: only-for javascript
@@ -202,7 +202,7 @@ Handsontable provides CSS files needed to style your data grid. Here's an overvi
 
 ### Base CSS file
 
-- **`handsontable.css`** / **`handsontable.min.css`** - The base stylesheet containing all structural styles, layout rules, and core functionality. This file is required and must be loaded before any theme file. It includes border styles, cell rendering rules, and other fundamental grid components.
+- **`handsontable.css`** / **`handsontable.min.css`** - The base stylesheet containing all structural styles, layout rules, and core functionality. This file is auto-injected by default. You can inject it manually instead, but you must set [`injectCoreCss`](@/api/options.md#injectcorecss) to `false` first. It includes border styles, cell rendering rules, and other fundamental grid components.
 
 ### Theme files
 
@@ -232,7 +232,6 @@ The Theme API allows you to import and register themes programmatically. This ap
 #### Step 1. Import the base styles
 
 ```js
-import 'handsontable/styles/handsontable.min.css';
 ```
 
 #### Step 2. Import and register the theme
@@ -270,7 +269,6 @@ const hot = new Handsontable(container, {
 When using Handsontable via CDN or script tags, load the theme script after the main Handsontable script. The theme auto-registers itself, and you can retrieve it using `getTheme()`:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/themes/main.min.js"></script>
 
@@ -345,11 +343,9 @@ To ensure Handsontable renders correctly, it's required to load both the base an
 
 ```js
 // ESM (ECMAScript modules)
-import 'handsontable/styles/handsontable.min.css';
 import 'handsontable/styles/ht-theme-main.min.css';
 
 // CommonJS
-require('handsontable/styles/handsontable.min.css');
 require('handsontable/styles/ht-theme-main.min.css');
 ```
 
@@ -362,7 +358,6 @@ The recommended approach for applying global styles is to include them in the `s
   // ...
   "styles": [
     "src/styles.css",
-    "node_modules/handsontable/styles/handsontable.min.css",
     "node_modules/handsontable/styles/ht-theme-main.min.css"
   ],
   // ...
@@ -374,7 +369,6 @@ The recommended approach for applying global styles is to include them in the `s
 Alternatively, you can import the necessary files from the recommended CDN such as [JSDelivr](https://jsdelivr.com/package/npm/handsontable) or [cdnjs](https://cdnjs.com/libraries/handsontable).
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
 ```
 

@@ -121,29 +121,26 @@
         ns = 'VueClassComponent';
 
       } else if (/^handsontable\/styles\/ht-theme-.+\.css$/.test(key)) {
-        // Dynamically inject CSS for ht-theme-* files
+        // Dynamically inject CSS for ht-theme-* files (e.g. theme-customization example)
         const cssFileName = key.split('/').pop();
-        const cssId = `dynamic-css-${cssFileName.replace('.', '-')}`;
+        const cssId = `dynamic-css-${cssFileName.replace(/\./g, '-')}`;
 
         if (!document.getElementById(cssId)) {
-          // Find base URL from existing handsontable CSS link
-          // Use a more specific selector to match the actual Handsontable CSS file path,
-          // not just any link containing "handsontable" (which could match the domain name)
-          const existingHotCss = document.querySelector('link[href*="/styles/handsontable"]');
-          let baseUrl = '';
+          // Derive styles URL from the Handsontable script (docs don't load base CSS link)
+          const hotScript = document.querySelector('script[src*="handsontable"][src*="dist/"]');
+          let stylesBaseUrl = '';
 
-          if (existingHotCss) {
-            // Extract base URL from existing CSS (e.g., /docs/handsontable/styles/ or CDN URL)
-            const href = existingHotCss.getAttribute('href');
-            baseUrl = href.substring(0, href.lastIndexOf('/') + 1);
+          if (hotScript) {
+            const scriptSrc = hotScript.getAttribute('src');
+            stylesBaseUrl = scriptSrc.replace(/\/dist\/[^/]*$/, '/') + 'styles/';
           }
 
-          if (baseUrl) {
+          if (stylesBaseUrl) {
             const link = document.createElement('link');
             link.id = cssId;
             link.rel = 'stylesheet';
             link.type = 'text/css';
-            link.href = baseUrl + cssFileName;
+            link.href = stylesBaseUrl + cssFileName;
             document.head.appendChild(link);
           }
         }

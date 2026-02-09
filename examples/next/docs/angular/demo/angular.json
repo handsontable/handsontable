@@ -26,9 +26,7 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "aot": true,
-            "styles": [
-              "node_modules/handsontable/styles/handsontable.css",
-            ],
+            "styles": [],
             "scripts": [],
             "preserveSymlinks": true,
             "allowedCommonJsDependencies": [

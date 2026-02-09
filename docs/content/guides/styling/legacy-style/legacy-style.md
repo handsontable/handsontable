@@ -2,7 +2,7 @@
 id: yfus6qpz
 title: Legacy Style
 metaTitle: Legacy Style - JavaScript Data Grid | Handsontable
-description: Learn how to migrate from the legacy stylesheet to the Classic theme in Handsontable 17.0.0 and later.
+description: The legacy stylesheet was removed in Handsontable 17.0.0. Learn how to migrate to the Classic theme using the Theme API or CSS imports.
 permalink: /legacy-style
 canonicalUrl: /legacy-style
 tags:
@@ -42,14 +42,6 @@ There are two ways to apply the Classic theme. The recommended approach is to us
 ### Option 1: Using the Theme API (recommended)
 
 The Theme API allows you to import and register themes programmatically. This approach provides full access to theme customization features like density modes and color schemes.
-
-#### Step 1. Import the base styles
-
-```js
-import 'handsontable/styles/handsontable.min.css';
-```
-
-#### Step 2. Import and register the Classic theme
 
 ::: only-for javascript
 
@@ -118,7 +110,6 @@ Replace your existing CSS import with the base styles and Classic theme:
 
 ```diff
 - @import 'handsontable/dist/handsontable.full.min.css';
-+ @import 'handsontable/styles/handsontable.min.css';
 + @import 'handsontable/styles/ht-theme-classic.min.css';
 ```
 
@@ -126,7 +117,6 @@ Or if you're using JavaScript imports:
 
 ```diff
 - import 'handsontable/dist/handsontable.full.min.css';
-+ import 'handsontable/styles/handsontable.min.css';
 + import 'handsontable/styles/ht-theme-classic.min.css';
 ```
 

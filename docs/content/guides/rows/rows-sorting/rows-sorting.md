@@ -1401,10 +1401,6 @@ To use sorting, you need only the following modules:
 // import the base module
 import Handsontable from 'handsontable/base';
 
-// import Handsontable's CSS
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
-
 // import the ColumnSorting plugin (or the MultiColumnSorting plugin)
 import { registerPlugin, ColumnSorting } from 'handsontable/plugins';
 

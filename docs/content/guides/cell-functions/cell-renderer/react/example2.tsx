@@ -1,6 +1,5 @@
 import { useState, useContext, MouseEvent, createContext } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
-import 'handsontable/styles/handsontable.css';
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 

@@ -1,6 +1,5 @@
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
 
 // register Handsontable's modules
 registerAllModules();

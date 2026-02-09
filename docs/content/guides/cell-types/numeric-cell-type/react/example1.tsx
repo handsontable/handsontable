@@ -2,7 +2,6 @@ import { HotTable } from '@handsontable/react-wrapper';
 import numbro from 'numbro';
 import deDE from 'numbro/languages/de-DE';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
 
 // register Handsontable's modules
 registerAllModules();

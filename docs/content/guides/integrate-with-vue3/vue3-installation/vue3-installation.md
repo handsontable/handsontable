@@ -56,7 +56,6 @@ npm install handsontable @handsontable/vue3
   import { defineComponent } from 'vue';
   import { HotTable } from '@handsontable/vue3';
   import { registerAllModules } from 'handsontable/registry';
-  import 'handsontable/styles/handsontable.min.css';
 
   // register Handsontable's modules
   registerAllModules();

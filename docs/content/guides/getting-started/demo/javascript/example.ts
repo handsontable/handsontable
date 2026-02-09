@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { PredefinedMenuItemKey } from 'handsontable/plugins/contextMenu';
-import 'handsontable/styles/handsontable.css';
 
 // Register all Handsontable's modules.
 registerAllModules();

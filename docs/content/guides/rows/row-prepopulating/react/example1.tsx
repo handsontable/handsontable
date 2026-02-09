@@ -2,7 +2,6 @@ import { useRef } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
-import 'handsontable/styles/handsontable.css';
 import Handsontable from 'handsontable/base';
 import { CellChange } from 'handsontable/common';
 

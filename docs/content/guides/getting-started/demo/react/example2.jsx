@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
-import 'handsontable/styles/handsontable.css';
 
 // Register all Handsontable's modules.
 registerAllModules();

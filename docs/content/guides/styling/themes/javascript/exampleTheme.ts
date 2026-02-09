@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
 import { mainTheme, horizonTheme, classicTheme, registerTheme, getTheme } from 'handsontable/themes';
 import { PredefinedMenuItemKey } from 'handsontable/plugins/contextMenu';
 

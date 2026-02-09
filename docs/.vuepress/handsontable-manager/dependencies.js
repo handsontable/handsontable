@@ -16,9 +16,7 @@ const getPackageUrls = (packageName, version, fileSelection) => {
   const subDirs = {
     handsontable: {
       js: 'handsontable.full.min.js',
-      css: [
-        'handsontable.min.css',
-      ],
+      css: [],
       subDir: 'dist/',
       cssSubDir: 'styles/',
     },

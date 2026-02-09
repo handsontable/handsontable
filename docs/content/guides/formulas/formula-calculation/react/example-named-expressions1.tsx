@@ -3,7 +3,6 @@ import { HyperFormula } from 'hyperformula';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { DetailedSettings } from 'handsontable/plugins/formulas';
-import 'handsontable/styles/handsontable.css';
 
 // register Handsontable's modules
 registerAllModules();

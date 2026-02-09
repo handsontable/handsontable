@@ -24,7 +24,6 @@ import {
   zhTW
 } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
 
 registerLanguageDictionary(arAR);
 registerLanguageDictionary(csCZ);

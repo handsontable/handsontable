@@ -863,9 +863,6 @@ To use filtering, you need only the following modules:
 // import the base module
 import Handsontable from 'handsontable/base';
 
-// import Handsontable's CSS
-import 'handsontable/styles/handsontable.css';
-
 // import the filtering plugins
 import { registerPlugin, Filters, DropdownMenu } from 'handsontable/plugins';
 

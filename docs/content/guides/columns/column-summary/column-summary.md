@@ -111,7 +111,6 @@ To enable the [`ColumnSummary`](@/api/columnSummary.md) plugin, set the [`column
 ```js
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -140,7 +139,6 @@ const hot = new Handsontable(document.querySelector('#example'), {
 ```jsx
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
 
 // register Handsontable's modules
 registerAllModules();

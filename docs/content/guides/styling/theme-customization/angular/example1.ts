@@ -46,7 +46,6 @@ import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 /* start:skip-in-compilation */
 import { Example1DemoComponent } from './app.component';
 /* end:skip-in-compilation */
-import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules

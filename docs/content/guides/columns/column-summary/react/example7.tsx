@@ -1,6 +1,5 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
 import { DetailedSettings } from 'handsontable/plugins/columnSummary';
 
 // register Handsontable's modules

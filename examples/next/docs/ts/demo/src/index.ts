@@ -1,5 +1,4 @@
 import Handsontable from "handsontable";
-import "handsontable/styles/handsontable.css";
 import "@handsontable/pikaday/css/pikaday.css";
 
 import { data } from "./constants";

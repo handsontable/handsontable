@@ -76,7 +76,6 @@ pnpm add handsontable @handsontable/angular-wrapper
 Import Handsontable's CSS into your application to `styles.scss`.
 
 ```scss
-@import "handsontable/styles/handsontable.min.css";
 ```
 
 ## Register Handsontable's modules
@@ -241,7 +240,6 @@ To install Handsontable locally using a package manager, run one of these comman
 To get Handsontable's files from a CDN, use the following locations:
 
 - [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
-- [https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css](https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css)
 
 ## Import Handsontable's JavaScript
 
@@ -269,26 +267,6 @@ Use the `script` tag. For example, if you're loading Handsontable's JavaScript f
 
 ```html
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
-```
-
-## Import Handsontable's CSS
-
-Import Handsontable's CSS into your application.
-
-### Using `import`
-
-If your bundler allows it, you can import Handsontable's full distribution CSS file, using an `import` statement.
-
-```js
-import 'handsontable/styles/handsontable.min.css';
-```
-
-### Using the `link` tag
-
-You can also import Handsontable's CSS using a link tag:
-
-```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
 ```
 
 ## Create a container
@@ -368,7 +346,6 @@ To install Handsontable locally using a package manager, run one of these comman
 Import Handsontable's CSS into your application.
 
 ```jsx
-import 'handsontable/styles/handsontable.min.css';
 ```
 
 ## Register Handsontable's modules

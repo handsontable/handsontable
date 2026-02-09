@@ -29,7 +29,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 Starting from **version 17.0.0**, the legacy stylesheet (`dist/handsontable.full.min.css`) has been completely removed from Handsontable. If you're upgrading from an earlier version and still using the legacy styles, you must migrate to a theme.
 
 ::: tip Using the main theme without modifications
-If you want to use the `main` theme without any modifications, you don't need to configure anything. Simply import the base styles (`handsontable/styles/handsontable.min.css`) and Handsontable will automatically use the `main` theme with default settings. However, if you want to retain the legacy look and feel, migrate to the **Classic** theme as described below.
+If you want to use the `main` theme without any modifications, you don't need to configure anything. Handsontable will automatically use the `main` theme with default settings. However, if you want to retain the legacy look and feel, migrate to the **Classic** theme as described below.
 :::
 
 ### What Changed
@@ -50,7 +50,6 @@ The Theme API allows you to register and configure themes programmatically with 
 
 ```diff
 - import 'handsontable/dist/handsontable.full.min.css';
-+ import 'handsontable/styles/handsontable.min.css';
 ```
 
 **Step 2: Import and register the Classic theme**
@@ -119,7 +118,6 @@ Alternatively, you can use CSS files and pass the theme name as a string to the 
 
 ```diff
 - @import 'handsontable/dist/handsontable.full.min.css';
-+ @import 'handsontable/styles/handsontable.min.css';
 + @import 'handsontable/styles/ht-theme-classic.min.css';
 ```
 
@@ -127,7 +125,6 @@ Or if you're using JavaScript imports:
 
 ```diff
 - import 'handsontable/dist/handsontable.full.min.css';
-+ import 'handsontable/styles/handsontable.min.css';
 + import 'handsontable/styles/ht-theme-classic.min.css';
 ```
 
@@ -140,7 +137,6 @@ Or in `angular.json`:
   // ...
   "styles": [
     "src/styles.css",
-    "node_modules/handsontable/styles/handsontable.min.css",
     "node_modules/handsontable/styles/ht-theme-classic.min.css"
   ],
   // ...
@@ -268,7 +264,6 @@ export class AppComponent {
 ::: only-for javascript
 
 ```js
-import 'handsontable/styles/handsontable.min.css';
 import Handsontable from 'handsontable';
 import { mainTheme, registerTheme } from 'handsontable/themes';
 
@@ -291,7 +286,6 @@ theme.setDensityType('compact');
 ::: only-for react
 
 ```jsx
-import 'handsontable/styles/handsontable.min.css';
 import { HotTable } from '@handsontable/react-wrapper';
 import { mainTheme, registerTheme } from 'handsontable/themes';
 
@@ -314,7 +308,6 @@ function App() {
 ::: only-for angular
 
 ```ts
-import 'handsontable/styles/handsontable.min.css';
 import { mainTheme, registerTheme } from 'handsontable/themes';
 
 const theme = registerTheme(mainTheme)
@@ -397,18 +390,18 @@ import { horizonTheme, registerTheme } from 'handsontable/themes';
 const theme = registerTheme(horizonTheme).setColorScheme('dark');
 
 // In your component or service
-hotConfigService.setConfig({ theme: theme });
+HotGlobalConfigService.setConfig({ theme: theme });
 ```
 
 :::
 
 ## Summary of breaking changes
 
-| Change | Action Required |
-|--------|-----------------|
-| Legacy stylesheet removed | Migrate to Classic theme or another built-in theme |
-| `handsontable.full.min.css` no longer available | Use `handsontable/styles/handsontable.min.css` + theme CSS |
-| CSS-based themes (optional migration) | Consider migrating to Theme API for runtime features |
+| Change                                            | Action Required                                                            |
+| ------------------------------------------------- | -------------------------------------------------------------------------- |
+| Legacy stylesheet removed                         | Migrate to Classic theme or another built-in theme                         |
+| `handsontable.full.min.css` no longer available   | Use Theme API or import a theme CSS file (e.g. `ht-theme-classic.min.css`) |
+| CSS-based themes (optional migration)             | Consider migrating to Theme API for runtime features                       |
 
 ## Related resources
 

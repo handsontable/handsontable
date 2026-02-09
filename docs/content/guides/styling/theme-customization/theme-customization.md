@@ -58,7 +58,6 @@ Use `registerTheme` to create a custom theme with your own configuration:
 
 ```js
 import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
 
 import { mainTheme, registerTheme } from 'handsontable/themes';
 
@@ -81,7 +80,6 @@ const hot = new Handsontable(container, {
 
 ```jsx
 import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
 import { HotTable } from '@handsontable/react';
 
 import { mainTheme, registerTheme } from 'handsontable/themes';
@@ -109,7 +107,6 @@ function App() {
 
 ```ts
 import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
 
 import { mainTheme, registerTheme } from 'handsontable/themes';
 

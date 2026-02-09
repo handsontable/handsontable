@@ -1,6 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
 import { horizonTheme, registerTheme } from 'handsontable/themes';
 
 // Register all Handsontable's modules.
