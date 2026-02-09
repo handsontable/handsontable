@@ -95,6 +95,11 @@ function preprocessModernCSS(cssText) {
   // Simplify color-scheme: light dark to just light (jsdom may not support multiple values)
   processed = processed.replace(/color-scheme:\s*light\s+dark;?/gi, 'color-scheme: light;');
 
+  // Replace :has() pseudo-class with :not(*) so nwsapi (JSDOM's selector engine) doesn't throw.
+  // nwsapi in JSDOM 16.x does not support :has(); it produces "invalid selector" SyntaxErrors.
+  // :not(*) is a valid selector that matches nothing, so the rule stays valid but has no effect.
+  processed = processed.replace(/:has\s*\([^)]+\)/g, ':not(*)');
+
   return processed;
 }
 
@@ -165,6 +170,30 @@ function patchHTMLStyleElement() {
 }
 
 /**
+ * Returns a minimal CSSStyleDeclaration-like object when getComputedStyle throws
+ * (e.g. due to unsupported :has() selector in JSDOM). Provides getPropertyValue
+ * and avoids crashes when reading computed styles.
+ *
+ * @param {Element} element The element (used for inline style fallback).
+ * @returns {object} Object with getPropertyValue() returning '' or inline value.
+ */
+function getMinimalComputedStyle(element) {
+  return {
+    getPropertyValue(property) {
+      if (element && element.style) {
+        const inline = element.style.getPropertyValue(property);
+
+        if (inline) {
+          return inline;
+        }
+      }
+
+      return '';
+    }
+  };
+}
+
+/**
  * Patches CSSStyleDeclaration to improve CSS custom property support.
  */
 function patchCSSStyleDeclaration() {
@@ -211,7 +240,19 @@ function patchCSSStyleDeclaration() {
 
   // Enhance getComputedStyle to better support CSS custom properties.
   window.getComputedStyle = function(element, pseudoElement) {
-    const computed = originalGetComputedStyle.call(this, element, pseudoElement);
+    let computed;
+
+    try {
+      computed = originalGetComputedStyle.call(this, element, pseudoElement);
+    } catch (e) {
+      // JSDOM's nwsapi throws SyntaxError on unsupported selectors (e.g. :has()).
+      // If CSS wasn't preprocessed (e.g. dynamic styles), return a minimal style object.
+      if (e instanceof SyntaxError || (e.message && /not a valid selector/i.test(e.message))) {
+        return getMinimalComputedStyle(element);
+      }
+
+      throw e;
+    }
 
     // Create a proxy that enhances CSS custom property retrieval.
     return new Proxy(computed, {
