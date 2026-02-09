@@ -36,6 +36,12 @@ export interface HotGlobalConfig {
   themeName?: ThemeName;
 
   /**
+   * The theme to be used (ThemeBuilder instance or theme name string).
+   * When set, takes precedence over `themeName` for Handsontable 17+.
+   */
+  theme?: object | string;
+
+  /**
    * The language code to be used for localization.
    * For example, 'en-US', 'pl-PL', etc.
    * **Note:** The language must be chosen from the languages supported by Handsontable and registered in the application.

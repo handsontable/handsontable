@@ -41,6 +41,13 @@ describe('HotGlobalConfigService', () => {
     expect(config.themeName).toEqual(theme);
   });
 
+  it('should update theme (ThemeBuilder or string) when provided', () => {
+    const themeByName = 'ht-theme-horizon-dark';
+    service.setConfig({ theme: themeByName });
+    const config = service.getConfig();
+    expect(config.theme).toEqual(themeByName);
+  });
+
   it('should update whole config when provided', () => {
     const inputConfig: HotGlobalConfig = {
       license: 'sample-license',
