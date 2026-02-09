@@ -106,6 +106,19 @@ You can provide the `source` option as an array of objects with `key` and `value
 :::
 :::
 
+## Keyboard navigation
+
+The MultiSelect editor is a dropdown with selectable items. You can select items by clicking them or by using the keyboard:
+
+When the dropdown opens, the initial focus depends on the [**`searchInput`**](@/api/options.md#searchinput) option: if filtering is enabled, the search input is focused by default; if filtering is disabled, the first item in the list is focused.
+
+- **Arrow keys** – Move the focus between items in the dropdown list. When the search input is visible, use the **down** arrow to move focus from the search input into the list, and the **up** arrow to move focus back into the search input.
+- **SPACE or ENTER** – Toggle the selection of the focused item. The behavior depends on the [**`enterCommits`**](@/api/options.md#entercommits) option:
+  - When `enterCommits` is `true` (default): **ENTER** closes the editor and commits the selection; **SPACE** toggles the focused item's selection.
+  - When `enterCommits` is `false`: **ENTER** toggles the focused item's selection; **SPACE** has no effect.
+
+Each selection (or deselection) immediately updates the underlying cell data.
+
 ## Other options
 
 The MultiSelect cell type provides several configuration options to tailor its behavior:
