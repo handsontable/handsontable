@@ -23,6 +23,10 @@ module.exports = {
     'core-primitives-signals': '../../../node_modules/@angular/core/fesm2022/primitives/signals.mjs',
     'core-primitives-di': '../../../node_modules/@angular/core/fesm2022/primitives/di.mjs',
     'common-http': '../../../node_modules/@angular/common/fesm2022/http.mjs',
+    'material-checkbox': '../../../node_modules/@angular/material/fesm2022/checkbox.mjs',
+    'cdk-a11y': '../../../node_modules/@angular/cdk/fesm2022/a11y.mjs',
+    'cdk-observers': '../../../node_modules/@angular/cdk/fesm2022/observers.mjs',
+    'cdk-coercion': '../../../node_modules/@angular/cdk/fesm2022/coercion.mjs',
     'handsontable-angular-wrapper': {
       import: angularImportPath,
       library: {
@@ -60,25 +64,67 @@ module.exports = {
     ]
   },
   externals: [
-    function({ request }, callback) {
-      // Externalize any handsontable module
-      if (request === 'handsontable' || request.startsWith('handsontable/')) {
-        return callback(null, {
-          root: 'Handsontable',
-          commonjs: 'handsontable',
-          commonjs2: 'handsontable',
-          amd: 'handsontable'
-        });
-      }
-      callback();
-    },
     {
+      'handsontable/editors/factory': {
+        root: ['Handsontable', 'editors'],
+        commonjs: 'handsontable/editors/factory',
+        commonjs2: 'handsontable/editors/factory',
+        amd: 'handsontable/editors/factory'
+      },
+      'handsontable/editors': {
+        root: ['Handsontable', 'editors'],
+        commonjs: 'handsontable/editors',
+        commonjs2: 'handsontable/editors',
+        amd: 'handsontable/editors'
+      },
+      'handsontable/renderers/factory': {
+        root: ['Handsontable', 'renderers'],
+        commonjs: 'handsontable/renderers/factory',
+        commonjs2: 'handsontable/renderers/factory',
+        amd: 'handsontable/renderers/factory'
+      },
+      'handsontable/renderers': {
+        root: ['Handsontable', 'renderers'],
+        commonjs: 'handsontable/renderers',
+        commonjs2: 'handsontable/renderers',
+        amd: 'handsontable/renderers'
+      },
       rxjs: 'rxjs',
       'rxjs/operators': {
         root: ['rxjs', 'operators'],
         commonjs: 'rxjs.operators',
         commonjs2: 'rxjs.operators',
         amd: 'rxjs.operators'
+      },
+      'date-fns': {
+        root: 'dateFns',
+        commonjs: 'dateFns',
+        commonjs2: 'date-fns',
+        amd: 'date-fns'
+      },
+      '@angular/material/checkbox': {
+        root: ['ng', 'material-checkbox'],
+        commonjs: '@angular/material/checkbox',
+        commonjs2: '@angular/material/checkbox',
+        amd: '@angular/material/checkbox'
+      },
+      '@angular/cdk/a11y': {
+        root: ['ng', 'cdk-a11y'],
+        commonjs: '@angular/cdk/a11y',
+        commonjs2: '@angular/cdk/a11y',
+        amd: '@angular/cdk/a11y'
+      },
+      '@angular/cdk/observers': {
+        root: ['ng', 'cdk-observers'],
+        commonjs: '@angular/cdk/observers',
+        commonjs2: '@angular/cdk/observers',
+        amd: '@angular/cdk/observers'
+      },
+      '@angular/cdk/coercion': {
+        root: ['ng', 'cdk-coercion'],
+        commonjs: '@angular/cdk/coercion',
+        commonjs2: '@angular/cdk/coercion',
+        amd: '@angular/cdk/coercion'
       },
       '@handsontable/angular-wrapper': {
         root: ['Handsontable', 'angular'],
@@ -140,6 +186,18 @@ module.exports = {
         commonjs2: '@angular/common/http',
         amd: '@angular/common/http'
       }
-    }
+    },
+    function({ request }, callback) {
+      // Externalize any handsontable module
+      if (request === 'handsontable' || request.startsWith('handsontable/')) {
+        return callback(null, {
+          root: 'Handsontable',
+          commonjs: 'handsontable',
+          commonjs2: 'handsontable',
+          amd: 'handsontable'
+        });
+      }
+      callback();
+    },
   ],
 };
