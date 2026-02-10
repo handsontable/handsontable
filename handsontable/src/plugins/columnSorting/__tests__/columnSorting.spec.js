@@ -1064,6 +1064,48 @@ describe('ColumnSorting', () => {
       });
     });
 
+    describe('sorting date-typed files (intl)', () => {
+      using('data set', [
+        {
+          values: ['2032-02-01', '2023-02-11', '2023-05-01', '1975-02-01'],
+          dateFormat: {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          }
+        },
+        {
+          values: ['2032-02-01', '2023-02-11', '2023-05-01', '1975-02-01'],
+          dateFormat: {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }
+        },
+      ], ({ values, dateFormat }) => {
+        it('it should be sorted properly', async() => {
+          const data = values.map((value, ind) => [value, ind]);
+
+          handsontable({
+            data,
+            columns: [
+              { type: 'intlDate', dateFormat },
+              { type: 'numeric' },
+            ],
+            columnSorting: true
+          });
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' }); // ASC
+
+          expect(getDataAtCol(1).join(', ')).toEqual('3, 1, 2, 0');
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' }); // DESC
+
+          expect(getDataAtCol(1).join(', ')).toEqual('0, 2, 1, 3');
+        });
+      });
+    });
+
     describe('sorting time-typed files', () => {
       using('data set', [
         { values: ['23:15', '20:44', '21:00', '14:12'], timeFormat: 'HH:mm' },
@@ -1096,6 +1138,56 @@ describe('ColumnSorting', () => {
             data,
             columns: [
               { type: 'time', timeFormat },
+              { type: 'numeric' },
+            ],
+            columnSorting: true
+          });
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' }); // ASC
+
+          expect(getDataAtCol(1).join(', ')).toEqual('3, 1, 2, 0');
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' }); // DESC
+
+          expect(getDataAtCol(1).join(', ')).toEqual('0, 2, 1, 3');
+        });
+      });
+    });
+
+    describe('sorting time-typed files (intl)', () => {
+      using('data set', [
+        {
+          values: ['23:15', '20:44', '21:00', '14:12'],
+          timeFormat: {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: false,
+          }
+        },
+        {
+          values: ['23:15:22', '20:44:11', '21:00:11', '14:12:11'],
+          timeFormat: {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: false,
+          }
+        },
+        {
+          values: ['23:15:22.000', '20:44:11.111', '21:00:11.222', '14:12:11.333'],
+          timeFormat: {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: false,
+          }
+        },
+      ], ({ values, timeFormat }) => {
+        it('it should be sorted properly', async() => {
+          const data = values.map((value, ind) => [value, ind]);
+
+          handsontable({
+            data,
+            columns: [
+              { type: 'intlTime', timeFormat },
               { type: 'numeric' },
             ],
             columnSorting: true

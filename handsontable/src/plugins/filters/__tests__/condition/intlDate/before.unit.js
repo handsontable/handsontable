@@ -1,0 +1,34 @@
+import { condition } from 'handsontable/plugins/filters/condition/intlDate/before';
+import { dateRowFactory } from '../../helpers/utils';
+
+describe('Filters condition (`intl_date_before`)', () => {
+
+  using('data set', [
+    {
+      dateFormat: {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      },
+      testDate: '2015-12-20',
+      startDate: '2015-12-24',
+      assumption: true
+    },
+    {
+      dateFormat: {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      },
+      testDate: '2015-12-20',
+      startDate: '2015-12-20',
+      assumption: true
+    },
+  ], ({ dateFormat, testDate, startDate, assumption }) => {
+    it('should filter matching and non-matching values (date cell type)', () => {
+      const data = dateRowFactory({ type: 'intlDate', dateFormat });
+
+      expect(condition(data(testDate), [startDate])).toBe(assumption);
+    });
+  });
+});
