@@ -121,5 +121,17 @@ ${prefix}.ht_nestingButton.ht_nestingExpand::before {
 
 ${prefix}.htUIRadio > input[type="radio"]::after {
   ${icon(icons, "radio")}
+}
+
+${prefix}.ht-multi-select-chip-remove::before {
+  ${icon(icons, "chipClose")}
+}
+
+${prefix}.ht-multi-select-editor-search-icon {
+  ${icon(icons, "search")}
+}
+
+${prefix}.ht-multi-select-editor-item-selected input::after {
+  ${icon(icons, "checkbox")}
 }`;
 };

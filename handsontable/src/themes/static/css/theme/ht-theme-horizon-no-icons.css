@@ -304,6 +304,11 @@
   --ht-dialog-content-padding-vertical: var(--ht-density-dialog-vertical);
   --ht-dialog-content-border-radius: var(--ht-sizing-size-4);
   --ht-dialog-content-background-color: var(--ht-background-color);
+  --ht-chip-background: var(--ht-background-secondary-color);
+  --ht-chip-border-radius: var(--ht-sizing-size-2);
+  --ht-chip-vertical-padding: var(--ht-sizing-size-0);
+  --ht-chip-horizontal-padding: var(--ht-sizing-size-0-5);
+  --ht-chip-gap: var(--ht-sizing-size-1);
   --ht-scrollbar-border-radius: var(--ht-sizing-size-2);
   --ht-scrollbar-track-color: var(--ht-background-secondary-color);
   --ht-scrollbar-thumb-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));

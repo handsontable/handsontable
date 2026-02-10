@@ -6,11 +6,12 @@
     position: absolute;
 
     .ht-multi-select-editor {
+      @include mixins.menu-box-shadow;
+
       overflow-y: auto;
       border-radius: 0 0 var(--ht-menu-border-radius) var(--ht-menu-border-radius);
       border: var(--ht-menu-border-width) solid var(--ht-menu-border-color);
       background: var(--ht-background-color);
-      box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) 0 var(--ht-menu-shadow-color);
       width: max-content;
       min-width: 120px;
       padding: var(--ht-menu-vertical-padding) var(--ht-menu-horizontal-padding);
@@ -101,7 +102,7 @@
           user-select: none;
 
           &.ht-multi-select-editor-item-selected {
-            background: var(--ht-menu-item-active-color);
+            background: color-mix(in srgb, var(--ht-menu-item-active-color) var(--ht-menu-item-active-color-opacity, 100%), transparent);
           }
 
           div {
@@ -172,11 +173,11 @@
           }
 
           &:hover {
-            background: var(--ht-menu-item-hover-color);
+            background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent);
           }
 
           &:has(input:focus) {
-            background: var(--ht-menu-item-hover-color);
+            background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent);
           }
         }
       }
