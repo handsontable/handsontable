@@ -43,7 +43,7 @@ export function createKeyboardShortcutsCtrl(menu: Record<string, unknown>, custo
    * @param {KeyboardShortcut[]} shortcuts Keyboard shortcuts to add.
    * @param {string} [contextName] The context name to create or use.
    */
-  function addCustomShortcuts(shortcuts: Record<string, unknown>[], contextName: string = SHORTCUTS_CONTEXT) {
+  function addCustomShortcuts(shortcuts: Record<string, unknown>[], contextName?: string) {
     const context = getContext(contextName);
 
     shortcuts.forEach(({ keys }: Record<string, unknown>) => {

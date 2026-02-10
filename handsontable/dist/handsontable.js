@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 16.2.0
- * Release date: 25/11/2025 (built at 10/02/2026 14:43:40)
+ * Release date: 25/11/2025 (built at 10/02/2026 15:09:51)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -113,7 +113,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "10/02/2026 14:43:40";
+Handsontable.buildDate = "10/02/2026 15:09:51";
 Handsontable.version = "16.2.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -65311,7 +65311,7 @@ function createKeyboardShortcutsCtrl(menu, customKeyboardShortcuts = []) {
    * @param {KeyboardShortcut[]} shortcuts Keyboard shortcuts to add.
    * @param {string} [contextName] The context name to create or use.
    */
-  function addCustomShortcuts(shortcuts, contextName = SHORTCUTS_CONTEXT) {
+  function addCustomShortcuts(shortcuts, contextName) {
     const context = getContext(contextName);
     shortcuts.forEach(({
       keys
