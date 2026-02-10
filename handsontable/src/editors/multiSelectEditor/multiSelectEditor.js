@@ -393,13 +393,13 @@ export class MultiSelectEditor extends BaseEditor {
    * Filters the dropdown entries.
    *
    * @param {string} query The value of the input.
-   * @param {boolean} keepSelectedItems If true, the selected items will be kept in the dropdown.
+   * @param {boolean} filterSelectedItems If true, the selected items will be filtered out of the dropdown.
    */
-  #filterEntries(query, keepSelectedItems = true) {
+  #filterEntries(query, filterSelectedItems = (this.#getEditorSetting('filterSelectedItems') ?? true)) {
     const filteredItems = this.#getSource().filter((item) => {
       const value = item?.value ?? item;
 
-      if (keepSelectedItems && this.#selectedItems.has(item)) {
+      if (!filterSelectedItems && this.#selectedItems.has(item)) {
         return true;
       }
 

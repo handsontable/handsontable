@@ -445,6 +445,7 @@ describe('MultiSelectEditor', () => {
                 type: 'multiselect',
                 source: choices,
                 maxSelections: 2,
+                filterSelectedItems: false,
               },
             ],
           });
@@ -822,6 +823,58 @@ describe('MultiSelectEditor', () => {
         expect($searchInput.is(':visible')).toBe(true);
         expect($searchInput.val()).toBe('#');
         expect(visibleItems).toBe(1);
+      });
+    });
+
+    describe('`filterSelectedItems` option', () => {
+      it('should filter out the selected items from the dropdown when the `filterSelectedItems` option is enabled', async() => {
+        handsontable({
+          data: [[[]]],
+          columns: [
+            {
+              type: 'multiselect',
+              source: choices,
+              filterSelectedItems: true,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('Y');
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const visibleItems = Array.from($dropdown.find('li label')).map(label => label.textContent);
+        const expectedValues = choices
+          .map(choice => choice?.value ?? choice)
+          .filter(value => value.toLowerCase().includes('y'));
+
+        expect(visibleItems).toEqual(expectedValues);
+      });
+
+      it('should keep the selected items in the dropdown when the `filterSelectedItems` option is disabled', async() => {
+        handsontable({
+          data: [[[]]],
+          columns: [
+            {
+              type: 'multiselect',
+              source: choices,
+              filterSelectedItems: false,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('Y');
+        await sleep(10);
+
+        const $dropdown = $('.ht-multi-select-editor');
+        const visibleItems = Array.from($dropdown.find('li label')).map(label => label.textContent);
+        const expectedValues = choices
+          .map(choice => choice?.value ?? choice)
+          .filter(value => value.toLowerCase().includes('y'));
+
+        expect(visibleItems).toEqual(expectedValues);
       });
     });
 

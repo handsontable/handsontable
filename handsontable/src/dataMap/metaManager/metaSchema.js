@@ -2506,6 +2506,24 @@ export default () => {
     filters: undefined,
 
     /**
+     * The `filterSelectedItems` option configures whether the selected items are filtered out of the dropdown, when using the search input of the [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editor.
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // filter out the selected items from the dropdown
+     * filterSelectedItems: true,
+     *
+     * // keep the selected items in the dropdown
+     * filterSelectedItems: false,
+     */
+    filterSelectedItems: true,
+
+    /**
      * `fixedColumnsLeft` is a legacy option.
      *
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default), `fixedColumnsLeft` acts like the [`fixedColumnsStart`](#fixedColumnsStart) option.
