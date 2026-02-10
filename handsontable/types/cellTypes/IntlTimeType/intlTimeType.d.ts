@@ -3,8 +3,8 @@ import { IntlTimeEditor } from '../../editors/intlTimeEditor';
 import { intlTimeRenderer, valueFormatter } from '../../renderers/intlTimeRenderer';
 import { intlTimeValidator, sourceDataValidator } from '../../validators/intlTimeValidator';
 
-export const CELL_TYPE: 'intlDate';
-export interface IntlDateCellType extends CellTypeObject {
+export const CELL_TYPE: 'intlTime';
+export interface IntlTimeCellType extends CellTypeObject {
   editor: typeof IntlTimeEditor;
   renderer: typeof intlTimeRenderer;
   validator: typeof intlTimeValidator;
