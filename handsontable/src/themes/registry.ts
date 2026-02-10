@@ -71,9 +71,9 @@ function parseThemeArgs(themeNameOrConfig: string | BaseTheme, themeConfig?: Bas
 
   if (typeof themeNameOrConfig === 'string' && isObject(themeConfig)) {
     themeConfigObject.name = themeNameOrConfig;
-  } else if (isObject(themeNameOrConfig)) {
-    themeConfigObject = deepClone(themeNameOrConfig);
-    themeName = themeConfigObject.name;
+  } else if (typeof themeNameOrConfig !== 'string' && isObject(themeNameOrConfig)) {
+    themeConfigObject = deepClone(themeNameOrConfig) as BaseTheme;
+    themeName = themeConfigObject.name as string;
   }
 
   return { themeName, themeConfigObject };

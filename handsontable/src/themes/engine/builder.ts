@@ -56,7 +56,7 @@ export class ThemeBuilder {
    * @default 'auto'
    * @type {string}
    */
-  #colorScheme = 'auto';
+  #colorScheme: ThemeColorScheme = 'auto';
 
   /**
    * Current density type ('compact', 'default', or 'comfortable').
@@ -65,7 +65,7 @@ export class ThemeBuilder {
    * @default 'default'
    * @type {string}
    */
-  #densityType = 'default';
+  #densityType: DensityType = 'default';
 
   /**
    * The theme builder constructor.
@@ -81,14 +81,14 @@ export class ThemeBuilder {
       name: undefined,
       sizing,
       density: {
-        type: this.#densityType,
+        type: this.#densityType as DensityType,
         sizes: densitySizes,
       },
       icons: {},
       colors: {},
       tokens: {},
-      colorScheme: this.#colorScheme,
-    };
+      colorScheme: this.#colorScheme as ThemeColorScheme,
+    } as ThemeConfig & Record<string, unknown>;
 
     this.#setParams(themeConfig);
     this.#initThemeConfig = this.#themeConfig;
@@ -112,14 +112,14 @@ export class ThemeBuilder {
    * @param {object} config The config object to modify.
    * @param {string|object} density The density value from params.
    */
-  #applyDensityConfig(config: ThemeConfig & Record<string, unknown>, density: DensityType | Record<string, unknown>) {
+  #applyDensityConfig(config: Record<string, any>, density: DensityType | Record<string, unknown>) {
     if (isObject(density)) {
-      config.density = deepMerge(config.density, density);
+      config.density = deepMerge(config.density, density as Record<string, any>);
 
-      this.#densityType = density.type;
+      this.#densityType = (density as Record<string, unknown>).type as DensityType;
 
       if (this.#initThemeConfig?.density) {
-        this.#initThemeConfig.density.type = density.type;
+        this.#initThemeConfig.density.type = (density as Record<string, unknown>).type as DensityType;
       }
     } else if (typeof density === 'string') {
       config.density.type = density;
@@ -139,41 +139,42 @@ export class ThemeBuilder {
    * @param {object} paramsObject The parameters object to set.
    */
   #setParams(paramsObject: ThemeParams) {
-    const config = deepClone(this.#initThemeConfig);
+    const config = deepClone(this.#initThemeConfig) as Record<string, any>;
+    const params = paramsObject as Record<string, any>;
 
-    if (paramsObject.name !== undefined) {
+    if (params.name !== undefined) {
       if (this.#initThemeConfig.name !== undefined) {
         warn('[ThemeBuilder] The "name" property can only be set during ' +
           '`registerTheme()` and cannot be updated via `params()`.');
       } else {
-        config.name = paramsObject.name;
+        config.name = params.name;
       }
     }
 
     // Apply mergeable config keys
     MERGEABLE_CONFIG_KEYS.forEach((key) => {
-      if (paramsObject[key] !== undefined && isObject(paramsObject[key])) {
-        config[key] = deepMerge(config[key], paramsObject[key]);
+      if (params[key] !== undefined && isObject(params[key])) {
+        config[key] = deepMerge(config[key], params[key]);
       }
     });
 
     // Apply density (special handling for string or object)
-    if (paramsObject.density !== undefined) {
-      this.#applyDensityConfig(config, paramsObject.density);
+    if (params.density !== undefined) {
+      this.#applyDensityConfig(config, params.density as DensityType | Record<string, unknown>);
     }
 
     // Apply color scheme
-    if (paramsObject.colorScheme !== undefined) {
-      config.colorScheme = paramsObject.colorScheme;
+    if (params.colorScheme !== undefined) {
+      config.colorScheme = params.colorScheme;
 
-      this.#colorScheme = paramsObject.colorScheme;
+      this.#colorScheme = params.colorScheme as ThemeColorScheme;
 
       if (this.#initThemeConfig?.colorScheme) {
-        this.#initThemeConfig.colorScheme = paramsObject.colorScheme;
+        this.#initThemeConfig.colorScheme = params.colorScheme;
       }
     }
 
-    this.#themeConfig = config;
+    this.#themeConfig = config as ThemeConfig & Record<string, unknown>;
   }
 
   /**
@@ -214,7 +215,7 @@ export class ThemeBuilder {
    * @returns {ThemeBuilder} The ThemeBuilder instance for chaining.
    */
   setColorScheme(mode: ThemeColorScheme): ThemeBuilder {
-    this.#colorScheme = validateColorScheme(mode);
+    this.#colorScheme = validateColorScheme(mode) as ThemeColorScheme;
     this.#themeConfig.colorScheme = this.#colorScheme;
     this.#initThemeConfig.colorScheme = this.#colorScheme;
 
@@ -230,7 +231,7 @@ export class ThemeBuilder {
    * @returns {ThemeBuilder} The ThemeBuilder instance for chaining.
    */
   setDensityType(type: DensityType): ThemeBuilder {
-    this.#densityType = validateDensityType(type);
+    this.#densityType = validateDensityType(type) as DensityType;
     this.#themeConfig.density.type = this.#densityType;
     this.#initThemeConfig.density.type = this.#densityType;
 

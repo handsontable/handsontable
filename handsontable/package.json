@@ -19,8 +19,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "clean": "rimraf commonjs es coverage tmp",
-    "lint": "npm run build:styles && npm run eslint && npm run type-lint && npm run stylelint",
-    "lint:fix": "npm run build:styles && npm run eslint:fix && npm run stylelint:fix && npm run type-lint:fix",
+    "lint": "npm run build:styles && npm run eslint && npm run stylelint",
+    "lint:fix": "npm run build:styles && npm run eslint:fix && npm run stylelint:fix",
     "stylelint": "stylelint --cache \"src/**/*.{css,scss}\" \"test/**/*.{css,scss}\"",
     "stylelint:fix": "stylelint --fix \"src/**/*.{css,scss}\" \"test/**/*.{css,scss}\"",
     "eslint": "eslint --cache src/ test/ .config/plugin scripts/",
@@ -205,26 +205,14 @@
       "./themes/static/variables/**/*",
       {
         ".": {
-          "types": "./index.d.ts",
           "import": "./index.mjs",
           "require": "./index.js"
         }
       },
       {
         "./base": {
-          "types": "./base.d.ts",
           "import": "./base.mjs",
           "require": "./base.js"
-        }
-      },
-      {
-        "./common": {
-          "types": "./common.d.ts"
-        }
-      },
-      {
-        "./settings": {
-          "types": "./settings.d.ts"
         }
       },
       {
@@ -235,14 +223,12 @@
       },
       {
         "./registry": {
-          "types": "./registry.d.ts",
           "import": "./registry.mjs",
           "require": "./registry.js"
         }
       },
       {
         "./themes": {
-          "types": "./themes.d.ts",
           "import": "./themes/index.mjs",
           "require": "./themes/index.js"
         }

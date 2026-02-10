@@ -5,14 +5,15 @@ import {
   getThemes,
   registerTheme,
   reinitTheme,
-} from '../registry';
-import { staticRegister } from '../../utils/staticRegister';
-import mainIcons from '../static/variables/icons/main';
-import mainColors from '../static/variables/colors/main';
-import mainTokens from '../static/variables/tokens/main';
+} from 'handsontable/themes/registry';
+import { staticRegister } from 'handsontable/utils/staticRegister';
+import mainIcons from 'handsontable/themes/static/variables/icons/main';
+import mainColors from 'handsontable/themes/static/variables/colors/main';
+import mainTokens from 'handsontable/themes/static/variables/tokens/main';
+import type { BaseTheme } from 'handsontable/themes/types';
 
 describe('Theme Registry', () => {
-  const createValidConfig = (name = 'test-theme') => ({
+  const createValidConfig = (name = 'test-theme'): BaseTheme => ({
     name,
     icons: mainIcons,
     colors: mainColors,
@@ -28,7 +29,7 @@ describe('Theme Registry', () => {
 
   describe('registerTheme', () => {
     it('should register a theme with name and config', () => {
-      const config = {
+      const config: BaseTheme = {
         icons: mainIcons,
         colors: mainColors,
         tokens: mainTokens,
@@ -59,7 +60,7 @@ describe('Theme Registry', () => {
     });
 
     it('should use first argument as name when both string and config provided', () => {
-      const config = {
+      const config: BaseTheme = {
         icons: {},
         colors: {},
         tokens: {},
@@ -86,9 +87,9 @@ describe('Theme Registry', () => {
     });
 
     it('should throw error for invalid config', () => {
-      expect(() => registerTheme('invalid', null))
+      expect(() => registerTheme('invalid', null as unknown as BaseTheme))
         .toThrow();
-      expect(() => registerTheme(null))
+      expect(() => registerTheme(null as unknown as BaseTheme))
         .toThrow();
     });
   });
@@ -183,7 +184,7 @@ describe('Theme Registry', () => {
 
       registerTheme(originalConfig);
 
-      const reinitConfig = {
+      const reinitConfig: BaseTheme = {
         ...createValidConfig('reinit-theme'),
         colors: {
           ...mainColors,
@@ -195,7 +196,7 @@ describe('Theme Registry', () => {
 
       expect(reinitializedTheme).toBeDefined();
       expect(hasTheme('reinit-theme')).toBe(true);
-      expect(reinitializedTheme.getThemeConfig().colors.primary).toBe('#ff0000');
+      expect(reinitializedTheme!.getThemeConfig().colors.primary).toBe('#ff0000');
     });
 
     it('should reinitialize an existing theme with config object containing name', () => {
@@ -214,7 +215,7 @@ describe('Theme Registry', () => {
 
       expect(reinitializedTheme).toBeDefined();
       expect(hasTheme('reinit-config-theme')).toBe(true);
-      expect(reinitializedTheme.getThemeConfig().colors.primary).toBe('#00ff00');
+      expect(reinitializedTheme!.getThemeConfig().colors.primary).toBe('#00ff00');
     });
 
     it('should return undefined and warn when reinitializing non-existing theme', () => {
@@ -245,28 +246,28 @@ describe('Theme Registry', () => {
       registerTheme(createValidConfig('builder-theme'));
       const reinitializedTheme = reinitTheme('builder-theme', createValidConfig('builder-theme'));
 
-      expect(typeof reinitializedTheme.getThemeConfig).toBe('function');
-      expect(typeof reinitializedTheme.params).toBe('function');
-      expect(typeof reinitializedTheme.setColorScheme).toBe('function');
-      expect(typeof reinitializedTheme.setDensityType).toBe('function');
+      expect(typeof reinitializedTheme!.getThemeConfig).toBe('function');
+      expect(typeof reinitializedTheme!.params).toBe('function');
+      expect(typeof reinitializedTheme!.setColorScheme).toBe('function');
+      expect(typeof reinitializedTheme!.setDensityType).toBe('function');
     });
   });
 
   describe('deep clone behavior', () => {
     it('should deep clone config to prevent mutation', () => {
       const config = createValidConfig('clone-test');
-      const originalPrimary = config.colors.primary;
+      const originalPrimary = (config.colors as Record<string, unknown>).primary;
 
       registerTheme(config);
 
       // Mutate original config
-      config.colors.primary = '#fff';
+      (config.colors as Record<string, unknown>).primary = '#fff';
 
       const theme = getTheme('clone-test');
 
       // The registered theme should still have the original value, not the mutated one
-      expect(theme.getThemeConfig().colors.primary).toEqual(originalPrimary);
-      expect(theme.getThemeConfig().colors.primary).not.toBe('#fff');
+      expect(theme!.getThemeConfig().colors.primary).toEqual(originalPrimary);
+      expect(theme!.getThemeConfig().colors.primary).not.toBe('#fff');
     });
   });
 });

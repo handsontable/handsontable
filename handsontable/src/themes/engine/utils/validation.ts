@@ -433,12 +433,14 @@ function validateDensitySizes(sizes: unknown, context: string): void {
  */
 function validateDensityStructure(density: unknown, context: string): void {
   if (isObject(density)) {
-    if (!density.type || !density.sizes) {
+    const d = density as Record<string, unknown>;
+
+    if (!d.type || !d.sizes) {
       throw new Error(`[ThemeBuilder] ${context} must be a string or an object with a 'type' and 'sizes' property.`);
     }
 
-    validateDensityType(density.type);
-    validateDensitySizes(density.sizes, `${context}.sizes`);
+    validateDensityType(d.type as string);
+    validateDensitySizes(d.sizes, `${context}.sizes`);
 
   } else if (typeof density === 'string') {
     validateDensityType(density);
@@ -462,7 +464,7 @@ function validateColorsStructure(colors: Record<string, unknown>, context: strin
     }
 
     if (isObject(value)) {
-      validateColorsStructure(value, currentPath);
+      validateColorsStructure(value as Record<string, unknown>, currentPath);
     } else {
       throw new Error(`[ThemeBuilder] ${currentPath} must be a string or an object.`);
     }
@@ -502,7 +504,7 @@ function validateKeys(obj: Record<string, unknown> | undefined, validKeys: Set<s
 
   // Warn about missing keys only if required
   if (warnMissing) {
-    const missingKeys = [];
+    const missingKeys: string[] = [];
 
     validKeys.forEach((key) => {
       if (!(key in obj)) {
@@ -532,6 +534,7 @@ export function validateParams(parameters: unknown, context: string, options: { 
     throw new Error(`[ThemeBuilder] ${context} must be an object.`);
   }
 
+  const params = parameters as Record<string, unknown>;
   const {
     name,
     sizing,
@@ -540,20 +543,20 @@ export function validateParams(parameters: unknown, context: string, options: { 
     colors,
     tokens,
     colorScheme,
-  } = parameters;
+  } = params;
 
-  validateKeys(parameters, VALID_PARAMS_KEYS, context, { type: 'param' });
+  validateKeys(params, VALID_PARAMS_KEYS, context, { type: 'param' });
 
   // Validate required fields
   requiredFields.forEach((field) => {
-    if (parameters[field] === undefined) {
+    if (params[field] === undefined) {
       throw new Error(`[ThemeBuilder] ${context}.${field} is required.`);
     }
   });
 
   // Validate name
   if (name !== undefined) {
-    validateName(name, context);
+    validateName(name as string, context);
   }
 
   // Validate sizing
@@ -578,7 +581,7 @@ export function validateParams(parameters: unknown, context: string, options: { 
       throw new Error(`[ThemeBuilder] ${context}.icons must be an object.`);
     }
 
-    validateKeys(icons, VALID_ICON_KEYS, `${context}.icons`, {
+    validateKeys(icons as Record<string, unknown>, VALID_ICON_KEYS, `${context}.icons`, {
       type: 'icon',
       warnMissing: requiredFields.includes('icons'),
     });
@@ -590,7 +593,7 @@ export function validateParams(parameters: unknown, context: string, options: { 
       throw new Error(`[ThemeBuilder] ${context}.colors must be an object.`);
     }
 
-    validateColorsStructure(colors, `${context}.colors`);
+    validateColorsStructure(colors as Record<string, unknown>, `${context}.colors`);
   }
 
   // Validate tokens
@@ -599,7 +602,7 @@ export function validateParams(parameters: unknown, context: string, options: { 
       throw new Error(`[ThemeBuilder] ${context}.tokens must be an object.`);
     }
 
-    validateKeys(tokens, VALID_TOKEN_KEYS, `${context}.tokens`, {
+    validateKeys(tokens as Record<string, unknown>, VALID_TOKEN_KEYS, `${context}.tokens`, {
       type: 'token',
       warnMissing: requiredFields.includes('tokens'),
     });
@@ -607,6 +610,6 @@ export function validateParams(parameters: unknown, context: string, options: { 
 
   // Validate color scheme
   if (colorScheme !== undefined) {
-    validateColorScheme(colorScheme);
+    validateColorScheme(colorScheme as string);
   }
 }

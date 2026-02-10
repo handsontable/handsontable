@@ -67,8 +67,8 @@ function toCssKey(prefix: string, key: string): string {
  * @returns {string} - The CSS value.
  */
 function toCssValue(value: unknown, key?: string): string {
-  if (isVarReference(value)) {
-    return toVarReference(value);
+  if (isVarReference(value as string)) {
+    return toVarReference(value as string);
   }
 
   if (Array.isArray(value)) {
@@ -97,7 +97,7 @@ function toCssValue(value: unknown, key?: string): string {
     return String(value);
   }
 
-  return toHyphen(value);
+  return toHyphen(value as string);
 }
 
 /**
@@ -128,7 +128,7 @@ export function flattenCssVariables(cssVariables: Record<string, unknown>, prefi
     const fullKey = parentKey ? `${parentKey}-${normalizedKey}` : normalizedKey;
 
     if (isObject(value)) {
-      cssVars += flattenCssVariables(value, prefix, fullKey);
+      cssVars += flattenCssVariables(value as Record<string, unknown>, prefix, fullKey);
     } else {
       cssVars += `${toCssLine(prefix, fullKey, value)}\n`;
     }

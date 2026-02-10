@@ -127,7 +127,7 @@ export function sanitize(string: string, options?: DOMPurify.Config): string {
  * @param {string} str - The string to convert.
  * @returns {string} - The converted string.
  */
-export function toHyphen(str) {
+export function toHyphen(str: string): string {
   if (typeof str !== 'string') {
     return str;
   }

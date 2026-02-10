@@ -62,6 +62,7 @@ import {
 import { getValueSetterValue } from './utils/valueAccessors';
 import { createThemeManager } from './themes/engine';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
+import type { ThemeBuilder } from './themes/engine/builder';
 import type { DataMapInstance, DataSourceInstance, EditorManagerInstance, GridHelperInstance, MetaManagerInstance, ViewportScrollerInstance, SelectionTableProps, CellCoords, CellRange } from './common';
 
 let activeGuid: string | null = null;
@@ -1358,7 +1359,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       !rootContainerThemeClassName &&
       (isObject(theme) || (!theme && !themeName))
     ) {
-      initializeThemeManager(theme);
+      initializeThemeManager(theme as ThemeBuilder | undefined);
     }
 
     dataSource.setData(tableMeta.data);
@@ -1410,7 +1411,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    *
    * @param {object|boolean} theme - The theme configuration object or `true` to use the default theme.
    */
-  function initializeThemeManager(theme) {
+  function initializeThemeManager(theme?: ThemeBuilder) {
     let themeObject;
 
     if (typeof theme === 'undefined') {
@@ -2882,7 +2883,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
         isObject(settings.theme)
       ) {
         if (instance.themeManager === null) {
-          initializeThemeManager(settings.theme);
+          initializeThemeManager(settings.theme as ThemeBuilder);
           instance.useTheme(instance.themeManager.getClassName());
 
         } else {
