@@ -1,7 +1,9 @@
 <template>
   <main class="page" v-bind:class="{ api: isApi }">
-    <Breadcrumbs />
-
+    <header>
+      <Breadcrumbs />
+      <CopyMarkdown />
+    </header>
     <Content class="theme-default-content" />
     <slot name="top" />
     <PageEdit />
@@ -10,15 +12,30 @@
   </main>
 </template>
 
+<style scoped>
+  header {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    align-content: flex-start;
+    padding-top: 28px;
+    align-items: center;
+  }
+</style>
+
 <script>
 /* global instanceRegister */
 import PageEdit from '@theme/components/PageEdit.vue';
 import Breadcrumbs from '@theme/components/Breadcrumbs.vue';
+import CopyMarkdown from '@theme/components/CopyMarkdown.vue';
 
 export default {
   components: {
     PageEdit,
     Breadcrumbs,
+    CopyMarkdown,
   },
   props: ['sidebarItems'],
   data() {
