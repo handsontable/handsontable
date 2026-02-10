@@ -532,8 +532,11 @@ export class MultiSelectEditor extends BaseEditor {
    * @param {string} source The source of the change.
    */
   #onAfterSetSourceDataAtCell(changes, source) {
-    if (this.isOpened() && source === `${EDITOR_TYPE}-renderer`) {
-
+    if (
+      this.isOpened() && source === `${EDITOR_TYPE}-renderer` &&
+      parseInt(changes[0][0], 10) === this.cellProperties.visualRow &&
+      parseInt(changes[0][1], 10) === this.cellProperties.visualCol
+    ) {
       this.#syncSelectedValues(changes[0][3]);
       this.dropdownController.fillDropdown(this.#getSource(), this.#selectedItems.getItemsArray());
       this.dropdownController.focusItem(0);

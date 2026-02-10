@@ -1153,6 +1153,61 @@ describe('MultiSelectEditor', () => {
         expect($checkedCheckboxes.eq(1).data('value')).toBe('orange');
 
       });
+
+      it('should not sync the dropdown when the chip removal action happened on a different cell, ' +
+        'while the editor was still open', async() => {
+        handsontable({
+          data: [[choices.filter(
+            choice => ['yellow', 'red', 'orange'].includes(choice.value ?? choice)
+          ), choices.filter(
+            choice => ['yellow', 'red', 'orange'].includes(choice.value ?? choice)
+          )]],
+          columns: [
+            {
+              type: 'multiselect',
+              source: choices,
+              width: 250,
+            },
+            {
+              type: 'multiselect',
+              source: choices,
+              width: 250,
+            },
+          ],
+        });
+
+        await selectCell(0, 1);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        let $dropdown = $('.ht-multi-select-editor');
+        let $checkedCheckboxes = $dropdown.find('input[type="checkbox"]:checked');
+
+        expect($checkedCheckboxes.length).toEqual(3);
+        expect($checkedCheckboxes.eq(0).data('value')).toBe('yellow');
+        expect($checkedCheckboxes.eq(1).data('value')).toBe('red');
+        expect($checkedCheckboxes.eq(2).data('value')).toBe('orange');
+
+        const chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+        const renderedChips = chipsContainer.find('.ht-multi-select-chip');
+        const visibleChips = renderedChips.filter(':visible');
+
+        const removeButton = visibleChips.eq(0).find('.ht-multi-select-chip-remove');
+
+        removeButton.click();
+        await sleep(10);
+
+        getCell(0, 0).click();
+        await sleep(10);
+
+        $dropdown = $('.ht-multi-select-editor');
+        $checkedCheckboxes = $dropdown.find('input[type="checkbox"]:checked');
+
+        expect($checkedCheckboxes.length).toEqual(3);
+        expect($checkedCheckboxes.eq(0).data('value')).toBe('yellow');
+        expect($checkedCheckboxes.eq(1).data('value')).toBe('red');
+        expect($checkedCheckboxes.eq(2).data('value')).toBe('orange');
+      });
     });
   });
 });
