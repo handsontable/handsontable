@@ -203,7 +203,7 @@ export class Pagination extends BasePlugin {
         rootElement: this.hot.rootGridElement,
         uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
-        themeName: this.hot.getSettings().themeName,
+        themeName: this.hot.getCurrentThemeName(),
         phraseTranslator: (...args) => this.hot.getTranslatedPhrase(...args),
         shouldHaveBorder: () => this.#computeNeedsBorder(),
         a11yAnnouncer: message => announce(message),

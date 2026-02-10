@@ -131,6 +131,9 @@ function createRegister() {
     abortControllers.forEach(ctrl => ctrl.abort());
     abortControllers.add(new AbortController());
 
+    // Remove dynamically injected theme CSS from fixer.js
+    document.querySelectorAll('link[id^="dynamic-css-ht-theme-"]').forEach(link => link.remove());
+
     destroyAll();
   };
 

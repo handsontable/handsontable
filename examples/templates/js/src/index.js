@@ -1,5 +1,4 @@
 import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.css";
 import "./styles.css";
 
 const getDebugInfo = () => {
@@ -21,7 +20,7 @@ const container = document.getElementById('example');
 const hot = new Handsontable(container, {
     data,
     width: '100%',
-    height: '100%',
+    height: 'auto',
     rowHeaders: true,
     colHeaders: true,
     licenseKey: 'non-commercial-and-evaluation'

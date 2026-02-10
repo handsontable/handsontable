@@ -477,16 +477,12 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
     },
     forThemes(matchersUtil) {
       const currentTheme = currentSpec.loadedTheme;
-      const createThemeHelper = (theme, expectationMatchers, classicThemeExpectationMatchers) => {
+      const createThemeHelper = (theme, expectationMatchers) => {
         return new Proxy({}, {
           get(_, matcher) {
             return (...args) => {
               if (currentTheme === theme) {
                 expectationMatchers.push([matcher, ...args]);
-              }
-
-              if (theme === 'classic') {
-                classicThemeExpectationMatchers.push([matcher, ...args]);
               }
             };
           }
@@ -499,23 +495,14 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
       return {
         compare(actualValue, callback) {
           const expectationMatchers = [];
-          const classicThemeExpectationMatchers = [];
-          let expectationMatcher;
 
           callback({
-            classic: createThemeHelper('classic', expectationMatchers, classicThemeExpectationMatchers),
-            horizon: createThemeHelper('horizon', expectationMatchers, classicThemeExpectationMatchers),
-            main: createThemeHelper('main', expectationMatchers, classicThemeExpectationMatchers),
+            classic: createThemeHelper('classic', expectationMatchers),
+            horizon: createThemeHelper('horizon', expectationMatchers),
+            main: createThemeHelper('main', expectationMatchers),
           });
 
-          if (classicThemeExpectationMatchers.length === 0) {
-            return {
-              pass: false,
-              message: 'No expectation for the classic theme was provided. ' +
-                'Please provide an expectation for the classic theme.',
-            };
-
-          } else if (expectationMatchers.length > 1 || classicThemeExpectationMatchers.length > 1) {
+          if (expectationMatchers.length > 1) {
             return {
               pass: false,
               message: 'More than one expectation per-theme was provided. ' +
@@ -523,15 +510,15 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
             };
           }
 
-          // If no expectation for the current theme was provided, use the classic theme expectation.
+          // If no expectation for the current theme was provided, skip the test.
           if (expectationMatchers.length === 0) {
-            expectationMatcher = classicThemeExpectationMatchers.pop();
-
-          } else {
-            expectationMatcher = expectationMatchers.pop();
+            return {
+              pass: true,
+              message: 'No expectation provided for the current theme.',
+            };
           }
 
-          const [matcherName, ...matcherArgs] = expectationMatcher;
+          const [matcherName, ...matcherArgs] = expectationMatchers.pop();
 
           const expectationResult = (
             jasmine.matchers[matcherName] || matchersUtil.customMatchers[matcherName]
@@ -545,7 +532,7 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
             // Fallback for matchers that don't provide the `message` prop (like `toBe`).
             message:
               expectationResult.message ||
-              `Expected ${actualValue} ${camelCaseToSpaced(matcherName)} ${expectationMatcher[1]}`,
+              `Expected ${actualValue} ${camelCaseToSpaced(matcherName)} ${matcherArgs[0]}`,
           };
         },
       };

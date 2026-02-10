@@ -25,7 +25,7 @@ describe('HiddenRows', () => {
       });
 
       expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(23);
+        classic.toEqual(26);
         main.toEqual(29);
         horizon.toEqual(37);
       });
@@ -48,7 +48,7 @@ describe('HiddenRows', () => {
       });
 
       expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(23);
+        classic.toEqual(26);
         main.toEqual(29);
         horizon.toEqual(37);
       });
@@ -83,7 +83,7 @@ describe('HiddenRows', () => {
       const $handle = $('.manualRowResizer');
 
       expect($handle.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+        classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
         main.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
         horizon.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
       });
@@ -117,7 +117,7 @@ describe('HiddenRows', () => {
       const $handle = $('.manualRowResizer');
 
       expect($handle.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+        classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
         main.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
         horizon.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
       });
@@ -151,7 +151,7 @@ describe('HiddenRows', () => {
       const $handle = $('.manualRowResizer');
 
       expect($handle.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+        classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
         main.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
         horizon.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
       });
@@ -189,7 +189,7 @@ describe('HiddenRows', () => {
       ;
 
       expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(53);
+        classic.toEqual(56);
         main.toEqual(59);
         horizon.toEqual(67);
       });

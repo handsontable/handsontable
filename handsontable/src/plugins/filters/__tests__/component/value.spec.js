@@ -77,7 +77,7 @@ describe('Filters UI Value component', () => {
 
     expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length)
       .forThemes(({ classic, main, horizon }) => {
-        classic.toBe(7);
+        classic.toBe(6);
         main.toBe(6);
         horizon.toBe(6);
       });
@@ -205,7 +205,7 @@ describe('Filters UI Value component', () => {
     await dropdownMenu(1);
 
     const unifiedColDataSample = [
-      'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash', 'Carissa Villarreal'
+      'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash',
     ];
 
     for (let i = 0; i < unifiedColDataSample.length; i++) {
@@ -213,7 +213,7 @@ describe('Filters UI Value component', () => {
         byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
       ).toBe(`Pre ${unifiedColDataSample[i]}`);
     }
-    expect(unifiedColDataSample.length).toBe(6);
+    expect(unifiedColDataSample.length).toBe(5);
   });
 
   it.forTheme('main')(`should utilize the 'modifyFiltersMultiSelectValue' hook to display

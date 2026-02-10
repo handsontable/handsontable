@@ -1,7 +1,5 @@
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -18,7 +16,6 @@ const data = new Array(50) // number of rows
 const ExampleComponent = () => {
   return (
     <HotTable
-      themeName="ht-theme-main"
       data={data}
       height={320}
       colWidths={100}

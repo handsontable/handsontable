@@ -314,7 +314,7 @@ describe('DropdownMenu', () => {
 
       expect(getPlugin('dropdownMenu').menu.getNavigator().getCurrentPage()).toBe(3);
       expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual('remove_col');
+        classic.toEqual(undefined);
         main.toEqual(undefined);
         horizon.toEqual(undefined);
       });
@@ -469,7 +469,7 @@ describe('DropdownMenu', () => {
         .simulate('mouseover');
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual('remove_col');
+        classic.toEqual(undefined);
         main.toEqual(undefined);
         horizon.toEqual(undefined);
       });
@@ -975,7 +975,7 @@ describe('DropdownMenu', () => {
     await scrollViewportTo({ row: 0, col: 8 }); // make the column `G` partially visible
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(651); // 900 column width - 250 viewport width + 1 header border compensation
+      classic.toBe(666);
       main.toBe(666);
       horizon.toBe(666);
     });
@@ -983,7 +983,7 @@ describe('DropdownMenu', () => {
     await dropdownMenu(6); // click on the column `G` header button
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(651);
+      classic.toBe(666);
       main.toBe(666);
       horizon.toBe(666);
     });

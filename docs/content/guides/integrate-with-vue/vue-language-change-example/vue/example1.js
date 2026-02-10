@@ -23,8 +23,6 @@ import {
   zhTW
 } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 registerLanguageDictionary(arAR);
 registerLanguageDictionary(csCZ);

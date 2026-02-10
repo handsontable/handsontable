@@ -44,12 +44,12 @@ describe('ContextMenu (RTL mode)', () => {
       const contextMenuOffset = $contextMenuRoot.offset();
 
       expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(216);
+        classic.toBe(222);
         main.toBe(246);
         horizon.toBe(313);
       });
       expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(contextMenuOffset.left + $contextMenuRoot.outerWidth() - 4);
+        classic.toBe(contextMenuOffset.left + 1);
         main.toBe(contextMenuOffset.left + 1);
         horizon.toBe(contextMenuOffset.left);
       });

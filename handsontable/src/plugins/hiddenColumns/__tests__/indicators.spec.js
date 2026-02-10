@@ -33,15 +33,15 @@ describe('HiddenColumns', () => {
 
         expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
         expect(getComputedStyle(getCell(-1, 0), ':before').content).toBe('none');
-        expect(getComputedStyle(getCell(-1, 0), ':after').content).toBe('"◀"');
+        expect(getComputedStyle(getCell(-1, 0), ':after').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
         expect(getCell(-1, 1)).toBe(null);
         expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
         expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
-        expect(getComputedStyle(getCell(-1, 2), ':before').content).toBe('"▶"');
-        expect(getComputedStyle(getCell(-1, 2), ':after').content).toBe('"◀"');
+        expect(getComputedStyle(getCell(-1, 2), ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+        expect(getComputedStyle(getCell(-1, 2), ':after').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
         expect(getCell(-1, 3)).toBe(null);
         expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
-        expect(getComputedStyle(getCell(-1, 4), ':before').content).toBe('"▶"');
+        expect(getComputedStyle(getCell(-1, 4), ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
         expect(getComputedStyle(getCell(-1, 4), ':after').content).toBe('none');
       });
 

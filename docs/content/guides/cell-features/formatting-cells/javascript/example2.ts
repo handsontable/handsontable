@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import { BaseRenderer } from 'handsontable/renderers';
 
 // Register all Handsontable's modules.
@@ -20,7 +18,6 @@ Handsontable.renderers.registerRenderer('customStylesRenderer', customStylesRend
 const container = document.querySelector('#example2')!;
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],
     ['A2', 'B2', 'C2', 'D2', 'E2'],

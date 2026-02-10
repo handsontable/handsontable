@@ -1017,6 +1017,7 @@ describe('manualRowMove', () => {
         persistentState: true,
         manualRowMove: true,
         columnSorting: true,
+        themeName: spec()?.loadedTheme || 'ht-theme-classic',
       };
       const container = spec().$container[0];
       let hot = new Handsontable(container, config);

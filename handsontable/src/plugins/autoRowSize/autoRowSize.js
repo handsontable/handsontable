@@ -115,7 +115,7 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -554,10 +554,7 @@ export class AutoRowSize extends BasePlugin {
     if (cachedHeight !== null && cachedHeight > defaultHeight) {
       height = cachedHeight;
 
-      if (
-        !this.hot.stylesHandler.isClassicTheme() &&
-        row === this.hot.view.getFirstRenderedVisibleRow()
-      ) {
+      if (row === this.hot.view.getFirstRenderedVisibleRow()) {
         // add 1px border-top-width compensation for the first rendered row
         height += 1;
       }

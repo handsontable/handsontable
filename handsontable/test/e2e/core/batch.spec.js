@@ -110,7 +110,7 @@ describe('Core.batch', () => {
     });
     expect(getInlineStartClone().width()).toBe(50);
     expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(142);
+      classic.toBe(157);
       main.toBe(175);
       horizon.toBe(223);
     });
@@ -159,31 +159,31 @@ describe('Core.batch', () => {
 
     expect(getTopClone().width()).toBe(250);
     expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(24);
+      classic.toBe(27);
       main.toBe(30);
       horizon.toBe(38);
     });
     expect(getTopInlineStartClone().width()).toBe(50);
     expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(24);
+      classic.toBe(27);
       main.toBe(30);
       horizon.toBe(38);
     });
     expect(getInlineStartClone().width()).toBe(50);
     expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(116);
+      classic.toBe(132);
       main.toBe(147);
       horizon.toBe(187);
     });
     expect(getBottomInlineStartClone().width()).toBe(50);
     expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(24);
+      classic.toBe(27);
       main.toBe(30);
       horizon.toBe(38);
     });
     expect(getBottomClone().width()).toBe(250);
     expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(24);
+      classic.toBe(27);
       main.toBe(30);
       horizon.toBe(38);
     });

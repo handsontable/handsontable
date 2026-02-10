@@ -1,9 +1,7 @@
 import { FC } from 'react';
+import Handsontable from 'handsontable/base';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
-import Handsontable from 'handsontable/base';
 
 interface Person {
   id: number | undefined;
@@ -73,7 +71,6 @@ const data: Partial<Person>[] = [
 
 const ExampleComponent: FC = () => (
   <HotTable
-    themeName="ht-theme-main"
     data={data}
     dataSchema={model}
     height="auto"

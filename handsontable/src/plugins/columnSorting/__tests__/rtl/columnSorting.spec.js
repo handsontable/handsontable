@@ -44,8 +44,16 @@ describe('ColumnSorting (RTL)', () => {
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('left')).toEqual('-9px');
+      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+
+      if (htmlDir === 'rtl' || layoutDirection === 'rtl') {
+        expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('left')).toEqual('2px');
+
+      } else {
+        expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('2px');
+      }
+
+      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('top')).toEqual('10.5px');
     });
 
     it.forTheme('main')('should display indicator properly after changing sorted column sequence', async() => {

@@ -1,4 +1,4 @@
 .handsontable .ht_nestingParent ~ td {
-  background: #b5b5b5;
-  color: #222;
+  background: #b5b5b5 !important;
+  color: #222 !important;
 }

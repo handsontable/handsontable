@@ -27,7 +27,7 @@ describe('Core.await refreshDimensions()', () => {
     expect(beforeRefreshDimensions).forThemes(({ classic, main, horizon }) => {
       classic.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 116 },
+        { width: 1265, height: 131 },
         true,
       );
       main.toHaveBeenCalledOnceWith(
@@ -44,7 +44,7 @@ describe('Core.await refreshDimensions()', () => {
     expect(afterRefreshDimensions).forThemes(({ classic, main, horizon }) => {
       classic.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 116 },
+        { width: 1265, height: 131 },
         true,
       );
       main.toHaveBeenCalledOnceWith(
