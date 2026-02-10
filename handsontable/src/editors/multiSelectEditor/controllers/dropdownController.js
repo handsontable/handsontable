@@ -391,7 +391,6 @@ export class DropdownController {
    */
   enableCheckboxes() {
     this.#cache.areCheckboxesDisabled = false;
-
     enableAllCheckboxes({ dropdownListElement: this.#dropdownListElement });
   }
 
@@ -524,6 +523,13 @@ export class DropdownController {
     const checkbox = getCheckboxElement(itemElement);
 
     const checkboxChangeListener = () => {
+      // Checkbox was just natively checked (so checked = was unchecked when clicked)
+      if (checkbox.dataset.disabled === 'true' && checkbox.checked) {
+        checkbox.checked = false;
+
+        return;
+      }
+
       if (checkbox.checked) {
         selectItem(itemElement);
         this.runLocalHooks('afterDropdownItemChecked', checkbox.dataset.key, checkbox.dataset.value);
@@ -537,7 +543,7 @@ export class DropdownController {
     const itemClickListener = (event) => {
       if (
         event.target === checkbox ||
-        checkbox.disabled ||
+        checkbox.dataset.disabled === 'true' ||
         event.target.tagName === 'LABEL'
       ) {
         return;

@@ -194,7 +194,7 @@ export function focusItemAt({ dropdownListElement, index }) {
  */
 export function disableUncheckedCheckboxes({ dropdownListElement }) {
   dropdownListElement.querySelectorAll('input[type="checkbox"]:not(:checked)').forEach((checkbox) => {
-    checkbox.disabled = true;
+    checkbox.dataset.disabled = true;
   });
 }
 
@@ -206,7 +206,7 @@ export function disableUncheckedCheckboxes({ dropdownListElement }) {
  */
 export function enableAllCheckboxes({ dropdownListElement }) {
   dropdownListElement.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
-    checkbox.disabled = false;
+    checkbox.dataset.disabled = false;
   });
 }
 
@@ -239,7 +239,7 @@ export function createListItemElement({
   checkboxElement.type = 'checkbox';
   checkboxElement.dataset.value = itemValue;
   checkboxElement.dataset.index = indexWithinList;
-  checkboxElement.disabled = checked ? false : disabled;
+  checkboxElement.dataset.disabled = checked ? false : disabled;
 
   if (itemKey) {
     checkboxElement.dataset.key = itemKey;

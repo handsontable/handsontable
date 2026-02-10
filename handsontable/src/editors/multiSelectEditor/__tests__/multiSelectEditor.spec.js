@@ -378,7 +378,7 @@ describe('MultiSelectEditor', () => {
         expect($uncheckedCheckboxes.length).toBe(choices.length - 2);
 
         $uncheckedCheckboxes.each(function() {
-          expect($(this).prop('disabled')).toBe(true);
+          expect($(this)[0].getAttribute('data-disabled')).toBe('true');
         });
 
         await simulateClick($orangeCheckbox);
@@ -415,7 +415,7 @@ describe('MultiSelectEditor', () => {
         await sleep(10);
 
         $dropdown.find('input[type="checkbox"]:not(:checked)').each(function() {
-          expect($(this).prop('disabled')).toBe(true);
+          expect($(this)[0].getAttribute('data-disabled')).toBe('true');
         });
 
         await simulateClick($yellowCheckbox);
@@ -424,7 +424,7 @@ describe('MultiSelectEditor', () => {
         expect($yellowCheckbox.prop('checked')).toBe(false);
 
         $dropdown.find('input[type="checkbox"]').each(function() {
-          expect($(this).prop('disabled')).toBe(false);
+          expect($(this)[0].getAttribute('data-disabled')).toBe('false');
         });
 
         await simulateClick($orangeCheckbox);
@@ -477,7 +477,7 @@ describe('MultiSelectEditor', () => {
 
           $visibleCheckboxes.each(function() {
             if (!$(this).prop('checked')) {
-              expect($(this).prop('disabled')).toBe(true);
+              expect($(this)[0].getAttribute('data-disabled')).toBe('true');
             }
           });
 
@@ -487,10 +487,10 @@ describe('MultiSelectEditor', () => {
           await sleep(10);
 
           expect($orangeCheckbox.prop('checked')).toBe(false);
-          expect($orangeCheckbox.prop('disabled')).toBe(true);
+          expect($orangeCheckbox[0].getAttribute('data-disabled')).toBe('true');
 
           $filteredDropdown.find('input[type="checkbox"]:not(:checked)').each(function() {
-            expect($(this).prop('disabled')).toBe(true);
+            expect($(this)[0].getAttribute('data-disabled')).toBe('true');
           });
 
           $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
@@ -498,16 +498,16 @@ describe('MultiSelectEditor', () => {
           await sleep(10);
 
           expect($yellowCheckbox.prop('checked')).toBe(false);
-          expect($yellowCheckbox.prop('disabled')).toBe(false);
+          expect($yellowCheckbox[0].getAttribute('data-disabled')).toBe('false');
 
           await simulateClick($orangeCheckbox);
           await sleep(10);
 
           expect($orangeCheckbox.prop('checked')).toBe(true);
-          expect($orangeCheckbox.prop('disabled')).toBe(false);
+          expect($orangeCheckbox[0].getAttribute('data-disabled')).toBe('false');
 
           $filteredDropdown.find('input[type="checkbox"]:not(:checked)').each(function() {
-            expect($(this).prop('disabled')).toBe(true);
+            expect($(this)[0].getAttribute('data-disabled')).toBe('true');
           });
         });
     });

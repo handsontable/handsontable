@@ -126,14 +126,15 @@ export class MultiSelectEditor extends BaseEditor {
 
     this.dropdownController.reset();
 
+    if (valuesIntersection.length >= this.#getEditorSetting('maxSelections')) {
+      this.#blockNewSelections();
+    }
+
     this.#syncSelectedValues(valuesIntersection);
 
     this.dropdownController.setSourceSortFunction(this.cellProperties.sourceSortFunction);
-
     this.dropdownController.fillDropdown(this.#getSource(), valuesIntersection);
-
     this.dropdownController.setVisibleRowsNumberSetting(this.#getEditorSetting('visibleRows'));
-
     this.dropdownController.setSearchInputVisibility(this.#getEditorSetting('searchInput'));
 
     if (cellProperties.maxSelections !== undefined) {
