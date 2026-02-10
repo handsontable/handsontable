@@ -765,7 +765,7 @@ describe('DateEditor', () => {
     const datePickerOffset = $('.pika-single').offset();
 
     expect(cellOffset.top).forThemes(({ classic, main, horizon }) => {
-      classic.toBeCloseTo(datePickerOffset.top - 23, 0);
+      classic.toBeCloseTo(datePickerOffset.top - 26, 0);
       main.toBeCloseTo(datePickerOffset.top - 29, 0);
       horizon.toBeCloseTo(datePickerOffset.top - 37, 0);
     });
@@ -787,7 +787,7 @@ describe('DateEditor', () => {
     const datePickerOffset = $('.pika-single').offset();
 
     expect(cellOffset.top).forThemes(({ classic, main, horizon }) => {
-      classic.toBeCloseTo(datePickerOffset.top - 23, 0); // 23 is a height of the editor cell
+      classic.toBeCloseTo(datePickerOffset.top - 26, 0); // 26 is a height of the editor cell
       main.toBeCloseTo(datePickerOffset.top - 29, 0);
       horizon.toBeCloseTo(datePickerOffset.top - 37, 0);
     });
@@ -798,8 +798,8 @@ describe('DateEditor', () => {
     'is scrolled down', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
-      width: 200,
-      height: 200,
+      width: 230,
+      height: 230,
       type: 'date',
     });
 
@@ -814,7 +814,7 @@ describe('DateEditor', () => {
     await sleep(50);
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
@@ -824,7 +824,7 @@ describe('DateEditor', () => {
     await sleep(50);
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
@@ -924,8 +924,8 @@ describe('DateEditor', () => {
     'table is scrolled up', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
-      width: 200,
-      height: 200,
+      width: 230,
+      height: 230,
       type: 'date',
     });
 
@@ -938,17 +938,17 @@ describe('DateEditor', () => {
     await sleep(50);
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    await scrollViewportVertically(400); // scroll the viewport so the edited cell is partially visible from below
+    await scrollViewportVertically(480); // scroll the viewport so the edited cell is partially visible from below
 
     await sleep(50);
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
@@ -1046,8 +1046,8 @@ describe('DateEditor', () => {
     'table is scrolled left', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
-      width: 200,
-      height: 200,
+      width: 230,
+      height: 230,
       type: 'date',
     });
 
@@ -1060,7 +1060,7 @@ describe('DateEditor', () => {
     await sleep(50);
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
@@ -1068,7 +1068,7 @@ describe('DateEditor', () => {
     await scrollViewportHorizontally(350); // scroll the viewport so the edited cell is partially visible from right
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
@@ -1156,8 +1156,8 @@ describe('DateEditor', () => {
     'table is scrolled right', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
-      width: 200,
-      height: 200,
+      width: 230,
+      height: 230,
       type: 'date',
     });
 
@@ -1170,7 +1170,7 @@ describe('DateEditor', () => {
     const pikaElement = $('.pika-single');
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
@@ -1178,12 +1178,12 @@ describe('DateEditor', () => {
     await scrollViewportHorizontally(130); // scroll the viewport so the edited cell is partially visible from left
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    await scrollViewportHorizontally(150); // scroll the viewport so the edited cell is not visible
+    await scrollViewportHorizontally(200); // scroll the viewport so the edited cell is not visible
 
     expect(pikaElement.is(':visible')).toBe(false);
   });
@@ -1281,7 +1281,7 @@ describe('DateEditor', () => {
 
     expect(pikaElement.offset()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual({
-        top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+        top: editorElement.offset().top + 26, // 26 is a height of the editor cell
         left: editorElement.offset().left,
       });
       main.toEqual({
@@ -1301,7 +1301,7 @@ describe('DateEditor', () => {
 
     expect(pikaElement.offset()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual({
-        top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+        top: editorElement.offset().top + 26, // 26 is a height of the editor cell
         left: editorElement.offset().left,
       });
       main.toEqual({
@@ -1335,7 +1335,7 @@ describe('DateEditor', () => {
 
     expect(pikaElement.offset()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual({
-        top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+        top: editorElement.offset().top + 26, // 26 is a height of the editor cell
         left: editorElement.offset().left,
       });
       main.toEqual({
@@ -1353,7 +1353,7 @@ describe('DateEditor', () => {
 
     expect(pikaElement.offset()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual({
-        top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+        top: editorElement.offset().top + 26, // 26 is a height of the editor cell
         left: editorElement.offset().left,
       });
       main.toEqual({
@@ -1385,7 +1385,7 @@ describe('DateEditor', () => {
     const pikaElement = $('.pika-single');
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
@@ -1393,7 +1393,7 @@ describe('DateEditor', () => {
     await scrollViewportVertically(130);
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
@@ -1481,7 +1481,7 @@ describe('DateEditor', () => {
     const pikaElement = $('.pika-single');
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
@@ -1490,7 +1490,7 @@ describe('DateEditor', () => {
     await scrollViewportHorizontally(100);
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
@@ -1581,7 +1581,7 @@ describe('DateEditor', () => {
     const pikaElement = $('.pika-single');
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
@@ -1590,7 +1590,7 @@ describe('DateEditor', () => {
     await scrollViewportHorizontally(100);
 
     expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      top: editorElement.offset().top + 26, // 26 is a height of the editor cell
       left: editorElement.offset().left,
     });
     expect(pikaElement.is(':visible')).toBe(true);
@@ -1692,7 +1692,7 @@ describe('DateEditor', () => {
     const cellOffset = $(getActiveEditor().TD).offset();
     const datePickerOffset = $('.pika-single').offset();
 
-    expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+    expect(cellOffset.top + 26).toBeCloseTo(datePickerOffset.top, 0);
     expect(cellOffset.left).toBeCloseTo(datePickerOffset.left, 0);
   });
 

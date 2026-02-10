@@ -17,15 +17,9 @@ describe('useTheme', () => {
   });
 
   it('should change the theme to the one specified by the provided class name', async() => {
-    expect(getCurrentThemeName()).toBe(undefined);
-
     await useTheme('ht-theme-sth');
 
     expect(getCurrentThemeName()).toBe('ht-theme-sth');
-
-    await useTheme(undefined);
-
-    expect(getCurrentThemeName()).toBe(undefined);
   });
 
   it('should add the appropriate class names to the root element when enabling a theme', async() => {

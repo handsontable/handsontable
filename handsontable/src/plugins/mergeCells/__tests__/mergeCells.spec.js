@@ -1318,7 +1318,7 @@ describe('MergeCells', () => {
       // First merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(47);
+        classic.toBe(53);
         main.toBe(59);
         horizon.toBe(75);
       });
@@ -1327,7 +1327,7 @@ describe('MergeCells', () => {
       // Already populated merged cell.
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(46);
+        classic.toBe(52);
         main.toBe(58);
         horizon.toBe(74);
       });
@@ -1344,7 +1344,7 @@ describe('MergeCells', () => {
       // First merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(47);
+        classic.toBe(53);
         main.toBe(59);
         horizon.toBe(75);
       });
@@ -1353,7 +1353,7 @@ describe('MergeCells', () => {
       // Previously populated merged cell.
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(46);
+        classic.toBe(52);
         main.toBe(58);
         horizon.toBe(74);
       });
@@ -1362,7 +1362,7 @@ describe('MergeCells', () => {
       // Already populated merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(47);
+        classic.toBe(53);
         main.toBe(59);
         horizon.toBe(75);
       });
@@ -1371,7 +1371,7 @@ describe('MergeCells', () => {
 
       expect($(getHtCore())[0].offsetWidth).toBe(5 * 50);
       expect($(getHtCore())[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(24 + (4 * 23)); // First row is 1px higher than others.
+        classic.toBe(27 + (4 * 26)); // First row is 1px higher than others.
         main.toBe(30 + (4 * 29));
         horizon.toBe(38 + (4 * 37));
       });
@@ -1492,7 +1492,7 @@ describe('MergeCells', () => {
     });
 
     expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(70);
+      classic.toBe(79);
       main.toBe(88);
       horizon.toBe(112);
     });
@@ -1510,7 +1510,7 @@ describe('MergeCells', () => {
     });
 
     expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(116);
+      classic.toBe(131);
       main.toBe(146);
       horizon.toBe(186);
     });
@@ -1520,7 +1520,7 @@ describe('MergeCells', () => {
     });
 
     expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(116);
+      classic.toBe(131);
       main.toBe(146);
       horizon.toBe(186);
     });
@@ -1530,7 +1530,7 @@ describe('MergeCells', () => {
     });
 
     expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(116);
+      classic.toBe(131);
       main.toBe(146);
       horizon.toBe(186);
     });
@@ -1577,12 +1577,12 @@ describe('MergeCells', () => {
     });
 
     expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(70);
+      classic.toBe(79);
       main.toBe(88);
       horizon.toBe(112);
     });
     expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(70);
+      classic.toBe(79);
       main.toBe(88);
       horizon.toBe(112);
     });
@@ -1610,12 +1610,12 @@ describe('MergeCells', () => {
     await keyDownUp('enter');
 
     expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(111);
+      classic.toBe(121);
       main.toBe(128);
       horizon.toBe(152);
     });
     expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(111);
+      classic.toBe(121);
       main.toBe(128);
       horizon.toBe(152);
     });
@@ -1717,7 +1717,7 @@ describe('MergeCells', () => {
     });
 
     expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(301);
+      classic.toBe(300);
       main.toBe(300);
       horizon.toBe(300);
     });
@@ -1732,7 +1732,7 @@ describe('MergeCells', () => {
     });
 
     expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(301);
+      classic.toBe(300);
       main.toBe(300);
       horizon.toBe(300);
     });
@@ -1747,7 +1747,7 @@ describe('MergeCells', () => {
     });
 
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(301);
+      classic.toBe(300);
       main.toBe(300);
       horizon.toBe(300);
     });
@@ -1762,7 +1762,7 @@ describe('MergeCells', () => {
     });
 
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(201);
+      classic.toBe(200);
       main.toBe(200);
       horizon.toBe(200);
     });
@@ -1777,17 +1777,17 @@ describe('MergeCells', () => {
     });
 
     expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(201);
+      classic.toBe(200);
       main.toBe(200);
       horizon.toBe(200);
     });
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(51);
+      classic.toBe(50);
       main.toBe(50);
       horizon.toBe(50);
     });
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(51);
+      classic.toBe(50);
       main.toBe(50);
       horizon.toBe(50);
     });
@@ -1805,12 +1805,12 @@ describe('MergeCells', () => {
     });
 
     expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(261);
+      classic.toBe(260);
       main.toBe(260);
       horizon.toBe(260);
     });
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(81);
+      classic.toBe(80);
       main.toBe(80);
       horizon.toBe(80);
     });
@@ -1826,7 +1826,7 @@ describe('MergeCells', () => {
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
-      height: 200,
+      height: 226,
       viewportRowRenderingOffset: 0,
       mergeCells: true,
     });
@@ -2108,7 +2108,7 @@ describe('MergeCells', () => {
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,
-      height: 200,
+      height: 224,
       viewportRowRenderingOffset: 0,
       mergeCells: {
         virtualized: true,

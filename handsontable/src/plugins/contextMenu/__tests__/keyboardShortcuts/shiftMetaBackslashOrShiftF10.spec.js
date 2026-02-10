@@ -240,13 +240,13 @@ describe('ContextMenu keyboard shortcut', () => {
       });
       expect(inlineStartOverlay().getScrollPosition())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(1766);
+          classic.toBe(1819);
           main.toBe(1961);
           horizon.toBe(2284);
         });
       expect(topOverlay().getScrollPosition())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(8939);
+          classic.toBe(10142);
           main.toBe(11345);
           horizon.toBe(14553);
         });

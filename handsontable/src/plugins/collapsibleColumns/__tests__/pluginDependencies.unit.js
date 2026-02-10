@@ -18,7 +18,7 @@ describe('CollapsibleColumns', () => {
       let hot;
 
       expect(() => {
-        hot = new Handsontable(document.createElement('div'), {});
+        hot = new Handsontable(document.createElement('div'), { theme: 'ht-theme-classic' });
       }).toThrowError(`The CollapsibleColumns plugin requires the following modules:
  - NestedHeaders (plugin)
 

@@ -1235,7 +1235,7 @@ describe('TrimRows', () => {
   });
 
   describe('regression check - headers resizing', () => {
-    const DEFAULT_ROW_HEIGHT = 23;
+    const DEFAULT_ROW_HEIGHT = getDefaultRowHeight();
 
     it.forTheme('classic')('should resize container for headers properly after insertion (pixel perfect)', async() => {
       const insertedRows = 6;

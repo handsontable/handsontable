@@ -47,14 +47,14 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
         |   :   :   |
+        |   :   :   |
         |   : # :   |
         |   :   :   |
         |   :   :   |
         |   :   :   |
         |   :   :   |
-        |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 9,1 from: 9,1 to: 9,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 10,1 from: 10,1 to: 10,1']);
 
       await keyDownUp('pageup');
 
@@ -64,6 +64,26 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
         |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 7,1 from: 7,1 to: 7,1']);
+
+      await keyDownUp('pageup');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
         |   : # :   |
         |   :   :   |
         |   :   :   |
@@ -74,8 +94,9 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
         |   :   :   |
+        |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 5,1 to: 5,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,1 from: 4,1 to: 4,1']);
 
       await keyDownUp('pageup');
 
@@ -458,13 +479,13 @@ describe('Selection navigation', () => {
 
       await sleep(100);
 
-      expect(tableView().getFirstFullyVisibleRow()).toBe(9);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(10);
 
       await keyDownUp('pageup');
 
       await sleep(100);
 
-      expect(tableView().getFirstFullyVisibleRow()).toBe(5);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(6);
 
       await keyDownUp('pageup');
 

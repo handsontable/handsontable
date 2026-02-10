@@ -28,12 +28,31 @@ describe('Selection extending', () => {
         |   : 0 :   |
         |   : 0 :   |
         |   : 0 :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 4,1']);
+
+      await keyDownUp(['shift', 'pagedown']);
+
+      expect(`
+        |   :   :   |
+        |   : A :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
         |   : 0 :   |
         |   :   :   |
         |   :   :   |
         |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 5,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 7,1']);
 
       await keyDownUp(['shift', 'pagedown']);
 
@@ -48,13 +67,13 @@ describe('Selection extending', () => {
         |   : 0 :   |
         |   : 0 :   |
         |   : 0 :   |
-        |   :   :   |
+        |   : 0 :   |
         |   :   :   |
         |   :   :   |
         |   :   :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 9,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 10,1']);
 
       await keyDownUp(['shift', 'pagedown']);
 

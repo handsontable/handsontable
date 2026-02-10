@@ -6,7 +6,6 @@
 
 <script lang="ts">
 import { HotTable } from "@handsontable/vue";
-import "handsontable/dist/handsontable.full.min.css";
 import { registerAllModules } from "handsontable/registry";
 
 import { getData } from "../utils/data";

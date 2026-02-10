@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -54,7 +52,6 @@ const coverRenderer = (_instance, td, _row, _col, _prop, value) => {
 const container = document.querySelector('#example4');
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   colWidths: [200, 200, 200, 80],
   colHeaders: ['Title', 'Description', 'Comments', 'Cover'],

@@ -122,7 +122,8 @@ describe('Filters UI', () => {
       filters: true,
       dropdownMenu: true,
       width: 500,
-      height: 300
+      height: 300,
+      themeName: spec()?.loadedTheme || 'ht-theme-classic',
     });
 
     expect(document.querySelectorAll('.htDropdownMenu').length).toBe(2);

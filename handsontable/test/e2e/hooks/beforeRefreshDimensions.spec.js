@@ -147,7 +147,9 @@ describe('Hook', () => {
           <!doctype html>
           <head>
             <link type="text/css" rel="stylesheet" href="lib/normalize.css">
-            <link type="text/css" rel="stylesheet" href="../dist/handsontable.css">
+            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
+            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
+            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
           </head>`);
         doc.close();
 
@@ -205,11 +207,23 @@ describe('Hook', () => {
 
         await sleep(50);
 
-        expect(beforeRefreshDimensions).toHaveBeenCalledWith(
-          { width: 500, height: 0 },
-          { width: 35, height: 116 },
-          true,
-        );
+        expect(beforeRefreshDimensions).forThemes(({ classic, main, horizon }) => {
+          classic.toHaveBeenCalledWith(
+            { width: 500, height: 0 },
+            { width: 35, height: 131 },
+            true,
+          );
+          main.toHaveBeenCalledWith(
+            { width: 500, height: 0 },
+            { width: 35, height: 146 },
+            true,
+          );
+          horizon.toHaveBeenCalledWith(
+            { width: 500, height: 0 },
+            { width: 35, height: 186 },
+            true,
+          );
+        });
       });
 
       it('should be fired with proper arguments (when window size does not changed)', async() => {

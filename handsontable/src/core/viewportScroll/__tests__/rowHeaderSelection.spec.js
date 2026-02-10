@@ -268,7 +268,7 @@ describe('Row header selection scroll', () => {
     await selectRows(19, 0);
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(202);
+      classic.toBe(226);
       main.toBe(250);
       horizon.toBe(314);
     });

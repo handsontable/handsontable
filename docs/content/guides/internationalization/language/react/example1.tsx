@@ -1,8 +1,6 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -11,7 +9,6 @@ registerLanguageDictionary(deDE);
 const ExampleComponent = () => {
   return (
     <HotTable
-      themeName="ht-theme-main"
       data={[
         ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
         ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],

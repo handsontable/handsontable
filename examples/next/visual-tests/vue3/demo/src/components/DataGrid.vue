@@ -120,12 +120,4 @@ export default {
   .ht-wrapper .handsontable .htCore tr.selected td {
     background: #edf3fd;
   }
-
-  .ht-theme-main-dark .ht-wrapper.handsontable .htCore tr.selected td {
-    background: #081b3d;
-  }
-
-  .ht-theme-horizon-dark .ht-wrapper.handsontable .htCore tr.selected td {
-    background: #3a2901;
-  }
 </style>

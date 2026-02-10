@@ -26,7 +26,7 @@ describe('ContextMenu keyboard shortcut', () => {
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
       // check if the viewport is scrolled to the top
       expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1);
+        classic.toBe(9);
         main.toBe(9);
         horizon.toBe(13);
       });

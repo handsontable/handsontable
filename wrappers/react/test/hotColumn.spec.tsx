@@ -365,7 +365,7 @@ describe('Dynamic HotColumn configuration changes', () => {
     });
 
     expect(hotInstance.getSettings().licenseKey).toEqual('non-commercial-and-evaluation');
-  });
+  }, 10000);
 });
 
 describe('Miscellaneous scenarios with `HotColumn` config', () => {

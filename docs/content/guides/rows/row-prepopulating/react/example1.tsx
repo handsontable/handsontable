@@ -2,8 +2,6 @@ import { useRef } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import Handsontable from 'handsontable/base';
 import { CellChange } from 'handsontable/common';
 
@@ -55,7 +53,6 @@ const ExampleComponent = () => {
   return (
     <>
       <HotTable
-        themeName="ht-theme-main"
         ref={hotRef}
         data={data}
         startRows={8}

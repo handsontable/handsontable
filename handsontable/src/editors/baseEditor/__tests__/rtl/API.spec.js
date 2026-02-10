@@ -48,7 +48,7 @@ describe('BaseEditor API (RTL mode)', () => {
                 top: 0,
                 width: 50,
                 maxWidth: 285,
-                height: 24,
+                height: 27,
                 maxHeight: 185,
               });
               main.toEqual({
@@ -86,7 +86,7 @@ describe('BaseEditor API (RTL mode)', () => {
                 top: 0,
                 width: 50,
                 maxWidth: document.documentElement.clientWidth,
-                height: 24,
+                height: 27,
                 maxHeight: document.documentElement.clientHeight,
               });
               main.toEqual({
@@ -131,10 +131,10 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 234,
-                top: 23,
+                top: 26,
                 width: 51,
                 maxWidth: 51,
-                height: 24,
+                height: 27,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
               main.toEqual(jasmine.objectContaining({
@@ -180,11 +180,11 @@ describe('BaseEditor API (RTL mode)', () => {
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 51, // 51 - the width of the first cell
-                top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 23,
-                width: 51,
-                maxWidth: 51,
-                height: 24,
+                start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 55, // 55 - the width of the first cell
+                top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 26,
+                width: 55,
+                maxWidth: 55,
+                height: 27,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
 
@@ -229,7 +229,7 @@ describe('BaseEditor API (RTL mode)', () => {
                 top: 0,
                 width: 50,
                 maxWidth: 285,
-                height: 24,
+                height: 27,
                 maxHeight: 185,
               });
               main.toEqual({
@@ -268,7 +268,7 @@ describe('BaseEditor API (RTL mode)', () => {
                 top: 0,
                 width: 50,
                 maxWidth: document.documentElement.clientWidth,
-                height: 24,
+                height: 27,
                 maxHeight: document.documentElement.clientHeight,
               });
               main.toEqual({
@@ -314,10 +314,10 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 49,
-                top: 23,
+                top: 26,
                 width: 51,
                 // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 24,
+                height: 27,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
               main.toEqual(jasmine.objectContaining({
@@ -359,10 +359,10 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: Math.abs(document.documentElement.scrollLeft) + 49, // 49 - the width of the first cell
-                top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 23,
+                top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 26,
                 width: 51,
                 // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 24,
+                height: 27,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
               main.toEqual(jasmine.objectContaining({
@@ -404,7 +404,7 @@ describe('BaseEditor API (RTL mode)', () => {
                 top: 0,
                 width: 50,
                 maxWidth: 285,
-                height: 24,
+                height: 27,
                 maxHeight: 185,
               });
               main.toEqual({
@@ -442,7 +442,7 @@ describe('BaseEditor API (RTL mode)', () => {
                 top: 0,
                 width: 50,
                 maxWidth: document.documentElement.clientWidth,
-                height: 24,
+                height: 27,
                 maxHeight: document.documentElement.clientHeight,
               });
               main.toEqual({
@@ -487,11 +487,11 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 49,
-                top: 161,
+                top: 158,
                 width: 51,
                 // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 24,
-                maxHeight: 24,
+                height: 27,
+                maxHeight: 27,
               }));
               main.toEqual(jasmine.objectContaining({
                 start: 49,
@@ -531,11 +531,11 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: Math.abs(document.documentElement.scrollLeft) + 49, // 49 - the width of the first cell
-                top: document.documentElement.offsetHeight - 24, // 24 - the height of the last cell
+                top: document.documentElement.offsetHeight - 27, // 27 - the height of the last cell
                 width: 51,
                 // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 24,
-                maxHeight: 24,
+                height: 27,
+                maxHeight: 27,
               }));
               main.toEqual(jasmine.objectContaining({
                 start: Math.abs(document.documentElement.scrollLeft) + 50,
@@ -574,10 +574,10 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 138,
+                top: 132,
                 width: 50,
                 maxWidth: 285,
-                height: 24,
+                height: 27,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
               main.toEqual(jasmine.objectContaining({
@@ -613,10 +613,10 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: document.documentElement.clientHeight - 47, // 47 - height of the 2 last rows,
+                top: document.documentElement.clientHeight - 53, // 53 - height of the 2 last rows,
                 width: 50,
                 maxWidth: document.documentElement.clientWidth,
-                height: 24,
+                height: 27,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
               main.toEqual(jasmine.objectContaining({
@@ -662,10 +662,10 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 138,
+                top: 132,
                 width: 50,
                 // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 24,
+                height: 27,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
               main.toEqual(jasmine.objectContaining({
@@ -707,10 +707,10 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: Math.abs(document.documentElement.scrollLeft),
-                top: document.documentElement.offsetHeight - 47,
+                top: document.documentElement.offsetHeight - 54,
                 width: 50,
                 // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 24,
+                height: 27,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
               main.toEqual(jasmine.objectContaining({
@@ -749,10 +749,10 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 138,
+                top: 132,
                 width: 50,
                 maxWidth: 285,
-                height: 24,
+                height: 27,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
               main.toEqual(jasmine.objectContaining({
@@ -787,10 +787,10 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: document.documentElement.clientHeight - 47, // 47 - height of the 2 last rows
+                top: document.documentElement.clientHeight - 53, // 53 - height of the 2 last rows
                 width: 50,
                 maxWidth: document.documentElement.clientWidth,
-                height: 24,
+                height: 27,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
               main.toEqual(jasmine.objectContaining({
@@ -835,10 +835,10 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 234,
-                top: 161,
+                top: 158,
                 width: 51,
                 maxWidth: 51,
-                height: 24,
+                height: 27,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
               main.toEqual(jasmine.objectContaining({
@@ -888,10 +888,10 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 4949,
-                top: document.documentElement.offsetHeight - 24,
+                top: document.documentElement.offsetHeight - 28,
                 width: 51,
                 maxWidth: 51,
-                height: 24,
+                height: 27,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
 
