@@ -664,4 +664,20 @@ describe('CheckboxRenderer', () => {
       expect($('.handsontable.ht_master .htRight').length).toBe(1);
     });
   });
+
+  it('should internally call base renderer once', async() => {
+    const originalBaseRenderer = Handsontable.renderers.BaseRenderer;
+
+    spyOn(Handsontable.renderers, 'BaseRenderer');
+
+    Handsontable.renderers.registerRenderer('base', Handsontable.renderers.BaseRenderer);
+    handsontable({
+      data: [['test']],
+      renderer: 'checkbox',
+    });
+
+    expect(Handsontable.renderers.BaseRenderer).toHaveBeenCalledTimes(1);
+
+    Handsontable.renderers.registerRenderer('base', originalBaseRenderer);
+  });
 });

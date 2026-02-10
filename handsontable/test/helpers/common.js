@@ -976,12 +976,12 @@ export function rowHeight($elem, row) {
 /**
  * Returns value that has been rendered in table cell.
  *
- * @param {number} trIndex The visual index.
- * @param {number} tdIndex The visual index.
+ * @param {number} row The visual row index.
+ * @param {number} col The visual column index.
  * @returns {string}
  */
-export function getRenderedValue(trIndex, tdIndex) {
-  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).html();
+export function getRenderedValue(row, col) {
+  return getCell(row, col, true).innerHTML;
 }
 
 /**
@@ -1362,7 +1362,8 @@ export function getClipboardEvent({ target = document.body } = {}) {
 }
 
 /**
- * Spies on the console.warn method and returns a function that can be used to assert that the warning was not called.
+ * Spies on the console.warn method and returns a function that can be used to assert that
+ * the warning was not called.
  *
  * @returns {Function}
  */
@@ -1374,6 +1375,35 @@ export function spyOnConsoleWarn() {
   // eslint-disable-next-line no-console
   console.warn = (...args) => {
     if (args[0].includes('Deprecated:')) {
+      return;
+    }
+
+    originalWarn(...args);
+  };
+
+  return warnSpy;
+}
+
+/**
+ * Spies on the console.warn method and returns a function that can be used to assert that
+ * the deprecated warning was not called.
+ *
+ * @returns {Function}
+ */
+export function spyOnConsoleDeprecatedWarn() {
+  const warnSpy = spyOn(console, 'warn');
+  // eslint-disable-next-line no-console
+  const originalWarn = console.warn;
+
+  /* eslint-disable max-len */
+  const IGNORED_MESSAGES = [
+    'Deprecated: The stylesheet you are using is deprecated and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.',
+  ];
+  /* eslint-enable max-len */
+
+  // eslint-disable-next-line no-console
+  console.warn = (...args) => {
+    if (!args[0].startsWith('Deprecated:') || IGNORED_MESSAGES.includes(args[0])) {
       return;
     }
 

@@ -150,7 +150,6 @@ Each cell type module contains a different cell type:
     } from 'handsontable/cellTypes';
     ```
 3. Register your cell type module, to let Handsontable recognize it. For example:
-
     ```js
     registerCellType(NumericCellType);
     ```
@@ -747,7 +746,8 @@ import {
   zhTW,
 } from 'handsontable/i18n';
 
-// registering functions that let you quickly register all modules at once
+// registering functions that let you quickly register all modules at
+// once
 import {
   registerAllCellTypes,
   registerAllRenderers,
@@ -831,6 +831,7 @@ import {
 // renderer modules
 import {
   registerRenderer, // renderers' registering function
+  rendererFactory, // renderers' factory function
   baseRenderer,
   autocompleteRenderer,
   checkboxRenderer,
@@ -844,6 +845,7 @@ import {
 // editor modules
 import {
   registerEditor, // editors' registering function
+  editorFactory, // editors' factory function
   AutocompleteEditor,
   BaseEditor,
   CheckboxEditor,
@@ -1052,6 +1054,7 @@ import { TextCellType } from 'handsontable/cellTypes/textType';
 import { TimeCellType } from 'handsontable/cellTypes/timeType';
 
 import { registerRenderer } from 'handsontable/renderers/registry';
+import { rendererFactory } from 'handsontable/renderers/factory';
 import { autocompleteRenderer } from 'handsontable/renderers/autocompleteRenderer';
 import { baseRenderer } from 'handsontable/renderers/baseRenderer';
 import { checkboxRenderer } from 'handsontable/renderers/checkboxRenderer';
@@ -1062,6 +1065,7 @@ import { passwordRenderer } from 'handsontable/renderers/passwordRenderer';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 import { registerEditor } from 'handsontable/editors/registry';
+import { editorFactory } from 'handsontable/editors/factory';
 import { AutocompleteEditor } from 'handsontable/editors/autocompleteEditor';
 import { BaseEditor } from 'handsontable/editors/baseEditor';
 import { CheckboxEditor } from 'handsontable/editors/checkboxEditor';

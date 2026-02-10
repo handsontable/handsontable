@@ -14,6 +14,8 @@ import {
 } from './i18n/registry';
 /* eslint-enable import/named */
 import { registerCellType } from './cellTypes/registry';
+import { registerRenderer } from './renderers/registry';
+import { baseRenderer } from './renderers/baseRenderer';
 import { TextCellType } from './cellTypes/textType';
 import { BaseEditor } from './editors/baseEditor';
 import { CellCoords, CellRange } from './3rdparty/walkontable/src';
@@ -27,6 +29,7 @@ import {
 
 // register default mandatory cell type for the Base package
 registerCellType(TextCellType);
+registerRenderer(baseRenderer);
 
 // export the `BaseEditor` class to the Handsontable global namespace
 Handsontable.editors = {

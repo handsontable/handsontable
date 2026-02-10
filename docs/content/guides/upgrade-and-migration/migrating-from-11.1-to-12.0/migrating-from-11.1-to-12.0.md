@@ -47,12 +47,14 @@ If you need to reset your index mapper information and configuration options  al
 - Instead of passing the [`data`](@/api/options.md#data) option to the [`updateSettings()`](@/api/core.md#updatesettings) method, run [`loadData()`](@/api/core.md#loadData) and provide the new dataset as its argument:
 
 ```js
-// Handsontable 12.0: this doesn't reset your configuration options and index mapper information
+// Handsontable 12.0: this doesn't reset your configuration options
+// and index mapper information
 hotInstance.updateSettings({
   data: newDataset
 });
 
-// Handsontable 12.0: this does reset your configuration options and index mapper information
+// Handsontable 12.0: this does reset your configuration options and
+// index mapper information
 hotInstance.loadData(newDataset);
 ```
 
@@ -69,12 +71,14 @@ import { useRef } from 'react';
 
 const hotTableComponentRef = useRef(null);
 
-// Handsontable 12.0: this doesn't reset your configuration options and index mapper information
+// Handsontable 12.0: this doesn't reset your configuration options
+// and index mapper information
 hotTableComponentRef.current.hotInstance.updateSettings({
   data: newDataset
 });
 
-// Handsontable 12.0: this does reset your configuration options and index mapper information
+// Handsontable 12.0: this does reset your configuration options and
+// index mapper information
 hotTableComponentRef.current.hotInstance.loadData(newDataset);
 ```
 
@@ -140,8 +144,10 @@ When you used a keyboard to navigate an internal Handsontable instance (e.g., a 
 
 ```js
 afterDocumentKeyDown() {
-  // when you navigate the grid, the console message gets logged on every key press
-  // when you navigate the context menu, the console message also gets logged on every key press
+  // when you navigate the grid, the console message gets logged on
+  // every key press
+  // when you navigate the context menu, the console message also gets
+  // logged on every key press
   console.log('key pressed');
 }
 ```
@@ -152,8 +158,10 @@ When you use a keyboard to navigate some internal instances of Handsontable (e.g
 
 ```js
 afterDocumentKeyDown() {
-  // when you navigate the grid, the console message gets logged on every key press
-  // when you navigate the context menu, the console message doesn't get logged at all
+  // when you navigate the grid, the console message gets logged on
+  // every key press
+  // when you navigate the context menu, the console message doesn't
+  // get logged at all
   console.log('key pressed');
 }
 ```

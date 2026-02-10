@@ -223,7 +223,15 @@ const ExampleComponent = () => {
         manualColumnResize={true}
         navigableHeaders={true}
         licenseKey="non-commercial-and-evaluation"
-      />
+      >
+        <HotColumn data={1} />
+        <HotColumn data={3} />
+        <HotColumn data={4} type="date" />
+        <HotColumn data={6} type="checkbox" className="htCenter" />
+        <HotColumn data={7} type="numeric" />
+        <HotColumn data={5} />
+        <HotColumn data={2} />
+      </HotTable>
     </>
   );
 };

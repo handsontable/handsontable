@@ -29,7 +29,8 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
     abortSignal?.addEventListener('abort', abortHandler);
 
     const getId = depName => `dependency-reloader_${depName}`;
-    const [jsUrl, dependentVars = [], cssUrl = undefined, globalVarSharedDependency] = getDependency(dep);
+
+    const [jsUrl, dependentVars = [], cssUrl = undefined, globalVarSharedDependency, isModule] = getDependency(dep);
     const id = getId(dep);
 
     const _document = document; // eslint-disable-line no-restricted-globals
@@ -64,6 +65,10 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
       script.src = jsUrl;
       script.id = `script-${id}`;
       script.setAttribute(ATTR_VERSION, version);
+
+      if (isModule) {
+        script.setAttribute('type', 'module');
+      }
       script.addEventListener('load', () => {
         script.loaded = true;
       });
@@ -124,16 +129,23 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
         throw new AbortError();
       }
 
-      // Ensure that `fixer.js` is not loaded while injecting new dependencies (with an exception for `react-colorful`).
-      if (dep !== 'fixer' && dep !== 'react-colorful') {
+      const exceptions = ['fixer', 'react-colorful', 'multiple-select-vanilla', 'flatpickr', 'coloris'];
+
+      // Ensure that `fixer.js` is not loaded while injecting new dependencies (with an exception for `react-colorful` and others).
+      if (!exceptions.includes(dep)) {
         const _document = document; // eslint-disable-line no-restricted-globals
         const getId = depName => `dependency-reloader_${depName}`;
         const fixerScript = _document.getElementById(`script-${getId('fixer')}`);
 
         if (fixerScript) {
           fixerScript.remove();
-          delete window.require;
-          delete window.exports;
+          try {
+            delete window.require;
+            delete window.exports;
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Error deleting require and exports', error);
+          }
         }
       }
 

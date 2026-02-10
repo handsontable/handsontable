@@ -147,7 +147,7 @@ export interface GridSettings extends Events {
   disableVisualSelection?: boolean | 'current' | 'area' | 'header' | Array<'current' | 'area' | 'header'>;
   dragToScroll?: DragToScrollSettings;
   dropdownMenu?: DropdownMenuSettings;
-  editor?: EditorType | typeof BaseEditor | boolean | string;
+  editor?: EditorType | typeof BaseEditor | BaseEditor | boolean | string;
   enterBeginsEditing?: boolean;
   enterMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
   fillHandle?: AutofillSettings;
@@ -236,6 +236,7 @@ export interface GridSettings extends Events {
   emptyDataState?: EmptyDataStateSettings;
   undo?: UndoRedoSettings;
   validator?: BaseValidator | RegExp | ValidatorType | string;
+  valueFormatter?: (this: Core, value: CellValue, cellProperties: CellProperties) => CellValue;
   valueGetter?: (this: Core, value: CellValue, row: number, column: number, cellProperties: CellProperties) => CellValue;
   valueSetter?: (this: Core, value: CellValue, row: number, column: number, cellProperties: CellProperties) => CellValue;
   viewportColumnRenderingOffset?: number | 'auto';

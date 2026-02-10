@@ -42,31 +42,6 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 
 </div>
 
-## Examples 
-
-<div class="boxes-list gray col3">
-
-
-- [Angular](https://handsontable.com/stackblitz?example-dir=angular&handsontable-version={{$currentVersion}})
-- [Vanilla JS](https://handsontable.com/stackblitz?example-dir=javascript&handsontable-version={{$currentVersion}})
-- [React TS](https://handsontable.com/stackblitz?example-dir=react&handsontable-version={{$currentVersion}})
-- [React JS](https://handsontable.com/stackblitz?example-dir=react-js&handsontable-version={{$currentVersion}})
-- [TypeScript](https://handsontable.com/stackblitz?example-dir=typescript&handsontable-version={{$currentVersion}})
-- [Vue 3](https://handsontable.com/stackblitz?example-dir=vue&handsontable-version={{$currentVersion}})
-
-</div>
-
-Examples with SSR (Server Side Rendering): 
-
-<div class="boxes-list gray col3">
-
-- [Next.js](https://handsontable.com/stackblitz?example-dir=next.js&handsontable-version={{$currentVersion}})
-- [Astro](https://handsontable.com/stackblitz?example-dir=astro&handsontable-version={{$currentVersion}}) 
-- [Remix](https://handsontable.com/stackblitz?example-dir=remix&handsontable-version={{$currentVersion}})
-- [Nuxt](https://handsontable.com/stackblitz?example-dir=nuxt&handsontable-version={{$currentVersion}})
-
-</div>
-
 ## What can I use Handsontable for?
 
 Think of Handsontable as an extensible framework that empowers you to quickly build tabular, data-oriented user interfaces tailored to your specific needs. With Handsontable, developers can efficiently tackle real-life problems by leveraging its flexibility and customization options.

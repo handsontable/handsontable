@@ -1,4 +1,3 @@
-import { baseRenderer } from '../baseRenderer';
 import EventManager from '../../eventManager';
 import { empty, addClass, setAttribute, isHTMLElement } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
@@ -54,7 +53,6 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
   const { rootDocument } = hotInstance;
   const ariaEnabled = hotInstance.getSettings().ariaTags;
 
-  baseRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
   registerEvents(hotInstance);
 
   let input = createInput(rootDocument);

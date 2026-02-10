@@ -828,18 +828,36 @@ class TableView {
           value = this.hot.runHooks('beforeValueRender', value, cellProperties);
         }
 
+        const renderer = this.hot.getCellRenderer(cellProperties);
+        let formattedValue = value;
+
+        if (typeof cellProperties.valueFormatter === 'function') {
+          formattedValue = cellProperties.valueFormatter(formattedValue, cellProperties);
+
+        } else if (typeof renderer.valueFormatter === 'function') {
+          formattedValue = renderer.valueFormatter.call(cellProperties, formattedValue, cellProperties);
+        }
+
         this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
-        this.hot.getCellRenderer(cellProperties)(
+
+        const rendererArgs = [
           this.hot,
           TD,
           visualRowIndex,
           visualColumnIndex,
           prop,
-          value,
-          cellProperties
-        );
+          formattedValue,
+          cellProperties,
+        ];
+
+        renderer(...rendererArgs);
+
+        if (!cellProperties._isBaseRendererCalled) {
+          this.hot.getCellRenderer({ renderer: 'base' })(...rendererArgs);
+        }
 
         this.hot.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
+        cellProperties._isBaseRendererCalled = false;
       },
       selections: this.hot.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,

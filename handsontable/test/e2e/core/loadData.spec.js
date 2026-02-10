@@ -1136,4 +1136,26 @@ describe('Core.loadData', () => {
     expect(tableView().getTotalTableWidth()).toBe(getDefaultColumnWidth() * 5);
     expect(tableView().getTotalTableHeight()).toBe((getDefaultRowHeight() * 7) + 1);
   });
+
+  it('should not scroll the viewport to the focused cell after loading new data', async() => {
+    handsontable({
+      data: createSpreadsheetData(20, 20),
+      width: 200,
+      height: 200,
+    });
+
+    await selectCell(0, 0);
+    await scrollViewportTo({
+      row: 19,
+      col: 19,
+    });
+
+    const inlineStartPosition = inlineStartOverlay().getScrollPosition();
+    const topPosition = topOverlay().getScrollPosition();
+
+    await loadData(createSpreadsheetData(20, 20));
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(inlineStartPosition);
+    expect(topOverlay().getScrollPosition()).toBe(topPosition);
+  });
 });

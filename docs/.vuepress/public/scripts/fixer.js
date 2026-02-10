@@ -56,6 +56,7 @@
   }
 
   window.require = function(key) {
+
     try {
       let ns = '';
 
@@ -193,6 +194,24 @@
 
       } else if (/^handsontable\/themes(\/(.+))?$/.test(key)) {
         ns = 'Handsontable.themes';
+
+      } else if (key === 'date-fns') {
+        ns = 'dateFns';
+
+      } else if (key === '@melloware/coloris') {
+        ns = 'Coloris';
+
+      } else if (key === 'flatpickr') {
+        ns = 'flatpickr';
+
+      } if (key === 'moment') {
+        ns = 'moment';
+
+      } else if (key === '@handsontable/pikaday') {
+        ns = 'Pikaday';
+
+      } else if (key === 'multiple-select-vanilla') {
+        ns = 'multipleSelect';
       }
 
       let moduleToReturn = window;

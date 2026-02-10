@@ -112,7 +112,7 @@ const getPrebuiltUmdUrl = (scriptName) => {
  *
  * @param {string} version The current selected documentation version.
  * @returns {Function} Returns a function factory with the signature
- *                     `{function(dependency: string): [string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?]`.
+ *                     `{function(dependency: string): [string,string[],string],string,boolean} [jsUrl, dependentVars[]?, cssUrl?, globalVarSharedDependency, isModule]`.
  */
 const buildDependencyGetter = (version) => {
   const fixer = getCommonScript('fixer', version);
@@ -135,8 +135,7 @@ const buildDependencyGetter = (version) => {
       rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.min.js', [/* todo */]],
       'core-js': ['https://cdn.jsdelivr.net/npm/core-js@2/client/core.min.js', [/* todo */]],
       zone: ['https://cdn.jsdelivr.net/npm/zone.js@0.15.0/bundles/zone.umd.min.js', [/* todo */]],
-      'angular-compiler': [getPrebuiltUmdUrl('angular-compiler.umd.min.js'), [/* todo
-       */]],
+      'angular-compiler': [getPrebuiltUmdUrl('angular-compiler.umd.min.js'), [/* todo */]],
       'angular-core': [getPrebuiltUmdUrl('angular-core.umd.min.js'), [/* todo */]],
       'angular-common': [getPrebuiltUmdUrl('angular-common.umd.min.js'), [/* todo */]],
       'angular-forms': [getPrebuiltUmdUrl('angular-forms.umd.min.js'), [/* todo */]],
@@ -157,6 +156,12 @@ const buildDependencyGetter = (version) => {
       'theme-main': [getPackageUrls('handsontable', version, 'dist/themes/main.min.js'), ['mainTheme']],
       'theme-horizon': [getPackageUrls('handsontable', version, 'dist/themes/horizon.min.js'), ['horizonTheme']],
       'theme-classic': [getPackageUrls('handsontable', version, 'dist/themes/classic.min.js'), ['classicTheme']],
+      moment: ['https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js', [/* todo */]],
+      'date-fns': ['https://cdnjs.cloudflare.com/ajax/libs/date-fns/4.1.0/cdn.min.js', [/* todo */]],
+      coloris: ['https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/umd/coloris.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/coloris.min.css'],
+      pikaday: ['https://cdn.jsdelivr.net/npm/@handsontable/pikaday/pikaday.js', [/* todo */]],
+      flatpickr: ['https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css'],
+      'multiple-select-vanilla': ['https://cdn.jsdelivr.net/npm/multiple-select-vanilla/dist/browser/multiple-select.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/multiple-select-vanilla/dist/styles/css/multiple-select.min.css', false, true]
     };
     /* eslint-enable max-len */
 
@@ -167,6 +172,7 @@ const buildDependencyGetter = (version) => {
 
 const presetMap = {
   /* eslint-disable max-len */
+  'hot-recipe': ['hot', 'moment', 'pikaday', 'date-fns', 'coloris', 'flatpickr', 'multiple-select-vanilla', 'fixer'],
   hot: ['hot', 'fixer'],
   'hot-lang': ['hot', 'languages', 'fixer'],
   'hot-numbro': ['hot', 'numbro', 'fixer'],
@@ -187,6 +193,7 @@ const presetMap = {
   'vue3-numbro': ['hot', 'numbro', 'vue3', 'hot-vue3', 'fixer'],
   'vue3-languages': ['hot', 'languages', 'vue3', 'hot-vue3', 'fixer'],
   'vue3-vuex': ['hot', 'vue3', 'vuex4', 'hot-vue3', 'fixer'],
+
   /* eslint-enable max-len */
 };
 

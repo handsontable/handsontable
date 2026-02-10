@@ -178,4 +178,20 @@ describe('passwordRenderer', () => {
 
     expect(getCell(0, 0).getAttribute('dir')).toBeNull();
   });
+
+  it('should internally call base renderer once', async() => {
+    const originalBaseRenderer = Handsontable.renderers.BaseRenderer;
+
+    spyOn(Handsontable.renderers, 'BaseRenderer');
+
+    Handsontable.renderers.registerRenderer('base', Handsontable.renderers.BaseRenderer);
+    handsontable({
+      data: [['test']],
+      renderer: 'password',
+    });
+
+    expect(Handsontable.renderers.BaseRenderer).toHaveBeenCalledTimes(1);
+
+    Handsontable.renderers.registerRenderer('base', originalBaseRenderer);
+  });
 });

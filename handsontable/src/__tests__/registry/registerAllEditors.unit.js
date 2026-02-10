@@ -30,6 +30,7 @@ describe('`registerAllEditors`', () => {
     expect(getPluginsNames()).toEqual([]);
     expect(getRegisteredRendererNames()).toEqual([
       'text',
+      'base',
     ]);
     expect(getRegisteredValidatorNames()).toEqual([]);
   });

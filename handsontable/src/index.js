@@ -26,11 +26,13 @@ import {
   getEditor,
   registerEditor,
 } from './editors/registry';
+import { editorFactory } from './editors/factory';
 import {
   getRegisteredRendererNames,
   getRenderer,
   registerRenderer,
 } from './renderers/registry';
+import { rendererFactory } from './renderers/factory';
 import {
   getRegisteredValidatorNames,
   getValidator,
@@ -126,6 +128,7 @@ arrayHelpers.arrayEach(getRegisteredEditorNames(), (editorName) => {
 
 Handsontable.editors.registerEditor = registerEditor;
 Handsontable.editors.getEditor = getEditor;
+Handsontable.editors.editorFactory = editorFactory;
 
 // Export all registered renderers from the Handsontable.
 Handsontable.renderers = Handsontable.renderers ?? {};
@@ -141,6 +144,7 @@ arrayHelpers.arrayEach(getRegisteredRendererNames(), (rendererName) => {
 
 Handsontable.renderers.registerRenderer = registerRenderer;
 Handsontable.renderers.getRenderer = getRenderer;
+Handsontable.renderers.rendererFactory = rendererFactory;
 
 // Export all registered validators from the Handsontable.
 Handsontable.validators = Handsontable.validators ?? {};

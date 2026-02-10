@@ -124,7 +124,8 @@ const hot = new Handsontable(document.querySelector('#example'), {
   ],
   colHeaders: true,
   rowHeaders: true,
-  // set the `columnSummary` configuration option to an array of objects
+  // set the `columnSummary` configuration option to an array of
+  // objects
   columnSummary: [
     {},
     {}
@@ -265,14 +266,16 @@ You can also summarize individual ranges of rows (rather than a whole column). T
 columnSummary: [
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-2, 4, and 6-8
+    // set this column summary to only summarize rows with physical
+    // indexes 0-2, 4, and 6-8
     ranges: [
       [0, 2], [4], [6, 8]
     ],
   },
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-5
+    // set this column summary to only summarize rows with physical
+    // indexes 0-5
     ranges: [
       [0, 5]
     ],
@@ -288,14 +291,16 @@ columnSummary: [
 columnSummary={[
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-2, 4, and 6-8
+    // set this column summary to only summarize rows with physical
+    // indexes 0-2, 4, and 6-8
     ranges: [
       [0, 2], [4], [6, 8]
     ],
   },
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-5
+    // set this column summary to only summarize rows with physical
+    // indexes 0-5
     ranges: [
       [0, 5]
     ],
@@ -311,12 +316,14 @@ columnSummary={[
 columnSummary: [
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-2, 4, and 6-8
+    // set this column summary to only summarize rows with physical
+    // indexes 0-2, 4, and 6-8
     ranges: [[0, 2], [4], [6, 8]],
   },
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-5
+    // set this column summary to only summarize rows with physical
+    // indexes 0-5
     ranges: [[0, 5]],
   },
 ];
@@ -339,12 +346,14 @@ You can:
 columnSummary: [
   {
     sourceColumn: 0,
-    // set this column summary to return the sum all values in the summarized column
+    // set this column summary to return the sum all values in the
+    // summarized column
     type: 'sum',
   },
   {
     sourceColumn: 1,
-    // set this column summary to return the lowest value in the summarized column
+    // set this column summary to return the lowest value in the
+    // summarized column
     type: 'min',
   },
 ];
@@ -358,12 +367,14 @@ columnSummary: [
 columnSummary={[
   {
     sourceColumn: 0,
-    // set this column summary to return the sum all values in the summarized column
+    // set this column summary to return the sum all values in the
+    // summarized column
     type: 'sum',
   },
   {
     sourceColumn: 1,
-    // set this column summary to return the lowest value in the summarized column
+    // set this column summary to return the lowest value in the
+    // summarized column
     type: 'min',
   }
 ]}
@@ -377,12 +388,14 @@ columnSummary={[
 columnSummary: [
   {
     sourceColumn: 0,
-    // set this column summary to return the sum all values in the summarized column
+    // set this column summary to return the sum all values in the
+    // summarized column
     type: "sum",
   },
   {
     sourceColumn: 1,
-    // set this column summary to return the lowest value in the summarized column
+    // set this column summary to return the lowest value in the
+    // summarized column
     type: "min",
   },
 ];
