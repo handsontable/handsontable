@@ -14,6 +14,30 @@ import {
   CellMeta,
   CellProperties,
 } from './settings';
+import {
+  ThemeConfig,
+  ThemeColorScheme,
+  ThemeColorsConfig,
+  ThemeDensityConfig,
+  ThemeDensitySizes,
+  ThemeIconsConfig,
+  ThemeLightDarkValue,
+  ThemeSizingConfig,
+  ThemeTokenValue,
+  ThemeTokensConfig,
+  ThemeBuilder,
+  ThemeParams,
+  BaseTheme,
+  hasTheme,
+  getTheme,
+  getThemeNames,
+  getThemes,
+  registerTheme,
+  reinitTheme,
+  classicTheme,
+  mainTheme,
+  horizonTheme,
+} from './themes';
 import * as RecordTranslation from './translations';
 import {
   AutocompleteCellType,
@@ -288,6 +312,29 @@ declare namespace Handsontable {
     ColumnSettings,
     GridSettings,
     NumericFormatOptions,
+    // themes
+    ThemeConfig,
+    ThemeColorScheme,
+    ThemeColorsConfig,
+    ThemeDensityConfig,
+    ThemeDensitySizes,
+    ThemeIconsConfig,
+    ThemeLightDarkValue,
+    ThemeSizingConfig,
+    ThemeTokenValue,
+    ThemeTokensConfig,
+    ThemeBuilder,
+    ThemeParams,
+    BaseTheme,
+    hasTheme,
+    getTheme,
+    getThemeNames,
+    getThemes,
+    registerTheme,
+    reinitTheme,
+    classicTheme,
+    mainTheme,
+    horizonTheme,
     // coords
     CellCoords,
     CellRange,
@@ -369,6 +416,15 @@ declare namespace Handsontable {
     export { timeValidator as TimeValidator };
     export { registerValidator };
     export { getValidator };
+  }
+
+  export namespace themes {
+    export { hasTheme };
+    export { getTheme };
+    export { getThemeNames };
+    export { getThemes };
+    export { registerTheme };
+    export { reinitTheme };
   }
 
   export namespace plugins {
@@ -595,5 +651,14 @@ export {
   CellCoords,
   CellRange,
   Events,
+  hasTheme,
+  getTheme,
+  getThemeNames,
+  getThemes,
+  registerTheme,
+  reinitTheme,
+  classicTheme,
+  mainTheme,
+  horizonTheme,
 };
 export default Handsontable;

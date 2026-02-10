@@ -387,7 +387,6 @@ Ensure you're importing the correct CSS files for themes.
 
 **CSS imports (same for both wrappers):**
 ```scss
-@import 'handsontable/styles/handsontable.min.css';
 @import 'handsontable/styles/ht-theme-main.min.css';
 ```
 

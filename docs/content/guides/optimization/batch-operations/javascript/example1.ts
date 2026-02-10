@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -33,7 +31,6 @@ const data3: (string | number)[][] = [
 ];
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: data1,
   width: 'auto',
   height: 'auto',

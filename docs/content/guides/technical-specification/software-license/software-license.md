@@ -31,7 +31,7 @@ For more details on entering the license key, see the [License key](@/guides/get
 
 | Name                                                                                                                         | Type        |
 | ---------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| [Non-Commercial License](https://handsontable.com/static/licenses/non-commercial/v2/handsontable-non-commercial-license.pdf) | Proprietary |
+| [Non-Commercial License](https://handsontable.com/static/licenses/non-commercial/v5/handsontable-non-commercial-license.pdf) | Proprietary |
 | Commercial License Agreement                                                                                                 | Proprietary |
 
 ## Non-commercial use

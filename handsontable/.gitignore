@@ -20,3 +20,4 @@ es/
 coverage/
 tmp/
 /styles/
+src/styles/handsontableStyles.js

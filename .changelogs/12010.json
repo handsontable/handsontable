@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug that made it impossible to delete values from a key/value-based autocomplete/dropdown cells.",
+  "type": "fixed",
+  "issueOrPR": 12010,
+  "breaking": false,
+  "framework": "none"
+}

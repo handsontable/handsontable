@@ -33,7 +33,7 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(1484);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(5750);
+      classic.toBe(6500);
       main.toBe(7250);
       horizon.toBe(9250);
     });
@@ -46,7 +46,7 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(1484);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(5750);
+      classic.toBe(6500);
       main.toBe(7250);
       horizon.toBe(9250);
     });
@@ -126,7 +126,7 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(2765);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(5750);
+      classic.toBe(6500);
       main.toBe(7250);
       horizon.toBe(9250);
     });
@@ -135,7 +135,7 @@ describe('Core.scrollToFocusedCell', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(5750);
+      classic.toBe(6500);
       main.toBe(7250);
       horizon.toBe(9250);
     });
@@ -161,7 +161,7 @@ describe('Core.scrollToFocusedCell', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(5750);
+      classic.toBe(6500);
       main.toBe(7250);
       horizon.toBe(9250);
     });
@@ -175,7 +175,7 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(2766);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(5750);
+      classic.toBe(6500);
       main.toBe(7250);
       horizon.toBe(9250);
     });
@@ -204,7 +204,7 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(1484);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(5865);
+      classic.toBe(6630);
       main.toBe(7395);
       horizon.toBe(9435);
     });
@@ -242,7 +242,7 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(1484);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(5865);
+      classic.toBe(6630);
       main.toBe(7395);
       horizon.toBe(9435);
     });
@@ -255,7 +255,7 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(1484);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(11243);
+      classic.toBe(12743);
       main.toBe(14246);
       horizon.toBe(18254);
     });
@@ -275,12 +275,12 @@ describe('Core.scrollToFocusedCell', () => {
     await scrollToFocusedCell();
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(1316);
+      classic.toBe(1336);
       main.toBe(1410);
       horizon.toBe(1653);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2737);
+      classic.toBe(3094);
       main.toBe(3451);
       horizon.toBe(4403);
     });

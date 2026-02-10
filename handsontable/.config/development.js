@@ -1,10 +1,8 @@
 /**
  * Config responsible for building Handsontable `dist/` files:
  *  - handsontable.js
- *  - handsontable.css
  *  - handsontable.full.js
  */
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 const configFactory = require('./base');
 
@@ -17,7 +15,7 @@ module.exports.create = function create(envArgs) {
   configBase.forEach(function (c) {
     c.output.filename = PACKAGE_FILENAME + '.js';
     c.devtool = 'source-map';
-    // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css files)
+    // Exclude all external dependencies from 'base' bundle (handsontable.js)
     c.externals = {
       numbro: {
         root: 'numbro',
@@ -44,21 +42,11 @@ module.exports.create = function create(envArgs) {
         amd: 'dompurify',
       },
     };
-
-    c.plugins.push(
-      new MiniCssExtractPlugin({ filename: `../styles/${PACKAGE_FILENAME}.css` }),
-    );
   });
 
   configFull.forEach(function (c) {
-    c.entry = ['hyperformula', ...c.entry];
     c.output.filename = PACKAGE_FILENAME + '.full.js';
-
-    // Remove all 'MiniCssExtractPlugin' instances
-    c.plugins = c.plugins.filter(function (plugin) {
-      return !(plugin instanceof MiniCssExtractPlugin);
-    });
-
+    c.entry = ['hyperformula', ...c.entry];
     // Export these dependencies to the window object. So they can be custom configured
     // before the Handsontable initializiation.
     c.module.rules.unshift({

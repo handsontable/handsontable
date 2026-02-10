@@ -14,7 +14,7 @@ describe('Core_count', () => {
     it.forTheme('classic')('should return number of visible rows', async() => {
       const instance = handsontable({
         data: createSpreadsheetData(10, 10),
-        height: 100,
+        height: 125,
         width: 600
       });
 
@@ -56,7 +56,7 @@ describe('Core_count', () => {
     it.forTheme('classic')('should return number of rendered rows', async() => {
       const instance = handsontable({
         data: createSpreadsheetData(10, 10),
-        height: 100,
+        height: 125,
         viewportRowRenderingOffset: 0
       });
 
@@ -87,7 +87,7 @@ describe('Core_count', () => {
       'because of viewportRowRenderingOffset', async() => {
       const instance = handsontable({
         data: createSpreadsheetData(50, 10),
-        height: 100,
+        height: 125,
         viewportRowRenderingOffset: 20
       });
 

@@ -207,7 +207,7 @@ describe('settings', () => {
       await alter('insert_row_above', 0);
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50); // 25px corner + 25px added row
+        classic.toBe(53); // 26px corner + 27px added row
         main.toBe(59);
         horizon.toBe(75);
       });
@@ -222,17 +222,17 @@ describe('settings', () => {
         horizon.toBe(37);
       });
       expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
+        classic.toBe(53);
         main.toBe(59);
         horizon.toBe(75);
       });
       expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(24);
+        classic.toBe(27);
         main.toBe(30);
         horizon.toBe(38);
       });
       expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(24);
+        classic.toBe(27);
         main.toBe(30);
         horizon.toBe(38);
       });
@@ -240,7 +240,7 @@ describe('settings', () => {
       await alter('insert_row_above', 0);
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(73);
+        classic.toBe(79);
         main.toBe(88);
         horizon.toBe(112);
       });
@@ -255,17 +255,17 @@ describe('settings', () => {
         horizon.toBe(37);
       });
       expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(73);
+        classic.toBe(79);
         main.toBe(88);
         horizon.toBe(112);
       });
       expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(47);
+        classic.toBe(53);
         main.toBe(59);
         horizon.toBe(75);
       });
       expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(47);
+        classic.toBe(53);
         main.toBe(59);
         horizon.toBe(75);
       });

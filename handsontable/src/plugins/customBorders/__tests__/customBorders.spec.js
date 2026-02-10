@@ -1138,7 +1138,7 @@ describe('CustomBorders', () => {
       const instance = handsontable({
         data,
         customBorders,
-        height: 100,
+        height: 115,
         viewportRowRenderingOffset: 0
       });
 
@@ -1183,7 +1183,7 @@ describe('CustomBorders', () => {
       const instance = handsontable({
         data,
         customBorders,
-        height: 100,
+        height: 115,
         viewportRowRenderingOffset: 0
       });
 

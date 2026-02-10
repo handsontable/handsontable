@@ -260,7 +260,7 @@ describe('HiddenRows', () => {
       | A |
       `).toBeMatchToSelectionPattern();
       expect($leftBorderArea.height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(24);
+        classic.toBe(27);
         main.toBe(30);
         horizon.toBe(38);
       });

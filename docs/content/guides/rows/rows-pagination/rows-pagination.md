@@ -358,7 +358,7 @@ The example below demonstrates how to customize the translation of the paginatio
 
 ## Customize pagination UI
 
-You can customize the look of each pagination element by assigning new values to the CSS variables defined in our main and horizon themes, aligning them with your app's design guidelines. For a list of available variables, see the [Handsontable Design System](@/guides/styling/design-system/design-system.md) on Figma or view the [theme source files](https://github.com/handsontable/handsontable/blob/master/handsontable/src/styles/themes/main.scss) on GitHub.
+You can customize the look of each pagination element by assigning new values to the CSS variables defined in our main, horizon and classic themes, aligning them with your app's design guidelines. For a list of available variables, see the [Handsontable Design System](@/guides/styling/design-system/design-system.md) on Figma.
 
 Within the plugin the following CSS variables are available:
 
@@ -381,8 +381,6 @@ To use pagination, you need only the following modules:
 import Handsontable from 'handsontable/base';
 
 // import Handsontable's CSS
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // import the Pagination plugin
 import { registerPlugin, Pagination } from 'handsontable/plugins';

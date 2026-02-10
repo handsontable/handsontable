@@ -120,3 +120,17 @@ export function stripTags(string) {
 export function sanitize(string, options) {
   return DOMPurify.sanitize(string, options);
 }
+
+/**
+ * Converts camel case to hyphens in a string.
+ *
+ * @param {string} str - The string to convert.
+ * @returns {string} - The converted string.
+ */
+export function toHyphen(str) {
+  if (typeof str !== 'string') {
+    return str;
+  }
+
+  return str.replace(/([A-Z])/g, '-$1').replace(/_/g, '-').toLowerCase();
+}

@@ -38,7 +38,7 @@ describe('Pagination integration with AutoColumnSize', () => {
       horizon.toBe(getDefaultColumnWidth() + 1);
     });
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(222);
+      classic.toBe(246);
       main.toBe(268);
       horizon.toBe(276);
     });
@@ -56,7 +56,7 @@ describe('Pagination integration with AutoColumnSize', () => {
       horizon.toBe(getDefaultColumnWidth() + 1);
     });
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(136);
+      classic.toBe(149);
       main.toBe(163);
       horizon.toBe(171);
     });

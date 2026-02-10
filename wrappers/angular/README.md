@@ -83,9 +83,6 @@ You can load it directly from [CDN](https://jsdelivr.com/package/npm/@handsontab
 ```html
 <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/angular/bundles/handsontable-angular.umd.min.js"></script>
-
-<link href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" rel="stylesheet">
 ```
 
 The component will be available as `Handsontable.angular.HotTable`.
@@ -93,12 +90,6 @@ The component will be available as `Handsontable.angular.HotTable`.
 ### Usage
 
 Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/api/options/) can be set as `HotTable` props.
-
-**Styles**
-```css
-@import '~handsontable/styles/handsontable.min.css';
-@import '~handsontable/styles/ht-theme-main.min.css';
-```
 
 **Angular Module**
 ```js
@@ -140,7 +131,6 @@ export class AppComponent  {
 
 ```html
 <hot-table
-  theme="ht-theme-main-dark-auto"
   [data]="data"
   [rowHeaders]="true"
   [colHeaders]="true"

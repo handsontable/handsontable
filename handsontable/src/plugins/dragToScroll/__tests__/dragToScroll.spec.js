@@ -526,7 +526,7 @@ describe('DragToScroll', () => {
         .simulate('mouseup');
 
       expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeLessThan(105);
+        classic.toBeLessThan(134);
         main.toBeLessThan(170); // not sure if the correct value
         horizon.toBeLessThan(260);
       });
@@ -569,7 +569,7 @@ describe('DragToScroll', () => {
         .simulate('mouseup');
 
       expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeLessThan(105);
+        classic.toBeLessThan(134);
         main.toBeLessThan(170); // not sure if the correct value
         horizon.toBeLessThan(260); // not sure if the correct value
       });

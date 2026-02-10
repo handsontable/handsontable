@@ -26,7 +26,7 @@ describe('HiddenRows', () => {
       });
 
       expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(24);
+        classic.toBe(27);
         main.toBe(30);
         horizon.toBe(38);
       });
@@ -45,7 +45,7 @@ describe('HiddenRows', () => {
       });
 
       expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(24);
+        classic.toBe(27);
         main.toBe(30);
         horizon.toBe(38);
       });
@@ -64,7 +64,7 @@ describe('HiddenRows', () => {
       });
 
       expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(24);
+        classic.toBe(27);
         main.toBe(30);
         horizon.toBe(38);
       });
@@ -82,7 +82,7 @@ describe('HiddenRows', () => {
       });
 
       expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(24);
+        classic.toBe(27);
         main.toBe(30);
         horizon.toBe(38);
       });

@@ -63,6 +63,7 @@ function createInputElement(hot, focusSource) {
 
   input.type = 'text';
   input.name = 'htFocusCatcher';
+  input.style.display = 'none';
   input.classList.add('htFocusCatcher');
   input.dataset.htFocusSource = focusSource;
 

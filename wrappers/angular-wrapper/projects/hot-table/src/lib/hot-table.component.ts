@@ -175,8 +175,16 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     const negotiatedSettings: Handsontable.GridSettings = {};
 
     negotiatedSettings.licenseKey = settings.licenseKey ?? hotConfig.license;
-    negotiatedSettings.themeName = settings.themeName ?? hotConfig.themeName;
     negotiatedSettings.language = settings.language ?? hotConfig.language;
+
+    const theme = settings.theme ?? hotConfig.theme;
+    const themeName = settings.themeName ?? hotConfig.themeName;
+
+    if (theme !== undefined) {
+      negotiatedSettings.theme = theme as Handsontable.GridSettings['theme'];
+    } else if (themeName) {
+      negotiatedSettings.themeName = themeName;
+    }
 
     // settings that can be set only before the Handsontable instance is initialized
     if (!this.__hotInstance) {
