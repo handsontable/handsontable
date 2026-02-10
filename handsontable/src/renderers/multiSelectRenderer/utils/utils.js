@@ -47,7 +47,7 @@ export function parseValue(value) {
       return Array.isArray(parsed) ? parsed : [parsed];
     } catch {
 
-      return value.trim() ? [value] : [];
+      return '#bad-value#';
     }
   }
 
@@ -66,15 +66,17 @@ export function parseValue(value) {
  */
 export function createChipElement(rootDocument, item, isAriaEnabled, row, prop) {
   const chip = rootDocument.createElement('span');
+  const textContent = getItemProperty(item, 'value');
 
   addClass(chip, CHIP_CLASS);
   chip.dataset.row = row;
   chip.dataset.prop = prop;
+  chip.title = textContent;
 
   const label = rootDocument.createElement('span');
 
   addClass(label, CHIP_LABEL_CLASS);
-  label.textContent = getItemProperty(item, 'value');
+  label.textContent = textContent;
   chip.appendChild(label);
 
   const removeBtn = rootDocument.createElement('span');
