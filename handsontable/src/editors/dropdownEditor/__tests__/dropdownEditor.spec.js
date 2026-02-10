@@ -540,12 +540,12 @@ describe('DropdownEditor', () => {
       const container = getActiveEditor().htContainer;
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(120);
+        classic.toBe(118);
         main.toBe(118);
         horizon.toBe(133);
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118);
+        classic.toBe(131);
         main.toBe(146);
         horizon.toBe(148);
       });
@@ -570,12 +570,12 @@ describe('DropdownEditor', () => {
       const container = getActiveEditor().htContainer;
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
+        classic.toBe(118 + Handsontable.dom.getScrollbarWidth());
         main.toBe(118 + Handsontable.dom.getScrollbarWidth());
         horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(72);
+        classic.toBe(79);
         main.toBe(88);
         horizon.toBe(112);
       });
@@ -601,12 +601,12 @@ describe('DropdownEditor', () => {
       const container = getActiveEditor().htContainer;
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
+        classic.toBe(118 + Handsontable.dom.getScrollbarWidth());
         main.toBe(118 + Handsontable.dom.getScrollbarWidth());
         horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(72);
+        classic.toBe(52);
         main.toBe(58);
         horizon.toBe(37);
       });

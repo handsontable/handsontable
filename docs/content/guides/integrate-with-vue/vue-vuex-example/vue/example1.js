@@ -2,8 +2,6 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import { HotTable } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 Vue.use(Vuex);
 

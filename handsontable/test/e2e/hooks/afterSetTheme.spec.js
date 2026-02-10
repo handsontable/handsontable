@@ -33,7 +33,7 @@ describe('Hook', () => {
       await useTheme();
 
       expect(afterSetThemeSpy.calls.count()).toBe(3);
-      expect(afterSetThemeSpy.calls.mostRecent().args).toEqual([undefined, false]);
+      expect(afterSetThemeSpy.calls.mostRecent().args).toEqual(['ht-theme-sth2', false]);
 
       await updateSettings({
         themeName: 'ht-theme-sth3',

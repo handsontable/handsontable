@@ -1,5 +1,3 @@
-import './styles/handsontable.scss';
-
 import Core from './core';
 import { rootInstanceSymbol } from './utils/rootInstance';
 import { metaSchemaFactory } from './dataMap';
@@ -21,6 +19,13 @@ import { baseRenderer } from './renderers/baseRenderer';
 import { TextCellType } from './cellTypes/textType';
 import { BaseEditor } from './editors/baseEditor';
 import { CellCoords, CellRange } from './3rdparty/walkontable/src';
+import {
+  hasTheme,
+  getTheme,
+  getThemeNames,
+  getThemes,
+  registerTheme,
+} from './themes/registry';
 import type { HotInstance } from './common';
 
 /**
@@ -75,6 +80,14 @@ Handsontable.languages = {
   getTranslatedPhrase,
 };
 
+Handsontable.themes = {
+  hasTheme,
+  getTheme,
+  getThemeNames,
+  getThemes,
+  registerTheme,
+};
+
 /**
  * Interface describing the Handsontable factory function.
  * Allows both `Handsontable(elem, opts)` and `new Handsontable(elem, opts)`.
@@ -92,6 +105,7 @@ interface HandsontableFactory {
   version: string | undefined;
   languages: Record<string, unknown>;
   editors: Record<string, unknown>;
+  themes: Record<string, unknown>;
   [key: string]: unknown;
 }
 

@@ -1,8 +1,6 @@
 import { useRef, useState } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
@@ -61,7 +59,6 @@ const ExampleComponent = () => {
         </output>
       </div>
       <HotTable
-        themeName="ht-theme-main"
         ref={hot4Ref}
         data={data}
         colHeaders={true}

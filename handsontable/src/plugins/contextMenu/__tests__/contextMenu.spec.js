@@ -99,7 +99,7 @@ describe('ContextMenu', () => {
 
       expect($menu.find('.wtHider').width()).toEqual(215);
       expect($menu.width()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(218);
+        classic.toEqual(217);
         main.toEqual(217);
         horizon.toEqual(215);
       });
@@ -1718,7 +1718,7 @@ describe('ContextMenu', () => {
         .simulate('mouseover');
 
       expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual('col_left');
+        classic.toEqual(undefined);
         main.toEqual(undefined);
         horizon.toEqual(undefined);
       });
@@ -2507,7 +2507,7 @@ describe('ContextMenu', () => {
 
       expect(getPlugin('contextMenu').menu.getNavigator().getCurrentPage()).toBe(3);
       expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual('col_left');
+        classic.toEqual(undefined);
         main.toEqual(undefined);
         horizon.toEqual(undefined);
       });

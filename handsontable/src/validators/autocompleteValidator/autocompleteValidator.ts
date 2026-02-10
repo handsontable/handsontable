@@ -1,4 +1,5 @@
-import { isObjectEqual } from '../../helpers/object';
+import { isObjectEqual, isObject } from '../../helpers/object';
+import { isDefined } from '../../helpers/mixed';
 
 export const VALIDATOR_TYPE: 'autocomplete' = 'autocomplete';
 
@@ -10,9 +11,17 @@ export const VALIDATOR_TYPE: 'autocomplete' = 'autocomplete';
  * @param {Function} callback Callback called with validation result.
  */
 export function autocompleteValidator(this: Record<string, unknown>, value: unknown, callback: (valid: boolean) => void): void {
+  const isKeyValueObject = (obj: unknown) => isObject(obj) && isDefined((obj as Record<string, unknown>).key) && isDefined((obj as Record<string, unknown>).value);
+  const isNullOrUndefined = (val: unknown): boolean => {
+    if (isKeyValueObject(val)) {
+      return isNullOrUndefined((val as Record<string, unknown>).key) && isNullOrUndefined((val as Record<string, unknown>).value);
+    }
+
+    return val === null || val === undefined;
+  };
   let valueToValidate = value;
 
-  if (valueToValidate === null || valueToValidate === undefined) {
+  if (isNullOrUndefined(valueToValidate)) {
     valueToValidate = '';
   }
 

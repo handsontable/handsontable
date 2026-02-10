@@ -52,17 +52,16 @@
 }
 
 @mixin font-family {
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Helvetica Neue, Arial, sans-serif;
+  font-family: var(--ht-font-family), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;;
 }
 
 @mixin menu-box-shadow {
   box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0)
-    var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
+    var(--ht-menu-shadow-blur, 8px) color-mix(in srgb, var(--ht-menu-shadow-color, rgba(0, 0, 0)) var(--ht-menu-shadow-opacity, 100%), transparent);
 }
 
 @mixin box-shadow {
   box-shadow: var(--ht-shadow-x, 0) var(--ht-shadow-y, 0)
-    var(--ht-shadow-blur, 8px) var(--ht-shadow-color, rgba(0, 0, 0, 0.08));
+    var(--ht-shadow-blur, 8px) color-mix(in srgb, var(--ht-shadow-color, rgba(0, 0, 0)) var(--ht-shadow-opacity, 100%), transparent);
 }
 

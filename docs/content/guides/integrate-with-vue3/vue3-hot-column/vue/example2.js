@@ -1,8 +1,6 @@
 import { defineComponent } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -19,7 +17,6 @@ const ExampleComponent = defineComponent({
         title: 'Second column header'
       },
       settings: {
-        themeName: 'ht-theme-main',        
         height: 'auto',
         autoWrapRow: true,
         autoWrapCol: true,

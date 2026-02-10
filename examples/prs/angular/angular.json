@@ -26,9 +26,7 @@
               "polyfills": "src/polyfills.ts",
               "tsConfig": "tsconfig.app.json",
               "inlineStyleLanguage": "scss",
-              "styles": [
-                "./node_modules/handsontable/dist/handsontable.full.css"
-              ],
+              "styles": [],
               "scripts": []
             },
             "configurations": {

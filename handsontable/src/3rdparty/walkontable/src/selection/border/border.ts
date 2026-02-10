@@ -271,6 +271,8 @@ class Border {
     const cellMobileHandleSize = stylesHandler.getCSSVariableValue('cell-mobile-handle-size');
     const cellMobileHandleBorderRadius = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-radius');
     const cellMobileHandleBackgroundColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-background-color');
+    const cellMobileHandleBackgroundOpacity =
+      stylesHandler.getCSSVariableValue('cell-mobile-handle-background-opacity');
     const cellMobileHandleBorderWidth = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-width');
     const cellMobileHandleBorderColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-color');
 
@@ -280,7 +282,6 @@ class Border {
       bottom: rootDocument.createElement('DIV') as HTMLDivElement,
       bottomHitArea: rootDocument.createElement('DIV') as HTMLDivElement,
     } as any;
-    const width = 10;
     const hitAreaWidth = 40;
 
     this.selectionHandles.top.className = 'topSelectionHandle topLeftSelectionHandle';
@@ -307,19 +308,13 @@ class Border {
       (this.selectionHandles.styles.topHitArea as any)[key] = value;
     });
 
-    const handleStyle: Record<string, string> = stylesHandler.isClassicTheme() ? {
-      position: 'absolute',
-      height: `${width}px`,
-      width: `${width}px`,
-      'border-radius': `${parseInt(String(width / 1.5), 10)}px`,
-      background: '#F5F5FF',
-      border: '1px solid #4285c8'
-    } : {
+    const handleStyle: Record<string, string> = {
       position: 'absolute',
       height: `${cellMobileHandleSize}px`,
       width: `${cellMobileHandleSize}px`,
       'border-radius': `${cellMobileHandleBorderRadius}px`,
-      background: `${cellMobileHandleBackgroundColor}`,
+      // eslint-disable-next-line max-len
+      background: `color-mix(in srgb, ${cellMobileHandleBackgroundColor} ${cellMobileHandleBackgroundOpacity}, transparent)`,
       border: `${cellMobileHandleBorderWidth}px solid ${cellMobileHandleBorderColor}`
     };
 
@@ -454,7 +449,6 @@ class Border {
 
     const { wtTable, rootDocument, rootWindow } = this.wot;
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    const isClassicTheme = (this.wot.wtSettings.getSetting('stylesHandler') as import('../../../../../common').StylesHandler).isClassicTheme();
     const firstRenderedRow = wtTable.getFirstRenderedRow();
     const lastRenderedRow = wtTable.getLastRenderedRow();
     const firstRenderedColumn = wtTable.getFirstRenderedColumn();
@@ -647,13 +641,7 @@ class Border {
 
           addClass(this.corner, 'wtCornerInlineEndEdge');
 
-          if (isClassicTheme) {
-            this.cornerStyle[inlinePosProperty] = `${inlineStartPosition}px`;
-            this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = '0';
-
-          } else {
-            this.cornerStyle[inlinePosProperty] = `${inlineStartPosition - 1}px`;
-          }
+          this.cornerStyle[inlinePosProperty] = `${inlineStartPosition - 1}px`;
         }
       } else {
         removeClass(this.corner, 'wtCornerInlineEndEdge');
@@ -671,15 +659,7 @@ class Border {
 
           addClass(this.corner, 'wtCornerBlockEndEdge');
 
-          if (isClassicTheme) {
-            // styles for classic theme
-            this.cornerStyle.top = `${cornerTopPosition}px`;
-            this.cornerStyle.borderBottomWidth = '0';
-
-          } else {
-            // styles for ht-theme
-            this.cornerStyle.top = `${cornerTopPosition - 1}px`;
-          }
+          this.cornerStyle.top = `${cornerTopPosition - 1}px`;
         }
       } else {
         removeClass(this.corner, 'wtCornerBlockEndEdge');

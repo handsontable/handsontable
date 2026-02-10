@@ -103,8 +103,8 @@ describe('HandsontableEditor positioning', () => {
 
     const scrollEdgePositions = {
       horizon: 132,
-      main: 70,
-      classic: 25,
+      main: 71,
+      classic: 46,
     };
 
     const scrollPositionBase = scrollEdgePositions[spec().loadedTheme];

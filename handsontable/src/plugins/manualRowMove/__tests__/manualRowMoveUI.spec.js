@@ -109,7 +109,7 @@ describe('manualRowMove', () => {
 
         expect(spec().$container.find('.ht__manualRowMove--guideline')[0].offsetTop)
           .forThemes(({ classic, main, horizon }) => {
-            classic.toBe(-1);
+            classic.toBe(0);
             main.toBe(0);
             horizon.toBe(0);
           });

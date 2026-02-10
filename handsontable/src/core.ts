@@ -54,22 +54,17 @@ import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { deprecatedWarn, warn } from './helpers/console';
+import { warn } from './helpers/console';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
 import { getValueSetterValue } from './utils/valueAccessors';
+import { createThemeManager } from './themes/engine';
+import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { DataMapInstance, DataSourceInstance, EditorManagerInstance, GridHelperInstance, MetaManagerInstance, ViewportScrollerInstance, SelectionTableProps, CellCoords, CellRange } from './common';
 
 let activeGuid: string | null = null;
-
-/**
- * A set of deprecated warn instances.
- *
- * @type {Set<string>}
- */
-const deprecatedWarnInstances = new WeakSet();
 
 /**
  * Keeps the collection of the all Handsontable instances created on the same page. The
@@ -153,7 +148,7 @@ const deprecationWarns = new Set();
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -358,23 +353,32 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     hot: instance,
     rootElement: instance.rootElement,
     rootDocument: instance.rootDocument,
-    onThemeChange: (validThemeName: string) => {
+    onThemeChange: (themeName: string) => {
       if (isRootInstance(this)) {
         removeClass(this.rootWrapperElement, /ht-theme-.*/g);
         removeClass(this.rootPortalElement, /ht-theme-.*/g);
 
-        if (validThemeName) {
-          addClass(this.rootWrapperElement, validThemeName);
-          addClass(this.rootPortalElement, validThemeName);
+        if (themeName) {
+          addClass(this.rootWrapperElement, themeName);
+          addClass(this.rootPortalElement, themeName);
 
           if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
-            warn(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
-              Import the correct CSS files in order to use that theme.`);
+            warn(`The "${themeName}" theme is enabled, but its stylesheets are missing` +
+              ' or not imported correctly. Import the correct CSS files in order to use that theme.');
           }
         }
       }
-    }
+    },
+    injectCoreCss: typeof userSettings?.injectCoreCss === 'boolean' ? userSettings.injectCoreCss : true,
   });
+
+  /**
+   * ThemeManager instance.
+   *
+   * @private
+   * @type {ThemeManager|null}
+   */
+  this.themeManager = null;
 
   mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language as string);
 
@@ -1345,6 +1349,18 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
   }
 
   this.init = function() {
+    const theme = tableMeta.theme;
+    const themeName = tableMeta.themeName;
+    const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
+
+    if (
+      isRootInstance(instance) &&
+      !rootContainerThemeClassName &&
+      (isObject(theme) || (!theme && !themeName))
+    ) {
+      initializeThemeManager(theme);
+    }
+
     dataSource.setData(tableMeta.data);
     instance.runHooks('beforeInit');
 
@@ -1388,6 +1404,32 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
     instance.runHooks('afterInit');
   };
+
+  /**
+   * Initializes the ThemeManager with the given theme configuration.
+   *
+   * @param {object|boolean} theme - The theme configuration object or `true` to use the default theme.
+   */
+  function initializeThemeManager(theme) {
+    let themeObject;
+
+    if (typeof theme === 'undefined') {
+      if (hasTheme('main')) {
+        themeObject = getTheme('main');
+      } else {
+        themeObject = registerTheme(mainTheme);
+      }
+
+      themeObject = getTheme('main');
+    } else {
+      themeObject = theme;
+    }
+
+    instance.themeManager = createThemeManager({
+      hot: instance,
+      themeObject
+    });
+  }
 
   /**
    * @ignore
@@ -2783,34 +2825,71 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       }
     }
 
-    if (init) {
-      // Use the theme defined in the settings object or set as a root container class name (in that order).
-      instance.useTheme(tableMeta.themeName || getThemeClassName(instance.rootContainer));
+    const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
+    const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
+    const themeOptionExists = hasOwnProperty(settings, 'theme');
 
+    if (themeNameOptionExists && themeOptionExists) {
+      warn('Both `theme` and `themeName` are defined in your configuration. ' +
+      'These options are aliases and cannot be used together. ' +
+      'The `themeName` option will be ignored.');
+    }
+
+    // Update the theme via the `theme` or `themeName` option as a string or undefined.
+    if (init) {
+      let themeName;
+
+      if (themeOptionExists && typeof settings.theme === 'string') {
+        themeName = settings.theme;
+
+      } else if (
+        themeNameOptionExists &&
+        typeof settings.themeName === 'string' &&
+        settings.themeName &&
+        !themeOptionExists
+      ) {
+        themeName = settings.themeName;
+        tableMeta.theme = settings.themeName;
+        tableMeta.themeName = undefined;
+
+      } else if (rootContainerThemeClassName) {
+        themeName = rootContainerThemeClassName;
+
+      } else if (instance.themeManager) {
+        themeName = instance.themeManager.getClassName();
+      }
+
+      instance.useTheme(themeName);
     } else {
       const currentThemeName = instance.getCurrentThemeName();
-      const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
 
-      if (
-        themeNameOptionExists &&
-        currentThemeName !== settings.themeName
-      ) {
+      // Use `theme` option if it's a string and differs from current theme (takes priority over `themeName`).
+      if (themeOptionExists && typeof settings.theme === 'string' && currentThemeName !== settings.theme) {
+        instance.useTheme(settings.theme);
+        instance.themeManager?.unmount();
+
+      // Use `themeName` option if `theme` is not provided and the name differs from current theme.
+      } else if (themeNameOptionExists && !themeOptionExists && currentThemeName !== settings.themeName) {
+        tableMeta.theme = settings.themeName;
+        tableMeta.themeName = undefined;
         instance.useTheme(settings.themeName);
+        instance.themeManager?.unmount();
+
+      // Initialize or update the themeManager when theme is an object.
+      } else if (
+        isRootInstance(instance) &&
+        !rootContainerThemeClassName &&
+        isObject(settings.theme)
+      ) {
+        if (instance.themeManager === null) {
+          initializeThemeManager(settings.theme);
+          instance.useTheme(instance.themeManager.getClassName());
+
+        } else {
+          instance.themeManager.update(settings.theme);
+          instance.useTheme(instance.themeManager.getClassName());
+        }
       }
-    }
-
-    if (deprecatedWarnInstances.has(instance) && instance.stylesHandler.getThemeName() !== undefined) {
-      deprecatedWarnInstances.delete(instance);
-    }
-
-    if (
-      isRootInstance(instance) &&
-      !deprecatedWarnInstances.has(instance) &&
-      instance.stylesHandler.isClassicTheme()
-    ) {
-      // eslint-disable-next-line max-len
-      deprecatedWarn('The stylesheet you are using is deprecated and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
-      deprecatedWarnInstances.add(instance);
     }
 
     // Load data or create data map
@@ -4886,6 +4965,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     if (isRootInstance(this)) {
       uninstallAccessibilityAnnouncer();
       this.getFocusScopeManager().destroy();
+
+      instance.themeManager?.destroy();
     }
 
     this.getShortcutManager().destroy();
@@ -5331,17 +5412,14 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
     const validThemeName = this.stylesHandler.getThemeName();
 
-    if (!isFirstRun) {
-      instance.render();
-      instance.scrollViewportTo(0, 0);
-
+    if (!isFirstRun && validThemeName) {
       if (getThemeClassName(this.rootContainer)) {
         removeClass(this.rootContainer, /ht-theme-.*/g);
-
-        if (validThemeName) {
-          addClass(this.rootContainer, validThemeName);
-        }
+        addClass(this.rootContainer, validThemeName);
       }
+
+      instance.render();
+      instance.scrollViewportTo(0, 0);
     }
 
     this.runHooks('afterSetTheme', validThemeName, isFirstRun);

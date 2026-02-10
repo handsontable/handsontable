@@ -989,7 +989,7 @@ describe('TextEditor', () => {
     await sleep(200);
 
     expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('24px');
+      classic.toBe('27px');
       main.toBe('30px');
       horizon.toBe('38px');
     });
@@ -1003,7 +1003,7 @@ describe('TextEditor', () => {
     await keyDownUp('enter');
 
     expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('24px');
+      classic.toBe('27px');
       main.toBe('30px');
       horizon.toBe('38px');
     });
@@ -1019,7 +1019,7 @@ describe('TextEditor', () => {
     await keyDownUp('enter');
 
     expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('24px');
+      classic.toBe('27px');
       main.toBe('30px');
       horizon.toBe('38px');
     });
@@ -1038,7 +1038,7 @@ describe('TextEditor', () => {
     await keyDownUp('enter');
 
     expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('24px');
+      classic.toBe('27px');
       main.toBe('30px');
       horizon.toBe('38px');
     });
@@ -1067,12 +1067,12 @@ describe('TextEditor', () => {
     await keyDownUp('enter');
 
     expect(parseInt(getActiveEditor().TEXTAREA.style.width, 10)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(51, 1);
+      classic.toBeAroundValue(53, 1);
       main.toBeAroundValue(60, 1);
       horizon.toBeAroundValue(68, 1);
     });
     expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('24px');
+      classic.toBe('27px');
       main.toBe('30px');
       horizon.toBe('38px');
     });
@@ -1120,7 +1120,7 @@ describe('TextEditor', () => {
 
     expect(parseInt(getActiveEditor().textareaParentStyle.opacity, 10)).toBe(1);
     expect(parseInt(getActiveEditor().textareaParentStyle.top, 10)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(-77);
+      classic.toBeAroundValue(-71);
       main.toBeAroundValue(-62);
       horizon.toBeAroundValue(-38);
     });
@@ -1157,7 +1157,7 @@ describe('TextEditor', () => {
     await keyDownUp('enter');
 
     expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('24px');
+      classic.toBe('27px');
       main.toBe('30px');
       horizon.toBe('38px');
     });
@@ -1172,7 +1172,7 @@ describe('TextEditor', () => {
     await keyDownUp('enter');
 
     expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('65px');
+      classic.toBe('69px');
       main.toBe('70px');
       horizon.toBe('78px');
     });
@@ -2262,7 +2262,7 @@ describe('TextEditor', () => {
     const $editorInput = $('.handsontableInput');
 
     expect($editorInput.height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(83);
+      classic.toBe(104);
       main.toBe(94);
       horizon.toBe(61);
     });

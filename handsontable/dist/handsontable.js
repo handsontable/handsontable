@@ -26,18 +26,18 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 16.2.0
- * Release date: 25/11/2025 (built at 10/02/2026 15:09:51)
+ * Release date: 25/11/2025 (built at 10/02/2026 16:20:57)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("dompurify"), require("@handsontable/pikaday"), require("moment"), require("numbro"));
+		module.exports = factory(require("dompurify"), require("moment"), require("@handsontable/pikaday"), require("numbro"));
 	else if(typeof define === 'function' && define.amd)
-		define("Handsontable", ["dompurify", "@handsontable/pikaday", "moment", "numbro"], factory);
+		define("Handsontable", ["dompurify", "moment", "@handsontable/pikaday", "numbro"], factory);
 	else if(typeof exports === 'object')
-		exports["Handsontable"] = factory(require("dompurify"), require("@handsontable/pikaday"), require("moment"), require("numbro"));
+		exports["Handsontable"] = factory(require("dompurify"), require("moment"), require("@handsontable/pikaday"), require("numbro"));
 	else
-		root["Handsontable"] = factory(root["DOMPurify"], root["Pikaday"], root["moment"], root["numbro"]);
-})(typeof self !== 'undefined' ? self : this, (__WEBPACK_EXTERNAL_MODULE__7__, __WEBPACK_EXTERNAL_MODULE__282__, __WEBPACK_EXTERNAL_MODULE__9__, __WEBPACK_EXTERNAL_MODULE__308__) => {
+		root["Handsontable"] = factory(root["DOMPurify"], root["moment"], root["Pikaday"], root["numbro"]);
+})(typeof self !== 'undefined' ? self : this, (__WEBPACK_EXTERNAL_MODULE__6__, __WEBPACK_EXTERNAL_MODULE__8__, __WEBPACK_EXTERNAL_MODULE__305__, __WEBPACK_EXTERNAL_MODULE__331__) => {
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ([
 /* 0 */,
@@ -60,20 +60,20 @@ module.exports = _interopRequireDefault, module.exports.__esModule = true, modul
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-__webpack_require__(3);
-var _core = _interopRequireDefault(__webpack_require__(4));
-var _rootInstance = __webpack_require__(113);
-var _dataMap = __webpack_require__(161);
-var _hooks = __webpack_require__(21);
-var _registry = __webpack_require__(135);
-var _registry2 = __webpack_require__(169);
-var _registry3 = __webpack_require__(33);
-var _baseRenderer = __webpack_require__(262);
-var _textType = __webpack_require__(264);
-var _baseEditor = __webpack_require__(207);
-var _src = __webpack_require__(36);
+var _core = _interopRequireDefault(__webpack_require__(3));
+var _rootInstance = __webpack_require__(112);
+var _dataMap = __webpack_require__(160);
+var _hooks = __webpack_require__(20);
+var _registry = __webpack_require__(134);
+var _registry2 = __webpack_require__(168);
+var _registry3 = __webpack_require__(32);
+var _baseRenderer = __webpack_require__(285);
+var _textType = __webpack_require__(287);
+var _baseEditor = __webpack_require__(206);
+var _src = __webpack_require__(35);
 exports.CellCoords = _src.CellCoords;
 exports.CellRange = _src.CellRange;
+var _registry4 = __webpack_require__(283);
 // FIXME: Bug in eslint-plugin-import: https://github.com/benmosher/eslint-plugin-import/issues/1883
 /* eslint-disable import/named */
 
@@ -113,7 +113,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "10/02/2026 15:09:51";
+Handsontable.buildDate = "10/02/2026 16:20:57";
 Handsontable.version = "16.2.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -121,6 +121,13 @@ Handsontable.languages = {
   getLanguagesDictionaries: _registry.getLanguagesDictionaries,
   registerLanguageDictionary: _registry.registerLanguageDictionary,
   getTranslatedPhrase: _registry.getTranslatedPhrase
+};
+Handsontable.themes = {
+  hasTheme: _registry4.hasTheme,
+  getTheme: _registry4.getTheme,
+  getThemeNames: _registry4.getThemeNames,
+  getThemes: _registry4.getThemes,
+  registerTheme: _registry4.registerTheme
 };
 
 /**
@@ -131,15 +138,6 @@ var _default = exports["default"] = Handsontable;
 
 /***/ }),
 /* 3 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-// extracted by mini-css-extract-plugin
-
-
-/***/ }),
-/* 4 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -148,50 +146,45 @@ __webpack_require__.r(__webpack_exports__);
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports["default"] = Core;
-var _element = __webpack_require__(5);
-var _function = __webpack_require__(16);
-var _mixed = __webpack_require__(8);
-var _browser = __webpack_require__(13);
-var _editorManager = _interopRequireDefault(__webpack_require__(17));
-var _eventManager = _interopRequireDefault(__webpack_require__(26));
-var _object = __webpack_require__(14);
-var _array = __webpack_require__(11);
-var _parseTable = __webpack_require__(27);
-var _staticRegister = __webpack_require__(25);
-var _registry = __webpack_require__(28);
-var _registry2 = __webpack_require__(33);
-var _registry3 = __webpack_require__(20);
-var _registry4 = __webpack_require__(34);
-var _string = __webpack_require__(6);
-var _number = __webpack_require__(30);
-var _tableView = _interopRequireDefault(__webpack_require__(35));
-var _dataSource = _interopRequireDefault(__webpack_require__(114));
-var _data = __webpack_require__(115);
-var _translations = __webpack_require__(116);
-var _rootInstance = __webpack_require__(113);
-var _src = __webpack_require__(36);
-var _registry5 = __webpack_require__(135);
-var _utils = __webpack_require__(136);
-var _selection = __webpack_require__(142);
-var _dataMap = __webpack_require__(161);
-var _index = __webpack_require__(178);
-var _focusManager = __webpack_require__(190);
-var _uniqueMap = __webpack_require__(31);
-var _shortcuts = __webpack_require__(253);
-var _shortcutContexts = __webpack_require__(200);
-var _themes = __webpack_require__(259);
-var _stylesHandler = __webpack_require__(260);
-var _console = __webpack_require__(22);
+var _element = __webpack_require__(4);
+var _function = __webpack_require__(15);
+var _mixed = __webpack_require__(7);
+var _browser = __webpack_require__(12);
+var _editorManager = _interopRequireDefault(__webpack_require__(16));
+var _eventManager = _interopRequireDefault(__webpack_require__(25));
+var _object = __webpack_require__(13);
+var _array = __webpack_require__(10);
+var _parseTable = __webpack_require__(26);
+var _staticRegister = __webpack_require__(24);
+var _registry = __webpack_require__(27);
+var _registry2 = __webpack_require__(32);
+var _registry3 = __webpack_require__(19);
+var _registry4 = __webpack_require__(33);
+var _string = __webpack_require__(5);
+var _number = __webpack_require__(29);
+var _tableView = _interopRequireDefault(__webpack_require__(34));
+var _dataSource = _interopRequireDefault(__webpack_require__(113));
+var _data = __webpack_require__(114);
+var _translations = __webpack_require__(115);
+var _rootInstance = __webpack_require__(112);
+var _src = __webpack_require__(35);
+var _registry5 = __webpack_require__(134);
+var _utils = __webpack_require__(135);
+var _selection = __webpack_require__(141);
+var _dataMap = __webpack_require__(160);
+var _index = __webpack_require__(177);
+var _focusManager = __webpack_require__(189);
+var _uniqueMap = __webpack_require__(30);
+var _shortcuts = __webpack_require__(252);
+var _shortcutContexts = __webpack_require__(199);
+var _themes = __webpack_require__(258);
+var _stylesHandler = __webpack_require__(259);
+var _console = __webpack_require__(21);
 var _a11yAnnouncer = __webpack_require__(261);
-var _valueAccessors = __webpack_require__(165);
+var _valueAccessors = __webpack_require__(164);
+var _engine = __webpack_require__(262);
+var _themes2 = __webpack_require__(270);
 let activeGuid = null;
-
-/**
- * A set of deprecated warn instances.
- *
- * @type {Set<string>}
- */
-const deprecatedWarnInstances = new WeakSet();
 
 /**
  * Keeps the collection of the all Handsontable instances created on the same page. The
@@ -275,7 +268,7 @@ const deprecationWarns = new Set();
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -469,21 +462,29 @@ function Core(rootContainer, userSettings, rootInstanceSymbol = false) {
     hot: instance,
     rootElement: instance.rootElement,
     rootDocument: instance.rootDocument,
-    onThemeChange: validThemeName => {
+    onThemeChange: themeName => {
       if ((0, _rootInstance.isRootInstance)(this)) {
         (0, _element.removeClass)(this.rootWrapperElement, /ht-theme-.*/g);
         (0, _element.removeClass)(this.rootPortalElement, /ht-theme-.*/g);
-        if (validThemeName) {
-          (0, _element.addClass)(this.rootWrapperElement, validThemeName);
-          (0, _element.addClass)(this.rootPortalElement, validThemeName);
+        if (themeName) {
+          (0, _element.addClass)(this.rootWrapperElement, themeName);
+          (0, _element.addClass)(this.rootPortalElement, themeName);
           if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
-            (0, _console.warn)(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
-              Import the correct CSS files in order to use that theme.`);
+            (0, _console.warn)(`The "${themeName}" theme is enabled, but its stylesheets are missing` + ' or not imported correctly. Import the correct CSS files in order to use that theme.');
           }
         }
       }
-    }
+    },
+    injectCoreCss: typeof userSettings?.injectCoreCss === 'boolean' ? userSettings.injectCoreCss : true
   });
+
+  /**
+   * ThemeManager instance.
+   *
+   * @private
+   * @type {ThemeManager|null}
+   */
+  this.themeManager = null;
   mergedUserSettings.language = (0, _registry5.getValidLanguageCode)(mergedUserSettings.language);
   const settingsWithoutHooks = Object.fromEntries(Object.entries(mergedUserSettings).filter(([key]) => {
     return !(_index.Hooks.getSingleton().isRegistered(key) || _index.Hooks.getSingleton().isDeprecated(key));
@@ -1230,6 +1231,12 @@ function Core(rootContainer, userSettings, rootInstanceSymbol = false) {
     globalMeta[className] = classSettings;
   }
   this.init = function () {
+    const theme = tableMeta.theme;
+    const themeName = tableMeta.themeName;
+    const rootContainerThemeClassName = (0, _themes.getThemeClassName)(instance.rootContainer);
+    if ((0, _rootInstance.isRootInstance)(instance) && !rootContainerThemeClassName && ((0, _object.isObject)(theme) || !theme && !themeName)) {
+      initializeThemeManager(theme);
+    }
     dataSource.setData(tableMeta.data);
     instance.runHooks('beforeInit');
     if ((0, _browser.isMobileBrowser)() || (0, _browser.isIpadOS)()) {
@@ -1262,6 +1269,29 @@ function Core(rootContainer, userSettings, rootInstanceSymbol = false) {
     }
     instance.runHooks('afterInit');
   };
+
+  /**
+   * Initializes the ThemeManager with the given theme configuration.
+   *
+   * @param {object|boolean} theme - The theme configuration object or `true` to use the default theme.
+   */
+  function initializeThemeManager(theme) {
+    let themeObject;
+    if (typeof theme === 'undefined') {
+      if ((0, _themes2.hasTheme)('main')) {
+        themeObject = (0, _themes2.getTheme)('main');
+      } else {
+        themeObject = (0, _themes2.registerTheme)(_themes2.mainTheme);
+      }
+      themeObject = (0, _themes2.getTheme)('main');
+    } else {
+      themeObject = theme;
+    }
+    instance.themeManager = (0, _engine.createThemeManager)({
+      hot: instance,
+      themeObject
+    });
+  }
 
   /**
    * @ignore
@@ -2555,23 +2585,53 @@ function Core(rootContainer, userSettings, rootInstanceSymbol = false) {
         globalMeta[i] = settings[i];
       }
     }
+    const rootContainerThemeClassName = (0, _themes.getThemeClassName)(instance.rootContainer);
+    const themeNameOptionExists = (0, _object.hasOwnProperty)(settings, 'themeName');
+    const themeOptionExists = (0, _object.hasOwnProperty)(settings, 'theme');
+    if (themeNameOptionExists && themeOptionExists) {
+      (0, _console.warn)('Both `theme` and `themeName` are defined in your configuration. ' + 'These options are aliases and cannot be used together. ' + 'The `themeName` option will be ignored.');
+    }
+
+    // Update the theme via the `theme` or `themeName` option as a string or undefined.
     if (init) {
-      // Use the theme defined in the settings object or set as a root container class name (in that order).
-      instance.useTheme(tableMeta.themeName || (0, _themes.getThemeClassName)(instance.rootContainer));
+      let themeName;
+      if (themeOptionExists && typeof settings.theme === 'string') {
+        themeName = settings.theme;
+      } else if (themeNameOptionExists && typeof settings.themeName === 'string' && settings.themeName && !themeOptionExists) {
+        themeName = settings.themeName;
+        tableMeta.theme = settings.themeName;
+        tableMeta.themeName = undefined;
+      } else if (rootContainerThemeClassName) {
+        themeName = rootContainerThemeClassName;
+      } else if (instance.themeManager) {
+        themeName = instance.themeManager.getClassName();
+      }
+      instance.useTheme(themeName);
     } else {
       const currentThemeName = instance.getCurrentThemeName();
-      const themeNameOptionExists = (0, _object.hasOwnProperty)(settings, 'themeName');
-      if (themeNameOptionExists && currentThemeName !== settings.themeName) {
+
+      // Use `theme` option if it's a string and differs from current theme (takes priority over `themeName`).
+      if (themeOptionExists && typeof settings.theme === 'string' && currentThemeName !== settings.theme) {
+        instance.useTheme(settings.theme);
+        instance.themeManager?.unmount();
+
+        // Use `themeName` option if `theme` is not provided and the name differs from current theme.
+      } else if (themeNameOptionExists && !themeOptionExists && currentThemeName !== settings.themeName) {
+        tableMeta.theme = settings.themeName;
+        tableMeta.themeName = undefined;
         instance.useTheme(settings.themeName);
+        instance.themeManager?.unmount();
+
+        // Initialize or update the themeManager when theme is an object.
+      } else if ((0, _rootInstance.isRootInstance)(instance) && !rootContainerThemeClassName && (0, _object.isObject)(settings.theme)) {
+        if (instance.themeManager === null) {
+          initializeThemeManager(settings.theme);
+          instance.useTheme(instance.themeManager.getClassName());
+        } else {
+          instance.themeManager.update(settings.theme);
+          instance.useTheme(instance.themeManager.getClassName());
+        }
       }
-    }
-    if (deprecatedWarnInstances.has(instance) && instance.stylesHandler.getThemeName() !== undefined) {
-      deprecatedWarnInstances.delete(instance);
-    }
-    if ((0, _rootInstance.isRootInstance)(instance) && !deprecatedWarnInstances.has(instance) && instance.stylesHandler.isClassicTheme()) {
-      // eslint-disable-next-line max-len
-      (0, _console.deprecatedWarn)('The stylesheet you are using is deprecated and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
-      deprecatedWarnInstances.add(instance);
     }
 
     // Load data or create data map
@@ -4449,6 +4509,7 @@ function Core(rootContainer, userSettings, rootInstanceSymbol = false) {
     if ((0, _rootInstance.isRootInstance)(this)) {
       (0, _a11yAnnouncer.uninstall)();
       this.getFocusScopeManager().destroy();
+      instance.themeManager?.destroy();
     }
     this.getShortcutManager().destroy();
     moduleRegisterer.clear();
@@ -4874,15 +4935,13 @@ function Core(rootContainer, userSettings, rootInstanceSymbol = false) {
     const isFirstRun = !!firstRun;
     this.stylesHandler.useTheme(themeName);
     const validThemeName = this.stylesHandler.getThemeName();
-    if (!isFirstRun) {
-      instance.render();
-      instance.scrollViewportTo(0, 0);
+    if (!isFirstRun && validThemeName) {
       if ((0, _themes.getThemeClassName)(this.rootContainer)) {
         (0, _element.removeClass)(this.rootContainer, /ht-theme-.*/g);
-        if (validThemeName) {
-          (0, _element.addClass)(this.rootContainer, validThemeName);
-        }
+        (0, _element.addClass)(this.rootContainer, validThemeName);
       }
+      instance.render();
+      instance.scrollViewportTo(0, 0);
     }
     this.runHooks('afterSetTheme', validThemeName, isFirstRun);
   };
@@ -5084,7 +5143,7 @@ function Core(rootContainer, userSettings, rootInstanceSymbol = false) {
 }
 
 /***/ }),
-/* 5 */
+/* 4 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5151,9 +5210,9 @@ exports.selectElementIfAllowed = selectElementIfAllowed;
 exports.setAttribute = setAttribute;
 exports.setCaretPosition = setCaretPosition;
 exports.setOverlayPosition = setOverlayPosition;
-var _string = __webpack_require__(6);
-var _a11y = __webpack_require__(12);
-var _browser = __webpack_require__(13);
+var _string = __webpack_require__(5);
+var _a11y = __webpack_require__(11);
+var _browser = __webpack_require__(12);
 /**
  * Get the parent of the specified node in the DOM tree.
  *
@@ -6311,7 +6370,7 @@ function isHTMLElement(element) {
 }
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6326,9 +6385,10 @@ exports.randomString = randomString;
 exports.sanitize = sanitize;
 exports.stripTags = stripTags;
 exports.substitute = substitute;
+exports.toHyphen = toHyphen;
 exports.toUpperCaseFirst = toUpperCaseFirst;
-var _dompurify = _interopRequireDefault(__webpack_require__(7));
-var _mixed = __webpack_require__(8);
+var _dompurify = _interopRequireDefault(__webpack_require__(6));
+var _mixed = __webpack_require__(7);
 /**
  * Convert string to upper case first letter.
  *
@@ -6441,15 +6501,28 @@ function sanitize(string, options) {
   return _dompurify.default.sanitize(string, options);
 }
 
+/**
+ * Converts camel case to hyphens in a string.
+ *
+ * @param {string} str - The string to convert.
+ * @returns {string} - The converted string.
+ */
+function toHyphen(str) {
+  if (typeof str !== 'string') {
+    return str;
+  }
+  return str.replace(/([A-Z])/g, '-$1').replace(/_/g, '-').toLowerCase();
+}
+
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ ((module) => {
 
 "use strict";
-module.exports = __WEBPACK_EXTERNAL_MODULE__7__;
+module.exports = __WEBPACK_EXTERNAL_MODULE__6__;
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6463,8 +6536,8 @@ exports.isEmpty = isEmpty;
 exports.isRegExp = isRegExp;
 exports.isUndefined = isUndefined;
 exports.stringify = stringify;
-var _moment = _interopRequireDefault(__webpack_require__(9));
-var _templateLiteralTag = __webpack_require__(10);
+var _moment = _interopRequireDefault(__webpack_require__(8));
+var _templateLiteralTag = __webpack_require__(9);
 /**
  * Converts any value to string.
  *
@@ -6660,14 +6733,14 @@ function _checkKeySchema(v) {
 /* eslint-enable */
 
 /***/ }),
-/* 9 */
+/* 8 */
 /***/ ((module) => {
 
 "use strict";
-module.exports = __WEBPACK_EXTERNAL_MODULE__9__;
+module.exports = __WEBPACK_EXTERNAL_MODULE__8__;
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6676,7 +6749,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__9__;
 exports.__esModule = true;
 exports.html = html;
 exports.toSingleLine = toSingleLine;
-var _array = __webpack_require__(11);
+var _array = __webpack_require__(10);
 /**
  * Tags a multiline string and return new one without line break characters and following spaces.
  *
@@ -6742,7 +6815,7 @@ function html(strings, ...values) {
 /* eslint-enable jsdoc/require-description-complete-sentence */
 
 /***/ }),
-/* 11 */
+/* 10 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -7059,7 +7132,7 @@ function stringToArray(value, delimiter = ' ') {
 }
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -7160,7 +7233,7 @@ const A11Y_MODAL = () => ['aria-modal', 'true'];
 exports.A11Y_MODAL = A11Y_MODAL;
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7182,8 +7255,8 @@ exports.isSafari = isSafari;
 exports.isWindowsOS = isWindowsOS;
 exports.setBrowserMeta = setBrowserMeta;
 exports.setPlatformMeta = setPlatformMeta;
-var _object = __webpack_require__(14);
-var _feature = __webpack_require__(15);
+var _object = __webpack_require__(13);
+var _feature = __webpack_require__(14);
 const tester = testerFunc => {
   const result = {
     value: false,
@@ -7340,7 +7413,7 @@ function isLinuxOS() {
 }
 
 /***/ }),
-/* 14 */
+/* 13 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7352,6 +7425,7 @@ exports.clone = clone;
 exports.createObjectPropListener = createObjectPropListener;
 exports.deepClone = deepClone;
 exports.deepExtend = deepExtend;
+exports.deepMerge = deepMerge;
 exports.deepObjectSize = deepObjectSize;
 exports.defineGetter = defineGetter;
 exports.duckSchema = duckSchema;
@@ -7364,7 +7438,7 @@ exports.isObjectEqual = isObjectEqual;
 exports.mixin = mixin;
 exports.objectEach = objectEach;
 exports.setProperty = setProperty;
-var _array = __webpack_require__(11);
+var _array = __webpack_require__(10);
 /**
  * Generate schema for passed object.
  *
@@ -7745,8 +7819,38 @@ function assignObjectDefaults(target, defaults) {
   return result;
 }
 
+/**
+ * Deeply merges two objects.
+ * For every key:
+ *  - If both source and target values are plain objects, they are merged recursively.
+ *  - Otherwise, the source value replaces the target value.
+ *
+ * @param {object} target The target object.
+ * @param {object} source The source object.
+ * @returns {object} The merged object.
+ */
+function deepMerge(target = {}, source = {}) {
+  const result = {
+    ...target
+  };
+  Object.keys(source).forEach(key => {
+    // Prevent prototype pollution
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      return;
+    }
+    const sourceValue = source[key];
+    const targetValue = result[key];
+    if (isObject(sourceValue) && isObject(targetValue)) {
+      result[key] = deepMerge(targetValue, sourceValue);
+    } else {
+      result[key] = sourceValue;
+    }
+  });
+  return result;
+}
+
 /***/ }),
-/* 15 */
+/* 14 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -7822,7 +7926,7 @@ function getComparisonFunction(language, options = {}) {
 }
 
 /***/ }),
-/* 16 */
+/* 15 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7838,8 +7942,8 @@ exports.partial = partial;
 exports.pipe = pipe;
 exports.throttle = throttle;
 exports.throttleAfterHits = throttleAfterHits;
-var _array = __webpack_require__(11);
-var _mixed = __webpack_require__(8);
+var _array = __webpack_require__(10);
+var _mixed = __webpack_require__(7);
 /**
  * Checks if given variable is function.
  *
@@ -8107,7 +8211,7 @@ function fastCall(func, context, arg1, arg2, arg3, arg4, arg5, arg6) {
 }
 
 /***/ }),
-/* 17 */
+/* 16 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -8115,10 +8219,10 @@ function fastCall(func, context, arg1, arg2, arg3, arg4, arg5, arg6) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _unicode = __webpack_require__(18);
-var _event = __webpack_require__(19);
-var _registry = __webpack_require__(20);
-var _eventManager = _interopRequireDefault(__webpack_require__(26));
+var _unicode = __webpack_require__(17);
+var _event = __webpack_require__(18);
+var _registry = __webpack_require__(19);
+var _eventManager = _interopRequireDefault(__webpack_require__(25));
 class EditorManager {
   /**
    * Instance of {@link Handsontable}.
@@ -8447,7 +8551,7 @@ EditorManager.getInstance = function (hotInstance, tableMeta, selection) {
 var _default = exports["default"] = EditorManager;
 
 /***/ }),
-/* 18 */
+/* 17 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -8459,8 +8563,8 @@ exports.isCtrlMetaKey = isCtrlMetaKey;
 exports.isFunctionKey = isFunctionKey;
 exports.isKey = isKey;
 exports.isPrintableChar = isPrintableChar;
-var _array = __webpack_require__(11);
-var _browser = __webpack_require__(13);
+var _array = __webpack_require__(10);
+var _browser = __webpack_require__(12);
 const KEY_CODES = exports.KEY_CODES = {
   ALT: 18,
   ARROW_DOWN: 40,
@@ -8607,7 +8711,7 @@ function isKey(keyCode, baseCode) {
 }
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -8620,7 +8724,7 @@ exports.isRightClick = isRightClick;
 exports.isTouchEvent = isTouchEvent;
 exports.offsetRelativeTo = offsetRelativeTo;
 exports.stopImmediatePropagation = stopImmediatePropagation;
-var _element = __webpack_require__(5);
+var _element = __webpack_require__(4);
 /**
  * Prevent other listeners of the same event from being called.
  *
@@ -8696,7 +8800,7 @@ function offsetRelativeTo(event, untilElement) {
 }
 
 /***/ }),
-/* 20 */
+/* 19 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -8707,8 +8811,8 @@ exports.RegisteredEditor = RegisteredEditor;
 exports.getEditorInstance = exports._getEditorInstance = _getEditorInstance;
 exports.getEditor = _getItem;
 exports.registerEditor = _register;
-var _hooks = __webpack_require__(21);
-var _staticRegister = __webpack_require__(25);
+var _hooks = __webpack_require__(20);
+var _staticRegister = __webpack_require__(24);
 /**
  * Utility to register editors and common namespace for keeping reference to all editor classes.
  */
@@ -8805,20 +8909,20 @@ function _register(name, editorClass) {
 }
 
 /***/ }),
-/* 21 */
+/* 20 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _array = __webpack_require__(11);
-var _string = __webpack_require__(6);
-var _console = __webpack_require__(22);
-var _templateLiteralTag = __webpack_require__(10);
-var _function = __webpack_require__(16);
-var _constants = __webpack_require__(23);
-var _bucket = __webpack_require__(24);
+var _array = __webpack_require__(10);
+var _string = __webpack_require__(5);
+var _console = __webpack_require__(21);
+var _templateLiteralTag = __webpack_require__(9);
+var _function = __webpack_require__(15);
+var _constants = __webpack_require__(22);
+var _bucket = __webpack_require__(23);
 /**
  * Template warning message for removed hooks.
  *
@@ -9182,7 +9286,7 @@ function getGlobalSingleton() {
 var _default = exports["default"] = Hooks;
 
 /***/ }),
-/* 22 */
+/* 21 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -9194,7 +9298,7 @@ exports.error = error;
 exports.info = info;
 exports.log = log;
 exports.warn = warn;
-var _mixed = __webpack_require__(8);
+var _mixed = __webpack_require__(7);
 /* eslint-disable no-console */
 /* eslint-disable no-restricted-globals */
 
@@ -9261,7 +9365,7 @@ function error(...args) {
 }
 
 /***/ }),
-/* 23 */
+/* 22 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -12519,14 +12623,14 @@ const REMOVED_HOOKS = exports.REMOVED_HOOKS = new Map([['modifyRow', '8.0.0'], [
 const DEPRECATED_HOOKS = exports.DEPRECATED_HOOKS = new Map([]);
 
 /***/ }),
-/* 24 */
+/* 23 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _constants = __webpack_require__(23);
+var _constants = __webpack_require__(22);
 /**
  * The maximum number of hooks that can be skipped before the bucket is cleaned up.
  */
@@ -12678,7 +12782,7 @@ class HooksBucket {
 exports.HooksBucket = HooksBucket;
 
 /***/ }),
-/* 25 */
+/* 24 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -12776,7 +12880,7 @@ function resolveWithInstance(hotInstance, name) {
 }
 
 /***/ }),
-/* 26 */
+/* 25 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -12784,7 +12888,7 @@ function resolveWithInstance(hotInstance, name) {
 
 exports.__esModule = true;
 exports.getListenersCounter = getListenersCounter;
-var _event = __webpack_require__(19);
+var _event = __webpack_require__(18);
 /**
  * Counter which tracks unregistered listeners (useful for detecting memory leaks).
  *
@@ -12991,7 +13095,7 @@ function getListenersCounter() {
 }
 
 /***/ }),
-/* 27 */
+/* 26 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -13001,7 +13105,7 @@ exports.__esModule = true;
 exports._dataToHTML = _dataToHTML;
 exports.htmlToGridSettings = htmlToGridSettings;
 exports.instanceToHTML = instanceToHTML;
-var _mixed = __webpack_require__(8);
+var _mixed = __webpack_require__(7);
 const ESCAPED_HTML_CHARS = {
   '&nbsp;': '\x20',
   '&amp;': '&',
@@ -13277,7 +13381,7 @@ function htmlToGridSettings(element, rootDocument = document) {
 }
 
 /***/ }),
-/* 28 */
+/* 27 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -13288,10 +13392,10 @@ exports.getPlugin = getPlugin;
 exports.getPluginsNames = getPluginsNames;
 exports.hasPlugin = hasPlugin;
 exports.registerPlugin = registerPlugin;
-var _string = __webpack_require__(6);
-var _priorityMap = __webpack_require__(29);
-var _uniqueMap = __webpack_require__(31);
-var _uniqueSet = __webpack_require__(32);
+var _string = __webpack_require__(5);
+var _priorityMap = __webpack_require__(28);
+var _uniqueMap = __webpack_require__(30);
+var _uniqueSet = __webpack_require__(31);
 /**
  * Utility to register plugins and common namespace for keeping the reference to all plugins classes.
  */
@@ -13406,7 +13510,7 @@ function unifyPluginArguments(pluginName, pluginClass, priority) {
 }
 
 /***/ }),
-/* 29 */
+/* 28 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -13414,8 +13518,8 @@ function unifyPluginArguments(pluginName, pluginClass, priority) {
 
 exports.__esModule = true;
 exports.createPriorityMap = createPriorityMap;
-var _number = __webpack_require__(30);
-var _function = __webpack_require__(16);
+var _number = __webpack_require__(29);
+var _function = __webpack_require__(15);
 const ASC = exports.ASC = 'asc';
 const DESC = exports.DESC = 'desc';
 const ORDER_MAP = new Map([[ASC, [-1, 1]], [DESC, [1, -1]]]);
@@ -13480,7 +13584,7 @@ function createPriorityMap({
 }
 
 /***/ }),
-/* 30 */
+/* 29 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -13648,7 +13752,7 @@ function isUnsignedNumber(value) {
 }
 
 /***/ }),
-/* 31 */
+/* 30 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -13656,7 +13760,7 @@ function isUnsignedNumber(value) {
 
 exports.__esModule = true;
 exports.createUniqueMap = createUniqueMap;
-var _function = __webpack_require__(16);
+var _function = __webpack_require__(15);
 const DEFAULT_ERROR_ID_EXISTS = id => `The id '${id}' is already declared in a map.`;
 
 /**
@@ -13778,7 +13882,7 @@ function createUniqueMap({
 }
 
 /***/ }),
-/* 32 */
+/* 31 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -13786,7 +13890,7 @@ function createUniqueMap({
 
 exports.__esModule = true;
 exports.createUniqueSet = createUniqueSet;
-var _function = __webpack_require__(16);
+var _function = __webpack_require__(15);
 const DEFAULT_ERROR_ITEM_EXISTS = item => `'${item}' value is already declared in a unique set.`;
 
 /**
@@ -13842,7 +13946,7 @@ function createUniqueSet({
 }
 
 /***/ }),
-/* 33 */
+/* 32 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -13851,7 +13955,7 @@ function createUniqueSet({
 exports.__esModule = true;
 exports.getRenderer = _getItem;
 exports.registerRenderer = _register;
-var _staticRegister = __webpack_require__(25);
+var _staticRegister = __webpack_require__(24);
 const {
   register,
   getItem,
@@ -13942,7 +14046,7 @@ const rendererFactory = callback => {
 exports.rendererFactory = rendererFactory;
 
 /***/ }),
-/* 34 */
+/* 33 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -13951,7 +14055,7 @@ exports.rendererFactory = rendererFactory;
 exports.__esModule = true;
 exports.getValidator = _getItem;
 exports.registerValidator = _register;
-var _staticRegister = __webpack_require__(25);
+var _staticRegister = __webpack_require__(24);
 const {
   register,
   getItem,
@@ -13994,7 +14098,7 @@ function _register(name, validator) {
 }
 
 /***/ }),
-/* 35 */
+/* 34 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -14002,14 +14106,14 @@ function _register(name, validator) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _eventManager = _interopRequireDefault(__webpack_require__(26));
-var _event = __webpack_require__(19);
-var _src = _interopRequireDefault(__webpack_require__(36));
-var _mouseEventHandler = __webpack_require__(112);
-var _rootInstance = __webpack_require__(113);
-var _staticRegister = __webpack_require__(25);
-var _a11y = __webpack_require__(12);
+var _element = __webpack_require__(4);
+var _eventManager = _interopRequireDefault(__webpack_require__(25));
+var _event = __webpack_require__(18);
+var _src = _interopRequireDefault(__webpack_require__(35));
+var _mouseEventHandler = __webpack_require__(111);
+var _rootInstance = __webpack_require__(112);
+var _staticRegister = __webpack_require__(24);
+var _a11y = __webpack_require__(11);
 /**
  * @class TableView
  * @private
@@ -15723,7 +15827,7 @@ class TableView {
 var _default = exports["default"] = TableView;
 
 /***/ }),
-/* 36 */
+/* 35 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -15731,18 +15835,18 @@ var _default = exports["default"] = TableView;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _calculator = __webpack_require__(37);
+var _calculator = __webpack_require__(36);
 exports.ViewportColumnsCalculator = _calculator.ViewportColumnsCalculator;
 exports.ViewportRowsCalculator = _calculator.ViewportRowsCalculator;
 exports.DEFAULT_COLUMN_WIDTH = _calculator.DEFAULT_COLUMN_WIDTH;
-var _coords = _interopRequireDefault(__webpack_require__(49));
+var _coords = _interopRequireDefault(__webpack_require__(48));
 exports.CellCoords = _coords.default;
-var _range = _interopRequireDefault(__webpack_require__(50));
+var _range = _interopRequireDefault(__webpack_require__(49));
 exports.CellRange = _range.default;
-var _core = _interopRequireDefault(__webpack_require__(51));
+var _core = _interopRequireDefault(__webpack_require__(50));
 exports["default"] = _core.default;
 exports.Core = _core.default;
-var _selection = __webpack_require__(96);
+var _selection = __webpack_require__(95);
 exports.Selection = _selection.Selection;
 exports.HIGHLIGHT_ACTIVE_HEADER_TYPE = _selection.ACTIVE_HEADER_TYPE;
 exports.HIGHLIGHT_AREA_TYPE = _selection.AREA_TYPE;
@@ -15752,49 +15856,49 @@ exports.HIGHLIGHT_HEADER_TYPE = _selection.HEADER_TYPE;
 exports.HIGHLIGHT_ROW_TYPE = _selection.ROW_TYPE;
 exports.HIGHLIGHT_COLUMN_TYPE = _selection.COLUMN_TYPE;
 exports.HIGHLIGHT_CUSTOM_SELECTION_TYPE = _selection.CUSTOM_SELECTION_TYPE;
-var Renderer = _interopRequireWildcard(__webpack_require__(61));
+var Renderer = _interopRequireWildcard(__webpack_require__(60));
 exports.Renderer = Renderer;
-var _orderView = __webpack_require__(63);
+var _orderView = __webpack_require__(62);
 exports.OrderView = _orderView.OrderView;
 exports.SharedOrderView = _orderView.SharedOrderView;
-var _nodesPool = __webpack_require__(75);
+var _nodesPool = __webpack_require__(74);
 exports.NodesPool = _nodesPool.NodesPool;
-var _eventManager = __webpack_require__(26);
+var _eventManager = __webpack_require__(25);
 exports.getListenersCounter = _eventManager.getListenersCounter;
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 
 /***/ }),
-/* 37 */
+/* 36 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _fullyVisibleColumns = __webpack_require__(38);
+var _fullyVisibleColumns = __webpack_require__(37);
 exports.FullyVisibleColumnsCalculationType = _fullyVisibleColumns.FullyVisibleColumnsCalculationType;
-var _fullyVisibleRows = __webpack_require__(39);
+var _fullyVisibleRows = __webpack_require__(38);
 exports.FullyVisibleRowsCalculationType = _fullyVisibleRows.FullyVisibleRowsCalculationType;
-var _partiallyVisibleColumns = __webpack_require__(40);
+var _partiallyVisibleColumns = __webpack_require__(39);
 exports.PartiallyVisibleColumnsCalculationType = _partiallyVisibleColumns.PartiallyVisibleColumnsCalculationType;
-var _partiallyVisibleRows = __webpack_require__(41);
+var _partiallyVisibleRows = __webpack_require__(40);
 exports.PartiallyVisibleRowsCalculationType = _partiallyVisibleRows.PartiallyVisibleRowsCalculationType;
-var _renderedAllColumns = __webpack_require__(42);
+var _renderedAllColumns = __webpack_require__(41);
 exports.RenderedAllColumnsCalculationType = _renderedAllColumns.RenderedAllColumnsCalculationType;
-var _renderedAllRows = __webpack_require__(43);
+var _renderedAllRows = __webpack_require__(42);
 exports.RenderedAllRowsCalculationType = _renderedAllRows.RenderedAllRowsCalculationType;
-var _renderedColumns = __webpack_require__(44);
+var _renderedColumns = __webpack_require__(43);
 exports.RenderedColumnsCalculationType = _renderedColumns.RenderedColumnsCalculationType;
-var _renderedRows = __webpack_require__(45);
+var _renderedRows = __webpack_require__(44);
 exports.RenderedRowsCalculationType = _renderedRows.RenderedRowsCalculationType;
-var _viewportColumns = __webpack_require__(46);
+var _viewportColumns = __webpack_require__(45);
 exports.ViewportColumnsCalculator = _viewportColumns.ViewportColumnsCalculator;
 exports.DEFAULT_COLUMN_WIDTH = _viewportColumns.DEFAULT_WIDTH;
-var _viewportRows = __webpack_require__(48);
+var _viewportRows = __webpack_require__(47);
 exports.ViewportRowsCalculator = _viewportRows.ViewportRowsCalculator;
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -15918,7 +16022,7 @@ class FullyVisibleColumnsCalculationType {
 exports.FullyVisibleColumnsCalculationType = FullyVisibleColumnsCalculationType;
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -16035,7 +16139,7 @@ class FullyVisibleRowsCalculationType {
 exports.FullyVisibleRowsCalculationType = FullyVisibleRowsCalculationType;
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -16158,7 +16262,7 @@ class PartiallyVisibleColumnsCalculationType {
 exports.PartiallyVisibleColumnsCalculationType = PartiallyVisibleColumnsCalculationType;
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -16274,7 +16378,7 @@ class PartiallyVisibleRowsCalculationType {
 exports.PartiallyVisibleRowsCalculationType = PartiallyVisibleRowsCalculationType;
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -16347,7 +16451,7 @@ class RenderedAllColumnsCalculationType {
 exports.RenderedAllColumnsCalculationType = RenderedAllColumnsCalculationType;
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -16420,14 +16524,14 @@ class RenderedAllRowsCalculationType {
 exports.RenderedAllRowsCalculationType = RenderedAllRowsCalculationType;
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _partiallyVisibleColumns = __webpack_require__(40);
+var _partiallyVisibleColumns = __webpack_require__(39);
 /**
  * @class RenderedColumnsCalculationType
  */
@@ -16479,14 +16583,14 @@ class RenderedColumnsCalculationType extends _partiallyVisibleColumns.PartiallyV
 exports.RenderedColumnsCalculationType = RenderedColumnsCalculationType;
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _partiallyVisibleRows = __webpack_require__(41);
+var _partiallyVisibleRows = __webpack_require__(40);
 /**
  * @class RenderedRowsCalculationType
  */
@@ -16538,14 +16642,14 @@ class RenderedRowsCalculationType extends _partiallyVisibleRows.PartiallyVisible
 exports.RenderedRowsCalculationType = RenderedRowsCalculationType;
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _viewportBase = __webpack_require__(47);
+var _viewportBase = __webpack_require__(46);
 const DEFAULT_WIDTH = exports.DEFAULT_WIDTH = 50;
 
 /**
@@ -16635,7 +16739,7 @@ class ViewportColumnsCalculator extends _viewportBase.ViewportBaseCalculator {
 exports.ViewportColumnsCalculator = ViewportColumnsCalculator;
 
 /***/ }),
-/* 47 */
+/* 46 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -16728,14 +16832,14 @@ class ViewportBaseCalculator {
 exports.ViewportBaseCalculator = ViewportBaseCalculator;
 
 /***/ }),
-/* 48 */
+/* 47 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _viewportBase = __webpack_require__(47);
+var _viewportBase = __webpack_require__(46);
 /**
  * @typedef {object} ViewportRowsCalculatorOptions
  * @property {Map<string, ViewportBaseCalculator>} calculationTypes The calculation types to be performed.
@@ -16828,7 +16932,7 @@ class ViewportRowsCalculator extends _viewportBase.ViewportBaseCalculator {
 exports.ViewportRowsCalculator = ViewportRowsCalculator;
 
 /***/ }),
-/* 49 */
+/* 48 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -17071,7 +17175,7 @@ class CellCoords {
 var _default = exports["default"] = CellCoords;
 
 /***/ }),
-/* 50 */
+/* 49 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -17079,7 +17183,7 @@ var _default = exports["default"] = CellCoords;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _coords = _interopRequireDefault(__webpack_require__(49));
+var _coords = _interopRequireDefault(__webpack_require__(48));
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
@@ -17947,7 +18051,7 @@ class CellRange {
 var _default = exports["default"] = CellRange;
 
 /***/ }),
-/* 51 */
+/* 50 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -17955,8 +18059,8 @@ var _default = exports["default"] = CellRange;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _core = _interopRequireDefault(__webpack_require__(52));
-var _base = _interopRequireDefault(__webpack_require__(88));
+var _core = _interopRequireDefault(__webpack_require__(51));
+var _base = _interopRequireDefault(__webpack_require__(87));
 /**
  * This layer cares about backward compatibility.
  *
@@ -18114,7 +18218,7 @@ class WalkontableFacade {
 exports["default"] = WalkontableFacade;
 
 /***/ }),
-/* 52 */
+/* 51 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -18122,16 +18226,16 @@ exports["default"] = WalkontableFacade;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _event = _interopRequireDefault(__webpack_require__(53));
-var _overlays = _interopRequireDefault(__webpack_require__(54));
-var _overlay = __webpack_require__(55);
-var _settings = _interopRequireDefault(__webpack_require__(109));
-var _master = _interopRequireDefault(__webpack_require__(110));
-var _viewport = _interopRequireDefault(__webpack_require__(111));
-var _base = _interopRequireDefault(__webpack_require__(88));
-var _manager = __webpack_require__(101);
-var _object = __webpack_require__(14);
-var _element = __webpack_require__(5);
+var _event = _interopRequireDefault(__webpack_require__(52));
+var _overlays = _interopRequireDefault(__webpack_require__(53));
+var _overlay = __webpack_require__(54);
+var _settings = _interopRequireDefault(__webpack_require__(108));
+var _master = _interopRequireDefault(__webpack_require__(109));
+var _viewport = _interopRequireDefault(__webpack_require__(110));
+var _base = _interopRequireDefault(__webpack_require__(87));
+var _manager = __webpack_require__(100);
+var _object = __webpack_require__(13);
+var _element = __webpack_require__(4);
 /**
  * @class Walkontable
  */
@@ -18231,18 +18335,18 @@ class Walkontable extends _base.default {
 exports["default"] = Walkontable;
 
 /***/ }),
-/* 53 */
+/* 52 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _function = __webpack_require__(16);
-var _feature = __webpack_require__(15);
-var _browser = __webpack_require__(13);
-var _mixed = __webpack_require__(8);
+var _element = __webpack_require__(4);
+var _function = __webpack_require__(15);
+var _feature = __webpack_require__(14);
+var _browser = __webpack_require__(12);
+var _mixed = __webpack_require__(7);
 /**
  * @class Event
  */
@@ -18591,20 +18695,20 @@ class Event {
 var _default = exports["default"] = Event;
 
 /***/ }),
-/* 54 */
+/* 53 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _feature = __webpack_require__(15);
-var _array = __webpack_require__(11);
-var _unicode = __webpack_require__(18);
-var _browser = __webpack_require__(13);
-var _console = __webpack_require__(22);
-var _overlay = __webpack_require__(55);
+var _element = __webpack_require__(4);
+var _feature = __webpack_require__(14);
+var _array = __webpack_require__(10);
+var _unicode = __webpack_require__(17);
+var _browser = __webpack_require__(12);
+var _console = __webpack_require__(21);
+var _overlay = __webpack_require__(54);
 /**
  * @class Overlays
  */
@@ -19439,7 +19543,7 @@ class Overlays {
 var _default = exports["default"] = Overlays;
 
 /***/ }),
-/* 55 */
+/* 54 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -19454,19 +19558,19 @@ var _exportNames = {
   TopInlineStartCornerOverlay: true,
   TopOverlay: true
 };
-var _bottomInlineStartCorner = __webpack_require__(56);
+var _bottomInlineStartCorner = __webpack_require__(55);
 exports.BottomInlineStartCornerOverlay = _bottomInlineStartCorner.BottomInlineStartCornerOverlay;
-var _bottom = __webpack_require__(90);
+var _bottom = __webpack_require__(89);
 exports.BottomOverlay = _bottom.BottomOverlay;
-var _inlineStart = __webpack_require__(93);
+var _inlineStart = __webpack_require__(92);
 exports.InlineStartOverlay = _inlineStart.InlineStartOverlay;
-var _base = __webpack_require__(85);
+var _base = __webpack_require__(84);
 exports.Overlay = _base.Overlay;
-var _topInlineStartCorner = __webpack_require__(104);
+var _topInlineStartCorner = __webpack_require__(103);
 exports.TopInlineStartCornerOverlay = _topInlineStartCorner.TopInlineStartCornerOverlay;
-var _top = __webpack_require__(107);
+var _top = __webpack_require__(106);
 exports.TopOverlay = _top.TopOverlay;
-var _constants = __webpack_require__(86);
+var _constants = __webpack_require__(85);
 Object.keys(_constants).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -19475,7 +19579,7 @@ Object.keys(_constants).forEach(function (key) {
 });
 
 /***/ }),
-/* 56 */
+/* 55 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -19483,10 +19587,10 @@ Object.keys(_constants).forEach(function (key) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _bottomInlineStartCorner = _interopRequireDefault(__webpack_require__(57));
-var _base = __webpack_require__(85);
-var _constants = __webpack_require__(86);
+var _element = __webpack_require__(4);
+var _bottomInlineStartCorner = _interopRequireDefault(__webpack_require__(56));
+var _base = __webpack_require__(84);
+var _constants = __webpack_require__(85);
 /**
  * @class BottomInlineStartCornerOverlay
  */
@@ -19585,7 +19689,7 @@ class BottomInlineStartCornerOverlay extends _base.Overlay {
 exports.BottomInlineStartCornerOverlay = BottomInlineStartCornerOverlay;
 
 /***/ }),
-/* 57 */
+/* 56 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -19593,11 +19697,11 @@ exports.BottomInlineStartCornerOverlay = BottomInlineStartCornerOverlay;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _table = _interopRequireDefault(__webpack_require__(58));
-var _stickyRowsBottom = _interopRequireDefault(__webpack_require__(83));
-var _stickyColumnsStart = _interopRequireDefault(__webpack_require__(84));
-var _object = __webpack_require__(14);
-var _overlay = __webpack_require__(55);
+var _table = _interopRequireDefault(__webpack_require__(57));
+var _stickyRowsBottom = _interopRequireDefault(__webpack_require__(82));
+var _stickyColumnsStart = _interopRequireDefault(__webpack_require__(83));
+var _object = __webpack_require__(13);
+var _overlay = __webpack_require__(54);
 /**
  * Subclass of `Table` that provides the helper methods relevant to bottomInlineStartCornerOverlay
  * (in RTL mode the overlay sits on the right of the screen), implemented through mixins.
@@ -19621,7 +19725,7 @@ class BottomInlineStartCornerOverlayTable extends _table.default {
 var _default = exports["default"] = BottomInlineStartCornerOverlayTable;
 
 /***/ }),
-/* 58 */
+/* 57 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -19629,15 +19733,15 @@ var _default = exports["default"] = BottomInlineStartCornerOverlayTable;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _function = __webpack_require__(16);
-var _column = _interopRequireDefault(__webpack_require__(59));
-var _row = _interopRequireDefault(__webpack_require__(60));
-var _renderer = __webpack_require__(61);
-var _column2 = _interopRequireDefault(__webpack_require__(81));
-var _row2 = _interopRequireDefault(__webpack_require__(82));
-var _overlay = __webpack_require__(55);
-var _a11y = __webpack_require__(12);
+var _element = __webpack_require__(4);
+var _function = __webpack_require__(15);
+var _column = _interopRequireDefault(__webpack_require__(58));
+var _row = _interopRequireDefault(__webpack_require__(59));
+var _renderer = __webpack_require__(60);
+var _column2 = _interopRequireDefault(__webpack_require__(80));
+var _row2 = _interopRequireDefault(__webpack_require__(81));
+var _overlay = __webpack_require__(54);
+var _a11y = __webpack_require__(11);
 /**
  * @todo These mixes are never added to the class Table, however their members are used here.
  * @todo Continue: Potentially it works only, because some of these mixes are added to every inherited class.
@@ -20642,7 +20746,7 @@ class Table {
 var _default = exports["default"] = Table;
 
 /***/ }),
-/* 59 */
+/* 58 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -20744,7 +20848,7 @@ class ColumnFilter {
 var _default = exports["default"] = ColumnFilter;
 
 /***/ }),
-/* 60 */
+/* 59 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -20846,24 +20950,24 @@ class RowFilter {
 var _default = exports["default"] = RowFilter;
 
 /***/ }),
-/* 61 */
+/* 60 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _rowHeaders = __webpack_require__(62);
+var _rowHeaders = __webpack_require__(61);
 exports.RowHeadersRenderer = _rowHeaders.RowHeadersRenderer;
-var _columnHeaders = __webpack_require__(76);
+var _columnHeaders = __webpack_require__(75);
 exports.ColumnHeadersRenderer = _columnHeaders.ColumnHeadersRenderer;
-var _colGroup = __webpack_require__(77);
+var _colGroup = __webpack_require__(76);
 exports.ColGroupRenderer = _colGroup.ColGroupRenderer;
-var _rows = __webpack_require__(78);
+var _rows = __webpack_require__(77);
 exports.RowsRenderer = _rows.RowsRenderer;
-var _cells = __webpack_require__(79);
+var _cells = __webpack_require__(78);
 exports.CellsRenderer = _cells.CellsRenderer;
-var _table = __webpack_require__(80);
+var _table = __webpack_require__(79);
 exports.TableRenderer = _table.TableRenderer;
 /**
  * Content renderer.
@@ -20965,17 +21069,17 @@ class Renderer {
 exports.Renderer = Renderer;
 
 /***/ }),
-/* 62 */
+/* 61 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _orderView = __webpack_require__(63);
-var _base = __webpack_require__(74);
-var _element = __webpack_require__(5);
-var _a11y = __webpack_require__(12);
+var _orderView = __webpack_require__(62);
+var _base = __webpack_require__(73);
+var _element = __webpack_require__(4);
+var _a11y = __webpack_require__(11);
 /**
  * Row headers renderer responsible for managing (inserting, tracking, rendering) TR elements belongs to TR.
  *
@@ -21064,6 +21168,19 @@ class RowHeadersRenderer extends _base.BaseRenderer {
 exports.RowHeadersRenderer = RowHeadersRenderer;
 
 /***/ }),
+/* 62 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+var _view = __webpack_require__(63);
+exports.OrderView = _view.OrderView;
+var _sharedView = __webpack_require__(72);
+exports.SharedOrderView = _sharedView.SharedOrderView;
+
+/***/ }),
 /* 63 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -21071,22 +21188,9 @@ exports.RowHeadersRenderer = RowHeadersRenderer;
 
 
 exports.__esModule = true;
-var _view = __webpack_require__(64);
-exports.OrderView = _view.OrderView;
-var _sharedView = __webpack_require__(73);
-exports.SharedOrderView = _sharedView.SharedOrderView;
-
-/***/ }),
-/* 64 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-exports.__esModule = true;
-var _viewSizeSet = __webpack_require__(65);
-var _viewDiffer = __webpack_require__(68);
-var _rendererAdapter = __webpack_require__(70);
+var _viewSizeSet = __webpack_require__(64);
+var _viewDiffer = __webpack_require__(67);
+var _rendererAdapter = __webpack_require__(69);
 /**
  * Executive model for each table renderer. It's responsible for injecting DOM nodes in a
  * specified order and adjusting the number of elements in the root node.
@@ -21228,15 +21332,15 @@ class OrderView {
 exports.OrderView = OrderView;
 
 /***/ }),
-/* 65 */
+/* 64 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _viewSize = __webpack_require__(66);
-var _constants = __webpack_require__(67);
+var _viewSize = __webpack_require__(65);
+var _constants = __webpack_require__(66);
 /**
  * The class is a source of the truth of information about the current and
  * next size of the rendered DOM elements and current and next offset of
@@ -21347,7 +21451,7 @@ class ViewSizeSet {
 exports.ViewSizeSet = ViewSizeSet;
 
 /***/ }),
-/* 66 */
+/* 65 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -21408,7 +21512,7 @@ class ViewSize {
 exports.ViewSize = ViewSize;
 
 /***/ }),
-/* 67 */
+/* 66 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -21440,15 +21544,15 @@ const WORKING_SPACE_TOP = exports.WORKING_SPACE_TOP = 1;
 const WORKING_SPACE_BOTTOM = exports.WORKING_SPACE_BOTTOM = 2;
 
 /***/ }),
-/* 68 */
+/* 67 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _constants = __webpack_require__(67);
-var _viewOrder = __webpack_require__(69);
+var _constants = __webpack_require__(66);
+var _viewOrder = __webpack_require__(68);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -21581,7 +21685,7 @@ class ViewDiffer {
 exports.ViewDiffer = ViewDiffer;
 
 /***/ }),
-/* 69 */
+/* 68 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -21653,7 +21757,7 @@ class ViewOrder {
 exports.ViewOrder = ViewOrder;
 
 /***/ }),
-/* 70 */
+/* 69 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -21661,9 +21765,9 @@ exports.ViewOrder = ViewOrder;
 
 exports.__esModule = true;
 exports.createRendererAdapter = createRendererAdapter;
-var _browser = __webpack_require__(13);
-var _differBasedRendererAdapter = __webpack_require__(71);
-var _directDomRendererAdapter = __webpack_require__(72);
+var _browser = __webpack_require__(12);
+var _differBasedRendererAdapter = __webpack_require__(70);
+var _directDomRendererAdapter = __webpack_require__(71);
 /**
  * Factory function to create the appropriate renderer adapter based on the browser.
  *
@@ -21678,7 +21782,7 @@ function createRendererAdapter(orderView) {
 }
 
 /***/ }),
-/* 71 */
+/* 70 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -21782,14 +21886,14 @@ class DifferBasedRendererAdapter {
 exports.DifferBasedRendererAdapter = DifferBasedRendererAdapter;
 
 /***/ }),
-/* 72 */
+/* 71 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _constants = __webpack_require__(67);
+var _constants = __webpack_require__(66);
 /**
  * Direct DOM renderer adapter that uses direct DOM manipulation.
  *
@@ -21903,14 +22007,14 @@ class DirectDomRendererAdapter {
 exports.DirectDomRendererAdapter = DirectDomRendererAdapter;
 
 /***/ }),
-/* 73 */
+/* 72 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _view = __webpack_require__(64);
+var _view = __webpack_require__(63);
 /**
  * Executive model for TR root nodes.
  *
@@ -21954,14 +22058,14 @@ class SharedOrderView extends _view.OrderView {
 exports.SharedOrderView = SharedOrderView;
 
 /***/ }),
-/* 74 */
+/* 73 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _nodesPool = __webpack_require__(75);
+var _nodesPool = __webpack_require__(74);
 /**
  * Base renderer class, abstract logic for specialized renderers.
  *
@@ -22032,14 +22136,14 @@ class BaseRenderer {
 exports.BaseRenderer = BaseRenderer;
 
 /***/ }),
-/* 75 */
+/* 74 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _browser = __webpack_require__(13);
+var _browser = __webpack_require__(12);
 /**
  * Factory for newly created DOM elements.
  *
@@ -22098,16 +22202,16 @@ class NodesPool {
 exports.NodesPool = NodesPool;
 
 /***/ }),
-/* 76 */
+/* 75 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _base = __webpack_require__(74);
-var _a11y = __webpack_require__(12);
+var _element = __webpack_require__(4);
+var _base = __webpack_require__(73);
+var _a11y = __webpack_require__(11);
 /**
  * Column headers renderer responsible for managing (inserting, tracking, rendering) TR and TH elements.
  *
@@ -22209,17 +22313,17 @@ class ColumnHeadersRenderer extends _base.BaseRenderer {
 exports.ColumnHeadersRenderer = ColumnHeadersRenderer;
 
 /***/ }),
-/* 77 */
+/* 76 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(74);
-var _console = __webpack_require__(22);
-var _templateLiteralTag = __webpack_require__(10);
-var _element = __webpack_require__(5);
+var _base = __webpack_require__(73);
+var _console = __webpack_require__(21);
+var _templateLiteralTag = __webpack_require__(9);
+var _element = __webpack_require__(4);
 let performanceWarningAppeared = false;
 
 /**
@@ -22296,19 +22400,19 @@ class ColGroupRenderer extends _base.BaseRenderer {
 exports.ColGroupRenderer = ColGroupRenderer;
 
 /***/ }),
-/* 78 */
+/* 77 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(74);
-var _console = __webpack_require__(22);
-var _templateLiteralTag = __webpack_require__(10);
-var _orderView = __webpack_require__(63);
-var _element = __webpack_require__(5);
-var _a11y = __webpack_require__(12);
+var _base = __webpack_require__(73);
+var _console = __webpack_require__(21);
+var _templateLiteralTag = __webpack_require__(9);
+var _orderView = __webpack_require__(62);
+var _element = __webpack_require__(4);
+var _a11y = __webpack_require__(11);
 const ROW_CLASSNAMES = {
   rowEven: 'ht__row_even',
   rowOdd: 'ht__row_odd'
@@ -22391,17 +22495,17 @@ class RowsRenderer extends _base.BaseRenderer {
 exports.RowsRenderer = RowsRenderer;
 
 /***/ }),
-/* 79 */
+/* 78 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _orderView = __webpack_require__(63);
-var _base = __webpack_require__(74);
-var _a11y = __webpack_require__(12);
+var _element = __webpack_require__(4);
+var _orderView = __webpack_require__(62);
+var _base = __webpack_require__(73);
+var _a11y = __webpack_require__(11);
 /**
  * Cell renderer responsible for managing (inserting, tracking, rendering) TD elements.
  *
@@ -22493,7 +22597,7 @@ class CellsRenderer extends _base.BaseRenderer {
 exports.CellsRenderer = CellsRenderer;
 
 /***/ }),
-/* 80 */
+/* 79 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -22831,7 +22935,7 @@ class TableRenderer {
 exports.TableRenderer = TableRenderer;
 
 /***/ }),
-/* 81 */
+/* 80 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -22925,7 +23029,7 @@ class ColumnUtils {
 exports["default"] = ColumnUtils;
 
 /***/ }),
-/* 82 */
+/* 81 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -22990,14 +23094,14 @@ class RowUtils {
 exports["default"] = RowUtils;
 
 /***/ }),
-/* 83 */
+/* 82 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
+var _object = __webpack_require__(13);
 const MIXIN_NAME = 'stickyRowsBottom';
 
 /**
@@ -23111,14 +23215,14 @@ const stickyRowsBottom = {
 var _default = exports["default"] = stickyRowsBottom;
 
 /***/ }),
-/* 84 */
+/* 83 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
+var _object = __webpack_require__(13);
 const MIXIN_NAME = 'stickyColumnsStart';
 
 /**
@@ -23228,7 +23332,7 @@ const stickyColumnsStart = {
 var _default = exports["default"] = stickyColumnsStart;
 
 /***/ }),
-/* 85 */
+/* 84 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -23236,12 +23340,12 @@ var _default = exports["default"] = stickyColumnsStart;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _object = __webpack_require__(14);
-var _console = __webpack_require__(22);
-var _constants = __webpack_require__(86);
-var _clone = _interopRequireDefault(__webpack_require__(87));
-var _a11y = __webpack_require__(12);
+var _element = __webpack_require__(4);
+var _object = __webpack_require__(13);
+var _console = __webpack_require__(21);
+var _constants = __webpack_require__(85);
+var _clone = _interopRequireDefault(__webpack_require__(86));
+var _a11y = __webpack_require__(11);
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
  * and (optionally) implements behavior needed for native horizontal and vertical scrolling.
@@ -23588,7 +23692,7 @@ class Overlay {
 exports.Overlay = Overlay;
 
 /***/ }),
-/* 86 */
+/* 85 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -23607,7 +23711,7 @@ const CLONE_TYPES = exports.CLONE_TYPES = [CLONE_TOP, CLONE_BOTTOM, CLONE_INLINE
 const CLONE_CLASS_NAMES = exports.CLONE_CLASS_NAMES = new Map([[CLONE_TOP, `ht_clone_${CLONE_TOP}`], [CLONE_BOTTOM, `ht_clone_${CLONE_BOTTOM}`], [CLONE_INLINE_START, `ht_clone_${CLONE_INLINE_START} ht_clone_left`], [CLONE_TOP_INLINE_START_CORNER, `ht_clone_${CLONE_TOP_INLINE_START_CORNER} ht_clone_top_left_corner`], [CLONE_BOTTOM_INLINE_START_CORNER, `ht_clone_${CLONE_BOTTOM_INLINE_START_CORNER} ht_clone_bottom_left_corner`]]);
 
 /***/ }),
-/* 87 */
+/* 86 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -23615,8 +23719,8 @@ const CLONE_CLASS_NAMES = exports.CLONE_CLASS_NAMES = new Map([[CLONE_TOP, `ht_c
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _event = _interopRequireDefault(__webpack_require__(53));
-var _base = _interopRequireDefault(__webpack_require__(88));
+var _event = _interopRequireDefault(__webpack_require__(52));
+var _base = _interopRequireDefault(__webpack_require__(87));
 /**
  * @class Walkontable
  */
@@ -23650,7 +23754,7 @@ class Clone extends _base.default {
 exports["default"] = Clone;
 
 /***/ }),
-/* 88 */
+/* 87 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -23658,12 +23762,12 @@ exports["default"] = Clone;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _string = __webpack_require__(6);
-var _eventManager = _interopRequireDefault(__webpack_require__(26));
-var _scroll = _interopRequireDefault(__webpack_require__(89));
-var _coords = _interopRequireDefault(__webpack_require__(49));
-var _range = _interopRequireDefault(__webpack_require__(50));
+var _element = __webpack_require__(4);
+var _string = __webpack_require__(5);
+var _eventManager = _interopRequireDefault(__webpack_require__(25));
+var _scroll = _interopRequireDefault(__webpack_require__(88));
+var _coords = _interopRequireDefault(__webpack_require__(48));
+var _range = _interopRequireDefault(__webpack_require__(49));
 /**
  * @abstract
  * @class Walkontable
@@ -24021,15 +24125,15 @@ class CoreAbstract {
 exports["default"] = CoreAbstract;
 
 /***/ }),
-/* 89 */
+/* 88 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _object = __webpack_require__(14);
+var _element = __webpack_require__(4);
+var _object = __webpack_require__(13);
 /**
  * @class Scroll
  */
@@ -24315,7 +24419,7 @@ class Scroll {
 var _default = exports["default"] = Scroll;
 
 /***/ }),
-/* 90 */
+/* 89 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -24323,10 +24427,10 @@ var _default = exports["default"] = Scroll;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _bottom = _interopRequireDefault(__webpack_require__(91));
-var _base = __webpack_require__(85);
-var _constants = __webpack_require__(86);
+var _element = __webpack_require__(4);
+var _bottom = _interopRequireDefault(__webpack_require__(90));
+var _base = __webpack_require__(84);
+var _constants = __webpack_require__(85);
 /**
  * @class BottomOverlay
  */
@@ -24665,7 +24769,7 @@ class BottomOverlay extends _base.Overlay {
 exports.BottomOverlay = BottomOverlay;
 
 /***/ }),
-/* 91 */
+/* 90 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -24673,11 +24777,11 @@ exports.BottomOverlay = BottomOverlay;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _table = _interopRequireDefault(__webpack_require__(58));
-var _stickyRowsBottom = _interopRequireDefault(__webpack_require__(83));
-var _calculatedColumns = _interopRequireDefault(__webpack_require__(92));
-var _object = __webpack_require__(14);
-var _overlay = __webpack_require__(55);
+var _table = _interopRequireDefault(__webpack_require__(57));
+var _stickyRowsBottom = _interopRequireDefault(__webpack_require__(82));
+var _calculatedColumns = _interopRequireDefault(__webpack_require__(91));
+var _object = __webpack_require__(13);
+var _overlay = __webpack_require__(54);
 /**
  * Subclass of `Table` that provides the helper methods relevant to BottomOverlay, implemented through mixins.
  *
@@ -24700,14 +24804,14 @@ class BottomOverlayTable extends _table.default {
 var _default = exports["default"] = BottomOverlayTable;
 
 /***/ }),
-/* 92 */
+/* 91 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
+var _object = __webpack_require__(13);
 const MIXIN_NAME = 'calculatedColumns';
 
 /**
@@ -24832,7 +24936,7 @@ const calculatedColumns = {
 var _default = exports["default"] = calculatedColumns;
 
 /***/ }),
-/* 93 */
+/* 92 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -24840,11 +24944,11 @@ var _default = exports["default"] = calculatedColumns;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _inlineStart = _interopRequireDefault(__webpack_require__(94));
-var _base = __webpack_require__(85);
-var _selection = __webpack_require__(96);
-var _constants = __webpack_require__(86);
+var _element = __webpack_require__(4);
+var _inlineStart = _interopRequireDefault(__webpack_require__(93));
+var _base = __webpack_require__(84);
+var _selection = __webpack_require__(95);
+var _constants = __webpack_require__(85);
 /**
  * @class InlineStartOverlay
  */
@@ -25192,7 +25296,7 @@ class InlineStartOverlay extends _base.Overlay {
 exports.InlineStartOverlay = InlineStartOverlay;
 
 /***/ }),
-/* 94 */
+/* 93 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -25200,11 +25304,11 @@ exports.InlineStartOverlay = InlineStartOverlay;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _table = _interopRequireDefault(__webpack_require__(58));
-var _calculatedRows = _interopRequireDefault(__webpack_require__(95));
-var _stickyColumnsStart = _interopRequireDefault(__webpack_require__(84));
-var _object = __webpack_require__(14);
-var _overlay = __webpack_require__(55);
+var _table = _interopRequireDefault(__webpack_require__(57));
+var _calculatedRows = _interopRequireDefault(__webpack_require__(94));
+var _stickyColumnsStart = _interopRequireDefault(__webpack_require__(83));
+var _object = __webpack_require__(13);
+var _overlay = __webpack_require__(54);
 /**
  * Subclass of `Table` that provides the helper methods relevant to InlineStartOverlayTable, implemented through mixins.
  */
@@ -25224,14 +25328,14 @@ class InlineStartOverlayTable extends _table.default {
 var _default = exports["default"] = InlineStartOverlayTable;
 
 /***/ }),
-/* 95 */
+/* 94 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
+var _object = __webpack_require__(13);
 const MIXIN_NAME = 'calculatedRows';
 
 /**
@@ -25356,7 +25460,7 @@ const calculatedRows = {
 var _default = exports["default"] = calculatedRows;
 
 /***/ }),
-/* 96 */
+/* 95 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -25368,27 +25472,27 @@ var _exportNames = {
   SelectionManager: true,
   Selection: true
 };
-var _selection = _interopRequireDefault(__webpack_require__(97));
+var _selection = _interopRequireDefault(__webpack_require__(96));
 exports.Selection = _selection.default;
-var _constants = __webpack_require__(99);
+var _constants = __webpack_require__(98);
 Object.keys(_constants).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
   if (key in exports && exports[key] === _constants[key]) return;
   exports[key] = _constants[key];
 });
-var _utils = __webpack_require__(100);
+var _utils = __webpack_require__(99);
 Object.keys(_utils).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
   if (key in exports && exports[key] === _utils[key]) return;
   exports[key] = _utils[key];
 });
-var _manager = __webpack_require__(101);
+var _manager = __webpack_require__(100);
 exports.SelectionManager = _manager.SelectionManager;
 
 /***/ }),
-/* 97 */
+/* 96 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -25396,8 +25500,8 @@ exports.SelectionManager = _manager.SelectionManager;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
+var _object = __webpack_require__(13);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
 /**
  * The Selection class allows highlighting (by applying CSS class) the table's cells or headers
  * and setting up the borders if defined in the settings.
@@ -25496,15 +25600,15 @@ class Selection {
 var _default = exports["default"] = Selection;
 
 /***/ }),
-/* 98 */
+/* 97 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _function = __webpack_require__(16);
+var _object = __webpack_require__(13);
+var _function = __webpack_require__(15);
 const MIXIN_NAME = 'localHooks';
 
 /**
@@ -25587,7 +25691,7 @@ const localHooks = {
 var _default = exports["default"] = localHooks;
 
 /***/ }),
-/* 99 */
+/* 98 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -25647,7 +25751,7 @@ const COLUMN_TYPE = exports.COLUMN_TYPE = 'column';
 const CUSTOM_SELECTION_TYPE = exports.CUSTOM_SELECTION_TYPE = 'custom-selection';
 
 /***/ }),
-/* 100 */
+/* 99 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -25656,15 +25760,6 @@ const CUSTOM_SELECTION_TYPE = exports.CUSTOM_SELECTION_TYPE = 'custom-selection'
 exports.__esModule = true;
 const getCornerStyle = wot => {
   const stylesHandler = wot.wtSettings.getSetting('stylesHandler');
-  if (stylesHandler.isClassicTheme()) {
-    return Object.freeze({
-      width: 6,
-      height: 6,
-      borderWidth: 1,
-      borderStyle: 'solid',
-      borderColor: '#FFF'
-    });
-  }
   const cornerSizeFromVar = stylesHandler.getCSSVariableValue('cell-autofill-size');
   const cornerBorderWidthFromVar = stylesHandler.getCSSVariableValue('cell-autofill-border-width');
   const cornerColorFromVar = stylesHandler.getCSSVariableValue('cell-autofill-border-color');
@@ -25679,7 +25774,7 @@ const getCornerStyle = wot => {
 exports.getCornerStyle = getCornerStyle;
 
 /***/ }),
-/* 101 */
+/* 100 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -25687,9 +25782,9 @@ exports.getCornerStyle = getCornerStyle;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _scanner = __webpack_require__(102);
-var _border = _interopRequireDefault(__webpack_require__(103));
+var _element = __webpack_require__(4);
+var _scanner = __webpack_require__(101);
+var _border = _interopRequireDefault(__webpack_require__(102));
 /**
  * Module responsible for rendering selections (CSS classes) and borders based on the
  * collection of the Selection instances provided throughout the `selections` Walkontable
@@ -25931,14 +26026,14 @@ class SelectionManager {
 exports.SelectionManager = SelectionManager;
 
 /***/ }),
-/* 102 */
+/* 101 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
+var _element = __webpack_require__(4);
 /* eslint-disable no-continue */
 
 /**
@@ -26225,18 +26320,18 @@ class SelectionScanner {
 exports.SelectionScanner = SelectionScanner;
 
 /***/ }),
-/* 103 */
+/* 102 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _event = __webpack_require__(19);
-var _object = __webpack_require__(14);
-var _browser = __webpack_require__(13);
-var _utils = __webpack_require__(100);
+var _element = __webpack_require__(4);
+var _event = __webpack_require__(18);
+var _object = __webpack_require__(13);
+var _browser = __webpack_require__(12);
+var _utils = __webpack_require__(99);
 const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
 const BORDER_STYLE_VERTICAL_SUFFIX = '-vertical';
 const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
@@ -26445,6 +26540,7 @@ class Border {
     const cellMobileHandleSize = stylesHandler.getCSSVariableValue('cell-mobile-handle-size');
     const cellMobileHandleBorderRadius = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-radius');
     const cellMobileHandleBackgroundColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-background-color');
+    const cellMobileHandleBackgroundOpacity = stylesHandler.getCSSVariableValue('cell-mobile-handle-background-opacity');
     const cellMobileHandleBorderWidth = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-width');
     const cellMobileHandleBorderColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-color');
     this.selectionHandles = {
@@ -26453,7 +26549,6 @@ class Border {
       bottom: rootDocument.createElement('DIV'),
       bottomHitArea: rootDocument.createElement('DIV')
     };
-    const width = 10;
     const hitAreaWidth = 40;
     this.selectionHandles.top.className = 'topSelectionHandle topLeftSelectionHandle';
     this.selectionHandles.topHitArea.className = 'topSelectionHandle-HitArea topLeftSelectionHandle-HitArea';
@@ -26475,19 +26570,13 @@ class Border {
       this.selectionHandles.styles.bottomHitArea[key] = value;
       this.selectionHandles.styles.topHitArea[key] = value;
     });
-    const handleStyle = stylesHandler.isClassicTheme() ? {
-      position: 'absolute',
-      height: `${width}px`,
-      width: `${width}px`,
-      'border-radius': `${parseInt(String(width / 1.5), 10)}px`,
-      background: '#F5F5FF',
-      border: '1px solid #4285c8'
-    } : {
+    const handleStyle = {
       position: 'absolute',
       height: `${cellMobileHandleSize}px`,
       width: `${cellMobileHandleSize}px`,
       'border-radius': `${cellMobileHandleBorderRadius}px`,
-      background: `${cellMobileHandleBackgroundColor}`,
+      // eslint-disable-next-line max-len
+      background: `color-mix(in srgb, ${cellMobileHandleBackgroundColor} ${cellMobileHandleBackgroundOpacity}, transparent)`,
       border: `${cellMobileHandleBorderWidth}px solid ${cellMobileHandleBorderColor}`
     };
     (0, _object.objectEach)(handleStyle, (value, key) => {
@@ -26596,7 +26685,6 @@ class Border {
       rootWindow
     } = this.wot;
     const isMultiple = fromRow !== toRow || fromColumn !== toColumn;
-    const isClassicTheme = this.wot.wtSettings.getSetting('stylesHandler').isClassicTheme();
     const firstRenderedRow = wtTable.getFirstRenderedRow();
     const lastRenderedRow = wtTable.getLastRenderedRow();
     const firstRenderedColumn = wtTable.getFirstRenderedColumn();
@@ -26738,12 +26826,7 @@ class Border {
         if (cornerOverlappingContainer) {
           const inlineStartPosition = Math.floor(inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation);
           (0, _element.addClass)(this.corner, 'wtCornerInlineEndEdge');
-          if (isClassicTheme) {
-            this.cornerStyle[inlinePosProperty] = `${inlineStartPosition}px`;
-            this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = '0';
-          } else {
-            this.cornerStyle[inlinePosProperty] = `${inlineStartPosition - 1}px`;
-          }
+          this.cornerStyle[inlinePosProperty] = `${inlineStartPosition - 1}px`;
         }
       } else {
         (0, _element.removeClass)(this.corner, 'wtCornerInlineEndEdge');
@@ -26755,14 +26838,7 @@ class Border {
         if (cornerOverlappingContainer) {
           const cornerTopPosition = Math.floor(top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation);
           (0, _element.addClass)(this.corner, 'wtCornerBlockEndEdge');
-          if (isClassicTheme) {
-            // styles for classic theme
-            this.cornerStyle.top = `${cornerTopPosition}px`;
-            this.cornerStyle.borderBottomWidth = '0';
-          } else {
-            // styles for ht-theme
-            this.cornerStyle.top = `${cornerTopPosition - 1}px`;
-          }
+          this.cornerStyle.top = `${cornerTopPosition - 1}px`;
         }
       } else {
         (0, _element.removeClass)(this.corner, 'wtCornerBlockEndEdge');
@@ -26942,7 +27018,7 @@ class Border {
 var _default = exports["default"] = Border;
 
 /***/ }),
-/* 104 */
+/* 103 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -26950,10 +27026,10 @@ var _default = exports["default"] = Border;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _topInlineStartCorner = _interopRequireDefault(__webpack_require__(105));
-var _base = __webpack_require__(85);
-var _constants = __webpack_require__(86);
+var _element = __webpack_require__(4);
+var _topInlineStartCorner = _interopRequireDefault(__webpack_require__(104));
+var _base = __webpack_require__(84);
+var _constants = __webpack_require__(85);
 /**
  * @class TopInlineStartCornerOverlay
  */
@@ -27036,7 +27112,7 @@ class TopInlineStartCornerOverlay extends _base.Overlay {
 exports.TopInlineStartCornerOverlay = TopInlineStartCornerOverlay;
 
 /***/ }),
-/* 105 */
+/* 104 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -27044,11 +27120,11 @@ exports.TopInlineStartCornerOverlay = TopInlineStartCornerOverlay;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _table = _interopRequireDefault(__webpack_require__(58));
-var _stickyRowsTop = _interopRequireDefault(__webpack_require__(106));
-var _stickyColumnsStart = _interopRequireDefault(__webpack_require__(84));
-var _object = __webpack_require__(14);
-var _overlay = __webpack_require__(55);
+var _table = _interopRequireDefault(__webpack_require__(57));
+var _stickyRowsTop = _interopRequireDefault(__webpack_require__(105));
+var _stickyColumnsStart = _interopRequireDefault(__webpack_require__(83));
+var _object = __webpack_require__(13);
+var _overlay = __webpack_require__(54);
 /**
  * Subclass of `Table` that provides the helper methods relevant to topInlineStartCornerOverlay
  * (in RTL mode the overlay sits on the right of the screen), implemented through mixins.
@@ -27072,14 +27148,14 @@ class TopInlineStartCornerOverlayTable extends _table.default {
 var _default = exports["default"] = TopInlineStartCornerOverlayTable;
 
 /***/ }),
-/* 106 */
+/* 105 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
+var _object = __webpack_require__(13);
 const MIXIN_NAME = 'stickyRowsTop';
 
 /**
@@ -27189,7 +27265,7 @@ const stickyRowsTop = {
 var _default = exports["default"] = stickyRowsTop;
 
 /***/ }),
-/* 107 */
+/* 106 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -27197,11 +27273,11 @@ var _default = exports["default"] = stickyRowsTop;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _top = _interopRequireDefault(__webpack_require__(108));
-var _base = __webpack_require__(85);
-var _selection = __webpack_require__(96);
-var _constants = __webpack_require__(86);
+var _element = __webpack_require__(4);
+var _top = _interopRequireDefault(__webpack_require__(107));
+var _base = __webpack_require__(84);
+var _selection = __webpack_require__(95);
+var _constants = __webpack_require__(85);
 /**
  * @class TopOverlay
  */
@@ -27574,7 +27650,7 @@ class TopOverlay extends _base.Overlay {
 exports.TopOverlay = TopOverlay;
 
 /***/ }),
-/* 108 */
+/* 107 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -27582,11 +27658,11 @@ exports.TopOverlay = TopOverlay;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _table = _interopRequireDefault(__webpack_require__(58));
-var _stickyRowsTop = _interopRequireDefault(__webpack_require__(106));
-var _calculatedColumns = _interopRequireDefault(__webpack_require__(92));
-var _object = __webpack_require__(14);
-var _overlay = __webpack_require__(55);
+var _table = _interopRequireDefault(__webpack_require__(57));
+var _stickyRowsTop = _interopRequireDefault(__webpack_require__(105));
+var _calculatedColumns = _interopRequireDefault(__webpack_require__(91));
+var _object = __webpack_require__(13);
+var _overlay = __webpack_require__(54);
 /**
  * Subclass of `Table` that provides the helper methods relevant to TopOverlay, implemented through mixins.
  *
@@ -27609,15 +27685,15 @@ class TopOverlayTable extends _table.default {
 var _default = exports["default"] = TopOverlayTable;
 
 /***/ }),
-/* 109 */
+/* 108 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _object = __webpack_require__(14);
+var _element = __webpack_require__(4);
+var _object = __webpack_require__(13);
 /**
  * @todo Describe options.
  * @typedef SettingsPure
@@ -27911,7 +27987,7 @@ class Settings {
 exports["default"] = Settings;
 
 /***/ }),
-/* 110 */
+/* 109 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -27919,11 +27995,11 @@ exports["default"] = Settings;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _table = _interopRequireDefault(__webpack_require__(58));
-var _calculatedRows = _interopRequireDefault(__webpack_require__(95));
-var _calculatedColumns = _interopRequireDefault(__webpack_require__(92));
-var _object = __webpack_require__(14);
+var _element = __webpack_require__(4);
+var _table = _interopRequireDefault(__webpack_require__(57));
+var _calculatedRows = _interopRequireDefault(__webpack_require__(94));
+var _calculatedColumns = _interopRequireDefault(__webpack_require__(91));
+var _object = __webpack_require__(13);
 /**
  * Subclass of `Table` that provides the helper methods relevant to the master table (not overlays), implemented through mixins.
  *
@@ -28023,16 +28099,16 @@ class MasterTable extends _table.default {
 var _default = exports["default"] = MasterTable;
 
 /***/ }),
-/* 111 */
+/* 110 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _object = __webpack_require__(14);
-var _calculator = __webpack_require__(37);
+var _element = __webpack_require__(4);
+var _object = __webpack_require__(13);
+var _calculator = __webpack_require__(36);
 /**
  * @class Viewport
  */
@@ -28525,7 +28601,7 @@ class Viewport {
 var _default = exports["default"] = Viewport;
 
 /***/ }),
-/* 112 */
+/* 111 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -28536,7 +28612,7 @@ exports.handleMouseEvent = handleMouseEvent;
 exports.mouseDown = mouseDown;
 exports.mouseOver = mouseOver;
 exports.mouseUp = mouseUp;
-var _event = __webpack_require__(19);
+var _event = __webpack_require__(18);
 /**
  * MouseDown handler.
  *
@@ -28708,7 +28784,7 @@ function handleMouseEvent(event, options) {
 }
 
 /***/ }),
-/* 113 */
+/* 112 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -28751,18 +28827,18 @@ function isRootInstance(object) {
 }
 
 /***/ }),
-/* 114 */
+/* 113 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _data = __webpack_require__(115);
-var _array = __webpack_require__(11);
-var _number = __webpack_require__(30);
-var _function = __webpack_require__(16);
+var _object = __webpack_require__(13);
+var _data = __webpack_require__(114);
+var _array = __webpack_require__(10);
+var _number = __webpack_require__(29);
+var _function = __webpack_require__(15);
 /**
  * @class DataSource
  * @private
@@ -29072,7 +29148,7 @@ class DataSource {
 var _default = exports["default"] = DataSource;
 
 /***/ }),
-/* 115 */
+/* 114 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -29088,7 +29164,7 @@ exports.isArrayOfArrays = isArrayOfArrays;
 exports.isArrayOfObjects = isArrayOfObjects;
 exports.spreadsheetColumnIndex = spreadsheetColumnIndex;
 exports.spreadsheetColumnLabel = spreadsheetColumnLabel;
-var _object = __webpack_require__(14);
+var _object = __webpack_require__(13);
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
 
@@ -29257,7 +29333,7 @@ function isArrayOfObjects(data) {
 }
 
 /***/ }),
-/* 116 */
+/* 115 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -29271,15 +29347,15 @@ var _exportNames = {
   getDecreasedIndexes: true,
   alterUtilsFactory: true
 };
-var _indexMapper = __webpack_require__(117);
+var _indexMapper = __webpack_require__(116);
 exports.IndexMapper = _indexMapper.IndexMapper;
-var _mapCollection = __webpack_require__(131);
+var _mapCollection = __webpack_require__(130);
 exports.getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter;
-var _utils = __webpack_require__(128);
+var _utils = __webpack_require__(127);
 exports.getIncreasedIndexes = _utils.getIncreasedIndexes;
 exports.getDecreasedIndexes = _utils.getDecreasedIndexes;
 exports.alterUtilsFactory = _utils.alterUtilsFactory;
-var _maps = __webpack_require__(118);
+var _maps = __webpack_require__(117);
 Object.keys(_maps).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -29288,7 +29364,7 @@ Object.keys(_maps).forEach(function (key) {
 });
 
 /***/ }),
-/* 117 */
+/* 116 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -29296,13 +29372,13 @@ Object.keys(_maps).forEach(function (key) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _array = __webpack_require__(11);
-var _maps = __webpack_require__(118);
-var _mapCollections = __webpack_require__(129);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
-var _object = __webpack_require__(14);
-var _mixed = __webpack_require__(8);
-var _observable = __webpack_require__(132);
+var _array = __webpack_require__(10);
+var _maps = __webpack_require__(117);
+var _mapCollections = __webpack_require__(128);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
+var _object = __webpack_require__(13);
+var _mixed = __webpack_require__(7);
+var _observable = __webpack_require__(131);
 /**
  * A set of deprecated feature names.
  *
@@ -30002,7 +30078,7 @@ exports.IndexMapper = IndexMapper;
 (0, _object.mixin)(IndexMapper, _localHooks.default);
 
 /***/ }),
-/* 118 */
+/* 117 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -30018,24 +30094,24 @@ var _exportNames = {
   TrimmingMap: true
 };
 exports.createIndexMap = createIndexMap;
-var _hidingMap = __webpack_require__(119);
+var _hidingMap = __webpack_require__(118);
 exports.HidingMap = _hidingMap.HidingMap;
-var _indexMap = __webpack_require__(121);
+var _indexMap = __webpack_require__(120);
 exports.IndexMap = _indexMap.IndexMap;
-var _linkedPhysicalIndexToValueMap = __webpack_require__(123);
+var _linkedPhysicalIndexToValueMap = __webpack_require__(122);
 exports.LinkedPhysicalIndexToValueMap = _linkedPhysicalIndexToValueMap.LinkedPhysicalIndexToValueMap;
-var _physicalIndexToValueMap = __webpack_require__(120);
+var _physicalIndexToValueMap = __webpack_require__(119);
 exports.PhysicalIndexToValueMap = _physicalIndexToValueMap.PhysicalIndexToValueMap;
-var _trimmingMap = __webpack_require__(126);
+var _trimmingMap = __webpack_require__(125);
 exports.TrimmingMap = _trimmingMap.TrimmingMap;
-var _indexesSequence = __webpack_require__(127);
+var _indexesSequence = __webpack_require__(126);
 Object.keys(_indexesSequence).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
   if (key in exports && exports[key] === _indexesSequence[key]) return;
   exports[key] = _indexesSequence[key];
 });
-var _indexesSequence2 = __webpack_require__(124);
+var _indexesSequence2 = __webpack_require__(123);
 Object.keys(_indexesSequence2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -30059,15 +30135,15 @@ function createIndexMap(mapType, initValueOrFn = null) {
 }
 
 /***/ }),
-/* 119 */
+/* 118 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _physicalIndexToValueMap = __webpack_require__(120);
-var _array = __webpack_require__(11);
+var _physicalIndexToValueMap = __webpack_require__(119);
+var _array = __webpack_require__(10);
 /**
  * Map for storing mappings from an physical index to a boolean value. It stores information whether physical index is
  * included in a dataset, but skipped in the process of rendering.
@@ -30098,15 +30174,15 @@ class HidingMap extends _physicalIndexToValueMap.PhysicalIndexToValueMap {
 exports.HidingMap = HidingMap;
 
 /***/ }),
-/* 120 */
+/* 119 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _indexMap = __webpack_require__(121);
-var _physicallyIndexed = __webpack_require__(122);
+var _indexMap = __webpack_require__(120);
+var _physicallyIndexed = __webpack_require__(121);
 /**
  * Map for storing mappings from an physical index to a value.
  *
@@ -30141,7 +30217,7 @@ class PhysicalIndexToValueMap extends _indexMap.IndexMap {
 exports.PhysicalIndexToValueMap = PhysicalIndexToValueMap;
 
 /***/ }),
-/* 121 */
+/* 120 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -30149,10 +30225,10 @@ exports.PhysicalIndexToValueMap = PhysicalIndexToValueMap;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _number = __webpack_require__(30);
-var _object = __webpack_require__(14);
-var _function = __webpack_require__(16);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
+var _number = __webpack_require__(29);
+var _object = __webpack_require__(13);
+var _function = __webpack_require__(15);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
 /**
  * Map for storing mappings from an index to a value.
  *
@@ -30321,7 +30397,7 @@ exports.IndexMap = IndexMap;
 (0, _object.mixin)(IndexMap, _localHooks.default);
 
 /***/ }),
-/* 122 */
+/* 121 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -30330,8 +30406,8 @@ exports.IndexMap = IndexMap;
 exports.__esModule = true;
 exports.getListWithInsertedItems = getListWithInsertedItems;
 exports.getListWithRemovedItems = getListWithRemovedItems;
-var _function = __webpack_require__(16);
-var _array = __webpack_require__(11);
+var _function = __webpack_require__(15);
+var _array = __webpack_require__(10);
 /**
  * Insert new items to the list.
  *
@@ -30365,18 +30441,18 @@ function getListWithRemovedItems(indexedValues, removedIndexes) {
 }
 
 /***/ }),
-/* 123 */
+/* 122 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _indexMap = __webpack_require__(121);
-var _physicallyIndexed = __webpack_require__(122);
-var _indexesSequence = __webpack_require__(124);
-var _actionsOnIndexes = __webpack_require__(125);
-var _function = __webpack_require__(16);
+var _indexMap = __webpack_require__(120);
+var _physicallyIndexed = __webpack_require__(121);
+var _indexesSequence = __webpack_require__(123);
+var _actionsOnIndexes = __webpack_require__(124);
+var _function = __webpack_require__(15);
 /**
  * Map for storing mappings from an physical index to a value. Those entries are linked and stored in a certain order.
  *
@@ -30512,7 +30588,7 @@ class LinkedPhysicalIndexToValueMap extends _indexMap.IndexMap {
 exports.LinkedPhysicalIndexToValueMap = LinkedPhysicalIndexToValueMap;
 
 /***/ }),
-/* 124 */
+/* 123 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -30521,7 +30597,7 @@ exports.LinkedPhysicalIndexToValueMap = LinkedPhysicalIndexToValueMap;
 exports.__esModule = true;
 exports.getListWithInsertedItems = getListWithInsertedItems;
 exports.getListWithRemovedItems = getListWithRemovedItems;
-var _array = __webpack_require__(11);
+var _array = __webpack_require__(10);
 /**
  * Insert new items to the list.
  *
@@ -30550,7 +30626,7 @@ function getListWithRemovedItems(indexedValues, removedIndexes) {
 }
 
 /***/ }),
-/* 125 */
+/* 124 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -30559,7 +30635,7 @@ function getListWithRemovedItems(indexedValues, removedIndexes) {
 exports.__esModule = true;
 exports.getDecreasedIndexes = getDecreasedIndexes;
 exports.getIncreasedIndexes = getIncreasedIndexes;
-var _array = __webpack_require__(11);
+var _array = __webpack_require__(10);
 /**
  * Transform mappings after removal.
  *
@@ -30592,15 +30668,15 @@ function getIncreasedIndexes(indexedValues, insertedIndexes) {
 }
 
 /***/ }),
-/* 126 */
+/* 125 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _physicalIndexToValueMap = __webpack_require__(120);
-var _array = __webpack_require__(11);
+var _physicalIndexToValueMap = __webpack_require__(119);
+var _array = __webpack_require__(10);
 /**
  * Map for storing mappings from an physical index to a boolean value. It stores information whether physical index is
  * NOT included in a dataset and skipped in the process of rendering.
@@ -30631,16 +30707,16 @@ class TrimmingMap extends _physicalIndexToValueMap.PhysicalIndexToValueMap {
 exports.TrimmingMap = TrimmingMap;
 
 /***/ }),
-/* 127 */
+/* 126 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _indexMap = __webpack_require__(121);
-var _indexesSequence = __webpack_require__(124);
-var _utils = __webpack_require__(128);
+var _indexMap = __webpack_require__(120);
+var _indexesSequence = __webpack_require__(123);
+var _utils = __webpack_require__(127);
 /**
  * Map for storing mappings from an index to a physical index.
  *
@@ -30684,18 +30760,18 @@ class IndexesSequence extends _indexMap.IndexMap {
 exports.IndexesSequence = IndexesSequence;
 
 /***/ }),
-/* 128 */
+/* 127 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _actionsOnIndexes = __webpack_require__(125);
+var _actionsOnIndexes = __webpack_require__(124);
 exports.getDecreasedIndexes = _actionsOnIndexes.getDecreasedIndexes;
 exports.getIncreasedIndexes = _actionsOnIndexes.getIncreasedIndexes;
-var _indexesSequence = __webpack_require__(124);
-var _physicallyIndexed = __webpack_require__(122);
+var _indexesSequence = __webpack_require__(123);
+var _physicallyIndexed = __webpack_require__(121);
 const alterStrategies = new Map([['indexesSequence', {
   getListWithInsertedItems: _indexesSequence.getListWithInsertedItems,
   getListWithRemovedItems: _indexesSequence.getListWithRemovedItems
@@ -30712,20 +30788,20 @@ const alterUtilsFactory = indexationStrategy => {
 exports.alterUtilsFactory = alterUtilsFactory;
 
 /***/ }),
-/* 129 */
+/* 128 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _aggregatedCollection = __webpack_require__(130);
+var _aggregatedCollection = __webpack_require__(129);
 Object.keys(_aggregatedCollection).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _aggregatedCollection[key]) return;
   exports[key] = _aggregatedCollection[key];
 });
-var _mapCollection = __webpack_require__(131);
+var _mapCollection = __webpack_require__(130);
 Object.keys(_mapCollection).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _mapCollection[key]) return;
@@ -30733,16 +30809,16 @@ Object.keys(_mapCollection).forEach(function (key) {
 });
 
 /***/ }),
-/* 130 */
+/* 129 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _mapCollection = __webpack_require__(131);
-var _array = __webpack_require__(11);
-var _mixed = __webpack_require__(8);
+var _mapCollection = __webpack_require__(130);
+var _array = __webpack_require__(10);
+var _mixed = __webpack_require__(7);
 /**
  * Collection of maps. This collection aggregate maps with the same type of values. Values from the registered maps
  * can be used to calculate a single result for particular index.
@@ -30844,7 +30920,7 @@ class AggregatedCollection extends _mapCollection.MapCollection {
 exports.AggregatedCollection = AggregatedCollection;
 
 /***/ }),
-/* 131 */
+/* 130 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -30853,9 +30929,9 @@ exports.AggregatedCollection = AggregatedCollection;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.getRegisteredMapsCounter = getRegisteredMapsCounter;
-var _mixed = __webpack_require__(8);
-var _object = __webpack_require__(14);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
+var _mixed = __webpack_require__(7);
+var _object = __webpack_require__(13);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
 // Counter for checking if there is a memory leak.
 let registeredMaps = 0;
 
@@ -30978,15 +31054,15 @@ function getRegisteredMapsCounter() {
 }
 
 /***/ }),
-/* 132 */
+/* 131 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _observer = __webpack_require__(133);
-var _utils = __webpack_require__(134);
+var _observer = __webpack_require__(132);
+var _utils = __webpack_require__(133);
 /**
  * The ChangesObservable module is an object that represents a resource that provides
  * the ability to observe the changes that happened in the index map indexes during
@@ -31105,7 +31181,7 @@ class ChangesObservable {
 exports.ChangesObservable = ChangesObservable;
 
 /***/ }),
-/* 133 */
+/* 132 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -31113,8 +31189,8 @@ exports.ChangesObservable = ChangesObservable;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
+var _object = __webpack_require__(13);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
 /**
  * The ChangesObserver module is an object that represents a disposable resource
  * provided by the ChangesObservable module.
@@ -31187,7 +31263,7 @@ exports.ChangesObserver = ChangesObserver;
 (0, _object.mixin)(ChangesObserver, _localHooks.default);
 
 /***/ }),
-/* 134 */
+/* 133 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -31243,7 +31319,7 @@ function arrayDiff(baseArray, newArray) {
 }
 
 /***/ }),
-/* 135 */
+/* 134 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -31258,13 +31334,13 @@ exports.getTranslatedPhrase = getTranslatedPhrase;
 exports.getValidLanguageCode = getValidLanguageCode;
 exports.hasLanguageDictionary = hasLanguageDictionary;
 exports.registerLanguageDictionary = registerLanguageDictionary;
-var _object = __webpack_require__(14);
-var _mixed = __webpack_require__(8);
-var _utils = __webpack_require__(136);
-var _staticRegister = __webpack_require__(25);
-var _phraseFormatters = __webpack_require__(137);
-var _enUS = _interopRequireDefault(__webpack_require__(140));
-var _dictionaryKeys = _interopRequireWildcard(__webpack_require__(141));
+var _object = __webpack_require__(13);
+var _mixed = __webpack_require__(7);
+var _utils = __webpack_require__(135);
+var _staticRegister = __webpack_require__(24);
+var _phraseFormatters = __webpack_require__(136);
+var _enUS = _interopRequireDefault(__webpack_require__(139));
+var _dictionaryKeys = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const dictionaryKeys = exports.dictionaryKeys = _dictionaryKeys;
 const DEFAULT_LANGUAGE_CODE = exports.DEFAULT_LANGUAGE_CODE = _enUS.default.languageCode;
@@ -31414,7 +31490,7 @@ function getValidLanguageCode(languageCode) {
 }
 
 /***/ }),
-/* 136 */
+/* 135 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -31425,10 +31501,10 @@ exports.createCellHeadersRange = createCellHeadersRange;
 exports.extendNotExistingKeys = extendNotExistingKeys;
 exports.normalizeLanguageCode = normalizeLanguageCode;
 exports.warnUserAboutLanguageRegistration = warnUserAboutLanguageRegistration;
-var _mixed = __webpack_require__(8);
-var _object = __webpack_require__(14);
-var _console = __webpack_require__(22);
-var _templateLiteralTag = __webpack_require__(10);
+var _mixed = __webpack_require__(7);
+var _object = __webpack_require__(13);
+var _console = __webpack_require__(21);
+var _templateLiteralTag = __webpack_require__(9);
 /**
  * Perform shallow extend of a target object with only this extension's properties which doesn't exist in the target.
  *
@@ -31500,7 +31576,7 @@ function warnUserAboutLanguageRegistration(languageCode) {
 }
 
 /***/ }),
-/* 137 */
+/* 136 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -31510,9 +31586,9 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.getPhraseFormatters = exports.getAll = getAll;
 exports.registerPhraseFormatter = exports.register = register;
-var _staticRegister = __webpack_require__(25);
-var _pluralize = _interopRequireDefault(__webpack_require__(138));
-var _substituteVariables = _interopRequireDefault(__webpack_require__(139));
+var _staticRegister = __webpack_require__(24);
+var _pluralize = _interopRequireDefault(__webpack_require__(137));
+var _substituteVariables = _interopRequireDefault(__webpack_require__(138));
 const {
   register: registerGloballyPhraseFormatter,
   getValues: getGlobalPhraseFormatters
@@ -31540,7 +31616,7 @@ register('pluralize', _pluralize.default);
 register('substitute', _substituteVariables.default);
 
 /***/ }),
-/* 138 */
+/* 137 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -31565,7 +31641,7 @@ function pluralize(phrasePropositions, pluralForm) {
 }
 
 /***/ }),
-/* 139 */
+/* 138 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -31573,7 +31649,7 @@ function pluralize(phrasePropositions, pluralForm) {
 
 exports.__esModule = true;
 exports["default"] = substituteVariables;
-var _string = __webpack_require__(6);
+var _string = __webpack_require__(5);
 /**
  * Try to substitute variable inside phrase propositions.
  *
@@ -31590,14 +31666,14 @@ function substituteVariables(phrasePropositions, zippedVariablesAndValues) {
 }
 
 /***/ }),
-/* 140 */
+/* 139 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @preserve
@@ -31708,7 +31784,7 @@ const dictionary = {
 var _default = exports["default"] = dictionary;
 
 /***/ }),
-/* 141 */
+/* 140 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -31827,7 +31903,7 @@ const EMPTY_DATA_STATE_DESCRIPTION_FILTERS = exports.EMPTY_DATA_STATE_DESCRIPTIO
 const EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET = exports.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET = `${EMPTY_DATA_STATE_NAMESPACE}buttons.filters.reset`;
 
 /***/ }),
-/* 142 */
+/* 141 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -31841,14 +31917,14 @@ var _exportNames = {
   detectSelectionType: true,
   normalizeSelectionFactory: true
 };
-var _selection = _interopRequireDefault(__webpack_require__(143));
+var _selection = _interopRequireDefault(__webpack_require__(142));
 exports.Selection = _selection.default;
-var _mouseEventHandler = __webpack_require__(112);
+var _mouseEventHandler = __webpack_require__(111);
 exports.handleMouseEvent = _mouseEventHandler.handleMouseEvent;
-var _utils = __webpack_require__(160);
+var _utils = __webpack_require__(159);
 exports.detectSelectionType = _utils.detectSelectionType;
 exports.normalizeSelectionFactory = _utils.normalizeSelectionFactory;
-var _highlight = __webpack_require__(144);
+var _highlight = __webpack_require__(143);
 Object.keys(_highlight).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -31857,7 +31933,7 @@ Object.keys(_highlight).forEach(function (key) {
 });
 
 /***/ }),
-/* 143 */
+/* 142 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -31865,16 +31941,16 @@ Object.keys(_highlight).forEach(function (key) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _highlight = _interopRequireWildcard(__webpack_require__(144));
-var _range = _interopRequireDefault(__webpack_require__(155));
-var _object = __webpack_require__(14);
-var _mixed = __webpack_require__(8);
-var _number = __webpack_require__(30);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
-var _transformation = __webpack_require__(156);
-var _utils = __webpack_require__(160);
-var _templateLiteralTag = __webpack_require__(10);
-var _a11y = __webpack_require__(12);
+var _highlight = _interopRequireWildcard(__webpack_require__(143));
+var _range = _interopRequireDefault(__webpack_require__(154));
+var _object = __webpack_require__(13);
+var _mixed = __webpack_require__(7);
+var _number = __webpack_require__(29);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
+var _transformation = __webpack_require__(155);
+var _utils = __webpack_require__(159);
+var _templateLiteralTag = __webpack_require__(9);
+var _a11y = __webpack_require__(11);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @typedef {object} SelectionState
@@ -33060,23 +33136,23 @@ class Selection {
 var _default = exports["default"] = Selection;
 
 /***/ }),
-/* 144 */
+/* 143 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _activeHeader = __webpack_require__(145);
-var _areaLayered = __webpack_require__(147);
-var _area = __webpack_require__(148);
-var _column = __webpack_require__(149);
-var _focus = __webpack_require__(150);
-var _customSelection = __webpack_require__(151);
-var _fill = __webpack_require__(152);
-var _header = __webpack_require__(153);
-var _row = __webpack_require__(154);
-var _src = __webpack_require__(36);
+var _activeHeader = __webpack_require__(144);
+var _areaLayered = __webpack_require__(146);
+var _area = __webpack_require__(147);
+var _column = __webpack_require__(148);
+var _focus = __webpack_require__(149);
+var _customSelection = __webpack_require__(150);
+var _fill = __webpack_require__(151);
+var _header = __webpack_require__(152);
+var _row = __webpack_require__(153);
+var _src = __webpack_require__(35);
 exports.ACTIVE_HEADER_TYPE = _src.HIGHLIGHT_ACTIVE_HEADER_TYPE;
 exports.AREA_TYPE = _src.HIGHLIGHT_AREA_TYPE;
 exports.FOCUS_TYPE = _src.HIGHLIGHT_FOCUS_TYPE;
@@ -33502,7 +33578,7 @@ class Highlight {
 var _default = exports["default"] = Highlight;
 
 /***/ }),
-/* 145 */
+/* 144 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -33511,8 +33587,8 @@ var _default = exports["default"] = Highlight;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.createHighlight = createHighlight;
-var _src = __webpack_require__(36);
-var _visualSelection = _interopRequireDefault(__webpack_require__(146));
+var _src = __webpack_require__(35);
+var _visualSelection = _interopRequireDefault(__webpack_require__(145));
 /**
  * Creates the new instance of Selection, responsible for highlighting column or row headers
  * only when the whole column or row is selected.
@@ -33534,14 +33610,14 @@ function createHighlight({
 }
 
 /***/ }),
-/* 146 */
+/* 145 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _src = __webpack_require__(36);
+var _src = __webpack_require__(35);
 class VisualSelection extends _src.Selection {
   /**
    * Range of selection visually. Visual representation may have representation in a rendered selection.
@@ -33770,7 +33846,7 @@ class VisualSelection extends _src.Selection {
 var _default = exports["default"] = VisualSelection;
 
 /***/ }),
-/* 147 */
+/* 146 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -33779,8 +33855,8 @@ var _default = exports["default"] = VisualSelection;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.createHighlight = createHighlight;
-var _src = __webpack_require__(36);
-var _visualSelection = _interopRequireDefault(__webpack_require__(146));
+var _src = __webpack_require__(35);
+var _visualSelection = _interopRequireDefault(__webpack_require__(145));
 /**
  * Creates the new instance of Selection responsible for highlighting area of the selected multiple cells.
  *
@@ -33806,7 +33882,7 @@ function createHighlight({
 }
 
 /***/ }),
-/* 148 */
+/* 147 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -33815,8 +33891,8 @@ function createHighlight({
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.createHighlight = createHighlight;
-var _src = __webpack_require__(36);
-var _visualSelection = _interopRequireDefault(__webpack_require__(146));
+var _src = __webpack_require__(35);
+var _visualSelection = _interopRequireDefault(__webpack_require__(145));
 /**
  * Creates the new instance of Selection responsible for highlighting area of the selected multiple cells.
  *
@@ -33835,7 +33911,7 @@ function createHighlight({
 }
 
 /***/ }),
-/* 149 */
+/* 148 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -33844,8 +33920,8 @@ function createHighlight({
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.createHighlight = createHighlight;
-var _src = __webpack_require__(36);
-var _visualSelection = _interopRequireDefault(__webpack_require__(146));
+var _src = __webpack_require__(35);
+var _visualSelection = _interopRequireDefault(__webpack_require__(145));
 /**
  * Creates the new instance of Selection, responsible for highlighting cells in a columns and
  * column headers.
@@ -33867,7 +33943,7 @@ function createHighlight({
 }
 
 /***/ }),
-/* 150 */
+/* 149 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -33876,9 +33952,9 @@ function createHighlight({
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.createHighlight = createHighlight;
-var _src = __webpack_require__(36);
-var _visualSelection = _interopRequireDefault(__webpack_require__(146));
-var _a11y = __webpack_require__(12);
+var _src = __webpack_require__(35);
+var _visualSelection = _interopRequireDefault(__webpack_require__(145));
+var _a11y = __webpack_require__(11);
 /**
  * Creates the new instance of Selection responsible for highlighting currently selected cell. This type of selection
  * can present on the table only one at the time.
@@ -33905,7 +33981,7 @@ function createHighlight({
 }
 
 /***/ }),
-/* 151 */
+/* 150 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -33914,8 +33990,8 @@ function createHighlight({
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.createHighlight = createHighlight;
-var _src = __webpack_require__(36);
-var _visualSelection = _interopRequireDefault(__webpack_require__(146));
+var _src = __webpack_require__(35);
+var _visualSelection = _interopRequireDefault(__webpack_require__(145));
 /**
  * Creates the new instance of Selection responsible for highlighting currently selected cell.
  * This type of selection can present on the table only one at the time.
@@ -33938,7 +34014,7 @@ function createHighlight({
 }
 
 /***/ }),
-/* 152 */
+/* 151 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -33947,8 +34023,8 @@ function createHighlight({
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.createHighlight = createHighlight;
-var _src = __webpack_require__(36);
-var _visualSelection = _interopRequireDefault(__webpack_require__(146));
+var _src = __webpack_require__(35);
+var _visualSelection = _interopRequireDefault(__webpack_require__(145));
 /**
  * Creates the new instance of Selection, responsible for highlighting cells which are covered by fill handle
  * functionality. This type of selection can present on the table only one at the time.
@@ -33971,7 +34047,7 @@ function createHighlight({
 }
 
 /***/ }),
-/* 153 */
+/* 152 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -33980,8 +34056,8 @@ function createHighlight({
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.createHighlight = createHighlight;
-var _src = __webpack_require__(36);
-var _visualSelection = _interopRequireDefault(__webpack_require__(146));
+var _src = __webpack_require__(35);
+var _visualSelection = _interopRequireDefault(__webpack_require__(145));
 /**
  * Creates the new instance of Selection, responsible for highlighting column or row headers when
  * any cell is selected.
@@ -34003,7 +34079,7 @@ function createHighlight({
 }
 
 /***/ }),
-/* 154 */
+/* 153 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -34012,8 +34088,8 @@ function createHighlight({
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.createHighlight = createHighlight;
-var _src = __webpack_require__(36);
-var _visualSelection = _interopRequireDefault(__webpack_require__(146));
+var _src = __webpack_require__(35);
+var _visualSelection = _interopRequireDefault(__webpack_require__(145));
 /**
  * Creates the new instance of Selection, responsible for highlighting cells in a rows and
  * row headers.
@@ -34035,7 +34111,7 @@ function createHighlight({
 }
 
 /***/ }),
-/* 155 */
+/* 154 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -34250,6 +34326,19 @@ class SelectionRange {
 var _default = exports["default"] = SelectionRange;
 
 /***/ }),
+/* 155 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+var _extender = __webpack_require__(156);
+exports.ExtenderTransformation = _extender.ExtenderTransformation;
+var _focus = __webpack_require__(158);
+exports.FocusTransformation = _focus.FocusTransformation;
+
+/***/ }),
 /* 156 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -34257,20 +34346,7 @@ var _default = exports["default"] = SelectionRange;
 
 
 exports.__esModule = true;
-var _extender = __webpack_require__(157);
-exports.ExtenderTransformation = _extender.ExtenderTransformation;
-var _focus = __webpack_require__(159);
-exports.FocusTransformation = _focus.FocusTransformation;
-
-/***/ }),
-/* 157 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-exports.__esModule = true;
-var _base = __webpack_require__(158);
+var _base = __webpack_require__(157);
 /**
  * The ExtenderTransformation class implements algorithms for transforming coordinates while the
  * selection is being extended or shrunk. Table size defines the bounds for the selection extent.
@@ -34324,7 +34400,7 @@ class ExtenderTransformation extends _base.BaseTransformation {
 exports.ExtenderTransformation = ExtenderTransformation;
 
 /***/ }),
-/* 158 */
+/* 157 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -34332,8 +34408,8 @@ exports.ExtenderTransformation = ExtenderTransformation;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
+var _object = __webpack_require__(13);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
 /**
  * The BaseTransformation class implements algorithms for transforming coordinates based on current settings
  * passed to the Handsontable. The class performs the calculations based on the renderable indexes.
@@ -34775,14 +34851,14 @@ exports.BaseTransformation = BaseTransformation;
 (0, _object.mixin)(BaseTransformation, _localHooks.default);
 
 /***/ }),
-/* 159 */
+/* 158 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(158);
+var _base = __webpack_require__(157);
 /**
  * The FocusTransformation class implements algorithms for transforming coordinates while the
  * focus is being moved. The currently selection layer range defines the bounds for the focus movement.
@@ -34857,7 +34933,7 @@ class FocusTransformation extends _base.BaseTransformation {
 exports.FocusTransformation = FocusTransformation;
 
 /***/ }),
-/* 160 */
+/* 159 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -34868,9 +34944,9 @@ exports.detectSelectionType = detectSelectionType;
 exports.normalizeSelectionFactory = normalizeSelectionFactory;
 exports.transformSelectionToColumnDistance = transformSelectionToColumnDistance;
 exports.transformSelectionToRowDistance = transformSelectionToRowDistance;
-var _src = __webpack_require__(36);
-var _array = __webpack_require__(11);
-var _mixed = __webpack_require__(8);
+var _src = __webpack_require__(35);
+var _array = __webpack_require__(10);
+var _mixed = __webpack_require__(7);
 const SELECTION_TYPE_UNRECOGNIZED = exports.SELECTION_TYPE_UNRECOGNIZED = 0;
 const SELECTION_TYPE_EMPTY = exports.SELECTION_TYPE_EMPTY = 1;
 const SELECTION_TYPE_ARRAY = exports.SELECTION_TYPE_ARRAY = 2;
@@ -35077,7 +35153,7 @@ function transformSelectionToRowDistance(hotInstance) {
 }
 
 /***/ }),
-/* 161 */
+/* 160 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -35085,34 +35161,34 @@ function transformSelectionToRowDistance(hotInstance) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _dataMap = _interopRequireDefault(__webpack_require__(162));
+var _dataMap = _interopRequireDefault(__webpack_require__(161));
 exports.DataMap = _dataMap.default;
-var _metaManager = _interopRequireDefault(__webpack_require__(166));
+var _metaManager = _interopRequireDefault(__webpack_require__(165));
 exports.MetaManager = _metaManager.default;
-var _metaSchema = _interopRequireDefault(__webpack_require__(170));
+var _metaSchema = _interopRequireDefault(__webpack_require__(169));
 exports.metaSchemaFactory = _metaSchema.default;
-var _replaceData = __webpack_require__(175);
+var _replaceData = __webpack_require__(174);
 exports.replaceData = _replaceData.replaceData;
-var _dynamicCellMeta = __webpack_require__(176);
+var _dynamicCellMeta = __webpack_require__(175);
 exports.DynamicCellMetaMod = _dynamicCellMeta.DynamicCellMetaMod;
-var _extendMetaProperties = __webpack_require__(177);
+var _extendMetaProperties = __webpack_require__(176);
 exports.ExtendMetaPropertiesMod = _extendMetaProperties.ExtendMetaPropertiesMod;
 
 /***/ }),
-/* 162 */
+/* 161 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _SheetClip = __webpack_require__(163);
-var _data = __webpack_require__(115);
-var _object = __webpack_require__(14);
-var _array = __webpack_require__(11);
-var _number = __webpack_require__(30);
-var _mixed = __webpack_require__(8);
-var _valueAccessors = __webpack_require__(165);
+var _SheetClip = __webpack_require__(162);
+var _data = __webpack_require__(114);
+var _object = __webpack_require__(13);
+var _array = __webpack_require__(10);
+var _number = __webpack_require__(29);
+var _mixed = __webpack_require__(7);
+var _valueAccessors = __webpack_require__(164);
 /**
  * Represents the MetaManager dependency shape used by DataMap.
  */
@@ -36025,19 +36101,19 @@ class DataMap {
 var _default = exports["default"] = DataMap;
 
 /***/ }),
-/* 163 */
+/* 162 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _SheetClip = __webpack_require__(164);
+var _SheetClip = __webpack_require__(163);
 exports.parse = _SheetClip.parse;
 exports.stringify = _SheetClip.stringify;
 
 /***/ }),
-/* 164 */
+/* 163 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -36161,7 +36237,7 @@ function stringify(arr) {
 }
 
 /***/ }),
-/* 165 */
+/* 164 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -36170,7 +36246,7 @@ function stringify(arr) {
 exports.__esModule = true;
 exports.getValueGetterValue = getValueGetterValue;
 exports.getValueSetterValue = getValueSetterValue;
-var _function = __webpack_require__(16);
+var _function = __webpack_require__(15);
 /**
  * Get the value to be set in the cell.
  *
@@ -36212,7 +36288,7 @@ function getValueGetterValue(value, cellMeta) {
 }
 
 /***/ }),
-/* 166 */
+/* 165 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -36220,12 +36296,12 @@ function getValueGetterValue(value, cellMeta) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _globalMeta = _interopRequireDefault(__webpack_require__(167));
-var _tableMeta = _interopRequireDefault(__webpack_require__(171));
-var _columnMeta = _interopRequireDefault(__webpack_require__(172));
-var _cellMeta = _interopRequireDefault(__webpack_require__(174));
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
-var _object = __webpack_require__(14);
+var _globalMeta = _interopRequireDefault(__webpack_require__(166));
+var _tableMeta = _interopRequireDefault(__webpack_require__(170));
+var _columnMeta = _interopRequireDefault(__webpack_require__(171));
+var _cellMeta = _interopRequireDefault(__webpack_require__(173));
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
+var _object = __webpack_require__(13);
 /**
  * With the Meta Manager class, it can be possible to manage with meta objects for different layers in
  * one place. All coordinates used to fetch, updating, removing, or creating rows or columns have to
@@ -36504,7 +36580,7 @@ exports["default"] = MetaManager;
 (0, _object.mixin)(MetaManager, _localHooks.default);
 
 /***/ }),
-/* 167 */
+/* 166 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -36512,9 +36588,9 @@ exports["default"] = MetaManager;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _utils = __webpack_require__(168);
-var _metaSchema = _interopRequireDefault(__webpack_require__(170));
+var _object = __webpack_require__(13);
+var _utils = __webpack_require__(167);
+var _metaSchema = _interopRequireDefault(__webpack_require__(169));
 /**
  * @typedef {Options} TableMeta
  */
@@ -36602,7 +36678,7 @@ class GlobalMeta {
 exports["default"] = GlobalMeta;
 
 /***/ }),
-/* 168 */
+/* 167 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -36613,8 +36689,8 @@ exports.assert = assert;
 exports.columnFactory = columnFactory;
 exports.extendByMetaType = extendByMetaType;
 exports.isNullish = isNullish;
-var _object = __webpack_require__(14);
-var _registry = __webpack_require__(169);
+var _object = __webpack_require__(13);
+var _registry = __webpack_require__(168);
 /**
  * Checks if the given property can be overwritten.
  *
@@ -36713,7 +36789,7 @@ function isNullish(variable) {
 }
 
 /***/ }),
-/* 169 */
+/* 168 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -36722,10 +36798,10 @@ function isNullish(variable) {
 exports.__esModule = true;
 exports.getCellType = _getItem;
 exports.registerCellType = _register;
-var _staticRegister = __webpack_require__(25);
-var _registry = __webpack_require__(20);
-var _registry2 = __webpack_require__(33);
-var _registry3 = __webpack_require__(34);
+var _staticRegister = __webpack_require__(24);
+var _registry = __webpack_require__(19);
+var _registry2 = __webpack_require__(32);
+var _registry3 = __webpack_require__(33);
 const {
   register,
   getItem,
@@ -36781,15 +36857,15 @@ function _register(name, type) {
 }
 
 /***/ }),
-/* 170 */
+/* 169 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _mixed = __webpack_require__(8);
-var _object = __webpack_require__(14);
+var _mixed = __webpack_require__(7);
+var _object = __webpack_require__(13);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @alias Options
@@ -41240,7 +41316,7 @@ var _default = () => {
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
      *
-     * In the rendering process, the default row height is `classic (legacy): 23px`, `main: 29px`, `horizon: 37px` (in the classic (legacy) theme: 22px + 1px of the row's bottom border) or whatever is defined in the used theme (based on the line height, vertical padding and cell borders).
+     * In the rendering process, the default row height is `classic: 26px`, `main: 29px`, `horizon: 37px` or whatever is defined in the used theme (based on the line height, vertical padding and cell borders).
      * You can change it to equal or greater than the default value, by setting the `rowHeights` option to one of the following:
      *
      * | Setting     | Description                                                                                         | Example                                                      |
@@ -41763,13 +41839,11 @@ var _default = () => {
     /**
      * The `themeName` option allows enabling a theme by that name.
      *
-     * If no `themeName` is provided, the table will use the classic (legacy) theme (if the correct CSS files are imported).
-     *
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
      *
      * @memberof Options#
-     * @type {string|boolean|undefined}
+     * @type {string|undefined}
      * @default undefined
      * @category Core
      * @since 15.0.0
@@ -41780,6 +41854,88 @@ var _default = () => {
      * ```
      */
     themeName: undefined,
+    /**
+     * The `theme` option configures the visual theme for your Handsontable instance.
+     *
+     * You can set the `theme` option to one of the following:
+     *
+     * | Setting                               | Description                                                                           |
+     * | ------------------------------------- | ------------------------------------------------------------------------------------- |
+     * | `undefined` (default)                 | Don't apply any theme and use the default main theme                                  |
+     * | A string (e.g., `'ht-theme-horizon'`) | Apply a registered theme by name (required to import CSS file)                        |
+     * | A `ThemeBuilder` object               | Apply a theme with runtime configuration (recommended)                                |
+     *
+     * When using a `ThemeBuilder` object, you can configure the theme at runtime using these methods:
+     *
+     * | Method                           | Description                                                                                |
+     * | -------------------------------- | ------------------------------------------------------------------------------------------ |
+     * | `setColorScheme(mode)`           | Sets the color scheme: `'light'`, `'dark'`, or `'auto'` (default: `'auto'`)                |
+     * | `setDensityType(type)`           | Sets the row density: `'compact'`, `'default'`, or `'comfortable'` (default: `'default'`)  |
+     * | `params(paramsObject)`           | Sets custom theme parameters e.g. `icons`, `colors`, `tokens`                              |
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     * - [`themeName`](#themeName)
+     *
+     * @memberof Options#
+     * @type {ThemeBuilder|string|undefined}
+     * @default undefined
+     * @category Core
+     * @since 17.0.0
+     *
+     * @example
+     * ```js
+     * // enable a theme by name (required to import CSS file)
+     * theme: 'ht-theme-horizon',
+     *
+     * // enable a theme using a ThemeBuilder object (recommended)
+     * const horizonTheme = registerTheme(horizonTheme);
+     *
+     * // configure the theme settings at runtime
+     * horizonTheme.setColorScheme('dark');
+     * horizonTheme.setDensityType('compact');
+     * horizonTheme.params({
+     *  tokens: {
+     *    fontSize: '14px',
+     *    iconSize: 'size_5',
+     *    borderColor: ['colors.palette.100', 'colors.palette.800'],
+     *  },
+     * })
+     *
+     * // use the configured theme
+     * theme: horizonTheme,
+     * ```
+     */
+    theme: undefined,
+    /**
+     * The `injectCoreCss` option controls whether Handsontable injects its core CSS into the document.
+     *
+     * You can set the `injectCoreCss` option to one of the following:
+     *
+     * | Setting            | Description                                                                                                      |
+     * | ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default)   | Inject core styles into the document head                                                                        |
+     * | `false`            | Do not inject core styles (use when you load CSS yourself, e.g. `import 'handsontable/styles/handsontable.css'`) |
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category Core
+     * @since 17.0.0
+     *
+     * @example
+     * ```js
+     * // inject core CSS (default)
+     * injectCoreCss: true,
+     *
+     * // skip injection when you load Handsontable CSS yourself
+     * injectCoreCss: false,
+     * ```
+     */
+    injectCoreCss: true,
     /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
      *
@@ -42415,15 +42571,15 @@ var _default = () => {
 exports["default"] = _default;
 
 /***/ }),
-/* 171 */
+/* 170 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _utils = __webpack_require__(168);
+var _object = __webpack_require__(13);
+var _utils = __webpack_require__(167);
 /**
  * The table meta object is a layer that keeps all settings of the Handsontable that was passed in
  * the constructor. That layer contains all default settings inherited from the GlobalMeta layer
@@ -42483,7 +42639,7 @@ class TableMeta {
 exports["default"] = TableMeta;
 
 /***/ }),
-/* 172 */
+/* 171 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -42491,9 +42647,9 @@ exports["default"] = TableMeta;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _utils = __webpack_require__(168);
-var _lazyFactoryMap = _interopRequireDefault(__webpack_require__(173));
+var _object = __webpack_require__(13);
+var _utils = __webpack_require__(167);
+var _lazyFactoryMap = _interopRequireDefault(__webpack_require__(172));
 /**
  * List of props which have to be cleared in the column meta-layer. That props have a
  * different meaning when using in column meta.
@@ -42620,15 +42776,15 @@ class ColumnMeta {
 exports["default"] = ColumnMeta;
 
 /***/ }),
-/* 173 */
+/* 172 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _utils = __webpack_require__(168);
-var _number = __webpack_require__(30);
+var _utils = __webpack_require__(167);
+var _number = __webpack_require__(29);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @class LazyFactoryMap
@@ -42833,7 +42989,7 @@ class LazyFactoryMap {
 exports["default"] = LazyFactoryMap;
 
 /***/ }),
-/* 174 */
+/* 173 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -42841,11 +42997,11 @@ exports["default"] = LazyFactoryMap;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _utils = __webpack_require__(168);
-var _lazyFactoryMap = _interopRequireDefault(__webpack_require__(173));
-var _object = __webpack_require__(14);
-var _mixed = __webpack_require__(8);
-var _number = __webpack_require__(30);
+var _utils = __webpack_require__(167);
+var _lazyFactoryMap = _interopRequireDefault(__webpack_require__(172));
+var _object = __webpack_require__(13);
+var _mixed = __webpack_require__(7);
+var _number = __webpack_require__(29);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @class CellMeta
@@ -43061,7 +43217,7 @@ class CellMeta {
 exports["default"] = CellMeta;
 
 /***/ }),
-/* 175 */
+/* 174 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -43070,12 +43226,12 @@ exports["default"] = CellMeta;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.replaceData = replaceData;
-var _string = __webpack_require__(6);
-var _function = __webpack_require__(16);
-var _dataMap = _interopRequireDefault(__webpack_require__(162));
-var _object = __webpack_require__(14);
-var _element = __webpack_require__(5);
-var _a11y = __webpack_require__(12);
+var _string = __webpack_require__(5);
+var _function = __webpack_require__(15);
+var _dataMap = _interopRequireDefault(__webpack_require__(161));
+var _object = __webpack_require__(13);
+var _element = __webpack_require__(4);
+var _a11y = __webpack_require__(11);
 /**
  * Configuration for the replaceData function.
  */
@@ -43191,16 +43347,16 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
 }
 
 /***/ }),
-/* 176 */
+/* 175 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _hooks = __webpack_require__(21);
-var _object = __webpack_require__(14);
-var _function = __webpack_require__(16);
+var _hooks = __webpack_require__(20);
+var _object = __webpack_require__(13);
+var _function = __webpack_require__(15);
 /**
  * @class DynamicCellMetaMod
  *
@@ -43284,7 +43440,7 @@ class DynamicCellMetaMod {
 exports.DynamicCellMetaMod = DynamicCellMetaMod;
 
 /***/ }),
-/* 177 */
+/* 176 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -43401,26 +43557,26 @@ class ExtendMetaPropertiesMod {
 exports.ExtendMetaPropertiesMod = ExtendMetaPropertiesMod;
 
 /***/ }),
-/* 178 */
+/* 177 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _coordsMapper = __webpack_require__(179);
+var _coordsMapper = __webpack_require__(178);
 Object.keys(_coordsMapper).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _coordsMapper[key]) return;
   exports[key] = _coordsMapper[key];
 });
-var _hooks = __webpack_require__(21);
+var _hooks = __webpack_require__(20);
 Object.keys(_hooks).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _hooks[key]) return;
   exports[key] = _hooks[key];
 });
-var _viewportScroll = __webpack_require__(181);
+var _viewportScroll = __webpack_require__(180);
 Object.keys(_viewportScroll).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _viewportScroll[key]) return;
@@ -43428,14 +43584,14 @@ Object.keys(_viewportScroll).forEach(function (key) {
 });
 
 /***/ }),
-/* 179 */
+/* 178 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _rangeToRenderableMapper = __webpack_require__(180);
+var _rangeToRenderableMapper = __webpack_require__(179);
 Object.keys(_rangeToRenderableMapper).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _rangeToRenderableMapper[key]) return;
@@ -43443,7 +43599,7 @@ Object.keys(_rangeToRenderableMapper).forEach(function (key) {
 });
 
 /***/ }),
-/* 180 */
+/* 179 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -43562,7 +43718,7 @@ class CellRangeToRenderableMapper {
 exports.CellRangeToRenderableMapper = CellRangeToRenderableMapper;
 
 /***/ }),
-/* 181 */
+/* 180 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -43570,13 +43726,13 @@ exports.CellRangeToRenderableMapper = CellRangeToRenderableMapper;
 
 exports.__esModule = true;
 exports.createViewportScroller = createViewportScroller;
-var _columnHeaderScroll = __webpack_require__(182);
-var _cornerHeaderScroll = __webpack_require__(184);
-var _focusScroll = __webpack_require__(185);
-var _multipleScroll = __webpack_require__(186);
-var _noncontiguousScroll = __webpack_require__(187);
-var _rowHeaderScroll = __webpack_require__(188);
-var _singleScroll = __webpack_require__(189);
+var _columnHeaderScroll = __webpack_require__(181);
+var _cornerHeaderScroll = __webpack_require__(183);
+var _focusScroll = __webpack_require__(184);
+var _multipleScroll = __webpack_require__(185);
+var _noncontiguousScroll = __webpack_require__(186);
+var _rowHeaderScroll = __webpack_require__(187);
+var _singleScroll = __webpack_require__(188);
 /**
  * @typedef ViewportScroller
  * @property {function(): void} resume Resumes the viewport scroller.
@@ -43635,7 +43791,7 @@ function createViewportScroller(hot) {
 }
 
 /***/ }),
-/* 182 */
+/* 181 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -43643,7 +43799,7 @@ function createViewportScroller(hot) {
 
 exports.__esModule = true;
 exports.columnHeaderScrollStrategy = columnHeaderScrollStrategy;
-var _utils = __webpack_require__(183);
+var _utils = __webpack_require__(182);
 /**
  * Scroll strategy for column header selection.
  *
@@ -43663,7 +43819,7 @@ function columnHeaderScrollStrategy(hot) {
 }
 
 /***/ }),
-/* 183 */
+/* 182 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -43672,7 +43828,7 @@ function columnHeaderScrollStrategy(hot) {
 exports.__esModule = true;
 exports.createScrollTargetCalculator = createScrollTargetCalculator;
 exports.scrollWindowToCell = scrollWindowToCell;
-var _element = __webpack_require__(5);
+var _element = __webpack_require__(4);
 /**
  * Scrolls the browser's viewport to the specified element.
  *
@@ -43780,7 +43936,7 @@ function createScrollTargetCalculator(hotInstance) {
 }
 
 /***/ }),
-/* 184 */
+/* 183 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -43800,7 +43956,7 @@ function cornerHeaderScrollStrategy(_hot) {
 }
 
 /***/ }),
-/* 185 */
+/* 184 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -43808,7 +43964,7 @@ function cornerHeaderScrollStrategy(_hot) {
 
 exports.__esModule = true;
 exports.focusScrollStrategy = focusScrollStrategy;
-var _utils = __webpack_require__(183);
+var _utils = __webpack_require__(182);
 /**
  * Scroll strategy for changed the focus position of the selection.
  *
@@ -43832,7 +43988,7 @@ function focusScrollStrategy(hot) {
 }
 
 /***/ }),
-/* 186 */
+/* 185 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -43840,7 +43996,7 @@ function focusScrollStrategy(hot) {
 
 exports.__esModule = true;
 exports.multipleScrollStrategy = multipleScrollStrategy;
-var _utils = __webpack_require__(183);
+var _utils = __webpack_require__(182);
 /**
  * Scroll strategy for multiple selections.
  *
@@ -43865,7 +44021,7 @@ function multipleScrollStrategy(hot) {
 }
 
 /***/ }),
-/* 187 */
+/* 186 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -43873,7 +44029,7 @@ function multipleScrollStrategy(hot) {
 
 exports.__esModule = true;
 exports.noncontiguousScrollStrategy = noncontiguousScrollStrategy;
-var _utils = __webpack_require__(183);
+var _utils = __webpack_require__(182);
 /**
  * Scroll strategy for non-contiguous selections.
  *
@@ -43898,7 +44054,7 @@ function noncontiguousScrollStrategy(hot) {
 }
 
 /***/ }),
-/* 188 */
+/* 187 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -43906,7 +44062,7 @@ function noncontiguousScrollStrategy(hot) {
 
 exports.__esModule = true;
 exports.rowHeaderScrollStrategy = rowHeaderScrollStrategy;
-var _utils = __webpack_require__(183);
+var _utils = __webpack_require__(182);
 /**
  * Scroll strategy for row header selection.
  *
@@ -43926,7 +44082,7 @@ function rowHeaderScrollStrategy(hot) {
 }
 
 /***/ }),
-/* 189 */
+/* 188 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -43934,7 +44090,7 @@ function rowHeaderScrollStrategy(hot) {
 
 exports.__esModule = true;
 exports.singleScrollStrategy = singleScrollStrategy;
-var _utils = __webpack_require__(183);
+var _utils = __webpack_require__(182);
 /**
  * Scroll strategy for single cell selection.
  *
@@ -43982,7 +44138,7 @@ function singleScrollStrategy(hot) {
 }
 
 /***/ }),
-/* 190 */
+/* 189 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -43993,11 +44149,11 @@ var _exportNames = {
   createFocusScopeManager: true,
   FocusGridManager: true
 };
-var _scopeManager = __webpack_require__(191);
+var _scopeManager = __webpack_require__(190);
 exports.createFocusScopeManager = _scopeManager.createFocusScopeManager;
-var _grid = __webpack_require__(196);
+var _grid = __webpack_require__(195);
 exports.FocusGridManager = _grid.FocusGridManager;
-var _scopes = __webpack_require__(197);
+var _scopes = __webpack_require__(196);
 Object.keys(_scopes).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -44006,7 +44162,7 @@ Object.keys(_scopes).forEach(function (key) {
 });
 
 /***/ }),
-/* 191 */
+/* 190 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -44014,11 +44170,11 @@ Object.keys(_scopes).forEach(function (key) {
 
 exports.__esModule = true;
 exports.createFocusScopeManager = createFocusScopeManager;
-var _uniqueMap = __webpack_require__(31);
-var _scope = __webpack_require__(192);
-var _eventListener = __webpack_require__(195);
-var _constants = __webpack_require__(194);
-var _element = __webpack_require__(5);
+var _uniqueMap = __webpack_require__(30);
+var _scope = __webpack_require__(191);
+var _eventListener = __webpack_require__(194);
+var _constants = __webpack_require__(193);
+var _element = __webpack_require__(4);
 /**
  * @typedef {object} FocusScopeManager
  * @property {function(): string | null} getActiveScopeId Returns the ID of the active scope.
@@ -44273,7 +44429,7 @@ function createFocusScopeManager(hotInstance) {
 }
 
 /***/ }),
-/* 192 */
+/* 191 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -44281,8 +44437,8 @@ function createFocusScopeManager(hotInstance) {
 
 exports.__esModule = true;
 exports.createFocusScope = createFocusScope;
-var _focusDetector = __webpack_require__(193);
-var _constants = __webpack_require__(194);
+var _focusDetector = __webpack_require__(192);
+var _constants = __webpack_require__(193);
 /**
  * @typedef {object} FocusScope
  * @property {function(): string} getType The type of the scope.
@@ -44408,7 +44564,7 @@ function createFocusScope(hotInstance, container, options = {}) {
 }
 
 /***/ }),
-/* 193 */
+/* 192 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -44416,9 +44572,9 @@ function createFocusScope(hotInstance, container, options = {}) {
 
 exports.__esModule = true;
 exports.installFocusDetector = installFocusDetector;
-var _element = __webpack_require__(5);
-var _a11y = __webpack_require__(12);
-var _constants = __webpack_require__(194);
+var _element = __webpack_require__(4);
+var _a11y = __webpack_require__(11);
+var _constants = __webpack_require__(193);
 /**
  * @typedef {object} FocusDetector
  * @property {function(): void} activate Activates the focus detector.
@@ -44477,6 +44633,7 @@ function createInputElement(hot, focusSource) {
   const input = rootDocument.createElement('input');
   input.type = 'text';
   input.name = 'htFocusCatcher';
+  input.style.display = 'none';
   input.classList.add('htFocusCatcher');
   input.dataset.htFocusSource = focusSource;
   if (hot.getSettings().ariaTags) {
@@ -44486,7 +44643,7 @@ function createInputElement(hot, focusSource) {
 }
 
 /***/ }),
-/* 194 */
+/* 193 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -44517,7 +44674,7 @@ const FOCUS_SOURCES = exports.FOCUS_SOURCES = Object.freeze({
 const DEFAULT_SHORTCUTS_CONTEXT = exports.DEFAULT_SHORTCUTS_CONTEXT = 'grid';
 
 /***/ }),
-/* 195 */
+/* 194 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -44525,7 +44682,7 @@ const DEFAULT_SHORTCUTS_CONTEXT = exports.DEFAULT_SHORTCUTS_CONTEXT = 'grid';
 
 exports.__esModule = true;
 exports.useEventListener = useEventListener;
-var _element = __webpack_require__(5);
+var _element = __webpack_require__(4);
 /**
  * An event listener, used for tracking focus-related and click events necessary for focus management.
  *
@@ -44626,16 +44783,16 @@ function useEventListener(ownerWindow, hooks = {}) {
 }
 
 /***/ }),
-/* 196 */
+/* 195 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _console = __webpack_require__(22);
-var _element = __webpack_require__(5);
-var _function = __webpack_require__(16);
+var _console = __webpack_require__(21);
+var _element = __webpack_require__(4);
+var _function = __webpack_require__(15);
 /**
  * Possible focus modes.
  * - CELL - The browser's focus stays on the lastly selected cell element.
@@ -44904,7 +45061,7 @@ class FocusGridManager {
 exports.FocusGridManager = FocusGridManager;
 
 /***/ }),
-/* 197 */
+/* 196 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -44912,7 +45069,7 @@ exports.FocusGridManager = FocusGridManager;
 
 exports.__esModule = true;
 exports.registerAllFocusScopes = registerAllFocusScopes;
-var _grid = __webpack_require__(198);
+var _grid = __webpack_require__(197);
 /**
  * Register all focus scopes.
  *
@@ -44923,7 +45080,7 @@ function registerAllFocusScopes(hotInstance) {
 }
 
 /***/ }),
-/* 198 */
+/* 197 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -44931,8 +45088,8 @@ function registerAllFocusScopes(hotInstance) {
 
 exports.__esModule = true;
 exports.focusGridScope = focusGridScope;
-var _utils = __webpack_require__(199);
-var _shortcutContexts = __webpack_require__(200);
+var _utils = __webpack_require__(198);
+var _shortcutContexts = __webpack_require__(199);
 /**
  * @param {Handsontable} hot The Handsontable instance.
  */
@@ -45045,7 +45202,7 @@ function focusGridScope(hot) {
 }
 
 /***/ }),
-/* 199 */
+/* 198 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -45055,7 +45212,7 @@ exports.__esModule = true;
 exports.getMostBottomEndPosition = getMostBottomEndPosition;
 exports.getMostTopStartPosition = getMostTopStartPosition;
 exports.normalizeCoordsIfNeeded = normalizeCoordsIfNeeded;
-var _number = __webpack_require__(30);
+var _number = __webpack_require__(29);
 /**
  * Normalizes the coordinates (clamps to nearest visible cell position within dataset range).
  *
@@ -45145,7 +45302,7 @@ function getMostBottomEndPosition(hot) {
 }
 
 /***/ }),
-/* 200 */
+/* 199 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -45156,9 +45313,9 @@ var _exportNames = {
   registerAllShortcutContexts: true
 };
 exports.registerAllShortcutContexts = registerAllShortcutContexts;
-var _editor = __webpack_require__(201);
-var _grid = __webpack_require__(252);
-var _constants = __webpack_require__(202);
+var _editor = __webpack_require__(200);
+var _grid = __webpack_require__(251);
+var _constants = __webpack_require__(201);
 Object.keys(_constants).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -45175,7 +45332,7 @@ function registerAllShortcutContexts(hotInstance) {
 }
 
 /***/ }),
-/* 201 */
+/* 200 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -45183,8 +45340,8 @@ function registerAllShortcutContexts(hotInstance) {
 
 exports.__esModule = true;
 exports.shortcutsEditorContext = shortcutsEditorContext;
-var _constants = __webpack_require__(202);
-var _commands = __webpack_require__(203);
+var _constants = __webpack_require__(201);
+var _commands = __webpack_require__(202);
 /**
  * The context that defines a base shortcut list available for cells editors.
  *
@@ -45218,7 +45375,7 @@ function shortcutsEditorContext(hot) {
 }
 
 /***/ }),
-/* 202 */
+/* 201 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -45250,7 +45407,7 @@ const EDITOR_EDIT_GROUP = exports.EDITOR_EDIT_GROUP = 'editorManager.handlingEdi
 const EDITOR_SCOPE = exports.EDITOR_SCOPE = 'editor';
 
 /***/ }),
-/* 203 */
+/* 202 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -45258,15 +45415,15 @@ const EDITOR_SCOPE = exports.EDITOR_SCOPE = 'editor';
 
 exports.__esModule = true;
 exports.createKeyboardShortcutCommandsPool = createKeyboardShortcutCommandsPool;
-var _editor = __webpack_require__(204);
-var _extendCellsSelection = __webpack_require__(214);
-var _moveCellSelection = __webpack_require__(229);
-var _emptySelectedCells = __webpack_require__(246);
-var _scrollToFocusedCell = __webpack_require__(247);
-var _selectAllCells = __webpack_require__(248);
-var _selectAllCellsAndHeaders = __webpack_require__(249);
-var _populateSelectedCellsData = __webpack_require__(250);
-var _tabNavigation = __webpack_require__(251);
+var _editor = __webpack_require__(203);
+var _extendCellsSelection = __webpack_require__(213);
+var _moveCellSelection = __webpack_require__(228);
+var _emptySelectedCells = __webpack_require__(245);
+var _scrollToFocusedCell = __webpack_require__(246);
+var _selectAllCells = __webpack_require__(247);
+var _selectAllCellsAndHeaders = __webpack_require__(248);
+var _populateSelectedCellsData = __webpack_require__(249);
+var _tabNavigation = __webpack_require__(250);
 const allCommands = [...(0, _editor.getAllCommands)(), ...(0, _extendCellsSelection.getAllCommands)(), ...(0, _moveCellSelection.getAllCommands)(), _emptySelectedCells.command, _scrollToFocusedCell.command, _selectAllCells.command, _selectAllCellsAndHeaders.command, _populateSelectedCellsData.command, _tabNavigation.command];
 
 /**
@@ -45287,7 +45444,7 @@ function createKeyboardShortcutCommandsPool(hot) {
 }
 
 /***/ }),
-/* 204 */
+/* 203 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -45295,12 +45452,12 @@ function createKeyboardShortcutCommandsPool(hot) {
 
 exports.__esModule = true;
 exports.getAllCommands = getAllCommands;
-var _closeAndSave = __webpack_require__(205);
-var _closeAndSaveByArrowKeys = __webpack_require__(206);
-var _closeAndSaveByEnter = __webpack_require__(210);
-var _closeWithoutSaving = __webpack_require__(211);
-var _fastOpen = __webpack_require__(212);
-var _open = __webpack_require__(213);
+var _closeAndSave = __webpack_require__(204);
+var _closeAndSaveByArrowKeys = __webpack_require__(205);
+var _closeAndSaveByEnter = __webpack_require__(209);
+var _closeWithoutSaving = __webpack_require__(210);
+var _fastOpen = __webpack_require__(211);
+var _open = __webpack_require__(212);
 /**
  * Returns complete list of the shortcut commands for the cells editing feature.
  *
@@ -45311,7 +45468,7 @@ function getAllCommands() {
 }
 
 /***/ }),
-/* 205 */
+/* 204 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -45327,14 +45484,14 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 206 */
+/* 205 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _baseEditor = __webpack_require__(207);
+var _baseEditor = __webpack_require__(206);
 const command = exports.command = {
   name: 'editorCloseAndSaveByArrowKeys',
   callback(hot, event, keys) {
@@ -45360,20 +45517,20 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 207 */
+/* 206 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _baseEditor = __webpack_require__(208);
+var _baseEditor = __webpack_require__(207);
 exports.EDITOR_STATE = _baseEditor.EDITOR_STATE;
 exports.EDITOR_TYPE = _baseEditor.EDITOR_TYPE;
 exports.BaseEditor = _baseEditor.BaseEditor;
 
 /***/ }),
-/* 208 */
+/* 207 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -45381,10 +45538,10 @@ exports.BaseEditor = _baseEditor.BaseEditor;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _mixed = __webpack_require__(8);
-var _object = __webpack_require__(14);
-var _hooksRefRegisterer = _interopRequireDefault(__webpack_require__(209));
-var _element = __webpack_require__(5);
+var _mixed = __webpack_require__(7);
+var _object = __webpack_require__(13);
+var _hooksRefRegisterer = _interopRequireDefault(__webpack_require__(208));
+var _element = __webpack_require__(4);
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'base';
 const EDITOR_STATE = exports.EDITOR_STATE = Object.freeze({
   VIRGIN: 'STATE_VIRGIN',
@@ -45955,15 +46112,15 @@ exports.BaseEditor = BaseEditor;
 (0, _object.mixin)(BaseEditor, _hooksRefRegisterer.default);
 
 /***/ }),
-/* 209 */
+/* 208 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _array = __webpack_require__(11);
-var _object = __webpack_require__(14);
+var _array = __webpack_require__(10);
+var _object = __webpack_require__(13);
 const MIXIN_NAME = 'hooksRefRegisterer';
 
 /**
@@ -46016,7 +46173,7 @@ const hooksRefRegisterer = {
 var _default = exports["default"] = hooksRefRegisterer;
 
 /***/ }),
-/* 210 */
+/* 209 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46033,7 +46190,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 211 */
+/* 210 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46050,7 +46207,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 212 */
+/* 211 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46071,14 +46228,14 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 213 */
+/* 212 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _event = __webpack_require__(19);
+var _event = __webpack_require__(18);
 const command = exports.command = {
   name: 'editorOpen',
   callback(hot, event, keys) {
@@ -46122,7 +46279,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 214 */
+/* 213 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -46130,20 +46287,20 @@ const command = exports.command = {
 
 exports.__esModule = true;
 exports.getAllCommands = getAllCommands;
-var _down = __webpack_require__(215);
-var _downByViewportHeight = __webpack_require__(216);
-var _left = __webpack_require__(217);
-var _right = __webpack_require__(218);
-var _toColumns = __webpack_require__(219);
-var _toMostBottom = __webpack_require__(220);
-var _toMostInlineEnd = __webpack_require__(221);
-var _toMostInlineStart = __webpack_require__(222);
-var _toMostLeft = __webpack_require__(223);
-var _toMostRight = __webpack_require__(224);
-var _toMostTop = __webpack_require__(225);
-var _toRows = __webpack_require__(226);
-var _up = __webpack_require__(227);
-var _upByViewportHeight = __webpack_require__(228);
+var _down = __webpack_require__(214);
+var _downByViewportHeight = __webpack_require__(215);
+var _left = __webpack_require__(216);
+var _right = __webpack_require__(217);
+var _toColumns = __webpack_require__(218);
+var _toMostBottom = __webpack_require__(219);
+var _toMostInlineEnd = __webpack_require__(220);
+var _toMostInlineStart = __webpack_require__(221);
+var _toMostLeft = __webpack_require__(222);
+var _toMostRight = __webpack_require__(223);
+var _toMostTop = __webpack_require__(224);
+var _toRows = __webpack_require__(225);
+var _up = __webpack_require__(226);
+var _upByViewportHeight = __webpack_require__(227);
 /**
  * Returns complete list of the shortcut commands for the cells selection extending feature.
  *
@@ -46154,7 +46311,7 @@ function getAllCommands() {
 }
 
 /***/ }),
-/* 215 */
+/* 214 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46179,7 +46336,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 216 */
+/* 215 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46215,7 +46372,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 217 */
+/* 216 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46240,7 +46397,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 218 */
+/* 217 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46265,7 +46422,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 219 */
+/* 218 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46294,7 +46451,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 220 */
+/* 219 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46332,7 +46489,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 221 */
+/* 220 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46364,7 +46521,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 222 */
+/* 221 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46397,7 +46554,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 223 */
+/* 222 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46435,7 +46592,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 224 */
+/* 223 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46473,7 +46630,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 225 */
+/* 224 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46511,7 +46668,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 226 */
+/* 225 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46540,7 +46697,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 227 */
+/* 226 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46565,7 +46722,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 228 */
+/* 227 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46601,7 +46758,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 229 */
+/* 228 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -46609,22 +46766,22 @@ const command = exports.command = {
 
 exports.__esModule = true;
 exports.getAllCommands = getAllCommands;
-var _down = __webpack_require__(230);
-var _downByViewportHeight = __webpack_require__(231);
-var _inlineEnd = __webpack_require__(232);
-var _inlineStart = __webpack_require__(233);
-var _left = __webpack_require__(234);
-var _right = __webpack_require__(235);
-var _toMostBottom = __webpack_require__(236);
-var _toMostBottomInlineEnd = __webpack_require__(237);
-var _toMostInlineEnd = __webpack_require__(238);
-var _toMostInlineStart = __webpack_require__(239);
-var _toMostLeft = __webpack_require__(240);
-var _toMostRight = __webpack_require__(241);
-var _toMostTop = __webpack_require__(242);
-var _toMostTopInlineStart = __webpack_require__(243);
-var _up = __webpack_require__(244);
-var _upByViewportHeight = __webpack_require__(245);
+var _down = __webpack_require__(229);
+var _downByViewportHeight = __webpack_require__(230);
+var _inlineEnd = __webpack_require__(231);
+var _inlineStart = __webpack_require__(232);
+var _left = __webpack_require__(233);
+var _right = __webpack_require__(234);
+var _toMostBottom = __webpack_require__(235);
+var _toMostBottomInlineEnd = __webpack_require__(236);
+var _toMostInlineEnd = __webpack_require__(237);
+var _toMostInlineStart = __webpack_require__(238);
+var _toMostLeft = __webpack_require__(239);
+var _toMostRight = __webpack_require__(240);
+var _toMostTop = __webpack_require__(241);
+var _toMostTopInlineStart = __webpack_require__(242);
+var _up = __webpack_require__(243);
+var _upByViewportHeight = __webpack_require__(244);
 /**
  * Returns complete list of the shortcut commands for the cells moving feature.
  *
@@ -46635,7 +46792,7 @@ function getAllCommands() {
 }
 
 /***/ }),
-/* 230 */
+/* 229 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46654,7 +46811,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 231 */
+/* 230 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46698,7 +46855,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 232 */
+/* 231 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46726,7 +46883,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 233 */
+/* 232 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46754,7 +46911,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 234 */
+/* 233 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46774,7 +46931,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 235 */
+/* 234 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46794,7 +46951,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 236 */
+/* 235 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46819,7 +46976,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 237 */
+/* 236 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46844,7 +47001,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 238 */
+/* 237 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46865,7 +47022,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 239 */
+/* 238 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46889,7 +47046,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 240 */
+/* 239 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46915,7 +47072,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 241 */
+/* 240 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46943,7 +47100,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 242 */
+/* 241 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46970,7 +47127,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 243 */
+/* 242 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46996,7 +47153,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 244 */
+/* 243 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -47015,7 +47172,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 245 */
+/* 244 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -47059,7 +47216,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 246 */
+/* 245 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -47075,7 +47232,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 247 */
+/* 246 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -47115,7 +47272,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 248 */
+/* 247 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -47136,7 +47293,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 249 */
+/* 248 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -47157,7 +47314,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 250 */
+/* 249 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -47191,7 +47348,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 251 */
+/* 250 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -47248,7 +47405,7 @@ const command = exports.command = {
 };
 
 /***/ }),
-/* 252 */
+/* 251 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -47256,9 +47413,9 @@ const command = exports.command = {
 
 exports.__esModule = true;
 exports.shortcutsGridContext = shortcutsGridContext;
-var _mixed = __webpack_require__(8);
-var _constants = __webpack_require__(202);
-var _commands = __webpack_require__(203);
+var _mixed = __webpack_require__(7);
+var _constants = __webpack_require__(201);
+var _commands = __webpack_require__(202);
 /**
  * The context that defines shortcut list available for selected cell or cells.
  *
@@ -47446,6 +47603,17 @@ function shortcutsGridContext(hot) {
 }
 
 /***/ }),
+/* 252 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+var _manager = __webpack_require__(253);
+exports.createShortcutManager = _manager.createShortcutManager;
+
+/***/ }),
 /* 253 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -47453,22 +47621,11 @@ function shortcutsGridContext(hot) {
 
 
 exports.__esModule = true;
-var _manager = __webpack_require__(254);
-exports.createShortcutManager = _manager.createShortcutManager;
-
-/***/ }),
-/* 254 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-exports.__esModule = true;
-var _uniqueMap = __webpack_require__(31);
-var _event = __webpack_require__(19);
-var _context = __webpack_require__(255);
-var _recorder = __webpack_require__(257);
-var _templateLiteralTag = __webpack_require__(10);
+var _uniqueMap = __webpack_require__(30);
+var _event = __webpack_require__(18);
+var _context = __webpack_require__(254);
+var _recorder = __webpack_require__(256);
+var _templateLiteralTag = __webpack_require__(9);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutContext.md)).
@@ -47679,7 +47836,7 @@ const createShortcutManager = ({
 exports.createShortcutManager = createShortcutManager;
 
 /***/ }),
-/* 255 */
+/* 254 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -47687,12 +47844,12 @@ exports.createShortcutManager = createShortcutManager;
 
 exports.__esModule = true;
 exports.isContextObject = isContextObject;
-var _uniqueMap = __webpack_require__(31);
-var _utils = __webpack_require__(256);
-var _mixed = __webpack_require__(8);
-var _function = __webpack_require__(16);
-var _object = __webpack_require__(14);
-var _templateLiteralTag = __webpack_require__(10);
+var _uniqueMap = __webpack_require__(30);
+var _utils = __webpack_require__(255);
+var _mixed = __webpack_require__(7);
+var _function = __webpack_require__(15);
+var _object = __webpack_require__(13);
+var _templateLiteralTag = __webpack_require__(9);
 const __kindOf = Symbol('shortcut-context');
 /**
  * Checks if the provided object is a context object.
@@ -47901,7 +48058,7 @@ const createContext = (name, scope = 'table') => {
 exports.createContext = createContext;
 
 /***/ }),
-/* 256 */
+/* 255 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -47976,7 +48133,7 @@ const normalizeEventKey = ({
 exports.normalizeEventKey = normalizeEventKey;
 
 /***/ }),
-/* 257 */
+/* 256 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -47984,11 +48141,11 @@ exports.normalizeEventKey = normalizeEventKey;
 
 exports.__esModule = true;
 exports.useRecorder = useRecorder;
-var _keyObserver = __webpack_require__(258);
-var _utils = __webpack_require__(256);
-var _event = __webpack_require__(19);
-var _element = __webpack_require__(5);
-var _browser = __webpack_require__(13);
+var _keyObserver = __webpack_require__(257);
+var _utils = __webpack_require__(255);
+var _event = __webpack_require__(18);
+var _element = __webpack_require__(4);
+var _browser = __webpack_require__(12);
 const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
 const modifierKeysObserver = (0, _keyObserver.createKeysObserver)();
 const modKeyListeners = [];
@@ -48177,7 +48334,7 @@ function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDown, call
 }
 
 /***/ }),
-/* 258 */
+/* 257 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -48236,7 +48393,7 @@ function createKeysObserver() {
 }
 
 /***/ }),
-/* 259 */
+/* 258 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -48244,7 +48401,7 @@ function createKeysObserver() {
 
 exports.__esModule = true;
 exports.getThemeClassName = getThemeClassName;
-var _element = __webpack_require__(5);
+var _element = __webpack_require__(4);
 /**
  * Retrieves the theme class name from the closest parent element that matches the specified regex pattern.
  *
@@ -48259,15 +48416,22 @@ function getThemeClassName(rootElement) {
 }
 
 /***/ }),
-/* 260 */
+/* 259 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _console = __webpack_require__(22);
-const CLASSIC_THEME_DEFAULT_HEIGHT = 23;
+var _console = __webpack_require__(21);
+var _handsontableStyles = _interopRequireDefault(__webpack_require__(260));
+/**
+ * The id of the core styles element injected into the document head.
+ *
+ * @type {string}
+ */
+const CORE_STYLES_ID = 'handsontable-core-styles';
 
 /**
  * Handles the theme-related style operations.
@@ -48310,13 +48474,6 @@ class StylesHandler {
   #rootDocument;
 
   /**
-   * `true` if the classic theme is enabled, `false` otherwise.
-   *
-   * @type {boolean}
-   */
-  #isClassicTheme = true;
-
-  /**
    * An object to store CSS variable values.
    *
    * @type {object}
@@ -48345,26 +48502,22 @@ class StylesHandler {
    * @param {HTMLElement} options.rootElement The root element of the instance.
    * @param {Document} options.rootDocument The root document of the instance.
    * @param {function(string)} options.onThemeChange The callback function to be called when the theme changes.
+   * @param {boolean} options.injectCoreCss Whether to inject the core styles into the document head.
    */
   constructor({
     hot,
     rootElement,
     rootDocument,
-    onThemeChange = _ => {}
+    onThemeChange = _ => {},
+    injectCoreCss = true
   }) {
     this.#hot = hot;
     this.#rootElement = rootElement;
     this.#rootDocument = rootDocument;
     this.#onThemeChange = onThemeChange;
-  }
-
-  /**
-   * Gets the value indicating whether the classic theme is enabled.
-   *
-   * @returns {boolean} `true` if the classic theme is enabled, `false` otherwise.
-   */
-  isClassicTheme() {
-    return this.#isClassicTheme;
+    if (injectCoreCss) {
+      this.#injectCoreStyles();
+    }
   }
 
   /**
@@ -48374,9 +48527,6 @@ class StylesHandler {
    * @returns {number|null|undefined} The value of the specified CSS variable, or `undefined` if not found.
    */
   getCSSVariableValue(variableName) {
-    if (this.#isClassicTheme) {
-      return null;
-    }
     if (this.#cssVars[`--ht-${variableName}`]) {
       return this.#cssVars[`--ht-${variableName}`];
     }
@@ -48404,13 +48554,7 @@ class StylesHandler {
    * @returns {number} The calculated row height.
    */
   getDefaultRowHeight(visualRowIndex) {
-    if (this.#isClassicTheme) {
-      return CLASSIC_THEME_DEFAULT_HEIGHT;
-    }
     const rowHeight = this.#calculateRowHeight();
-    if (!rowHeight) {
-      return CLASSIC_THEME_DEFAULT_HEIGHT;
-    }
     if (visualRowIndex !== undefined && visualRowIndex === this.#hot.view.getFirstRenderedVisibleRow()) {
       // add 1px border-top-width compensation for the first rendered row
       return rowHeight + 1;
@@ -48433,30 +48577,16 @@ class StylesHandler {
    * @param {string|undefined|boolean} [themeName] - The name of the theme to apply.
    */
   useTheme(themeName) {
-    if (!themeName) {
-      this.#themeName = undefined;
-      this.#isClassicTheme = true;
-      this.#onThemeChange(this.#themeName);
-      this.#cacheStylesheetValues();
+    if (!/ht-theme-.*/.test(themeName)) {
+      (0, _console.warn)(`${themeName} isn't a valid theme name. Please ensure it follows the format ht-theme-<theme-name>.`);
       return;
     }
+    this.#clearCachedValues();
     if (themeName && themeName !== this.#themeName) {
-      if (!/ht-theme-.*/.test(themeName)) {
-        (0, _console.warn)(`Invalid theme name: ${themeName}. Please provide a valid theme name.`);
-        this.#themeName = undefined;
-        this.#isClassicTheme = false;
-        this.#onThemeChange(this.#themeName);
-        this.#cacheStylesheetValues();
-        return;
-      }
-      if (this.#themeName) {
-        this.#clearCachedValues();
-      }
       this.#themeName = themeName;
-      this.#isClassicTheme = false;
-      this.#onThemeChange(this.#themeName);
-      this.#cacheStylesheetValues();
     }
+    this.#onThemeChange(this.#themeName);
+    this.#cacheStylesheetValues();
   }
 
   /**
@@ -48466,6 +48596,19 @@ class StylesHandler {
    */
   getThemeName() {
     return this.#themeName;
+  }
+  #injectCoreStyles() {
+    if (!this.#hot || !this.#rootDocument || !this.#rootDocument.head) {
+      return;
+    }
+    const existing = this.#rootDocument.getElementById(CORE_STYLES_ID);
+    if (existing && existing instanceof HTMLStyleElement) {
+      return;
+    }
+    const baseStyles = this.#rootDocument.createElement('style');
+    baseStyles.id = CORE_STYLES_ID;
+    baseStyles.textContent = _handsontableStyles.default;
+    this.#rootDocument.head.appendChild(baseStyles);
   }
 
   /**
@@ -48487,9 +48630,7 @@ class StylesHandler {
    * Caches the computed style values for the root element and `td` element.
    */
   #cacheStylesheetValues() {
-    if (!this.isClassicTheme()) {
-      this.#rootComputedStyle = getComputedStyle(this.#rootElement);
-    }
+    this.#rootComputedStyle = getComputedStyle(this.#rootElement);
     const stylesForTD = this.#getStylesForTD(['box-sizing', 'border-bottom-width']);
     this.#computedStyles.td = {
       ...this.#computedStyles.td,
@@ -48552,7 +48693,7 @@ class StylesHandler {
    * @returns {string|null} The value of the specified CSS property or `null` if non-existent.
    */
   #getCSSValue(property) {
-    const acquiredValue = this.#rootComputedStyle.getPropertyValue(property);
+    const acquiredValue = this.#rootComputedStyle?.getPropertyValue(property);
     return acquiredValue === '' ? null : acquiredValue;
   }
 
@@ -48562,10 +48703,30 @@ class StylesHandler {
   #clearCachedValues() {
     this.#computedStyles = {};
     this.#cssVars = {};
-    this.#isClassicTheme = true;
+  }
+
+  /**
+   * Clears all cached CSS variable values and computed styles.
+   * This should be called when theme CSS variables are dynamically updated.
+   */
+  clearCache() {
+    this.#clearCachedValues();
+    this.#cacheStylesheetValues();
   }
 }
 exports.StylesHandler = StylesHandler;
+
+/***/ }),
+/* 260 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+/* eslint-disable max-len, quotes */
+/* This file is autogenerated. */
+var _default = exports["default"] = "/*!\n * Copyright (c) HANDSONCODE sp. z o. o.\n *\n * HANDSONTABLE is a software distributed by HANDSONCODE sp. z o. o., a Polish corporation based in\n * Gdynia, Poland, at Aleja Zwyciestwa 96-98, registered by the District Court in Gdansk under number\n * 538651, EU tax ID number: PL5862294002, share capital: PLN 62,800.00.\n *\n * This software is protected by applicable copyright laws, including international treaties, and dual-\n * licensed - depending on whether your use for commercial purposes, meaning intended for or\n * resulting in commercial advantage or monetary compensation, or not.\n *\n * If your use is strictly personal or solely for evaluation purposes, meaning for the purposes of testing\n * the suitability, performance, and usefulness of this software outside the production environment,\n * you agree to be bound by the terms included in the \"handsontable-non-commercial-license.pdf\" file.\n *\n * Your use of this software for commercial purposes is subject to the terms included in an applicable\n * license agreement.\n *\n * In any case, you must not make any such use of this software as to develop software which may be\n * considered competitive with this software.\n *\n * UNLESS EXPRESSLY AGREED OTHERWISE, HANDSONCODE PROVIDES THIS SOFTWARE ON AN \"AS IS\"\n * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, AND IN NO EVENT AND UNDER NO\n * LEGAL THEORY, SHALL HANDSONCODE BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY DIRECT,\n * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM\n * USE OR INABILITY TO USE THIS SOFTWARE.\n *\n * Version: 16.2.0\n * Release date: 25/11/2025 (built at 10/02/2026 16:20:55)\n */\n.ht-root-wrapper {\n  font-family: var(--ht-font-family), -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n}\n\n.htFocusCatcher {\n  display: block !important;\n  position: absolute;\n  width: 0;\n  height: 0;\n  margin: 0;\n  padding: 0;\n  border: 0;\n  opacity: 0;\n  z-index: -1;\n}\n\n.ht-grid {\n  flex: 1 1 auto;\n  min-height: 0;\n}\n\n.handsontable {\n  font-family: var(--ht-font-family), -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  position: relative;\n  font-size: var(--ht-font-size);\n  line-height: var(--ht-line-height);\n  font-weight: var(--ht-font-weight);\n  letter-spacing: var(--ht-letter-spacing);\n  color: var(--ht-foreground-color);\n  /* Miscellaneous */\n  touch-action: manipulation;\n  scrollbar-width: thin;\n  scrollbar-color: var(--ht-scrollbar-thumb-color) var(--ht-scrollbar-track-color);\n}\n.handsontable .wtHolder::-webkit-scrollbar {\n  width: 9px;\n  height: 9px;\n}\n.handsontable .wtHolder::-webkit-scrollbar-track {\n  background: var(--ht-scrollbar-track-color);\n  border-radius: var(--ht-scrollbar-border-radius);\n}\n.handsontable .wtHolder::-webkit-scrollbar-thumb {\n  background-color: var(--ht-scrollbar-thumb-color);\n  border-radius: var(--ht-scrollbar-border-radius);\n}\n.handsontable .wtHolder::-webkit-scrollbar-corner {\n  background: var(--ht-scrollbar-track-color);\n  border-end-end-radius: var(--ht-scrollbar-border-radius);\n}\n.handsontable.ht-wrapper {\n  border-radius: var(--ht-wrapper-border-radius, 0);\n  height: 100%;\n  width: 100%;\n}\n.handsontable.ht-wrapper:not(.htFirstDatasetColumnNotRendered) td:first-of-type {\n  border-inline-start-width: 1px;\n}\n.handsontable.ht-wrapper::before {\n  content: \"\";\n  display: block;\n  position: absolute;\n  inset: 0;\n  border: var(--ht-wrapper-border-width) solid var(--ht-wrapper-border-color);\n  border-radius: var(--ht-wrapper-border-radius, 0);\n  z-index: 999;\n  pointer-events: none;\n  overflow: hidden;\n}\n.handsontable.htGhostTable table thead th {\n  border-bottom-width: 0;\n}\n.handsontable.htGhostTable table tbody tr:first-of-type th:first-child,\n.handsontable.htGhostTable table tbody tr:first-of-type td:first-child {\n  height: calc(var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px);\n}\n.handsontable.htGhostTable table tbody tr th,\n.handsontable.htGhostTable table tbody tr td {\n  border-top-width: 0;\n  height: calc(var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px);\n}\n.handsontable.htHasScrollX:not(.htHorizontallyScrollableByWindow) .ht_master .wtHolder, .handsontable.htHasScrollY:not(.htVerticallyScrollableByWindow) .ht_master .wtHolder {\n  border-radius: var(--ht-wrapper-border-radius, 0);\n}\n.handsontable:not(.htHorizontallyScrollableByWindow) .ht_master .wtHolder, .handsontable:not(.htVerticallyScrollableByWindow) .ht_master .wtHolder {\n  background-color: var(--ht-background-color);\n}\n.handsontable tr.ht__row_even th {\n  background-color: var(--ht-row-header-even-background-color);\n}\n.handsontable tr.ht__row_even td {\n  background-color: var(--ht-row-cell-even-background-color);\n}\n.handsontable tr.ht__row_odd th {\n  background-color: var(--ht-row-header-odd-background-color);\n}\n.handsontable tr.ht__row_odd td {\n  background-color: var(--ht-row-cell-odd-background-color);\n}\n.handsontable th,\n.handsontable td {\n  height: calc(var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px);\n  padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);\n  vertical-align: top;\n  border-top-width: 0;\n  border-inline-start-width: 0;\n  border-inline-end-width: 1px;\n  border-bottom-width: 1px;\n  border-style: solid;\n  font-size: var(--ht-font-size);\n  line-height: var(--ht-line-height);\n  white-space: pre-wrap;\n  overflow: hidden;\n  outline: none;\n  outline-width: 0;\n  empty-cells: show;\n  box-sizing: border-box;\n  color: var(--ht-foreground-color);\n  border-top-color: var(--ht-cell-vertical-border-color);\n  border-bottom-color: var(--ht-cell-vertical-border-color);\n  border-inline-start-color: var(--ht-cell-horizontal-border-color);\n  border-inline-end-color: var(--ht-cell-horizontal-border-color);\n}\n.handsontable th.invisibleSelection,\n.handsontable td.invisibleSelection {\n  outline: none;\n}\n.handsontable th.invisibleSelection::selection,\n.handsontable td.invisibleSelection::selection {\n  background: transparent;\n}\n.handsontable th {\n  position: relative;\n  overflow: visible;\n  text-align: center;\n  font-weight: var(--ht-header-font-weight);\n  white-space: nowrap;\n  color: var(--ht-header-foreground-color);\n  background-color: var(--ht-header-background-color);\n}\n.handsontable th:last-child {\n  /* Foundation framework fix */\n  border-inline-start-width: 0;\n  border-inline-end-width: 1px;\n  border-bottom-width: 1px;\n  border-inline-end-color: var(--ht-border-color);\n}\n.handsontable th:last-child.ht__active_highlight {\n  border-inline-end-color: var(--ht-header-active-border-color);\n}\n.handsontable th:first-child {\n  border-inline-start-color: var(--ht-border-color);\n}\n.handsontable th:first-child.ht__active_highlight {\n  border-inline-start-color: var(--ht-header-active-border-color);\n}\n.handsontable th:first-child, .handsontable th:nth-child(2) {\n  border-inline-start-width: 1px;\n}\n.handsontable th.current {\n  box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);\n}\n.handsontable th.active {\n  color: var(--ht-header-active-foreground-color);\n  background-color: var(--ht-header-active-background-color);\n}\n.handsontable th.ht__highlight {\n  color: var(--ht-header-highlighted-foreground-color);\n  background-color: var(--ht-header-highlighted-background-color);\n}\n.handsontable th.ht__active_highlight {\n  border-color: var(--ht-header-active-border-color);\n  color: var(--ht-header-active-foreground-color);\n  background-color: var(--ht-header-active-background-color);\n}\n.handsontable tbody tr.ht__row_odd th.ht__highlight, .handsontable tbody tr.ht__row_even th.ht__highlight {\n  color: var(--ht-header-row-highlighted-foreground-color);\n  background-color: var(--ht-header-row-highlighted-background-color);\n}\n.handsontable tbody tr.ht__row_odd th.ht__active_highlight, .handsontable tbody tr.ht__row_even th.ht__active_highlight {\n  color: var(--ht-header-row-active-foreground-color);\n  background-color: var(--ht-header-row-active-background-color);\n}\n.handsontable tbody tr:first-of-type th:first-child:empty::after,\n.handsontable tbody tr:first-of-type td:first-child:empty::after {\n  content: \"\";\n  display: block;\n  min-height: var(--ht-line-height);\n}\n.handsontable tbody tr th {\n  padding: 0;\n  color: var(--ht-header-row-foreground-color);\n  background-color: var(--ht-header-row-background-color);\n}\n.handsontable tbody tr th.ht__active_highlight {\n  box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color);\n}\n.handsontable tbody tr th .relative {\n  padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);\n  min-height: 100%;\n}\n.handsontable tbody tr td:first-child {\n  border-inline-start-color: var(--ht-border-color);\n}\n.handsontable tbody tr td:last-child {\n  border-inline-end-color: var(--ht-border-color);\n}\n.handsontable thead tr th {\n  padding: 0;\n}\n.handsontable thead tr th.ht__active_highlight {\n  box-shadow: -1px 0 0 0 var(--ht-header-active-border-color);\n}\n.handsontable thead tr th .relative {\n  padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);\n}\n.handsontable thead tr th .relative .colHeader {\n  text-overflow: ellipsis;\n  overflow: hidden;\n  vertical-align: top;\n  max-width: calc(100% + 1px);\n}\n.handsontable thead tr th .relative:has(.collapsibleIndicator, .changeType) .colHeader {\n  max-width: calc(100% - (var(--ht-icon-size) + var(--ht-gap-size)) - 1px);\n}\n.handsontable tr:first-child th,\n.handsontable tr:first-child td {\n  border-top-color: var(--ht-border-color);\n  border-top-width: 1px;\n}\n.handsontable tr:first-child th.ht__active_highlight,\n.handsontable tr:first-child td.ht__active_highlight {\n  border-top-color: var(--ht-header-active-border-color);\n}\n.handsontable tr:last-child th,\n.handsontable tr:last-child td {\n  border-bottom-color: var(--ht-border-color);\n}\n.handsontable tr:last-child th.ht__active_highlight,\n.handsontable tr:last-child td.ht__active_highlight {\n  border-bottom-color: var(--ht-header-active-border-color);\n}\n.handsontable div[class^=ht_clone] thead .ht__highlight .relative::after {\n  content: \"\";\n  display: block;\n  position: absolute;\n  left: -1px;\n  right: -1px;\n  bottom: -1px;\n  height: var(--ht-header-highlighted-shadow-size);\n  background-color: var(--ht-accent-color);\n}\n.handsontable div[class^=ht_clone] thead tr:only-of-type .ht__highlight .relative::after {\n  bottom: 0;\n}\n.handsontable div[class^=ht_clone] tbody .ht__highlight .relative::after {\n  content: \"\";\n  display: block;\n  position: absolute;\n  top: -1px;\n  right: -1px;\n  bottom: -1px;\n  width: var(--ht-header-highlighted-shadow-size);\n  background-color: var(--ht-accent-color);\n}\n.handsontable div[class^=ht_clone] td:first-of-type {\n  border-inline-start-width: 1px;\n}\n.handsontable thead tr:not(:last-child) th {\n  /* Fix for - nested columns with hidden column  */\n  overflow: hidden;\n}\n.handsontable .hide {\n  display: none;\n}\n.handsontable .relative {\n  position: relative;\n  box-sizing: border-box;\n}\n.handsontable .wtHider {\n  width: 0;\n}\n.handsontable .wtSpreader {\n  position: relative;\n  /* must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */\n  width: 0;\n  height: auto;\n}\n.handsontable .htAutoSize {\n  position: absolute;\n  left: -99000px;\n  top: -99000px;\n  visibility: hidden;\n}\n.handsontable .htTextEllipsis {\n  text-overflow: ellipsis;\n  overflow: hidden;\n  white-space: nowrap;\n}\n.handsontable table,\n.handsontable tbody,\n.handsontable thead,\n.handsontable input,\n.handsontable textarea,\n.handsontable div {\n  box-sizing: content-box;\n}\n.handsontable input,\n.handsontable textarea {\n  min-height: initial;\n}\n.handsontable .htCore {\n  width: 0;\n  margin: 0;\n  border-width: 0;\n  border-spacing: 0;\n  border-collapse: separate;\n  outline-width: 0;\n  table-layout: fixed;\n  cursor: default;\n  background-color: var(--ht-background-color);\n}\n.handsontable col {\n  width: 64px;\n}\n.handsontable col.rowHeader {\n  width: 64px;\n}\n.handsontable col.hidden {\n  width: 0 !important;\n}\n.handsontable span.colHeader, .handsontable span.rowHeader {\n  display: inline-block;\n  font-size: var(--ht-font-size);\n  line-height: var(--ht-line-height);\n}\n.handsontable tr.hidden {\n  display: none;\n}\n.handsontable tr.hidden td,\n.handsontable tr.hidden th {\n  display: none;\n}\n.handsontable a {\n  color: var(--ht-link-color);\n}\n.handsontable a:hover {\n  color: var(--ht-link-hover-color);\n}\n.handsontable .ht_clone_top th:nth-child(2) {\n  border-inline-start-width: 0;\n  border-inline-end-width: 1px;\n}\n.handsontable.htRowHeaders thead tr th:nth-child(2) {\n  border-inline-start-width: 1px;\n}\n.handsontable .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) tbody tr th,\n.handsontable .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) thead tr th:first-child,\n.handsontable .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.htGhostTable) tbody tr th,\n.handsontable .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top):not(.htGhostTable) thead tr th:first-child {\n  border-inline-end-width: 0;\n  border-inline-start-width: 1px;\n}\n.handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr:last-child th, .handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,\n.handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th, .handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {\n  border-bottom-width: 0;\n}\n.handsontable.htAutoRowSize .ht_master.innerBorderTop tbody tr:first-child th,\n.handsontable.htAutoRowSize .ht_master.innerBorderTop tbody tr:first-child td {\n  border-top-width: 0;\n}\n.handsontable.htAutoRowSize .ht_master.innerBorderTop ~ .ht_clone_inline_start tbody tr:first-child th,\n.handsontable.htAutoRowSize .ht_master.innerBorderTop ~ .ht_clone_inline_start tbody tr:first-child td {\n  border-top-width: 0;\n}\n.handsontable .ht_master table.htCore > thead,\n.handsontable .ht_master table.htCore > tbody > tr > th,\n.handsontable .ht_clone_inline_start table.htCore > thead {\n  visibility: hidden;\n}\n\n.ht_master,\n.ht_clone_inline_start,\n.ht_clone_top,\n.ht_clone_bottom {\n  overflow: hidden;\n}\n.ht_master .wtHolder,\n.ht_clone_inline_start .wtHolder,\n.ht_clone_top .wtHolder,\n.ht_clone_bottom .wtHolder {\n  overflow: hidden;\n}\n\n.ht_master .wtHolder {\n  overflow: auto;\n}\n\n[dir=rtl].handsontable td[dir=ltr] {\n  border-inline-end-width: 0;\n  border-inline-start-width: 1px;\n}\n[dir=rtl].handsontable tbody tr td[dir=ltr]:last-child {\n  border-inline-start-color: var(--ht-border-color);\n}\n[dir=rtl].handsontable div[class^=ht_clone] tbody .ht__highlight .relative::after {\n  right: auto;\n  left: -1px;\n}\n\n.htScrollbarSafariTest::-webkit-scrollbar {\n  width: 9px;\n  height: 9px;\n}\n\n.handsontable.ht-wrapper:not(.htColumnHeaders) .ht_master .htCore tbody tr:first-child td:first-child {\n  border-start-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper:not(.htColumnHeaders) .ht_master .htCore tbody tr:first-child td:last-child {\n  border-start-end-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper:not(.htColumnHeaders) .ht_clone_top_inline_start_corner .htCore tbody tr:first-child td:first-child {\n  border-start-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper:not(.htColumnHeaders) .ht_clone_top .htCore tbody tr:first-child td:first-child {\n  border-start-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper:not(.htColumnHeaders) .ht_clone_top .htCore tbody tr:first-child td:last-child {\n  border-start-end-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper:not(.htColumnHeaders) .ht_clone_inline_start .htCore tbody tr:first-child th:first-child,\n.handsontable.ht-wrapper:not(.htColumnHeaders) .ht_clone_inline_start .htCore tbody tr:first-child td:first-child {\n  border-start-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_master .htCore {\n  border-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_master .htCore thead tr:first-child th:first-child {\n  border-start-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_master .htCore thead tr:first-child th:last-child {\n  border-start-end-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_master .htCore thead tr:last-child th:first-child {\n  border-end-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_master .htCore thead tr:last-child th:last-child {\n  border-end-end-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_master .htCore tbody tr:last-child td:first-child {\n  border-end-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_master .htCore tbody tr:last-child td:last-child {\n  border-end-end-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_top_inline_start_corner .htCore {\n  border-start-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_top_inline_start_corner .htCore thead tr:first-child th:first-child {\n  border-start-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_top .htCore {\n  border-start-start-radius: var(--ht-wrapper-border-radius);\n  border-start-end-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_top .htCore thead tr:first-child th:first-child {\n  border-start-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_top .htCore thead tr:first-child th:last-child {\n  border-start-end-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_inline_start .htCore {\n  border-start-start-radius: var(--ht-wrapper-border-radius);\n  border-end-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_inline_start .htCore thead tr:first-child th:first-child {\n  border-start-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_inline_start .htCore tbody tr:last-child th:first-child,\n.handsontable.ht-wrapper .ht_clone_inline_start .htCore tbody tr:last-child td:first-child {\n  border-end-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_bottom_inline_start_corner .htCore {\n  border-end-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_bottom_inline_start_corner .htCore tr:last-child th:first-child,\n.handsontable.ht-wrapper .ht_clone_bottom_inline_start_corner .htCore tr:last-child td:first-child {\n  border-end-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_bottom .htCore {\n  border-end-start-radius: var(--ht-wrapper-border-radius);\n  border-end-end-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_bottom .htCore tr:last-child th:first-child,\n.handsontable.ht-wrapper .ht_clone_bottom .htCore tr:last-child td:first-child {\n  border-end-start-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper .ht_clone_bottom .htCore tr:last-child th:last-child,\n.handsontable.ht-wrapper .ht_clone_bottom .htCore tr:last-child td:last-child {\n  border-end-end-radius: var(--ht-wrapper-border-radius);\n}\n.handsontable.ht-wrapper.htHasScrollX .htCore {\n  border-end-start-radius: 0;\n  border-end-end-radius: 0;\n}\n.handsontable.ht-wrapper.htHasScrollX .htCore thead tr:last-child th:first-child,\n.handsontable.ht-wrapper.htHasScrollX .htCore tbody tr:last-child td:first-child,\n.handsontable.ht-wrapper.htHasScrollX .htCore tbody tr:last-child th:first-child {\n  border-end-start-radius: 0 !important;\n}\n.handsontable.ht-wrapper.htHasScrollX .htCore thead tr:last-child th:last-child,\n.handsontable.ht-wrapper.htHasScrollX .htCore tbody tr:last-child td:last-child,\n.handsontable.ht-wrapper.htHasScrollX .htCore tbody tr:last-child th:last-child {\n  border-end-end-radius: 0 !important;\n}\n.handsontable.ht-wrapper.htHasScrollY:not(.htVerticallyScrollableByWindow) .htCore {\n  border-start-end-radius: 0;\n  border-end-end-radius: 0;\n}\n.handsontable.ht-wrapper.htHasScrollY:not(.htVerticallyScrollableByWindow) .htCore thead tr:first-child th:last-child,\n.handsontable.ht-wrapper.htHasScrollY:not(.htVerticallyScrollableByWindow) .htCore tbody tr:first-child td:last-child,\n.handsontable.ht-wrapper.htHasScrollY:not(.htVerticallyScrollableByWindow) .htCore tbody tr:first-child th:last-child {\n  border-start-end-radius: 0 !important;\n}\n.handsontable.ht-wrapper.htHasScrollY:not(.htVerticallyScrollableByWindow) .htCore thead tr:last-child th:last-child,\n.handsontable.ht-wrapper.htHasScrollY:not(.htVerticallyScrollableByWindow) .htCore tbody tr:last-child td:last-child,\n.handsontable.ht-wrapper.htHasScrollY:not(.htVerticallyScrollableByWindow) .htCore tbody tr:last-child th:last-child {\n  border-end-end-radius: 0 !important;\n}\n\n.handsontable.mobile {\n  user-select: none;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-overflow-scrolling: touch;\n}\n.handsontable.mobile .wtHolder {\n  user-select: none;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-overflow-scrolling: touch;\n}\n.handsontable.mobile .handsontableInput:focus {\n  box-shadow: inset 0 0 0 2px var(--ht-accent-color);\n  -webkit-appearance: none;\n}\n.handsontable .topSelectionHandle,\n.handsontable .topSelectionHandle-HitArea,\n.handsontable .bottomSelectionHandle,\n.handsontable .bottomSelectionHandle-HitArea {\n  inset-inline-start: -10000px;\n  inset-inline-end: unset;\n  top: -10000px;\n  z-index: 9999;\n}\n.handsontable.hide-tween {\n  -webkit-animation: opacity-hide 0.2s;\n  animation: opacity-hide 0.2s;\n  animation-fill-mode: forwards;\n  -webkit-animation-fill-mode: forwards;\n}\n.handsontable.show-tween {\n  -webkit-animation: opacity-show 0.3s;\n  animation: opacity-show 0.3s;\n  animation-fill-mode: forwards;\n  -webkit-animation-fill-mode: forwards;\n}\n\n.ht_clone_master {\n  z-index: 100;\n}\n\n.ht_clone_inline_start {\n  z-index: 120;\n}\n\n.ht_clone_bottom {\n  z-index: 130;\n}\n\n.ht_clone_bottom_inline_start_corner {\n  z-index: 150;\n}\n\n.ht_clone_top {\n  z-index: 160;\n}\n\n.ht_clone_top_inline_start_corner {\n  z-index: 180;\n}\n\n.ht_editor_hidden {\n  z-index: -1;\n}\n\n.ht_editor_visible {\n  z-index: 200;\n}\n\n.handsontable td.area {\n  position: relative;\n}\n.handsontable td.area::before {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  background: var(--ht-cell-selection-background-color, #1a42e8);\n}\n.handsontable td.area-1 {\n  position: relative;\n}\n.handsontable td.area-1::before {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  background: var(--ht-cell-selection-background-color, #1a42e8);\n}\n.handsontable td.area-2 {\n  position: relative;\n}\n.handsontable td.area-2::before {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  background: var(--ht-cell-selection-background-color, #1a42e8);\n}\n.handsontable td.area-3 {\n  position: relative;\n}\n.handsontable td.area-3::before {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  background: var(--ht-cell-selection-background-color, #1a42e8);\n}\n.handsontable td.area-4 {\n  position: relative;\n}\n.handsontable td.area-4::before {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  background: var(--ht-cell-selection-background-color, #1a42e8);\n}\n.handsontable td.area-5 {\n  position: relative;\n}\n.handsontable td.area-5::before {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  background: var(--ht-cell-selection-background-color, #1a42e8);\n}\n.handsontable td.area-6 {\n  position: relative;\n}\n.handsontable td.area-6::before {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  background: var(--ht-cell-selection-background-color, #1a42e8);\n}\n.handsontable td.area-7 {\n  position: relative;\n}\n.handsontable td.area-7::before {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  background: var(--ht-cell-selection-background-color, #1a42e8);\n}\n.handsontable td.area:before {\n  opacity: 0.14;\n}\n.handsontable td.area-1:before {\n  opacity: 0.21;\n}\n.handsontable td.area-2:before {\n  opacity: 0.28;\n}\n.handsontable td.area-3:before {\n  opacity: 0.35;\n}\n.handsontable td.area-4:before {\n  opacity: 0.42;\n}\n.handsontable td.area-5:before {\n  opacity: 0.49;\n}\n.handsontable td.area-6:before {\n  opacity: 0.56;\n}\n.handsontable td.area-7:before {\n  opacity: 0.63;\n}\n.handsontable td.area {\n  border-color: color-mix(in srgb, var(--ht-border-color), var(--ht-foreground-color) 10%);\n}\n.handsontable .wtBorder {\n  position: absolute;\n  font-size: 0;\n}\n.handsontable .wtBorder:nth-child(1), .handsontable .wtBorder:nth-child(3) {\n  z-index: 2;\n}\n.handsontable .wtBorder:nth-child(2), .handsontable .wtBorder:nth-child(4) {\n  z-index: 1;\n}\n.handsontable .wtBorder.hidden {\n  display: none !important;\n}\n.handsontable .wtBorder.current {\n  z-index: 10;\n  background-color: var(--ht-cell-selection-border-color) !important;\n}\n.handsontable .wtBorder.area {\n  z-index: 8;\n  background-color: var(--ht-cell-selection-border-color) !important;\n}\n.handsontable .wtBorder.fill {\n  z-index: 6;\n  background-color: var(--ht-cell-autofill-fill-border-color, #68696c) !important;\n}\n.handsontable .wtBorder.corner {\n  border-radius: var(--ht-cell-autofill-border-radius) !important;\n  background-color: var(--ht-cell-autofill-background-color, #1a42e8) !important;\n  border-color: var(--ht-cell-autofill-border-color) !important;\n  font-size: 0;\n  cursor: crosshair;\n  z-index: 10;\n}\n.handsontable .wtBorder.corner::after {\n  content: \"\";\n  position: absolute;\n  border-radius: var(--ht-cell-autofill-border-radius);\n  inset: min(0px, (var(--ht-cell-autofill-size) - var(--ht-cell-autofill-hit-area-size)) / 2);\n  background: transparent;\n}\n.handsontable .wtBorder.corner.wtCornerInlineEndEdge::after {\n  inset-inline-end: 0;\n}\n.handsontable .wtBorder.corner.wtCornerBlockEndEdge::after {\n  inset-block-end: 0;\n}\n\n.hot-display-license-info {\n  font-family: var(--ht-font-family), -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  padding: var(--ht-license-vertical-padding, 16px) var(--ht-license-horizontal-padding, 16px);\n  font-size: var(--ht-font-size-small);\n  line-height: var(--ht-line-height-small);\n  color: var(--ht-license-foreground-color);\n  background-color: var(--ht-license-background-color, #f7f7f9);\n  text-align: left;\n  border: 1px solid var(--ht-border-color, #f7f7f9);\n  margin-top: 10px;\n  border-radius: var(--ht-wrapper-border-radius);\n}\n.hot-display-license-info a {\n  font-size: var(--ht-license-font-size);\n  color: var(--ht-link-color);\n}\n.hot-display-license-info a:hover {\n  color: var(--ht-link-hover-color);\n}\n\n.handsontable .htAutocompleteArrow {\n  position: relative;\n  cursor: default;\n  width: var(--ht-icon-size);\n  height: var(--ht-icon-size);\n  font-size: 0;\n  float: right;\n  top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);\n  margin-inline-start: calc(var(--ht-gap-size) * 2);\n  margin-inline-end: 1px;\n}\n.handsontable .htAutocompleteArrow::after {\n  content: \"\";\n  display: block;\n  position: absolute;\n  top: 0;\n  left: 0;\n  opacity: 0.6;\n}\n\n[dir=rtl].handsontable .htAutocompleteArrow {\n  float: left;\n}\n\n.handsontable .htCheckboxRendererInput {\n  position: relative;\n  display: inline-block;\n  width: var(--ht-checkbox-size);\n  height: var(--ht-checkbox-size);\n  margin: 0;\n  vertical-align: middle;\n  cursor: pointer;\n  margin-top: -2px;\n  outline: none;\n}\n.handsontable .htCheckboxRendererInput:first-child {\n  margin-inline-end: var(--ht-gap-size);\n}\n.handsontable .htCheckboxRendererInput:last-child {\n  margin-inline-start: var(--ht-gap-size);\n}\n.handsontable .htCheckboxRendererInput::before {\n  content: \"\";\n  display: inline-block;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: var(--ht-checkbox-size);\n  height: var(--ht-checkbox-size);\n  border-radius: var(--ht-checkbox-border-radius);\n  border: 1px solid var(--ht-checkbox-border-color);\n  background-color: var(--ht-checkbox-background-color);\n  box-sizing: border-box;\n  pointer-events: none;\n  transition: all var(--ht-table-transition) ease-in-out;\n}\n.handsontable .htCheckboxRendererInput::after {\n  content: \"\";\n  display: block;\n  position: absolute;\n  top: 0;\n  left: 0;\n  color: var(--ht-checkbox-icon-color);\n  pointer-events: none;\n  width: var(--ht-checkbox-size) !important;\n  height: var(--ht-checkbox-size) !important;\n}\n.handsontable .htCheckboxRendererInput:checked::before {\n  border-color: var(--ht-checkbox-checked-border-color);\n  background-color: var(--ht-checkbox-checked-background-color);\n}\n.handsontable .htCheckboxRendererInput:checked::after {\n  color: var(--ht-checkbox-checked-icon-color);\n}\n.handsontable .htCheckboxRendererInput:checked:disabled::before {\n  border-color: var(--ht-checkbox-checked-disabled-border-color);\n  background-color: var(--ht-checkbox-checked-disabled-background-color);\n}\n.handsontable .htCheckboxRendererInput:checked:disabled::after {\n  color: var(--ht-checkbox-checked-disabled-icon-color);\n}\n.handsontable .htCheckboxRendererInput:checked:focus::before {\n  border-color: var(--ht-checkbox-checked-focus-border-color);\n  background-color: var(--ht-checkbox-checked-focus-background-color);\n}\n.handsontable .htCheckboxRendererInput:checked:focus::after {\n  color: var(--ht-checkbox-checked-focus-icon-color);\n}\n.handsontable .htCheckboxRendererInput:focus::before {\n  border-color: var(--ht-checkbox-focus-border-color);\n  background-color: var(--ht-checkbox-focus-background-color);\n  outline: 1px solid var(--ht-checkbox-focus-ring-color);\n}\n.handsontable .htCheckboxRendererInput:focus::after {\n  color: var(--ht-checkbox-focus-icon-color);\n}\n.handsontable .htCheckboxRendererInput:disabled {\n  cursor: initial;\n}\n.handsontable .htCheckboxRendererInput:disabled::before {\n  border-color: var(--ht-checkbox-disabled-border-color);\n  background-color: var(--ht-checkbox-disabled-background-color);\n}\n.handsontable .htCheckboxRendererInput:disabled::after {\n  color: var(--ht-checkbox-disabled-icon-color);\n}\n.handsontable .htCheckboxRendererInput:indeterminate::before {\n  border-color: var(--ht-checkbox-indeterminate-border-color);\n  background-color: var(--ht-checkbox-indeterminate-background-color);\n}\n.handsontable .htCheckboxRendererInput:indeterminate::after {\n  color: var(--ht-checkbox-indeterminate-icon-color);\n}\n.handsontable .htCheckboxRendererInput:indeterminate:disabled::before {\n  border-color: var(--ht-checkbox-indeterminate-disabled-border-color);\n  background-color: var(--ht-checkbox-indeterminate-disabled-background-color);\n}\n.handsontable .htCheckboxRendererInput:indeterminate:disabled::after {\n  color: var(--ht-checkbox-indeterminate-disabled-icon-color);\n}\n.handsontable .htCheckboxRendererInput:indeterminate:focus::before {\n  border-color: var(--ht-checkbox-indeterminate-focus-border-color);\n  background-color: var(--ht-checkbox-indeterminate-focus-background-color);\n}\n.handsontable .htCheckboxRendererInput:indeterminate:focus::after {\n  color: var(--ht-checkbox-indeterminate-focus-icon-color);\n}\n.handsontable .htCheckboxRendererInput.noValue {\n  opacity: 0.5;\n}\n.handsontable .htCheckboxRendererLabel {\n  display: inline-block;\n  position: relative;\n  font-size: inherit;\n  line-height: inherit;\n  cursor: pointer;\n  color: inherit;\n  margin: 0;\n}\n.handsontable .htCheckboxRendererLabel.fullWidth {\n  width: 100%;\n}\n\n.handsontable .htPlaceholder {\n  color: var(--ht-placeholder-color);\n}\n.handsontable .htDimmed {\n  color: var(--ht-read-only-color) !important;\n  background-color: var(--ht-cell-read-only-background-color) !important;\n}\n.handsontable .htLeft {\n  text-align: left;\n}\n.handsontable .htCenter {\n  text-align: center;\n}\n.handsontable .htRight {\n  text-align: right;\n}\n.handsontable .htJustify {\n  text-align: justify;\n}\n.handsontable .htTop {\n  vertical-align: top;\n}\n.handsontable .htMiddle {\n  vertical-align: middle;\n}\n.handsontable .htBottom {\n  vertical-align: bottom;\n}\n.handsontable .htInvalid {\n  /* gives priority over td.area selection background */\n  background-color: var(--ht-cell-error-background-color) !important;\n}\n.handsontable .htNoWrap {\n  white-space: nowrap;\n}\n.handsontable .htSearchResult {\n  background-color: var(--ht-cell-success-background-color) !important;\n}\n\n.handsontableInputHolder {\n  position: absolute;\n  top: 0;\n  left: 0;\n}\n.handsontableInputHolder .handsontableInput {\n  display: block;\n  margin: 0;\n  padding: calc(var(--ht-cell-vertical-padding, 4px) + 1px) calc(var(--ht-cell-horizontal-padding, 8px) + 1px);\n  font-family: inherit !important;\n  font-size: inherit !important;\n  line-height: inherit !important;\n  color: var(--ht-cell-editor-foreground-color);\n  background-color: var(--ht-cell-editor-background-color, #ffffff);\n  box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px) var(--ht-cell-editor-border-color, #1a42e8), 0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0 var(--ht-cell-editor-shadow-color, transparent);\n  border: none;\n  border-radius: 0;\n  -webkit-appearance: none !important;\n  box-sizing: border-box;\n  /* Miscellaneous */\n  outline-width: 0;\n  /* overwrite styles potentially made by a framework */\n}\n.handsontableInputHolder .handsontableInput:focus {\n  outline: none;\n}\n\n.htSelectEditor {\n  position: absolute;\n}\n.htSelectEditor select {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 100%;\n  padding: calc(var(--ht-cell-vertical-padding, 4px) + 1px) calc(var(--ht-cell-horizontal-padding, 8px) + 1px);\n  padding-inline-end: 26px;\n  margin: 0;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  color: var(--ht-cell-editor-foreground-color);\n  background-color: var(--ht-cell-editor-background-color, #ffffff);\n  font-family: inherit !important;\n  font-size: inherit !important;\n  line-height: inherit !important;\n  box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px) var(--ht-cell-editor-border-color, #1a42e8), 0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0 var(--ht-cell-editor-shadow-color, transparent);\n  border: none;\n  border-radius: 0;\n  box-sizing: border-box;\n  -webkit-appearance: none !important;\n}\n.htSelectEditor select:focus {\n  outline: none;\n}\n.htSelectEditor .htAutocompleteArrow {\n  top: 50%;\n  transform: translateY(-50%);\n  margin-inline-end: 4px;\n  z-index: 1;\n  pointer-events: none;\n}\n\n.handsontable.listbox {\n  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) color-mix(in srgb, var(--ht-menu-shadow-color, rgb(0, 0, 0)) var(--ht-menu-shadow-opacity, 100%), transparent);\n  margin: 0;\n  border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);\n}\n.handsontable.listbox .ht_master {\n  overflow: hidden;\n  background-color: var(--ht-background-color);\n}\n.handsontable.listbox .wtHolder {\n  overflow: auto;\n  border-radius: 0 !important;\n}\n.handsontable.listbox .wtHider, .handsontable.listbox .htCore {\n  border-radius: 0 !important;\n}\n.handsontable.listbox table {\n  overflow: hidden;\n}\n.handsontable.listbox table th,\n.handsontable.listbox table tr:first-child th,\n.handsontable.listbox table tr:last-child th,\n.handsontable.listbox table tr:first-child td,\n.handsontable.listbox table td {\n  border-color: transparent !important;\n}\n.handsontable.listbox table th,\n.handsontable.listbox table td {\n  white-space: nowrap;\n  text-overflow: ellipsis;\n  border-radius: 0 !important;\n}\n.handsontable.listbox table .wtBorder {\n  visibility: hidden;\n}\n.handsontable.listbox table strong {\n  font-weight: bold;\n  color: inherit;\n}\n.handsontable.listbox table tr td:hover td {\n  background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;\n  cursor: pointer;\n  box-shadow: none !important;\n}\n.handsontable.listbox table td {\n  transition: var(--ht-table-transition) background ease-in-out;\n}\n.handsontable.listbox table td:hover {\n  background-color: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;\n  cursor: pointer;\n}\n.handsontable.listbox table td.current:not([aria-expanded=true]) {\n  box-shadow: inset 0 0 0 1px var(--ht-accent-color);\n}\n.handsontable.listbox table td.htDimmed {\n  cursor: default;\n  font-style: inherit;\n  color: inherit !important;\n}\n.handsontable.listbox table td.htDimmed:not(.handsontable.listbox table td:hover) {\n  background-color: inherit !important;\n}\n.handsontable.listbox table thead th {\n  height: auto !important;\n  text-align: left;\n}\n.handsontable.listbox table thead th .relative {\n  padding-top: calc(var(--ht-cell-vertical-padding) + var(--ht-gap-size));\n  padding-bottom: calc(var(--ht-cell-vertical-padding) + var(--ht-gap-size));\n}\n.handsontable.listbox .ht_clone_top .wtHider {\n  overflow: hidden;\n}\n.handsontable.listbox .ht_clone_top table {\n  border-radius: 0;\n}\n.handsontable.listbox .htBorders div {\n  background: none !important;\n}\n.handsontable.autocompleteEditor tr.ht__row_even th,\n.handsontable.autocompleteEditor tr.ht__row_even td {\n  background-color: var(--ht-background-color, #ffffff);\n}\n.handsontable.autocompleteEditor tr.ht__row_odd th,\n.handsontable.autocompleteEditor tr.ht__row_odd td {\n  background-color: var(--ht-background-color, #ffffff);\n}\n\n[dir=rtl].handsontable.listbox table thead th {\n  text-align: right;\n}\n\n.pika-single {\n  font-family: var(--ht-font-family), -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) color-mix(in srgb, var(--ht-menu-shadow-color, rgb(0, 0, 0)) var(--ht-menu-shadow-opacity, 100%), transparent);\n  position: relative;\n  display: block;\n  padding: 10px;\n  font-size: var(--ht-font-size);\n  line-height: var(--ht-line-height);\n  font-weight: var(--ht-font-weight);\n  color: var(--ht-foreground-color);\n  background: var(--ht-background-color, #ffffff);\n  border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);\n  border-radius: var(--ht-menu-border-radius);\n  z-index: 9999;\n}\n.pika-single.is-hidden {\n  display: none;\n}\n.pika-single .pika-row {\n  background-color: transparent;\n}\n.pika-single .pika-title {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.pika-single .pika-label {\n  position: relative;\n  order: 2;\n  padding: 5px;\n  color: var(--ht-accent-color);\n}\n.pika-single .pika-label .pika-select {\n  position: absolute;\n  inset: 0;\n  opacity: 0;\n  cursor: pointer;\n}\n.pika-single .pika-prev,\n.pika-single .pika-next {\n  width: 20px;\n  height: 20px;\n  white-space: nowrap;\n  text-indent: -9999px;\n  cursor: pointer;\n  color: var(--ht-accent-color);\n  background: none;\n  border: none;\n  padding: 0;\n}\n.pika-single .pika-prev {\n  order: 1;\n  margin-right: auto;\n}\n.pika-single .pika-next {\n  order: 3;\n  margin-left: auto;\n}\n.pika-single .pika-table thead {\n  height: 50px;\n}\n.pika-single .pika-table th {\n  padding: 1px;\n  vertical-align: middle;\n}\n.pika-single .pika-table th abbr {\n  text-decoration: none;\n  font-weight: normal;\n  border: none;\n  cursor: initial;\n}\n.pika-single .pika-table td {\n  padding: 1px;\n  vertical-align: middle;\n}\n.pika-single .pika-table td.is-disabled .pika-button {\n  pointer-events: none;\n  opacity: 0.5;\n}\n.pika-single .pika-table td.is-today .pika-button {\n  background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent);\n}\n.pika-single .pika-table td.is-selected .pika-button {\n  background: var(--ht-accent-color, #1a42e8);\n  color: var(--ht-primary-button-foreground-color, #ffffff);\n}\n.pika-single .pika-table td.pika-week {\n  width: 12.5%;\n  text-align: center;\n}\n.pika-single .pika-table .pika-button {\n  width: 100%;\n  aspect-ratio: 1/1;\n  background: transparent;\n  color: var(--ht-foreground-color);\n  border: none;\n  border-radius: var(--ht-button-border-radius);\n  margin: 0;\n  padding: 10px;\n  cursor: pointer;\n  font-size: inherit;\n}\n.pika-single .pika-table .pika-button:hover {\n  background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent);\n}\n\n[dir=rtl].htDatepickerHolder .pika-single .pika-next {\n  transform: rotate(180deg);\n  margin-left: 0;\n  margin-right: auto;\n}\n[dir=rtl].htDatepickerHolder .pika-single .pika-prev {\n  transform: rotate(180deg);\n  margin-left: auto;\n  margin-right: 0;\n}\n\n.handsontable .htUISelectCaption {\n  width: 100%;\n  padding: var(--ht-input-vertical-padding) var(--ht-input-horizontal-padding);\n  padding-inline-end: calc(var(--ht-input-horizontal-padding) + var(--ht-icon-size));\n  margin: 0;\n  font-family: inherit;\n  font-size: var(--ht-font-size);\n  line-height: var(--ht-line-height);\n  font-weight: var(--ht-font-weight);\n  border-radius: var(--ht-input-border-radius);\n  box-sizing: border-box;\n  cursor: pointer;\n  outline: none !important;\n  border: var(--ht-input-border-width) solid var(--ht-input-border-color);\n  color: var(--ht-input-foreground-color);\n  background-color: var(--ht-input-background-color);\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  overflow: hidden;\n  transition: var(--ht-table-transition) all ease-in-out;\n}\n.handsontable .htUISelectCaption::after {\n  content: \"\";\n  display: block;\n  position: absolute;\n  right: calc(var(--ht-input-horizontal-padding) - var(--ht-icon-size) / 4);\n  top: 50%;\n  transform: translateY(-50%);\n}\n.handsontable .htUISelectCaption:hover {\n  border-color: var(--ht-input-hover-border-color);\n  color: var(--ht-input-hover-foreground-color);\n  background-color: var(--ht-input-hover-background-color);\n}\n.handsontable .htUISelectCaption:disabled {\n  border-color: var(--ht-input-disabled-border-color);\n  color: var(--ht-input-disabled-foreground-color);\n  background-color: var(--ht-input-disabled-background-color);\n}\n.handsontable .htUISelectCaption:focus {\n  border-color: var(--ht-input-focus-border-color);\n  color: var(--ht-input-focus-foreground-color);\n  background-color: var(--ht-input-focus-background-color);\n}\n.handsontable .htUISelect {\n  cursor: pointer;\n  position: relative;\n  outline: none !important;\n}\n.handsontable .htUISelect:focus .htUISelectCaption {\n  border-color: var(--ht-input-focus-border-color);\n  color: var(--ht-input-focus-foreground-color);\n  background-color: var(--ht-input-focus-background-color);\n}\n\n[dir=rtl].handsontable .htUISelectCaption::after {\n  right: auto;\n  left: calc(var(--ht-input-horizontal-padding) - var(--ht-icon-size) / 4);\n}\n\n.handsontable .htFiltersMenuCondition .htUIInput input,\n.handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {\n  width: 100%;\n  padding: var(--ht-input-vertical-padding) var(--ht-input-horizontal-padding);\n  font-family: inherit;\n  font-size: var(--ht-font-size);\n  line-height: var(--ht-line-height);\n  font-weight: var(--ht-font-weight);\n  border-radius: var(--ht-input-border-radius);\n  box-sizing: border-box;\n  cursor: pointer;\n  outline: none !important;\n  border: var(--ht-input-border-width) solid var(--ht-input-border-color);\n  color: var(--ht-input-foreground-color);\n  background-color: var(--ht-input-background-color);\n  transition: var(--ht-table-transition) all ease-in-out;\n}\n.handsontable .htFiltersMenuCondition .htUIInput input:hover,\n.handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input:hover {\n  border-color: var(--ht-input-hover-border-color);\n  color: var(--ht-input-hover-foreground-color);\n  background-color: var(--ht-input-hover-background-color);\n}\n.handsontable .htFiltersMenuCondition .htUIInput input:disabled,\n.handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input:disabled {\n  border-color: var(--ht-input-disabled-border-color);\n  color: var(--ht-input-disabled-foreground-color);\n  background-color: var(--ht-input-disabled-background-color);\n}\n.handsontable .htFiltersMenuCondition .htUIInput input:focus,\n.handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input:focus {\n  border-color: var(--ht-input-focus-border-color);\n  color: var(--ht-input-focus-foreground-color);\n  background-color: var(--ht-input-focus-background-color);\n}\n.handsontable .htUIInput {\n  position: relative;\n  padding: 0;\n  outline: none !important;\n  text-align: center;\n}\n.handsontable .htUIInputIcon {\n  position: absolute;\n}\n\n.handsontable .htUIInput.htUIButton input, .handsontable .ht-button {\n  min-width: 64px;\n  padding: var(--ht-button-vertical-padding) var(--ht-button-horizontal-padding);\n  font-family: inherit;\n  font-size: var(--ht-font-size);\n  line-height: var(--ht-line-height);\n  font-weight: var(--ht-font-weight);\n  border-radius: var(--ht-button-border-radius);\n  border-width: 1px;\n  border-style: solid;\n  box-sizing: border-box;\n  outline: none !important;\n  cursor: pointer;\n  transition: var(--ht-table-transition) all ease-in-out;\n}\n.handsontable .htUIInput.htUIButtonCancel input, .handsontable .ht-button--secondary {\n  border-color: var(--ht-secondary-button-border-color);\n  background-color: var(--ht-secondary-button-background-color);\n  color: var(--ht-secondary-button-foreground-color);\n}\n.handsontable .htUIInput.htUIButtonCancel input:hover, .handsontable .ht-button--secondary:hover {\n  border-color: var(--ht-secondary-button-hover-border-color);\n  background-color: var(--ht-secondary-button-hover-background-color);\n  color: var(--ht-secondary-button-hover-foreground-color);\n}\n.handsontable .htUIInput.htUIButtonCancel input:disabled, .handsontable .ht-button--secondary:disabled {\n  border-color: var(--ht-secondary-button-disabled-border-color);\n  background-color: var(--ht-secondary-button-disabled-background-color);\n  color: var(--ht-secondary-button-disabled-foreground-color);\n}\n.handsontable .htUIInput.htUIButtonCancel input:focus, .handsontable .ht-button--secondary:focus {\n  border-color: var(--ht-secondary-button-focus-border-color);\n  background-color: var(--ht-secondary-button-focus-background-color);\n  color: var(--ht-secondary-button-focus-foreground-color);\n  box-shadow: 0 0 0 1px var(--ht-accent-color);\n}\n\n.htUIInput.htUIButtonOK input, .ht-button--primary {\n  border-color: var(--ht-primary-button-border-color);\n  background-color: var(--ht-primary-button-background-color);\n  color: var(--ht-primary-button-foreground-color);\n}\n.htUIInput.htUIButtonOK input:hover, .ht-button--primary:hover {\n  border-color: var(--ht-primary-button-hover-border-color);\n  background-color: var(--ht-primary-button-hover-background-color);\n  color: var(--ht-primary-button-hover-foreground-color);\n}\n.htUIInput.htUIButtonOK input:disabled, .ht-button--primary:disabled {\n  border-color: var(--ht-primary-button-disabled-border-color);\n  background-color: var(--ht-primary-button-disabled-background-color);\n  color: var(--ht-primary-button-disabled-foreground-color);\n}\n.htUIInput.htUIButtonOK input:focus, .ht-button--primary:focus {\n  border-color: var(--ht-primary-button-focus-border-color);\n  background-color: var(--ht-primary-button-focus-background-color);\n  color: var(--ht-primary-button-focus-foreground-color);\n  box-shadow: 0 0 0 1px var(--ht-accent-color);\n}\n\n.handsontable .htUIRadio {\n  position: relative;\n  display: inline-flex;\n  margin: 0;\n  padding: var(--ht-gap-size) calc(2 * var(--ht-gap-size));\n  padding-bottom: 0;\n  align-items: center;\n  gap: var(--ht-gap-size);\n  cursor: pointer;\n}\n.handsontable .htUIRadio:first-child {\n  padding-inline-start: 0;\n}\n.handsontable .htUIRadio > input[type=radio] {\n  position: relative;\n  width: var(--ht-radio-size);\n  height: var(--ht-radio-size);\n  margin: 0;\n  appearance: none;\n  cursor: pointer;\n  border-radius: calc(0.5 * var(--ht-radio-size));\n  outline: none;\n}\n.handsontable .htUIRadio > input[type=radio]::before {\n  content: \"\";\n  display: block;\n  position: absolute;\n  inset: 0;\n  border-radius: calc(0.5 * var(--ht-radio-size));\n  border: 1px solid var(--ht-radio-border-color);\n  background-color: var(--ht-radio-background-color);\n}\n.handsontable .htUIRadio > input[type=radio]::after {\n  content: \"\";\n  display: block;\n  position: absolute;\n  color: var(--ht-radio-icon-color);\n}\n.handsontable .htUIRadio > input[type=radio]:checked::before {\n  border-color: var(--ht-radio-checked-border-color);\n  background-color: var(--ht-radio-checked-background-color);\n}\n.handsontable .htUIRadio > input[type=radio]:checked::after {\n  color: var(--ht-radio-checked-icon-color);\n}\n.handsontable .htUIRadio > input[type=radio]:checked:disabled {\n  cursor: initial;\n}\n.handsontable .htUIRadio > input[type=radio]:checked:disabled::before {\n  border-color: var(--ht-radio-checked-disabled-border-color);\n  background-color: var(--ht-radio-checked-disabled-background-color);\n}\n.handsontable .htUIRadio > input[type=radio]:checked:disabled::after {\n  color: var(--ht-radio-checked-disabled-icon-color);\n}\n.handsontable .htUIRadio > input[type=radio]:checked:focus::before {\n  border-color: var(--ht-radio-checked-focus-border-color);\n  background-color: var(--ht-radio-checked-focus-background-color);\n}\n.handsontable .htUIRadio > input[type=radio]:checked:focus::after {\n  color: var(--ht-radio-checked-focus-icon-color);\n}\n.handsontable .htUIRadio > input[type=radio]:disabled {\n  cursor: initial;\n}\n.handsontable .htUIRadio > input[type=radio]:disabled::before {\n  border-color: var(--ht-radio-disabled-border-color);\n  background-color: var(--ht-radio-disabled-background-color);\n}\n.handsontable .htUIRadio > input[type=radio]:disabled::after {\n  color: var(--ht-radio-disabled-icon-color);\n}\n.handsontable .htUIRadio > input[type=radio]:focus::before {\n  border-color: var(--ht-radio-focus-border-color);\n  background-color: var(--ht-radio-focus-background-color);\n  outline: 1px solid var(--ht-radio-focus-ring-color);\n}\n.handsontable .htUIRadio > input[type=radio]:focus::after {\n  color: var(--ht-radio-focus-icon-color);\n}\n.handsontable .htUIRadio label {\n  vertical-align: middle;\n  cursor: pointer;\n  color: inherit;\n}\n.handsontable .htUIRadio label::before {\n  content: \"\";\n  display: block;\n  position: absolute;\n  inset: 0;\n}\n\n.handsontable .collapsibleIndicator {\n  top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);\n  margin-inline-start: var(--ht-gap-size);\n  margin-inline-end: 1px;\n}\n.handsontable .collapsibleIndicator,\n.handsontable .ht_nestingButton {\n  position: relative;\n  width: var(--ht-icon-size);\n  height: var(--ht-icon-size);\n  box-sizing: border-box;\n  border-radius: var(--ht-collapse-button-border-radius);\n  overflow: hidden;\n  cursor: pointer;\n  /* hide text */\n  text-indent: -100px;\n  font-size: 0;\n  float: right;\n}\n.handsontable .collapsibleIndicator::before,\n.handsontable .ht_nestingButton::before {\n  content: \"\";\n  display: block;\n  position: absolute;\n  top: 0;\n  left: 0;\n  transition: var(--ht-table-transition) all ease-in-out;\n}\n.handsontable .collapsibleIndicator.expanded, .handsontable .collapsibleIndicator.ht_nestingCollapse,\n.handsontable .ht_nestingButton.expanded,\n.handsontable .ht_nestingButton.ht_nestingCollapse {\n  background-color: var(--ht-collapse-button-open-background-color);\n  box-shadow: 0 0 0 1px var(--ht-collapse-button-open-border-color);\n}\n.handsontable .collapsibleIndicator.expanded::before, .handsontable .collapsibleIndicator.ht_nestingCollapse::before,\n.handsontable .ht_nestingButton.expanded::before,\n.handsontable .ht_nestingButton.ht_nestingCollapse::before {\n  color: var(--ht-collapse-button-open-icon-color);\n}\n.handsontable .collapsibleIndicator.expanded:hover, .handsontable .collapsibleIndicator.ht_nestingCollapse:hover,\n.handsontable .ht_nestingButton.expanded:hover,\n.handsontable .ht_nestingButton.ht_nestingCollapse:hover {\n  background-color: var(--ht-collapse-button-open-hover-background-color);\n  box-shadow: 0 0 0 1px var(--ht-collapse-button-open-hover-border-color);\n}\n.handsontable .collapsibleIndicator.expanded:hover::before, .handsontable .collapsibleIndicator.ht_nestingCollapse:hover::before,\n.handsontable .ht_nestingButton.expanded:hover::before,\n.handsontable .ht_nestingButton.ht_nestingCollapse:hover::before {\n  color: var(--ht-collapse-button-open-hover-icon-color);\n}\n.handsontable .collapsibleIndicator.collapsed, .handsontable .collapsibleIndicator.ht_nestingExpand,\n.handsontable .ht_nestingButton.collapsed,\n.handsontable .ht_nestingButton.ht_nestingExpand {\n  background-color: var(--ht-collapse-button-close-background-color);\n  box-shadow: 0 0 0 1px var(--ht-collapse-button-close-border-color);\n}\n.handsontable .collapsibleIndicator.collapsed::before, .handsontable .collapsibleIndicator.ht_nestingExpand::before,\n.handsontable .ht_nestingButton.collapsed::before,\n.handsontable .ht_nestingButton.ht_nestingExpand::before {\n  color: var(--ht-collapse-button-close-icon-color);\n}\n.handsontable .collapsibleIndicator.collapsed:hover, .handsontable .collapsibleIndicator.ht_nestingExpand:hover,\n.handsontable .ht_nestingButton.collapsed:hover,\n.handsontable .ht_nestingButton.ht_nestingExpand:hover {\n  background-color: var(--ht-collapse-button-close-hover-background-color);\n  box-shadow: 0 0 0 1px var(--ht-collapse-button-close-hover-border-color);\n}\n.handsontable .collapsibleIndicator.collapsed:hover::before, .handsontable .collapsibleIndicator.ht_nestingExpand:hover::before,\n.handsontable .ht_nestingButton.collapsed:hover::before,\n.handsontable .ht_nestingButton.ht_nestingExpand:hover::before {\n  color: var(--ht-collapse-button-close-hover-icon-color);\n}\n.handsontable th.ht__active_highlight .collapsibleIndicator.collapsed::before, .handsontable th.ht__active_highlight .collapsibleIndicator.ht_nestingExpand::before,\n.handsontable th.ht__active_highlight .ht_nestingButton.collapsed::before,\n.handsontable th.ht__active_highlight .ht_nestingButton.ht_nestingExpand::before {\n  color: var(--ht-collapse-button-close-icon-active-color);\n}\n.handsontable th.ht__active_highlight .collapsibleIndicator.collapsed:hover::before, .handsontable th.ht__active_highlight .collapsibleIndicator.ht_nestingExpand:hover::before,\n.handsontable th.ht__active_highlight .ht_nestingButton.collapsed:hover::before,\n.handsontable th.ht__active_highlight .ht_nestingButton.ht_nestingExpand:hover::before {\n  color: var(--ht-collapse-button-close-hover-icon-active-color);\n}\n.handsontable th.ht__active_highlight .collapsibleIndicator.expanded::before, .handsontable th.ht__active_highlight .collapsibleIndicator.ht_nestingCollapse::before,\n.handsontable th.ht__active_highlight .ht_nestingButton.expanded::before,\n.handsontable th.ht__active_highlight .ht_nestingButton.ht_nestingCollapse::before {\n  color: var(--ht-collapse-button-open-icon-active-color);\n}\n.handsontable th.ht__active_highlight .collapsibleIndicator.expanded:hover::before, .handsontable th.ht__active_highlight .collapsibleIndicator.ht_nestingCollapse:hover::before,\n.handsontable th.ht__active_highlight .ht_nestingButton.expanded:hover::before,\n.handsontable th.ht__active_highlight .ht_nestingButton.ht_nestingCollapse:hover::before {\n  color: var(--ht-collapse-button-open-hover-icon-active-color);\n}\n\n[dir=rtl].handsontable .collapsibleIndicator,\n[dir=rtl].handsontable .ht_nestingButton {\n  float: left;\n}\n\n.handsontable thead th.hiddenHeader:not(:first-of-type) {\n  display: none;\n}\n.handsontable thead th.hiddenHeaderText .colHeader {\n  opacity: 0;\n}\n\n.handsontable th.ht_nestingLevels > .relative {\n  display: flex;\n  align-items: center;\n  gap: 5px;\n}\n.handsontable th.ht_nestingLevels span:last-child {\n  padding-left: calc(var(--ht-icon-size) + 5px);\n}\n.handsontable th.ht_nestingLevels span.ht_nestingLevel {\n  display: inline-block;\n}\n.handsontable th.ht_nestingLevels span.ht_nestingLevel_empty {\n  position: relative;\n  display: inline-block;\n  width: 5px;\n  height: 1px;\n  order: -2;\n}\n.handsontable th.ht_nestingLevels .ht_nestingButton {\n  position: relative;\n  cursor: pointer;\n  order: -1;\n}\n\n.handsontable th.beforeHiddenColumn, .handsontable th.afterHiddenColumn {\n  position: relative;\n}\n.handsontable th.beforeHiddenColumn::before, .handsontable th.beforeHiddenColumn::after, .handsontable th.afterHiddenColumn::before, .handsontable th.afterHiddenColumn::after {\n  position: absolute;\n  top: 50%;\n  width: 10px !important;\n  height: 10px !important;\n  transform: translateY(-50%);\n  color: var(--ht-hidden-indicator-color);\n}\n.handsontable th.beforeHiddenColumn::after {\n  content: \"\";\n  display: block;\n  right: -2px;\n}\n.handsontable th.afterHiddenColumn::before {\n  content: \"\";\n  display: block;\n  left: -2px;\n}\n.handsontable th.ht__active_highlight.beforeHiddenColumn::before, .handsontable th.ht__active_highlight.beforeHiddenColumn::after, .handsontable th.ht__active_highlight.afterHiddenColumn::before, .handsontable th.ht__active_highlight.afterHiddenColumn::after {\n  color: var(--ht-icon-button-active-icon-color, var(--ht-icon-active-button-icon-color));\n}\n\n[dir=rtl].handsontable th.beforeHiddenColumn::after {\n  right: initial;\n  left: -2px;\n  transform: translateY(-50%) rotate(180deg);\n}\n[dir=rtl].handsontable th.afterHiddenColumn::before {\n  right: -2px;\n  left: initial;\n  transform: translateY(-50%) rotate(180deg);\n}\n\n.handsontable th.beforeHiddenRow, .handsontable th.afterHiddenRow {\n  position: relative;\n}\n.handsontable th.beforeHiddenRow::before, .handsontable th.beforeHiddenRow::after, .handsontable th.afterHiddenRow::before, .handsontable th.afterHiddenRow::after {\n  position: absolute;\n  left: 50%;\n  width: 10px !important;\n  height: 10px !important;\n  transform: translateX(-50%);\n  color: var(--ht-hidden-indicator-color);\n}\n.handsontable th.beforeHiddenRow::after {\n  content: \"\";\n  display: block;\n  bottom: -2px;\n}\n.handsontable th.afterHiddenRow::before {\n  content: \"\";\n  display: block;\n  top: -2px;\n}\n.handsontable th.ht__active_highlight.beforeHiddenRow::before, .handsontable th.ht__active_highlight.beforeHiddenRow::after, .handsontable th.ht__active_highlight.afterHiddenRow::before, .handsontable th.ht__active_highlight.afterHiddenRow::after {\n  color: var(--ht-icon-button-active-icon-color, var(--ht-icon-active-button-icon-color));\n}\n\n.handsontable .changeType {\n  position: relative;\n  box-sizing: border-box;\n  width: var(--ht-icon-size);\n  height: var(--ht-icon-size);\n  border-radius: var(--ht-icon-button-border-radius);\n  box-shadow: 0 0 0 1px var(--ht-icon-button-border-color);\n  border: none;\n  color: inherit;\n  padding: 0;\n  margin: 0;\n  background-color: var(--ht-icon-button-background-color);\n  order: 1;\n  z-index: 1;\n  float: right;\n  top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);\n  margin-inline-start: var(--ht-gap-size);\n  margin-inline-end: 1px;\n}\n.handsontable .changeType::before {\n  content: \"\";\n  display: block;\n  position: absolute;\n  top: 0;\n  left: 0;\n  color: var(--ht-icon-button-icon-color);\n}\n.handsontable .changeType:hover {\n  cursor: pointer;\n  box-shadow: 0 0 0 1px var(--ht-icon-button-hover-border-color);\n  background-color: var(--ht-icon-button-hover-background-color);\n}\n.handsontable .changeType:hover::before {\n  color: var(--ht-icon-button-hover-icon-color);\n}\n.handsontable .ht__active_highlight .changeType {\n  box-shadow: 0 0 0 1px var(--ht-icon-button-active-border-color, var(--ht-icon-active-button-border-color));\n  background-color: var(--ht-icon-button-active-background-color, var(--ht-icon-active-button-background-color));\n}\n.handsontable .ht__active_highlight .changeType::before {\n  color: var(--ht-icon-button-active-icon-color, var(--ht-icon-active-button-icon-color));\n}\n.handsontable .ht__active_highlight .changeType:hover {\n  box-shadow: 0 0 0 1px var(--ht-icon-button-active-hover-border-color, var(--ht-icon-active-button-hover-border-color));\n  background-color: var(--ht-icon-button-active-hover-background-color, var(--ht-icon-active-button-hover-background-color));\n}\n.handsontable .ht__active_highlight .changeType:hover::before {\n  color: var(--ht-icon-button-active-hover-icon-color, var(--ht-icon-active-button-hover-icon-color));\n}\n.handsontable th.htFiltersActive {\n  background-color: var(--ht-header-filter-background-color);\n}\n.handsontable th.htFiltersActive.ht__active_highlight {\n  background-color: color-mix(in srgb, var(--ht-header-active-background-color), var(--ht-header-filter-background-color) 20%);\n}\n.handsontable th.htFiltersActive.ht__active_highlight .changeType::after {\n  background-color: var(--ht-header-active-foreground-color);\n}\n.handsontable.htDropdownMenu > .ht_master, .handsontable.htContextMenu > .ht_master, .handsontable.htFiltersConditionsMenu > .ht_master {\n  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) color-mix(in srgb, var(--ht-menu-shadow-color, rgb(0, 0, 0)) var(--ht-menu-shadow-opacity, 100%), transparent);\n  border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);\n  border-radius: var(--ht-menu-border-radius);\n  overflow: hidden;\n  padding: var(--ht-menu-vertical-padding, 8px) var(--ht-menu-horizontal-padding, 0);\n  background-color: var(--ht-background-color, #ffffff);\n}\n.handsontable.htDropdownMenu:not(.htGhostTable), .handsontable.htContextMenu:not(.htGhostTable), .handsontable.htFiltersConditionsMenu:not(.htGhostTable) {\n  display: none;\n  position: absolute;\n  /* needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569) */\n  z-index: 1060;\n}\n.handsontable.htDropdownMenu .ht_clone_top,\n.handsontable.htDropdownMenu .ht_clone_bottom,\n.handsontable.htDropdownMenu .ht_clone_inline_start,\n.handsontable.htDropdownMenu .ht_clone_top_inline_start_corner,\n.handsontable.htDropdownMenu .ht_clone_bottom_inline_start_corner, .handsontable.htContextMenu .ht_clone_top,\n.handsontable.htContextMenu .ht_clone_bottom,\n.handsontable.htContextMenu .ht_clone_inline_start,\n.handsontable.htContextMenu .ht_clone_top_inline_start_corner,\n.handsontable.htContextMenu .ht_clone_bottom_inline_start_corner, .handsontable.htFiltersConditionsMenu .ht_clone_top,\n.handsontable.htFiltersConditionsMenu .ht_clone_bottom,\n.handsontable.htFiltersConditionsMenu .ht_clone_inline_start,\n.handsontable.htFiltersConditionsMenu .ht_clone_top_inline_start_corner,\n.handsontable.htFiltersConditionsMenu .ht_clone_bottom_inline_start_corner {\n  display: none;\n}\n.handsontable.htDropdownMenu table.htCore, .handsontable.htContextMenu table.htCore, .handsontable.htFiltersConditionsMenu table.htCore {\n  overflow: hidden;\n}\n.handsontable.htDropdownMenu .htCustomMenuRenderer .table.htCore, .handsontable.htContextMenu .htCustomMenuRenderer .table.htCore, .handsontable.htFiltersConditionsMenu .htCustomMenuRenderer .table.htCore {\n  box-shadow: none;\n}\n.handsontable.htDropdownMenu.handsontable:focus, .handsontable.htContextMenu.handsontable:focus, .handsontable.htFiltersConditionsMenu.handsontable:focus {\n  outline: none;\n}\n.handsontable.htDropdownMenu .wtBorder, .handsontable.htContextMenu .wtBorder, .handsontable.htFiltersConditionsMenu .wtBorder {\n  visibility: hidden;\n}\n.handsontable.htDropdownMenu tbody tr:first-of-type td:first-child, .handsontable.htDropdownMenu tbody tr:first-of-type th:first-child, .handsontable.htContextMenu tbody tr:first-of-type td:first-child, .handsontable.htContextMenu tbody tr:first-of-type th:first-child, .handsontable.htFiltersConditionsMenu tbody tr:first-of-type td:first-child, .handsontable.htFiltersConditionsMenu tbody tr:first-of-type th:first-child {\n  height: calc(var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px);\n}\n.handsontable.htDropdownMenu table tbody tr td, .handsontable.htContextMenu table tbody tr td, .handsontable.htFiltersConditionsMenu table tbody tr td {\n  position: relative;\n  padding: var(--ht-menu-item-vertical-padding, 4px) var(--ht-menu-item-horizontal-padding, 8px);\n  border-width: 0;\n  overflow: hidden;\n  white-space: nowrap;\n  text-overflow: ellipsis;\n  background: var(--ht-background-color, #ffffff);\n  cursor: pointer;\n  transition: var(--ht-table-transition) background ease-in-out;\n}\n.handsontable.htDropdownMenu table tbody tr td:first-child, .handsontable.htContextMenu table tbody tr td:first-child, .handsontable.htFiltersConditionsMenu table tbody tr td:first-child {\n  border-top-width: 0;\n  border-inline-end-width: 0;\n  border-bottom-width: 0;\n  border-inline-start-width: 0;\n}\n.handsontable.htDropdownMenu table tbody tr td.htDimmed, .handsontable.htContextMenu table tbody tr td.htDimmed, .handsontable.htFiltersConditionsMenu table tbody tr td.htDimmed {\n  font-style: normal;\n  color: inherit !important;\n  background-color: inherit !important;\n}\n.handsontable.htDropdownMenu table tbody tr td:not(.handsontable.htDropdownMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled):hover, .handsontable.htContextMenu table tbody tr td:not(.handsontable.htDropdownMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled):hover, .handsontable.htFiltersConditionsMenu table tbody tr td:not(.handsontable.htDropdownMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled):hover {\n  background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;\n  cursor: pointer;\n}\n.handsontable.htDropdownMenu table tbody tr td:not(.handsontable.htDropdownMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled).current:not([aria-expanded=true]), .handsontable.htContextMenu table tbody tr td:not(.handsontable.htDropdownMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled).current:not([aria-expanded=true]), .handsontable.htFiltersConditionsMenu table tbody tr td:not(.handsontable.htDropdownMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled).current:not([aria-expanded=true]) {\n  box-shadow: inset 0 0 0 1px var(--ht-accent-color);\n}\n.handsontable.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper, .handsontable.htContextMenu table tbody tr td.htSubmenu .htItemWrapper, .handsontable.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper {\n  margin-inline-end: calc(2 * var(--ht-gap-size, 4px) + var(--ht-icon-size));\n}\n.handsontable.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after, .handsontable.htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after, .handsontable.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after {\n  content: \"\";\n  display: block;\n  position: absolute;\n  top: 50%;\n  right: calc(var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2);\n  transform: translateY(-50%);\n}\n.handsontable.htDropdownMenu table tbody tr td.htSeparator, .handsontable.htContextMenu table tbody tr td.htSeparator, .handsontable.htFiltersConditionsMenu table tbody tr td.htSeparator {\n  border-top: 1px solid var(--ht-border-color);\n  height: 0;\n  padding: 0;\n  cursor: default;\n}\n.handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled {\n  color: var(--ht-disabled-color);\n  cursor: default;\n}\n.handsontable.htDropdownMenu table tbody tr td.htDisabled:hover, .handsontable.htContextMenu table tbody tr td.htDisabled:hover, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled:hover {\n  background: var(--ht-background-color);\n  color: var(--ht-disabled-color);\n}\n.handsontable.htDropdownMenu table tbody tr td.htHidden, .handsontable.htContextMenu table tbody tr td.htHidden, .handsontable.htFiltersConditionsMenu table tbody tr td.htHidden {\n  display: none;\n}\n.handsontable.htDropdownMenu table tbody tr td:has(.htItemWrapper .selected), .handsontable.htContextMenu table tbody tr td:has(.htItemWrapper .selected), .handsontable.htFiltersConditionsMenu table tbody tr td:has(.htItemWrapper .selected) {\n  background-color: color-mix(in srgb, var(--ht-menu-item-active-color) var(--ht-menu-item-active-color-opacity, 100%), transparent);\n}\n.handsontable.htDropdownMenu table tbody tr td .htItemWrapper, .handsontable.htContextMenu table tbody tr td .htItemWrapper, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper {\n  margin-inline: calc(2 * var(--ht-gap-size, 4px));\n}\n.handsontable.htDropdownMenu table tbody tr td .htItemWrapper::before, .handsontable.htContextMenu table tbody tr td .htItemWrapper::before, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper::before {\n  vertical-align: text-bottom;\n  margin-right: 12px;\n}\n.handsontable.htDropdownMenu table tbody tr td .htItemWrapper span.selected, .handsontable.htContextMenu table tbody tr td .htItemWrapper span.selected, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected {\n  font-size: 0;\n  inset: 0;\n}\n.handsontable.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after, .handsontable.htContextMenu table tbody tr td .htItemWrapper span.selected::after, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after {\n  content: \"\";\n  display: block;\n  position: absolute;\n  top: 50%;\n  right: calc(var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2);\n  color: var(--ht-accent-color);\n  transform: translateY(-50%);\n}\n.handsontable.htDropdownMenu table tbody tr td div span.selected, .handsontable.htContextMenu table tbody tr td div span.selected, .handsontable.htFiltersConditionsMenu table tbody tr td div span.selected {\n  position: absolute;\n  inset-inline-end: 0;\n}\n.handsontable.htDropdownMenu table tbody tr td .htUIButton, .handsontable.htContextMenu table tbody tr td .htUIButton, .handsontable.htFiltersConditionsMenu table tbody tr td .htUIButton {\n  width: calc(50% - var(--ht-gap-size));\n}\n.handsontable.htDropdownMenu table tbody tr td .htUIButton input, .handsontable.htContextMenu table tbody tr td .htUIButton input, .handsontable.htFiltersConditionsMenu table tbody tr td .htUIButton input {\n  width: 100%;\n}\n.handsontable .htUIClearAll a,\n.handsontable .htUISelectAll a {\n  padding: var(--ht-gap-size);\n  display: inline-block;\n  text-decoration: none;\n}\n.handsontable .htUIMultipleSelect .ht_master .wtHolder {\n  overflow-y: scroll !important;\n  background: transparent;\n  border-radius: 0 !important;\n}\n.handsontable .htUIMultipleSelect .ht_master .wtHolder .htCore {\n  box-shadow: none;\n}\n\n[dir=rtl].handsontable.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after, [dir=rtl].handsontable.htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after, [dir=rtl].handsontable.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after {\n  left: calc(4 * var(--ht-gap-size));\n  right: auto;\n  transform: translateY(-50%) rotate(180deg);\n}\n[dir=rtl].handsontable.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after, [dir=rtl].handsontable.htContextMenu table tbody tr td .htItemWrapper span.selected::after, [dir=rtl].handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after {\n  left: calc(4 * var(--ht-gap-size));\n  right: auto;\n}\n[dir=rtl].handsontable .changeType {\n  float: left;\n}\n\n.handsontable.htFiltersConditionsMenu:not(.htGhostTable) {\n  z-index: 1070;\n}\n.handsontable .ht_master table td.htCustomMenuRenderer {\n  cursor: auto;\n}\n.handsontable .ht_master table td.htCustomMenuRenderer.htFiltersMenuActionBar {\n  padding-top: calc(var(--ht-menu-item-vertical-padding, 4px) * 2);\n}\n.handsontable .htFiltersMenuLabel {\n  font-size: var(--ht-font-size-small);\n  line-height: var(--ht-line-height-small);\n  font-weight: var(--ht-font-weight);\n  margin-bottom: calc(var(--ht-gap-size, 2px) * 2);\n}\n.handsontable .htFiltersMenuLabel:empty {\n  display: none;\n}\n.handsontable .htFiltersMenuCondition {\n  padding-top: calc(var(--ht-gap-size, 2px) * 3) !important;\n  padding-bottom: 0 !important;\n}\n.handsontable .htFiltersMenuCondition .border {\n  border-bottom: 1px solid var(--ht-border-color) !important;\n}\n.handsontable .htFiltersMenuCondition .htUIInput {\n  margin-top: calc(var(--ht-gap-size, 2px) * 2);\n}\n.handsontable .htFiltersMenuValue {\n  padding-top: calc(var(--ht-gap-size, 2px) * 3) !important;\n  padding-bottom: 0 !important;\n  border-bottom: 1px solid var(--ht-border-color) !important;\n}\n.handsontable .htFiltersMenuOperators {\n  padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;\n  padding-bottom: 0 !important;\n}\n.handsontable .htUISelectionControls {\n  padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;\n  padding-bottom: var(--ht-gap-size, 2px) !important;\n  margin: 0 calc(var(--ht-gap-size, 2px) * -1);\n}\n.handsontable .htUIMultipleSelectHot {\n  --ht-cell-horizontal-padding: calc(\n          var(--ht-menu-item-horizontal-padding, 2px) +\n          var(--ht-gap-size, 2px) * 2);\n  overflow: initial !important;\n  width: calc(100% + var(--ht-menu-item-horizontal-padding, 2px) * 2 + var(--ht-gap-size, 2px) * 4);\n  margin: 0 calc((var(--ht-menu-item-horizontal-padding, 2px) + var(--ht-gap-size, 2px) * 2) * -1);\n}\n.handsontable .htUIMultipleSelectHot::before {\n  content: \"\";\n  display: block;\n  position: absolute;\n  top: -1px;\n  left: 0;\n  width: 100%;\n  height: 1px;\n  background-color: var(--ht-border-color);\n}\n.handsontable .htUIMultipleSelectHot .wtHolder {\n  padding: 0;\n  overflow-x: hidden;\n  box-sizing: border-box;\n}\n.handsontable .htUIMultipleSelectHot .wtHolder .wtSpreader {\n  padding: calc(var(--ht-gap-size) * 2) 0;\n}\n.handsontable .htUIMultipleSelectHot .wtHolder td {\n  height: auto !important;\n  padding: 4px var(--ht-cell-horizontal-padding);\n}\n.handsontable .htUIClearAll,\n.handsontable .htUISelectAll {\n  display: inline-block;\n  margin-right: var(--ht-gap-size, 4px);\n  margin-bottom: var(--ht-gap-size, 4px);\n}\n.handsontable .htUIClearAll a,\n.handsontable .htUISelectAll a {\n  font-size: var(--ht-font-size);\n  line-height: var(--ht-line-height);\n  color: var(--ht-link-color);\n  border-radius: var(--ht-button-border-radius);\n}\n.handsontable .htUIClearAll a:hover,\n.handsontable .htUISelectAll a:hover {\n  color: var(--ht-link-hover-color);\n}\n.handsontable .htUIClearAll a:focus,\n.handsontable .htUISelectAll a:focus {\n  outline: 1px solid var(--ht-link-hover-color);\n}\n.handsontable .htUIMultipleSelect .ht_master .wtHolder {\n  overflow: auto;\n}\n.handsontable .htUIMultipleSelect .ht_master .wtHolder .wtHider,\n.handsontable .htUIMultipleSelect .ht_master .wtHolder .htCore,\n.handsontable .htUIMultipleSelect .ht_master .wtHolder tr,\n.handsontable .htUIMultipleSelect .ht_master .wtHolder td {\n  background: none;\n}\n.handsontable .htUIInput.htUIButton {\n  cursor: pointer;\n  display: inline-block;\n}\n.handsontable .htUIInput.htUIButtonOK {\n  margin-inline-start: 0;\n  margin-inline-end: calc(2 * var(--ht-gap-size, 2px));\n}\n\n.handsontable .htCommentCell {\n  position: relative;\n}\n.handsontable .htCommentCell::after {\n  content: \"\";\n  display: block;\n  position: absolute;\n  top: 0;\n  inset-inline-end: 0;\n  inset-inline-start: unset;\n  border-inline-start: var(--ht-comments-indicator-size, 4px) solid transparent;\n  border-inline-end: none;\n  border-top: var(--ht-comments-indicator-size, 4px) solid var(--ht-comments-indicator-color, #1a42e8);\n}\n\n.htCommentsContainer .htComments {\n  display: none;\n  z-index: 1059;\n  position: absolute;\n}\n.htCommentsContainer .htCommentTextArea {\n  font-family: var(--ht-font-family), -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) color-mix(in srgb, var(--ht-menu-shadow-color, rgb(0, 0, 0)) var(--ht-menu-shadow-opacity, 100%), transparent);\n  width: 240px;\n  height: 88px;\n  font-size: var(--ht-font-size);\n  line-height: var(--ht-line-height);\n  font-weight: var(--ht-font-weight);\n  margin: 0 -1px;\n  padding: var(--ht-comments-textarea-vertical-padding) var(--ht-comments-textarea-horizontal-padding);\n  border: var(--ht-comments-textarea-border-width, 1px) solid var(--ht-comments-textarea-border-color, transparent);\n  border-inline-start: var(--ht-comments-textarea-border-width, 1px) solid var(--ht-comments-textarea-border-color, #1a42e8);\n  color: var(--ht-comments-textarea-foreground-color);\n  background-color: var(--ht-comments-textarea-background-color, #ffffff);\n  outline: 0 !important;\n  box-sizing: border-box;\n  -webkit-appearance: none;\n}\n.htCommentsContainer .htCommentTextArea:focus {\n  border: var(--ht-comments-textarea-focus-border-width, 1px) solid var(--ht-comments-textarea-focus-border-color, #1a42e8);\n  color: var(--ht-comments-textarea-focus-foreground-color);\n  background-color: var(--ht-comments-textarea-focus-background-color, #ffffff);\n}\n\n.htBorders .wtBorder.ht-border-style-dashed-vertical {\n  background-image: repeating-linear-gradient(to bottom, var(--ht-custom-border-color) 0 5px, transparent 0 10px);\n}\n.htBorders .wtBorder.ht-border-style-dashed-horizontal {\n  background-image: repeating-linear-gradient(to right, var(--ht-custom-border-color) 0 5px, transparent 0 10px);\n}\n.htBorders .wtBorder.ht-border-style-dotted-horizontal {\n  background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);\n  background-size: calc(var(--ht-custom-border-size) * 2) var(--ht-custom-border-size);\n  background-repeat: repeat-x;\n}\n.htBorders .wtBorder.ht-border-style-dotted-vertical {\n  background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);\n  background-size: var(--ht-custom-border-size) calc(var(--ht-custom-border-size) * 2);\n  background-repeat: repeat-y;\n}\n\n.handsontable .columnSorting:not(.indicatorDisabled) {\n  position: relative;\n}\n.handsontable .columnSorting:not(.indicatorDisabled).sortAction {\n  padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);\n  padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);\n  min-width: calc(var(--ht-icon-size, 16px) + 8px);\n  max-width: calc(100% - var(--ht-icon-size, 16px) * 2 - 5px) !important;\n}\n.handsontable .columnSorting:not(.indicatorDisabled).sortAction:hover {\n  text-decoration: none;\n  cursor: pointer;\n}\n.handsontable .columnSorting:not(.indicatorDisabled).sortAction::before {\n  content: \"\";\n  display: block;\n  width: var(--ht-icon-size, 16px);\n  position: absolute;\n  top: 50%;\n  right: 2px;\n  transform: translateY(-50%);\n  text-align: right;\n}\n.handsontable .htLeft .columnSorting.sortAction {\n  padding-inline-start: 0;\n}\n.handsontable .htRight .columnSorting.sortAction {\n  padding-inline-start: var(--ht-icon-size, 16px);\n  padding-inline-end: var(--ht-gap-size, 4px);\n}\n.handsontable .htRight .columnSorting.sortAction::before {\n  left: 2px;\n  right: auto;\n  text-align: left;\n}\n\n[dir=rtl] .handsontable .columnSorting.sortAction::before {\n  left: 2px;\n  right: auto;\n  text-align: left;\n}\n[dir=rtl] .handsontable .htRight .columnSorting.sortAction {\n  padding-inline-start: var(--ht-gap-size, 4px);\n  padding-inline-end: var(--ht-icon-size, 16px);\n}\n[dir=rtl] .handsontable .htLeft .columnSorting.sortAction {\n  padding-inline-start: var(--ht-icon-size, 16px);\n  padding-inline-end: var(--ht-gap-size, 4px);\n}\n[dir=rtl] .handsontable .htLeft .columnSorting.sortAction::before {\n  left: auto;\n  right: 2px;\n  text-align: right;\n}\n\n.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {\n  content: \"*\";\n  display: inline-block;\n  position: relative;\n  /* The multi-line header and header with longer text need more padding to not hide arrow,\n      we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */\n  padding-right: 20px;\n}\n\n.handsontable .colHeader.columnSorting::after {\n  content: \"\";\n  display: block;\n  width: 8px;\n  position: absolute;\n  top: 50%;\n  right: 0;\n  transform: translateY(-50%);\n  margin-top: 4px;\n  font-size: 8px;\n  text-align: right;\n}\n.handsontable .colHeader.columnSorting[class^=sort-]::after, .handsontable .colHeader.columnSorting[class*=\" sort-\"]::after {\n  content: \"+\";\n}\n.handsontable .colHeader.columnSorting.sort-1::after {\n  content: \"1\";\n}\n.handsontable .colHeader.columnSorting.sort-2::after {\n  content: \"2\";\n}\n.handsontable .colHeader.columnSorting.sort-3::after {\n  content: \"3\";\n}\n.handsontable .colHeader.columnSorting.sort-4::after {\n  content: \"4\";\n}\n.handsontable .colHeader.columnSorting.sort-5::after {\n  content: \"5\";\n}\n.handsontable .colHeader.columnSorting.sort-6::after {\n  content: \"6\";\n}\n.handsontable .colHeader.columnSorting.sort-7::after {\n  content: \"7\";\n}\n.handsontable .htRight .colHeader.columnSorting::after {\n  left: 0;\n  right: auto;\n  text-align: left;\n}\n\n[dir=rtl] .handsontable .colHeader.columnSorting::after {\n  left: 0;\n  right: auto;\n  text-align: left;\n}\n[dir=rtl] .handsontable .htLeft .colHeader.columnSorting::after {\n  left: auto;\n  right: 0;\n  text-align: right;\n}\n\n.htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {\n  padding-right: var(--ht-gap-size);\n}\n\n.handsontable .htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone_top_inline_start_corner th:nth-child(2), .handsontable .htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone_inline_start td:first-of-type {\n  border-left: 0 none;\n}\n.handsontable .ht_clone_top_inline_start_corner th.ht__active_highlight {\n  box-shadow: none;\n}\n\n.handsontable .manualColumnResizer {\n  position: absolute;\n  top: 0;\n  width: 10px;\n  margin: 0;\n  cursor: col-resize;\n  background: none;\n  opacity: 0;\n  z-index: 210;\n}\n.handsontable .manualColumnResizer::before, .handsontable .manualColumnResizer::after {\n  content: \"\";\n  display: block;\n  position: absolute;\n  top: 50%;\n  left: 1px;\n  width: 2px;\n  height: calc(100% - 12px);\n  max-height: 16px;\n  margin-top: 0.5px;\n  background: var(--ht-resize-indicator-color);\n  border-radius: 2px;\n  transform: translateY(-50%);\n}\n.handsontable .manualColumnResizer::after {\n  left: auto;\n  right: 0;\n}\n.handsontable .manualColumnResizer:hover, .handsontable .manualColumnResizer.active {\n  opacity: 1;\n}\n.handsontable .manualColumnResizerGuide {\n  position: absolute;\n  inset-inline-end: unset;\n  top: 0;\n  width: 0;\n  margin-inline-start: 5px;\n  margin-inline-end: unset;\n  display: none;\n  border-inline-end: 1px solid var(--ht-accent-color);\n  border-inline-start: none;\n}\n.handsontable .manualColumnResizerGuide.active {\n  display: block;\n  z-index: 209;\n}\n\n.handsontable .manualRowResizer {\n  position: absolute;\n  left: 0;\n  z-index: 210;\n  height: 10px;\n  margin: 0;\n  cursor: row-resize;\n  background: none;\n  opacity: 0;\n}\n.handsontable .manualRowResizer::before, .handsontable .manualRowResizer::after {\n  content: \"\";\n  display: block;\n  position: absolute;\n  top: 1px;\n  left: 50%;\n  width: calc(100% - 12px);\n  max-width: 16px;\n  height: 2px;\n  background: var(--ht-resize-indicator-color);\n  border-radius: 2px;\n  transform: translateX(-50%);\n}\n.handsontable .manualRowResizer::after {\n  top: auto;\n  bottom: 0;\n}\n.handsontable .manualRowResizer:hover, .handsontable .manualRowResizer.active {\n  opacity: 1;\n}\n.handsontable .manualRowResizerGuide {\n  position: absolute;\n  left: 0;\n  bottom: 0;\n  height: 0;\n  margin-top: 5px;\n  display: none;\n  border-bottom: 1px solid var(--ht-accent-color);\n  border-top: none;\n}\n.handsontable .manualRowResizerGuide.active {\n  display: block;\n  z-index: 209;\n}\n\n.handsontable tbody td[rowspan][class*=area][class*=highlight]:not([class*=fullySelectedMergedCell])::before {\n  opacity: 0;\n}\n\n.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-multiple]::before {\n  opacity: 0.14;\n}\n\n.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-0]:before {\n  opacity: 0.14;\n}\n\n.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-1]:before {\n  opacity: 0.21;\n}\n\n.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-2]:before {\n  opacity: 0.28;\n}\n\n.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-3]:before {\n  opacity: 0.35;\n}\n\n.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-4]:before {\n  opacity: 0.42;\n}\n\n.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-5]:before {\n  opacity: 0.49;\n}\n\n.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-6]:before {\n  opacity: 0.56;\n}\n\n.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-7]:before {\n  opacity: 0.63;\n}\n\n.handsontable .wtHider {\n  position: relative;\n}\n.handsontable .ht__manualColumnMove.after-selection--columns thead th.ht__highlight, .handsontable.ht__manualColumnMove.after-selection--columns thead th.ht__highlight {\n  cursor: move;\n  cursor: -moz-grab;\n  cursor: -webkit-grab;\n  cursor: grab;\n}\n.handsontable .ht__manualColumnMove.on-moving--columns *,\n.handsontable .ht__manualColumnMove.on-moving--columns thead th.ht__highlight, .handsontable.ht__manualColumnMove.on-moving--columns *,\n.handsontable.ht__manualColumnMove.on-moving--columns thead th.ht__highlight {\n  cursor: move;\n  cursor: -moz-grabbing;\n  cursor: -webkit-grabbing;\n  cursor: grabbing;\n}\n.handsontable .ht__manualColumnMove.on-moving--columns .manualColumnResizer, .handsontable.ht__manualColumnMove.on-moving--columns .manualColumnResizer {\n  display: none;\n}\n.handsontable .ht__manualColumnMove--guideline, .handsontable .ht__manualColumnMove--backlight, .handsontable.ht__manualColumnMove--guideline, .handsontable.ht__manualColumnMove--backlight {\n  position: absolute;\n  height: 100%;\n  display: none;\n}\n.handsontable .ht__manualColumnMove--guideline, .handsontable.ht__manualColumnMove--guideline {\n  width: 1px;\n  top: 0;\n  margin-inline-start: -0.5px;\n  margin-inline-end: 0;\n  z-index: 205;\n  background: var(--ht-move-indicator-color, #1a42e8);\n}\n.handsontable .ht__manualColumnMove--backlight, .handsontable.ht__manualColumnMove--backlight {\n  display: none;\n  z-index: 205;\n  pointer-events: none;\n  background: color-mix(in srgb, var(--ht-move-backlight-color) var(--ht-move-backlight-opacity, 100%), transparent);\n}\n.handsontable .on-moving--columns.show-ui .ht__manualColumnMove--guideline,\n.handsontable .on-moving--columns .ht__manualColumnMove--backlight, .handsontable.on-moving--columns.show-ui .ht__manualColumnMove--guideline,\n.handsontable.on-moving--columns .ht__manualColumnMove--backlight {\n  display: block;\n}\n\n.handsontable .wtHider {\n  position: relative;\n}\n.handsontable .ht__manualRowMove.after-selection--rows tbody th.ht__highlight, .handsontable.ht__manualRowMove.after-selection--rows tbody th.ht__highlight {\n  cursor: move;\n  cursor: -moz-grab;\n  cursor: -webkit-grab;\n  cursor: grab;\n}\n.handsontable .ht__manualRowMove.on-moving--rows *,\n.handsontable .ht__manualRowMove.on-moving--rows tbody th.ht__highlight, .handsontable.ht__manualRowMove.on-moving--rows *,\n.handsontable.ht__manualRowMove.on-moving--rows tbody th.ht__highlight {\n  cursor: move;\n  cursor: -moz-grabbing;\n  cursor: -webkit-grabbing;\n  cursor: grabbing;\n}\n.handsontable .ht__manualRowMove.on-moving--rows .manualRowResizer, .handsontable.ht__manualRowMove.on-moving--rows .manualRowResizer {\n  display: none;\n}\n.handsontable .ht__manualRowMove--guideline, .handsontable .ht__manualRowMove--backlight, .handsontable.ht__manualRowMove--guideline, .handsontable.ht__manualRowMove--backlight {\n  position: absolute;\n  width: 100%;\n  display: none;\n}\n.handsontable .ht__manualRowMove--guideline, .handsontable.ht__manualRowMove--guideline {\n  border-top: 1px solid var(--ht-move-indicator-color);\n  left: 0;\n  z-index: 205;\n}\n.handsontable .ht__manualRowMove--backlight, .handsontable.ht__manualRowMove--backlight {\n  display: none;\n  z-index: 205;\n  pointer-events: none;\n  background: color-mix(in srgb, var(--ht-move-backlight-color) var(--ht-move-backlight-opacity, 100%), transparent);\n}\n.handsontable .on-moving--rows.show-ui .ht__manualRowMove--guideline,\n.handsontable .on-moving--rows .ht__manualRowMove--backlight, .handsontable.on-moving--rows.show-ui .ht__manualRowMove--guideline,\n.handsontable.on-moving--rows .ht__manualRowMove--backlight {\n  display: block;\n}\n\n.ht-dialog {\n  position: absolute;\n  top: 0;\n  left: 0;\n  display: none;\n  font-size: var(--ht-font-size);\n  line-height: var(--ht-line-height);\n  letter-spacing: var(--ht-letter-spacing);\n  width: 100%;\n  height: 100%;\n  z-index: 1060;\n  opacity: 0;\n  overflow-y: auto;\n  border-radius: var(--ht-wrapper-border-radius);\n  border: 1px solid var(--ht-border-color);\n  box-sizing: border-box !important;\n}\n.ht-dialog[dir=rtl] {\n  left: auto;\n  right: 0;\n}\n.ht-dialog:focus {\n  border: 1px solid var(--ht-accent-color);\n  outline: none;\n}\n.ht-dialog:has(.htFocusCatcher:focus) {\n  border: 1px solid var(--ht-accent-color);\n  outline: none;\n}\n.ht-dialog * {\n  box-sizing: border-box !important;\n}\n.ht-dialog--background-solid {\n  background-color: var(--ht-dialog-solid-background-color);\n}\n.ht-dialog--background-semi-transparent {\n  background-color: color-mix(in srgb, var(--ht-dialog-semi-transparent-background-color) var(--ht-dialog-semi-transparent-background-opacity, 100%), transparent);\n}\n.ht-dialog--animation {\n  transition: opacity var(--ht-table-transition) ease-in-out;\n}\n.ht-dialog--show {\n  opacity: 1;\n}\n.ht-dialog__content-wrapper {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100%;\n  min-height: 100%;\n  padding: calc(var(--ht-gap-size) * 4);\n  border-radius: var(--ht-wrapper-border-radius);\n}\n.ht-dialog__content {\n  position: relative;\n  padding: var(--ht-dialog-content-padding-horizontal) var(--ht-dialog-content-padding-vertical);\n  max-width: 480px;\n  color: var(--ht-foreground-color);\n}\n.ht-dialog__content--background {\n  box-shadow: var(--ht-shadow-x, 0) var(--ht-shadow-y, 0) var(--ht-shadow-blur, 8px) color-mix(in srgb, var(--ht-shadow-color, rgb(0, 0, 0)) var(--ht-shadow-opacity, 100%), transparent);\n  border-radius: var(--ht-dialog-content-border-radius);\n  background-color: var(--ht-dialog-content-background-color);\n}\n.ht-dialog--confirm .ht-dialog__content-wrapper {\n  text-align: center;\n  padding: calc(var(--ht-gap-size) * 2);\n}\n.ht-dialog--confirm .ht-dialog__content-wrapper-inner {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  max-width: 480px;\n  padding: calc(var(--ht-gap-size) * 2);\n  border-radius: var(--ht-wrapper-border-radius);\n}\n.ht-dialog--confirm .ht-dialog__content-wrapper-inner--background {\n  box-shadow: var(--ht-shadow-x, 0) var(--ht-shadow-y, 0) var(--ht-shadow-blur, 8px) color-mix(in srgb, var(--ht-shadow-color, rgb(0, 0, 0)) var(--ht-shadow-opacity, 100%), transparent);\n  border-radius: var(--ht-dialog-content-border-radius);\n  background-color: var(--ht-dialog-content-background-color);\n}\n.ht-dialog--confirm .ht-dialog__content-wrapper-inner:focus {\n  outline: none;\n  box-shadow: 0 0 0 1px var(--ht-accent-color);\n}\n.ht-dialog--confirm .ht-dialog__content {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  gap: var(--ht-gap-size);\n}\n.ht-dialog--confirm .ht-dialog__content:has(.ht-dialog__buttons) {\n  gap: calc(var(--ht-gap-size) * 2);\n}\n.ht-dialog--confirm .ht-dialog__title {\n  margin: 0;\n  font-size: var(--ht-font-size);\n  font-weight: var(--ht-font-weight);\n  line-height: var(--ht-line-height);\n}\n.ht-dialog--confirm .ht-dialog__description {\n  margin: 0;\n  color: var(--ht-foreground-secondary-color);\n  font-size: var(--ht-font-size-small);\n  line-height: var(--ht-line-height-small);\n  font-weight: var(--ht-font-weight);\n}\n.ht-dialog--confirm .ht-dialog__buttons {\n  display: flex;\n  justify-content: center;\n  flex-direction: row;\n  flex-wrap: wrap;\n  gap: calc(var(--ht-gap-size) * 2);\n}\n\n.handsontable.ht-pagination {\n  color: var(--ht-pagination-bar-foreground-color);\n  background: var(--ht-pagination-bar-background-color);\n  border: 1px solid var(--ht-wrapper-border-color);\n  border-top-color: transparent;\n  border-radius: 0 0 var(--ht-wrapper-border-radius) var(--ht-wrapper-border-radius);\n  font-size: var(--ht-font-size);\n  line-height: var(--ht-line-height);\n  box-sizing: border-box;\n  overflow-x: auto;\n}\n.handsontable.ht-pagination--bordered {\n  border-top-color: var(--ht-wrapper-border-color);\n}\n.handsontable.ht-pagination .ht-pagination__inner {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  flex-wrap: wrap;\n  gap: calc(var(--ht-gap-size) * 4);\n  border-radius: 0 0 var(--ht-wrapper-border-radius) var(--ht-wrapper-border-radius);\n  padding-inline: var(--ht-pagination-bar-horizontal-padding);\n  padding-block: var(--ht-pagination-bar-vertical-padding);\n  min-width: 230px;\n}\n.handsontable.ht-pagination .ht-page-size-section {\n  display: flex;\n  align-items: center;\n  gap: calc(var(--ht-gap-size) * 2);\n}\n.handsontable.ht-pagination .ht-page-size-section__label {\n  white-space: nowrap;\n}\n.handsontable.ht-pagination .ht-page-size-section__select-wrapper {\n  position: relative;\n  border-radius: var(--ht-input-border-radius);\n}\n.handsontable.ht-pagination .ht-page-size-section__select-wrapper select {\n  padding-inline-start: var(--ht-gap-size);\n  padding-inline-end: calc(var(--ht-gap-size) + var(--ht-icon-size));\n  padding-top: var(--ht-gap-size);\n  padding-bottom: var(--ht-gap-size);\n  border-radius: var(--ht-input-border-radius);\n  color: var(--ht-input-foreground-color);\n  background-color: var(--ht-input-background-color);\n  border: 1px solid var(--ht-input-border-color);\n  line-height: calc(var(--ht-line-height) - 4px);\n  -webkit-appearance: none;\n  font-size: inherit;\n  cursor: pointer;\n}\n.handsontable.ht-pagination .ht-page-size-section__select-wrapper select:disabled {\n  opacity: 0.4;\n  cursor: default;\n  color: var(--ht-input-disabled-foreground-color);\n  background-color: var(--ht-input-disabled-background-color);\n  border-color: var(--ht-input-disabled-border-color);\n}\n.handsontable.ht-pagination .ht-page-size-section__select-wrapper select:hover:not(:disabled) {\n  color: var(--ht-input-hover-foreground-color);\n  background-color: var(--ht-input-hover-background-color);\n  border-color: var(--ht-input-hover-border-color);\n}\n.handsontable.ht-pagination .ht-page-size-section__select-wrapper select:focus {\n  color: var(--ht-input-focus-foreground-color);\n  background-color: var(--ht-input-focus-background-color);\n  border-color: var(--ht-input-focus-border-color);\n  outline: none;\n}\n.handsontable.ht-pagination .ht-page-size-section__select-wrapper::after {\n  content: \"\";\n  display: block;\n  position: absolute;\n  inset-inline-end: var(--ht-gap-size);\n  inset-block-end: 50%;\n  transform: translateY(50%);\n  background-color: var(--ht-foreground-color);\n  pointer-events: none;\n}\n.handsontable.ht-pagination .ht-page-counter-section {\n  margin-inline-end: auto;\n}\n.handsontable.ht-pagination .ht-page-navigation-section {\n  display: flex;\n  align-items: center;\n  gap: 1px;\n}\n.handsontable.ht-pagination .ht-page-navigation-section__button {\n  font-size: inherit;\n  border: 1px solid var(--ht-pagination-bar-background-color);\n  color: var(--ht-secondary-button-foreground-color);\n  background-color: var(--ht-pagination-bar-background-color);\n  border-radius: var(--ht-icon-button-large-border-radius);\n  padding: var(--ht-icon-button-large-padding);\n  cursor: pointer;\n}\n.handsontable.ht-pagination .ht-page-navigation-section__button::before {\n  content: \"\";\n  display: block;\n}\n.handsontable.ht-pagination .ht-page-navigation-section__button--disabled {\n  cursor: default;\n  pointer-events: none;\n  color: var(--ht-secondary-button-disabled-foreground-color);\n}\n.handsontable.ht-pagination .ht-page-navigation-section__button:hover:not(:disabled) {\n  background-color: var(--ht-secondary-button-hover-background-color);\n}\n.handsontable.ht-pagination .ht-page-navigation-section__button:focus {\n  outline: none;\n  border: 1px solid var(--ht-accent-color);\n}\n.handsontable.ht-pagination .ht-page-navigation-section__label {\n  white-space: nowrap;\n  min-width: 100px;\n  text-align: center;\n}\n.handsontable.ht-wrapper.htPagination {\n  border-end-start-radius: 0;\n  border-end-end-radius: 0;\n}\n.handsontable.ht-wrapper.htPagination .htCore {\n  border-end-start-radius: 0;\n  border-end-end-radius: 0;\n}\n.handsontable.ht-wrapper.htPagination .htCore thead tr:last-child th:first-child,\n.handsontable.ht-wrapper.htPagination .htCore tbody tr:last-child td:first-child,\n.handsontable.ht-wrapper.htPagination .htCore tbody tr:last-child th:first-child {\n  border-end-start-radius: 0 !important;\n}\n.handsontable.ht-wrapper.htPagination .htCore thead tr:last-child th:last-child,\n.handsontable.ht-wrapper.htPagination .htCore tbody tr:last-child td:last-child,\n.handsontable.ht-wrapper.htPagination .htCore tbody tr:last-child th:last-child {\n  border-end-end-radius: 0 !important;\n}\n\n.ht-loading__icon-svg {\n  display: block;\n  width: var(--ht-icon-size);\n  height: var(--ht-icon-size);\n  color: var(--ht-accent-color);\n  animation: ht-loading-spin 1s linear infinite;\n  transform-origin: 50% 50%;\n}\n.ht-loading__content {\n  display: flex;\n  align-items: center;\n  gap: calc(var(--ht-gap-size) * 2);\n}\n.ht-loading__title {\n  margin: 0;\n  font-size: var(--ht-font-size);\n  font-weight: var(--ht-font-weight);\n  line-height: var(--ht-line-height);\n}\n.ht-loading__description {\n  margin: 0;\n  color: var(--ht-foreground-secondary-color);\n  font-size: var(--ht-font-size-small);\n  line-height: var(--ht-line-height-small);\n  font-weight: var(--ht-font-weight);\n}\n\n@keyframes ht-loading-spin {\n  to {\n    transform: rotate(360deg);\n  }\n}\n.ht-empty-data-state {\n  display: none;\n  position: absolute;\n  width: 100%;\n  left: 0;\n  z-index: 999;\n  overflow-y: auto;\n  border: 1px solid var(--ht-border-color);\n  border-radius: var(--ht-wrapper-border-radius);\n  box-sizing: border-box;\n  background-color: var(--ht-background-color);\n}\n.ht-empty-data-state * {\n  box-sizing: border-box !important;\n}\n.ht-empty-data-state__content-wrapper {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n  width: 100%;\n  min-height: 100%;\n  padding: calc(var(--ht-gap-size) * 2);\n  border-radius: var(--ht-wrapper-border-radius);\n}\n.ht-empty-data-state__content-wrapper-inner {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  max-width: 480px;\n  padding: calc(var(--ht-gap-size) * 2);\n  border-radius: var(--ht-wrapper-border-radius);\n}\n.ht-empty-data-state__content-wrapper-inner:focus {\n  outline: none;\n  box-shadow: 0 0 0 1px var(--ht-accent-color);\n}\n.ht-empty-data-state__content {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  gap: var(--ht-gap-size);\n}\n.ht-empty-data-state__title {\n  margin: 0;\n  font-size: var(--ht-font-size);\n  font-weight: var(--ht-font-weight);\n  line-height: var(--ht-line-height);\n}\n.ht-empty-data-state__description {\n  margin: 0;\n  color: var(--ht-foreground-secondary-color);\n  font-size: var(--ht-font-size-small);\n  line-height: var(--ht-line-height-small);\n  font-weight: var(--ht-font-weight);\n}\n.ht-empty-data-state__buttons {\n  display: flex;\n  justify-content: center;\n  flex-direction: row;\n  flex-wrap: wrap;\n  gap: calc(var(--ht-gap-size) * 2);\n}\n.ht-empty-data-state__buttons--has-buttons {\n  margin-top: calc(var(--ht-gap-size) * 2);\n}\n.ht-empty-data-state--disable-top-border {\n  border-start-start-radius: 0;\n  border-start-end-radius: 0;\n  border-top-width: 0;\n}\n.ht-empty-data-state--disable-inline-border {\n  border-start-start-radius: 0;\n  border-end-start-radius: 0;\n  border-inline-start-width: 0;\n}\n.ht-empty-data-state--disable-bottom-border, .ht-empty-data-state:has(~ .ht-pagination) {\n  border-end-start-radius: 0;\n  border-end-end-radius: 0;\n  border-bottom-width: 0;\n}\n";
 
 /***/ }),
 /* 261 */
@@ -48651,9 +48812,12 @@ function announce(message) {
 
 
 exports.__esModule = true;
-var _baseRenderer = __webpack_require__(263);
-exports.RENDERER_TYPE = _baseRenderer.RENDERER_TYPE;
-exports.baseRenderer = _baseRenderer.baseRenderer;
+var _builder = __webpack_require__(263);
+exports.createTheme = _builder.createTheme;
+exports.ThemeBuilder = _builder.ThemeBuilder;
+var _manager = __webpack_require__(267);
+exports.createThemeManager = _manager.createThemeManager;
+exports.ThemeManager = _manager.ThemeManager;
 
 /***/ }),
 /* 263 */
@@ -48662,10 +48826,2427 @@ exports.baseRenderer = _baseRenderer.baseRenderer;
 "use strict";
 
 
+var _interopRequireDefault = __webpack_require__(1);
+exports.__esModule = true;
+exports.createTheme = createTheme;
+var _object = __webpack_require__(13);
+var _sizing = _interopRequireDefault(__webpack_require__(264));
+var _density = _interopRequireDefault(__webpack_require__(265));
+var _validation = __webpack_require__(266);
+var _console = __webpack_require__(21);
+/**
+ * Config keys that support deep merging when updating theme params.
+ *
+ * @type {string[]}
+ */
+const MERGEABLE_CONFIG_KEYS = ['sizing', 'icons', 'colors', 'tokens'];
+
+/**
+ * Required config keys.
+ *
+ * @type {string[]}
+ */
+const REQUIRED_CONFIG_KEYS = ['name', 'icons', 'colors', 'tokens'];
+
+/**
+ * ThemeBuilder class provides methods to build and configure themes.
+ *
+ * @class ThemeBuilder
+ */
+class ThemeBuilder {
+  /**
+   * The initial theme configuration object.
+   *
+   * @private
+   * @type {object}
+   */
+  #initThemeConfig;
+
+  /**
+   * Theme configuration object.
+   *
+   * @private
+   * @type {object}
+   */
+  #themeConfig;
+
+  /**
+   * Registered listeners notified when the theme configuration changes.
+   *
+   * @private
+   * @type {Set<Function>}
+   */
+  #listeners = new Set();
+
+  /**
+   * Current color mode ('light', 'dark', or 'auto').
+   *
+   * @private
+   * @default 'auto'
+   * @type {string}
+   */
+  #colorScheme = 'auto';
+
+  /**
+   * Current density type ('compact', 'default', or 'comfortable').
+   *
+   * @private
+   * @default 'default'
+   * @type {string}
+   */
+  #densityType = 'default';
+
+  /**
+   * The theme builder constructor.
+   *
+   * @param {object} themeConfig - The theme config object with `name`, `sizing`, `density`, `icons`, `colors`, `tokens`, and `colorScheme` properties.
+   */
+  constructor(themeConfig) {
+    (0, _validation.validateParams)(themeConfig, 'themeConfig', {
+      requiredFields: REQUIRED_CONFIG_KEYS
+    });
+    this.#initThemeConfig = {
+      name: undefined,
+      sizing: _sizing.default,
+      density: {
+        type: this.#densityType,
+        sizes: _density.default
+      },
+      icons: {},
+      colors: {},
+      tokens: {},
+      colorScheme: this.#colorScheme
+    };
+    this.#setParams(themeConfig);
+    this.#initThemeConfig = this.#themeConfig;
+  }
+
+  /**
+   * Notifies all listeners about a theme configuration change.
+   *
+   * @private
+   */
+  #notifyChange() {
+    const config = this.getThemeConfig();
+    this.#listeners.forEach(listener => listener(config));
+  }
+
+  /**
+   * Applies density configuration from the params object.
+   *
+   * @private
+   * @param {object} config The config object to modify.
+   * @param {string|object} density The density value from params.
+   */
+  #applyDensityConfig(config, density) {
+    if ((0, _object.isObject)(density)) {
+      config.density = (0, _object.deepMerge)(config.density, density);
+      this.#densityType = density.type;
+      if (this.#initThemeConfig?.density) {
+        this.#initThemeConfig.density.type = density.type;
+      }
+    } else if (typeof density === 'string') {
+      config.density.type = density;
+      this.#densityType = density;
+      if (this.#initThemeConfig?.density) {
+        this.#initThemeConfig.density.type = density;
+      }
+    }
+  }
+
+  /**
+   * Sets the parameters to the theme configuration.
+   *
+   * @private
+   * @param {object} paramsObject The parameters object to set.
+   */
+  #setParams(paramsObject) {
+    const config = (0, _object.deepClone)(this.#initThemeConfig);
+    if (paramsObject.name !== undefined) {
+      if (this.#initThemeConfig.name !== undefined) {
+        (0, _console.warn)('[ThemeBuilder] The "name" property can only be set during ' + '`registerTheme()` and cannot be updated via `params()`.');
+      } else {
+        config.name = paramsObject.name;
+      }
+    }
+
+    // Apply mergeable config keys
+    MERGEABLE_CONFIG_KEYS.forEach(key => {
+      if (paramsObject[key] !== undefined && (0, _object.isObject)(paramsObject[key])) {
+        config[key] = (0, _object.deepMerge)(config[key], paramsObject[key]);
+      }
+    });
+
+    // Apply density (special handling for string or object)
+    if (paramsObject.density !== undefined) {
+      this.#applyDensityConfig(config, paramsObject.density);
+    }
+
+    // Apply color scheme
+    if (paramsObject.colorScheme !== undefined) {
+      config.colorScheme = paramsObject.colorScheme;
+      this.#colorScheme = paramsObject.colorScheme;
+      if (this.#initThemeConfig?.colorScheme) {
+        this.#initThemeConfig.colorScheme = paramsObject.colorScheme;
+      }
+    }
+    this.#themeConfig = config;
+  }
+
+  /**
+   * Subscribes to theme configuration changes.
+   *
+   * @param {Function} listener The callback invoked with the updated theme configuration.
+   * @returns {Function} An unsubscribe function.
+   */
+  subscribe(listener) {
+    if (typeof listener !== 'function') {
+      throw new Error('[ThemeBuilder] listener must be a function.');
+    }
+    this.#listeners.add(listener);
+    return () => this.#listeners.delete(listener);
+  }
+
+  /**
+   * Sets theme configuration parameters.
+   *
+   * @param {object} paramsObject An object with theme configuration parameters.
+   * @returns {ThemeBuilder} The ThemeBuilder instance for chaining.
+   */
+  params(paramsObject) {
+    (0, _validation.validateParams)(paramsObject, 'params');
+    this.#setParams(paramsObject);
+    this.#notifyChange();
+    return this;
+  }
+
+  /**
+   * Sets the color mode (light, dark, or auto).
+   *
+   * @param {string} mode The color mode ('light', 'dark', or 'auto').
+   * @returns {ThemeBuilder} The ThemeBuilder instance for chaining.
+   */
+  setColorScheme(mode) {
+    this.#colorScheme = (0, _validation.validateColorScheme)(mode);
+    this.#themeConfig.colorScheme = this.#colorScheme;
+    this.#initThemeConfig.colorScheme = this.#colorScheme;
+    this.#notifyChange();
+    return this;
+  }
+
+  /**
+   * Sets the density type (compact, default, or comfortable).
+   *
+   * @param {string} type The density type ('compact', 'default', or 'comfortable').
+   * @returns {ThemeBuilder} The ThemeBuilder instance for chaining.
+   */
+  setDensityType(type) {
+    this.#densityType = (0, _validation.validateDensityType)(type);
+    this.#themeConfig.density.type = this.#densityType;
+    this.#initThemeConfig.density.type = this.#densityType;
+    this.#notifyChange();
+    return this;
+  }
+
+  /**
+   * Gets the current theme configuration.
+   *
+   * @returns {ThemeConfig} The theme configuration object.
+   */
+  getThemeConfig() {
+    return this.#themeConfig;
+  }
+}
+
+/**
+ * Creates a new ThemeBuilder instance.
+ *
+ * @param {object} baseTheme The base theme object with theme configuration parameters.
+ * @returns {ThemeBuilder} The ThemeBuilder instance.
+ */
+exports.ThemeBuilder = ThemeBuilder;
+function createTheme(baseTheme) {
+  return new ThemeBuilder(baseTheme);
+}
+
+/***/ }),
+/* 264 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
+const sizing = {
+  size_0: '0px',
+  size_0_5: '2px',
+  size_1: '4px',
+  size_2: '8px',
+  size_1_5: '6px',
+  size_3: '12px',
+  size_4: '16px',
+  size_5: '20px',
+  size_6: '24px',
+  size_7: '28px',
+  size_8: '32px',
+  size_9: '36px',
+  size_10: '40px',
+  size_0_25: '1px'
+};
+var _default = exports["default"] = sizing;
+
+/***/ }),
+/* 265 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
+const densitySizes = {
+  default: {
+    cellVertical: 'sizing.size_1',
+    cellHorizontal: 'sizing.size_2',
+    barsHorizontal: 'sizing.size_4',
+    barsVertical: 'sizing.size_2',
+    gap: 'sizing.size_1',
+    buttonHorizontal: 'sizing.size_3',
+    buttonVertical: 'sizing.size_1_5',
+    dialogHorizontal: 'sizing.size_2',
+    dialogVertical: 'sizing.size_2',
+    inputHorizontal: 'sizing.size_3',
+    inputVertical: 'sizing.size_1_5',
+    menuVertical: 'sizing.size_2',
+    menuHorizontal: 'sizing.size_0',
+    menuItemVertical: 'sizing.size_1',
+    menuItemHorizontal: 'sizing.size_3'
+  },
+  compact: {
+    cellVertical: 'sizing.size_0_5',
+    cellHorizontal: 'sizing.size_1_5',
+    barsHorizontal: 'sizing.size_2',
+    barsVertical: 'sizing.size_1',
+    gap: 'sizing.size_0_5',
+    buttonHorizontal: 'sizing.size_2',
+    buttonVertical: 'sizing.size_0_5',
+    dialogHorizontal: 'sizing.size_1_5',
+    dialogVertical: 'sizing.size_1_5',
+    inputHorizontal: 'sizing.size_2',
+    inputVertical: 'sizing.size_0_5',
+    menuVertical: 'sizing.size_2',
+    menuHorizontal: 'sizing.size_0',
+    menuItemVertical: 'sizing.size_0_5',
+    menuItemHorizontal: 'sizing.size_2'
+  },
+  comfortable: {
+    cellVertical: 'sizing.size_2',
+    cellHorizontal: 'sizing.size_3',
+    barsHorizontal: 'sizing.size_4',
+    barsVertical: 'sizing.size_2',
+    gap: 'sizing.size_1_5',
+    buttonHorizontal: 'sizing.size_4',
+    buttonVertical: 'sizing.size_2',
+    dialogHorizontal: 'sizing.size_3',
+    dialogVertical: 'sizing.size_3',
+    inputHorizontal: 'sizing.size_4',
+    inputVertical: 'sizing.size_2',
+    menuVertical: 'sizing.size_3',
+    menuHorizontal: 'sizing.size_0',
+    menuItemVertical: 'sizing.size_2',
+    menuItemHorizontal: 'sizing.size_2'
+  }
+};
+var _default = exports["default"] = densitySizes;
+
+/***/ }),
+/* 266 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.validateColorScheme = validateColorScheme;
+exports.validateDensityType = validateDensityType;
+exports.validateParams = validateParams;
+var _object = __webpack_require__(13);
+var _console = __webpack_require__(21);
+/**
+ * Valid parameters keys.
+ *
+ * @type {Set<string>}
+ */
+const VALID_PARAMS_KEYS = new Set(['name', 'sizing', 'density', 'icons', 'colors', 'tokens', 'colorScheme']);
+
+/**
+ * Valid color scheme values.
+ *
+ * @type {Set<string>}
+ */
+const VALID_COLOR_SCHEMES = new Set(['light', 'dark', 'auto']);
+
+/**
+ * Valid density type values.
+ *
+ * @type {Set<string>}
+ */
+const VALID_DENSITY_TYPES = new Set(['default', 'compact', 'comfortable']);
+
+/**
+ * Valid icon key values.
+ *
+ * @type {Set<string>}
+ */
+const VALID_ICON_KEYS = exports.VALID_ICON_KEYS = new Set(['arrowRight', 'arrowRightWithBar', 'arrowLeft', 'arrowLeftWithBar', 'arrowDown', 'menu', 'selectArrow', 'arrowNarrowUp', 'arrowNarrowDown', 'check', 'checkbox', 'caretHiddenLeft', 'caretHiddenRight', 'caretHiddenUp', 'caretHiddenDown', 'collapseOff', 'collapseOn', 'radio']);
+
+/**
+ * Valid token key values.
+ *
+ * @type {Set<string>}
+ */
+const VALID_TOKEN_KEYS = new Set([
+// Typography
+'fontFamily', 'fontSize', 'fontSizeSmall', 'lineHeight', 'lineHeightSmall', 'fontWeight', 'letterSpacing',
+// Layout
+'gapSize', 'iconSize', 'tableTransition',
+// Base colors
+'borderColor', 'accentColor', 'foregroundColor', 'foregroundSecondaryColor', 'backgroundColor', 'backgroundSecondaryColor', 'placeholderColor', 'readOnlyColor', 'disabledColor',
+// Shadow
+'shadowColor', 'shadowX', 'shadowY', 'shadowBlur', 'shadowOpacity',
+// Bars
+'barForegroundColor', 'barBackgroundColor', 'barHorizontalPadding', 'barVerticalPadding',
+// Cell
+'cellHorizontalBorderColor', 'cellVerticalBorderColor', 'cellHorizontalPadding', 'cellVerticalPadding',
+// Wrapper
+'wrapperBorderWidth', 'wrapperBorderRadius', 'wrapperBorderColor',
+// Row
+'rowHeaderOddBackgroundColor', 'rowHeaderEvenBackgroundColor', 'rowCellOddBackgroundColor', 'rowCellEvenBackgroundColor',
+// Cell editor
+'cellEditorBorderWidth', 'cellEditorBorderColor', 'cellEditorForegroundColor', 'cellEditorBackgroundColor', 'cellEditorShadowBlurRadius', 'cellEditorShadowColor',
+// Cell states
+'cellSuccessBackgroundColor', 'cellErrorBackgroundColor', 'cellReadOnlyBackgroundColor',
+// Cell selection
+'cellSelectionBorderColor', 'cellSelectionBackgroundColor',
+// Cell autofill
+'cellAutofillSize', 'cellAutofillHitAreaSize', 'cellAutofillBorderWidth', 'cellAutofillBorderRadius', 'cellAutofillBorderColor', 'cellAutofillBackgroundColor', 'cellAutofillFillBorderColor',
+// Cell mobile
+'cellMobileHandleSize', 'cellMobileHandleBorderWidth', 'cellMobileHandleBorderRadius', 'cellMobileHandleBorderColor', 'cellMobileHandleBackgroundColor', 'cellMobileHandleBackgroundOpacity',
+// Resize/Move indicators
+'resizeIndicatorColor', 'moveBacklightColor', 'moveBacklightOpacity', 'moveIndicatorColor', 'hiddenIndicatorColor',
+// Scrollbar
+'scrollbarBorderRadius', 'scrollbarTrackColor', 'scrollbarThumbColor',
+// Header
+'headerFontWeight', 'headerForegroundColor', 'headerBackgroundColor', 'headerHighlightedShadowSize', 'headerHighlightedForegroundColor', 'headerHighlightedBackgroundColor', 'headerActiveBorderColor', 'headerActiveForegroundColor', 'headerActiveBackgroundColor', 'headerFilterBackgroundColor',
+// Header row
+'headerRowForegroundColor', 'headerRowBackgroundColor', 'headerRowHighlightedForegroundColor', 'headerRowHighlightedBackgroundColor', 'headerRowActiveForegroundColor', 'headerRowActiveBackgroundColor',
+// Checkbox
+'checkboxSize', 'checkboxBorderRadius', 'checkboxBorderColor', 'checkboxBackgroundColor', 'checkboxIconColor', 'checkboxFocusBorderColor', 'checkboxFocusBackgroundColor', 'checkboxFocusIconColor', 'checkboxFocusRingColor', 'checkboxDisabledBorderColor', 'checkboxDisabledBackgroundColor', 'checkboxDisabledIconColor', 'checkboxCheckedBorderColor', 'checkboxCheckedBackgroundColor', 'checkboxCheckedIconColor', 'checkboxCheckedFocusBorderColor', 'checkboxCheckedFocusBackgroundColor', 'checkboxCheckedFocusIconColor', 'checkboxCheckedDisabledBorderColor', 'checkboxCheckedDisabledBackgroundColor', 'checkboxCheckedDisabledIconColor', 'checkboxIndeterminateBorderColor', 'checkboxIndeterminateBackgroundColor', 'checkboxIndeterminateIconColor', 'checkboxIndeterminateFocusBorderColor', 'checkboxIndeterminateFocusBackgroundColor', 'checkboxIndeterminateFocusIconColor', 'checkboxIndeterminateDisabledBorderColor', 'checkboxIndeterminateDisabledBackgroundColor', 'checkboxIndeterminateDisabledIconColor',
+// Radio
+'radioSize', 'radioBorderColor', 'radioBackgroundColor', 'radioIconColor', 'radioFocusBorderColor', 'radioFocusBackgroundColor', 'radioFocusIconColor', 'radioFocusRingColor', 'radioDisabledBorderColor', 'radioDisabledBackgroundColor', 'radioDisabledIconColor', 'radioCheckedBorderColor', 'radioCheckedBackgroundColor', 'radioCheckedIconColor', 'radioCheckedFocusBorderColor', 'radioCheckedFocusBackgroundColor', 'radioCheckedFocusIconColor', 'radioCheckedDisabledBorderColor', 'radioCheckedDisabledBackgroundColor', 'radioCheckedDisabledIconColor',
+// Icon button
+'iconButtonBorderRadius', 'iconButtonLargeBorderRadius', 'iconButtonLargePadding', 'iconButtonBorderColor', 'iconButtonBackgroundColor', 'iconButtonIconColor', 'iconButtonHoverBorderColor', 'iconButtonHoverBackgroundColor', 'iconButtonHoverIconColor', 'iconButtonActiveBorderColor', 'iconButtonActiveBackgroundColor', 'iconButtonActiveIconColor', 'iconButtonActiveHoverBorderColor', 'iconButtonActiveHoverBackgroundColor', 'iconButtonActiveHoverIconColor',
+// Collapse button
+'collapseButtonBorderRadius', 'collapseButtonOpenBorderColor', 'collapseButtonOpenBackgroundColor', 'collapseButtonOpenIconColor', 'collapseButtonOpenIconActiveColor', 'collapseButtonOpenHoverBorderColor', 'collapseButtonOpenHoverBackgroundColor', 'collapseButtonOpenHoverIconColor', 'collapseButtonOpenHoverIconActiveColor', 'collapseButtonCloseBorderColor', 'collapseButtonCloseBackgroundColor', 'collapseButtonCloseIconColor', 'collapseButtonCloseIconActiveColor', 'collapseButtonCloseHoverBorderColor', 'collapseButtonCloseHoverBackgroundColor', 'collapseButtonCloseHoverIconColor', 'collapseButtonCloseHoverIconActiveColor',
+// Button
+'buttonBorderRadius', 'buttonHorizontalPadding', 'buttonVerticalPadding',
+// Primary button
+'primaryButtonBorderColor', 'primaryButtonForegroundColor', 'primaryButtonBackgroundColor', 'primaryButtonDisabledBorderColor', 'primaryButtonDisabledForegroundColor', 'primaryButtonDisabledBackgroundColor', 'primaryButtonHoverBorderColor', 'primaryButtonHoverForegroundColor', 'primaryButtonHoverBackgroundColor', 'primaryButtonFocusBorderColor', 'primaryButtonFocusForegroundColor', 'primaryButtonFocusBackgroundColor',
+// Secondary button
+'secondaryButtonBorderColor', 'secondaryButtonForegroundColor', 'secondaryButtonBackgroundColor', 'secondaryButtonDisabledBorderColor', 'secondaryButtonDisabledForegroundColor', 'secondaryButtonDisabledBackgroundColor', 'secondaryButtonHoverBorderColor', 'secondaryButtonHoverForegroundColor', 'secondaryButtonHoverBackgroundColor', 'secondaryButtonFocusBorderColor', 'secondaryButtonFocusForegroundColor', 'secondaryButtonFocusBackgroundColor',
+// Comments
+'commentsTextareaHorizontalPadding', 'commentsTextareaVerticalPadding', 'commentsTextareaBorderWidth', 'commentsTextareaBorderColor', 'commentsTextareaForegroundColor', 'commentsTextareaBackgroundColor', 'commentsTextareaFocusBorderWidth', 'commentsTextareaFocusBorderColor', 'commentsTextareaFocusForegroundColor', 'commentsTextareaFocusBackgroundColor', 'commentsIndicatorSize', 'commentsIndicatorColor',
+// License
+'licenseHorizontalPadding', 'licenseVerticalPadding', 'licenseForegroundColor', 'licenseBackgroundColor',
+// Link
+'linkColor', 'linkHoverColor',
+// Input
+'inputBorderWidth', 'inputBorderRadius', 'inputHorizontalPadding', 'inputVerticalPadding', 'inputBorderColor', 'inputForegroundColor', 'inputBackgroundColor', 'inputHoverBorderColor', 'inputHoverForegroundColor', 'inputHoverBackgroundColor', 'inputDisabledBorderColor', 'inputDisabledForegroundColor', 'inputDisabledBackgroundColor', 'inputFocusBorderColor', 'inputFocusForegroundColor', 'inputFocusBackgroundColor',
+// Menu
+'menuBorderWidth', 'menuBorderRadius', 'menuHorizontalPadding', 'menuVerticalPadding', 'menuItemHorizontalPadding', 'menuItemVerticalPadding', 'menuBorderColor', 'menuShadowX', 'menuShadowY', 'menuShadowBlur', 'menuShadowColor', 'menuShadowOpacity', 'menuItemHoverColor', 'menuItemHoverColorOpacity', 'menuItemActiveColor', 'menuItemActiveColorOpacity',
+// Dialog
+'dialogSemiTransparentBackgroundColor', 'dialogSemiTransparentBackgroundOpacity', 'dialogSolidBackgroundColor', 'dialogContentPaddingHorizontal', 'dialogContentPaddingVertical', 'dialogContentBorderRadius', 'dialogContentBackgroundColor',
+// Pagination
+'paginationBarForegroundColor', 'paginationBarBackgroundColor', 'paginationBarHorizontalPadding', 'paginationBarVerticalPadding']);
+
+/**
+ * Validates a theme name value.
+ *
+ * @param {string} name The theme name to validate.
+ * @param {string} context The context name for error messages.
+ * @throws {Error} If the name is not a non-empty string.
+ * @returns {string} The validated name.
+ */
+function validateName(name, context) {
+  if (typeof name !== 'string' || name.trim() === '') {
+    throw new Error(`[ThemeBuilder] ${context}.name must be a non-empty string.`);
+  }
+  return name;
+}
+
+/**
+ * Validates a color scheme value.
+ *
+ * @param {string} mode The color scheme to validate.
+ * @throws {Error} If the color scheme is invalid.
+ * @returns {string} The validated color scheme.
+ */
+function validateColorScheme(mode) {
+  if (!VALID_COLOR_SCHEMES.has(mode)) {
+    const validModes = [...VALID_COLOR_SCHEMES].join(', ');
+    throw new Error(`[ThemeBuilder] Invalid color scheme: "${mode}". Must be one of: ${validModes}.`);
+  }
+  return mode;
+}
+
+/**
+ * Validates and returns a density type.
+ *
+ * @param {string} type The density type to validate.
+ * @throws {Error} If the density type is invalid.
+ * @returns {string} The validated density type.
+ */
+function validateDensityType(type) {
+  if (!VALID_DENSITY_TYPES.has(type)) {
+    const validTypes = [...VALID_DENSITY_TYPES].join(', ');
+    throw new Error(`[ThemeBuilder] Invalid density: "${type}". Must be one of: ${validTypes}.`);
+  }
+  return type;
+}
+
+/**
+ * Validates the structure of the density sizes object.
+ *
+ * @param {object} sizes The density sizes object to validate.
+ * @param {string} context The context name for error messages.
+ * @throws {Error} If the density sizes structure is invalid.
+ */
+function validateDensitySizes(sizes, context) {
+  if (!(0, _object.isObject)(sizes)) {
+    throw new Error(`[ThemeBuilder] ${context}.sizes must be an object.`);
+  }
+  Object.keys(sizes).forEach(key => {
+    if (!VALID_DENSITY_TYPES.has(key)) {
+      (0, _console.warn)(`[ThemeBuilder] Unknown density size key: "${key}" in ${context}.sizes. ` + 'This may be a custom density size or a typo.');
+    }
+  });
+}
+
+/**
+ * @param {object} density The density object to validate.
+ * @param {string} context The context name for error messages.
+ * @throws {Error} If the density structure is invalid.
+ */
+function validateDensityStructure(density, context) {
+  if ((0, _object.isObject)(density)) {
+    if (!density.type || !density.sizes) {
+      throw new Error(`[ThemeBuilder] ${context} must be a string or an object with a 'type' and 'sizes' property.`);
+    }
+    validateDensityType(density.type);
+    validateDensitySizes(density.sizes, `${context}.sizes`);
+  } else if (typeof density === 'string') {
+    validateDensityType(density);
+  }
+}
+
+/**
+ * Validates the structure of the colors object.
+ * Colors can be either strings or nested objects containing strings.
+ *
+ * @param {object} colors The colors object to validate.
+ * @param {string} context The context path for error messages.
+ * @throws {Error} If the colors structure is invalid.
+ */
+function validateColorsStructure(colors, context) {
+  Object.entries(colors).forEach(([key, value]) => {
+    const currentPath = `${context}.${key}`;
+    if (typeof value === 'string') {
+      return;
+    }
+    if ((0, _object.isObject)(value)) {
+      validateColorsStructure(value, currentPath);
+    } else {
+      throw new Error(`[ThemeBuilder] ${currentPath} must be a string or an object.`);
+    }
+  });
+}
+
+/**
+ * Validates keys and warns about unknown or missing keys.
+ *
+ * @param {object} obj The object to validate.
+ * @param {Set<string>} validKeys The set of valid keys.
+ * @param {string} context The context name for warning messages.
+ * @param {object} [options] Validation options.
+ * @param {string} [options.type='key'] The type name for warning messages.
+ * @param {boolean} [options.warnMissing=false] Whether to warn about missing keys.
+ */
+function validateKeys(obj, validKeys, context, options = {}) {
+  const {
+    type = 'key',
+    warnMissing = false
+  } = options;
+  if (!obj) {
+    if (warnMissing) {
+      (0, _console.warn)(`[ThemeBuilder] No ${type}s provided in ${context}. All ${type}s are missing.`);
+    }
+    return;
+  }
+  const providedKeys = Object.keys(obj);
+
+  // Warn about unknown keys
+  providedKeys.forEach(key => {
+    if (!validKeys.has(key)) {
+      (0, _console.warn)(`[ThemeBuilder] Unknown ${type} key: "${key}" in ${context}. ` + `This may be a custom ${type} or a typo.`);
+    }
+  });
+
+  // Warn about missing keys only if required
+  if (warnMissing) {
+    const missingKeys = [];
+    validKeys.forEach(key => {
+      if (!(key in obj)) {
+        missingKeys.push(key);
+      }
+    });
+    if (missingKeys.length > 0) {
+      (0, _console.warn)(`[ThemeBuilder] Missing ${type}(s) in ${context}: ${missingKeys.join(', ')}`);
+    }
+  }
+}
+
+/**
+ * Validates the parameters object structure.
+ *
+ * @param {*} parameters The parameters object to validate.
+ * @param {string} context The context name for error messages.
+ * @param {object} [options] Validation options.
+ * @param {string[]} [options.requiredFields=[]] Array of field names that are required.
+ * @throws {Error} If the parameters object structure is invalid.
+ */
+function validateParams(parameters, context, options = {}) {
+  const {
+    requiredFields = []
+  } = options;
+  if (typeof parameters !== 'object' || parameters === null) {
+    throw new Error(`[ThemeBuilder] ${context} must be an object.`);
+  }
+  const {
+    name,
+    sizing,
+    density,
+    icons,
+    colors,
+    tokens,
+    colorScheme
+  } = parameters;
+  validateKeys(parameters, VALID_PARAMS_KEYS, context, {
+    type: 'param'
+  });
+
+  // Validate required fields
+  requiredFields.forEach(field => {
+    if (parameters[field] === undefined) {
+      throw new Error(`[ThemeBuilder] ${context}.${field} is required.`);
+    }
+  });
+
+  // Validate name
+  if (name !== undefined) {
+    validateName(name, context);
+  }
+
+  // Validate sizing
+  if (sizing !== undefined) {
+    if (!(0, _object.isObject)(sizing)) {
+      throw new Error(`[ThemeBuilder] ${context}.sizing must be an object.`);
+    }
+  }
+
+  // Validate density
+  if (density !== undefined) {
+    if (!(0, _object.isObject)(density) && typeof density !== 'string') {
+      throw new Error(`[ThemeBuilder] ${context}.density must be a string or an object.`);
+    }
+    validateDensityStructure(density, `${context}.density`);
+  }
+
+  // Validate icons
+  if (icons !== undefined) {
+    if (!(0, _object.isObject)(icons)) {
+      throw new Error(`[ThemeBuilder] ${context}.icons must be an object.`);
+    }
+    validateKeys(icons, VALID_ICON_KEYS, `${context}.icons`, {
+      type: 'icon',
+      warnMissing: requiredFields.includes('icons')
+    });
+  }
+
+  // Validate colors
+  if (colors !== undefined) {
+    if (!(0, _object.isObject)(colors)) {
+      throw new Error(`[ThemeBuilder] ${context}.colors must be an object.`);
+    }
+    validateColorsStructure(colors, `${context}.colors`);
+  }
+
+  // Validate tokens
+  if (tokens !== undefined) {
+    if (!(0, _object.isObject)(tokens)) {
+      throw new Error(`[ThemeBuilder] ${context}.tokens must be an object.`);
+    }
+    validateKeys(tokens, VALID_TOKEN_KEYS, `${context}.tokens`, {
+      type: 'token',
+      warnMissing: requiredFields.includes('tokens')
+    });
+  }
+
+  // Validate color scheme
+  if (colorScheme !== undefined) {
+    validateColorScheme(colorScheme);
+  }
+}
+
+/***/ }),
+/* 267 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.createThemeManager = createThemeManager;
+var _iconsMap = __webpack_require__(268);
+var _cssVariables = __webpack_require__(269);
+/**
+ * The theme prefix.
+ *
+ * @type {string}
+ */
+const THEME_PREFIX = 'ht-theme-';
+
+/**
+ * ThemeManager class provides methods to manage the theme styles.
+ *
+ * @class ThemeManager
+ */
+class ThemeManager {
+  /**
+   * The Handsontable instance.
+   *
+   * @type {Handsontable}
+   */
+  hot;
+  /**
+   * The theme styles element.
+   *
+   * @type {HTMLStyleElement}
+   */
+  themeStyles = null;
+  /**
+   * The theme class name.
+   *
+   * @type {string}
+   */
+  themeClassName = '';
+  /**
+   * The theme config.
+   *
+   * @type {object}
+   */
+  themeConfig = null;
+
+  /**
+   * The theme manager constructor.
+   *
+   * @param {object} options - The options object.
+   * @param {Handsontable} options.hot - The Handsontable instance.
+   * @param {object} options.themeObject - The theme object.
+   */
+  constructor({
+    hot,
+    themeObject
+  }) {
+    this.hot = hot;
+    this.update(themeObject);
+  }
+
+  /**
+   * Injects theme styles into the DOM.
+   */
+  #injectThemeStyles() {
+    if (!this.themeConfig || !this.hot || !this.hot.rootDocument || !this.hot.rootWrapperElement) {
+      return;
+    }
+    const colorScheme = this.themeConfig.colorScheme === 'auto' ? 'light dark' : this.themeConfig.colorScheme;
+    if (this.themeStyles) {
+      this.themeStyles.textContent = '';
+    } else {
+      this.themeStyles = this.hot.rootDocument.createElement('style');
+    }
+    this.themeStyles.textContent = `:where(.${this.themeClassName}) {\n`;
+    this.themeStyles.textContent += `color-scheme: ${colorScheme};\n`;
+    if (this.themeConfig.sizing) {
+      this.themeStyles.textContent += (0, _cssVariables.flattenCssVariables)(this.themeConfig.sizing, 'sizing');
+    }
+    if (this.themeConfig.density && this.themeConfig.density.type && this.themeConfig.density.sizes && this.themeConfig.density.sizes[this.themeConfig.density.type]) {
+      this.themeStyles.textContent += (0, _cssVariables.flattenCssVariables)(this.themeConfig.density.sizes[this.themeConfig.density.type], 'density');
+    }
+    if (this.themeConfig.colors) {
+      this.themeStyles.textContent += (0, _cssVariables.flattenCssVariables)(this.themeConfig.colors, 'colors');
+    }
+    if (this.themeConfig.tokens) {
+      this.themeStyles.textContent += (0, _cssVariables.flattenCssVariables)(this.themeConfig.tokens);
+    }
+    if (this.themeConfig.icons) {
+      this.themeStyles.textContent += (0, _iconsMap.iconsMap)(this.themeConfig.icons);
+    }
+    this.themeStyles.textContent += '}';
+    if (this.hot.rootWrapperElement && this.hot.rootWrapperElement.querySelector('style')) {
+      this.hot.rootWrapperElement.querySelector('style').textContent = this.themeStyles.textContent;
+    } else {
+      this.hot.rootWrapperElement.prepend(this.themeStyles);
+    }
+  }
+
+  /**
+   * Gets the theme class name.
+   *
+   * @returns {string} The theme class name.
+   */
+  getClassName() {
+    return this.themeClassName;
+  }
+
+  /**
+   * Updates the theme manager.
+   *
+   * @param {object} themeObject - The theme object.
+   */
+  update(themeObject) {
+    if (!this.hot) {
+      return;
+    }
+    if (themeObject.getThemeConfig === undefined) {
+      throw new Error('[ThemeManager] The "theme" option must be an instance of ThemeBuilder.');
+    }
+    this.themeConfig = themeObject.getThemeConfig();
+    this.themeClassName = `${THEME_PREFIX}${this.themeConfig.name}`;
+    if (typeof themeObject.subscribe === 'function') {
+      themeObject.subscribe(config => {
+        if (!this.hot?.stylesHandler) {
+          return;
+        }
+        this.themeConfig = config;
+        this.#injectThemeStyles();
+        this.hot.stylesHandler.clearCache();
+        this.hot.render();
+        this.hot.runHooks('afterSetTheme', this.themeClassName, false);
+      });
+    }
+    this.mount();
+    this.hot.runHooks('afterSetTheme', this.themeClassName, true);
+  }
+
+  /**
+   * Mounts the theme manager.
+   */
+  mount() {
+    this.#injectThemeStyles();
+  }
+
+  /**
+   * Unmounts the theme manager.
+   */
+  unmount() {
+    if (this.themeStyles) {
+      this.themeStyles.remove();
+    }
+  }
+
+  /**
+   * Destroys the theme manager.
+   */
+  destroy() {
+    this.unmount();
+    this.hot.themeManager = null;
+  }
+}
+
+/**
+ * Creates a new ThemeManager instance.
+ *
+ * @param {object} options - The options object.
+ * @param {Handsontable} options.hot - The Handsontable instance.
+ * @param {object} options.themeObject - The theme object.
+ * @returns {ThemeManager} The ThemeManager instance.
+ */
+exports.ThemeManager = ThemeManager;
+function createThemeManager({
+  hot,
+  themeObject
+}) {
+  return new ThemeManager({
+    hot,
+    themeObject
+  });
+}
+
+/***/ }),
+/* 268 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+/* eslint-disable max-len, quotes */
+
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
+const icon = (icons, name) => {
+  return `width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url("${icons[name]}");
+  background-color: currentColor;`;
+};
+const iconsMap = (icons, themePrefix) => {
+  const prefix = themePrefix ? `[class*=${themePrefix}] ` : "";
+  return `${prefix}.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after,
+${prefix}.htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after,
+${prefix}.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after,
+${prefix}.pika-single .pika-next {
+  ${icon(icons, "arrowRight")}
+}
+
+${prefix}.pika-single .pika-prev {
+  ${icon(icons, "arrowLeft")}
+}
+
+${prefix}.ht-page-size-section__select-wrapper::after {
+  ${icon(icons, "arrowDown")}
+}
+
+${prefix}.changeType::before {
+  ${icon(icons, "menu")}
+}
+
+${prefix}.htUISelectCaption::after,
+.htAutocompleteArrow::after {
+  ${icon(icons, "selectArrow")}
+}
+
+${prefix}.columnSorting.sortAction.ascending::before {
+  ${icon(icons, "arrowNarrowUp")}
+}
+
+${prefix}.columnSorting.sortAction.descending::before {
+  ${icon(icons, "arrowNarrowDown")}
+}
+
+${prefix}.ht-page-navigation-section .ht-page-first::before {
+  ${icon(icons, "arrowLeftWithBar")}
+}
+
+${prefix}[dir="rtl"] .ht-page-navigation-section .ht-page-first::before {
+  ${icon(icons, "arrowRightWithBar")}
+}
+
+${prefix}.ht-page-navigation-section .ht-page-prev::before {
+  ${icon(icons, "arrowLeft")}
+}
+
+${prefix}[dir="rtl"] .ht-page-navigation-section .ht-page-prev::before {
+  ${icon(icons, "arrowRight")}
+}
+
+${prefix}.ht-page-navigation-section .ht-page-next::before {
+  ${icon(icons, "arrowRight")}
+}
+
+${prefix}[dir="rtl"] .ht-page-navigation-section .ht-page-next::before {
+  ${icon(icons, "arrowLeft")}
+}
+
+${prefix}.ht-page-navigation-section .ht-page-last::before {
+  ${icon(icons, "arrowRightWithBar")}
+}
+
+${prefix}[dir="rtl"] .ht-page-navigation-section .ht-page-last::before {
+  ${icon(icons, "arrowLeftWithBar")}
+}
+
+${prefix}.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after,
+${prefix}.htContextMenu table tbody tr td .htItemWrapper span.selected::after,
+${prefix}.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after {
+  ${icon(icons, "check")}
+}
+
+${prefix}.htCheckboxRendererInput {
+  appearance: none;
+}
+
+${prefix}.htCheckboxRendererInput::after {
+  ${icon(icons, "checkbox")}
+}
+
+${prefix}th.beforeHiddenColumn::after {
+  ${icon(icons, "caretHiddenLeft")}
+}
+
+${prefix}th.afterHiddenColumn::before {
+  ${icon(icons, "caretHiddenRight")}
+}
+
+${prefix}th.beforeHiddenRow::after {
+  ${icon(icons, "caretHiddenUp")}
+}
+
+${prefix}th.afterHiddenRow::before {
+  ${icon(icons, "caretHiddenDown")}
+}
+
+${prefix}.collapsibleIndicator::before,
+${prefix}.ht_nestingButton::before {
+  ${icon(icons, "collapseOff")}
+}
+
+${prefix}.collapsibleIndicator.collapsed::before,
+${prefix}.ht_nestingButton.ht_nestingExpand::before {
+  ${icon(icons, "collapseOn")}
+}
+
+${prefix}.htUIRadio > input[type="radio"]::after {
+  ${icon(icons, "radio")}
+}`;
+};
+exports.iconsMap = iconsMap;
+
+/***/ }),
+/* 269 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.flattenCssVariables = flattenCssVariables;
+var _object = __webpack_require__(13);
+var _string = __webpack_require__(5);
+/**
+ * The theme prefix.
+ *
+ * @type {string}
+ */
+const VAR_PREFIX = '--ht-';
+
+/**
+ * List of keys that should not be converted to CSS variable references.
+ *
+ * @type {string[]}
+ */
+const CSS_KEY_EXCEPTIONS = ['font-family'];
+
+/**
+ * List of prefixes that indicate a value should be converted to a CSS variable reference.
+ *
+ * @type {string[]}
+ */
+const VAR_REFERENCE_PREFIXES = ['tokens.', 'colors.', 'sizing.', 'density.'];
+
+/**
+ * Checks if a value is a reference to another CSS variable (e.g., 'colors.primary').
+ *
+ * @param {string} value - The value to check.
+ * @returns {boolean} - True if the value is a variable reference.
+ */
+function isVarReference(value) {
+  return typeof value === 'string' && VAR_REFERENCE_PREFIXES.some(prefix => value.includes(prefix));
+}
+
+/**
+ * Converts a dot notation path to a CSS variable reference.
+ * Handles special case for 'tokens.' prefix which strips the first segment.
+ *
+ * @param {string} path - The dot notation path (e.g., 'colors.primary').
+ * @returns {string} - The CSS variable reference (e.g., 'var(--ht-colors-primary)').
+ */
+function toVarReference(path) {
+  if (path.includes('tokens.')) {
+    return `var(${VAR_PREFIX}${(0, _string.toHyphen)(path.split('.').slice(1).join('-'))})`;
+  }
+  return `var(${VAR_PREFIX}${(0, _string.toHyphen)(path.split('.').join('-'))})`;
+}
+
+/**
+ * Converts a key to a CSS variable key.
+ *
+ * @param {string} prefix - The prefix to add to the CSS variable.
+ * @param {string} key - The key to convert.
+ * @returns {string} - The CSS variable key.
+ */
+function toCssKey(prefix, key) {
+  return `${VAR_PREFIX}${prefix ? `${prefix}-` : ''}${(0, _string.toHyphen)(key)}`;
+}
+
+/**
+ * Converts a value to a CSS variable value.
+ * Handles variable references, light/dark values, and single values.
+ *
+ * @param {string|object} value - The value to convert.
+ * @param {string} [key] - The CSS key name (used for exceptions like font-family).
+ * @returns {string} - The CSS value.
+ */
+function toCssValue(value, key) {
+  if (isVarReference(value)) {
+    return toVarReference(value);
+  }
+  if (Array.isArray(value)) {
+    if (value.length >= 2) {
+      const [light, dark] = value;
+      if (typeof light === 'string' && typeof dark === 'string') {
+        return `light-dark(${toCssValue(light, key)}, ${toCssValue(dark, key)})`;
+      }
+      if (typeof light === 'string') {
+        return toCssValue(light, key);
+      }
+      if (typeof dark === 'string') {
+        return toCssValue(dark, key);
+      }
+      return '';
+    }
+    return toCssValue(value[0], key);
+  }
+  if (key && CSS_KEY_EXCEPTIONS.includes(key)) {
+    return String(value);
+  }
+  return (0, _string.toHyphen)(value);
+}
+
+/**
+ * Converts a key and value to a CSS variable line.
+ *
+ * @param {string} prefix - The prefix to add to the CSS variable.
+ * @param {string} key - The key to convert.
+ * @param {string} value - The value to convert.
+ * @returns {string} - The CSS variable line.
+ */
+function toCssLine(prefix, key, value) {
+  return `${toCssKey(prefix, key)}: ${toCssValue(value, key)};`;
+}
+
+/**
+ * Flattens the CSS variables object into a string of CSS variables.
+ *
+ * @param {object} cssVariables - The CSS variables object to flatten.
+ * @param {string} [prefix='colors'] - The prefix to add to the CSS variables.
+ * @param {string} [parentKey=''] - The parent key to add to the CSS variables.
+ * @returns {string} - The flattened CSS variables.
+ */
+function flattenCssVariables(cssVariables, prefix = '', parentKey = '') {
+  let cssVars = '';
+  Object.entries(cssVariables).forEach(([key, value]) => {
+    const normalizedKey = (0, _string.toHyphen)(key);
+    const fullKey = parentKey ? `${parentKey}-${normalizedKey}` : normalizedKey;
+    if ((0, _object.isObject)(value)) {
+      cssVars += flattenCssVariables(value, prefix, fullKey);
+    } else {
+      cssVars += `${toCssLine(prefix, fullKey, value)}\n`;
+    }
+  });
+  return cssVars;
+}
+
+/***/ }),
+/* 270 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+var _theme = __webpack_require__(271);
+Object.keys(_theme).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (key in exports && exports[key] === _theme[key]) return;
+  exports[key] = _theme[key];
+});
+var _registry = __webpack_require__(283);
+Object.keys(_registry).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (key in exports && exports[key] === _registry[key]) return;
+  exports[key] = _registry[key];
+});
+var _types = __webpack_require__(284);
+Object.keys(_types).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (key in exports && exports[key] === _types[key]) return;
+  exports[key] = _types[key];
+});
+
+/***/ }),
+/* 271 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+var _classic = __webpack_require__(272);
+exports.classicTheme = _classic.classicTheme;
+var _main = __webpack_require__(276);
+exports.mainTheme = _main.mainTheme;
+var _horizon = __webpack_require__(279);
+exports.horizonTheme = _horizon.horizonTheme;
+
+/***/ }),
+/* 272 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(1);
+exports.__esModule = true;
+var _main = _interopRequireDefault(__webpack_require__(273));
+var _classic = _interopRequireDefault(__webpack_require__(274));
+var _classic2 = _interopRequireDefault(__webpack_require__(275));
+const classicTheme = exports.classicTheme = {
+  name: 'classic',
+  density: 'compact',
+  icons: _main.default,
+  colors: _classic.default,
+  tokens: _classic2.default
+};
+
+/***/ }),
+/* 273 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+/* eslint-disable max-len, quotes */
+
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
+const mainIcons = {
+  arrowRight: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.64648 10.9393L9.93938 7.64644L6.64648 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  arrowRightWithBar: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.9292 4.64188L8.27934 7.99203L4.9292 11.3422M11.0711 4.08353V11.3422' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+  arrowLeft: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.93933 10.9393L6.64644 7.64644L9.93933 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  arrowLeftWithBar: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11.0713 4.64188L7.72115 7.99203L11.0713 11.3422M4.92936 4.08353L4.92936 11.3422' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+  arrowDown: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg opacity='0.6'%3E%3Cpath d='M11.5859 6L8.29304 9.29289L5.00015 6' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E",
+  menu: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11.0002 6.66663C11.4262 6.66663 11.6487 7.15963 11.3917 7.47813L11.3537 7.52013L8.35372 10.5201C8.26762 10.6062 8.15307 10.6579 8.03156 10.6656C7.91005 10.6732 7.78992 10.6363 7.69372 10.5616L7.64672 10.5201L4.64672 7.52013L4.60522 7.47313L4.57822 7.43463L4.55122 7.38663L4.54272 7.36863L4.52922 7.33513L4.51322 7.28113L4.50822 7.25463L4.50322 7.22463L4.50122 7.19613V7.13713L4.50372 7.10813L4.50822 7.07813L4.51322 7.05213L4.52922 6.99813L4.54272 6.96463L4.57772 6.89863L4.61022 6.85363L4.64672 6.81313L4.69372 6.77163L4.73222 6.74463L4.78022 6.71763L4.79822 6.70913L4.83172 6.69563L4.88572 6.67963L4.91222 6.67463L4.94222 6.66963L4.97072 6.66763L11.0002 6.66663Z' fill='currentColor'/%3E%3C/svg%3E%0A",
+  selectArrow: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11.0002 6.66663C11.4262 6.66663 11.6487 7.15963 11.3917 7.47813L11.3537 7.52013L8.35372 10.5201C8.26762 10.6062 8.15307 10.6579 8.03156 10.6656C7.91005 10.6732 7.78992 10.6363 7.69372 10.5616L7.64672 10.5201L4.64672 7.52013L4.60522 7.47313L4.57822 7.43463L4.55122 7.38663L4.54272 7.36863L4.52922 7.33513L4.51322 7.28113L4.50822 7.25463L4.50322 7.22463L4.50122 7.19613V7.13713L4.50372 7.10813L4.50822 7.07813L4.51322 7.05213L4.52922 6.99813L4.54272 6.96463L4.57772 6.89863L4.61022 6.85363L4.64672 6.81313L4.69372 6.77163L4.73222 6.74463L4.78022 6.71763L4.79822 6.70913L4.83172 6.69563L4.88572 6.67963L4.91222 6.67463L4.94222 6.66963L4.97072 6.66763L11.0002 6.66663Z' fill='currentColor'/%3E%3C/svg%3E%0A",
+  arrowNarrowUp: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8.00008 12.6667L8.00008 3.33335M8.00008 3.33335L5.33342 6.00002M8.00008 3.33335L10.6667 6.00002' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  arrowNarrowDown: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8.00004 3.33331V12.6666M8.00004 12.6666L10.6667 9.99998M8.00004 12.6666L5.33337 9.99998' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  check: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.33337 8.00002L6.66671 11.3334L13.3334 4.66669' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  checkbox: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 8L7 10L11 6' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  caretHiddenLeft: "data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.08482 1.35771L6.11503 1.3551H6.17649L6.2067 1.35771L6.23795 1.36239L6.26503 1.3676L6.32128 1.38427L6.35618 1.39833L6.42493 1.43479L6.4718 1.46864L6.51399 1.50667L6.55722 1.55562L6.58534 1.59573L6.61347 1.64573L6.62232 1.66448L6.63639 1.69937L6.65305 1.75562L6.65826 1.78323L6.66347 1.81448L6.66555 1.84417L6.66659 1.87489V8.12489C6.66659 8.56864 6.15305 8.80042 5.82128 8.53271L5.77753 8.49312L2.65253 5.36812C2.56286 5.27844 2.50899 5.15912 2.50103 5.03254C2.49307 4.90596 2.53157 4.78083 2.6093 4.68062L2.65253 4.63167L5.77753 1.50667L5.82649 1.46344L5.86659 1.43531L5.91659 1.40719L5.93534 1.39833L5.97024 1.38427L6.02649 1.3676L6.05409 1.36239L6.08482 1.35771Z' fill='currentColor'/%3E%3C/svg%3E",
+  caretHiddenRight: "data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.33337 1.87499C3.33337 1.43124 3.84692 1.19947 4.17869 1.46718L4.22244 1.50676L7.34744 4.63176C7.43711 4.72145 7.49098 4.84077 7.49894 4.96735C7.5069 5.09392 7.4684 5.21905 7.39067 5.31926L7.34744 5.36822L4.22244 8.49322L4.17348 8.53645L4.13337 8.56457L4.08337 8.5927L4.06462 8.60155L4.02973 8.61562L3.97348 8.63228L3.94587 8.63749L3.91462 8.6427L3.88494 8.64478L3.85421 8.64582L3.82348 8.64478L3.79327 8.64218L3.76202 8.63749L3.73494 8.63228L3.67869 8.61562L3.64379 8.60155L3.57504 8.5651L3.52817 8.53124L3.48598 8.49322L3.44275 8.44426L3.41462 8.40416L3.3865 8.35416L3.37764 8.33541L3.36358 8.30051L3.34692 8.24426L3.34171 8.21666L3.3365 8.18541L3.33442 8.15572L3.33337 1.87499Z' fill='currentColor'/%3E%3C/svg%3E",
+  caretHiddenUp: "data:image/svg+xml;charset=utf-8,%3Csvg width='8' height='8' viewBox='0 0 8 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.76425 2.43099C3.82165 2.3736 3.89801 2.33913 3.97902 2.33403C4.06003 2.32894 4.14012 2.35358 4.20425 2.40333L4.23558 2.43099L6.23558 4.43099L6.26325 4.46233L6.28125 4.48799L6.29925 4.51999L6.30492 4.53199L6.31392 4.55433L6.32458 4.59033L6.32792 4.60799L6.33125 4.62799L6.33258 4.64699L6.33325 4.66666L6.33258 4.68633L6.33092 4.70566L6.32792 4.72566L6.32458 4.74299L6.31392 4.77899L6.30492 4.80133L6.28158 4.84533L6.25992 4.87533L6.23558 4.90233L6.20425 4.92999L6.17858 4.94799L6.14658 4.96599L6.13458 4.97166L6.11225 4.98066L6.07625 4.99133L6.05858 4.99466L6.03858 4.99799L6.01958 4.99933L5.99992 4.99999H1.99992C1.71592 4.99999 1.56758 4.67133 1.73892 4.45899L1.76425 4.43099L3.76425 2.43099Z' fill='currentColor'/%3E%3C/svg%3E%0A",
+  caretHiddenDown: "data:image/svg+xml;charset=utf-8,%3Csvg width='8' height='8' viewBox='0 0 8 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.9999 3C6.2839 3 6.43224 3.32867 6.2609 3.541L6.23557 3.569L4.23557 5.569C4.17817 5.62639 4.10181 5.66087 4.0208 5.66596C3.93979 5.67106 3.8597 5.64642 3.79557 5.59667L3.76424 5.569L1.76424 3.569L1.73657 3.53767L1.71857 3.512L1.70057 3.48L1.6949 3.468L1.6859 3.44567L1.67524 3.40967L1.6719 3.392L1.66857 3.372L1.66724 3.353V3.31367L1.6689 3.29433L1.6719 3.27433L1.67524 3.257L1.6859 3.221L1.6949 3.19867L1.71824 3.15467L1.7399 3.12467L1.76424 3.09767L1.79557 3.07L1.82124 3.052L1.85324 3.034L1.86524 3.02833L1.88757 3.01933L1.92357 3.00867L1.94124 3.00533L1.96124 3.002L1.98024 3.00067L5.9999 3Z' fill='currentColor'/%3E%3C/svg%3E%0A",
+  collapseOff: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.33325 8H11.6666' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  collapseOn: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M7.49988 11.6667C7.49988 11.9428 7.72374 12.1667 7.99988 12.1667C8.27602 12.1667 8.49988 11.9428 8.49988 11.6667V8.50002H11.6666C11.9427 8.50002 12.1666 8.27616 12.1666 8.00002C12.1666 7.72388 11.9427 7.50002 11.6666 7.50002H8.49988V4.33337C8.49988 4.05723 8.27602 3.83337 7.99988 3.83337C7.72374 3.83337 7.49988 4.05723 7.49988 4.33337V7.50002H4.33325C4.05711 7.50002 3.83325 7.72388 3.83325 8.00002C3.83325 8.27616 4.05711 8.50002 4.33325 8.50002H7.49988V11.6667Z' fill='currentColor'/%3E%3C/svg%3E%0A",
+  radio: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='4' fill='currentColor'/%3E%3C/svg%3E%0A"
+};
+var _default = exports["default"] = mainIcons;
+
+/***/ }),
+/* 274 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
+const classicColors = {
+  primary: {
+    100: '#7aadffff',
+    200: '#6a9bffff',
+    300: '#6985b9ff',
+    400: '#8eb0e7ff',
+    500: '#5292f7ff',
+    600: '#3e7ee3ff'
+  },
+  palette: {
+    50: '#f0f0f0ff',
+    100: '#dcdcdcff',
+    200: '#ccccccff',
+    300: '#c6c6c6ff',
+    400: '#999999ff',
+    500: '#777777ff',
+    600: '#5c5c5cff',
+    700: '#404040ff',
+    800: '#313131ff',
+    900: '#222222ff',
+    950: '#0f0f10ff'
+  },
+  white: '#ffffffff',
+  black: '#000000ff',
+  transparent: '#ffffff00'
+};
+var _default = exports["default"] = classicColors;
+
+/***/ }),
+/* 275 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
+const classicTokens = {
+  fontFamily: 'Inter',
+  fontSize: '13px',
+  fontSizeSmall: '11px',
+  lineHeight: '21px',
+  lineHeightSmall: '16px',
+  fontWeight: '400',
+  letterSpacing: '0px',
+  borderColor: ['colors.palette.200', 'colors.palette.700'],
+  accentColor: ['colors.primary.500', 'colors.primary.100'],
+  foregroundColor: ['colors.palette.800', 'colors.palette.300'],
+  foregroundSecondaryColor: ['colors.palette.500', 'colors.palette.400'],
+  backgroundColor: ['colors.white', 'colors.palette.950'],
+  backgroundSecondaryColor: ['colors.palette.50', 'colors.palette.900'],
+  placeholderColor: ['colors.palette.400', 'colors.palette.500'],
+  readOnlyColor: ['colors.palette.500', 'colors.palette.400'],
+  disabledColor: ['colors.palette.400', 'colors.palette.500'],
+  gapSize: 'density.gap',
+  iconSize: 'sizing.size_3',
+  tableTransition: '0s',
+  wrapperBorderWidth: '0px',
+  wrapperBorderRadius: 'sizing.size_0',
+  wrapperBorderColor: 'tokens.borderColor',
+  barForegroundColor: 'tokens.foregroundColor',
+  barBackgroundColor: 'tokens.backgroundSecondaryColor',
+  barHorizontalPadding: 'density.barsHorizontal',
+  barVerticalPadding: 'density.barsVertical',
+  shadowColor: ['colors.palette.800', 'colors.palette.300'],
+  shadowX: 'sizing.size_0_25',
+  shadowY: 'sizing.size_0_25',
+  shadowBlur: 'sizing.size_0',
+  shadowOpacity: '8%',
+  cellHorizontalPadding: 'density.cellHorizontal',
+  cellVerticalPadding: 'density.cellVertical',
+  cellHorizontalBorderColor: 'tokens.borderColor',
+  cellVerticalBorderColor: 'tokens.borderColor',
+  cellSelectionBorderColor: 'tokens.accentColor',
+  cellSelectionBackgroundColor: 'tokens.accentColor',
+  cellSuccessBackgroundColor: '#37bc6c33',
+  cellErrorBackgroundColor: '#fa4d3233',
+  cellReadOnlyBackgroundColor: 'colors.transparent',
+  cellAutofillSize: 'sizing.size_1_5',
+  cellAutofillHitAreaSize: 'sizing.size_3',
+  cellAutofillBorderWidth: 'sizing.size_0_25',
+  cellAutofillBorderRadius: 'sizing.size_0',
+  cellAutofillBorderColor: 'tokens.backgroundColor',
+  cellAutofillBackgroundColor: 'tokens.accentColor',
+  cellAutofillFillBorderColor: 'tokens.foregroundColor',
+  cellEditorBorderWidth: '2px',
+  cellEditorBorderColor: 'tokens.accentColor',
+  cellEditorForegroundColor: ['colors.palette.950', 'colors.white'],
+  cellEditorBackgroundColor: 'tokens.backgroundColor',
+  cellEditorShadowBlurRadius: '0px',
+  cellEditorShadowColor: 'tokens.accentColor',
+  cellMobileHandleSize: 'sizing.size_3',
+  cellMobileHandleBorderWidth: 'sizing.size_0_25',
+  cellMobileHandleBorderRadius: 'sizing.size_3',
+  cellMobileHandleBorderColor: 'tokens.accentColor',
+  cellMobileHandleBackgroundColor: 'tokens.accentColor',
+  cellMobileHandleBackgroundOpacity: '40%',
+  headerFontWeight: 'tokens.fontWeight',
+  headerForegroundColor: 'tokens.foregroundColor',
+  headerBackgroundColor: 'tokens.backgroundSecondaryColor',
+  headerHighlightedShadowSize: '0px',
+  headerHighlightedForegroundColor: 'tokens.foregroundColor',
+  headerHighlightedBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
+  headerActiveBorderColor: 'tokens.borderColor',
+  headerActiveForegroundColor: ['colors.palette.950', 'colors.white'],
+  headerActiveBackgroundColor: ['colors.primary.400', 'colors.primary.300'],
+  headerFilterBackgroundColor: 'tokens.cellSuccessBackgroundColor',
+  headerRowForegroundColor: 'tokens.foregroundColor',
+  headerRowBackgroundColor: 'tokens.backgroundSecondaryColor',
+  headerRowHighlightedForegroundColor: 'tokens.foregroundColor',
+  headerRowHighlightedBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
+  headerRowActiveForegroundColor: ['colors.palette.950', 'colors.white'],
+  headerRowActiveBackgroundColor: ['colors.primary.400', 'colors.primary.300'],
+  rowHeaderOddBackgroundColor: 'tokens.backgroundSecondaryColor',
+  rowHeaderEvenBackgroundColor: 'tokens.backgroundSecondaryColor',
+  rowCellOddBackgroundColor: 'tokens.backgroundColor',
+  rowCellEvenBackgroundColor: 'tokens.backgroundColor',
+  buttonBorderRadius: 'sizing.size_0_5',
+  buttonHorizontalPadding: 'density.buttonHorizontal',
+  buttonVerticalPadding: 'density.buttonVertical',
+  primaryButtonBorderColor: 'colors.transparent',
+  primaryButtonForegroundColor: 'tokens.backgroundColor',
+  primaryButtonBackgroundColor: 'tokens.accentColor',
+  primaryButtonDisabledBorderColor: 'colors.transparent',
+  primaryButtonDisabledForegroundColor: 'tokens.disabledColor',
+  primaryButtonDisabledBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
+  primaryButtonHoverBorderColor: 'colors.transparent',
+  primaryButtonHoverForegroundColor: 'tokens.backgroundColor',
+  primaryButtonHoverBackgroundColor: ['colors.primary.600', 'colors.primary.200'],
+  primaryButtonFocusBorderColor: 'tokens.backgroundColor',
+  primaryButtonFocusForegroundColor: 'tokens.backgroundColor',
+  primaryButtonFocusBackgroundColor: 'tokens.accentColor',
+  secondaryButtonBorderColor: 'tokens.borderColor',
+  secondaryButtonForegroundColor: 'tokens.foregroundColor',
+  secondaryButtonBackgroundColor: 'tokens.backgroundColor',
+  secondaryButtonDisabledBorderColor: 'tokens.borderColor',
+  secondaryButtonDisabledForegroundColor: 'tokens.disabledColor',
+  secondaryButtonDisabledBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
+  secondaryButtonHoverBorderColor: 'tokens.borderColor',
+  secondaryButtonHoverForegroundColor: 'tokens.foregroundColor',
+  secondaryButtonHoverBackgroundColor: ['colors.palette.50', 'colors.palette.900'],
+  secondaryButtonFocusBorderColor: 'tokens.borderColor',
+  secondaryButtonFocusForegroundColor: 'tokens.foregroundColor',
+  secondaryButtonFocusBackgroundColor: 'tokens.backgroundSecondaryColor',
+  iconButtonBorderRadius: 'sizing.size_0_5',
+  iconButtonLargeBorderRadius: 'sizing.size_0_5',
+  iconButtonLargePadding: 'sizing.size_1',
+  iconButtonBorderColor: ['colors.palette.300', 'colors.palette.600'],
+  iconButtonBackgroundColor: 'tokens.backgroundSecondaryColor',
+  iconButtonIconColor: ['colors.palette.400', 'colors.palette.500'],
+  iconButtonHoverBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  iconButtonHoverBackgroundColor: ['colors.palette.50', 'colors.palette.900'],
+  iconButtonHoverIconColor: ['colors.palette.400', 'colors.palette.500'],
+  iconButtonActiveBorderColor: ['colors.palette.300', 'colors.palette.600'],
+  iconButtonActiveBackgroundColor: 'tokens.backgroundSecondaryColor',
+  iconButtonActiveIconColor: ['colors.palette.400', 'colors.palette.500'],
+  iconButtonActiveHoverBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  iconButtonActiveHoverBackgroundColor: 'tokens.backgroundSecondaryColor',
+  iconButtonActiveHoverIconColor: ['colors.palette.400', 'colors.palette.500'],
+  collapseButtonBorderRadius: 'sizing.size_4',
+  collapseButtonOpenBorderColor: ['colors.palette.300', 'colors.palette.600'],
+  collapseButtonOpenBackgroundColor: ['colors.white', 'colors.palette.950'],
+  collapseButtonOpenIconColor: ['colors.palette.400', 'colors.palette.500'],
+  collapseButtonOpenIconActiveColor: ['colors.palette.400', 'colors.palette.500'],
+  collapseButtonOpenHoverBorderColor: ['colors.palette.300', 'colors.palette.600'],
+  collapseButtonOpenHoverBackgroundColor: ['colors.white', 'colors.palette.950'],
+  collapseButtonOpenHoverIconColor: ['colors.palette.400', 'colors.palette.500'],
+  collapseButtonOpenHoverIconActiveColor: ['colors.palette.400', 'colors.palette.500'],
+  collapseButtonCloseBorderColor: ['colors.palette.300', 'colors.palette.600'],
+  collapseButtonCloseBackgroundColor: ['colors.palette.50', 'colors.palette.900'],
+  collapseButtonCloseIconColor: ['colors.palette.400', 'colors.palette.500'],
+  collapseButtonCloseIconActiveColor: ['colors.palette.400', 'colors.palette.500'],
+  collapseButtonCloseHoverBorderColor: ['colors.palette.300', 'colors.palette.600'],
+  collapseButtonCloseHoverBackgroundColor: ['colors.palette.50', 'colors.palette.900'],
+  collapseButtonCloseHoverIconColor: ['colors.palette.400', 'colors.palette.500'],
+  collapseButtonCloseHoverIconActiveColor: ['colors.palette.400', 'colors.palette.500'],
+  linkColor: ['colors.primary.600', 'colors.primary.200'],
+  linkHoverColor: ['colors.primary.600', 'colors.primary.200'],
+  inputBorderWidth: '1px',
+  inputBorderRadius: 'sizing.size_1',
+  inputHorizontalPadding: 'density.inputHorizontal',
+  inputVerticalPadding: 'density.inputVertical',
+  inputBorderColor: 'tokens.borderColor',
+  inputForegroundColor: 'tokens.foregroundColor',
+  inputBackgroundColor: 'tokens.backgroundSecondaryColor',
+  inputHoverBorderColor: 'tokens.borderColor',
+  inputHoverForegroundColor: 'tokens.foregroundColor',
+  inputHoverBackgroundColor: 'tokens.backgroundSecondaryColor',
+  inputDisabledBorderColor: 'tokens.borderColor',
+  inputDisabledForegroundColor: 'tokens.disabledColor',
+  inputDisabledBackgroundColor: ['colors.palette.300', 'colors.palette.600'],
+  inputFocusBorderColor: 'tokens.accentColor',
+  inputFocusForegroundColor: 'tokens.foregroundColor',
+  inputFocusBackgroundColor: 'tokens.backgroundSecondaryColor',
+  checkboxSize: 'tokens.iconSize',
+  checkboxBorderRadius: 'sizing.size_0_5',
+  checkboxBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  checkboxBackgroundColor: 'tokens.backgroundColor',
+  checkboxIconColor: 'colors.transparent',
+  checkboxFocusBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  checkboxFocusBackgroundColor: 'tokens.backgroundColor',
+  checkboxFocusIconColor: 'colors.transparent',
+  checkboxFocusRingColor: 'tokens.accentColor',
+  checkboxDisabledBorderColor: ['colors.palette.300', 'colors.palette.600'],
+  checkboxDisabledBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
+  checkboxDisabledIconColor: 'colors.transparent',
+  checkboxCheckedBorderColor: ['colors.primary.600', 'colors.primary.200'],
+  checkboxCheckedBackgroundColor: 'tokens.accentColor',
+  checkboxCheckedIconColor: 'tokens.backgroundColor',
+  checkboxCheckedFocusBorderColor: 'tokens.backgroundColor',
+  checkboxCheckedFocusBackgroundColor: 'tokens.accentColor',
+  checkboxCheckedFocusIconColor: 'tokens.backgroundColor',
+  checkboxCheckedDisabledBorderColor: ['colors.palette.300', 'colors.palette.600'],
+  checkboxCheckedDisabledBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
+  checkboxCheckedDisabledIconColor: ['colors.palette.300', 'colors.palette.600'],
+  checkboxIndeterminateBorderColor: ['colors.primary.600', 'colors.primary.200'],
+  checkboxIndeterminateBackgroundColor: 'tokens.accentColor',
+  checkboxIndeterminateIconColor: 'tokens.backgroundColor',
+  checkboxIndeterminateFocusBorderColor: 'tokens.backgroundColor',
+  checkboxIndeterminateFocusBackgroundColor: 'tokens.accentColor',
+  checkboxIndeterminateFocusIconColor: 'tokens.backgroundColor',
+  checkboxIndeterminateDisabledBorderColor: ['colors.palette.300', 'colors.palette.600'],
+  checkboxIndeterminateDisabledBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
+  checkboxIndeterminateDisabledIconColor: ['colors.palette.300', 'colors.palette.600'],
+  radioSize: 'tokens.iconSize',
+  radioBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  radioBackgroundColor: 'tokens.backgroundColor',
+  radioIconColor: 'colors.transparent',
+  radioFocusBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  radioFocusBackgroundColor: 'tokens.backgroundColor',
+  radioFocusIconColor: 'colors.transparent',
+  radioFocusRingColor: 'tokens.accentColor',
+  radioDisabledBorderColor: ['colors.palette.300', 'colors.palette.600'],
+  radioDisabledBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
+  radioDisabledIconColor: 'colors.transparent',
+  radioCheckedBorderColor: 'tokens.accentColor',
+  radioCheckedBackgroundColor: 'tokens.backgroundColor',
+  radioCheckedIconColor: 'tokens.accentColor',
+  radioCheckedFocusBorderColor: ['colors.primary.600', 'colors.primary.200'],
+  radioCheckedFocusBackgroundColor: 'tokens.backgroundColor',
+  radioCheckedFocusIconColor: 'tokens.accentColor',
+  radioCheckedDisabledBorderColor: ['colors.palette.300', 'colors.palette.600'],
+  radioCheckedDisabledBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
+  radioCheckedDisabledIconColor: ['colors.palette.300', 'colors.palette.600'],
+  moveBacklightColor: ['colors.palette.800', 'colors.palette.300'],
+  moveBacklightOpacity: '25%',
+  moveIndicatorColor: ['colors.palette.400', 'colors.palette.500'],
+  resizeIndicatorColor: ['colors.palette.400', 'colors.palette.500'],
+  hiddenIndicatorColor: ['colors.palette.400', 'colors.palette.500'],
+  menuBorderWidth: '1px',
+  menuBorderRadius: '0px',
+  menuHorizontalPadding: 'density.menuHorizontal',
+  menuVerticalPadding: 'density.menuVertical',
+  menuItemHorizontalPadding: 'density.menuItemHorizontal',
+  menuItemVerticalPadding: 'density.menuItemVertical',
+  menuBorderColor: 'tokens.borderColor',
+  menuShadowX: 'tokens.shadowX',
+  menuShadowY: 'tokens.shadowY',
+  menuShadowBlur: 'tokens.shadowBlur',
+  menuShadowColor: 'tokens.borderColor',
+  menuShadowOpacity: '100%',
+  menuItemHoverColor: ['colors.palette.800', 'colors.palette.300'],
+  menuItemHoverColorOpacity: '8%',
+  menuItemActiveColor: ['colors.palette.800', 'colors.palette.300'],
+  menuItemActiveColorOpacity: '12%',
+  commentsTextareaHorizontalPadding: 'density.cellHorizontal',
+  commentsTextareaVerticalPadding: 'density.cellVertical',
+  commentsTextareaBorderWidth: '1px',
+  commentsTextareaBorderColor: 'tokens.borderColor',
+  commentsTextareaForegroundColor: 'tokens.foregroundColor',
+  commentsTextareaBackgroundColor: 'tokens.backgroundSecondaryColor',
+  commentsTextareaFocusBorderWidth: '1px',
+  commentsTextareaFocusBorderColor: 'tokens.accentColor',
+  commentsTextareaFocusForegroundColor: 'tokens.foregroundColor',
+  commentsTextareaFocusBackgroundColor: 'tokens.backgroundColor',
+  commentsIndicatorSize: 'sizing.size_1_5',
+  commentsIndicatorColor: 'tokens.accentColor',
+  licenseHorizontalPadding: 'tokens.barHorizontalPadding',
+  licenseVerticalPadding: 'tokens.barVerticalPadding',
+  licenseForegroundColor: 'tokens.barForegroundColor',
+  licenseBackgroundColor: 'tokens.barBackgroundColor',
+  paginationBarForegroundColor: 'tokens.barForegroundColor',
+  paginationBarBackgroundColor: 'tokens.barBackgroundColor',
+  paginationBarHorizontalPadding: 'tokens.barHorizontalPadding',
+  paginationBarVerticalPadding: 'tokens.barVerticalPadding',
+  dialogSemiTransparentBackgroundColor: ['colors.white', 'colors.palette.950'],
+  dialogSemiTransparentBackgroundOpacity: '80%',
+  dialogSolidBackgroundColor: ['colors.white', 'colors.palette.950'],
+  dialogContentPaddingHorizontal: 'density.dialogHorizontal',
+  dialogContentPaddingVertical: 'density.dialogVertical',
+  dialogContentBorderRadius: 'sizing.size_2',
+  dialogContentBackgroundColor: 'tokens.backgroundSecondaryColor',
+  scrollbarBorderRadius: 'sizing.size_2',
+  scrollbarTrackColor: 'tokens.backgroundSecondaryColor',
+  scrollbarThumbColor: ['colors.palette.400', 'colors.palette.500']
+};
+var _default = exports["default"] = classicTokens;
+
+/***/ }),
+/* 276 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(1);
+exports.__esModule = true;
+var _main = _interopRequireDefault(__webpack_require__(273));
+var _main2 = _interopRequireDefault(__webpack_require__(277));
+var _main3 = _interopRequireDefault(__webpack_require__(278));
+const mainTheme = exports.mainTheme = {
+  name: 'main',
+  density: 'default',
+  icons: _main.default,
+  colors: _main2.default,
+  tokens: _main3.default
+};
+
+/***/ }),
+/* 277 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
+const mainColors = {
+  white: '#ffffffff',
+  black: '#000000ff',
+  primary: {
+    100: '#6180ffff',
+    200: '#5573f0ff',
+    300: '#4669f6ff',
+    400: '#2e56fcff',
+    500: '#1a42e8ff',
+    600: '#1535bcff'
+  },
+  palette: {
+    50: '#f7f7f9ff',
+    100: '#ebebedff',
+    200: '#e7e7e9ff',
+    300: '#a3a3a3ff',
+    400: '#68696cff',
+    500: '#404144ff',
+    600: '#313132ff',
+    700: '#282829ff',
+    800: '#222222ff',
+    900: '#1e1e1fff',
+    950: '#050506ff'
+  },
+  transparent: '#ffffff00'
+};
+var _default = exports["default"] = mainColors;
+
+/***/ }),
+/* 278 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
+const mainTokens = {
+  fontFamily: 'Inter',
+  fontSize: '14px',
+  fontSizeSmall: '12px',
+  lineHeight: '20px',
+  lineHeightSmall: '18px',
+  fontWeight: '400',
+  letterSpacing: '0px',
+  borderColor: ['colors.palette.200', 'colors.palette.700'],
+  accentColor: ['colors.primary.500', 'colors.primary.300'],
+  foregroundColor: ['colors.palette.800', 'colors.palette.100'],
+  foregroundSecondaryColor: ['colors.palette.400', 'colors.palette.300'],
+  backgroundColor: ['colors.white', 'colors.palette.950'],
+  backgroundSecondaryColor: ['colors.palette.50', 'colors.palette.900'],
+  placeholderColor: ['colors.palette.300', 'colors.palette.400'],
+  readOnlyColor: ['colors.palette.400', 'colors.palette.300'],
+  disabledColor: ['colors.palette.300', 'colors.palette.400'],
+  gapSize: 'density.gap',
+  iconSize: 'sizing.size_4',
+  tableTransition: '0.15s',
+  wrapperBorderWidth: '0px',
+  wrapperBorderRadius: 'sizing.size_1',
+  wrapperBorderColor: 'tokens.borderColor',
+  barForegroundColor: 'tokens.foregroundColor',
+  barBackgroundColor: 'tokens.backgroundSecondaryColor',
+  barHorizontalPadding: 'density.barsHorizontal',
+  barVerticalPadding: 'density.barsVertical',
+  shadowColor: ['colors.palette.800', 'colors.palette.100'],
+  shadowX: 'sizing.size_0',
+  shadowY: 'sizing.size_2',
+  shadowBlur: 'sizing.size_4',
+  shadowOpacity: '8%',
+  cellHorizontalPadding: 'density.cellHorizontal',
+  cellVerticalPadding: 'density.cellVertical',
+  cellHorizontalBorderColor: 'tokens.borderColor',
+  cellVerticalBorderColor: 'tokens.borderColor',
+  cellSelectionBorderColor: 'tokens.accentColor',
+  cellSelectionBackgroundColor: ['colors.primary.400', 'colors.primary.200'],
+  cellSuccessBackgroundColor: '#37bc6c33',
+  cellErrorBackgroundColor: '#fa4d3233',
+  cellReadOnlyBackgroundColor: 'tokens.backgroundSecondaryColor',
+  cellAutofillSize: 'sizing.size_1_5',
+  cellAutofillHitAreaSize: 'sizing.size_3',
+  cellAutofillBorderWidth: 'sizing.size_0_25',
+  cellAutofillBorderRadius: 'sizing.size_1',
+  cellAutofillBorderColor: 'tokens.backgroundColor',
+  cellAutofillBackgroundColor: 'tokens.accentColor',
+  cellAutofillFillBorderColor: 'tokens.foregroundColor',
+  cellEditorBorderWidth: '2px',
+  cellEditorBorderColor: 'tokens.accentColor',
+  cellEditorForegroundColor: ['colors.palette.950', 'colors.white'],
+  cellEditorBackgroundColor: 'tokens.backgroundColor',
+  cellEditorShadowBlurRadius: '0px',
+  cellEditorShadowColor: 'tokens.accentColor',
+  cellMobileHandleSize: 'sizing.size_3',
+  cellMobileHandleBorderWidth: 'sizing.size_0_25',
+  cellMobileHandleBorderRadius: 'sizing.size_3',
+  cellMobileHandleBorderColor: 'tokens.accentColor',
+  cellMobileHandleBackgroundColor: 'tokens.accentColor',
+  cellMobileHandleBackgroundOpacity: '40%',
+  headerFontWeight: 'tokens.fontWeight',
+  headerForegroundColor: 'tokens.foregroundColor',
+  headerBackgroundColor: 'tokens.backgroundSecondaryColor',
+  headerHighlightedShadowSize: '0px',
+  headerHighlightedForegroundColor: ['colors.palette.950', 'colors.white'],
+  headerHighlightedBackgroundColor: ['colors.palette.200', 'colors.palette.700'],
+  headerActiveBorderColor: ['colors.primary.400', 'colors.primary.200'],
+  headerActiveForegroundColor: 'colors.white',
+  headerActiveBackgroundColor: 'tokens.accentColor',
+  headerFilterBackgroundColor: 'tokens.cellSuccessBackgroundColor',
+  headerRowForegroundColor: 'tokens.foregroundColor',
+  headerRowBackgroundColor: 'tokens.backgroundSecondaryColor',
+  headerRowHighlightedForegroundColor: ['colors.palette.950', 'colors.white'],
+  headerRowHighlightedBackgroundColor: ['colors.palette.200', 'colors.palette.700'],
+  headerRowActiveForegroundColor: 'tokens.backgroundColor',
+  headerRowActiveBackgroundColor: 'tokens.accentColor',
+  rowHeaderOddBackgroundColor: 'tokens.backgroundSecondaryColor',
+  rowHeaderEvenBackgroundColor: 'tokens.backgroundSecondaryColor',
+  rowCellOddBackgroundColor: 'tokens.backgroundColor',
+  rowCellEvenBackgroundColor: 'tokens.backgroundColor',
+  buttonBorderRadius: 'sizing.size_1',
+  buttonHorizontalPadding: 'density.buttonHorizontal',
+  buttonVerticalPadding: 'density.buttonVertical',
+  primaryButtonBorderColor: 'colors.transparent',
+  primaryButtonForegroundColor: 'colors.white',
+  primaryButtonBackgroundColor: 'tokens.accentColor',
+  primaryButtonDisabledBorderColor: 'colors.transparent',
+  primaryButtonDisabledForegroundColor: 'tokens.disabledColor',
+  primaryButtonDisabledBackgroundColor: ['colors.palette.200', 'colors.palette.700'],
+  primaryButtonHoverBorderColor: 'colors.transparent',
+  primaryButtonHoverForegroundColor: 'tokens.backgroundColor',
+  primaryButtonHoverBackgroundColor: ['colors.primary.600', 'colors.primary.100'],
+  primaryButtonFocusBorderColor: 'tokens.backgroundColor',
+  primaryButtonFocusForegroundColor: 'tokens.backgroundColor',
+  primaryButtonFocusBackgroundColor: 'tokens.accentColor',
+  secondaryButtonBorderColor: 'tokens.borderColor',
+  secondaryButtonForegroundColor: 'tokens.foregroundColor',
+  secondaryButtonBackgroundColor: 'tokens.backgroundColor',
+  secondaryButtonDisabledBorderColor: 'tokens.borderColor',
+  secondaryButtonDisabledForegroundColor: 'tokens.disabledColor',
+  secondaryButtonDisabledBackgroundColor: ['colors.palette.200', 'colors.palette.700'],
+  secondaryButtonHoverBorderColor: 'tokens.borderColor',
+  secondaryButtonHoverForegroundColor: 'tokens.foregroundColor',
+  secondaryButtonHoverBackgroundColor: ['colors.palette.100', 'colors.palette.600'],
+  secondaryButtonFocusBorderColor: 'tokens.borderColor',
+  secondaryButtonFocusForegroundColor: 'tokens.foregroundColor',
+  secondaryButtonFocusBackgroundColor: 'tokens.backgroundColor',
+  iconButtonBorderRadius: 'sizing.size_0_5',
+  iconButtonLargeBorderRadius: 'sizing.size_1',
+  iconButtonLargePadding: 'sizing.size_1',
+  iconButtonBorderColor: ['colors.palette.50', 'colors.palette.900'],
+  iconButtonBackgroundColor: 'tokens.backgroundSecondaryColor',
+  iconButtonIconColor: ['colors.palette.300', 'colors.palette.400'],
+  iconButtonHoverBorderColor: ['colors.palette.100', 'colors.palette.600'],
+  iconButtonHoverBackgroundColor: ['colors.palette.100', 'colors.palette.600'],
+  iconButtonHoverIconColor: ['colors.palette.300', 'colors.palette.400'],
+  iconButtonActiveBorderColor: ['colors.primary.400', 'colors.primary.200'],
+  iconButtonActiveBackgroundColor: 'tokens.accentColor',
+  iconButtonActiveIconColor: 'colors.white',
+  iconButtonActiveHoverBorderColor: ['colors.primary.400', 'colors.primary.200'],
+  iconButtonActiveHoverBackgroundColor: ['colors.primary.400', 'colors.primary.200'],
+  iconButtonActiveHoverIconColor: 'colors.white',
+  collapseButtonBorderRadius: 'sizing.size_1',
+  collapseButtonOpenBorderColor: ['colors.palette.100', 'colors.palette.500'],
+  collapseButtonOpenBackgroundColor: ['colors.white', 'colors.palette.950'],
+  collapseButtonOpenIconColor: ['colors.palette.400', 'colors.palette.300'],
+  collapseButtonOpenIconActiveColor: ['colors.palette.400', 'colors.palette.300'],
+  collapseButtonOpenHoverBorderColor: ['colors.palette.100', 'colors.palette.500'],
+  collapseButtonOpenHoverBackgroundColor: ['colors.palette.50', 'colors.palette.900'],
+  collapseButtonOpenHoverIconColor: ['colors.palette.400', 'colors.palette.300'],
+  collapseButtonOpenHoverIconActiveColor: ['colors.palette.400', 'colors.palette.300'],
+  collapseButtonCloseBorderColor: ['colors.palette.100', 'colors.palette.500'],
+  collapseButtonCloseBackgroundColor: ['colors.palette.200', 'colors.palette.700'],
+  collapseButtonCloseIconColor: ['colors.palette.400', 'colors.palette.300'],
+  collapseButtonCloseIconActiveColor: ['colors.palette.400', 'colors.palette.300'],
+  collapseButtonCloseHoverBorderColor: ['colors.palette.100', 'colors.palette.500'],
+  collapseButtonCloseHoverBackgroundColor: ['colors.palette.200', 'colors.palette.700'],
+  collapseButtonCloseHoverIconColor: ['colors.palette.400', 'colors.palette.300'],
+  collapseButtonCloseHoverIconActiveColor: ['colors.palette.400', 'colors.palette.300'],
+  linkColor: ['colors.primary.600', 'colors.primary.100'],
+  linkHoverColor: 'tokens.accentColor',
+  inputBorderWidth: '1px',
+  inputBorderRadius: 'sizing.size_1',
+  inputHorizontalPadding: 'density.inputHorizontal',
+  inputVerticalPadding: 'density.inputVertical',
+  inputBorderColor: 'tokens.borderColor',
+  inputForegroundColor: 'tokens.foregroundColor',
+  inputBackgroundColor: 'tokens.backgroundSecondaryColor',
+  inputHoverBorderColor: 'tokens.borderColor',
+  inputHoverForegroundColor: 'tokens.foregroundColor',
+  inputHoverBackgroundColor: 'tokens.backgroundColor',
+  inputDisabledBorderColor: 'tokens.borderColor',
+  inputDisabledForegroundColor: 'tokens.disabledColor',
+  inputDisabledBackgroundColor: ['colors.palette.100', 'colors.palette.500'],
+  inputFocusBorderColor: 'tokens.accentColor',
+  inputFocusForegroundColor: 'tokens.foregroundColor',
+  inputFocusBackgroundColor: 'tokens.backgroundColor',
+  checkboxSize: 'tokens.iconSize',
+  checkboxBorderRadius: 'sizing.size_1',
+  checkboxBorderColor: ['colors.palette.100', 'colors.palette.500'],
+  checkboxBackgroundColor: 'tokens.backgroundColor',
+  checkboxIconColor: 'colors.transparent',
+  checkboxFocusBorderColor: ['colors.palette.100', 'colors.palette.500'],
+  checkboxFocusBackgroundColor: 'tokens.backgroundColor',
+  checkboxFocusIconColor: 'colors.transparent',
+  checkboxFocusRingColor: 'tokens.accentColor',
+  checkboxDisabledBorderColor: ['colors.palette.100', 'colors.palette.500'],
+  checkboxDisabledBackgroundColor: ['colors.palette.200', 'colors.palette.700'],
+  checkboxDisabledIconColor: 'colors.transparent',
+  checkboxCheckedBorderColor: ['colors.primary.400', 'colors.primary.200'],
+  checkboxCheckedBackgroundColor: 'tokens.accentColor',
+  checkboxCheckedIconColor: 'colors.white',
+  checkboxCheckedFocusBorderColor: 'tokens.backgroundColor',
+  checkboxCheckedFocusBackgroundColor: 'tokens.accentColor',
+  checkboxCheckedFocusIconColor: 'colors.white',
+  checkboxCheckedDisabledBorderColor: ['colors.palette.100', 'colors.palette.500'],
+  checkboxCheckedDisabledBackgroundColor: ['colors.palette.200', 'colors.palette.700'],
+  checkboxCheckedDisabledIconColor: 'tokens.disabledColor',
+  checkboxIndeterminateBorderColor: ['colors.primary.400', 'colors.primary.200'],
+  checkboxIndeterminateBackgroundColor: 'tokens.accentColor',
+  checkboxIndeterminateIconColor: 'colors.white',
+  checkboxIndeterminateFocusBorderColor: 'tokens.backgroundColor',
+  checkboxIndeterminateFocusBackgroundColor: 'tokens.accentColor',
+  checkboxIndeterminateFocusIconColor: 'colors.white',
+  checkboxIndeterminateDisabledBorderColor: ['colors.palette.100', 'colors.palette.600'],
+  checkboxIndeterminateDisabledBackgroundColor: ['colors.palette.100', 'colors.palette.500'],
+  checkboxIndeterminateDisabledIconColor: 'tokens.disabledColor',
+  radioSize: 'tokens.iconSize',
+  radioBorderColor: 'tokens.borderColor',
+  radioBackgroundColor: 'tokens.backgroundColor',
+  radioIconColor: 'colors.transparent',
+  radioFocusBorderColor: 'tokens.borderColor',
+  radioFocusBackgroundColor: 'tokens.backgroundColor',
+  radioFocusIconColor: 'colors.transparent',
+  radioFocusRingColor: 'tokens.accentColor',
+  radioDisabledBorderColor: ['colors.palette.100', 'colors.palette.500'],
+  radioDisabledBackgroundColor: ['colors.palette.200', 'colors.palette.700'],
+  radioDisabledIconColor: 'colors.transparent',
+  radioCheckedBorderColor: 'tokens.accentColor',
+  radioCheckedBackgroundColor: 'tokens.backgroundColor',
+  radioCheckedIconColor: 'tokens.accentColor',
+  radioCheckedFocusBorderColor: ['colors.primary.400', 'colors.primary.200'],
+  radioCheckedFocusBackgroundColor: 'tokens.backgroundColor',
+  radioCheckedFocusIconColor: ['colors.primary.400', 'colors.primary.200'],
+  radioCheckedDisabledBorderColor: ['colors.palette.100', 'colors.palette.500'],
+  radioCheckedDisabledBackgroundColor: ['colors.palette.200', 'colors.palette.700'],
+  radioCheckedDisabledIconColor: 'tokens.disabledColor',
+  moveBacklightColor: ['colors.palette.800', 'colors.palette.100'],
+  moveBacklightOpacity: '8%',
+  moveIndicatorColor: 'tokens.accentColor',
+  resizeIndicatorColor: ['colors.palette.300', 'colors.palette.400'],
+  hiddenIndicatorColor: ['colors.palette.300', 'colors.palette.400'],
+  menuBorderWidth: '1px',
+  menuBorderRadius: 'sizing.size_1',
+  menuHorizontalPadding: 'density.menuHorizontal',
+  menuVerticalPadding: 'density.menuVertical',
+  menuItemHorizontalPadding: 'density.menuItemHorizontal',
+  menuItemVerticalPadding: 'density.menuItemVertical',
+  menuBorderColor: 'tokens.borderColor',
+  menuShadowX: 'tokens.shadowX',
+  menuShadowY: 'tokens.shadowY',
+  menuShadowBlur: 'tokens.shadowBlur',
+  menuShadowColor: 'tokens.shadowColor',
+  menuShadowOpacity: '8%',
+  menuItemHoverColor: ['colors.palette.800', 'colors.palette.100'],
+  menuItemHoverColorOpacity: '8%',
+  menuItemActiveColor: ['colors.palette.800', 'colors.palette.100'],
+  menuItemActiveColorOpacity: '12%',
+  commentsTextareaHorizontalPadding: 'density.cellHorizontal',
+  commentsTextareaVerticalPadding: 'density.cellVertical',
+  commentsTextareaBorderWidth: '1px',
+  commentsTextareaBorderColor: 'colors.transparent',
+  commentsTextareaForegroundColor: 'tokens.foregroundColor',
+  commentsTextareaBackgroundColor: 'tokens.backgroundSecondaryColor',
+  commentsTextareaFocusBorderWidth: '1px',
+  commentsTextareaFocusBorderColor: 'tokens.accentColor',
+  commentsTextareaFocusForegroundColor: 'tokens.foregroundColor',
+  commentsTextareaFocusBackgroundColor: 'tokens.backgroundColor',
+  commentsIndicatorSize: 'sizing.size_1_5',
+  commentsIndicatorColor: 'tokens.accentColor',
+  licenseHorizontalPadding: 'tokens.barHorizontalPadding',
+  licenseVerticalPadding: 'tokens.barVerticalPadding',
+  licenseForegroundColor: 'tokens.barForegroundColor',
+  licenseBackgroundColor: 'tokens.barBackgroundColor',
+  paginationBarForegroundColor: 'tokens.barForegroundColor',
+  paginationBarBackgroundColor: 'tokens.barBackgroundColor',
+  paginationBarHorizontalPadding: 'tokens.barHorizontalPadding',
+  paginationBarVerticalPadding: 'tokens.barVerticalPadding',
+  dialogSemiTransparentBackgroundColor: ['colors.white', 'colors.palette.950'],
+  dialogSemiTransparentBackgroundOpacity: '80%',
+  dialogSolidBackgroundColor: ['colors.white', 'colors.palette.950'],
+  dialogContentPaddingHorizontal: 'density.dialogHorizontal',
+  dialogContentPaddingVertical: 'density.dialogVertical',
+  dialogContentBorderRadius: 'sizing.size_2',
+  dialogContentBackgroundColor: 'tokens.backgroundSecondaryColor',
+  scrollbarBorderRadius: 'sizing.size_2',
+  scrollbarTrackColor: 'tokens.backgroundSecondaryColor',
+  scrollbarThumbColor: ['colors.palette.300', 'colors.palette.400']
+};
+var _default = exports["default"] = mainTokens;
+
+/***/ }),
+/* 279 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(1);
+exports.__esModule = true;
+var _horizon = _interopRequireDefault(__webpack_require__(280));
+var _horizon2 = _interopRequireDefault(__webpack_require__(281));
+var _horizon3 = _interopRequireDefault(__webpack_require__(282));
+const horizonTheme = exports.horizonTheme = {
+  name: 'horizon',
+  density: 'comfortable',
+  icons: _horizon.default,
+  colors: _horizon2.default,
+  tokens: _horizon3.default
+};
+
+/***/ }),
+/* 280 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+/* eslint-disable max-len, quotes */
+
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
+const horizonIcons = {
+  arrowRight: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.64648 10.9393L9.93938 7.64644L6.64648 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  arrowRightWithBar: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.9292 4.64188L8.27934 7.99203L4.9292 11.3422M11.0711 4.08353V11.3422' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+  arrowLeft: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.93945 10.9393L6.64656 7.64644L9.93945 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  arrowLeftWithBar: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11.0713 4.64188L7.72115 7.99203L11.0713 11.3422M4.92936 4.08353L4.92936 11.3422' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+  arrowDown: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg opacity='0.6'%3E%3Cpath d='M11.5859 6L8.29304 9.29289L5.00015 6' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E",
+  menu: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.83337 7.99984C6.83337 8.30926 6.95629 8.606 7.17508 8.8248C7.39388 9.04359 7.69062 9.1665 8.00004 9.1665C8.30946 9.1665 8.60621 9.04359 8.825 8.8248C9.04379 8.606 9.16671 8.30926 9.16671 7.99984C9.16671 7.69042 9.04379 7.39367 8.825 7.17488C8.60621 6.95609 8.30946 6.83317 8.00004 6.83317C7.69062 6.83317 7.39388 6.95609 7.17508 7.17488C6.95629 7.39367 6.83337 7.69042 6.83337 7.99984Z' fill='%23222222'/%3E%3Cpath d='M6.83337 12.4165C6.83337 12.7259 6.95629 13.0227 7.17508 13.2415C7.39388 13.4603 7.69062 13.5832 8.00004 13.5832C8.30946 13.5832 8.60621 13.4603 8.825 13.2415C9.04379 13.0227 9.16671 12.7259 9.16671 12.4165C9.16671 12.1071 9.04379 11.8103 8.825 11.5915C8.60621 11.3728 8.30946 11.2498 8.00004 11.2498C7.69062 11.2498 7.39388 11.3728 7.17508 11.5915C6.95629 11.8103 6.83337 12.1071 6.83337 12.4165Z' fill='%23222222'/%3E%3Cpath d='M6.83337 3.58317C6.83337 3.89259 6.95629 4.18934 7.17508 4.40813C7.39388 4.62692 7.69062 4.74984 8.00004 4.74984C8.30946 4.74984 8.60621 4.62692 8.825 4.40813C9.04379 4.18934 9.16671 3.89259 9.16671 3.58317C9.16671 3.27375 9.04379 2.97701 8.825 2.75821C8.60621 2.53942 8.30946 2.4165 8.00004 2.4165C7.69062 2.4165 7.39388 2.53942 7.17508 2.75821C6.95629 2.97701 6.83337 3.27375 6.83337 3.58317Z' fill='currentColor'/%3E%3C/svg%3E",
+  selectArrow: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6L8.29289 9.29289L11.5858 6' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  arrowNarrowUp: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8.00008 12.6667L8.00008 3.33335M8.00008 3.33335L5.33342 6.00002M8.00008 3.33335L10.6667 6.00002' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  arrowNarrowDown: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.99992 3.33331V12.6666M7.99992 12.6666L10.6666 9.99998M7.99992 12.6666L5.33325 9.99998' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  check: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.3335 8.00002L6.66683 11.3334L13.3335 4.66669' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  checkbox: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 8L7 10L11 6' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  caretHiddenLeft: "data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M6.07209 0.856828C6.08637 0.855597 6.1007 0.85498 6.11503 0.85498H6.17649C6.19083 0.85498 6.20515 0.855597 6.21944 0.856828L6.24964 0.859432C6.26009 0.860333 6.2705 0.861561 6.28087 0.863116L6.31212 0.867804C6.31889 0.86882 6.32565 0.869975 6.33238 0.871269L6.35946 0.876478C6.37551 0.879565 6.3914 0.883438 6.40708 0.888082L6.46333 0.904748C6.47851 0.909248 6.49348 0.914467 6.50817 0.920388L6.54307 0.93445C6.55923 0.940963 6.57504 0.948316 6.59043 0.956479L6.65918 0.992938C6.67949 1.00371 6.69903 1.01587 6.71767 1.02933L6.76455 1.06318C6.77915 1.07372 6.79316 1.08505 6.80654 1.09711L6.84873 1.13513C6.86284 1.14785 6.87622 1.16136 6.88879 1.1756L6.93202 1.22456C6.94435 1.23852 6.95589 1.25316 6.96659 1.26842L6.99471 1.30852C7.00421 1.32206 7.01303 1.33606 7.02113 1.35048L7.04926 1.40048C7.05508 1.41082 7.06053 1.42137 7.06559 1.4321L7.07445 1.45085C7.07858 1.45961 7.08246 1.46848 7.08608 1.47746L7.10014 1.51236C7.10607 1.52705 7.11129 1.54202 7.11579 1.55721L7.13245 1.61346C7.13726 1.62969 7.14124 1.64616 7.14438 1.66279L7.15157 1.70089L7.15667 1.73216C7.15927 1.74779 7.16113 1.76354 7.16224 1.77936L7.16433 1.80904C7.16475 1.81506 7.16506 1.82108 7.16527 1.8271L7.16631 1.85783L7.16659 1.87477V8.12477C7.16659 8.99803 6.15887 9.44746 5.5073 8.92171C5.49997 8.91579 5.49281 8.90967 5.48582 8.90335L5.44207 8.86377C5.4359 8.85818 5.42987 8.85244 5.42398 8.84656L2.29898 5.72155C2.12322 5.54577 2.01761 5.31189 2.00201 5.0638C1.98641 4.81571 2.06187 4.57045 2.21423 4.37404C2.22073 4.36567 2.22749 4.3575 2.2345 4.34956L2.27773 4.3006C2.28458 4.29285 2.29166 4.28531 2.29898 4.27799L5.42398 1.15299C5.43129 1.14567 5.43884 1.13859 5.44659 1.13174L5.49555 1.08851C5.50951 1.07618 5.52415 1.06464 5.5394 1.05395L5.57951 1.02582C5.59305 1.01633 5.60705 1.00751 5.62147 0.9994L5.67147 0.971275C5.68181 0.965458 5.69235 0.96001 5.70308 0.954943L5.72183 0.946089C5.73059 0.941952 5.73947 0.93807 5.74846 0.934449L5.78336 0.920387C5.79805 0.914467 5.81301 0.909248 5.8282 0.904749L5.88445 0.888082C5.90068 0.883272 5.91715 0.879289 5.93379 0.87615L5.96139 0.870942C5.96714 0.869856 5.97291 0.868872 5.9787 0.86799L6.00943 0.863302C6.0202 0.861659 6.03102 0.860368 6.04188 0.859432L6.07209 0.856828ZM6.13512 1.85781L6.12011 1.87107L3.01706 4.97412L3.00168 4.99154C3.00041 4.99451 2.99984 4.99777 3.00004 5.00104C3.00036 5.0061 3.00251 5.01086 3.00609 5.01445M3.00609 5.01445L6.12226 8.13062L6.13954 8.14626C6.1418 8.14647 6.14848 8.14635 6.15542 8.14308C6.1622 8.13989 6.16489 8.13638 6.16522 8.13589C6.16536 8.13543 6.16659 8.1316 6.16659 8.12477V1.88324L6.16623 1.87249L6.16491 1.86803L6.16272 1.86413L6.15846 1.85932L6.15029 1.85498H6.14119L6.13902 1.85563L6.13512 1.85781' fill='currentColor'/%3E%3C/svg%3E",
+  caretHiddenRight: "data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3.83337 1.87506C3.83337 1.87507 3.83337 1.87505 3.83337 1.87506L3.83441 8.12961L3.83506 8.1318L3.83725 8.1357L3.8415 8.14051L3.84973 8.14488L3.8514 8.14537L3.85344 8.14558L3.85649 8.14553L3.86095 8.1442L3.86485 8.14201L3.87986 8.12876L6.98291 5.02571L6.99829 5.00829C6.99956 5.00532 7.00013 5.00207 6.99993 4.99879C6.99961 4.99373 6.99746 4.98897 6.99388 4.98538M3.87772 1.86922L6.99388 4.98538ZM3.87772 1.86922L3.86043 1.85358C3.85817 1.85336 3.85149 1.85348 3.84455 1.85675C3.83777 1.85994 3.83508 1.86345 3.83475 1.86394C3.83461 1.8644 3.83338 1.86828 3.83337 1.87506C3.83337 1.87507 3.83337 1.87505 3.83337 1.87506M2.83337 1.87506C2.83337 1.0018 3.8411 0.552371 4.49267 1.07813C4.5 1.08404 4.50716 1.09016 4.51414 1.09648L4.55789 1.13606C4.56407 1.14165 4.5701 1.14739 4.57599 1.15328L7.70099 4.27828C7.87675 4.45406 7.98236 4.68795 7.99796 4.93603C8.01355 5.18412 7.9381 5.42938 7.78574 5.62579C7.77924 5.63416 7.77248 5.64233 7.76547 5.65027L7.72224 5.69923C7.71539 5.70698 7.70831 5.71453 7.70099 5.72184L4.57599 8.84684C4.56867 8.85416 4.56113 8.86124 4.55338 8.86809L4.50442 8.91132C4.49046 8.92365 4.47582 8.93519 4.46056 8.94588L4.42046 8.97401C4.40692 8.9835 4.39292 8.99232 4.37851 9.00043L4.32851 9.02855C4.31816 9.03437 4.30761 9.03982 4.29688 9.04489L4.27813 9.05374C4.26937 9.05788 4.26049 9.06176 4.2515 9.06538L4.21661 9.07945C4.20192 9.08536 4.18696 9.09058 4.17178 9.09508L4.11553 9.11175C4.09929 9.11656 4.08281 9.12054 4.06617 9.12368L4.02809 9.13087L3.99683 9.13596C3.98119 9.13857 3.96544 9.14043 3.94962 9.14154L3.91994 9.14362C3.91392 9.14404 3.90791 9.14436 3.90188 9.14456L3.87115 9.1456C3.85986 9.14599 3.84856 9.14599 3.83726 9.1456L3.80653 9.14456C3.79786 9.14427 3.78919 9.14375 3.78054 9.143L3.75033 9.1404C3.73988 9.1395 3.72947 9.13827 3.71909 9.13671L3.68784 9.13202C3.68108 9.13101 3.67433 9.12986 3.66761 9.12856L3.64053 9.12336C3.62447 9.12027 3.60857 9.11639 3.59289 9.11175L3.53664 9.09508C3.52145 9.09058 3.50649 9.08536 3.49181 9.07945L3.45691 9.06538C3.44075 9.05887 3.42493 9.05151 3.40953 9.04335L3.34079 9.00689C3.32048 8.99612 3.30094 8.98396 3.2823 8.9705L3.23542 8.93665C3.22083 8.92611 3.20681 8.91478 3.19343 8.90273L3.15124 8.86471C3.13713 8.85199 3.12375 8.83847 3.11118 8.82423L3.06795 8.77527C3.05562 8.76131 3.04408 8.74667 3.03338 8.73141L3.00526 8.69131C2.99576 8.67777 2.98694 8.66377 2.97884 8.64936L2.95071 8.59936C2.94489 8.58901 2.93944 8.57846 2.93437 8.56772L2.92552 8.54897C2.92138 8.54022 2.91751 8.53135 2.91389 8.52237L2.89982 8.48747C2.8939 8.47278 2.88868 8.45781 2.88418 8.44262L2.86752 8.38637C2.86271 8.37014 2.85872 8.35367 2.85559 8.33704L2.8484 8.29894L2.8433 8.26767C2.8407 8.25204 2.83883 8.23629 2.83773 8.22047L2.83564 8.19079C2.83483 8.17917 2.83442 8.16752 2.83442 8.15587L2.83337 1.87506Z' fill='currentColor'/%3E%3C/svg%3E",
+  caretHiddenUp: "data:image/svg+xml;charset=utf-8,%3Csvg width='8' height='8' viewBox='0 0 8 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.76425 2.43099C3.82165 2.3736 3.89801 2.33913 3.97902 2.33403C4.06003 2.32894 4.14012 2.35358 4.20425 2.40333L4.23558 2.43099L6.23558 4.43099L6.26325 4.46233L6.28125 4.48799L6.29925 4.51999L6.30492 4.53199L6.31392 4.55433L6.32458 4.59033L6.32792 4.60799L6.33125 4.62799L6.33258 4.64699L6.33325 4.66666L6.33258 4.68633L6.33092 4.70566L6.32792 4.72566L6.32458 4.74299L6.31392 4.77899L6.30492 4.80133L6.28158 4.84533L6.25992 4.87533L6.23558 4.90233L6.20425 4.92999L6.17858 4.94799L6.14658 4.96599L6.13458 4.97166L6.11225 4.98066L6.07625 4.99133L6.05858 4.99466L6.03858 4.99799L6.01958 4.99933L5.99992 4.99999H1.99992C1.71592 4.99999 1.56758 4.67133 1.73892 4.45899L1.76425 4.43099L3.76425 2.43099Z' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  caretHiddenDown: "data:image/svg+xml;charset=utf-8,%3Csvg width='8' height='8' viewBox='0 0 8 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.9999 3C6.2839 3 6.43224 3.32867 6.2609 3.541L6.23557 3.569L4.23557 5.569C4.17817 5.62639 4.10181 5.66087 4.0208 5.66596C3.93979 5.67106 3.8597 5.64642 3.79557 5.59667L3.76424 5.569L1.76424 3.569L1.73657 3.53767L1.71857 3.512L1.70057 3.48L1.6949 3.468L1.6859 3.44567L1.67524 3.40967L1.6719 3.392L1.66857 3.372L1.66724 3.353V3.31367L1.6689 3.29433L1.6719 3.27433L1.67524 3.257L1.6859 3.221L1.6949 3.19867L1.71824 3.15467L1.7399 3.12467L1.76424 3.09767L1.79557 3.07L1.82124 3.052L1.85324 3.034L1.86524 3.02833L1.88757 3.01933L1.92357 3.00867L1.94124 3.00533L1.96124 3.002L1.98024 3.00067L5.9999 3Z' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  collapseOff: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.33325 8H11.6666' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A",
+  collapseOn: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M7.49988 11.6667C7.49988 11.9428 7.72374 12.1667 7.99988 12.1667C8.27602 12.1667 8.49988 11.9428 8.49988 11.6667V8.50002H11.6666C11.9427 8.50002 12.1666 8.27616 12.1666 8.00002C12.1666 7.72388 11.9427 7.50002 11.6666 7.50002H8.49988V4.33337C8.49988 4.05723 8.27602 3.83337 7.99988 3.83337C7.72374 3.83337 7.49988 4.05723 7.49988 4.33337V7.50002H4.33325C4.05711 7.50002 3.83325 7.72388 3.83325 8.00002C3.83325 8.27616 4.05711 8.50002 4.33325 8.50002H7.49988V11.6667Z' fill='currentColor'/%3E%3C/svg%3E%0A",
+  radio: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='4' fill='currentColor'/%3E%3C/svg%3E%0A"
+};
+var _default = exports["default"] = horizonIcons;
+
+/***/ }),
+/* 281 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
+const horizonColors = {
+  primary: {
+    100: '#f2c051ff',
+    200: '#f1b93eff',
+    300: '#d7a52aff',
+    400: '#57c784ff',
+    500: '#37bc6cff',
+    600: '#32a961ff'
+  },
+  palette: {
+    50: '#f7f7f9ff',
+    100: '#e7e7e9ff',
+    200: '#d1d1d4ff',
+    300: '#b5b5b9ff',
+    400: '#aeaeaeff',
+    500: '#727272ff',
+    600: '#353535ff',
+    700: '#262624ff',
+    800: '#222222ff',
+    900: '#19191cff',
+    950: '#070604ff'
+  },
+  white: '#ffffffff',
+  black: '#000000ff',
+  transparent: '#ffffff00'
+};
+var _default = exports["default"] = horizonColors;
+
+/***/ }),
+/* 282 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+/*
+ * This file is auto-generated. Do not edit directly.
+ */
+
+const horizonTokens = {
+  fontFamily: 'Inter',
+  fontSize: '14px',
+  fontSizeSmall: '12px',
+  lineHeight: '20px',
+  lineHeightSmall: '18px',
+  fontWeight: '400',
+  letterSpacing: '0px',
+  borderColor: ['colors.palette.100', 'colors.palette.800'],
+  accentColor: ['colors.primary.500', 'colors.primary.200'],
+  foregroundColor: ['colors.palette.700', 'colors.palette.200'],
+  foregroundSecondaryColor: ['colors.palette.500', 'colors.palette.400'],
+  backgroundColor: ['colors.white', 'colors.palette.950'],
+  backgroundSecondaryColor: ['colors.palette.50', 'colors.palette.900'],
+  placeholderColor: ['colors.palette.400', 'colors.palette.500'],
+  readOnlyColor: ['colors.palette.700', 'colors.palette.200'],
+  disabledColor: ['colors.palette.400', 'colors.palette.500'],
+  gapSize: 'density.gap',
+  iconSize: 'sizing.size_4',
+  tableTransition: '0.2s',
+  wrapperBorderWidth: '0px',
+  wrapperBorderRadius: 'sizing.size_3',
+  wrapperBorderColor: 'tokens.borderColor',
+  barForegroundColor: 'tokens.foregroundColor',
+  barBackgroundColor: 'tokens.backgroundSecondaryColor',
+  barHorizontalPadding: 'density.barsHorizontal',
+  barVerticalPadding: 'density.barsVertical',
+  shadowColor: ['colors.palette.700', 'colors.palette.200'],
+  shadowX: 'sizing.size_0',
+  shadowY: 'sizing.size_2',
+  shadowBlur: 'sizing.size_4',
+  shadowOpacity: '6%',
+  cellHorizontalPadding: 'density.cellHorizontal',
+  cellVerticalPadding: 'density.cellVertical',
+  cellHorizontalBorderColor: 'colors.transparent',
+  cellVerticalBorderColor: 'tokens.borderColor',
+  cellSelectionBorderColor: 'tokens.accentColor',
+  cellSelectionBackgroundColor: 'tokens.accentColor',
+  cellSuccessBackgroundColor: '#37bc6c4d',
+  cellErrorBackgroundColor: '#fa4d324d',
+  cellReadOnlyBackgroundColor: 'tokens.backgroundSecondaryColor',
+  cellAutofillSize: 'sizing.size_1_5',
+  cellAutofillHitAreaSize: 'sizing.size_3',
+  cellAutofillBorderWidth: 'sizing.size_0_25',
+  cellAutofillBorderRadius: 'sizing.size_1',
+  cellAutofillBorderColor: 'tokens.backgroundColor',
+  cellAutofillBackgroundColor: 'tokens.accentColor',
+  cellAutofillFillBorderColor: 'tokens.foregroundColor',
+  cellEditorBorderWidth: '2px',
+  cellEditorBorderColor: 'tokens.accentColor',
+  cellEditorForegroundColor: ['colors.palette.950', 'colors.white'],
+  cellEditorBackgroundColor: 'tokens.backgroundColor',
+  cellEditorShadowBlurRadius: '8px',
+  cellEditorShadowColor: 'tokens.accentColor',
+  cellMobileHandleSize: 'sizing.size_3',
+  cellMobileHandleBorderWidth: 'sizing.size_0_25',
+  cellMobileHandleBorderRadius: 'sizing.size_3',
+  cellMobileHandleBorderColor: 'tokens.accentColor',
+  cellMobileHandleBackgroundColor: 'tokens.accentColor',
+  cellMobileHandleBackgroundOpacity: '40%',
+  headerFontWeight: 'tokens.fontWeight',
+  headerForegroundColor: 'tokens.foregroundColor',
+  headerBackgroundColor: 'tokens.backgroundSecondaryColor',
+  headerHighlightedShadowSize: '1px',
+  headerHighlightedForegroundColor: 'tokens.foregroundColor',
+  headerHighlightedBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
+  headerActiveBorderColor: ['colors.palette.800', 'colors.primary.100'],
+  headerActiveForegroundColor: 'tokens.backgroundColor',
+  headerActiveBackgroundColor: ['colors.palette.950', 'colors.primary.200'],
+  headerFilterBackgroundColor: 'tokens.cellSuccessBackgroundColor',
+  headerRowForegroundColor: 'tokens.foregroundColor',
+  headerRowBackgroundColor: 'tokens.backgroundColor',
+  headerRowHighlightedForegroundColor: 'tokens.foregroundColor',
+  headerRowHighlightedBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
+  headerRowActiveForegroundColor: 'tokens.backgroundColor',
+  headerRowActiveBackgroundColor: ['colors.palette.950', 'colors.primary.200'],
+  rowHeaderOddBackgroundColor: 'tokens.backgroundColor',
+  rowHeaderEvenBackgroundColor: 'tokens.backgroundSecondaryColor',
+  rowCellOddBackgroundColor: 'tokens.backgroundColor',
+  rowCellEvenBackgroundColor: 'tokens.backgroundSecondaryColor',
+  buttonBorderRadius: 'sizing.size_4',
+  buttonHorizontalPadding: 'density.buttonHorizontal',
+  buttonVerticalPadding: 'density.buttonVertical',
+  primaryButtonBorderColor: 'colors.transparent',
+  primaryButtonForegroundColor: 'tokens.backgroundColor',
+  primaryButtonBackgroundColor: 'tokens.accentColor',
+  primaryButtonDisabledBorderColor: 'colors.transparent',
+  primaryButtonDisabledForegroundColor: 'tokens.disabledColor',
+  primaryButtonDisabledBackgroundColor: ['colors.palette.200', 'colors.palette.700'],
+  primaryButtonHoverBorderColor: 'colors.transparent',
+  primaryButtonHoverForegroundColor: 'tokens.backgroundColor',
+  primaryButtonHoverBackgroundColor: ['colors.primary.600', 'colors.primary.100'],
+  primaryButtonFocusBorderColor: 'tokens.backgroundColor',
+  primaryButtonFocusForegroundColor: 'tokens.backgroundColor',
+  primaryButtonFocusBackgroundColor: 'tokens.accentColor',
+  secondaryButtonBorderColor: 'tokens.borderColor',
+  secondaryButtonForegroundColor: 'tokens.foregroundColor',
+  secondaryButtonBackgroundColor: 'tokens.backgroundColor',
+  secondaryButtonDisabledBorderColor: 'tokens.borderColor',
+  secondaryButtonDisabledForegroundColor: 'tokens.disabledColor',
+  secondaryButtonDisabledBackgroundColor: ['colors.palette.50', 'colors.palette.900'],
+  secondaryButtonHoverBorderColor: 'tokens.borderColor',
+  secondaryButtonHoverForegroundColor: 'tokens.foregroundColor',
+  secondaryButtonHoverBackgroundColor: ['colors.palette.50', 'colors.palette.900'],
+  secondaryButtonFocusBorderColor: 'tokens.borderColor',
+  secondaryButtonFocusForegroundColor: 'tokens.foregroundColor',
+  secondaryButtonFocusBackgroundColor: 'tokens.backgroundColor',
+  iconButtonBorderRadius: 'sizing.size_4',
+  iconButtonLargeBorderRadius: 'sizing.size_1',
+  iconButtonLargePadding: 'sizing.size_1',
+  iconButtonBorderColor: ['colors.palette.50', 'colors.palette.900'],
+  iconButtonBackgroundColor: 'tokens.backgroundSecondaryColor',
+  iconButtonIconColor: ['colors.palette.400', 'colors.palette.500'],
+  iconButtonHoverBorderColor: ['colors.palette.50', 'colors.palette.900'],
+  iconButtonHoverBackgroundColor: ['colors.palette.50', 'colors.palette.900'],
+  iconButtonHoverIconColor: ['colors.palette.700', 'colors.palette.200'],
+  iconButtonActiveBorderColor: 'colors.transparent',
+  iconButtonActiveBackgroundColor: 'colors.transparent',
+  iconButtonActiveIconColor: 'tokens.backgroundColor',
+  iconButtonActiveHoverBorderColor: 'colors.transparent',
+  iconButtonActiveHoverBackgroundColor: ['colors.palette.950', 'colors.primary.200'],
+  iconButtonActiveHoverIconColor: 'tokens.backgroundColor',
+  collapseButtonBorderRadius: 'sizing.size_4',
+  collapseButtonOpenBorderColor: 'colors.transparent',
+  collapseButtonOpenBackgroundColor: 'colors.transparent',
+  collapseButtonOpenIconColor: ['colors.palette.500', 'colors.palette.400'],
+  collapseButtonOpenIconActiveColor: ['colors.palette.400', 'colors.palette.500'],
+  collapseButtonOpenHoverBorderColor: 'colors.transparent',
+  collapseButtonOpenHoverBackgroundColor: 'colors.transparent',
+  collapseButtonOpenHoverIconColor: ['colors.palette.800', 'colors.palette.200'],
+  collapseButtonOpenHoverIconActiveColor: ['colors.white', 'colors.palette.950'],
+  collapseButtonCloseBorderColor: 'colors.transparent',
+  collapseButtonCloseBackgroundColor: 'colors.transparent',
+  collapseButtonCloseIconColor: ['colors.palette.500', 'colors.palette.400'],
+  collapseButtonCloseIconActiveColor: ['colors.palette.400', 'colors.palette.500'],
+  collapseButtonCloseHoverBorderColor: 'colors.transparent',
+  collapseButtonCloseHoverBackgroundColor: 'colors.transparent',
+  collapseButtonCloseHoverIconColor: ['colors.palette.800', 'colors.palette.200'],
+  collapseButtonCloseHoverIconActiveColor: ['colors.white', 'colors.palette.950'],
+  linkColor: 'tokens.accentColor',
+  linkHoverColor: ['colors.primary.600', 'colors.primary.100'],
+  inputBorderWidth: '1px',
+  inputBorderRadius: 'sizing.size_1',
+  inputHorizontalPadding: 'density.inputHorizontal',
+  inputVerticalPadding: 'density.inputVertical',
+  inputBorderColor: 'tokens.borderColor',
+  inputForegroundColor: 'tokens.foregroundColor',
+  inputBackgroundColor: 'tokens.backgroundColor',
+  inputHoverBorderColor: 'tokens.borderColor',
+  inputHoverForegroundColor: 'tokens.foregroundColor',
+  inputHoverBackgroundColor: 'tokens.backgroundColor',
+  inputDisabledBorderColor: 'tokens.borderColor',
+  inputDisabledForegroundColor: 'tokens.disabledColor',
+  inputDisabledBackgroundColor: 'tokens.backgroundColor',
+  inputFocusBorderColor: 'tokens.accentColor',
+  inputFocusForegroundColor: 'tokens.foregroundColor',
+  inputFocusBackgroundColor: 'tokens.backgroundColor',
+  checkboxSize: 'tokens.iconSize',
+  checkboxBorderRadius: 'sizing.size_1_5',
+  checkboxBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  checkboxBackgroundColor: 'tokens.backgroundColor',
+  checkboxIconColor: 'colors.transparent',
+  checkboxFocusBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  checkboxFocusBackgroundColor: 'tokens.backgroundColor',
+  checkboxFocusIconColor: 'colors.transparent',
+  checkboxFocusRingColor: 'tokens.accentColor',
+  checkboxDisabledBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  checkboxDisabledBackgroundColor: ['colors.palette.50', 'colors.palette.900'],
+  checkboxDisabledIconColor: 'colors.transparent',
+  checkboxCheckedBorderColor: ['colors.primary.400', 'colors.primary.300'],
+  checkboxCheckedBackgroundColor: 'tokens.accentColor',
+  checkboxCheckedIconColor: 'tokens.backgroundColor',
+  checkboxCheckedFocusBorderColor: 'tokens.backgroundColor',
+  checkboxCheckedFocusBackgroundColor: 'tokens.accentColor',
+  checkboxCheckedFocusIconColor: 'tokens.backgroundColor',
+  checkboxCheckedDisabledBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  checkboxCheckedDisabledBackgroundColor: ['colors.palette.50', 'colors.palette.900'],
+  checkboxCheckedDisabledIconColor: 'tokens.disabledColor',
+  checkboxIndeterminateBorderColor: ['colors.primary.400', 'colors.primary.300'],
+  checkboxIndeterminateBackgroundColor: 'tokens.accentColor',
+  checkboxIndeterminateIconColor: 'tokens.backgroundColor',
+  checkboxIndeterminateFocusBorderColor: 'tokens.backgroundColor',
+  checkboxIndeterminateFocusBackgroundColor: 'tokens.accentColor',
+  checkboxIndeterminateFocusIconColor: 'tokens.backgroundColor',
+  checkboxIndeterminateDisabledBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  checkboxIndeterminateDisabledBackgroundColor: ['colors.palette.50', 'colors.palette.900'],
+  checkboxIndeterminateDisabledIconColor: 'tokens.disabledColor',
+  radioSize: 'tokens.iconSize',
+  radioBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  radioBackgroundColor: 'tokens.backgroundColor',
+  radioIconColor: 'colors.transparent',
+  radioFocusBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  radioFocusBackgroundColor: 'tokens.backgroundColor',
+  radioFocusIconColor: 'colors.transparent',
+  radioFocusRingColor: 'tokens.accentColor',
+  radioDisabledBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  radioDisabledBackgroundColor: 'tokens.backgroundSecondaryColor',
+  radioDisabledIconColor: 'colors.transparent',
+  radioCheckedBorderColor: 'tokens.accentColor',
+  radioCheckedBackgroundColor: 'tokens.backgroundColor',
+  radioCheckedIconColor: 'tokens.accentColor',
+  radioCheckedFocusBorderColor: ['colors.primary.400', 'colors.primary.300'],
+  radioCheckedFocusBackgroundColor: 'tokens.backgroundColor',
+  radioCheckedFocusIconColor: 'tokens.accentColor',
+  radioCheckedDisabledBorderColor: ['colors.palette.400', 'colors.palette.500'],
+  radioCheckedDisabledBackgroundColor: 'tokens.backgroundSecondaryColor',
+  radioCheckedDisabledIconColor: 'tokens.disabledColor',
+  moveBacklightColor: ['colors.palette.800', 'colors.palette.200'],
+  moveBacklightOpacity: '6%',
+  moveIndicatorColor: 'tokens.accentColor',
+  resizeIndicatorColor: ['colors.palette.400', 'colors.palette.500'],
+  hiddenIndicatorColor: ['colors.palette.400', 'colors.palette.500'],
+  menuBorderWidth: '0px',
+  menuBorderRadius: 'sizing.size_3',
+  menuHorizontalPadding: 'density.menuHorizontal',
+  menuVerticalPadding: 'density.menuVertical',
+  menuItemHorizontalPadding: 'density.menuItemHorizontal',
+  menuItemVerticalPadding: 'density.menuItemVertical',
+  menuBorderColor: 'tokens.borderColor',
+  menuShadowX: 'tokens.shadowX',
+  menuShadowY: 'tokens.shadowY',
+  menuShadowBlur: 'tokens.shadowBlur',
+  menuShadowColor: 'tokens.shadowColor',
+  menuShadowOpacity: '6%',
+  menuItemHoverColor: 'tokens.accentColor',
+  menuItemHoverColorOpacity: '8%',
+  menuItemActiveColor: 'tokens.accentColor',
+  menuItemActiveColorOpacity: '12%',
+  commentsTextareaHorizontalPadding: 'density.cellHorizontal',
+  commentsTextareaVerticalPadding: 'density.cellVertical',
+  commentsTextareaBorderWidth: '1px',
+  commentsTextareaBorderColor: 'colors.transparent',
+  commentsTextareaForegroundColor: 'tokens.foregroundColor',
+  commentsTextareaBackgroundColor: 'tokens.backgroundSecondaryColor',
+  commentsTextareaFocusBorderWidth: '1px',
+  commentsTextareaFocusBorderColor: 'tokens.accentColor',
+  commentsTextareaFocusForegroundColor: 'tokens.foregroundColor',
+  commentsTextareaFocusBackgroundColor: 'tokens.backgroundColor',
+  commentsIndicatorSize: 'sizing.size_1_5',
+  commentsIndicatorColor: 'tokens.accentColor',
+  licenseHorizontalPadding: 'tokens.barHorizontalPadding',
+  licenseVerticalPadding: 'tokens.barVerticalPadding',
+  licenseForegroundColor: 'tokens.barForegroundColor',
+  licenseBackgroundColor: 'tokens.barBackgroundColor',
+  paginationBarForegroundColor: 'tokens.barForegroundColor',
+  paginationBarBackgroundColor: 'tokens.barBackgroundColor',
+  paginationBarHorizontalPadding: 'tokens.barHorizontalPadding',
+  paginationBarVerticalPadding: 'tokens.barVerticalPadding',
+  dialogSemiTransparentBackgroundColor: ['colors.white', 'colors.palette.950'],
+  dialogSemiTransparentBackgroundOpacity: '80%',
+  dialogSolidBackgroundColor: ['colors.white', 'colors.palette.950'],
+  dialogContentPaddingHorizontal: 'density.dialogHorizontal',
+  dialogContentPaddingVertical: 'density.dialogVertical',
+  dialogContentBorderRadius: 'sizing.size_4',
+  dialogContentBackgroundColor: 'tokens.backgroundColor',
+  scrollbarBorderRadius: 'sizing.size_2',
+  scrollbarTrackColor: 'tokens.backgroundSecondaryColor',
+  scrollbarThumbColor: ['colors.palette.400', 'colors.palette.500']
+};
+var _default = exports["default"] = horizonTokens;
+
+/***/ }),
+/* 283 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+exports.getTheme = getTheme;
+exports.getThemeNames = getThemeNames;
+exports.getThemes = getThemes;
+exports.hasTheme = hasTheme;
+exports.registerTheme = registerTheme;
+exports.reinitTheme = reinitTheme;
+var _object = __webpack_require__(13);
+var _console = __webpack_require__(21);
+var _staticRegister = __webpack_require__(24);
+var _engine = __webpack_require__(262);
+const {
+  hasItem,
+  getItem,
+  getNames,
+  getValues,
+  register
+} = (0, _staticRegister.staticRegister)('themes');
+
+/**
+ * Check if a theme with the specified name is registered.
+ *
+ * @param {string} themeName The theme name.
+ * @returns {boolean}
+ */
+function hasTheme(themeName) {
+  return hasItem(themeName);
+}
+
+/**
+ * Get a registered theme by name.
+ *
+ * @param {string} themeName The theme name.
+ * @returns {object|undefined} The theme or undefined if not found.
+ */
+function getTheme(themeName) {
+  if (!hasTheme(themeName)) {
+    (0, _console.warn)(`Theme "${themeName}" is not registered. Please ensure it is registered before using it.`);
+    return undefined;
+  }
+  return getItem(themeName);
+}
+
+/**
+ * Get all registered theme names.
+ *
+ * @returns {string[]}
+ */
+function getThemeNames() {
+  return getNames();
+}
+
+/**
+ * Get all registered themes.
+ *
+ * @returns {object[]}
+ */
+function getThemes() {
+  return getValues();
+}
+
+/**
+ * Parse theme name and config from arguments.
+ *
+ * @private
+ * @param {string|object} themeNameOrConfig Theme name for specific theme or object representing theme config.
+ * @param {object} [themeConfig] The theme config object (optional if first parameter has already theme config).
+ * @returns {{themeName: string, themeConfigObject: object}} Parsed theme name and config object.
+ */
+function parseThemeArgs(themeNameOrConfig, themeConfig) {
+  let themeName = themeNameOrConfig;
+  let themeConfigObject = (0, _object.deepClone)(themeConfig);
+  if (typeof themeNameOrConfig === 'string' && (0, _object.isObject)(themeConfig)) {
+    themeConfigObject.name = themeNameOrConfig;
+  } else if ((0, _object.isObject)(themeNameOrConfig)) {
+    themeConfigObject = (0, _object.deepClone)(themeNameOrConfig);
+    themeName = themeConfigObject.name;
+  }
+  return {
+    themeName,
+    themeConfigObject
+  };
+}
+
+/**
+ * Register a theme.
+ *
+ * @param {string|object} themeNameOrConfig Theme name for specific theme or object representing theme config.
+ * @param {object} [themeConfig] The theme config object (optional if first parameter has already theme config).
+ * @returns {object} The registered theme (ThemeBuilder instance).
+ */
+function registerTheme(themeNameOrConfig, themeConfig) {
+  const {
+    themeName,
+    themeConfigObject
+  } = parseThemeArgs(themeNameOrConfig, themeConfig);
+  const theme = (0, _engine.createTheme)(themeConfigObject);
+  if (hasTheme(themeName)) {
+    (0, _console.warn)(`Theme "${themeName}" is already registered. Registration skipped.`);
+    return getTheme(themeName);
+  }
+  register(themeName, theme);
+  return theme;
+}
+
+/**
+ * Reinitialize an existing theme with a new configuration.
+ *
+ * @param {string|object} themeNameOrConfig Theme name for specific theme or object representing theme config.
+ * @param {object} [themeConfig] The theme config object to reinitialize (optional if first parameter has already theme config).
+ * @returns {object|undefined} The reinitialized theme (ThemeBuilder instance) or undefined if theme not found.
+ */
+function reinitTheme(themeNameOrConfig, themeConfig) {
+  const {
+    themeName,
+    themeConfigObject
+  } = parseThemeArgs(themeNameOrConfig, themeConfig);
+  if (!hasTheme(themeName)) {
+    (0, _console.warn)(`Theme "${themeName}" is not registered. Cannot reinitialize a non-existent theme.`);
+    return undefined;
+  }
+
+  // Create a new theme with the new config
+  const reinitializedTheme = (0, _engine.createTheme)(themeConfigObject);
+
+  // Re-register the theme (this will replace the existing one)
+  register(themeName, reinitializedTheme);
+  return reinitializedTheme;
+}
+
+/***/ }),
+/* 284 */
+/***/ (() => {
+
+"use strict";
+
+
+/***/ }),
+/* 285 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+var _baseRenderer = __webpack_require__(286);
+exports.RENDERER_TYPE = _baseRenderer.RENDERER_TYPE;
+exports.baseRenderer = _baseRenderer.baseRenderer;
+
+/***/ }),
+/* 286 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
 exports.__esModule = true;
 exports.baseRenderer = baseRenderer;
-var _element = __webpack_require__(5);
-var _a11y = __webpack_require__(12);
+var _element = __webpack_require__(4);
+var _a11y = __webpack_require__(11);
 /**
  * Adds appropriate CSS class to table cell, based on cellProperties.
  */
@@ -48730,27 +51311,27 @@ function baseRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
 baseRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
 /***/ }),
-/* 264 */
+/* 287 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _textType = __webpack_require__(265);
+var _textType = __webpack_require__(288);
 exports.CELL_TYPE = _textType.CELL_TYPE;
 exports.TextCellType = _textType.TextCellType;
 
 /***/ }),
-/* 265 */
+/* 288 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _textEditor = __webpack_require__(266);
-var _textRenderer = __webpack_require__(270);
+var _textEditor = __webpack_require__(289);
+var _textRenderer = __webpack_require__(293);
 const CELL_TYPE = exports.CELL_TYPE = 'text';
 const TextCellType = exports.TextCellType = {
   CELL_TYPE,
@@ -48759,19 +51340,19 @@ const TextCellType = exports.TextCellType = {
 };
 
 /***/ }),
-/* 266 */
+/* 289 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _textEditor = __webpack_require__(267);
+var _textEditor = __webpack_require__(290);
 exports.EDITOR_TYPE = _textEditor.EDITOR_TYPE;
 exports.TextEditor = _textEditor.TextEditor;
 
 /***/ }),
-/* 267 */
+/* 290 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -48779,15 +51360,15 @@ exports.TextEditor = _textEditor.TextEditor;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _baseEditor = __webpack_require__(207);
-var _eventManager = _interopRequireDefault(__webpack_require__(26));
-var _browser = __webpack_require__(13);
-var _element = __webpack_require__(5);
-var _number = __webpack_require__(30);
-var _autoResize = __webpack_require__(268);
-var _mixed = __webpack_require__(8);
-var _caretPositioner = __webpack_require__(269);
-var _a11y = __webpack_require__(12);
+var _baseEditor = __webpack_require__(206);
+var _eventManager = _interopRequireDefault(__webpack_require__(25));
+var _browser = __webpack_require__(12);
+var _element = __webpack_require__(4);
+var _number = __webpack_require__(29);
+var _autoResize = __webpack_require__(291);
+var _mixed = __webpack_require__(7);
+var _caretPositioner = __webpack_require__(292);
+var _a11y = __webpack_require__(11);
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
 const SHORTCUTS_GROUP = 'textEditor';
@@ -49192,7 +51773,7 @@ class TextEditor extends _baseEditor.BaseEditor {
 exports.TextEditor = TextEditor;
 
 /***/ }),
-/* 268 */
+/* 291 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -49406,7 +51987,7 @@ function createInputElementResizer(ownerDocument, initialOptions = {}) {
 }
 
 /***/ }),
-/* 269 */
+/* 292 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -49414,7 +51995,7 @@ function createInputElementResizer(ownerDocument, initialOptions = {}) {
 
 exports.__esModule = true;
 exports.updateCaretPosition = updateCaretPosition;
-var _element = __webpack_require__(5);
+var _element = __webpack_require__(4);
 /**
  * Updates the textarea caret position depends on the action executed on that element.
  *
@@ -49449,19 +52030,19 @@ function updateCaretPosition(actionName, textareaElement) {
 }
 
 /***/ }),
-/* 270 */
+/* 293 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _textRenderer = __webpack_require__(271);
+var _textRenderer = __webpack_require__(294);
 exports.RENDERER_TYPE = _textRenderer.RENDERER_TYPE;
 exports.textRenderer = _textRenderer.textRenderer;
 
 /***/ }),
-/* 271 */
+/* 294 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -49469,8 +52050,8 @@ exports.textRenderer = _textRenderer.textRenderer;
 
 exports.__esModule = true;
 exports.textRenderer = textRenderer;
-var _element = __webpack_require__(5);
-var _mixed = __webpack_require__(8);
+var _element = __webpack_require__(4);
+var _mixed = __webpack_require__(7);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'text';
 
 /**
@@ -49502,7 +52083,7 @@ function textRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
 textRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
 /***/ }),
-/* 272 */
+/* 295 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -49510,15 +52091,15 @@ textRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
 exports.__esModule = true;
 exports.registerAllModules = registerAllModules;
-var _editors = __webpack_require__(273);
+var _editors = __webpack_require__(296);
 exports.registerAllEditors = _editors.registerAllEditors;
-var _renderers = __webpack_require__(294);
+var _renderers = __webpack_require__(317);
 exports.registerAllRenderers = _renderers.registerAllRenderers;
-var _validators = __webpack_require__(318);
+var _validators = __webpack_require__(341);
 exports.registerAllValidators = _validators.registerAllValidators;
-var _cellTypes = __webpack_require__(330);
+var _cellTypes = __webpack_require__(353);
 exports.registerAllCellTypes = _cellTypes.registerAllCellTypes;
-var _plugins = __webpack_require__(359);
+var _plugins = __webpack_require__(382);
 exports.registerAllPlugins = _plugins.registerAllPlugins;
 /* eslint-disable handsontable/restricted-module-imports */
 // Since the Handsontable was modularized, importing some submodules is
@@ -49543,7 +52124,7 @@ function registerAllModules() {
 }
 
 /***/ }),
-/* 273 */
+/* 296 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -49551,40 +52132,40 @@ function registerAllModules() {
 
 exports.__esModule = true;
 exports.registerAllEditors = registerAllEditors;
-var _autocompleteEditor = __webpack_require__(274);
+var _autocompleteEditor = __webpack_require__(297);
 exports.AutocompleteEditor = _autocompleteEditor.AutocompleteEditor;
 exports.AUTOCOMPLETE_EDITOR = _autocompleteEditor.EDITOR_TYPE;
-var _baseEditor = __webpack_require__(207);
+var _baseEditor = __webpack_require__(206);
 exports.BaseEditor = _baseEditor.BaseEditor;
 exports.BASE_EDITOR = _baseEditor.EDITOR_TYPE;
-var _checkboxEditor = __webpack_require__(278);
+var _checkboxEditor = __webpack_require__(301);
 exports.CheckboxEditor = _checkboxEditor.CheckboxEditor;
 exports.CHECKBOX_EDITOR = _checkboxEditor.EDITOR_TYPE;
-var _dateEditor = __webpack_require__(280);
+var _dateEditor = __webpack_require__(303);
 exports.DateEditor = _dateEditor.DateEditor;
 exports.DATE_EDITOR = _dateEditor.EDITOR_TYPE;
-var _dropdownEditor = __webpack_require__(283);
+var _dropdownEditor = __webpack_require__(306);
 exports.DropdownEditor = _dropdownEditor.DropdownEditor;
 exports.DROPDOWN_EDITOR = _dropdownEditor.EDITOR_TYPE;
-var _handsontableEditor = __webpack_require__(276);
+var _handsontableEditor = __webpack_require__(299);
 exports.HandsontableEditor = _handsontableEditor.HandsontableEditor;
 exports.HANDSONTABLE_EDITOR = _handsontableEditor.EDITOR_TYPE;
-var _numericEditor = __webpack_require__(285);
+var _numericEditor = __webpack_require__(308);
 exports.NumericEditor = _numericEditor.NumericEditor;
 exports.NUMERIC_EDITOR = _numericEditor.EDITOR_TYPE;
-var _passwordEditor = __webpack_require__(287);
+var _passwordEditor = __webpack_require__(310);
 exports.PasswordEditor = _passwordEditor.PasswordEditor;
 exports.PASSWORD_EDITOR = _passwordEditor.EDITOR_TYPE;
-var _selectEditor = __webpack_require__(289);
+var _selectEditor = __webpack_require__(312);
 exports.SelectEditor = _selectEditor.SelectEditor;
 exports.SELECT_EDITOR = _selectEditor.EDITOR_TYPE;
-var _textEditor = __webpack_require__(266);
+var _textEditor = __webpack_require__(289);
 exports.TextEditor = _textEditor.TextEditor;
 exports.TEXT_EDITOR = _textEditor.EDITOR_TYPE;
-var _timeEditor = __webpack_require__(291);
+var _timeEditor = __webpack_require__(314);
 exports.TimeEditor = _timeEditor.TimeEditor;
 exports.TIME_EDITOR = _timeEditor.EDITOR_TYPE;
-var _registry = __webpack_require__(20);
+var _registry = __webpack_require__(19);
 exports.registerEditor = _registry.registerEditor;
 exports.RegisteredEditor = _registry.RegisteredEditor;
 exports._getEditorInstance = _registry._getEditorInstance;
@@ -49593,7 +52174,7 @@ exports.getEditorInstance = _registry.getEditorInstance;
 exports.getRegisteredEditorNames = _registry.getRegisteredEditorNames;
 exports.getRegisteredEditors = _registry.getRegisteredEditors;
 exports.hasEditor = _registry.hasEditor;
-var _factory = __webpack_require__(293);
+var _factory = __webpack_require__(316);
 exports.editorFactory = _factory.editorFactory;
 /**
  * Registers all available editors.
@@ -49613,35 +52194,35 @@ function registerAllEditors() {
 }
 
 /***/ }),
-/* 274 */
+/* 297 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _autocompleteEditor = __webpack_require__(275);
+var _autocompleteEditor = __webpack_require__(298);
 exports.EDITOR_TYPE = _autocompleteEditor.EDITOR_TYPE;
 exports.AutocompleteEditor = _autocompleteEditor.AutocompleteEditor;
 
 /***/ }),
-/* 275 */
+/* 298 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _handsontableEditor = __webpack_require__(276);
-var _array = __webpack_require__(11);
-var _object = __webpack_require__(14);
-var _element = __webpack_require__(5);
-var _mixed = __webpack_require__(8);
-var _string = __webpack_require__(6);
-var _unicode = __webpack_require__(18);
-var _textRenderer = __webpack_require__(270);
-var _a11y = __webpack_require__(12);
-var _function = __webpack_require__(16);
+var _handsontableEditor = __webpack_require__(299);
+var _array = __webpack_require__(10);
+var _object = __webpack_require__(13);
+var _element = __webpack_require__(4);
+var _mixed = __webpack_require__(7);
+var _string = __webpack_require__(5);
+var _unicode = __webpack_require__(17);
+var _textRenderer = __webpack_require__(293);
+var _a11y = __webpack_require__(11);
+var _function = __webpack_require__(15);
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'autocomplete';
 /**
  * @private
@@ -50140,30 +52721,30 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
 exports.AutocompleteEditor = AutocompleteEditor;
 
 /***/ }),
-/* 276 */
+/* 299 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _handsontableEditor = __webpack_require__(277);
+var _handsontableEditor = __webpack_require__(300);
 exports.EDITOR_TYPE = _handsontableEditor.EDITOR_TYPE;
 exports.HandsontableEditor = _handsontableEditor.HandsontableEditor;
 
 /***/ }),
-/* 277 */
+/* 300 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _textEditor = __webpack_require__(266);
-var _element = __webpack_require__(5);
-var _event = __webpack_require__(19);
-var _object = __webpack_require__(14);
-var _shortcutContexts = __webpack_require__(200);
+var _textEditor = __webpack_require__(289);
+var _element = __webpack_require__(4);
+var _event = __webpack_require__(18);
+var _object = __webpack_require__(13);
+var _shortcutContexts = __webpack_require__(199);
 const SHORTCUTS_GROUP = 'handsontableEditor';
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'handsontable';
 
@@ -50611,27 +53192,27 @@ class HandsontableEditor extends _textEditor.TextEditor {
 exports.HandsontableEditor = HandsontableEditor;
 
 /***/ }),
-/* 278 */
+/* 301 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _checkboxEditor = __webpack_require__(279);
+var _checkboxEditor = __webpack_require__(302);
 exports.EDITOR_TYPE = _checkboxEditor.EDITOR_TYPE;
 exports.CheckboxEditor = _checkboxEditor.CheckboxEditor;
 
 /***/ }),
-/* 279 */
+/* 302 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _baseEditor = __webpack_require__(207);
-var _element = __webpack_require__(5);
+var _baseEditor = __webpack_require__(206);
+var _element = __webpack_require__(4);
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'checkbox';
 
 /**
@@ -50668,19 +53249,19 @@ class CheckboxEditor extends _baseEditor.BaseEditor {
 exports.CheckboxEditor = CheckboxEditor;
 
 /***/ }),
-/* 280 */
+/* 303 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dateEditor = __webpack_require__(281);
+var _dateEditor = __webpack_require__(304);
 exports.EDITOR_TYPE = _dateEditor.EDITOR_TYPE;
 exports.DateEditor = _dateEditor.DateEditor;
 
 /***/ }),
-/* 281 */
+/* 304 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -50688,14 +53269,14 @@ exports.DateEditor = _dateEditor.DateEditor;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _moment = _interopRequireDefault(__webpack_require__(9));
-var _pikaday = _interopRequireDefault(__webpack_require__(282));
-var _baseEditor = __webpack_require__(207);
-var _textEditor = __webpack_require__(266);
-var _element = __webpack_require__(5);
-var _object = __webpack_require__(14);
-var _unicode = __webpack_require__(18);
-var _browser = __webpack_require__(13);
+var _moment = _interopRequireDefault(__webpack_require__(8));
+var _pikaday = _interopRequireDefault(__webpack_require__(305));
+var _baseEditor = __webpack_require__(206);
+var _textEditor = __webpack_require__(289);
+var _element = __webpack_require__(4);
+var _object = __webpack_require__(13);
+var _unicode = __webpack_require__(17);
+var _browser = __webpack_require__(12);
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
 const DEFAULT_DATE_FORMAT = 'DD/MM/YYYY';
@@ -51018,33 +53599,33 @@ class DateEditor extends _textEditor.TextEditor {
 exports.DateEditor = DateEditor;
 
 /***/ }),
-/* 282 */
+/* 305 */
 /***/ ((module) => {
 
 "use strict";
-module.exports = __WEBPACK_EXTERNAL_MODULE__282__;
+module.exports = __WEBPACK_EXTERNAL_MODULE__305__;
 
 /***/ }),
-/* 283 */
+/* 306 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dropdownEditor = __webpack_require__(284);
+var _dropdownEditor = __webpack_require__(307);
 exports.EDITOR_TYPE = _dropdownEditor.EDITOR_TYPE;
 exports.DropdownEditor = _dropdownEditor.DropdownEditor;
 
 /***/ }),
-/* 284 */
+/* 307 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _autocompleteEditor = __webpack_require__(274);
+var _autocompleteEditor = __webpack_require__(297);
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'dropdown';
 
 /**
@@ -51073,26 +53654,26 @@ class DropdownEditor extends _autocompleteEditor.AutocompleteEditor {
 exports.DropdownEditor = DropdownEditor;
 
 /***/ }),
-/* 285 */
+/* 308 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _numericEditor = __webpack_require__(286);
+var _numericEditor = __webpack_require__(309);
 exports.EDITOR_TYPE = _numericEditor.EDITOR_TYPE;
 exports.NumericEditor = _numericEditor.NumericEditor;
 
 /***/ }),
-/* 286 */
+/* 309 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _textEditor = __webpack_require__(266);
+var _textEditor = __webpack_require__(289);
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'numeric';
 
 /**
@@ -51107,29 +53688,29 @@ class NumericEditor extends _textEditor.TextEditor {
 exports.NumericEditor = NumericEditor;
 
 /***/ }),
-/* 287 */
+/* 310 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _passwordEditor = __webpack_require__(288);
+var _passwordEditor = __webpack_require__(311);
 exports.EDITOR_TYPE = _passwordEditor.EDITOR_TYPE;
 exports.PasswordEditor = _passwordEditor.PasswordEditor;
 
 /***/ }),
-/* 288 */
+/* 311 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _textEditor = __webpack_require__(266);
-var _autoResize = __webpack_require__(268);
-var _element = __webpack_require__(5);
-var _a11y = __webpack_require__(12);
+var _textEditor = __webpack_require__(289);
+var _autoResize = __webpack_require__(291);
+var _element = __webpack_require__(4);
+var _a11y = __webpack_require__(11);
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'password';
 
 /**
@@ -51168,29 +53749,29 @@ class PasswordEditor extends _textEditor.TextEditor {
 exports.PasswordEditor = PasswordEditor;
 
 /***/ }),
-/* 289 */
+/* 312 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _selectEditor = __webpack_require__(290);
+var _selectEditor = __webpack_require__(313);
 exports.EDITOR_TYPE = _selectEditor.EDITOR_TYPE;
 exports.SelectEditor = _selectEditor.SelectEditor;
 
 /***/ }),
-/* 290 */
+/* 313 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _baseEditor = __webpack_require__(207);
-var _element = __webpack_require__(5);
-var _object = __webpack_require__(14);
-var _a11y = __webpack_require__(12);
+var _baseEditor = __webpack_require__(206);
+var _element = __webpack_require__(4);
+var _object = __webpack_require__(13);
+var _a11y = __webpack_require__(11);
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const SHORTCUTS_GROUP = 'selectEditor';
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'select';
@@ -51433,26 +54014,26 @@ class SelectEditor extends _baseEditor.BaseEditor {
 exports.SelectEditor = SelectEditor;
 
 /***/ }),
-/* 291 */
+/* 314 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _timeEditor = __webpack_require__(292);
+var _timeEditor = __webpack_require__(315);
 exports.EDITOR_TYPE = _timeEditor.EDITOR_TYPE;
 exports.TimeEditor = _timeEditor.TimeEditor;
 
 /***/ }),
-/* 292 */
+/* 315 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _textEditor = __webpack_require__(266);
+var _textEditor = __webpack_require__(289);
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'time';
 
 /**
@@ -51482,14 +54063,14 @@ class TimeEditor extends _textEditor.TextEditor {
 exports.TimeEditor = TimeEditor;
 
 /***/ }),
-/* 293 */
+/* 316 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _baseEditor = __webpack_require__(208);
+var _baseEditor = __webpack_require__(207);
 /**
  * Factory function for creating custom Handsontable editors by extending BaseEditor.
  *
@@ -51669,7 +54250,7 @@ const editorFactory = ({
 exports.editorFactory = editorFactory;
 
 /***/ }),
-/* 294 */
+/* 317 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -51677,49 +54258,49 @@ exports.editorFactory = editorFactory;
 
 exports.__esModule = true;
 exports.registerAllRenderers = registerAllRenderers;
-var _autocompleteRenderer = __webpack_require__(295);
+var _autocompleteRenderer = __webpack_require__(318);
 exports.autocompleteRenderer = _autocompleteRenderer.autocompleteRenderer;
 exports.AUTOCOMPLETE_RENDERER = _autocompleteRenderer.RENDERER_TYPE;
-var _baseRenderer = __webpack_require__(262);
+var _baseRenderer = __webpack_require__(285);
 exports.baseRenderer = _baseRenderer.baseRenderer;
 exports.BASE_RENDERER = _baseRenderer.RENDERER_TYPE;
-var _dropdownRenderer = __webpack_require__(299);
+var _dropdownRenderer = __webpack_require__(322);
 exports.dropdownRenderer = _dropdownRenderer.dropdownRenderer;
 exports.DROPDOWN_RENDERER = _dropdownRenderer.RENDERER_TYPE;
-var _checkboxRenderer = __webpack_require__(301);
+var _checkboxRenderer = __webpack_require__(324);
 exports.checkboxRenderer = _checkboxRenderer.checkboxRenderer;
 exports.CHECKBOX_RENDERER = _checkboxRenderer.RENDERER_TYPE;
-var _handsontableRenderer = __webpack_require__(303);
+var _handsontableRenderer = __webpack_require__(326);
 exports.handsontableRenderer = _handsontableRenderer.handsontableRenderer;
 exports.HANDSONTABLE_RENDERER = _handsontableRenderer.RENDERER_TYPE;
-var _htmlRenderer = __webpack_require__(297);
+var _htmlRenderer = __webpack_require__(320);
 exports.htmlRenderer = _htmlRenderer.htmlRenderer;
 exports.HTML_RENDERER = _htmlRenderer.RENDERER_TYPE;
-var _numericRenderer = __webpack_require__(305);
+var _numericRenderer = __webpack_require__(328);
 exports.numericRenderer = _numericRenderer.numericRenderer;
 exports.NUMERIC_RENDERER = _numericRenderer.RENDERER_TYPE;
-var _passwordRenderer = __webpack_require__(309);
+var _passwordRenderer = __webpack_require__(332);
 exports.passwordRenderer = _passwordRenderer.passwordRenderer;
 exports.PASSWORD_RENDERER = _passwordRenderer.RENDERER_TYPE;
-var _selectRenderer = __webpack_require__(311);
+var _selectRenderer = __webpack_require__(334);
 exports.selectRenderer = _selectRenderer.selectRenderer;
 exports.SELECT_RENDERER = _selectRenderer.RENDERER_TYPE;
-var _textRenderer = __webpack_require__(270);
+var _textRenderer = __webpack_require__(293);
 exports.textRenderer = _textRenderer.textRenderer;
 exports.TEXT_RENDERER = _textRenderer.RENDERER_TYPE;
-var _timeRenderer = __webpack_require__(313);
+var _timeRenderer = __webpack_require__(336);
 exports.timeRenderer = _timeRenderer.timeRenderer;
 exports.TIME_RENDERER = _timeRenderer.RENDERER_TYPE;
-var _dateRenderer = __webpack_require__(315);
+var _dateRenderer = __webpack_require__(338);
 exports.dateRenderer = _dateRenderer.dateRenderer;
 exports.DATE_RENDERER = _dateRenderer.RENDERER_TYPE;
-var _registry = __webpack_require__(33);
+var _registry = __webpack_require__(32);
 exports.registerRenderer = _registry.registerRenderer;
 exports.getRegisteredRendererNames = _registry.getRegisteredRendererNames;
 exports.getRegisteredRenderers = _registry.getRegisteredRenderers;
 exports.getRenderer = _registry.getRenderer;
 exports.hasRenderer = _registry.hasRenderer;
-var _factory = __webpack_require__(317);
+var _factory = __webpack_require__(340);
 exports.rendererFactory = _factory.rendererFactory;
 /**
  * Registers all available renderers.
@@ -51740,19 +54321,19 @@ function registerAllRenderers() {
 }
 
 /***/ }),
-/* 295 */
+/* 318 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _autocompleteRenderer = __webpack_require__(296);
+var _autocompleteRenderer = __webpack_require__(319);
 exports.RENDERER_TYPE = _autocompleteRenderer.RENDERER_TYPE;
 exports.autocompleteRenderer = _autocompleteRenderer.autocompleteRenderer;
 
 /***/ }),
-/* 296 */
+/* 319 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -51761,11 +54342,11 @@ exports.autocompleteRenderer = _autocompleteRenderer.autocompleteRenderer;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.autocompleteRenderer = autocompleteRenderer;
-var _htmlRenderer = __webpack_require__(297);
-var _textRenderer = __webpack_require__(270);
-var _eventManager = _interopRequireDefault(__webpack_require__(26));
-var _element = __webpack_require__(5);
-var _a11y = __webpack_require__(12);
+var _htmlRenderer = __webpack_require__(320);
+var _textRenderer = __webpack_require__(293);
+var _eventManager = _interopRequireDefault(__webpack_require__(25));
+var _element = __webpack_require__(4);
+var _a11y = __webpack_require__(11);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'autocomplete';
 
 /**
@@ -51821,19 +54402,19 @@ function autocompleteRenderer(hotInstance, TD, row, col, prop, value, cellProper
 autocompleteRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
 /***/ }),
-/* 297 */
+/* 320 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _htmlRenderer = __webpack_require__(298);
+var _htmlRenderer = __webpack_require__(321);
 exports.RENDERER_TYPE = _htmlRenderer.RENDERER_TYPE;
 exports.htmlRenderer = _htmlRenderer.htmlRenderer;
 
 /***/ }),
-/* 298 */
+/* 321 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -51841,7 +54422,7 @@ exports.htmlRenderer = _htmlRenderer.htmlRenderer;
 
 exports.__esModule = true;
 exports.htmlRenderer = htmlRenderer;
-var _element = __webpack_require__(5);
+var _element = __webpack_require__(4);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'html';
 
 /**
@@ -51859,19 +54440,19 @@ function htmlRenderer(hotInstance, TD, row, col, prop, value) {
 htmlRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
 /***/ }),
-/* 299 */
+/* 322 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dropdownRenderer = __webpack_require__(300);
+var _dropdownRenderer = __webpack_require__(323);
 exports.RENDERER_TYPE = _dropdownRenderer.RENDERER_TYPE;
 exports.dropdownRenderer = _dropdownRenderer.dropdownRenderer;
 
 /***/ }),
-/* 300 */
+/* 323 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -51879,7 +54460,7 @@ exports.dropdownRenderer = _dropdownRenderer.dropdownRenderer;
 
 exports.__esModule = true;
 exports.dropdownRenderer = dropdownRenderer;
-var _autocompleteRenderer = __webpack_require__(295);
+var _autocompleteRenderer = __webpack_require__(318);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'dropdown';
 
 /**
@@ -51900,19 +54481,19 @@ function dropdownRenderer(hotInstance, TD, row, col, prop, value, cellProperties
 dropdownRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
 /***/ }),
-/* 301 */
+/* 324 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _checkboxRenderer = __webpack_require__(302);
+var _checkboxRenderer = __webpack_require__(325);
 exports.RENDERER_TYPE = _checkboxRenderer.RENDERER_TYPE;
 exports.checkboxRenderer = _checkboxRenderer.checkboxRenderer;
 
 /***/ }),
-/* 302 */
+/* 325 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -51921,13 +54502,13 @@ exports.checkboxRenderer = _checkboxRenderer.checkboxRenderer;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.checkboxRenderer = checkboxRenderer;
-var _eventManager = _interopRequireDefault(__webpack_require__(26));
-var _element = __webpack_require__(5);
-var _mixed = __webpack_require__(8);
-var _shortcutContexts = __webpack_require__(200);
-var _hooks = __webpack_require__(21);
-var _a11y = __webpack_require__(12);
-var _constants = __webpack_require__(141);
+var _eventManager = _interopRequireDefault(__webpack_require__(25));
+var _element = __webpack_require__(4);
+var _mixed = __webpack_require__(7);
+var _shortcutContexts = __webpack_require__(199);
+var _hooks = __webpack_require__(20);
+var _a11y = __webpack_require__(11);
+var _constants = __webpack_require__(140);
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
 const BAD_VALUE_CLASS = 'htBadValue';
@@ -52355,19 +54936,19 @@ function isCheckboxInput(element) {
 }
 
 /***/ }),
-/* 303 */
+/* 326 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _handsontableRenderer = __webpack_require__(304);
+var _handsontableRenderer = __webpack_require__(327);
 exports.RENDERER_TYPE = _handsontableRenderer.RENDERER_TYPE;
 exports.handsontableRenderer = _handsontableRenderer.handsontableRenderer;
 
 /***/ }),
-/* 304 */
+/* 327 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52375,7 +54956,7 @@ exports.handsontableRenderer = _handsontableRenderer.handsontableRenderer;
 
 exports.__esModule = true;
 exports.handsontableRenderer = handsontableRenderer;
-var _autocompleteRenderer = __webpack_require__(295);
+var _autocompleteRenderer = __webpack_require__(318);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'handsontable';
 
 /**
@@ -52396,20 +54977,20 @@ function handsontableRenderer(hotInstance, TD, row, col, prop, value, cellProper
 handsontableRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
 /***/ }),
-/* 305 */
+/* 328 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _numericRenderer = __webpack_require__(306);
+var _numericRenderer = __webpack_require__(329);
 exports.RENDERER_TYPE = _numericRenderer.RENDERER_TYPE;
 exports.numericRenderer = _numericRenderer.numericRenderer;
 exports.valueFormatter = _numericRenderer.valueFormatter;
 
 /***/ }),
-/* 306 */
+/* 329 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52418,10 +54999,10 @@ exports.valueFormatter = _numericRenderer.valueFormatter;
 exports.__esModule = true;
 exports.numericRenderer = numericRenderer;
 exports.valueFormatter = valueFormatter;
-var _textRenderer = __webpack_require__(270);
-var _number = __webpack_require__(30);
-var _console = __webpack_require__(22);
-var _utils = __webpack_require__(307);
+var _textRenderer = __webpack_require__(293);
+var _number = __webpack_require__(29);
+var _console = __webpack_require__(21);
+var _utils = __webpack_require__(330);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'numeric';
 const deprecatedMessageShown = new WeakMap();
 
@@ -52486,7 +55067,7 @@ numericRenderer.valueFormatter = valueFormatter;
 numericRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
 /***/ }),
-/* 307 */
+/* 330 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52497,7 +55078,7 @@ exports.__esModule = true;
 exports.intlFormatter = intlFormatter;
 exports.isNumbroScheme = isNumbroScheme;
 exports.numbroFormatter = numbroFormatter;
-var _numbro = _interopRequireDefault(__webpack_require__(308));
+var _numbro = _interopRequireDefault(__webpack_require__(331));
 const DEFAULT_INTL_FORMAT = {
   useGrouping: false,
   maximumFractionDigits: 20
@@ -52552,26 +55133,26 @@ function isNumbroScheme(cellProperties) {
 }
 
 /***/ }),
-/* 308 */
+/* 331 */
 /***/ ((module) => {
 
 "use strict";
-module.exports = __WEBPACK_EXTERNAL_MODULE__308__;
+module.exports = __WEBPACK_EXTERNAL_MODULE__331__;
 
 /***/ }),
-/* 309 */
+/* 332 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _passwordRenderer = __webpack_require__(310);
+var _passwordRenderer = __webpack_require__(333);
 exports.RENDERER_TYPE = _passwordRenderer.RENDERER_TYPE;
 exports.passwordRenderer = _passwordRenderer.passwordRenderer;
 
 /***/ }),
-/* 310 */
+/* 333 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52580,8 +55161,8 @@ exports.passwordRenderer = _passwordRenderer.passwordRenderer;
 exports.__esModule = true;
 exports.passwordRenderer = passwordRenderer;
 exports.valueFormatter = valueFormatter;
-var _element = __webpack_require__(5);
-var _mixed = __webpack_require__(8);
+var _element = __webpack_require__(4);
+var _mixed = __webpack_require__(7);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'password';
 
 /**
@@ -52617,19 +55198,19 @@ passwordRenderer.valueFormatter = valueFormatter;
 passwordRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
 /***/ }),
-/* 311 */
+/* 334 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _selectRenderer = __webpack_require__(312);
+var _selectRenderer = __webpack_require__(335);
 exports.RENDERER_TYPE = _selectRenderer.RENDERER_TYPE;
 exports.selectRenderer = _selectRenderer.selectRenderer;
 
 /***/ }),
-/* 312 */
+/* 335 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52637,7 +55218,7 @@ exports.selectRenderer = _selectRenderer.selectRenderer;
 
 exports.__esModule = true;
 exports.selectRenderer = selectRenderer;
-var _textRenderer = __webpack_require__(270);
+var _textRenderer = __webpack_require__(293);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'select';
 
 /**
@@ -52656,19 +55237,19 @@ function selectRenderer(hotInstance, TD, row, col, prop, value, cellProperties) 
 selectRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
 /***/ }),
-/* 313 */
+/* 336 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _timeRenderer = __webpack_require__(314);
+var _timeRenderer = __webpack_require__(337);
 exports.RENDERER_TYPE = _timeRenderer.RENDERER_TYPE;
 exports.timeRenderer = _timeRenderer.timeRenderer;
 
 /***/ }),
-/* 314 */
+/* 337 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52676,7 +55257,7 @@ exports.timeRenderer = _timeRenderer.timeRenderer;
 
 exports.__esModule = true;
 exports.timeRenderer = timeRenderer;
-var _textRenderer = __webpack_require__(270);
+var _textRenderer = __webpack_require__(293);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'time';
 
 /**
@@ -52698,19 +55279,19 @@ function timeRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
 timeRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
 /***/ }),
-/* 315 */
+/* 338 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dateRenderer = __webpack_require__(316);
+var _dateRenderer = __webpack_require__(339);
 exports.RENDERER_TYPE = _dateRenderer.RENDERER_TYPE;
 exports.dateRenderer = _dateRenderer.dateRenderer;
 
 /***/ }),
-/* 316 */
+/* 339 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52718,7 +55299,7 @@ exports.dateRenderer = _dateRenderer.dateRenderer;
 
 exports.__esModule = true;
 exports.dateRenderer = dateRenderer;
-var _autocompleteRenderer = __webpack_require__(295);
+var _autocompleteRenderer = __webpack_require__(318);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'date';
 
 /**
@@ -52739,7 +55320,7 @@ function dateRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
 dateRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
 /***/ }),
-/* 317 */
+/* 340 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -52796,7 +55377,7 @@ const rendererFactory = callback => {
 exports.rendererFactory = rendererFactory;
 
 /***/ }),
-/* 318 */
+/* 341 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52804,22 +55385,22 @@ exports.rendererFactory = rendererFactory;
 
 exports.__esModule = true;
 exports.registerAllValidators = registerAllValidators;
-var _autocompleteValidator = __webpack_require__(319);
+var _autocompleteValidator = __webpack_require__(342);
 exports.autocompleteValidator = _autocompleteValidator.autocompleteValidator;
 exports.AUTOCOMPLETE_VALIDATOR = _autocompleteValidator.VALIDATOR_TYPE;
-var _dateValidator = __webpack_require__(321);
+var _dateValidator = __webpack_require__(344);
 exports.dateValidator = _dateValidator.dateValidator;
 exports.DATE_VALIDATOR = _dateValidator.VALIDATOR_TYPE;
-var _dropdownValidator = __webpack_require__(324);
+var _dropdownValidator = __webpack_require__(347);
 exports.dropdownValidator = _dropdownValidator.dropdownValidator;
 exports.DROPDOWN_VALIDATOR = _dropdownValidator.VALIDATOR_TYPE;
-var _numericValidator = __webpack_require__(326);
+var _numericValidator = __webpack_require__(349);
 exports.numericValidator = _numericValidator.numericValidator;
 exports.NUMERIC_VALIDATOR = _numericValidator.VALIDATOR_TYPE;
-var _timeValidator = __webpack_require__(328);
+var _timeValidator = __webpack_require__(351);
 exports.timeValidator = _timeValidator.timeValidator;
 exports.TIME_VALIDATOR = _timeValidator.VALIDATOR_TYPE;
-var _registry = __webpack_require__(34);
+var _registry = __webpack_require__(33);
 exports.registerValidator = _registry.registerValidator;
 exports.getRegisteredValidatorNames = _registry.getRegisteredValidatorNames;
 exports.getRegisteredValidators = _registry.getRegisteredValidators;
@@ -52837,19 +55418,19 @@ function registerAllValidators() {
 }
 
 /***/ }),
-/* 319 */
+/* 342 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _autocompleteValidator = __webpack_require__(320);
+var _autocompleteValidator = __webpack_require__(343);
 exports.VALIDATOR_TYPE = _autocompleteValidator.VALIDATOR_TYPE;
 exports.autocompleteValidator = _autocompleteValidator.autocompleteValidator;
 
 /***/ }),
-/* 320 */
+/* 343 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52857,7 +55438,8 @@ exports.autocompleteValidator = _autocompleteValidator.autocompleteValidator;
 
 exports.__esModule = true;
 exports.autocompleteValidator = autocompleteValidator;
-var _object = __webpack_require__(14);
+var _object = __webpack_require__(13);
+var _mixed = __webpack_require__(7);
 const VALIDATOR_TYPE = exports.VALIDATOR_TYPE = 'autocomplete';
 
 /**
@@ -52868,8 +55450,15 @@ const VALIDATOR_TYPE = exports.VALIDATOR_TYPE = 'autocomplete';
  * @param {Function} callback Callback called with validation result.
  */
 function autocompleteValidator(value, callback) {
+  const isKeyValueObject = obj => (0, _object.isObject)(obj) && (0, _mixed.isDefined)(obj.key) && (0, _mixed.isDefined)(obj.value);
+  const isNullOrUndefined = val => {
+    if (isKeyValueObject(val)) {
+      return isNullOrUndefined(val.key) && isNullOrUndefined(val.value);
+    }
+    return val === null || val === undefined;
+  };
   let valueToValidate = value;
-  if (valueToValidate === null || valueToValidate === undefined) {
+  if (isNullOrUndefined(valueToValidate)) {
     valueToValidate = '';
   }
   if (this.allowEmpty && valueToValidate === '') {
@@ -52910,20 +55499,20 @@ function process(value, callback) {
 }
 
 /***/ }),
-/* 321 */
+/* 344 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dateValidator = __webpack_require__(322);
+var _dateValidator = __webpack_require__(345);
 exports.VALIDATOR_TYPE = _dateValidator.VALIDATOR_TYPE;
 exports.correctFormat = _dateValidator.correctFormat;
 exports.dateValidator = _dateValidator.dateValidator;
 
 /***/ }),
-/* 322 */
+/* 345 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52933,10 +55522,10 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.correctFormat = correctFormat;
 exports.dateValidator = dateValidator;
-var _moment = _interopRequireDefault(__webpack_require__(9));
-var _registry = __webpack_require__(20);
-var _dateEditor = __webpack_require__(280);
-var _date = __webpack_require__(323);
+var _moment = _interopRequireDefault(__webpack_require__(8));
+var _registry = __webpack_require__(19);
+var _dateEditor = __webpack_require__(303);
+var _date = __webpack_require__(346);
 const VALIDATOR_TYPE = exports.VALIDATOR_TYPE = 'date';
 /**
  * The Date cell validator.
@@ -52999,7 +55588,7 @@ function correctFormat(value, dateFormat) {
 }
 
 /***/ }),
-/* 323 */
+/* 346 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -53027,19 +55616,19 @@ function getNormalizedDate(dateString) {
 }
 
 /***/ }),
-/* 324 */
+/* 347 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dropdownValidator = __webpack_require__(325);
+var _dropdownValidator = __webpack_require__(348);
 exports.VALIDATOR_TYPE = _dropdownValidator.VALIDATOR_TYPE;
 exports.dropdownValidator = _dropdownValidator.dropdownValidator;
 
 /***/ }),
-/* 325 */
+/* 348 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53047,7 +55636,7 @@ exports.dropdownValidator = _dropdownValidator.dropdownValidator;
 
 exports.__esModule = true;
 exports.dropdownValidator = dropdownValidator;
-var _autocompleteValidator = __webpack_require__(320);
+var _autocompleteValidator = __webpack_require__(343);
 const VALIDATOR_TYPE = exports.VALIDATOR_TYPE = 'dropdown';
 
 /**
@@ -53063,19 +55652,19 @@ function dropdownValidator(value, callback) {
 dropdownValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
 
 /***/ }),
-/* 326 */
+/* 349 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _numericValidator = __webpack_require__(327);
+var _numericValidator = __webpack_require__(350);
 exports.VALIDATOR_TYPE = _numericValidator.VALIDATOR_TYPE;
 exports.numericValidator = _numericValidator.numericValidator;
 
 /***/ }),
-/* 327 */
+/* 350 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53083,7 +55672,7 @@ exports.numericValidator = _numericValidator.numericValidator;
 
 exports.__esModule = true;
 exports.numericValidator = numericValidator;
-var _number = __webpack_require__(30);
+var _number = __webpack_require__(29);
 const VALIDATOR_TYPE = exports.VALIDATOR_TYPE = 'numeric';
 
 /**
@@ -53109,19 +55698,19 @@ function numericValidator(value, callback) {
 numericValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
 
 /***/ }),
-/* 328 */
+/* 351 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _timeValidator = __webpack_require__(329);
+var _timeValidator = __webpack_require__(352);
 exports.VALIDATOR_TYPE = _timeValidator.VALIDATOR_TYPE;
 exports.timeValidator = _timeValidator.timeValidator;
 
 /***/ }),
-/* 329 */
+/* 352 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53130,7 +55719,7 @@ exports.timeValidator = _timeValidator.timeValidator;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.timeValidator = timeValidator;
-var _moment = _interopRequireDefault(__webpack_require__(9));
+var _moment = _interopRequireDefault(__webpack_require__(8));
 // Formats which are correctly parsed to time (supported by momentjs)
 const STRICT_FORMATS = ['YYYY-MM-DDTHH:mm:ss.SSSZ', 'X',
 // Unix timestamp
@@ -53187,7 +55776,7 @@ function timeValidator(value, callback) {
 timeValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
 
 /***/ }),
-/* 330 */
+/* 353 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53195,37 +55784,37 @@ timeValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
 
 exports.__esModule = true;
 exports.registerAllCellTypes = registerAllCellTypes;
-var _autocompleteType = __webpack_require__(331);
+var _autocompleteType = __webpack_require__(354);
 exports.AutocompleteCellType = _autocompleteType.AutocompleteCellType;
 exports.AUTOCOMPLETE_TYPE = _autocompleteType.CELL_TYPE;
-var _checkboxType = __webpack_require__(336);
+var _checkboxType = __webpack_require__(359);
 exports.CheckboxCellType = _checkboxType.CheckboxCellType;
 exports.CHECKBOX_TYPE = _checkboxType.CELL_TYPE;
-var _dateType = __webpack_require__(340);
+var _dateType = __webpack_require__(363);
 exports.DateCellType = _dateType.DateCellType;
 exports.DATE_TYPE = _dateType.CELL_TYPE;
-var _dropdownType = __webpack_require__(342);
+var _dropdownType = __webpack_require__(365);
 exports.DropdownCellType = _dropdownType.DropdownCellType;
 exports.DROPDOWN_TYPE = _dropdownType.CELL_TYPE;
-var _handsontableType = __webpack_require__(347);
+var _handsontableType = __webpack_require__(370);
 exports.HandsontableCellType = _handsontableType.HandsontableCellType;
 exports.HANDSONTABLE_TYPE = _handsontableType.CELL_TYPE;
-var _numericType = __webpack_require__(349);
+var _numericType = __webpack_require__(372);
 exports.NumericCellType = _numericType.NumericCellType;
 exports.NUMERIC_TYPE = _numericType.CELL_TYPE;
-var _passwordType = __webpack_require__(353);
+var _passwordType = __webpack_require__(376);
 exports.PasswordCellType = _passwordType.PasswordCellType;
 exports.PASSWORD_TYPE = _passwordType.CELL_TYPE;
-var _selectType = __webpack_require__(355);
+var _selectType = __webpack_require__(378);
 exports.SelectCellType = _selectType.SelectCellType;
 exports.SELECT_TYPE = _selectType.CELL_TYPE;
-var _textType = __webpack_require__(264);
+var _textType = __webpack_require__(287);
 exports.TextCellType = _textType.TextCellType;
 exports.TEXT_TYPE = _textType.CELL_TYPE;
-var _timeType = __webpack_require__(357);
+var _timeType = __webpack_require__(380);
 exports.TimeCellType = _timeType.TimeCellType;
 exports.TIME_TYPE = _timeType.CELL_TYPE;
-var _registry = __webpack_require__(169);
+var _registry = __webpack_require__(168);
 exports.registerCellType = _registry.registerCellType;
 exports.getCellType = _registry.getCellType;
 exports.getRegisteredCellTypeNames = _registry.getRegisteredCellTypeNames;
@@ -53248,29 +55837,29 @@ function registerAllCellTypes() {
 }
 
 /***/ }),
-/* 331 */
+/* 354 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _autocompleteType = __webpack_require__(332);
+var _autocompleteType = __webpack_require__(355);
 exports.AutocompleteCellType = _autocompleteType.AutocompleteCellType;
 exports.CELL_TYPE = _autocompleteType.CELL_TYPE;
 
 /***/ }),
-/* 332 */
+/* 355 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _autocompleteEditor = __webpack_require__(274);
-var _autocompleteRenderer = __webpack_require__(295);
-var _autocompleteValidator = __webpack_require__(319);
-var _accessors = __webpack_require__(333);
+var _autocompleteEditor = __webpack_require__(297);
+var _autocompleteRenderer = __webpack_require__(318);
+var _autocompleteValidator = __webpack_require__(342);
+var _accessors = __webpack_require__(356);
 const CELL_TYPE = exports.CELL_TYPE = 'autocomplete';
 const AutocompleteCellType = exports.AutocompleteCellType = {
   CELL_TYPE,
@@ -53282,20 +55871,20 @@ const AutocompleteCellType = exports.AutocompleteCellType = {
 };
 
 /***/ }),
-/* 333 */
+/* 356 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _valueGetter = __webpack_require__(334);
+var _valueGetter = __webpack_require__(357);
 exports.valueGetter = _valueGetter.valueGetter;
-var _valueSetter = __webpack_require__(335);
+var _valueSetter = __webpack_require__(358);
 exports.valueSetter = _valueSetter.valueSetter;
 
 /***/ }),
-/* 334 */
+/* 357 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53303,7 +55892,7 @@ exports.valueSetter = _valueSetter.valueSetter;
 
 exports.__esModule = true;
 exports.valueGetter = valueGetter;
-var _object = __webpack_require__(14);
+var _object = __webpack_require__(13);
 /**
  * Defines the value being displayed in an autocomplete-typed cells.
  *
@@ -53315,7 +55904,7 @@ function valueGetter(value) {
 }
 
 /***/ }),
-/* 335 */
+/* 358 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53323,8 +55912,8 @@ function valueGetter(value) {
 
 exports.__esModule = true;
 exports.valueSetter = valueSetter;
-var _object = __webpack_require__(14);
-var _mixed = __webpack_require__(8);
+var _object = __webpack_require__(13);
+var _mixed = __webpack_require__(7);
 /**
  * Defines what value is set to an autocomplete-typed cell.
  *
@@ -53346,28 +55935,28 @@ function valueSetter(newValue, row, column) {
 }
 
 /***/ }),
-/* 336 */
+/* 359 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _checkboxType = __webpack_require__(337);
+var _checkboxType = __webpack_require__(360);
 exports.CELL_TYPE = _checkboxType.CELL_TYPE;
 exports.CheckboxCellType = _checkboxType.CheckboxCellType;
 
 /***/ }),
-/* 337 */
+/* 360 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _checkboxEditor = __webpack_require__(278);
-var _checkboxRenderer = __webpack_require__(301);
-var _accessors = __webpack_require__(338);
+var _checkboxEditor = __webpack_require__(301);
+var _checkboxRenderer = __webpack_require__(324);
+var _accessors = __webpack_require__(361);
 const CELL_TYPE = exports.CELL_TYPE = 'checkbox';
 const CheckboxCellType = exports.CheckboxCellType = {
   CELL_TYPE,
@@ -53377,18 +55966,18 @@ const CheckboxCellType = exports.CheckboxCellType = {
 };
 
 /***/ }),
-/* 338 */
+/* 361 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _valueSetter = __webpack_require__(339);
+var _valueSetter = __webpack_require__(362);
 exports.valueSetter = _valueSetter.valueSetter;
 
 /***/ }),
-/* 339 */
+/* 362 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53396,7 +55985,7 @@ exports.valueSetter = _valueSetter.valueSetter;
 
 exports.__esModule = true;
 exports.valueSetter = valueSetter;
-var _mixed = __webpack_require__(8);
+var _mixed = __webpack_require__(7);
 /**
  * Defines what value is set to a checkbox-typed cell.
  *
@@ -53420,28 +56009,28 @@ function valueSetter(newValue, row, column) {
 }
 
 /***/ }),
-/* 340 */
+/* 363 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dateType = __webpack_require__(341);
+var _dateType = __webpack_require__(364);
 exports.CELL_TYPE = _dateType.CELL_TYPE;
 exports.DateCellType = _dateType.DateCellType;
 
 /***/ }),
-/* 341 */
+/* 364 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dateEditor = __webpack_require__(280);
-var _dateRenderer = __webpack_require__(315);
-var _dateValidator = __webpack_require__(321);
+var _dateEditor = __webpack_require__(303);
+var _dateRenderer = __webpack_require__(338);
+var _dateValidator = __webpack_require__(344);
 const CELL_TYPE = exports.CELL_TYPE = 'date';
 const DateCellType = exports.DateCellType = {
   CELL_TYPE,
@@ -53452,29 +56041,29 @@ const DateCellType = exports.DateCellType = {
 };
 
 /***/ }),
-/* 342 */
+/* 365 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dropdownType = __webpack_require__(343);
+var _dropdownType = __webpack_require__(366);
 exports.CELL_TYPE = _dropdownType.CELL_TYPE;
 exports.DropdownCellType = _dropdownType.DropdownCellType;
 
 /***/ }),
-/* 343 */
+/* 366 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dropdownEditor = __webpack_require__(283);
-var _dropdownRenderer = __webpack_require__(299);
-var _dropdownValidator = __webpack_require__(324);
-var _accessors = __webpack_require__(344);
+var _dropdownEditor = __webpack_require__(306);
+var _dropdownRenderer = __webpack_require__(322);
+var _dropdownValidator = __webpack_require__(347);
+var _accessors = __webpack_require__(367);
 const CELL_TYPE = exports.CELL_TYPE = 'dropdown';
 const DropdownCellType = exports.DropdownCellType = {
   CELL_TYPE,
@@ -53489,20 +56078,20 @@ const DropdownCellType = exports.DropdownCellType = {
 };
 
 /***/ }),
-/* 344 */
+/* 367 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _valueGetter = __webpack_require__(345);
+var _valueGetter = __webpack_require__(368);
 exports.valueGetter = _valueGetter.valueGetter;
-var _valueSetter = __webpack_require__(346);
+var _valueSetter = __webpack_require__(369);
 exports.valueSetter = _valueSetter.valueSetter;
 
 /***/ }),
-/* 345 */
+/* 368 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53510,7 +56099,7 @@ exports.valueSetter = _valueSetter.valueSetter;
 
 exports.__esModule = true;
 exports.valueGetter = valueGetter;
-var _accessors = __webpack_require__(333);
+var _accessors = __webpack_require__(356);
 /**
  * Defines the value being displayed in an dropdown-typed cells.
  *
@@ -53522,7 +56111,7 @@ function valueGetter(value) {
 }
 
 /***/ }),
-/* 346 */
+/* 369 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53530,7 +56119,7 @@ function valueGetter(value) {
 
 exports.__esModule = true;
 exports.valueSetter = valueSetter;
-var _accessors = __webpack_require__(333);
+var _accessors = __webpack_require__(356);
 /**
  * Defines what value is set to an dropdown-typed cell.
  *
@@ -53545,27 +56134,27 @@ function valueSetter(newValue, row, column, cellMeta) {
 }
 
 /***/ }),
-/* 347 */
+/* 370 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _handsontableType = __webpack_require__(348);
+var _handsontableType = __webpack_require__(371);
 exports.CELL_TYPE = _handsontableType.CELL_TYPE;
 exports.HandsontableCellType = _handsontableType.HandsontableCellType;
 
 /***/ }),
-/* 348 */
+/* 371 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _handsontableEditor = __webpack_require__(276);
-var _handsontableRenderer = __webpack_require__(303);
+var _handsontableEditor = __webpack_require__(299);
+var _handsontableRenderer = __webpack_require__(326);
 const CELL_TYPE = exports.CELL_TYPE = 'handsontable';
 const HandsontableCellType = exports.HandsontableCellType = {
   CELL_TYPE,
@@ -53575,29 +56164,29 @@ const HandsontableCellType = exports.HandsontableCellType = {
 };
 
 /***/ }),
-/* 349 */
+/* 372 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _numericType = __webpack_require__(350);
+var _numericType = __webpack_require__(373);
 exports.CELL_TYPE = _numericType.CELL_TYPE;
 exports.NumericCellType = _numericType.NumericCellType;
 
 /***/ }),
-/* 350 */
+/* 373 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _numericEditor = __webpack_require__(285);
-var _numericRenderer = __webpack_require__(305);
-var _numericValidator = __webpack_require__(326);
-var _accessors = __webpack_require__(351);
+var _numericEditor = __webpack_require__(308);
+var _numericRenderer = __webpack_require__(328);
+var _numericValidator = __webpack_require__(349);
+var _accessors = __webpack_require__(374);
 const CELL_TYPE = exports.CELL_TYPE = 'numeric';
 const NumericCellType = exports.NumericCellType = {
   CELL_TYPE,
@@ -53610,18 +56199,18 @@ const NumericCellType = exports.NumericCellType = {
 };
 
 /***/ }),
-/* 351 */
+/* 374 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _valueSetter = __webpack_require__(352);
+var _valueSetter = __webpack_require__(375);
 exports.valueSetter = _valueSetter.valueSetter;
 
 /***/ }),
-/* 352 */
+/* 375 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53629,8 +56218,8 @@ exports.valueSetter = _valueSetter.valueSetter;
 
 exports.__esModule = true;
 exports.valueSetter = valueSetter;
-var _number = __webpack_require__(30);
-var _utils = __webpack_require__(168);
+var _number = __webpack_require__(29);
+var _utils = __webpack_require__(167);
 /**
  * Defines what value is set to a numeric-typed cell.
  *
@@ -53646,27 +56235,27 @@ function valueSetter(newValue) {
 }
 
 /***/ }),
-/* 353 */
+/* 376 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _passwordType = __webpack_require__(354);
+var _passwordType = __webpack_require__(377);
 exports.CELL_TYPE = _passwordType.CELL_TYPE;
 exports.PasswordCellType = _passwordType.PasswordCellType;
 
 /***/ }),
-/* 354 */
+/* 377 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _passwordEditor = __webpack_require__(287);
-var _passwordRenderer = __webpack_require__(309);
+var _passwordEditor = __webpack_require__(310);
+var _passwordRenderer = __webpack_require__(332);
 const CELL_TYPE = exports.CELL_TYPE = 'password';
 const PasswordCellType = exports.PasswordCellType = {
   CELL_TYPE,
@@ -53676,27 +56265,27 @@ const PasswordCellType = exports.PasswordCellType = {
 };
 
 /***/ }),
-/* 355 */
+/* 378 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _selectType = __webpack_require__(356);
+var _selectType = __webpack_require__(379);
 exports.CELL_TYPE = _selectType.CELL_TYPE;
 exports.SelectCellType = _selectType.SelectCellType;
 
 /***/ }),
-/* 356 */
+/* 379 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _selectEditor = __webpack_require__(289);
-var _selectRenderer = __webpack_require__(311);
+var _selectEditor = __webpack_require__(312);
+var _selectRenderer = __webpack_require__(334);
 const CELL_TYPE = exports.CELL_TYPE = 'select';
 const SelectCellType = exports.SelectCellType = {
   CELL_TYPE,
@@ -53705,28 +56294,28 @@ const SelectCellType = exports.SelectCellType = {
 };
 
 /***/ }),
-/* 357 */
+/* 380 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _timeType = __webpack_require__(358);
+var _timeType = __webpack_require__(381);
 exports.CELL_TYPE = _timeType.CELL_TYPE;
 exports.TimeCellType = _timeType.TimeCellType;
 
 /***/ }),
-/* 358 */
+/* 381 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _timeEditor = __webpack_require__(291);
-var _timeRenderer = __webpack_require__(313);
-var _timeValidator = __webpack_require__(328);
+var _timeEditor = __webpack_require__(314);
+var _timeRenderer = __webpack_require__(336);
+var _timeValidator = __webpack_require__(351);
 const CELL_TYPE = exports.CELL_TYPE = 'time';
 const TimeCellType = exports.TimeCellType = {
   CELL_TYPE,
@@ -53736,7 +56325,7 @@ const TimeCellType = exports.TimeCellType = {
 };
 
 /***/ }),
-/* 359 */
+/* 382 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53744,85 +56333,85 @@ const TimeCellType = exports.TimeCellType = {
 
 exports.__esModule = true;
 exports.registerAllPlugins = registerAllPlugins;
-var _autoColumnSize = __webpack_require__(360);
+var _autoColumnSize = __webpack_require__(383);
 exports.AutoColumnSize = _autoColumnSize.AutoColumnSize;
-var _autofill = __webpack_require__(366);
+var _autofill = __webpack_require__(389);
 exports.Autofill = _autofill.Autofill;
-var _autoRowSize = __webpack_require__(369);
+var _autoRowSize = __webpack_require__(392);
 exports.AutoRowSize = _autoRowSize.AutoRowSize;
-var _base = __webpack_require__(362);
+var _base = __webpack_require__(385);
 exports.BasePlugin = _base.BasePlugin;
-var _bindRowsWithHeaders = __webpack_require__(371);
+var _bindRowsWithHeaders = __webpack_require__(394);
 exports.BindRowsWithHeaders = _bindRowsWithHeaders.BindRowsWithHeaders;
-var _collapsibleColumns = __webpack_require__(375);
+var _collapsibleColumns = __webpack_require__(398);
 exports.CollapsibleColumns = _collapsibleColumns.CollapsibleColumns;
-var _columnSorting = __webpack_require__(377);
+var _columnSorting = __webpack_require__(400);
 exports.ColumnSorting = _columnSorting.ColumnSorting;
-var _columnSummary = __webpack_require__(391);
+var _columnSummary = __webpack_require__(414);
 exports.ColumnSummary = _columnSummary.ColumnSummary;
-var _comments = __webpack_require__(395);
+var _comments = __webpack_require__(418);
 exports.Comments = _comments.Comments;
-var _contextMenu = __webpack_require__(418);
+var _contextMenu = __webpack_require__(441);
 exports.ContextMenu = _contextMenu.ContextMenu;
-var _copyPaste = __webpack_require__(432);
+var _copyPaste = __webpack_require__(455);
 exports.CopyPaste = _copyPaste.CopyPaste;
-var _customBorders = __webpack_require__(442);
+var _customBorders = __webpack_require__(465);
 exports.CustomBorders = _customBorders.CustomBorders;
-var _dragToScroll = __webpack_require__(451);
+var _dragToScroll = __webpack_require__(474);
 exports.DragToScroll = _dragToScroll.DragToScroll;
-var _dropdownMenu = __webpack_require__(453);
+var _dropdownMenu = __webpack_require__(476);
 exports.DropdownMenu = _dropdownMenu.DropdownMenu;
-var _exportFile = __webpack_require__(455);
+var _exportFile = __webpack_require__(478);
 exports.ExportFile = _exportFile.ExportFile;
-var _filters = __webpack_require__(461);
+var _filters = __webpack_require__(484);
 exports.Filters = _filters.Filters;
-var _formulas = __webpack_require__(509);
+var _formulas = __webpack_require__(532);
 exports.Formulas = _formulas.Formulas;
-var _hiddenColumns = __webpack_require__(517);
+var _hiddenColumns = __webpack_require__(540);
 exports.HiddenColumns = _hiddenColumns.HiddenColumns;
-var _hiddenRows = __webpack_require__(521);
+var _hiddenRows = __webpack_require__(544);
 exports.HiddenRows = _hiddenRows.HiddenRows;
-var _manualColumnFreeze = __webpack_require__(525);
+var _manualColumnFreeze = __webpack_require__(548);
 exports.ManualColumnFreeze = _manualColumnFreeze.ManualColumnFreeze;
-var _manualColumnMove = __webpack_require__(529);
+var _manualColumnMove = __webpack_require__(552);
 exports.ManualColumnMove = _manualColumnMove.ManualColumnMove;
-var _manualColumnResize = __webpack_require__(534);
+var _manualColumnResize = __webpack_require__(557);
 exports.ManualColumnResize = _manualColumnResize.ManualColumnResize;
-var _manualRowMove = __webpack_require__(536);
+var _manualRowMove = __webpack_require__(559);
 exports.ManualRowMove = _manualRowMove.ManualRowMove;
-var _manualRowResize = __webpack_require__(541);
+var _manualRowResize = __webpack_require__(564);
 exports.ManualRowResize = _manualRowResize.ManualRowResize;
-var _mergeCells = __webpack_require__(543);
+var _mergeCells = __webpack_require__(566);
 exports.MergeCells = _mergeCells.MergeCells;
-var _multiColumnSorting = __webpack_require__(554);
+var _multiColumnSorting = __webpack_require__(577);
 exports.MultiColumnSorting = _multiColumnSorting.MultiColumnSorting;
-var _multipleSelectionHandles = __webpack_require__(558);
+var _multipleSelectionHandles = __webpack_require__(581);
 exports.MultipleSelectionHandles = _multipleSelectionHandles.MultipleSelectionHandles;
-var _nestedHeaders = __webpack_require__(560);
+var _nestedHeaders = __webpack_require__(583);
 exports.NestedHeaders = _nestedHeaders.NestedHeaders;
-var _nestedRows = __webpack_require__(576);
+var _nestedRows = __webpack_require__(599);
 exports.NestedRows = _nestedRows.NestedRows;
-var _pagination = __webpack_require__(584);
+var _pagination = __webpack_require__(607);
 exports.Pagination = _pagination.Pagination;
-var _persistentState = __webpack_require__(591);
+var _persistentState = __webpack_require__(614);
 exports.PersistentState = _persistentState.PersistentState;
-var _search = __webpack_require__(594);
+var _search = __webpack_require__(617);
 exports.Search = _search.Search;
-var _stretchColumns = __webpack_require__(596);
+var _stretchColumns = __webpack_require__(619);
 exports.StretchColumns = _stretchColumns.StretchColumns;
-var _touchScroll = __webpack_require__(602);
+var _touchScroll = __webpack_require__(625);
 exports.TouchScroll = _touchScroll.TouchScroll;
-var _trimRows = __webpack_require__(604);
+var _trimRows = __webpack_require__(627);
 exports.TrimRows = _trimRows.TrimRows;
-var _undoRedo = __webpack_require__(606);
+var _undoRedo = __webpack_require__(629);
 exports.UndoRedo = _undoRedo.UndoRedo;
-var _dialog = __webpack_require__(623);
+var _dialog = __webpack_require__(646);
 exports.Dialog = _dialog.Dialog;
-var _loading = __webpack_require__(630);
+var _loading = __webpack_require__(653);
 exports.Loading = _loading.Loading;
-var _emptyDataState = __webpack_require__(633);
+var _emptyDataState = __webpack_require__(656);
 exports.EmptyDataState = _emptyDataState.EmptyDataState;
-var _registry = __webpack_require__(28);
+var _registry = __webpack_require__(27);
 exports.registerPlugin = _registry.registerPlugin;
 exports.getPlugin = _registry.getPlugin;
 exports.getPluginsNames = _registry.getPluginsNames;
@@ -53871,20 +56460,20 @@ function registerAllPlugins() {
 }
 
 /***/ }),
-/* 360 */
+/* 383 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _autoColumnSize = __webpack_require__(361);
+var _autoColumnSize = __webpack_require__(384);
 exports.PLUGIN_KEY = _autoColumnSize.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _autoColumnSize.PLUGIN_PRIORITY;
 exports.AutoColumnSize = _autoColumnSize.AutoColumnSize;
 
 /***/ }),
-/* 361 */
+/* 384 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53892,16 +56481,16 @@ exports.AutoColumnSize = _autoColumnSize.AutoColumnSize;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _feature = __webpack_require__(15);
-var _ghostTable = _interopRequireDefault(__webpack_require__(364));
-var _hooks = __webpack_require__(21);
-var _object = __webpack_require__(14);
-var _number = __webpack_require__(30);
-var _samplesGenerator = _interopRequireDefault(__webpack_require__(365));
-var _string = __webpack_require__(6);
-var _src = __webpack_require__(36);
-var _translations = __webpack_require__(116);
+var _base = __webpack_require__(385);
+var _feature = __webpack_require__(14);
+var _ghostTable = _interopRequireDefault(__webpack_require__(387));
+var _hooks = __webpack_require__(20);
+var _object = __webpack_require__(13);
+var _number = __webpack_require__(29);
+var _samplesGenerator = _interopRequireDefault(__webpack_require__(388));
+var _string = __webpack_require__(5);
+var _src = __webpack_require__(35);
+var _translations = __webpack_require__(115);
 _hooks.Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'autoColumnSize';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 10;
@@ -54018,7 +56607,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -54591,20 +57180,20 @@ class AutoColumnSize extends _base.BasePlugin {
 exports.AutoColumnSize = AutoColumnSize;
 
 /***/ }),
-/* 362 */
+/* 385 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(363);
+var _base = __webpack_require__(386);
 exports.PLUGIN_KEY = _base.PLUGIN_KEY;
 exports.BasePlugin = _base.BasePlugin;
 exports.defaultMainSettingSymbol = _base.defaultMainSettingSymbol;
 
 /***/ }),
-/* 363 */
+/* 386 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -54612,15 +57201,15 @@ exports.defaultMainSettingSymbol = _base.defaultMainSettingSymbol;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _array = __webpack_require__(11);
-var _registry = __webpack_require__(28);
-var _registry2 = __webpack_require__(169);
-var _registry3 = __webpack_require__(20);
-var _registry4 = __webpack_require__(33);
-var _registry5 = __webpack_require__(34);
-var _eventManager = _interopRequireDefault(__webpack_require__(26));
-var _console = __webpack_require__(22);
+var _object = __webpack_require__(13);
+var _array = __webpack_require__(10);
+var _registry = __webpack_require__(27);
+var _registry2 = __webpack_require__(168);
+var _registry3 = __webpack_require__(19);
+var _registry4 = __webpack_require__(32);
+var _registry5 = __webpack_require__(33);
+var _eventManager = _interopRequireDefault(__webpack_require__(25));
+var _console = __webpack_require__(21);
 const DEPS_TYPE_CHECKERS = new Map([['plugin', _registry.hasPlugin], ['cell-type', _registry2.hasCellType], ['editor', _registry3.hasEditor], ['renderer', _registry4.hasRenderer], ['validator', _registry5.hasValidator]]);
 const defaultMainSettingSymbol = exports.defaultMainSettingSymbol = Symbol('mainSetting');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'base';
@@ -55021,15 +57610,15 @@ class BasePlugin {
 exports.BasePlugin = BasePlugin;
 
 /***/ }),
-/* 364 */
+/* 387 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _array = __webpack_require__(11);
+var _element = __webpack_require__(4);
+var _array = __webpack_require__(10);
 /**
  * Structure returned by createTable().
  */
@@ -55519,16 +58108,16 @@ class GhostTable {
 var _default = exports["default"] = GhostTable;
 
 /***/ }),
-/* 365 */
+/* 388 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _number = __webpack_require__(30);
-var _mixed = __webpack_require__(8);
+var _object = __webpack_require__(13);
+var _number = __webpack_require__(29);
+var _mixed = __webpack_require__(7);
 /**
  * @class SamplesGenerator
  */
@@ -55724,33 +58313,33 @@ class SamplesGenerator {
 var _default = exports["default"] = SamplesGenerator;
 
 /***/ }),
-/* 366 */
+/* 389 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _autofill = __webpack_require__(367);
+var _autofill = __webpack_require__(390);
 exports.PLUGIN_KEY = _autofill.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _autofill.PLUGIN_PRIORITY;
 exports.Autofill = _autofill.Autofill;
 
 /***/ }),
-/* 367 */
+/* 390 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _hooks = __webpack_require__(21);
-var _element = __webpack_require__(5);
-var _object = __webpack_require__(14);
-var _array = __webpack_require__(11);
-var _mixed = __webpack_require__(8);
-var _utils = __webpack_require__(368);
+var _base = __webpack_require__(385);
+var _hooks = __webpack_require__(20);
+var _element = __webpack_require__(4);
+var _object = __webpack_require__(13);
+var _array = __webpack_require__(10);
+var _mixed = __webpack_require__(7);
+var _utils = __webpack_require__(391);
 _hooks.Hooks.getSingleton().register('modifyAutofillRange');
 _hooks.Hooks.getSingleton().register('beforeAutofill');
 _hooks.Hooks.getSingleton().register('afterAutofill');
@@ -56339,7 +58928,7 @@ class Autofill extends _base.BasePlugin {
 exports.Autofill = Autofill;
 
 /***/ }),
-/* 368 */
+/* 391 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -56348,8 +58937,8 @@ exports.Autofill = Autofill;
 exports.__esModule = true;
 exports.getDragDirectionAndRange = getDragDirectionAndRange;
 exports.getMappedFillHandleSetting = getMappedFillHandleSetting;
-var _object = __webpack_require__(14);
-var _mixed = __webpack_require__(8);
+var _object = __webpack_require__(13);
+var _mixed = __webpack_require__(7);
 const DIRECTIONS = exports.DIRECTIONS = {
   horizontal: 'horizontal',
   vertical: 'vertical'
@@ -56441,20 +59030,20 @@ function getMappedFillHandleSetting(fillHandle) {
 }
 
 /***/ }),
-/* 369 */
+/* 392 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _autoRowSize = __webpack_require__(370);
+var _autoRowSize = __webpack_require__(393);
 exports.PLUGIN_KEY = _autoRowSize.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _autoRowSize.PLUGIN_PRIORITY;
 exports.AutoRowSize = _autoRowSize.AutoRowSize;
 
 /***/ }),
-/* 370 */
+/* 393 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -56462,15 +59051,15 @@ exports.AutoRowSize = _autoRowSize.AutoRowSize;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _feature = __webpack_require__(15);
-var _ghostTable = _interopRequireDefault(__webpack_require__(364));
-var _object = __webpack_require__(14);
-var _number = __webpack_require__(30);
-var _samplesGenerator = _interopRequireDefault(__webpack_require__(365));
-var _string = __webpack_require__(6);
-var _translations = __webpack_require__(116);
-var _element = __webpack_require__(5);
+var _base = __webpack_require__(385);
+var _feature = __webpack_require__(14);
+var _ghostTable = _interopRequireDefault(__webpack_require__(387));
+var _object = __webpack_require__(13);
+var _number = __webpack_require__(29);
+var _samplesGenerator = _interopRequireDefault(__webpack_require__(388));
+var _string = __webpack_require__(5);
+var _translations = __webpack_require__(115);
+var _element = __webpack_require__(4);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'autoRowSize';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 40;
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
@@ -56578,7 +59167,7 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -56986,7 +59575,7 @@ class AutoRowSize extends _base.BasePlugin {
     let height = defaultHeight;
     if (cachedHeight !== null && cachedHeight > defaultHeight) {
       height = cachedHeight;
-      if (!this.hot.stylesHandler.isClassicTheme() && row === this.hot.view.getFirstRenderedVisibleRow()) {
+      if (row === this.hot.view.getFirstRenderedVisibleRow()) {
         // add 1px border-top-width compensation for the first rendered row
         height += 1;
       }
@@ -57188,20 +59777,20 @@ class AutoRowSize extends _base.BasePlugin {
 exports.AutoRowSize = AutoRowSize;
 
 /***/ }),
-/* 371 */
+/* 394 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _bindRowsWithHeaders = __webpack_require__(372);
+var _bindRowsWithHeaders = __webpack_require__(395);
 exports.PLUGIN_KEY = _bindRowsWithHeaders.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _bindRowsWithHeaders.PLUGIN_PRIORITY;
 exports.BindRowsWithHeaders = _bindRowsWithHeaders.BindRowsWithHeaders;
 
 /***/ }),
-/* 372 */
+/* 395 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -57209,9 +59798,9 @@ exports.BindRowsWithHeaders = _bindRowsWithHeaders.BindRowsWithHeaders;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _looseBindsMap = _interopRequireDefault(__webpack_require__(373));
-var _strictBindsMap = _interopRequireDefault(__webpack_require__(374));
+var _base = __webpack_require__(385);
+var _looseBindsMap = _interopRequireDefault(__webpack_require__(396));
+var _strictBindsMap = _interopRequireDefault(__webpack_require__(397));
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'bindRowsWithHeaders';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 210;
 const DEFAULT_BIND = 'loose';
@@ -57329,14 +59918,14 @@ class BindRowsWithHeaders extends _base.BasePlugin {
 exports.BindRowsWithHeaders = BindRowsWithHeaders;
 
 /***/ }),
-/* 373 */
+/* 396 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _translations = __webpack_require__(116);
+var _translations = __webpack_require__(115);
 const {
   getListWithInsertedItems,
   getListWithRemovedItems
@@ -57378,14 +59967,14 @@ class LooseBindsMap extends _translations.IndexMap {
 var _default = exports["default"] = LooseBindsMap;
 
 /***/ }),
-/* 374 */
+/* 397 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _translations = __webpack_require__(116);
+var _translations = __webpack_require__(115);
 const {
   getListWithInsertedItems,
   getListWithRemovedItems
@@ -57435,34 +60024,34 @@ class StrictBindsMap extends _translations.IndexMap {
 var _default = exports["default"] = StrictBindsMap;
 
 /***/ }),
-/* 375 */
+/* 398 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _collapsibleColumns = __webpack_require__(376);
+var _collapsibleColumns = __webpack_require__(399);
 exports.PLUGIN_KEY = _collapsibleColumns.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _collapsibleColumns.PLUGIN_PRIORITY;
 exports.CollapsibleColumns = _collapsibleColumns.CollapsibleColumns;
 
 /***/ }),
-/* 376 */
+/* 399 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _array = __webpack_require__(11);
-var _number = __webpack_require__(30);
-var _console = __webpack_require__(22);
-var _element = __webpack_require__(5);
-var _event = __webpack_require__(19);
-var _shortcutContexts = __webpack_require__(200);
-var _a11y = __webpack_require__(12);
+var _base = __webpack_require__(385);
+var _array = __webpack_require__(10);
+var _number = __webpack_require__(29);
+var _console = __webpack_require__(21);
+var _element = __webpack_require__(4);
+var _event = __webpack_require__(18);
+var _shortcutContexts = __webpack_require__(199);
+var _a11y = __webpack_require__(11);
 /**
  * Interface for NestedHeaders plugin StateManager.
  */
@@ -58068,14 +60657,14 @@ class CollapsibleColumns extends _base.BasePlugin {
 exports.CollapsibleColumns = CollapsibleColumns;
 
 /***/ }),
-/* 377 */
+/* 400 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _columnSorting = __webpack_require__(378);
+var _columnSorting = __webpack_require__(401);
 exports.PLUGIN_KEY = _columnSorting.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _columnSorting.PLUGIN_PRIORITY;
 exports.ColumnSorting = _columnSorting.ColumnSorting;
@@ -58083,28 +60672,28 @@ exports.APPEND_COLUMN_CONFIG_STRATEGY = _columnSorting.APPEND_COLUMN_CONFIG_STRA
 exports.REPLACE_COLUMN_CONFIG_STRATEGY = _columnSorting.REPLACE_COLUMN_CONFIG_STRATEGY;
 
 /***/ }),
-/* 378 */
+/* 401 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _mixed = __webpack_require__(8);
-var _object = __webpack_require__(14);
-var _function = __webpack_require__(16);
-var _array = __webpack_require__(11);
-var _base = __webpack_require__(362);
-var _translations = __webpack_require__(116);
-var _hooks = __webpack_require__(21);
-var _columnStatesManager = __webpack_require__(379);
-var _shortcutContexts = __webpack_require__(200);
-var _utils = __webpack_require__(380);
-var _domHelpers = __webpack_require__(389);
-var _rootComparator = __webpack_require__(390);
-var _sortService = __webpack_require__(381);
-var _a11y = __webpack_require__(12);
+var _element = __webpack_require__(4);
+var _mixed = __webpack_require__(7);
+var _object = __webpack_require__(13);
+var _function = __webpack_require__(15);
+var _array = __webpack_require__(10);
+var _base = __webpack_require__(385);
+var _translations = __webpack_require__(115);
+var _hooks = __webpack_require__(20);
+var _columnStatesManager = __webpack_require__(402);
+var _shortcutContexts = __webpack_require__(199);
+var _utils = __webpack_require__(403);
+var _domHelpers = __webpack_require__(412);
+var _rootComparator = __webpack_require__(413);
+var _sortService = __webpack_require__(404);
+var _a11y = __webpack_require__(11);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'columnSorting';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 50;
 const APPEND_COLUMN_CONFIG_STRATEGY = exports.APPEND_COLUMN_CONFIG_STRATEGY = 'append';
@@ -58852,16 +61441,16 @@ class ColumnSorting extends _base.BasePlugin {
 exports.ColumnSorting = ColumnSorting;
 
 /***/ }),
-/* 379 */
+/* 402 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _translations = __webpack_require__(116);
-var _mixed = __webpack_require__(8);
+var _object = __webpack_require__(13);
+var _translations = __webpack_require__(115);
+var _mixed = __webpack_require__(7);
 const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'headerAction', 'compareFunctionFactory'];
 const SORT_EMPTY_CELLS_DEFAULT = false;
 const SHOW_SORT_INDICATOR_DEFAULT = true;
@@ -59066,7 +61655,7 @@ class ColumnStatesManager {
 exports.ColumnStatesManager = ColumnStatesManager;
 
 /***/ }),
-/* 380 */
+/* 403 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59081,13 +61670,13 @@ exports.getNextSortOrder = getNextSortOrder;
 exports.isFirstLevelColumnHeader = isFirstLevelColumnHeader;
 exports.warnAboutPluginsConflict = warnAboutPluginsConflict;
 exports.wasHeaderClickedProperly = wasHeaderClickedProperly;
-var _moment = _interopRequireDefault(__webpack_require__(9));
-var _object = __webpack_require__(14);
-var _event = __webpack_require__(19);
-var _mixed = __webpack_require__(8);
-var _sortService = __webpack_require__(381);
-var _console = __webpack_require__(22);
-var _templateLiteralTag = __webpack_require__(10);
+var _moment = _interopRequireDefault(__webpack_require__(8));
+var _object = __webpack_require__(13);
+var _event = __webpack_require__(18);
+var _mixed = __webpack_require__(7);
+var _sortService = __webpack_require__(404);
+var _console = __webpack_require__(21);
+var _templateLiteralTag = __webpack_require__(9);
 const ASC_SORT_STATE = exports.ASC_SORT_STATE = 'asc';
 const DESC_SORT_STATE = exports.DESC_SORT_STATE = 'desc';
 const HEADER_SPAN_CLASS = exports.HEADER_SPAN_CLASS = 'colHeader';
@@ -59249,25 +61838,25 @@ function warnAboutPluginsConflict(workingPlugin, disabledPlugin) {
 }
 
 /***/ }),
-/* 381 */
+/* 404 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _registry = __webpack_require__(382);
+var _registry = __webpack_require__(405);
 exports.registerRootComparator = _registry.registerRootComparator;
 exports.getRootComparator = _registry.getRootComparator;
 exports.getCompareFunctionFactory = _registry.getCompareFunctionFactory;
-var _engine = __webpack_require__(388);
+var _engine = __webpack_require__(411);
 exports.FIRST_AFTER_SECOND = _engine.FIRST_AFTER_SECOND;
 exports.FIRST_BEFORE_SECOND = _engine.FIRST_BEFORE_SECOND;
 exports.DO_NOT_SWAP = _engine.DO_NOT_SWAP;
 exports.sort = _engine.sort;
 
 /***/ }),
-/* 382 */
+/* 405 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59275,12 +61864,12 @@ exports.sort = _engine.sort;
 
 exports.__esModule = true;
 exports.getCompareFunctionFactory = getCompareFunctionFactory;
-var _default = __webpack_require__(383);
-var _numeric = __webpack_require__(384);
-var _checkbox = __webpack_require__(385);
-var _date = __webpack_require__(386);
-var _time = __webpack_require__(387);
-var _staticRegister = __webpack_require__(25);
+var _default = __webpack_require__(406);
+var _numeric = __webpack_require__(407);
+var _checkbox = __webpack_require__(408);
+var _date = __webpack_require__(409);
+var _time = __webpack_require__(410);
+var _staticRegister = __webpack_require__(24);
 const {
   register: registerCompareFunctionFactory,
   getItem: getGloballyCompareFunctionFactory,
@@ -59312,7 +61901,7 @@ registerCompareFunctionFactory(_numeric.COLUMN_DATA_TYPE, _numeric.compareFuncti
 registerCompareFunctionFactory(_time.COLUMN_DATA_TYPE, _time.compareFunctionFactory);
 
 /***/ }),
-/* 383 */
+/* 406 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59320,8 +61909,8 @@ registerCompareFunctionFactory(_time.COLUMN_DATA_TYPE, _time.compareFunctionFact
 
 exports.__esModule = true;
 exports.compareFunctionFactory = compareFunctionFactory;
-var _mixed = __webpack_require__(8);
-var _sortService = __webpack_require__(381);
+var _mixed = __webpack_require__(7);
+var _sortService = __webpack_require__(404);
 /**
  * Default sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
@@ -59383,7 +61972,7 @@ function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
 const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'default';
 
 /***/ }),
-/* 384 */
+/* 407 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59391,8 +61980,8 @@ const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'default';
 
 exports.__esModule = true;
 exports.compareFunctionFactory = compareFunctionFactory;
-var _mixed = __webpack_require__(8);
-var _sortService = __webpack_require__(381);
+var _mixed = __webpack_require__(7);
+var _sortService = __webpack_require__(404);
 /**
  * Numeric sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
@@ -59438,7 +62027,7 @@ function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
 const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'numeric';
 
 /***/ }),
-/* 385 */
+/* 408 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59446,9 +62035,9 @@ const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'numeric';
 
 exports.__esModule = true;
 exports.compareFunctionFactory = compareFunctionFactory;
-var _sortService = __webpack_require__(381);
-var _default = __webpack_require__(383);
-var _mixed = __webpack_require__(8);
+var _sortService = __webpack_require__(404);
+var _default = __webpack_require__(406);
+var _mixed = __webpack_require__(7);
 /**
  * Checkbox sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
@@ -59508,7 +62097,7 @@ function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
 const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'checkbox';
 
 /***/ }),
-/* 386 */
+/* 409 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59516,7 +62105,7 @@ const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'checkbox';
 
 exports.__esModule = true;
 exports.compareFunctionFactory = compareFunctionFactory;
-var _utils = __webpack_require__(380);
+var _utils = __webpack_require__(403);
 /**
  * Date sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
@@ -59531,7 +62120,7 @@ function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
 const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'date';
 
 /***/ }),
-/* 387 */
+/* 410 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59539,7 +62128,7 @@ const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'date';
 
 exports.__esModule = true;
 exports.compareFunctionFactory = compareFunctionFactory;
-var _utils = __webpack_require__(380);
+var _utils = __webpack_require__(403);
 /**
  * Date sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
@@ -59554,7 +62143,7 @@ function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
 const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'time';
 
 /***/ }),
-/* 388 */
+/* 411 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59562,7 +62151,7 @@ const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'time';
 
 exports.__esModule = true;
 exports.sort = sort;
-var _registry = __webpack_require__(382);
+var _registry = __webpack_require__(405);
 const DO_NOT_SWAP = exports.DO_NOT_SWAP = 0;
 const FIRST_BEFORE_SECOND = exports.FIRST_BEFORE_SECOND = -1;
 const FIRST_AFTER_SECOND = exports.FIRST_AFTER_SECOND = 1;
@@ -59578,7 +62167,7 @@ function sort(indexesWithData, rootComparatorId, ...argsForRootComparator) {
 }
 
 /***/ }),
-/* 389 */
+/* 412 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59587,8 +62176,8 @@ function sort(indexesWithData, rootComparatorId, ...argsForRootComparator) {
 exports.__esModule = true;
 exports.getClassesToAdd = getClassesToAdd;
 exports.getClassesToRemove = getClassesToRemove;
-var _mixed = __webpack_require__(8);
-var _utils = __webpack_require__(380);
+var _mixed = __webpack_require__(7);
+var _utils = __webpack_require__(403);
 const HEADER_CLASS_ASC_SORT = 'ascending';
 const HEADER_CLASS_DESC_SORT = 'descending';
 const HEADER_CLASS_INDICATOR_DISABLED = 'indicatorDisabled';
@@ -59631,7 +62220,7 @@ function getClassesToRemove(_headerSpanElement) {
 }
 
 /***/ }),
-/* 390 */
+/* 413 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59639,7 +62228,7 @@ function getClassesToRemove(_headerSpanElement) {
 
 exports.__esModule = true;
 exports.rootComparator = rootComparator;
-var _sortService = __webpack_require__(381);
+var _sortService = __webpack_require__(404);
 /**
  * Sort comparator handled by conventional sort algorithm.
  *
@@ -59670,20 +62259,20 @@ function rootComparator(sortingOrders, columnMetas) {
 }
 
 /***/ }),
-/* 391 */
+/* 414 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _columnSummary = __webpack_require__(392);
+var _columnSummary = __webpack_require__(415);
 exports.PLUGIN_KEY = _columnSummary.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _columnSummary.PLUGIN_PRIORITY;
 exports.ColumnSummary = _columnSummary.ColumnSummary;
 
 /***/ }),
-/* 392 */
+/* 415 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59691,11 +62280,11 @@ exports.ColumnSummary = _columnSummary.ColumnSummary;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _object = __webpack_require__(14);
-var _endpoints = _interopRequireDefault(__webpack_require__(393));
-var _templateLiteralTag = __webpack_require__(10);
-var _utils = __webpack_require__(394);
+var _base = __webpack_require__(385);
+var _object = __webpack_require__(13);
+var _endpoints = _interopRequireDefault(__webpack_require__(416));
+var _templateLiteralTag = __webpack_require__(9);
+var _utils = __webpack_require__(417);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'columnSummary';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 220;
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -60194,16 +62783,16 @@ class ColumnSummary extends _base.BasePlugin {
 exports.ColumnSummary = ColumnSummary;
 
 /***/ }),
-/* 393 */
+/* 416 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _array = __webpack_require__(11);
-var _console = __webpack_require__(22);
-var _utils = __webpack_require__(394);
+var _array = __webpack_require__(10);
+var _console = __webpack_require__(21);
+var _utils = __webpack_require__(417);
 /**
  * Class used to make all endpoint-related operations.
  *
@@ -60725,7 +63314,7 @@ class Endpoints {
 var _default = exports["default"] = Endpoints;
 
 /***/ }),
-/* 394 */
+/* 417 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -60775,20 +63364,20 @@ function roundFloat(value, option) {
 }
 
 /***/ }),
-/* 395 */
+/* 418 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _comments = __webpack_require__(396);
+var _comments = __webpack_require__(419);
 exports.PLUGIN_KEY = _comments.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _comments.PLUGIN_PRIORITY;
 exports.Comments = _comments.Comments;
 
 /***/ }),
-/* 396 */
+/* 419 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60796,17 +63385,17 @@ exports.Comments = _comments.Comments;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _event = __webpack_require__(19);
-var _object = __webpack_require__(14);
-var _src = __webpack_require__(36);
-var _base = __webpack_require__(362);
-var _commentEditor = _interopRequireDefault(__webpack_require__(397));
-var _displaySwitch = _interopRequireDefault(__webpack_require__(399));
-var _predefinedItems = __webpack_require__(400);
-var _addEditComment = _interopRequireDefault(__webpack_require__(415));
-var _removeComment = _interopRequireDefault(__webpack_require__(416));
-var _readOnlyComment = _interopRequireDefault(__webpack_require__(417));
+var _element = __webpack_require__(4);
+var _event = __webpack_require__(18);
+var _object = __webpack_require__(13);
+var _src = __webpack_require__(35);
+var _base = __webpack_require__(385);
+var _commentEditor = _interopRequireDefault(__webpack_require__(420));
+var _displaySwitch = _interopRequireDefault(__webpack_require__(422));
+var _predefinedItems = __webpack_require__(423);
+var _addEditComment = _interopRequireDefault(__webpack_require__(438));
+var _removeComment = _interopRequireDefault(__webpack_require__(439));
+var _readOnlyComment = _interopRequireDefault(__webpack_require__(440));
 /**
  * Represents a comment's metadata stored in cell meta.
  */
@@ -60928,7 +63517,7 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -61684,7 +64273,7 @@ class Comments extends _base.BasePlugin {
 exports.Comments = Comments;
 
 /***/ }),
-/* 397 */
+/* 420 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -61692,10 +64281,10 @@ exports.Comments = Comments;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _object = __webpack_require__(14);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
-var _editorResizeObserver = __webpack_require__(398);
+var _element = __webpack_require__(4);
+var _object = __webpack_require__(13);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
+var _editorResizeObserver = __webpack_require__(421);
 /**
  * Comment editor for the Comments plugin.
  *
@@ -61942,7 +64531,7 @@ class CommentEditor {
 var _default = exports["default"] = CommentEditor;
 
 /***/ }),
-/* 398 */
+/* 421 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -61950,8 +64539,8 @@ var _default = exports["default"] = CommentEditor;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
+var _object = __webpack_require__(13);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
 /**
  * Module that observes the editor size after it has been resized by the user.
  *
@@ -62035,7 +64624,7 @@ exports.EditorResizeObserver = EditorResizeObserver;
 (0, _object.mixin)(EditorResizeObserver, _localHooks.default);
 
 /***/ }),
-/* 399 */
+/* 422 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62043,9 +64632,9 @@ exports.EditorResizeObserver = EditorResizeObserver;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _function = __webpack_require__(16);
-var _object = __webpack_require__(14);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
+var _function = __webpack_require__(15);
+var _object = __webpack_require__(13);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
 const DEFAULT_DISPLAY_DELAY = 250;
 const DEFAULT_HIDE_DELAY = 250;
 
@@ -62134,7 +64723,7 @@ class DisplaySwitch {
 var _default = exports["default"] = DisplaySwitch;
 
 /***/ }),
-/* 400 */
+/* 423 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62143,32 +64732,32 @@ var _default = exports["default"] = DisplaySwitch;
 exports.__esModule = true;
 exports.addItem = addItem;
 exports.predefinedItems = predefinedItems;
-var _object = __webpack_require__(14);
-var _alignment = _interopRequireWildcard(__webpack_require__(401));
+var _object = __webpack_require__(13);
+var _alignment = _interopRequireWildcard(__webpack_require__(424));
 exports.ALIGNMENT = _alignment.KEY;
-var _clearColumn = _interopRequireWildcard(__webpack_require__(404));
+var _clearColumn = _interopRequireWildcard(__webpack_require__(427));
 exports.CLEAR_COLUMN = _clearColumn.KEY;
-var _columnLeft = _interopRequireWildcard(__webpack_require__(405));
+var _columnLeft = _interopRequireWildcard(__webpack_require__(428));
 exports.COLUMN_LEFT = _columnLeft.KEY;
-var _columnRight = _interopRequireWildcard(__webpack_require__(406));
+var _columnRight = _interopRequireWildcard(__webpack_require__(429));
 exports.COLUMN_RIGHT = _columnRight.KEY;
-var _readOnly = _interopRequireWildcard(__webpack_require__(407));
+var _readOnly = _interopRequireWildcard(__webpack_require__(430));
 exports.READ_ONLY = _readOnly.KEY;
-var _redo = _interopRequireWildcard(__webpack_require__(408));
+var _redo = _interopRequireWildcard(__webpack_require__(431));
 exports.REDO = _redo.KEY;
-var _removeColumn = _interopRequireWildcard(__webpack_require__(409));
+var _removeColumn = _interopRequireWildcard(__webpack_require__(432));
 exports.REMOVE_COLUMN = _removeColumn.KEY;
-var _removeRow = _interopRequireWildcard(__webpack_require__(410));
+var _removeRow = _interopRequireWildcard(__webpack_require__(433));
 exports.REMOVE_ROW = _removeRow.KEY;
-var _rowAbove = _interopRequireWildcard(__webpack_require__(411));
+var _rowAbove = _interopRequireWildcard(__webpack_require__(434));
 exports.ROW_ABOVE = _rowAbove.KEY;
-var _rowBelow = _interopRequireWildcard(__webpack_require__(412));
+var _rowBelow = _interopRequireWildcard(__webpack_require__(435));
 exports.ROW_BELOW = _rowBelow.KEY;
-var _separator = _interopRequireWildcard(__webpack_require__(403));
+var _separator = _interopRequireWildcard(__webpack_require__(426));
 exports.SEPARATOR = _separator.KEY;
-var _noItems = _interopRequireWildcard(__webpack_require__(413));
+var _noItems = _interopRequireWildcard(__webpack_require__(436));
 exports.NO_ITEMS = _noItems.KEY;
-var _undo = _interopRequireWildcard(__webpack_require__(414));
+var _undo = _interopRequireWildcard(__webpack_require__(437));
 exports.UNDO = _undo.KEY;
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const ITEMS = exports.ITEMS = [_rowAbove.KEY, _rowBelow.KEY, _columnLeft.KEY, _columnRight.KEY, _clearColumn.KEY, _removeRow.KEY, _removeColumn.KEY, _undo.KEY, _redo.KEY, _readOnly.KEY, _alignment.KEY, _separator.KEY, _noItems.KEY];
@@ -62214,7 +64803,7 @@ function addItem(key, item) {
 }
 
 /***/ }),
-/* 401 */
+/* 424 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62222,9 +64811,9 @@ function addItem(key, item) {
 
 exports.__esModule = true;
 exports["default"] = alignmentItem;
-var _utils = __webpack_require__(402);
-var _separator = __webpack_require__(403);
-var C = _interopRequireWildcard(__webpack_require__(141));
+var _utils = __webpack_require__(425);
+var _separator = __webpack_require__(426);
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const KEY = exports.KEY = 'alignment';
 
@@ -62364,7 +64953,7 @@ function alignmentItem() {
 }
 
 /***/ }),
-/* 402 */
+/* 425 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62379,7 +64968,7 @@ exports.getDocumentOffsetByElement = getDocumentOffsetByElement;
 exports.markLabelAsSelected = markLabelAsSelected;
 exports.prepareHorizontalAlignClass = prepareHorizontalAlignClass;
 exports.prepareVerticalAlignClass = prepareVerticalAlignClass;
-var _array = __webpack_require__(11);
+var _array = __webpack_require__(10);
 /**
  * @param {string} className The full element class name to process.
  * @param {string} alignment The alignment class name to compare with.
@@ -62540,7 +65129,7 @@ function getAlignmentComparatorByClass(htClassName) {
 }
 
 /***/ }),
-/* 403 */
+/* 426 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -62560,7 +65149,7 @@ function separatorItem() {
 }
 
 /***/ }),
-/* 404 */
+/* 427 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62568,7 +65157,7 @@ function separatorItem() {
 
 exports.__esModule = true;
 exports["default"] = clearColumnItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const KEY = exports.KEY = 'clear_column';
 
@@ -62613,7 +65202,7 @@ function clearColumnItem() {
 }
 
 /***/ }),
-/* 405 */
+/* 428 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62621,7 +65210,7 @@ function clearColumnItem() {
 
 exports.__esModule = true;
 exports["default"] = columnLeftItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const KEY = exports.KEY = 'col_left';
 
@@ -62660,7 +65249,7 @@ function columnLeftItem() {
 }
 
 /***/ }),
-/* 406 */
+/* 429 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62668,7 +65257,7 @@ function columnLeftItem() {
 
 exports.__esModule = true;
 exports["default"] = columnRightItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const KEY = exports.KEY = 'col_right';
 
@@ -62703,7 +65292,7 @@ function columnRightItem() {
 }
 
 /***/ }),
-/* 407 */
+/* 430 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62711,9 +65300,9 @@ function columnRightItem() {
 
 exports.__esModule = true;
 exports["default"] = readOnlyItem;
-var _utils = __webpack_require__(402);
-var _array = __webpack_require__(11);
-var C = _interopRequireWildcard(__webpack_require__(141));
+var _utils = __webpack_require__(425);
+var _array = __webpack_require__(10);
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const KEY = exports.KEY = 'make_read_only';
 
@@ -62774,7 +65363,7 @@ function readOnlyItem() {
 }
 
 /***/ }),
-/* 408 */
+/* 431 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62782,7 +65371,7 @@ function readOnlyItem() {
 
 exports.__esModule = true;
 exports["default"] = redoItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const KEY = exports.KEY = 'redo';
 
@@ -62809,7 +65398,7 @@ function redoItem() {
 }
 
 /***/ }),
-/* 409 */
+/* 432 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62817,8 +65406,8 @@ function redoItem() {
 
 exports.__esModule = true;
 exports["default"] = removeColumnItem;
-var _utils = __webpack_require__(160);
-var C = _interopRequireWildcard(__webpack_require__(141));
+var _utils = __webpack_require__(159);
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const KEY = exports.KEY = 'remove_col';
 
@@ -62871,7 +65460,7 @@ function removeColumnItem() {
 }
 
 /***/ }),
-/* 410 */
+/* 433 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62879,8 +65468,8 @@ function removeColumnItem() {
 
 exports.__esModule = true;
 exports["default"] = removeRowItem;
-var _utils = __webpack_require__(160);
-var C = _interopRequireWildcard(__webpack_require__(141));
+var _utils = __webpack_require__(159);
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const KEY = exports.KEY = 'remove_row';
 
@@ -62932,7 +65521,7 @@ function removeRowItem() {
 }
 
 /***/ }),
-/* 411 */
+/* 434 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62940,7 +65529,7 @@ function removeRowItem() {
 
 exports.__esModule = true;
 exports["default"] = rowAboveItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const KEY = exports.KEY = 'row_above';
 
@@ -62975,7 +65564,7 @@ function rowAboveItem() {
 }
 
 /***/ }),
-/* 412 */
+/* 435 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62983,7 +65572,7 @@ function rowAboveItem() {
 
 exports.__esModule = true;
 exports["default"] = rowBelowItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const KEY = exports.KEY = 'row_below';
 
@@ -63014,7 +65603,7 @@ function rowBelowItem() {
 }
 
 /***/ }),
-/* 413 */
+/* 436 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -63022,7 +65611,7 @@ function rowBelowItem() {
 
 exports.__esModule = true;
 exports["default"] = noItemsItem;
-var _constants = __webpack_require__(141);
+var _constants = __webpack_require__(140);
 const KEY = exports.KEY = 'no_items';
 
 /**
@@ -63040,7 +65629,7 @@ function noItemsItem() {
 }
 
 /***/ }),
-/* 414 */
+/* 437 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -63048,7 +65637,7 @@ function noItemsItem() {
 
 exports.__esModule = true;
 exports["default"] = undoItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const KEY = exports.KEY = 'undo';
 
@@ -63075,7 +65664,7 @@ function undoItem() {
 }
 
 /***/ }),
-/* 415 */
+/* 438 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -63083,7 +65672,7 @@ function undoItem() {
 
 exports.__esModule = true;
 exports["default"] = addEditCommentItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {Comments} plugin The Comments plugin instance.
@@ -63116,7 +65705,7 @@ function addEditCommentItem(plugin) {
 }
 
 /***/ }),
-/* 416 */
+/* 439 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -63124,7 +65713,7 @@ function addEditCommentItem(plugin) {
 
 exports.__esModule = true;
 exports["default"] = removeCommentItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {Comments} plugin The Comments plugin instance.
@@ -63156,7 +65745,7 @@ function removeCommentItem(plugin) {
 }
 
 /***/ }),
-/* 417 */
+/* 440 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -63164,9 +65753,9 @@ function removeCommentItem(plugin) {
 
 exports.__esModule = true;
 exports["default"] = readOnlyCommentItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _utils = __webpack_require__(402);
-var _comments = __webpack_require__(396);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _utils = __webpack_require__(425);
+var _comments = __webpack_require__(419);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {Comments} plugin The Comments plugin instance.
@@ -63204,36 +65793,36 @@ function readOnlyCommentItem(plugin) {
 }
 
 /***/ }),
-/* 418 */
+/* 441 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _contextMenu = __webpack_require__(419);
+var _contextMenu = __webpack_require__(442);
 exports.PLUGIN_KEY = _contextMenu.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _contextMenu.PLUGIN_PRIORITY;
 exports.ContextMenu = _contextMenu.ContextMenu;
 
 /***/ }),
-/* 419 */
+/* 442 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _hooks = __webpack_require__(21);
-var _array = __webpack_require__(11);
-var _object = __webpack_require__(14);
-var _commandExecutor = __webpack_require__(420);
-var _itemsFactory = __webpack_require__(421);
-var _menu = __webpack_require__(422);
-var _utils = __webpack_require__(402);
-var _element = __webpack_require__(5);
-var _predefinedItems = __webpack_require__(400);
+var _base = __webpack_require__(385);
+var _hooks = __webpack_require__(20);
+var _array = __webpack_require__(10);
+var _object = __webpack_require__(13);
+var _commandExecutor = __webpack_require__(443);
+var _itemsFactory = __webpack_require__(444);
+var _menu = __webpack_require__(445);
+var _utils = __webpack_require__(425);
+var _element = __webpack_require__(4);
+var _predefinedItems = __webpack_require__(423);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'contextMenu';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 70;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
@@ -63587,15 +66176,15 @@ ContextMenu.SEPARATOR = {
 };
 
 /***/ }),
-/* 420 */
+/* 443 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _array = __webpack_require__(11);
-var _object = __webpack_require__(14);
+var _array = __webpack_require__(10);
+var _object = __webpack_require__(13);
 /**
  * Command executor for ContextMenu.
  *
@@ -63696,16 +66285,16 @@ function findSubCommand(subCommandName, subCommands) {
 }
 
 /***/ }),
-/* 421 */
+/* 444 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _array = __webpack_require__(11);
-var _predefinedItems = __webpack_require__(400);
+var _object = __webpack_require__(13);
+var _array = __webpack_require__(10);
+var _predefinedItems = __webpack_require__(423);
 /**
  * Predefined items class factory for menu items.
  *
@@ -63831,14 +66420,14 @@ function getItems(itemsPattern = null, defaultPattern = [], items = {}) {
 }
 
 /***/ }),
-/* 422 */
+/* 445 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _menu = __webpack_require__(423);
+var _menu = __webpack_require__(446);
 Object.keys(_menu).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _menu[key]) return;
@@ -63846,7 +66435,7 @@ Object.keys(_menu).forEach(function (key) {
 });
 
 /***/ }),
-/* 423 */
+/* 446 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -63854,22 +66443,22 @@ Object.keys(_menu).forEach(function (key) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _positioner = __webpack_require__(424);
-var _navigator = __webpack_require__(426);
-var _shortcuts = __webpack_require__(429);
-var _predefinedItems = __webpack_require__(400);
-var _utils = __webpack_require__(428);
-var _eventManager = _interopRequireDefault(__webpack_require__(26));
-var _array = __webpack_require__(11);
-var _browser = __webpack_require__(13);
-var _element = __webpack_require__(5);
-var _event = __webpack_require__(19);
-var _function = __webpack_require__(16);
-var _mixed = __webpack_require__(8);
-var _object = __webpack_require__(14);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
-var _menuItemRenderer = __webpack_require__(431);
-var _a11y = __webpack_require__(12);
+var _positioner = __webpack_require__(447);
+var _navigator = __webpack_require__(449);
+var _shortcuts = __webpack_require__(452);
+var _predefinedItems = __webpack_require__(423);
+var _utils = __webpack_require__(451);
+var _eventManager = _interopRequireDefault(__webpack_require__(25));
+var _array = __webpack_require__(10);
+var _browser = __webpack_require__(12);
+var _element = __webpack_require__(4);
+var _event = __webpack_require__(18);
+var _function = __webpack_require__(15);
+var _mixed = __webpack_require__(7);
+var _object = __webpack_require__(13);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
+var _menuItemRenderer = __webpack_require__(454);
+var _a11y = __webpack_require__(11);
 const MIN_WIDTH = 215;
 
 /**
@@ -64133,11 +66722,7 @@ class Menu {
       themeName: this.hot.getCurrentThemeName(),
       beforeRefreshDimensions: () => false,
       beforeOnCellMouseOver: (event, coords) => {
-        if (this.hotMenu.stylesHandler.isClassicTheme()) {
-          this.#navigator.setCurrentPage(coords.row);
-        } else {
-          this.#navigator.setPageCursorAt(coords.row);
-        }
+        this.#navigator.setPageCursorAt(coords.row);
       },
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
@@ -64426,14 +67011,8 @@ class Menu {
       const currentRowHeight = itemCell ? (0, _element.outerHeight)(this.hotMenu.getCell(index, 0)) : 0;
       return accumulator + (value.name === _predefinedItems.SEPARATOR ? 1 : currentRowHeight);
     }, 0);
-    if (this.hotMenu.stylesHandler.isClassicTheme()) {
-      // Additional 3px to menu's size because of additional border around its `table.htCore`.
-      holderStyle.width = `${currentHiderWidth + 3}px`;
-      holderStyle.height = `${realHeight + 3}px`;
-    } else {
-      holderStyle.width = `${currentHiderWidth}px`;
-      holderStyle.height = `${realHeight}px`;
-    }
+    holderStyle.width = `${currentHiderWidth}px`;
+    holderStyle.height = `${realHeight}px`;
     hiderStyle.height = holderStyle.height;
   }
 
@@ -64526,14 +67105,14 @@ exports.Menu = Menu;
 (0, _object.mixin)(Menu, _localHooks.default);
 
 /***/ }),
-/* 424 */
+/* 447 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _cursor = __webpack_require__(425);
+var _cursor = __webpack_require__(448);
 /**
  * Helper class for positioning the menu and submenus in the correct place relative to the
  * cursor position (DOM element or mouse coordinates).
@@ -64718,7 +67297,7 @@ class Positioner {
 exports.Positioner = Positioner;
 
 /***/ }),
-/* 425 */
+/* 448 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -64863,7 +67442,7 @@ class Cursor {
 exports.Cursor = Cursor;
 
 /***/ }),
-/* 426 */
+/* 449 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -64871,8 +67450,8 @@ exports.Cursor = Cursor;
 
 exports.__esModule = true;
 exports.createMenuNavigator = createMenuNavigator;
-var _paginator = __webpack_require__(427);
-var _utils = __webpack_require__(428);
+var _paginator = __webpack_require__(450);
+var _utils = __webpack_require__(451);
 /**
  * Creates navigator for menus and submenus.
  *
@@ -64896,7 +67475,7 @@ function createMenuNavigator(hotMenu) {
 }
 
 /***/ }),
-/* 427 */
+/* 450 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -64904,7 +67483,7 @@ function createMenuNavigator(hotMenu) {
 
 exports.__esModule = true;
 exports.createPaginator = createPaginator;
-var _number = __webpack_require__(30);
+var _number = __webpack_require__(29);
 /**
  * @typedef Paginator
  * @property {function(number): void} setCurrentPage Sets the current index to the specific page.
@@ -65065,7 +67644,7 @@ function createPaginator({
 }
 
 /***/ }),
-/* 428 */
+/* 451 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65084,10 +67663,10 @@ exports.isItemSubMenu = isItemSubMenu;
 exports.isSelectionDisabled = isSelectionDisabled;
 exports.isSeparator = isSeparator;
 exports.normalizeSelection = normalizeSelection;
-var _array = __webpack_require__(11);
-var _object = __webpack_require__(14);
-var _element = __webpack_require__(5);
-var _predefinedItems = __webpack_require__(400);
+var _array = __webpack_require__(10);
+var _object = __webpack_require__(13);
+var _element = __webpack_require__(4);
+var _predefinedItems = __webpack_require__(423);
 /**
  * @param {CellRange[]} selRanges An array of the cell ranges.
  * @returns {object[]}
@@ -65258,7 +67837,7 @@ function isItemCheckable(itemToTest) {
 }
 
 /***/ }),
-/* 429 */
+/* 452 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65266,7 +67845,7 @@ function isItemCheckable(itemToTest) {
 
 exports.__esModule = true;
 exports.createKeyboardShortcutsCtrl = createKeyboardShortcutsCtrl;
-var _defaultShortcutsList = __webpack_require__(430);
+var _defaultShortcutsList = __webpack_require__(453);
 const SHORTCUTS_CONTEXT = 'menu';
 const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
 
@@ -65373,7 +67952,7 @@ function createKeyboardShortcutsCtrl(menu, customKeyboardShortcuts = []) {
 }
 
 /***/ }),
-/* 430 */
+/* 453 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -65481,7 +68060,7 @@ function createDefaultShortcutsList(menu) {
 }
 
 /***/ }),
-/* 431 */
+/* 454 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65489,9 +68068,9 @@ function createDefaultShortcutsList(menu) {
 
 exports.__esModule = true;
 exports.createMenuItemRenderer = createMenuItemRenderer;
-var _utils = __webpack_require__(428);
-var _element = __webpack_require__(5);
-var _a11y = __webpack_require__(12);
+var _utils = __webpack_require__(451);
+var _element = __webpack_require__(4);
+var _a11y = __webpack_require__(11);
 /**
  * Creates the menu renderer function.
  *
@@ -65548,20 +68127,20 @@ function createMenuItemRenderer(mainTableHot) {
 }
 
 /***/ }),
-/* 432 */
+/* 455 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _copyPaste = __webpack_require__(433);
+var _copyPaste = __webpack_require__(456);
 exports.PLUGIN_KEY = _copyPaste.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _copyPaste.PLUGIN_PRIORITY;
 exports.CopyPaste = _copyPaste.CopyPaste;
 
 /***/ }),
-/* 433 */
+/* 456 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65569,22 +68148,22 @@ exports.CopyPaste = _copyPaste.CopyPaste;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _hooks = __webpack_require__(21);
-var _SheetClip = __webpack_require__(163);
-var _array = __webpack_require__(11);
-var _string = __webpack_require__(6);
-var _object = __webpack_require__(14);
-var _element = __webpack_require__(5);
-var _browser = __webpack_require__(13);
-var _copy = _interopRequireDefault(__webpack_require__(434));
-var _copyColumnHeadersOnly = _interopRequireDefault(__webpack_require__(435));
-var _copyWithColumnGroupHeaders = _interopRequireDefault(__webpack_require__(436));
-var _copyWithColumnHeaders = _interopRequireDefault(__webpack_require__(437));
-var _cut = _interopRequireDefault(__webpack_require__(438));
-var _pasteEvent = _interopRequireDefault(__webpack_require__(439));
-var _copyableRanges = __webpack_require__(441);
-var _parseTable = __webpack_require__(27);
+var _base = __webpack_require__(385);
+var _hooks = __webpack_require__(20);
+var _SheetClip = __webpack_require__(162);
+var _array = __webpack_require__(10);
+var _string = __webpack_require__(5);
+var _object = __webpack_require__(13);
+var _element = __webpack_require__(4);
+var _browser = __webpack_require__(12);
+var _copy = _interopRequireDefault(__webpack_require__(457));
+var _copyColumnHeadersOnly = _interopRequireDefault(__webpack_require__(458));
+var _copyWithColumnGroupHeaders = _interopRequireDefault(__webpack_require__(459));
+var _copyWithColumnHeaders = _interopRequireDefault(__webpack_require__(460));
+var _cut = _interopRequireDefault(__webpack_require__(461));
+var _pasteEvent = _interopRequireDefault(__webpack_require__(462));
+var _copyableRanges = __webpack_require__(464);
+var _parseTable = __webpack_require__(26);
 _hooks.Hooks.getSingleton().register('afterCopyLimit');
 _hooks.Hooks.getSingleton().register('modifyCopyableRange');
 _hooks.Hooks.getSingleton().register('beforeCut');
@@ -66390,7 +68969,7 @@ class CopyPaste extends _base.BasePlugin {
 exports.CopyPaste = CopyPaste;
 
 /***/ }),
-/* 434 */
+/* 457 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -66398,7 +68977,7 @@ exports.CopyPaste = CopyPaste;
 
 exports.__esModule = true;
 exports["default"] = copyItem;
-var _constants = __webpack_require__(141);
+var _constants = __webpack_require__(140);
 /**
  * @param {CopyPaste} copyPastePlugin The plugin instance.
  * @returns {object}
@@ -66436,7 +69015,7 @@ function copyItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 435 */
+/* 458 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -66444,8 +69023,8 @@ function copyItem(copyPastePlugin) {
 
 exports.__esModule = true;
 exports["default"] = copyColumnHeadersOnlyItem;
-var _constants = __webpack_require__(141);
-var _number = __webpack_require__(30);
+var _constants = __webpack_require__(140);
+var _number = __webpack_require__(29);
 /**
  * @param {CopyPaste} copyPastePlugin The plugin instance.
  * @returns {object}
@@ -66485,7 +69064,7 @@ function copyColumnHeadersOnlyItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 436 */
+/* 459 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -66493,8 +69072,8 @@ function copyColumnHeadersOnlyItem(copyPastePlugin) {
 
 exports.__esModule = true;
 exports["default"] = copyWithColumnGroupHeadersItem;
-var _constants = __webpack_require__(141);
-var _number = __webpack_require__(30);
+var _constants = __webpack_require__(140);
+var _number = __webpack_require__(29);
 /**
  * @param {CopyPaste} copyPastePlugin The plugin instance.
  * @returns {object}
@@ -66534,7 +69113,7 @@ function copyWithColumnGroupHeadersItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 437 */
+/* 460 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -66542,8 +69121,8 @@ function copyWithColumnGroupHeadersItem(copyPastePlugin) {
 
 exports.__esModule = true;
 exports["default"] = copyWithColumnHeadersItem;
-var _constants = __webpack_require__(141);
-var _number = __webpack_require__(30);
+var _constants = __webpack_require__(140);
+var _number = __webpack_require__(29);
 /**
  * @param {CopyPaste} copyPastePlugin The plugin instance.
  * @returns {object}
@@ -66583,7 +69162,7 @@ function copyWithColumnHeadersItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 438 */
+/* 461 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -66591,7 +69170,7 @@ function copyWithColumnHeadersItem(copyPastePlugin) {
 
 exports.__esModule = true;
 exports["default"] = cutItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {CopyPaste} copyPastePlugin The plugin instance.
@@ -66630,7 +69209,7 @@ function cutItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 439 */
+/* 462 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -66638,7 +69217,7 @@ function cutItem(copyPastePlugin) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _clipboardData = _interopRequireDefault(__webpack_require__(440));
+var _clipboardData = _interopRequireDefault(__webpack_require__(463));
 /**
  * @private
  */
@@ -66654,7 +69233,7 @@ class PasteEvent {
 exports["default"] = PasteEvent;
 
 /***/ }),
-/* 440 */
+/* 463 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -66678,7 +69257,7 @@ class ClipboardData {
 exports["default"] = ClipboardData;
 
 /***/ }),
-/* 441 */
+/* 464 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -66686,8 +69265,8 @@ exports["default"] = ClipboardData;
 
 exports.__esModule = true;
 exports.normalizeRanges = normalizeRanges;
-var _array = __webpack_require__(11);
-var _number = __webpack_require__(30);
+var _array = __webpack_require__(10);
+var _number = __webpack_require__(29);
 /**
  * The utils class produces the selection ranges in the `{startRow, startCol, endRow, endCol}` format
  * based on the current table selection. The CopyPaste plugin consumes that ranges to generate
@@ -66897,36 +69476,36 @@ function normalizeRanges(ranges) {
 }
 
 /***/ }),
-/* 442 */
+/* 465 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _customBorders = __webpack_require__(443);
+var _customBorders = __webpack_require__(466);
 exports.PLUGIN_KEY = _customBorders.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _customBorders.PLUGIN_PRIORITY;
 exports.CustomBorders = _customBorders.CustomBorders;
 
 /***/ }),
-/* 443 */
+/* 466 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _object = __webpack_require__(14);
-var _console = __webpack_require__(22);
-var _number = __webpack_require__(30);
-var _array = __webpack_require__(11);
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _contextMenuItem = __webpack_require__(444);
-var _utils = __webpack_require__(446);
-var _selection = __webpack_require__(142);
-var _mixed = __webpack_require__(8);
+var _base = __webpack_require__(385);
+var _object = __webpack_require__(13);
+var _console = __webpack_require__(21);
+var _number = __webpack_require__(29);
+var _array = __webpack_require__(10);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _contextMenuItem = __webpack_require__(467);
+var _utils = __webpack_require__(469);
+var _selection = __webpack_require__(141);
+var _mixed = __webpack_require__(7);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'customBorders';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 90;
@@ -67680,7 +70259,7 @@ The border style will be ignored.`);
 exports.CustomBorders = CustomBorders;
 
 /***/ }),
-/* 444 */
+/* 467 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -67688,19 +70267,19 @@ exports.CustomBorders = CustomBorders;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _bottom = _interopRequireDefault(__webpack_require__(445));
+var _bottom = _interopRequireDefault(__webpack_require__(468));
 exports.bottom = _bottom.default;
-var _left = _interopRequireDefault(__webpack_require__(447));
+var _left = _interopRequireDefault(__webpack_require__(470));
 exports.left = _left.default;
-var _noBorders = _interopRequireDefault(__webpack_require__(448));
+var _noBorders = _interopRequireDefault(__webpack_require__(471));
 exports.noBorders = _noBorders.default;
-var _right = _interopRequireDefault(__webpack_require__(449));
+var _right = _interopRequireDefault(__webpack_require__(472));
 exports.right = _right.default;
-var _top = _interopRequireDefault(__webpack_require__(450));
+var _top = _interopRequireDefault(__webpack_require__(473));
 exports.top = _top.default;
 
 /***/ }),
-/* 445 */
+/* 468 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -67708,8 +70287,8 @@ exports.top = _top.default;
 
 exports.__esModule = true;
 exports["default"] = bottom;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _utils = __webpack_require__(446);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _utils = __webpack_require__(469);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {CustomBorders} customBordersPlugin The plugin instance.
@@ -67734,7 +70313,7 @@ function bottom(customBordersPlugin) {
 }
 
 /***/ }),
-/* 446 */
+/* 469 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -67754,9 +70333,9 @@ exports.hasStartEndTypeOptions = hasStartEndTypeOptions;
 exports.markSelected = markSelected;
 exports.normalizeBorder = normalizeBorder;
 exports.toInlinePropName = toInlinePropName;
-var _object = __webpack_require__(14);
-var _mixed = __webpack_require__(8);
-var _array = __webpack_require__(11);
+var _object = __webpack_require__(13);
+var _mixed = __webpack_require__(7);
+var _array = __webpack_require__(10);
 /**
  * Create separated id for borders for each cell.
  *
@@ -67991,7 +70570,7 @@ function toInlinePropName(propName) {
 }
 
 /***/ }),
-/* 447 */
+/* 470 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -67999,8 +70578,8 @@ function toInlinePropName(propName) {
 
 exports.__esModule = true;
 exports["default"] = left;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _utils = __webpack_require__(446);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _utils = __webpack_require__(469);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {CustomBorders} customBordersPlugin The plugin instance.
@@ -68026,7 +70605,7 @@ function left(customBordersPlugin) {
 }
 
 /***/ }),
-/* 448 */
+/* 471 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68034,8 +70613,8 @@ function left(customBordersPlugin) {
 
 exports.__esModule = true;
 exports["default"] = noBorders;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _utils = __webpack_require__(446);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _utils = __webpack_require__(469);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {CustomBorders} customBordersPlugin The plugin instance.
@@ -68057,7 +70636,7 @@ function noBorders(customBordersPlugin) {
 }
 
 /***/ }),
-/* 449 */
+/* 472 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68065,8 +70644,8 @@ function noBorders(customBordersPlugin) {
 
 exports.__esModule = true;
 exports["default"] = right;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _utils = __webpack_require__(446);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _utils = __webpack_require__(469);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {CustomBorders} customBordersPlugin The plugin instance.
@@ -68092,7 +70671,7 @@ function right(customBordersPlugin) {
 }
 
 /***/ }),
-/* 450 */
+/* 473 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68100,8 +70679,8 @@ function right(customBordersPlugin) {
 
 exports.__esModule = true;
 exports["default"] = top;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _utils = __webpack_require__(446);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _utils = __webpack_require__(469);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {CustomBorders} customBordersPlugin The plugin instance.
@@ -68126,29 +70705,29 @@ function top(customBordersPlugin) {
 }
 
 /***/ }),
-/* 451 */
+/* 474 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dragToScroll = __webpack_require__(452);
+var _dragToScroll = __webpack_require__(475);
 exports.PLUGIN_KEY = _dragToScroll.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _dragToScroll.PLUGIN_PRIORITY;
 exports.DragToScroll = _dragToScroll.DragToScroll;
 
 /***/ }),
-/* 452 */
+/* 475 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _event = __webpack_require__(19);
-var _element = __webpack_require__(5);
+var _base = __webpack_require__(385);
+var _event = __webpack_require__(18);
+var _element = __webpack_require__(4);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'dragToScroll';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 100;
 
@@ -68394,37 +70973,37 @@ class DragToScroll extends _base.BasePlugin {
 exports.DragToScroll = DragToScroll;
 
 /***/ }),
-/* 453 */
+/* 476 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dropdownMenu = __webpack_require__(454);
+var _dropdownMenu = __webpack_require__(477);
 exports.PLUGIN_KEY = _dropdownMenu.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _dropdownMenu.PLUGIN_PRIORITY;
 exports.DropdownMenu = _dropdownMenu.DropdownMenu;
 
 /***/ }),
-/* 454 */
+/* 477 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _array = __webpack_require__(11);
-var _object = __webpack_require__(14);
-var _commandExecutor = __webpack_require__(420);
-var _utils = __webpack_require__(402);
-var _element = __webpack_require__(5);
-var _itemsFactory = __webpack_require__(421);
-var _menu = __webpack_require__(422);
-var _hooks = __webpack_require__(21);
-var _predefinedItems = __webpack_require__(400);
-var _a11y = __webpack_require__(12);
+var _base = __webpack_require__(385);
+var _array = __webpack_require__(10);
+var _object = __webpack_require__(13);
+var _commandExecutor = __webpack_require__(443);
+var _utils = __webpack_require__(425);
+var _element = __webpack_require__(4);
+var _itemsFactory = __webpack_require__(444);
+var _menu = __webpack_require__(445);
+var _hooks = __webpack_require__(20);
+var _predefinedItems = __webpack_require__(423);
+var _a11y = __webpack_require__(11);
 _hooks.Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 _hooks.Hooks.getSingleton().register('beforeDropdownMenuShow');
 _hooks.Hooks.getSingleton().register('afterDropdownMenuShow');
@@ -68960,20 +71539,20 @@ DropdownMenu.SEPARATOR = {
 };
 
 /***/ }),
-/* 455 */
+/* 478 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _exportFile = __webpack_require__(456);
+var _exportFile = __webpack_require__(479);
 exports.PLUGIN_KEY = _exportFile.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _exportFile.PLUGIN_PRIORITY;
 exports.ExportFile = _exportFile.ExportFile;
 
 /***/ }),
-/* 456 */
+/* 479 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68981,9 +71560,9 @@ exports.ExportFile = _exportFile.ExportFile;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _dataProvider = _interopRequireDefault(__webpack_require__(457));
-var _typeFactory = _interopRequireWildcard(__webpack_require__(458));
+var _base = __webpack_require__(385);
+var _dataProvider = _interopRequireDefault(__webpack_require__(480));
+var _typeFactory = _interopRequireWildcard(__webpack_require__(481));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'exportFile';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 240;
@@ -69079,7 +71658,7 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 240;
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -69244,14 +71823,14 @@ class ExportFile extends _base.BasePlugin {
 exports.ExportFile = ExportFile;
 
 /***/ }),
-/* 457 */
+/* 480 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _number = __webpack_require__(30);
+var _number = __webpack_require__(29);
 /**
  * @private
  */
@@ -69404,7 +71983,7 @@ class DataProvider {
 var _default = exports["default"] = DataProvider;
 
 /***/ }),
-/* 458 */
+/* 481 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69413,7 +71992,7 @@ var _default = exports["default"] = DataProvider;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports["default"] = typeFactory;
-var _csv = _interopRequireDefault(__webpack_require__(459));
+var _csv = _interopRequireDefault(__webpack_require__(482));
 const TYPE_CSV = exports.TYPE_CSV = 'csv';
 const TYPE_EXCEL = exports.TYPE_EXCEL = 'excel'; // TODO
 const TYPE_PDF = exports.TYPE_PDF = 'pdf'; // TODO
@@ -69437,7 +72016,7 @@ function typeFactory(type, dataProvider, options) {
 }
 
 /***/ }),
-/* 459 */
+/* 482 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69445,9 +72024,9 @@ function typeFactory(type, dataProvider, options) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _array = __webpack_require__(11);
-var _mixed = __webpack_require__(8);
-var _base = _interopRequireDefault(__webpack_require__(460));
+var _array = __webpack_require__(10);
+var _mixed = __webpack_require__(7);
+var _base = _interopRequireDefault(__webpack_require__(483));
 const CHAR_CARRIAGE_RETURN = String.fromCharCode(13);
 const CHAR_DOUBLE_QUOTES = String.fromCharCode(34);
 const CHAR_LINE_FEED = String.fromCharCode(10);
@@ -69581,15 +72160,15 @@ class Csv extends _base.default {
 var _default = exports["default"] = Csv;
 
 /***/ }),
-/* 460 */
+/* 483 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _string = __webpack_require__(6);
+var _object = __webpack_require__(13);
+var _string = __webpack_require__(5);
 /**
  * @private
  */
@@ -69654,20 +72233,20 @@ class BaseType {
 var _default = exports["default"] = BaseType;
 
 /***/ }),
-/* 461 */
+/* 484 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _filters = __webpack_require__(462);
+var _filters = __webpack_require__(485);
 exports.PLUGIN_KEY = _filters.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _filters.PLUGIN_PRIORITY;
 exports.Filters = _filters.Filters;
 
 /***/ }),
-/* 462 */
+/* 485 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69675,26 +72254,26 @@ exports.Filters = _filters.Filters;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _array = __webpack_require__(11);
-var _templateLiteralTag = __webpack_require__(10);
-var _console = __webpack_require__(22);
-var _number = __webpack_require__(30);
-var _element = __webpack_require__(5);
-var _unicode = __webpack_require__(18);
-var _predefinedItems = __webpack_require__(400);
-var constants = _interopRequireWildcard(__webpack_require__(141));
-var _condition = __webpack_require__(463);
-var _operators = __webpack_require__(498);
-var _value = __webpack_require__(500);
-var _actionBar = __webpack_require__(503);
-var _conditionCollection = _interopRequireDefault(__webpack_require__(504));
-var _dataFilter = _interopRequireDefault(__webpack_require__(505));
-var _conditionUpdateObserver = _interopRequireDefault(__webpack_require__(506));
-var _utils = __webpack_require__(488);
-var _focusController = __webpack_require__(507);
-var _constants2 = __webpack_require__(465);
-var _translations = __webpack_require__(116);
+var _base = __webpack_require__(385);
+var _array = __webpack_require__(10);
+var _templateLiteralTag = __webpack_require__(9);
+var _console = __webpack_require__(21);
+var _number = __webpack_require__(29);
+var _element = __webpack_require__(4);
+var _unicode = __webpack_require__(17);
+var _predefinedItems = __webpack_require__(423);
+var constants = _interopRequireWildcard(__webpack_require__(140));
+var _condition = __webpack_require__(486);
+var _operators = __webpack_require__(521);
+var _value = __webpack_require__(523);
+var _actionBar = __webpack_require__(526);
+var _conditionCollection = _interopRequireDefault(__webpack_require__(527));
+var _dataFilter = _interopRequireDefault(__webpack_require__(528));
+var _conditionUpdateObserver = _interopRequireDefault(__webpack_require__(529));
+var _utils = __webpack_require__(511);
+var _focusController = __webpack_require__(530);
+var _constants2 = __webpack_require__(488);
+var _translations = __webpack_require__(115);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * Interface for the DropdownMenu plugin.
@@ -70151,7 +72730,7 @@ class Filters extends _base.BasePlugin {
    *   standalone: true,
    *   imports: [HotTableModule],
    *   template: ` <div>
-   *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+   *     <hot-table [settings]="gridSettings" />
    *   </div>`,
    * })
    * export class ExampleComponent implements AfterViewInit {
@@ -70752,24 +73331,24 @@ class Filters extends _base.BasePlugin {
 exports.Filters = Filters;
 
 /***/ }),
-/* 463 */
+/* 486 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _event = __webpack_require__(19);
-var _array = __webpack_require__(11);
-var _unicode = __webpack_require__(18);
-var _object = __webpack_require__(14);
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _base = __webpack_require__(464);
-var _constants2 = _interopRequireWildcard(__webpack_require__(465));
-var _input = __webpack_require__(495);
-var _select = __webpack_require__(497);
-var _conditionRegisterer = __webpack_require__(466);
+var _element = __webpack_require__(4);
+var _event = __webpack_require__(18);
+var _array = __webpack_require__(10);
+var _unicode = __webpack_require__(17);
+var _object = __webpack_require__(13);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _base = __webpack_require__(487);
+var _constants2 = _interopRequireWildcard(__webpack_require__(488));
+var _input = __webpack_require__(518);
+var _select = __webpack_require__(520);
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @private
@@ -70992,7 +73571,7 @@ class ConditionComponent extends _base.BaseComponent {
 exports.ConditionComponent = ConditionComponent;
 
 /***/ }),
-/* 464 */
+/* 487 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71000,10 +73579,10 @@ exports.ConditionComponent = ConditionComponent;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _array = __webpack_require__(11);
-var _object = __webpack_require__(14);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
-var _translations = __webpack_require__(116);
+var _array = __webpack_require__(10);
+var _object = __webpack_require__(13);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
+var _translations = __webpack_require__(115);
 /**
  * @private
  * @class BaseComponent
@@ -71150,7 +73729,7 @@ exports.BaseComponent = BaseComponent;
 (0, _object.mixin)(BaseComponent, _localHooks.default);
 
 /***/ }),
-/* 465 */
+/* 488 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71158,61 +73737,61 @@ exports.BaseComponent = BaseComponent;
 
 exports.__esModule = true;
 exports["default"] = getOptionsList;
-var _object = __webpack_require__(14);
-var _array = __webpack_require__(11);
-var _predefinedItems = __webpack_require__(400);
-var _conditionRegisterer = __webpack_require__(466);
-var _none = __webpack_require__(467);
+var _object = __webpack_require__(13);
+var _array = __webpack_require__(10);
+var _predefinedItems = __webpack_require__(423);
+var _conditionRegisterer = __webpack_require__(489);
+var _none = __webpack_require__(490);
 exports.CONDITION_NONE = _none.CONDITION_NAME;
-var _empty = __webpack_require__(468);
+var _empty = __webpack_require__(491);
 exports.CONDITION_EMPTY = _empty.CONDITION_NAME;
-var _notEmpty = __webpack_require__(469);
+var _notEmpty = __webpack_require__(492);
 exports.CONDITION_NOT_EMPTY = _notEmpty.CONDITION_NAME;
-var _equal = __webpack_require__(470);
+var _equal = __webpack_require__(493);
 exports.CONDITION_EQUAL = _equal.CONDITION_NAME;
-var _notEqual = __webpack_require__(471);
+var _notEqual = __webpack_require__(494);
 exports.CONDITION_NOT_EQUAL = _notEqual.CONDITION_NAME;
-var _greaterThan = __webpack_require__(472);
+var _greaterThan = __webpack_require__(495);
 exports.CONDITION_GREATER_THAN = _greaterThan.CONDITION_NAME;
-var _greaterThanOrEqual = __webpack_require__(473);
+var _greaterThanOrEqual = __webpack_require__(496);
 exports.CONDITION_GREATER_THAN_OR_EQUAL = _greaterThanOrEqual.CONDITION_NAME;
-var _lessThan = __webpack_require__(474);
+var _lessThan = __webpack_require__(497);
 exports.CONDITION_LESS_THAN = _lessThan.CONDITION_NAME;
-var _lessThanOrEqual = __webpack_require__(475);
+var _lessThanOrEqual = __webpack_require__(498);
 exports.CONDITION_LESS_THAN_OR_EQUAL = _lessThanOrEqual.CONDITION_NAME;
-var _between = __webpack_require__(476);
+var _between = __webpack_require__(499);
 exports.CONDITION_BETWEEN = _between.CONDITION_NAME;
-var _notBetween = __webpack_require__(479);
+var _notBetween = __webpack_require__(502);
 exports.CONDITION_NOT_BETWEEN = _notBetween.CONDITION_NAME;
-var _beginsWith = __webpack_require__(480);
+var _beginsWith = __webpack_require__(503);
 exports.CONDITION_BEGINS_WITH = _beginsWith.CONDITION_NAME;
-var _endsWith = __webpack_require__(481);
+var _endsWith = __webpack_require__(504);
 exports.CONDITION_ENDS_WITH = _endsWith.CONDITION_NAME;
-var _contains = __webpack_require__(482);
+var _contains = __webpack_require__(505);
 exports.CONDITION_CONTAINS = _contains.CONDITION_NAME;
-var _notContains = __webpack_require__(483);
+var _notContains = __webpack_require__(506);
 exports.CONDITION_NOT_CONTAINS = _notContains.CONDITION_NAME;
-var _before = __webpack_require__(478);
+var _before = __webpack_require__(501);
 exports.CONDITION_DATE_BEFORE = _before.CONDITION_NAME;
-var _after = __webpack_require__(477);
+var _after = __webpack_require__(500);
 exports.CONDITION_DATE_AFTER = _after.CONDITION_NAME;
-var _tomorrow = __webpack_require__(484);
+var _tomorrow = __webpack_require__(507);
 exports.CONDITION_TOMORROW = _tomorrow.CONDITION_NAME;
-var _today = __webpack_require__(485);
+var _today = __webpack_require__(508);
 exports.CONDITION_TODAY = _today.CONDITION_NAME;
-var _yesterday = __webpack_require__(486);
+var _yesterday = __webpack_require__(509);
 exports.CONDITION_YESTERDAY = _yesterday.CONDITION_NAME;
-var _byValue = __webpack_require__(487);
+var _byValue = __webpack_require__(510);
 exports.CONDITION_BY_VALUE = _byValue.CONDITION_NAME;
-var _true = __webpack_require__(489);
+var _true = __webpack_require__(512);
 exports.CONDITION_TRUE = _true.CONDITION_NAME;
-var _false = __webpack_require__(490);
+var _false = __webpack_require__(513);
 exports.CONDITION_FALSE = _false.CONDITION_NAME;
-var _conjunction = __webpack_require__(491);
+var _conjunction = __webpack_require__(514);
 exports.OPERATION_AND = _conjunction.OPERATION_ID;
-var _disjunction = __webpack_require__(493);
+var _disjunction = __webpack_require__(516);
 exports.OPERATION_OR = _disjunction.OPERATION_ID;
-var _disjunctionWithExtraCondition = __webpack_require__(494);
+var _disjunctionWithExtraCondition = __webpack_require__(517);
 exports.OPERATION_OR_THEN_VARIABLE = _disjunctionWithExtraCondition.OPERATION_ID;
 const TYPE_NUMERIC = exports.TYPE_NUMERIC = 'numeric';
 const TYPE_TEXT = exports.TYPE_TEXT = 'text';
@@ -71256,7 +73835,7 @@ function getOptionsList(type) {
 }
 
 /***/ }),
-/* 466 */
+/* 489 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -71321,7 +73900,7 @@ function registerCondition(name, condition, descriptor) {
 }
 
 /***/ }),
-/* 467 */
+/* 490 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71329,8 +73908,8 @@ function registerCondition(name, condition, descriptor) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'none';
 
@@ -71347,7 +73926,7 @@ function condition() {
 });
 
 /***/ }),
-/* 468 */
+/* 491 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71355,9 +73934,9 @@ function condition() {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
-var _mixed = __webpack_require__(8);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
+var _mixed = __webpack_require__(7);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'empty';
 
@@ -71375,7 +73954,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 469 */
+/* 492 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71383,9 +73962,9 @@ function condition(dataRow) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
-var _empty = __webpack_require__(468);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
+var _empty = __webpack_require__(491);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'not_empty';
 
@@ -71404,7 +73983,7 @@ function condition(dataRow, inputValues) {
 });
 
 /***/ }),
-/* 470 */
+/* 493 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71412,9 +73991,9 @@ function condition(dataRow, inputValues) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _mixed = __webpack_require__(8);
-var _conditionRegisterer = __webpack_require__(466);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _mixed = __webpack_require__(7);
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'eq';
 
@@ -71434,7 +74013,7 @@ function condition(dataRow, [value]) {
 });
 
 /***/ }),
-/* 471 */
+/* 494 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71442,9 +74021,9 @@ function condition(dataRow, [value]) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
-var _equal = __webpack_require__(470);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
+var _equal = __webpack_require__(493);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'neq';
 
@@ -71463,7 +74042,7 @@ function condition(dataRow, inputValues) {
 });
 
 /***/ }),
-/* 472 */
+/* 495 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71471,8 +74050,8 @@ function condition(dataRow, inputValues) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'gt';
 
@@ -71496,7 +74075,7 @@ function condition(dataRow, [value]) {
 });
 
 /***/ }),
-/* 473 */
+/* 496 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71504,8 +74083,8 @@ function condition(dataRow, [value]) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'gte';
 
@@ -71529,7 +74108,7 @@ function condition(dataRow, [value]) {
 });
 
 /***/ }),
-/* 474 */
+/* 497 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71537,8 +74116,8 @@ function condition(dataRow, [value]) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'lt';
 
@@ -71562,7 +74141,7 @@ function condition(dataRow, [value]) {
 });
 
 /***/ }),
-/* 475 */
+/* 498 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71570,8 +74149,8 @@ function condition(dataRow, [value]) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'lte';
 
@@ -71595,7 +74174,7 @@ function condition(dataRow, [value]) {
 });
 
 /***/ }),
-/* 476 */
+/* 499 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71603,10 +74182,10 @@ function condition(dataRow, [value]) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
-var _after = __webpack_require__(477);
-var _before = __webpack_require__(478);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
+var _after = __webpack_require__(500);
+var _before = __webpack_require__(501);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'between';
 
@@ -71639,7 +74218,7 @@ function condition(dataRow, [from, to]) {
 });
 
 /***/ }),
-/* 477 */
+/* 500 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71648,9 +74227,9 @@ function condition(dataRow, [from, to]) {
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.condition = condition;
-var _moment = _interopRequireDefault(__webpack_require__(9));
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
+var _moment = _interopRequireDefault(__webpack_require__(8));
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'date_after';
 
@@ -71675,7 +74254,7 @@ function condition(dataRow, [value]) {
 });
 
 /***/ }),
-/* 478 */
+/* 501 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71684,9 +74263,9 @@ function condition(dataRow, [value]) {
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.condition = condition;
-var _moment = _interopRequireDefault(__webpack_require__(9));
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
+var _moment = _interopRequireDefault(__webpack_require__(8));
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'date_before';
 
@@ -71711,7 +74290,7 @@ function condition(dataRow, [value]) {
 });
 
 /***/ }),
-/* 479 */
+/* 502 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71719,9 +74298,9 @@ function condition(dataRow, [value]) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
-var _between = __webpack_require__(476);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
+var _between = __webpack_require__(499);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'not_between';
 
@@ -71740,7 +74319,7 @@ function condition(dataRow, inputValues) {
 });
 
 /***/ }),
-/* 480 */
+/* 503 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71748,9 +74327,9 @@ function condition(dataRow, inputValues) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _mixed = __webpack_require__(8);
-var _conditionRegisterer = __webpack_require__(466);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _mixed = __webpack_require__(7);
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'begins_with';
 
@@ -71770,7 +74349,7 @@ function condition(dataRow, [value]) {
 });
 
 /***/ }),
-/* 481 */
+/* 504 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71778,9 +74357,9 @@ function condition(dataRow, [value]) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _mixed = __webpack_require__(8);
-var _conditionRegisterer = __webpack_require__(466);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _mixed = __webpack_require__(7);
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'ends_with';
 
@@ -71800,7 +74379,7 @@ function condition(dataRow, [value]) {
 });
 
 /***/ }),
-/* 482 */
+/* 505 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71808,9 +74387,9 @@ function condition(dataRow, [value]) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _mixed = __webpack_require__(8);
-var _conditionRegisterer = __webpack_require__(466);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _mixed = __webpack_require__(7);
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'contains';
 
@@ -71830,7 +74409,7 @@ function condition(dataRow, [value]) {
 });
 
 /***/ }),
-/* 483 */
+/* 506 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71838,9 +74417,9 @@ function condition(dataRow, [value]) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
-var _contains = __webpack_require__(482);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
+var _contains = __webpack_require__(505);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'not_contains';
 
@@ -71859,7 +74438,7 @@ function condition(dataRow, inputValues) {
 });
 
 /***/ }),
-/* 484 */
+/* 507 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71868,9 +74447,9 @@ function condition(dataRow, inputValues) {
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.condition = condition;
-var _moment = _interopRequireDefault(__webpack_require__(9));
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
+var _moment = _interopRequireDefault(__webpack_require__(8));
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'date_tomorrow';
 
@@ -71891,7 +74470,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 485 */
+/* 508 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71900,9 +74479,9 @@ function condition(dataRow) {
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.condition = condition;
-var _moment = _interopRequireDefault(__webpack_require__(9));
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
+var _moment = _interopRequireDefault(__webpack_require__(8));
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'date_today';
 
@@ -71923,7 +74502,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 486 */
+/* 509 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71932,9 +74511,9 @@ function condition(dataRow) {
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.condition = condition;
-var _moment = _interopRequireDefault(__webpack_require__(9));
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _conditionRegisterer = __webpack_require__(466);
+var _moment = _interopRequireDefault(__webpack_require__(8));
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const CONDITION_NAME = exports.CONDITION_NAME = 'date_yesterday';
 
@@ -71955,7 +74534,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 487 */
+/* 510 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71963,8 +74542,8 @@ function condition(dataRow) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var _conditionRegisterer = __webpack_require__(466);
-var _utils = __webpack_require__(488);
+var _conditionRegisterer = __webpack_require__(489);
+var _utils = __webpack_require__(511);
 const CONDITION_NAME = exports.CONDITION_NAME = 'by_value';
 
 /**
@@ -71986,7 +74565,7 @@ function condition(dataRow, [value]) {
 });
 
 /***/ }),
-/* 488 */
+/* 511 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71999,7 +74578,7 @@ exports.sortComparison = sortComparison;
 exports.toEmptyString = toEmptyString;
 exports.toVisualValue = toVisualValue;
 exports.unifyColumnValues = unifyColumnValues;
-var _feature = __webpack_require__(15);
+var _feature = __webpack_require__(14);
 const sortCompare = (0, _feature.getComparisonFunction)();
 
 /**
@@ -72107,7 +74686,7 @@ function intersectValues(base, selected, defaultEmptyValue, callback) {
 }
 
 /***/ }),
-/* 489 */
+/* 512 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -72115,7 +74694,7 @@ function intersectValues(base, selected, defaultEmptyValue, callback) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var _conditionRegisterer = __webpack_require__(466);
+var _conditionRegisterer = __webpack_require__(489);
 const CONDITION_NAME = exports.CONDITION_NAME = 'true';
 
 /**
@@ -72129,7 +74708,7 @@ function condition() {
 });
 
 /***/ }),
-/* 490 */
+/* 513 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -72137,7 +74716,7 @@ function condition() {
 
 exports.__esModule = true;
 exports.condition = condition;
-var _conditionRegisterer = __webpack_require__(466);
+var _conditionRegisterer = __webpack_require__(489);
 const CONDITION_NAME = exports.CONDITION_NAME = 'false';
 
 /**
@@ -72151,7 +74730,7 @@ function condition() {
 });
 
 /***/ }),
-/* 491 */
+/* 514 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -72159,8 +74738,8 @@ function condition() {
 
 exports.__esModule = true;
 exports.operationResult = operationResult;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _logicalOperationRegisterer = __webpack_require__(492);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _logicalOperationRegisterer = __webpack_require__(515);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const OPERATION_ID = exports.OPERATION_ID = 'conjunction';
 const SHORT_NAME_FOR_COMPONENT = exports.SHORT_NAME_FOR_COMPONENT = C.FILTERS_LABELS_CONJUNCTION;
@@ -72177,7 +74756,7 @@ function operationResult(conditions, value) {
 (0, _logicalOperationRegisterer.registerOperation)(OPERATION_ID, SHORT_NAME_FOR_COMPONENT, operationResult);
 
 /***/ }),
-/* 492 */
+/* 515 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -72230,7 +74809,7 @@ function registerOperation(id, name, func) {
 }
 
 /***/ }),
-/* 493 */
+/* 516 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -72238,8 +74817,8 @@ function registerOperation(id, name, func) {
 
 exports.__esModule = true;
 exports.operationResult = operationResult;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _logicalOperationRegisterer = __webpack_require__(492);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _logicalOperationRegisterer = __webpack_require__(515);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const OPERATION_ID = exports.OPERATION_ID = 'disjunction';
 const SHORT_NAME_FOR_COMPONENT = exports.SHORT_NAME_FOR_COMPONENT = C.FILTERS_LABELS_DISJUNCTION;
@@ -72256,7 +74835,7 @@ function operationResult(conditions, value) {
 (0, _logicalOperationRegisterer.registerOperation)(OPERATION_ID, SHORT_NAME_FOR_COMPONENT, operationResult);
 
 /***/ }),
-/* 494 */
+/* 517 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -72264,8 +74843,8 @@ function operationResult(conditions, value) {
 
 exports.__esModule = true;
 exports.operationResult = operationResult;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _logicalOperationRegisterer = __webpack_require__(492);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _logicalOperationRegisterer = __webpack_require__(515);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const OPERATION_ID = exports.OPERATION_ID = 'disjunctionWithExtraCondition';
 const SHORT_NAME_FOR_COMPONENT = exports.SHORT_NAME_FOR_COMPONENT = C.FILTERS_LABELS_DISJUNCTION;
@@ -72285,16 +74864,16 @@ function operationResult(conditions, value) {
 (0, _logicalOperationRegisterer.registerOperation)(OPERATION_ID, SHORT_NAME_FOR_COMPONENT, operationResult);
 
 /***/ }),
-/* 495 */
+/* 518 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _object = __webpack_require__(14);
-var _base = __webpack_require__(496);
+var _element = __webpack_require__(4);
+var _object = __webpack_require__(13);
+var _base = __webpack_require__(519);
 /**
  * @private
  * @class InputUI
@@ -72373,7 +74952,7 @@ class InputUI extends _base.BaseUI {
 exports.InputUI = InputUI;
 
 /***/ }),
-/* 496 */
+/* 519 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -72381,12 +74960,12 @@ exports.InputUI = InputUI;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
-var _eventManager = _interopRequireDefault(__webpack_require__(26));
-var _element = __webpack_require__(5);
-var _array = __webpack_require__(11);
-var C = _interopRequireWildcard(__webpack_require__(141));
+var _object = __webpack_require__(13);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
+var _eventManager = _interopRequireDefault(__webpack_require__(25));
+var _element = __webpack_require__(4);
+var _array = __webpack_require__(10);
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const STATE_BUILT = 'built';
 const STATE_BUILDING = 'building';
@@ -72591,21 +75170,21 @@ exports.BaseUI = BaseUI;
 (0, _object.mixin)(BaseUI, _localHooks.default);
 
 /***/ }),
-/* 497 */
+/* 520 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _menu = __webpack_require__(422);
-var _object = __webpack_require__(14);
-var _array = __webpack_require__(11);
-var _element = __webpack_require__(5);
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _predefinedItems = __webpack_require__(400);
-var _base = __webpack_require__(496);
-var _a11y = __webpack_require__(12);
+var _menu = __webpack_require__(445);
+var _object = __webpack_require__(13);
+var _array = __webpack_require__(10);
+var _element = __webpack_require__(4);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _predefinedItems = __webpack_require__(423);
+var _base = __webpack_require__(519);
+var _a11y = __webpack_require__(11);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @private
@@ -72819,22 +75398,22 @@ class SelectUI extends _base.BaseUI {
 exports.SelectUI = SelectUI;
 
 /***/ }),
-/* 498 */
+/* 521 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _array = __webpack_require__(11);
-var _templateLiteralTag = __webpack_require__(10);
-var _base = __webpack_require__(464);
-var _logicalOperationRegisterer = __webpack_require__(492);
-var _conjunction = __webpack_require__(491);
-var _disjunction = __webpack_require__(493);
-var _disjunctionWithExtraCondition = __webpack_require__(494);
-var _radioInput = __webpack_require__(499);
+var _element = __webpack_require__(4);
+var _array = __webpack_require__(10);
+var _templateLiteralTag = __webpack_require__(9);
+var _base = __webpack_require__(487);
+var _logicalOperationRegisterer = __webpack_require__(515);
+var _conjunction = __webpack_require__(514);
+var _disjunction = __webpack_require__(516);
+var _disjunctionWithExtraCondition = __webpack_require__(517);
+var _radioInput = __webpack_require__(522);
 const SELECTED_AT_START_ELEMENT_INDEX = 0;
 
 /**
@@ -72983,15 +75562,15 @@ class OperatorsComponent extends _base.BaseComponent {
 exports.OperatorsComponent = OperatorsComponent;
 
 /***/ }),
-/* 499 */
+/* 522 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _base = __webpack_require__(496);
+var _object = __webpack_require__(13);
+var _base = __webpack_require__(519);
 /**
  * @private
  * @class RadioInputUI
@@ -73081,23 +75660,23 @@ class RadioInputUI extends _base.BaseUI {
 exports.RadioInputUI = RadioInputUI;
 
 /***/ }),
-/* 500 */
+/* 523 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _event = __webpack_require__(19);
-var _array = __webpack_require__(11);
-var _unicode = __webpack_require__(18);
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _utils = __webpack_require__(488);
-var _base = __webpack_require__(464);
-var _multipleSelect = __webpack_require__(501);
-var _constants2 = __webpack_require__(465);
-var _conditionRegisterer = __webpack_require__(466);
+var _element = __webpack_require__(4);
+var _event = __webpack_require__(18);
+var _array = __webpack_require__(10);
+var _unicode = __webpack_require__(17);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _utils = __webpack_require__(511);
+var _base = __webpack_require__(487);
+var _multipleSelect = __webpack_require__(524);
+var _constants2 = __webpack_require__(488);
+var _conditionRegisterer = __webpack_require__(489);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @private
@@ -73358,24 +75937,24 @@ class ValueComponent extends _base.BaseComponent {
 exports.ValueComponent = ValueComponent;
 
 /***/ }),
-/* 501 */
+/* 524 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _object = __webpack_require__(14);
-var _unicode = __webpack_require__(18);
-var _function = __webpack_require__(16);
-var _data = __webpack_require__(115);
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _event = __webpack_require__(19);
-var _base = __webpack_require__(496);
-var _input = __webpack_require__(495);
-var _link = __webpack_require__(502);
-var _utils = __webpack_require__(488);
+var _element = __webpack_require__(4);
+var _object = __webpack_require__(13);
+var _unicode = __webpack_require__(17);
+var _function = __webpack_require__(15);
+var _data = __webpack_require__(114);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _event = __webpack_require__(18);
+var _base = __webpack_require__(519);
+var _input = __webpack_require__(518);
+var _link = __webpack_require__(525);
+var _utils = __webpack_require__(511);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const SHORTCUTS_GROUP = 'multipleSelect.itemBox';
 /**
@@ -73762,15 +76341,15 @@ function itemsToValue(availableItems) {
 }
 
 /***/ }),
-/* 502 */
+/* 525 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _base = __webpack_require__(496);
+var _object = __webpack_require__(13);
+var _base = __webpack_require__(519);
 /**
  * @private
  * @class LinkUI
@@ -73832,18 +76411,18 @@ class LinkUI extends _base.BaseUI {
 exports.LinkUI = LinkUI;
 
 /***/ }),
-/* 503 */
+/* 526 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _array = __webpack_require__(11);
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _base = __webpack_require__(464);
-var _input = __webpack_require__(495);
+var _element = __webpack_require__(4);
+var _array = __webpack_require__(10);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _base = __webpack_require__(487);
+var _input = __webpack_require__(518);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @private
@@ -73945,7 +76524,7 @@ class ActionBarComponent extends _base.BaseComponent {
 exports.ActionBarComponent = ActionBarComponent;
 
 /***/ }),
-/* 504 */
+/* 527 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -73953,14 +76532,14 @@ exports.ActionBarComponent = ActionBarComponent;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _templateLiteralTag = __webpack_require__(10);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
-var _conditionRegisterer = __webpack_require__(466);
-var _conjunction = __webpack_require__(491);
-var _logicalOperationRegisterer = __webpack_require__(492);
-var _mixed = __webpack_require__(8);
-var _translations = __webpack_require__(116);
+var _object = __webpack_require__(13);
+var _templateLiteralTag = __webpack_require__(9);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
+var _conditionRegisterer = __webpack_require__(489);
+var _conjunction = __webpack_require__(514);
+var _logicalOperationRegisterer = __webpack_require__(515);
+var _mixed = __webpack_require__(7);
+var _translations = __webpack_require__(115);
 const MAP_NAME = 'ConditionCollection.filteringStates';
 
 /**
@@ -74221,14 +76800,14 @@ class ConditionCollection {
 var _default = exports["default"] = ConditionCollection;
 
 /***/ }),
-/* 505 */
+/* 528 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _array = __webpack_require__(11);
+var _array = __webpack_require__(10);
 /**
  * @private
  * @class DataFilter
@@ -74307,7 +76886,7 @@ class DataFilter {
 var _default = exports["default"] = DataFilter;
 
 /***/ }),
-/* 506 */
+/* 529 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -74315,13 +76894,13 @@ var _default = exports["default"] = DataFilter;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _array = __webpack_require__(11);
-var _object = __webpack_require__(14);
-var _function = __webpack_require__(16);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
-var _conditionCollection = _interopRequireDefault(__webpack_require__(504));
-var _dataFilter = _interopRequireDefault(__webpack_require__(505));
-var _utils = __webpack_require__(488);
+var _array = __webpack_require__(10);
+var _object = __webpack_require__(13);
+var _function = __webpack_require__(15);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
+var _conditionCollection = _interopRequireDefault(__webpack_require__(527));
+var _dataFilter = _interopRequireDefault(__webpack_require__(528));
+var _utils = __webpack_require__(511);
 /**
  * Class which is designed for observing changes in condition collection. When condition is changed by user at specified
  * column it's necessary to update all conditions defined after this edited one.
@@ -74512,7 +77091,7 @@ class ConditionUpdateObserver {
 var _default = exports["default"] = ConditionUpdateObserver;
 
 /***/ }),
-/* 507 */
+/* 530 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -74520,10 +77099,10 @@ var _default = exports["default"] = ConditionUpdateObserver;
 
 exports.__esModule = true;
 exports.createMenuFocusController = createMenuFocusController;
-var _focusNavigator = __webpack_require__(508);
-var _select = __webpack_require__(497);
-var _base = __webpack_require__(496);
-var _link = __webpack_require__(502);
+var _focusNavigator = __webpack_require__(531);
+var _select = __webpack_require__(520);
+var _base = __webpack_require__(519);
+var _link = __webpack_require__(525);
 const SHORTCUTS_MENU_CONTEXT = 'filters';
 
 /**
@@ -74682,7 +77261,7 @@ function createMenuFocusController(mainMenu, menuItems) {
 }
 
 /***/ }),
-/* 508 */
+/* 531 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -74690,9 +77269,9 @@ function createMenuFocusController(mainMenu, menuItems) {
 
 exports.__esModule = true;
 exports.createFocusNavigator = createFocusNavigator;
-var _paginator = __webpack_require__(427);
-var _element = __webpack_require__(5);
-var _multipleSelect = __webpack_require__(501);
+var _paginator = __webpack_require__(450);
+var _element = __webpack_require__(4);
+var _multipleSelect = __webpack_require__(524);
 /**
  * Creates navigator for switching the focus of the filter's elements.
  *
@@ -74718,20 +77297,20 @@ function createFocusNavigator(elements) {
 }
 
 /***/ }),
-/* 509 */
+/* 532 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _formulas = __webpack_require__(510);
+var _formulas = __webpack_require__(533);
 exports.PLUGIN_KEY = _formulas.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _formulas.PLUGIN_PRIORITY;
 exports.Formulas = _formulas.Formulas;
 
 /***/ }),
-/* 510 */
+/* 533 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -74739,19 +77318,19 @@ exports.Formulas = _formulas.Formulas;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _staticRegister = __webpack_require__(25);
-var _console = __webpack_require__(22);
-var _number = __webpack_require__(30);
-var _object = __webpack_require__(14);
-var _mixed = __webpack_require__(8);
-var _register = __webpack_require__(511);
-var _utils = __webpack_require__(513);
-var _settings = __webpack_require__(512);
-var _data = __webpack_require__(115);
-var _string = __webpack_require__(6);
-var _hooks = __webpack_require__(21);
-var _indexSyncer = _interopRequireDefault(__webpack_require__(514));
+var _base = __webpack_require__(385);
+var _staticRegister = __webpack_require__(24);
+var _console = __webpack_require__(21);
+var _number = __webpack_require__(29);
+var _object = __webpack_require__(13);
+var _mixed = __webpack_require__(7);
+var _register = __webpack_require__(534);
+var _utils = __webpack_require__(536);
+var _settings = __webpack_require__(535);
+var _data = __webpack_require__(114);
+var _string = __webpack_require__(5);
+var _hooks = __webpack_require__(20);
+var _indexSyncer = _interopRequireDefault(__webpack_require__(537));
 /**
  * Local interface describing the HyperFormula engine instance shape.
  */
@@ -75879,7 +78458,7 @@ class Formulas extends _base.BasePlugin {
 exports.Formulas = Formulas;
 
 /***/ }),
-/* 511 */
+/* 534 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -75894,13 +78473,13 @@ exports.registerNamedExpressions = registerNamedExpressions;
 exports.setupEngine = setupEngine;
 exports.setupSheet = setupSheet;
 exports.unregisterEngine = unregisterEngine;
-var _staticRegister = __webpack_require__(25);
-var _mixed = __webpack_require__(8);
-var _templateLiteralTag = __webpack_require__(10);
-var _console = __webpack_require__(22);
-var _object = __webpack_require__(14);
-var _formulas = __webpack_require__(510);
-var _settings = __webpack_require__(512);
+var _staticRegister = __webpack_require__(24);
+var _mixed = __webpack_require__(7);
+var _templateLiteralTag = __webpack_require__(9);
+var _console = __webpack_require__(21);
+var _object = __webpack_require__(13);
+var _formulas = __webpack_require__(533);
+var _settings = __webpack_require__(535);
 /**
  * Prepares and returns the collection for the engine relationship with the HoT instances.
  *
@@ -76134,7 +78713,7 @@ function setupSheet(engineInstance, sheetName) {
 }
 
 /***/ }),
-/* 512 */
+/* 535 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -76145,7 +78724,7 @@ exports.getEngineSettingsOverrides = getEngineSettingsOverrides;
 exports.getEngineSettingsWithDefaultsAndOverrides = getEngineSettingsWithDefaultsAndOverrides;
 exports.getEngineSettingsWithOverrides = getEngineSettingsWithOverrides;
 exports.haveEngineSettingsChanged = haveEngineSettingsChanged;
-var _formulas = __webpack_require__(510);
+var _formulas = __webpack_require__(533);
 const DEFAULT_LICENSE_KEY = exports.DEFAULT_LICENSE_KEY = 'internal-use-in-handsontable';
 const DEFAULT_SETTINGS = exports.DEFAULT_SETTINGS = {
   licenseKey: DEFAULT_LICENSE_KEY,
@@ -76263,7 +78842,7 @@ function haveEngineSettingsChanged(currentEngineSettings, newEngineSettings) {
 }
 
 /***/ }),
-/* 513 */
+/* 536 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -76279,7 +78858,7 @@ exports.isDateValid = isDateValid;
 exports.isEscapedFormulaExpression = isEscapedFormulaExpression;
 exports.isFormula = isFormula;
 exports.unescapeFormulaExpression = unescapeFormulaExpression;
-var _moment = _interopRequireDefault(__webpack_require__(9));
+var _moment = _interopRequireDefault(__webpack_require__(8));
 const DEFAULT_DATE_FORMAT_HYPERFORMULA = 'DD/MM/YYYY';
 
 /**
@@ -76373,7 +78952,7 @@ function getDateFromExcelDate(numericDate, dateFormat) {
 }
 
 /***/ }),
-/* 514 */
+/* 537 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -76381,7 +78960,7 @@ function getDateFromExcelDate(numericDate, dateFormat) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _axisSyncer = _interopRequireDefault(__webpack_require__(515));
+var _axisSyncer = _interopRequireDefault(__webpack_require__(538));
 /**
  * @private
  * @class IndexSyncer
@@ -76531,15 +79110,15 @@ class IndexSyncer {
 var _default = exports["default"] = IndexSyncer;
 
 /***/ }),
-/* 515 */
+/* 538 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _string = __webpack_require__(6);
-var _moves = __webpack_require__(516);
+var _string = __webpack_require__(5);
+var _moves = __webpack_require__(539);
 /**
  * @private
  * @class IndexSyncer
@@ -76747,7 +79326,7 @@ class AxisSyncer {
 var _default = exports["default"] = AxisSyncer;
 
 /***/ }),
-/* 516 */
+/* 539 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -76837,20 +79416,20 @@ function getMoves(movedIndexes, finalIndex, numberOfIndexes) {
 }
 
 /***/ }),
-/* 517 */
+/* 540 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _hiddenColumns = __webpack_require__(518);
+var _hiddenColumns = __webpack_require__(541);
 exports.PLUGIN_KEY = _hiddenColumns.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _hiddenColumns.PLUGIN_PRIORITY;
 exports.HiddenColumns = _hiddenColumns.HiddenColumns;
 
 /***/ }),
-/* 518 */
+/* 541 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -76858,15 +79437,15 @@ exports.HiddenColumns = _hiddenColumns.HiddenColumns;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _element = __webpack_require__(5);
-var _number = __webpack_require__(30);
-var _array = __webpack_require__(11);
-var _predefinedItems = __webpack_require__(400);
-var _hooks = __webpack_require__(21);
-var _hideColumn = _interopRequireDefault(__webpack_require__(519));
-var _showColumn = _interopRequireDefault(__webpack_require__(520));
-var _translations = __webpack_require__(116);
+var _base = __webpack_require__(385);
+var _element = __webpack_require__(4);
+var _number = __webpack_require__(29);
+var _array = __webpack_require__(10);
+var _predefinedItems = __webpack_require__(423);
+var _hooks = __webpack_require__(20);
+var _hideColumn = _interopRequireDefault(__webpack_require__(542));
+var _showColumn = _interopRequireDefault(__webpack_require__(543));
+var _translations = __webpack_require__(115);
 _hooks.Hooks.getSingleton().register('beforeHideColumns');
 _hooks.Hooks.getSingleton().register('afterHideColumns');
 _hooks.Hooks.getSingleton().register('beforeUnhideColumns');
@@ -76994,7 +79573,7 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 310;
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -77392,7 +79971,7 @@ class HiddenColumns extends _base.BasePlugin {
 exports.HiddenColumns = HiddenColumns;
 
 /***/ }),
-/* 519 */
+/* 542 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -77400,7 +79979,7 @@ exports.HiddenColumns = HiddenColumns;
 
 exports.__esModule = true;
 exports["default"] = hideColumnItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {HiddenColumns} hiddenColumnsPlugin The plugin instance.
@@ -77450,7 +80029,7 @@ function hideColumnItem(hiddenColumnsPlugin) {
 }
 
 /***/ }),
-/* 520 */
+/* 543 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -77458,8 +80037,8 @@ function hideColumnItem(hiddenColumnsPlugin) {
 
 exports.__esModule = true;
 exports["default"] = showColumnItem;
-var _array = __webpack_require__(11);
-var C = _interopRequireWildcard(__webpack_require__(141));
+var _array = __webpack_require__(10);
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {HiddenColumns} hiddenColumnsPlugin The plugin instance.
@@ -77552,20 +80131,20 @@ function showColumnItem(hiddenColumnsPlugin) {
 }
 
 /***/ }),
-/* 521 */
+/* 544 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _hiddenRows = __webpack_require__(522);
+var _hiddenRows = __webpack_require__(545);
 exports.PLUGIN_KEY = _hiddenRows.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _hiddenRows.PLUGIN_PRIORITY;
 exports.HiddenRows = _hiddenRows.HiddenRows;
 
 /***/ }),
-/* 522 */
+/* 545 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -77573,15 +80152,15 @@ exports.HiddenRows = _hiddenRows.HiddenRows;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _element = __webpack_require__(5);
-var _number = __webpack_require__(30);
-var _array = __webpack_require__(11);
-var _predefinedItems = __webpack_require__(400);
-var _hooks = __webpack_require__(21);
-var _hideRow = _interopRequireDefault(__webpack_require__(523));
-var _showRow = _interopRequireDefault(__webpack_require__(524));
-var _translations = __webpack_require__(116);
+var _base = __webpack_require__(385);
+var _element = __webpack_require__(4);
+var _number = __webpack_require__(29);
+var _array = __webpack_require__(10);
+var _predefinedItems = __webpack_require__(423);
+var _hooks = __webpack_require__(20);
+var _hideRow = _interopRequireDefault(__webpack_require__(546));
+var _showRow = _interopRequireDefault(__webpack_require__(547));
+var _translations = __webpack_require__(115);
 _hooks.Hooks.getSingleton().register('beforeHideRows');
 _hooks.Hooks.getSingleton().register('afterHideRows');
 _hooks.Hooks.getSingleton().register('beforeUnhideRows');
@@ -77709,7 +80288,7 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 320;
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -78099,7 +80678,7 @@ class HiddenRows extends _base.BasePlugin {
 exports.HiddenRows = HiddenRows;
 
 /***/ }),
-/* 523 */
+/* 546 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -78107,7 +80686,7 @@ exports.HiddenRows = HiddenRows;
 
 exports.__esModule = true;
 exports["default"] = hideRowItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {HiddenRows} hiddenRowsPlugin The plugin instance.
@@ -78157,7 +80736,7 @@ function hideRowItem(hiddenRowsPlugin) {
 }
 
 /***/ }),
-/* 524 */
+/* 547 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -78165,8 +80744,8 @@ function hideRowItem(hiddenRowsPlugin) {
 
 exports.__esModule = true;
 exports["default"] = showRowItem;
-var _array = __webpack_require__(11);
-var C = _interopRequireWildcard(__webpack_require__(141));
+var _array = __webpack_require__(10);
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {HiddenRows} hiddenRowsPlugin The plugin instance.
@@ -78259,20 +80838,20 @@ function showRowItem(hiddenRowsPlugin) {
 }
 
 /***/ }),
-/* 525 */
+/* 548 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _manualColumnFreeze = __webpack_require__(526);
+var _manualColumnFreeze = __webpack_require__(549);
 exports.PLUGIN_KEY = _manualColumnFreeze.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _manualColumnFreeze.PLUGIN_PRIORITY;
 exports.ManualColumnFreeze = _manualColumnFreeze.ManualColumnFreeze;
 
 /***/ }),
-/* 526 */
+/* 549 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -78280,10 +80859,10 @@ exports.ManualColumnFreeze = _manualColumnFreeze.ManualColumnFreeze;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _hooks = __webpack_require__(21);
-var _freezeColumn = _interopRequireDefault(__webpack_require__(527));
-var _unfreezeColumn = _interopRequireDefault(__webpack_require__(528));
+var _base = __webpack_require__(385);
+var _hooks = __webpack_require__(20);
+var _freezeColumn = _interopRequireDefault(__webpack_require__(550));
+var _unfreezeColumn = _interopRequireDefault(__webpack_require__(551));
 _hooks.Hooks.getSingleton().register('beforeColumnFreeze');
 _hooks.Hooks.getSingleton().register('afterColumnFreeze');
 _hooks.Hooks.getSingleton().register('beforeColumnUnfreeze');
@@ -78461,7 +81040,7 @@ class ManualColumnFreeze extends _base.BasePlugin {
 exports.ManualColumnFreeze = ManualColumnFreeze;
 
 /***/ }),
-/* 527 */
+/* 550 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -78469,7 +81048,7 @@ exports.ManualColumnFreeze = ManualColumnFreeze;
 
 exports.__esModule = true;
 exports["default"] = freezeColumnItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.
@@ -78507,7 +81086,7 @@ function freezeColumnItem(manualColumnFreezePlugin) {
 }
 
 /***/ }),
-/* 528 */
+/* 551 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -78515,7 +81094,7 @@ function freezeColumnItem(manualColumnFreezePlugin) {
 
 exports.__esModule = true;
 exports["default"] = unfreezeColumnItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.
@@ -78553,20 +81132,20 @@ function unfreezeColumnItem(manualColumnFreezePlugin) {
 }
 
 /***/ }),
-/* 529 */
+/* 552 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _manualColumnMove = __webpack_require__(530);
+var _manualColumnMove = __webpack_require__(553);
 exports.PLUGIN_KEY = _manualColumnMove.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _manualColumnMove.PLUGIN_PRIORITY;
 exports.ManualColumnMove = _manualColumnMove.ManualColumnMove;
 
 /***/ }),
-/* 530 */
+/* 553 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -78574,14 +81153,14 @@ exports.ManualColumnMove = _manualColumnMove.ManualColumnMove;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _hooks = __webpack_require__(21);
-var _array = __webpack_require__(11);
-var _element = __webpack_require__(5);
-var _event = __webpack_require__(19);
-var _number = __webpack_require__(30);
-var _backlight = _interopRequireDefault(__webpack_require__(531));
-var _guideline = _interopRequireDefault(__webpack_require__(533));
+var _base = __webpack_require__(385);
+var _hooks = __webpack_require__(20);
+var _array = __webpack_require__(10);
+var _element = __webpack_require__(4);
+var _event = __webpack_require__(18);
+var _number = __webpack_require__(29);
+var _backlight = _interopRequireDefault(__webpack_require__(554));
+var _guideline = _interopRequireDefault(__webpack_require__(556));
 _hooks.Hooks.getSingleton().register('beforeColumnMove');
 _hooks.Hooks.getSingleton().register('afterColumnMove');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'manualColumnMove';
@@ -79215,7 +81794,7 @@ class ManualColumnMove extends _base.BasePlugin {
 exports.ManualColumnMove = ManualColumnMove;
 
 /***/ }),
-/* 531 */
+/* 554 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -79223,8 +81802,8 @@ exports.ManualColumnMove = ManualColumnMove;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = _interopRequireDefault(__webpack_require__(532));
-var _element = __webpack_require__(5);
+var _base = _interopRequireDefault(__webpack_require__(555));
+var _element = __webpack_require__(4);
 const CSS_CLASSNAME = 'ht__manualColumnMove--backlight';
 
 /**
@@ -79243,15 +81822,15 @@ class BacklightUI extends _base.default {
 var _default = exports["default"] = BacklightUI;
 
 /***/ }),
-/* 532 */
+/* 555 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _number = __webpack_require__(30);
-var _string = __webpack_require__(6);
+var _number = __webpack_require__(29);
+var _string = __webpack_require__(5);
 const STATE_INITIALIZED = 0;
 const STATE_BUILT = 1;
 const STATE_APPENDED = 2;
@@ -79430,7 +82009,7 @@ class BaseUI {
 var _default = exports["default"] = BaseUI;
 
 /***/ }),
-/* 533 */
+/* 556 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -79438,8 +82017,8 @@ var _default = exports["default"] = BaseUI;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = _interopRequireDefault(__webpack_require__(532));
-var _element = __webpack_require__(5);
+var _base = _interopRequireDefault(__webpack_require__(555));
+var _element = __webpack_require__(4);
 const CSS_CLASSNAME = 'ht__manualColumnMove--guideline';
 
 /**
@@ -79458,31 +82037,31 @@ class GuidelineUI extends _base.default {
 var _default = exports["default"] = GuidelineUI;
 
 /***/ }),
-/* 534 */
+/* 557 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _manualColumnResize = __webpack_require__(535);
+var _manualColumnResize = __webpack_require__(558);
 exports.PLUGIN_KEY = _manualColumnResize.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _manualColumnResize.PLUGIN_PRIORITY;
 exports.ManualColumnResize = _manualColumnResize.ManualColumnResize;
 
 /***/ }),
-/* 535 */
+/* 558 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _element = __webpack_require__(5);
-var _array = __webpack_require__(11);
-var _number = __webpack_require__(30);
-var _translations = __webpack_require__(116);
+var _base = __webpack_require__(385);
+var _element = __webpack_require__(4);
+var _array = __webpack_require__(10);
+var _number = __webpack_require__(29);
+var _translations = __webpack_require__(115);
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'manualColumnResize';
@@ -80096,20 +82675,20 @@ class ManualColumnResize extends _base.BasePlugin {
 exports.ManualColumnResize = ManualColumnResize;
 
 /***/ }),
-/* 536 */
+/* 559 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _manualRowMove = __webpack_require__(537);
+var _manualRowMove = __webpack_require__(560);
 exports.PLUGIN_KEY = _manualRowMove.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _manualRowMove.PLUGIN_PRIORITY;
 exports.ManualRowMove = _manualRowMove.ManualRowMove;
 
 /***/ }),
-/* 537 */
+/* 560 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -80117,13 +82696,13 @@ exports.ManualRowMove = _manualRowMove.ManualRowMove;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _hooks = __webpack_require__(21);
-var _array = __webpack_require__(11);
-var _element = __webpack_require__(5);
-var _number = __webpack_require__(30);
-var _backlight = _interopRequireDefault(__webpack_require__(538));
-var _guideline = _interopRequireDefault(__webpack_require__(540));
+var _base = __webpack_require__(385);
+var _hooks = __webpack_require__(20);
+var _array = __webpack_require__(10);
+var _element = __webpack_require__(4);
+var _number = __webpack_require__(29);
+var _backlight = _interopRequireDefault(__webpack_require__(561));
+var _guideline = _interopRequireDefault(__webpack_require__(563));
 _hooks.Hooks.getSingleton().register('beforeRowMove');
 _hooks.Hooks.getSingleton().register('afterRowMove');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'manualRowMove';
@@ -80736,7 +83315,7 @@ class ManualRowMove extends _base.BasePlugin {
 exports.ManualRowMove = ManualRowMove;
 
 /***/ }),
-/* 538 */
+/* 561 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -80744,8 +83323,8 @@ exports.ManualRowMove = ManualRowMove;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = _interopRequireDefault(__webpack_require__(539));
-var _element = __webpack_require__(5);
+var _base = _interopRequireDefault(__webpack_require__(562));
+var _element = __webpack_require__(4);
 const CSS_CLASSNAME = 'ht__manualRowMove--backlight';
 
 /**
@@ -80764,7 +83343,7 @@ class BacklightUI extends _base.default {
 var _default = exports["default"] = BacklightUI;
 
 /***/ }),
-/* 539 */
+/* 562 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -80937,7 +83516,7 @@ class BaseUI {
 var _default = exports["default"] = BaseUI;
 
 /***/ }),
-/* 540 */
+/* 563 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -80945,8 +83524,8 @@ var _default = exports["default"] = BaseUI;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = _interopRequireDefault(__webpack_require__(539));
-var _element = __webpack_require__(5);
+var _base = _interopRequireDefault(__webpack_require__(562));
+var _element = __webpack_require__(4);
 const CSS_CLASSNAME = 'ht__manualRowMove--guideline';
 
 /**
@@ -80965,31 +83544,31 @@ class GuidelineUI extends _base.default {
 var _default = exports["default"] = GuidelineUI;
 
 /***/ }),
-/* 541 */
+/* 564 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _manualRowResize = __webpack_require__(542);
+var _manualRowResize = __webpack_require__(565);
 exports.PLUGIN_KEY = _manualRowResize.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _manualRowResize.PLUGIN_PRIORITY;
 exports.ManualRowResize = _manualRowResize.ManualRowResize;
 
 /***/ }),
-/* 542 */
+/* 565 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _element = __webpack_require__(5);
-var _array = __webpack_require__(11);
-var _number = __webpack_require__(30);
-var _translations = __webpack_require__(116);
+var _base = __webpack_require__(385);
+var _element = __webpack_require__(4);
+var _array = __webpack_require__(10);
+var _number = __webpack_require__(29);
+var _translations = __webpack_require__(115);
 // Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'manualRowResize';
@@ -81592,20 +84171,20 @@ class ManualRowResize extends _base.BasePlugin {
 exports.ManualRowResize = ManualRowResize;
 
 /***/ }),
-/* 543 */
+/* 566 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _mergeCells = __webpack_require__(544);
+var _mergeCells = __webpack_require__(567);
 exports.PLUGIN_KEY = _mergeCells.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _mergeCells.PLUGIN_PRIORITY;
 exports.MergeCells = _mergeCells.MergeCells;
 
 /***/ }),
-/* 544 */
+/* 567 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -81613,22 +84192,22 @@ exports.MergeCells = _mergeCells.MergeCells;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _hooks = __webpack_require__(21);
-var _cellsCollection = _interopRequireDefault(__webpack_require__(545));
-var _cellCoords = _interopRequireDefault(__webpack_require__(546));
-var _autofill = _interopRequireDefault(__webpack_require__(547));
-var _selection = _interopRequireDefault(__webpack_require__(548));
-var _toggleMerge = _interopRequireDefault(__webpack_require__(549));
-var _array = __webpack_require__(11);
-var _object = __webpack_require__(14);
-var _console = __webpack_require__(22);
-var _number = __webpack_require__(30);
-var _element = __webpack_require__(5);
-var _browser = __webpack_require__(13);
-var _focusOrder = __webpack_require__(550);
-var _renderer = __webpack_require__(552);
-var _utils = __webpack_require__(553);
+var _base = __webpack_require__(385);
+var _hooks = __webpack_require__(20);
+var _cellsCollection = _interopRequireDefault(__webpack_require__(568));
+var _cellCoords = _interopRequireDefault(__webpack_require__(569));
+var _autofill = _interopRequireDefault(__webpack_require__(570));
+var _selection = _interopRequireDefault(__webpack_require__(571));
+var _toggleMerge = _interopRequireDefault(__webpack_require__(572));
+var _array = __webpack_require__(10);
+var _object = __webpack_require__(13);
+var _console = __webpack_require__(21);
+var _number = __webpack_require__(29);
+var _element = __webpack_require__(4);
+var _browser = __webpack_require__(12);
+var _focusOrder = __webpack_require__(573);
+var _renderer = __webpack_require__(575);
+var _utils = __webpack_require__(576);
 /**
  * Data shape for focus order linked list nodes.
  */
@@ -82930,7 +85509,7 @@ class MergeCells extends _base.BasePlugin {
 exports.MergeCells = MergeCells;
 
 /***/ }),
-/* 545 */
+/* 568 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -82938,11 +85517,11 @@ exports.MergeCells = MergeCells;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _cellCoords = _interopRequireDefault(__webpack_require__(546));
-var _number = __webpack_require__(30);
-var _console = __webpack_require__(22);
-var _array = __webpack_require__(11);
-var _templateLiteralTag = __webpack_require__(10);
+var _cellCoords = _interopRequireDefault(__webpack_require__(569));
+var _number = __webpack_require__(29);
+var _console = __webpack_require__(21);
+var _array = __webpack_require__(10);
+var _templateLiteralTag = __webpack_require__(9);
 /**
  * Defines a container object for the merged cells.
  *
@@ -83436,14 +86015,14 @@ class MergedCellsCollection {
 var _default = exports["default"] = MergedCellsCollection;
 
 /***/ }),
-/* 546 */
+/* 569 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _templateLiteralTag = __webpack_require__(10);
+var _templateLiteralTag = __webpack_require__(9);
 /**
  * The `MergedCellCoords` class represents a single merged cell.
  *
@@ -83798,15 +86377,15 @@ class MergedCellCoords {
 var _default = exports["default"] = MergedCellCoords;
 
 /***/ }),
-/* 547 */
+/* 570 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _array = __webpack_require__(11);
+var _object = __webpack_require__(13);
+var _array = __webpack_require__(10);
 /**
  * Class responsible for all of the Autofill-related operations on merged cells.
  *
@@ -84208,7 +86787,7 @@ class AutofillCalculations {
 var _default = exports["default"] = AutofillCalculations;
 
 /***/ }),
-/* 548 */
+/* 571 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -84330,7 +86909,7 @@ class SelectionCalculations {
 var _default = exports["default"] = SelectionCalculations;
 
 /***/ }),
-/* 549 */
+/* 572 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -84339,8 +86918,8 @@ var _default = exports["default"] = SelectionCalculations;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports["default"] = toggleMergeItem;
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _cellCoords = _interopRequireDefault(__webpack_require__(546));
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _cellCoords = _interopRequireDefault(__webpack_require__(569));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * @param {*} plugin The plugin instance.
@@ -84390,7 +86969,7 @@ function toggleMergeItem(plugin) {
 }
 
 /***/ }),
-/* 550 */
+/* 573 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -84398,7 +86977,7 @@ function toggleMergeItem(plugin) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _linkedList = _interopRequireDefault(__webpack_require__(551));
+var _linkedList = _interopRequireDefault(__webpack_require__(574));
 /**
  * Class responsible for providing the correct focus order (vertical and horizontal) within a selection that
  * contains merged cells.
@@ -84718,7 +87297,7 @@ class FocusOrder {
 exports.FocusOrder = FocusOrder;
 
 /***/ }),
-/* 551 */
+/* 574 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -84968,7 +87547,7 @@ class LinkedList {
 var _default = exports["default"] = LinkedList;
 
 /***/ }),
-/* 552 */
+/* 575 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -84976,9 +87555,9 @@ var _default = exports["default"] = LinkedList;
 
 exports.__esModule = true;
 exports.createMergeCellRenderer = createMergeCellRenderer;
-var _object = __webpack_require__(14);
-var _browser = __webpack_require__(13);
-var _utils = __webpack_require__(553);
+var _object = __webpack_require__(13);
+var _browser = __webpack_require__(12);
+var _utils = __webpack_require__(576);
 /**
  * Represents a merged cell entry.
  */
@@ -85085,7 +87664,7 @@ function createMergeCellRenderer(plugin) {
 }
 
 /***/ }),
-/* 553 */
+/* 576 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -85116,33 +87695,33 @@ function sumCellsHeights(hotInstance, row, rowspan) {
 }
 
 /***/ }),
-/* 554 */
+/* 577 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _multiColumnSorting = __webpack_require__(555);
+var _multiColumnSorting = __webpack_require__(578);
 exports.PLUGIN_KEY = _multiColumnSorting.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _multiColumnSorting.PLUGIN_PRIORITY;
 exports.MultiColumnSorting = _multiColumnSorting.MultiColumnSorting;
 
 /***/ }),
-/* 555 */
+/* 578 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _columnSorting = __webpack_require__(377);
-var _sortService = __webpack_require__(381);
-var _utils = __webpack_require__(380);
-var _element = __webpack_require__(5);
-var _rootComparator = __webpack_require__(556);
-var _domHelpers = __webpack_require__(557);
-var _shortcutContexts = __webpack_require__(200);
+var _columnSorting = __webpack_require__(400);
+var _sortService = __webpack_require__(404);
+var _utils = __webpack_require__(403);
+var _element = __webpack_require__(4);
+var _rootComparator = __webpack_require__(579);
+var _domHelpers = __webpack_require__(580);
+var _shortcutContexts = __webpack_require__(199);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'multiColumnSorting';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 170;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
@@ -85421,7 +88000,7 @@ class MultiColumnSorting extends _columnSorting.ColumnSorting {
 exports.MultiColumnSorting = MultiColumnSorting;
 
 /***/ }),
-/* 556 */
+/* 579 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -85429,7 +88008,7 @@ exports.MultiColumnSorting = MultiColumnSorting;
 
 exports.__esModule = true;
 exports.rootComparator = rootComparator;
-var _sortService = __webpack_require__(381);
+var _sortService = __webpack_require__(404);
 /**
  * Sort comparator handled by conventional sort algorithm.
  *
@@ -85463,7 +88042,7 @@ function rootComparator(sortingOrders, columnMetas) {
 }
 
 /***/ }),
-/* 557 */
+/* 580 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -85506,29 +88085,29 @@ function getClassesToRemove(htmlElement) {
 }
 
 /***/ }),
-/* 558 */
+/* 581 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _multipleSelectionHandles = __webpack_require__(559);
+var _multipleSelectionHandles = __webpack_require__(582);
 exports.PLUGIN_KEY = _multipleSelectionHandles.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _multipleSelectionHandles.PLUGIN_PRIORITY;
 exports.MultipleSelectionHandles = _multipleSelectionHandles.MultipleSelectionHandles;
 
 /***/ }),
-/* 559 */
+/* 582 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _browser = __webpack_require__(13);
-var _base = __webpack_require__(362);
+var _element = __webpack_require__(4);
+var _browser = __webpack_require__(12);
+var _base = __webpack_require__(385);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'multipleSelectionHandles';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 160;
 
@@ -85859,20 +88438,20 @@ class MultipleSelectionHandles extends _base.BasePlugin {
 exports.MultipleSelectionHandles = MultipleSelectionHandles;
 
 /***/ }),
-/* 560 */
+/* 583 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _nestedHeaders = __webpack_require__(561);
+var _nestedHeaders = __webpack_require__(584);
 exports.PLUGIN_KEY = _nestedHeaders.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _nestedHeaders.PLUGIN_PRIORITY;
 exports.NestedHeaders = _nestedHeaders.NestedHeaders;
 
 /***/ }),
-/* 561 */
+/* 584 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -85880,15 +88459,15 @@ exports.NestedHeaders = _nestedHeaders.NestedHeaders;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _number = __webpack_require__(30);
-var _templateLiteralTag = __webpack_require__(10);
-var _event = __webpack_require__(19);
-var _console = __webpack_require__(22);
-var _selection = __webpack_require__(142);
-var _base = __webpack_require__(362);
-var _stateManager = _interopRequireDefault(__webpack_require__(562));
-var _ghostTable = _interopRequireDefault(__webpack_require__(575));
+var _element = __webpack_require__(4);
+var _number = __webpack_require__(29);
+var _templateLiteralTag = __webpack_require__(9);
+var _event = __webpack_require__(18);
+var _console = __webpack_require__(21);
+var _selection = __webpack_require__(141);
+var _base = __webpack_require__(385);
+var _stateManager = _interopRequireDefault(__webpack_require__(585));
+var _ghostTable = _interopRequireDefault(__webpack_require__(598));
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'nestedHeaders';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 280;
 
@@ -86500,7 +89079,7 @@ class NestedHeaders extends _base.BasePlugin {
 exports.NestedHeaders = NestedHeaders;
 
 /***/ }),
-/* 562 */
+/* 585 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -86508,12 +89087,12 @@ exports.NestedHeaders = NestedHeaders;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _array = __webpack_require__(11);
-var _sourceSettings = _interopRequireDefault(__webpack_require__(563));
-var _headersTree = _interopRequireDefault(__webpack_require__(566));
-var _nodeModifiers = __webpack_require__(568);
-var _matrixGenerator = __webpack_require__(574);
-var _tree = __webpack_require__(567);
+var _array = __webpack_require__(10);
+var _sourceSettings = _interopRequireDefault(__webpack_require__(586));
+var _headersTree = _interopRequireDefault(__webpack_require__(589));
+var _nodeModifiers = __webpack_require__(591);
+var _matrixGenerator = __webpack_require__(597);
+var _tree = __webpack_require__(590);
 /**
  * The state manager is a source of truth for nested headers configuration.
  *
@@ -86886,16 +89465,16 @@ class StateManager {
 exports["default"] = StateManager;
 
 /***/ }),
-/* 563 */
+/* 586 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _object = __webpack_require__(14);
-var _array = __webpack_require__(11);
-var _settingsNormalizer = __webpack_require__(564);
+var _object = __webpack_require__(13);
+var _array = __webpack_require__(10);
+var _settingsNormalizer = __webpack_require__(587);
 /**
  * List of properties which are configurable. That properties can be changed using public API.
  *
@@ -87083,7 +89662,7 @@ class SourceSettings {
 exports["default"] = SourceSettings;
 
 /***/ }),
-/* 564 */
+/* 587 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -87091,10 +89670,10 @@ exports["default"] = SourceSettings;
 
 exports.__esModule = true;
 exports.normalizeSettings = normalizeSettings;
-var _array = __webpack_require__(11);
-var _object = __webpack_require__(14);
-var _mixed = __webpack_require__(8);
-var _utils = __webpack_require__(565);
+var _array = __webpack_require__(10);
+var _object = __webpack_require__(13);
+var _mixed = __webpack_require__(7);
+var _utils = __webpack_require__(588);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -87196,7 +89775,7 @@ function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
 }
 
 /***/ }),
-/* 565 */
+/* 588 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -87272,7 +89851,7 @@ function createPlaceholderHeaderSettings() {
 }
 
 /***/ }),
-/* 566 */
+/* 589 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -87280,8 +89859,8 @@ function createPlaceholderHeaderSettings() {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _array = __webpack_require__(11);
-var _tree = _interopRequireDefault(__webpack_require__(567));
+var _array = __webpack_require__(10);
+var _tree = _interopRequireDefault(__webpack_require__(590));
 /**
  * Interface representing the base header settings shape.
  */
@@ -87474,7 +90053,7 @@ class HeadersTree {
 exports["default"] = HeadersTree;
 
 /***/ }),
-/* 567 */
+/* 590 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -87687,7 +90266,7 @@ class TreeNode {
 exports["default"] = TreeNode;
 
 /***/ }),
-/* 568 */
+/* 591 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -87695,10 +90274,10 @@ exports["default"] = TreeNode;
 
 exports.__esModule = true;
 exports.triggerNodeModification = triggerNodeModification;
-var _collapse = __webpack_require__(569);
-var _expand = __webpack_require__(570);
-var _hideColumn = __webpack_require__(572);
-var _showColumn = __webpack_require__(573);
+var _collapse = __webpack_require__(592);
+var _expand = __webpack_require__(593);
+var _hideColumn = __webpack_require__(595);
+var _showColumn = __webpack_require__(596);
 /**
  * The NodeModifiers module is responsible for the modification of a tree structure
  * in a way to achieve new column headers state.
@@ -87722,7 +90301,7 @@ function triggerNodeModification(actionName, nodeToProcess, gridColumnIndex) {
 }
 
 /***/ }),
-/* 569 */
+/* 592 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -87730,9 +90309,9 @@ function triggerNodeModification(actionName, nodeToProcess, gridColumnIndex) {
 
 exports.__esModule = true;
 exports.collapseNode = collapseNode;
-var _array = __webpack_require__(11);
-var _expand = __webpack_require__(570);
-var _tree = __webpack_require__(571);
+var _array = __webpack_require__(10);
+var _expand = __webpack_require__(593);
+var _tree = __webpack_require__(594);
 /**
  * Collapsing a node is a process where the processing node is collapsed
  * to the colspan width of the first child.
@@ -87811,7 +90390,7 @@ function collapseNode(nodeToProcess) {
 }
 
 /***/ }),
-/* 570 */
+/* 593 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -87819,9 +90398,9 @@ function collapseNode(nodeToProcess) {
 
 exports.__esModule = true;
 exports.expandNode = expandNode;
-var _array = __webpack_require__(11);
-var _collapse = __webpack_require__(569);
-var _tree = __webpack_require__(571);
+var _array = __webpack_require__(10);
+var _collapse = __webpack_require__(592);
+var _tree = __webpack_require__(594);
 /**
  * Expanding a node is a process where the processing node is expanded to
  * its original colspan width.
@@ -87899,7 +90478,7 @@ function expandNode(nodeToProcess) {
 }
 
 /***/ }),
-/* 571 */
+/* 594 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -87960,7 +90539,7 @@ function isNodeReflectsFirstChildColspan(node) {
 }
 
 /***/ }),
-/* 572 */
+/* 595 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -87968,7 +90547,7 @@ function isNodeReflectsFirstChildColspan(node) {
 
 exports.__esModule = true;
 exports.hideColumn = hideColumn;
-var _templateLiteralTag = __webpack_require__(10);
+var _templateLiteralTag = __webpack_require__(9);
 /**
  * @param {TreeNode} nodeToProcess A tree node to process.
  * @param {number} gridColumnIndex The visual column index that triggers the node modification.
@@ -88016,7 +90595,7 @@ the last node, the hide column modification can be applied.`);
 }
 
 /***/ }),
-/* 573 */
+/* 596 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -88024,7 +90603,7 @@ the last node, the hide column modification can be applied.`);
 
 exports.__esModule = true;
 exports.showColumn = showColumn;
-var _templateLiteralTag = __webpack_require__(10);
+var _templateLiteralTag = __webpack_require__(9);
 /**
  * @param {TreeNode} nodeToProcess A tree node to process.
  * @param {number} gridColumnIndex The visual column index that triggers the node modification.
@@ -88071,7 +90650,7 @@ the last node, the show column modification can be applied.`);
 }
 
 /***/ }),
-/* 574 */
+/* 597 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -88079,8 +90658,8 @@ the last node, the show column modification can be applied.`);
 
 exports.__esModule = true;
 exports.generateMatrix = generateMatrix;
-var _array = __webpack_require__(11);
-var _utils = __webpack_require__(565);
+var _array = __webpack_require__(10);
+var _utils = __webpack_require__(588);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -88176,14 +90755,14 @@ function createNestedArrayIfNecessary(array, index) {
 }
 
 /***/ }),
-/* 575 */
+/* 598 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
+var _element = __webpack_require__(4);
 /**
  * The class generates the nested headers structure in the DOM and reads the column width for
  * each column.
@@ -88328,20 +90907,20 @@ class GhostTable {
 var _default = exports["default"] = GhostTable;
 
 /***/ }),
-/* 576 */
+/* 599 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _nestedRows = __webpack_require__(577);
+var _nestedRows = __webpack_require__(600);
 exports.PLUGIN_KEY = _nestedRows.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _nestedRows.PLUGIN_PRIORITY;
 exports.NestedRows = _nestedRows.NestedRows;
 
 /***/ }),
-/* 577 */
+/* 600 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -88349,16 +90928,16 @@ exports.NestedRows = _nestedRows.NestedRows;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _dataManager = _interopRequireDefault(__webpack_require__(578));
-var _collapsing = _interopRequireDefault(__webpack_require__(579));
-var _headers = _interopRequireDefault(__webpack_require__(581));
-var _contextMenu = _interopRequireDefault(__webpack_require__(582));
-var _console = __webpack_require__(22);
-var _data = __webpack_require__(115);
-var _translations = __webpack_require__(116);
-var _shortcutContexts = __webpack_require__(200);
-var _rowMoveController = _interopRequireDefault(__webpack_require__(583));
+var _base = __webpack_require__(385);
+var _dataManager = _interopRequireDefault(__webpack_require__(601));
+var _collapsing = _interopRequireDefault(__webpack_require__(602));
+var _headers = _interopRequireDefault(__webpack_require__(604));
+var _contextMenu = _interopRequireDefault(__webpack_require__(605));
+var _console = __webpack_require__(21);
+var _data = __webpack_require__(114);
+var _translations = __webpack_require__(115);
+var _shortcutContexts = __webpack_require__(199);
+var _rowMoveController = _interopRequireDefault(__webpack_require__(606));
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'nestedRows';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 300;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
@@ -88832,16 +91411,16 @@ class NestedRows extends _base.BasePlugin {
 exports.NestedRows = NestedRows;
 
 /***/ }),
-/* 578 */
+/* 601 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _number = __webpack_require__(30);
-var _object = __webpack_require__(14);
-var _array = __webpack_require__(11);
+var _number = __webpack_require__(29);
+var _object = __webpack_require__(13);
+var _array = __webpack_require__(10);
 /**
  * Class responsible for making data operations.
  *
@@ -89543,7 +92122,7 @@ class DataManager {
 var _default = exports["default"] = DataManager;
 
 /***/ }),
-/* 579 */
+/* 602 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89551,12 +92130,12 @@ var _default = exports["default"] = DataManager;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _event = __webpack_require__(19);
-var _array = __webpack_require__(11);
-var _number = __webpack_require__(30);
-var _element = __webpack_require__(5);
-var _base = _interopRequireDefault(__webpack_require__(580));
-var _headers = _interopRequireDefault(__webpack_require__(581));
+var _event = __webpack_require__(18);
+var _array = __webpack_require__(10);
+var _number = __webpack_require__(29);
+var _element = __webpack_require__(4);
+var _base = _interopRequireDefault(__webpack_require__(603));
+var _headers = _interopRequireDefault(__webpack_require__(604));
 /**
  * Class responsible for the UI for collapsing and expanding groups.
  *
@@ -90016,7 +92595,7 @@ class CollapsingUI extends _base.default {
 var _default = exports["default"] = CollapsingUI;
 
 /***/ }),
-/* 580 */
+/* 603 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -90048,7 +92627,7 @@ class BaseUI {
 var _default = exports["default"] = BaseUI;
 
 /***/ }),
-/* 581 */
+/* 604 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -90056,11 +92635,11 @@ var _default = exports["default"] = BaseUI;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _array = __webpack_require__(11);
-var _number = __webpack_require__(30);
-var _element = __webpack_require__(5);
-var _base = _interopRequireDefault(__webpack_require__(580));
-var _a11y = __webpack_require__(12);
+var _array = __webpack_require__(10);
+var _number = __webpack_require__(29);
+var _element = __webpack_require__(4);
+var _base = _interopRequireDefault(__webpack_require__(603));
+var _a11y = __webpack_require__(11);
 /**
  * Minimal interface for DataManager methods used by HeadersUI.
  */
@@ -90209,10 +92788,8 @@ class HeadersUI extends _base.default {
       deepestLevelIndex = this.dataManager.cache.levelCount;
     }
     let completeVerticalPadding = 11;
-    if (!this.hot.stylesHandler.isClassicTheme()) {
-      const verticalPadding = this.hot.stylesHandler.getCSSVariableValue('cell-horizontal-padding');
-      completeVerticalPadding = verticalPadding * 2;
-    }
+    const verticalPadding = this.hot.stylesHandler.getCSSVariableValue('cell-horizontal-padding');
+    completeVerticalPadding = verticalPadding * 2;
     this.rowHeaderWidthCache = Math.max(50, completeVerticalPadding + 10 * deepestLevelIndex + 25);
     this.hot.render();
   }
@@ -90220,7 +92797,7 @@ class HeadersUI extends _base.default {
 var _default = exports["default"] = HeadersUI;
 
 /***/ }),
-/* 582 */
+/* 605 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -90228,10 +92805,10 @@ var _default = exports["default"] = HeadersUI;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _number = __webpack_require__(30);
-var _array = __webpack_require__(11);
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _base = _interopRequireDefault(__webpack_require__(580));
+var _number = __webpack_require__(29);
+var _array = __webpack_require__(10);
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _base = _interopRequireDefault(__webpack_require__(603));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * Represents a selection item from the context menu callback.
@@ -90341,16 +92918,16 @@ class ContextMenuUI extends _base.default {
 var _default = exports["default"] = ContextMenuUI;
 
 /***/ }),
-/* 583 */
+/* 606 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _mixed = __webpack_require__(8);
-var _console = __webpack_require__(22);
-var _templateLiteralTag = __webpack_require__(10);
+var _mixed = __webpack_require__(7);
+var _console = __webpack_require__(21);
+var _templateLiteralTag = __webpack_require__(9);
 /**
  * Helper class for the row-move-related operations.
  *
@@ -90629,35 +93206,35 @@ class RowMoveController {
 exports["default"] = RowMoveController;
 
 /***/ }),
-/* 584 */
+/* 607 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _pagination = __webpack_require__(585);
+var _pagination = __webpack_require__(608);
 exports.PLUGIN_KEY = _pagination.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _pagination.PLUGIN_PRIORITY;
 exports.Pagination = _pagination.Pagination;
 
 /***/ }),
-/* 585 */
+/* 608 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _number = __webpack_require__(30);
-var _element = __webpack_require__(5);
-var _ui = __webpack_require__(586);
-var _utils = __webpack_require__(587);
+var _base = __webpack_require__(385);
+var _number = __webpack_require__(29);
+var _element = __webpack_require__(4);
+var _ui = __webpack_require__(609);
+var _utils = __webpack_require__(610);
 var _a11yAnnouncer = __webpack_require__(261);
-var _strategies = __webpack_require__(588);
-var _templateLiteralTag = __webpack_require__(10);
-var _console = __webpack_require__(22);
+var _strategies = __webpack_require__(611);
+var _templateLiteralTag = __webpack_require__(9);
+var _console = __webpack_require__(21);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'pagination';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 900;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
@@ -90842,7 +93419,7 @@ class Pagination extends _base.BasePlugin {
         rootElement: this.hot.rootGridElement,
         uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
-        themeName: this.hot.getSettings().themeName,
+        themeName: this.hot.getCurrentThemeName(),
         phraseTranslator: (...args) => this.hot.getTranslatedPhrase(...args),
         shouldHaveBorder: () => this.#computeNeedsBorder(),
         a11yAnnouncer: message => (0, _a11yAnnouncer.announce)(message)
@@ -91463,7 +94040,7 @@ class Pagination extends _base.BasePlugin {
 exports.Pagination = Pagination;
 
 /***/ }),
-/* 586 */
+/* 609 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -91471,12 +94048,12 @@ exports.Pagination = Pagination;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _templateLiteralTag = __webpack_require__(10);
-var _object = __webpack_require__(14);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
-var C = _interopRequireWildcard(__webpack_require__(141));
-var _element = __webpack_require__(5);
-var _a11y = __webpack_require__(12);
+var _templateLiteralTag = __webpack_require__(9);
+var _object = __webpack_require__(13);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
+var C = _interopRequireWildcard(__webpack_require__(140));
+var _element = __webpack_require__(4);
+var _a11y = __webpack_require__(11);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const TEMPLATE = `
 <div data-ref="container" class="ht-pagination handsontable">
@@ -91892,7 +94469,7 @@ exports.PaginationUI = PaginationUI;
 (0, _object.mixin)(PaginationUI, _localHooks.default);
 
 /***/ }),
-/* 587 */
+/* 610 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -91900,8 +94477,8 @@ exports.PaginationUI = PaginationUI;
 
 exports.__esModule = true;
 exports.checkPluginSettingsConflict = checkPluginSettingsConflict;
-var _templateLiteralTag = __webpack_require__(10);
-var _console = __webpack_require__(22);
+var _templateLiteralTag = __webpack_require__(9);
+var _console = __webpack_require__(21);
 const CONFLICTING_OPTIONS = [
 // plugins
 'nestedRows', 'mergeCells',
@@ -91926,7 +94503,7 @@ function checkPluginSettingsConflict(settings) {
 }
 
 /***/ }),
-/* 588 */
+/* 611 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -91934,8 +94511,8 @@ function checkPluginSettingsConflict(settings) {
 
 exports.__esModule = true;
 exports.createPaginatorStrategy = createPaginatorStrategy;
-var _fixedPageSize = __webpack_require__(589);
-var _autoPageSize = __webpack_require__(590);
+var _fixedPageSize = __webpack_require__(612);
+var _autoPageSize = __webpack_require__(613);
 const strategies = new Map([['fixed', _fixedPageSize.FixedPageSizeStrategy], ['auto', _autoPageSize.AutoPageSizeStrategy]]);
 
 /**
@@ -91953,7 +94530,7 @@ function createPaginatorStrategy(strategyType) {
 }
 
 /***/ }),
-/* 589 */
+/* 612 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -92041,7 +94618,7 @@ class FixedPageSizeStrategy {
 exports.FixedPageSizeStrategy = FixedPageSizeStrategy;
 
 /***/ }),
-/* 590 */
+/* 613 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -92136,20 +94713,20 @@ class AutoPageSizeStrategy {
 exports.AutoPageSizeStrategy = AutoPageSizeStrategy;
 
 /***/ }),
-/* 591 */
+/* 614 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _persistentState = __webpack_require__(592);
+var _persistentState = __webpack_require__(615);
 exports.PLUGIN_KEY = _persistentState.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _persistentState.PLUGIN_PRIORITY;
 exports.PersistentState = _persistentState.PersistentState;
 
 /***/ }),
-/* 592 */
+/* 615 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -92157,10 +94734,10 @@ exports.PersistentState = _persistentState.PersistentState;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _storage = _interopRequireDefault(__webpack_require__(593));
-var _hooks = __webpack_require__(21);
-var _console = __webpack_require__(22);
+var _base = __webpack_require__(385);
+var _storage = _interopRequireDefault(__webpack_require__(616));
+var _hooks = __webpack_require__(20);
+var _console = __webpack_require__(21);
 _hooks.Hooks.getSingleton().register('persistentStateSave');
 _hooks.Hooks.getSingleton().register('persistentStateLoad');
 _hooks.Hooks.getSingleton().register('persistentStateReset');
@@ -92308,14 +94885,14 @@ class PersistentState extends _base.BasePlugin {
 exports.PersistentState = PersistentState;
 
 /***/ }),
-/* 593 */
+/* 616 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _array = __webpack_require__(11);
+var _array = __webpack_require__(10);
 /**
  * @private
  * @class Storage
@@ -92429,30 +95006,30 @@ class Storage {
 var _default = exports["default"] = Storage;
 
 /***/ }),
-/* 594 */
+/* 617 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _search = __webpack_require__(595);
+var _search = __webpack_require__(618);
 exports.PLUGIN_KEY = _search.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _search.PLUGIN_PRIORITY;
 exports.Search = _search.Search;
 
 /***/ }),
-/* 595 */
+/* 618 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _object = __webpack_require__(14);
-var _number = __webpack_require__(30);
-var _mixed = __webpack_require__(8);
+var _base = __webpack_require__(385);
+var _object = __webpack_require__(13);
+var _number = __webpack_require__(29);
+var _mixed = __webpack_require__(7);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'search';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 190;
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
@@ -92729,28 +95306,28 @@ class Search extends _base.BasePlugin {
 exports.Search = Search;
 
 /***/ }),
-/* 596 */
+/* 619 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _stretchColumns = __webpack_require__(597);
+var _stretchColumns = __webpack_require__(620);
 exports.PLUGIN_KEY = _stretchColumns.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _stretchColumns.PLUGIN_PRIORITY;
 exports.StretchColumns = _stretchColumns.StretchColumns;
 
 /***/ }),
-/* 597 */
+/* 620 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _calculator = __webpack_require__(598);
+var _base = __webpack_require__(385);
+var _calculator = __webpack_require__(621);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'stretchColumns';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 155;
 
@@ -92958,17 +95535,17 @@ class StretchColumns extends _base.BasePlugin {
 exports.StretchColumns = StretchColumns;
 
 /***/ }),
-/* 598 */
+/* 621 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _src = __webpack_require__(36);
-var _element = __webpack_require__(5);
-var _all = __webpack_require__(599);
-var _last = __webpack_require__(601);
+var _src = __webpack_require__(35);
+var _element = __webpack_require__(4);
+var _all = __webpack_require__(622);
+var _last = __webpack_require__(624);
 const STRETCH_WIDTH_MAP_NAME = 'stretchColumns';
 
 /**
@@ -93076,8 +95653,6 @@ class StretchCalculator {
     const viewportHeight = view.getViewportHeight();
     const totalRows = this.#hot.countRows();
     const defaultRowHeight = stylesHandler.getDefaultRowHeight();
-    const isLegacyTheme = stylesHandler.isClassicTheme();
-    const firstRowBorderCompensation = row => isLegacyTheme && row === 0 ? 1 : 0;
     let totalHeight = 0;
     let hasVerticalScroll = false;
     for (let row = 0; row < totalRows; row++) {
@@ -93085,7 +95660,7 @@ class StretchCalculator {
         // eslint-disable-next-line no-continue
         continue;
       }
-      totalHeight += (this.#hot.getRowHeight(row) ?? defaultRowHeight) + firstRowBorderCompensation(row);
+      totalHeight += this.#hot.getRowHeight(row) ?? defaultRowHeight;
       if (totalHeight > viewportHeight) {
         hasVerticalScroll = true;
         break;
@@ -93118,15 +95693,15 @@ class StretchCalculator {
 exports.StretchCalculator = StretchCalculator;
 
 /***/ }),
-/* 599 */
+/* 622 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _src = __webpack_require__(36);
-var _base = __webpack_require__(600);
+var _src = __webpack_require__(35);
+var _base = __webpack_require__(623);
 /**
  * The strategy calculates the column widths by stretching all columns evenly.
  *
@@ -93187,7 +95762,7 @@ class StretchAllStrategy extends _base.StretchStrategy {
 exports.StretchAllStrategy = StretchAllStrategy;
 
 /***/ }),
-/* 600 */
+/* 623 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -93273,14 +95848,14 @@ class StretchStrategy {
 exports.StretchStrategy = StretchStrategy;
 
 /***/ }),
-/* 601 */
+/* 624 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(600);
+var _base = __webpack_require__(623);
 /**
  * @typedef StretchStrategyCalcArgs
  * @property {number} viewportWidth The width of the viewport.
@@ -93343,30 +95918,30 @@ class StretchLastStrategy extends _base.StretchStrategy {
 exports.StretchLastStrategy = StretchLastStrategy;
 
 /***/ }),
-/* 602 */
+/* 625 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _touchScroll = __webpack_require__(603);
+var _touchScroll = __webpack_require__(626);
 exports.PLUGIN_KEY = _touchScroll.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _touchScroll.PLUGIN_PRIORITY;
 exports.TouchScroll = _touchScroll.TouchScroll;
 
 /***/ }),
-/* 603 */
+/* 626 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _element = __webpack_require__(5);
-var _array = __webpack_require__(11);
-var _base = __webpack_require__(362);
-var _feature = __webpack_require__(15);
+var _element = __webpack_require__(4);
+var _array = __webpack_require__(10);
+var _base = __webpack_require__(385);
+var _feature = __webpack_require__(14);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'touchScroll';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 200;
 
@@ -93538,29 +96113,29 @@ class TouchScroll extends _base.BasePlugin {
 exports.TouchScroll = TouchScroll;
 
 /***/ }),
-/* 604 */
+/* 627 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _trimRows = __webpack_require__(605);
+var _trimRows = __webpack_require__(628);
 exports.PLUGIN_KEY = _trimRows.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _trimRows.PLUGIN_PRIORITY;
 exports.TrimRows = _trimRows.TrimRows;
 
 /***/ }),
-/* 605 */
+/* 628 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _translations = __webpack_require__(116);
-var _array = __webpack_require__(11);
+var _base = __webpack_require__(385);
+var _translations = __webpack_require__(115);
+var _array = __webpack_require__(10);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'trimRows';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 330;
 
@@ -93665,7 +96240,7 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 330;
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -93921,32 +96496,32 @@ class TrimRows extends _base.BasePlugin {
 exports.TrimRows = TrimRows;
 
 /***/ }),
-/* 606 */
+/* 629 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _undoRedo = __webpack_require__(607);
+var _undoRedo = __webpack_require__(630);
 exports.PLUGIN_KEY = _undoRedo.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _undoRedo.PLUGIN_PRIORITY;
 exports.UndoRedo = _undoRedo.UndoRedo;
 
 /***/ }),
-/* 607 */
+/* 630 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _hooks = __webpack_require__(21);
-var _object = __webpack_require__(14);
-var _templateLiteralTag = __webpack_require__(10);
-var _console = __webpack_require__(22);
-var _actions = __webpack_require__(608);
+var _base = __webpack_require__(385);
+var _hooks = __webpack_require__(20);
+var _object = __webpack_require__(13);
+var _templateLiteralTag = __webpack_require__(9);
+var _console = __webpack_require__(21);
+var _actions = __webpack_require__(631);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 const SHORTCUTS_GROUP = 'undoRedo';
@@ -94307,7 +96882,7 @@ class UndoRedo extends _base.BasePlugin {
 exports.UndoRedo = UndoRedo;
 
 /***/ }),
-/* 608 */
+/* 631 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -94315,18 +96890,18 @@ exports.UndoRedo = UndoRedo;
 
 exports.__esModule = true;
 exports.registerActions = registerActions;
-var _cellAlignment = __webpack_require__(609);
-var _columnMove = __webpack_require__(611);
-var _columnSort = __webpack_require__(612);
-var _createColumn = __webpack_require__(613);
-var _createRow = __webpack_require__(614);
-var _dataChange = __webpack_require__(615);
-var _filters = __webpack_require__(616);
-var _mergeCells = __webpack_require__(617);
-var _removeColumn = __webpack_require__(618);
-var _removeRow = __webpack_require__(620);
-var _rowMove = __webpack_require__(621);
-var _unmergeCells = __webpack_require__(622);
+var _cellAlignment = __webpack_require__(632);
+var _columnMove = __webpack_require__(634);
+var _columnSort = __webpack_require__(635);
+var _createColumn = __webpack_require__(636);
+var _createRow = __webpack_require__(637);
+var _dataChange = __webpack_require__(638);
+var _filters = __webpack_require__(639);
+var _mergeCells = __webpack_require__(640);
+var _removeColumn = __webpack_require__(641);
+var _removeRow = __webpack_require__(643);
+var _rowMove = __webpack_require__(644);
+var _unmergeCells = __webpack_require__(645);
 /**
  * Register all undo/redo actions.
  *
@@ -94338,16 +96913,16 @@ function registerActions(hot, undoRedoPlugin) {
 }
 
 /***/ }),
-/* 609 */
+/* 632 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(610);
-var _utils = __webpack_require__(402);
-var _array = __webpack_require__(11);
+var _base = __webpack_require__(633);
+var _utils = __webpack_require__(425);
+var _array = __webpack_require__(10);
 /**
  * Action that tracks cell alignment changes.
  *
@@ -94425,7 +97000,7 @@ class CellAlignmentAction extends _base.BaseAction {
 exports.CellAlignmentAction = CellAlignmentAction;
 
 /***/ }),
-/* 610 */
+/* 633 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -94456,15 +97031,15 @@ class BaseAction {
 exports.BaseAction = BaseAction;
 
 /***/ }),
-/* 611 */
+/* 634 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(610);
-var _moves = __webpack_require__(516);
+var _base = __webpack_require__(633);
+var _moves = __webpack_require__(539);
 /**
  * Action that tracks column move changes.
  *
@@ -94538,14 +97113,14 @@ class ColumnMoveAction extends _base.BaseAction {
 exports.ColumnMoveAction = ColumnMoveAction;
 
 /***/ }),
-/* 612 */
+/* 635 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(610);
+var _base = __webpack_require__(633);
 /**
  * Action that tracks column sort changes.
  *
@@ -94612,14 +97187,14 @@ class ColumnSortAction extends _base.BaseAction {
 exports.ColumnSortAction = ColumnSortAction;
 
 /***/ }),
-/* 613 */
+/* 636 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(610);
+var _base = __webpack_require__(633);
 /**
  * Action that tracks column creation.
  *
@@ -94673,14 +97248,14 @@ class CreateColumnAction extends _base.BaseAction {
 exports.CreateColumnAction = CreateColumnAction;
 
 /***/ }),
-/* 614 */
+/* 637 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(610);
+var _base = __webpack_require__(633);
 /**
  * Action that tracks row creation.
  *
@@ -94739,15 +97314,15 @@ class CreateRowAction extends _base.BaseAction {
 exports.CreateRowAction = CreateRowAction;
 
 /***/ }),
-/* 615 */
+/* 638 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(610);
-var _object = __webpack_require__(14);
+var _base = __webpack_require__(633);
+var _object = __webpack_require__(13);
 /**
  * Minimal interface for the UndoRedo plugin used by action classes.
  */
@@ -94862,14 +97437,14 @@ class DataChangeAction extends _base.BaseAction {
 exports.DataChangeAction = DataChangeAction;
 
 /***/ }),
-/* 616 */
+/* 639 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(610);
+var _base = __webpack_require__(633);
 /**
  * Action that tracks filter changes.
  *
@@ -94927,14 +97502,14 @@ class FiltersAction extends _base.BaseAction {
 exports.FiltersAction = FiltersAction;
 
 /***/ }),
-/* 617 */
+/* 640 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(610);
+var _base = __webpack_require__(633);
 /**
  * Action that tracks changes in merged cells.
  *
@@ -94995,17 +97570,17 @@ class MergeCellsAction extends _base.BaseAction {
 exports.MergeCellsAction = MergeCellsAction;
 
 /***/ }),
-/* 618 */
+/* 641 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(610);
-var _utils = __webpack_require__(619);
-var _number = __webpack_require__(30);
-var _array = __webpack_require__(11);
+var _base = __webpack_require__(633);
+var _utils = __webpack_require__(642);
+var _number = __webpack_require__(29);
+var _array = __webpack_require__(10);
 /**
  * Action that tracks changes in column removal.
  *
@@ -95177,7 +97752,7 @@ class RemoveColumnAction extends _base.BaseAction {
 exports.RemoveColumnAction = RemoveColumnAction;
 
 /***/ }),
-/* 619 */
+/* 642 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -95185,7 +97760,7 @@ exports.RemoveColumnAction = RemoveColumnAction;
 
 exports.__esModule = true;
 exports.getCellMetas = getCellMetas;
-var _number = __webpack_require__(30);
+var _number = __webpack_require__(29);
 /**
  * Gets all cell metas from the provided range.
  *
@@ -95208,16 +97783,16 @@ function getCellMetas(hot, fromRow, toRow, fromColumn, toColumn) {
 }
 
 /***/ }),
-/* 620 */
+/* 643 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(610);
-var _utils = __webpack_require__(619);
-var _object = __webpack_require__(14);
+var _base = __webpack_require__(633);
+var _utils = __webpack_require__(642);
+var _object = __webpack_require__(13);
 /**
  * Action that tracks changes in row removal.
  *
@@ -95333,15 +97908,15 @@ class RemoveRowAction extends _base.BaseAction {
 exports.RemoveRowAction = RemoveRowAction;
 
 /***/ }),
-/* 621 */
+/* 644 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(610);
-var _moves = __webpack_require__(516);
+var _base = __webpack_require__(633);
+var _moves = __webpack_require__(539);
 /**
  * Action that tracks row move changes.
  *
@@ -95415,14 +97990,14 @@ class RowMoveAction extends _base.BaseAction {
 exports.RowMoveAction = RowMoveAction;
 
 /***/ }),
-/* 622 */
+/* 645 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(610);
+var _base = __webpack_require__(633);
 /**
  * Action that tracks changes in merged cells.
  *
@@ -95475,30 +98050,30 @@ class UnmergeCellsAction extends _base.BaseAction {
 exports.UnmergeCellsAction = UnmergeCellsAction;
 
 /***/ }),
-/* 623 */
+/* 646 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dialog = __webpack_require__(624);
+var _dialog = __webpack_require__(647);
 exports.PLUGIN_KEY = _dialog.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _dialog.PLUGIN_PRIORITY;
 exports.Dialog = _dialog.Dialog;
 
 /***/ }),
-/* 624 */
+/* 647 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _ui = __webpack_require__(625);
-var _object = __webpack_require__(14);
-var C = _interopRequireWildcard(__webpack_require__(141));
+var _base = __webpack_require__(385);
+var _ui = __webpack_require__(648);
+var _object = __webpack_require__(13);
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'dialog';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 360;
@@ -96073,7 +98648,7 @@ class Dialog extends _base.BasePlugin {
 exports.Dialog = Dialog;
 
 /***/ }),
-/* 625 */
+/* 648 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -96081,13 +98656,13 @@ exports.Dialog = Dialog;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _templateLiteralTag = __webpack_require__(10);
-var _object = __webpack_require__(14);
-var _localHooks = _interopRequireDefault(__webpack_require__(98));
-var _element = __webpack_require__(5);
-var _a11y = __webpack_require__(12);
-var _templates = __webpack_require__(626);
-var _constants = __webpack_require__(628);
+var _templateLiteralTag = __webpack_require__(9);
+var _object = __webpack_require__(13);
+var _localHooks = _interopRequireDefault(__webpack_require__(97));
+var _element = __webpack_require__(4);
+var _a11y = __webpack_require__(11);
+var _templates = __webpack_require__(649);
+var _constants = __webpack_require__(651);
 /**
  * Represents the compiled template object returned by template factory functions.
  */
@@ -96415,19 +98990,19 @@ exports.DialogUI = DialogUI;
 (0, _object.mixin)(DialogUI, _localHooks.default);
 
 /***/ }),
-/* 626 */
+/* 649 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(627);
-var _confirm = __webpack_require__(629);
+var _base = __webpack_require__(650);
+var _confirm = __webpack_require__(652);
 const TEMPLATES = exports.TEMPLATES = new Map([['base', _base.baseTemplate], ['confirm', _confirm.confirmTemplate]]);
 
 /***/ }),
-/* 627 */
+/* 650 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -96435,8 +99010,8 @@ const TEMPLATES = exports.TEMPLATES = new Map([['base', _base.baseTemplate], ['c
 
 exports.__esModule = true;
 exports.baseTemplate = baseTemplate;
-var _constants = __webpack_require__(628);
-var _templateLiteralTag = __webpack_require__(10);
+var _constants = __webpack_require__(651);
+var _templateLiteralTag = __webpack_require__(9);
 /**
  * The `baseTemplate` function returns a HTML string with the base template.
  *
@@ -96492,7 +99067,7 @@ function baseTemplate() {
 }
 
 /***/ }),
-/* 628 */
+/* 651 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -96505,7 +99080,7 @@ exports.__esModule = true;
 const DIALOG_CLASS_NAME = exports.DIALOG_CLASS_NAME = 'ht-dialog';
 
 /***/ }),
-/* 629 */
+/* 652 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -96513,9 +99088,9 @@ const DIALOG_CLASS_NAME = exports.DIALOG_CLASS_NAME = 'ht-dialog';
 
 exports.__esModule = true;
 exports.confirmTemplate = confirmTemplate;
-var _constants = __webpack_require__(628);
-var _string = __webpack_require__(6);
-var _templateLiteralTag = __webpack_require__(10);
+var _constants = __webpack_require__(651);
+var _string = __webpack_require__(5);
+var _templateLiteralTag = __webpack_require__(9);
 /**
  * The `confirmTemplate` function returns a HTML string with the confirm template.
  *
@@ -96612,29 +99187,29 @@ function confirmTemplate({
 }
 
 /***/ }),
-/* 630 */
+/* 653 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _loading = __webpack_require__(631);
+var _loading = __webpack_require__(654);
 exports.PLUGIN_KEY = _loading.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _loading.PLUGIN_PRIORITY;
 exports.Loading = _loading.Loading;
 
 /***/ }),
-/* 631 */
+/* 654 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _content = __webpack_require__(632);
-var C = _interopRequireWildcard(__webpack_require__(141));
+var _base = __webpack_require__(385);
+var _content = __webpack_require__(655);
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /**
  * Interface for the Dialog plugin used by Loading.
@@ -96911,7 +99486,7 @@ class Loading extends _base.BasePlugin {
 exports.Loading = Loading;
 
 /***/ }),
-/* 632 */
+/* 655 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -96919,7 +99494,7 @@ exports.Loading = Loading;
 
 exports.__esModule = true;
 exports.loadingContent = loadingContent;
-var _loading = __webpack_require__(631);
+var _loading = __webpack_require__(654);
 /* eslint-disable max-len */
 
 /**
@@ -96952,30 +99527,30 @@ function loadingContent({
 }
 
 /***/ }),
-/* 633 */
+/* 656 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _emptyDataState = __webpack_require__(634);
+var _emptyDataState = __webpack_require__(657);
 exports.PLUGIN_KEY = _emptyDataState.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _emptyDataState.PLUGIN_PRIORITY;
 exports.EmptyDataState = _emptyDataState.EmptyDataState;
 
 /***/ }),
-/* 634 */
+/* 657 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _base = __webpack_require__(362);
-var _ui = __webpack_require__(635);
-var _object = __webpack_require__(14);
-var C = _interopRequireWildcard(__webpack_require__(141));
+var _base = __webpack_require__(385);
+var _ui = __webpack_require__(658);
+var _object = __webpack_require__(13);
+var C = _interopRequireWildcard(__webpack_require__(140));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'emptyDataState';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 370;
@@ -97502,17 +100077,17 @@ class EmptyDataState extends _base.BasePlugin {
 exports.EmptyDataState = EmptyDataState;
 
 /***/ }),
-/* 635 */
+/* 658 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _templateLiteralTag = __webpack_require__(10);
-var _element = __webpack_require__(5);
-var _a11y = __webpack_require__(12);
-var _string = __webpack_require__(6);
+var _templateLiteralTag = __webpack_require__(9);
+var _element = __webpack_require__(4);
+var _a11y = __webpack_require__(11);
+var _string = __webpack_require__(5);
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
 const MIN_HEIGHT = 150;
 const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STATE_CLASS_NAME} handsontable">
@@ -97770,7 +100345,7 @@ class EmptyDataStateUI {
 exports.EmptyDataStateUI = EmptyDataStateUI;
 
 /***/ }),
-/* 636 */
+/* 659 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -97848,18 +100423,6 @@ function jQueryWrapper(Handsontable) {
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/************************************************************************/
 var __webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
@@ -97872,33 +100435,34 @@ exports.__esModule = true;
 var _base = _interopRequireWildcard(__webpack_require__(2));
 exports.CellCoords = _base.CellCoords;
 exports.CellRange = _base.CellRange;
-var _registry = __webpack_require__(272);
-var _eventManager = _interopRequireWildcard(__webpack_require__(26));
-var _translations = __webpack_require__(116);
-var _jquery = _interopRequireDefault(__webpack_require__(636));
-var _ghostTable = _interopRequireDefault(__webpack_require__(364));
-var parseTableHelpers = _interopRequireWildcard(__webpack_require__(27));
-var arrayHelpers = _interopRequireWildcard(__webpack_require__(11));
-var browserHelpers = _interopRequireWildcard(__webpack_require__(13));
-var dataHelpers = _interopRequireWildcard(__webpack_require__(115));
-var dateHelpers = _interopRequireWildcard(__webpack_require__(323));
-var featureHelpers = _interopRequireWildcard(__webpack_require__(15));
-var functionHelpers = _interopRequireWildcard(__webpack_require__(16));
-var mixedHelpers = _interopRequireWildcard(__webpack_require__(8));
-var numberHelpers = _interopRequireWildcard(__webpack_require__(30));
-var objectHelpers = _interopRequireWildcard(__webpack_require__(14));
-var stringHelpers = _interopRequireWildcard(__webpack_require__(6));
-var unicodeHelpers = _interopRequireWildcard(__webpack_require__(18));
-var domHelpers = _interopRequireWildcard(__webpack_require__(5));
-var domEventHelpers = _interopRequireWildcard(__webpack_require__(19));
-var _registry2 = __webpack_require__(20);
-var _factory = __webpack_require__(293);
-var _registry3 = __webpack_require__(33);
-var _factory2 = __webpack_require__(317);
-var _registry4 = __webpack_require__(34);
-var _registry5 = __webpack_require__(169);
-var _registry6 = __webpack_require__(28);
-var _base2 = __webpack_require__(362);
+var _registry = __webpack_require__(295);
+var _eventManager = _interopRequireWildcard(__webpack_require__(25));
+var _translations = __webpack_require__(115);
+var _jquery = _interopRequireDefault(__webpack_require__(659));
+var _ghostTable = _interopRequireDefault(__webpack_require__(387));
+var parseTableHelpers = _interopRequireWildcard(__webpack_require__(26));
+var arrayHelpers = _interopRequireWildcard(__webpack_require__(10));
+var browserHelpers = _interopRequireWildcard(__webpack_require__(12));
+var dataHelpers = _interopRequireWildcard(__webpack_require__(114));
+var dateHelpers = _interopRequireWildcard(__webpack_require__(346));
+var featureHelpers = _interopRequireWildcard(__webpack_require__(14));
+var functionHelpers = _interopRequireWildcard(__webpack_require__(15));
+var mixedHelpers = _interopRequireWildcard(__webpack_require__(7));
+var numberHelpers = _interopRequireWildcard(__webpack_require__(29));
+var objectHelpers = _interopRequireWildcard(__webpack_require__(13));
+var stringHelpers = _interopRequireWildcard(__webpack_require__(5));
+var unicodeHelpers = _interopRequireWildcard(__webpack_require__(17));
+var domHelpers = _interopRequireWildcard(__webpack_require__(4));
+var domEventHelpers = _interopRequireWildcard(__webpack_require__(18));
+var _registry2 = __webpack_require__(19);
+var _factory = __webpack_require__(316);
+var _registry3 = __webpack_require__(32);
+var _factory2 = __webpack_require__(340);
+var _registry4 = __webpack_require__(33);
+var _registry5 = __webpack_require__(168);
+var _registry6 = __webpack_require__(27);
+var _base2 = __webpack_require__(385);
+var _registry7 = __webpack_require__(283);
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 (0, _registry.registerAllModules)();
 (0, _jquery.default)(_base.default);
@@ -97988,6 +100552,15 @@ arrayHelpers.arrayEach((0, _registry6.getPluginsNames)(), pluginName => {
 HOT.plugins[`${stringHelpers.toUpperCaseFirst(_base2.BasePlugin.PLUGIN_KEY)}Plugin`] = _base2.BasePlugin;
 HOT.plugins.registerPlugin = _registry6.registerPlugin;
 HOT.plugins.getPlugin = _registry6.getPlugin;
+
+// Export themes namespace.
+_base.default.themes = _base.default.themes ?? {};
+_base.default.themes.hasTheme = _registry7.hasTheme;
+_base.default.themes.getTheme = _registry7.getTheme;
+_base.default.themes.getThemeNames = _registry7.getThemeNames;
+_base.default.themes.getThemes = _registry7.getThemes;
+_base.default.themes.registerTheme = _registry7.registerTheme;
+_base.default.themes.reinitTheme = _registry7.reinitTheme;
 var _default = exports["default"] = _base.default;
 })();
 

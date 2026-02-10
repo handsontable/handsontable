@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -147,7 +145,6 @@ const ExampleComponent = () => {
       `}</style>
 
       <HotTable
-        themeName="ht-theme-main"
         data={data}
         colHeaders={['Car', 'Year', 'Price (USD)', 'Price (EUR)', 'Distance', 'Fuel', 'Discount', 'Quantity']}
         locale={locale}

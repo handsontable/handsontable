@@ -41,7 +41,7 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
 
         expect($dropdownMenu.length).toBe(1);
         expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+          classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
           main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
           horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
         });
@@ -72,7 +72,7 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
 
         expect($dropdownMenu.length).toBe(1);
         expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+          classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
           main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
           horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
         });

@@ -18,7 +18,7 @@ describe('ContextMenu', () => {
       let hot;
 
       expect(() => {
-        hot = new Handsontable(document.createElement('div'), {});
+        hot = new Handsontable(document.createElement('div'), { theme: 'ht-theme-classic' });
       }).toThrowError(`The ContextMenu plugin requires the following modules:
  - AutoColumnSize (plugin)
 
