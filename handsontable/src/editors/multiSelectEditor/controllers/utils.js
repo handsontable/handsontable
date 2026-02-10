@@ -1,4 +1,5 @@
-import { addClass, removeClass } from '../../../helpers/dom/element';
+import { addClass, removeClass, setAttribute } from '../../../helpers/dom/element';
+import { A11Y_HIDDEN, A11Y_LABEL } from '../../../helpers/a11y';
 import { getCheckboxElement } from '../utils/utils';
 
 const classPrefix = 'ht-multi-select-editor';
@@ -7,6 +8,7 @@ const SEARCH_ICON_CLASS = `${classPrefix}-search-icon`;
 const SEARCH_INPUT_CLASS = `${classPrefix}-search-input`;
 const SEPARATOR_CLASS = `${classPrefix}-separator`;
 const SEARCH_INPUT_PLACEHOLDER = 'Search...';
+const SEARCH_INPUT_ARIA_LABEL = 'Search options';
 const CHECKBOX_ID_PREFIX = `${classPrefix}-item-`;
 
 export const SELECTED_ITEM_CLASS = `${classPrefix}-item-selected`;
@@ -66,7 +68,10 @@ export function createSearchInputWrapper({ root }) {
 export function createSearchIcon({ root }) {
   const iconElement = root.createElement('div');
 
-  iconElement.className = SEARCH_ICON_CLASS;
+  addClass(iconElement, SEARCH_ICON_CLASS);
+  setAttribute(iconElement, [
+    A11Y_HIDDEN(),
+  ]);
 
   return iconElement;
 }
@@ -81,10 +86,15 @@ export function createSearchIcon({ root }) {
 export function createSearchInputElement({ root }) {
   const inputElement = root.createElement('input');
 
-  inputElement.type = 'text';
-  inputElement.size = 3;
-  inputElement.className = SEARCH_INPUT_CLASS;
-  inputElement.placeholder = SEARCH_INPUT_PLACEHOLDER;
+  setAttribute(inputElement, [
+    A11Y_LABEL(SEARCH_INPUT_ARIA_LABEL),
+    ['type', 'text'],
+    ['size', 3],
+    ['placeholder', SEARCH_INPUT_PLACEHOLDER],
+    ['id', SEARCH_INPUT_CLASS],
+  ]);
+
+  addClass(inputElement, SEARCH_INPUT_CLASS);
 
   return inputElement;
 }

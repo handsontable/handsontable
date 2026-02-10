@@ -2,8 +2,9 @@ import { BaseEditor } from '../baseEditor';
 import EventManager from '../../eventManager';
 import { DropdownController } from './controllers/dropdownController';
 import { SelectedItemsController } from './controllers/selectedItemsController';
-import { addClass } from '../../helpers/dom/element';
+import { addClass, setAttribute } from '../../helpers/dom/element';
 import { isPrintableChar } from '../../helpers/unicode';
+import { A11Y_LABEL, A11Y_GROUP } from '../../helpers/a11y';
 import { EDITOR_EDIT_GROUP } from '../../shortcutContexts/constants';
 import {
   getValuesIntersection,
@@ -13,6 +14,7 @@ import {
 export const EDITOR_TYPE = 'multiselect';
 
 const DROPDOWN_ELEMENT_CSS_CLASSNAME = 'ht-multi-select-editor';
+const DROPDOWN_ARIA_LABEL = 'Select options';
 const SHORTCUTS_GROUP = 'multiselectEditor';
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 
@@ -92,7 +94,12 @@ export class MultiSelectEditor extends BaseEditor {
     addClass(this.#editorContainer, 'handsontableEditor');
 
     this.dropdownContainerElement = this.hot.rootDocument.createElement('div');
-    this.dropdownContainerElement.className = `${DROPDOWN_ELEMENT_CSS_CLASSNAME} handsontableEditor`;
+
+    addClass(this.dropdownContainerElement, `${DROPDOWN_ELEMENT_CSS_CLASSNAME} handsontableEditor`);
+    setAttribute(this.dropdownContainerElement, [
+      A11Y_LABEL(DROPDOWN_ARIA_LABEL),
+      A11Y_GROUP(),
+    ]);
 
     this.#editorContainer.appendChild(this.dropdownContainerElement);
     this.hot.rootElement.appendChild(this.#editorContainer);
