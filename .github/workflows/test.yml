@@ -497,7 +497,7 @@ jobs:
       - name: Test
         run: |
           cd handsontable
-          npm run test:e2e.dump.esm-cjs && npm run test:e2e.puppeteer
+          npm run test:e2e.dump.esm-cjs && npm run test:e2e.dump --theme=main && npm run test:e2e.puppeteer
 
   test-handsontable-cjs-e2e:
     name: "[TEST] Handsontable: CJS"
@@ -539,7 +539,7 @@ jobs:
       - name: Test
         run: |
           cd handsontable
-          npm run test:e2e.dump.esm-cjs && npm run test:e2e.puppeteer
+          npm run test:e2e.dump.esm-cjs && npm run test:e2e.dump --theme=main && npm run test:e2e.puppeteer
 
   test-angular:
     name: "[TEST] Wrapper: Angular"
