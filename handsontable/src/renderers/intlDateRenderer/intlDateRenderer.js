@@ -1,6 +1,7 @@
 import { textRenderer } from '../textRenderer';
-import { parseToLocalDate } from '../../helpers/date';
+import { parseToLocalDate } from '../../helpers/dateTime';
 import { isEmpty } from '../../helpers/mixed';
+import { isObject } from '../../helpers/object';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
 
 export const RENDERER_TYPE = 'intlDate';
@@ -31,7 +32,9 @@ export function valueFormatter(value, cellProperties) {
     return BAD_VALUE_TEXT;
   }
 
-  return new Intl.DateTimeFormat(locale, dateFormat ?? DEFAULT_INTL_FORMAT).format(date);
+  const intlFormat = isObject(dateFormat) ? dateFormat : DEFAULT_INTL_FORMAT;
+
+  return new Intl.DateTimeFormat(locale, intlFormat).format(date);
 }
 
 /**

@@ -26,7 +26,7 @@ describe('IntlDateType', () => {
       '  - row 0, col 0, value: "0"\n' +
       '  - row 0, col 1, value: "test"\n' +
       '  - row 0, col 2, value: "true"\n\n' +
-      'Expected a value compatible with the ISO 8601 format ("YYYY-MM-DD").'
+      'Expected a value compatible with the ISO 8601 date format ("YYYY-MM-DD").'
     );
   });
 
@@ -44,7 +44,7 @@ describe('IntlDateType', () => {
       'Invalid value for "intlDate" cell type.\n\n' +
       'Affected cells:\n' +
       '  - row 0, col 0, value: "2026-01"\n\n' +
-      'Expected a value compatible with the ISO 8601 format ("YYYY-MM-DD").'
+      'Expected a value compatible with the ISO 8601 date format ("YYYY-MM-DD").'
     );
   });
 
@@ -62,7 +62,7 @@ describe('IntlDateType', () => {
       'Invalid value for "intlDate" cell type.\n\n' +
       'Affected cells:\n' +
       '  - row 0, col 0, value: "2026-01"\n\n' +
-      'Expected a value compatible with the ISO 8601 format ("YYYY-MM-DD").'
+      'Expected a value compatible with the ISO 8601 date format ("YYYY-MM-DD").'
     );
   });
 });

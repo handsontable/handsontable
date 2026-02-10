@@ -5,6 +5,7 @@ import { dateRenderer, RENDERER_TYPE as DATE_RENDERER } from './dateRenderer';
 import { checkboxRenderer, RENDERER_TYPE as CHECKBOX_RENDERER } from './checkboxRenderer';
 import { handsontableRenderer, RENDERER_TYPE as HANDSONTABLE_RENDERER } from "./handsontableRenderer";
 import { intlDateRenderer, RENDERER_TYPE as INTL_DATE_RENDERER } from './intlDateRenderer';
+import { intlTimeRenderer, RENDERER_TYPE as INTL_TIME_RENDERER } from './intlTimeRenderer';
 import { htmlRenderer, RENDERER_TYPE as HTML_RENDERER } from './htmlRenderer';
 import { numericRenderer, RENDERER_TYPE as NUMERIC_RENDERER } from './numericRenderer';
 import { passwordRenderer, RENDERER_TYPE as PASSWORD_RENDERER } from './passwordRenderer';
@@ -23,6 +24,7 @@ export interface Renderers {
   handsontable: typeof handsontableRenderer;
   html: typeof htmlRenderer;
   intlDate: typeof intlDateRenderer;
+  intlTime: typeof intlTimeRenderer;
   numeric: typeof numericRenderer;
   password: typeof passwordRenderer;
   select: typeof selectRenderer;
@@ -44,6 +46,7 @@ export {
   handsontableRenderer, HANDSONTABLE_RENDERER,
   htmlRenderer, HTML_RENDERER,
   intlDateRenderer, INTL_DATE_RENDERER,
+  intlTimeRenderer, INTL_TIME_RENDERER,
   numericRenderer, NUMERIC_RENDERER,
   passwordRenderer, PASSWORD_RENDERER,
   selectRenderer, SELECT_RENDERER,

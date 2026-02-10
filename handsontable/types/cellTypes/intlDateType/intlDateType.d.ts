@@ -18,6 +18,6 @@ export namespace IntlDateCellType {
   export { IntlDateEditor as editor };
   export { intlDateRenderer as renderer };
   export { intlDateValidator as validator };
-  export { sourceDataValidator as sourceDataValidator };
-  export { valueFormatter as valueFormatter };
+  export { sourceDataValidator };
+  export { valueFormatter };
 }

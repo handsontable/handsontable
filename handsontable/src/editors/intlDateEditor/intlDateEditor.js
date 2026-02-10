@@ -1,5 +1,5 @@
 import { TextEditor } from '../textEditor';
-import { isValidISODate } from '../../helpers/date';
+import { isValidISODate } from '../../helpers/dateTime';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 
@@ -40,7 +40,7 @@ export class IntlDateEditor extends TextEditor {
    */
   setValue(value) {
     if (!isValidISODate(value)) {
-      warn(toSingleLine`IntlDateEditor: value must be in ISO date format (YYYY-MM-DD)\x20
+      warn(toSingleLine`IntlDateEditor: value must be in ISO date format ("YYYY-MM-DD")\x20
         required by the native date input. Received:`, value);
 
       return;

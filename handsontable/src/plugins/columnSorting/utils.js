@@ -2,7 +2,7 @@ import moment from 'moment';
 import { isObject } from '../../helpers/object';
 import { isRightClick } from '../../helpers/dom/event';
 import { isEmpty } from '../../helpers/mixed';
-import { parseToLocalDate } from '../../helpers/date';
+import { parseToLocalDate, parseToLocalTime } from '../../helpers/dateTime';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from './sortService';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -209,6 +209,67 @@ export function createIntlDateCompareFunction(sortOrder, format, columnPluginSet
 
     const firstDate = parseToLocalDate(value);
     const nextDate = parseToLocalDate(nextValue);
+
+    if (firstDate === null) {
+      return FIRST_AFTER_SECOND;
+    }
+
+    if (nextDate === null) {
+      return FIRST_BEFORE_SECOND;
+    }
+
+    if (nextDate > firstDate) {
+      return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
+    }
+
+    if (nextDate < firstDate) {
+      return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
+    }
+
+    return DO_NOT_SWAP;
+  };
+}
+
+/**
+ * Creates intlTime sorting compare function.
+ *
+ * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
+ * @param {string} format Date or time format.
+ * @param {object} columnPluginSettings Plugin settings for the column.
+ * @returns {Function} The compare function.
+ */
+export function createIntlTimeCompareFunction(sortOrder, format, columnPluginSettings) {
+  return function(value, nextValue) {
+    const { sortEmptyCells } = columnPluginSettings;
+
+    if (value === nextValue) {
+      return DO_NOT_SWAP;
+    }
+
+    if (isEmpty(value)) {
+      if (isEmpty(nextValue)) {
+        return DO_NOT_SWAP;
+      }
+
+      // Just fist value is empty and `sortEmptyCells` option was set
+      if (sortEmptyCells) {
+        return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
+      }
+
+      return FIRST_AFTER_SECOND;
+    }
+
+    if (isEmpty(nextValue)) {
+      // Just second value is empty and `sortEmptyCells` option was set
+      if (sortEmptyCells) {
+        return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
+      }
+
+      return FIRST_BEFORE_SECOND;
+    }
+
+    const firstDate = parseToLocalTime(value);
+    const nextDate = parseToLocalTime(nextValue);
 
     if (firstDate === null) {
       return FIRST_AFTER_SECOND;

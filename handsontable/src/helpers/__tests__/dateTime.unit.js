@@ -3,7 +3,10 @@ import {
   ISO_DATE_REGEX,
   parseToLocalDate,
   isValidISODate,
-} from 'handsontable/helpers/date';
+  TIME_REGEX,
+  parseToLocalTime,
+  isValidTime,
+} from 'handsontable/helpers/dateTime';
 
 describe('Date helper', () => {
   describe('ISO_DATE_REGEX', () => {
@@ -131,6 +134,129 @@ describe('Date helper', () => {
     it('should return false for ISO-like string with extra characters', () => {
       expect(isValidISODate('2020-01-01T00:00:00')).toBe(false);
       expect(isValidISODate('2020-01-01 ')).toBe(false);
+    });
+  });
+
+  describe('TIME_REGEX', () => {
+    it('should match HH:mm (hours and minutes only)', () => {
+      expect(TIME_REGEX.test('00:00')).toBe(true);
+      expect(TIME_REGEX.test('23:59')).toBe(true);
+      expect(TIME_REGEX.test('12:30')).toBe(true);
+      expect(TIME_REGEX.test('09:05')).toBe(true);
+    });
+
+    it('should match HH:mm:ss (with seconds)', () => {
+      expect(TIME_REGEX.test('00:00:00')).toBe(true);
+      expect(TIME_REGEX.test('12:30:00')).toBe(true);
+      expect(TIME_REGEX.test('23:59:59')).toBe(true);
+      expect(TIME_REGEX.test('14:30:45')).toBe(true);
+    });
+
+    it('should match HH:mm:ss.SSS (with milliseconds, 1–3 digits)', () => {
+      expect(TIME_REGEX.test('00:00:00.000')).toBe(true);
+      expect(TIME_REGEX.test('14:30:45.123')).toBe(true);
+      expect(TIME_REGEX.test('14:30:45.1')).toBe(true);
+      expect(TIME_REGEX.test('14:30:45.12')).toBe(true);
+      expect(TIME_REGEX.test('23:59:59.999')).toBe(true);
+    });
+
+    it('should not match invalid formats', () => {
+      expect(TIME_REGEX.test('')).toBe(false);
+      expect(TIME_REGEX.test('24:00')).toBe(false);
+      expect(TIME_REGEX.test('12:60')).toBe(false);
+      expect(TIME_REGEX.test('12:30:60')).toBe(false);
+      expect(TIME_REGEX.test('9:30')).toBe(false);
+      expect(TIME_REGEX.test('12:5')).toBe(false);
+      expect(TIME_REGEX.test('12:30:00.1234')).toBe(false);
+      expect(TIME_REGEX.test(' 12:30')).toBe(false);
+      expect(TIME_REGEX.test('12:30 ')).toBe(false);
+    });
+  });
+
+  describe('parseToLocalTime', () => {
+    it('should return null for empty or non-string values', () => {
+      expect(parseToLocalTime(null)).toBe(null);
+      expect(parseToLocalTime(undefined)).toBe(null);
+      expect(parseToLocalTime('')).toBe(null);
+    });
+
+    it('should return null for non-time values', () => {
+      expect(parseToLocalTime(123)).toBe(null);
+      expect(parseToLocalTime('9:30')).toBe(null);
+      expect(parseToLocalTime('25:00')).toBe(null);
+    });
+
+    it('should return Date with correct hours and minutes on epoch date', () => {
+      const date = parseToLocalTime('14:30');
+
+      expect(date).not.toBe(null);
+      expect(date.getFullYear()).toBe(1970);
+      expect(date.getMonth()).toBe(0);
+      expect(date.getDate()).toBe(1);
+      expect(date.getHours()).toBe(14);
+      expect(date.getMinutes()).toBe(30);
+      expect(date.getSeconds()).toBe(0);
+    });
+
+    it('should parse midnight and end of day', () => {
+      const midnight = parseToLocalTime('00:00');
+
+      expect(midnight.getHours()).toBe(0);
+      expect(midnight.getMinutes()).toBe(0);
+
+      const endOfDay = parseToLocalTime('23:59');
+
+      expect(endOfDay.getHours()).toBe(23);
+      expect(endOfDay.getMinutes()).toBe(59);
+    });
+
+    it('should parse HH:mm:ss with seconds', () => {
+      const date = parseToLocalTime('14:30:45');
+
+      expect(date.getHours()).toBe(14);
+      expect(date.getMinutes()).toBe(30);
+      expect(date.getSeconds()).toBe(45);
+      expect(date.getMilliseconds()).toBe(0);
+    });
+
+    it('should parse HH:mm:ss.SSS with milliseconds', () => {
+      const date = parseToLocalTime('14:30:45.123');
+
+      expect(date.getHours()).toBe(14);
+      expect(date.getMinutes()).toBe(30);
+      expect(date.getSeconds()).toBe(45);
+      expect(date.getMilliseconds()).toBe(123);
+    });
+
+    it('should normalize short fractional part to milliseconds', () => {
+      const date = parseToLocalTime('00:00:00.1');
+
+      expect(date.getMilliseconds()).toBe(100);
+    });
+  });
+
+  describe('isValidTime', () => {
+    it('should return false for non-string values', () => {
+      expect(isValidTime(null)).toBe(false);
+      expect(isValidTime(undefined)).toBe(false);
+      expect(isValidTime(123)).toBe(false);
+    });
+
+    it('should return false for invalid time strings', () => {
+      expect(isValidTime('')).toBe(false);
+      expect(isValidTime('24:00')).toBe(false);
+      expect(isValidTime('12:60')).toBe(false);
+      expect(isValidTime('9:30')).toBe(false);
+      expect(isValidTime('12:30 ')).toBe(false);
+      expect(isValidTime('12:30:00.1234')).toBe(false);
+    });
+
+    it('should return true for valid HH:mm, HH:mm:ss, and HH:mm:ss.SSS strings', () => {
+      expect(isValidTime('00:00')).toBe(true);
+      expect(isValidTime('23:59')).toBe(true);
+      expect(isValidTime('12:30')).toBe(true);
+      expect(isValidTime('12:30:00')).toBe(true);
+      expect(isValidTime('14:30:45.123')).toBe(true);
     });
   });
 });

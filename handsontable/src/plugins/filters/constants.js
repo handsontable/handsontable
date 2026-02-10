@@ -29,6 +29,9 @@ import { CONDITION_NAME as CONDITION_INTL_DATE_BETWEEN } from './condition/intlD
 import { CONDITION_NAME as CONDITION_INTL_DATE_TOMORROW } from './condition/intlDate/tomorrow';
 import { CONDITION_NAME as CONDITION_INTL_DATE_TODAY } from './condition/intlDate/today';
 import { CONDITION_NAME as CONDITION_INTL_DATE_YESTERDAY } from './condition/intlDate/yesterday';
+import { CONDITION_NAME as CONDITION_INTL_TIME_BEFORE } from './condition/intlTime/before';
+import { CONDITION_NAME as CONDITION_INTL_TIME_AFTER } from './condition/intlTime/after';
+import { CONDITION_NAME as CONDITION_INTL_TIME_BETWEEN } from './condition/intlTime/between';
 import { CONDITION_NAME as CONDITION_BY_VALUE } from './condition/byValue';
 import { CONDITION_NAME as CONDITION_TRUE } from './condition/true';
 import { CONDITION_NAME as CONDITION_FALSE } from './condition/false';
@@ -70,6 +73,7 @@ export const TYPE_NUMERIC = 'numeric';
 export const TYPE_TEXT = 'text';
 export const TYPE_DATE = 'date';
 export const TYPE_INTL_DATE = 'intlDate';
+export const TYPE_INTL_TIME = 'intlTime';
 /**
  * Default types and order for filter conditions.
  *
@@ -140,6 +144,26 @@ export const TYPES = {
     CONDITION_INTL_DATE_TOMORROW,
     CONDITION_INTL_DATE_TODAY,
     CONDITION_INTL_DATE_YESTERDAY,
+  ],
+  [TYPE_INTL_TIME]: [
+    CONDITION_NONE,
+    SEPARATOR,
+    CONDITION_EMPTY,
+    CONDITION_NOT_EMPTY,
+    SEPARATOR,
+    CONDITION_EQUAL,
+    CONDITION_NOT_EQUAL,
+    SEPARATOR,
+    SEPARATOR,
+    CONDITION_BEGINS_WITH,
+    CONDITION_ENDS_WITH,
+    SEPARATOR,
+    CONDITION_CONTAINS,
+    CONDITION_NOT_CONTAINS,
+    SEPARATOR,
+    CONDITION_INTL_TIME_BEFORE,
+    CONDITION_INTL_TIME_AFTER,
+    CONDITION_INTL_TIME_BETWEEN,
   ],
 };
 

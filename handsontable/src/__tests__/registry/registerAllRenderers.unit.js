@@ -27,6 +27,7 @@ describe('`registerAllRenderers`', () => {
       'handsontable',
       'html',
       'intlDate',
+      'intlTime',
       'numeric',
       'password',
       'select',

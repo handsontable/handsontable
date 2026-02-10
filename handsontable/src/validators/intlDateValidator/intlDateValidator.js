@@ -1,11 +1,11 @@
-import { isValidISODate } from '../../helpers/date';
+import { isValidISODate } from '../../helpers/dateTime';
 import { isEmpty } from '../../helpers/mixed';
 
 export const VALIDATOR_TYPE = 'intlDate';
 export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). ' +
   'Invalid value for "intlDate" cell type.\n\n' +
   '[affectedCells]\n\n' +
-  'Expected a value compatible with the ISO 8601 format ("YYYY-MM-DD").';
+  'Expected a value compatible with the ISO 8601 date format ("YYYY-MM-DD").';
 
 /**
  * Source data validator.

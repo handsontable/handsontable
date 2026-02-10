@@ -1,6 +1,6 @@
 import * as C from '../../../../i18n/constants';
 import { registerCondition } from '../../conditionRegisterer';
-import { parseToLocalDate } from '../../../../helpers/date';
+import { parseToLocalDate } from '../../../../helpers/dateTime';
 
 export const CONDITION_NAME = 'intl_date_today';
 

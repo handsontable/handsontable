@@ -1,6 +1,6 @@
 import * as C from '../../../../i18n/constants';
 import { registerCondition } from '../../conditionRegisterer';
-import { parseToLocalDate } from '../../../../helpers/date';
+import { parseToLocalDate } from '../../../../helpers/dateTime';
 
 export const CONDITION_NAME = 'intl_date_after';
 
@@ -12,7 +12,7 @@ export const CONDITION_NAME = 'intl_date_after';
  */
 export function condition(dataRow, [value]) {
   const dataDate = parseToLocalDate(dataRow.value);
-  const inputDate = parseToLocalDate(value); // TODO: implement valueParser?
+  const inputDate = parseToLocalDate(value);
 
   if (dataDate === null || inputDate === null) {
     return false;

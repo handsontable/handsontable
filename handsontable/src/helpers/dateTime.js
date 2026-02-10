@@ -63,3 +63,55 @@ export function isValidISODate(value) {
 
   return !Number.isNaN(date.getTime()) && value === date.toISOString().slice(0, 10);
 }
+
+/**
+ * Time pattern: HH:mm, HH:mm:ss, or HH:mm:ss.SSS (24-hour).
+ * Same format as HTML input type="time" value; seconds and milliseconds optional.
+ *
+ * @type {RegExp}
+ */
+export const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.(\d{1,3}))?)?$/;
+
+/**
+ * Parses a time string in HH:mm, HH:mm:ss, or HH:mm:ss.SSS format to a Date with that time on the Unix epoch (1970-01-01).
+ * Useful for comparison and sorting. Same format as HTML input type="time" value.
+ *
+ * @param {*} value The value to parse.
+ * @returns {Date | null} The Date object or null if the value is invalid.
+ */
+export function parseToLocalTime(value) {
+  if (isEmpty(value)) {
+    return null;
+  }
+
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const match = TIME_REGEX.exec(value);
+
+  if (!match) {
+    return null;
+  }
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const seconds = match[3] !== undefined ? Number(match[3]) : 0;
+  const msString = match[4];
+  const milliseconds = msString !== undefined
+    ? Number(msString.padEnd(3, '0').slice(0, 3))
+    : 0;
+
+  return new Date(1970, 0, 1, hours, minutes, seconds, milliseconds);
+}
+
+/**
+ * Checks if a string is a valid time in HH:mm, HH:mm:ss, or HH:mm:ss.SSS format (00:00–23:59).
+ * Same format as HTML input type="time" value.
+ *
+ * @param {string} value The value to check.
+ * @returns {boolean} True if valid time string.
+ */
+export function isValidTime(value) {
+  return typeof value === 'string' && TIME_REGEX.test(value);
+}

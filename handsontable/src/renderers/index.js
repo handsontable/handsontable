@@ -5,6 +5,7 @@ import { checkboxRenderer, RENDERER_TYPE as CHECKBOX_RENDERER } from './checkbox
 import { handsontableRenderer, RENDERER_TYPE as HANDSONTABLE_RENDERER } from './handsontableRenderer';
 import { htmlRenderer, RENDERER_TYPE as HTML_RENDERER } from './htmlRenderer';
 import { intlDateRenderer, RENDERER_TYPE as INTL_DATE_RENDERER } from './intlDateRenderer';
+import { intlTimeRenderer, RENDERER_TYPE as INTL_TIME_RENDERER } from './intlTimeRenderer';
 import { numericRenderer, RENDERER_TYPE as NUMERIC_RENDERER } from './numericRenderer';
 import { passwordRenderer, RENDERER_TYPE as PASSWORD_RENDERER } from './passwordRenderer';
 import { selectRenderer, RENDERER_TYPE as SELECT_RENDERER } from './selectRenderer';
@@ -23,6 +24,7 @@ export function registerAllRenderers() {
   registerRenderer(handsontableRenderer);
   registerRenderer(htmlRenderer);
   registerRenderer(intlDateRenderer);
+  registerRenderer(intlTimeRenderer);
   registerRenderer(numericRenderer);
   registerRenderer(passwordRenderer);
   registerRenderer(selectRenderer);
@@ -38,6 +40,7 @@ export {
   handsontableRenderer, HANDSONTABLE_RENDERER,
   htmlRenderer, HTML_RENDERER,
   intlDateRenderer, INTL_DATE_RENDERER,
+  intlTimeRenderer, INTL_TIME_RENDERER,
   numericRenderer, NUMERIC_RENDERER,
   passwordRenderer, PASSWORD_RENDERER,
   selectRenderer, SELECT_RENDERER,

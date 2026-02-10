@@ -5,6 +5,7 @@ import { DateEditor, EDITOR_TYPE as DATE_EDITOR } from './dateEditor';
 import { DropdownEditor, EDITOR_TYPE as DROPDOWN_EDITOR } from './dropdownEditor';
 import { HandsontableEditor, EDITOR_TYPE as HANDSONTABLE_EDITOR } from './handsontableEditor';
 import { IntlDateEditor, EDITOR_TYPE as INTL_DATE_EDITOR } from './intlDateEditor';
+import { IntlTimeEditor, EDITOR_TYPE as INTL_TIME_EDITOR } from './intlTimeEditor';
 import { NumericEditor, EDITOR_TYPE as NUMERIC_EDITOR } from './numericEditor';
 import { PasswordEditor, EDITOR_TYPE as PASSWORD_EDITOR } from './passwordEditor';
 import { SelectEditor, EDITOR_TYPE as SELECT_EDITOR } from './selectEditor';
@@ -21,6 +22,7 @@ export interface Editors {
   dropdown: typeof DropdownEditor;
   handsontable: typeof HandsontableEditor;
   intlDate: typeof IntlDateEditor;
+  intlTime: typeof IntlTimeEditor;
   numeric: typeof NumericEditor;
   password: typeof PasswordEditor;
   select: typeof SelectEditor;
@@ -41,6 +43,7 @@ export {
   DropdownEditor, DROPDOWN_EDITOR,
   HandsontableEditor, HANDSONTABLE_EDITOR,
   IntlDateEditor, INTL_DATE_EDITOR,
+  IntlTimeEditor, INTL_TIME_EDITOR,
   NumericEditor, NUMERIC_EDITOR,
   PasswordEditor, PASSWORD_EDITOR,
   SelectEditor, SELECT_EDITOR,

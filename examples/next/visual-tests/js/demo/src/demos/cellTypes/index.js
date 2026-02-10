@@ -102,7 +102,7 @@ export function init() {
         type: 'text',
         headerClassName: 'htLeft',
         className: 'htLeft',
-        width: 150,
+        width: 140,
       },
       {
         data: 'cost',
@@ -117,14 +117,14 @@ export function init() {
         type: 'checkbox',
         headerClassName: 'htCenter',
         className: 'htCenter',
-        width: 100,
+        width: 90,
       },
       {
         data: 'category',
         type: 'autocomplete',
         headerClassName: 'htLeft',
         className: 'htLeft',
-        width: 150,
+        width: 135,
         source: [
           'Lander',
           'Propulsion',
@@ -144,7 +144,7 @@ export function init() {
         numericFormat: { pattern: '0%' },
         headerClassName: 'htRight',
         className: 'htRight',
-        width: 100,
+        width: 115,
       },
       {
         data: 'origin',
@@ -158,7 +158,7 @@ export function init() {
         type: 'numeric',
         headerClassName: 'htRight',
         className: 'htRight',
-        width: 60,
+        width: 85,
       },
       {
         data: 'valueStock',
@@ -166,14 +166,14 @@ export function init() {
         numericFormat: { pattern: '$0,0.00' },
         headerClassName: 'htRight',
         className: 'htRight',
-        width: 130,
+        width: 115,
       },
       {
         data: 'repairable',
         type: 'checkbox',
         headerClassName: 'htCenter',
         className: 'htCenter',
-        width: 80,
+        width: 95,
       },
       {
         data: 'supplierName',

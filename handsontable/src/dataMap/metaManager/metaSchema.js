@@ -1322,7 +1322,7 @@ export default () => {
      * - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
      * - [`dateFormat`](#dateFormat)
      *
-     * @deprecated
+     * @deprecated This option is deprecated and will be removed in the next major release.
      * @memberof Options#
      * @type {boolean}
      * @default false
@@ -1698,7 +1698,7 @@ export default () => {
      * ::: tip Source data format
      * For `intlDate` cells, source data must be in an ISO 8601 date format (`YYYY-MM-DD`). Otherwise operations such
      * as sorting and filtering can be unstable or unpredictable. The `dateFormat` object affects only how dates are
-     * displayed and edited; the underlying value should remain ISO.
+     * displayed; the underlying value should remain ISO.
      * :::
      *
      * **Style shortcuts:**
@@ -1803,31 +1803,117 @@ export default () => {
     dateFormat: 'DD/MM/YYYY',
 
     /**
-     * The `timeFormat` option configures the time format accepted by [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells.
+     * Configures the time format for time cells. Accepts either a string (legacy, for [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md)
+     * cells) or an object of [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
+     * options (for [`intlTime`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells).
      *
-     * You can set the `timeFormat` option to a string with a proper time format. The default value is: `'h:mm:ss a'`.
+     * ::: warning
+     * The string form of `timeFormat` is deprecated and will be removed in the next major release.
+     * It is used only by the `time` cell type. Use the `intlTime` cell type with an `Intl.DateTimeFormat`
+     * options object instead.
+     * :::
      *
-     * To automatically correct times whose format doesn't match the `timeFormat` setting, use the [`correctFormat`](#correctFormat) option.
+     * **Object form (Intl.DateTimeFormat options):**
+     *
+     * The object form is supported only when the cell type is `intlTime`. The locale is controlled separately
+     * via the [`locale`](@/api/options.md#locale) option.
+     *
+     * ::: tip Source data format
+     * For `intlTime` cells, source data must be in 24-hour time format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`), matching
+     * the HTML `input type="time"` value. Otherwise operations such as sorting and filtering can be unstable or unpredictable.
+     * The `timeFormat` object affects only how times are displayed; the underlying value should remain in that format.
+     * :::
+     *
+     * **Style shortcuts:**
+     *
+     * | Property     | Possible values                                    | Description                                              |
+     * | ------------ | -------------------------------------------------- | -------------------------------------------------------- |
+     * | `timeStyle`  | `'full'`, `'long'`, `'medium'`, `'short'`          | Time formatting style (expands to hour, minute, second, timeZoneName) |
+     *
+     * **Time component options:**
+     *
+     * | Property                 | Possible values                                                                 | Description                          |
+     * | ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------ |
+     * | `hour`                   | `'numeric'`, `'2-digit'`                                                        | Representation of the hour           |
+     * | `minute`                 | `'numeric'`, `'2-digit'`                                                        | Representation of the minute         |
+     * | `second`                 | `'numeric'`, `'2-digit'`                                                        | Representation of the second         |
+     * | `fractionalSecondDigits` | `1`, `2`, `3`                                                                   | Fraction-of-second digits            |
+     * | `dayPeriod`              | `'narrow'`, `'short'`, `'long'`                                                 | Day period (e.g. "am", "noon")       |
+     * | `timeZoneName`           | `'long'`, `'short'`, `'shortOffset'`, `'longOffset'`, `'shortGeneric'`, `'longGeneric'` | Time zone display                 |
+     *
+     * **Locale and other options:**
+     *
+     * | Property          | Possible values                                    | Description                    |
+     * | ----------------- | -------------------------------------------------- | ------------------------------ |
+     * | `localeMatcher`   | `'best fit'` (default), `'lookup'`                  | Locale matching algorithm      |
+     * | `timeZone`        | IANA time zone (e.g. `'UTC'`, `'America/New_York'`) | Time zone for formatting       |
+     * | `hour12`          | `true`, `false`                                    | Use 12-hour vs 24-hour time   |
+     * | `hourCycle`       | `'h11'`, `'h12'`, `'h23'`, `'h24'`                 | Hour cycle                     |
+     * | `formatMatcher`   | `'basic'`, `'best fit'` (default)                  | Format matching algorithm      |
+     *
+     * For complete reference, see [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
      *
      * Read more:
      * - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
-     * - [`correctFormat`](#correctFormat)
+     * - [`locale`](@/api/options.md#locale)
+     *
+     * ---
+     *
+     * **Deprecated: string form**
+     *
+     * Passing a string (e.g. `'h:mm:ss a'`) is deprecated and works only with the `time` cell type.
+     * Migrate to the `intlTime` cell type and pass an `Intl.DateTimeFormat` options object.
+     *
+     * **Migration example:**
+     *
+     * ```js
+     * // Before (deprecated)
+     * columns: [{
+     *   type: 'time',
+     *   timeFormat: 'h:mm:ss a'
+     * }]
+     *
+     * // After (recommended)
+     * columns: [{
+     *   type: 'intlTime',
+     *   locale: 'en-US',
+     *   timeFormat: {
+     *     hour: 'numeric',
+     *     minute: '2-digit',
+     *     second: '2-digit',
+     *     hour12: true
+     *   }
+     * }]
+     * ```
      *
      * @memberof Options#
-     * @type {string}
+     * @type {string|object}
      * @default 'h:mm:ss a'
      * @category Core
      *
      * @example
      * ```js
+     * // intlTime cell type with Intl options
      * columns: [
      *   {
-     *   // set the `type` of each cell in this column to `time`
-     *   type: 'time',
-     *   // for every `time` cell of this column, set the time format to `h:mm:ss a`
-     *   timeFormat: 'h:mm:ss a',
-     *   },
-     * ],
+     *     type: 'intlTime',
+     *     locale: 'en-US',
+     *     timeFormat: {
+     *       timeStyle: 'medium'
+     *     }
+     *   }
+     * ]
+     * ```
+     *
+     * @example
+     * ```js
+     * // Legacy: time cell type with string format (deprecated)
+     * columns: [
+     *   {
+     *     type: 'time',
+     *     timeFormat: 'h:mm:ss a'
+     *   }
+     * ]
      * ```
      */
     timeFormat: 'h:mm:ss a',
@@ -1855,7 +1941,7 @@ export default () => {
      * - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
      * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration)
      *
-     * @deprecated
+     * @deprecated This option is deprecated and will be removed in the next major release.
      * @memberof Options#
      * @type {object}
      * @default undefined
@@ -1873,7 +1959,7 @@ export default () => {
      * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
      * - [`dateFormat`](#dateFormat)
      *
-     * @deprecated
+     * @deprecated This option is deprecated and will be removed in the next major release.
      * @memberof Options#
      * @type {string}
      * @default undefined

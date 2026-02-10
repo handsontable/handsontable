@@ -1,6 +1,7 @@
 import { autocompleteValidator, VALIDATOR_TYPE as AUTOCOMPLETE_VALIDATOR } from './autocompleteValidator';
 import { dropdownValidator, VALIDATOR_TYPE as DROPDOWN_VALIDATOR } from './dropdownValidator';
 import { intlDateValidator, VALIDATOR_TYPE as INTL_DATE_VALIDATOR } from './intlDateValidator';
+import { intlTimeValidator, VALIDATOR_TYPE as INTL_TIME_VALIDATOR } from './intlTimeValidator';
 import { dateValidator, VALIDATOR_TYPE as DATE_VALIDATOR } from './dateValidator';
 import { numericValidator, VALIDATOR_TYPE as NUMERIC_VALIDATOR } from './numericValidator';
 import { timeValidator, VALIDATOR_TYPE as TIME_VALIDATOR } from './timeValidator';
@@ -10,6 +11,7 @@ export function registerAllValidators(): void;
 export interface Validators {
   autocomplete: typeof autocompleteValidator;
   intlDate: typeof intlDateValidator;
+  intlTime: typeof intlTimeValidator;
   date: typeof dateValidator;
   numeric: typeof numericValidator;
   time: typeof timeValidator;
@@ -24,6 +26,7 @@ export {
   autocompleteValidator, AUTOCOMPLETE_VALIDATOR,
   dropdownValidator, DROPDOWN_VALIDATOR,
   intlDateValidator, INTL_DATE_VALIDATOR,
+  intlTimeValidator, INTL_TIME_VALIDATOR,
   dateValidator, DATE_VALIDATOR,
   numericValidator, NUMERIC_VALIDATOR,
   timeValidator, TIME_VALIDATOR
