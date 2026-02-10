@@ -1,8 +1,6 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -23,7 +21,6 @@ class CustomEditor extends TextEditor {
 const ExampleComponent = () => {
   return (
     <HotTable
-      themeName="ht-theme-main"
       id="hot"
       startRows={5}
       columns={[

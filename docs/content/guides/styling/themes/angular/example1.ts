@@ -3,6 +3,11 @@ import {AfterViewInit, Component, ElementRef, OnInit, ViewChild, ViewEncapsulati
 import {GridSettings, HotTableComponent, NON_COMMERCIAL_LICENSE} from '@handsontable/angular-wrapper';
 import {PredefinedMenuItemKey} from 'handsontable/plugins/contextMenu';
 import {FormControl} from '@angular/forms';
+import {mainTheme, horizonTheme, classicTheme, registerTheme, getTheme} from 'handsontable/themes';
+
+registerTheme(mainTheme);
+registerTheme(horizonTheme);
+registerTheme(classicTheme);
 
 // constants.ts
 export const data = [
@@ -1292,18 +1297,20 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   hotSettings!: GridSettings;
 
-  themeControl = new FormControl('ht-theme-main');
+  themeControl = new FormControl('main');
 
   themeOptions: Array<{value: string; label: string}> = [
-    { value: 'ht-theme-main', label: 'Main Light' },
-    { value: 'ht-theme-horizon', label: 'Horizon Light' },
-    { value: 'ht-theme-main-dark', label: 'Main Dark' },
-    { value: 'ht-theme-horizon-dark', label: 'Horizon Dark' },
-    { value: 'ht-no-theme', label: 'No theme' }
+    { value: 'main-light', label: 'Main Light' },
+    { value: 'main-dark', label: 'Main Dark' },
+    { value: 'horizon-light', label: 'Horizon Light' },
+    { value: 'horizon-dark', label: 'Horizon Dark' },
+    { value: 'classic-light', label: 'Classic Light' },
+    { value: 'classic-dark', label: 'Classic Dark' }
   ];
 
   ngOnInit() {
     this.hotSettings = {
+      theme: getTheme('main'),
       height: 450,
       colWidths: [180, 220, 140, 120, 120, 120, 140],
       colHeaders: [
@@ -1389,8 +1396,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     const currentTheme = document
       .querySelector('html')
       ?.classList.contains('theme-dark')
-      ? 'ht-theme-horizon-dark'
-      : 'ht-theme-horizon';
+      ? 'horizon-dark'
+      : 'horizon-light';
 
     this.themeControl.setValue(currentTheme);
     this.setTheme(currentTheme);
@@ -1401,9 +1408,12 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   setTheme = (theme: string) => {
-    this.colorBox.nativeElement.classList.value = `color-box ${theme}`;
-    this.hotTable.hotInstance?.useTheme(theme);
-    this.hotTable.hotInstance?.render();
+    const [themeName, colorScheme] = theme.split('-');
+
+    this.colorBox.nativeElement.classList.value = `color-box ht-theme-${themeName}`;
+    this.hotTable.hotInstance?.updateSettings({
+      theme: getTheme(themeName).setColorScheme(colorScheme || 'auto')
+    });
   };
 }
 /* end-file */
@@ -1430,7 +1440,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig
     }

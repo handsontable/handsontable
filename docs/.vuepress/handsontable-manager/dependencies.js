@@ -16,12 +16,7 @@ const getPackageUrls = (packageName, version, fileSelection) => {
   const subDirs = {
     handsontable: {
       js: 'handsontable.full.min.js',
-      css: [
-        'handsontable.min.css',
-        'ht-theme-main.css',
-        'ht-theme-horizon.css',
-        'ht-theme-classic.css',
-      ],
+      css: [],
       subDir: 'dist/',
       cssSubDir: 'styles/',
     },
@@ -159,6 +154,9 @@ const buildDependencyGetter = (version) => {
       vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue'],
       vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
       languages: [getPackageUrls('handsontable', version, 'dist/languages/all.js'), [/* todo */]],
+      'theme-main': [getPackageUrls('handsontable', version, 'dist/themes/main.min.js'), ['mainTheme']],
+      'theme-horizon': [getPackageUrls('handsontable', version, 'dist/themes/horizon.min.js'), ['horizonTheme']],
+      'theme-classic': [getPackageUrls('handsontable', version, 'dist/themes/classic.min.js'), ['classicTheme']],
     };
     /* eslint-enable max-len */
 
@@ -192,14 +190,31 @@ const presetMap = {
   /* eslint-enable max-len */
 };
 
-const getDependencies = (version, preset) => {
+const themeMap = {
+  mainTheme: 'theme-main',
+  horizonTheme: 'theme-horizon',
+  classicTheme: 'theme-classic',
+};
+
+const getDependencies = (version, preset, code = '') => {
   const getter = buildDependencyGetter(version);
 
   if (!Array.isArray(presetMap[preset])) {
     throw new Error(`The preset "${preset}" was not found.`);
   }
 
-  return presetMap[preset].map(x => getter(x));
+  const baseDependencies = presetMap[preset];
+
+  // Only add theme dependencies for themes that are actually imported
+  const requiredThemes = Object.entries(themeMap)
+    .filter(([themeName]) => code.includes(themeName))
+    .map(([, dependency]) => dependency);
+
+  const dependencies = requiredThemes.length > 0
+    ? [...baseDependencies.slice(0, 1), ...requiredThemes, ...baseDependencies.slice(1)]
+    : baseDependencies;
+
+  return dependencies.map(x => getter(x));
 };
 
 module.exports = {
@@ -207,5 +222,6 @@ module.exports = {
   getDependencies,
   buildDependencyGetter,
   presetMap,
+  themeMap,
   formatVersion
 };

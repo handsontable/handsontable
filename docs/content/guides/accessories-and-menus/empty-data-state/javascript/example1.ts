@@ -1,11 +1,8 @@
 import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.getElementById('example1') as HTMLElement;
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [], // Empty data to trigger empty state
   height: 'auto',
   colHeaders: true,

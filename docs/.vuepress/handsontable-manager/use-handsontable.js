@@ -3,6 +3,7 @@ const { themeManager } = require('./theme-manager');
 const {
   buildDependencyGetter,
   presetMap,
+  themeMap,
 } = require('./dependencies');
 
 const ATTR_VERSION = 'data-hot-version';
@@ -104,13 +105,23 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
   });
 
   const loadPreset = async() => {
-    const dependencies = presetMap[preset];
+    const baseDependencies = presetMap[preset];
+
+    // Only add theme dependencies for themes that are actually imported
+    const callbackCode = callback.toString();
+    const requiredThemes = Object.entries(themeMap)
+      .filter(([themeName]) => callbackCode.includes(themeName))
+      .map(([, dependency]) => dependency);
+
+    const dependencies = requiredThemes.length > 0
+      ? [...baseDependencies.slice(0, 1), ...requiredThemes, ...baseDependencies.slice(1)]
+      : baseDependencies;
 
     for (let i = 0; i < dependencies.length; i++) {
       const dep = dependencies[i];
 
       if (abortSignal?.aborted) {
-        break;
+        throw new AbortError();
       }
 
       // Ensure that `fixer.js` is not loaded while injecting new dependencies (with an exception for `react-colorful`).
@@ -135,11 +146,21 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
   const currentPresetPromise = globalLoadingChain.then(async() => {
     try {
       await loadPreset();
-      callback();
     } catch (err) {
       if (!(err instanceof AbortError)) {
         throw err;
       }
+
+      return;
+    }
+
+    // Execute callback separately - errors from example code should not break
+    // the loading chain for other examples on the page
+    try {
+      callback();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Example callback error:', err);
     }
   });
 

@@ -1,8 +1,6 @@
 import { HotTable } from '@handsontable/vue';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -11,7 +9,6 @@ const ExampleComponent = {
   data() {
     return {
       hotSettings: {
-        themeName: 'ht-theme-main',
         data: [
           ['A1', 'B1', 'C1', 'D1', 'E1'],
           ['A2', 'B2', 'C2', 'D2', 'E2'],

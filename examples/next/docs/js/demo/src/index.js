@@ -1,6 +1,4 @@
 import Handsontable from "handsontable/base";
-import "handsontable/styles/handsontable.css";
-import "@handsontable/pikaday/css/pikaday.css";
 
 import { generateExampleData, isArabicDemoEnabled } from "./utils";
 import "./styles.css";

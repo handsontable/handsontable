@@ -6,7 +6,6 @@ import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from "@handsontable/react-wrapper";
 import { data } from "./constants";
 import { addClassesToRows } from "./hooksCallbacks";
-import "handsontable/styles/handsontable.css";
 
 const App = () => {
   return (
