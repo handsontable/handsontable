@@ -6,7 +6,6 @@ import numbro from 'numbro';
 registerAllModules();
 
 const config: Handsontable.GridSettings = {
-  themeName: 'ht-theme-main',
   data: [
     ['', 'Tesla', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
     ['2017', 0, 2941, 4303, 354, 5814],

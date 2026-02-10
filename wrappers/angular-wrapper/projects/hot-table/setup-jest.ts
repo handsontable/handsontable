@@ -1,4 +1,6 @@
 import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { initCSSPolyfill } = require('../../../../handsontable/test/__mocks__/cssPolyfill');
 
 setupZoneTestEnv();
 
@@ -24,6 +26,9 @@ beforeAll(() => {
   (window as any).ResizeObserver = ResizeObserverMock;
 
   Object.defineProperty(window, 'scrollTo', { value: jest.fn() });
+
+  // Initialize CSS polyfill to support modern CSS features in jsdom
+  initCSSPolyfill();
 });
 
 beforeEach(() => {

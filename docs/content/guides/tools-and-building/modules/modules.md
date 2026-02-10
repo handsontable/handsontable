@@ -260,7 +260,6 @@ export class ExampleComponent {
   readonly hotTable!: HotTableComponent;
 
   readonly gridSettings = <GridSettings>{
-    themeName: "ht-theme-main",
     columns: [
       {
         type: "numeric",
@@ -376,7 +375,6 @@ export class ExampleComponent {
   readonly hotTable!: HotTableComponent;
 
   readonly gridSettings = <GridSettings>{
-    themeName: "ht-theme-main",
     columns: [
       {
         renderer: "numeric",

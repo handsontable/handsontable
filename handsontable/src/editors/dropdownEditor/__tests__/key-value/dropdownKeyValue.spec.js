@@ -119,6 +119,50 @@ describe('DropdownEditor key/value source', () => {
 
   });
 
+  describe('Clearing values with DELETE/BACKSPACE', () => {
+    it('should clear the cell value when selecting a key-value-based cell with `allowInvalid=false` and `allowEmpty=true` ' +
+      'and pressing DELETE', async() => {
+      handsontable({
+        data: airportKVChoices.map(item => [item]),
+        columns: [{
+          type: 'dropdown',
+          source: airportKVChoices,
+          allowInvalid: false,
+          allowEmpty: true,
+        }],
+      });
+
+      expect(getDataAtCell(0, 0)).toEqual(airportKVChoices[0].value);
+
+      await selectCell(0, 0);
+      await keyDownUp('delete');
+      await sleep(10);
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+    });
+
+    it('should clear the cell value when selecting a key-value-based cell with `allowInvalid=false` and `allowEmpty=true` ' +
+      'and pressing BACKSPACE', async() => {
+      handsontable({
+        data: airportKVChoices.map(item => [item]),
+        columns: [{
+          type: 'dropdown',
+          source: airportKVChoices,
+          allowInvalid: false,
+          allowEmpty: true,
+        }],
+      });
+
+      expect(getDataAtCell(0, 0)).toEqual(airportKVChoices[0].value);
+
+      await selectCell(0, 0);
+      await keyDownUp('backspace');
+      await sleep(10);
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+    });
+  });
+
   describe('Saving values', () => {
     it('should save entire entries from the source object when the data is an AoO with the `key/value` props', async() => {
       handsontable({

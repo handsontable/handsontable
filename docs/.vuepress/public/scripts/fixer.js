@@ -121,7 +121,34 @@
       } else if (key === 'vue-class-component') {
         ns = 'VueClassComponent';
 
-      } else if (/^handsontable\/dist|styles\/.+\.css$/.test(key)) { // ignore CSS imports
+      } else if (/^handsontable\/styles\/ht-theme-.+\.css$/.test(key)) {
+        // Dynamically inject CSS for ht-theme-* files (e.g. theme-customization example)
+        const cssFileName = key.split('/').pop();
+        const cssId = `dynamic-css-${cssFileName.replace(/\./g, '-')}`;
+
+        if (!document.getElementById(cssId)) {
+          // Derive styles URL from the Handsontable script (docs don't load base CSS link)
+          const hotScript = document.querySelector('script[src*="handsontable"][src*="dist/"]');
+          let stylesBaseUrl = '';
+
+          if (hotScript) {
+            const scriptSrc = hotScript.getAttribute('src');
+            stylesBaseUrl = scriptSrc.replace(/\/dist\/[^/]*$/, '/') + 'styles/';
+          }
+
+          if (stylesBaseUrl) {
+            const link = document.createElement('link');
+            link.id = cssId;
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = stylesBaseUrl + cssFileName;
+            document.head.appendChild(link);
+          }
+        }
+
+        ns = '';
+
+      } else if (/^handsontable\/(dist|styles)\/.+\.css$/.test(key)) { // ignore other CSS imports
         ns = '';
 
       } else if (key === 'numbro') {
@@ -164,16 +191,25 @@
 
       } else if (/^handsontable\/i18n(\/(.+))?$/.test(key)) {
         ns = 'Handsontable.languages';
+
+      } else if (/^handsontable\/themes(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.themes';
+
       } else if (key === 'date-fns') {
         ns = 'dateFns';
+
       } else if (key === '@melloware/coloris') {
         ns = 'Coloris';
+
       } else if (key === 'flatpickr') {
         ns = 'flatpickr';
+
       } if (key === 'moment') {
         ns = 'moment';
+
       } else if (key === '@handsontable/pikaday') {
         ns = 'Pikaday';
+
       } else if (key === 'multiple-select-vanilla') {
         ns = 'multipleSelect';
       }
@@ -198,6 +234,30 @@
           Handsontable.languages.getLanguagesDictionaries().forEach((lang) => {
             moduleToReturn[lang.languageCode.replace('-', '')] = lang;
           });
+
+        // Covers `import { mainTheme } from 'handsontable/themes'` expressions
+        } else if (ns === 'Handsontable.themes') {
+          Handsontable.themes.getThemeNames().forEach((themeName) => {
+            const exportName = themeName + 'Theme';
+
+            // Get theme config from window global (e.g., window.mainTheme)
+            if (window[exportName]) {
+              moduleToReturn[exportName] = window[exportName];
+            }
+          });
+
+          // Wrap registerTheme to silently skip already-registered themes (since bundles auto-register)
+          const originalRegisterTheme = moduleToReturn.registerTheme;
+
+          moduleToReturn.registerTheme = (themeOrName, themeConfig) => {
+            const name = typeof themeOrName === 'string' ? themeOrName : themeOrName?.name;
+
+            if (name && Handsontable.themes.hasTheme(name)) {
+              return Handsontable.themes.getTheme(name);
+            }
+
+            return originalRegisterTheme(themeOrName, themeConfig);
+          };
 
         // Covers `import { textRenderer } from 'handsontable/renderers'` expressions
         } else if (ns === 'Handsontable.renderers') {

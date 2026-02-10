@@ -6,7 +6,6 @@
 
 <script>
 import { HotTable } from '@handsontable/vue';
-import 'handsontable/dist/handsontable.full.css';
 import './assets/styles.css';
 
 export default {
@@ -23,7 +22,7 @@ export default {
         colHeaders: true,
         rowHeaders: true,
         licenseKey: "non-commercial-and-evaluation",
-        height: '100%',
+        height: 'auto',
         width: '100%'
       },
     };

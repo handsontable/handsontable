@@ -90,7 +90,7 @@ describe('Pagination `setPageSize` method', () => {
       classic.toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
         '1 - 7 of 15',
-        '|< < Page 1 of 3 [>] [>|]'
+        '|< < Page 1 of 2 [>] [>|]'
       ]);
       main.toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',

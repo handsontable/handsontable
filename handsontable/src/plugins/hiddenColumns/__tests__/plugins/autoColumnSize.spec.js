@@ -94,7 +94,7 @@ describe('HiddenColumns', () => {
       expect(getColWidth(0)).toBe(0);
       expect(getColWidth(1)).toBe(0);
       expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(188);
+        classic.toBe(207);
         main.toBe(225);
         horizon.toBe(233);
       });
@@ -119,7 +119,7 @@ describe('HiddenColumns', () => {
       expect(getColWidth(0)).toBe(0);
       expect(getColWidth(1)).toBe(0);
       expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(173);
+        classic.toBe(192);
         main.toBe(210);
         horizon.toBe(218);
       });

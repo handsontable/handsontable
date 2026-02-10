@@ -1,8 +1,6 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -39,7 +37,6 @@ function generateArabicData() {
 const ExampleComponent = () => {
   return (
     <HotTable
-      themeName="ht-theme-main"
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"

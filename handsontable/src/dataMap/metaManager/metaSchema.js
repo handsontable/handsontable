@@ -4824,7 +4824,7 @@ export default () => {
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
      *
-     * In the rendering process, the default row height is `classic (legacy): 23px`, `main: 29px`, `horizon: 37px` (in the classic (legacy) theme: 22px + 1px of the row's bottom border) or whatever is defined in the used theme (based on the line height, vertical padding and cell borders).
+     * In the rendering process, the default row height is `classic: 26px`, `main: 29px`, `horizon: 37px` or whatever is defined in the used theme (based on the line height, vertical padding and cell borders).
      * You can change it to equal or greater than the default value, by setting the `rowHeights` option to one of the following:
      *
      * | Setting     | Description                                                                                         | Example                                                      |
@@ -5361,13 +5361,11 @@ export default () => {
     /**
      * The `themeName` option allows enabling a theme by that name.
      *
-     * If no `themeName` is provided, the table will use the classic (legacy) theme (if the correct CSS files are imported).
-     *
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
      *
      * @memberof Options#
-     * @type {string|boolean|undefined}
+     * @type {string|undefined}
      * @default undefined
      * @category Core
      * @since 15.0.0
@@ -5378,6 +5376,90 @@ export default () => {
      * ```
      */
     themeName: undefined,
+
+    /**
+     * The `theme` option configures the visual theme for your Handsontable instance.
+     *
+     * You can set the `theme` option to one of the following:
+     *
+     * | Setting                               | Description                                                                           |
+     * | ------------------------------------- | ------------------------------------------------------------------------------------- |
+     * | `undefined` (default)                 | Don't apply any theme and use the default main theme                                  |
+     * | A string (e.g., `'ht-theme-horizon'`) | Apply a registered theme by name (required to import CSS file)                        |
+     * | A `ThemeBuilder` object               | Apply a theme with runtime configuration (recommended)                                |
+     *
+     * When using a `ThemeBuilder` object, you can configure the theme at runtime using these methods:
+     *
+     * | Method                           | Description                                                                                |
+     * | -------------------------------- | ------------------------------------------------------------------------------------------ |
+     * | `setColorScheme(mode)`           | Sets the color scheme: `'light'`, `'dark'`, or `'auto'` (default: `'auto'`)                |
+     * | `setDensityType(type)`           | Sets the row density: `'compact'`, `'default'`, or `'comfortable'` (default: `'default'`)  |
+     * | `params(paramsObject)`           | Sets custom theme parameters e.g. `icons`, `colors`, `tokens`                              |
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     * - [`themeName`](#themeName)
+     *
+     * @memberof Options#
+     * @type {ThemeBuilder|string|undefined}
+     * @default undefined
+     * @category Core
+     * @since 17.0.0
+     *
+     * @example
+     * ```js
+     * // enable a theme by name (required to import CSS file)
+     * theme: 'ht-theme-horizon',
+     *
+     * // enable a theme using a ThemeBuilder object (recommended)
+     * const horizonTheme = registerTheme(horizonTheme);
+     *
+     * // configure the theme settings at runtime
+     * horizonTheme.setColorScheme('dark');
+     * horizonTheme.setDensityType('compact');
+     * horizonTheme.params({
+     *  tokens: {
+     *    fontSize: '14px',
+     *    iconSize: 'size_5',
+     *    borderColor: ['colors.palette.100', 'colors.palette.800'],
+     *  },
+     * })
+     *
+     * // use the configured theme
+     * theme: horizonTheme,
+     * ```
+     */
+    theme: undefined,
+
+    /**
+     * The `injectCoreCss` option controls whether Handsontable injects its core CSS into the document.
+     *
+     * You can set the `injectCoreCss` option to one of the following:
+     *
+     * | Setting            | Description                                                                                                      |
+     * | ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default)   | Inject core styles into the document head                                                                        |
+     * | `false`            | Do not inject core styles (use when you load CSS yourself, e.g. `import 'handsontable/styles/handsontable.css'`) |
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category Core
+     * @since 17.0.0
+     *
+     * @example
+     * ```js
+     * // inject core CSS (default)
+     * injectCoreCss: true,
+     *
+     * // skip injection when you load Handsontable CSS yourself
+     * injectCoreCss: false,
+     * ```
+     */
+    injectCoreCss: true,
 
     /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.

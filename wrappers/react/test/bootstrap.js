@@ -1,6 +1,8 @@
+/* eslint-disable no-restricted-globals */
 import { IntersectionObserverMock } from './__mocks__/intersectionObserverMock';
 import { ResizeObserverMock } from './__mocks__/resizeObserverMock';
 import { mockDocumentClientDimensions } from './__mocks__/documentClientDimensions';
+import { initCSSPolyfill } from '../../../handsontable/test/__mocks__/cssPolyfill';
 
 beforeAll(() => {
   mockDocumentClientDimensions();
@@ -9,17 +11,8 @@ beforeAll(() => {
   window.ResizeObserver = ResizeObserverMock;
   Element.prototype.scrollIntoView = jest.fn();
 
-  // Suppress Handsontable legacy theme deprecation warning.
-  // TODO: Remove when Handsontable 17.0.0 is released.
-  const originalWarn = console.warn;
-
-  console.warn = (message) => {
-    if (typeof message === 'string' && message.includes('Deprecated:') && message.includes('stylesheet')) {
-      return; // Suppress this specific warning
-    }
-
-    originalWarn(message);
-  };
+  // Initialize CSS polyfill to support modern CSS features in jsdom
+  initCSSPolyfill();
 });
 
 afterAll(() => {
