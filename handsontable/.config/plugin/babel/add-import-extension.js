@@ -44,7 +44,7 @@ const createVisitor = ({ declaration, origArgs, extension = 'js' }) => {
     //   +- index.js
     //
     // the plugin will rename import declaration to point to the `plugins.js` file.
-    if (existsSync(`${absoluteFilePath}.js`)) {
+    if (existsSync(`${absoluteFilePath}.js`) || existsSync(`${absoluteFilePath}.ts`)) {
       newModulePath = `${moduleName}.${finalExtension}`;
 
     // In a case when the file doesn't exist and the module is a directory it will

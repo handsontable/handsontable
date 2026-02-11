@@ -104,7 +104,10 @@ interface HandsontableFactory {
   buildDate: string | undefined;
   version: string | undefined;
   languages: Record<string, unknown>;
-  editors: Record<string, unknown>;
+  editors: {
+    BaseEditor: typeof BaseEditor;
+    [key: string]: unknown;
+  };
   themes: Record<string, unknown>;
   [key: string]: unknown;
 }
