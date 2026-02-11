@@ -239,6 +239,42 @@ describe('MultiSelectEditor keyboard navigation', () => {
         expect(document.activeElement).toBe(activeCheckbox);
         expect(activeCheckbox.dataset.value).toBe('red');
       });
+
+      it('should open the editor with a printable character and allow keyboard navigation when search is disabled', async() => {
+        handsontable({
+          data: [
+            [[]],
+          ],
+          columns: [
+            {
+              type: 'multiselect',
+              source: choices,
+              searchInput: false,
+            },
+          ],
+        });
+
+        await selectCell(0, 0);
+        await keyDownUp('E');
+        await sleep(10);
+
+        const editor = getActiveEditor();
+        const $dropdown = $('.ht-multi-select-editor');
+
+        expect(editor.isOpened()).toBe(true);
+
+        let activeCheckbox = $dropdown.find('input[type="checkbox"]').first()[0];
+
+        expect(document.activeElement).toBe(activeCheckbox);
+        expect(activeCheckbox.dataset.value).toBe('yellow');
+
+        await keyDownUp('ArrowDown');
+        await sleep(10);
+
+        activeCheckbox = $dropdown.find('input[type="checkbox"]').eq(1)[0];
+        expect(document.activeElement).toBe(activeCheckbox);
+        expect(activeCheckbox.dataset.value).toBe('red');
+      });
     });
   });
 });

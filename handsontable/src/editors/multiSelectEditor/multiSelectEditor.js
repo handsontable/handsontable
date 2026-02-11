@@ -192,11 +192,13 @@ export class MultiSelectEditor extends BaseEditor {
    * @param {Event} event The event object.
    */
   open(event) {
-    if (isPrintableChar(event?.keyCode) && this.dropdownController.getInputController().enabled) {
+    if (isPrintableChar(event?.keyCode)) {
       const character = event.key.length === 1 ? event.key : String.fromCharCode(event.keyCode);
 
-      this.dropdownController.getInputController().setValue(character);
-      this.#filterEntries(character);
+      if (this.dropdownController.getInputController().enabled) {
+        this.dropdownController.getInputController().setValue(character);
+        this.#filterEntries(character);
+      }
 
       event.preventDefault();
 
