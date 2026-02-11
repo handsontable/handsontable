@@ -25,57 +25,72 @@ const baseDts = `\
 import { CellCoords as _CellCoords } from './3rdparty/walkontable/src';
 import { CellRange as _CellRange } from './3rdparty/walkontable/src';
 import { BaseEditor as _BaseEditor } from './editors/baseEditor';
+import type { BaseRenderer as _BaseRenderer } from './renderers';
 import type { HotInstance } from './common';
 import type { GridSettings as _GridSettings } from './common';
 
 export { _CellCoords as CellCoords, _CellRange as CellRange };
 
 /**
- * Handsontable instance type. Uses permissive index signature so any
- * value can be assigned to/from it (matching the original hand-written types).
+ * Handsontable class declaration that supports all wrapper usage patterns.
+ * Uses class + namespace merging so export default preserves the namespace.
  */
-interface Handsontable {
+declare class Handsontable {
+  constructor(rootElement: HTMLElement, userSettings?: Record<string, unknown>);
   [key: string]: any;
 }
-
-/**
- * Constructor interface for Handsontable.
- */
-interface HandsontableConstructor {
-  new (rootElement: HTMLElement, userSettings?: Record<string, unknown>): Handsontable;
-  (rootElement: HTMLElement, userSettings?: Record<string, unknown>): Handsontable;
-  Core: {
-    new (rootElement: HTMLElement, userSettings?: Record<string, unknown>): Handsontable;
-    (rootElement: HTMLElement, userSettings?: Record<string, unknown>): Handsontable;
-  };
-  DefaultSettings: Record<string, unknown>;
-  hooks: { getRegistered(): string[]; getSingleton(): any; [key: string]: any };
-  CellCoords: typeof _CellCoords;
-  CellRange: typeof _CellRange;
-  packageName: string;
-  buildDate: string | undefined;
-  version: string | undefined;
-  languages: Record<string, unknown>;
-  themes: Record<string, unknown>;
-  editors: {
-    BaseEditor: typeof _BaseEditor;
-    [key: string]: unknown;
-  };
-  renderers: {
-    registerRenderer(name: string, renderer: any): void;
-    [key: string]: unknown;
-  };
-  [key: string]: any;
-}
-
-declare const Handsontable: HandsontableConstructor;
 
 declare namespace Handsontable {
+  // Type aliases
   type GridSettings = _GridSettings;
   type ColumnSettings = Record<string, unknown>;
   type CellProperties = Record<string, unknown>;
-  type Core = Handsontable;
+  type CellValue = any;
   type BaseEditor = _BaseEditor;
+
+  // Core — usable both as a type (Handsontable.Core) and value (new Handsontable.Core(...))
+  type Core = Handsontable;
+  const Core: {
+    new (rootElement: HTMLElement, userSettings?: Record<string, unknown>): Handsontable;
+    (rootElement: HTMLElement, userSettings?: Record<string, unknown>): Handsontable;
+  };
+  const DefaultSettings: Record<string, unknown>;
+  const hooks: { getRegistered(): string[]; getSingleton(): any; [key: string]: any };
+  const CellCoords: typeof _CellCoords;
+  const CellRange: typeof _CellRange;
+  const packageName: string;
+  const buildDate: string | undefined;
+  const version: string | undefined;
+  const languages: Record<string, unknown>;
+  const themes: Record<string, unknown>;
+
+  // Sub-namespaces (for Handsontable.editors.BaseEditor, Handsontable.renderers.BaseRenderer)
+  namespace editors {
+    class BaseEditor {
+      constructor(hotInstance: any);
+      hot: any;
+      state: string;
+      getValue(): any;
+      setValue(newValue: any): void;
+      open(): void;
+      close(): void;
+      focus(): void;
+      isOpened(): boolean;
+      prepare(row: number, col: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: Record<string, any>): void;
+      finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
+      row: number;
+      col: number;
+      prop: number | string;
+      TD: HTMLTableCellElement;
+      cellProperties: Record<string, any>;
+      [key: string]: any;
+    }
+  }
+
+  namespace renderers {
+    const BaseRenderer: _BaseRenderer;
+    function registerRenderer(name: string, renderer: any): void;
+  }
 }
 
 export default Handsontable;
