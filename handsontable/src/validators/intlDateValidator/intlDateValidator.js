@@ -1,7 +1,7 @@
 import { isValidISODate } from '../../helpers/dateTime';
 import { isEmpty } from '../../helpers/mixed';
 
-export const VALIDATOR_TYPE = 'intlDate';
+export const VALIDATOR_TYPE = 'intl-date';
 export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). ' +
   'Invalid value for "intlDate" cell type.\n\n' +
   '[affectedCells]\n\n' +

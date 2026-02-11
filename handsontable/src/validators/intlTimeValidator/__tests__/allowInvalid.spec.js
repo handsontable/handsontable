@@ -15,7 +15,7 @@ describe('IntlTimeType - allowInvalid', () => {
   it('should pass-through non valid value when allowInvalid is true', async() => {
     handsontable({
       data: [['12:00', '12:00:00', '12:00:00.000', 'test']],
-      type: 'intlTime',
+      type: 'intl-time',
       timeFormat: { timeStyle: 'short' },
       allowInvalid: true,
     });
@@ -42,7 +42,7 @@ describe('IntlTimeType - allowInvalid', () => {
   it('should reject non valid value when allowInvalid is false', async() => {
     handsontable({
       data: [['12:00', '56:00', '11:11', 'test']],
-      type: 'intlTime',
+      type: 'intl-time',
       timeFormat: { timeStyle: 'short' },
       allowEmpty: true,
       allowInvalid: false,
@@ -72,7 +72,7 @@ describe('IntlTimeType - allowInvalid', () => {
 
     handsontable({
       data: [['12:00']],
-      type: 'intlTime',
+      type: 'intl-time',
       allowInvalid: true,
     });
 
@@ -86,7 +86,7 @@ describe('IntlTimeType - allowInvalid', () => {
 
     handsontable({
       data: [['12:00']],
-      type: 'intlTime',
+      type: 'intl-time',
       allowInvalid: false,
       allowEmpty: false,
     });
@@ -117,7 +117,7 @@ describe('IntlTimeType - allowInvalid', () => {
 
     handsontable({
       data: [['12:00']],
-      type: 'intlTime',
+      type: 'intl-time',
       allowInvalid: false,
       allowEmpty: false,
     });

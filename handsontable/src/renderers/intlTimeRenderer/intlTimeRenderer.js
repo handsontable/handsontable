@@ -4,7 +4,7 @@ import { isObject } from '../../helpers/object';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
 import { parseToLocalTime } from '../../helpers/dateTime';
 
-export const RENDERER_TYPE = 'intlTime';
+export const RENDERER_TYPE = 'intl-time';
 
 const DEFAULT_INTL_FORMAT = {
   hour: 'numeric',

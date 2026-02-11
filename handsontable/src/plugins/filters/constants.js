@@ -72,8 +72,8 @@ export {
 export const TYPE_NUMERIC = 'numeric';
 export const TYPE_TEXT = 'text';
 export const TYPE_DATE = 'date';
-export const TYPE_INTL_DATE = 'intlDate';
-export const TYPE_INTL_TIME = 'intlTime';
+export const TYPE_INTL_DATE = 'intl-date';
+export const TYPE_INTL_TIME = 'intl-time';
 /**
  * Default types and order for filter conditions.
  *

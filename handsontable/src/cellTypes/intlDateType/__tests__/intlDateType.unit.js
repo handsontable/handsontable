@@ -22,44 +22,44 @@ describe('IntlDateCellType', () => {
     it('should not auto-register after import', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
-        getEditor('intlDate');
+        getEditor('intl-date');
       }).toThrowError();
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
-        getRenderer('intlDate');
+        getRenderer('intl-date');
       }).toThrowError();
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
-        getValidator('intlDate');
+        getValidator('intl-date');
       }).toThrowError();
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
-        getCellType('intlDate');
+        getCellType('intl-date');
       }).toThrowError();
     });
 
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, IntlDateCellType);
 
-      expect(getRegisteredEditorNames()).toEqual(['intlDate']);
-      expect(getEditor('intlDate')).toBeInstanceOf(Function);
+      expect(getRegisteredEditorNames()).toEqual(['intl-date']);
+      expect(getEditor('intl-date')).toBeInstanceOf(Function);
 
-      expect(getRegisteredRendererNames()).toEqual(['intlDate']);
-      expect(getRenderer('intlDate')).toBeInstanceOf(Function);
+      expect(getRegisteredRendererNames()).toEqual(['intl-date']);
+      expect(getRenderer('intl-date')).toBeInstanceOf(Function);
 
-      expect(getRegisteredValidatorNames()).toEqual(['intlDate']);
-      expect(getValidator('intlDate')).toBeInstanceOf(Function);
+      expect(getRegisteredValidatorNames()).toEqual(['intl-date']);
+      expect(getValidator('intl-date')).toBeInstanceOf(Function);
 
-      expect(getRegisteredCellTypeNames()).toEqual(['intlDate']);
-      expect(getCellType('intlDate')).toEqual(IntlDateCellType);
-      expect(getCellType('intlDate')).toEqual({
+      expect(getRegisteredCellTypeNames()).toEqual(['intl-date']);
+      expect(getCellType('intl-date')).toEqual(IntlDateCellType);
+      expect(getCellType('intl-date')).toEqual({
         CELL_TYPE,
-        editor: getEditor('intlDate'),
-        renderer: getRenderer('intlDate'),
-        validator: getValidator('intlDate'),
+        editor: getEditor('intl-date'),
+        renderer: getRenderer('intl-date'),
+        validator: getValidator('intl-date'),
         sourceDataValidator: IntlDateCellType.sourceDataValidator,
         valueFormatter: IntlDateCellType.valueFormatter,
         sourceDataWarningMessage: IntlDateCellType.sourceDataWarningMessage,

@@ -22,44 +22,44 @@ describe('IntlTimeCellType', () => {
     it('should not auto-register after import', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
-        getEditor('intlTime');
+        getEditor('intl-time');
       }).toThrowError();
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
-        getRenderer('intlTime');
+        getRenderer('intl-time');
       }).toThrowError();
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
-        getValidator('intlTime');
+        getValidator('intl-time');
       }).toThrowError();
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
-        getCellType('intlTime');
+        getCellType('intl-time');
       }).toThrowError();
     });
 
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, IntlTimeCellType);
 
-      expect(getRegisteredEditorNames()).toEqual(['intlTime']);
-      expect(getEditor('intlTime')).toBeInstanceOf(Function);
+      expect(getRegisteredEditorNames()).toEqual(['intl-time']);
+      expect(getEditor('intl-time')).toBeInstanceOf(Function);
 
-      expect(getRegisteredRendererNames()).toEqual(['intlTime']);
-      expect(getRenderer('intlTime')).toBeInstanceOf(Function);
+      expect(getRegisteredRendererNames()).toEqual(['intl-time']);
+      expect(getRenderer('intl-time')).toBeInstanceOf(Function);
 
-      expect(getRegisteredValidatorNames()).toEqual(['intlTime']);
-      expect(getValidator('intlTime')).toBeInstanceOf(Function);
+      expect(getRegisteredValidatorNames()).toEqual(['intl-time']);
+      expect(getValidator('intl-time')).toBeInstanceOf(Function);
 
-      expect(getRegisteredCellTypeNames()).toEqual(['intlTime']);
-      expect(getCellType('intlTime')).toEqual(IntlTimeCellType);
-      expect(getCellType('intlTime')).toEqual({
+      expect(getRegisteredCellTypeNames()).toEqual(['intl-time']);
+      expect(getCellType('intl-time')).toEqual(IntlTimeCellType);
+      expect(getCellType('intl-time')).toEqual({
         CELL_TYPE,
-        editor: getEditor('intlTime'),
-        renderer: getRenderer('intlTime'),
-        validator: getValidator('intlTime'),
+        editor: getEditor('intl-time'),
+        renderer: getRenderer('intl-time'),
+        validator: getValidator('intl-time'),
         sourceDataValidator: IntlTimeCellType.sourceDataValidator,
         valueFormatter: IntlTimeCellType.valueFormatter,
         sourceDataWarningMessage: IntlTimeCellType.sourceDataWarningMessage,

@@ -17,7 +17,7 @@ describe('IntlTimeType - allowEmpty', () => {
 
     handsontable({
       data: [['12:00']],
-      type: 'intlTime',
+      type: 'intl-time',
       allowEmpty: true,
     });
 
@@ -31,7 +31,7 @@ describe('IntlTimeType - allowEmpty', () => {
 
     handsontable({
       data: [['12:00']],
-      type: 'intlTime',
+      type: 'intl-time',
       allowEmpty: false,
     });
 
@@ -50,7 +50,7 @@ describe('IntlTimeType - allowEmpty', () => {
 
     handsontable({
       data: [['12:00']],
-      type: 'intlTime',
+      type: 'intl-time',
       allowEmpty: false,
     });
 

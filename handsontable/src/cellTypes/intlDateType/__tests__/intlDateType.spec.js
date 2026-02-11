@@ -17,7 +17,7 @@ describe('IntlDateType', () => {
 
     handsontable({
       data: [[0, 'test', true]],
-      type: 'intlDate',
+      type: 'intl-date',
     });
 
     expect(warnSpy).toHaveBeenCalledWith('Source data warning (3 cells). ' +
@@ -35,7 +35,7 @@ describe('IntlDateType', () => {
 
     handsontable({
       data: [['2026-01-28']],
-      type: 'intlDate',
+      type: 'intl-date',
     });
 
     await loadData([['2026-01']]);
@@ -53,7 +53,7 @@ describe('IntlDateType', () => {
 
     handsontable({
       data: [['2026-01-28']],
-      type: 'intlDate',
+      type: 'intl-date',
     });
 
     await updateData([['2026-01']]);

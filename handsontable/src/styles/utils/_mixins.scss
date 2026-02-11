@@ -52,7 +52,7 @@
 }
 
 @mixin font-family {
-  font-family: var(--ht-font-family), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;;
+  font-family: var(--ht-font-family), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 @mixin menu-box-shadow {
@@ -64,4 +64,3 @@
   box-shadow: var(--ht-shadow-x, 0) var(--ht-shadow-y, 0)
     var(--ht-shadow-blur, 8px) color-mix(in srgb, var(--ht-shadow-color, rgba(0, 0, 0)) var(--ht-shadow-opacity, 100%), transparent);
 }
-

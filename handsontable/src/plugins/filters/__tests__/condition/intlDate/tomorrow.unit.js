@@ -25,13 +25,13 @@ describe('Filters condition (`intl_date_tomorrow`)', () => {
   };
 
   it('should filter matching values', () => {
-    const data = dateRowFactory({ type: 'intlDate', dateFormat: format });
+    const data = dateRowFactory({ type: 'intl-date', dateFormat: format });
 
     expect(condition(data(dateStringForDay(1)))).toBe(true);
   });
 
   it('should filter not matching values', () => {
-    const data = dateRowFactory({ type: 'intlDate', dateFormat: format });
+    const data = dateRowFactory({ type: 'intl-date', dateFormat: format });
 
     expect(condition(data(dateStringForDay(-3)))).toBe(false);
     expect(condition(data(dateStringForDay(-2)))).toBe(false);

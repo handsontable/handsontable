@@ -49,7 +49,7 @@ describe('Filters condition (`intl_time_between`)', () => {
     },
   ], ({ timeFormat, testTime, startTime, endTime, assumption }) => {
     it('should filter matching and non-matching values (time cell type)', () => {
-      const data = dateRowFactory({ type: 'intlTime', timeFormat });
+      const data = dateRowFactory({ type: 'intl-time', timeFormat });
 
       expect(condition(data(testTime), [startTime, endTime])).toBe(assumption);
     });

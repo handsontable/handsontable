@@ -6,7 +6,7 @@ import {
   sourceDataValidator,
 } from '../../validators/intlDateValidator';
 
-export const CELL_TYPE = 'intlDate';
+export const CELL_TYPE = 'intl-date';
 export const IntlDateCellType = {
   CELL_TYPE,
   editor: IntlDateEditor,

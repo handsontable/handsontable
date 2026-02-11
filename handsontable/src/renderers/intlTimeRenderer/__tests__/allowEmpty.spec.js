@@ -15,7 +15,7 @@ describe('IntlTimeType - allowEmpty', () => {
   it('should render empty string as empty when allowEmpty is true', async() => {
     handsontable({
       data: [['']],
-      type: 'intlTime',
+      type: 'intl-time',
       timeFormat: { timeStyle: 'short' },
       allowEmpty: true,
     });
@@ -31,7 +31,7 @@ describe('IntlTimeType - allowEmpty', () => {
   it('should render BAD_VALUE_TEXT for empty string when allowEmpty is false', async() => {
     handsontable({
       data: [['']],
-      type: 'intlTime',
+      type: 'intl-time',
       timeFormat: { timeStyle: 'short' },
       allowEmpty: false,
     });

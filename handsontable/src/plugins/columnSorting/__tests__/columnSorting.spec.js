@@ -1089,7 +1089,7 @@ describe('ColumnSorting', () => {
           handsontable({
             data,
             columns: [
-              { type: 'intlDate', dateFormat },
+              { type: 'intl-date', dateFormat },
               { type: 'numeric' },
             ],
             columnSorting: true
@@ -1187,7 +1187,7 @@ describe('ColumnSorting', () => {
           handsontable({
             data,
             columns: [
-              { type: 'intlTime', timeFormat },
+              { type: 'intl-time', timeFormat },
               { type: 'numeric' },
             ],
             columnSorting: true

@@ -26,8 +26,8 @@ describe('`registerAllValidators`', () => {
       'autocomplete',
       'dropdown',
       'date',
-      'intlDate',
-      'intlTime',
+      'intl-date',
+      'intl-time',
       'numeric',
       'time',
     ]);

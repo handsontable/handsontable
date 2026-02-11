@@ -3,7 +3,7 @@ import { isValidTime } from '../../helpers/dateTime';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 
-export const EDITOR_TYPE = 'intlTime';
+export const EDITOR_TYPE = 'intl-time';
 
 /**
  * @private

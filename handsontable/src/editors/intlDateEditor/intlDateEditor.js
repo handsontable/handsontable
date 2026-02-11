@@ -2,8 +2,9 @@ import { TextEditor } from '../textEditor';
 import { isValidISODate } from '../../helpers/dateTime';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { isEmpty } from '../../helpers/mixed';
 
-export const EDITOR_TYPE = 'intlDate';
+export const EDITOR_TYPE = 'intl-date';
 
 /**
  * @private
@@ -39,6 +40,10 @@ export class IntlDateEditor extends TextEditor {
    * @param {*} value The value to set.
    */
   setValue(value) {
+    if (isEmpty(value)) {
+      value = this.cellProperties.defaultDate;
+    }
+
     if (!isValidISODate(value)) {
       warn(toSingleLine`IntlDateEditor: value must be in ISO date format ("YYYY-MM-DD")\x20
         required by the native date input. Received:`, value);

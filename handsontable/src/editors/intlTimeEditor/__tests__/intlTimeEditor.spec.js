@@ -24,7 +24,7 @@ describe('IntlTimeEditor', () => {
 
   it('should return true in the `isOpened` after open the time editor', async() => {
     handsontable({
-      type: 'intlTime'
+      type: 'intl-time'
     });
 
     await selectCell(0, 0);
@@ -38,7 +38,7 @@ describe('IntlTimeEditor', () => {
 
   it('should return false in the `isOpened` after close the time editor', async() => {
     handsontable({
-      type: 'intlTime'
+      type: 'intl-time'
     });
 
     await selectCell(0, 0);
@@ -58,7 +58,7 @@ describe('IntlTimeEditor', () => {
 
   it('should render an editor in specified position at cell 0, 0', async() => {
     handsontable({
-      columns: [{ type: 'intlTime' }],
+      columns: [{ type: 'intl-time' }],
     });
 
     await selectCell(0, 0);
@@ -74,7 +74,7 @@ describe('IntlTimeEditor', () => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
-      columns: [{ type: 'intlTime' }],
+      columns: [{ type: 'intl-time' }],
     });
 
     await listen();
@@ -90,7 +90,7 @@ describe('IntlTimeEditor', () => {
 
   it('should not highlight the input element by browsers native selection', async() => {
     handsontable({
-      type: 'intlTime',
+      type: 'intl-time',
     });
 
     await selectCell(0, 0);
@@ -110,7 +110,7 @@ describe('IntlTimeEditor', () => {
       ],
       columns: [
         {
-          type: 'intlTime',
+          type: 'intl-time',
         },
         {},
       ],
@@ -158,7 +158,7 @@ describe('IntlTimeEditor', () => {
   it('should restore original when edited and pressed ESC ', async() => {
     handsontable({
       data: getTimes(),
-      type: 'intlTime',
+      type: 'intl-time',
       editor: 'text',
     });
 
@@ -184,7 +184,7 @@ describe('IntlTimeEditor', () => {
   it('should render an editable editor\'s element without messing with "dir" attribute', async() => {
     handsontable({
       data: createSpreadsheetData(2, 5),
-      editor: 'intlTime',
+      editor: 'intl-time',
     });
 
     await selectCell(0, 0);
@@ -197,7 +197,7 @@ describe('IntlTimeEditor', () => {
   it('should display the correct time in the time picker', async() => {
     handsontable({
       data: [['12:01']],
-      editor: 'intlTime',
+      editor: 'intl-time',
     });
 
     await selectCell(0, 0);
@@ -213,7 +213,7 @@ describe('IntlTimeEditor', () => {
 
     handsontable({
       data: [['12:010']],
-      editor: 'intlTime',
+      editor: 'intl-time',
     });
 
     await selectCell(0, 0);
@@ -232,7 +232,7 @@ describe('IntlTimeEditor', () => {
       handsontable({
         columns: [
           {
-            editor: 'intlTime',
+            editor: 'intl-time',
           }
         ],
         imeFastEdit: true,

@@ -25,7 +25,7 @@ describe('Filters condition (`intl_time_before`)', () => {
     },
   ], ({ timeFormat, testTime, startTime, assumption }) => {
     it('should filter matching and non-matching values (time cell type)', () => {
-      const data = dateRowFactory({ type: 'intlTime', timeFormat });
+      const data = dateRowFactory({ type: 'intl-time', timeFormat });
 
       expect(condition(data(testTime), [startTime])).toBe(assumption);
     });

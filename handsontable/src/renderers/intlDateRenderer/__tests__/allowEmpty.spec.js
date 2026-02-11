@@ -15,7 +15,7 @@ describe('IntlDateType - allowEmpty', () => {
   it('should render empty string as empty when allowEmpty is true', async() => {
     handsontable({
       data: [['']],
-      type: 'intlDate',
+      type: 'intl-date',
       dateFormat: { dateStyle: 'short' },
       allowEmpty: true,
     });
@@ -31,7 +31,7 @@ describe('IntlDateType - allowEmpty', () => {
   it('should render BAD_VALUE_TEXT for empty string when allowEmpty is false', async() => {
     handsontable({
       data: [['']],
-      type: 'intlDate',
+      type: 'intl-date',
       dateFormat: { dateStyle: 'short' },
       allowEmpty: false,
     });

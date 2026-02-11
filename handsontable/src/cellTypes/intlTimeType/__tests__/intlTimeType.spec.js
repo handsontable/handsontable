@@ -17,7 +17,7 @@ describe('IntlTimeType', () => {
 
     handsontable({
       data: [[0, 'test', true]],
-      type: 'intlTime',
+      type: 'intl-time',
     });
 
     expect(warnSpy).toHaveBeenCalledWith('Source data warning (3 cells). ' +
@@ -35,7 +35,7 @@ describe('IntlTimeType', () => {
 
     handsontable({
       data: [['12:00']],
-      type: 'intlTime',
+      type: 'intl-time',
     });
 
     await loadData([['12:000']]);
@@ -53,7 +53,7 @@ describe('IntlTimeType', () => {
 
     handsontable({
       data: [['12:00']],
-      type: 'intlTime',
+      type: 'intl-time',
     });
 
     await updateData([['12:000']]);

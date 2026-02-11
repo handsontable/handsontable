@@ -192,7 +192,7 @@ export function init() {
       },
       {
         data: 'restockDate',
-        type: 'intlDate',
+        type: 'intl-date',
         locale: 'en-US',
         dateFormat: {
           year: 'numeric',

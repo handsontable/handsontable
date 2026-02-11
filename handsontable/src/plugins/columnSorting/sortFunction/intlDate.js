@@ -12,4 +12,4 @@ export function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettin
   return createIntlDateCompareFunction(sortOrder, columnMeta.dateFormat, columnPluginSettings);
 }
 
-export const COLUMN_DATA_TYPE = 'intlDate';
+export const COLUMN_DATA_TYPE = 'intl-date';

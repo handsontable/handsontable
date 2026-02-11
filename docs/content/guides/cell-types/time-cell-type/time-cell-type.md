@@ -2,7 +2,7 @@
 id: q63yhvq5
 title: Time cell type
 metaTitle: Time cell type - JavaScript Data Grid | Handsontable
-description: Use the time cell type to display, format, and validate values as times. The time cell type uses Moment.js as a time formatter.
+description: Display, format, sort, and filter time values correctly by using the time cell type. Use Intl.DateTimeFormat (recommended) or the legacy moment.js-based configuration.
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
@@ -17,77 +17,338 @@ category: Cell types
 
 # Time cell type
 
-Use the time cell type to display, format, and validate values as times. The time cell type uses Moment.js as a time formatter.
+Display, format, sort, and filter time values correctly by using the time cell type. Edit times via the cell editor.
 
 [[toc]]
 
-## Usage
+## Overview
 
-To use the time cell type, set the `type: 'time'` option in the [`columns`](@/api/options.md#columns) array or the [`cells`](@/api/options.md#cells) function.
-The time cell uses [Moment.js](https://github.com/moment/moment) as the time formatter, therefore you must add the following required dependency:
+The time cell type lets you treat cell values as times: format how they are displayed and validate input. Handsontable supports two configurations: the **object-style** configuration using the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API (recommended), and a **string-style** configuration using [Moment.js](https://github.com/moment/moment) (deprecated).
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
-```
+## Time cell type demo
 
-All data entered into the time-typed cells is eventually validated against the default time format - `h:mm:ss a`, which translates to, for example, `9:30:00 am` unless another format is provided as the `timeFormat`.
-If you enable the [`correctFormat`](@/api/options.md#correctformat) configuration option, the values will be automatically formatted to match the desired time format.
-
-::: tip
-
-By default, the values entered into the time-type column are not validated, so if you want them to display in the proper format, remember to call [`hot.validateCells()`](@/api/core.md#validatecells) after the table initialization.
-
-:::
-
-## Basic example
+In the following demo, the **Start**, **Break start**, and **End** columns use the time cell type with different formats: short style, custom format with hours, minutes, and seconds, and format with day period. Use the locale selector to see how each format varies by locale.
 
 ::: only-for javascript
+::: example #example1 --html 1 --js 2 --ts 3
 
-::: example #example1 --js 1 --ts 2
-
+@[code](@/content/guides/cell-types/time-cell-type/javascript/example1.html)
 @[code](@/content/guides/cell-types/time-cell-type/javascript/example1.js)
 @[code](@/content/guides/cell-types/time-cell-type/javascript/example1.ts)
 
 :::
-
 :::
 
 ::: only-for react
-
 ::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/time-cell-type/react/example1.jsx)
 @[code](@/content/guides/cell-types/time-cell-type/react/example1.tsx)
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-types/time-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/time-cell-type/angular/example1.html)
 
 :::
+:::
+
+## Use the time cell type
+
+Use the **object-style** configuration by setting the [`type`](@/api/options.md#type) option to `'intl-time'` and [`timeFormat`](@/api/options.md#timeformat) to an object (recommended). The locale is controlled via the [`locale`](@/api/options.md#locale) option.
+
+::: only-for javascript
+
+```js
+// set the time cell type for the entire grid (Intl, recommended)
+type: 'intl-time',
+locale: 'en-US',
+timeFormat: {
+  hour: 'numeric',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: true
+},
+
+// set the time cell type for a single column
+columns: [
+  {
+    type: 'intl-time',
+    locale: 'en-US',
+    timeFormat: {
+      timeStyle: 'medium'
+    }
+  }
+],
+
+// set the time cell type for a single cell
+cell: [
+  {
+    row: 0,
+    col: 2,
+    type: 'intl-time',
+    locale: 'en-US',
+    timeFormat: { hour: '2-digit', minute: '2-digit', hour12: true }
+  }
+],
+```
 
 :::
+
+::: only-for react
+
+```jsx
+// set the time cell type for the entire grid (Intl, recommended)
+type="intl-time"
+locale="en-US"
+timeFormat={{
+  hour: 'numeric',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: true
+}}
+
+// set the time cell type for a single column
+columns={[{
+  type: 'intl-time',
+  locale: 'en-US',
+  timeFormat: { timeStyle: 'medium' }
+}]}
+
+// set the time cell type for a single cell
+cell={[{
+  row: 0,
+  col: 2,
+  type: 'intl-time',
+  locale: 'en-US',
+  timeFormat: { hour: '2-digit', minute: '2-digit', hour12: true }
+}]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+// set the time cell type for the entire grid (Intl, recommended)
+settings1 = {
+  type: 'intl-time',
+  locale: 'en-US',
+  timeFormat: {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  }
+};
+
+// set the time cell type for a single column
+settings2 = {
+  columns: [
+    {
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: { timeStyle: 'medium' }
+    }
+  ]
+};
+
+// set the time cell type for a single cell
+settings3 = {
+  cell: [
+    {
+      row: 0,
+      col: 2,
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: { hour: '2-digit', minute: '2-digit', hour12: true }
+    }
+  ]
+};
+```
+
+:::
+
+For `intl-time` cells, source data **must** be in **24-hour time format** (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`) for times to work correctly. The `timeFormat` object only affects how times are displayed; sorting and filtering rely on the underlying value.
+
+## Format times
+
+To control how times are displayed in [cell renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md), use the [`timeFormat`](@/api/options.md#timeformat) option.
+
+Since Handsontable 17.0, the recommended approach is the **object form** of `timeFormat` with the `intl-time` cell type, which uses the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+
+### Using Intl.DateTimeFormat (recommended)
+
+The `timeFormat` option accepts properties of [`Intl.DateTimeFormat` options](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat) relevant to time. Use it with `type: 'intl-time'`.
+
+::: only-for javascript
+
+```js
+columns: [
+  {
+    type: 'intl-time',
+    locale: 'en-US',
+    timeFormat: {
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }
+  },
+  {
+    type: 'intl-time',
+    locale: 'de-DE',
+    timeFormat: {
+      timeStyle: 'medium'
+    }
+  }
+]
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  columns={[{
+    type: 'intl-time',
+    locale: 'en-US',
+    timeFormat: {
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }
+  }, {
+    type: 'intl-time',
+    locale: 'de-DE',
+    timeFormat: { timeStyle: 'medium' }
+  }]}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      }
+    },
+    {
+      type: 'intl-time',
+      locale: 'de-DE',
+      timeFormat: { timeStyle: 'medium' }
+    }
+  ]
+};
+```
+
+:::
+
+**Time-specific options**
+
+**Style shortcuts:**
+
+| Property     | Possible values                                    | Description                                                                 |
+| ------------ | -------------------------------------------------- | --------------------------------------------------------------------------- |
+| `timeStyle`  | `'full'`, `'long'`, `'medium'`, `'short'`          | Time formatting style (hour, minute, second, timeZoneName)                   |
+
+**Time component options:**
+
+| Property                 | Possible values                                                                 | Description                |
+| ------------------------ | ------------------------------------------------------------------------------- | -------------------------- |
+| `hour`                   | `'numeric'`, `'2-digit'`                                                        | Hour representation        |
+| `minute`                 | `'numeric'`, `'2-digit'`                                                        | Minute representation      |
+| `second`                 | `'numeric'`, `'2-digit'`                                                        | Second representation       |
+| `fractionalSecondDigits` | `1`, `2`, `3`                                                                   | Fraction-of-second digits   |
+| `dayPeriod`              | `'narrow'`, `'short'`, `'long'`                                                 | Day period (e.g. "am")     |
+| `timeZoneName`           | `'long'`, `'short'`, `'shortOffset'`, `'longOffset'`, `'shortGeneric'`, `'longGeneric'` | Time zone display    |
+
+**Locale and other options:**
+
+| Property          | Possible values                                           | Description                    |
+| ----------------- | --------------------------------------------------------- | ------------------------------ |
+| `localeMatcher`   | `'best fit'` (default), `'lookup'`                        | Locale matching algorithm      |
+| `timeZone`        | IANA time zone (e.g. `'UTC'`, `'America/New_York'`)      | Time zone for formatting       |
+| `hour12`          | `true`, `false`                                           | 12-hour vs 24-hour time        |
+| `hourCycle`       | `'h11'`, `'h12'`, `'h23'`, `'h24'`                        | Hour cycle                     |
+| `formatMatcher`   | `'basic'`, `'best fit'` (default)                         | Format matching algorithm      |
+
+For a complete reference, see the [`timeFormat` API documentation](@/api/options.md#timeformat) or [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
+
+### Using string format with Moment.js (deprecated)
+
+::: warning Deprecated
+The **string form** of [`timeFormat`](@/api/options.md#timeformat) (e.g. `'h:mm:ss a'`) is deprecated and will be removed in the next major release. It is used only by the `time` cell type, which relies on [Moment.js](https://github.com/moment/moment). Migrate to the `intl-time` cell type with an `Intl.DateTimeFormat` options object.
+:::
+
+The `time` cell type with a string `timeFormat` is still supported but will be removed in next major release.
+
+**Deprecated options:**
+
+| Option               | Description | Replacement |
+| -------------------- | ----------- | ----------- |
+| `timeFormat` (string)| Moment.js format (e.g. `'h:mm:ss a'`) | Use `intl-time` with `timeFormat` object (see above) |
+| `correctFormat`      | Auto-correct entered time to match format | May be handled by [`valueParser`](@/api/options.md#valueparser) and/or [`valueSetter`](@/api/options.md#valuesetter) options |
+
+**Migration example:**
+
+```js
+// Before (deprecated)
+columns: [{
+  type: 'time',
+  timeFormat: 'h:mm:ss a',
+}]
+
+// After (recommended)
+columns: [{
+  type: 'intl-time',
+  locale: 'en-US',
+  timeFormat: {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  }
+}]
+```
+
+### Editor behavior
+
+The [`timeFormat`](@/api/options.md#timeformat) option controls how times are displayed in the cell. The editor may show the value in a normalized form; for `intl-time`, the underlying value remains in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`).
 
 ## Related articles
 
 ### Related guides
 
-<div class="boxes-list gray">
-
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
-
-</div>
 
 ### Related API reference
 
 - Configuration options:
+  - [`timeFormat`](@/api/options.md#timeformat)
+  - [`locale`](@/api/options.md#locale)
   - [`type`](@/api/options.md#type)
+  - [`correctFormat`](@/api/options.md#correctformat)
+  - [`valueFormatter`](@/api/options.md#valueformatter)
+  - [`valueParser`](@/api/options.md#valueparser)
+  - [`valueSetter`](@/api/options.md#valuesetter)
+  - [`valueGetter`](@/api/options.md#valuegetter)
 - Core methods:
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
   - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)

@@ -1760,7 +1760,7 @@ export default () => {
      *
      * // After (recommended)
      * columns: [{
-     *   type: 'intlDate',
+     *   type: 'intl-date',
      *   locale: 'en-US',
      *   dateFormat: {
      *     year: 'numeric',
@@ -1780,7 +1780,7 @@ export default () => {
      * // intlDate cell type with Intl options
      * columns: [
      *   {
-     *     type: 'intlDate',
+     *     type: 'intl-date',
      *     locale: 'en-US',
      *     dateFormat: {
      *       dateStyle: 'short'
@@ -1875,7 +1875,7 @@ export default () => {
      *
      * // After (recommended)
      * columns: [{
-     *   type: 'intlTime',
+     *   type: 'intl-time',
      *   locale: 'en-US',
      *   timeFormat: {
      *     hour: 'numeric',
@@ -1896,7 +1896,7 @@ export default () => {
      * // intlTime cell type with Intl options
      * columns: [
      *   {
-     *     type: 'intlTime',
+     *     type: 'intl-time',
      *     locale: 'en-US',
      *     timeFormat: {
      *       timeStyle: 'medium'
@@ -1951,15 +1951,14 @@ export default () => {
 
     /**
      * The `defaultDate` option configures the date displayed
-     * in empty [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cells.
+     * in the editor for an empty [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cell.
      *
-     * You can set the `defaultDate` option to a string.
+     * The option accepts a string in ISO 8601 format (`YYYY-MM-DD`).
      *
      * Read more:
      * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
      * - [`dateFormat`](#dateFormat)
      *
-     * @deprecated This option is deprecated and will be removed in the next major release.
      * @memberof Options#
      * @type {string}
      * @default undefined
@@ -1969,9 +1968,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of each cell in this column to `date`
      *     type: 'date',
-     *     // in every empty `date` cell of this column, display `2015-02-02`
      *     defaultDate: '2015-02-02'
      *   }
      * ],
@@ -2285,6 +2282,7 @@ export default () => {
      * | `'base'`            | `BaseEditor`                                                               |
      * | `'checkbox'`        | `CheckboxEditor`                                                           |
      * | `'date'`            | `DateEditor`                                                               |
+     * | `'intl-date'`       | `IntlDateEditor`                                                           |
      * | `'dropdown'`        | `DropdownEditor`                                                           |
      * | `'handsontable'`    | `HandsontableEditor`                                                       |
      * | `'numeric'`         | `NumericEditor`                                                            |
@@ -2292,6 +2290,7 @@ export default () => {
      * | `'select'`          | `SelectEditor`                                                             |
      * | `'text'`            | `TextEditor`                                                               |
      * | `'time'`            | `TimeEditor`                                                               |
+     * | `'intl-time'`       | `IntlTimeEditor`                                                           |
      *
      * To disable editing cells through cell editors,
      * set the `editor` option to `false`.
@@ -4550,12 +4549,14 @@ export default () => {
      * | `'base'`            | `BaseRenderer`                                                                 |
      * | `'checkbox'`        | `CheckboxRenderer`                                                             |
      * | `'date'`            | `DateRenderer`                                                                 |
+     * | `'intl-date'`       | `IntlDateRenderer`                                                             |
      * | `'dropdown'`        | `DropdownRenderer`                                                             |
      * | `'html'`            | `HtmlRenderer`                                                                 |
      * | `'numeric'`         | `NumericRenderer`                                                              |
      * | `'password'`        | `PasswordRenderer`                                                             |
      * | `'text'`            | `TextRenderer`                                                                 |
      * | `'time'`            | `TimeRenderer`                                                                 |
+     * | `'intl-time'`       | `IntlTimeRenderer`                                                             |
      *
      * To set the [`renderer`](#renderer), [`editor`](#editor), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
@@ -5641,12 +5642,14 @@ export default () => {
      * | [`'autocomplete'`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `AutocompleteEditor`<br>Validator: `AutocompleteValidator`                                                                         |
      * | [`'checkbox'`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md)         | Renderer: `CheckboxRenderer`<br>Editor: `CheckboxEditor`<br>Validator: -                                                                                                                               |
      * | [`'date'`](@/guides/cell-types/date-cell-type/date-cell-type.md)                 | Renderer: `DateRenderer`<br>Editor: `DateEditor`<br>Validator: `DateValidator`                                                                                                 |
+     * | [`'intl-date'`](@/guides/cell-types/date-cell-type/date-cell-type.md)                 | Renderer: `IntlDateRenderer`<br>Editor: `IntlDateEditor`<br>Validator: `IntlDateValidator`                                                                                                 |
      * | [`'dropdown'`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)         | Renderer: `DropdownRenderer`<br>Editor: `DropdownEditor`<br>Validator: `DropdownValidator`                                                                                     |
      * | [`'handsontable'`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `HandsontableEditor`<br>Validator: -                                                                                                                       |
      * | [`'numeric'`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)           | Renderer: `NumericRenderer`<br>Editor: `NumericEditor`<br>Validator: `NumericValidator`                                                                                        |
      * | [`'password'`](@/guides/cell-types/password-cell-type/password-cell-type.md)         | Renderer: `PasswordRenderer`<br>Editor: `PasswordEditor`<br>Validator: -                                                                                                                               |
      * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                       |
      * | [`'time`'](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                 |
+     * | [`'intl-time'`](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `IntlTimeRenderer`<br>Editor: `IntlTimeEditor`<br>Validator: `IntlTimeValidator`                                                                                                 |
      *
      * Read more:
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
@@ -5657,6 +5660,8 @@ export default () => {
      * - [`renderer`](#renderer)
      * - [`editor`](#editor)
      * - [`validator`](#validator)
+     * - [`valueParser`](#valueparser)
+     * - [`valueFormatter`](#valueformatter)
      *
      * @memberof Options#
      * @type {string}
@@ -5776,9 +5781,11 @@ export default () => {
      * | A custom alias      | Your [custom cell validator](@/guides/cell-functions/cell-validator/cell-validator.md) |
      * | `'autocomplete'`    | `AutocompleteValidator`                                                 |
      * | `'date'`            | `DateValidator`                                                         |
+     * | `'intl-date'`       | `IntlDateValidator`                                                     |
      * | `'dropdown'`        | `DropdownValidator`                                                     |
      * | `'numeric'`         | `NumericValidator`                                                      |
      * | `'time'`            | `TimeValidator`                                                         |
+     * | `'intl-time'`       | `IntlTimeValidator`                                                     |
      *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.

@@ -1323,18 +1323,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   }
 
   this.init = function() {
-    const theme = tableMeta.theme;
-    const themeName = tableMeta.themeName;
-    const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
-
-    if (
-      isRootInstance(instance) &&
-      !rootContainerThemeClassName &&
-      (isObject(theme) || (!theme && !themeName))
-    ) {
-      initializeThemeManager(theme);
-    }
-
     dataSource.setData(tableMeta.data);
     instance.runHooks('beforeInit');
 
@@ -5607,6 +5595,18 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     return focusScopeManager;
   };
+
+  const theme = mergedUserSettings.theme;
+  const themeName = mergedUserSettings.themeName;
+  const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
+
+  if (
+    isRootInstance(instance) &&
+    !rootContainerThemeClassName &&
+    (isObject(theme) || (!theme && !themeName))
+  ) {
+    initializeThemeManager(theme);
+  }
 
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);

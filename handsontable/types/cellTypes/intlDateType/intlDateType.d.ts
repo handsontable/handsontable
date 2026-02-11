@@ -3,7 +3,7 @@ import { IntlDateEditor } from '../../editors/intlDateEditor';
 import { intlDateRenderer, valueFormatter } from '../../renderers/intlDateRenderer';
 import { intlDateValidator, sourceDataValidator } from '../../validators/intlDateValidator';
 
-export const CELL_TYPE: 'intlDate';
+export const CELL_TYPE: 'intl-date';
 export interface IntlDateCellType extends CellTypeObject {
   editor: typeof IntlDateEditor;
   renderer: typeof intlDateRenderer;

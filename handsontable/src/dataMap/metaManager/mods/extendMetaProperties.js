@@ -40,17 +40,6 @@ export class ExtendMetaPropertiesMod {
         }
       }
     }],
-    ['defaultDate', {
-      onChange() {
-        if (!defaultDateDeprecatedMessageShown.has(this.metaManager.hot)) {
-          defaultDateDeprecatedMessageShown.add(this.metaManager.hot);
-          deprecatedWarn(
-            'The `defaultDate` option is deprecated and will be removed in the next major release.\n\n' +
-            'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/'
-          );
-        }
-      }
-    }],
     ['correctFormat', {
       onChange() {
         if (!correctFormatDeprecatedMessageShown.has(this.metaManager.hot)) {

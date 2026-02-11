@@ -17,7 +17,7 @@ describe('IntlDateType - allowEmpty', () => {
 
     handsontable({
       data: [['2026-01-28']],
-      type: 'intlDate',
+      type: 'intl-date',
       allowEmpty: true,
     });
 
@@ -31,7 +31,7 @@ describe('IntlDateType - allowEmpty', () => {
 
     handsontable({
       data: [['2026-01-28']],
-      type: 'intlDate',
+      type: 'intl-date',
       allowEmpty: false,
     });
 
@@ -50,7 +50,7 @@ describe('IntlDateType - allowEmpty', () => {
 
     handsontable({
       data: [['2026-01-28']],
-      type: 'intlDate',
+      type: 'intl-date',
       allowEmpty: false,
     });
 

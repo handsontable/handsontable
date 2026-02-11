@@ -27,7 +27,7 @@ describe('intlTimeValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'time', type: 'intlTime' },
+        { data: 'time', type: 'intl-time' },
         { data: 'name' },
         { data: 'lastName' }
       ],
@@ -47,7 +47,7 @@ describe('intlTimeValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'time', type: 'intlTime' },
+        { data: 'time', type: 'intl-time' },
         { data: 'name' },
         { data: 'lastName' }
       ],
@@ -67,7 +67,7 @@ describe('intlTimeValidator', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'time', type: 'intlTime' },
+        { data: 'time', type: 'intl-time' },
         { data: 'name' },
         { data: 'lastName' }
       ],

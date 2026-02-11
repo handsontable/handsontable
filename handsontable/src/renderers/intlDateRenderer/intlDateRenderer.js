@@ -4,7 +4,7 @@ import { isEmpty } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
 
-export const RENDERER_TYPE = 'intlDate';
+export const RENDERER_TYPE = 'intl-date';
 
 const DEFAULT_INTL_FORMAT = {
   year: 'numeric',

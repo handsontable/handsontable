@@ -24,7 +24,7 @@ describe('IntlDateEditor', () => {
 
   it('should return true in the `isOpened` after open the date editor', async() => {
     handsontable({
-      type: 'intlDate'
+      type: 'intl-date'
     });
 
     await selectCell(0, 0);
@@ -38,7 +38,7 @@ describe('IntlDateEditor', () => {
 
   it('should return false in the `isOpened` after close the date editor', async() => {
     handsontable({
-      type: 'intlDate'
+      type: 'intl-date'
     });
 
     await selectCell(0, 0);
@@ -58,7 +58,7 @@ describe('IntlDateEditor', () => {
 
   it('should render an editor in specified position at cell 0, 0', async() => {
     handsontable({
-      columns: [{ type: 'intlDate' }],
+      columns: [{ type: 'intl-date' }],
     });
 
     await selectCell(0, 0);
@@ -74,7 +74,7 @@ describe('IntlDateEditor', () => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
-      columns: [{ type: 'intlDate' }],
+      columns: [{ type: 'intl-date' }],
     });
 
     await listen();
@@ -90,7 +90,7 @@ describe('IntlDateEditor', () => {
 
   it('should not highlight the input element by browsers native selection', async() => {
     handsontable({
-      type: 'intlDate',
+      type: 'intl-date',
     });
 
     await selectCell(0, 0);
@@ -110,7 +110,7 @@ describe('IntlDateEditor', () => {
       ],
       columns: [
         {
-          type: 'intlDate',
+          type: 'intl-date',
         },
         {},
       ],
@@ -158,7 +158,7 @@ describe('IntlDateEditor', () => {
   it('should restore original when edited and pressed ESC ', async() => {
     handsontable({
       data: getDates(),
-      type: 'intlDate',
+      type: 'intl-date',
       editor: 'text',
     });
 
@@ -184,7 +184,7 @@ describe('IntlDateEditor', () => {
   it('should render an editable editor\'s element without messing with "dir" attribute', async() => {
     handsontable({
       data: createSpreadsheetData(2, 5),
-      editor: 'intlDate',
+      editor: 'intl-date',
     });
 
     await selectCell(0, 0);
@@ -197,7 +197,7 @@ describe('IntlDateEditor', () => {
   it('should display the correct date in the date picker', async() => {
     handsontable({
       data: [['2006-01-14']],
-      editor: 'intlDate',
+      editor: 'intl-date',
     });
 
     await selectCell(0, 0);
@@ -213,7 +213,7 @@ describe('IntlDateEditor', () => {
 
     handsontable({
       data: [['2006-01']],
-      editor: 'intlDate',
+      editor: 'intl-date',
     });
 
     await selectCell(0, 0);
@@ -231,7 +231,7 @@ describe('IntlDateEditor', () => {
       handsontable({
         columns: [
           {
-            editor: 'intlDate',
+            editor: 'intl-date',
           }
         ],
         imeFastEdit: true,

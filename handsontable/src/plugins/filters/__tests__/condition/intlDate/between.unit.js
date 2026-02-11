@@ -50,7 +50,7 @@ describe('Filters condition (`intl_date_between`)', () => {
     },
   ], ({ dateFormat, testDate, startDate, endDate, assumption }) => {
     it('should filter matching and non-matching values (date cell type)', () => {
-      const data = dateRowFactory({ type: 'intlDate', dateFormat });
+      const data = dateRowFactory({ type: 'intl-date', dateFormat });
 
       expect(condition(data(testDate), [startDate, endDate])).toBe(assumption);
     });

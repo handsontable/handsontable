@@ -20,7 +20,7 @@ describe('TimeRenderer', () => {
     Handsontable.renderers.registerRenderer('base', Handsontable.renderers.BaseRenderer);
     handsontable({
       data: [['test']],
-      type: 'intlTime',
+      type: 'intl-time',
     });
 
     expect(Handsontable.renderers.BaseRenderer).toHaveBeenCalledTimes(1);
