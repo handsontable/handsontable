@@ -76,7 +76,11 @@ declare namespace Handsontable {
       close(): void;
       focus(): void;
       isOpened(): boolean;
-      prepare(row: number, col: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: Record<string, any>): void;
+      prepare(
+        row: number, col: number, prop: string | number,
+        TD: HTMLTableCellElement, originalValue: any,
+        cellProperties: Record<string, any>,
+      ): void;
       finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
       row: number;
       col: number;
@@ -90,6 +94,7 @@ declare namespace Handsontable {
   namespace renderers {
     const BaseRenderer: _BaseRenderer;
     function registerRenderer(name: string, renderer: any): void;
+    function rendererFactory(params: Record<string, unknown>): any;
   }
 }
 
