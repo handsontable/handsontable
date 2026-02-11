@@ -169,6 +169,7 @@ jobs:
           cd handsontable
           npm run build:es
           npm run build:commonjs
+          npm run build:types
           npm run build:languages.es
           npm run postbuild
       - run: tar -zcf tmp.tar.gz ./handsontable/tmp

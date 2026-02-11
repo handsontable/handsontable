@@ -283,7 +283,7 @@ describe('CollapsibleColumns API', () => {
         `);
     });
 
-    it('should collapse all headers (complicated nested headers settings)', async() => {
+    it.forTheme('classic')('should collapse all headers (complicated nested headers settings)', async() => {
       const $wrapper = $('<div></div>').css({
         width: 400,
         height: 300,
@@ -377,6 +377,1022 @@ describe('CollapsibleColumns API', () => {
             <td class="">AC1</td>
             <td class="">AK1</td>
             <td class="">AL1</td>
+          </tr>
+        </tbody>
+        `);
+
+      await scrollViewportTo({
+        row: 0,
+        col: 63,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator collapsed">B1</th>
+            <th class="">J1</th>
+            <th class="collapsibleIndicator collapsed">K1</th>
+            <th class="">S1</th>
+            <th class="collapsibleIndicator collapsed">T1</th>
+            <th class="">AB1</th>
+            <th class="collapsibleIndicator collapsed">AC1</th>
+            <th class="">AK1</th>
+            <th class="collapsibleIndicator collapsed">AL1</th>
+            <th class="">AT1</th>
+            <th class="collapsibleIndicator collapsed">AU1</th>
+            <th class="">BC1</th>
+            <th class="collapsibleIndicator collapsed">BD1</th>
+            <th class="">BL1</th>
+            <th class="collapsibleIndicator collapsed">BM1</th>
+            <th class="">BU1</th>
+            <th class="collapsibleIndicator collapsed">BV1</th>
+            <th class="">CD1</th>
+            <th class="collapsibleIndicator collapsed">CE1</th>
+            <th class="">CM1</th>
+            <th class="collapsibleIndicator collapsed">CN1</th>
+            <th class="">CV1</th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator collapsed">B2</th>
+            <th class="">J2</th>
+            <th class="collapsibleIndicator collapsed">K2</th>
+            <th class="">S2</th>
+            <th class="collapsibleIndicator collapsed">T2</th>
+            <th class="">AB2</th>
+            <th class="collapsibleIndicator collapsed">AC2</th>
+            <th class="">AK2</th>
+            <th class="collapsibleIndicator collapsed">AL2</th>
+            <th class="">AT2</th>
+            <th class="collapsibleIndicator collapsed">AU2</th>
+            <th class="">BC2</th>
+            <th class="collapsibleIndicator collapsed">BD2</th>
+            <th class="">BL2</th>
+            <th class="collapsibleIndicator collapsed">BM2</th>
+            <th class="">BU2</th>
+            <th class="collapsibleIndicator collapsed">BV2</th>
+            <th class="">CD2</th>
+            <th class="collapsibleIndicator collapsed">CE2</th>
+            <th class="">CM2</th>
+            <th class="collapsibleIndicator collapsed">CN2</th>
+            <th class="">CV2</th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator collapsed">B3</th>
+            <th class="">J3</th>
+            <th class="collapsibleIndicator collapsed">K3</th>
+            <th class="">S3</th>
+            <th class="collapsibleIndicator collapsed">T3</th>
+            <th class="">AB3</th>
+            <th class="collapsibleIndicator collapsed">AC3</th>
+            <th class="">AK3</th>
+            <th class="collapsibleIndicator collapsed">AL3</th>
+            <th class="">AT3</th>
+            <th class="collapsibleIndicator collapsed">AU3</th>
+            <th class="">BC3</th>
+            <th class="collapsibleIndicator collapsed">BD3</th>
+            <th class="">BL3</th>
+            <th class="collapsibleIndicator collapsed">BM3</th>
+            <th class="">BU3</th>
+            <th class="collapsibleIndicator collapsed">BV3</th>
+            <th class="">CD3</th>
+            <th class="collapsibleIndicator collapsed">CE3</th>
+            <th class="">CM3</th>
+            <th class="collapsibleIndicator collapsed">CN3</th>
+            <th class="">CV3</th>
+          </tr>
+          <tr>
+            <th class="">B4</th>
+            <th class="">J4</th>
+            <th class="">K4</th>
+            <th class="">S4</th>
+            <th class="">T4</th>
+            <th class="">AB4</th>
+            <th class="">AC4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+            <th class="">AT4</th>
+            <th class="">AU4</th>
+            <th class="">BC4</th>
+            <th class="">BD4</th>
+            <th class="">BL4</th>
+            <th class="">BM4</th>
+            <th class="">BU4</th>
+            <th class="">BV4</th>
+            <th class="">CD4</th>
+            <th class="">CE4</th>
+            <th class="">CM4</th>
+            <th class="">CN4</th>
+            <th class="">CV4</th>
+          </tr>
+          <tr>
+            <th class="">B5</th>
+            <th class="">J5</th>
+            <th class="">K5</th>
+            <th class="">S5</th>
+            <th class="">T5</th>
+            <th class="">AB5</th>
+            <th class="">AC5</th>
+            <th class="">AK5</th>
+            <th class="">AL5</th>
+            <th class="">AT5</th>
+            <th class="">AU5</th>
+            <th class="">BC5</th>
+            <th class="">BD5</th>
+            <th class="">BL5</th>
+            <th class="">BM5</th>
+            <th class="">BU5</th>
+            <th class="">BV5</th>
+            <th class="">CD5</th>
+            <th class="">CE5</th>
+            <th class="">CM5</th>
+            <th class="">CN5</th>
+            <th class="">CV5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">B1</td>
+            <td class="">J1</td>
+            <td class="">K1</td>
+            <td class="">S1</td>
+            <td class="">T1</td>
+            <td class="">AB1</td>
+            <td class="">AC1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
+            <td class="">AT1</td>
+            <td class="">AU1</td>
+            <td class="">BC1</td>
+            <td class="">BD1</td>
+            <td class="">BL1</td>
+            <td class="">BM1</td>
+            <td class="">BU1</td>
+            <td class="">BV1</td>
+            <td class="">CD1</td>
+            <td class="">CE1</td>
+            <td class="">CM1</td>
+            <td class="">CN1</td>
+            <td class="">CV1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it.forTheme('main')('should collapse all headers (complicated nested headers settings)', async() => {
+      const $wrapper = $('<div></div>').css({
+        width: 400,
+        height: 300,
+        overflow: 'hidden',
+      });
+
+      spec().$wrapper = spec().$container.wrap($wrapper).parent();
+
+      handsontable({
+        data: createSpreadsheetData(5, 100),
+        nestedHeaders: generateComplexSetup(5, 100, true),
+        collapsibleColumns: true,
+      });
+
+      const plugin = getPlugin('collapsibleColumns');
+
+      plugin.collapseAll();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="collapsibleIndicator collapsed">B1</th>
+            <th class="">J1</th>
+            <th class="collapsibleIndicator collapsed">K1</th>
+            <th class="">S1</th>
+            <th class="collapsibleIndicator collapsed">T1</th>
+            <th class="">AB1</th>
+            <th class="collapsibleIndicator collapsed">AC1</th>
+            <th class="">AK1</th>
+            <th class="collapsibleIndicator collapsed">AL1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="collapsibleIndicator collapsed">B2</th>
+            <th class="">J2</th>
+            <th class="collapsibleIndicator collapsed">K2</th>
+            <th class="">S2</th>
+            <th class="collapsibleIndicator collapsed">T2</th>
+            <th class="">AB2</th>
+            <th class="collapsibleIndicator collapsed">AC2</th>
+            <th class="">AK2</th>
+            <th class="collapsibleIndicator collapsed">AL2</th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="collapsibleIndicator collapsed">B3</th>
+            <th class="">J3</th>
+            <th class="collapsibleIndicator collapsed">K3</th>
+            <th class="">S3</th>
+            <th class="collapsibleIndicator collapsed">T3</th>
+            <th class="">AB3</th>
+            <th class="collapsibleIndicator collapsed">AC3</th>
+            <th class="">AK3</th>
+            <th class="collapsibleIndicator collapsed">AL3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">J4</th>
+            <th class="">K4</th>
+            <th class="">S4</th>
+            <th class="">T4</th>
+            <th class="">AB4</th>
+            <th class="">AC4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+          </tr>
+          <tr>
+            <th class="">A5</th>
+            <th class="">B5</th>
+            <th class="">J5</th>
+            <th class="">K5</th>
+            <th class="">S5</th>
+            <th class="">T5</th>
+            <th class="">AB5</th>
+            <th class="">AC5</th>
+            <th class="">AK5</th>
+            <th class="">AL5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">J1</td>
+            <td class="">K1</td>
+            <td class="">S1</td>
+            <td class="">T1</td>
+            <td class="">AB1</td>
+            <td class="">AC1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
+          </tr>
+        </tbody>
+        `);
+
+      await scrollViewportTo({
+        row: 0,
+        col: 63,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator collapsed">B1</th>
+            <th class="">J1</th>
+            <th class="collapsibleIndicator collapsed">K1</th>
+            <th class="">S1</th>
+            <th class="collapsibleIndicator collapsed">T1</th>
+            <th class="">AB1</th>
+            <th class="collapsibleIndicator collapsed">AC1</th>
+            <th class="">AK1</th>
+            <th class="collapsibleIndicator collapsed">AL1</th>
+            <th class="">AT1</th>
+            <th class="collapsibleIndicator collapsed">AU1</th>
+            <th class="">BC1</th>
+            <th class="collapsibleIndicator collapsed">BD1</th>
+            <th class="">BL1</th>
+            <th class="collapsibleIndicator collapsed">BM1</th>
+            <th class="">BU1</th>
+            <th class="collapsibleIndicator collapsed">BV1</th>
+            <th class="">CD1</th>
+            <th class="collapsibleIndicator collapsed">CE1</th>
+            <th class="">CM1</th>
+            <th class="collapsibleIndicator collapsed">CN1</th>
+            <th class="">CV1</th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator collapsed">B2</th>
+            <th class="">J2</th>
+            <th class="collapsibleIndicator collapsed">K2</th>
+            <th class="">S2</th>
+            <th class="collapsibleIndicator collapsed">T2</th>
+            <th class="">AB2</th>
+            <th class="collapsibleIndicator collapsed">AC2</th>
+            <th class="">AK2</th>
+            <th class="collapsibleIndicator collapsed">AL2</th>
+            <th class="">AT2</th>
+            <th class="collapsibleIndicator collapsed">AU2</th>
+            <th class="">BC2</th>
+            <th class="collapsibleIndicator collapsed">BD2</th>
+            <th class="">BL2</th>
+            <th class="collapsibleIndicator collapsed">BM2</th>
+            <th class="">BU2</th>
+            <th class="collapsibleIndicator collapsed">BV2</th>
+            <th class="">CD2</th>
+            <th class="collapsibleIndicator collapsed">CE2</th>
+            <th class="">CM2</th>
+            <th class="collapsibleIndicator collapsed">CN2</th>
+            <th class="">CV2</th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator collapsed">B3</th>
+            <th class="">J3</th>
+            <th class="collapsibleIndicator collapsed">K3</th>
+            <th class="">S3</th>
+            <th class="collapsibleIndicator collapsed">T3</th>
+            <th class="">AB3</th>
+            <th class="collapsibleIndicator collapsed">AC3</th>
+            <th class="">AK3</th>
+            <th class="collapsibleIndicator collapsed">AL3</th>
+            <th class="">AT3</th>
+            <th class="collapsibleIndicator collapsed">AU3</th>
+            <th class="">BC3</th>
+            <th class="collapsibleIndicator collapsed">BD3</th>
+            <th class="">BL3</th>
+            <th class="collapsibleIndicator collapsed">BM3</th>
+            <th class="">BU3</th>
+            <th class="collapsibleIndicator collapsed">BV3</th>
+            <th class="">CD3</th>
+            <th class="collapsibleIndicator collapsed">CE3</th>
+            <th class="">CM3</th>
+            <th class="collapsibleIndicator collapsed">CN3</th>
+            <th class="">CV3</th>
+          </tr>
+          <tr>
+            <th class="">B4</th>
+            <th class="">J4</th>
+            <th class="">K4</th>
+            <th class="">S4</th>
+            <th class="">T4</th>
+            <th class="">AB4</th>
+            <th class="">AC4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+            <th class="">AT4</th>
+            <th class="">AU4</th>
+            <th class="">BC4</th>
+            <th class="">BD4</th>
+            <th class="">BL4</th>
+            <th class="">BM4</th>
+            <th class="">BU4</th>
+            <th class="">BV4</th>
+            <th class="">CD4</th>
+            <th class="">CE4</th>
+            <th class="">CM4</th>
+            <th class="">CN4</th>
+            <th class="">CV4</th>
+          </tr>
+          <tr>
+            <th class="">B5</th>
+            <th class="">J5</th>
+            <th class="">K5</th>
+            <th class="">S5</th>
+            <th class="">T5</th>
+            <th class="">AB5</th>
+            <th class="">AC5</th>
+            <th class="">AK5</th>
+            <th class="">AL5</th>
+            <th class="">AT5</th>
+            <th class="">AU5</th>
+            <th class="">BC5</th>
+            <th class="">BD5</th>
+            <th class="">BL5</th>
+            <th class="">BM5</th>
+            <th class="">BU5</th>
+            <th class="">BV5</th>
+            <th class="">CD5</th>
+            <th class="">CE5</th>
+            <th class="">CM5</th>
+            <th class="">CN5</th>
+            <th class="">CV5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">B1</td>
+            <td class="">J1</td>
+            <td class="">K1</td>
+            <td class="">S1</td>
+            <td class="">T1</td>
+            <td class="">AB1</td>
+            <td class="">AC1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
+            <td class="">AT1</td>
+            <td class="">AU1</td>
+            <td class="">BC1</td>
+            <td class="">BD1</td>
+            <td class="">BL1</td>
+            <td class="">BM1</td>
+            <td class="">BU1</td>
+            <td class="">BV1</td>
+            <td class="">CD1</td>
+            <td class="">CE1</td>
+            <td class="">CM1</td>
+            <td class="">CN1</td>
+            <td class="">CV1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it.forTheme('horizon')('should collapse all headers (complicated nested headers settings)', async() => {
+      const $wrapper = $('<div></div>').css({
+        width: 400,
+        height: 300,
+        overflow: 'hidden',
+      });
+
+      spec().$wrapper = spec().$container.wrap($wrapper).parent();
+
+      handsontable({
+        data: createSpreadsheetData(5, 100),
+        nestedHeaders: generateComplexSetup(5, 100, true),
+        collapsibleColumns: true,
+      });
+
+      const plugin = getPlugin('collapsibleColumns');
+
+      plugin.collapseAll();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="collapsibleIndicator collapsed">B1</th>
+            <th class="">J1</th>
+            <th class="collapsibleIndicator collapsed">K1</th>
+            <th class="">S1</th>
+            <th class="collapsibleIndicator collapsed">T1</th>
+            <th class="">AB1</th>
+            <th class="collapsibleIndicator collapsed">AC1</th>
+            <th class="">AK1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="collapsibleIndicator collapsed">B2</th>
+            <th class="">J2</th>
+            <th class="collapsibleIndicator collapsed">K2</th>
+            <th class="">S2</th>
+            <th class="collapsibleIndicator collapsed">T2</th>
+            <th class="">AB2</th>
+            <th class="collapsibleIndicator collapsed">AC2</th>
+            <th class="">AK2</th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="collapsibleIndicator collapsed">B3</th>
+            <th class="">J3</th>
+            <th class="collapsibleIndicator collapsed">K3</th>
+            <th class="">S3</th>
+            <th class="collapsibleIndicator collapsed">T3</th>
+            <th class="">AB3</th>
+            <th class="collapsibleIndicator collapsed">AC3</th>
+            <th class="">AK3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">J4</th>
+            <th class="">K4</th>
+            <th class="">S4</th>
+            <th class="">T4</th>
+            <th class="">AB4</th>
+            <th class="">AC4</th>
+            <th class="">AK4</th>
+          </tr>
+          <tr>
+            <th class="">A5</th>
+            <th class="">B5</th>
+            <th class="">J5</th>
+            <th class="">K5</th>
+            <th class="">S5</th>
+            <th class="">T5</th>
+            <th class="">AB5</th>
+            <th class="">AC5</th>
+            <th class="">AK5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">J1</td>
+            <td class="">K1</td>
+            <td class="">S1</td>
+            <td class="">T1</td>
+            <td class="">AB1</td>
+            <td class="">AC1</td>
+            <td class="">AK1</td>
+          </tr>
+        </tbody>
+        `);
+
+      await scrollViewportTo({
+        row: 0,
+        col: 63,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator collapsed">B1</th>
+            <th class="">J1</th>
+            <th class="collapsibleIndicator collapsed">K1</th>
+            <th class="">S1</th>
+            <th class="collapsibleIndicator collapsed">T1</th>
+            <th class="">AB1</th>
+            <th class="collapsibleIndicator collapsed">AC1</th>
+            <th class="">AK1</th>
+            <th class="collapsibleIndicator collapsed">AL1</th>
+            <th class="">AT1</th>
+            <th class="collapsibleIndicator collapsed">AU1</th>
+            <th class="">BC1</th>
+            <th class="collapsibleIndicator collapsed">BD1</th>
+            <th class="">BL1</th>
+            <th class="collapsibleIndicator collapsed">BM1</th>
+            <th class="">BU1</th>
+            <th class="collapsibleIndicator collapsed">BV1</th>
+            <th class="">CD1</th>
+            <th class="collapsibleIndicator collapsed">CE1</th>
+            <th class="">CM1</th>
+            <th class="collapsibleIndicator collapsed">CN1</th>
+            <th class="">CV1</th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator collapsed">B2</th>
+            <th class="">J2</th>
+            <th class="collapsibleIndicator collapsed">K2</th>
+            <th class="">S2</th>
+            <th class="collapsibleIndicator collapsed">T2</th>
+            <th class="">AB2</th>
+            <th class="collapsibleIndicator collapsed">AC2</th>
+            <th class="">AK2</th>
+            <th class="collapsibleIndicator collapsed">AL2</th>
+            <th class="">AT2</th>
+            <th class="collapsibleIndicator collapsed">AU2</th>
+            <th class="">BC2</th>
+            <th class="collapsibleIndicator collapsed">BD2</th>
+            <th class="">BL2</th>
+            <th class="collapsibleIndicator collapsed">BM2</th>
+            <th class="">BU2</th>
+            <th class="collapsibleIndicator collapsed">BV2</th>
+            <th class="">CD2</th>
+            <th class="collapsibleIndicator collapsed">CE2</th>
+            <th class="">CM2</th>
+            <th class="collapsibleIndicator collapsed">CN2</th>
+            <th class="">CV2</th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator collapsed">B3</th>
+            <th class="">J3</th>
+            <th class="collapsibleIndicator collapsed">K3</th>
+            <th class="">S3</th>
+            <th class="collapsibleIndicator collapsed">T3</th>
+            <th class="">AB3</th>
+            <th class="collapsibleIndicator collapsed">AC3</th>
+            <th class="">AK3</th>
+            <th class="collapsibleIndicator collapsed">AL3</th>
+            <th class="">AT3</th>
+            <th class="collapsibleIndicator collapsed">AU3</th>
+            <th class="">BC3</th>
+            <th class="collapsibleIndicator collapsed">BD3</th>
+            <th class="">BL3</th>
+            <th class="collapsibleIndicator collapsed">BM3</th>
+            <th class="">BU3</th>
+            <th class="collapsibleIndicator collapsed">BV3</th>
+            <th class="">CD3</th>
+            <th class="collapsibleIndicator collapsed">CE3</th>
+            <th class="">CM3</th>
+            <th class="collapsibleIndicator collapsed">CN3</th>
+            <th class="">CV3</th>
+          </tr>
+          <tr>
+            <th class="">B4</th>
+            <th class="">J4</th>
+            <th class="">K4</th>
+            <th class="">S4</th>
+            <th class="">T4</th>
+            <th class="">AB4</th>
+            <th class="">AC4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+            <th class="">AT4</th>
+            <th class="">AU4</th>
+            <th class="">BC4</th>
+            <th class="">BD4</th>
+            <th class="">BL4</th>
+            <th class="">BM4</th>
+            <th class="">BU4</th>
+            <th class="">BV4</th>
+            <th class="">CD4</th>
+            <th class="">CE4</th>
+            <th class="">CM4</th>
+            <th class="">CN4</th>
+            <th class="">CV4</th>
+          </tr>
+          <tr>
+            <th class="">B5</th>
+            <th class="">J5</th>
+            <th class="">K5</th>
+            <th class="">S5</th>
+            <th class="">T5</th>
+            <th class="">AB5</th>
+            <th class="">AC5</th>
+            <th class="">AK5</th>
+            <th class="">AL5</th>
+            <th class="">AT5</th>
+            <th class="">AU5</th>
+            <th class="">BC5</th>
+            <th class="">BD5</th>
+            <th class="">BL5</th>
+            <th class="">BM5</th>
+            <th class="">BU5</th>
+            <th class="">BV5</th>
+            <th class="">CD5</th>
+            <th class="">CE5</th>
+            <th class="">CM5</th>
+            <th class="">CN5</th>
+            <th class="">CV5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">B1</td>
+            <td class="">J1</td>
+            <td class="">K1</td>
+            <td class="">S1</td>
+            <td class="">T1</td>
+            <td class="">AB1</td>
+            <td class="">AC1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
+            <td class="">AT1</td>
+            <td class="">AU1</td>
+            <td class="">BC1</td>
+            <td class="">BD1</td>
+            <td class="">BL1</td>
+            <td class="">BM1</td>
+            <td class="">BU1</td>
+            <td class="">BV1</td>
+            <td class="">CD1</td>
+            <td class="">CE1</td>
+            <td class="">CM1</td>
+            <td class="">CN1</td>
+            <td class="">CV1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it.forTheme('main')('should collapse all headers (complicated nested headers settings)', async() => {
+      const $wrapper = $('<div></div>').css({
+        width: 400,
+        height: 300,
+        overflow: 'hidden',
+      });
+
+      spec().$wrapper = spec().$container.wrap($wrapper).parent();
+
+      handsontable({
+        data: createSpreadsheetData(5, 100),
+        nestedHeaders: generateComplexSetup(5, 100, true),
+        collapsibleColumns: true,
+      });
+
+      const plugin = getPlugin('collapsibleColumns');
+
+      plugin.collapseAll();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="collapsibleIndicator collapsed">B1</th>
+            <th class="">J1</th>
+            <th class="collapsibleIndicator collapsed">K1</th>
+            <th class="">S1</th>
+            <th class="collapsibleIndicator collapsed">T1</th>
+            <th class="">AB1</th>
+            <th class="collapsibleIndicator collapsed">AC1</th>
+            <th class="">AK1</th>
+            <th class="collapsibleIndicator collapsed">AL1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="collapsibleIndicator collapsed">B2</th>
+            <th class="">J2</th>
+            <th class="collapsibleIndicator collapsed">K2</th>
+            <th class="">S2</th>
+            <th class="collapsibleIndicator collapsed">T2</th>
+            <th class="">AB2</th>
+            <th class="collapsibleIndicator collapsed">AC2</th>
+            <th class="">AK2</th>
+            <th class="collapsibleIndicator collapsed">AL2</th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="collapsibleIndicator collapsed">B3</th>
+            <th class="">J3</th>
+            <th class="collapsibleIndicator collapsed">K3</th>
+            <th class="">S3</th>
+            <th class="collapsibleIndicator collapsed">T3</th>
+            <th class="">AB3</th>
+            <th class="collapsibleIndicator collapsed">AC3</th>
+            <th class="">AK3</th>
+            <th class="collapsibleIndicator collapsed">AL3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">J4</th>
+            <th class="">K4</th>
+            <th class="">S4</th>
+            <th class="">T4</th>
+            <th class="">AB4</th>
+            <th class="">AC4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+          </tr>
+          <tr>
+            <th class="">A5</th>
+            <th class="">B5</th>
+            <th class="">J5</th>
+            <th class="">K5</th>
+            <th class="">S5</th>
+            <th class="">T5</th>
+            <th class="">AB5</th>
+            <th class="">AC5</th>
+            <th class="">AK5</th>
+            <th class="">AL5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">J1</td>
+            <td class="">K1</td>
+            <td class="">S1</td>
+            <td class="">T1</td>
+            <td class="">AB1</td>
+            <td class="">AC1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
+          </tr>
+        </tbody>
+        `);
+
+      await scrollViewportTo({
+        row: 0,
+        col: 63,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator collapsed">B1</th>
+            <th class="">J1</th>
+            <th class="collapsibleIndicator collapsed">K1</th>
+            <th class="">S1</th>
+            <th class="collapsibleIndicator collapsed">T1</th>
+            <th class="">AB1</th>
+            <th class="collapsibleIndicator collapsed">AC1</th>
+            <th class="">AK1</th>
+            <th class="collapsibleIndicator collapsed">AL1</th>
+            <th class="">AT1</th>
+            <th class="collapsibleIndicator collapsed">AU1</th>
+            <th class="">BC1</th>
+            <th class="collapsibleIndicator collapsed">BD1</th>
+            <th class="">BL1</th>
+            <th class="collapsibleIndicator collapsed">BM1</th>
+            <th class="">BU1</th>
+            <th class="collapsibleIndicator collapsed">BV1</th>
+            <th class="">CD1</th>
+            <th class="collapsibleIndicator collapsed">CE1</th>
+            <th class="">CM1</th>
+            <th class="collapsibleIndicator collapsed">CN1</th>
+            <th class="">CV1</th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator collapsed">B2</th>
+            <th class="">J2</th>
+            <th class="collapsibleIndicator collapsed">K2</th>
+            <th class="">S2</th>
+            <th class="collapsibleIndicator collapsed">T2</th>
+            <th class="">AB2</th>
+            <th class="collapsibleIndicator collapsed">AC2</th>
+            <th class="">AK2</th>
+            <th class="collapsibleIndicator collapsed">AL2</th>
+            <th class="">AT2</th>
+            <th class="collapsibleIndicator collapsed">AU2</th>
+            <th class="">BC2</th>
+            <th class="collapsibleIndicator collapsed">BD2</th>
+            <th class="">BL2</th>
+            <th class="collapsibleIndicator collapsed">BM2</th>
+            <th class="">BU2</th>
+            <th class="collapsibleIndicator collapsed">BV2</th>
+            <th class="">CD2</th>
+            <th class="collapsibleIndicator collapsed">CE2</th>
+            <th class="">CM2</th>
+            <th class="collapsibleIndicator collapsed">CN2</th>
+            <th class="">CV2</th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator collapsed">B3</th>
+            <th class="">J3</th>
+            <th class="collapsibleIndicator collapsed">K3</th>
+            <th class="">S3</th>
+            <th class="collapsibleIndicator collapsed">T3</th>
+            <th class="">AB3</th>
+            <th class="collapsibleIndicator collapsed">AC3</th>
+            <th class="">AK3</th>
+            <th class="collapsibleIndicator collapsed">AL3</th>
+            <th class="">AT3</th>
+            <th class="collapsibleIndicator collapsed">AU3</th>
+            <th class="">BC3</th>
+            <th class="collapsibleIndicator collapsed">BD3</th>
+            <th class="">BL3</th>
+            <th class="collapsibleIndicator collapsed">BM3</th>
+            <th class="">BU3</th>
+            <th class="collapsibleIndicator collapsed">BV3</th>
+            <th class="">CD3</th>
+            <th class="collapsibleIndicator collapsed">CE3</th>
+            <th class="">CM3</th>
+            <th class="collapsibleIndicator collapsed">CN3</th>
+            <th class="">CV3</th>
+          </tr>
+          <tr>
+            <th class="">B4</th>
+            <th class="">J4</th>
+            <th class="">K4</th>
+            <th class="">S4</th>
+            <th class="">T4</th>
+            <th class="">AB4</th>
+            <th class="">AC4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+            <th class="">AT4</th>
+            <th class="">AU4</th>
+            <th class="">BC4</th>
+            <th class="">BD4</th>
+            <th class="">BL4</th>
+            <th class="">BM4</th>
+            <th class="">BU4</th>
+            <th class="">BV4</th>
+            <th class="">CD4</th>
+            <th class="">CE4</th>
+            <th class="">CM4</th>
+            <th class="">CN4</th>
+            <th class="">CV4</th>
+          </tr>
+          <tr>
+            <th class="">B5</th>
+            <th class="">J5</th>
+            <th class="">K5</th>
+            <th class="">S5</th>
+            <th class="">T5</th>
+            <th class="">AB5</th>
+            <th class="">AC5</th>
+            <th class="">AK5</th>
+            <th class="">AL5</th>
+            <th class="">AT5</th>
+            <th class="">AU5</th>
+            <th class="">BC5</th>
+            <th class="">BD5</th>
+            <th class="">BL5</th>
+            <th class="">BM5</th>
+            <th class="">BU5</th>
+            <th class="">BV5</th>
+            <th class="">CD5</th>
+            <th class="">CE5</th>
+            <th class="">CM5</th>
+            <th class="">CN5</th>
+            <th class="">CV5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">B1</td>
+            <td class="">J1</td>
+            <td class="">K1</td>
+            <td class="">S1</td>
+            <td class="">T1</td>
+            <td class="">AB1</td>
+            <td class="">AC1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
+            <td class="">AT1</td>
+            <td class="">AU1</td>
+            <td class="">BC1</td>
+            <td class="">BD1</td>
+            <td class="">BL1</td>
+            <td class="">BM1</td>
+            <td class="">BU1</td>
+            <td class="">BV1</td>
+            <td class="">CD1</td>
+            <td class="">CE1</td>
+            <td class="">CM1</td>
+            <td class="">CN1</td>
+            <td class="">CV1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it.forTheme('horizon')('should collapse all headers (complicated nested headers settings)', async() => {
+      const $wrapper = $('<div></div>').css({
+        width: 400,
+        height: 300,
+        overflow: 'hidden',
+      });
+
+      spec().$wrapper = spec().$container.wrap($wrapper).parent();
+
+      handsontable({
+        data: createSpreadsheetData(5, 100),
+        nestedHeaders: generateComplexSetup(5, 100, true),
+        collapsibleColumns: true,
+      });
+
+      const plugin = getPlugin('collapsibleColumns');
+
+      plugin.collapseAll();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="collapsibleIndicator collapsed">B1</th>
+            <th class="">J1</th>
+            <th class="collapsibleIndicator collapsed">K1</th>
+            <th class="">S1</th>
+            <th class="collapsibleIndicator collapsed">T1</th>
+            <th class="">AB1</th>
+            <th class="collapsibleIndicator collapsed">AC1</th>
+            <th class="">AK1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="collapsibleIndicator collapsed">B2</th>
+            <th class="">J2</th>
+            <th class="collapsibleIndicator collapsed">K2</th>
+            <th class="">S2</th>
+            <th class="collapsibleIndicator collapsed">T2</th>
+            <th class="">AB2</th>
+            <th class="collapsibleIndicator collapsed">AC2</th>
+            <th class="">AK2</th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="collapsibleIndicator collapsed">B3</th>
+            <th class="">J3</th>
+            <th class="collapsibleIndicator collapsed">K3</th>
+            <th class="">S3</th>
+            <th class="collapsibleIndicator collapsed">T3</th>
+            <th class="">AB3</th>
+            <th class="collapsibleIndicator collapsed">AC3</th>
+            <th class="">AK3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">J4</th>
+            <th class="">K4</th>
+            <th class="">S4</th>
+            <th class="">T4</th>
+            <th class="">AB4</th>
+            <th class="">AC4</th>
+            <th class="">AK4</th>
+          </tr>
+          <tr>
+            <th class="">A5</th>
+            <th class="">B5</th>
+            <th class="">J5</th>
+            <th class="">K5</th>
+            <th class="">S5</th>
+            <th class="">T5</th>
+            <th class="">AB5</th>
+            <th class="">AC5</th>
+            <th class="">AK5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">J1</td>
+            <td class="">K1</td>
+            <td class="">S1</td>
+            <td class="">T1</td>
+            <td class="">AB1</td>
+            <td class="">AC1</td>
+            <td class="">AK1</td>
           </tr>
         </tbody>
         `);
