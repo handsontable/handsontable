@@ -2,6 +2,17 @@ import type { HotInstance } from '../common';
 import { BaseEditor } from './baseEditor/baseEditor';
 
 /**
+ * Represents an extended editor instance created by the editorFactory.
+ * It combines BaseEditor functionality with custom properties and methods.
+ */
+export type ExtendedEditor<T> = BaseEditor & {
+  render: (editor: ExtendedEditor<T>) => void;
+  value?: T extends { value: unknown } ? T['value'] : unknown;
+  config?: T extends { config: unknown } ? T['config'] : unknown;
+  container: HTMLDivElement;
+} & T;
+
+/**
  * Factory function for creating custom Handsontable editors by extending BaseEditor.
  *
  * @param {object} params Configuration object containing editor lifecycle methods and custom methods.

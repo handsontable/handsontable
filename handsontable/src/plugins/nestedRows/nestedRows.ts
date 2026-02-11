@@ -274,7 +274,7 @@ export class NestedRows extends BasePlugin {
    * @param {number} row Visual row index.
    * @returns {boolean}
    */
-  onModifyRowData(row: number) {
+  onModifyRowData(row: number): unknown {
     if (this.#skipCoreAPIModifiers) {
       return;
     }

@@ -304,7 +304,7 @@ export default class CoreAbstract {
    * @protected
    * @returns {TableDao}
    */
-  getTableDao() {
+  getTableDao(): Record<string, unknown> {
     const wot = this;
 
     return {

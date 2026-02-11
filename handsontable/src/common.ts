@@ -52,7 +52,7 @@ export interface GridSettings {
   data?: unknown[][] | object[];
   dataSchema?: object | Function;
   dataDotNotation?: boolean;
-  columns?: object[] | ((column: number) => object);
+  columns?: Record<string, any>[] | ((column: number) => Record<string, any>);
   cell?: object[];
   cells?: (row: number, column: number, prop: string | number) => object;
   source?: unknown[] | ((query: string, callback: Function) => void);
@@ -188,7 +188,8 @@ export interface GridSettings {
   initialState?: Record<string, unknown>;
 
   // Allow additional plugin-specific keys
-  [key: string]: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 /**

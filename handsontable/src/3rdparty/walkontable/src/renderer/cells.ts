@@ -30,7 +30,7 @@ export class CellsRenderer extends BaseRenderer {
    *
    * @type {WeakMap}
    */
-  orderViews = new WeakMap();
+  orderViews: WeakMap<object, any> = new WeakMap();
   /**
    * Row index which specifies the row position of the processed cell.
    *

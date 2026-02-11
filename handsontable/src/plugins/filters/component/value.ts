@@ -123,7 +123,7 @@ export class ValueComponent extends BaseComponent {
    *
    * @returns {object} Returns object where `command` key keeps used condition filter and `args` key its arguments.
    */
-  getState() {
+  getState(): { command: { key: string }; args: unknown[]; itemsSnapshot: unknown[] } {
     const select = this.getMultipleSelectElement();
     const availableItems = select.getItems();
 

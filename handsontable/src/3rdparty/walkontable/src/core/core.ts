@@ -80,7 +80,7 @@ export default class Walkontable extends CoreAbstract {
   /**
    * @returns {ViewportDao}
    */
-  getViewportDao() {
+  getViewportDao(): Record<string, unknown> {
     const wot = this;
 
     return {
