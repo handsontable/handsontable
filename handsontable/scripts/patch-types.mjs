@@ -3,12 +3,12 @@
  *
  * After `tsc --emitDeclarationOnly` generates .d.ts files into tmp/,
  * this script replaces tmp/base.d.ts with a comprehensive declaration that
- * supports all usage patterns the wrappers need:
+ * supports all usage patterns the wrappers need.
  *
- * 1. As a type:      `instance: Handsontable` (Core instance)
- * 2. As a namespace:  `Handsontable.GridSettings`, `Handsontable.CellProperties`
- * 3. As a value:      `Handsontable.Core(el)`, `Handsontable.hooks`, `Handsontable.editors.BaseEditor`
- * 4. As a callable:   `new Handsontable(el, opts)` / `Handsontable(el, opts)`
+ * 1. As a type: `instance: Handsontable` (Core instance).
+ * 2. As a namespace: `Handsontable.GridSettings`, `Handsontable.CellProperties`.
+ * 3. As a value: `Handsontable.Core(el)`, `Handsontable.hooks`, `Handsontable.editors.BaseEditor`.
+ * 4. As a callable: `new Handsontable(el, opts)` / `Handsontable(el, opts)`.
  *
  * Uses interface + const + namespace declaration merging.
  */

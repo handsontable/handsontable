@@ -1,10 +1,10 @@
 import Handsontable from 'handsontable/base';
-
-type GridSettings = Handsontable.GridSettings;
 import {
   prepareSettings,
   propFactory
 } from '../src/helpers';
+
+type GridSettings = Handsontable.GridSettings;
 
 describe('propFactory', () => {
   it('should generate an object containing all the available Handsontable properties and plugin hooks', () => {
