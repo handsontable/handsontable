@@ -12,8 +12,7 @@ dev*.js
 dev*.ts
 npm-debug.log
 
-!dist/README.md
-dist/hyperformula/
+dist/
 node_modules/
 commonjs/
 es/
