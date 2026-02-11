@@ -12,10 +12,13 @@
  *
  * Uses interface + const + namespace declaration merging.
  */
-import { writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 const TMP_DIR = join(import.meta.dirname, '..', 'tmp');
+
+// ─── Patch base.d.ts ────────────────────────────────────────────────────────
+
 const baseDtsPath = join(TMP_DIR, 'base.d.ts');
 
 const baseDts = `\
@@ -71,12 +74,52 @@ declare namespace Handsontable {
   type GridSettings = _GridSettings;
   type ColumnSettings = Record<string, unknown>;
   type CellProperties = Record<string, unknown>;
-  type Core = HotInstance;
+  type Core = Handsontable;
+  type BaseEditor = _BaseEditor;
 }
 
 export default Handsontable;
 `;
 
 writeFileSync(baseDtsPath, baseDts, 'utf-8');
+console.log('Patched tmp/base.d.ts');
 
-console.log('Patched tmp/base.d.ts with comprehensive Handsontable declarations.');
+// ─── Patch core.d.ts ────────────────────────────────────────────────────────
+// The wrapper does `import Core from 'handsontable/core'` and uses Core as a type.
+// The generated core.d.ts exports `function Core(...)` — a value, not usable as a type.
+// We replace it with an interface + const pattern so it works as both.
+
+const coreDtsPath = join(TMP_DIR, 'core.d.ts');
+const coreDts = `\
+/**
+ * Core type that can be used both as a value (constructor) and as a type (instance).
+ */
+interface Core {
+  [key: string]: any;
+}
+
+declare const Core: {
+  new (rootElement: HTMLElement, userSettings?: Record<string, unknown>): Core;
+  (rootElement: HTMLElement, userSettings?: Record<string, unknown>): Core;
+};
+
+export default Core;
+`;
+
+writeFileSync(coreDtsPath, coreDts, 'utf-8');
+console.log('Patched tmp/core.d.ts');
+
+// ─── Patch editors/factory.d.ts ─────────────────────────────────────────────
+// Add type parameter to editorFactory so wrapper can call editorFactory<T>({...})
+
+const factoryDtsPath = join(TMP_DIR, 'editors', 'factory.d.ts');
+let factoryDts = readFileSync(factoryDtsPath, 'utf-8');
+
+// Replace the non-generic declaration with a generic one
+factoryDts = factoryDts.replace(
+  /export declare const editorFactory: \([^)]*\) => unknown;/,
+  'export declare const editorFactory: <T = unknown>(params: Record<string, unknown>) => T;'
+);
+
+writeFileSync(factoryDtsPath, factoryDts, 'utf-8');
+console.log('Patched tmp/editors/factory.d.ts');
