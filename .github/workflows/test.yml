@@ -656,11 +656,8 @@ jobs:
       - test-handsontable-e2e-min-main
       - test-handsontable-e2e-min-horizon
       - test-handsontable-e2e-min-classic
-      - test-angular
       - test-angular-wrapper
-      - test-react
       - test-react-wrapper
-      - test-vue
       - test-vue3
     if: |
       !failure() && !cancelled() && (
@@ -668,11 +665,8 @@ jobs:
         needs.test-handsontable-e2e-classic.result == 'success' ||
         needs.test-handsontable-e2e-min-main.result == 'success' ||
         needs.test-handsontable-e2e-min-classic.result == 'success' ||
-        needs.test-angular.result == 'success' ||
         needs.test-angular-wrapper.result == 'success' ||
-        needs.test-react.result == 'success' ||
         needs.test-react-wrapper.result == 'success' ||
-        needs.test-vue.result == 'success' ||
         needs.test-vue3.result == 'success' ||
         needs.check-scope.outputs.test-visual == 'true'
         )
