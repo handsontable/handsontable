@@ -48,12 +48,6 @@ export function multiSelectRenderer(hotInstance, TD, row, col, prop, value, cell
   const sourceData = hotInstance.getSourceDataAtCell(row, prop);
   const values = parseValue(sourceData);
 
-  if (values === '#bad-value#') {
-    TD.innerText = values;
-
-    return;
-  }
-
   empty(TD);
   addClass(TD, MULTISELECT_RENDERER_CLASS);
 

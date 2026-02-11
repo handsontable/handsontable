@@ -47,7 +47,7 @@ export function parseValue(value) {
       return Array.isArray(parsed) ? parsed : [parsed];
     } catch {
 
-      return '#bad-value#';
+    return value.trim() ? [value] : [];
     }
   }
 
