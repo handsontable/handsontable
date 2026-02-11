@@ -2,7 +2,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import Handsontable from 'handsontable';
 import { Component, EnvironmentInjector } from '@angular/core';
 import { BaseEditorAdapter } from './base-editor-adapter';
-import { CellProperties } from 'handsontable/settings';
+type CellProperties = Handsontable.CellProperties;
 import { HotCellEditorComponent } from './hot-cell-editor.component';
 
 @Component({

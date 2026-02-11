@@ -1,4 +1,6 @@
-import { GridSettings } from 'handsontable/settings';
+import Handsontable from 'handsontable/base';
+
+type GridSettings = Handsontable.GridSettings;
 import {
   prepareSettings,
   propFactory
