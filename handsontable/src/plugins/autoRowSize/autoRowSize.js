@@ -203,8 +203,10 @@ export class AutoRowSize extends BasePlugin {
       return false;
     }
 
+    let cellMeta;
+
     if (row >= 0 && column >= 0) {
-      const cellMeta = this.hot.getCellMeta(row, column);
+      cellMeta = this.hot.getCellMeta(row, column);
 
       if (cellMeta.hidden) {
         // do not generate samples for cells that are covered by merged cell (null values)
@@ -217,7 +219,7 @@ export class AutoRowSize extends BasePlugin {
     if (row >= 0) {
       cellValue = this.hot.getDataAtCell(row, column);
 
-      if (typeof cellMeta.valueFormatter === 'function') {
+      if (typeof cellMeta?.valueFormatter === 'function') {
         cellValue = cellMeta.valueFormatter(cellValue, cellMeta);
       }
     } else if (row === -1) {

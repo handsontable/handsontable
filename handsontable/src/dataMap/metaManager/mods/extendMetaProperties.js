@@ -1,6 +1,5 @@
 import { deprecatedWarn } from '../../../helpers/console';
 
-const defaultDateDeprecatedMessageShown = new WeakSet();
 const correctFormatDeprecatedMessageShown = new WeakSet();
 const datePickerConfigDeprecatedMessageShown = new WeakSet();
 
