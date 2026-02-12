@@ -13,6 +13,7 @@ angular:
   metaTitle: Time cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 
 # Time cell type

@@ -13,6 +13,7 @@ angular:
   metaTitle: Date cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 
 # Date cell type
