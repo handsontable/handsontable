@@ -257,6 +257,11 @@ export default {
   dialogContentPaddingVertical: 'density.dialogVertical',
   dialogContentBorderRadius: 'sizing.size_4',
   dialogContentBackgroundColor: 'tokens.backgroundColor',
+  chipBackground: 'tokens.backgroundSecondaryColor',
+  chipBorderRadius: 'sizing.size_2',
+  chipVerticalPadding: 'sizing.size_0',
+  chipHorizontalPadding: 'sizing.size_0_5',
+  chipGap: 'sizing.size_1',
   scrollbarBorderRadius: 'sizing.size_2',
   scrollbarTrackColor: 'tokens.backgroundSecondaryColor',
   scrollbarThumbColor: ['colors.palette.400', 'colors.palette.500']

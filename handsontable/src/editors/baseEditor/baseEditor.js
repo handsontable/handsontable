@@ -61,6 +61,12 @@ export class BaseEditor {
    */
   _closeCallback = null;
   /**
+   * Flag to specify if the editor should be closed after data change.
+   *
+   * @type {boolean}
+   */
+  _closeAfterDataChange = true;
+  /**
    * Currently rendered cell's TD element.
    *
    * @type {HTMLTableCellElement}

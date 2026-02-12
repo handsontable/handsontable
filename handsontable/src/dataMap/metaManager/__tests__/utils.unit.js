@@ -94,7 +94,14 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'valueGetter', 'valueSetter']),
+        _automaticallyAssignedMetaProps: new Set(
+          [
+            'editor',
+            'validator',
+            'valueGetter',
+            'valueSetter',
+          ]
+        ),
         copyPaste: true,
         test: 'foo',
         renderer: 'type-renderer',
