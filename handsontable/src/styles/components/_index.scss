@@ -31,14 +31,14 @@
 @use "./renderers/text-renderer";
 @use "./renderers/autocomplete-renderer";
 @use "./renderers/checkbox-renderer";
-@use "./renderers/multiSelect-renderer";
+@use "renderers/multi-select-renderer";
 
 // Editors
 @use "./editors/text-editor";
 @use "./editors/select-editor";
 @use "./editors/dropdown-editor";
 @use "./editors/date-editor";
-@use "./editors/multiSelect-editor";
+@use "editors/multi-select-editor";
 
 // Form elements
 @use "./form-elements/select";
