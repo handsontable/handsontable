@@ -56,13 +56,13 @@
   @include autocomplete-renderer.output();
   @include checkbox-renderer.output();
   @include text-renderer.output();
-  @include multiSelect-renderer.output();
+  @include multi-select-renderer.output();
   // Editor
   @include text-editor.output();
   @include select-editor.output();
   @include dropdown-editor.output();
   @include date-editor.output();
-  @include multiSelect-editor.output();
+  @include multi-select-editor.output();
   // Form Elements
   @include select.output();
   @include input.output();
