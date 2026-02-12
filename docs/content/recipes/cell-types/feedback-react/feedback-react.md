@@ -72,8 +72,6 @@ npm install @handsontable/react-wrapper
 import { useState, useEffect, useCallback, ComponentProps } from 'react';
 import { HotTable, HotColumn, EditorComponent } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 registerAllModules();
 ```
@@ -448,7 +446,6 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       licenseKey="non-commercial-and-evaluation"
       height="auto"
-      themeName="ht-theme-main"
       data={data}
       colHeaders={true}
     >

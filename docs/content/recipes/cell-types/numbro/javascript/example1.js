@@ -4,8 +4,6 @@ import { rendererFactory, getRenderer } from 'handsontable/renderers';
 import { getEditor } from 'handsontable/editors';
 import { getValidator } from 'handsontable/validators';
 import { registerCellType } from 'handsontable/cellTypes';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import numbro from 'numbro';
 import languages from 'numbro/dist/languages.min.js';
 
@@ -210,7 +208,6 @@ registerCellType('numbro', cellTypeDefinition);
 
 // Define configuration options for the Handsontable
 const hotOptions = {
-  themeName: 'ht-theme-main',
   data,
   colHeaders: ['ID', 'Item Name', 'Item Cost'],
   autoRowSize: true,

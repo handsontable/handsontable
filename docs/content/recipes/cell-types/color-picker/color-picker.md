@@ -35,7 +35,7 @@ This guide shows how to create a custom color picker cell using the [Coloris](ht
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps @melloware/coloris
 
 @[code](@/content/recipes/cell-types/color-picker/javascript/example1.js)
 @[code](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
@@ -63,8 +63,6 @@ npm install @melloware/coloris
 ```typescript
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import '@melloware/coloris/dist/coloris.css';
 import Coloris from '@melloware/coloris';
 
@@ -286,7 +284,6 @@ const cellDefinition = {
 const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
-  themeName: 'ht-theme-main',
   data: [
     { id: 1, itemName: 'Lunar Core', color: '#FF5733' },
     { id: 2, itemName: 'Zero Thrusters', color: '#33FF57' },

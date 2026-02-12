@@ -1,4 +1,12 @@
-const buildJavascriptBody = ({ id, html, js, css, version, hyperformulaVersion, sandbox, lang }) => {
+const buildJavascriptBody = ({ id, html, js, css, version, hyperformulaVersion, sandbox, lang, extraDeps = [] }) => {
+  const addExtraDependencies = extraDeps.length
+    ? `,\n  ${extraDeps.map((d) => {
+      const name = typeof d === 'string' ? d : d.name;
+      const version = typeof d === 'string' ? 'latest' : d.version;
+      return `    "${name}": "${version}"`;
+    }).join(',\n  ')}`
+    : '';
+
   if (sandbox === 'stackblitz') {
     return {
       files: {
@@ -9,7 +17,7 @@ const buildJavascriptBody = ({ id, html, js, css, version, hyperformulaVersion, 
     "description": "",
     "dependencies": {
       "hyperformula": "${hyperformulaVersion}",
-      "handsontable": "${version}"
+      "handsontable": "${version}"${addExtraDependencies}
     }
   }`
         },

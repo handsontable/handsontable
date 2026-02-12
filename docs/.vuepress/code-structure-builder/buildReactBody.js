@@ -1,15 +1,10 @@
-const buildReactBody = ({ js, css, version, hyperformulaVersion, themeName, preset, sandbox, lang }) => {
-  const addReduxDependencies = preset.includes('redux')
-    ? `
-    "redux": "^4.0.0",
-    "react-redux": "^7.2.4",`
-    : '';
-
-  const addAdvancedDependencies = preset.includes('advanced')
-    ? `"redux": "^4.0.0",
-    "react-redux": "^7.2.4",
-    "react-colorful": "5.6.1",
-    "react-star-rating-component": "1.4.1",`
+const buildReactBody = ({ js, css, version, hyperformulaVersion, themeName, preset, sandbox, lang, extraDeps = [] }) => {
+  const addExtraDependencies = extraDeps.length
+    ? `,\n  ${extraDeps.map((d) => {
+      const name = typeof d === 'string' ? d : d.name;
+      const version = typeof d === 'string' ? 'latest' : d.version;
+      return `  "${name}": "${version}"`;
+    }).join(',\n  ')}`
     : '';
 
   const tsconfig = lang === 'tsx' ? {
@@ -46,14 +41,14 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, themeName, pres
   "description": "",
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
+    "react-dom": "^18.2.0",
     "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
     "@handsontable/react-wrapper": "${version}"${lang === 'tsx' ? `,
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
     "typescript": "5.5.2"` : ''
-}
+}${addExtraDependencies}
   },
   ${lang === 'tsx' ?
     `"devDependencies": {

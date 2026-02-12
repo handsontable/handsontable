@@ -203,6 +203,12 @@ module.exports = function(docsVersion, base) {
         );
         const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
         const noEdit = !!args.match(/--no-edit/)?.[0];
+        const depsMatch = args.match(/--deps\s+(\S+(?:\s+\S+)*)/);
+        const extraDeps = (depsMatch ? depsMatch[1].trim().split(/\s+/) : []).map((spec) => {
+          const at = spec.lastIndexOf('@');
+          if (at <= 0) return { name: spec, version: 'latest' };
+          return { name: spec.slice(0, at), version: spec.slice(at + 1) };
+        });
         const isRTL = /layoutDirection(.*)'rtl'/.test(jsCodeToCompile) || /dir="rtl"/.test(htmlContent);
         const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
         const isJavaScript = preset.includes('hot');
@@ -238,7 +244,8 @@ module.exports = function(docsVersion, base) {
       cssContent,
       docsVersion,
       preset,
-      'JavaScript'
+      'JavaScript',
+      extraDeps
     )
     : ''}
                   ${!noEdit
@@ -262,7 +269,8 @@ module.exports = function(docsVersion, base) {
       cssContent,
       docsVersion,
       preset,
-      'TypeScript'
+      'TypeScript',
+      extraDeps
     )
     : ''}
                   ${!noEdit && !isReact

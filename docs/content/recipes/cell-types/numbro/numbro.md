@@ -34,7 +34,7 @@ This guide shows how to create a custom numbro cell type using the [Numbro](http
 
 ## Complete Example
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps numbro
 
 @[code](@/content/recipes/cell-types/numbro/javascript/example1.js)
 @[code](@/content/recipes/cell-types/numbro/javascript/example1.ts)
@@ -63,8 +63,6 @@ import { rendererFactory, getRenderer } from 'handsontable/renderers';
 import { getEditor } from 'handsontable/editors';
 import { getValidator } from 'handsontable/validators';
 import { registerCellType } from 'handsontable/cellTypes';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import numbro from 'numbro';
 
 registerAllModules();
@@ -242,7 +240,6 @@ registerCellType('numbro', cellTypeDefinition);
 ```typescript
 const container = document.querySelector('#example1')!;
 const hotOptions: Handsontable.GridSettings = {
-  themeName: 'ht-theme-main',
   data: [
     { id: 1, itemName: 'Lunar Core', cost: 1000.234 },
     { id: 2, itemName: 'Zero Thrusters', cost: 1000.234 },

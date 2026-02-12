@@ -176,7 +176,7 @@ const buildDependencyGetter = (version) => {
 
 const presetMap = {
   /* eslint-disable max-len */
-  'hot-recipe': ['hot', 'moment', 'pikaday', 'date-fns', 'coloris', 'flatpickr', 'multiple-select-vanilla', 'fixer'],
+  'hot-recipe': ['hot', 'moment', 'pikaday', 'date-fns', 'coloris', 'flatpickr', 'numbro', 'multiple-select-vanilla', 'fixer'],
   hot: ['hot', 'fixer'],
   'hot-lang': ['hot', 'languages', 'fixer'],
   'hot-numbro': ['hot', 'numbro', 'fixer'],
