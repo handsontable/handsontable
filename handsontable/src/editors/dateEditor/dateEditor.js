@@ -6,10 +6,12 @@ import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/e
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 import { isMobileBrowser } from '../../helpers/browser';
+import { deprecatedWarn } from '../../helpers/console';
 
 export const EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
 const DEFAULT_DATE_FORMAT = 'DD/MM/YYYY';
+const deprecatedMessageShown = new WeakSet();
 
 /**
  * @private
@@ -118,6 +120,16 @@ export class DateEditor extends TextEditor {
    * @param {Event} [event=null] The event object.
    */
   open(event = null) {
+    if (!deprecatedMessageShown.has(this.cellProperties.instance)) {
+      deprecatedMessageShown.add(this.cellProperties.instance);
+      deprecatedWarn(
+        'The Pikaday-based `date` editor is deprecated and will be removed in the next major release, ' +
+        'replaced by the native HTML date input.\n\n' +
+        'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+        '`date` cell type documentation: https://handsontable.com/docs/date-cell-type/'
+      );
+    }
+
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 

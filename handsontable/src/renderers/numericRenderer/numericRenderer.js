@@ -4,7 +4,7 @@ import { deprecatedWarn } from '../../helpers/console';
 import { isNumbroScheme, numbroFormatter, intlFormatter } from './utils';
 
 export const RENDERER_TYPE = 'numeric';
-const deprecatedMessageShown = new WeakMap();
+const deprecatedMessageShown = new WeakSet();
 
 /**
  * Formats the value using the numeric format.
@@ -41,7 +41,7 @@ export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProp
   const isNumbroFormat = isNumbroScheme(cellProperties);
 
   if (isNumbroFormat && !deprecatedMessageShown.has(cellProperties.instance)) {
-    deprecatedMessageShown.set(cellProperties.instance, true);
+    deprecatedMessageShown.add(cellProperties.instance);
     deprecatedWarn(
       'The `numericFormat.pattern` and `numericFormat.culture` options are deprecated ' +
       'and will be removed in the next major release. Pass `Intl.NumberFormat` options ' +
@@ -79,7 +79,7 @@ export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProp
     TD.dir = 'ltr';
   }
 
-  textRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
+  textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
 }
 
 numericRenderer.valueFormatter = valueFormatter;

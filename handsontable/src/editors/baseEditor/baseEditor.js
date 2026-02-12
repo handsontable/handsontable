@@ -285,8 +285,6 @@ export class BaseEditor {
    * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue, ctrlDown, callback) {
-    let val;
-
     if (callback) {
       const previousCloseCallback = this._closeCallback;
 
@@ -320,21 +318,18 @@ export class BaseEditor {
         return;
       }
 
-      const value = this.getValue();
+      let value = this.getValue();
 
       if (this.cellProperties.trimWhitespace) {
-        // We trim only string values
-        val = [
-          [typeof value === 'string' ? String.prototype.trim.call(value || '') : value]
-        ];
-      } else {
-        val = [
-          [value]
-        ];
+        value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
+      }
+
+      if (typeof this.cellProperties.valueParser === 'function') {
+        value = this.cellProperties.valueParser(value, this.cellProperties);
       }
 
       this.state = EDITOR_STATE.WAITING;
-      this.saveValue(val, ctrlDown);
+      this.saveValue([[value]], ctrlDown);
 
       if (this.hot.getCellValidator(this.cellProperties)) {
         this.hot.addHookOnce('postAfterValidate', (result) => {
@@ -349,7 +344,7 @@ export class BaseEditor {
   }
 
   /**
-   * Finishes editing without singout saving value.
+   * Finishes editing without saving value.
    */
   cancelChanges() {
     this.state = EDITOR_STATE.FINISHED;

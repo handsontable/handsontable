@@ -599,6 +599,320 @@ If you need numbro.js-specific formatting features that aren't available in `Int
 - **Version 17.0**: Numbro format deprecated with warnings
 - **Version 18.0**: Numbro format options (including dependencies) will be removed
 
+### Related resources
+
+- [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
+
+## 4. Migrate from Moment.js Format to Intl.DateTimeFormat
+
+Handsontable 17.0 introduces native support for the [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API for date and time formatting. The Moment.js-style string formats (`dateFormat` and `timeFormat` as strings) used by the legacy `date` and `time` cell types will be removed in the next major release.
+
+### What Changed
+
+- **Native Intl Support**: The `dateFormat` and `timeFormat` options now accept all properties of `Intl.DateTimeFormat` options when using `intl-date` and `intl-time` cell types
+- **Locale Separation**: Locale is controlled via the `locale` cell property instead of being implied by the format string
+- **New Cell Types**: Use `intl-date` for dates and `intl-time` for times instead of `date` and `time` when migrating
+- **Source Data**: For `intl-date`, store values in ISO 8601 date format (`YYYY-MM-DD`). For `intl-time`, store values in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`)
+- **Deprecated options**: The `correctFormat` option (auto-correction of entered date/time format for legacy `date`/`time` cells) and the `datePickerConfig` option (Pikaday-based date picker for the legacy `date` cell type) are deprecated and will be removed in the next major release
+
+### Why This Change
+
+Moment.js is in maintenance mode and the legacy `date`/`time` cell types depend on it for string-format parsing. The native `Intl.DateTimeFormat` API provides locale-aware formatting without external dependencies, with better performance and alignment with web standards. This change reduces bundle size and keeps date/time behavior consistent with the rest of the platform.
+
+### How to Migrate
+
+#### Step 1: Update Date Columns
+
+Replace the `date` cell type and string `dateFormat` with `intl-date` and an `Intl.DateTimeFormat` options object.
+
+**Before:**
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  columns: [
+    {
+      type: 'date',
+      dateFormat: 'YYYY-MM-DD'
+    }
+  ]
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  columns={[{
+    type: 'date',
+    dateFormat: 'YYYY-MM-DD'
+  }]}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```html
+<hot-table [settings]="{
+  columns: [{
+    type: 'date',
+    dateFormat: 'YYYY-MM-DD'
+  }]
+}"></hot-table>
+```
+
+:::
+
+**After:**
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  columns: [
+    {
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }
+    }
+  ]
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  columns={[{
+    type: 'intl-date',
+    locale: 'en-US',
+    dateFormat: {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }
+  }]}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```html
+<hot-table [settings]="{
+  columns: [{
+    type: 'intl-date',
+    locale: 'en-US',
+    dateFormat: {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }
+  }]
+}"></hot-table>
+```
+
+:::
+
+#### Step 2: Update Time Columns
+
+Replace the `time` cell type and string `timeFormat` with `intl-time` and an `Intl.DateTimeFormat` options object.
+
+**Before:**
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  columns: [
+    {
+      type: 'time',
+      timeFormat: 'h:mm:ss a'
+    }
+  ]
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  columns={[{
+    type: 'time',
+    timeFormat: 'h:mm:ss a'
+  }]}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```html
+<hot-table [settings]="{
+  columns: [{
+    type: 'time',
+    timeFormat: 'h:mm:ss a'
+  }]
+}"></hot-table>
+```
+
+:::
+
+**After:**
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  columns: [
+    {
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      }
+    }
+  ]
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  columns={[{
+    type: 'intl-time',
+    locale: 'en-US',
+    timeFormat: {
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }
+  }]}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```html
+<hot-table [settings]="{
+  columns: [{
+    type: 'intl-time',
+    locale: 'en-US',
+    timeFormat: {
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }
+  }]
+}"></hot-table>
+```
+
+:::
+
+#### Step 3: Common Migration Patterns
+
+**Short date (e.g. DD/MM/YYYY → locale short):**
+
+```js
+// Before
+type: 'date',
+dateFormat: 'DD/MM/YYYY'
+
+// After
+type: 'intl-date',
+locale: 'en-GB',
+dateFormat: { dateStyle: 'short' }
+```
+
+**ISO date (YYYY-MM-DD):**
+
+```js
+// Before
+type: 'date',
+dateFormat: 'YYYY-MM-DD'
+
+// After
+type: 'intl-date',
+locale: 'en-US',
+dateFormat: {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+}
+```
+
+**12-hour time with seconds:**
+
+```js
+// Before
+type: 'time',
+timeFormat: 'h:mm:ss a'
+
+// After
+type: 'intl-time',
+locale: 'en-US',
+timeFormat: {
+  hour: 'numeric',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: true
+}
+```
+
+**Time style shortcut:**
+
+```js
+// After
+type: 'intl-time',
+locale: 'en-US',
+timeFormat: { timeStyle: 'medium' }
+```
+
+#### Step 4: Custom Cell Types Using Moment.js
+
+If you use custom cell types that rely on Moment.js for formatting or parsing (e.g. recipes like the Moment.js date or time cell type), replace Moment formatting with `Intl.DateTimeFormat` in your renderer and editor logic. For a full custom implementation that still uses Moment, see the [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) and [Moment.js time](@/recipes/cell-types/moment-time/moment-time.md) recipes; consider migrating those implementations to Intl to avoid the deprecated path.
+
+### What to Expect
+
+- **Console Warning**: You'll see a deprecation warning if you still use string `dateFormat` or `timeFormat` with the `date` or `time` cell types, or if you use the `correctFormat` or `datePickerConfig` options
+- **Data Format**: Ensure date values are in `YYYY-MM-DD` and time values in 24-hour form; `intl-date`/`intl-time` only change display, not storage
+- **Same Look**: Use `dateStyle`/`timeStyle` or component options to approximate previous Moment format output
+
+### Timeline
+
+- **Version 17.0**: String-based `dateFormat` and `timeFormat`, and the `correctFormat` and `datePickerConfig` options, are deprecated and emit console warnings; the `intl-date` and `intl-time` cell types are available.
+- **Version 18.0**: The current `intl-date` and `intl-time` cell types will become the default `date` and `time` cell types; `intl-date` and `intl-time` will remain as aliases. The Moment.js library will be removed from dependencies. Options `correctFormat` and `datePickerConfig` will be removed.
+
+### Related resources
+
+- [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
+- [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
+
 ## Summary of breaking changes
 
 | Change                                            | Action Required                                                            |

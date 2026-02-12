@@ -24,7 +24,6 @@ import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
-import DataSource from './dataMap/dataSource';
 import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
@@ -33,10 +32,13 @@ import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
 import {
+  DataSource,
   MetaManager,
   DynamicCellMetaMod,
   ExtendMetaPropertiesMod,
   replaceData,
+  runSourceDataValidator,
+  runSourceDataValidators,
 } from './dataMap';
 import {
   createViewportScroller,
@@ -1321,18 +1323,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   }
 
   this.init = function() {
-    const theme = tableMeta.theme;
-    const themeName = tableMeta.themeName;
-    const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
-
-    if (
-      isRootInstance(instance) &&
-      !rootContainerThemeClassName &&
-      (isObject(theme) || (!theme && !themeName))
-    ) {
-      initializeThemeManager(theme);
-    }
-
     dataSource.setData(tableMeta.data);
     instance.runHooks('beforeInit');
 
@@ -1351,7 +1341,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isRootInstance(this)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);
-      _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
+      _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement, process.env.HOT_RELEASE_DATE);
     }
 
     instance.runHooks('init');
@@ -2929,6 +2919,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     instance.runHooks('afterCellMetaReset');
 
+    // for the first run, we need to run the source data warnings after cell meta initialization
+    // otherwise there is no access to `sourceDataValidator` function
+    if (firstRun) {
+      runSourceDataValidators(instance, 'init');
+    }
+
     let currentHeight = instance.rootElement.style.height;
 
     if (currentHeight !== '') {
@@ -3486,12 +3482,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+      const cellMeta = getCellProperties(changeRow, changeProp);
       const newValue = getValueSetterValue(
         changeValue,
-        getCellProperties(changeRow, changeProp)
+        cellMeta
       );
 
-      dataSource.setAtCell(changeRow, changeProp, newValue);
+      if (runSourceDataValidator(newValue, cellMeta, source ?? 'setSourceDataAtCell')) {
+        dataSource.setAtCell(changeRow, changeProp, newValue);
+      }
     });
 
     if (isThereAnySetSourceListener) {
@@ -5517,6 +5516,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     return editorManager;
   };
 
+  /**
+   * Gets the instance of the DataSource.
+   *
+   * @private
+   * @returns {DataSource}
+   */
+  this._getDataSource = function() {
+    return dataSource;
+  };
+
   const shortcutManager = createShortcutManager({
     handleEvent() {
       return instance.isListening();
@@ -5597,6 +5606,18 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     return focusScopeManager;
   };
+
+  const theme = mergedUserSettings.theme;
+  const themeName = mergedUserSettings.themeName;
+  const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
+
+  if (
+    isRootInstance(instance) &&
+    !rootContainerThemeClassName &&
+    (isObject(theme) || (!theme && !themeName))
+  ) {
+    initializeThemeManager(theme);
+  }
 
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);

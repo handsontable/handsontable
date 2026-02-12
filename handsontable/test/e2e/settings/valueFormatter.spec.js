@@ -18,6 +18,8 @@ describe('Core.valueFormatter', () => {
     handsontable({
       data: createSpreadsheetData(1, 1),
       valueFormatter,
+      autoRowSize: false,
+      autoColumnSize: false,
     });
 
     expect(valueFormatter).toHaveBeenCalledTimes(1);
@@ -33,6 +35,8 @@ describe('Core.valueFormatter', () => {
     handsontable({
       data: createSpreadsheetData(2, 2),
       valueFormatter,
+      autoRowSize: false,
+      autoColumnSize: false,
     });
 
     expect(valueFormatter).toHaveBeenCalledTimes(4);

@@ -7,7 +7,8 @@ import {
   warn,
   info,
   error,
-  deprecatedWarn
+  deprecatedWarn,
+  logAggregatedItems,
 } from 'handsontable/helpers/console';
 
 describe('Console', () => {
@@ -101,6 +102,123 @@ describe('Console', () => {
       }).not.toThrow();
 
       console = cachedConsole;
+    });
+  });
+
+  describe('logAggregatedItems', () => {
+    it('should do nothing when items is not an array', () => {
+      const logFunction = jasmine.createSpy('log');
+
+      logAggregatedItems({ logFunction, message: '[itemsCount]', items: null });
+      logAggregatedItems({ logFunction, message: '[itemsCount]', items: undefined });
+
+      expect(logFunction).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing when items is an empty array', () => {
+      const logFunction = jasmine.createSpy('log');
+
+      logAggregatedItems({ logFunction, message: '[itemsCount]', items: [] });
+
+      expect(logFunction).not.toHaveBeenCalled();
+    });
+
+    it('should call logFunction with substituted message (singular "cell")', () => {
+      const logFunction = jasmine.createSpy('log');
+
+      logAggregatedItems({
+        logFunction,
+        message: 'Found [itemsCount]:\n[affectedCells]',
+        items: ['A1'],
+      });
+
+      expect(logFunction).toHaveBeenCalledWith(
+        'Found 1 cell:\nAffected cells:\n  - A1'
+      );
+    });
+
+    it('should call logFunction with substituted message (plural "cells")', () => {
+      const logFunction = jasmine.createSpy('log');
+
+      logAggregatedItems({
+        logFunction,
+        message: '[itemsCount]\n[affectedCells]',
+        items: ['A1', 'B2'],
+      });
+
+      expect(logFunction).toHaveBeenCalledWith(
+        '2 cells\nAffected cells:\n  - A1\n  - B2'
+      );
+    });
+
+    it('should use default itemFormatter', () => {
+      const logFunction = jasmine.createSpy('log');
+
+      logAggregatedItems({
+        logFunction,
+        message: '[affectedCells]',
+        items: [1, 2, 3],
+      });
+
+      expect(logFunction).toHaveBeenCalledWith(
+        'Affected cells:\n  - 1\n  - 2\n  - 3'
+      );
+    });
+
+    it('should use custom itemFormatter', () => {
+      const logFunction = jasmine.createSpy('log');
+
+      logAggregatedItems({
+        logFunction,
+        message: '[affectedCells]',
+        items: [{ row: 0, col: 1 }, { row: 1, col: 2 }],
+        itemFormatter: item => `row ${item.row}, col ${item.col}`,
+      });
+
+      expect(logFunction).toHaveBeenCalledWith(
+        'Affected cells:\n  - row 0, col 1\n  - row 1, col 2'
+      );
+    });
+
+    it('should limit listed items to maxSample and append "...and N more"', () => {
+      const logFunction = jasmine.createSpy('log');
+
+      logAggregatedItems({
+        logFunction,
+        message: '[itemsCount]\n[affectedCells]',
+        items: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7'],
+        maxSample: 3,
+      });
+
+      expect(logFunction).toHaveBeenCalledWith(
+        '7 cells\nAffected cells:\n  - A1\n  - A2\n  - A3\n  - ...and 4 more'
+      );
+    });
+
+    it('should use default maxSample of 5 when not provided', () => {
+      const logFunction = jasmine.createSpy('log');
+
+      logAggregatedItems({
+        logFunction,
+        message: '[affectedCells]',
+        items: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+      });
+
+      expect(logFunction).toHaveBeenCalledWith(
+        'Affected cells:\n  - a\n  - b\n  - c\n  - d\n  - e\n  - ...and 2 more'
+      );
+    });
+
+    it('should use custom logFunction (e.g. warn)', () => {
+      const logFunction = jasmine.createSpy('warn');
+
+      logAggregatedItems({
+        logFunction,
+        message: '[itemsCount]',
+        items: ['X'],
+      });
+
+      expect(logFunction).toHaveBeenCalledWith('1 cell');
     });
   });
 });

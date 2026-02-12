@@ -46,6 +46,8 @@ import {
   DateCellType,
   DropdownCellType,
   HandsontableCellType,
+  IntlDateCellType,
+  IntlTimeCellType,
   NumericCellType,
   PasswordCellType,
   SelectCellType,
@@ -61,6 +63,8 @@ import {
   DateEditor,
   DropdownEditor,
   HandsontableEditor,
+  IntlDateEditor,
+  IntlTimeEditor,
   NumericEditor,
   PasswordEditor,
   SelectEditor,
@@ -80,6 +84,8 @@ import {
   checkboxRenderer,
   htmlRenderer,
   handsontableRenderer,
+  intlDateRenderer,
+  intlTimeRenderer,
   numericRenderer,
   passwordRenderer,
   selectRenderer,
@@ -94,6 +100,8 @@ import {
   autocompleteValidator,
   dropdownValidator,
   dateValidator,
+  intlDateValidator,
+  intlTimeValidator,
   numericValidator,
   timeValidator ,
   getValidator,
@@ -363,6 +371,8 @@ declare namespace Handsontable {
     export { DateCellType as date };
     export { DropdownCellType as dropdown };
     export { HandsontableCellType as handsontable };
+    export { IntlDateCellType as intlDate };
+    export { IntlTimeCellType as intlTime };
     export { NumericCellType as numeric };
     export { PasswordCellType as password };
     export { TextCellType as text };
@@ -379,6 +389,8 @@ declare namespace Handsontable {
     export { DateEditor };
     export { DropdownEditor };
     export { HandsontableEditor };
+    export { IntlDateEditor };
+    export { IntlTimeEditor };
     export { NumericEditor };
     export { PasswordEditor };
     export { SelectEditor };
@@ -397,6 +409,8 @@ declare namespace Handsontable {
     export { checkboxRenderer as CheckboxRenderer };
     export { htmlRenderer as HtmlRenderer };
     export { handsontableRenderer as HandsontableRenderer };
+    export { intlDateRenderer as IntlDateRenderer };
+    export { intlTimeRenderer as IntlTimeRenderer };
     export { numericRenderer as NumericRenderer };
     export { passwordRenderer as PasswordRenderer };
     export { textRenderer as TextRenderer };
@@ -412,6 +426,8 @@ declare namespace Handsontable {
     export { autocompleteValidator as AutocompleteValidator };
     export { dropdownValidator as DropdownValidator };
     export { dateValidator as DateValidator };
+    export { intlDateValidator as IntlDateValidator };
+    export { intlTimeValidator as IntlTimeValidator };
     export { numericValidator as NumericValidator };
     export { timeValidator as TimeValidator };
     export { registerValidator };

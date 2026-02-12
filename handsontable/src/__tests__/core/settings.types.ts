@@ -240,6 +240,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     ['A', 'B', 'C', 'D'],
     (query: string, callback: (item: string[]) => void) => callback(['A', 'B', 'C', 'D'])
   ),
+  sourceDataValidator: oneOf((value: any, cellMeta: CellProperties) => true),
+  sourceDataWarningMessage: oneOf('The source data is invalid.'),
   startCols: 123,
   startRows: 123,
   stretchH: 'none',
@@ -331,6 +333,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     'autocomplete', 'date', 'numeric', 'time', 'custom.validator'
   ),
   valueFormatter: (value: any, cellMeta: CellProperties) => value,
+  valueParser: (value: any, cellMeta: CellProperties) => value,
   valueGetter: (value: any, row: number, column: number, cellMeta: CellProperties) => value,
   valueSetter: (value: any, row: number, column: number, cellMeta: CellProperties) => `${value} at row ${row}, column ${column}`,
   viewportColumnRenderingOffset: oneOf(100, 'auto'),

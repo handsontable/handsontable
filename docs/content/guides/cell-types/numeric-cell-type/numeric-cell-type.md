@@ -13,6 +13,7 @@ angular:
   metaTitle: Numeric cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 
 # Numeric cell type
