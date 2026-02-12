@@ -16,8 +16,9 @@ const stackblitz = (id, html, js, css, docsVersion, preset, lang, extraDeps = []
   const addExtraDependencies = extraDeps.length
     ? extraDeps.map((d) => {
       const name = typeof d === 'string' ? d : d.name;
-      const version = typeof d === 'string' ? 'latest' : d.version;
-      return `"${name}": "${version}"`;
+      const ver = typeof d === 'string' ? 'latest' : d.version;
+
+      return `"${name}": "${ver}"`;
     }).join(', ')
     : '';
 
@@ -37,6 +38,10 @@ const stackblitz = (id, html, js, css, docsVersion, preset, lang, extraDeps = []
     return 'node';
   };
 
+  const dependenciesJson = `{"hyperformula":"latest", "handsontable": "latest"${addReactDependencies}${
+    addExtraDependencies ? `, ${addExtraDependencies}` : ''
+  }}`;
+
   return `
   <form
     class="form-stackblitz-external" 
@@ -47,9 +52,7 @@ const stackblitz = (id, html, js, css, docsVersion, preset, lang, extraDeps = []
     ${projects.join('\n')}
     <input type="hidden" name="project[title]" value="handsontable"/>
     <input type="hidden" name="project[description]" value="demo"/>
-    <input type="hidden" name="project[dependencies]" 
-      value='{"hyperformula":"latest", "handsontable": "latest"${addReactDependencies}${addExtraDependencies ? ', ' + addExtraDependencies : ''}}'
-    />
+    <input type="hidden" name="project[dependencies]" value='${dependenciesJson}'/>
     <input type="hidden" name="project[template]" value="${getTemplate()}"/>
     
     <div class="js-stackblitz-link">

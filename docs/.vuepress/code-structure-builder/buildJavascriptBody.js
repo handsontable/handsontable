@@ -2,8 +2,9 @@ const buildJavascriptBody = ({ id, html, js, css, version, hyperformulaVersion, 
   const addExtraDependencies = extraDeps.length
     ? `,\n  ${extraDeps.map((d) => {
       const name = typeof d === 'string' ? d : d.name;
-      const version = typeof d === 'string' ? 'latest' : d.version;
-      return `    "${name}": "${version}"`;
+      const ver = typeof d === 'string' ? 'latest' : d.version;
+
+      return `    "${name}": "${ver}"`;
     }).join(',\n  ')}`
     : '';
 

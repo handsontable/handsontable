@@ -206,7 +206,9 @@ module.exports = function(docsVersion, base) {
         const depsMatch = args.match(/--deps\s+(\S+(?:\s+\S+)*)/);
         const extraDeps = (depsMatch ? depsMatch[1].trim().split(/\s+/) : []).map((spec) => {
           const at = spec.lastIndexOf('@');
-          if (at <= 0) return { name: spec, version: 'latest' };
+
+          if (at <= 0) { return { name: spec, version: 'latest' }; }
+
           return { name: spec.slice(0, at), version: spec.slice(at + 1) };
         });
         const isRTL = /layoutDirection(.*)'rtl'/.test(jsCodeToCompile) || /dir="rtl"/.test(htmlContent);

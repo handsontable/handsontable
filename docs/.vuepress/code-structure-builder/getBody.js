@@ -29,7 +29,6 @@ const getBody = ({ id, html, js, css, docsVersion, preset, sandbox, lang, extraD
       version,
       hyperformulaVersion,
       themeName,
-      preset,
       sandbox,
       lang: lang === 'JavaScript' ? 'jsx' : 'tsx',
       extraDeps

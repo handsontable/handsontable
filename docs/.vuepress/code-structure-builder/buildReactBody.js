@@ -1,9 +1,19 @@
-const buildReactBody = ({ js, css, version, hyperformulaVersion, themeName, preset, sandbox, lang, extraDeps = [] }) => {
+const buildReactBody = ({
+  js,
+  css,
+  version,
+  hyperformulaVersion,
+  themeName,
+  sandbox,
+  lang,
+  extraDeps = []
+}) => {
   const addExtraDependencies = extraDeps.length
     ? `,\n  ${extraDeps.map((d) => {
       const name = typeof d === 'string' ? d : d.name;
-      const version = typeof d === 'string' ? 'latest' : d.version;
-      return `  "${name}": "${version}"`;
+      const ver = typeof d === 'string' ? 'latest' : d.version;
+
+      return `  "${name}": "${ver}"`;
     }).join(',\n  ')}`
     : '';
 
@@ -126,13 +136,13 @@ ${js}`
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
+    "react-dom": "^18.2.0",
     "handsontable": "${version}",
     "@handsontable/react-wrapper": "${version}"${lang === 'tsx' ? `,
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
     "typescript": "5.5.2"` : ''
-}
+}${addExtraDependencies}
   },
   "devDependencies": {
     "react-scripts": "^5.0.1"
