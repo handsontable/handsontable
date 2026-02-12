@@ -28,6 +28,7 @@ describe('`registerAllValidators`', () => {
       'date',
       'intl-date',
       'intl-time',
+      'multiselect',
       'numeric',
       'time',
     ]);
