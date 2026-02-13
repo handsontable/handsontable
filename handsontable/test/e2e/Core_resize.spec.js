@@ -76,12 +76,12 @@ describe('Core resize', () => {
       horizon.toBe(37);
     });
     expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(24);
+      classic.toBe(27);
       main.toBe(30);
       horizon.toBe(38);
     });
     expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(24);
+      classic.toBe(27);
       main.toBe(30);
       horizon.toBe(38);
     });
@@ -96,12 +96,12 @@ describe('Core resize', () => {
       horizon.toBe(37);
     });
     expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(24);
+      classic.toBe(27);
       main.toBe(30);
       horizon.toBe(38);
     });
     expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(24);
+      classic.toBe(27);
       main.toBe(30);
       horizon.toBe(38);
     });

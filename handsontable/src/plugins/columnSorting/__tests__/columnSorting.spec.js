@@ -223,8 +223,16 @@ describe('ColumnSorting', () => {
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('-9px');
+      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+
+      if (htmlDir === 'rtl' || layoutDirection === 'rtl') {
+        expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('left')).toEqual('2px');
+
+      } else {
+        expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('2px');
+      }
+
+      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('top')).toEqual('10.5px');
     });
 
     it.forTheme('main')('should display indicator properly after changing sorted column sequence', async() => {
@@ -1056,6 +1064,48 @@ describe('ColumnSorting', () => {
       });
     });
 
+    describe('sorting date-typed files (intl)', () => {
+      using('data set', [
+        {
+          values: ['2032-02-01', '2023-02-11', '2023-05-01', '1975-02-01'],
+          dateFormat: {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          }
+        },
+        {
+          values: ['2032-02-01', '2023-02-11', '2023-05-01', '1975-02-01'],
+          dateFormat: {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }
+        },
+      ], ({ values, dateFormat }) => {
+        it('it should be sorted properly', async() => {
+          const data = values.map((value, ind) => [value, ind]);
+
+          handsontable({
+            data,
+            columns: [
+              { type: 'intl-date', dateFormat },
+              { type: 'numeric' },
+            ],
+            columnSorting: true
+          });
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' }); // ASC
+
+          expect(getDataAtCol(1).join(', ')).toEqual('3, 1, 2, 0');
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' }); // DESC
+
+          expect(getDataAtCol(1).join(', ')).toEqual('0, 2, 1, 3');
+        });
+      });
+    });
+
     describe('sorting time-typed files', () => {
       using('data set', [
         { values: ['23:15', '20:44', '21:00', '14:12'], timeFormat: 'HH:mm' },
@@ -1088,6 +1138,56 @@ describe('ColumnSorting', () => {
             data,
             columns: [
               { type: 'time', timeFormat },
+              { type: 'numeric' },
+            ],
+            columnSorting: true
+          });
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' }); // ASC
+
+          expect(getDataAtCol(1).join(', ')).toEqual('3, 1, 2, 0');
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' }); // DESC
+
+          expect(getDataAtCol(1).join(', ')).toEqual('0, 2, 1, 3');
+        });
+      });
+    });
+
+    describe('sorting time-typed files (intl)', () => {
+      using('data set', [
+        {
+          values: ['23:15', '20:44', '21:00', '14:12'],
+          timeFormat: {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: false,
+          }
+        },
+        {
+          values: ['23:15:22', '20:44:11', '21:00:11', '14:12:11'],
+          timeFormat: {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: false,
+          }
+        },
+        {
+          values: ['23:15:22.000', '20:44:11.111', '21:00:11.222', '14:12:11.333'],
+          timeFormat: {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: false,
+          }
+        },
+      ], ({ values, timeFormat }) => {
+        it('it should be sorted properly', async() => {
+          const data = values.map((value, ind) => [value, ind]);
+
+          handsontable({
+            data,
+            columns: [
+              { type: 'intl-time', timeFormat },
               { type: 'numeric' },
             ],
             columnSorting: true
@@ -2277,31 +2377,31 @@ describe('ColumnSorting', () => {
     let sortedColumn = spec().$container.find('th span.columnSorting')[2];
 
     // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
 
     await spec().sortByClickOnColumnHeader(2);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
     // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
 
     await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // ascending
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
     await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // descending
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
     await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
   });
 
   it.forTheme('main')('should add a sorting indicator to the column header after it\'s been sorted, ' +
@@ -2441,37 +2541,37 @@ describe('ColumnSorting', () => {
     // ascending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
   });
 
   it.forTheme('main')('should change sorting indicator state on every plugin API method ' +
@@ -2604,31 +2704,31 @@ describe('ColumnSorting', () => {
     // descending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort();
 
     // default
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
     // ascending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
 
     // descending
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort();
 
     // default
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
   });
 
   it.forTheme('main')('should change sorting indicator state when initial column sorting was provided', async() => {

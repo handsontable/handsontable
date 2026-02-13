@@ -189,7 +189,7 @@ describe('Filters keyboard shortcut', () => {
 
       await keyDownUp('enter');
       await sleep(15);
-      expect(countCheckedCheckboxes()).toEqual(10);
+      expect(countCheckedCheckboxes()).toEqual(8);
 
       document.querySelector('.htUIClearAll a').focus();
 
@@ -201,7 +201,7 @@ describe('Filters keyboard shortcut', () => {
 
       await keyDownUp('space');
       await sleep(15);
-      expect(countCheckedCheckboxes()).toEqual(10);
+      expect(countCheckedCheckboxes()).toEqual(8);
     });
 
     it.forTheme('main')('should react to both `Enter` and `Space`', async() => {

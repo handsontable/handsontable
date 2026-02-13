@@ -4,6 +4,7 @@ import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
 import { sanitize, isJSON } from '../../helpers/string';
 import { isObject, deepClone } from '../../helpers/object';
+import { deprecatedWarn } from '../../helpers/console';
 import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
@@ -41,6 +42,8 @@ const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
 ].join('');
+
+const sanitizeDeprecatedMessageShown = new WeakSet();
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -373,7 +376,9 @@ export class CopyPaste extends BasePlugin {
               this.hot.getCopyableSourceData(row, column) :
               this.hot.getCopyableData(row, column);
 
-          if (useSourceData && isObject(copyableCellData)) {
+          if (useSourceData &&
+            (isObject(copyableCellData) || Array.isArray(copyableCellData))
+          ) {
             copyableCellData = JSON.stringify(copyableCellData);
           }
 
@@ -599,7 +604,11 @@ export class CopyPaste extends BasePlugin {
         if (sourceData && isJSON(sourceCellValue) && cellValue === originalCellValue) {
           const parsedCellValue = JSON.parse(sourceCellValue);
 
-          if (isObject(sourceDataAtTarget) || sourceDataAtTarget === null) {
+          if (
+            Array.isArray(sourceDataAtTarget) ||
+            isObject(sourceDataAtTarget) ||
+            sourceDataAtTarget === null
+          ) {
             cellValue = parsedCellValue;
           }
         }
@@ -778,11 +787,29 @@ export class CopyPaste extends BasePlugin {
         pastedSourceData = parsedSourceConfig.data;
       }
 
-      const textHTML = sanitize(event.clipboardData.getData('text/html'), {
-        ADD_TAGS: ['meta'],
-        ADD_ATTR: ['content'],
-        FORCE_BODY: true,
-      });
+      const rawTextHTML = event.clipboardData.getData('text/html');
+      const { sanitizer } = this.hot.getSettings();
+      let textHTML = rawTextHTML;
+
+      if (typeof sanitizer === 'function') {
+        textHTML = sanitizer(rawTextHTML, 'CopyPaste.paste');
+      } else {
+        if (!sanitizeDeprecatedMessageShown.has(this.hot)) {
+          sanitizeDeprecatedMessageShown.add(this.hot);
+          deprecatedWarn(
+            'The HTML sanitization using DOMPurify library is deprecated and will be removed in ' +
+            'the next major release. Use the `sanitizer` option instead.\n\n' +
+            'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+            '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
+          );
+        }
+
+        textHTML = sanitize(rawTextHTML, {
+          ADD_TAGS: ['meta'],
+          ADD_ATTR: ['content'],
+          FORCE_BODY: true,
+        });
+      }
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);

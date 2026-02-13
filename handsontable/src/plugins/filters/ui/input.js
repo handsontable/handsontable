@@ -33,6 +33,7 @@ export class InputUI extends BaseUI {
    */
   registerHooks() {
     this.addLocalHook('keyup', event => this.#onKeyup(event));
+    this.addLocalHook('input', event => this.#onKeyup(event));
   }
 
   /**

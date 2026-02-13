@@ -45,6 +45,7 @@ import { Settings as DialogSettings } from './plugins/dialog';
 import { Settings as LoadingSettings } from './plugins/loading';
 import { Settings as EmptyDataStateSettings } from './plugins/emptyDataState';
 import { Settings as UndoRedoSettings } from './plugins/undoRedo';
+import { ThemeBuilder } from './themes';
 import { EditorType, BaseEditor } from './editors';
 import { RendererType } from './renderers';
 import { BaseRenderer } from './renderers/base';
@@ -208,6 +209,7 @@ export interface GridSettings extends Events {
   rowHeaders?: boolean | string[] | ((index: number) => string);
   rowHeaderWidth?: number | number[];
   rowHeights?: number | string | number[] | string[] | undefined[] | Array<number | string | undefined> | ((index: number) => string | number | undefined);
+  sanitizer?: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => string;
   search?: SearchSettings;
   selectionMode?: 'single' | 'range' | 'multiple';
   selectOptions?: string[] | SelectOptionsObject | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | SelectOptionsObject);
@@ -215,6 +217,8 @@ export interface GridSettings extends Events {
   skipRowOnPaste?: boolean;
   sortByRelevance?: boolean;
   source?: string[] | number[] | { key: any, value: any }[] | ((this: CellProperties, query: string, callback: (items: string[]) => void) => void);
+  sourceDataValidator?: (value: CellValue, cellMeta: CellProperties, source?: string) => boolean;
+  sourceDataWarningMessage?: string;
   startCols?: number;
   startRows?: number;
   stretchH?: 'none' | 'all' | 'last';
@@ -222,6 +226,7 @@ export interface GridSettings extends Events {
   tableClassName?: string | string[];
   tabMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
   textEllipsis?: boolean;
+  theme?: ThemeBuilder | string;
   themeName?: string;
   title?: string;
   trimDropdown?: boolean;
@@ -235,6 +240,7 @@ export interface GridSettings extends Events {
   undo?: UndoRedoSettings;
   validator?: BaseValidator | RegExp | ValidatorType | string;
   valueFormatter?: (this: Core, value: CellValue, cellProperties: CellProperties) => CellValue;
+  valueParser?: (this: Core, value: CellValue, cellProperties: CellProperties) => CellValue;
   valueGetter?: (this: Core, value: CellValue, row: number, column: number, cellProperties: CellProperties) => CellValue;
   valueSetter?: (this: Core, value: CellValue, row: number, column: number, cellProperties: CellProperties) => CellValue;
   viewportColumnRenderingOffset?: number | 'auto';

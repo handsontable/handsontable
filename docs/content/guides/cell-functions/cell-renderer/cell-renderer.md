@@ -13,6 +13,7 @@ angular:
   metaTitle: Cell renderer - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
+menuTag: updated
 ---
 
 # Cell renderer
@@ -520,50 +521,51 @@ settings = {
 
 This example shows how to use custom cell renderers to display HTML content in a cell. This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS attacks. In the below configuration:
 
+::: warning Deprecated
+**DOMPurify will be removed in the next version.** After that, any string containing HTML will be stripped before rendering. To keep sanitized HTML (e.g. with DOMPurify), set the [`sanitizer`](@/api/options.md#sanitizer) option to your own sanitizer function.
+:::
+
 - **Title** column uses built-in HTML renderer that allows any HTML. This is unsafe if your code comes from untrusted source. Take notice that a Handsontable user can use it to enter `<script>` or other potentially malicious tags using the cell editor!
 - **Description** column also uses HTML renderer (same as above)
 - **Comments** column uses a custom renderer (`safeHtmlRenderer`). This should be safe for user input, because only certain tags are allowed
 - **Cover** column accepts image URL as a string and converts it to a `<img>` in the renderer
 
 ::: only-for javascript
-
 ::: example #example4 --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/javascript/example4.js)
 @[code](@/content/guides/cell-functions/cell-renderer/javascript/example4.ts)
 
 :::
-
 :::
 
 ::: only-for react
-
 ::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/react/example4.jsx)
 @[code](@/content/guides/cell-functions/cell-renderer/react/example4.tsx)
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: example #example5 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example5.ts)
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example5.html)
 
 :::
-
 :::
 
 ## Render custom HTML in header
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
 
-::: only-for javascript
+::: warning Deprecated
+**DOMPurify will be removed in the next version.** After that, any string containing HTML will be stripped before rendering. To keep sanitized HTML (e.g. with DOMPurify), set the [`sanitizer`](@/api/options.md#sanitizer) option to your own sanitizer function.
+:::
 
+::: only-for javascript
 ::: example #example5 --js 2 --ts 3 --html 1
 
 @[code](@/content/guides/cell-functions/cell-renderer/javascript/example5.html)
@@ -571,29 +573,24 @@ You can also put HTML into row and column headers. If you need to attach events 
 @[code](@/content/guides/cell-functions/cell-renderer/javascript/example5.ts)
 
 :::
-
 :::
 
 ::: only-for react
-
 ::: example #example5 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/react/example5.jsx)
 @[code](@/content/guides/cell-functions/cell-renderer/react/example5.tsx)
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: example #example6 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example6.ts)
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example6.html)
 
 :::
-
 :::
 
 ## Add event listeners in cell renderer function
@@ -639,6 +636,7 @@ If you only need to format the displayed value (e.g., add units, format dates, o
 - Configuration options:
   - [`renderer`](@/api/options.md#renderer)
   - [`valueFormatter`](@/api/options.md#valueformatter)
+  - [`sanitizer`](@/api/options.md#sanitizer)
 - Core methods:
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
   - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)

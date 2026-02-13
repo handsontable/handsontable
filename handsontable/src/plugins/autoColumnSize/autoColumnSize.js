@@ -126,7 +126,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -215,6 +215,10 @@ export class AutoColumnSize extends BasePlugin {
 
     if (!cellMeta.spanned) {
       cellValue = this.hot.getDataAtCell(row, column);
+
+      if (typeof cellMeta.valueFormatter === 'function') {
+        cellValue = cellMeta.valueFormatter(cellValue, cellMeta);
+      }
     }
 
     let bundleSeed = '';

@@ -2,8 +2,6 @@ import { FC } from 'react';
 import { HotTable, HotTableProps } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import Handsontable from 'handsontable/base';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -19,7 +17,6 @@ const ExampleComponent: FC = () => {
 
   return (
     <HotTable
-      themeName="ht-theme-main"
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"

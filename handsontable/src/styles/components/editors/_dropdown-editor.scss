@@ -56,7 +56,7 @@
           td {
             &:hover {
               td {
-                background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
+                background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;
                 cursor: pointer;
                 box-shadow: none !important;
               }
@@ -68,7 +68,7 @@
           transition: var(--ht-table-transition) background ease-in-out;
 
           &:hover {
-            background-color: var(--ht-menu-item-hover-color, #e5e5e9) !important;
+            background-color: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;
             cursor: pointer;
           }
 
@@ -91,15 +91,10 @@
           th {
             height: auto !important;
             text-align: left;
-            border-width: 0 1px 1px;
 
-            > div {
-              padding-top: 8px;
-              padding-bottom: 8px;
-            }
-
-            &:first-child {
-              padding-left: 8px;
+            .relative {
+              padding-top: calc(var(--ht-cell-vertical-padding) + var(--ht-gap-size));
+              padding-bottom: calc(var(--ht-cell-vertical-padding) + var(--ht-gap-size));
             }
           }
         }
@@ -135,6 +130,18 @@
           th,
           td {
             background-color: var(--ht-background-color, #ffffff);
+          }
+        }
+      }
+    }
+  }
+
+  [dir="rtl"].handsontable {
+    &.listbox {
+      table {
+        thead {
+          th {
+            text-align: right;
           }
         }
       }

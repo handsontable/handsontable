@@ -9,7 +9,7 @@ const jsfiddle = (_id, html, code, css, version, preset, lang) => {
   const themeReferenceMatches = Array.from(code.matchAll(/ht-theme-([a-zA-Z0-9-]+)/g), m => m[1]);
   const uniqueThemeReferences = [...new Set(themeReferenceMatches)];
 
-  const imports = getDependencies(version, preset).reduce(
+  const imports = getDependencies(version, preset, code).reduce(
     (previous, current) => {
 
       // If the example uses only one theme, skip importing the css files for the other themes.

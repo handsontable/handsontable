@@ -2,7 +2,7 @@ export * from './array';
 export * from './browser';
 export * from './console';
 export * from './data';
-export * from './date';
+export * from './dateTime';
 export * from './feature';
 export * from './function';
 export * from './mixed';

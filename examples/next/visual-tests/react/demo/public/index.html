@@ -9,25 +9,22 @@
       (function () {
         const urlParams = new URLSearchParams(window.location.search);
         const theme = urlParams.get('theme');
-        const baseLink = document.createElement('link');
         const themeLink = document.createElement('link');
 
-        baseLink.rel = 'stylesheet';
         themeLink.rel = 'stylesheet';
 
         if (theme === 'main' || theme === 'main-dark') {
-          baseLink.href = `/static/css/handsontable/styles/handsontable.css`;
           themeLink.href = `/static/css/handsontable/styles/ht-theme-main.css`;
 
         } else if (theme === 'horizon' || theme === 'horizon-dark') {
-          baseLink.href = `/static/css/handsontable/styles/handsontable.css`;
           themeLink.href = `/static/css/handsontable/styles/ht-theme-horizon.css`;
 
-        } else {
-          baseLink.href = `/static/css/handsontable/dist/handsontable.full.css`;
+        } else if (theme === 'classic' || theme === 'classic-dark') {
+          themeLink.href = `/static/css/handsontable/styles/ht-theme-classic.css`;
+
         }
 
-        [baseLink, themeLink].forEach((link) => {
+        [themeLink].forEach((link) => {
           if (link.href) {
             document.head.appendChild(link);
           }

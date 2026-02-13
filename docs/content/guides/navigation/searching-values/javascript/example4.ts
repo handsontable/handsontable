@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import { Search } from 'handsontable/plugins';
 
 // Register all Handsontable's modules.
@@ -38,7 +36,6 @@ function searchResultCounter(
 const container = document.querySelector('#example4')!;
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   colHeaders: true,
   // enable the `Search` plugin

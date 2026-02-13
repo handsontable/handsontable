@@ -1,56 +1,91 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
 
 const container = document.querySelector('#example1')!;
+const localeSelect = document.querySelector('#localeSelect')!;
+const data = [
+  {
+    car: 'Mercedes A 160',
+    product_date: '2002-06-15',
+    payment_date: '2002-05-20',
+    registration_date: '2002-07-01',
+  },
+  {
+    car: 'Citroën C4 Coupe',
+    product_date: '2007-03-22',
+    payment_date: '2007-02-28',
+    registration_date: '2007-04-10',
+  },
+  {
+    car: 'Audi A4 Avant',
+    product_date: '2011-09-08',
+    payment_date: '2011-08-15',
+    registration_date: '2011-09-20',
+  },
+  {
+    car: 'Opel Astra',
+    product_date: '2012-01-30',
+    payment_date: '2012-01-10',
+    registration_date: '2012-02-14',
+  },
+  {
+    car: 'BMW 320i Coupe',
+    product_date: '2004-11-12',
+    payment_date: '2004-10-20',
+    registration_date: '2004-12-01',
+  },
+];
 
-new Handsontable(container, {
-  themeName: 'ht-theme-main',
-  licenseKey: 'non-commercial-and-evaluation',
-  data: [
-    ['Mercedes', 'A 160', '01/14/2021', 6999.95],
-    ['Citroen', 'C4 Coupe', '12/01/2022', 8330],
-    ['Audi', 'A4 Avant', '11/19/2023', 33900],
-    ['Opel', 'Astra', '02/02/2021', 7000],
-    ['BMW', '320i Coupe', '07/24/2022', 30500],
-  ],
-  colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
-  height: 'auto',
+const hot = new Handsontable(container, {
+  data,
+  colHeaders: ['Car', 'Product date', 'Payment date', 'Registration date'],
   columns: [
     {
       type: 'text',
+      data: 'car',
     },
     {
-      // 2nd cell is simple text, no special options here
-    },
-    {
-      type: 'date',
-      dateFormat: 'MM/DD/YYYY',
-      correctFormat: true,
-      defaultDate: '01/01/2020',
-      // datePicker additional options
-      // (see https://github.com/dbushell/Pikaday#configuration)
-      datePickerConfig: {
-        // First day of the week (0: Sunday, 1: Monday, etc)
-        firstDay: 0,
-        showWeekNumber: true,
-        disableDayFn(date) {
-          // Disable Sunday and Saturday
-          return date.getDay() === 0 || date.getDay() === 6;
-        },
+      type: 'intl-date',
+      data: 'product_date',
+      dateFormat: {
+        dateStyle: 'short',
       },
     },
     {
-      type: 'numeric',
-      numericFormat: {
-        pattern: '$0,0.00',
+      type: 'intl-date',
+      data: 'payment_date',
+      dateFormat: {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      },
+    },
+    {
+      type: 'intl-date',
+      data: 'registration_date',
+      dateFormat: {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       },
     },
   ],
+  columnSorting: true,
+  filters: true,
+  dropdownMenu: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
   autoWrapRow: true,
   autoWrapCol: true,
+});
+
+// Handle locale change
+localeSelect.addEventListener('change', (event) => {
+  hot.updateSettings({
+    locale: (event.target as HTMLSelectElement).value,
+  });
 });

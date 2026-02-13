@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import { HyperFormula } from 'hyperformula';
 
 // Register all Handsontable's modules.
@@ -33,7 +31,6 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 const container1 = document.querySelector('#example-basic-multi-sheet-1');
 
 new Handsontable(container1, {
-  themeName: 'ht-theme-main',
   data: data1,
   colHeaders: true,
   rowHeaders: true,
@@ -50,7 +47,6 @@ new Handsontable(container1, {
 const container2 = document.querySelector('#example-basic-multi-sheet-2');
 
 new Handsontable(container2, {
-  themeName: 'ht-theme-main',
   data: data2,
   colHeaders: true,
   rowHeaders: true,

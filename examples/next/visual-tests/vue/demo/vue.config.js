@@ -10,7 +10,6 @@ module.exports = {
       plugins: [
         new CopyWebpackPlugin({
           patterns: [
-            { from: '../node_modules/handsontable/dist/*.css', to: 'assets/handsontable/dist/[name][ext]' },
             { from: '../node_modules/handsontable/styles/*.css', to: 'assets/handsontable/styles/[name][ext]' },
           ],
         }),

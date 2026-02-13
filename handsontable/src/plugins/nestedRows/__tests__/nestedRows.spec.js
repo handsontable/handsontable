@@ -94,8 +94,8 @@ describe('NestedRows', () => {
         });
 
         expect(countRows()).toEqual(13);
-        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('left');
-        expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('-2px');
+        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('none');
+        expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('0px');
       });
 
       it.forTheme('main')('should display indicators properly located', async() => {
@@ -133,7 +133,7 @@ describe('NestedRows', () => {
       });
 
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(56);
+        classic.toBe(57);
         main.toBe(61);
         horizon.toBe(69);
       });
@@ -174,7 +174,7 @@ describe('NestedRows', () => {
       await selectContextMenuOption('Insert child row');
 
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(76);
+        classic.toBe(77);
         main.toBe(81);
         horizon.toBe(89);
       });
@@ -184,7 +184,7 @@ describe('NestedRows', () => {
       await selectContextMenuOption('Insert child row');
 
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(86);
+        classic.toBe(87);
         main.toBe(91);
         horizon.toBe(99);
       });

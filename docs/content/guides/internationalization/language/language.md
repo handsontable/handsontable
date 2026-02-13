@@ -141,7 +141,7 @@ registerLanguageDictionary(deDE);
   standalone: true,
   imports: [HotTableModule],
   template: ` <div>
-    <hot-table themeName="ht-theme-main" [settings]="settings" />
+    <hot-table [settings]="settings" />
   </div>`,
 })
 export class Component {

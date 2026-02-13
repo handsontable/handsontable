@@ -46,7 +46,7 @@ describe('DropdownMenu (RTL mode)', () => {
         'and bottom there is no space left', async() => {
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(Math.floor(window.innerHeight / 23), 4),
+          data: createSpreadsheetData(Math.floor(window.innerHeight / 27), 4),
           dropdownMenu: true,
         });
 
@@ -147,7 +147,7 @@ describe('DropdownMenu (RTL mode)', () => {
         'and bottom there is no space left', async() => {
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
+          data: createSpreadsheetData(Math.floor(window.innerHeight / 27), Math.floor(window.innerWidth / 50)),
           dropdownMenu: true,
         });
 

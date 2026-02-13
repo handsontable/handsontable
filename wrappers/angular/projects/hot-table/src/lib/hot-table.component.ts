@@ -145,6 +145,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() skipRowOnPaste: any;
   @Input() sortByRelevance: Handsontable.GridSettings['sortByRelevance'];
   @Input() source: Handsontable.GridSettings['source'];
+  @Input() sourceDataValidator: Handsontable.GridSettings['sourceDataValidator'];
+  @Input() sourceDataWarningMessage: Handsontable.GridSettings['sourceDataWarningMessage'];
   @Input() startCols: Handsontable.GridSettings['startCols'];
   @Input() startRows: Handsontable.GridSettings['startRows'];
   @Input() stretchH: Handsontable.GridSettings['stretchH'];
@@ -160,6 +162,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() undo: Handsontable.GridSettings['undo'];
   @Input() validator: Handsontable.GridSettings['validator'];
   @Input() valueFormatter: Handsontable.GridSettings['valueFormatter'];
+  @Input() valueParser: Handsontable.GridSettings['valueParser'];
   @Input() valueGetter: Handsontable.GridSettings['valueGetter'];
   @Input() valueSetter: Handsontable.GridSettings['valueSetter'];
   @Input() viewportColumnRenderingOffset: Handsontable.GridSettings['viewportColumnRenderingOffset'];

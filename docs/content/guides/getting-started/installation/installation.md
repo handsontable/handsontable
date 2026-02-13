@@ -95,8 +95,6 @@ Import Handsontable's CSS into your application to `angular.json`.
 Another option for adding CSS to your application is to import them in the `styles.scss` file.
 
 ```scss
-@import "handsontable/styles/handsontable.min.css";
-@import "handsontable/styles/ht-theme-main.min.css";
 ```
 
 ## Register Handsontable's modules
@@ -134,7 +132,6 @@ const globalHotConfig: HotGlobalConfig = {
   license: NON_COMMERCIAL_LICENSE,
   layoutDirection: "ltr",
   language: enUS.languageCode,
-  themeName: "ht-theme-main",
 };
 
 export const appConfig: ApplicationConfig = {
@@ -173,7 +170,7 @@ import {
   standalone: true,
   imports: [HotTableModule],
   template: ` <div>
-    <hot-table themeName="ht-theme-main" [data]="data" [settings]="gridSettings" />
+    <hot-table [data]="data" [settings]="gridSettings" />
   </div>`,
 })
 export class HotTableWrapperComponent {
@@ -312,8 +309,6 @@ To install Handsontable locally using a package manager, run one of these comman
 To get Handsontable's files from a CDN, use the following locations:
 
 - [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
-- [https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css](https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css)
-- [https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css](https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css)
 
 ## Import Handsontable's JavaScript
 
@@ -343,28 +338,6 @@ Use the `script` tag. For example, if you're loading Handsontable's JavaScript f
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 ```
 
-## Import Handsontable's CSS
-
-Import Handsontable's CSS into your application.
-
-### Using `import`
-
-If your bundler allows it, you can import Handsontable's full distribution CSS file, using an `import` statement.
-
-```js
-import 'handsontable/styles/handsontable.min.css';
-import 'handsontable/styles/ht-theme-main.min.css';
-```
-
-### Using the `link` tag
-
-You can also import Handsontable's CSS using a link tag:
-
-```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
-```
-
 ## Create a container
 
 In your HTML, add an empty `div`, which serves as a container for your Handsontable instance.
@@ -381,9 +354,6 @@ Now turn your container into a data grid with sample data.
 const container = document.querySelector('#example');
 
 const hot = new Handsontable(container, {
-  // theme name with obligatory ht-theme-* prefix
-  themeName: 'ht-theme-main-dark-auto',
-  // other options
   data: [
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
     ['2019', 10, 11, 12, 13],
@@ -445,8 +415,6 @@ To install Handsontable locally using a package manager, run one of these comman
 Import Handsontable's CSS into your application.
 
 ```jsx
-import 'handsontable/styles/handsontable.min.css';
-import 'handsontable/styles/ht-theme-main.min.css';
 ```
 
 ## Register Handsontable's modules
@@ -474,8 +442,6 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 ```jsx
 <HotTable
-  themeName="ht-theme-main-dark-auto"
-  // other options
   data={[
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
     ['2019', 10, 11, 12, 13],

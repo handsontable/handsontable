@@ -225,7 +225,7 @@ describe('MergeCells Selection', () => {
 
     expect(getSelected()).toEqual([[2, 1, 3, 2]]);
     expect($borderTop.position().top).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(topPositionBefore + 23); // adds default row height
+      classic.toBe(topPositionBefore + 26); // adds default row height
       main.toBe(topPositionBefore + 29);
       horizon.toBe(topPositionBefore + 37);
     });
@@ -362,6 +362,14 @@ describe('MergeCells Selection', () => {
 
     expect(`
       | 0 : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : A :   :   :   :   |
+      |   :   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
     await scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
@@ -548,20 +556,17 @@ describe('MergeCells Selection', () => {
       |   :   :   |
       |   :   :   |
       |   :   :   |
-      |   :   :   |
     `).toBeMatchToSelectionPattern();
 
     await scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
 
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A28');
     expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
     expect(`
-      | # :   :   |
+      |   :   :   |
       |   :   :   |
       |---:---:---|
-      |   :   :   |
-      |   :   :   |
       |   :   :   |
       |   :   :   |
       |   :   :   |
@@ -571,15 +576,13 @@ describe('MergeCells Selection', () => {
 
     await scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
 
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A24');
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A26');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
     expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
     expect(`
       |   :   :   |
       |   :   :   |
       |---:---:---|
-      |   :   :   |
-      |   :   :   |
       |   :   :   |
       |   :   :   |
       |   :   :   |

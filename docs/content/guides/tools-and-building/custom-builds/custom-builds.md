@@ -50,8 +50,8 @@ The building processes transform the source files located in the `/handsontable/
 
 - `/handsontable/dist/`
     - handsontable UMD files, including minified versions
-    - legacy CSS files, including minified versions
     - the language file
+    - the themes and variables files
 - `/handsontable/styles/`
     - modern theme CSS files, including minified versions
 - `handsontable/tmp/`
@@ -153,18 +153,14 @@ From the `/handsontable` directory, you can also run individual JavaScript `buil
 
   - Creates the following bundles compatible with the Universal Module Definition:
     - `/handsontable/dist/handsontable.js`
-    - `/handsontable/dist/handsontable.css`
     - `/handsontable/dist/handsontable.full.js`
-    - `/handsontable/dist/handsontable.full.css`
     - `/handsontable/styles/*` - non-minified theme CSS files
 
 `npm run build:umd.min`
 
   - Creates the minified bundles compatible with the Universal Module Definition:
     - `/handsontable/dist/handsontable.min.js`
-    - `/handsontable/dist/handsontable.min.css`
     - `/handsontable/dist/handsontable.min.full.js`
-    - `/handsontable/dist/handsontable.min.full.css`
     - `/handsontable/styles/*` - minified theme CSS files
 
 `npm run build:walkontable`

@@ -16,12 +16,7 @@ const getPackageUrls = (packageName, version, fileSelection) => {
   const subDirs = {
     handsontable: {
       js: 'handsontable.full.min.js',
-      css: [
-        'handsontable.min.css',
-        'ht-theme-main.css',
-        'ht-theme-horizon.css',
-        'ht-theme-classic.css',
-      ],
+      css: [],
       subDir: 'dist/',
       cssSubDir: 'styles/',
     },
@@ -147,6 +142,10 @@ const buildDependencyGetter = (version) => {
       'angular-platform-browser': [getPrebuiltUmdUrl('angular-platformBrowser.umd.min.js'), [/* todo */]],
       'angular-platform-browser-dynamic': [getPrebuiltUmdUrl('angular-platformBrowserDynamic.umd.min.js'), [/* todo */]],
       'angular-core-primitives-signals': [getPrebuiltUmdUrl('angular-core-primitives-signals.umd.min.js'), [/* todo */]],
+      'angular-material-checkbox': [getPrebuiltUmdUrl('angular-material-checkbox.umd.min.js'), [/* todo */]],
+      'angular-cdk-a11y': [getPrebuiltUmdUrl('angular-cdk-a11y.umd.min.js'), [/* todo */]],
+      'angular-cdk-observers': [getPrebuiltUmdUrl('angular-cdk-observers.umd.min.js'), [/* todo */]],
+      'angular-cdk-coercion': [getPrebuiltUmdUrl('angular-cdk-coercion.umd.min.js'), [/* todo */]],
       'hot-angular': [getPrebuiltUmdUrl('handsontable-angular-wrapper.umd.min.js')],
       'hot-vue': [getPackageUrls('@handsontable/vue', version, 'js'), [/* todo */], null, 'hot-vue3'],
       'hot-vue3': [getPackageUrls('@handsontable/vue3', version, 'js'), [/* todo */], null, 'hot-vue'],
@@ -158,6 +157,9 @@ const buildDependencyGetter = (version) => {
       vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue'],
       vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
       languages: [getPackageUrls('handsontable', version, 'dist/languages/all.js'), [/* todo */]],
+      'theme-main': [getPackageUrls('handsontable', version, 'dist/themes/main.min.js'), ['mainTheme']],
+      'theme-horizon': [getPackageUrls('handsontable', version, 'dist/themes/horizon.min.js'), ['horizonTheme']],
+      'theme-classic': [getPackageUrls('handsontable', version, 'dist/themes/classic.min.js'), ['classicTheme']],
       moment: ['https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js', [/* todo */]],
       'date-fns': ['https://cdnjs.cloudflare.com/ajax/libs/date-fns/4.1.0/cdn.min.js', [/* todo */]],
       coloris: ['https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/umd/coloris.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/coloris.min.css'],
@@ -183,7 +185,7 @@ const presetMap = {
   'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-redux': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer'],
   'react-advanced': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'react-star-rating-component', 'fixer', 'react-colorful'],
-  angular: ['hot', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
+  angular: ['hot', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'angular-cdk-a11y', 'angular-cdk-observers', 'angular-cdk-coercion', 'angular-material-checkbox', 'date-fns', 'fixer'],
   'angular-languages': ['hot', 'languages', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
   'angular-numbro': ['hot', 'numbro', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
   vue: ['hot', 'vue', 'hot-vue', 'fixer'],
@@ -199,14 +201,31 @@ const presetMap = {
   /* eslint-enable max-len */
 };
 
-const getDependencies = (version, preset) => {
+const themeMap = {
+  mainTheme: 'theme-main',
+  horizonTheme: 'theme-horizon',
+  classicTheme: 'theme-classic',
+};
+
+const getDependencies = (version, preset, code = '') => {
   const getter = buildDependencyGetter(version);
 
   if (!Array.isArray(presetMap[preset])) {
     throw new Error(`The preset "${preset}" was not found.`);
   }
 
-  return presetMap[preset].map(x => getter(x));
+  const baseDependencies = presetMap[preset];
+
+  // Only add theme dependencies for themes that are actually imported
+  const requiredThemes = Object.entries(themeMap)
+    .filter(([themeName]) => code.includes(themeName))
+    .map(([, dependency]) => dependency);
+
+  const dependencies = requiredThemes.length > 0
+    ? [...baseDependencies.slice(0, 1), ...requiredThemes, ...baseDependencies.slice(1)]
+    : baseDependencies;
+
+  return dependencies.map(x => getter(x));
 };
 
 module.exports = {
@@ -214,5 +233,6 @@ module.exports = {
   getDependencies,
   buildDependencyGetter,
   presetMap,
+  themeMap,
   formatVersion
 };

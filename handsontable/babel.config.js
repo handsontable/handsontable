@@ -24,6 +24,9 @@ const allowedE2EModules = [
   './__mocks__/*',
   './MemoryLeakTest',
   '../MemoryLeakTest',
+  '../../../src/themes/static/variables/icons/*',
+  '../../../src/themes/static/variables/colors/*',
+  '../../../src/themes/static/variables/tokens/*',
 ];
 
 module.exports = {

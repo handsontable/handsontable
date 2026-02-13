@@ -9,5 +9,8 @@ export * from './lib/services/hot-global-config.service';
 export * from './lib/renderer/hot-dynamic-renderer-component.service';
 export * from './lib/renderer/hot-cell-renderer.component';
 export * from './lib/editor/hot-cell-editor.component';
+export * from './lib/renderer/hot-cell-renderer-advanced.component';
+export * from './lib/editor/hot-cell-editor-advanced.component';
+export * from './lib/editor/models/keyboard-shortcut-config';
 export { GridSettings } from './lib/models/grid-settings';
 export { ColumnSettings, CustomValidatorFn } from './lib/models/column-settings';
