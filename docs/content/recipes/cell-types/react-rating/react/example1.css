@@ -1,0 +1,6 @@
+.rating-editor >  div {
+  box-sizing: border-box;
+  padding: 3px !important;
+  border: 1px solid #e7e7e9ff !important;
+  margin-left: 1px;
+}
