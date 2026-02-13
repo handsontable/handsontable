@@ -62,8 +62,7 @@
 ## 🪄 Installation
 Below, you'll find the installation guide for the JavaScript component. If you're using a specific framework, refer to its dedicated wrapper for installation instructions:
 
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12"><a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> React functional component</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"> React class component</a>
+- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12"><a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> React</a>
 - <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="12" height="12" alt="Angular"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular-wrapper"> Angular</a>
 - <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="12" height="12" alt="Vue"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"> Vue</a>
 

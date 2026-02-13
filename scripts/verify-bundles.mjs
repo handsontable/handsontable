@@ -31,10 +31,6 @@ const packagesInfo = {
     className: 'HotTableModule',
     entryFile: 'dist/hot-table/fesm2022/handsontable-angular-wrapper.mjs',
   },
-  '@handsontable/react': {
-    className: 'HotTable',
-    entryFile: 'dist/react-handsontable.js',
-  },
   '@handsontable/react-wrapper': {
     className: 'HotTable',
     entryFile: 'dist/react-handsontable.js',

@@ -9,7 +9,6 @@ const docsBasePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 
 const SYMLINK_PATHS = [
   { source: '../handsontable/tmp/', target: './.vuepress/public/handsontable/' },
-  { source: '../wrappers/react/', target: './.vuepress/public/@handsontable/react/' },
   { source: '../wrappers/react-wrapper/', target: './.vuepress/public/@handsontable/react-wrapper/' },
   // eslint-disable-next-line max-len
   { source: '../wrappers/angular-wrapper/dist/hot-table/', target: './.vuepress/public/@handsontable/angular-wrapper/' },

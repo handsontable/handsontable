@@ -34,8 +34,7 @@ The Handsontable repository is a monorepo that contains the following projects:
 | Project                 | Location                  | Description                                                                                          |
 | ----------------------- |---------------------------|------------------------------------------------------------------------------------------------------|
 | `handsontable`          | `/handsontable`           | Main Handsontable project                                                                            |
-| `@handsontable/react`   | `/wrappers/react`         | [React wrapper](@/react/guides/getting-started/introduction/introduction.md) _**<small>(deprecated)</small>**_            |
-| `@handsontable/react-wrapper`  | `/wrappers/react-wrapper` | [React wrapper (functional components)](@/react/guides/getting-started/introduction/introduction.md) |
+| `@handsontable/react-wrapper`  | `/wrappers/react-wrapper` | [React wrapper](@/react/guides/getting-started/introduction/introduction.md) |
 | `@handsontable/angular-wrapper` | `/wrappers/angular-wrapper`       | [Angular (v16+) wrapper](@/angular/guides/getting-started/introduction/introduction.md)              |
 | `@handsontable/vue`     | `/wrappers/vue`           | [Vue 2 wrapper](@/javascript/guides/integrate-with-vue/vue-installation/vue-installation.md)         |
 | `@handsontable/vue3`    | `/wrappers/vue3`          | [Vue 3 wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)      |      |
@@ -81,8 +80,7 @@ Each Handsontable [project](#monorepo) has its own building processes defined in
 |----------------------------------------|-----------------------------------------------------|
 | `/package.json`                        | - All the packages at once<br>- Individual packages |
 | `/handsontable/package.json`           | The JavaScript package                              |
-| `/wrappers/react/package.json`         | The React package _**<small>(deprecated)</small>**_                    |
-| `/wrappers/react-wrapper/package.json` | The React (functional) package                      |
+| `/wrappers/react-wrapper/package.json` | The React package                      |
 | `/wrappers/angular-wrapper/package.json`       | The Angular (v16+) package                          |
 | `/wrappers/vue/package.json`           | The Vue 2 package                                   |
 | `/wrappers/vue3/package.json`          | The Vue 3 package                                   |
@@ -110,8 +108,7 @@ To build all the packages at once:
 2. Go to the root directory.
 3. Run `npm run build`.<br>The script builds the following packages:
      - The JavaScript package
-     - The React package _**<small>(deprecated)</small>**_
-     - The React (functional) package
+     - The React package
      - The Angular package _**<small>(deprecated)</small>**_
      - The Angular (v16+) package
      - The Vue 2 package
@@ -189,14 +186,14 @@ From the `/handsontable` directory, you can also run individual JavaScript `buil
 To build the React package:
 
 1. Make sure you meet the [build requirements](#build-requirements).
-2. Go to either `/wrappers/react` or `/wrappers/react-wrapper`, depending on the React package you'd like to build.
+2. Go to `/wrappers/react-wrapper`.
 3. Run `npm run build`.<br>Only the React package builds.
 
 To build the React package from the root directory:
 
 1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
-3. Run `npm run in react build`/`npm run in react-wrapper build`.<br>Only the React package builds.
+3. Run `npm run in react-wrapper build`.<br>Only the React package builds.
 
 #### React build tasks
 

@@ -61,8 +61,7 @@
 Below is the installation guide for the Handsontable with Vue 3 wrapper. If you're using another framework, please refer to its dedicated wrapper for specific installation instructions.
 
 - <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="12" height="12" alt="JavaScript logo"> <a href="https://github.com/handsontable/handsontable"> JavaScript</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> React functional component</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"> React class component</a>
+- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> React</a>
 - <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="12" height="12" alt="Angular logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular-wrapper"> Angular</a>
 - <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="12" height="12" alt="Vue logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue"> Vue 2</a>
 

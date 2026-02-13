@@ -20,10 +20,6 @@ const getPackageUrls = (packageName, version, fileSelection) => {
       subDir: 'dist/',
       cssSubDir: 'styles/',
     },
-    '@handsontable/react': {
-      js: 'react-handsontable.min.js',
-      subDir: 'dist/',
-    },
     '@handsontable/react-wrapper': {
       js: 'react-handsontable.min.js',
       subDir: 'dist/',

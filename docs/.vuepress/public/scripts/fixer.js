@@ -111,9 +111,6 @@
       } else if (key === '@handsontable/react-wrapper') {
         ns = 'Handsontable.react';
 
-      } else if (key === '@handsontable/react') {
-        ns = 'Handsontable.react';
-
       } else if (key === '@handsontable/vue' || key === '@handsontable/vue3') {
         ns = 'Handsontable.vue';
 
