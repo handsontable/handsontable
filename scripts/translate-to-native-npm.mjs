@@ -50,7 +50,6 @@ switch (modifier) {
     // eslint-disable-next-line prefer-template
     let workspacesCommandList = '-w ' + [
       'handsontable',
-      '@handsontable/angular',
       '@handsontable/angular-wrapper',
       '@handsontable/react',
       '@handsontable/react-wrapper',

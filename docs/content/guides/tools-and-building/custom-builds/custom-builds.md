@@ -36,7 +36,6 @@ The Handsontable repository is a monorepo that contains the following projects:
 | `handsontable`          | `/handsontable`           | Main Handsontable project                                                                            |
 | `@handsontable/react`   | `/wrappers/react`         | [React wrapper](@/react/guides/getting-started/introduction/introduction.md) _**<small>(deprecated)</small>**_            |
 | `@handsontable/react-wrapper`  | `/wrappers/react-wrapper` | [React wrapper (functional components)](@/react/guides/getting-started/introduction/introduction.md) |
-| `@handsontable/angular` | `/wrappers/angular`       | [Angular wrapper](@/angular/guides/getting-started/introduction/introduction.md) _**<small>(deprecated)</small>**_        |
 | `@handsontable/angular-wrapper` | `/wrappers/angular-wrapper`       | [Angular (v16+) wrapper](@/angular/guides/getting-started/introduction/introduction.md)              |
 | `@handsontable/vue`     | `/wrappers/vue`           | [Vue 2 wrapper](@/javascript/guides/integrate-with-vue/vue-installation/vue-installation.md)         |
 | `@handsontable/vue3`    | `/wrappers/vue3`          | [Vue 3 wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)      |      |
@@ -84,7 +83,6 @@ Each Handsontable [project](#monorepo) has its own building processes defined in
 | `/handsontable/package.json`           | The JavaScript package                              |
 | `/wrappers/react/package.json`         | The React package _**<small>(deprecated)</small>**_                    |
 | `/wrappers/react-wrapper/package.json` | The React (functional) package                      |
-| `/wrappers/angular/package.json`       | The Angular package _**<small>(deprecated)</small>**_   |
 | `/wrappers/angular-wrapper/package.json`       | The Angular (v16+) package                          |
 | `/wrappers/vue/package.json`           | The Vue 2 package                                   |
 | `/wrappers/vue3/package.json`          | The Vue 3 package                                   |

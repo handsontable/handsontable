@@ -20,7 +20,6 @@ const TMP_DIR = path.join('examples', TMP_DIR_NAME);
 const HOT_WRAPPERS = [
   '@handsontable/react',
   '@handsontable/react-wrapper',
-  '@handsontable/angular',
   '@handsontable/angular-wrapper',
   '@handsontable/vue'
 ];

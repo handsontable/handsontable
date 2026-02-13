@@ -10,7 +10,7 @@
   <p>
     Use it with JavaScript, TypeScript, or frameworks such as 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper" target="_blank">React</a>, 
-    <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular" target="_blank">Angular</a>, and 
+    <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular-wrapper" target="_blank">Angular</a>, and 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue" target="_blank">Vue</a>. With its spreadsheet-like editing features, it’s perfect for building data-rich internal apps. It allows users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.
   </p>
 
@@ -64,7 +64,7 @@ Below, you'll find the installation guide for the JavaScript component. If you'r
 
 - <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12"><a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> React functional component</a>
 - <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"> React class component</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="12" height="12" alt="Angular"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular"> Angular</a>
+- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="12" height="12" alt="Angular"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular-wrapper"> Angular</a>
 - <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="12" height="12" alt="Vue"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"> Vue</a>
 
 ---

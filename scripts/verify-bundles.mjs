@@ -27,10 +27,6 @@ const packagesInfo = {
     entryFile: 'tmp/index.mjs',
     defaultExport: true
   },
-  '@handsontable/angular': {
-    className: 'HotTableModule',
-    entryFile: 'dist/hot-table/fesm2022/handsontable-angular.mjs',
-  },
   '@handsontable/angular-wrapper': {
     className: 'HotTableModule',
     entryFile: 'dist/hot-table/fesm2022/handsontable-angular-wrapper.mjs',
