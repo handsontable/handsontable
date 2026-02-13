@@ -84,7 +84,7 @@ export function createMenuItemRenderer(mainTableHot) {
       TD.appendChild(item.renderer(menuHot, wrapper, row, col, prop, itemValue));
 
     } else {
-      fastInnerHTML(wrapper, itemValue);
+      fastInnerHTML(wrapper, itemValue, mainTableHot.getSettings().sanitizer);
     }
 
     if (isItemDisabled(item, mainTableHot)) {
