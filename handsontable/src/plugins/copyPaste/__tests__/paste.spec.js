@@ -628,15 +628,20 @@ describe('CopyPaste', () => {
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });
 
-    it('should sanitize pasted HTML', async() => {
+    // TODO: To be changed in 18.0
+    it('should sanitize pasted HTML by default', async() => {
       handsontable();
+
+      window.__testFunction = () => {};
 
       const onErrorSpy = spyOn(window, 'onerror');
       const clipboardEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
+      spyOn(window, '__testFunction');
+
       clipboardEvent.clipboardData.setData('text/html', [
-        '<table><tr></tr></table><img src onerror="boom()">'
+        '<table><tr></tr></table><img src onerror="__testFunction()">'
       ].join('\r\n'));
 
       await selectCell(0, 0);
@@ -646,7 +651,42 @@ describe('CopyPaste', () => {
       await sleep(100);
 
       expect(onErrorSpy).not.toHaveBeenCalled();
+      expect(window.__testFunction).not.toHaveBeenCalled();
       expect(getDataAtCell(0, 0)).toEqual(null);
+
+      delete window.__testFunction;
+    });
+
+    it('should sanitize pasted HTML when custom sanitizer is set', async() => {
+      handsontable({
+        sanitizer: (content) => {
+          return content.replace(/\s+onerror\s*=\s*("[^"]*"|'[^']*'|[^\s>]*)/gi, '');
+        },
+      });
+
+      window.__testFunction = () => {};
+
+      const onErrorSpy = spyOn(window, 'onerror');
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      spyOn(window, '__testFunction');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table><tr></tr></table><img src onerror="__testFunction()">'
+      ].join('\r\n'));
+
+      await selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      await sleep(100);
+
+      expect(onErrorSpy).not.toHaveBeenCalled();
+      expect(window.__testFunction).not.toHaveBeenCalled();
+      expect(getDataAtCell(0, 0)).toEqual(null);
+
+      delete window.__testFunction;
     });
 
     it('should be possible to paste text into the outside element of the table when the `outsideClickDeselects` is disabled', async() => {

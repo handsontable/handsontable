@@ -209,6 +209,7 @@ export interface GridSettings extends Events {
   rowHeaders?: boolean | string[] | ((index: number) => string);
   rowHeaderWidth?: number | number[];
   rowHeights?: number | string | number[] | string[] | undefined[] | Array<number | string | undefined> | ((index: number) => string | number | undefined);
+  sanitizer?: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => string;
   search?: SearchSettings;
   selectionMode?: 'single' | 'range' | 'multiple';
   selectOptions?: string[] | SelectOptionsObject | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | SelectOptionsObject);

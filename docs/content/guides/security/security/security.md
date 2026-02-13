@@ -59,7 +59,11 @@ We use dependencies in the form of third-party software, and we take a responsib
 
 ## Content sanitizing
 
-We use [dompurify](https://www.npmjs.com/package/dompurify) to sanitize the content put into the data grid. But we strongly recommend additional server-side validation to protect your data.
+Handsontable sanitizes all HTML content before writing it to the DOM - this includes cell values, headers, context-menu labels, dialog markup, and clipboard paste payloads. By default the grid uses [DOMPurify](https://www.npmjs.com/package/dompurify) under the hood, so common XSS vectors (inline scripts, dangerous event handlers, etc.) are stripped automatically.
+
+Starting with **v17.0**, you have full control over this process through the [`sanitizer`](@/api/options.md#sanitizer) configuration option. The option accepts a function that receives the raw HTML string and must return a safe string. This lets you apply context-aware rules - for example, a stricter policy for pasted content and a more permissive one for trusted cell renderers - or swap DOMPurify for any other sanitization library that fits your stack.
+
+Regardless of the client-side sanitization strategy you choose, we strongly recommend complementing it with server-side validation to ensure end-to-end data integrity.
 
 ## High-quality code pledge
 
@@ -77,9 +81,9 @@ The latest security audits:
 |------------|--------------|----------------------------------------------------------|
 | Seqred     | Feb 21, 2022 | [Download]({{$basePath}}/seqred-certificate.pdf)         |
 | TestArmy   | Apr 28, 2023 | [Download]({{$basePath}}/testarmy-certificate.pdf)       |
-| TestArmy   | Apr 19, 2024 | [Download]({{$basePath}}/testarmy-certificate-2024.pdf)  |          
+| TestArmy   | Apr 19, 2024 | [Download]({{$basePath}}/testarmy-certificate-2024.pdf)  |
 | TestArmy   | May 13, 2025 | [Download]({{$basePath}}/testarmy-certificate-2025.pdf)  |
-                                           
+
 
 The security audits were carried out in accordance with industry-standard methodologies, including:
 - OWASP Top 10

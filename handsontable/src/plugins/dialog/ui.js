@@ -71,13 +71,21 @@ export class DialogUI {
    * @type {Array<function(MouseEvent)>}
    */
   #templateButtonCallbacks = [];
+  /**
+   * The sanitizer to use for the dialog.
+   *
+   * @type {function(string): string}
+   */
+  #sanitizer;
 
   constructor({
     rootElement,
     isRtl,
+    sanitizer,
   }) {
     this.#rootElement = rootElement;
     this.#isRtl = isRtl;
+    this.#sanitizer = sanitizer;
 
     this.install();
   }
@@ -258,7 +266,8 @@ export class DialogUI {
 
       // Render new dialog content
       if (typeof content === 'string') {
-        fastInnerHTML(contentElement, content);
+        fastInnerHTML(contentElement, content, this.#sanitizer);
+
       } else if (content instanceof HTMLElement || content instanceof DocumentFragment) {
         contentElement.appendChild(content);
       }
