@@ -6348,6 +6348,18 @@ export default () => {
      *     .replace(/'/g, '&#39;');
      * },
      * ```
+     *
+     * @example
+     * ```js
+     * // Trusted Types: wrap sanitization in a policy so the sink accepts the result.
+     * // Add the policy name to the CSP trusted-types directive (e.g. trusted-types default handsontable).
+     * const policy = window.trustedTypes?.createPolicy('handsontable', {
+     *   createHTML: (input) => DOMPurify.sanitize(input),
+     * });
+     *
+     * sanitizer: (content, source) =>
+     *   policy ? policy.createHTML(content) : DOMPurify.sanitize(content),
+     * ```
      */
     sanitizer: undefined,
 
