@@ -11,4 +11,5 @@ export const AutocompleteCellType = {
   validator: autocompleteValidator,
   valueGetter,
   valueSetter,
+  parsePastedValue: true,
 };

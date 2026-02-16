@@ -100,6 +100,7 @@ describe('MetaManager utils', () => {
             'validator',
             'valueGetter',
             'valueSetter',
+            'parsePastedValue',
           ]
         ),
         copyPaste: true,
@@ -109,6 +110,7 @@ describe('MetaManager utils', () => {
         validator: getCellType('autocomplete').validator,
         valueGetter: getCellType('autocomplete').valueGetter,
         valueSetter: getCellType('autocomplete').valueSetter,
+        parsePastedValue: getCellType('autocomplete').parsePastedValue,
       });
 
       extendByMetaType(metaObject, {
@@ -117,7 +119,7 @@ describe('MetaManager utils', () => {
 
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set([
-          'editor', 'validator', 'valueGetter', 'valueSetter', 'dataType', 'valueFormatter',
+          'editor', 'validator', 'valueGetter', 'valueSetter', 'dataType', 'valueFormatter', 'parsePastedValue',
         ]),
         copyPaste: true,
         test: 'foo',
@@ -128,6 +130,7 @@ describe('MetaManager utils', () => {
         valueGetter: getCellType('autocomplete').valueGetter,
         valueSetter: getCellType('numeric').valueSetter,
         valueFormatter: getCellType('numeric').valueFormatter,
+        parsePastedValue: getCellType('autocomplete').parsePastedValue,
       });
 
       extendByMetaType(metaObject, {
@@ -159,13 +162,14 @@ describe('MetaManager utils', () => {
 
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set([
-          'editor', 'renderer', 'validator', 'valueGetter', 'valueSetter',
+          'editor', 'renderer', 'validator', 'valueGetter', 'valueSetter', 'parsePastedValue',
         ]),
         renderer: getCellType('autocomplete').renderer,
         editor: getCellType('autocomplete').editor,
         validator: getCellType('autocomplete').validator,
         valueGetter: getCellType('autocomplete').valueGetter,
         valueSetter: getCellType('autocomplete').valueSetter,
+        parsePastedValue: getCellType('autocomplete').parsePastedValue,
       });
 
       metaObject.renderer = 'my-renderer';
@@ -176,13 +180,14 @@ describe('MetaManager utils', () => {
 
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set([
-          'editor', 'validator', 'valueGetter', 'valueSetter',
+          'editor', 'validator', 'valueGetter', 'valueSetter', 'parsePastedValue',
         ]),
         renderer: 'my-renderer',
         editor: getCellType('autocomplete').editor,
         validator: getCellType('autocomplete').validator,
         valueGetter: getCellType('autocomplete').valueGetter,
         valueSetter: getCellType('autocomplete').valueSetter,
+        parsePastedValue: getCellType('autocomplete').parsePastedValue,
       });
     });
 

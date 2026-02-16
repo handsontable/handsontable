@@ -1220,6 +1220,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                 if (!hasValueSetter && (typeof orgValue !== 'object' || orgValue === null)) {
                   pushData = false;
 
+                  // Enabling `parsePastedValue` relaxes schema validation, so object-based values can be pasted
+                  // into non-object-based cells
+                  if (cellMeta.parsePastedValue && source === 'CopyPaste.paste') {
+                    pushData = true;
+                  }
+
                 } else if (orgValue !== null) {
                   const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : (orgValue[0] || orgValue));
                   const valueSchema = duckSchema(Array.isArray(value) ? value : (value[0] || value));

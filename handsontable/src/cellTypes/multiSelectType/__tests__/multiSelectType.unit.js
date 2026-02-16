@@ -64,6 +64,7 @@ describe('MultiSelectCellType', () => {
         valueGetter: MultiSelectCellType.valueGetter,
         valueSetter: MultiSelectCellType.valueSetter,
         validator: getValidator('multiselect'),
+        parsePastedValue: true,
       });
     });
   });

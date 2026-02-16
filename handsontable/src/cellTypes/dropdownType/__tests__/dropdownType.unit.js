@@ -64,6 +64,7 @@ describe('DropdownCellType', () => {
         valueSetter: DropdownCellType.valueSetter,
         filter: false,
         strict: true,
+        parsePastedValue: true,
       });
     });
   });

@@ -13,4 +13,5 @@ export const DropdownCellType = {
   strict: true,
   valueGetter,
   valueSetter,
+  parsePastedValue: true,
 };

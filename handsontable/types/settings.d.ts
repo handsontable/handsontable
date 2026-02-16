@@ -196,6 +196,7 @@ export interface GridSettings extends Events {
   observeDOMVisibility?: boolean;
   outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
   pagination?: PaginationSettings;
+  parsePastedValue?: boolean;
   persistentState?: PersistentStateSettings;
   placeholder?: string;
   placeholderCellClassName?: string;
