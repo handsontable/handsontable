@@ -21,7 +21,6 @@ describe('BasePlugin', () => {
       registerPlugin('Test1Plugin', Test1Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
-        theme: 'ht-theme-classic',
         testPlugin: true
       });
       const plugin = hot.getPlugin('Test1Plugin');
@@ -71,7 +70,6 @@ describe('BasePlugin', () => {
       registerPlugin('Test2Plugin', Test2Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
-        theme: 'ht-theme-classic',
         testPlugin: true
       });
       const plugin = hot.getPlugin('Test2Plugin');
@@ -122,7 +120,6 @@ describe('BasePlugin', () => {
       registerPlugin('Test3Plugin', Test3Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
-        theme: 'ht-theme-classic',
         testPlugin: true
       });
       const plugin = hot.getPlugin('Test3Plugin');
@@ -167,7 +164,6 @@ describe('BasePlugin', () => {
       registerPlugin('TestObjectPlugin', TestObjectPlugin);
 
       const hot = new Handsontable(document.createElement('div'), {
-        theme: 'ht-theme-classic',
         testPlugin: {
           test1: {
             test2: 20,
@@ -207,7 +203,6 @@ describe('BasePlugin', () => {
       registerPlugin('Test4Plugin', Test4Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
-        theme: 'ht-theme-classic',
         testPlugin: {
           test1: true,
           test2: 20,
@@ -254,7 +249,7 @@ describe('BasePlugin', () => {
 
       registerPlugin('Test5Plugin', Test5Plugin);
 
-      const hot = new Handsontable(document.createElement('div'), { theme: 'ht-theme-classic' });
+      const hot = new Handsontable(document.createElement('div'));
       const plugin = hot.getPlugin('Test5Plugin');
 
       expect(plugin.getSetting('test1')).toBe(true);
@@ -282,7 +277,6 @@ describe('BasePlugin', () => {
       registerPlugin('Test6Plugin', Test6Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
-        theme: 'ht-theme-classic',
         testPlugin: {
           test1: 'test',
         },
@@ -318,7 +312,6 @@ describe('BasePlugin', () => {
       registerPlugin('Test7Plugin', Test7Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
-        theme: 'ht-theme-classic',
         testPlugin: 'test',
       });
       const plugin = hot.getPlugin('Test7Plugin');
@@ -346,7 +339,6 @@ describe('BasePlugin', () => {
       registerPlugin('Test8Plugin', Test8Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
-        theme: 'ht-theme-classic',
         testPlugin: {
           test1: 'test',
         },
@@ -396,7 +388,7 @@ describe('BasePlugin', () => {
     let hot;
 
     expect(() => {
-      hot = new Handsontable(document.createElement('div'), { theme: 'ht-theme-classic' });
+      hot = new Handsontable(document.createElement('div'));
     }).toThrowError(`The BarPlugin plugin requires the following modules:
  - FooPlugin (plugin)
 

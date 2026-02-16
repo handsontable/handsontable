@@ -20,7 +20,7 @@ describe('Filters', () => {
       let hot;
 
       expect(() => {
-        hot = new Handsontable(document.createElement('div'), { theme: 'ht-theme-classic' });
+        hot = new Handsontable(document.createElement('div'));
       }).toThrowError(`The Filters plugin requires the following modules:
  - DropdownMenu (plugin)
  - HiddenRows (plugin)
