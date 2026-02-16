@@ -10,10 +10,10 @@ tags:
   - tutorial
   - recipes
 react:
-  id: e50f0177
+  id: 45ff1241
   metaTitle: Color Picker Cell Type - React Data Grid | Handsontable
 angular:
-  id: e50f0177
+  id: 4f6678f9
   metaTitle: Color Picker Cell Type - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
