@@ -139,7 +139,7 @@ describe('MetaManager utils', () => {
 
       expect(metaObject).toEqual({
         _automaticallyAssignedMetaProps: new Set([
-          'editor', 'validator', 'valueGetter', 'valueSetter', 'dataType', 'valueFormatter',
+          'editor', 'validator', 'valueGetter', 'valueSetter', 'dataType', 'valueFormatter', 'parsePastedValue',
         ]),
         copyPaste: true,
         test: 'foo',
@@ -150,6 +150,7 @@ describe('MetaManager utils', () => {
         valueGetter: getCellType('autocomplete').valueGetter,
         valueSetter: getCellType('numeric').valueSetter,
         valueFormatter: getCellType('numeric').valueFormatter,
+        parsePastedValue: getCellType('autocomplete').parsePastedValue,
       });
     });
 
