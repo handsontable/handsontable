@@ -35,6 +35,7 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
 
     const _document = document; // eslint-disable-line no-restricted-globals
     let script = null;
+
     // clear outdated version
     if (script && (script.getAttribute(ATTR_VERSION) !== version || (globalVarSharedDependency ?? false))) {
       dependentVars.forEach(x => delete x.split('.').reduce((p, c) => p[c] || {}, {}));
