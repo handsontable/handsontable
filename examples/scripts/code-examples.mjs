@@ -20,7 +20,7 @@ const TMP_DIR = path.join('examples', TMP_DIR_NAME);
 const HOT_WRAPPERS = [
   '@handsontable/react-wrapper',
   '@handsontable/angular-wrapper',
-  '@handsontable/vue'
+  '@handsontable/vue3'
 ];
 
 const [shellCommand, hotVersion] = process.argv.slice(2);

@@ -15,12 +15,12 @@ To speed up the process of merging your changes, follow these rules:
 5. Don't edit files in the following directories:
     - `./handsontable/dist/`
     - `./wrappers/angular-wrapper/dist/hot-table/`
-    - `./wrappers/vue/dist/` & `./wrappers/vue/es/` & `./wrappers/vue/commonjs/`
+    - `./wrappers/vue3/dist/` & `./wrappers/vue3/es/` & `./wrappers/vue3/commonjs/`
     - `./handsontable/languages/`
 6. Instead, edit the source files, located in the following directories:
     - `./handsontable/src/`
     - `./wrappers/angular-wrapper/projects/hot-table/src/`
-    - `./wrappers/vue/src/`<br>
+    - `./wrappers/vue3/src/`<br>
     To check your changes, [make a build](https://handsontable.com/docs/building/), but don't commit your build files.
 7. For any change you make, add at least one test case. Your tests will help us understand the issue and make sure it stays fixed forever. Read more about our [testing process](https://handsontable.com/docs/testing/).<br>
    For the main Handsontable project, add your tests to one of the following directories:

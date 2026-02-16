@@ -31,12 +31,7 @@ container._reactRoot = root;
 root.render(<${exportId} />);`;
     } else if (/vue3(-.*)?/.test(preset)) {
       return `const app = createApp(${exportId});
-app.mount('#${id}');`;
-    } else if (/vue(-.*)?/.test(preset)) {
-      return `new Vue({
-...${exportId},
-el: '#${id}',
-});`;
+app.mount('#${id}');`
     } else if (/angular(-.*)?/.test(preset)) {
       return `import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 

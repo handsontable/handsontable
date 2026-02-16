@@ -52,7 +52,6 @@ switch (modifier) {
       'handsontable',
       '@handsontable/angular-wrapper',
       '@handsontable/react-wrapper',
-      '@handsontable/vue',
       '@handsontable/vue3',
       'visual-tests',
       'examples',

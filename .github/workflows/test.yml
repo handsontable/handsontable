@@ -42,7 +42,6 @@ jobs:
       test-handsontable-e2e-min: ${{ steps.path-filter.outputs.test-handsontable-e2e-min }}
       test-angular-wrapper: ${{ steps.path-filter.outputs.test-angular-wrapper }}
       test-react-wrapper: ${{ steps.path-filter.outputs.test-react-wrapper }}
-      test-vue: ${{ steps.path-filter.outputs.test-vue }}
       test-vue3: ${{ steps.path-filter.outputs.test-vue3 }}
       test-visual: ${{ steps.path-filter.outputs.test-visual }}
     steps:
@@ -103,9 +102,6 @@ jobs:
             test-react-wrapper:
               - *hot-shared
               - 'wrappers/react-wrapper/**'
-            test-vue:
-              - *hot-shared
-              - 'wrappers/vue/**'
             test-vue3:
               - *hot-shared
               - 'wrappers/vue3/**'
@@ -610,44 +606,6 @@ jobs:
       - name: Test
         run: npm run in react-wrapper test
 
-  test-vue:
-    name: "[TEST] Wrapper: Vue"
-    runs-on: ubuntu-latest
-    needs: [ check-scope, build-handsontable-es-cjs ]
-    if: |
-      needs.check-scope.outputs.run-all == 'true' ||
-      needs.check-scope.outputs.test-vue == 'true'
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
-        name: Install pnpm
-
-      - name: Use Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-      - run: pnpm install && pnpm -r rebuild
-
-      - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
-        with:
-          name: handsontable-build-es-cjs
-          path: ./
-      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
-      - run: cd handsontable
-      - run: npm run in vue build
-      - run: tar --exclude='node_modules' -zcf vue.tar.gz ./wrappers/vue
-
-      - name: Upload the Vue2 build artifact
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # https://github.com/actions/upload-artifact/releases/tag/v4.3.1
-        with:
-          name: vue-build
-          path: vue.tar.gz
-      - name: Test
-        run: npm run in vue test
-
   test-vue3:
     name: "[TEST] Wrapper: Vue3"
     runs-on: ubuntu-latest
@@ -698,7 +656,6 @@ jobs:
       - test-handsontable-e2e-min-classic
       - test-angular-wrapper
       - test-react-wrapper
-      - test-vue
       - test-vue3
     if: |
       !failure() && !cancelled() && (
@@ -708,7 +665,6 @@ jobs:
         needs.test-handsontable-e2e-min-classic.result == 'success' ||
         needs.test-angular-wrapper.result == 'success' ||
         needs.test-react-wrapper.result == 'success' ||
-        needs.test-vue.result == 'success' ||
         needs.test-vue3.result == 'success' ||
         needs.check-scope.outputs.test-visual == 'true'
         )

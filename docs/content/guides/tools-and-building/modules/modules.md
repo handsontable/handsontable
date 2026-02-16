@@ -1133,8 +1133,7 @@ You can also use modules with Handsontable's framework wrappers:
 
 - [Using modules with React](@/react/guides/tools-and-building/modules/modules.md)
 - [Using modules with Angular](@/angular/guides/tools-and-building/modules/modules.md)
-- [Using modules with Vue 2](@/guides/integrate-with-vue/vue-modules/vue-modules.md)
-- [Using modules with Vue 3](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
+- [Using modules with Vue](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
 
 </div>
 
@@ -1153,8 +1152,7 @@ You can also use modules with Handsontable's framework wrappers:
 
 - [Modules in React](@/react/guides/tools-and-building/modules/modules.md)
 - [Modules in Angular](@/angular/guides/tools-and-building/modules/modules.md)
-- [Modules in Vue 2](@/guides/integrate-with-vue/vue-modules/vue-modules.md)
-- [Modules in Vue 3](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
+- [Modules in Vue](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
 
 :::
 

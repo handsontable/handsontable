@@ -95,23 +95,23 @@ const redirectsMap = {
   'frameworks-wrapper-for-react-redux-example': 'react-redux-example',
   'frameworks-wrapper-for-react-hot-reference': 'react-hot-reference',
 
-  // Framework wrappers - Vue
-  'frameworks-wrapper-for-vue-installation': 'vue-installation',
-  'frameworks-wrapper-for-vue-simple-example': 'vue-simple-example',
-  'frameworks-wrapper-for-vue-hot-column': 'vue-hot-column',
-  'frameworks-wrapper-for-vue-setting-up-a-locale': 'vue-setting-up-a-locale',
+  // Framework wrappers - Vue (legacy Vue 2 URLs redirect to Vue 3)
+  'frameworks-wrapper-for-vue-installation': 'vue3-installation',
+  'frameworks-wrapper-for-vue-simple-example': 'vue3-simple-example',
+  'frameworks-wrapper-for-vue-hot-column': 'vue3-hot-column',
+  'frameworks-wrapper-for-vue-setting-up-a-locale': 'vue3-setting-up-a-language',
   'frameworks-wrapper-for-vue-custom-id-class-style':
-    'vue-custom-id-class-style',
+    'vue3-custom-id-class-style',
   'frameworks-wrapper-for-vue-custom-context-menu-example':
-    'vue-custom-context-menu-example',
+    'vue3-custom-context-menu-example',
   'frameworks-wrapper-for-vue-custom-editor-example':
-    'vue-custom-editor-example',
+    'vue3-custom-editor-example',
   'frameworks-wrapper-for-vue-custom-renderer-example':
-    'vue-custom-renderer-example',
+    'vue3-custom-renderer-example',
   'frameworks-wrapper-for-vue-language-change-example':
-    'vue-language-change-example',
-  'frameworks-wrapper-for-vue-vuex-example': 'vue-vuex-example',
-  'frameworks-wrapper-for-vue-hot-reference': 'vue-hot-reference',
+    'vue3-language-change-example',
+  'frameworks-wrapper-for-vue-vuex-example': 'vue3-vuex-example',
+  'frameworks-wrapper-for-vue-hot-reference': 'vue3-hot-reference',
 
   // Framework wrappers - Angular
   'frameworks-wrapper-for-angular-installation': 'angular-installation',
@@ -187,24 +187,24 @@ const redirectsMapfor12up = {
   'frameworks-wrapper-for-react-redux-example': 'redux',
   'frameworks-wrapper-for-react-hot-reference': 'instance-methods',
 
-  // Framework wrappers - Vue
-  'frameworks-wrapper-for-vue-installation': 'vue-installation',
-  'frameworks-wrapper-for-vue-simple-example': 'vue-basic-example',
-  'frameworks-wrapper-for-vue-hot-column': 'vue-hot-column',
+  // Framework wrappers - Vue (legacy Vue 2 URLs redirect to Vue 3)
+  'frameworks-wrapper-for-vue-installation': 'vue3-installation',
+  'frameworks-wrapper-for-vue-simple-example': 'vue3-simple-example',
+  'frameworks-wrapper-for-vue-hot-column': 'vue3-hot-column',
   'frameworks-wrapper-for-vue-setting-up-a-locale':
-    'vue-setting-up-a-translation',
+    'vue3-setting-up-a-language',
   'frameworks-wrapper-for-vue-custom-id-class-style':
-    'vue-custom-id-class-style',
+    'vue3-custom-id-class-style',
   'frameworks-wrapper-for-vue-custom-context-menu-example':
-    'vue-custom-context-menu-example',
+    'vue3-custom-context-menu-example',
   'frameworks-wrapper-for-vue-custom-editor-example':
-    'vue-custom-editor-example',
+    'vue3-custom-editor-example',
   'frameworks-wrapper-for-vue-custom-renderer-example':
-    'vue-custom-renderer-example',
+    'vue3-custom-renderer-example',
   'frameworks-wrapper-for-vue-language-change-example':
-    'vue-language-change-example',
-  'frameworks-wrapper-for-vue-vuex-example': 'vue-vuex-example',
-  'frameworks-wrapper-for-vue-hot-reference': 'vue-hot-reference',
+    'vue3-language-change-example',
+  'frameworks-wrapper-for-vue-vuex-example': 'vue3-vuex-example',
+  'frameworks-wrapper-for-vue-hot-reference': 'vue3-hot-reference',
 
   // Framework wrappers - Angular
   'frameworks-wrapper-for-angular-installation': 'angular-installation',

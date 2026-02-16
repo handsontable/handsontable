@@ -58,7 +58,7 @@
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-angular-language-change-example.html$/, '/docs/angular-language-change-example/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-angular-hot-reference.html$/, '/docs/angular-hot-reference/'],
     // frameworks Vue
-    [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-vue-installation.html$/, '/docs/vue-installation/'],
+    [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-vue-installation.html$/, '/docs/vue3-installation/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-vue-simple-example.html$/, '/docs/vue-simple-example/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-vue-hot-column.html$/, '/docs/vue-hot-column/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-vue-setting-up-a-locale.html$/, '/docs/vue-setting-up-a-language/'],

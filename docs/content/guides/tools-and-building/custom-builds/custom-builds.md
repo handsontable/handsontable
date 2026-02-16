@@ -36,8 +36,7 @@ The Handsontable repository is a monorepo that contains the following projects:
 | `handsontable`          | `/handsontable`           | Main Handsontable project                                                                            |
 | `@handsontable/react-wrapper`  | `/wrappers/react-wrapper` | [React wrapper](@/react/guides/getting-started/introduction/introduction.md) |
 | `@handsontable/angular-wrapper` | `/wrappers/angular-wrapper`       | [Angular (v16+) wrapper](@/angular/guides/getting-started/introduction/introduction.md)              |
-| `@handsontable/vue`     | `/wrappers/vue`           | [Vue 2 wrapper](@/javascript/guides/integrate-with-vue/vue-installation/vue-installation.md)         |
-| `@handsontable/vue3`    | `/wrappers/vue3`          | [Vue 3 wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)      |      |
+| `@handsontable/vue3`    | `/wrappers/vue3`          | [Vue wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)      |
 
 All the projects are released together, under the same version number.
 But each project has its own [building](#build-processes) and [testing](@/guides/tools-and-building/testing/testing.md) processes.
@@ -82,8 +81,7 @@ Each Handsontable [project](#monorepo) has its own building processes defined in
 | `/handsontable/package.json`           | The JavaScript package                              |
 | `/wrappers/react-wrapper/package.json` | The React package                      |
 | `/wrappers/angular-wrapper/package.json`       | The Angular (v16+) package                          |
-| `/wrappers/vue/package.json`           | The Vue 2 package                                   |
-| `/wrappers/vue3/package.json`          | The Vue 3 package                                   |
+| `/wrappers/vue3/package.json`          | The Vue package                                   |
 
 ## Run your first build
 
@@ -254,73 +252,25 @@ From the `/wrappers/angular-wrapper` directory, You can also run individual Angu
 
 ::: only-for javascript
 
-### Build the Vue 2 package
+### Build the Vue package
 
-To build the Vue 2 package:
-
-1. Make sure you meet the [build requirements](#build-requirements).
-2. Go to `/wrappers/vue`.
-3. Run `npm run build`.<br>Only the Vue 2 package builds.
-
-To build the Vue 2 package from the root directory:
+To build the Vue package:
 
 1. Make sure you meet the [build requirements](#build-requirements).
-2. Go to the root directory.
-3. Run `npm run in vue build`.<br>Only the Vue 2 package builds.
+2. Go to `/wrappers/vue3`.
+3. Run `npm run build`.<br>Only the Vue package builds.
 
-#### Vue 2 build tasks
-
-From the `/wrappers/vue` directory, you can also run individual Vue 2 `build` tasks:
-
-::: details Vue 2 build tasks
-
-`npm run build:commonjs`
-
-  - Transpiles the files into the CommonJS format.
-  - Places the output in `/wrappers/vue/commonjs/vue-handsontable.js`
-
-`npm run build:umd`
-
-  - Creates the following bundles compatible with the Universal Module Definition:
-    - `/wrappers/vue/dist/vue-handsontable.js`
-    - `/wrappers/vue/dist/vue-handsontable.js.map`
-
-`npm run build:es`
-
-  - Transpiles the files into the ESM format.
-  - Places the output in `/wrappers/vue/es/vue-handsontable.mjs`
-
-`npm run build:min`
-
-  - Creates the minified bundles:
-    - `/wrappers/vue/dist/vue-handsontable.min.js`
-    - `/wrappers/vue/dist/vue-handsontable.min.js.map`
-
-:::
-
-:::
-
-::: only-for javascript
-
-### Build the Vue 3 package
-
-To build the Vue 3 package:
-
-1. Make sure you meet the [build requirements](#build-requirements).
-2. Go to `/wrappers/vue3 `.
-3. Run `npm run build`.<br>Only the Vue 3 package builds.
-
-To build the Vue 3 package from the root directory:
+To build the Vue package from the root directory:
 
 1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
-3. Run `npm run in vue3 build`.<br>Only the Vue 3 package builds.
+3. Run `npm run in vue3 build`.<br>Only the Vue package builds.
 
-#### Vue 3 build tasks
+#### Vue build tasks
 
-From the `/wrappers/vue3` directory, you can also run individual Vue 3 `build` tasks:
+From the `/wrappers/vue3` directory, you can also run individual Vue `build` tasks:
 
-::: details Vue 3 build tasks
+::: details Vue build tasks
 
 `npm run build:commonjs`
 

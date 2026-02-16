@@ -12,7 +12,6 @@ const SYMLINK_PATHS = [
   { source: '../wrappers/react-wrapper/', target: './.vuepress/public/@handsontable/react-wrapper/' },
   // eslint-disable-next-line max-len
   { source: '../wrappers/angular-wrapper/dist/hot-table/', target: './.vuepress/public/@handsontable/angular-wrapper/' },
-  { source: '../wrappers/vue/', target: './.vuepress/public/@handsontable/vue/' },
   { source: '../wrappers/vue3/', target: './.vuepress/public/@handsontable/vue3/' },
 ];
 
