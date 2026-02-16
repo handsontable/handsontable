@@ -8,7 +8,6 @@ import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 export const PLUGIN_KEY = 'manualRowResize';
 export const PLUGIN_PRIORITY = 30;
-const PERSISTENT_STATE_KEY = 'manualRowHeights';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -17,8 +16,7 @@ const PERSISTENT_STATE_KEY = 'manualRowHeights';
  * @class ManualRowResize
  *
  * @description
- * This plugin allows to change rows height. To make rows height persistent the {@link Options#persistentState}
- * plugin should be enabled.
+ * This plugin allows to change rows height.
  *
  * The plugin creates additional components to make resizing possibly using user interface:
  * - handle - the draggable element that sets the desired height of the row.
@@ -167,31 +165,6 @@ export class ManualRowResize extends BasePlugin {
 
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     super.disablePlugin();
-  }
-
-  /**
-   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be
-   * enabled).
-   *
-   * @fires Hooks#persistentStateSave
-   */
-  saveManualRowHeights() {
-    this.hot.runHooks('persistentStateSave', PERSISTENT_STATE_KEY, this.#rowHeightsMap.getValues());
-  }
-
-  /**
-   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option
-   * has be enabled).
-   *
-   * @returns {Array}
-   * @fires Hooks#persistentStateLoad
-   */
-  loadManualRowHeights() {
-    const storedState = {};
-
-    this.hot.runHooks('persistentStateLoad', PERSISTENT_STATE_KEY, storedState);
-
-    return storedState.value;
   }
 
   /**
@@ -548,8 +521,6 @@ export class ManualRowResize extends BasePlugin {
         render();
       }
 
-      this.saveManualRowHeights();
-
       this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, false);
     };
 
@@ -641,15 +612,9 @@ export class ManualRowResize extends BasePlugin {
    */
   #onMapInit() {
     const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
-    const loadedManualRowHeights = this.loadManualRowHeights();
 
     this.hot.batchExecution(() => {
-      if (typeof loadedManualRowHeights !== 'undefined') {
-        loadedManualRowHeights.forEach((height, index) => {
-          this.#rowHeightsMap.setValueAtIndex(index, height);
-        });
-
-      } else if (Array.isArray(initialSetting)) {
+      if (Array.isArray(initialSetting)) {
 
         initialSetting.forEach((height, index) => {
           this.#rowHeightsMap.setValueAtIndex(index, height);

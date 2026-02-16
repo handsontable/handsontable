@@ -38,7 +38,6 @@ import { Settings as MultiColumnSortingSettings } from './plugins/multiColumnSor
 import { Settings as NestedHeadersSettings } from './plugins/nestedHeaders';
 import { Settings as NestedRowsSettings } from './plugins/nestedRows';
 import { Settings as PaginationSettings } from './plugins/pagination';
-import { Settings as PersistentStateSettings } from './plugins/persistentState';
 import { Settings as SearchSettings } from './plugins/search';
 import { Settings as TrimRowsSettings } from './plugins/trimRows';
 import { Settings as DialogSettings } from './plugins/dialog';
@@ -196,7 +195,6 @@ export interface GridSettings extends Events {
   observeDOMVisibility?: boolean;
   outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
   pagination?: PaginationSettings;
-  persistentState?: PersistentStateSettings;
   placeholder?: string;
   placeholderCellClassName?: string;
   preventOverflow?: boolean | 'vertical' | 'horizontal';

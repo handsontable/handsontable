@@ -258,7 +258,6 @@ const multiColumnSorting: BasePlugin = hot.getPlugin('multiColumnSorting');
 const multipleSelectionHandles: BasePlugin = hot.getPlugin('multipleSelectionHandles');
 const nestedHeaders: BasePlugin = hot.getPlugin('nestedHeaders');
 const nestedRows: BasePlugin = hot.getPlugin('nestedRows');
-const persistentState: BasePlugin = hot.getPlugin('persistentState');
 const search: BasePlugin = hot.getPlugin('search');
 const touchScroll: BasePlugin = hot.getPlugin('touchScroll');
 const trimRows: BasePlugin = hot.getPlugin('trimRows');

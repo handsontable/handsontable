@@ -155,7 +155,6 @@ const redirectsMap = {
   MultiColumnSorting: 'api/multi-column-sorting',
   NestedHeaders: 'api/nested-headers',
   NestedRows: 'api/nested-rows',
-  PersistentState: 'api/persistent-state',
   Search: 'api/search',
   TrimRows: 'api/trim-rows',
   UndoRedo: 'api/undo-redo',

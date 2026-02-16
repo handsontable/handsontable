@@ -208,7 +208,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     showNavigation: true,
     uiContainer: document.body,
   }),
-  persistentState: true,
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
   preventOverflow: oneOf(true, 'vertical', 'horizontal'),
@@ -763,7 +762,4 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const rowDelta: number = delta.row;
     const colDelta: number = delta.row;
   },
-  persistentStateLoad: () => {},
-  persistentStateReset: () => {},
-  persistentStateSave: () => {},
 };
