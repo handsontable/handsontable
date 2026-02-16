@@ -6263,6 +6263,78 @@ export default () => {
      */
     wordWrap: true,
 
+    /**
+     * The `sanitizer` option configures the function used to sanitize HTML before it is written to the DOM.
+     * Whenever Handsontable sets HTML (e.g. cell content, headers, context menu labels, dialog content,
+     * paste from clipboard), it can pass the string through this function first. Sanitization is important
+     * when content comes from users or external sources to prevent XSS (e.g. script injection, event handlers).
+     * If no sanitizer is set, HTML is applied as-is. Set a sanitizer when you need to allow rich content
+     * while stripping or neutralizing dangerous markup.
+     *
+     * The function receives the raw HTML string and an optional second argument (source) indicating where
+     * the content is used (e.g. `'innerHTML'`, `'CopyPaste.paste'`), so you can apply different rules per source.
+     * It must return a string that is safe to assign to `innerHTML`.
+     *
+     * This option is only respected when set in the table settings. It does not work when defined per column
+     * or per cell (e.g. in `columns` or cell meta).
+     *
+     * @since 17.0.0
+     * @memberof Options#
+     * @type {function(string, string): string}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // Allowlist-based sanitization based on the DOMPurify library
+     * import DOMPurify from 'dompurify';
+     *
+     * sanitizer: (content, source) {
+     *   if (source === 'CopyPaste.paste') {
+     *     return DOMPurify.sanitize(content, {
+     *       ADD_TAGS: ['meta'],
+     *       ADD_ATTR: ['content'],
+     *       FORCE_BODY: true,
+     *     });
+     *   }
+     *
+     *   return DOMPurify.sanitize(content);
+     * },
+     * ```
+     *
+     * @example
+     * ```js
+     * // Maximum safety: strip all tags and escape output (no rich HTML)
+     * sanitizer: (content, source) => {
+     *   const tpl = document.createElement('template');
+     *
+     *   tpl.innerHTML = content;
+     *
+     *   const text = tpl.content.textContent ?? '';
+     *
+     *   return text
+     *     .replace(/&/g, '&amp;')
+     *     .replace(/</g, '&lt;')
+     *     .replace(/>/g, '&gt;')
+     *     .replace(/"/g, '&quot;')
+     *     .replace(/'/g, '&#39;');
+     * },
+     * ```
+     *
+     * @example
+     * ```js
+     * // Trusted Types: wrap sanitization in a policy so the sink accepts the result.
+     * // Add the policy name to the CSP trusted-types directive (e.g. trusted-types default handsontable).
+     * const policy = window.trustedTypes?.createPolicy('handsontable', {
+     *   createHTML: (input) => DOMPurify.sanitize(input),
+     * });
+     *
+     * sanitizer: (content, source) =>
+     *   policy ? policy.createHTML(content) : DOMPurify.sanitize(content),
+     * ```
+     */
+    sanitizer: undefined,
+
     /* eslint-enable jsdoc/require-description-complete-sentence */
   };
 };

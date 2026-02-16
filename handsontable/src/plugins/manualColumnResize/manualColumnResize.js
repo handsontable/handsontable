@@ -570,7 +570,7 @@ export class ManualColumnResize extends BasePlugin {
 
     // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
     // shouldn't be drawn just after removing it.
-    this.hot._registerImmediate(() => {
+    this.hot._registerMicrotask(() => {
       this.#isTriggeredByRMB = false;
     });
   }

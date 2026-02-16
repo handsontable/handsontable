@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a new `sanitizer` table option",
+  "type": "added",
+  "issueOrPR": 12016,
+  "breaking": false,
+  "framework": "none"
+}

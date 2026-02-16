@@ -1,16 +1,10 @@
+const { BROWSERS_LIST } = require('./browser-targets.js');
+
 const babelPresetConfig = () => ({
-  targets: {
-    chrome: '110',
-    firefox: '110',
-    safari: '14.1',
-    node: '11', // support for Webpack 4 and similar oldish bundlers
-  },
+  targets: `${BROWSERS_LIST.join(', ')}, Node >= 11`, // (Node 11) support for Webpack 4 and similar oldish bundlers
   modules: false,
   debug: false,
-  useBuiltIns: 'usage',
-  corejs: {
-    version: '3.37'
-  }
+  useBuiltIns: false,
 });
 
 module.exports = {
@@ -20,5 +14,5 @@ module.exports = {
   plugins: [
     ['transform-inline-environment-variables'],
     '@babel/plugin-syntax-jsx'
-  ]
+  ],
 };
