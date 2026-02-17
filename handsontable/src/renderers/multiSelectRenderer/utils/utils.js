@@ -141,11 +141,13 @@ export function registerChipRemovingEvents(hotInstance, rendererType) {
 
     const rowIndex = chip.dataset.row;
     const columnProp = chip.dataset.prop;
-    const currentData = hotInstance.getSourceDataAtCell(rowIndex, columnProp);
+    const physicalRow = hotInstance.toPhysicalRow(rowIndex);
+    const physicalColumn = hotInstance.toPhysicalColumn(columnProp);
+    const currentData = hotInstance.getSourceDataAtCell(physicalRow, physicalColumn);
     const keyToRemove = chip.dataset.key;
     const newData = removeValueByKey(parseValue(currentData), keyToRemove);
 
-    hotInstance.setSourceDataAtCell(rowIndex, columnProp, newData, `${rendererType}-renderer`);
+    hotInstance.setSourceDataAtCell(physicalRow, physicalColumn, newData, `${rendererType}-renderer`);
     hotInstance.render();
   });
 

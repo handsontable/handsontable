@@ -37,7 +37,7 @@ The following example implements the `@handsontable/react-wrapper` component wit
 
 ## Simple example
 
-::: example #example1 :react-redux --js 1 --ts 2
+::: example #example1 :react-redux --js 1 --ts 2 --deps redux@4 react-redux@7.2.4
 
 @[code](@/content/guides/getting-started/react-redux/react/example1.jsx)
 @[code](@/content/guides/getting-started/react-redux/react/example1.tsx)
@@ -52,7 +52,7 @@ This example shows:
 
 The editor component changes the behavior of the renderer component, by passing information through Redux (and the `connect()` method of `react-redux`).
 
-::: example #example6 :react-advanced --js 1 --ts 2
+::: example #example6 :react-advanced --js 1 --ts 2 --deps redux@4 react-redux@7.2.4 react-colorful@5.5.1 react-star-rating-component@1.4.1
 
 @[code](@/content/guides/getting-started/react-redux/react/example6.jsx)
 @[code](@/content/guides/getting-started/react-redux/react/example6.tsx)

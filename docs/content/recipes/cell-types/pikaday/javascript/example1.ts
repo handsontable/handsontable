@@ -1,7 +1,5 @@
 import Handsontable from "handsontable/base";
 import { registerAllModules } from "handsontable/registry";
-import "handsontable/styles/handsontable.css";
-import "handsontable/styles/ht-theme-main.css";
 import moment from "moment";
 import Pikaday from "@handsontable/pikaday";
 import { CellProperties } from "handsontable/settings";

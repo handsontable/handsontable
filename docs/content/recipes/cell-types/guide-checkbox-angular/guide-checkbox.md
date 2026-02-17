@@ -75,8 +75,6 @@ import { Component } from "@angular/core";
 import { HotTableModule, HotCellEditorAdvancedComponent, GridSettings } from "@handsontable/angular-wrapper";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { registerAllModules } from "handsontable/registry";
-import "handsontable/styles/handsontable.css";
-import "handsontable/styles/ht-theme-main.css";
 
 registerAllModules();
 ```
