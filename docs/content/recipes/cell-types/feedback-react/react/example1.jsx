@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useContext } from 'react';
 import { HotTable, HotColumn, EditorComponent, EditorContext } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -102,7 +100,6 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       licenseKey="non-commercial-and-evaluation"
       height="auto"
-      themeName="ht-theme-main"
       data={data}
       colHeaders={true}
     >

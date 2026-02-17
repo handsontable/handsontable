@@ -52,7 +52,7 @@ npm install flatpickr date-fns
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps date-fns flatpickr
 
 @[code](@/content/recipes/cell-types/flatpickr/javascript/example1.js)
 @[code](@/content/recipes/cell-types/flatpickr/javascript/example1.ts)
@@ -67,8 +67,6 @@ npm install flatpickr date-fns
 ```typescript
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import { format, isDate } from 'date-fns';
 import flatpickr from 'flatpickr';
 
@@ -354,7 +352,6 @@ const cellDefinition = {
 const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
-  themeName: 'ht-theme-main',
   data: [
     { id: 1, itemName: 'Lunar Core', restockDate: '2025-08-01' },
     { id: 2, itemName: 'Zero Thrusters', restockDate: '2025-09-15' },
