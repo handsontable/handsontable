@@ -45,6 +45,46 @@ describe('Core.themeManager', () => {
       expect(hot.themeManager).toBeDefined();
     });
 
+    it('should initialize themeManager when a plain theme config object is passed (without prior registerTheme)', async() => {
+      const plainThemeConfig = createValidThemeConfig({ name: 'plain-config-theme' });
+
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        theme: plainThemeConfig,
+      }, true);
+
+      expect(hot.themeManager).not.toBeNull();
+      expect(hot.themeManager).toBeDefined();
+      expect(hot.themeManager.getClassName()).toBe('ht-theme-plain-config-theme');
+    });
+
+    it('should set the correct theme class when passing a plain theme config object', async() => {
+      const plainThemeConfig = createValidThemeConfig({ name: 'plain-class-theme' });
+
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        theme: plainThemeConfig,
+      }, true);
+
+      expect(hot.themeManager.getClassName()).toBe('ht-theme-plain-class-theme');
+      expect(getCurrentThemeName()).toBe('ht-theme-plain-class-theme');
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-plain-class-theme')).toBe(true);
+    });
+
+    it('should inject theme styles when passing a plain theme config object', async() => {
+      const plainThemeConfig = createValidThemeConfig({ name: 'plain-styles-theme' });
+
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        theme: plainThemeConfig,
+      }, true);
+
+      const styleElement = hot.rootWrapperElement.querySelector('style');
+
+      expect(styleElement).not.toBeNull();
+      expect(styleElement.textContent).toContain('.ht-theme-plain-styles-theme');
+    });
+
     it('should set the correct theme class name based on the theme config', async() => {
       const testTheme = Handsontable.themes.registerTheme(createValidThemeConfig({
         name: 'my-custom-theme',
@@ -148,6 +188,27 @@ describe('Core.themeManager', () => {
 
       expect(hot.themeManager).not.toBeNull();
       expect(hot.themeManager.getClassName()).toBe('ht-theme-update-init-theme');
+    });
+
+    it('should initialize themeManager when plain theme config object is passed via updateSettings', async() => {
+      simulateModernThemeStylesheet(spec().$container);
+
+      const hot = handsontable({
+        themeName: 'ht-theme-sth',
+        data: createSpreadsheetData(5, 5),
+      }, true);
+
+      expect(hot.themeManager).toBeNull();
+
+      const plainThemeConfig = createValidThemeConfig({ name: 'update-plain-config-theme' });
+
+      await updateSettings({
+        theme: plainThemeConfig,
+      });
+
+      expect(hot.themeManager).not.toBeNull();
+      expect(hot.themeManager.getClassName()).toBe('ht-theme-update-plain-config-theme');
+      expect(getCurrentThemeName()).toBe('ht-theme-update-plain-config-theme');
     });
 
     it('should update existing themeManager when new theme object is passed', async() => {

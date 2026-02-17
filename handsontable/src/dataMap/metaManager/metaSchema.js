@@ -5500,6 +5500,7 @@ export default () => {
      * | ------------------------------------- | ------------------------------------------------------------------------------------- |
      * | `undefined` (default)                 | Don't apply any theme and use the default main theme                                  |
      * | A string (e.g., `'ht-theme-horizon'`) | Apply a registered theme by name (required to import CSS file)                        |
+     * | A plain theme config object           | Apply a theme with default settings (import and pass the config, e.g. `horizonTheme`) |
      * | A `ThemeBuilder` object               | Apply a theme with runtime configuration (recommended)                                |
      *
      * When using a `ThemeBuilder` object, you can configure the theme at runtime using these methods:
@@ -5522,25 +5523,38 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable a theme by name (required to import CSS file)
+     * // Enable a theme by class name (requires loading the theme CSS)
      * theme: 'ht-theme-horizon',
+     * ```
+     * @example
+     * ```js
+     * // Pass a plain theme config object
+     * import { horizonTheme } from 'handsontable/themes';
      *
-     * // enable a theme using a ThemeBuilder object (recommended)
-     * const horizonTheme = registerTheme(horizonTheme);
+     * const hot = new Handsontable(container, {
+     *   theme: horizonTheme,
+     * });
+     * ```
      *
-     * // configure the theme settings at runtime
-     * horizonTheme.setColorScheme('dark');
-     * horizonTheme.setDensityType('compact');
-     * horizonTheme.params({
-     *  tokens: {
-     *    fontSize: '14px',
-     *    iconSize: 'size_5',
-     *    borderColor: ['colors.palette.100', 'colors.palette.800'],
-     *  },
-     * })
+     * @example
+     * ```js
+     * // Pass a ThemeBuilder object (for customization before initialization)
+     * import { horizonTheme, registerTheme } from 'handsontable/themes';
      *
-     * // use the configured theme
-     * theme: horizonTheme,
+     * const theme = registerTheme(horizonTheme)
+     *   .setColorScheme('dark')
+     *   .setDensityType('compact')
+     *   .params({
+     *     tokens: {
+     *       fontSize: '14px',
+     *       iconSize: 'size_5',
+     *       borderColor: ['colors.palette.100', 'colors.palette.800'],
+     *     },
+     *   });
+     *
+     * const hot = new Handsontable(container, {
+     *   theme,
+     * });
      * ```
      */
     theme: undefined,

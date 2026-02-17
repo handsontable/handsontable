@@ -1383,6 +1383,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
 
       themeObject = getTheme('main');
+    } else if (typeof theme.getThemeConfig !== 'function') {
+      themeObject = registerTheme(theme);
     } else {
       themeObject = theme;
     }
