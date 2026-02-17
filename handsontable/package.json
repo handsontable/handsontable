@@ -142,7 +142,7 @@
     "jest-environment-jsdom": "^27.5.1",
     "jest-matcher-utils": "^27.5.1",
     "jsdom": "^24.0.0",
-    "loader-utils": "^1.1.0",
+    "loader-utils": "^1.4.2",
     "lodash": "^4.17.20",
     "lodash.debounce": "^4.0.8",
     "mini-css-extract-plugin": "^2.7.6",
