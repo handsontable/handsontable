@@ -61,6 +61,11 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
 
     // import current version
     if (!script) {
+      // react-colorful UMD expects window.react; React UMD sets window.React
+      if (dep === 'react-colorful' && typeof _document.defaultView.React !== 'undefined') {
+        _document.defaultView.react = _document.defaultView.React;
+      }
+
       script = _document.createElement('script');
       script.src = jsUrl;
       script.id = `script-${id}`;

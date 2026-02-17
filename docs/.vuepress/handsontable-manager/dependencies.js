@@ -128,7 +128,7 @@ const buildDependencyGetter = (version) => {
       'react-dom': ['https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js', ['ReactDOM']],
       'hot-react': [getPackageUrls('@handsontable/react-wrapper', version, 'js'), ['Handsontable.react']],
       'react-redux': ['https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.2.4/react-redux.min.js'],
-      'react-colorful': ['https://cdn.jsdelivr.net/npm/react-colorful@5.5.1/dist/index.min.js'],
+      'react-colorful': ['https://cdn.jsdelivr.net/npm/react-colorful@5.5.1/dist/index.umd.js', ['react-colorful']],
       'react-star-rating-component': ['https://cdn.jsdelivr.net/npm/react-star-rating-component@1.4.1/dist/react-star-rating-component.min.js'],
       numbro: ['https://cdn.jsdelivr.net/npm/numbro@2.5.0/dist/languages.min.js', ['numbro.allLanguages', 'numbro']],
       redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js', []],
