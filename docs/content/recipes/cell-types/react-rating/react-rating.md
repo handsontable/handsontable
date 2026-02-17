@@ -45,7 +45,7 @@ A cell that:
 
 ::: only-for react
 
-::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps react-star-rating-component
 
 @[code](@/content/recipes/cell-types/react-rating/react/example1.css)
 @[code](@/content/recipes/cell-types/react-rating/react/example1.jsx)
@@ -72,8 +72,6 @@ npm install @handsontable/react-wrapper react-star-rating-component
 ```tsx
 import { HotTable, HotColumn, EditorComponent } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import StarRatingComponent from 'react-star-rating-component';
 
 registerAllModules();
@@ -179,7 +177,6 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       licenseKey="non-commercial-and-evaluation"
       height="auto"
-      themeName="ht-theme-main"
       data={data}
       colHeaders={true}
     >

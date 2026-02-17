@@ -1,7 +1,5 @@
 import { HotTable, HotColumn, EditorComponent } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import { HexColorPicker } from 'react-colorful';
 
 registerAllModules();
@@ -50,7 +48,6 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       licenseKey="non-commercial-and-evaluation"
       height="auto"
-      themeName="ht-theme-main"
       data={data}
       colHeaders={true}
     >

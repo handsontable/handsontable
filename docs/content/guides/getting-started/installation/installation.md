@@ -71,32 +71,6 @@ pnpm add handsontable @handsontable/angular-wrapper
   </code-block>
 </code-group>
 
-## Import Handsontable's CSS
-
-Import Handsontable's CSS into your application to `angular.json`.
-
-```json
-"projects": {
-    "<app_name>": {
-      "architect": {
-        "build": {
-          "options": {
-            "styles": [
-              "handsontable/styles/handsontable.min.css",
-              "handsontable/styles/ht-theme-main.min.css"
-            ]
-          }
-        }
-      }
-    }
-  }
-```
-
-Another option for adding CSS to your application is to import them in the `styles.scss` file.
-
-```scss
-```
-
 ## Register Handsontable's modules
 
 Import and register all of Handsontable's modules with a single function call (for example, in `app.component.ts`):
@@ -409,13 +383,6 @@ To install Handsontable locally using a package manager, run one of these comman
 
   </code-block>
 </code-group>
-
-## Import Handsontable's CSS
-
-Import Handsontable's CSS into your application.
-
-```jsx
-```
 
 ## Register Handsontable's modules
 
