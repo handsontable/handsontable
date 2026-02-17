@@ -81,10 +81,6 @@ To get the base JavaScript module, import Handsontable from `handsontable/base` 
 import Handsontable from 'handsontable/base';
 ```
 
-Handsontable's CSS stylesheets are not modular. You need to import them separately:
-
-- [Import Handsontable's CSS](@/guides/getting-started/installation/installation.md#import-handsontable-s-css)
-
 Now, you're ready to use any [optional modules](#optional-modules) of your choice.
 
 ## Optional modules

@@ -1,7 +1,5 @@
 import Handsontable from "handsontable/base";
 import { registerAllModules } from "handsontable/registry";
-import "handsontable/styles/handsontable.css";
-import "handsontable/styles/ht-theme-main.css";
 import { format, isDate } from "date-fns";
 import flatpickr from "flatpickr";
 import { CellProperties } from "handsontable/settings";
@@ -425,7 +423,6 @@ const cellDefinition: Pick<
 
 // Define configuration options for the Handsontable
 const hotOptions: Handsontable.GridSettings = {
-  themeName: "ht-theme-main",
   data,
   colHeaders: ["ID", "Item Name", "Restock Date UE", "Restock Date US"],
   autoRowSize: true,
