@@ -161,6 +161,42 @@ describe('multiSelectRenderer', () => {
         expect(chipsContainer.find('.ht-multi-select-overflow').length).toEqual(1);
         expect(chipsContainer.find('.ht-multi-select-overflow').text()).toEqual('+18');
       });
+
+      it('should render chips reflecting the underlying cell data when the column is sorted', async() => {
+        handsontable({
+          data: [
+            [choices.slice(0, 2)],
+            [choices.slice(2, 4)],
+            [choices.slice(0, 3)],
+          ],
+          columns: [
+            {
+              type: 'multiselect',
+              source: choices,
+              width: 500,
+            },
+          ],
+          columnSorting: true,
+        });
+
+        getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+        for (let visualRow = 0; visualRow < 3; visualRow++) {
+          const physicalRow = hot().toPhysicalRow(visualRow);
+          const sourceData = getSourceDataAtCell(physicalRow, 0);
+          const chipsContainer =
+            $(`table.htCore tr:eq(${visualRow}) td:eq(0) .ht-multi-select-chips-container`);
+          const renderedChips = chipsContainer.find('.ht-multi-select-chip');
+
+          expect(renderedChips.length).toEqual(sourceData.length);
+
+          for (let i = 0; i < sourceData.length; i++) {
+            const expectedText = sourceData[i].value || sourceData[i];
+
+            expect(renderedChips.eq(i).text()).toEqual(expectedText);
+          }
+        }
+      });
     });
 
     describe('removing a chip', () => {
@@ -233,6 +269,61 @@ describe('multiSelectRenderer', () => {
 
         expect(chipsContainer.find('.ht-multi-select-overflow').length).toEqual(1);
         expect(chipsContainer.find('.ht-multi-select-overflow:visible').size()).toEqual(0);
+      });
+
+      it('should remove the correct entry from the underlying cell data when the column is sorted', async() => {
+        const firstRowChoices = choices.slice(0, 2);
+        const secondRowChoices = choices.slice(1, 4);
+
+        handsontable({
+          data: [
+            [firstRowChoices],
+            [secondRowChoices],
+          ],
+          columns: [
+            {
+              type: 'multiselect',
+              source: choices,
+              width: 500,
+            },
+          ],
+          columnSorting: true,
+        });
+
+        getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+        const physicalRow = hot().toPhysicalRow(0);
+        const sourceDataBefore = getSourceDataAtCell(physicalRow, 0);
+
+        let chipsContainer =
+          $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+        let renderedChips = chipsContainer.find('.ht-multi-select-chip');
+
+        expect(renderedChips.length).toEqual(sourceDataBefore.length);
+
+        const removeButton = renderedChips.eq(0).find('.ht-multi-select-chip-remove');
+        const removedChipText = renderedChips.eq(0).text();
+
+        removeButton.click();
+
+        const sourceDataAfter = getSourceDataAtCell(physicalRow, 0);
+        const expectedSourceData = sourceDataBefore.filter(
+          choice => (choice.value || choice) !== removedChipText
+        );
+
+        expect(sourceDataAfter).toEqual(expectedSourceData);
+
+        chipsContainer =
+          $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+        renderedChips = chipsContainer.find('.ht-multi-select-chip');
+
+        expect(renderedChips.length).toEqual(expectedSourceData.length);
+
+        for (let i = 0; i < expectedSourceData.length; i++) {
+          const expectedText = expectedSourceData[i].value || expectedSourceData[i];
+
+          expect(renderedChips.eq(i).text()).toEqual(expectedText);
+        }
       });
     });
   });
