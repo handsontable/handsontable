@@ -1,8 +1,11 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import numbro from 'numbro';
 
+// Register all Handsontable's modules.
+registerAllModules();
+
 const config = {
-  themeName: 'ht-theme-main',
   data: [
     ['', 'Tesla', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
     ['2017', 0, 2941, 4303, 354, 5814],

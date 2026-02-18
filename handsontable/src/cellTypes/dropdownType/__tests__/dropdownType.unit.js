@@ -60,6 +60,8 @@ describe('DropdownCellType', () => {
         editor: getEditor('dropdown'),
         renderer: getRenderer('dropdown'),
         validator: getValidator('dropdown'),
+        valueGetter: DropdownCellType.valueGetter,
+        valueSetter: DropdownCellType.valueSetter,
         filter: false,
         strict: true,
       });

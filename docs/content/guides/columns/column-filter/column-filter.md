@@ -225,6 +225,92 @@ useful items in the menu such as **Clear column**.
 
 :::
 
+### Enable filtering within already filtered results
+
+To apply filters based on the search input, set `searchMode` to `'apply'`. You can then apply the filter by either pressing the `Enter` key while the search input is focused or by clicking the `OK` button.
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  // enable filtering
+  filters: {
+    searchMode: 'apply'
+  },
+  // enable the column menu
+  dropdownMenu: true,
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  // enable filtering
+  filters={{
+    searchMode: 'apply'
+  }}
+  // enable the column menu
+  dropdownMenu={true}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+const configurationOptions = {
+  // enable filtering
+  filters: {
+    searchMode: 'apply'
+  },
+  // enable the column menu
+  dropdownMenu: true,
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for javascript
+
+::: example #exampleSearchMode --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-filter/javascript/exampleSearchMode.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleSearchMode.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleSearchMode.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleSearchMode :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-filter/react/exampleSearchMode.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleSearchMode.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example12 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example12.ts)
+@[code](@/content/guides/columns/column-filter/angular/example12.html)
+
+:::
+
+:::
 
 ## Filter different types of data
 
@@ -635,17 +721,20 @@ handsontableInstance.updateSettings({
   // enable filtering, for all columns
   filters: true,
   // enable the column menu, for all columns
-  // but display only the 'Filter by value' list and the 'OK' and 'Cancel' buttons
+  // but display only the 'Filter by value' list and the 'OK' and
+  // 'Cancel' buttons
   dropdownMenu: {
     items: {
       filter_by_value: {
-        // hide the 'Filter by value' list from all columns but the first one
+        // hide the 'Filter by value' list from all columns but the
+        // first one
         hidden() {
           return this.getSelectedRangeLast().to.col > 0;
         },
       },
       filter_action_bar: {
-        // hide the 'OK' and 'Cancel' buttons from all columns but the first one
+        // hide the 'OK' and 'Cancel' buttons from all columns but the
+        // first one
         hidden() {
           return this.getSelectedRangeLast().to.col > 0;
         },
@@ -666,17 +755,20 @@ hotTableComponentRef.current.hotInstance.updateSettings({
   // enable filtering for all columns
   filters: true,
   // enable the column menu for all columns
-  // but display only the 'Filter by value' list and the 'OK' and 'Cancel' buttons
+  // but display only the 'Filter by value' list and the 'OK' and
+  // 'Cancel' buttons
   dropdownMenu: {
     items: {
       filter_by_value: {
-        // hide the 'Filter by value' list from all columns but the first one
+        // hide the 'Filter by value' list from all columns but the
+        // first one
         hidden() {
           return this.getSelectedRangeLast().to.col > 0;
         },
       },
       filter_action_bar: {
-        // hide the 'OK' and 'Cancel' buttons from all columns but the first one
+        // hide the 'OK' and 'Cancel' buttons from all columns but the
+        // first one
         hidden() {
           return this.getSelectedRangeLast().to.col > 0;
         },
@@ -776,10 +868,6 @@ To use filtering, you need only the following modules:
 ```js
 // import the base module
 import Handsontable from 'handsontable/base';
-
-// import Handsontable's CSS
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // import the filtering plugins
 import { registerPlugin, Filters, DropdownMenu } from 'handsontable/plugins';

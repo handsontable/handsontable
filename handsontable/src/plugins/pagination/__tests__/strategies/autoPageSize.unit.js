@@ -10,7 +10,7 @@ describe('AutoPageSizeStrategy', () => {
   describe('calculate()', () => {
     it('should calculate pages based on item sizes and viewport size', () => {
       const itemSizes = [20, 30, 25, 20, 40];
-      const viewportSize = 51;
+      const viewportSize = 50;
 
       strategy.calculate({
         itemsSizeProvider: () => itemSizes,
@@ -67,7 +67,7 @@ describe('AutoPageSizeStrategy', () => {
 
     it('should start calculating total height from 1px (border top compensation)', () => {
       const itemSizes = [50, 50, 50, 50];
-      const viewportSize = 102; // Just enough for both rows + 2px border compensation
+      const viewportSize = 101; // Just enough to show 2 rows per page
 
       strategy.calculate({
         itemsSizeProvider: () => itemSizes,

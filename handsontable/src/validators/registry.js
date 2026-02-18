@@ -1,4 +1,5 @@
 import { staticRegister } from '../utils/staticRegister';
+import { throwWithCause } from '../utils/errors';
 
 const {
   register,
@@ -19,7 +20,7 @@ function _getItem(name) {
     return name;
   }
   if (!hasItem(name)) {
-    throw Error(`No registered validator found under "${name}" name`, { cause: { handsontable: true } });
+    throwWithCause(`No registered validator found under "${name}" name`);
   }
 
   return getItem(name);

@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -122,7 +120,6 @@ Handsontable.languages.registerLanguageDictionary({
 const container = document.querySelector('#example6')!;
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   pagination: {
     showPageSize: false,

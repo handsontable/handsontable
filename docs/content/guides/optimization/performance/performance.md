@@ -130,7 +130,8 @@ hot.batch(() => {
   filters.addCondition(2, 'contains', ['3']);
   filters.filter();
   hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
-  // The table cache will be recalculated and table render will be called once after executing the callback
+  // The table cache will be recalculated and table render will be
+  // called once after executing the callback
 });
 ```
 
@@ -145,7 +146,7 @@ The Pagination plugin is particularly useful when:
 - Your users don't need to see all data simultaneously
 - You want to maintain responsive scrolling and editing performance
 
-For more information, see our [Pagination guide](@/guides/rows/pagination/pagination.md).
+For more information, see our [Pagination guide](@/guides/rows/rows-pagination/rows-pagination.md).
 
 ## Related articles
 
@@ -154,7 +155,7 @@ For more information, see our [Pagination guide](@/guides/rows/pagination/pagina
 - [Batch operations](@/guides/optimization/batch-operations/batch-operations.md)
 - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
-- [Pagination](@/guides/rows/pagination/pagination.md)
+- [Pagination](@/guides/rows/rows-pagination/rows-pagination.md)
 - [Modules](@/guides/tools-and-building/modules/modules.md)
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
 

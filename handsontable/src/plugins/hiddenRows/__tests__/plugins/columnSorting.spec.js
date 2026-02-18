@@ -10,7 +10,7 @@ describe('HiddenRows', () => {
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       if ($spanInsideHeader.length === 0) {
-        throw Error('Please check the test scenario. The header doesn\'t exist.');
+        throw new Error('Please check the test scenario. The header doesn\'t exist.');
       }
 
       $spanInsideHeader.simulate('mousedown');

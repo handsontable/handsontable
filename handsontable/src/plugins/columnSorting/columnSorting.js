@@ -315,7 +315,6 @@ export class ColumnSorting extends BasePlugin {
     if (sortPossible) {
       this.columnStatesManager.setSortStates(destinationSortConfigs);
       this.sortByPresetSortStates(destinationSortConfigs);
-      this.saveAllSortSettings(destinationSortConfigs);
     }
 
     this.hot.runHooks('afterColumnSort',
@@ -421,48 +420,6 @@ export class ColumnSorting extends BasePlugin {
     // We don't translate visual indexes to physical indexes.
     return areValidSortStates(sortConfigs) && sortConfigs.every(({ column }) =>
       column <= numberOfColumns && column >= 0);
-  }
-
-  /**
-   * Saves all sorting settings. Saving works only when {@link Options#persistentState} option is enabled.
-   *
-   * @param {Array} sortConfigs Sort configuration for all sorted columns. Objects contain `column` and `sortOrder` properties.
-   *
-   * @private
-   * @fires Hooks#persistentStateSave
-   */
-  saveAllSortSettings(sortConfigs) {
-    const allSortSettings = this.columnStatesManager.getAllColumnsProperties();
-    const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
-      ({ column: this.hot.toPhysicalColumn(visualColumn), ...restOfProperties });
-
-    allSortSettings.initialConfig = arrayMap(sortConfigs, translateColumnToPhysical);
-
-    this.hot.runHooks('persistentStateSave', 'columnSorting', allSortSettings);
-  }
-
-  /**
-   * Get all saved sorting settings. Loading works only when {@link Options#persistentState} option is enabled.
-   *
-   * @private
-   * @returns {object} Previously saved sort settings.
-   *
-   * @fires Hooks#persistentStateLoad
-   */
-  getAllSavedSortSettings() {
-    const storedAllSortSettings = {};
-
-    this.hot.runHooks('persistentStateLoad', 'columnSorting', storedAllSortSettings);
-
-    const allSortSettings = storedAllSortSettings.value;
-    const translateColumnToVisual = ({ column: physicalColumn, ...restOfProperties }) =>
-      ({ column: this.hot.toVisualColumn(physicalColumn), ...restOfProperties });
-
-    if (isDefined(allSortSettings) && Array.isArray(allSortSettings.initialConfig)) {
-      allSortSettings.initialConfig = arrayMap(allSortSettings.initialConfig, translateColumnToVisual);
-    }
-
-    return allSortSettings;
   }
 
   /**
@@ -689,16 +646,9 @@ export class ColumnSorting extends BasePlugin {
    * Load saved settings or sort by predefined plugin configuration.
    */
   #loadOrSortBySettings() {
-    const storedAllSortSettings = this.getAllSavedSortSettings();
+    const allSortSettings = this.hot.getSettings()[this.pluginKey];
 
-    if (isObject(storedAllSortSettings)) {
-      this.sortBySettings(storedAllSortSettings);
-
-    } else {
-      const allSortSettings = this.hot.getSettings()[this.pluginKey];
-
-      this.sortBySettings(allSortSettings);
-    }
+    this.sortBySettings(allSortSettings);
   }
 
   /**

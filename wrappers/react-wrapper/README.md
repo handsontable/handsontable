@@ -67,15 +67,6 @@ Below is the installation guide for the React functional component.
 npm install handsontable @handsontable/react-wrapper
 ```
 
-### Import CSS files
-
-```jsx
-// Base CSS rules
-import 'handsontable/styles/handsontable.min.css';
-// Main theme variables
-import 'handsontable/styles/ht-theme-main.min.css';
-```
-
 ### Register Handsontable's modules
 
 ```jsx
@@ -97,15 +88,12 @@ To set Handsontable's [configuration options](https://handsontable.com/docs/reac
 ```jsx
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.min.css';
-import 'handsontable/styles/ht-theme-main.min.css';
 
 registerAllModules();
 
 const ExampleComponent = () => {
   return (
     <HotTable
-      theme="ht-theme-main-dark-auto"
       data={[
         { company: 'Tagcat', country: 'United Kingdom', rating: 4.4 },
         { company: 'Zoomzone', country: 'Japan', rating: 4.5 },
@@ -138,7 +126,7 @@ const ExampleComponent = () => {
 - [Website](https://handsontable.com)
 - [Demo](https://handsontable.com/demo)
 - [Documentation](https://handsontable.com/docs/react-data-grid)
-- [npm](https://www.npmjs.com/package/@handsontable/react)
+- [npm](https://www.npmjs.com/package/@handsontable/react-wrapper)
 - [CDN](https://www.jsdelivr.com/package/npm/@handsontable/react-wrapper)
 - [Forum](https://forum.handsontable.com/)
 - [Blog](https://handsontable.com/blog)

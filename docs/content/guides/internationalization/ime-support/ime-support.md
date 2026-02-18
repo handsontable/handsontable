@@ -19,6 +19,7 @@ angular:
   metaTitle: IME support - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
+menuTag: updated
 ---
 
 # IME support
@@ -29,11 +30,31 @@ Convert keystrokes to characters not available on the keyboard, using the Input 
 
 ## What is IME
 
-An Input Method Editor (IME) is a component that is part of the Operating System (OS) that enables users to generate characters that are not natively available on their keyboard by using input sequences from keystrokes or mouse movements. An example scenario would be to add Chinese characters using a Latin Keyboard; IME support would enable you to generate the characters you need.
+An Input Method Editor (IME) is a component of the operating system (OS) that enables users to generate characters not natively available on their keyboard. It converts sequences of keystrokes or mouse interactions into characters from other alphabets or scripts. For example, when typing Chinese characters using a Latin keyboard, the IME allows users to compose the desired characters based on phonetic or symbolic input.
 
 ## IME support in Handsontable
 
-IME support is built-in to the OS, and therefore, there's no need or ability to enable/disable it. It is always on and is activated when a user switches to one of the three supported languages. Upon activation, the IME will appear below the text editor (subject to the correct configuration in the OS). When using IME with Handsontable, it always applies to the entire grid.
+Handsontable supports IME (Input Method Editor) input through the same mechanisms provided by the operating system. When you switch your input source to a language that requires IME (such as Korean, Japanese, or Chinese), you can use it in cell editors just like in any standard text field.
+
+By default, IME support works when editing a cell through the standard edit mode (for example, pressing Enter, F2, or double-clicking a cell).
+If you want to start typing immediately into a selected cell without explicitly opening the editor, you need to enable the imeFastEdit option.
+
+## The [`imeFastEdit`](@/api/options.md#imefastedit) option
+
+Handsontable includes a configuration option called imeFastEdit, which controls how IME users interact with the fast edit feature.
+- Default value: false
+- Type: boolean
+
+When imeFastEdit is disabled (default), IME users start editing a cell only after explicitly activating the editor (e.g., pressing Enter, F2, or double-clicking the cell).
+When imeFastEdit is enabled, users can start editing immediately by typing directly into the selected cell.
+
+<div class="custom-block tip"><p class="custom-block-title">TIP</p> <p><strong>Note:</strong> Enabling imeFastEdit can improve input speed for some IME users but may conflict with certain accessibility tools.</p></div>
+
+## Known limitations
+- Accessibility impact:
+Enabling [`imeFastEdit`](@/api/options.md#imefastedit) can interfere with how some screen readers interpret and read table cells. If accessibility support is a priority, keep imeFastEdit disabled.
+- Browser and OS dependency:
+IME behavior depends on the user’s operating system, browser, and keyboard configuration. Visual placement of the IME popup or candidate window may vary across environments.
 
 ## Test IME support
 

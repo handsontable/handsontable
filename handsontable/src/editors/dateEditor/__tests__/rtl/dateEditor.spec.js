@@ -75,7 +75,7 @@ describe('DateEditor (RTL mode)', () => {
       const datePickerWidth = $datePicker.outerWidth();
 
       expect(cellOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(datePickerOffset.top - 23, 0); // 23 is a height of the editor's cell
+        classic.toBeCloseTo(datePickerOffset.top - 26, 0); // 26 is a height of the editor's cell
         main.toBeCloseTo(datePickerOffset.top - 29, 0);
         horizon.toBeCloseTo(datePickerOffset.top - 37, 0);
       });
@@ -115,7 +115,7 @@ describe('DateEditor (RTL mode)', () => {
       const datePickerOffset = $datePicker.offset();
       const datePickerWidth = $datePicker.outerWidth();
 
-      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+      expect(cellOffset.top + 26).toBeCloseTo(datePickerOffset.top, 0);
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
     });
 
@@ -198,8 +198,8 @@ describe('DateEditor (RTL mode)', () => {
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(50, 20),
-        width: 200,
-        height: 200,
+        width: 230,
+        height: 230,
         type: 'date',
       });
 
@@ -215,17 +215,17 @@ describe('DateEditor (RTL mode)', () => {
 
       await sleep(50);
 
-      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0); // 23 is a height of the editor's cell
+      expect(cellOffset.top + 26).toBeCloseTo(datePickerOffset.top, 0); // 26 is a height of the editor's cell
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
       expect(pikaElement.is(':visible')).toBe(true);
 
       await scrollViewportHorizontally(520); // scroll the viewport so the edited cell is partially visible from right
 
-      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0); // 23 is a height of the editor's cell
+      expect(cellOffset.top + 26).toBeCloseTo(datePickerOffset.top, 0); // 26 is a height of the editor's cell
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
       expect(pikaElement.is(':visible')).toBe(true);
 
-      await scrollViewportHorizontally(550); // scroll the viewport so the edited cell is not visible
+      await scrollViewportHorizontally(300); // scroll the viewport so the edited cell is not visible
 
       expect(pikaElement.is(':visible')).toBe(false);
     });
@@ -305,8 +305,8 @@ describe('DateEditor (RTL mode)', () => {
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(50, 20),
-        width: 200,
-        height: 200,
+        width: 230,
+        height: 230,
         type: 'date',
       });
 
@@ -320,13 +320,13 @@ describe('DateEditor (RTL mode)', () => {
       const datePickerOffset = datePicker.offset();
       const datePickerWidth = datePicker.outerWidth();
 
-      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0); // 23 is a height of the editor's cell
+      expect(cellOffset.top + 26).toBeCloseTo(datePickerOffset.top, 0); // 26 is a height of the editor's cell
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
       expect(pikaElement.is(':visible')).toBe(true);
 
       await scrollViewportHorizontally(340); // scroll the viewport so the edited cell is partially visible from left
 
-      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0); // 23 is a height of the editor's cell
+      expect(cellOffset.top + 26).toBeCloseTo(datePickerOffset.top, 0); // 26 is a height of the editor's cell
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
       expect(pikaElement.is(':visible')).toBe(true);
 
@@ -359,7 +359,7 @@ describe('DateEditor (RTL mode)', () => {
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
       expect(pikaElement.is(':visible')).toBe(true);
 
-      await scrollViewportHorizontally(440); // scroll the viewport so the edited cell is partially visible from left
+      await scrollViewportHorizontally(442); // scroll the viewport so the edited cell is partially visible from left
 
       expect(cellOffset.top + 29).toBeCloseTo(datePickerOffset.top, 0); // 29 is a height of the editor's cell
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);

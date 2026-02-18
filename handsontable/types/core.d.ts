@@ -19,7 +19,7 @@ import { BaseValidator } from './validators/base';
 import { Plugins } from './plugins';
 import { CellType } from './cellTypes';
 import { ShortcutManager } from './shortcuts';
-import { FocusManager } from './focusManager';
+import { GridFocusManager, FocusScopeManager } from './focusManager';
 
 type AlterActions = 'insert_row_above' | 'insert_row_below' |
                     'insert_col_start' | 'insert_col_end' |
@@ -33,7 +33,6 @@ export default class Core {
   batchExecution<R>(wrappedOperations: () => R, forceFlushChanges: boolean): R;
   batchRender<R>(wrappedOperations: () => R): R;
   clear(): void;
-  clearUndo(): void;
   colToProp(column: number): string | number;
   columnIndexMapper: IndexMapper;
   constructor(element: Element, options: GridSettings);
@@ -73,6 +72,7 @@ export default class Core {
   getColWidth(column: number, source?: string): number;
   getCoords(element: Element | null): CellCoords;
   getCopyableData(row: number, column: number): string;
+  getCopyableSourceData(row: number, column: number): string;
   getCopyableText(startRow: number, startColumn: number, endRow: number, endColumn: number): string;
   getCurrentThemeName(): string | undefined;
   getData(row?: number, column?: number, row2?: number, column2?: number): CellValue[];
@@ -89,7 +89,8 @@ export default class Core {
   getFirstPartiallyVisibleRow(): number | null;
   getFirstRenderedVisibleColumn(): number | null;
   getFirstRenderedVisibleRow(): number | null;
-  getFocusManager(): FocusManager;
+  getFocusManager(): GridFocusManager;
+  getFocusScopeManager(): FocusScopeManager;
   getInstance(): Core;
   getLastFullyVisibleColumn(): number | null;
   getLastFullyVisibleRow(): number | null;
@@ -131,16 +132,13 @@ export default class Core {
   isExecutionSuspended(): boolean;
   isListening(): boolean;
   isLtr(): boolean;
-  isRedoAvailable(): boolean;
   isRenderSuspended(): boolean;
   isRtl(): boolean;
-  isUndoAvailable(): boolean;
   listen(): void;
   loadData(data: CellValue[][] | RowObject[], source?: string): void;
   populateFromArray(row: number, column: number, input: CellValue[][], endRow?: number,
     endColumn?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite'): void;
   propToCol<T extends number | string>(prop: string | number): T;
-  redo(): void;
   refreshDimensions(): void;
   removeCellMeta(row: number, column: number, key: (keyof CellMeta) | string): void;
   removeHook<K extends keyof Events>(key: K, callback: Events[K]): void;
@@ -180,7 +178,6 @@ export default class Core {
   toTableElement(): HTMLTableElement;
   toVisualColumn(column: number): number;
   toVisualRow(row: number): number;
-  undo(): void;
   unlisten(): void;
   updateData(data: CellValue[][] | RowObject[], source?: string): void;
   updateSettings(settings: GridSettings, init?: boolean): void;

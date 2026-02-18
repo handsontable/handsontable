@@ -21,6 +21,8 @@ Install Handsontable's Vue 3 wrapper via npm, import the stylesheets, and get yo
 
 [[toc]]
 
+Vue 2 is not supported anymore, you can use [Handsontable 16.2.0](https://handsontable.com/docs/16.2/javascript-data-grid/vue-installation/) with Vue 2.
+
 ## Vue 3 version support
 
 Handsontable supports the following Vue 3 versions:
@@ -29,6 +31,8 @@ Handsontable supports the following Vue 3 versions:
 | -------------------- | ------------------ |
 | `11.0.0` and lower   | No Vue 3 support   |
 | `11.1.0` and higher  | `3.2.0` and higher |
+
+Handsontable supports Vue 3 versions `3.2.0` and higher, including all minor and patch versions within the Vue 3.x release line (e.g., `3.2.x`, `3.3.x`, `3.4.x`, etc.).
 
 ## Install with npm
 
@@ -42,8 +46,7 @@ npm install handsontable @handsontable/vue3
 
 ```js
 <template>
-  <hot-table 
-    theme="ht-theme-main"
+  <hot-table
     :data="data"
     :rowHeaders="true"
     :colHeaders="true"
@@ -55,8 +58,6 @@ npm install handsontable @handsontable/vue3
   import { defineComponent } from 'vue';
   import { HotTable } from '@handsontable/vue3';
   import { registerAllModules } from 'handsontable/registry';
-  import 'handsontable/styles/handsontable.min.css';
-  import 'handsontable/styles/ht-theme-main.min.css';
 
   // register Handsontable's modules
   registerAllModules();

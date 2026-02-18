@@ -1,4 +1,5 @@
 import { arrayEach } from '../../helpers/array';
+import { throwWithCause } from '../../utils/errors';
 import { hasOwnProperty } from '../../helpers/object';
 
 /**
@@ -59,7 +60,7 @@ export class CommandExecutor {
     let command = this.commands[commandNamePrimary];
 
     if (!command) {
-      throw new Error(`Menu command '${commandNamePrimary}' not exists.`, { cause: { handsontable: true } });
+      throwWithCause(`Menu command '${commandNamePrimary}' not exists.`);
     }
     if (subCommandName && command.submenu) {
       command = findSubCommand(subCommandName, command.submenu.items);

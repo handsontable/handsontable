@@ -25,7 +25,7 @@ describe('ContextMenu', () => {
     // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/context-menu/
 
     describe('menu opening', () => {
-      it('should open context menu in proper position in iframe', async() => {
+      it.forTheme('classic')('should open context menu in proper position in iframe', async() => {
         const iframeOutside = $('<iframe/>').css({ width: '500px', height: '500px' }).appendTo(spec().$container);
         const docOutside = iframeOutside[0].contentDocument;
 
@@ -33,7 +33,7 @@ describe('ContextMenu', () => {
         docOutside.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="../dist/handsontable.full.min.css">
+            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
           </head>`);
         docOutside.close();
 
@@ -45,7 +45,7 @@ describe('ContextMenu', () => {
         docInside.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="../dist/handsontable.full.min.css">
+            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
           </head>`);
         docInside.close();
 
@@ -107,12 +107,12 @@ describe('ContextMenu', () => {
       const contextMenuOffset = $contextMenuRoot.offset();
 
       expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(216);
-        main.toBe(247);
-        horizon.toBe(314);
+        classic.toBe(222);
+        main.toBe(246);
+        horizon.toBe(313);
       });
       expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(contextMenuOffset.left + 4);
+        classic.toBe(contextMenuOffset.left + 1);
         main.toBe(contextMenuOffset.left + 1);
         horizon.toBe(contextMenuOffset.left);
       });

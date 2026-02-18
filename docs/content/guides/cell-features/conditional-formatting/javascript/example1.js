@@ -1,6 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
@@ -42,7 +44,6 @@ Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRe
 const container = document.querySelector('#example1');
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',

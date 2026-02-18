@@ -2,7 +2,6 @@
 import { defineComponent } from "vue";
 import { HotTable, HotColumn } from "@handsontable/vue3";
 import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
 
 import { data } from "../data";
 

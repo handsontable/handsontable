@@ -538,6 +538,28 @@ describe('TableView', () => {
     });
   });
 
+  describe('getTableScrollPosition()', () => {
+    it('should internally call `getTableScrollPosition` method of the Table module of the Walkontable', async() => {
+      handsontable({});
+
+      expect(tableView().getTableScrollPosition()).toEqual({ left: 0, top: 0 });
+    });
+  });
+
+  describe('setTableScrollPosition()', () => {
+    it('should internally call `setTableScrollPosition` method of the Table module of the Walkontable', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        width: 10,
+        height: 10,
+      });
+
+      tableView().setTableScrollPosition({ left: 10, top: 10 });
+
+      expect(tableView().getTableScrollPosition()).toEqual({ left: 10, top: 10 });
+    });
+  });
+
   describe('render()', () => {
     it('should draw a table as fast render when the dataset size is not changed', async() => {
       handsontable({

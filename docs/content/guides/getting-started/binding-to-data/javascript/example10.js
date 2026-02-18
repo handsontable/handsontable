@@ -1,6 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example10');
 const data = [
@@ -13,7 +15,6 @@ const data = [
 ];
 
 const settings = {
-  themeName: 'ht-theme-main',
   data,
   height: 'auto',
   autoWrapRow: true,

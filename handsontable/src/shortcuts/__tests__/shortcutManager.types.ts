@@ -8,6 +8,7 @@ const context = shortcutManager.addContext('contextName');
 shortcutManager.setActiveContextName('contextName');
 shortcutManager.getActiveContextName();
 shortcutManager.getContext('contextName');
+shortcutManager.getOrCreateContext('contextName');
 shortcutManager.isCtrlPressed();
 shortcutManager.destroy();
 

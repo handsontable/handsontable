@@ -1,7 +1,9 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const data: (string | number)[][] = [
   ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
@@ -111,7 +113,6 @@ const data: (string | number)[][] = [
 const container = document.querySelector('#example-data-grid')!;
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   formulas: {
     engine: HyperFormula,

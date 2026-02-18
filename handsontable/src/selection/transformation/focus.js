@@ -1,4 +1,5 @@
 import { BaseTransformation } from './_base';
+import { throwWithCause } from '../../utils/errors';
 
 /**
  * The FocusTransformation class implements algorithms for transforming coordinates while the
@@ -58,8 +59,7 @@ export class FocusTransformation extends BaseTransformation {
    * Throws an error because focus transformation doesn't support `transformEnd`.
    */
   transformEnd() {
-    throw new Error('`transformEnd` is not valid for focus selection use `transformStart` instead',
-      { cause: { handsontable: true } });
+    throwWithCause('`transformEnd` is not valid for focus selection use `transformStart` instead');
   }
 
   /**

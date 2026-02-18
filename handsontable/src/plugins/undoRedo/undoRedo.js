@@ -1,8 +1,7 @@
+/* eslint-disable jsdoc/require-description-complete-sentence */
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { deepClone } from '../../helpers/object';
-import { toSingleLine } from '../../helpers/templateLiteralTag';
-import { warn } from '../../helpers/console';
 import { registerActions } from './actions';
 
 const SHORTCUTS_GROUP = 'undoRedo';
@@ -14,8 +13,6 @@ Hooks.getSingleton().register('beforeUndo');
 Hooks.getSingleton().register('afterUndo');
 Hooks.getSingleton().register('beforeRedo');
 Hooks.getSingleton().register('afterRedo');
-
-const deprecationWarns = new Set();
 
 /**
  * @description
@@ -91,7 +88,6 @@ export class UndoRedo extends BasePlugin {
 
     this.addHook('afterChange', (...args) => this.#onAfterChange(...args));
     this.registerShortcuts();
-    this.#exposeAPIToCore();
 
     super.enablePlugin();
   }
@@ -103,7 +99,6 @@ export class UndoRedo extends BasePlugin {
     super.disablePlugin();
     this.clear();
     this.unregisterShortcuts();
-    this.#removeAPIFromCore();
   }
 
   /**
@@ -315,89 +310,6 @@ export class UndoRedo extends BasePlugin {
     if (source === 'loadData') {
       this.clear();
     }
-  }
-
-  /**
-   * Expose the plugin API to the Core. It is for backward compatibility and it should be removed in the future.
-   */
-  #exposeAPIToCore() {
-    const deprecatedWarn = (methodName) => {
-      if (!deprecationWarns.has(methodName)) {
-        warn(toSingleLine`The "${methodName}" method is deprecated and it will be removed\x20
-          from the Core API in the future. Please use the method from the UndoRedo plugin\x20
-          (e.g. \`hotInstance.getPlugin("undoRedo").${methodName}()\`).`);
-
-        deprecationWarns.add(methodName);
-      }
-    };
-
-    /**
-     * {@link UndoRedo#undo}.
-     *
-     * @alias undo
-     * @memberof! Core#
-     */
-    this.hot.undo = () => {
-      deprecatedWarn('undo');
-      this.undo();
-    };
-    /**
-     * {@link UndoRedo#redo}.
-     *
-     * @alias redo
-     * @memberof! Core#
-     */
-    this.hot.redo = () => {
-      deprecatedWarn('redo');
-      this.redo();
-    };
-    /**
-     * {@link UndoRedo#isUndoAvailable}.
-     *
-     * @alias isUndoAvailable
-     * @memberof! Core#
-     * @returns {boolean}
-     */
-    this.hot.isUndoAvailable = () => {
-      deprecatedWarn('isUndoAvailable');
-
-      return this.isUndoAvailable();
-    };
-    /**
-     * {@link UndoRedo#isRedoAvailable}.
-     *
-     * @alias isRedoAvailable
-     * @memberof! Core#
-     * @returns {boolean}
-     */
-    this.hot.isRedoAvailable = () => {
-      deprecatedWarn('isRedoAvailable');
-
-      return this.isRedoAvailable();
-    };
-    /**
-     * {@link UndoRedo#clear}.
-     *
-     * @alias clearUndo
-     * @memberof! Core#
-     */
-    this.hot.clearUndo = () => {
-      deprecatedWarn('clear');
-      this.clear();
-    };
-    this.hot.undoRedo = this;
-  }
-
-  /**
-   * Removes the plugin API from the Core. It is for backward compatibility and it should be removed in the future.
-   */
-  #removeAPIFromCore() {
-    delete this.hot.undo;
-    delete this.hot.redo;
-    delete this.hot.isUndoAvailable;
-    delete this.hot.isRedoAvailable;
-    delete this.hot.clearUndo;
-    delete this.hot.undoRedo;
   }
 
   /**

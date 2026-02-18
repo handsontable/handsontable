@@ -18,14 +18,6 @@
   background: #edf3fd;
 }
 
-.ht-theme-main-dark .ht-wrapper.handsontable .htCore tr.selected td {
-  background: #081b3d;
-}
-
-.ht-theme-horizon-dark .ht-wrapper.handsontable .htCore tr.selected td {
-  background: #3a2901;
-}
-
 .handsontable .ht_nestingParent,
 .handsontable .ht_nestingParent ~ td {
   background: #B5B5B5;

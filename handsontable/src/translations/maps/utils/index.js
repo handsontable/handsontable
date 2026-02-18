@@ -1,4 +1,5 @@
 import { getDecreasedIndexes, getIncreasedIndexes } from './actionsOnIndexes';
+import { throwWithCause } from '../../../utils/errors';
 import {
   getListWithInsertedItems as sequenceStrategyInsert,
   getListWithRemovedItems as sequenceStrategyRemove
@@ -21,8 +22,7 @@ const alterStrategies = new Map([
 
 const alterUtilsFactory = (indexationStrategy) => {
   if (alterStrategies.has(indexationStrategy) === false) {
-    throw new Error(`Alter strategy with ID '${indexationStrategy}' does not exist.`,
-      { cause: { handsontable: true } });
+    throwWithCause(`Alter strategy with ID '${indexationStrategy}' does not exist.`);
   }
 
   return alterStrategies.get(indexationStrategy);

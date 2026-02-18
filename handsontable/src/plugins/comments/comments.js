@@ -12,6 +12,7 @@ import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
 import { CellRange } from '../../3rdparty/walkontable/src';
 import { BasePlugin } from '../base';
+import { throwWithCause } from '../../utils/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
@@ -132,7 +133,7 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -450,8 +451,7 @@ export class Comments extends BasePlugin {
    */
   setComment(value) {
     if (!this.range.from) {
-      throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())',
-        { cause: { handsontable: true } });
+      throwWithCause('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
     const editorValue = this.#editor.getValue();
     let comment = '';
@@ -489,8 +489,7 @@ export class Comments extends BasePlugin {
    */
   removeComment(forceRender = true) {
     if (!this.range.from) {
-      throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())',
-        { cause: { handsontable: true } });
+      throwWithCause('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
 
     const { row, col } = this.#getRangeCoords();
@@ -547,8 +546,7 @@ export class Comments extends BasePlugin {
    */
   show() {
     if (!this.range.from) {
-      throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())',
-        { cause: { handsontable: true } });
+      throwWithCause('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
 
     const { row, col } = this.#getRangeCoords();

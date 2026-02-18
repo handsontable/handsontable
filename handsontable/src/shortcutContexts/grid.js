@@ -1,5 +1,5 @@
 import { isDefined } from '../helpers/mixed';
-import { GRID_GROUP, EDITOR_EDIT_GROUP } from './constants';
+import { GRID_GROUP, EDITOR_EDIT_GROUP, GRID_SCOPE, GRID_TAB_NAVIGATION_GROUP } from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';
 
 /**
@@ -8,7 +8,7 @@ import { createKeyboardShortcutCommandsPool } from './commands';
  * @param {Handsontable} hot The Handsontable instance.
  */
 export function shortcutsGridContext(hot) {
-  const context = hot.getShortcutManager().addContext('grid');
+  const context = hot.getShortcutManager().addContext(GRID_SCOPE);
   const commandsPool = createKeyboardShortcutCommandsPool(hot);
   const config = {
     runOnlyIf: () => {
@@ -37,11 +37,11 @@ export function shortcutsGridContext(hot) {
   context.addShortcuts([{
     keys: [['Control/Meta', 'A']],
     callback: () => commandsPool.selectAllCells(),
-    runOnlyIf: () => !hot.getSelectedRangeActive()?.highlight.isHeader(),
+    runOnlyIf: () => isDefined(hot.getSelected()) && !hot.getSelectedRangeActive()?.highlight.isHeader(),
   }, {
     keys: [['Control/Meta', 'A']],
     callback: () => {},
-    runOnlyIf: () => hot.getSelectedRangeActive()?.highlight.isHeader(),
+    runOnlyIf: () => isDefined(hot.getSelected()) && hot.getSelectedRangeActive()?.highlight.isHeader(),
     preventDefault: true,
   }, {
     keys: [['Control/Meta', 'Shift', 'Space']],
@@ -50,7 +50,9 @@ export function shortcutsGridContext(hot) {
     keys: [['Control/Meta', 'Enter']],
     callback: () => commandsPool.populateSelectedCellsData(),
     runOnlyIf: () => {
-      return !hot.getSelectedRangeActive()?.highlight.isHeader() && hot.getSelectedRangeActive()?.getCellsCount() > 1;
+      return isDefined(hot.getSelected()) &&
+        !hot.getSelectedRangeActive().highlight.isHeader() &&
+        hot.getSelectedRangeActive().getCellsCount() > 1;
     },
   }, {
     keys: [['Control', 'Space']],
@@ -74,7 +76,8 @@ export function shortcutsGridContext(hot) {
     keys: [['ArrowUp', 'Shift', 'Control/Meta']],
     captureCtrl: true,
     callback: () => commandsPool.extendCellsSelectionToMostTop(),
-    runOnlyIf: () => !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByColumnHeader()),
+    runOnlyIf: () => isDefined(hot.getSelected()) &&
+      !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByColumnHeader()),
   }, {
     keys: [['ArrowDown']],
     callback: () => commandsPool.moveCellSelectionDown(),
@@ -89,7 +92,8 @@ export function shortcutsGridContext(hot) {
     keys: [['ArrowDown', 'Shift', 'Control/Meta']],
     captureCtrl: true,
     callback: () => commandsPool.extendCellsSelectionToMostBottom(),
-    runOnlyIf: () => !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByColumnHeader()),
+    runOnlyIf: () => isDefined(hot.getSelected()) &&
+      !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByColumnHeader()),
   }, {
     keys: [['ArrowLeft']],
     callback: () => commandsPool.moveCellSelectionLeft(),
@@ -104,7 +108,8 @@ export function shortcutsGridContext(hot) {
     keys: [['ArrowLeft', 'Shift', 'Control/Meta']],
     captureCtrl: true,
     callback: () => commandsPool.extendCellsSelectionToMostLeft(),
-    runOnlyIf: () => !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByRowHeader()),
+    runOnlyIf: () => isDefined(hot.getSelected()) &&
+      !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByRowHeader()),
   }, {
     keys: [['ArrowRight']],
     callback: () => commandsPool.moveCellSelectionRight(),
@@ -119,12 +124,13 @@ export function shortcutsGridContext(hot) {
     keys: [['ArrowRight', 'Shift', 'Control/Meta']],
     captureCtrl: true,
     callback: () => commandsPool.extendCellsSelectionToMostRight(),
-    runOnlyIf: () => !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByRowHeader()),
+    runOnlyIf: () => isDefined(hot.getSelected()) &&
+      !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByRowHeader()),
   }, {
     keys: [['Home']],
     captureCtrl: true,
     callback: () => commandsPool.moveCellSelectionToMostInlineStart(),
-    runOnlyIf: () => hot.view.isMainTableNotFullyCoveredByOverlays(),
+    runOnlyIf: () => isDefined(hot.getSelected()) && hot.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['Home', 'Shift']],
     callback: () => commandsPool.extendCellsSelectionToMostInlineStart(),
@@ -132,12 +138,12 @@ export function shortcutsGridContext(hot) {
     keys: [['Home', 'Control/Meta']],
     captureCtrl: true,
     callback: () => commandsPool.moveCellSelectionToMostTopInlineStart(),
-    runOnlyIf: () => hot.view.isMainTableNotFullyCoveredByOverlays(),
+    runOnlyIf: () => isDefined(hot.getSelected()) && hot.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['End']],
     captureCtrl: true,
     callback: () => commandsPool.moveCellSelectionToMostInlineEnd(),
-    runOnlyIf: () => hot.view.isMainTableNotFullyCoveredByOverlays(),
+    runOnlyIf: () => isDefined(hot.getSelected()) && hot.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['End', 'Shift']],
     callback: () => commandsPool.extendCellsSelectionToMostInlineEnd(),
@@ -145,7 +151,7 @@ export function shortcutsGridContext(hot) {
     keys: [['End', 'Control/Meta']],
     captureCtrl: true,
     callback: () => commandsPool.moveCellSelectionToMostBottomInlineEnd(),
-    runOnlyIf: () => hot.view.isMainTableNotFullyCoveredByOverlays(),
+    runOnlyIf: () => isDefined(hot.getSelected()) && hot.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['PageUp']],
     callback: () => commandsPool.moveCellSelectionUpByViewportHight(),
@@ -160,16 +166,34 @@ export function shortcutsGridContext(hot) {
     callback: () => commandsPool.extendCellsSelectionDownByViewportHeight(),
   }, {
     keys: [['Tab']],
-    // The property value is controlled by focusCatcher module (https://github.com/handsontable/handsontable/blob/master/handsontable/src/core/focusCatcher/index.js)
     preventDefault: false,
     callback: event => commandsPool.moveCellSelectionInlineStart(event),
   }, {
     keys: [['Shift', 'Tab']],
-    // The property value is controlled by focusCatcher module (https://github.com/handsontable/handsontable/blob/master/handsontable/src/core/focusCatcher/index.js)
     preventDefault: false,
     callback: event => commandsPool.moveCellSelectionInlineEnd(event),
   }, {
     keys: [['Control/Meta', 'Backspace']],
     callback: () => commandsPool.scrollToFocusedCell(),
   }], config);
+
+  const tabNavigationCommand = commandsPool.tabNavigation();
+
+  context.addShortcuts([{
+    keys: [['Tab'], ['Shift', 'Tab']],
+    preventDefault: false,
+    stopPropagation: false,
+    relativeToGroup: GRID_GROUP,
+    group: GRID_TAB_NAVIGATION_GROUP,
+    position: 'before',
+    callback: event => tabNavigationCommand.before(event),
+  }, {
+    keys: [['Tab'], ['Shift', 'Tab']],
+    preventDefault: false,
+    stopPropagation: false,
+    relativeToGroup: GRID_GROUP,
+    group: GRID_TAB_NAVIGATION_GROUP,
+    callback: event => tabNavigationCommand.after(event),
+    position: 'after',
+  }]);
 }

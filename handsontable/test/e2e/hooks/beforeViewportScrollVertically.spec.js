@@ -145,7 +145,7 @@ describe('Hook', () => {
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(686);
+        classic.toBe(809);
         main.toBe(935);
         horizon.toBe(1271);
       });
@@ -178,7 +178,7 @@ describe('Hook', () => {
       }));
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(157);
+        classic.toBe(211);
         main.toBe(268);
         horizon.toBe(420);
       });

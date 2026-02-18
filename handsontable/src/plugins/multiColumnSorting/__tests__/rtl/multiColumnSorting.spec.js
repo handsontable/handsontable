@@ -65,10 +65,17 @@ describe('MultiColumnSorting (RTL)', () => {
           }
         });
 
-        expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after')
-          .getPropertyValue('left')).toEqual('-15px');
-        expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after')
-          .getPropertyValue('padding-right')).toEqual('5px');
+        const computedStyle = window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after');
+
+        expect(computedStyle.getPropertyValue('margin-top')).toEqual('4px');
+        expect(computedStyle.getPropertyValue('top')).toEqual('10.5px');
+
+        if (htmlDir === 'rtl' || layoutDirection === 'rtl') {
+          expect(computedStyle.getPropertyValue('left')).toEqual('0px');
+
+        } else {
+          expect(computedStyle.getPropertyValue('right')).toEqual('0px');
+        }
       });
 
       it.forTheme('main')('should be properly position the number when multi columns are sorted', async() => {

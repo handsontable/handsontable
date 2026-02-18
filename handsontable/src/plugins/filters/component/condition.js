@@ -228,6 +228,7 @@ export class ConditionComponent extends BaseComponent {
   #onConditionSelect(command) {
     arrayEach(this.getInputElements(), (element, index) => {
       element[command.inputsCount > index ? 'show' : 'hide']();
+      element.options.type = command.inputType ?? 'text';
 
       if (index === 0) {
         this.hot._registerTimeout(() => element.focus(), 10);

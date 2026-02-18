@@ -419,7 +419,7 @@ describe('Multiple selection scroll', () => {
       await keyDownUp(['shift', 'arrowdown']);
 
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(5);
+        classic.toBe(29);
         main.toBe(65);
         horizon.toBe(161);
       });
@@ -463,7 +463,7 @@ describe('Multiple selection scroll', () => {
       await selectCells([[11, 0, 10, 0]]);
 
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(19);
+        classic.toBe(55);
         main.toBe(94);
         horizon.toBe(198);
       });

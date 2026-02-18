@@ -1,4 +1,5 @@
 import { BasePlugin } from '../base';
+import { throwWithCause } from '../../utils/errors';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 
@@ -96,7 +97,7 @@ export const PLUGIN_PRIORITY = 240;
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -238,7 +239,7 @@ export class ExportFile extends BasePlugin {
    */
   _createTypeFormatter(format, options = {}) {
     if (!EXPORT_TYPES[format]) {
-      throw new Error(`Export format type "${format}" is not supported.`, { cause: { handsontable: true } });
+      throwWithCause(`Export format type "${format}" is not supported.`);
     }
 
     return typeFactory(format, new DataProvider(this.hot), options);

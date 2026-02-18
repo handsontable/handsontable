@@ -1,5 +1,6 @@
 import Handsontable, { CellCoords } from 'handsontable';
 import HyperFormula from 'hyperformula';
+import { CellProperties } from '../../../types/settings';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
 declare function oneOf<T extends Array<string | number | boolean | undefined | null | object>>(...args: T): T[number];
@@ -9,11 +10,11 @@ declare const true_or_false: true | false;
 // This can be replaced once `as const` context is shipped: https://github.com/Microsoft/TypeScript/pull/29510
 enum DisableVisualSelection { current = 'current', area = 'area', header = 'header' }
 
-const legacyNumericFormat: Handsontable.NumericFormatOptions = {
+const legacyNumbroNumericFormat: Handsontable.NumericFormatOptions = {
   pattern: '0.00',
   culture: 'en-US',
 };
-const numericFormatOptions: Handsontable.NumericFormatOptions = {
+const numericNumbroFormatOptions: Handsontable.NumericFormatOptions = {
   pattern: {
     prefix: '2',
     postfix: '3',
@@ -47,6 +48,16 @@ const numericFormatOptions: Handsontable.NumericFormatOptions = {
     base: oneOf('decimal', 'binary', 'general'),
   },
   culture: 'en-US'
+};
+const numericIntlFormatOptions: Handsontable.NumericFormatOptions = {
+  style: 'currency',
+  currency: 'USD',
+  useGrouping: false,
+  maximumFractionDigits: 20,
+  minimumFractionDigits: 2,
+  maximumSignificantDigits: 20,
+  minimumSignificantDigits: 2,
+  localeMatcher: 'best fit',
 };
 
 // Use `Required<GridSettings>` to ensure every defined setting is covered here.
@@ -176,6 +187,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   maxRows: 123,
   mergeCells: true,
   minCols: 123,
+  minRowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
   minRows: 123,
   minSpareCols: 123,
   minSpareRows: 123,
@@ -184,7 +196,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   nestedHeaders: [],
   nestedRows: true,
   noWordWrapClassName: 'foo',
-  numericFormat: oneOf(legacyNumericFormat, numericFormatOptions),
+  numericFormat: oneOf(legacyNumbroNumericFormat, numericNumbroFormatOptions, numericIntlFormatOptions),
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, (target: HTMLElement) => false),
   pagination: oneOf(true, {
@@ -196,7 +208,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     showNavigation: true,
     uiContainer: document.body,
   }),
-  persistentState: true,
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
   preventOverflow: oneOf(true, 'vertical', 'horizontal'),
@@ -213,6 +224,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
+  sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
   search: true,
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectOptions: oneOf(
@@ -228,6 +240,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     ['A', 'B', 'C', 'D'],
     (query: string, callback: (item: string[]) => void) => callback(['A', 'B', 'C', 'D'])
   ),
+  sourceDataValidator: oneOf((value: any, cellMeta: CellProperties) => true),
+  sourceDataWarningMessage: oneOf('The source data is invalid.'),
   startCols: 123,
   startRows: 123,
   stretchH: 'none',
@@ -236,6 +250,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   tabMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 2, col: 2})),
   textEllipsis: false,
   themeName: 'ht-theme-some-theme',
+  theme: '',
   title: 'foo',
   trimDropdown: true,
   trimRows: true,
@@ -244,11 +259,83 @@ const allSettings: Required<Handsontable.GridSettings> = {
     'text', 'time', 'custom.cell.type'),
   uncheckedTemplate: oneOf(true, 'foo', 123),
   undo: true,
+  dialog: oneOf(true, {
+    template: {
+      type: 'confirm' as const,
+      title: 'Confirm',
+      description: 'This is a confirm',
+      buttons: [
+        {
+          text: 'OK',
+          type: 'primary' as const,
+          callback: (event: MouseEvent) => {},
+        },
+      ],
+    },
+    content: 'foo',
+    closable: true,
+    customClassName: 'foo',
+    animation: true,
+    background: 'solid' as const,
+    contentBackground: true,
+    a11y: {
+      role: 'dialog' as const,
+      ariaLabel: 'Dialog',
+      ariaLabelledby: '',
+      ariaDescribedby: '',
+    }
+  }),
+  loading: oneOf(true, {
+    icon: '<svg />',
+    title: 'Loading...',
+    description: 'Loading...',
+  }),
+  emptyDataState: oneOf(true, {
+    message: 'No data available',
+  }, {
+    message: {
+      title: 'No data available',
+      description: 'There\'s nothing to display yet.',
+      buttons: [
+        {
+          text: 'Reset filters',
+          type: 'secondary' as const,
+          callback: () => {},
+        },
+      ],
+    },
+  }, {
+    message: (source: string) => {
+      switch (source) {
+        case 'filters':
+          return {
+            title: 'No data available',
+            description: 'There\'s nothing to display yet.',
+            buttons: [
+              {
+                text: 'Reset filters',
+                type: 'secondary' as const,
+                callback: () => {},
+              },
+            ],
+          };
+        default:
+          return {
+            title: 'No data available',
+            description: 'There\'s nothing to display yet.',
+          };
+      }
+    },
+  }),
   validator: oneOf(
     (value: any, callback: (valid: boolean) => void) => callback(true),
     /^[0-9]$/,
     'autocomplete', 'date', 'numeric', 'time', 'custom.validator'
   ),
+  valueFormatter: (value: any, cellMeta: CellProperties) => value,
+  valueParser: (value: any, cellMeta: CellProperties) => value,
+  valueGetter: (value: any, row: number, column: number, cellMeta: CellProperties) => value,
+  valueSetter: (value: any, row: number, column: number, cellMeta: CellProperties) => `${value} at row ${row}, column ${column}`,
   viewportColumnRenderingOffset: oneOf(100, 'auto'),
   viewportRowRenderingOffset: oneOf(100, 'auto'),
   viewportColumnRenderingThreshold: oneOf(100, 'auto'),
@@ -303,6 +390,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnMove: (columns, target) => {},
   afterColumnResize: (newSize, column, isDoubleClick) => {},
   afterColumnSequenceChange: (source) => {},
+  afterColumnSequenceCacheUpdate: (indexesChangesState) => {},
   afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
   beforeCompositionStart: (event) => {
@@ -319,6 +407,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterDeselect: () => {},
   afterDestroy: () => {},
   afterDetachChild: (parent, element) => {},
+  afterDialogFocus: (focusSource) => {},
+  afterDialogHide: () => {},
+  afterDialogShow: () => {},
   afterDocumentKeyDown: (event) => {},
   afterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {
     const _currentRow: number = currentRow;
@@ -329,6 +420,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterDropdownMenuDefaultOptions: (predefinedItems) => {},
   afterDropdownMenuHide: (instance) => {},
   afterDropdownMenuShow: (instance) => {},
+  afterEmptyDataStateShow: () => {},
+  afterEmptyDataStateHide: () => {},
   afterFilter: (conditionsStack) => conditionsStack[0].column,
   afterFormulasValuesUpdate: (changes) => {},
   afterGetCellMeta: (row, col, cellProperties) => {},
@@ -343,6 +436,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterListen: () => {},
   afterLoadData: (sourceData, firstTime, source) => {},
   afterMergeCells: (cellRange, mergeParent, auto) => {},
+  beforeLoadingShow: () => {},
+  afterLoadingShow: () => {},
+  beforeLoadingHide: () => {},
+  afterLoadingHide: () => {},
   modifySourceData: (row, col, valueHolder, ioMode) => {},
   afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {
     const row: number = coords.row;
@@ -403,6 +500,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterRowSequenceChange: (source) => {},
+  afterRowSequenceCacheUpdate: (indexesChangesState) => {},
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
   afterScroll: () => {},
@@ -479,9 +577,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeCreateRow: (index, amount, source) => {},
   beforeCut: (data, coords) => { data.splice(0, 1); return false; },
   beforeDetachChild: (parent, element) => {},
+  beforeDialogHide: () => {},
+  beforeDialogShow: () => {},
   beforeDrawBorders: (corners, borderClassName) => {},
   beforeDropdownMenuSetItems: (menuItems) => {},
   beforeDropdownMenuShow: (instance) => {},
+  beforeEmptyDataStateShow: () => {},
+  beforeEmptyDataStateHide: () => {},
   beforeFilter: (conditionsStack, previousConditionStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHeightChange: (height) => {
@@ -604,6 +706,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     return width;
   },
   construct: () => {},
+  dialogFocusNextElement: () => {},
+  dialogFocusPreviousElement: () => {},
   init: () => {},
   modifyAutoColumnSizeSeed: (seed, cellProperties, cellValue) => '1',
   modifyAutofillRange: (startArea, entireArea) => {},
@@ -659,7 +763,4 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const rowDelta: number = delta.row;
     const colDelta: number = delta.row;
   },
-  persistentStateLoad: () => {},
-  persistentStateReset: () => {},
-  persistentStateSave: () => {},
 };

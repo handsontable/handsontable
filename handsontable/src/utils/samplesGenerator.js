@@ -1,4 +1,5 @@
 import { isObject } from './../helpers/object';
+import { throwWithCause } from './errors';
 import { rangeEach } from './../helpers/number';
 import { stringify } from './../helpers/mixed';
 
@@ -147,7 +148,7 @@ class SamplesGenerator {
    */
   generateSample(type, range, specifierValue) {
     if (type !== 'row' && type !== 'col') {
-      throw new Error('Unsupported sample type', { cause: { handsontable: true } });
+      throwWithCause('Unsupported sample type');
     }
 
     const samples = new Map();

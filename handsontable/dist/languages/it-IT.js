@@ -77,6 +77,8 @@ var _handsontable = _interopRequireDefault(__webpack_require__(2));
 const C = _handsontable.default.languages.dictionaryKeys;
 const dictionary = {
   languageCode: 'it-IT',
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Annulla',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Inserisci riga sopra',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Inserisci riga sotto',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Inserisci colonna a sinistra',
@@ -151,7 +153,22 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: 'Annulla',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Cerca',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Valore',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Sostituisci con'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Sostituisci con',
+  [C.PAGINATION_SECTION]: 'Paginazione',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Numero righe',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] di [total]',
+  [C.PAGINATION_NAV_SECTION]: 'Pagina [currentPage] di [totalPages]',
+  [C.PAGINATION_FIRST_PAGE]: 'Vai alla prima pagina',
+  [C.PAGINATION_PREV_PAGE]: 'Vai alla pagina precedente',
+  [C.PAGINATION_NEXT_PAGE]: 'Vai alla pagina successiva',
+  [C.PAGINATION_LAST_PAGE]: 'Vai all\'ultima pagina',
+  [C.LOADING_TITLE]: 'Caricamento...',
+  [C.EMPTY_DATA_STATE_TITLE]: 'Nessun dato disponibile',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Non c\'è ancora nulla da visualizzare.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nessun risultato trovato',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Sembra che i tuoi filtri attuali stiano nascondendo tutti i risultati.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Reimposta filtri'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;

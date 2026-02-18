@@ -1,12 +1,13 @@
 // to import sorting as an individual module, see the 'Import the sorting module' section of this page
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#exampleSortingDemo')!;
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [
     {
       brand: 'Jetpulse',

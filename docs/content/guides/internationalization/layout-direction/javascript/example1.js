@@ -1,8 +1,9 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
+// Register all Handsontable's modules.
+registerAllModules();
 registerLanguageDictionary(arAR);
 
 // generate random RTL data (e.g., Arabic)
@@ -32,7 +33,6 @@ function generateArabicData() {
 const container = document.querySelector('#example1');
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
   data: generateArabicData(),
   colHeaders: true,

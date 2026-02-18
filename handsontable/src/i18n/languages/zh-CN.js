@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'zh-CN',
+
+  [C.OK]: '确认',
+  [C.CANCEL]: '取消',
+
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '上方插入行',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: '下方插入行',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: '左方插入列',
@@ -109,6 +113,14 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: '转到上一页',
   [C.PAGINATION_NEXT_PAGE]: '转到下一页',
   [C.PAGINATION_LAST_PAGE]: '转到最后一页',
+
+  [C.LOADING_TITLE]: '加载中...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: '暂无数据',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: '暂无内容可显示。',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: '未找到结果',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: '看起来您当前的过滤器隐藏了所有结果。',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: '重置过滤器',
 };
 
 export default dictionary;

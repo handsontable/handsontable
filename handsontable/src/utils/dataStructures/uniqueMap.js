@@ -1,4 +1,5 @@
 import { isFunction } from '../../helpers/function';
+import { throwWithCause } from '../errors';
 
 const DEFAULT_ERROR_ID_EXISTS = id => `The id '${id}' is already declared in a map.`;
 
@@ -32,7 +33,7 @@ export function createUniqueMap({ errorIdExists } = {}) {
    */
   function addItem(id, item) {
     if (hasItem(id)) {
-      throw new Error(errorIdExists(id), { cause: { handsontable: true } });
+      throwWithCause(errorIdExists(id));
     }
 
     uniqueMap.set(id, item);
@@ -93,6 +94,15 @@ export function createUniqueMap({ errorIdExists } = {}) {
   }
 
   /**
+   * Gets all values from the map.
+   *
+   * @returns {Array}
+   */
+  function getValues() {
+    return [...uniqueMap.values()];
+  }
+
+  /**
    * Verifies if the passed ID exists in a map.
    *
    * @param {*} id The ID to check if registered.
@@ -108,6 +118,7 @@ export function createUniqueMap({ errorIdExists } = {}) {
     getId,
     getItem,
     getItems,
+    getValues,
     hasItem,
     removeItem,
   };

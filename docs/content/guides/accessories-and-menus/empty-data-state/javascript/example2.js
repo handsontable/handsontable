@@ -1,0 +1,36 @@
+// Custom configuration example for Empty Data State plugin
+// This example shows how to customize the empty data state message
+import Handsontable from 'handsontable';
+
+const container = document.getElementById('example2');
+const hot = new Handsontable(container, {
+  data: [],
+  height: 'auto',
+  colHeaders: ['First Name', 'Last Name', 'Email'],
+  rowHeaders: true,
+  navigableHeaders: true,
+  dropdownMenu: true,
+  filters: true,
+  emptyDataState: {
+    message: {
+      title: 'No data available',
+      description: 'Please add some data to get started.',
+      buttons: [
+        {
+          text: 'Add Sample Data',
+          type: 'primary',
+          callback: () => {
+            // Add some sample data
+            hot.loadData([
+              ['John', 'Doe', 'john@example.com'],
+              ['Jane', 'Smith', 'jane@example.com'],
+              ['Bob', 'Johnson', 'bob@example.com'],
+              ['Alice', 'Johnson', 'alice@example.com'],
+            ]);
+          },
+        },
+      ],
+    },
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});

@@ -47,6 +47,7 @@ export class Example3FormattingCellsComponent {
         top: {
           width: 2,
           color: '#5292F7',
+          style: 'dotted',
         },
         bottom: {
           width: 2,
@@ -55,6 +56,7 @@ export class Example3FormattingCellsComponent {
         start: {
           width: 2,
           color: 'orange',
+          style: 'dashed',
         },
         end: {
           width: 2,
@@ -101,7 +103,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig
     }

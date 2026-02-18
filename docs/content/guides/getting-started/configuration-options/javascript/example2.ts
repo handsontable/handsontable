@@ -1,6 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector<HTMLDivElement>('#example2')!;
 
@@ -13,7 +15,6 @@ const data: Handsontable.CellValue[][] = [
 ];
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
   data,
   width: 'auto',

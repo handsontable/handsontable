@@ -40,6 +40,7 @@ describe('NumericCellType', () => {
         getCellType('numeric');
       }).toThrowWithCause(undefined, { handsontable: true });
     });
+
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, NumericCellType);
 
@@ -59,7 +60,9 @@ describe('NumericCellType', () => {
         editor: getEditor('numeric'),
         renderer: getRenderer('numeric'),
         validator: getValidator('numeric'),
-        dataType: 'number'
+        valueFormatter: NumericCellType.valueFormatter,
+        dataType: 'number',
+        valueSetter: NumericCellType.valueSetter,
       });
     });
   });

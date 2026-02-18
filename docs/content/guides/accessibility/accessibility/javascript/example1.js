@@ -1,6 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 /* start:skip-in-preview */
 const products = [
@@ -478,7 +480,6 @@ const countries = products.reduce((acc, curr) => {
 const app = document.getElementById('example1');
 // Define configuration options for the Handsontable
 const hotOptions = {
-  themeName: 'ht-theme-main',
   data: products,
   height: 464,
   colWidths: [160, 165, 130, 120, 100, 110, 216],
@@ -491,7 +492,6 @@ const hotOptions = {
       data: 'sellDate',
       type: 'date',
       dateFormat: 'DD/MM/YYYY',
-      allowInvalid: false,
     },
     {
       data: 'inStock',

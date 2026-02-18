@@ -30,6 +30,7 @@ const hot = new Handsontable(document.createElement('div'), {
       type: 'count',
       destinationRow: 3,
       destinationColumn: 3,
+      roundFloat: 'auto',
       reversedRowCoords: true,
     },
     {
@@ -80,6 +81,21 @@ const endpoint2: Endpoint = {
   suppressDataTypeErrors: true,
   readOnly: true,
   roundFloat: false,
+  ranges: [[1, 1, 2, 2]],
+  sourceColumn: 0,
+  type: 'sum',
+  result: 0,
+  customFunction: null,
+};
+
+const endpoint3: Endpoint = {
+  destinationRow: 0,
+  destinationColumn: 0,
+  forceNumeric: false,
+  reversedRowCoords: true,
+  suppressDataTypeErrors: true,
+  readOnly: true,
+  roundFloat: 'auto',
   ranges: [[1, 1, 2, 2]],
   sourceColumn: 0,
   type: 'sum',

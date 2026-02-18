@@ -131,7 +131,7 @@ export class StretchCalculator {
         continue;
       }
 
-      totalHeight += (this.#hot.getRowHeight(row) ?? defaultRowHeight) + (row === 0 ? 1 : 0);
+      totalHeight += (this.#hot.getRowHeight(row) ?? defaultRowHeight);
 
       if (totalHeight > viewportHeight) {
         hasVerticalScroll = true;

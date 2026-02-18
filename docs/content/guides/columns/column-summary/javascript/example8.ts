@@ -1,13 +1,14 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { NestedRows } from 'handsontable/plugins';
 import { DetailedSettings } from 'handsontable/plugins/columnSummary';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example8')!;
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     {

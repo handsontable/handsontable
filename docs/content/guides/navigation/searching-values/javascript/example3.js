@@ -1,6 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const data = [
   ['Tesla', 2017, 'black', 'black'],
@@ -16,7 +18,6 @@ function onlyExactMatch(queryStr, value) {
 
 const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   colHeaders: true,
   // enable the `Search` plugin

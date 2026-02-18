@@ -1,8 +1,6 @@
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -112,7 +110,6 @@ const data = [
 
 const ExampleComponent = () => {
   const hotTableRef = useRef(null);
-
   const handleClearData = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
@@ -146,7 +143,6 @@ const ExampleComponent = () => {
 
       <HotTable
         ref={hotTableRef}
-        themeName="ht-theme-main"
         pagination={true}
         autoRowSize={true}
         data={data}

@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings } from '@handsontable/angular-wrapper';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 
 @Component({
   selector: 'example3-configuration-options',
@@ -59,7 +59,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig
     }

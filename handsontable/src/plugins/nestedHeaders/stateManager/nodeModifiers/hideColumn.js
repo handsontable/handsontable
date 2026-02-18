@@ -1,4 +1,5 @@
 import { toSingleLine } from '../../../../helpers/templateLiteralTag';
+import { throwWithCause } from '../../../../utils/errors';
 
 /**
  * @param {TreeNode} nodeToProcess A tree node to process.
@@ -8,12 +9,12 @@ import { toSingleLine } from '../../../../helpers/templateLiteralTag';
  */
 export function hideColumn(nodeToProcess, gridColumnIndex) {
   if (!Number.isInteger(gridColumnIndex)) {
-    throw new Error('The passed gridColumnIndex argument has invalid type.', { cause: { handsontable: true } });
+    throwWithCause('The passed gridColumnIndex argument has invalid type.');
   }
 
   if (nodeToProcess.childs.length > 0) {
-    throw new Error(toSingleLine`The passed node is not the last node on the tree. Only for\x20
-the last node, the hide column modification can be applied.`, { cause: { handsontable: true } });
+    throwWithCause(toSingleLine`The passed node is not the last node on the tree. Only for\x20
+the last node, the hide column modification can be applied.`);
   }
 
   const {

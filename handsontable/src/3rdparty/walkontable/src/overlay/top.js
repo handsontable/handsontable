@@ -16,6 +16,7 @@ import { getCornerStyle } from '../selection';
 import {
   CLONE_TOP,
 } from './constants';
+import { throwWithCause } from '../../../../utils/errors';
 
 /**
  * @class TopOverlay
@@ -244,7 +245,7 @@ export class TopOverlay extends Overlay {
       this.spreader.style.top = '0';
 
     } else {
-      throw new Error('Incorrect value of the rowsRenderCalculator', { cause: { handsontable: true } });
+      throwWithCause('Incorrect value of the rowsRenderCalculator');
     }
     this.spreader.style.bottom = '';
 

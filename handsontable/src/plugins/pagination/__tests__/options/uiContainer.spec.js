@@ -34,9 +34,9 @@ describe('Pagination `uiContainer` option', () => {
     const paginationContainer = externalContainer.firstElementChild;
 
     expect(paginationContainer.getAttribute('dir')).toBe('ltr');
-    expect(paginationContainer).toHaveClass('ht-pagination-container');
+    expect(paginationContainer).toHaveClass('ht-pagination');
     expect(paginationContainer).toHaveClass('handsontable');
-    expect(paginationContainer).toHaveClass('ht-pagination-container--bordered');
+    expect(paginationContainer).toHaveClass('ht-pagination--bordered');
 
     if (spec().loadedTheme !== 'classic') {
       expect(paginationContainer).toHaveClass(`ht-theme-${spec().loadedTheme}`);

@@ -58,6 +58,7 @@
       color: var(--ht-accent-color);
       background: none;
       border: none;
+      padding: 0;
     }
 
     .pika-prev {
@@ -100,14 +101,14 @@
 
         &.is-today {
           .pika-button {
-            background: var(--ht-menu-item-hover-color);
+            background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent);
           }
         }
 
         &.is-selected {
           .pika-button {
             background: var(--ht-accent-color, #1a42e8);
-            color: var(--ht-background-color, #ffffff);
+            color: var(--ht-primary-button-foreground-color, #ffffff);
           }
         }
 
@@ -130,7 +131,7 @@
         font-size: inherit;
 
         &:hover {
-          background: var(--ht-menu-item-hover-color);
+          background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent);
         }
       }
     }

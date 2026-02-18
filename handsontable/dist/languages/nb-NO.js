@@ -77,6 +77,8 @@ var _handsontable = _interopRequireDefault(__webpack_require__(2));
 const C = _handsontable.default.languages.dictionaryKeys;
 const dictionary = {
   languageCode: 'nb-NO',
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Avbryt',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Sett inn over',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Sett inn under',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Sett inn til venstre',
@@ -148,7 +150,22 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: 'Avbryt',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Søk',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Verdi',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Andre verdi'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Andre verdi',
+  [C.PAGINATION_SECTION]: 'Paginering',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Antall rader',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] av [total]',
+  [C.PAGINATION_NAV_SECTION]: 'Side [currentPage] av [totalPages]',
+  [C.PAGINATION_FIRST_PAGE]: 'Gå til første side',
+  [C.PAGINATION_PREV_PAGE]: 'Gå til forrige side',
+  [C.PAGINATION_NEXT_PAGE]: 'Gå til neste side',
+  [C.PAGINATION_LAST_PAGE]: 'Gå til siste side',
+  [C.LOADING_TITLE]: 'Laster...',
+  [C.EMPTY_DATA_STATE_TITLE]: 'Ingen data tilgjengelig',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Det er ingenting å vise ennå.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Ingen resultater funnet',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Det ser ut til at dine nåværende filtre skjuler alle resultater.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Tilbakestill filtre'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;

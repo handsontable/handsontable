@@ -946,7 +946,7 @@ export default () => {
      * | `forceNumeric`           | `true`  \| `false`                                                      | [Treat non-numerics as numerics](@/guides/columns/column-summary/column-summary.md#force-numeric-values)                                  |
      * | `reversedRowCoords`      | `true`  \| `false`                                                      | [Reverse row coordinates](@/guides/columns/column-summary/column-summary.md#step-5-make-room-for-the-destination-cell)                      |
      * | `suppressDataTypeErrors` | `true`  \| `false`                                                      | [Suppress data type errors](@/guides/columns/column-summary/column-summary.md#throw-data-type-errors)                                    |
-     * | `readOnly`               | `true`  \| `false`                                                      | Make summary cell read-only                                                                                                  |
+     * | `readOnly`               | `true`  \| `false`                                                      | Make summary cell [read-only](@/api/options.md#readonly)                                                                                           |
      * | `roundFloat`             | `true`  \| `false`  \| A number                                         | [Round summary result](@/guides/columns/column-summary/column-summary.md#round-a-column-summary-result)                                  |
      * | `customFunction`         | A function                                                              | [Custom summary function](@/guides/columns/column-summary/column-summary.md#implement-a-custom-summary-function)                         |
      *
@@ -1322,6 +1322,7 @@ export default () => {
      * - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
      * - [`dateFormat`](#dateFormat)
      *
+     * @deprecated This option is deprecated and will be removed in the next major release.
      * @memberof Options#
      * @type {boolean}
      * @default false
@@ -1454,14 +1455,14 @@ export default () => {
      * set the `customBorders` option to an array of objects.
      * Each object represents a border configuration for one cell, and has the following properties:
      *
-     * | Property | Sub-properties     | Types                              | Description                                                       |
-     * | -------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------- |
-     * | `row`    | -                  | `row`: Number                      | The cell's row coordinate.                                        |
-     * | `col`    | -                  | `col`: Number                      | The cell's column coordinate.                                     |
-     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `start` sets the width (`width`) and color (`color`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `start` sets the width (`width`) and color (`color`) of the right-hand border. |
-     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `end` sets the width (`width`) and color (`color`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `end` sets the width (`width`) and color (`color`) of the left-hand border. |
-     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the width (`width`) and color (`color`) of the top border. |
-     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the width (`width`) and color (`color`) of the bottom border. |
+     * | Property | Sub-properties                | Types                                                 | Description                                                       |
+     * | -------- | ----------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------- |
+     * | `row`    | -                             | `row`: Number                                         | The cell's row coordinate.                                        |
+     * | `col`    | -                             | `col`: Number                                         | The cell's column coordinate.                                     |
+     * | `start`  | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `start` sets the width (`width`), color (`color`) and style (`style`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `start` sets the width (`width`), color (`color`) and style (`style`) of the right-hand border. |
+     * | `end`    | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `end` sets the width (`width`), color (`color`) and style (`style`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `end` sets the width (`width`), color (`color`) and style (`style`) of the left-hand border. |
+     * | `top`    | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | Sets the width (`width`), color (`color`) and style (`style`) of the top border. |
+     * | `bottom` | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | Sets the width (`width`), color (`color`) and style (`style`) of the bottom border. |
      *
      * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
      * and add a predefined border around a range of cells,
@@ -1471,10 +1472,10 @@ export default () => {
      * | Property | Sub-properties                               | Types                                                            | Description                                                                                  |
      * | -------- | -------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
      * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default):<br>- `from` selects the range's top-left corner.<br>- `to` selects the range's bottom-right corner.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: <br>- `from` selects the range's top-right corner.<br>- `to` selects the range's bottom-left corner. |
-     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `start` sets the width (`width`) and color (`color`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `start` sets the width (`width`) and color (`color`) of the right-hand border. |
-     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `end` sets the width (`width`) and color (`color`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `end` sets the width (`width`) and color (`color`) of the left-hand border. |
-     * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the top border. |
-     * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the bottom border. |
+     * | `start`  | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `start` sets the width (`width`), color (`color`) and style (`style`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `start` sets the width (`width`), color (`color`) and style (`style`) of the right-hand border. |
+     * | `end`    | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `end` sets the width (`width`), color (`color`) and style (`style`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `end` sets the width (`width`), color (`color`) and style (`style`) of the left-hand border. |
+     * | `top`    | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | Sets the width (`width`), color (`color`) and style (`style`) of the top border. |
+     * | `bottom` | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | Sets the width (`width`), color (`color`) and style (`style`) of the bottom border. |
      *
      * Read more:
      * - [Formatting cells: Custom cell borders](@/guides/cell-features/formatting-cells/formatting-cells.md#custom-cell-borders)
@@ -1507,10 +1508,11 @@ export default () => {
      *       width: 2,
      *       color: 'red'
      *     },
-     *     // set the right/left border's width and color
+     *     // set the right/left border's width, color and style
      *     end: {
      *       width: 1,
-     *       color: 'green'
+     *       color: 'green',
+     *       style: 'dashed'
      *     },
      *     // set the top border's width and color
      *     top: '',
@@ -1537,10 +1539,11 @@ export default () => {
      *         col: 4
      *       }
      *     },
-     *     // set the left/right border's width and color
+     *     // set the left/right border's width, color and style
      *     start: {
      *       width: 2,
-     *       color: 'red'
+     *       color: 'red',
+     *       style: 'dashed'
      *     },
      *     // set the right/left border's width and color
      *     end: {},
@@ -1677,62 +1680,240 @@ export default () => {
     dataSchema: undefined,
 
     /**
-     * The `dateFormat` option configures the date format accepted by [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cells.
+     * Configures the date format for date cells. Accepts either a string (legacy, for [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md)
+     * cells) or an object of [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
+     * options (for [`intlDate`](@/guides/cell-types/date-cell-type/date-cell-type.md) cells).
      *
-     * You can set the `dateFormat` option to a string with a proper date format. The default value is: `'DD/MM/YYYY'`.
+     * ::: warning
+     * The string form of `dateFormat` is deprecated and will be removed in the next major release.
+     * It is used only by the `date` cell type (moment.js-based). Use the `intlDate` cell type
+     * with an `Intl.DateTimeFormat` options object instead. In the next major release, `intlDate`
+     * will become the default `date` cell type, and `intlDate` will be an alias for `date`.
+     * :::
      *
-     * To automatically correct dates whose format doesn't match the `dateFormat` setting, use the [`correctFormat`](#correctFormat) option.
+     * **Object form (Intl.DateTimeFormat options):**
+     *
+     * The object form is supported only when the cell type is `intlDate`. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+     *
+     * ::: tip Source data format
+     * For `intlDate` cells, source data must be in an ISO 8601 date format (`YYYY-MM-DD`). Otherwise operations such
+     * as sorting and filtering can be unstable or unpredictable. The `dateFormat` object affects only how dates are
+     * displayed; the underlying value should remain ISO.
+     * :::
+     *
+     * **Style shortcuts:**
+     *
+     * | Property     | Possible values                                    | Description                                              |
+     * | ------------ | -------------------------------------------------- | -------------------------------------------------------- |
+     * | `dateStyle`  | `'full'`, `'long'`, `'medium'`, `'short'`          | Date formatting style (expands to weekday, day, month, year, era) |
+     * | `timeStyle`  | `'full'`, `'long'`, `'medium'`, `'short'`          | Time formatting style (expands to hour, minute, second, timeZoneName) |
+     *
+     * **Date-time component options:**
+     *
+     * | Property                 | Possible values                                                                 | Description                          |
+     * | ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------ |
+     * | `weekday`                | `'long'`, `'short'`, `'narrow'`                                                 | Representation of the weekday        |
+     * | `era`                    | `'long'`, `'short'`, `'narrow'`                                                 | Representation of the era            |
+     * | `year`                   | `'numeric'`, `'2-digit'`                                                        | Representation of the year           |
+     * | `month`                  | `'numeric'`, `'2-digit'`, `'long'`, `'short'`, `'narrow'`                       | Representation of the month          |
+     * | `day`                    | `'numeric'`, `'2-digit'`                                                        | Representation of the day            |
+     * | `dayPeriod`              | `'narrow'`, `'short'`, `'long'`                                                 | Day period (e.g. "am", "noon")       |
+     * | `hour`                   | `'numeric'`, `'2-digit'`                                                        | Representation of the hour           |
+     * | `minute`                 | `'numeric'`, `'2-digit'`                                                        | Representation of the minute         |
+     * | `second`                 | `'numeric'`, `'2-digit'`                                                        | Representation of the second         |
+     * | `fractionalSecondDigits` | `1`, `2`, `3`                                                                   | Fraction-of-second digits            |
+     * | `timeZoneName`           | `'long'`, `'short'`, `'shortOffset'`, `'longOffset'`, `'shortGeneric'`, `'longGeneric'` | Time zone display                 |
+     *
+     * **Locale and other options:**
+     *
+     * | Property          | Possible values                                    | Description                    |
+     * | ----------------- | -------------------------------------------------- | ------------------------------ |
+     * | `localeMatcher`   | `'best fit'` (default), `'lookup'`                  | Locale matching algorithm      |
+     * | `calendar`        | `'chinese'`, `'gregory'`, `'persian'`, etc.        | Calendar to use                |
+     * | `numberingSystem` | `'latn'`, `'arab'`, `'hans'`, etc.                 | Numbering system               |
+     * | `timeZone`        | IANA time zone (e.g. `'UTC'`, `'America/New_York'`) | Time zone for formatting       |
+     * | `hour12`          | `true`, `false`                                    | Use 12-hour vs 24-hour time   |
+     * | `hourCycle`       | `'h11'`, `'h12'`, `'h23'`, `'h24'`                 | Hour cycle                     |
+     * | `formatMatcher`   | `'basic'`, `'best fit'` (default)                  | Format matching algorithm      |
+     *
+     * For complete reference, see [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
      *
      * Read more:
      * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
-     * - [`correctFormat`](#correctFormat)
-     * - [`defaultDate`](#defaultDate)
+     * - [`locale`](@/api/options.md#locale)
+     *
+     * ---
+     *
+     * **Deprecated: string form**
+     *
+     * Passing a string (e.g. `'DD/MM/YYYY'`, `'YYYY-MM-DD'`) is deprecated and works only with the `date` cell type.
+     * Migrate to the `intlDate` cell type and pass an `Intl.DateTimeFormat` options object.
+     *
+     * **Migration example:**
+     *
+     * ```js
+     * // Before (deprecated)
+     * columns: [{
+     *   type: 'date',
+     *   dateFormat: 'YYYY-MM-DD'
+     * }]
+     *
+     * // After (recommended)
+     * columns: [{
+     *   type: 'intl-date',
+     *   locale: 'en-US',
+     *   dateFormat: {
+     *     year: 'numeric',
+     *     month: '2-digit',
+     *     day: '2-digit'
+     *   }
+     * }]
+     * ```
      *
      * @memberof Options#
-     * @type {string}
+     * @type {string|object}
      * @default 'DD/MM/YYYY'
      * @category Core
      *
      * @example
      * ```js
+     * // intlDate cell type with Intl options
      * columns: [
      *   {
-     *   // set the `type` of each cell in this column to `date`
-     *   type: 'date',
-     *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
-     *   dateFormat: 'YYYY-MM-DD',
-     *   },
-     * ],
+     *     type: 'intl-date',
+     *     locale: 'en-US',
+     *     dateFormat: {
+     *       dateStyle: 'short'
+     *     }
+     *   }
+     * ]
+     * ```
+     *
+     * @example
+     * ```js
+     * // Legacy: date cell type with string format (deprecated)
+     * columns: [
+     *   {
+     *     type: 'date',
+     *     dateFormat: 'YYYY-MM-DD'
+     *   }
+     * ]
      * ```
      */
     dateFormat: 'DD/MM/YYYY',
 
     /**
-     * The `timeFormat` option configures the time format accepted by [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells.
+     * Configures the time format for time cells. Accepts either a string (legacy, for [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md)
+     * cells) or an object of [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
+     * options (for [`intlTime`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells).
      *
-     * You can set the `timeFormat` option to a string with a proper time format. The default value is: `'h:mm:ss a'`.
+     * ::: warning
+     * The string form of `timeFormat` is deprecated and will be removed in the next major release.
+     * It is used only by the `time` cell type. Use the `intlTime` cell type with an `Intl.DateTimeFormat`
+     * options object instead.
+     * :::
      *
-     * To automatically correct times whose format doesn't match the `timeFormat` setting, use the [`correctFormat`](#correctFormat) option.
+     * **Object form (Intl.DateTimeFormat options):**
+     *
+     * The object form is supported only when the cell type is `intlTime`. The locale is controlled separately
+     * via the [`locale`](@/api/options.md#locale) option.
+     *
+     * ::: tip Source data format
+     * For `intlTime` cells, source data must be in 24-hour time format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`), matching
+     * the HTML `input type="time"` value. Otherwise operations such as sorting and filtering can be unstable or unpredictable.
+     * The `timeFormat` object affects only how times are displayed; the underlying value should remain in that format.
+     * :::
+     *
+     * **Style shortcuts:**
+     *
+     * | Property     | Possible values                                    | Description                                              |
+     * | ------------ | -------------------------------------------------- | -------------------------------------------------------- |
+     * | `timeStyle`  | `'full'`, `'long'`, `'medium'`, `'short'`          | Time formatting style (expands to hour, minute, second, timeZoneName) |
+     *
+     * **Time component options:**
+     *
+     * | Property                 | Possible values                                                                 | Description                          |
+     * | ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------ |
+     * | `hour`                   | `'numeric'`, `'2-digit'`                                                        | Representation of the hour           |
+     * | `minute`                 | `'numeric'`, `'2-digit'`                                                        | Representation of the minute         |
+     * | `second`                 | `'numeric'`, `'2-digit'`                                                        | Representation of the second         |
+     * | `fractionalSecondDigits` | `1`, `2`, `3`                                                                   | Fraction-of-second digits            |
+     * | `dayPeriod`              | `'narrow'`, `'short'`, `'long'`                                                 | Day period (e.g. "am", "noon")       |
+     * | `timeZoneName`           | `'long'`, `'short'`, `'shortOffset'`, `'longOffset'`, `'shortGeneric'`, `'longGeneric'` | Time zone display                 |
+     *
+     * **Locale and other options:**
+     *
+     * | Property          | Possible values                                    | Description                    |
+     * | ----------------- | -------------------------------------------------- | ------------------------------ |
+     * | `localeMatcher`   | `'best fit'` (default), `'lookup'`                  | Locale matching algorithm      |
+     * | `timeZone`        | IANA time zone (e.g. `'UTC'`, `'America/New_York'`) | Time zone for formatting       |
+     * | `hour12`          | `true`, `false`                                    | Use 12-hour vs 24-hour time   |
+     * | `hourCycle`       | `'h11'`, `'h12'`, `'h23'`, `'h24'`                 | Hour cycle                     |
+     * | `formatMatcher`   | `'basic'`, `'best fit'` (default)                  | Format matching algorithm      |
+     *
+     * For complete reference, see [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
      *
      * Read more:
      * - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
-     * - [`correctFormat`](#correctFormat)
+     * - [`locale`](@/api/options.md#locale)
+     *
+     * ---
+     *
+     * **Deprecated: string form**
+     *
+     * Passing a string (e.g. `'h:mm:ss a'`) is deprecated and works only with the `time` cell type.
+     * Migrate to the `intlTime` cell type and pass an `Intl.DateTimeFormat` options object.
+     *
+     * **Migration example:**
+     *
+     * ```js
+     * // Before (deprecated)
+     * columns: [{
+     *   type: 'time',
+     *   timeFormat: 'h:mm:ss a'
+     * }]
+     *
+     * // After (recommended)
+     * columns: [{
+     *   type: 'intl-time',
+     *   locale: 'en-US',
+     *   timeFormat: {
+     *     hour: 'numeric',
+     *     minute: '2-digit',
+     *     second: '2-digit',
+     *     hour12: true
+     *   }
+     * }]
+     * ```
      *
      * @memberof Options#
-     * @type {string}
+     * @type {string|object}
      * @default 'h:mm:ss a'
      * @category Core
      *
      * @example
      * ```js
+     * // intlTime cell type with Intl options
      * columns: [
      *   {
-     *   // set the `type` of each cell in this column to `time`
-     *   type: 'time',
-     *   // for every `time` cell of this column, set the time format to `h:mm:ss a`
-     *   timeFormat: 'h:mm:ss a',
-     *   },
-     * ],
+     *     type: 'intl-time',
+     *     locale: 'en-US',
+     *     timeFormat: {
+     *       timeStyle: 'medium'
+     *     }
+     *   }
+     * ]
+     * ```
+     *
+     * @example
+     * ```js
+     * // Legacy: time cell type with string format (deprecated)
+     * columns: [
+     *   {
+     *     type: 'time',
+     *     timeFormat: 'h:mm:ss a'
+     *   }
+     * ]
      * ```
      */
     timeFormat: 'h:mm:ss a',
@@ -1760,6 +1941,7 @@ export default () => {
      * - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
      * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration)
      *
+     * @deprecated This option is deprecated and will be removed in the next major release.
      * @memberof Options#
      * @type {object}
      * @default undefined
@@ -1769,9 +1951,9 @@ export default () => {
 
     /**
      * The `defaultDate` option configures the date displayed
-     * in empty [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cells.
+     * in the editor for an empty [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cell.
      *
-     * You can set the `defaultDate` option to a string.
+     * The option accepts a string in ISO 8601 format (`YYYY-MM-DD`).
      *
      * Read more:
      * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
@@ -1786,9 +1968,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of each cell in this column to `date`
      *     type: 'date',
-     *     // in every empty `date` cell of this column, display `2015-02-02`
      *     defaultDate: '2015-02-02'
      *   }
      * ],
@@ -1839,6 +2019,170 @@ export default () => {
      * ```
      */
     disableVisualSelection: false,
+
+    /**
+     * @description
+     * The `dialog` option configures the [`Dialog`](@/api/dialog.md) plugin.
+     *
+     * You can set the `dialog` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Dialog`](@/api/dialog.md) plugin                              |
+     * | `true`    | Enable the [`Dialog`](@/api/dialog.md) plugin with default options          |
+     *
+     * ##### dialog: Additional options
+     *
+     * | Option                   | Possible settings                                                                                                               | Description                             |
+     * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------|
+     * | `template`               | Object with the template configuration (default: `null`).                                                                       | The template of the dialog allows to use prebuild templates |
+     * | `template.type`          | The type of the template ('confirm')                                                                                            | The type of the template                |
+     * | `template.title`         | The title of the template                                                                                                       | The title of the template               |
+     * | `template.description`   | The description of the template                                                                                                 | The description of the template         |
+     * | `template.buttons`       | Array of objects with the buttons configuration (default: `[]`)                                                                 | The buttons of the template             |
+     * | `template.buttons.text`  | The text of the button                                                                                                          | The text of the button                  |
+     * | `template.buttons.type`  | The type of the button ('primary' | 'secondary')                                                                                | The type of the button                  |
+     * | `template.buttons.callback` | The callback function to trigger when the button is clicked                                                                  | The callback function to trigger when the button is clicked |
+     * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                                                       | The content of the dialog               |
+     * | `customClassName`        | A string (default: `''`)                                                                                                        | The custom class name of the dialog     |
+     * | `background`             | One of the options: `'solid'` or `'semi-transparent'` (default: `'solid'`)                                                      | The background of the dialog            |
+     * | `contentBackground`      | Boolean (default: `false`)                                                                                                      | Whether to show the content background  |
+     * | `animation`              | Boolean (default: `true`)                                                                                                       | Whether to show the animation           |
+     * | `closable`               | Boolean (default: `false`)                                                                                                      | Whether to make the dialog closable     |
+     * | `a11y`                   | Object with accessibility options (default: `{ role: 'dialog', ariaLabel: 'Dialog', ariaLabelledby: '', ariaDescribedby: '' }`) | Accessibility options for the dialog    |
+     * | `a11y.role`              | The role of the dialog ('dialog' | 'alertdialog')                                                                               | The role of the dialog                  |
+     * | `a11y.ariaLabel`         | The label of the dialog                                                                                                         | The label of the dialog                 |
+     * | `a11y.ariaLabelledby`    | The ID of the element that labels the dialog                                                                                    | The ID of the element that labels the dialog |
+     * | `a11y.ariaDescribedby`   | The ID of the element that describes the dialog                                                                                 | The ID of the element that describes the dialog |
+     *
+     * Read more:
+     * - [Plugins: `Dialog`](@/api/dialog.md)
+     *
+     * @since 16.1.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category Dialog
+     *
+     * @example
+     * ::: only-for javascript
+     * ```js
+     * // enable the Dialog plugin with default option
+     * dialog: true,
+     *
+     * // enable the Dialog plugin with custom configuration
+     * dialog: {
+     *   content: 'Dialog content',
+     *   customClassName: 'custom-dialog',
+     *   background: 'semi-transparent',
+     *   contentBackground: false,
+     *   animation: false,
+     *   closable: true,
+     *   a11y: {
+     *     role: 'dialog',
+     *     ariaLabel: 'Dialog',
+     *     ariaLabelledby: 'titleID',
+     *     ariaDescribedby: 'descriptionID',
+     *   }
+     * }
+     *
+     * // enable the Dialog plugin using a template
+     * dialog: {
+     *   template: {
+     *     type: 'confirm',
+     *     title: 'Confirm',
+     *     description: 'Do you want change the value?',
+     *     buttons: [
+     *       {
+     *         text: 'Ok',
+     *         type: 'primary',
+     *         callback: () => {
+     *           console.log('Ok');
+     *         }
+     *       },
+     *     ],
+     *   },
+     * }
+     * ```
+     * :::
+     *
+     * ::: only-for react
+     * ```jsx
+     * // enable the Dialog plugin with default option
+     * <HotTable
+     *   dialog={true}
+     * />
+     *
+     * // enable the Dialog plugin with custom configuration
+     * <HotTable
+     *   dialog={{
+     *     content: 'Dialog content',
+     *     customClassName: 'custom-dialog',
+     *     background: 'semi-transparent',
+     *     contentBackground: false,
+     *     animation: false,
+     *     closable: true,
+     *     a11y: {
+     *       role: 'dialog',
+     *       ariaLabel: 'Dialog',
+     *       ariaLabelledby: 'titleID',
+     *       ariaDescribedby: 'descriptionID',
+     *     }
+     *   }
+     *   }}
+     * />
+     *
+     * // enable the Dialog plugin using a template
+     * <HotTable
+     *   dialog={{
+     *     template: {
+     *       type: 'confirm',
+     *       title: 'Confirm',
+     *       description: 'Do you want change the value?',
+     *     }
+     *   }}
+     * />
+     * ```
+     * :::
+     *
+     * ::: only-for angular
+     * ```ts
+     * settings = {
+     *   dialog: {
+     *     content: 'Dialog content',
+     *     customClassName: 'custom-dialog',
+     *     background: 'semi-transparent',
+     *     contentBackground: false,
+     *     animation: false,
+     *     closable: true,
+     *     a11y: {
+     *       role: 'dialog',
+     *       ariaLabel: 'Dialog',
+     *       ariaLabelledby: 'titleID',
+     *       ariaDescribedby: 'descriptionID',
+     *     }
+     *   }
+     * };
+     *
+     * // enable the Dialog plugin using a template
+     * settings = {
+     *   dialog: {
+     *     template: {
+     *       type: 'confirm',
+     *       title: 'Confirm',
+     *       description: 'Do you want change the value?',
+     *     }
+     *   }
+     * };
+     * ```
+     *
+     * ```html
+     * <hot-table [settings]="settings" />
+     * ```
+     * :::
+     *
+     */
+    dialog: false,
 
     /**
      * @description
@@ -1938,6 +2282,7 @@ export default () => {
      * | `'base'`            | `BaseEditor`                                                               |
      * | `'checkbox'`        | `CheckboxEditor`                                                           |
      * | `'date'`            | `DateEditor`                                                               |
+     * | `'intl-date'`       | `IntlDateEditor`                                                           |
      * | `'dropdown'`        | `DropdownEditor`                                                           |
      * | `'handsontable'`    | `HandsontableEditor`                                                       |
      * | `'numeric'`         | `NumericEditor`                                                            |
@@ -1945,6 +2290,7 @@ export default () => {
      * | `'select'`          | `SelectEditor`                                                             |
      * | `'text'`            | `TextEditor`                                                               |
      * | `'time'`            | `TimeEditor`                                                               |
+     * | `'intl-time'`       | `IntlTimeEditor`                                                           |
      *
      * To disable editing cells through cell editors,
      * set the `editor` option to `false`.
@@ -1986,6 +2332,90 @@ export default () => {
     editor: undefined,
 
     /**
+     * @description
+     * The `emptyDataState` option configures the [`EmptyDataState`](@/api/emptyDataState.md) plugin.
+     *
+     * You can set the `emptyDataState` option to one of the following:
+     *
+     * | Setting   | Description                                                                        |
+     * | --------- | ---------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`EmptyDataState`](@/api/emptyDataState.md) plugin                     |
+     * | `true`    | Enable the [`EmptyDataState`](@/api/emptyDataState.md) plugin                      |
+     * | An object | Enable the [`EmptyDataState`](@/api/emptyDataState.md) plugin with custom settings |
+     *
+     * If you set the `emptyDataState` option to an object, you can configure the following settings:
+     *
+     * | Property  | Possible values                    | Description                                         |
+     * | --------  | ---------------------------------- | --------------------------------------------------- |
+     * | `message` | `string` \| `object` \| `function` | Message to display in the empty data state overlay. |
+     *
+     * If you set the `message` option to an object, it have following properties:
+     *
+     * | Property      | Possible values | Description                                             |
+     * | ------------- | --------------- | ------------------------------------------------------- |
+     * | `title`       | `string`        | Title to display in the empty data state overlay.       |
+     * | `description` | `string`        | Description to display in the empty data state overlay. |
+     * | `buttons`     | `array`         | Buttons to display in the empty data state overlay.     |
+     *
+     * If you set the `buttons` option to an array, each item requires following properties:
+     *
+     * | Property   | Possible values          | Description                                                  |
+     * | ---------- | ------------------------ | ------------------------------------------------------------ |
+     * | `text`     | `string`                 | Text to display in the button.                        |
+     * | `type`     | 'primary' \| 'secondary' | Type of the button.                                   |
+     * | `callback` | `function`               | Callback function to call when the button is clicked. |
+     *
+     * Read more:
+     * - [Plugins: `EmptyDataState`](@/api/emptyDataState.md)
+     *
+     * @since 16.2.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category EmptyDataState
+     *
+     * @example
+     * ```js
+     * // Enable empty data state plugin with default messages
+     * emptyDataState: true,
+     *
+     * // Enable empty data state plugin with custom message
+     * emptyDataState: {
+     *   message: 'No data available',
+     * },
+     *
+     * // Enable empty data state plugin with custom message and buttons for any source
+     * emptyDataState: {
+     *   message: {
+     *     title: 'No data available',
+     *     description: 'There’s nothing to display yet.',
+     *     buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+     *   },
+     * },
+     *
+     * // Enable empty data state plugin with custom message and buttons for specific source
+     * emptyDataState: {
+     *   message: (source) => {
+     *     switch (source) {
+     *       case "filters":
+     *         return {
+     *           title: 'No data available',
+     *           description: 'There’s nothing to display yet.',
+     *           buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+     *         };
+     *       default:
+     *         return {
+     *           title: 'No data available',
+     *           description: 'There’s nothing to display yet.',
+     *         };
+     *     }
+     *   },
+     * },
+     * ```
+     */
+    emptyDataState: false,
+
+    /**
      * The `enterBeginsEditing` option configures the action of the <kbd>**Enter**</kbd> key.
      *
      * You can set the `enterBeginsEditing` option to one of the following:
@@ -2014,6 +2444,30 @@ export default () => {
      * ```
      */
     enterBeginsEditing: true,
+
+    /**
+     * The `enterCommits` option configures whether the <kbd>**Enter**</kbd> key closes the [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editor.
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @since 17.0.0
+     * @category Core
+     * @example
+     * ```js
+     * columns: [{
+     *   type: 'multiSelect',
+     *   // press Enter to close the `multiSelect` editor and Space to select an option
+     *   enterCommits: true,
+     * }, {
+     *   type: 'multiSelect',
+     *   // press Enter to select an option
+     *   enterCommits: false,
+     * }],
+     * ],
+     * ```
+     */
+    enterCommits: true,
 
     /**
      * The `enterMoves` option configures the action of the <kbd>**Enter**</kbd> key.
@@ -2154,8 +2608,8 @@ export default () => {
     filter: true,
 
     /**
-     * The `filteringCaseSensitive` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) cells'
-     * input is case-sensitive.
+     * The `filteringCaseSensitive` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) and [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells'
+     * search inputs are case-sensitive.
      *
      * You can set the `filteringCaseSensitive` option to one of the following:
      *
@@ -2182,6 +2636,12 @@ export default () => {
      *     source: [ ... ],
      *     // match case while searching autocomplete options
      *     filteringCaseSensitive: true
+     *   },
+     *   {
+     *     type: 'multiSelect',
+     *     source: [ ... ],
+     *     // match case while searching multiSelect options
+     *     filteringCaseSensitive: true
      *   }
      * ],
      * ```
@@ -2193,10 +2653,19 @@ export default () => {
      *
      * You can set the `filters` option to one of the following:
      *
-     * | Setting | Description                                      |
-     * | ------- | ------------------------------------------------ |
-     * | `false` | Disable the [`Filters`](@/api/filters.md) plugin |
-     * | `true`  | Enable the [`Filters`](@/api/filters.md) plugin  |
+     * | Setting   | Description                                                          |
+     * | --------- | -------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Filters`](@/api/filters.md) plugin                     |
+     * | `true`    | Enable the [`Filters`](@/api/filters.md) plugin                      |
+     * | An object | Enable the [`Filters`](@/api/filters.md) plugin with custom settings |
+     *
+     * If you set the `filters` option to an object, you can configure the following settings:
+     *
+     * | Property                 | Possible values   | Description                            |
+     * | ------------------------ | ----------------- | -------------------------------------- |
+     * | `searchMode` | `'show'` \| `'apply'` | Enable filtering only visible elements |
+     *
+     * If filers is set to `true`, the `searchMode` option is set to `'show'` by default.
      *
      * Read more:
      * - [Column filter](@/guides/columns/column-filter/column-filter.md)
@@ -2215,6 +2684,24 @@ export default () => {
      * ```
      */
     filters: undefined,
+
+    /**
+     * The `filterSelectedItems` option configures whether the selected items are filtered out of the dropdown, when using the search input of the [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editor.
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // filter out the selected items from the dropdown
+     * filterSelectedItems: true,
+     *
+     * // keep the selected items in the dropdown
+     * filterSelectedItems: false,
+     */
+    filterSelectedItems: true,
 
     /**
      * `fixedColumnsLeft` is a legacy option.
@@ -2918,6 +3405,51 @@ export default () => {
     locale: 'en-US',
 
     /**
+     * @description
+     * The `loading` option configures the [`Loading`](@/api/loading.md) plugin.
+     *
+     * Loading plugin, automatically loads [`Dialog`](@/api/dialog.md) plugin.
+     *
+     * You can set the `loading` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Loading`](@/api/loading.md) plugin                           |
+     * | `true`    | Enable the [`Loading`](@/api/loading.md) plugin with default configuration |
+     * | An object | - Enable the [`Loading`](@/api/loading.md) plugin<br>- Apply custom configuration |
+     *
+     * If you set the `loading` option to an object, you can configure the following loading options:
+     *
+     * | Option        | Possible settings | Description                                               |
+     * | ------------- | ----------------- | --------------------------------------------------------- |
+     * | `icon`        | A string          | Custom loading icon to display (default: `<svg />`)       |
+     * | `title`       | A string          | Custom loading title to display (default: `'Loading...'`) |
+     * | `description` | A string          | Custom loading description to display (default: `''`)     |
+     *
+     * Read more:
+     * - [Plugins: `Loading`](@/api/loading.md)
+     * @since 16.1.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category Loading
+     *
+     * @example
+     * ```js
+     * // enable the `Loading` plugin with default configuration
+     * loading: true,
+     *
+     * // enable the `Loading` plugin with custom configuration
+     * loading: {
+     *   icon: 'A custom loading icon in SVG format',
+     *   title: 'Custom loading title',
+     *   description: 'Custom loading description',
+     * }
+     * ```
+     */
+    loading: false,
+
+    /**
      * The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.
      *
      * You can set the `manualColumnFreeze` option to one of the following:
@@ -3121,6 +3653,27 @@ export default () => {
     maxRows: Infinity,
 
     /**
+     * The `maxSelections` option sets a maximum number of selections for the [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells.
+     *
+     * @since 17.0.0
+     * @memberof Options#
+     * @type {number}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [{
+     *   // set the `type` of each cell in this column to `multiSelect`
+     *   type: 'multiSelect',
+     *   // set the maximum number of selections to 3
+     *   maxSelections: 3,
+     * }],
+     * ```
+     */
+    maxSelections: undefined,
+
+    /**
      * @description
      * The `mergeCells` option configures the [`MergeCells`](@/api/mergeCells.md) plugin.
      *
@@ -3212,6 +3765,38 @@ export default () => {
      * ```
      */
     minCols: 0,
+
+    /**
+     * Alias for the [`rowHeights`](#rowHeights) option.
+     *
+     * See the [`rowHeights`](#rowHeights) option description for more information.
+     *
+     * @since 16.2.0
+     * @memberof Options#
+     * @type {number|number[]|string|string[]|Array<undefined>|Function}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // set every row's minimum height to 100px
+     * minRowHeights: 100,
+     *
+     * // set every row's minimum height to 100px
+     * minRowHeights: '100px',
+     *
+     * // set the first (by visual index) row's minimum height to 100
+     * // set the second (by visual index) row's minimum height to 120
+     * // set any other row's minimum height to the default height value
+     * minRowHeights: [100, 120],
+     *
+     * // set each row's minimum height individually, using a function
+     * minRowHeights(visualRowIndex) {
+     *   return visualRowIndex * 10;
+     * },
+     * ```
+     */
+    minRowHeights: undefined,
 
     /**
      * The `minRows` option sets a minimum number of rows.
@@ -3506,24 +4091,112 @@ export default () => {
     noWordWrapClassName: 'htNoWrap',
 
     /**
-     * The `numericFormat` option configures the number format and the currency format
-     * of [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cells` displayed output
-     * in the numeric cell renderer.
+     * Configures the number format for [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
+     * cells, including currency, units, precision, and other display options.
      *
-     * You can set the `numericFormat` option to an object with the following properties:
+     * ::: warning
+     * The `numericFormat.pattern` and `numericFormat.culture` options are deprecated and will be
+     * removed in the next major release. Pass `Intl.NumberFormat` options directly to `numericFormat`
+     * and use the `locale` cell property instead of `culture`.
+     * :::
      *
-     * | Property    | Possible values                                                               | Description     |
-     * | ----------- | ----------------------------------------------------------------------------- | --------------- |
-     * | `pattern`   | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Number format   |
-     * | `culture`   | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Currency format |
+     * Since v17.0.0, this option accepts all properties of the
+     * [`Intl.NumberFormatOptions`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat)
+     * object. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
      *
-     * The `numericFormat` option as no effect on the numeric cell editor.
+     * **Style options:**
      *
-     * In the source data, numeric data is stored as JavaScript numbers.
+     * | Property          | Possible values                                           | Description                                                    |
+     * | ----------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+     * | `style`           | `'decimal'` (default), `'currency'`, `'percent'`, `'unit'`| The formatting style to use                                    |
+     * | `currency`        | ISO 4217 currency codes (e.g., `'USD'`, `'EUR'`, `'PLN'`) | Required when `style` is `'currency'`                          |
+     * | `currencyDisplay` | `'symbol'` (default), `'narrowSymbol'`, `'code'`, `'name'`| How to display the currency                                    |
+     * | `currencySign`    | `'standard'` (default), `'accounting'`                    | Use parentheses for negative values in accounting format       |
+     * | `unit`            | Unit identifiers (e.g., `'kilometer'`, `'liter'`)         | Required when `style` is `'unit'`                              |
+     * | `unitDisplay`     | `'short'` (default), `'narrow'`, `'long'`                 | How to display the unit                                        |
+     *
+     * **Notation options:**
+     *
+     * | Property          | Possible values                                               | Description                                              |
+     * | ----------------- | ------------------------------------------------------------- | -------------------------------------------------------- |
+     * | `notation`        | `'standard'` (default), `'scientific'`, `'engineering'`, `'compact'` | The formatting notation                           |
+     * | `compactDisplay`  | `'short'` (default), `'long'`                                 | Display style for compact notation (e.g., `1.5M` vs `1.5 million`) |
+     *
+     * **Sign and grouping options:**
+     *
+     * | Property          | Possible values                                                     | Description                                        |
+     * | ----------------- | ------------------------------------------------------------------- | -------------------------------------------------- |
+     * | `signDisplay`     | `'auto'` (default), `'never'`, `'always'`, `'exceptZero'`, `'negative'` | When to display the sign                       |
+     * | `useGrouping`     | `true`, `false` (default), `'always'`, `'auto'`, `'min2'`           | Whether to use grouping separators (e.g., `1,000`) |
+     *
+     * **Digit options:**
+     *
+     * | Property                  | Possible values | Description                                                   |
+     * | ------------------------- | --------------- | ------------------------------------------------------------- |
+     * | `minimumIntegerDigits`    | `1` to `21`     | Minimum number of integer digits (pads with zeros)            |
+     * | `minimumFractionDigits`   | `0` to `100`    | Minimum number of fraction digits                             |
+     * | `maximumFractionDigits`   | `0` to `100`    | Maximum number of fraction digits                             |
+     * | `minimumSignificantDigits`| `1` to `21`     | Minimum number of significant digits                          |
+     * | `maximumSignificantDigits`| `1` to `21`     | Maximum number of significant digits                          |
+     *
+     * **Rounding options:**
+     *
+     * | Property              | Possible values                                                                                     | Description                          |
+     * | --------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------ |
+     * | `roundingMode`        | `'halfExpand'` (default), `'ceil'`, `'floor'`, `'expand'`, `'trunc'`, `'halfCeil'`, `'halfFloor'`, `'halfTrunc'`, `'halfEven'` | Rounding algorithm |
+     * | `roundingPriority`    | `'auto'` (default), `'morePrecision'`, `'lessPrecision'`                                            | Priority between fraction and significant digits |
+     * | `roundingIncrement`   | `1`, `2`, `5`, `10`, `20`, `25`, `50`, `100`, `200`, `250`, `500`, `1000`, `2000`, `2500`, `5000`    | Increment for rounding (e.g., nickel rounding) |
+     * | `trailingZeroDisplay` | `'auto'` (default), `'stripIfInteger'`                                                              | Whether to strip trailing zeros for integers |
+     *
+     * **Locale options:**
+     *
+     * | Property          | Possible values                                           | Description                                        |
+     * | ----------------- | --------------------------------------------------------- | -------------------------------------------------- |
+     * | `localeMatcher`   | `'best fit'` (default), `'lookup'`                        | Locale matching algorithm                          |
+     * | `numberingSystem` | `'latn'`, `'arab'`, `'hans'`, `'deva'`, `'thai'`, etc.    | Numbering system to use                            |
+     *
+     * For complete reference, see [MDN: Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options).
+     *
+     * This option affects only the displayed output in the cell renderer.
+     * It has no effect on the numeric cell editor. In the source data, numeric values
+     * are stored as JavaScript numbers.
      *
      * Read more:
+     * - [`locale`](@/api/options.md#locale)
      * - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
+     * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
+     * - [Numbro cell type](@/recipes/cell-types/numbro/numbro.md)
      * - [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md)
+     *
+     * ---
+     *
+     * **Deprecated options:**
+     *
+     * The `pattern` and `culture` properties (numbro.js-based formatting) are deprecated and will be
+     * removed in the next major release. Migrate to the `Intl.NumberFormat` API shown above.
+     *
+     * | Deprecated property | Possible values                                                               | Replacement                                           |
+     * | ------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------- |
+     * | `pattern`           | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Use `Intl.NumberFormat` options (see tables above)    |
+     * | `culture`           | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Use the [`locale`](@/api/options.md#locale) option    |
+     *
+     * **Migration example:**
+     *
+     * ```js
+     * // Before (deprecated)
+     * numericFormat: {
+     *   pattern: '0,0.00 $',
+     *   culture: 'en-US'
+     * }
+     *
+     * // After (recommended)
+     * locale: 'en-US',
+     * numericFormat: {
+     *   style: 'currency',
+     *   currency: 'USD',
+     *   minimumFractionDigits: 2
+     * }
+     * ```
      *
      * @memberof Options#
      * @since 0.35.0
@@ -3535,14 +4208,11 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of each cell in this column to `numeric`
      *     type: 'numeric',
-     *     // set the `numericFormat` option for every `numeric` cell of this column
+     *     locale: 'en-US',
      *     numericFormat: {
-     *       // set the number format
-     *       pattern: '0,00',
-     *       // set the currency format
-     *       culture: 'en-US'
+     *       style: 'currency',
+     *       currency: 'USD',
      *     }
      *   }
      * ],
@@ -3647,34 +4317,6 @@ export default () => {
      * ```
      */
     pagination: undefined,
-
-    /**
-     * @description
-     * The `persistentState` option configures the [`PersistentState`](@/api/persistentState.md) plugin.
-     *
-     * You can set the `persistentState` to one of the following:
-     *
-     * | Setting           | Description                                                      |
-     * | ----------------- | ---------------------------------------------------------------- |
-     * | `false` (default) | Disable the [`PersistentState`](@/api/persistentState.md) plugin |
-     * | `true`            | Enable the [`PersistentState`](@/api/persistentState.md) plugin  |
-     *
-     * Read more:
-     * - [Saving data: Saving data locally](@/guides/getting-started/saving-data/saving-data.md#save-data-locally)
-     * - [Plugins: `PersistentState`](@/api/persistentState.md)
-     *
-     * @memberof Options#
-     * @type {boolean}
-     * @default false
-     * @category PersistentState
-     *
-     * @example
-     * ```js
-     * // enable the `PersistentState` plugin
-     * persistentState: true,
-     * ```
-     */
-    persistentState: undefined,
 
     /**
      * The `placeholder` option lets you display placeholder text in every empty cell.
@@ -3948,12 +4590,14 @@ export default () => {
      * | `'base'`            | `BaseRenderer`                                                                 |
      * | `'checkbox'`        | `CheckboxRenderer`                                                             |
      * | `'date'`            | `DateRenderer`                                                                 |
+     * | `'intl-date'`       | `IntlDateRenderer`                                                             |
      * | `'dropdown'`        | `DropdownRenderer`                                                             |
      * | `'html'`            | `HtmlRenderer`                                                                 |
      * | `'numeric'`         | `NumericRenderer`                                                              |
      * | `'password'`        | `PasswordRenderer`                                                             |
      * | `'text'`            | `TextRenderer`                                                                 |
      * | `'time'`            | `TimeRenderer`                                                                 |
+     * | `'intl-time'`       | `IntlTimeRenderer`                                                             |
      *
      * To set the [`renderer`](#renderer), [`editor`](#editor), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
@@ -3994,6 +4638,167 @@ export default () => {
      * ```
      */
     renderer: undefined,
+
+    /**
+     * @description
+     * The `valueFormatter` option sets a custom function for formatting cell values before display.
+     *
+     * Unlike the [`renderer`](#renderer) option, which is responsible for the complete cell rendering process
+     * (DOM structure, performance-optimized content insertion via `innerText`/`innerHTML`, a11y attributes, applying
+     * styles from `className`, `readOnlyCellClassName`, `textEllipsis`, and other options), the `valueFormatter`
+     * focuses solely on transforming the cell's value.
+     *
+     * The `valueFormatter` function is called by the rendering engine right before the actual renderer function is
+     * called. Separating the value formatting from the renderer logic allows for more flexibility and reuse.
+     * This simplifies common formatting use cases where you only need to transform
+     * the displayed value (e.g., adding units, formatting dates, or applying custom text transformations).
+     *
+     * **When to use `valueFormatter` vs `renderer`:**
+     *
+     * | Use case                                          | Recommended option   |
+     * | ------------------------------------------------- | -------------------- |
+     * | Transform displayed value (add prefix, units)     | `valueFormatter`     |
+     * | Custom date/number/text formatting                | `valueFormatter`     |
+     * | Modify DOM structure (add icons, custom elements) | `renderer`           |
+     *
+     * The function receives the raw value and cell properties, and should return the formatted value
+     * to be displayed. The formatting can be applied to a single cell, column, or the entire grid.
+     *
+     * **Function signature:**
+     * ```js
+     * valueFormatter(value, cellProperties) => formattedValue
+     * ```
+     *
+     * | Parameter        | Type       | Description                                    |
+     * | ---------------- | ---------- | ---------------------------------------------- |
+     * | `value`          | `*`        | The raw cell value                             |
+     * | `cellProperties` | `object`   | The cell's meta object (see {@link Core#getCellMeta}) |
+     * | Returns          | `*`        | The formatted value to display                 |
+     *
+     * Read more:
+     * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     *
+     * @memberof Options#
+     * @since 17.0.0
+     * @type {Function}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // add a currency symbol to numeric values
+     * valueFormatter(value, cellProperties) {
+     *   if (value === null || value === undefined) {
+     *     return '';
+     *   }
+     *
+     *   return `$${value}`;
+     * }
+     *
+     * // format dates in a custom format
+     * valueFormatter(value, cellProperties) {
+     *   if (!value) {
+     *     return '';
+     *   }
+     *
+     *   const date = new Date(value);
+     *
+     *   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+     * }
+     *
+     * // apply valueFormatter to individual columns
+     * columns: [
+     *   {
+     *     // add "kg" suffix to weight values
+     *     valueFormatter(value) {
+     *       return value ? `${value} kg` : '';
+     *     }
+     *   },
+     *   {
+     *     // format percentages
+     *     valueFormatter(value) {
+     *       return value !== null ? `${(value * 100).toFixed(1)}%` : '';
+     *     }
+     *   }
+     * ]
+     * ```
+     */
+    valueFormatter: undefined,
+
+    /**
+     * @description
+     * The `valueParser` option sets a custom function for converting editor output into the source data format.
+     *
+     * Unlike [`valueFormatter`](#valueformatter), which formats values for display, `valueParser` runs only when a
+     * value comes from the [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) - after the user finishes
+     * editing. It maps whatever the editor returns (e.g. a localized date string, a formatted number) into the
+     * canonical shape stored in the data source (e.g. ISO date string, raw number).
+     *
+     * **When to use `valueParser` vs `valueFormatter`:**
+     *
+     * | Use case                               | Option           |
+     * | -------------------------------------- | ---------------- |
+     * | Display: raw value -> shown text       | `valueFormatter` |
+     * | Edit: editor value -> source data      | `valueParser`    |
+     *
+     * **Function signature:**
+     * ```js
+     * valueParser(value, cellProperties) => sourceValue
+     * ```
+     *
+     * | Parameter        | Type     | Description                                    |
+     * | ---------------- | -------- | ---------------------------------------------- |
+     * | `value`          | `*`      | The value produced by the editor               |
+     * | `cellProperties` | `object` | The cell's meta object (see {@link Core#getCellMeta}) |
+     * | Returns          | `*`      | The value to store in the source data          |
+     *
+     * Read more:
+     * - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
+     * - [`editor`](#editor)
+     * - [`renderer`](#renderer)
+     * - [`valueFormatter`](#valueformatter)
+     * - [`sourceDataValidator`](#sourcedatavalidator)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     *
+     * @memberof Options#
+     * @since 17.0.0
+     * @type {Function}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // parse editor string to ISO date (e.g. intlDate: display format => source format)
+     * valueParser(value, cellProperties) {
+     *   if (value == null || value === '') {
+     *     return null;
+     *   }
+     *
+     *   const date = new Date(value);
+     *
+     *   return Number.isNaN(date.getTime()) ? value : date.toISOString().slice(0, 10);
+     * }
+     *
+     * // parse formatted number string to number
+     * valueParser(value, cellProperties) {
+     *   if (value == null || value === '') {
+     *     return null;
+     *   }
+     *
+     *   const num = Number(value.replace(/[^\d.-]/g, ''));
+     *
+     *   return Number.isNaN(num) ? value : num;
+     * }
+     *
+     * // apply valueParser per column
+     * columns: [
+     *   { data: 'date', valueParser: (value) => value ? new Date(value).toISOString().slice(0, 10) : null },
+     *   { data: 'amount', valueParser: (value) => value != null ? Number(value) : null }
+     * ]
+     * ```
+     */
+    valueParser: undefined,
 
     /**
      * The `rowHeaders` option configures your grid's row headers.
@@ -4061,7 +4866,7 @@ export default () => {
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
      *
-     * In the rendering process, the default row height is `classic: 23px`, `main: 29px`, `horizon: 37px` (in the classic theme: 22px + 1px of the row's bottom border) or whatever is defined in the used theme (based on the line height, vertical padding and cell borders).
+     * In the rendering process, the default row height is `classic: 26px`, `main: 29px`, `horizon: 37px` or whatever is defined in the used theme (based on the line height, vertical padding and cell borders).
      * You can change it to equal or greater than the default value, by setting the `rowHeights` option to one of the following:
      *
      * | Setting     | Description                                                                                         | Example                                                      |
@@ -4156,6 +4961,25 @@ export default () => {
      * ```
      */
     search: false,
+
+    /**
+     * The `searchInput` option configures whether the [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editor's search input is visible.
+     *
+     * @since 17.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category Core
+     * @example
+     * ```js
+     * columns: [{
+     *   type: 'multiSelect',
+     *   // hide the `multiSelect` editor's search input
+     *   searchInput: false,
+     * }],
+     * ```
+     */
+    searchInput: true,
 
     /**
      * @description
@@ -4355,13 +5179,42 @@ export default () => {
     sortByRelevance: true,
 
     /**
+     * The `sourceSortFunction` option sets a function to sort the options available in [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells.
+     *
+     * @since 17.0.0
+     * @memberof Options#
+     * @type {Function}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [{
+     *   // set the `type` of each cell in this column to `multiSelect`
+     *   type: 'multiSelect',
+     *   // set options available in every `multiSelect` cell of this column
+     *   source: ['A', 'B', 'C', 'D'],
+     *   // sort the `multiSelect` options in this order: D, C, B, A
+     *   sourceSortFunction: (entries) => {
+     *     return entries.sort((a, b) => b.localeCompare(a));
+     *   }
+     * }],
+     * ```
+     */
+    sourceSortFunction: undefined,
+
+    /**
      * The `source` option sets options available in [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * and [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cells.
      *
      * You can set the `source` option to one of the following:
      *
-     * - An array
+     * - An array of string values
+     * - An array of objects with `key` and `value` properties
      * - A function
+     *
+     * Note: When defining the `source` option as an array of objects with `key` and `value` properties, the data format for that cell
+     * needs to be an object with `key` and `value` properties as well.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -4378,12 +5231,26 @@ export default () => {
      *
      * @example
      * ```js
-     * // set `source` to an array
+     * // set `source` to an array of string values
      * columns: [{
      *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C', 'D']
+     * }],
+     *
+     * // set `source` to an array of objects with `key` and `value` properties
+     * columns: [{
+     *   // set the `type` of each cell in this column to `autocomplete`
+     *   type: 'autocomplete',
+     *   // set options available in every `autocomplete` cell of this column
+     *   source: [{
+     *     key: 'A',
+     *     value: 'Label A'
+     *   }, {
+     *     key: 'B',
+     *     value: 'Label B'
+     *   }]
      * }],
      *
      * // set `source` to a function
@@ -4580,13 +5447,11 @@ export default () => {
     /**
      * The `themeName` option allows enabling a theme by that name.
      *
-     * If no `themeName` is provided, the table will use the classic theme (if the correct CSS files are imported).
-     *
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
      *
      * @memberof Options#
-     * @type {string|boolean|undefined}
+     * @type {string|undefined}
      * @default undefined
      * @category Core
      * @since 15.0.0
@@ -4597,6 +5462,104 @@ export default () => {
      * ```
      */
     themeName: undefined,
+
+    /**
+     * The `theme` option configures the visual theme for your Handsontable instance.
+     *
+     * You can set the `theme` option to one of the following:
+     *
+     * | Setting                               | Description                                                                           |
+     * | ------------------------------------- | ------------------------------------------------------------------------------------- |
+     * | `undefined` (default)                 | Don't apply any theme and use the default main theme                                  |
+     * | A string (e.g., `'ht-theme-horizon'`) | Apply a registered theme by name (required to import CSS file)                        |
+     * | A plain theme config object           | Apply a theme with default settings (import and pass the config, e.g. `horizonTheme`) |
+     * | A `ThemeBuilder` object               | Apply a theme with runtime configuration (recommended)                                |
+     *
+     * When using a `ThemeBuilder` object, you can configure the theme at runtime using these methods:
+     *
+     * | Method                           | Description                                                                                |
+     * | -------------------------------- | ------------------------------------------------------------------------------------------ |
+     * | `setColorScheme(mode)`           | Sets the color scheme: `'light'`, `'dark'`, or `'auto'` (default: `'auto'`)                |
+     * | `setDensityType(type)`           | Sets the row density: `'compact'`, `'default'`, or `'comfortable'` (default: `'default'`)  |
+     * | `params(paramsObject)`           | Sets custom theme parameters e.g. `icons`, `colors`, `tokens`                              |
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     * - [`themeName`](#themeName)
+     *
+     * @memberof Options#
+     * @type {ThemeBuilder|string|undefined}
+     * @default undefined
+     * @category Core
+     * @since 17.0.0
+     *
+     * @example
+     * ```js
+     * // Enable a theme by class name (requires loading the theme CSS)
+     * theme: 'ht-theme-horizon',
+     * ```
+     * @example
+     * ```js
+     * // Pass a plain theme config object
+     * import { horizonTheme } from 'handsontable/themes';
+     *
+     * const hot = new Handsontable(container, {
+     *   theme: horizonTheme,
+     * });
+     * ```
+     *
+     * @example
+     * ```js
+     * // Pass a ThemeBuilder object (for customization before initialization)
+     * import { horizonTheme, registerTheme } from 'handsontable/themes';
+     *
+     * const theme = registerTheme(horizonTheme)
+     *   .setColorScheme('dark')
+     *   .setDensityType('compact')
+     *   .params({
+     *     tokens: {
+     *       fontSize: '14px',
+     *       iconSize: 'size_5',
+     *       borderColor: ['colors.palette.100', 'colors.palette.800'],
+     *     },
+     *   });
+     *
+     * const hot = new Handsontable(container, {
+     *   theme,
+     * });
+     * ```
+     */
+    theme: undefined,
+
+    /**
+     * The `injectCoreCss` option controls whether Handsontable injects its core CSS into the document.
+     *
+     * You can set the `injectCoreCss` option to one of the following:
+     *
+     * | Setting            | Description                                                                                                      |
+     * | ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default)   | Inject core styles into the document head                                                                        |
+     * | `false`            | Do not inject core styles (use when you load CSS yourself, e.g. `import 'handsontable/styles/handsontable.css'`) |
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category Core
+     * @since 17.0.0
+     *
+     * @example
+     * ```js
+     * // inject core CSS (default)
+     * injectCoreCss: true,
+     *
+     * // skip injection when you load Handsontable CSS yourself
+     * injectCoreCss: false,
+     * ```
+     */
+    injectCoreCss: true,
 
     /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
@@ -4778,12 +5741,14 @@ export default () => {
      * | [`'autocomplete'`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `AutocompleteEditor`<br>Validator: `AutocompleteValidator`                                                                         |
      * | [`'checkbox'`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md)         | Renderer: `CheckboxRenderer`<br>Editor: `CheckboxEditor`<br>Validator: -                                                                                                                               |
      * | [`'date'`](@/guides/cell-types/date-cell-type/date-cell-type.md)                 | Renderer: `DateRenderer`<br>Editor: `DateEditor`<br>Validator: `DateValidator`                                                                                                 |
+     * | [`'intl-date'`](@/guides/cell-types/date-cell-type/date-cell-type.md)                 | Renderer: `IntlDateRenderer`<br>Editor: `IntlDateEditor`<br>Validator: `IntlDateValidator`                                                                                                 |
      * | [`'dropdown'`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)         | Renderer: `DropdownRenderer`<br>Editor: `DropdownEditor`<br>Validator: `DropdownValidator`                                                                                     |
      * | [`'handsontable'`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `HandsontableEditor`<br>Validator: -                                                                                                                       |
      * | [`'numeric'`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)           | Renderer: `NumericRenderer`<br>Editor: `NumericEditor`<br>Validator: `NumericValidator`                                                                                        |
      * | [`'password'`](@/guides/cell-types/password-cell-type/password-cell-type.md)         | Renderer: `PasswordRenderer`<br>Editor: `PasswordEditor`<br>Validator: -                                                                                                                               |
      * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                       |
      * | [`'time`'](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                 |
+     * | [`'intl-time'`](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `IntlTimeRenderer`<br>Editor: `IntlTimeEditor`<br>Validator: `IntlTimeValidator`                                                                                                 |
      *
      * Read more:
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
@@ -4794,6 +5759,8 @@ export default () => {
      * - [`renderer`](#renderer)
      * - [`editor`](#editor)
      * - [`validator`](#validator)
+     * - [`valueParser`](#valueparser)
+     * - [`valueFormatter`](#valueformatter)
      *
      * @memberof Options#
      * @type {string}
@@ -4913,9 +5880,11 @@ export default () => {
      * | A custom alias      | Your [custom cell validator](@/guides/cell-functions/cell-validator/cell-validator.md) |
      * | `'autocomplete'`    | `AutocompleteValidator`                                                 |
      * | `'date'`            | `DateValidator`                                                         |
+     * | `'intl-date'`       | `IntlDateValidator`                                                     |
      * | `'dropdown'`        | `DropdownValidator`                                                     |
      * | `'numeric'`         | `NumericValidator`                                                      |
      * | `'time'`            | `TimeValidator`                                                         |
+     * | `'intl-time'`       | `IntlTimeValidator`                                                     |
      *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
@@ -4952,6 +5921,116 @@ export default () => {
      * ```
      */
     validator: undefined,
+
+    /**
+     * @description
+     * The [`sourceDataValidator`](@/api/options.md#sourcedatavalidator) option sets a function that validates values
+     * when they are written to the source data layer. Validation runs on table initialization and when calling
+     * [`loadData`](@/api/core.md#loaddata), [`updateData`](@/api/core.md#updatedata), or
+     * [`setSourceDataAtCell`](@/api/core.md#setsourcedataatcell). It does not run for the `setData*` family of methods.
+     *
+     * Return `true` from the function to mark the value as valid, or `false` to mark it invalid. When a value is
+     * invalid and [`allowInvalid`](@/api/options.md#allowinvalid) is `false`, it is replaced with `null` in the
+     * source (on initialization and when calling `loadData` or `updateData`). When `allowInvalid` is `true`, invalid
+     * values are kept; a warning is still logged when the validator returns `false`. An exception:
+     * [`setSourceDataAtCell`](@/api/core.md#setsourcedataatcell) - when the validator returns `false`, the write is
+     * skipped and the cell is not nullified; the previous value in the source remains unchanged. Use
+     * [`allowEmpty`](@/api/options.md#allowempty) to treat `null`, `undefined`, or `''` as valid when appropriate.
+     *
+     * Optionally set [`sourceDataWarningMessage`](@/api/options.md#sourcedatawarningmessage) to customize the
+     * message logged for invalid values.
+     *
+     * @example
+     * ```js
+     * sourceDataWarningMessage: 'The source data is invalid.',
+     * sourceDataValidator: (value, cellMeta) => {
+     *   if (cellMeta.allowEmpty && value == null) {
+     *     return true;
+     *   }
+     *
+     *   if (typeof value === 'string') {
+     *     return true;
+     *   }
+     *
+     *   return false;
+     * }
+     * ```
+     *
+     * @memberof Options#
+     * @since 17.0.0
+     * @type {function(*, CellMeta): (boolean)}
+     * @default undefined
+     * @category Core
+     */
+    sourceDataValidator: undefined,
+
+    /**
+     * @description
+     * The [`sourceDataWarningMessage`](@/api/options.md#sourcedatawarningmessage) option sets the message used when
+     * a value fails [`sourceDataValidator`](@/api/options.md#sourcedatavalidator). When not set, no message is logged.
+     *
+     * @example
+     * ```js
+     * sourceDataWarningMessage: 'The source data is invalid.',
+     * ```
+     *
+     * @memberof Options#
+     * @since 17.0.0
+     * @type {string}
+     * @default undefined
+     * @category Core
+     */
+    sourceDataWarningMessage: undefined,
+
+    /**
+     * @description
+     * The `valueGetter` option configures a function that defines what value will be used when displaying the cell content.
+     * It can be used to modify the value of a cell before it is displayed (for example, for object-based data).
+     *
+     * @example
+     * ```js
+     * // use the `label` property of the value object with a fallback to the value itself
+     * valueGetter: (value, row, column, cellMeta) => {
+     *   return value?.label ?? value;
+     * }
+     * ```
+     *
+     * @memberof Options#
+     * @type {function(any, number, number): any}
+     * @param {*} value The value to be displayed in the cell.
+     * @param {number} row The visual row index of the cell.
+     * @param {number} column The visual column index of the cell.
+     * @param {object} cellMeta The cell meta object.
+     * @since 16.1.0
+     * @default undefined
+     * @category Core
+     */
+    valueGetter: undefined,
+
+    /**
+     * @description
+     * The `valueSetter` option configures a function that defines what value will be used when setting the cell content.
+     * It can be used to modify the value of a cell before it is saved (for example, for object-based data).
+     *
+     * @example
+     * ```js
+     * // Modify the value of a cell before it is saved
+     * valueSetter: (value, row, column, cellMeta) => {
+     *   return { id: value?.id ?? value, value: `${value?.value ?? value} at ${row}, ${column}` }
+     * },
+     * ```
+     *
+     * @memberof Options#
+     * @type {function(any, number, number): any}
+     * @param {*} value The value to be set to a cell.
+     * @param {number} row The visual row index of the cell.
+     * @param {number} column The visual column index of the cell.
+     * @param {object} cellMeta The cell meta object.
+     * @since 16.1.0
+     * @default undefined
+     * @category Core
+     */
+    valueSetter: undefined,
 
     /**
      * @description
@@ -5084,13 +6163,14 @@ export default () => {
 
     /**
      * The `visibleRows` option sets the height of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
-     * and [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) lists.
+     * , [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) and [`multiSelect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)-typed cells' lists.
      *
      * When the number of list options exceeds the `visibleRows` number, a scrollbar appears.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
+     * - [MultiSelect cell type](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)
      *
      * @memberof Options#
      * @type {number}
@@ -5109,6 +6189,12 @@ export default () => {
      *   {
      *     type: 'dropdown',
      *     // set the `dropdown` list's height to 5 options
+     *     // for each cell of this column
+     *     visibleRows: 5,
+     *   },
+     *   {
+     *     type: 'multiSelect',
+     *     // set the `multiSelect` list's height to 5 options
      *     // for each cell of this column
      *     visibleRows: 5,
      *   }
@@ -5190,6 +6276,78 @@ export default () => {
      * ```
      */
     wordWrap: true,
+
+    /**
+     * The `sanitizer` option configures the function used to sanitize HTML before it is written to the DOM.
+     * Whenever Handsontable sets HTML (e.g. cell content, headers, context menu labels, dialog content,
+     * paste from clipboard), it can pass the string through this function first. Sanitization is important
+     * when content comes from users or external sources to prevent XSS (e.g. script injection, event handlers).
+     * If no sanitizer is set, HTML is applied as-is. Set a sanitizer when you need to allow rich content
+     * while stripping or neutralizing dangerous markup.
+     *
+     * The function receives the raw HTML string and an optional second argument (source) indicating where
+     * the content is used (e.g. `'innerHTML'`, `'CopyPaste.paste'`), so you can apply different rules per source.
+     * It must return a string that is safe to assign to `innerHTML`.
+     *
+     * This option is only respected when set in the table settings. It does not work when defined per column
+     * or per cell (e.g. in `columns` or cell meta).
+     *
+     * @since 17.0.0
+     * @memberof Options#
+     * @type {function(string, string): string}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // Allowlist-based sanitization based on the DOMPurify library
+     * import DOMPurify from 'dompurify';
+     *
+     * sanitizer: (content, source) {
+     *   if (source === 'CopyPaste.paste') {
+     *     return DOMPurify.sanitize(content, {
+     *       ADD_TAGS: ['meta'],
+     *       ADD_ATTR: ['content'],
+     *       FORCE_BODY: true,
+     *     });
+     *   }
+     *
+     *   return DOMPurify.sanitize(content);
+     * },
+     * ```
+     *
+     * @example
+     * ```js
+     * // Maximum safety: strip all tags and escape output (no rich HTML)
+     * sanitizer: (content, source) => {
+     *   const tpl = document.createElement('template');
+     *
+     *   tpl.innerHTML = content;
+     *
+     *   const text = tpl.content.textContent ?? '';
+     *
+     *   return text
+     *     .replace(/&/g, '&amp;')
+     *     .replace(/</g, '&lt;')
+     *     .replace(/>/g, '&gt;')
+     *     .replace(/"/g, '&quot;')
+     *     .replace(/'/g, '&#39;');
+     * },
+     * ```
+     *
+     * @example
+     * ```js
+     * // Trusted Types: wrap sanitization in a policy so the sink accepts the result.
+     * // Add the policy name to the CSP trusted-types directive (e.g. trusted-types default handsontable).
+     * const policy = window.trustedTypes?.createPolicy('handsontable', {
+     *   createHTML: (input) => DOMPurify.sanitize(input),
+     * });
+     *
+     * sanitizer: (content, source) =>
+     *   policy ? policy.createHTML(content) : DOMPurify.sanitize(content),
+     * ```
+     */
+    sanitizer: undefined,
 
     /* eslint-enable jsdoc/require-description-complete-sentence */
   };

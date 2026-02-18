@@ -12,6 +12,7 @@ export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 const FIRST_COLUMN_NOT_RENDERED_CLASS_NAME = 'htFirstDatasetColumnNotRendered';
+const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -46,6 +47,11 @@ const FIRST_COLUMN_NOT_RENDERED_CLASS_NAME = 'htFirstDatasetColumnNotRendered';
  *
  * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
  * height. __Note__, that this might have a negative impact on performance.
+ *
+ * ::: tip
+ * Note: Updating some of the table's settings can cause the row heights to change (e.g. `wordWrap`, `textEllipsis`, renderers etc.).
+ * In those cases, to ensure that the row heights are properly recalculated, you need to call the {@link AutoRowSize#recalculateAllRowsHeight} method after calling {@link Core#updateSettings}.
+ * :::
  *
  * To configure this plugin see {@link Options#autoRowSize}.
  *
@@ -109,7 +115,7 @@ const FIRST_COLUMN_NOT_RENDERED_CLASS_NAME = 'htFirstDatasetColumnNotRendered';
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -197,8 +203,10 @@ export class AutoRowSize extends BasePlugin {
       return false;
     }
 
+    let cellMeta;
+
     if (row >= 0 && column >= 0) {
-      const cellMeta = this.hot.getCellMeta(row, column);
+      cellMeta = this.hot.getCellMeta(row, column);
 
       if (cellMeta.hidden) {
         // do not generate samples for cells that are covered by merged cell (null values)
@@ -211,6 +219,9 @@ export class AutoRowSize extends BasePlugin {
     if (row >= 0) {
       cellValue = this.hot.getDataAtCell(row, column);
 
+      if (typeof cellMeta?.valueFormatter === 'function') {
+        cellValue = cellMeta.valueFormatter(cellValue, cellMeta);
+      }
     } else if (row === -1) {
       cellValue = this.hot.getColHeader(column);
     }
@@ -297,6 +308,8 @@ export class AutoRowSize extends BasePlugin {
     this.addHook('init', () => this.#onInit());
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
 
+    addClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
+
     super.enablePlugin();
   }
 
@@ -305,6 +318,8 @@ export class AutoRowSize extends BasePlugin {
    */
   disablePlugin() {
     this.headerHeight = null;
+
+    removeClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
 
     super.disablePlugin();
 
@@ -527,7 +542,7 @@ export class AutoRowSize extends BasePlugin {
    * @param {number} [defaultHeight] If no height is found, `defaultHeight` is returned instead.
    * @returns {number} The height of the specified row, in pixels.
    */
-  getRowHeight(row, defaultHeight = this.hot.stylesHandler.getDefaultRowHeight()) {
+  getRowHeight(row, defaultHeight = this.hot.stylesHandler.getDefaultRowHeight(row)) {
     if (row < 0) {
       return this.headerHeight ?? defaultHeight;
     }
@@ -543,6 +558,11 @@ export class AutoRowSize extends BasePlugin {
 
     if (cachedHeight !== null && cachedHeight > defaultHeight) {
       height = cachedHeight;
+
+      if (row === this.hot.view.getFirstRenderedVisibleRow()) {
+        // add 1px border-top-width compensation for the first rendered row
+        height += 1;
+      }
     }
 
     return height;
@@ -623,25 +643,23 @@ export class AutoRowSize extends BasePlugin {
 
   /**
    * Toggles the "first dataset column not rendered" class name.
-   * Used to apply special styling when the first column is visible (used only in the classic theme, with the AutoRowSize plugin enabled).
+   * Used to apply special styling when the first column is visible (used only in the classic (legacy) theme, with the AutoRowSize plugin enabled).
    *
    * @param {boolean} [forceState] Force the class to be added or removed (`true` to add, `false` to remove).
    */
   #toggleFirstDatasetColumnRenderedClassName(forceState) {
-    if (this.hot.stylesHandler.isClassicTheme()) {
-      const firstRenderedColumnVisualIndex = this.hot.getFirstRenderedVisibleColumn();
-      const firstRenderedColumnPhysicalIndex =
-        this.hot.columnIndexMapper.getPhysicalFromVisualIndex(firstRenderedColumnVisualIndex);
+    const firstRenderedColumnVisualIndex = this.hot.getFirstRenderedVisibleColumn();
+    const firstRenderedColumnPhysicalIndex =
+      this.hot.columnIndexMapper.getPhysicalFromVisualIndex(firstRenderedColumnVisualIndex);
 
-      if (
-        forceState === false ||
-        firstRenderedColumnPhysicalIndex === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
-      ) {
-        removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
+    if (
+      forceState === false ||
+      firstRenderedColumnPhysicalIndex === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
+    ) {
+      removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
 
-      } else {
-        addClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
-      }
+    } else {
+      addClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
     }
   }
 

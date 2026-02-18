@@ -86,6 +86,7 @@ module.exports = {
       },
     ],
     'no-underscore-dangle': 'off',
+    'no-continue': 'off',
     'no-use-before-define': [
       'error',
       {

@@ -12,48 +12,43 @@ describe('UndoRedo', () => {
     }
   });
 
-  it('should exposed new methods when plugin is enabled', async() => {
+  it('should expose undo/redo plugin when plugin is enabled', async() => {
     const hot = handsontable({
       undo: false
     });
 
-    expect(hot.undo).toBeUndefined();
-    expect(hot.redo).toBeUndefined();
-    expect(hot.isUndoAvailable).toBeUndefined();
-    expect(hot.isRedoAvailable).toBeUndefined();
-    expect(hot.clearUndo).toBeUndefined();
+    expect(hot.getPlugin('undoRedo')).toBeDefined();
+    expect(hot.getPlugin('undoRedo').enabled).toBe(false);
 
     await updateSettings({
       undo: true
     });
 
-    expect(typeof hot.undo).toEqual('function');
-    expect(typeof hot.redo).toEqual('function');
-    expect(typeof hot.isUndoAvailable).toEqual('function');
-    expect(typeof hot.isRedoAvailable).toEqual('function');
-    expect(typeof hot.clearUndo).toEqual('function');
+    const undoRedoPlugin = hot.getPlugin('undoRedo');
+
+    expect(undoRedoPlugin).toBeDefined();
+    expect(typeof undoRedoPlugin.undo).toEqual('function');
+    expect(typeof undoRedoPlugin.redo).toEqual('function');
+    expect(typeof undoRedoPlugin.isUndoAvailable).toEqual('function');
+    expect(typeof undoRedoPlugin.isRedoAvailable).toEqual('function');
+    expect(typeof undoRedoPlugin.clear).toEqual('function');
   });
 
-  it('should remove exposed methods when plugin is disabled', async() => {
+  it('should not expose undo/redo plugin when plugin is disabled', async() => {
     const hot = handsontable({
       undo: true
     });
 
-    expect(typeof hot.undo).toEqual('function');
-    expect(typeof hot.redo).toEqual('function');
-    expect(typeof hot.isUndoAvailable).toEqual('function');
-    expect(typeof hot.isRedoAvailable).toEqual('function');
-    expect(typeof hot.clearUndo).toEqual('function');
+    expect(hot.getPlugin('undoRedo')).toBeDefined();
+    expect(hot.getPlugin('undoRedo').enabled).toBe(true);
 
     await updateSettings({
       undo: false
     });
 
-    expect(hot.undo).toBeUndefined();
-    expect(hot.redo).toBeUndefined();
-    expect(hot.isUndoAvailable).toBeUndefined();
-    expect(hot.isRedoAvailable).toBeUndefined();
-    expect(hot.clearUndo).toBeUndefined();
+    // When disabled, the plugin remains in the registry but is not enabled
+    expect(hot.getPlugin('undoRedo')).toBeDefined();
+    expect(hot.getPlugin('undoRedo').enabled).toBe(false);
   });
 
   it('should not undo changes in the other cells if editor is open', async() => {
@@ -1641,11 +1636,11 @@ describe('UndoRedo', () => {
         expect(hot1.getDataAtCell(0, 0)).toEqual(1);
         expect(hot2.getDataAtCell(0, 0)).toEqual('A');
 
-        hot2.redo();
+        hot2.getPlugin('undoRedo').redo();
         expect(hot1.getDataAtCell(0, 0)).toEqual(1);
         expect(hot2.getDataAtCell(0, 0)).toEqual('A');
 
-        hot1.redo();
+        hot1.getPlugin('undoRedo').redo();
         expect(hot1.getDataAtCell(0, 0)).toEqual(4);
         expect(hot2.getDataAtCell(0, 0)).toEqual('A');
 

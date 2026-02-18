@@ -112,6 +112,17 @@ array with a pre-defined setup. For the list of available settings and methods, 
 In the names of the API properties, the words `start` and `end` refer to the starting and ending edges of the
 [layout direction](@/guides/internationalization/layout-direction/layout-direction.md).
 
+You can customize the border style using the `style` property in the border configuration. The available options are:
+
+- `'solid'` (default) - A solid line border
+- `'dashed'` - A dashed line border
+- `'dotted'` - A dotted line border
+
+The `style` property can be set for any border edge (`top`, `bottom`, `start`, `end`). When not specified, it defaults to `'solid'`.
+
+The example below demonstrates different border styles applied to various cell ranges:
+
+
 ::: only-for javascript
 
 ::: example #example3 --js 1 --ts 2
@@ -123,6 +134,8 @@ In the names of the API properties, the words `start` and `end` refer to the sta
 
 :::
 
+<!-- TODO: workaround for the template parsing problem for angular docs  -->
+
 ::: only-for react
 
 ::: example #example3 :react --js 1 --ts 2
@@ -133,6 +146,8 @@ In the names of the API properties, the words `start` and `end` refer to the sta
 :::
 
 :::
+
+<!-- TODO: workaround for the template parsing problem for angular docs  -->
 
 ::: only-for angular
 

@@ -1,3 +1,5 @@
+import { throwWithCause } from '../../utils/errors';
+
 export const conditions = {};
 
 /**
@@ -9,7 +11,7 @@ export const conditions = {};
  */
 export function getCondition(name, args) {
   if (!conditions[name]) {
-    throw Error(`Filter condition "${name}" does not exist.`, { cause: { handsontable: true } });
+    throwWithCause(`Filter condition "${name}" does not exist.`);
   }
   const { condition, descriptor } = conditions[name];
   let conditionArguments = args;
@@ -31,7 +33,7 @@ export function getCondition(name, args) {
  */
 export function getConditionDescriptor(name) {
   if (!conditions[name]) {
-    throw Error(`Filter condition "${name}" does not exist.`, { cause: { handsontable: true } });
+    throwWithCause(`Filter condition "${name}" does not exist.`);
   }
 
   return conditions[name].descriptor;

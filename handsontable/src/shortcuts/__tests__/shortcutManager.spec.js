@@ -34,6 +34,26 @@ describe('shortcutManager', () => {
     }).toThrowWithCause(undefined, { handsontable: true });
   });
 
+  describe('`getOrCreateContext` method', () => {
+    it('should return context if it exists', async() => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+
+      shortcutManager.addContext('name');
+
+      expect(shortcutManager.getOrCreateContext('name')).toBeDefined();
+    });
+
+    it('should create context if it does not exist', async() => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+
+      expect(shortcutManager.getOrCreateContext('name')).toBeDefined();
+    });
+  });
+
   describe('should properly determine whether key is pressed (public method)', () => {
     it('control', async() => {
       handsontable();
@@ -702,6 +722,26 @@ describe('shortcutManager', () => {
       await keyDownUp('enter');
 
       expect(callback).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('`scope` option', () => {
+    it('should create a context with the `table` scope by default', async() => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const gridContext = shortcutManager.addContext('test');
+
+      expect(gridContext.scope).toBe('table');
+    });
+
+    it('should create a context with the `global` scope when the `scope` option is set to `global`', async() => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const gridContext = shortcutManager.addContext('test', 'global');
+
+      expect(gridContext.scope).toBe('global');
     });
   });
 });

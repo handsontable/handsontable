@@ -1,6 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const triggerBtn = document.querySelector('#triggerBtn');
 const example = document.querySelector('#example');
@@ -15,7 +17,6 @@ const data = new Array(100) // number of rows
   );
 
 const hot = new Handsontable(example, {
-  themeName: 'ht-theme-main',
   data,
   rowHeaders: true,
   colHeaders: true,

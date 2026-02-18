@@ -28,10 +28,12 @@ import {
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
-  PersistentState,
   Search,
   TouchScroll,
   TrimRows,
+  Dialog,
+  Loading,
+  EmptyDataState,
   UndoRedo,
   getPlugin,
   registerAllPlugins,
@@ -68,10 +70,12 @@ registerPlugin(MultiColumnSorting);
 registerPlugin(MultipleSelectionHandles);
 registerPlugin(NestedHeaders);
 registerPlugin(NestedRows);
-registerPlugin(PersistentState);
 registerPlugin(Search);
 registerPlugin(TouchScroll);
 registerPlugin(TrimRows);
+registerPlugin(Dialog);
+registerPlugin(Loading);
+registerPlugin(EmptyDataState);
 registerPlugin(UndoRedo);
 registerPlugin('custom', class CustomPlugin extends BasePlugin {});
 
@@ -103,9 +107,11 @@ const multiColumnSorting: MultiColumnSorting = getPlugin('multiColumnSorting');
 const multipleSelectionHandles: MultipleSelectionHandles = getPlugin('multipleSelectionHandles');
 const nestedHeaders: NestedHeaders = getPlugin('nestedHeaders');
 const nestedRows: NestedRows = getPlugin('nestedRows');
-const persistentState: PersistentState = getPlugin('persistentState');
 const search: Search = getPlugin('search');
 const touchScroll: TouchScroll = getPlugin('touchScroll');
 const trimRows: TrimRows = getPlugin('trimRows');
+const dialog: Dialog = getPlugin('dialog');
+const loading: Loading = getPlugin('loading');
+const emptyDataState: EmptyDataState = getPlugin('emptyDataState');
 const undoRedo: UndoRedo = getPlugin('undoRedo');
 const custom: BasePlugin = getPlugin('custom');

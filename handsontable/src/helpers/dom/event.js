@@ -47,7 +47,7 @@ export function isLeftClick(event) {
  * @returns {boolean}
  */
 export function isTouchEvent(event) {
-  return event instanceof TouchEvent;
+  return typeof TouchEvent !== 'undefined' && event instanceof TouchEvent;
 }
 
 /**

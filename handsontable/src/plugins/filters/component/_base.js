@@ -1,4 +1,5 @@
 import { arrayEach } from '../../../helpers/array';
+import { throwWithCause } from '../../../utils/errors';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../../translations';
@@ -108,7 +109,7 @@ export class BaseComponent {
    * The custom logic for component state restoring.
    */
   setState() {
-    throw new Error('The state setting logic is not implemented', { cause: { handsontable: true } });
+    throwWithCause('The state setting logic is not implemented');
   }
 
   /**
@@ -128,7 +129,7 @@ export class BaseComponent {
    * The custom logic for component state gathering (for stateful components).
    */
   getState() {
-    throw new Error('The state gathering logic is not implemented', { cause: { handsontable: true } });
+    throwWithCause('The state gathering logic is not implemented');
   }
 
   /**

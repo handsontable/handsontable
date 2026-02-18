@@ -33,8 +33,6 @@ To apply configuration options, pass them as a second argument of the Handsontab
 
 ```js
 import Handsontable from "handsontable";
-import "handsontable/styles/handsontable.css";
-import "handsontable/styles/ht-theme-main.css";
 
 const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
@@ -652,8 +650,6 @@ For example:
 
 ```js
 import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
@@ -760,8 +756,6 @@ For example:
 
 ```js
 import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
@@ -1004,6 +998,55 @@ In the example below, some cells are read-only, and some cells are editable:
 :::
 
 :::
+
+
+
+
+::: only-for react
+
+## Non-Idempotent Options
+
+A non-idempotent option is one that produces different results when applied multiple times. In the context of Handsontable and `<HotTable/>` component, options like `manualColumnMove=[1, 0]` will swap columns every time they're applied - first application swaps columns, second application swaps them back, third swaps again, and so on.
+
+### Problem 
+
+Non-idempotent options like `manualColumnMove` and `manualRowMove` cause unwanted visual changes on every React re-render because they operate on visual indexes.
+
+```jsx
+// Problem: Columns swap on EVERY re-render
+const ExampleComponent = () => {
+  const [state, setState] = React.useState(0);
+  return (
+    <>
+      <button onClick={() => setState(state + 1)}>{state}</button>
+      <HotTable
+        manualColumnMove={[1, 0]}  // Columns keep swapping!
+        data={[['A', 'B'], [0, 1]]}
+        licenseKey="non-commercial-and-evaluation"
+      />
+    </>
+  );
+};
+```
+
+### Solution
+
+Use [`initialState`](@/api/options.md#initialstate) to apply these options only during initialization:
+
+```jsx
+<HotTable
+  initialState={{ 
+    manualColumnMove: [1, 0]  // Applied only once
+  }}
+  data={[['A', 'B'], [0, 1]]}
+  rowHeaders={true}
+  colHeaders={true}
+  licenseKey="non-commercial-and-evaluation"
+/>
+```
+
+:::
+
 
 ::: only-for angular
 

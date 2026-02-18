@@ -3,51 +3,32 @@
 // Handsontable Base Row and Col
 
 @mixin output {
-  // Required variables for bare theme
-  .ht-root-wrapper:not([class*="ht-theme"]),
-  .ht-portal:not([class*="ht-theme"]) {
-    --ht-gap-size: 4px;
-    --ht-checkbox-size: 16px;
-    --ht-cell-horizontal-padding: 8px;
-    --ht-cell-vertical-padding: 4px;
-    --ht-font-size: 14px;
-    --ht-line-height: 20px;
-    --ht-letter-spacing: 0;
-    --ht-border-color: #222222;
-    --ht-foreground-color: #222222;
-    --ht-background-color: #ffffff;
-    --ht-header-foreground-color: #222222;
-    --ht-header-background-color: #f7f7f9;
-    --ht-header-row-foreground-color: #222222;
-    --ht-header-row-background-color: #f7f7f9;
-    --ht-cell-horizontal-border-color: #222222;
-    --ht-cell-vertical-border-color: #222222;
-    --ht-header-active-border-color: #1a42e8;
-    --ht-header-active-foreground-color: #ffffff;
-    --ht-header-active-background-color: #1a42e8;
-    --ht-header-row-active-foreground-color: #fff;
-    --ht-header-row-active-background-color: #1a42e8;
-    --ht-cell-selection-border-color: #1a42e8;
-    --ht-scrollbar-track-color: #f7f7f9;
-    --ht-scrollbar-thumb-color: #a3a3a3;
-  }
 
   // Root wrapper
   .ht-root-wrapper {
     @include mixins.font-family;
 
+    position: relative;
+    display: flex;
+    flex-direction: column;
     height: 100%;
+  }
 
-    .htFocusCatcher {
-      position: absolute;
-      width: 0;
-      height: 0;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      opacity: 0;
-      z-index: -1;
-    }
+  .htFocusCatcher {
+    display: block !important;
+    position: absolute;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    z-index: -1;
+  }
+
+  .ht-grid {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
   .handsontable {
@@ -93,6 +74,16 @@
     // Wrapper
     &.ht-wrapper {
       border-radius: var(--ht-wrapper-border-radius, 0);
+      height: 100%;
+      width: 100%;
+
+      &:not(.htFirstDatasetColumnNotRendered) {
+        td {
+          &:first-of-type {
+            border-inline-start-width: 1px;
+          }
+        }
+      }
 
       &::before {
         @include mixins.pseudo();
@@ -139,29 +130,23 @@
             }
           }
         }
-
-        &.htGhostTableFirstRow tbody {
-          tr {
-            th,
-            td {
-              border-top-width: 1px;
-              height: calc(
-                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) +
-                  2px
-              );
-            }
-          }
-        }
       }
     }
 
-    // Background
     &.htHasScrollX:not(.htHorizontallyScrollableByWindow),
     &.htHasScrollY:not(.htVerticallyScrollableByWindow) {
       .ht_master {
         .wtHolder {
-          background-color: var(--ht-background-color);
           border-radius: var(--ht-wrapper-border-radius, 0);
+        }
+      }
+    }
+
+    &:not(.htHorizontallyScrollableByWindow),
+    &:not(.htVerticallyScrollableByWindow) {
+      .ht_master {
+        .wtHolder {
+          background-color: var(--ht-background-color);
         }
       }
     }
@@ -222,13 +207,6 @@
         &::selection {
           background: transparent;
         }
-      }
-    }
-
-    // Cell
-    td {
-      &:first-of-type {
-        border-inline-start-width: 1px;
       }
     }
 
@@ -308,14 +286,15 @@
           }
         }
 
-        // compensates the top border width of the first row
+        // Prevents the first row from "jumping" by adding a pseudo-element
+        // that maintains the minimum height when the cell is empty
         &:first-of-type {
           th,
           td {
-            &:first-child {
-              height: calc(
-                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
-              );
+            &:first-child:empty::after {
+              content: "";
+              display: block;
+              min-height: var(--ht-line-height);
             }
           }
         }
@@ -332,7 +311,7 @@
           .relative {
             padding: var(--ht-cell-vertical-padding)
               var(--ht-cell-horizontal-padding);
-            height: 100%;
+            min-height: 100%;
           }
         }
 
@@ -369,10 +348,11 @@
               max-width: calc(100% + 1px);
             }
 
+            // compensates the icon + gap + 1px border size
             &:has(.collapsibleIndicator, .changeType) {
               .colHeader {
                 max-width: calc(
-                  100% - (var(--ht-icon-size) + var(--ht-gap-size))
+                  100% - (var(--ht-icon-size) + var(--ht-gap-size)) - 1px
                 );
               }
             }
@@ -447,6 +427,13 @@
               background-color: var(--ht-accent-color);
             }
           }
+        }
+      }
+
+      // Cell
+      td {
+        &:first-of-type {
+          border-inline-start-width: 1px;
         }
       }
     }
@@ -589,22 +576,24 @@
       }
     }
 
-    .ht_master.innerBorderTop {
-      tbody {
-        tr:first-child {
-          th,
-          td {
-            border-top-width: 0;
-          }
-        }
-      }
-
-      & ~ .ht_clone_inline_start {
+    &.htAutoRowSize {
+      .ht_master.innerBorderTop {
         tbody {
           tr:first-child {
             th,
             td {
               border-top-width: 0;
+            }
+          }
+        }
+
+        & ~ .ht_clone_inline_start {
+          tbody {
+            tr:first-child {
+              th,
+              td {
+                border-top-width: 0;
+              }
             }
           }
         }

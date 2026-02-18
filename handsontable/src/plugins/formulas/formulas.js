@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import { staticRegister } from '../../utils/staticRegister';
 import { error, warn } from '../../helpers/console';
 import { isNumeric } from '../../helpers/number';
+import { isObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
 import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
@@ -168,7 +169,7 @@ export class Formulas extends BasePlugin {
 
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
     if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
-      const newSheetName = this.addSheet(this.sheetName, this.hot.getSourceDataArray());
+      const newSheetName = this.addSheet(this.sheetName, this.#getProcessedSourceDataArray());
 
       if (newSheetName !== false) {
         this.#updateSheetNameAndSheetId(newSheetName);
@@ -330,7 +331,7 @@ export class Formulas extends BasePlugin {
         this.switchSheet(this.sheetName);
 
       } else {
-        const newSheetName = this.addSheet(sheetName ?? undefined, this.hot.getSourceDataArray());
+        const newSheetName = this.addSheet(sheetName ?? undefined, this.#getProcessedSourceDataArray());
 
         this.#updateSheetNameAndSheetId(newSheetName);
       }
@@ -589,6 +590,49 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Get the value to be passed to the formula engine.
+   * If the value is an object, utilize the valueGetter for that cell, otherwise return the value as is.
+   *
+   * @param {number} row The physical row index.
+   * @param {number} column The physical column index.
+   * @param {*} value The value to be passed to the formula engine.
+   * @returns {*} The value to be displayed in the cell.
+   */
+  #getValueGetterValue(row, column, value) {
+    if (isObject(value) && value !== null) {
+      const visualRow = this.hot.toVisualRow(row);
+      const visualColumn = this.hot.toVisualColumn(column);
+      const valueGetter = this.hot.getCellMeta(visualRow, visualColumn).valueGetter;
+
+      if (valueGetter) {
+        return valueGetter.call(this.hot, value);
+      }
+
+      return value.toString();
+    }
+
+    return value;
+  }
+
+  /**
+   * Get the source data array to be passed to the formula engine.
+   * If the value is an object, utilize the valueGetter for that cell, otherwise return the value as is.
+   *
+   * @param {number} [row] The starting visual row index.
+   * @param {number} [column] The starting visual column index.
+   * @param {number} [row2] The ending visual row index.
+   * @param {number} [column2] The ending visual column index.
+   * @returns {Array} The source data array to be passed to the formula engine.
+   */
+  #getProcessedSourceDataArray(row, column, row2, column2) {
+    return this.hot.getSourceDataArray(row, column, row2, column2).map((rowObject, rowIndex) => {
+      return rowObject.map((value, columnIndex) => {
+        return this.#getValueGetterValue(rowIndex, columnIndex, value);
+      });
+    });
+  }
+
+  /**
    * The hook allows to translate the formula value to calculated value before it goes to the
    * validator function.
    *
@@ -732,7 +776,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const sourceDataArray = this.hot.getSourceDataArray();
+    const sourceDataArray = this.#getProcessedSourceDataArray();
 
     sourceDataArray.forEach((rowData, rowIndex) => {
       rowData.forEach((cellValue, columnIndex) => {
@@ -781,7 +825,7 @@ export class Formulas extends BasePlugin {
     }
 
     if (!this.#hotWasInitializedWithEmptyData) {
-      const sourceDataArray = this.hot.getSourceDataArray();
+      const sourceDataArray = this.#getProcessedSourceDataArray();
 
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
@@ -923,6 +967,8 @@ export class Formulas extends BasePlugin {
           col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
           sheet: this.sheetId,
         };
+
+        newValue = this.#getValueGetterValue(physicalRow, physicalColumn, newValue);
 
         if (physicalRow !== null && physicalColumn !== null) {
           this.syncChangeWithEngine(visualRow, visualColumn, newValue);
@@ -1180,7 +1226,7 @@ export class Formulas extends BasePlugin {
   #onAfterDetachChild(parent, element, finalElementRowIndex) {
     this.#internalOperationPending = true;
 
-    const rowsData = this.hot.getSourceDataArray(
+    const rowsData = this.#getProcessedSourceDataArray(
       finalElementRowIndex,
       0,
       finalElementRowIndex + (element.__children?.length || 0),

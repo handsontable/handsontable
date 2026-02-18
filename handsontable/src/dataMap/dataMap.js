@@ -13,8 +13,10 @@ import {
   objectEach
 } from '../helpers/object';
 import { extendArray, to2dArray } from '../helpers/array';
-import { rangeEach } from '../helpers/number';
+import { rangeEach, isUnsignedNumber } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
+import { getValueGetterValue } from '../utils/valueAccessors';
+import { throwWithCause } from '../utils/errors';
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -130,8 +132,7 @@ class DataMap {
     const schema = this.getSchema();
 
     if (typeof schema === 'undefined') {
-      throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`',
-        { cause: { handsontable: true } });
+      throwWithCause('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
     }
 
     const columns = this.tableMeta.columns;
@@ -419,11 +420,10 @@ class DataMap {
    */
   createCol(index, amount = 1, { source, mode = 'start' } = {}) {
     if (!this.hot.isColumnModificationAllowed()) {
-      throw new Error('Cannot create new column. When data source in an object, ' +
+      throwWithCause('Cannot create new column. When data source in an object, ' +
         // eslint-disable-next-line max-len
         'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
-        'If you want to be able to add new columns, you have to use array datasource.',
-      { cause: { handsontable: true } });
+        'If you want to be able to add new columns, you have to use array datasource.');
     }
 
     const dataSource = this.dataSource;
@@ -563,8 +563,7 @@ class DataMap {
    */
   removeCol(index, amount = 1, source) {
     if (this.hot.dataType === 'object' || this.tableMeta.columns) {
-      throw new Error('cannot remove column with object data source or columns option specified',
-        { cause: { handsontable: true } });
+      throwWithCause('cannot remove column with object data source or columns option specified');
     }
     let columnIndex = typeof index !== 'number' ? -amount : index;
 
@@ -767,10 +766,24 @@ class DataMap {
       value = prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
     }
 
+    const visualColumnIndex = this.propToCol(prop);
+    const physicalColumn = this.hot.toPhysicalColumn(visualColumnIndex);
+
+    if (isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+      value = getValueGetterValue(
+        value,
+        this.metaManager.getCellMeta(physicalRow, physicalColumn, {
+          visualRow: row,
+          visualColumn: visualColumnIndex,
+          skipMetaExtension: true
+        })
+      );
+    }
+
     if (this.hot.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(value);
 
-      this.hot.runHooks('modifyData', row, this.propToCol(prop), valueHolder, 'get');
+      this.hot.runHooks('modifyData', row, visualColumnIndex, valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         value = valueHolder.value;
@@ -783,7 +796,7 @@ class DataMap {
   /**
    * Returns single value from the data array (intended for clipboard copy to an external application).
    *
-   * @param {number} row Physical row index.
+   * @param {number} row Visual row index.
    * @param {number} prop The column property.
    * @returns {string}
    */
@@ -799,7 +812,7 @@ class DataMap {
    * Saves single value to the data array.
    *
    * @param {number} row Visual row index.
-   * @param {number} prop The column property.
+   * @param {number|string} prop The column property.
    * @param {string} value The value to set.
    */
   set(row, prop, value) {

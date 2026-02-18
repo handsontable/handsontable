@@ -15,6 +15,8 @@ export const buildParser = ({ logger, parseJsdoc }) => function* () {
     'dataMap/metaManager/metaSchema.js',
     'dataMap/dataMap.js',
     'shortcuts/manager.js',
+    'shortcuts/manager.js',
+    'focusManager/scopeManager.js',
     'shortcuts/context.js',
     'utils/ghostTable.js',
     'utils/samplesGenerator.js',

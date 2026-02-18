@@ -1,11 +1,12 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example3');
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [
     { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
     {
@@ -29,7 +30,7 @@ new Handsontable(container, {
       type: 'checkbox',
       label: {
         position: 'after',
-        property: 'car',
+        property: 'car', // Read value from row object
       },
     },
     {

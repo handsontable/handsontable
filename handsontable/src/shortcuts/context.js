@@ -4,6 +4,7 @@ import { isUndefined, isDefined } from '../helpers/mixed';
 import { isFunction } from '../helpers/function';
 import { objectEach, isObject } from '../helpers/object';
 import { toSingleLine } from '../helpers/templateLiteralTag';
+import { throwWithCause } from '../utils/errors';
 
 const __kindOf = Symbol('shortcut-context');
 
@@ -26,9 +27,10 @@ export function isContextObject(objectToCheck) {
  * @alias ShortcutContext
  * @class ShortcutContext
  * @param {string} name The name of the keyboard shortcut context
+ * @param {string} [scope='table'] The scope of the shortcut: `'table'` or `'global'`
  * @returns {object}
  */
-export const createContext = (name) => {
+export const createContext = (name, scope = 'table') => {
   const SHORTCUTS = createUniqueMap({
     errorIdExists: keys => `The "${keys}" shortcut is already registered in the "${name}" context.`
   });
@@ -67,18 +69,17 @@ export const createContext = (name) => {
     } = {}) => {
 
     if (isUndefined(group)) {
-      throw new Error('You need to define the shortcut\'s group.', { cause: { handsontable: true } });
+      throwWithCause('You need to define the shortcut\'s group.');
     }
 
     if (isFunction(callback) === false) {
-      throw new Error('The shortcut\'s callback needs to be a function.', { cause: { handsontable: true } });
+      throwWithCause('The shortcut\'s callback needs to be a function.');
     }
 
     if (Array.isArray(keys) === false) {
-      throw new Error(toSingleLine`Pass the shortcut\'s keys as an array of arrays,\x20
+      throwWithCause(toSingleLine`Pass the shortcut\'s keys as an array of arrays,\x20
       using the KeyboardEvent.key properties:\x20
-      https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.`,
-      { cause: { handsontable: true } });
+      https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.`);
     }
 
     const newShortcut = {
@@ -225,6 +226,7 @@ export const createContext = (name) => {
 
   return {
     __kindOf,
+    scope,
     addShortcut,
     addShortcuts,
     getShortcuts,

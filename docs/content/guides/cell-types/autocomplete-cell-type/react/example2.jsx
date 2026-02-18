@@ -1,7 +1,5 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -26,7 +24,6 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
-      themeName="ht-theme-main"
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
@@ -36,30 +33,25 @@ const ExampleComponent = () => {
         ['Chrysler', 2019, 'yellow', 'black'],
         ['Volvo', 2020, 'white', 'gray'],
       ]}
-      colHeaders={[
-        'Car<br>(allowInvalid true)',
-        'Year',
-        'Chassis color<br>(allowInvalid false)',
-        'Bumper color<br>(allowInvalid true)',
-      ]}
+      colHeaders={['Car<br>(allowInvalid true)', 'Year', 'Chassis color', 'Bumper color<br>(allowInvalid true)']}
       columns={[
         {
           type: 'autocomplete',
           source: cars,
           strict: true,
+          // allowInvalid: true // true is default
         },
         {},
         {
           type: 'autocomplete',
           source: colors,
           strict: true,
-          allowInvalid: false,
         },
         {
           type: 'autocomplete',
           source: colors,
           strict: true,
-          allowInvalid: true,
+          allowInvalid: true, // true is default
         },
       ]}
     />

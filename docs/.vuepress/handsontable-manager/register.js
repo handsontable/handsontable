@@ -15,9 +15,6 @@ function createDestroyableResource(presetType, { rootExampleElement, hotInstance
         if (presetType.startsWith('vue3')) {
           rootExampleElement.firstChild.__vue_app__.unmount();
 
-        } else if (presetType.startsWith('vue')) {
-          rootExampleElement.firstChild.__vue__.$root.$destroy();
-
         } else if (presetType.startsWith('react')) {
           rootExampleElement.firstChild?._reactRoot.unmount();
 
@@ -130,6 +127,9 @@ function createRegister() {
   const initPage = () => {
     abortControllers.forEach(ctrl => ctrl.abort());
     abortControllers.add(new AbortController());
+
+    // Remove dynamically injected theme CSS from fixer.js
+    document.querySelectorAll('link[id^="dynamic-css-ht-theme-"]').forEach(link => link.remove());
 
     destroyAll();
   };

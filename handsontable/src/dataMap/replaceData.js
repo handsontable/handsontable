@@ -4,7 +4,8 @@ import DataMap from './dataMap';
 import { deepClone } from '../helpers/object';
 import { setAttribute } from '../helpers/dom/element';
 import { A11Y_COLCOUNT, A11Y_ROWCOUNT } from '../helpers/a11y';
-
+import { runSourceDataValidators } from './sourceDataValidator';
+import { throwWithCause } from '../utils/errors';
 /**
  * Loads new data to Handsontable.
  *
@@ -96,8 +97,7 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
     }
 
   } else {
-    throw new Error(`${internalSource} only accepts array of objects or array of arrays (${typeof data} given)`,
-      { cause: { handsontable: true } });
+    throwWithCause(`${internalSource} only accepts array of objects or array of arrays (${typeof data} given)`);
   }
 
   if (Array.isArray(data[0])) {
@@ -116,11 +116,16 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
   // Run the logic for reassuring that the table structure fits the new dataset.
   callbackFunction(newDataMap);
 
+  if (!firstRun) {
+    runSourceDataValidators(hotInstance, internalSource);
+  }
+
   hotInstance.runHooks(`after${capitalizedInternalSource}`, data, firstRun, source);
 
   // TODO: rethink the way the `afterChange` hook is being run here in the core `init` method.
   if (!firstRun) {
     hotInstance.runHooks('afterChange', null, internalSource);
+    hotInstance.view.adjustElementsSize();
     hotInstance.render();
   }
 

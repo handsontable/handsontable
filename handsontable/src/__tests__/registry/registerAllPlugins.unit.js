@@ -18,7 +18,6 @@ describe('`registerAllPlugins`', () => {
       'text',
     ]);
     expect(getPluginsNames()).toEqual([
-      'PersistentState',
       'AutoColumnSize',
       'Autofill',
       'ManualRowResize',
@@ -51,11 +50,15 @@ describe('`registerAllPlugins`', () => {
       'HiddenColumns',
       'HiddenRows',
       'TrimRows',
+      'Loading',
+      'Dialog',
+      'EmptyDataState',
       'Pagination',
       'UndoRedo',
     ]);
     expect(getRegisteredRendererNames()).toEqual([
       'text',
+      'base',
     ]);
     expect(getRegisteredValidatorNames()).toEqual([]);
   });

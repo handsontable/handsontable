@@ -41,8 +41,9 @@ describe('passwordRenderer', () => {
       const TD = document.createElement('td');
       const instance = getInstance();
       const cellMeta = {};
+      const formattedValue = passwordRenderer.valueFormatter('password', cellMeta);
 
-      passwordRenderer(instance, TD, undefined, undefined, undefined, 'password', cellMeta);
+      passwordRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
       expect(TD.outerHTML).toMatchHTML('<td>********</td>');
     });
@@ -53,8 +54,9 @@ describe('passwordRenderer', () => {
       const cellMeta = {
         hashSymbol: '!'
       };
+      const formattedValue = passwordRenderer.valueFormatter('password', cellMeta);
 
-      passwordRenderer(instance, TD, undefined, undefined, undefined, 'password', cellMeta);
+      passwordRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
       expect(TD.outerHTML).toMatchHTML('<td>!!!!!!!!</td>');
     });
@@ -65,8 +67,9 @@ describe('passwordRenderer', () => {
       const cellMeta = {
         hashLength: 10
       };
+      const formattedValue = passwordRenderer.valueFormatter('password', cellMeta);
 
-      passwordRenderer(instance, TD, undefined, undefined, undefined, 'password', cellMeta);
+      passwordRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
 
       expect(TD.outerHTML).toMatchHTML('<td>**********</td>');
     });

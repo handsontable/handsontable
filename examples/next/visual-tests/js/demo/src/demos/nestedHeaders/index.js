@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 import { data } from './data';
-import { getThemeNameFromURL } from '../../utils';
+import { getThemeNameFromURL, getFromURL } from '../../utils';
 
 export function init() {
   const root = document.getElementById('root');
@@ -11,6 +11,8 @@ export function init() {
   const container = document.createElement('div');
   root.appendChild(container);
 
+  const longNestedHeaders = getFromURL('longNestedHeaders', undefined);
+
   const hot = new Handsontable(container, {
     data: data,
     themeName: getThemeNameFromURL(),
@@ -18,7 +20,7 @@ export function init() {
     colHeaders: true,
     nestedHeaders: [
       [
-        { label: 'Product', colspan: 4 },
+        { label: longNestedHeaders ? 'Product with long text test' : 'Product', colspan: 4 },
         { label: 'Category', colspan: 3 },
         { label: 'User', colspan: 2 },
         { label: 'System', colspan: 2 },
@@ -37,6 +39,8 @@ export function init() {
         'OS',
       ],
     ],
+    navigableHeaders: longNestedHeaders ? true : false,
+    manualColumnResize: longNestedHeaders ? true : false,
     collapsibleColumns: true,
     columns: [
       { data: 'product_id', type: 'numeric' },

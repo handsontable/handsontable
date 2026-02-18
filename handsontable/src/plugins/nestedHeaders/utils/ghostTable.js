@@ -139,7 +139,7 @@ class GhostTable {
             label += '<button class="changeType"></button>';
           }
 
-          fastInnerHTML(th, label);
+          fastInnerHTML(th, label, this.hot.getSettings().sanitizer);
           th.colSpan = headerSettings.colspan;
           tr.appendChild(th);
         }

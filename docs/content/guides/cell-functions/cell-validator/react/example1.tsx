@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import { CellChange } from 'handsontable/common';
 
 // register Handsontable's modules
@@ -32,7 +30,6 @@ const ExampleComponent = () => {
         </output>
       </div>
       <HotTable
-        themeName="ht-theme-main"
         data={[
           {
             id: 1,
@@ -136,7 +133,7 @@ const ExampleComponent = () => {
           { data: 'name.first' },
           { data: 'name.last' },
           { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
-          { data: 'email', validator: emailValidator, allowInvalid: false },
+          { data: 'email', validator: emailValidator },
         ]}
       />
     </>

@@ -10,7 +10,7 @@ import * as parseTableHelpers from './utils/parseTable';
 import * as arrayHelpers from './helpers/array';
 import * as browserHelpers from './helpers/browser';
 import * as dataHelpers from './helpers/data';
-import * as dateHelpers from './helpers/date';
+import * as dateTimeHelpers from './helpers/dateTime';
 import * as featureHelpers from './helpers/feature';
 import * as functionHelpers from './helpers/function';
 import * as mixedHelpers from './helpers/mixed';
@@ -26,11 +26,13 @@ import {
   getEditor,
   registerEditor,
 } from './editors/registry';
+import { editorFactory } from './editors/factory';
 import {
   getRegisteredRendererNames,
   getRenderer,
   registerRenderer,
 } from './renderers/registry';
+import { rendererFactory } from './renderers/factory';
 import {
   getRegisteredValidatorNames,
   getValidator,
@@ -47,6 +49,14 @@ import {
   registerPlugin,
 } from './plugins/registry';
 import { BasePlugin } from './plugins/base';
+import {
+  hasTheme,
+  getTheme,
+  getThemeNames,
+  getThemes,
+  registerTheme,
+  reinitTheme,
+} from './themes/registry';
 
 registerAllModules();
 jQueryWrapper(Handsontable);
@@ -63,7 +73,7 @@ const HELPERS = [
   arrayHelpers,
   browserHelpers,
   dataHelpers,
-  dateHelpers,
+  dateTimeHelpers,
   featureHelpers,
   functionHelpers,
   mixedHelpers,
@@ -118,6 +128,7 @@ arrayHelpers.arrayEach(getRegisteredEditorNames(), (editorName) => {
 
 Handsontable.editors.registerEditor = registerEditor;
 Handsontable.editors.getEditor = getEditor;
+Handsontable.editors.editorFactory = editorFactory;
 
 // Export all registered renderers from the Handsontable.
 Handsontable.renderers = Handsontable.renderers ?? {};
@@ -133,6 +144,7 @@ arrayHelpers.arrayEach(getRegisteredRendererNames(), (rendererName) => {
 
 Handsontable.renderers.registerRenderer = registerRenderer;
 Handsontable.renderers.getRenderer = getRenderer;
+Handsontable.renderers.rendererFactory = rendererFactory;
 
 // Export all registered validators from the Handsontable.
 Handsontable.validators = Handsontable.validators ?? {};
@@ -161,6 +173,16 @@ Handsontable.plugins[`${stringHelpers.toUpperCaseFirst(BasePlugin.PLUGIN_KEY)}Pl
 
 Handsontable.plugins.registerPlugin = registerPlugin;
 Handsontable.plugins.getPlugin = getPlugin;
+
+// Export themes namespace.
+Handsontable.themes = Handsontable.themes ?? {};
+
+Handsontable.themes.hasTheme = hasTheme;
+Handsontable.themes.getTheme = getTheme;
+Handsontable.themes.getThemeNames = getThemeNames;
+Handsontable.themes.getThemes = getThemes;
+Handsontable.themes.registerTheme = registerTheme;
+Handsontable.themes.reinitTheme = reinitTheme;
 
 export {
   CellCoords,

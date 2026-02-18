@@ -2118,7 +2118,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
-      height: 200,
+      height: 230,
       viewportRowRenderingOffset: 0,
       mergeCells: true,
     });
@@ -2401,7 +2401,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,
-      height: 200,
+      height: 224,
       viewportRowRenderingOffset: 0,
       mergeCells: {
         virtualized: true,

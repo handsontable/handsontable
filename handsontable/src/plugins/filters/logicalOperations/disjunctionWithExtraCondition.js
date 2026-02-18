@@ -1,4 +1,5 @@
 import * as C from '../../../i18n/constants';
+import { throwWithCause } from '../../../utils/errors';
 import { registerOperation } from '../logicalOperationRegisterer';
 
 export const OPERATION_ID = 'disjunctionWithExtraCondition';
@@ -12,7 +13,7 @@ export const SHORT_NAME_FOR_COMPONENT = C.FILTERS_LABELS_DISJUNCTION;
  */
 export function operationResult(conditions, value) {
   if (conditions.length < 3) {
-    throw Error('Operation doesn\'t work on less then three conditions.', { cause: { handsontable: true } });
+    throwWithCause('Operation doesn\'t work on less then three conditions.');
   }
 
   return conditions.slice(0, conditions.length - 1).some(condition => condition.func(value))

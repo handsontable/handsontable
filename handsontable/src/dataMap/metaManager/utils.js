@@ -1,4 +1,5 @@
 import { hasOwnProperty, isObject, objectEach, inherit, extend } from '../../helpers/object';
+import { throwWithCause } from '../../utils/errors';
 import { getCellType } from '../../cellTypes/registry';
 
 /**
@@ -87,16 +88,6 @@ export function columnFactory(TableMeta, conflictList = []) {
 }
 
 /**
- * Helper which checks if the provided argument is an unsigned number.
- *
- * @param {*} value Value to check.
- * @returns {boolean}
- */
-export function isUnsignedNumber(value) {
-  return Number.isInteger(value) && value >= 0;
-}
-
-/**
  * Function which makes assertion by custom condition. Function throws an error when assertion doesn't meet the spec.
  *
  * @param {Function} condition Function with custom logic. The condition has to return boolean values.
@@ -104,7 +95,7 @@ export function isUnsignedNumber(value) {
  */
 export function assert(condition, errorMessage) {
   if (!condition()) {
-    throw new Error(`Assertion failed: ${errorMessage}`, { cause: { handsontable: true } });
+    throwWithCause(`Assertion failed: ${errorMessage}`);
   }
 }
 

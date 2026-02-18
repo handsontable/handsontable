@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where the pasted value cannot be changed",
+  "type": "fixed",
+  "issueOrPR": 11989,
+  "breaking": false,
+  "framework": "none"
+}

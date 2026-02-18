@@ -138,3 +138,31 @@ export function clamp(value, minValue, maxValue) {
 
   return value;
 }
+
+/**
+ * Get parsed number from numeric string.
+ *
+ * @param {string} numericData Float (separated by a dot or a comma) or integer.
+ * @returns {number|null} Number if we get data in parsable format, not changed value otherwise.
+ */
+export function getParsedNumber(numericData) {
+  // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
+  // for example from `450,65` to `450.65`.
+  const unifiedNumericData = numericData.replace(',', '.');
+
+  if (isNaN(parseFloat(unifiedNumericData)) === false) {
+    return parseFloat(unifiedNumericData);
+  }
+
+  return null;
+}
+
+/**
+ * Check if the provided argument is an unsigned number.
+ *
+ * @param {*} value Value to check.
+ * @returns {boolean}
+ */
+export function isUnsignedNumber(value) {
+  return Number.isInteger(value) && value >= 0;
+}

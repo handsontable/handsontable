@@ -1,6 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector<HTMLDivElement>('#example1')!;
 const exampleConsole = document.querySelector<HTMLDivElement>('#output')!;
@@ -9,7 +11,6 @@ const load = document.querySelector<HTMLButtonElement>('#load')!;
 const save = document.querySelector<HTMLButtonElement>('#save')!;
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   startRows: 8,
   startCols: 6,
   rowHeaders: true,

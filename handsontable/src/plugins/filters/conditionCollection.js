@@ -1,4 +1,5 @@
 import { mixin } from '../../helpers/object';
+import { throwWithCause } from '../../utils/errors';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import localHooks from '../../mixins/localHooks';
 import { getCondition } from './conditionRegisterer';
@@ -112,15 +113,15 @@ class ConditionCollection {
 
     if (columnType) {
       if (columnType !== operation) {
-        throw Error(toSingleLine`The column of index ${column} has been already applied with a \`${columnType}\`\x20
+        throwWithCause(toSingleLine`The column of index ${column} has been already applied with a \`${columnType}\`\x20
         filter operation. Use \`removeConditions\` to clear the current conditions and then add new ones.\x20
         Mind that you cannot mix different types of operations (for instance, if you use \`conjunction\`,\x20
-        use it consequently for a particular column).`, { cause: { handsontable: true } });
+        use it consequently for a particular column).`);
       }
 
     } else if (isUndefined(operations[operation])) {
-      throw new Error(toSingleLine`Unexpected operation named \`${operation}\`. Possible ones are\x20
-        \`disjunction\` and \`conjunction\`.`, { cause: { handsontable: true } });
+      throwWithCause(toSingleLine`Unexpected operation named \`${operation}\`. Possible ones are\x20
+        \`disjunction\` and \`conjunction\`.`);
     }
 
     const conditionsForColumn = this.getConditions(column);

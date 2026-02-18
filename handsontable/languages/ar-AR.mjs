@@ -10,6 +10,8 @@ const C = Handsontable.languages.dictionaryKeys;
 const dictionary = {
   languageCode: 'ar-AR',
   languageDirection: 'rtl',
+  [C.OK]: 'موافق',
+  [C.CANCEL]: 'إلغاء',
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'لا توجد خيارات متوفرة',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'إدراج صف للأعلى',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'إدراج صف للأسفل',
@@ -82,7 +84,22 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: 'إلغاء',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'البحث',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'القيمة',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'القيمة الثانية'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'القيمة الثانية',
+  [C.PAGINATION_SECTION]: 'ترقيم الصفحات',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'عدد الصفوف',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'تلقائي',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] من [total]',
+  [C.PAGINATION_NAV_SECTION]: 'صفحة [currentPage] من [totalPages]',
+  [C.PAGINATION_FIRST_PAGE]: 'الانتقال إلى الصفحة الأولى',
+  [C.PAGINATION_PREV_PAGE]: 'الانتقال إلى الصفحة السابقة',
+  [C.PAGINATION_NEXT_PAGE]: 'الانتقال إلى الصفحة التالية',
+  [C.PAGINATION_LAST_PAGE]: 'الانتقال إلى الصفحة الأخيرة',
+  [C.LOADING_TITLE]: 'جاري التحميل...',
+  [C.EMPTY_DATA_STATE_TITLE]: 'لا توجد بيانات متاحة',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'لا يوجد شيء للعرض بعد.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'لم يتم العثور على نتائج',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'يبدو أن المرشحات الحالية تخفي جميع النتائج.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'إعادة تعيين المرشحات'
 };
 Handsontable.languages.registerLanguageDictionary(dictionary);
 export default dictionary;

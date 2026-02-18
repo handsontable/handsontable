@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import { Component, OnInit } from '@angular/core';
-import { GridSettings } from "@handsontable/angular-wrapper";
+import { GridSettings } from '@handsontable/angular-wrapper';
 
 const ipValidatorRegexp =
   /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
@@ -147,7 +147,7 @@ export class AppComponent implements OnInit {
         { data: 'name.first' },
         { data: 'name.last' },
         { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
-        { data: 'email', validator: emailValidator, allowInvalid: false },
+        { data: 'email', validator: emailValidator },
       ],
       autoWrapRow: true,
       autoWrapCol: true,
@@ -177,7 +177,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig
     }

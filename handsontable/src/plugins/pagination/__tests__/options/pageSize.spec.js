@@ -12,20 +12,14 @@ describe('Pagination `pageSize` option', () => {
 
   async function initHandsontableInFrame(options) {
     const iframe = $('<iframe/>')
-      .css({ width: '600px', height: '600px' })
+      .css({ width: '700px', height: '600px' })
       .appendTo(spec().$container);
     const doc = iframe[0].contentDocument;
-    let styles = '';
-
-    if (spec().loadedTheme === 'classic') {
-      styles = '<link type="text/css" rel="stylesheet" href="../dist/handsontable.css">';
-    } else {
-      styles = `
-        <link type="text/css" rel="stylesheet" href="../styles/handsontable.css">
-        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
-        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
-      `;
-    }
+    const styles = `
+      <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
+      <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
+      <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
+    `;
 
     doc.open('text/html', 'replace');
     doc.write(`
@@ -47,7 +41,7 @@ describe('Pagination `pageSize` option', () => {
 
     win.onload = () => {
       const container = $(doc.querySelector('#root'));
-      const themeName = spec().loadedTheme !== 'classic' ? `ht-theme-${spec().loadedTheme}` : null;
+      const themeName = `ht-theme-${spec().loadedTheme}`;
 
       if (themeName) {
         options.themeName = themeName;
@@ -261,7 +255,7 @@ describe('Pagination `pageSize` option', () => {
     });
 
     it('should warn when `autoRowSize` plugin is not enabled', async() => {
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: createSpreadsheetData(20, 10),
@@ -403,47 +397,47 @@ describe('Pagination `pageSize` option', () => {
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
         '1 - 1 of 45',
-        '|< < Page 1 of 13 [>] [>|]',
+        '|< < Page 1 of 11 [>] [>|]',
       ]);
 
       plugin.setPage(2);
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A2');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A3');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A4');
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
-        '2 - 3 of 45',
-        '[|<] [<] Page 2 of 13 [>] [>|]',
+        '2 - 4 of 45',
+        '[|<] [<] Page 2 of 11 [>] [>|]',
       ]);
 
       plugin.setPage(3);
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe('A4');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A6');
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A5');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A8');
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
-        '4 - 6 of 45',
-        '[|<] [<] Page 3 of 13 [>] [>|]',
+        '5 - 8 of 45',
+        '[|<] [<] Page 3 of 11 [>] [>|]',
       ]);
 
       await setDataAtCell(4, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe('A4');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A4');
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A5');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A5');
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
-        '4 - 4 of 45',
-        '[|<] [<] Page 3 of 15 [>] [>|]',
+        '5 - 5 of 45',
+        '[|<] [<] Page 3 of 12 [>] [>|]',
       ]);
 
       await setDataAtCell(4, 1, 'value');
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe('A4');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A6');
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A5');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A8');
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
-        '4 - 6 of 45',
-        '[|<] [<] Page 3 of 13 [>] [>|]',
+        '5 - 8 of 45',
+        '[|<] [<] Page 3 of 11 [>] [>|]',
       ]);
     });
 
@@ -464,14 +458,14 @@ describe('Pagination `pageSize` option', () => {
         horizon.toBe('A1');
       });
       expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A23');
+        classic.toBe('A21');
         main.toBe('A18');
         horizon.toBe('A14');
       });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
           'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 23 of 100',
+          '1 - 21 of 100',
           '|< < Page 1 of 5 [>] [>|]',
         ]);
         main.toEqual([
@@ -506,7 +500,7 @@ describe('Pagination `pageSize` option', () => {
 
     it('should render elements after changing the window height (table without defined size)', async() => {
       const { hotInstance, iframe } = await initHandsontableInFrame({
-        data: createSpreadsheetData(100, 10),
+        data: createSpreadsheetData(100, 12),
         pagination: {
           pageSize: 'auto',
         },
@@ -523,15 +517,15 @@ describe('Pagination `pageSize` option', () => {
         horizon.toBe('A1');
       });
       expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A15');
+        classic.toBe('A13');
         main.toBe('A11');
         horizon.toBe('A9');
       });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
           'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 15 of 100',
-          '|< < Page 1 of 7 [>] [>|]',
+          '1 - 13 of 100',
+          '|< < Page 1 of 8 [>] [>|]',
         ]);
         main.toEqual([
           'Page size: [[auto], 5, 10, 20, 50, 100]',
@@ -554,15 +548,15 @@ describe('Pagination `pageSize` option', () => {
         horizon.toBe('A1');
       });
       expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A6');
+        classic.toBe('A5');
         main.toBe('A4');
         horizon.toBe('A3');
       });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
           'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 6 of 100',
-          '|< < Page 1 of 17 [>] [>|]',
+          '1 - 5 of 100',
+          '|< < Page 1 of 20 [>] [>|]',
         ]);
         main.toEqual([
           'Page size: [[auto], 5, 10, 20, 50, 100]',
@@ -576,7 +570,7 @@ describe('Pagination `pageSize` option', () => {
         ]);
       });
 
-      iframe.css({ height: '700px' });
+      iframe.css({ height: '705px' });
       await sleep(100); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
@@ -585,14 +579,14 @@ describe('Pagination `pageSize` option', () => {
         horizon.toBe('A1');
       });
       expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A28');
+        classic.toBe('A25');
         main.toBe('A22');
         horizon.toBe('A17');
       });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
           'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 28 of 100',
+          '1 - 25 of 100',
           '|< < Page 1 of 4 [>] [>|]',
         ]);
         main.toEqual([
@@ -662,14 +656,14 @@ describe('Pagination `pageSize` option', () => {
         horizon.toBe('A2');
       });
       expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A10');
+        classic.toBe('A8');
         main.toBe('A7');
         horizon.toBe('A5');
       });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
           'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '2 - 10 of 45',
+          '2 - 8 of 45',
           '[|<] [<] Page 2 of 4 [>] [>|]',
         ]);
         main.toEqual([
@@ -687,19 +681,19 @@ describe('Pagination `pageSize` option', () => {
       plugin.setPage(3);
 
       expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A11');
+        classic.toBe('A9');
         main.toBe('A8');
         horizon.toBe('A6');
       });
       expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A33');
+        classic.toBe('A27');
         main.toBe('A23');
         horizon.toBe('A7');
       });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
           'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '11 - 33 of 45',
+          '9 - 27 of 45',
           '[|<] [<] Page 3 of 4 [>] [>|]',
         ]);
         main.toEqual([
@@ -720,20 +714,20 @@ describe('Pagination `pageSize` option', () => {
         .setDataAtCell(rowToChange, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
 
       expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A11');
+        classic.toBe('A9');
         main.toBe('A8');
         horizon.toBe('A6');
       });
       expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A24');
+        classic.toBe('A19');
         main.toBe('A18');
         horizon.toBe('A6');
       });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
           'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '11 - 24 of 45',
-          '[|<] [<] Page 3 of 4 [>] [>|]',
+          '9 - 19 of 45',
+          '[|<] [<] Page 3 of 5 [>] [>|]',
         ]);
         main.toEqual([
           'Page size: [[auto], 5, 10, 20, 50, 100]',
@@ -750,19 +744,19 @@ describe('Pagination `pageSize` option', () => {
       hotInstance.setDataAtCell(rowToChange, 1, 'value');
 
       expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A11');
+        classic.toBe('A9');
         main.toBe('A8');
         horizon.toBe('A6');
       });
       expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A33');
+        classic.toBe('A27');
         main.toBe('A23');
         horizon.toBe('A7');
       });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
           'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '11 - 33 of 45',
+          '9 - 27 of 45',
           '[|<] [<] Page 3 of 4 [>] [>|]',
         ]);
         main.toEqual([

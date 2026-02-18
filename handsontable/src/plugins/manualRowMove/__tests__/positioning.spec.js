@@ -84,12 +84,12 @@ describe('manualRowMove', () => {
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
       expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2);
+        classic.toBe(1);
         main.toBe(1);
         horizon.toBe(1);
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THNext.offset().top - 2);
+        classic.toBe(THNext.offset().top - 1);
         main.toBe(THNext.offset().top - 1);
         horizon.toBe(THNext.offset().top - 1);
       });
@@ -122,12 +122,12 @@ describe('manualRowMove', () => {
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
       expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2);
+        classic.toBe(1);
         main.toBe(1);
         horizon.toBe(1);
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THNext.offset().top - 2);
+        classic.toBe(THNext.offset().top - 1);
         main.toBe(THNext.offset().top - 1);
         horizon.toBe(THNext.offset().top - 1);
       });
@@ -162,12 +162,12 @@ describe('manualRowMove', () => {
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THLast.offset().top - dropOffset);
       expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2);
+        classic.toBe(1);
         main.toBe(1);
         horizon.toBe(1);
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THLast.offset().top - 2);
+        classic.toBe(THLast.offset().top - 1);
         main.toBe(THLast.offset().top - 1);
         horizon.toBe(THLast.offset().top - 1);
       });
@@ -239,12 +239,12 @@ describe('manualRowMove', () => {
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
       expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2);
+        classic.toBe(1);
         main.toBe(1);
         horizon.toBe(1);
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THNext.offset().top - 2);
+        classic.toBe(THNext.offset().top - 1);
         main.toBe(THNext.offset().top - 1);
         horizon.toBe(THNext.offset().top - 1);
       });
@@ -287,12 +287,12 @@ describe('manualRowMove', () => {
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
       expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2);
+        classic.toBe(1);
         main.toBe(1);
         horizon.toBe(1);
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THNext.offset().top - 2);
+        classic.toBe(THNext.offset().top - 1);
         main.toBe(THNext.offset().top - 1);
         horizon.toBe(THNext.offset().top - 1);
       });
@@ -360,12 +360,12 @@ describe('manualRowMove', () => {
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
       expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2);
+        classic.toBe(1);
         main.toBe(1);
         horizon.toBe(1);
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THNext.offset().top - 2);
+        classic.toBe(THNext.offset().top - 1);
         main.toBe(THNext.offset().top - 1);
         horizon.toBe(THNext.offset().top - 1);
       });
@@ -406,12 +406,12 @@ describe('manualRowMove', () => {
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
       expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2);
+        classic.toBe(1);
         main.toBe(1);
         horizon.toBe(1);
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THNext.offset().top - 2);
+        classic.toBe(THNext.offset().top - 1);
         main.toBe(THNext.offset().top - 1);
         horizon.toBe(THNext.offset().top - 1);
       });
@@ -460,7 +460,7 @@ describe('manualRowMove', () => {
       const backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
       expect(backlight.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(46);
+        classic.toBe(52);
         main.toBe(58);
         horizon.toBe(74);
       });

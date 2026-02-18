@@ -128,8 +128,8 @@ describe('NestedRows (RTL)', () => {
         });
 
         expect(countRows()).toEqual(13);
-        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('right');
-        expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).left).toEqual('-2px');
+        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
+        expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
       });
 
       it.forTheme('main')('should display indicators properly located', async() => {

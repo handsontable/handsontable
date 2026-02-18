@@ -1,0 +1,26 @@
+name: Docs Algolia Reindex Previous Versions Manual Action
+description: This workflow is used to reindex the previous versions of the docs. It takes about 2 hours and uses many tokens. It should be run manually in two cases. First one new versions is released, latter one when previous version content has been changed.
+
+on:
+  workflow_dispatch
+
+jobs:
+  docker:
+    name: Docs Algolia Reindex Previous Versions Manual Action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+      
+      - name: Algolia crawler start
+        env: 
+          crawler-name: Github Crawler 
+          crawler-id: eda11bc1-04e4-406a-bf0f-9a0bf29c9c38
+          crawler-user-id: 61f462d3-fa0d-465f-8fc1-e39231615539
+          crawler-api-key: ${{ secrets.CRAWLER_API_KEY }}
+          site-url: 'https://handsontable.com'
+        run: |
+          wget --method POST \
+            --auth-no-challenge \
+            --user='${{ env.crawler-user-id }}' \
+            --password='${{ env.crawler-api-key}}'  \
+            'https://crawler.algolia.com/api/1/crawlers/${{ env.crawler-id }}/reindex'

@@ -1,0 +1,85 @@
+@use "../../utils/mixins";
+
+// MultiSelect - Cell Renderer
+@mixin output {
+  .handsontable {
+    .ht-multi-select-renderer {
+      padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
+      overflow: hidden;
+    }
+
+    .ht-multi-select-chips-container {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: var(--ht-gap-size);
+      overflow: hidden;
+      max-width: 100%;
+    }
+
+    .ht-multi-select-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--ht-gap-size);
+      padding: var(--ht-chip-vertical-padding) calc((var(--ht-line-height) - var(--ht-icon-size)) / 2) var(--ht-chip-vertical-padding) var(--ht-chip-horizontal-padding);
+      border-radius: var(--ht-chip-border-radius);
+      background: var(--ht-chip-background);
+      white-space: nowrap;
+      flex-shrink: 0;
+      max-width: 100px;
+      box-sizing: border-box;
+    }
+
+    .ht-multi-select-chip-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--ht-foreground-color);
+      font-style: normal;
+      font-weight: var(--ht-font-weight);
+      line-height: var(--ht-line-height, 40px);
+      letter-spacing: var(--ht-letter-spacing, 0);
+      padding: 0 var(--ht-chip-gap);
+    }
+
+    .ht-multi-select-chip-remove {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--ht-icon-size) !important;
+      height: var(--ht-icon-size) !important;
+      padding: 0;
+      cursor: pointer;
+      flex-shrink: 0;
+      color: var(--ht-icon-button-icon-color);
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+
+      &::before {
+        @include mixins.pseudo;
+
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      &:hover {
+        background-color: var(--ht-icon-button-hover-background-color);
+      }
+    }
+
+    .ht-multi-select-overflow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 calc(var(--ht-gap-size) * 2);
+      background: var(--ht-chip-background);
+      border-radius: var(--ht-chip-border-radius);
+      color: var(--ht-foreground-color);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+  }
+}
+

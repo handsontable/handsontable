@@ -307,34 +307,39 @@ export function createSelectionController(options = {}) {
         ...selectionOptions,
       });
     },
-    getHeader() {
+    getHeader(selectionOptions = {}) {
       return addSelectionToCollection(headerCtrl, {
         selectionType: 'header',
-        className: 'ht__highlight'
+        className: 'ht__highlight',
+        ...selectionOptions,
       });
     },
-    getActiveHeader() {
+    getActiveHeader(selectionOptions = {}) {
       return addSelectionToCollection(activeHeaderCtrl, {
         selectionType: 'active-header',
-        className: 'ht__active_highlight'
+        className: 'ht__active_highlight',
+        ...selectionOptions,
       });
     },
-    getRowHighlight() {
+    getRowHighlight(selectionOptions = {}) {
       return addSelectionToCollection(rowHighlightCtrl, {
         selectionType: 'row',
-        className: 'row'
+        className: 'row',
+        ...selectionOptions,
       });
     },
-    getColumnHighlight() {
+    getColumnHighlight(selectionOptions = {}) {
       return addSelectionToCollection(columnHighlightCtrl, {
         selectionType: 'column',
-        className: 'column'
+        className: 'column',
+        ...selectionOptions,
       });
     },
-    getCustomHighlight() {
+    getCustomHighlight(selectionOptions = {}) {
       return addSelectionToCollection(customHighlightCtrl, {
         selectionType: 'custom',
-        className: 'custom'
+        className: 'custom',
+        ...selectionOptions,
       });
     },
     [Symbol.iterator]() {
@@ -362,11 +367,17 @@ export function createStylesHandler() {
     getDefaultRowHeight() {
       return 23;
     },
-    isClassicTheme() {
-      return true;
-    },
     areCellsBorderBox() {
       return false;
+    },
+    getCSSVariableValue(variableName) {
+      const cssVariables = {
+        'cell-autofill-size': 6,
+        'cell-autofill-border-width': 1,
+        'cell-autofill-border-color': '#FFF',
+      };
+
+      return cssVariables[variableName];
     },
   };
 }

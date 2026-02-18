@@ -1,9 +1,7 @@
 import { HotTable } from '@handsontable/react-wrapper';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { BaseRenderer, registerRenderer } from 'handsontable/renderers';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -48,7 +46,6 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
-      themeName="ht-theme-main"
       data={data}
       autoWrapRow={true}
       autoWrapCol={true}

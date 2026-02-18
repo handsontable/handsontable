@@ -20,7 +20,11 @@ import { init as initCustomBordersDemo } from './demos/customBorders';
 import { init as initWebComponentDemo } from './demos/webComponent';
 import { init as initEditorsDemo } from './demos/editors';
 import { init as initTextEllipsisDemo } from './demos/textEllipsis';
+import { init as initDialogDemo } from './demos/dialog';
 import { init as initWrapperDemo } from './demos/wrapper';
+import { init as initLoadingDemo } from './demos/loading';
+import { init as initRowSizeDemo } from './demos/rowSize';
+import { init as initEmptyDataStateDemo } from './demos/emptyDataState';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -45,42 +49,34 @@ function removeCSS() {
 function loadThemeCSS() {
   const urlParams = new URLSearchParams(window.location.search);
   const theme = urlParams.get('theme');
-  const baseLink = document.createElement('link');
   const themeLink = document.createElement('link');
 
-  baseLink.rel = 'stylesheet';
-  baseLink.className = 'dynamic-css';
   themeLink.rel = 'stylesheet';
   themeLink.className = 'dynamic-css';
 
   if (theme === 'main' || theme === 'main-dark') {
-    baseLink.href = `/assets/handsontable/styles/handsontable.css`;
     themeLink.href = `/assets/handsontable/styles/ht-theme-main.css`;
 
   } else if (theme === 'horizon' || theme === 'horizon-dark') {
-    baseLink.href = `/assets/handsontable/styles/handsontable.css`;
     themeLink.href = `/assets/handsontable/styles/ht-theme-horizon.css`;
 
-  } else {
-    baseLink.href = `/assets/handsontable/dist/handsontable.full.css`;
+  } else if (theme === 'classic' || theme === 'classic-dark') {
+    themeLink.href = `/assets/handsontable/styles/ht-theme-classic.css`;
+
   }
 
-  const baseLinkPromise = new Promise((resolve, reject) => {
-    baseLink.onload = resolve;
-    baseLink.onerror = reject;
-  });
   const themeLinkPromise = new Promise((resolve, reject) => {
     themeLink.onload = resolve;
     themeLink.onerror = reject;
   });
 
-  [baseLink, themeLink].forEach((link) => {
+  [themeLink].forEach((link) => {
     if (link.href) {
       document.head.appendChild(link);
     }
   });
 
-  return Promise.all([baseLinkPromise, themeLink.href ? themeLinkPromise : null]);
+  return Promise.all([themeLink.href ? themeLinkPromise : null]);
 }
 
 // Initialize the router
@@ -258,6 +254,15 @@ router
         initPaginationDemo();
       });
     },
+    '/dialog-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initDialogDemo();
+      });
+    },
     '/wrapper-demo': function () {
       removeCSS();
 
@@ -265,6 +270,33 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initWrapperDemo();
+      });
+    },
+    '/loading-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initLoadingDemo();
+      });
+    },
+    '/row-size-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initRowSizeDemo();
+      });
+    },
+    '/empty-data-state-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initEmptyDataStateDemo();
       });
     },
   })

@@ -14,6 +14,7 @@ import {
 } from './constants';
 import Clone from '../core/clone';
 import { A11Y_PRESENTATION } from '../../../../helpers/a11y';
+import { throwWithCause } from '../../../../utils/errors';
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -120,8 +121,10 @@ export class Overlay {
   updateMainScrollableElement() {
     const { wtTable } = this.wot;
     const { rootWindow } = this.domBindings;
+    const computedOverflow = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
+      .getPropertyValue('overflow');
 
-    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+    if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
       this.mainTableScrollableElement = this.wot.wtTable.holder;
     } else {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
@@ -278,7 +281,7 @@ export class Overlay {
    */
   makeClone() {
     if (CLONE_TYPES.indexOf(this.type) === -1) {
-      throw new Error(`Clone type "${this.type}" is not supported.`, { cause: { handsontable: true } });
+      throwWithCause(`Clone type "${this.type}" is not supported.`);
     }
     const {
       wtTable,
@@ -321,14 +324,17 @@ export class Overlay {
     tableParent.appendChild(clone);
 
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    const computedOverflow = rootWindow.getComputedStyle(tableParent)
+      .getPropertyValue('overflow');
 
     if (preventOverflow === true ||
       preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
       preventOverflow === 'vertical' && this.type === CLONE_INLINE_START) {
       this.mainTableScrollableElement = rootWindow;
 
-    } else if (rootWindow.getComputedStyle(tableParent).getPropertyValue('overflow') === 'hidden') {
+    } else if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
       this.mainTableScrollableElement = wtTable.holder;
+
     } else {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
     }

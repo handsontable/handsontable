@@ -13,7 +13,7 @@ export function addClass(element: HTMLElement, className: string | string[]): vo
 export function removeClass(element: HTMLElement, className: string | string[]): void;
 export function removeTextNodes(element: HTMLElement): void;
 export function empty(element: HTMLElement): void;
-export function fastInnerHTML(element: HTMLElement, content: string, sanitizeContent?: boolean): void;
+export function fastInnerHTML(element: HTMLElement, content: string, sanitizer?: (content: string, source: string) => string): void;
 export function fastInnerText(element: HTMLElement, content: string): void;
 export function isVisible(element: HTMLElement): boolean;
 export function offset(element: HTMLElement): { left: number, top: number };

@@ -121,29 +121,29 @@ describe('selection utils', () => {
       });
 
       expect(normalizer([1, 1])).toEqual({
-        highlight: { row: 1, col: 1 },
-        from: { row: 1, col: 1 },
-        to: { row: 1, col: 1 },
+        highlight: coords(1, 1),
+        from: coords(1, 1),
+        to: coords(1, 1),
       });
       expect(normalizer([1, 1, 2])).toEqual({
-        highlight: { row: 1, col: 1 },
-        from: { row: 1, col: 1 },
-        to: { row: 2, col: 1 },
+        highlight: coords(1, 1),
+        from: coords(1, 1),
+        to: coords(2, 1),
       });
       expect(normalizer([1, 1, 2, 2])).toEqual({
-        highlight: { row: 1, col: 1 },
-        from: { row: 1, col: 1 },
-        to: { row: 2, col: 2 },
+        highlight: coords(1, 1),
+        from: coords(1, 1),
+        to: coords(2, 2),
       });
       expect(normalizer([2, 2, 1, 1])).toEqual({
-        highlight: { row: 1, col: 1 },
-        from: { row: 1, col: 1 },
-        to: { row: 2, col: 2 },
+        highlight: coords(1, 1),
+        from: coords(1, 1),
+        to: coords(2, 2),
       });
       expect(normalizer([2, 'prop2', 1, 'prop1'])).toEqual({
-        highlight: { row: 1, col: NaN },
-        from: { row: 1, col: NaN },
-        to: { row: 2, col: NaN },
+        highlight: coords(1, NaN),
+        from: coords(1, NaN),
+        to: coords(2, NaN),
       });
     });
 
@@ -154,19 +154,19 @@ describe('selection utils', () => {
       });
 
       expect(normalizer(range(1, 1))).toEqual({
-        highlight: { row: 1, col: 1 },
-        from: { row: 1, col: 1 },
-        to: { row: 1, col: 1 },
+        highlight: coords(1, 1),
+        from: coords(1, 1),
+        to: coords(1, 1),
       });
       expect(normalizer(range(1, 1, 2, 2))).toEqual({
-        highlight: { row: 1, col: 1 },
-        from: { row: 1, col: 1 },
-        to: { row: 2, col: 2 },
+        highlight: coords(1, 1),
+        from: coords(1, 1),
+        to: coords(2, 2),
       });
       expect(normalizer(range(2, 2, 1, 1))).toEqual({
-        highlight: { row: 1, col: 1 },
-        from: { row: 1, col: 1 },
-        to: { row: 2, col: 2 },
+        highlight: coords(2, 2),
+        from: coords(1, 1),
+        to: coords(2, 2),
       });
     });
 
@@ -178,14 +178,14 @@ describe('selection utils', () => {
       });
 
       expect(normalizer([1, 1, 2, 2])).toEqual({
-        highlight: { row: 1, col: 1 },
-        from: { row: 1, col: 1 },
-        to: { row: 2, col: 2 },
+        highlight: coords(1, 1),
+        from: coords(1, 1),
+        to: coords(2, 2),
       });
       expect(normalizer([2, 2, 1, 1])).toEqual({
-        highlight: { row: 2, col: 2 },
-        from: { row: 2, col: 2 },
-        to: { row: 1, col: 1 },
+        highlight: coords(2, 2),
+        from: coords(2, 2),
+        to: coords(1, 1),
       });
     });
 
@@ -197,19 +197,19 @@ describe('selection utils', () => {
       });
 
       expect(normalizer(range(1, 1))).toEqual({
-        highlight: { row: 1, col: 1 },
-        from: { row: 1, col: 1 },
-        to: { row: 1, col: 1 },
+        highlight: coords(1, 1),
+        from: coords(1, 1),
+        to: coords(1, 1),
       });
       expect(normalizer(range(1, 1, 2, 2))).toEqual({
-        highlight: { row: 2, col: 2 },
-        from: { row: 2, col: 2 },
-        to: { row: 1, col: 1 },
+        highlight: coords(1, 1),
+        from: coords(2, 2),
+        to: coords(1, 1),
       });
       expect(normalizer(range(2, 2, 1, 1))).toEqual({
-        highlight: { row: 1, col: 1 },
-        from: { row: 1, col: 1 },
-        to: { row: 2, col: 2 },
+        highlight: coords(2, 2),
+        from: coords(1, 1),
+        to: coords(2, 2),
       });
     });
 
@@ -222,19 +222,19 @@ describe('selection utils', () => {
       });
 
       expect(normalizer([1, 1, 2, 2])).toEqual({
-        highlight: { row: 1, col: 1 },
-        from: { row: 1, col: 1 },
-        to: { row: 2, col: 2 },
+        highlight: coords(1, 1),
+        from: coords(1, 1),
+        to: coords(2, 2),
       });
       expect(normalizer([1, 'prop1', 2, 3])).toEqual({
-        highlight: { row: 1, col: 3 },
-        from: { row: 1, col: 3 },
-        to: { row: 2, col: 8 },
+        highlight: coords(1, 3),
+        from: coords(1, 3),
+        to: coords(2, 8),
       });
       expect(normalizer([1, 'prop1', 2, 'prop2'])).toEqual({
-        highlight: { row: 1, col: 7 },
-        from: { row: 1, col: 7 },
-        to: { row: 2, col: 8 },
+        highlight: coords(1, 7),
+        from: coords(1, 7),
+        to: coords(2, 8),
       });
     });
   });
