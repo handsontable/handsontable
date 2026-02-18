@@ -1,7 +1,6 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
 import { generateASCIITable } from './asciiTable';
 import { normalize, pretty } from './htmlNormalize';
-import { throwWithCause } from '../../src/utils/errors';
 // http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 const scrollbarWidth = (function calculateScrollbarWidth() {
   const inner = document.createElement('div');
@@ -345,7 +344,7 @@ beforeEach(function() {
       return {
         compare(checkedArray, conditionFunction) {
           if (typeof conditionFunction !== 'function') {
-            throwWithCause('Parameter passed to `toBeListFulfillingCondition` should be a function.');
+            throw new Error('Parameter passed to `toBeListFulfillingCondition` should be a function.');
           }
 
           const isListWithValues = Array.isArray(checkedArray) || checkedArray.length > 0;

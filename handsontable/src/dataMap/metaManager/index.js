@@ -4,7 +4,7 @@ import ColumnMeta from './metaLayers/columnMeta';
 import CellMeta from './metaLayers/cellMeta';
 import localHooks from '../../mixins/localHooks';
 import { mixin } from '../../helpers/object';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 
 /**
  * With the Meta Manager class, it can be possible to manage with meta objects for different layers in

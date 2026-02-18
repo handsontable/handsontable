@@ -1,5 +1,5 @@
 import { toSingleLine } from '../../../../helpers/templateLiteralTag';
-import { throwWithCause } from '../../../../utils/errors';
+import { throwWithCause } from '../../../../helpers/errors';
 
 /**
  * @param {TreeNode} nodeToProcess A tree node to process.

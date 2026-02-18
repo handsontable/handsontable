@@ -1,5 +1,5 @@
 import { hasOwnProperty, isObject, objectEach, inherit, extend } from '../../helpers/object';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 import { getCellType } from '../../cellTypes/registry';
 
 /**

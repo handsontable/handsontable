@@ -12,7 +12,7 @@ import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
 import { CellRange } from '../../3rdparty/walkontable/src';
 import { BasePlugin } from '../base';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { SEPARATOR } from '../contextMenu/predefinedItems';

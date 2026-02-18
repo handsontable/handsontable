@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 import { hasOwnProperty, deepClone } from '../../helpers/object';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';

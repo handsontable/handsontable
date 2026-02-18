@@ -3,7 +3,7 @@ import { IndexMap } from './indexMap';
 import { LinkedPhysicalIndexToValueMap } from './linkedPhysicalIndexToValueMap';
 import { PhysicalIndexToValueMap } from './physicalIndexToValueMap';
 import { TrimmingMap } from './trimmingMap';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 
 export * from './indexesSequence';
 export * from './utils/indexesSequence';

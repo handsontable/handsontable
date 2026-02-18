@@ -1,5 +1,5 @@
 import { mixin, createObjectPropListener } from '../../helpers/object';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 import localHooks from '../../mixins/localHooks';
 
 /**

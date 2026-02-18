@@ -1,5 +1,5 @@
 import { html, toSingleLine } from '../../helpers/templateLiteralTag';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 import {

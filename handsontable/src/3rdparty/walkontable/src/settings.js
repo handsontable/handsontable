@@ -1,6 +1,6 @@
 import { fastInnerText } from '../../../helpers/dom/element';
 import { objectEach } from '../../../helpers/object';
-import { throwWithCause } from '../../../utils/errors';
+import { throwWithCause } from '../../../helpers/errors';
 
 /**
  * @todo Describe options.

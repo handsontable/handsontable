@@ -1,5 +1,5 @@
 import { iconsMap } from '../static/variables/helpers/iconsMap';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 import { flattenCssVariables } from './utils/cssVariables';
 
 /**

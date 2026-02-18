@@ -1,5 +1,5 @@
 import { extend, isObject } from '../../../helpers/object';
-import { throwWithCause } from '../../../utils/errors';
+import { throwWithCause } from '../../../helpers/errors';
 import { arrayEach } from '../../../helpers/array';
 import { normalizeSettings } from './settingsNormalizer';
 

@@ -1,4 +1,4 @@
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 
 /**
  * @param {Core} Handsontable The Handsontable instance.

@@ -1,5 +1,4 @@
 import { waitOnScroll } from './utils';
-import { throwWithCause } from '../../src/utils/errors';
 /**
  * When `true` the test suite will not scroll to the top of the page before each test and
  * the spec will be not cleared which allows calling test helpers (`selectCell()` etc.) from
@@ -112,7 +111,7 @@ export function handsontableMethodFactory(method) {
       if (method === 'destroy') {
         return; // we can forgive this... maybe it was destroyed in the test
       }
-      throwWithCause('Something wrong with the test spec: Handsontable instance not found');
+      throw new Error('Something wrong with the test spec: Handsontable instance not found');
     }
 
     return instance[method](...args);
@@ -625,7 +624,7 @@ export function getColumnHeader(columnIndex = 0) {
 export function isEditorVisible(editableElement) {
   if (editableElement && !(editableElement.hasClass('handsontableInput') ||
       editableElement.hasClass('handsontableEditor'))) {
-    throwWithCause('Editable element of the editor was not found.');
+    throw new Error('Editable element of the editor was not found.');
   }
 
   const keyProxyHolder = (editableElement || keyProxy()).parent();
@@ -944,7 +943,7 @@ export function colWidth($elem, col) {
   }
 
   if (!cell) {
-    throwWithCause(`Cannot find table column of index '${col}'`);
+    throw new Error(`Cannot find table column of index '${col}'`);
   }
 
   return cell.offsetWidth;
@@ -967,7 +966,7 @@ export function rowHeight($elem, row) {
   }
 
   if (!TD) {
-    throwWithCause(`Cannot find table row of index '${row}'`);
+    throw new Error(`Cannot find table row of index '${row}'`);
   }
 
   return Handsontable.dom.outerHeight(TD);

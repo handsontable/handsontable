@@ -1,5 +1,5 @@
 import { DIALOG_CLASS_NAME } from '../constants';
-import { throwWithCause } from '../../../utils/errors';
+import { throwWithCause } from '../../../helpers/errors';
 import { stripTags } from '../../../helpers/string';
 import { html } from '../../../helpers/templateLiteralTag';
 

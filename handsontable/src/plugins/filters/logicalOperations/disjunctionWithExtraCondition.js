@@ -1,5 +1,5 @@
 import * as C from '../../../i18n/constants';
-import { throwWithCause } from '../../../utils/errors';
+import { throwWithCause } from '../../../helpers/errors';
 import { registerOperation } from '../logicalOperationRegisterer';
 
 export const OPERATION_ID = 'disjunctionWithExtraCondition';

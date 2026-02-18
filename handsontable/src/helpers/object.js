@@ -1,6 +1,6 @@
 import { arrayEach } from './array';
 import { isDefined } from './mixed';
-import { throwWithCause } from '../utils/errors';
+import { throwWithCause } from '../helpers/errors';
 
 /**
  * Generate schema for passed object.

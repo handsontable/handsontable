@@ -2,7 +2,7 @@ import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
 import { isWindowsOS, isSafari, isMobileBrowser, isIpadOS } from '../browser';
 import { deprecatedWarn } from '../console';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 
 /**
  * Get the parent of the specified node in the DOM tree.

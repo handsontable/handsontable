@@ -16,7 +16,7 @@ import { getCornerStyle } from '../selection';
 import {
   CLONE_INLINE_START,
 } from './constants';
-import { throwWithCause } from '../../../../utils/errors';
+import { throwWithCause } from '../../../../helpers/errors';
 
 /**
  * @class InlineStartOverlay

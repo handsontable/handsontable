@@ -4,7 +4,6 @@ import './../bootstrap';
 import * as mouseEvents from './mouseEvents';
 import * as keyboardEvents from './keyboardEvents';
 import * as common from './common';
-import { throwWithCause } from '../../src/utils/errors';
 
 const exportToWindow = (helpersHolder) => {
   Object.keys(helpersHolder).forEach((key) => {
@@ -13,7 +12,7 @@ const exportToWindow = (helpersHolder) => {
     }
 
     if (window[key] !== undefined) {
-      throwWithCause(`Cannot export "${key}" helper because this name is already assigned.`);
+      throw new Error(`Cannot export "${key}" helper because this name is already assigned.`);
     }
 
     window[key] = helpersHolder[key];

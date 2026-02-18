@@ -1,5 +1,5 @@
 import { defineGetter, objectEach, isObject, assignObjectDefaults, getProperty } from '../../helpers/object';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 import { arrayEach } from '../../helpers/array';
 import { getPluginsNames, hasPlugin } from '../registry';
 import { hasCellType } from '../../cellTypes/registry';

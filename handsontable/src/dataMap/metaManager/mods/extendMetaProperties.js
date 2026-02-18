@@ -1,5 +1,5 @@
 import { deprecatedWarn } from '../../../helpers/console';
-import { throwWithCause } from '../../../utils/errors';
+import { throwWithCause } from '../../../helpers/errors';
 
 const correctFormatDeprecatedMessageShown = new WeakSet();
 const datePickerConfigDeprecatedMessageShown = new WeakSet();

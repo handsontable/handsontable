@@ -1,4 +1,4 @@
-import { throwWithCause } from '../../../../utils/errors';
+import { throwWithCause } from '../../../../helpers/errors';
 
 /**
  * The NodeModifiers module is responsible for the modification of a tree structure

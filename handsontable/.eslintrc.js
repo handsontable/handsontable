@@ -40,6 +40,7 @@ module.exports = {
         'src/plugins/**/__tests__/helpers/**',
       ],
       rules: {
+        'handsontable/no-native-error-throw': 'off',
         'compat/compat': 'off',
         'no-restricted-syntax': 'off',
         'no-await-in-loop': 'off',
@@ -61,7 +62,6 @@ module.exports = {
     {
       files: ['*.unit.js', '*.spec.js'],
       rules: {
-        'handsontable/no-native-error-throw': 'off',
         'no-undef': 'off',
         'jsdoc/require-description-complete-sentence': 'off',
         'jsdoc/require-jsdoc': 'off',

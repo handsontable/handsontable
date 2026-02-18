@@ -16,7 +16,7 @@ import { getCornerStyle } from '../selection';
 import {
   CLONE_TOP,
 } from './constants';
-import { throwWithCause } from '../../../../utils/errors';
+import { throwWithCause } from '../../../../helpers/errors';
 
 /**
  * @class TopOverlay

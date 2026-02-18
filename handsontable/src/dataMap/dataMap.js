@@ -16,7 +16,7 @@ import { extendArray, to2dArray } from '../helpers/array';
 import { rangeEach, isUnsignedNumber } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
 import { getValueGetterValue } from '../utils/valueAccessors';
-import { throwWithCause } from '../utils/errors';
+import { throwWithCause } from '../helpers/errors';
 
 /*
 This class contains open-source contributions covered by the MIT license.

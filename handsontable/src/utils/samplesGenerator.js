@@ -1,5 +1,5 @@
 import { isObject } from './../helpers/object';
-import { throwWithCause } from './errors';
+import { throwWithCause } from '../helpers/errors';
 import { rangeEach } from './../helpers/number';
 import { stringify } from './../helpers/mixed';
 

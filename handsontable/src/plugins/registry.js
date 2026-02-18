@@ -2,7 +2,7 @@
  * Utility to register plugins and common namespace for keeping the reference to all plugins classes.
  */
 import { toUpperCaseFirst } from '../helpers/string';
-import { throwWithCause } from '../utils/errors';
+import { throwWithCause } from '../helpers/errors';
 import { createPriorityMap } from '../utils/dataStructures/priorityMap';
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { createUniqueSet } from '../utils/dataStructures/uniqueSet';

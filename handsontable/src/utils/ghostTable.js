@@ -1,6 +1,6 @@
 import { addClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
-import { throwWithCause } from './errors';
+import { throwWithCause } from '../helpers/errors';
 
 /**
  * @class GhostTable

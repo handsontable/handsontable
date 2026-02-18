@@ -1,5 +1,5 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
-import { throwWithCause } from '../utils/errors';
+import { throwWithCause } from '../helpers/errors';
 import { createFocusScope } from './scope';
 import { useEventListener } from './eventListener';
 import { FOCUS_SOURCES } from './constants';

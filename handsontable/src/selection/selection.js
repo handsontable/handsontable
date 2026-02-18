@@ -17,7 +17,7 @@ import {
   SELECTION_TYPE_UNRECOGNIZED,
 } from './utils';
 import { toSingleLine } from './../helpers/templateLiteralTag';
-import { throwWithCause } from '../utils/errors';
+import { throwWithCause } from '../helpers/errors';
 import { A11Y_SELECTED } from '../helpers/a11y';
 
 /**

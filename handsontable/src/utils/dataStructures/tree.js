@@ -1,4 +1,4 @@
-import { throwWithCause } from '../errors';
+import { throwWithCause } from '../../helpers/errors';
 
 /**
  * Depth-first pre-order strategy (https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_(NLR)).

@@ -1,6 +1,6 @@
 import { isObject } from '../../../helpers/object';
 import { warn } from '../../../helpers/console';
-import { throwWithCause } from '../../../utils/errors';
+import { throwWithCause } from '../../../helpers/errors';
 
 /**
  * Valid parameters keys.

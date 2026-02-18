@@ -15,7 +15,7 @@ import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 import { ChangesObservable } from './changesObservable/observable';
-import { throwWithCause } from '../utils/errors';
+import { throwWithCause } from '../helpers/errors';
 
 /**
  * A set of deprecated feature names.

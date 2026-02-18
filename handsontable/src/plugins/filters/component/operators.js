@@ -1,5 +1,5 @@
 import { addClass } from '../../../helpers/dom/element';
-import { throwWithCause } from '../../../utils/errors';
+import { throwWithCause } from '../../../helpers/errors';
 import { arrayEach } from '../../../helpers/array';
 import { toSingleLine } from '../../../helpers/templateLiteralTag';
 import { BaseComponent } from './_base';

@@ -3,7 +3,7 @@ import sizing from '../static/variables/sizing';
 import densitySizes from '../static/variables/density';
 import { validateParams, validateDensityType, validateColorScheme } from './utils/validation';
 import { warn } from '../../helpers/console';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 
 /**
  * Config keys that support deep merging when updating theme params.

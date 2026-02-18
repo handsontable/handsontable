@@ -8,6 +8,7 @@
  * @throws {Error} Always throws an Error with `cause: { handsontable: true }`.
  */
 export function throwWithCause(message) {
+  // eslint-disable-next-line handsontable/no-native-error-throw
   throw new Error(message, {
     cause: { handsontable: true }
   });

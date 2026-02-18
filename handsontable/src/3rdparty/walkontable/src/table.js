@@ -25,7 +25,7 @@ import {
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
 import { A11Y_PRESENTATION, A11Y_TABINDEX } from '../../../helpers/a11y';
-import { throwWithCause } from '../../../utils/errors';
+import { throwWithCause } from '../../../helpers/errors';
 
 /**
  * @todo These mixes are never added to the class Table, however their members are used here.

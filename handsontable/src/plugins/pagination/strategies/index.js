@@ -1,5 +1,5 @@
 import { FixedPageSizeStrategy } from './fixedPageSize';
-import { throwWithCause } from '../../../utils/errors';
+import { throwWithCause } from '../../../helpers/errors';
 import { AutoPageSizeStrategy } from './autoPageSize';
 
 const strategies = new Map([

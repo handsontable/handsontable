@@ -1,5 +1,5 @@
 import { isFunction } from '../../helpers/function';
-import { throwWithCause } from '../errors';
+import { throwWithCause } from '../../helpers/errors';
 
 const DEFAULT_ERROR_ITEM_EXISTS = item => `'${item}' value is already declared in a unique set.`;
 

@@ -5,7 +5,7 @@ import { deepClone } from '../helpers/object';
 import { setAttribute } from '../helpers/dom/element';
 import { A11Y_COLCOUNT, A11Y_ROWCOUNT } from '../helpers/a11y';
 import { runSourceDataValidators } from './sourceDataValidator';
-import { throwWithCause } from '../utils/errors';
+import { throwWithCause } from '../helpers/errors';
 /**
  * Loads new data to Handsontable.
  *

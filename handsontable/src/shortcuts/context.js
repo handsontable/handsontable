@@ -4,7 +4,7 @@ import { isUndefined, isDefined } from '../helpers/mixed';
 import { isFunction } from '../helpers/function';
 import { objectEach, isObject } from '../helpers/object';
 import { toSingleLine } from '../helpers/templateLiteralTag';
-import { throwWithCause } from '../utils/errors';
+import { throwWithCause } from '../helpers/errors';
 
 const __kindOf = Symbol('shortcut-context');
 

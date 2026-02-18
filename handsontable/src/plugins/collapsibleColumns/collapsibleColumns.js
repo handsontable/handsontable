@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';

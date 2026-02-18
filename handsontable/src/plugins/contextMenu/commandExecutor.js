@@ -1,5 +1,5 @@
 import { arrayEach } from '../../helpers/array';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 import { hasOwnProperty } from '../../helpers/object';
 
 /**

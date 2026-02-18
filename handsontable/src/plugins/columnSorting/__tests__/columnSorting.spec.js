@@ -1,5 +1,3 @@
-import { throwWithCause } from '../../../utils/errors';
-
 describe('ColumnSorting', () => {
   const id = 'testContainer';
 
@@ -12,7 +10,7 @@ describe('ColumnSorting', () => {
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       if ($spanInsideHeader.length === 0) {
-        throwWithCause('Please check the test scenario. The header doesn\'t exist.');
+        throw new Error('Please check the test scenario. The header doesn\'t exist.');
       }
 
       await simulateClick($spanInsideHeader);

@@ -49,7 +49,7 @@ describe('HandsontableEditor positioning', () => {
     const scrollPositionBase = scrollEdgePositions[spec().loadedTheme];
 
     if (scrollPositionBase === undefined) {
-      throwWithCause('Missing scroll position base for the current theme');
+      throw new Error('Missing scroll position base for the current theme');
     }
 
     // scroll the viewport to the point where the editor may be rendered on the right (there is enough space)

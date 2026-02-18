@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
 import { isObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';

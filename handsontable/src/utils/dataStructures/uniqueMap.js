@@ -1,5 +1,5 @@
 import { isFunction } from '../../helpers/function';
-import { throwWithCause } from '../errors';
+import { throwWithCause } from '../../helpers/errors';
 
 const DEFAULT_ERROR_ID_EXISTS = id => `The id '${id}' is already declared in a map.`;
 

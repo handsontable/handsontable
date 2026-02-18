@@ -14,7 +14,7 @@ import {
 } from './constants';
 import Clone from '../core/clone';
 import { A11Y_PRESENTATION } from '../../../../helpers/a11y';
-import { throwWithCause } from '../../../../utils/errors';
+import { throwWithCause } from '../../../../helpers/errors';
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable

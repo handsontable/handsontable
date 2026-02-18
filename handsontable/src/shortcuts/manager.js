@@ -1,5 +1,5 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
-import { throwWithCause } from '../utils/errors';
+import { throwWithCause } from '../helpers/errors';
 import { stopImmediatePropagation } from '../helpers/dom/event';
 import { createContext, isContextObject } from './context';
 import { useRecorder } from './recorder';

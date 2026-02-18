@@ -1,6 +1,6 @@
 import { isNumeric } from '../../helpers/number';
 import { isFunction } from '../../helpers/function';
-import { throwWithCause } from '../errors';
+import { throwWithCause } from '../../helpers/errors';
 
 export const ASC = 'asc';
 export const DESC = 'desc';

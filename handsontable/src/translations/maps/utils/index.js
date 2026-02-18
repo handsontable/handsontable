@@ -1,5 +1,5 @@
 import { getDecreasedIndexes, getIncreasedIndexes } from './actionsOnIndexes';
-import { throwWithCause } from '../../../utils/errors';
+import { throwWithCause } from '../../../helpers/errors';
 import {
   getListWithInsertedItems as sequenceStrategyInsert,
   getListWithRemovedItems as sequenceStrategyRemove

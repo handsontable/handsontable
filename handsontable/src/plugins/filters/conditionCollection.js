@@ -1,5 +1,5 @@
 import { mixin } from '../../helpers/object';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import localHooks from '../../mixins/localHooks';
 import { getCondition } from './conditionRegisterer';

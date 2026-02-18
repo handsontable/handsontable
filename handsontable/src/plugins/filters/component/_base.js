@@ -1,5 +1,5 @@
 import { arrayEach } from '../../../helpers/array';
-import { throwWithCause } from '../../../utils/errors';
+import { throwWithCause } from '../../../helpers/errors';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../../translations';

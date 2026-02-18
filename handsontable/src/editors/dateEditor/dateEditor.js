@@ -7,7 +7,7 @@ import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 import { isMobileBrowser } from '../../helpers/browser';
 import { deprecatedWarn } from '../../helpers/console';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 
 export const EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';

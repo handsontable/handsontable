@@ -1,5 +1,5 @@
 import { staticRegister } from '../utils/staticRegister';
-import { throwWithCause } from '../utils/errors';
+import { throwWithCause } from '../helpers/errors';
 
 const {
   register,

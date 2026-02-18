@@ -1,5 +1,5 @@
 import { CellRange } from './../3rdparty/walkontable/src';
-import { throwWithCause } from '../utils/errors';
+import { throwWithCause } from '../helpers/errors';
 import { arrayEach, arrayReduce } from './../helpers/array';
 import { isUndefined } from './../helpers/mixed';
 

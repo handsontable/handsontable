@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { throwWithCause } from '../../utils/errors';
+import { throwWithCause } from '../../helpers/errors';
 import { objectEach } from '../../helpers/object';
 import Endpoints from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
