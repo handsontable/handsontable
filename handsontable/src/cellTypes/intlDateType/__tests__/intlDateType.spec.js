@@ -21,7 +21,7 @@ describe('IntlDateType', () => {
     });
 
     expect(warnSpy).toHaveBeenCalledWith('Source data warning (3 cells). ' +
-      'Invalid value for "intlDate" cell type.\n\n' +
+      'Invalid value for "intl-date" cell type.\n\n' +
       'Affected cells:\n' +
       '  - row 0, col 0, value: "0"\n' +
       '  - row 0, col 1, value: "test"\n' +
@@ -41,7 +41,7 @@ describe('IntlDateType', () => {
     await loadData([['2026-01']]);
 
     expect(warnSpy).toHaveBeenCalledWith('Source data warning (1 cell). ' +
-      'Invalid value for "intlDate" cell type.\n\n' +
+      'Invalid value for "intl-date" cell type.\n\n' +
       'Affected cells:\n' +
       '  - row 0, col 0, value: "2026-01"\n\n' +
       'Expected a value compatible with the ISO 8601 date format ("YYYY-MM-DD").'
@@ -59,7 +59,7 @@ describe('IntlDateType', () => {
     await updateData([['2026-01']]);
 
     expect(warnSpy).toHaveBeenCalledWith('Source data warning (1 cell). ' +
-      'Invalid value for "intlDate" cell type.\n\n' +
+      'Invalid value for "intl-date" cell type.\n\n' +
       'Affected cells:\n' +
       '  - row 0, col 0, value: "2026-01"\n\n' +
       'Expected a value compatible with the ISO 8601 date format ("YYYY-MM-DD").'
