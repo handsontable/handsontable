@@ -870,7 +870,7 @@ jobs:
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
 
           echo "Merging ${RELEASE_BRANCH} into develop..."
-#          git checkout develop
+          # git checkout develop  # disabled for testing
           if [ "$DRY_RUN" = "true" ]; then
             echo "[DRY RUN] Would merge ${RELEASE_BRANCH} into develop"
           else
@@ -879,7 +879,7 @@ jobs:
           fi
 
           echo "Merging ${RELEASE_BRANCH} into master..."
-#          git checkout master
+          # git checkout master  # disabled for testing
           if [ "$DRY_RUN" = "true" ]; then
             echo "[DRY RUN] Would merge ${RELEASE_BRANCH} into master"
           else
