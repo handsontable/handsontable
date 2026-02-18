@@ -106,11 +106,21 @@ jobs:
           echo "rc-version=${RC_VERSION}" >> $GITHUB_OUTPUT
           echo "Extracted version: ${VERSION} (RC: ${RC_VERSION})"
 
-      - name: Checkout develop
+# COMMENTED OUT FOR TESTING
+
+#      - name: Checkout develop
+#        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+#        with:
+#          ref: develop
+#          fetch-depth: 0
+
+#-----------REMOVE AFTER TESTING \/ \/ \/
+      - name: Checkout feature/CU-IT-451
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
         with:
-          ref: develop
+          ref: feature/CU-IT-451
           fetch-depth: 0
+#-----------REMOVE AFTER TESTING /\ /\ /\
 
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
         name: Install pnpm
@@ -313,32 +323,34 @@ jobs:
           done
           echo "All packages published successfully."
 
-#      - name: Prepare Slack message
-#        if: always()
-#        env:
-#          JOB_STATUS: ${{ job.status }}
-#          RC_VERSION: ${{ needs.first-rc-build.outputs.rc-version }}
-#          RELEASE_BRANCH: ${{ needs.first-rc-build.outputs.release-branch }}
-#          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-#          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
-#        run: |
-#          if [ "$JOB_STATUS" = "success" ]; then EMOJI=":white_check_mark:"; else EMOJI=":x:"; fi
-#
-#          {
-#            echo "${EMOJI} *First RC publish ${JOB_STATUS}*"
-#            echo "Version: \`${RC_VERSION}\` (tag: \`rc\`)"
-#            echo "Branch: \`${RELEASE_BRANCH}\`"
-#            echo ""
-#            echo "<${RUN_URL}|View run>"
-#          } > /tmp/slack-message.txt
-#
-#          jq -n --rawfile text /tmp/slack-message.txt '{text: $text}' > /tmp/slack-payload.json
-#
+      - name: Prepare Slack message
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+          RC_VERSION: ${{ needs.first-rc-build.outputs.rc-version }}
+          RELEASE_BRANCH: ${{ needs.first-rc-build.outputs.release-branch }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          if [ "$JOB_STATUS" = "success" ]; then EMOJI=":white_check_mark:"; else EMOJI=":x:"; fi
+
+          {
+            echo "${EMOJI} *First RC publish ${JOB_STATUS}*"
+            echo "Version: \`${RC_VERSION}\` (tag: \`rc\`)"
+            echo "Branch: \`${RELEASE_BRANCH}\`"
+            echo ""
+            echo "<${RUN_URL}|View run>"
+          } > /tmp/slack-message.txt
+
+          jq -n --rawfile text /tmp/slack-message.txt '{text: $text}' > /tmp/slack-payload.json
+          echo "Slack payload:"
+          cat /tmp/slack-payload.json
+
 #      - name: Notify Slack
 #        if: always()
 #        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
 #        with:
-#          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+#          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
 #          webhook-type: incoming-webhook
 #          payload-file-path: /tmp/slack-payload.json
 
@@ -549,54 +561,56 @@ jobs:
           done
           echo "All packages published successfully."
 
-#      - name: Prepare Slack message
-#        if: always()
-#        env:
-#          JOB_STATUS: ${{ job.status }}
-#          RC_VERSION: ${{ needs.rc-build.outputs.rc-version }}
-#          BRANCH: ${{ github.ref_name }}
-#          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-#          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
-#        run: |
-#          if [ "$JOB_STATUS" = "success" ]; then EMOJI=":white_check_mark:"; else EMOJI=":x:"; fi
-#
-#          VERSION=$(echo "$RC_VERSION" | sed 's/-rc[0-9]*//')
-#          RC_NUMBER=$(echo "$RC_VERSION" | sed -n 's/.*-rc\([0-9]*\)/\1/p')
-#
-#          {
-#            echo "${EMOJI} *RC publish ${JOB_STATUS}*"
-#            echo "Version: \`${RC_VERSION}\` (tag: \`rc\`)"
-#            echo "Branch: \`${BRANCH}\`"
-#          } > /tmp/slack-message.txt
-#
-#          # Changelog: commits between previous RC tag and current RC tag
-#          git fetch --unshallow 2>/dev/null || true
-#          git fetch --tags --quiet
-#          PREV_TAG="${VERSION}-rc$((RC_NUMBER - 1))"
-#
-#          if git rev-parse "$PREV_TAG" >/dev/null 2>&1 && git rev-parse "$RC_VERSION" >/dev/null 2>&1; then
-#            COMMITS=$(git log "${PREV_TAG}..${RC_VERSION}" --pretty=format:"%H %s" --no-merges)
-#            if [ -n "$COMMITS" ]; then
-#              echo "" >> /tmp/slack-message.txt
-#              echo "*Changes since \`${PREV_TAG}\`:*" >> /tmp/slack-message.txt
-#              echo "$COMMITS" | while IFS= read -r line; do
-#                SHA=$(echo "$line" | cut -d' ' -f1)
-#                MSG=$(echo "$line" | cut -d' ' -f2-)
-#                echo "• <${REPO_URL}/commit/${SHA}|${MSG}>" >> /tmp/slack-message.txt
-#              done
-#            fi
-#          fi
-#
-#          echo "" >> /tmp/slack-message.txt
-#          echo "<${RUN_URL}|View run>" >> /tmp/slack-message.txt
-#
-#          jq -n --rawfile text /tmp/slack-message.txt '{text: $text}' > /tmp/slack-payload.json
-#
+      - name: Prepare Slack message
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+          RC_VERSION: ${{ needs.rc-build.outputs.rc-version }}
+          BRANCH: ${{ github.ref_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          if [ "$JOB_STATUS" = "success" ]; then EMOJI=":white_check_mark:"; else EMOJI=":x:"; fi
+
+          VERSION=$(echo "$RC_VERSION" | sed 's/-rc[0-9]*//')
+          RC_NUMBER=$(echo "$RC_VERSION" | sed -n 's/.*-rc\([0-9]*\)/\1/p')
+
+          {
+            echo "${EMOJI} *RC publish ${JOB_STATUS}*"
+            echo "Version: \`${RC_VERSION}\` (tag: \`rc\`)"
+            echo "Branch: \`${BRANCH}\`"
+          } > /tmp/slack-message.txt
+
+          # Changelog: commits between previous RC tag and current RC tag
+          git fetch --unshallow 2>/dev/null || true
+          git fetch --tags --quiet
+          PREV_TAG="${VERSION}-rc$((RC_NUMBER - 1))"
+
+          if git rev-parse "$PREV_TAG" >/dev/null 2>&1 && git rev-parse "$RC_VERSION" >/dev/null 2>&1; then
+            COMMITS=$(git log "${PREV_TAG}..${RC_VERSION}" --pretty=format:"%H %s" --no-merges)
+            if [ -n "$COMMITS" ]; then
+              echo "" >> /tmp/slack-message.txt
+              echo "*Changes since \`${PREV_TAG}\`:*" >> /tmp/slack-message.txt
+              echo "$COMMITS" | while IFS= read -r line; do
+                SHA=$(echo "$line" | cut -d' ' -f1)
+                MSG=$(echo "$line" | cut -d' ' -f2-)
+                echo "• <${REPO_URL}/commit/${SHA}|${MSG}>" >> /tmp/slack-message.txt
+              done
+            fi
+          fi
+
+          echo "" >> /tmp/slack-message.txt
+          echo "<${RUN_URL}|View run>" >> /tmp/slack-message.txt
+
+          jq -n --rawfile text /tmp/slack-message.txt '{text: $text}' > /tmp/slack-payload.json
+          echo "Slack payload:"
+          cat /tmp/slack-payload.json
+
 #      - name: Notify Slack
 #        if: always()
 #        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
 #        with:
-#          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+#          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
 #          webhook-type: incoming-webhook
 #          payload-file-path: /tmp/slack-payload.json
 
@@ -686,12 +700,6 @@ jobs:
 
       - name: Build all packages
         run: npm run all build -- --e examples
-
-      - name: Install next package for examples
-        run: npm run examples:install next
-
-      - name: Build examples
-        run: npm run in examples build
 
       - name: Verify bundles
         run: node ./scripts/verify-bundles.mjs
@@ -862,28 +870,28 @@ jobs:
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
 
           echo "Merging ${RELEASE_BRANCH} into develop..."
-          git checkout develop
+#          git checkout develop
           if [ "$DRY_RUN" = "true" ]; then
             echo "[DRY RUN] Would merge ${RELEASE_BRANCH} into develop"
           else
-            git merge "origin/${RELEASE_BRANCH}" --no-edit
-            git push origin develop
+            echo "[MOCK] git merge origin/${RELEASE_BRANCH} --no-edit"
+            echo "[MOCK] git push origin develop"
           fi
 
           echo "Merging ${RELEASE_BRANCH} into master..."
-          git checkout master
+#          git checkout master
           if [ "$DRY_RUN" = "true" ]; then
             echo "[DRY RUN] Would merge ${RELEASE_BRANCH} into master"
           else
-            git merge "origin/${RELEASE_BRANCH}" --no-edit
-            git push origin master
+            echo "[MOCK] git merge origin/${RELEASE_BRANCH} --no-edit"
+            echo "[MOCK] git push origin master"
           fi
 
           echo "Deleting release branch ${RELEASE_BRANCH}..."
           if [ "$DRY_RUN" = "true" ]; then
             echo "[DRY RUN] Would delete remote branch ${RELEASE_BRANCH}"
           else
-            git push origin --delete "${RELEASE_BRANCH}"
+            echo "[MOCK] git push origin --delete ${RELEASE_BRANCH}"
           fi
 
       - name: Create or update docs production branch
@@ -962,33 +970,32 @@ jobs:
             git push origin "$DOCS_BRANCH"
           fi
 
-          # Return to develop
-          git checkout develop
+      - name: Prepare Slack message
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+          VERSION: ${{ needs.stable-build.outputs.version }}
+          RELEASE_BRANCH: ${{ needs.stable-build.outputs.release-branch }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$JOB_STATUS" = "success" ]; then EMOJI=":white_check_mark:"; else EMOJI=":x:"; fi
 
-#      - name: Prepare Slack message
-#        if: always()
-#        env:
-#          JOB_STATUS: ${{ job.status }}
-#          VERSION: ${{ needs.stable-build.outputs.version }}
-#          RELEASE_BRANCH: ${{ needs.stable-build.outputs.release-branch }}
-#          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-#        run: |
-#          if [ "$JOB_STATUS" = "success" ]; then EMOJI=":white_check_mark:"; else EMOJI=":x:"; fi
-#
-#          {
-#            echo "${EMOJI} *Stable publish ${JOB_STATUS}*"
-#            echo "Version: \`${VERSION}\` (tag: \`latest\`)"
-#            echo "Branch: \`${RELEASE_BRANCH}\`"
-#            echo ""
-#            echo "<${RUN_URL}|View run>"
-#          } > /tmp/slack-message.txt
-#
-#          jq -n --rawfile text /tmp/slack-message.txt '{text: $text}' > /tmp/slack-payload.json
-#
+          {
+            echo "${EMOJI} *Stable publish ${JOB_STATUS}*"
+            echo "Version: \`${VERSION}\` (tag: \`latest\`)"
+            echo "Branch: \`${RELEASE_BRANCH}\`"
+            echo ""
+            echo "<${RUN_URL}|View run>"
+          } > /tmp/slack-message.txt
+
+          jq -n --rawfile text /tmp/slack-message.txt '{text: $text}' > /tmp/slack-payload.json
+          echo "Slack payload:"
+          cat /tmp/slack-payload.json
+
 #      - name: Notify Slack
 #        if: always()
 #        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
 #        with:
-#          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+#          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
 #          webhook-type: incoming-webhook
 #          payload-file-path: /tmp/slack-payload.json
