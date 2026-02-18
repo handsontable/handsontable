@@ -5,6 +5,7 @@ import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
+import { getValueGetterValue } from '../../utils/valueAccessors';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
@@ -756,9 +757,12 @@ export class Filters extends BasePlugin {
     const data = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualColumn), (value, rowIndex) => {
+      const cellMeta = this.hot.getCellMeta(rowIndex, visualColumn);
       const { row, col, visualCol, visualRow, type, instance, dateFormat, locale } =
-        this.hot.getCellMeta(rowIndex, visualColumn);
-      const dataValue = this.hot.getDataAtCell(this.hot.toVisualRow(rowIndex), visualColumn) ?? value;
+        cellMeta;
+      const valueGetterValue = getValueGetterValue(value, cellMeta);
+
+      const dataValue = this.hot.getDataAtCell(this.hot.toVisualRow(rowIndex), visualColumn) ?? valueGetterValue;
 
       data.push({
         meta: { row, col, visualCol, visualRow, type, instance, dateFormat, locale },
