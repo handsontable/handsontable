@@ -36,15 +36,6 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
     const _document = document; // eslint-disable-line no-restricted-globals
     let script = null;
 
-    // As the documentation uses multiple versions of Vue (which reuse the same global variable - `Vue`), every
-    // time the Vue dependency is loaded, the previously used version should be removed.
-    if (globalVarSharedDependency) {
-      script = _document.getElementById(`script-${getId(globalVarSharedDependency)}`);
-
-    } else {
-      script = _document.getElementById(`script-${id}`);
-    }
-
     // clear outdated version
     if (script && (script.getAttribute(ATTR_VERSION) !== version || (globalVarSharedDependency ?? false))) {
       dependentVars.forEach(x => delete x.split('.').reduce((p, c) => p[c] || {}, {}));

@@ -45,20 +45,17 @@ For significant deprecations (especially those affecting many users), we will pr
 
 For more details about our versioning policy please visit [Versioning policy](@/guides/upgrade-and-migration/versioning-policy/versioning-policy.md)
 
-## List of deprecations 
+## List of deprecations
 
-Below is a list of current deprecations that are planned to be removed in next major version. 
+Below is a list of current deprecations that are planned to be removed in the next major version.
 
-|                              | Reference                                                                                                    | Migration guide |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------ | --------------- |
-| React class-based wrapper    | <span style="padding-right: 20px;">[npm package](https://www.npmjs.com/package/@handsontable/react)</span>   | [Migrate to New React Wrapper](@/guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0.md#migration-steps) |
-| Angular legacy wrapper       | <span style="padding-right: 20px;">[npm package](https://www.npmjs.com/package/@handsontable/angular)</span> | [Switch to new Angular wrapper](@/guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0.md#_4-switched-to-the-new-angular-wrapper-for-angular-16) |
-| Vue2 wrapper                 | <span style="padding-right: 20px;">[npm package](https://www.npmjs.com/package/@handsontable/vue)</span>     | [Move to Vue 3](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md) |
-| Legacy style                 | [Documentation](@/guides/styling/legacy-style/legacy-style.md)                                               | [Migrate to Classic Theme](@/guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1.md#_1-migrate-from-legacy-styles-to-classic-theme)  |
-| `persistentState` plugin     | [API Reference](@/api/persistentState.md#persistentstate-2)                                                  | Please update your settings to ensure compatibility with future versions. |
-| `hot.undo` method            | [API Reference](@/api/core.md#undo)                                                                          | Replace with UndoRedo plugin [undo](@/api/undoRedo.md#undo) method. |
-| `hot.redo` method            | [API Reference](@/api/core.md#redo)                                                                          | Replace with UndoRedo plugin [redo](@/api/undoRedo.md#redo) method. |
-| `hot.isUndoAvailable` method | [API Reference](@/api/core.md#isundoavailable)                                                               | Replace with UndoRedo plugin [isUndoAvailable](@/api/undoRedo.md#isundoavailable) method. |
-| `hot.isRedoAvailable` method | [API Reference](@/api/core.md#isredoavailable)                                                               | Replace with UndoRedo plugin [isRedoAvailable](@/api/undoRedo.md#isredoavailable) method. |
-| `hot.clearUndo` method       | [API Reference](@/api/core.md#clearundo)                                                                     | Replace with UndoRedo plugin [clear](@/api/undoRedo.md#clear) method. |
+| Deprecation | Description | Migration guide |
+| ----------- | ----------- | --------------- |
+| **numbro.js** | Handles numeric data. Copy to the project, or replace with [Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat). Needed for Excel compat. | [Migrate from 16.2 to 17.0 → Numbro](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_3-migrate-from-numbro-format-to-intl-numberformat) |
+| **Pikaday** | Displays a date picker. Switch to native date input. Has its own task. | [Pikaday recipe](@/recipes/cell-types/pikaday/pikaday.md) |
+| **moment.js** | Parses, validates and displays dates. Needed for Excel compat. | [Migrate from 16.2 to 17.0 → Date/Time](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_4-migrate-from-moment-js-format-to-intl-datetimeformat) |
+| **DOMPurify** | An XSS sanitizer for HTML. Use the `sanitizer` option to keep a sanitizer, or convert content to plain text. | [Migrate from 16.2 to 17.0 → DOMPurify](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_5-migrate-from-built-in-dompurify-to-the-sanitizer-option) |
+| **core-js** | Polyfills for ECMAScript 5, ECMAScript 6, promises, symbols, collections. | [Migrate from 16.2 to 17.0 → core-js](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_6-core-js-dependency-removed) |
+
+
 

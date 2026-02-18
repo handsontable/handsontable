@@ -5210,11 +5210,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {string}
    */
   this.getPluginName = function(plugin) {
-    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
-    if (plugin === this.undoRedo) {
-      return this.undoRedo.constructor.PLUGIN_KEY;
-    }
-
     return pluginsRegistry.getId(plugin);
   };
 

@@ -81,7 +81,6 @@ Handsontable.plugins.MultipleSelectionHandles;
 Handsontable.plugins.NestedHeaders;
 Handsontable.plugins.NestedRows;
 Handsontable.plugins.Pagination;
-Handsontable.plugins.PersistentState;
 Handsontable.plugins.Search;
 Handsontable.plugins.TouchScroll;
 Handsontable.plugins.TrimRows;

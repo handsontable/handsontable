@@ -1,4 +1,4 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules

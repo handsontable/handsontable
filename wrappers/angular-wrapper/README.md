@@ -60,8 +60,7 @@
 ## 🪄 Installation
 Below is the installation guide for the Angular wrapper. If you're using a different framework, please refer to its dedicated wrapper for specific installation instructions.
 
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12"><a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> React functional component</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"> React class component</a>
+- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12"><a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> React</a>
 - <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="12" height="12" alt="Vue"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"> Vue</a>
 
 ---

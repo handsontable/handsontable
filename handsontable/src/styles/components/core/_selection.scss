@@ -6,14 +6,26 @@
   .handsontable {
     // Fill
     @for $i from 0 through 7 {
-      td.area#{if($i == 0, "", "-#{$i}")} {
-        @include mixins.area-styles;
+      @if $i == 0 {
+        td.area {
+          @include mixins.area-styles;
+        }
+      } @else {
+        td.area-#{$i} {
+          @include mixins.area-styles;
+        }
       }
     }
 
     @for $i from 0 through 7 {
-      td.area#{if($i == 0, "", "-#{$i}")}:before {
-        opacity: mixins.get-opacity($i);
+      @if $i == 0 {
+        td.area::before {
+          opacity: mixins.get-opacity($i);
+        }
+      } @else {
+        td.area-#{$i}::before {
+          opacity: mixins.get-opacity($i);
+        }
       }
     }
 

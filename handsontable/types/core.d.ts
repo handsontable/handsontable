@@ -33,7 +33,6 @@ export default class Core {
   batchExecution<R>(wrappedOperations: () => R, forceFlushChanges: boolean): R;
   batchRender<R>(wrappedOperations: () => R): R;
   clear(): void;
-  clearUndo(): void;
   colToProp(column: number): string | number;
   columnIndexMapper: IndexMapper;
   constructor(element: Element, options: GridSettings);
@@ -133,16 +132,13 @@ export default class Core {
   isExecutionSuspended(): boolean;
   isListening(): boolean;
   isLtr(): boolean;
-  isRedoAvailable(): boolean;
   isRenderSuspended(): boolean;
   isRtl(): boolean;
-  isUndoAvailable(): boolean;
   listen(): void;
   loadData(data: CellValue[][] | RowObject[], source?: string): void;
   populateFromArray(row: number, column: number, input: CellValue[][], endRow?: number,
     endColumn?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite'): void;
   propToCol<T extends number | string>(prop: string | number): T;
-  redo(): void;
   refreshDimensions(): void;
   removeCellMeta(row: number, column: number, key: (keyof CellMeta) | string): void;
   removeHook<K extends keyof Events>(key: K, callback: Events[K]): void;
@@ -182,7 +178,6 @@ export default class Core {
   toTableElement(): HTMLTableElement;
   toVisualColumn(column: number): number;
   toVisualRow(row: number): number;
-  undo(): void;
   unlisten(): void;
   updateData(data: CellValue[][] | RowObject[], source?: string): void;
   updateSettings(settings: GridSettings, init?: boolean): void;

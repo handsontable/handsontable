@@ -410,19 +410,6 @@ export default {
         metaTitle: 'Pagination - Angular Data Grid | Handsontable',
       },
     },
-    'PersistentState.md': {
-      id: 'eh8nz1kw',
-      metaTitle: 'PersistentState - JavaScript Data Grid | Handsontable',
-      description: 'Use the PersistentState plugin with its API options and methods to keep the state of column sorting, column positions, and column sizes between page reloads.',
-      react: {
-        id: '8he28jcj',
-        metaTitle: 'PersistentState - React Data Grid | Handsontable',
-      },
-      angular: {
-        id: 'e9x0g8ab',
-        metaTitle: 'PersistentState - Angular Data Grid | Handsontable',
-      },
-    },
     'Search.md': {
       id: '4r6t4j1z',
       metaTitle: 'Search - JavaScript Data Grid | Handsontable',

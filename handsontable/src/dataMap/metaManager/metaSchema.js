@@ -4319,34 +4319,6 @@ export default () => {
     pagination: undefined,
 
     /**
-     * @description
-     * The `persistentState` option configures the [`PersistentState`](@/api/persistentState.md) plugin.
-     *
-     * You can set the `persistentState` to one of the following:
-     *
-     * | Setting           | Description                                                      |
-     * | ----------------- | ---------------------------------------------------------------- |
-     * | `false` (default) | Disable the [`PersistentState`](@/api/persistentState.md) plugin |
-     * | `true`            | Enable the [`PersistentState`](@/api/persistentState.md) plugin  |
-     *
-     * Read more:
-     * - [Saving data: Saving data locally](@/guides/getting-started/saving-data/saving-data.md#save-data-locally)
-     * - [Plugins: `PersistentState`](@/api/persistentState.md)
-     *
-     * @memberof Options#
-     * @type {boolean}
-     * @default false
-     * @category PersistentState
-     *
-     * @example
-     * ```js
-     * // enable the `PersistentState` plugin
-     * persistentState: true,
-     * ```
-     */
-    persistentState: undefined,
-
-    /**
      * The `placeholder` option lets you display placeholder text in every empty cell.
      *
      * You can set the `placeholder` option to one of the following:

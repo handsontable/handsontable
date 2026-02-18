@@ -50,7 +50,6 @@ describe('Public API', () => {
       expect(Handsontable.plugins.MultipleSelectionHandles).toBeFunction();
       expect(Handsontable.plugins.NestedHeaders).toBeFunction();
       expect(Handsontable.plugins.NestedRows).toBeFunction();
-      expect(Handsontable.plugins.PersistentState).toBeFunction();
       expect(Handsontable.plugins.Search).toBeFunction();
       expect(Handsontable.plugins.TouchScroll).toBeFunction();
       expect(Handsontable.plugins.TrimRows).toBeFunction();

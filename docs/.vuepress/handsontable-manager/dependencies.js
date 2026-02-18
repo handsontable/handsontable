@@ -20,10 +20,6 @@ const getPackageUrls = (packageName, version, fileSelection) => {
       subDir: 'dist/',
       cssSubDir: 'styles/',
     },
-    '@handsontable/react': {
-      js: 'react-handsontable.min.js',
-      subDir: 'dist/',
-    },
     '@handsontable/react-wrapper': {
       js: 'react-handsontable.min.js',
       subDir: 'dist/',
@@ -31,10 +27,6 @@ const getPackageUrls = (packageName, version, fileSelection) => {
     '@handsontable/angular-wrapper': {
       js: 'handsontable-angular-wrapper.mjs',
       subDir: 'fesm2022/'
-    },
-    '@handsontable/vue': {
-      js: 'vue-handsontable.min.js',
-      subDir: 'dist/',
     },
     '@handsontable/vue3': {
       js: 'vue-handsontable.min.js',
@@ -147,15 +139,9 @@ const buildDependencyGetter = (version) => {
       'angular-cdk-observers': [getPrebuiltUmdUrl('angular-cdk-observers.umd.min.js'), [/* todo */]],
       'angular-cdk-coercion': [getPrebuiltUmdUrl('angular-cdk-coercion.umd.min.js'), [/* todo */]],
       'hot-angular': [getPrebuiltUmdUrl('handsontable-angular-wrapper.umd.min.js')],
-      'hot-vue': [getPackageUrls('@handsontable/vue', version, 'js'), [/* todo */], null, 'hot-vue3'],
-      'hot-vue3': [getPackageUrls('@handsontable/vue3', version, 'js'), [/* todo */], null, 'hot-vue'],
-      vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */], null, 'vue3'],
-      vuex: ['https://cdn.jsdelivr.net/npm/vuex@3/dist/vuex.min.js', [/* todo */], null, 'vuex4'],
-      'vue-color': ['https://cdn.jsdelivr.net/npm/vue-color@2/dist/vue-color.min.js', [/* todo */]],
-      'vue-class-component': ['https://cdn.jsdelivr.net/npm/vue-class-component@7.1.0/dist/vue-class-component.min.js', [/* todo */]],
-      'vue-star-rating': ['https://cdn.jsdelivr.net/npm/vue-star-rating@1/dist/VueStarRating.umd.min.js', [/* todo */]],
-      vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue'],
-      vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
+      'hot-vue3': [getPackageUrls('@handsontable/vue3', version, 'js'), [/* todo */]],
+      vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue3'],
+      vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex4'],
       languages: [getPackageUrls('handsontable', version, 'dist/languages/all.js'), [/* todo */]],
       'theme-main': [getPackageUrls('handsontable', version, 'dist/themes/main.min.js'), ['mainTheme']],
       'theme-horizon': [getPackageUrls('handsontable', version, 'dist/themes/horizon.min.js'), ['horizonTheme']],
@@ -188,11 +174,6 @@ const presetMap = {
   angular: ['hot', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'angular-cdk-a11y', 'angular-cdk-observers', 'angular-cdk-coercion', 'angular-material-checkbox', 'date-fns', 'fixer'],
   'angular-languages': ['hot', 'languages', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
   'angular-numbro': ['hot', 'numbro', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
-  vue: ['hot', 'vue', 'hot-vue', 'fixer'],
-  'vue-numbro': ['hot', 'numbro', 'vue', 'hot-vue', 'fixer'],
-  'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer'],
-  'vue-vuex': ['hot', 'vue', 'vuex', 'hot-vue', 'fixer'],
-  'vue-advanced': ['hot', 'vue', 'vuex', 'hot-vue', 'vue-color', 'vue-class-component', 'vue-star-rating', 'fixer'],
   vue3: ['hot', 'vue3', 'hot-vue3', 'fixer'],
   'vue3-numbro': ['hot', 'numbro', 'vue3', 'hot-vue3', 'fixer'],
   'vue3-languages': ['hot', 'languages', 'vue3', 'hot-vue3', 'fixer'],

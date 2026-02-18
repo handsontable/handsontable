@@ -249,10 +249,6 @@ import {
   Settings as PaginationSettings,
 } from './plugins/pagination';
 import {
-  PersistentState as _PersistentState,
-  Settings as PersistentStateSettings,
-} from './plugins/persistentState';
-import {
   Search as _Search,
   Settings as SearchSettings,
   SearchCallback,
@@ -473,7 +469,6 @@ declare namespace Handsontable {
     export class NestedHeaders extends _NestedHeaders {}
     export class NestedRows extends _NestedRows {}
     export class Pagination extends _Pagination {}
-    export class PersistentState extends _PersistentState {}
     export class Search extends _Search {}
     export class TouchScroll extends _TouchScroll {}
     export class TrimRows extends _TrimRows {}
@@ -614,10 +609,6 @@ declare namespace Handsontable {
 
     export namespace Pagination {
       export { PaginationSettings as Settings };
-    }
-
-    export namespace PersistentState {
-      export { PersistentStateSettings as Settings };
     }
 
     export namespace Search {

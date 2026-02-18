@@ -622,7 +622,7 @@ If you only need to format the displayed value (e.g., add units, format dates, o
 
 - [Custom renderer in React](@/react/guides/cell-functions/cell-renderer/cell-renderer.md)
 - [Custom renderer in Angular](@/angular/guides/cell-functions/cell-renderer/cell-renderer.md)
-- [Custom renderer in Vue 2](@/guides/integrate-with-vue/vue-custom-renderer-example/vue-custom-renderer-example.md)
+- [Custom renderer in Vue](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md)
 - [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md)
 
 </div>

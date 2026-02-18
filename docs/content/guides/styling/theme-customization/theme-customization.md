@@ -80,7 +80,7 @@ const hot = new Handsontable(container, {
 
 ```jsx
 import Handsontable from 'handsontable';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 
 import { mainTheme, registerTheme } from 'handsontable/themes';
 
