@@ -210,7 +210,7 @@ export default {
   radioCheckedDisabledBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
   radioCheckedDisabledIconColor: ['colors.palette.300', 'colors.palette.600'],
   moveBacklightColor: ['colors.palette.800', 'colors.palette.300'],
-  moveBacklightOpacity: '25%',
+  moveBacklightOpacity: '16%',
   moveIndicatorColor: ['colors.palette.400', 'colors.palette.500'],
   resizeIndicatorColor: ['colors.palette.400', 'colors.palette.500'],
   hiddenIndicatorColor: ['colors.palette.400', 'colors.palette.500'],
