@@ -13,6 +13,7 @@ module.exports = {
   },
   rules: {
     'compat/compat': 'error',
+    'handsontable/no-native-error-throw': 'error',
     'handsontable/restricted-module-imports': [
       'error',
       '**/cellTypes',
@@ -60,6 +61,7 @@ module.exports = {
     {
       files: ['*.unit.js', '*.spec.js'],
       rules: {
+        'handsontable/no-native-error-throw': 'off',
         'no-undef': 'off',
         'jsdoc/require-description-complete-sentence': 'off',
         'jsdoc/require-jsdoc': 'off',
