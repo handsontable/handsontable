@@ -1,7 +1,5 @@
 import Handsontable from "handsontable/base";
 import { registerAllModules } from "handsontable/registry";
-import "handsontable/styles/handsontable.css";
-import "handsontable/styles/ht-theme-main.css";
 import { CellProperties } from "handsontable/settings";
 import { BaseEditor } from "handsontable/editors/baseEditor";
 import { editorFactory } from "handsontable/editors";
@@ -426,7 +424,6 @@ registerCellType('feedback', cellDefinition as BaseEditor);
 
 // Define configuration options for the Handsontable
 const hotOptions: Handsontable.GridSettings = {
-  themeName: "ht-theme-main",
   data,
   colHeaders: ["ID", "Item Name", "Item feedback"],
   autoRowSize: true,

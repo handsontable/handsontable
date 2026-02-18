@@ -380,8 +380,6 @@ To use pagination, you need only the following modules:
 // import the base module
 import Handsontable from 'handsontable/base';
 
-// import Handsontable's CSS
-
 // import the Pagination plugin
 import { registerPlugin, Pagination } from 'handsontable/plugins';
 

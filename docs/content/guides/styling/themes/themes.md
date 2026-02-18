@@ -229,39 +229,46 @@ There are two ways to apply a theme. The recommended approach is to use the Them
 
 The Theme API allows you to import and register themes programmatically. This approach provides runtime access to theme customization features.
 
-#### Step 1. Import the base styles
-
-```js
-```
-
-#### Step 2. Import and register the theme
+#### Import and use theme
 
 ::: only-for javascript
 
 ```js
 import Handsontable from 'handsontable';
-import { mainTheme, registerTheme } from 'handsontable/themes';
-
-const theme = registerTheme(mainTheme);
+import { classicTheme } from 'handsontable/themes';
 
 const hot = new Handsontable(container, {
-  theme: theme,
+  theme: classicTheme,
   // ... other options
 });
 ```
 
-You can also configure the theme at runtime using the builder pattern:
+You can configure the theme before creating the instance using the builder pattern:
 
 ```js
 import { mainTheme, registerTheme } from 'handsontable/themes';
 
 const theme = registerTheme(mainTheme)
-  .setColorScheme('auto')  // 'light', 'dark', or 'auto'
+  .setColorScheme('auto')   // 'light', 'dark', or 'auto'
   .setDensityType('comfortable');  // 'default', 'compact', or 'comfortable'
 
 const hot = new Handsontable(container, {
-  theme: theme,
+  theme,
 });
+```
+
+Or configure it after init by retrieving the registered theme with `getTheme()` (the theme is registered when you pass it to the config):
+
+```js
+import { mainTheme, getTheme } from 'handsontable/themes';
+
+const hot = new Handsontable(container, {
+  theme: mainTheme,
+});
+
+getTheme('main')
+  ?.setColorScheme('auto')
+  ?.setDensityType('comfortable');
 ```
 
 #### UMD build (script tags)

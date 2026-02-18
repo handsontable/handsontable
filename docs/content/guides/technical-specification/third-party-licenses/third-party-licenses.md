@@ -40,11 +40,6 @@ Learn about the licensing terms of Handsontable's software dependencies.
     License: Open source (MIT)<br>
     [http://momentjs.com](http://momentjs.com)
 
-- **core-js** (polyfills for ECMAScript 5, ECMAScript 6, promises, symbols, collections)<br>
-    Author: Denis Pushkarev<br>
-    License: Open source (MIT)<br>
-    [https://github.com/zloirock/core-js](https://github.com/zloirock/core-js)
-
 - **javascript-algorithms** (implementation of linked list and merge sort)<br>
     Author: Minko Gechev<br>
     License: Open source (MIT)<br>
@@ -72,11 +67,6 @@ The dependencies below apply only if you use the [`Formulas`](@/api/formulas.md)
     Author: SAP SE or an SAP affiliate company<br>
     License: Apache v2.0<br>
     [https://github.com/SAP/chevrotain](https://github.com/SAP/chevrotain)
-
-- **core-js**<br>
-    Author: Denis Pushkarev<br>
-    License: Open source (MIT)<br>
-    [https://github.com/zloirock/core-js](https://github.com/zloirock/core-js)
 
 - **jStat**<br>
     Author: jStat<br>

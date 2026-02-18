@@ -1389,6 +1389,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
 
       themeObject = getTheme('main');
+    } else if (typeof theme.getThemeConfig !== 'function') {
+      themeObject = registerTheme(theme);
     } else {
       themeObject = theme;
     }
@@ -1671,7 +1673,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
       // To provide consistent behavior, validation should be always asynchronous
-      instance._registerImmediate(() => {
+      instance._registerMicrotask(() => {
         validator.call(cellProperties, value, (valid) => {
           if (!instance) {
             return;
@@ -1688,7 +1690,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     } else {
       // resolve callback even if validator function was not found
-      instance._registerImmediate(() => {
+      instance._registerMicrotask(() => {
         cellProperties.valid = true;
         done(cellProperties.valid, false);
       });
@@ -4936,7 +4938,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.destroy = function() {
     instance._clearTimeouts();
-    instance._clearImmediates();
+    instance._clearMicrotasks();
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();
@@ -5214,11 +5216,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {string}
    */
   this.getPluginName = function(plugin) {
-    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
-    if (plugin === this.undoRedo) {
-      return this.undoRedo.constructor.PLUGIN_KEY;
-    }
-
     return pluginsRegistry.getId(plugin);
   };
 
@@ -5475,41 +5472,35 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     });
   };
 
-  this.immediates = [];
+  this.microtasks = [];
 
   /**
-   * Execute function execution to the next event loop cycle. Purpose of this method is to clear all known timeouts when `destroy` method is called.
-   *
-   * @param {Function} callback Function to be delayed in execution.
-   * @private
-   */
-  this._registerImmediate = function(callback) {
-    this.immediates.push(setImmediate(callback));
-  };
-
-  /**
-   * Clears all known timeouts.
-   *
-   * @private
-   */
-  this._clearImmediates = function() {
-    arrayEach(this.immediates, (handler) => {
-      clearImmediate(handler);
-    });
-  };
-
-  /**
-   * Registers a microtask callback.
+   * Execute function execution to the next event loop cycle.
    *
    * @param {Function} callback Function to be delayed in execution.
    * @private
    */
   this._registerMicrotask = function(callback) {
+    const entry = { cancelled: false };
+
+    this.microtasks.push(entry);
     this.rootWindow.queueMicrotask(() => {
-      if (!this.isDestroyed) {
+      if (!entry.cancelled) {
         callback();
       }
     });
+  };
+
+  /**
+   * Clears all known microtasks (prevents pending callbacks from running).
+   *
+   * @private
+   */
+  this._clearMicrotasks = function() {
+    arrayEach(this.microtasks, (entry) => {
+      entry.cancelled = true;
+    });
+    this.microtasks.length = 0;
   };
 
   /**

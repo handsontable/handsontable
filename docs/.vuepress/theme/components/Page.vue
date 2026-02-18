@@ -16,7 +16,8 @@
   header {
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    gap: 16px;
     justify-content: space-between;
     align-items: flex-start;
     align-content: flex-start;

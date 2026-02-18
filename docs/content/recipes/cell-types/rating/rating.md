@@ -63,8 +63,6 @@ None! This uses only native HTML and JavaScript features.
 ```typescript
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 registerAllModules();
 ```
@@ -350,7 +348,6 @@ const cellDefinition = {
 const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
-  themeName: 'ht-theme-main',
   data: [
     { id: 1, itemName: 'Lunar Core', stars: 4 },
     { id: 2, itemName: 'Zero Thrusters', stars: 2 },

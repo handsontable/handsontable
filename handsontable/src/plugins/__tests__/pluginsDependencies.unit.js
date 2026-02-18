@@ -21,7 +21,7 @@ describe('plugins dependencies', () => {
     let hot;
 
     expect(() => {
-      hot = new Handsontable(document.createElement('div'), { theme: 'ht-theme-classic' });
+      hot = new Handsontable(document.createElement('div'));
     }).toThrowError(`The CustomPlugin plugin requires the following modules:
  - NonExistingPlugin (plugin)
  - NonExistingCellType (cell-type)
@@ -47,7 +47,7 @@ You have to import and register them manually.`);
     let hot;
 
     expect(() => {
-      hot = new Handsontable(document.createElement('div'), { theme: 'ht-theme-classic' });
+      hot = new Handsontable(document.createElement('div'));
     }).toThrowError('Unknown plugin dependency type "unknown-key" was found.');
     expect(hot).toBeUndefined();
   });

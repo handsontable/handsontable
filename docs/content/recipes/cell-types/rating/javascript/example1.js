@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
 
@@ -425,7 +423,6 @@ const cellDefinition = {
 
 // Define configuration options for the Handsontable
 const hotOptions = {
-  themeName: 'ht-theme-main',
   data,
   colHeaders: ['ID', 'Item Name', 'Restock Date'],
   autoRowSize: true,

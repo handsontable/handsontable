@@ -59,12 +59,10 @@ The Theme API allows you to register and configure themes programmatically with 
 
 ```js
 import Handsontable from 'handsontable';
-import { classicTheme, registerTheme } from 'handsontable/themes';
-
-const theme = registerTheme(classicTheme);
+import { classicTheme } from 'handsontable/themes';
 
 const hot = new Handsontable(container, {
-  theme: theme,
+  theme: classicTheme,
   // ... other options
 });
 ```
@@ -75,14 +73,12 @@ const hot = new Handsontable(container, {
 
 ```jsx
 import { HotTable } from '@handsontable/react-wrapper';
-import { classicTheme, registerTheme } from 'handsontable/themes';
-
-const theme = registerTheme(classicTheme);
+import { classicTheme } from 'handsontable/themes';
 
 function App() {
   return (
     <HotTable
-      theme={theme}
+      theme={classicTheme}
       // ... other options
     />
   );
@@ -94,16 +90,14 @@ function App() {
 ::: only-for angular
 
 ```ts
-import { classicTheme, registerTheme } from 'handsontable/themes';
-
-const theme = registerTheme(classicTheme);
+import { classicTheme } from 'handsontable/themes';
 
 @Component({
   template: `<hot-table [settings]="hotSettings"></hot-table>`
 })
 export class AppComponent {
   hotSettings = {
-    theme: theme,
+    theme: classicTheme,
     // ... other options
   };
 }
@@ -913,6 +907,194 @@ If you use custom cell types that rely on Moment.js for formatting or parsing (e
 - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
 - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
 
+## 5. Migrate from built-in DOMPurify to the sanitizer option
+
+Handsontable 17.0 introduces a configurable [`sanitizer`](@/api/options.md#sanitizer) option for HTML content. The built-in use of the [DOMPurify](https://www.npmjs.com/package/dompurify) library is deprecated and will be removed in the next major release. After that, if you do not set a custom sanitizer, any string containing HTML will be stripped before rendering (no rich HTML). To keep sanitized HTML (e.g. with DOMPurify or another library), set the `sanitizer` option to your own sanitizer function.
+
+### What Changed
+
+- **New `sanitizer` option (v17.0)**: A table-level option that accepts a function `(content, source) => string`. It is used whenever HTML is written to the DOM (cell values, headers, context menu labels, dialog markup, clipboard paste).
+- **Default behavior**: In 17.0 the grid still uses `DOMPurify` by default but shows a deprecation warning. In the next major release, DOMPurify is removed; with no custom `sanitizer`, HTML in content will be stripped.
+- **Source parameter**: The second argument indicates where the content is used (`'innerHTML'` or `'CopyPaste.paste'`), so you can apply different rules per context.
+
+### Why This Change
+
+Making sanitization configurable gives you control over allowlists, library choice, and integration with Trusted Types and CSP. It also allows removing `DOMPurify` from the bundle for applications that use a different sanitization strategy or none.
+
+### How to Migrate
+
+#### Option 1: Keep using DOMPurify (recommended if you need rich HTML)
+
+Install `DOMPurify` in your project and pass a function that calls it via the `sanitizer` option:
+
+::: only-for javascript
+
+```js
+import DOMPurify from 'dompurify';
+import Handsontable from 'handsontable';
+
+const hot = new Handsontable(container, {
+  sanitizer: (content, source) => {
+    if (source === 'CopyPaste.paste') {
+      return DOMPurify.sanitize(content, {
+        ADD_TAGS: ['meta'],
+        ADD_ATTR: ['content'],
+        FORCE_BODY: true,
+      });
+    }
+
+    return DOMPurify.sanitize(content);
+  },
+  // ... other options
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import DOMPurify from 'dompurify';
+import { HotTable } from '@handsontable/react-wrapper';
+
+function App() {
+  return (
+    <HotTable
+      sanitizer={(content, source) => {
+        if (source === 'CopyPaste.paste') {
+          return DOMPurify.sanitize(content, {
+            ADD_TAGS: ['meta'],
+            ADD_ATTR: ['content'],
+            FORCE_BODY: true,
+          });
+        }
+
+        return DOMPurify.sanitize(content);
+      }}
+      // ... other options
+    />
+  );
+}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import DOMPurify from 'dompurify';
+
+@Component({
+  template: `<hot-table [settings]="hotSettings"></hot-table>`
+})
+export class AppComponent {
+  hotSettings = {
+    sanitizer: (content: string, source: string) {
+      if (source === 'CopyPaste.paste') {
+        return DOMPurify.sanitize(content, {
+          ADD_TAGS: ['meta'],
+          ADD_ATTR: ['content'],
+          FORCE_BODY: true,
+        });
+      }
+
+      return DOMPurify.sanitize(content);
+    },
+    // ... other options
+  };
+}
+```
+
+:::
+
+#### Option 2: Strip all HTML (plain text only)
+
+If you do not want rich HTML, use a sanitizer that escapes or strips tags:
+
+```js
+sanitizer: (content, source) => {
+  const tpl = document.createElement('template');
+
+  tpl.innerHTML = content;
+
+  const text = tpl.content.textContent ?? '';
+
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+```
+
+#### Option 3: Trusted Types (CSP)
+
+If you enforce Trusted Types, wrap your sanitizer in a policy and return its `createHTML` result. Add the policy name to your CSP `trusted-types` directive (e.g. `trusted-types default handsontable`):
+
+```js
+const policy = window.trustedTypes?.createPolicy('handsontable', {
+  createHTML: (input) => DOMPurify.sanitize(input),
+});
+
+sanitizer: (content, source) =>
+  policy ? policy.createHTML(content) : DOMPurify.sanitize(content),
+```
+
+### What to Expect
+
+- **Console warning in 17.0**: If you keep the default (`DOMPurify`) without setting `sanitizer`, a deprecation warning is shown pointing to the `sanitizer` option.
+- **Next major release**: `DOMPurify` is removed from dependencies. Without a custom `sanitizer`, HTML in cell content, headers, menus, and paste will be stripped before rendering.
+- **No per-column sanitizer**: The option is table-level only; it does not work when set per column or per cell.
+
+### Timeline
+
+- **Version 17.0**: `sanitizer` option is available; default remains `DOMPurify` with a deprecation warning.
+- **Next major release**: `DOMPurify` is removed. If no `sanitizer` is set, HTML content is stripped.
+
+### Related resources
+
+- [Security](@/guides/security/security/security.md) - Content sanitizing and recommendations
+- [Options reference](@/api/options.md#sanitizer) - `sanitizer` option
+
+## 6. `core-js` dependency removed
+
+Starting in **version 17.0**, Handsontable no longer depends on or bundles [core-js](https://github.com/zloirock/core-js). The library relied on it in the past for polyfills (e.g. ECMAScript 5/6 features, Promises, Symbols, collections). That dependency has been removed to reduce bundle size and to avoid forcing a specific polyfill set on applications that target modern environments only.
+
+### What Changed
+
+- **No core-js in the package**: The `core-js` package is no longer a dependency of Handsontable
+- **No bundled polyfills**: The built bundles no longer include core-js modules
+- **Modern runtimes**: Handsontable 17.0 targets environments that already provide the required APIs (see [browser support](@/guides/technical-specification/supported-browsers/supported-browsers.md))
+
+### Why This Change
+
+`core-js` added significant size to the bundle and was unnecessary for applications that only support modern browsers and Node versions. Dropping it lets the library stay smaller and lets each application choose its own polyfill strategy (or none) based on its own target environment.
+
+### How to Migrate
+
+If your application or build previously relied on Handsontable (or its build tooling) to pull in `core-js`, and you still need to support older environments that lack certain APIs:
+
+1. **Add polyfills in your app**: Install and import `core-js` (or another polyfill library) in your own project and load it before Handsontable, e.g. in your entry file or polyfills bundle.
+2. **Use your bundler's polyfill options**: If you use a bundler (e.g. Webpack, Vite) that can inject polyfills based on browserslist, configure it for your target browsers so that only the required polyfills are included.
+
+If you only target modern browsers and runtimes, no action is needed.
+
+### What to Expect
+
+- **Smaller Handsontable bundle**: The library no longer ships polyfill code
+- **No automatic polyfills**: You must add and maintain polyfills yourself if you support older environments
+- **Same API**: Handontable's public API is unchanged; only the dependency set has changed
+
+### Timeline
+
+- **Version 17.0**: `core-js` is removed from Handsontable dependencies and build output
+
+### Related resources
+
+- [Browser support](@/guides/technical-specification/supported-browsers/supported-browsers.md) - Supported browsers and runtimes
+- [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md) - Dependencies and licenses
+
 ## Summary of breaking changes
 
 | Change                                            | Action Required                                                            |
@@ -920,6 +1102,7 @@ If you use custom cell types that rely on Moment.js for formatting or parsing (e
 | Legacy stylesheet removed                         | Migrate to Classic theme or another built-in theme                         |
 | `handsontable.full.min.css` no longer available   | Use Theme API or import a theme CSS file (e.g. `ht-theme-classic.min.css`) |
 | CSS-based themes (optional migration)             | Consider migrating to Theme API for runtime features                       |
+| `core-js` dependency removed                      | Add `core-js` or other polyfills in your app if you support older environments |
 
 ## Related resources
 

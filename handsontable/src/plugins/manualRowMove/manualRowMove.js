@@ -23,8 +23,7 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * @class ManualRowMove
  *
  * @description
- * This plugin allows to change rows order. To make rows order persistent the {@link Options#persistentState}
- * plugin should be enabled.
+ * This plugin allows to change rows order.
  *
  * API:
  * - `moveRow` - move single row to the new position.
@@ -305,7 +304,7 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Loads initial settings when persistent state is saved or when plugin was initialized as an array.
+   * Loads initial settings when state was saved (e.g. via hooks) or when plugin was initialized as an array.
    *
    * @private
    */
@@ -315,12 +314,6 @@ export class ManualRowMove extends BasePlugin {
     if (Array.isArray(pluginSettings)) {
       this.moveRows(pluginSettings, 0);
 
-    } else if (pluginSettings !== undefined) {
-      const persistentState = this.persistentStateLoad();
-
-      if (persistentState.length) {
-        this.moveRows(persistentState, 0);
-      }
     }
   }
 
@@ -344,32 +337,6 @@ export class ManualRowMove extends BasePlugin {
    */
   isFixedRowBottom(row) {
     return row > this.hot.countRows() - 1 - this.hot.getSettings().fixedRowsBottom;
-  }
-
-  /**
-   * Saves the manual row positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @private
-   * @fires Hooks#persistentStateSave
-   */
-  persistentStateSave() {
-    // The `PersistentState` plugin should be refactored.
-    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.hot.rowIndexMapper.getIndexesSequence());
-  }
-
-  /**
-   * Loads the manual row positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @private
-   * @fires Hooks#persistentStateLoad
-   * @returns {Array} Stored state.
-   */
-  persistentStateLoad() {
-    const storedState = {};
-
-    this.hot.runHooks('persistentStateLoad', 'manualRowMove', storedState);
-
-    return storedState.value ? storedState.value : [];
   }
 
   /**
@@ -626,7 +593,6 @@ export class ManualRowMove extends BasePlugin {
     this.#rowsToMove.length = 0;
 
     if (movePerformed === true) {
-      this.persistentStateSave();
       this.hot.view.adjustElementsSize();
       this.hot.render();
 

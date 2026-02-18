@@ -1942,37 +1942,6 @@ export const REGISTERED_HOOKS = [
   'beforeHighlightingColumnHeader',
 
   /**
-   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage.
-   *
-   * The `persistentStateLoad` hook is fired even when the {@link Options#persistentState} option is disabled.
-   *
-   * @event Hooks#persistentStateLoad
-   * @param {string} key Key.
-   * @param {object} valuePlaceholder Object containing the loaded value under `valuePlaceholder.value` (if no value have been saved, `value` key will be undefined).
-   */
-  'persistentStateLoad',
-
-  /**
-   * Fired by {@link PersistentState} plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
-   * This hook is fired when {@link Options#persistentState} option is enabled.
-   *
-   * @event Hooks#persistentStateReset
-   * @param {string} [key] Key.
-   */
-  'persistentStateReset',
-
-  /**
-   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage.
-   *
-   * The `persistentStateSave` hook is fired even when the {@link Options#persistentState} option is disabled.
-   *
-   * @event Hooks#persistentStateSave
-   * @param {string} key Key.
-   * @param {Mixed} value Value to save.
-   */
-  'persistentStateSave',
-
-  /**
    * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
    * will be not applied by the Handsontable (useful for server-side sorting).
    *

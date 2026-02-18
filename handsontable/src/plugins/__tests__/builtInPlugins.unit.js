@@ -4,7 +4,6 @@ import { getPluginsNames } from '../';
 describe('built-in plugins', () => {
   it('should auto-register build-in plugins in the proper order in full build', () => {
     expect(getPluginsNames()).toEqual([
-      'PersistentState',
       'AutoColumnSize',
       'Autofill',
       'ManualRowResize',
