@@ -8,6 +8,29 @@ on:
         required: false
         type: boolean
         default: true
+      # ---- [TESTING] inputs below mimic the release event fields ----
+      # Use these to manually trigger the workflow from a feature branch,
+      # since the "release" event always uses the workflow from the default branch.
+      scenario:
+        description: '[TESTING] Scenario to run (leave empty for pre-release)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - first-rc
+          - stable
+      release_name:
+        description: '[TESTING] Release name (e.g. "16.0.0-rc" for first-rc)'
+        required: false
+        type: string
+      tag_name:
+        description: '[TESTING] Tag name (e.g. "v16.0.0" for stable)'
+        required: false
+        type: string
+      target_commitish:
+        description: '[TESTING] Target branch (e.g. "_test_release/16.0.0" for stable)'
+        required: false
+        type: string
   push:
     branches:
       - '_test_release/**' # Must match RELEASE_BRANCH_PREFIX
@@ -39,6 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'workflow_dispatch' &&
+        inputs.scenario == '' &&
         !startsWith(github.ref_name, '_test_release/') &&
         !startsWith(github.ref_name, '_test_lts_/')) ||
       (github.event_name == 'workflow_run' &&
@@ -89,8 +113,10 @@ jobs:
     name: Build first RC
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'release' &&
-      github.event.release.prerelease == true
+      (github.event_name == 'release' &&
+        github.event.release.prerelease == true) ||
+      (github.event_name == 'workflow_dispatch' &&
+        inputs.scenario == 'first-rc')
     outputs:
       release-branch: ${{ steps.create-branch.outputs.release-branch }}
       rc-version: ${{ steps.version.outputs.rc-version }}
@@ -99,7 +125,7 @@ jobs:
         id: version
         run: |
           # Release name is like "1.0.0-rc" → strip "-rc" to get "1.0.0"
-          RELEASE_NAME='${{ github.event.release.name }}'
+          RELEASE_NAME='${{ github.event.release.name || inputs.release_name }}'
           VERSION="${RELEASE_NAME%-rc}"
           RC_VERSION="${VERSION}-rc1"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
@@ -269,7 +295,7 @@ jobs:
             echo "| **Version** | \`${RC_VERSION}\` |"
             echo "| **npm Tag** | \`rc\` |"
             echo "| **Branch** | \`${RELEASE_BRANCH}\` |"
-            echo "| **Release Name** | ${{ github.event.release.name }} |"
+            echo "| **Release Name** | ${{ github.event.release.name || inputs.release_name }} |"
             echo ""
             echo "**Next step:** The publish job will proceed after approval from the \`approvers\` environment."
           } >> $GITHUB_STEP_SUMMARY
@@ -621,8 +647,10 @@ jobs:
     name: Build stable release
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'release' &&
-      github.event.release.prerelease == false
+      (github.event_name == 'release' &&
+        github.event.release.prerelease == false) ||
+      (github.event_name == 'workflow_dispatch' &&
+        inputs.scenario == 'stable')
     outputs:
       version: ${{ steps.version.outputs.version }}
       release-branch: ${{ steps.version.outputs.release-branch }}
@@ -630,10 +658,10 @@ jobs:
       - name: Extract and validate version
         id: version
         run: |
-          TAG='${{ github.event.release.tag_name }}'
+          TAG='${{ github.event.release.tag_name || inputs.tag_name }}'
           VERSION="${TAG#v}"
           RELEASE_BRANCH="${RELEASE_BRANCH_PREFIX}${VERSION}"
-          TARGET='${{ github.event.release.target_commitish }}'
+          TARGET='${{ github.event.release.target_commitish || inputs.target_commitish }}'
 
           if [ "${TARGET}" != "${RELEASE_BRANCH}" ]; then
             echo "::error::Release target (${TARGET}) doesn't match expected branch (${RELEASE_BRANCH})"
@@ -803,7 +831,7 @@ jobs:
             echo "| Property | Value |"
             echo "|----------|-------|"
             echo "| **Version** | \`${VERSION}\` |"
-            echo "| **Release Tag** | \`${{ github.event.release.tag_name }}\` |"
+            echo "| **Release Tag** | \`${{ github.event.release.tag_name || inputs.tag_name }}\` |"
             echo "| **npm Tag** | \`latest\` |"
             echo "| **Branch** | \`${RELEASE_BRANCH}\` |"
             echo ""
