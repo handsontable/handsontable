@@ -21,7 +21,7 @@ describe('IntlTimeType', () => {
     });
 
     expect(warnSpy).toHaveBeenCalledWith('Source data warning (3 cells). ' +
-      'Invalid value for "intlTime" cell type.\n\n' +
+      'Invalid value for "intl-time" cell type.\n\n' +
       'Affected cells:\n' +
       '  - row 0, col 0, value: "0"\n' +
       '  - row 0, col 1, value: "test"\n' +
@@ -41,7 +41,7 @@ describe('IntlTimeType', () => {
     await loadData([['12:000']]);
 
     expect(warnSpy).toHaveBeenCalledWith('Source data warning (1 cell). ' +
-      'Invalid value for "intlTime" cell type.\n\n' +
+      'Invalid value for "intl-time" cell type.\n\n' +
       'Affected cells:\n' +
       '  - row 0, col 0, value: "12:000"\n\n' +
       'Expected a value compatible with the 24-hour time format ("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS").'
@@ -59,7 +59,7 @@ describe('IntlTimeType', () => {
     await updateData([['12:000']]);
 
     expect(warnSpy).toHaveBeenCalledWith('Source data warning (1 cell). ' +
-      'Invalid value for "intlTime" cell type.\n\n' +
+      'Invalid value for "intl-time" cell type.\n\n' +
       'Affected cells:\n' +
       '  - row 0, col 0, value: "12:000"\n\n' +
       'Expected a value compatible with the 24-hour time format ("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS").'

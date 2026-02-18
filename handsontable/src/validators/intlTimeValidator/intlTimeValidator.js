@@ -3,7 +3,7 @@ import { isEmpty } from '../../helpers/mixed';
 
 export const VALIDATOR_TYPE = 'intl-time';
 export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). ' +
-  'Invalid value for "intlTime" cell type.\n\n' +
+  'Invalid value for "intl-time" cell type.\n\n' +
   '[affectedCells]\n\n' +
   'Expected a value compatible with the 24-hour time format ("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS").';
 

@@ -1805,21 +1805,21 @@ export default () => {
     /**
      * Configures the time format for time cells. Accepts either a string (legacy, for [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md)
      * cells) or an object of [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
-     * options (for [`intlTime`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells).
+     * options (for [`intl-time`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells).
      *
      * ::: warning
      * The string form of `timeFormat` is deprecated and will be removed in the next major release.
-     * It is used only by the `time` cell type. Use the `intlTime` cell type with an `Intl.DateTimeFormat`
+     * It is used only by the `time` cell type. Use the `intl-time` cell type with an `Intl.DateTimeFormat`
      * options object instead.
      * :::
      *
      * **Object form (Intl.DateTimeFormat options):**
      *
-     * The object form is supported only when the cell type is `intlTime`. The locale is controlled separately
+     * The object form is supported only when the cell type is `intl-time`. The locale is controlled separately
      * via the [`locale`](@/api/options.md#locale) option.
      *
      * ::: tip Source data format
-     * For `intlTime` cells, source data must be in 24-hour time format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`), matching
+     * For `intl-time` cells, source data must be in 24-hour time format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`), matching
      * the HTML `input type="time"` value. Otherwise operations such as sorting and filtering can be unstable or unpredictable.
      * The `timeFormat` object affects only how times are displayed; the underlying value should remain in that format.
      * :::
@@ -1862,7 +1862,7 @@ export default () => {
      * **Deprecated: string form**
      *
      * Passing a string (e.g. `'h:mm:ss a'`) is deprecated and works only with the `time` cell type.
-     * Migrate to the `intlTime` cell type and pass an `Intl.DateTimeFormat` options object.
+     * Migrate to the `intl-time` cell type and pass an `Intl.DateTimeFormat` options object.
      *
      * **Migration example:**
      *
@@ -1893,7 +1893,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // intlTime cell type with Intl options
+     * // intl-time cell type with Intl options
      * columns: [
      *   {
      *     type: 'intl-time',
