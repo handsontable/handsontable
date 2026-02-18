@@ -1,6 +1,8 @@
 const cellTypesItems = [
   { path: 'cell-types/color-picker/color-picker', title: 'Color picker', onlyFor: ['javascript'] },
   { path: 'cell-types/feedback-react/feedback-react', title: 'Simple Feedback', onlyFor: ['react'] },
+  { path: 'cell-types/colorful-picker/colorful-picker', title: 'Colorful Picker', onlyFor: ['react'] },
+  { path: 'cell-types/react-rating/react-rating', title: 'Star Rating', onlyFor: ['react'] },
   { path: 'cell-types/feedback/feedback', title: 'Simple Feedback', onlyFor: ['javascript'] },
   { path: 'cell-types/flatpickr/flatpickr', title: 'Datetime `flatpickr` picker', onlyFor: ['javascript'] },
   { path: 'cell-types/moment-date/moment-date', title: 'Moment.js-based date', onlyFor: ['javascript'] },
