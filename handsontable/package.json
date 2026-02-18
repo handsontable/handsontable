@@ -265,7 +265,6 @@
       "unpkg",
       "keywords",
       "dependencies",
-      "devDependencies",
       "optionalDependencies",
       "license",
       "typings",
