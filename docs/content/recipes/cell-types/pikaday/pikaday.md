@@ -45,7 +45,7 @@ A cell that:
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps moment @handsontable/pikaday
 
 @[code](@/content/recipes/cell-types/pikaday/javascript/example1.js)
 @[code](@/content/recipes/cell-types/pikaday/javascript/example1.ts)
@@ -69,8 +69,6 @@ npm install @handsontable/pikaday moment
 ```typescript
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
 import { CellProperties } from 'handsontable/settings';

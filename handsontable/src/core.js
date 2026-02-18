@@ -24,7 +24,6 @@ import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
-import DataSource from './dataMap/dataSource';
 import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
@@ -33,10 +32,13 @@ import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
 import {
+  DataSource,
   MetaManager,
   DynamicCellMetaMod,
   ExtendMetaPropertiesMod,
   replaceData,
+  runSourceDataValidator,
+  runSourceDataValidators,
 } from './dataMap';
 import {
   createViewportScroller,
@@ -1321,18 +1323,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   }
 
   this.init = function() {
-    const theme = tableMeta.theme;
-    const themeName = tableMeta.themeName;
-    const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
-
-    if (
-      isRootInstance(instance) &&
-      !rootContainerThemeClassName &&
-      (isObject(theme) || (!theme && !themeName))
-    ) {
-      initializeThemeManager(theme);
-    }
-
     dataSource.setData(tableMeta.data);
     instance.runHooks('beforeInit');
 
@@ -1351,7 +1341,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isRootInstance(this)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);
-      _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
+      _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement, process.env.HOT_RELEASE_DATE);
     }
 
     instance.runHooks('init');
@@ -1393,6 +1383,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
 
       themeObject = getTheme('main');
+    } else if (typeof theme.getThemeConfig !== 'function') {
+      themeObject = registerTheme(theme);
     } else {
       themeObject = theme;
     }
@@ -1449,7 +1441,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let shouldBeCanceled = true;
 
     waitingForValidator.onQueueEmpty = () => {
-      if (activeEditor && shouldBeCanceled) {
+      if (activeEditor && shouldBeCanceled && activeEditor._closeAfterDataChange) {
         activeEditor.cancelChanges();
       }
 
@@ -1558,17 +1550,28 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     const hasChanges = changes.length > 0;
+    const activeEditor = editorManager.getActiveEditor();
+    const closeEditorAfterDataChange = activeEditor?._closeAfterDataChange;
 
     if (hasChanges) {
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
-      editorManager.closeEditor();
+
+      if (activeEditor?.isOpened() && closeEditorAfterDataChange) {
+        editorManager.closeEditor();
+      }
+
       instance.view.adjustElementsSize();
       instance.render();
-      editorManager.prepareEditor();
-      instance.runHooks('afterChange', changes, source || 'edit');
 
-      const activeEditor = instance.getActiveEditor();
+      if (
+        (activeEditor?.isOpened() && closeEditorAfterDataChange) ||
+        !activeEditor?.isOpened()
+      ) {
+        editorManager.prepareEditor();
+      }
+
+      instance.runHooks('afterChange', changes, source || 'edit');
 
       if (activeEditor && isDefined(activeEditor.refreshValue)) {
         activeEditor.refreshValue();
@@ -1664,7 +1667,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
       // To provide consistent behavior, validation should be always asynchronous
-      instance._registerImmediate(() => {
+      instance._registerMicrotask(() => {
         validator.call(cellProperties, value, (valid) => {
           if (!instance) {
             return;
@@ -1681,7 +1684,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     } else {
       // resolve callback even if validator function was not found
-      instance._registerImmediate(() => {
+      instance._registerMicrotask(() => {
         cellProperties.valid = true;
         done(cellProperties.valid, false);
       });
@@ -2918,6 +2921,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     instance.runHooks('afterCellMetaReset');
 
+    // for the first run, we need to run the source data warnings after cell meta initialization
+    // otherwise there is no access to `sourceDataValidator` function
+    if (firstRun) {
+      runSourceDataValidators(instance, 'init');
+    }
+
     let currentHeight = instance.rootElement.style.height;
 
     if (currentHeight !== '') {
@@ -3475,12 +3484,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+      const cellMeta = getCellProperties(changeRow, changeProp);
       const newValue = getValueSetterValue(
         changeValue,
-        getCellProperties(changeRow, changeProp)
+        cellMeta
       );
 
-      dataSource.setAtCell(changeRow, changeProp, newValue);
+      if (runSourceDataValidator(newValue, cellMeta, source ?? 'setSourceDataAtCell')) {
+        dataSource.setAtCell(changeRow, changeProp, newValue);
+      }
     });
 
     if (isThereAnySetSourceListener) {
@@ -4920,7 +4932,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.destroy = function() {
     instance._clearTimeouts();
-    instance._clearImmediates();
+    instance._clearMicrotasks();
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();
@@ -5198,11 +5210,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {string}
    */
   this.getPluginName = function(plugin) {
-    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
-    if (plugin === this.undoRedo) {
-      return this.undoRedo.constructor.PLUGIN_KEY;
-    }
-
     return pluginsRegistry.getId(plugin);
   };
 
@@ -5459,41 +5466,35 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     });
   };
 
-  this.immediates = [];
+  this.microtasks = [];
 
   /**
-   * Execute function execution to the next event loop cycle. Purpose of this method is to clear all known timeouts when `destroy` method is called.
-   *
-   * @param {Function} callback Function to be delayed in execution.
-   * @private
-   */
-  this._registerImmediate = function(callback) {
-    this.immediates.push(setImmediate(callback));
-  };
-
-  /**
-   * Clears all known timeouts.
-   *
-   * @private
-   */
-  this._clearImmediates = function() {
-    arrayEach(this.immediates, (handler) => {
-      clearImmediate(handler);
-    });
-  };
-
-  /**
-   * Registers a microtask callback.
+   * Execute function execution to the next event loop cycle.
    *
    * @param {Function} callback Function to be delayed in execution.
    * @private
    */
   this._registerMicrotask = function(callback) {
+    const entry = { cancelled: false };
+
+    this.microtasks.push(entry);
     this.rootWindow.queueMicrotask(() => {
-      if (!this.isDestroyed) {
+      if (!entry.cancelled) {
         callback();
       }
     });
+  };
+
+  /**
+   * Clears all known microtasks (prevents pending callbacks from running).
+   *
+   * @private
+   */
+  this._clearMicrotasks = function() {
+    arrayEach(this.microtasks, (entry) => {
+      entry.cancelled = true;
+    });
+    this.microtasks.length = 0;
   };
 
   /**
@@ -5504,6 +5505,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this._getEditorManager = function() {
     return editorManager;
+  };
+
+  /**
+   * Gets the instance of the DataSource.
+   *
+   * @private
+   * @returns {DataSource}
+   */
+  this._getDataSource = function() {
+    return dataSource;
   };
 
   const shortcutManager = createShortcutManager({
@@ -5586,6 +5597,18 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     return focusScopeManager;
   };
+
+  const theme = mergedUserSettings.theme;
+  const themeName = mergedUserSettings.themeName;
+  const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
+
+  if (
+    isRootInstance(instance) &&
+    !rootContainerThemeClassName &&
+    (isObject(theme) || (!theme && !themeName))
+  ) {
+    initializeThemeManager(theme);
+  }
 
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);

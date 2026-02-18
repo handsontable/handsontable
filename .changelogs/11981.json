@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Implement a new cell type (editor, renderer and validator) - MultiSelect.",
+  "type": "added",
+  "issueOrPR": 11981,
+  "breaking": false,
+  "framework": "none"
+}

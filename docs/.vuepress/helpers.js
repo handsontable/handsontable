@@ -19,7 +19,6 @@ const frameworkToPrettyName = new Map([
   ['javascript', 'JavaScript'],
   ['react', 'React'],
   ['angular', 'Angular'],
-  ['vue', 'Vue 2'],
   ['vue3', 'Vue 3'],
 ]);
 
@@ -222,7 +221,7 @@ function parseFramework(url) {
  * @returns {string|null}
  */
 function parsePartialFramework(filePath) {
-  const frameworkMatch = filePath.match(/guides\/integrate-with-(vue3|vue)?/);
+  const frameworkMatch = filePath.match(/guides\/integrate-with-(vue3)?/);
 
   return frameworkMatch ? frameworkMatch[1] : null;
 }

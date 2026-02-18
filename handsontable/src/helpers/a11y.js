@@ -16,6 +16,7 @@ export const A11Y_OPTION = () => ['role', 'option'];
 export const A11Y_CHECKBOX = () => ['role', 'checkbox'];
 export const A11Y_DIALOG = () => ['role', 'dialog'];
 export const A11Y_ALERTDIALOG = () => ['role', 'alertdialog'];
+export const A11Y_GROUP = () => ['role', 'group'];
 export const A11Y_SCOPE_COL = () => ['scope', 'col'];
 export const A11Y_SCOPE_ROW = () => ['scope', 'row'];
 export const A11Y_TEXT = () => ['type', 'text'];

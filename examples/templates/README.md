@@ -59,7 +59,7 @@ Another important file is a `package.json` file. Some properties of this file sh
   "license": "SEE LICENSE IN LICENSE.txt",
   "dependencies": {
     "handsontable": "latest",
-    "@handsontable/{{ WRAPPER NAME }}": "latest" // only for frameworks, e.g. "@handsontable/react": "latest"
+    "@handsontable/{{ WRAPPER NAME }}": "latest" // only for frameworks, e.g. "@handsontable/react-wrapper": "latest"
   }
 }
 ```

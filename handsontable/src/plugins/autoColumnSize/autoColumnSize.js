@@ -215,6 +215,10 @@ export class AutoColumnSize extends BasePlugin {
 
     if (!cellMeta.spanned) {
       cellValue = this.hot.getDataAtCell(row, column);
+
+      if (typeof cellMeta.valueFormatter === 'function') {
+        cellValue = cellMeta.valueFormatter(cellValue, cellMeta);
+      }
     }
 
     let bundleSeed = '';

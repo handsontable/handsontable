@@ -1,6 +1,8 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
 import { isWindowsOS, isSafari, isMobileBrowser, isIpadOS } from '../browser';
+import { deprecatedWarn } from '../console';
+
 /**
  * Get the parent of the specified node in the DOM tree.
  *
@@ -452,17 +454,28 @@ export function empty(element) {
 }
 
 export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
+let dompurifyDeprecatedMessageShown = false;
 
 /**
  * Insert content into element trying to avoid innerHTML method.
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
- * @param {boolean} [sanitizeContent=true] If `true`, the content will be sanitized before writing to the element.
+ * @param {function(string): string | boolean} [sanitizer] The sanitizer to use for the content.
  */
-export function fastInnerHTML(element, content, sanitizeContent = true) {
+export function fastInnerHTML(element, content, sanitizer = sanitize) {
   if (HTML_CHARACTERS.test(content)) {
-    element.innerHTML = sanitizeContent ? sanitize(content) : content;
+    if (!dompurifyDeprecatedMessageShown && sanitizer === sanitize) {
+      dompurifyDeprecatedMessageShown = true;
+      deprecatedWarn(
+        'The HTML sanitization using DOMPurify library is deprecated and will be removed in the next major release. ' +
+        'Use the `sanitizer` option instead.\n\n' +
+        'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+        '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
+      );
+    }
+
+    element.innerHTML = typeof sanitizer === 'function' ? sanitizer(content, 'innerHTML') : content;
   } else {
     fastInnerText(element, content);
   }

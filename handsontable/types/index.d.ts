@@ -46,6 +46,8 @@ import {
   DateCellType,
   DropdownCellType,
   HandsontableCellType,
+  IntlDateCellType,
+  IntlTimeCellType,
   NumericCellType,
   PasswordCellType,
   SelectCellType,
@@ -61,6 +63,8 @@ import {
   DateEditor,
   DropdownEditor,
   HandsontableEditor,
+  IntlDateEditor,
+  IntlTimeEditor,
   NumericEditor,
   PasswordEditor,
   SelectEditor,
@@ -80,6 +84,8 @@ import {
   checkboxRenderer,
   htmlRenderer,
   handsontableRenderer,
+  intlDateRenderer,
+  intlTimeRenderer,
   numericRenderer,
   passwordRenderer,
   selectRenderer,
@@ -94,6 +100,8 @@ import {
   autocompleteValidator,
   dropdownValidator,
   dateValidator,
+  intlDateValidator,
+  intlTimeValidator,
   numericValidator,
   timeValidator ,
   getValidator,
@@ -241,10 +249,6 @@ import {
   Settings as PaginationSettings,
 } from './plugins/pagination';
 import {
-  PersistentState as _PersistentState,
-  Settings as PersistentStateSettings,
-} from './plugins/persistentState';
-import {
   Search as _Search,
   Settings as SearchSettings,
   SearchCallback,
@@ -363,6 +367,8 @@ declare namespace Handsontable {
     export { DateCellType as date };
     export { DropdownCellType as dropdown };
     export { HandsontableCellType as handsontable };
+    export { IntlDateCellType as intlDate };
+    export { IntlTimeCellType as intlTime };
     export { NumericCellType as numeric };
     export { PasswordCellType as password };
     export { TextCellType as text };
@@ -379,6 +385,8 @@ declare namespace Handsontable {
     export { DateEditor };
     export { DropdownEditor };
     export { HandsontableEditor };
+    export { IntlDateEditor };
+    export { IntlTimeEditor };
     export { NumericEditor };
     export { PasswordEditor };
     export { SelectEditor };
@@ -397,6 +405,8 @@ declare namespace Handsontable {
     export { checkboxRenderer as CheckboxRenderer };
     export { htmlRenderer as HtmlRenderer };
     export { handsontableRenderer as HandsontableRenderer };
+    export { intlDateRenderer as IntlDateRenderer };
+    export { intlTimeRenderer as IntlTimeRenderer };
     export { numericRenderer as NumericRenderer };
     export { passwordRenderer as PasswordRenderer };
     export { textRenderer as TextRenderer };
@@ -412,6 +422,8 @@ declare namespace Handsontable {
     export { autocompleteValidator as AutocompleteValidator };
     export { dropdownValidator as DropdownValidator };
     export { dateValidator as DateValidator };
+    export { intlDateValidator as IntlDateValidator };
+    export { intlTimeValidator as IntlTimeValidator };
     export { numericValidator as NumericValidator };
     export { timeValidator as TimeValidator };
     export { registerValidator };
@@ -457,7 +469,6 @@ declare namespace Handsontable {
     export class NestedHeaders extends _NestedHeaders {}
     export class NestedRows extends _NestedRows {}
     export class Pagination extends _Pagination {}
-    export class PersistentState extends _PersistentState {}
     export class Search extends _Search {}
     export class TouchScroll extends _TouchScroll {}
     export class TrimRows extends _TrimRows {}
@@ -598,10 +609,6 @@ declare namespace Handsontable {
 
     export namespace Pagination {
       export { PaginationSettings as Settings };
-    }
-
-    export namespace PersistentState {
-      export { PersistentStateSettings as Settings };
     }
 
     export namespace Search {

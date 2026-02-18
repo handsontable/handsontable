@@ -1426,6 +1426,16 @@ describe('AutoColumnSize', () => {
     });
   });
 
+  it('should calculate column widths correctly when `valueFormatter` is used', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      autoColumnSize: true,
+      valueFormatter: () => 'new formatted value',
+    });
+
+    expect(getColWidth(1)).toBeGreaterThan(getDefaultColumnWidth());
+  });
+
   describe('should work together with formulas plugin', () => {
     it('should calculate widths only once during the initialization of Handsontable with formulas plugin enabled', async() => {
       const beforeInit = function() {

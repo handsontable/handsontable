@@ -1,3 +1,8 @@
+import { deprecatedWarn } from '../../../helpers/console';
+
+const correctFormatDeprecatedMessageShown = new WeakSet();
+const datePickerConfigDeprecatedMessageShown = new WeakSet();
+
 /**
  * @class ExtendMetaPropertiesMod
  */
@@ -31,6 +36,28 @@ export class ExtendMetaPropertiesMod {
         if (this.usageTracker.has('fixedColumnsLeft') && this.usageTracker.has('fixedColumnsStart')) {
           throw new Error('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
             'Please use only the option `fixedColumnsStart`.');
+        }
+      }
+    }],
+    ['correctFormat', {
+      onChange() {
+        if (!correctFormatDeprecatedMessageShown.has(this.metaManager.hot)) {
+          correctFormatDeprecatedMessageShown.add(this.metaManager.hot);
+          deprecatedWarn(
+            'The `correctFormat` option is deprecated and will be removed in the next major release.\n\n' +
+            'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/'
+          );
+        }
+      }
+    }],
+    ['datePickerConfig', {
+      onChange() {
+        if (!datePickerConfigDeprecatedMessageShown.has(this.metaManager.hot)) {
+          datePickerConfigDeprecatedMessageShown.add(this.metaManager.hot);
+          deprecatedWarn(
+            'The `datePickerConfig` option is deprecated and will be removed in the next major release.\n\n' +
+            'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/'
+          );
         }
       }
     }],

@@ -21,6 +21,8 @@ Install Handsontable's Vue 3 wrapper via npm, import the stylesheets, and get yo
 
 [[toc]]
 
+Vue 2 is not supported anymore, you can use [Handsontable 16.2.0](https://handsontable.com/docs/16.2/javascript-data-grid/vue-installation/) with Vue 2.
+
 ## Vue 3 version support
 
 Handsontable supports the following Vue 3 versions:

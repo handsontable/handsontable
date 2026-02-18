@@ -83,7 +83,7 @@ export function isPercentValue(value) {
 }
 
 /**
- * Substitute strings placed beetwen square brackets into value defined in `variables` object. String names defined in
+ * Substitute strings placed between square brackets into value defined in `variables` object. String names defined in
  * square brackets must be the same as property name of `variables` object.
  *
  * @param {string} template Template string.

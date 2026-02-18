@@ -33,7 +33,7 @@ export function valueFormatter(value, cellProperties) {
  * @param {*} value The rendered value.
  */
 export function passwordRenderer(hotInstance, TD, row, col, prop, value) {
-  fastInnerHTML(TD, value);
+  fastInnerHTML(TD, value, hotInstance.getSettings().sanitizer);
 }
 
 passwordRenderer.valueFormatter = valueFormatter;

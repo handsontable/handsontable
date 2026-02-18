@@ -1023,6 +1023,16 @@ describe('AutoRowSize', () => {
     expect(spec().$container.find('.ht-wrapper').hasClass('htAutoRowSize')).toBe(false);
   });
 
+  it('should calculate row heights correctly when `valueFormatter` is used', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      autoRowSize: true,
+      valueFormatter: () => 'new \nformatted\n value',
+    });
+
+    expect(getRowHeight(1)).toBeGreaterThan(getDefaultRowHeight());
+  });
+
   describe('should work together with formulas plugin', () => {
     it('should calculate heights only once during the initialization of Handsontable with formulas plugin enabled', async() => {
       const beforeInit = function() {

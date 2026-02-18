@@ -2,8 +2,6 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 // CSS must be imported for the color picker to work in production
 // import "@melloware/coloris/dist/coloris.css";
 import Coloris from '@melloware/coloris';
@@ -404,7 +402,6 @@ const cellDefinition = {
 
 // Define configuration options for the Handsontable
 const hotOptions = {
-  themeName: 'ht-theme-main',
   data,
   colHeaders: ['ID', 'Item Name', 'Item Color'],
   autoRowSize: true,

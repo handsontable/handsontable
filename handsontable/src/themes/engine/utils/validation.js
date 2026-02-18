@@ -54,6 +54,8 @@ export const VALID_ICON_KEYS = new Set([
   'collapseOff',
   'collapseOn',
   'radio',
+  'chipClose',
+  'search',
 ]);
 
 /**
@@ -350,6 +352,12 @@ const VALID_TOKEN_KEYS = new Set([
   'paginationBarBackgroundColor',
   'paginationBarHorizontalPadding',
   'paginationBarVerticalPadding',
+  // Multiselect
+  'chipBackground',
+  'chipBorderRadius',
+  'chipVerticalPadding',
+  'chipHorizontalPadding',
+  'chipGap',
 ]);
 
 /**

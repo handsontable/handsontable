@@ -52,7 +52,7 @@ npm install multiple-select-vanilla
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps multiple-select-vanilla
 
 @[code](@/content/recipes/cell-types/select-multiple/javascript/example1.js)
 @[code](@/content/recipes/cell-types/select-multiple/javascript/example1.ts)
@@ -66,8 +66,6 @@ npm install multiple-select-vanilla
 ```typescript
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import multipleSelect from 'multiple-select-vanilla';
 import type { MultipleSelectInstance } from 'multiple-select-vanilla';
 
@@ -551,7 +549,6 @@ const cellDefinition = {
 const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
-  themeName: 'ht-theme-main',
   data: [
     {
       id: 1,

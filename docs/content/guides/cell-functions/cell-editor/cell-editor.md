@@ -1260,7 +1260,7 @@ From now on, you can use `CustomEditor` like so:
 
 - [Custom editor in React](@/react/guides/cell-functions/cell-editor/cell-editor.md)
 - [Custom editor in Angular](@/angular/guides/cell-functions/cell-editor/cell-editor.md)
-- [Custom editor in Vue 2](@/guides/integrate-with-vue/vue-custom-editor-example/vue-custom-editor-example.md)
+- [Custom editor in Vue](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md)
 - [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md)
 
 </div>
