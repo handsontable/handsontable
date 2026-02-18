@@ -219,6 +219,9 @@ jobs:
       - name: Clean old package builds
         run: npm run all clean -- --e examples
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Build all packages
         run: npm run all build -- --e examples
 
