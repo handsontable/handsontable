@@ -234,9 +234,9 @@ If you prefer a visual approach to creating themes, use the [Handsontable Theme 
 
 Handsontable provides a comprehensive set of JS and CSS variables that let you customize the appearance of every component.
 
-**CSS Variable column** — The names of the CSS custom properties (e.g. `--ht-sizing-size-1`) you can override in your stylesheet.
+**CSS Variable** — The names of the CSS custom properties (e.g. `--ht-sizing-size-1`) you can override in your stylesheet.
 
-**JS Option column** — The values in this column are the keys you use when customizing a theme via the Theme API. Call `theme.params()` on your registered theme and pass an object where each key is nested under one of:
+**JS Option** — The values in this column are the keys you use when customizing a theme via the Theme API. Call `theme.params()` on your registered theme and pass an object where each key is nested under one of:
 
 - **`sizing`** — spacing and size scale (e.g. `sizing.size_1`)
 - **`density.sizes.default`**, **`density.sizes.compact`**, or **`density.sizes.comfortable`** — density-specific spacing (e.g. `cellVertical`, `gap`)
@@ -253,495 +253,499 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
   })
 ```
 
+<div class="variables-table">
+
 ### Sizing Variables
 
-| CSS Variable            | JS Option   | Description             |
-| ----------------------- | ----------- | ----------------------- |
-| `--ht-sizing-size-0`    | `size_0`    | Zero size (0px)         |
-| `--ht-sizing-size-0-25` | `size_0_25` | Quarter unit size (1px) |
-| `--ht-sizing-size-0-5`  | `size_0_5`  | Half unit size (2px)    |
-| `--ht-sizing-size-1`    | `size_1`    | Base unit size (4px)    |
-| `--ht-sizing-size-1-5`  | `size_1_5`  | 1.5x unit size (6px)    |
-| `--ht-sizing-size-2`    | `size_2`    | 2x unit size (8px)      |
-| `--ht-sizing-size-3`    | `size_3`    | 3x unit size (12px)     |
-| `--ht-sizing-size-4`    | `size_4`    | 4x unit size (16px)     |
-| `--ht-sizing-size-5`    | `size_5`    | 5x unit size (20px)     |
-| `--ht-sizing-size-6`    | `size_6`    | 6x unit size (24px)     |
-| `--ht-sizing-size-7`    | `size_7`    | 7x unit size (28px)     |
-| `--ht-sizing-size-8`    | `size_8`    | 8x unit size (32px)     |
-| `--ht-sizing-size-9`    | `size_9`    | 9x unit size (36px)     |
-| `--ht-sizing-size-10`   | `size_10`   | 10x unit size (40px)    |
+| Variable | Description             |
+| -------- | ----------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-0` </div><div class="variables-table__item"><span>JS:</span> `size_0` </div>    | Zero size (0px)         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-0-25` </div><div class="variables-table__item"><span>JS:</span> `size_0_25` </div> | Quarter unit size (1px) |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-0-5` </div><div class="variables-table__item"><span>JS:</span> `size_0_5` </div>  | Half unit size (2px)    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-1` </div><div class="variables-table__item"><span>JS:</span> `size_1` </div>    | Base unit size (4px)    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-1-5` </div><div class="variables-table__item"><span>JS:</span> `size_1_5` </div>  | 1.5x unit size (6px)    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-2` </div><div class="variables-table__item"><span>JS:</span> `size_2` </div>    | 2x unit size (8px)      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-3` </div><div class="variables-table__item"><span>JS:</span> `size_3` </div>    | 3x unit size (12px)     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-4` </div><div class="variables-table__item"><span>JS:</span> `size_4` </div>    | 4x unit size (16px)     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-5` </div><div class="variables-table__item"><span>JS:</span> `size_5` </div>    | 5x unit size (20px)     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-6` </div><div class="variables-table__item"><span>JS:</span> `size_6` </div>    | 6x unit size (24px)     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-7` </div><div class="variables-table__item"><span>JS:</span> `size_7` </div>    | 7x unit size (28px)     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-8` </div><div class="variables-table__item"><span>JS:</span> `size_8` </div>    | 8x unit size (32px)     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-9` </div><div class="variables-table__item"><span>JS:</span> `size_9` </div>    | 9x unit size (36px)     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-10` </div><div class="variables-table__item"><span>JS:</span> `size_10` </div>   | 10x unit size (40px)    |
 
 ### Density Variables
 
-| CSS Variable                        | JS Option            | Description                       |
-| ----------------------------------- | -------------------- | --------------------------------- |
-| `--ht-density-cell-vertical`        | `cellVertical`       | Vertical padding for cells        |
-| `--ht-density-cell-horizontal`      | `cellHorizontal`     | Horizontal padding for cells      |
-| `--ht-density-bars-horizontal`      | `barsHorizontal`     | Horizontal padding for bars       |
-| `--ht-density-bars-vertical`        | `barsVertical`       | Vertical padding for bars         |
-| `--ht-density-gap`                  | `gap`                | Standard gap size                 |
-| `--ht-density-button-horizontal`    | `buttonHorizontal`   | Horizontal padding for buttons    |
-| `--ht-density-button-vertical`      | `buttonVertical`     | Vertical padding for buttons      |
-| `--ht-density-dialog-horizontal`    | `dialogHorizontal`   | Horizontal padding for dialogs    |
-| `--ht-density-dialog-vertical`      | `dialogVertical`     | Vertical padding for dialogs      |
-| `--ht-density-input-horizontal`     | `inputHorizontal`    | Horizontal padding for inputs     |
-| `--ht-density-input-vertical`       | `inputVertical`      | Vertical padding for inputs       |
-| `--ht-density-menu-vertical`        | `menuVertical`       | Vertical padding for menus        |
-| `--ht-density-menu-horizontal`      | `menuHorizontal`     | Horizontal padding for menus      |
-| `--ht-density-menu-item-vertical`   | `menuItemVertical`   | Vertical padding for menu items   |
-| `--ht-density-menu-item-horizontal` | `menuItemHorizontal` | Horizontal padding for menu items |
+| Variable | Description                       |
+| -------- | --------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-cell-vertical` </div><div class="variables-table__item"><span>JS:</span> `cellVertical` </div>       | Vertical padding for cells        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-cell-horizontal` </div><div class="variables-table__item"><span>JS:</span> `cellHorizontal` </div>     | Horizontal padding for cells      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-bars-horizontal` </div><div class="variables-table__item"><span>JS:</span> `barsHorizontal` </div>     | Horizontal padding for bars       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-bars-vertical` </div><div class="variables-table__item"><span>JS:</span> `barsVertical` </div>       | Vertical padding for bars         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-gap` </div><div class="variables-table__item"><span>JS:</span> `gap` </div>                | Standard gap size                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-button-horizontal` </div><div class="variables-table__item"><span>JS:</span> `buttonHorizontal` </div>   | Horizontal padding for buttons    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-button-vertical` </div><div class="variables-table__item"><span>JS:</span> `buttonVertical` </div>     | Vertical padding for buttons      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-dialog-horizontal` </div><div class="variables-table__item"><span>JS:</span> `dialogHorizontal` </div>   | Horizontal padding for dialogs    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-dialog-vertical` </div><div class="variables-table__item"><span>JS:</span> `dialogVertical` </div>     | Vertical padding for dialogs      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-input-horizontal` </div><div class="variables-table__item"><span>JS:</span> `inputHorizontal` </div>    | Horizontal padding for inputs     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-input-vertical` </div><div class="variables-table__item"><span>JS:</span> `inputVertical` </div>      | Vertical padding for inputs       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-menu-vertical` </div><div class="variables-table__item"><span>JS:</span> `menuVertical` </div>       | Vertical padding for menus        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-menu-horizontal` </div><div class="variables-table__item"><span>JS:</span> `menuHorizontal` </div>     | Horizontal padding for menus      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-menu-item-vertical` </div><div class="variables-table__item"><span>JS:</span> `menuItemVertical` </div>   | Vertical padding for menu items   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-density-menu-item-horizontal` </div><div class="variables-table__item"><span>JS:</span> `menuItemHorizontal` </div> | Horizontal padding for menu items |
 
 ### Color Palette Variables
 
-| CSS Variable              | JS Option     | Description                 |
-| ------------------------- | ------------- | --------------------------- |
-| `--ht-colors-white`       | `white`       | Pure white color            |
-| `--ht-colors-black`       | `black`       | Pure black color            |
-| `--ht-colors-transparent` | `transparent` | Transparent color           |
-| `--ht-colors-primary-100` | `primary.100` | Lightest primary accent     |
-| `--ht-colors-primary-200` | `primary.200` | Light primary accent        |
-| `--ht-colors-primary-300` | `primary.300` | Medium-light primary accent |
-| `--ht-colors-primary-400` | `primary.400` | Medium primary accent       |
-| `--ht-colors-primary-500` | `primary.500` | Main primary accent         |
-| `--ht-colors-primary-600` | `primary.600` | Dark primary accent         |
-| `--ht-colors-palette-50`  | `palette.50`  | Lightest gray               |
-| `--ht-colors-palette-100` | `palette.100` | Very light gray             |
-| `--ht-colors-palette-200` | `palette.200` | Light gray                  |
-| `--ht-colors-palette-300` | `palette.300` | Medium-light gray           |
-| `--ht-colors-palette-400` | `palette.400` | Medium gray                 |
-| `--ht-colors-palette-500` | `palette.500` | Medium-dark gray            |
-| `--ht-colors-palette-600` | `palette.600` | Dark gray                   |
-| `--ht-colors-palette-700` | `palette.700` | Darker gray                 |
-| `--ht-colors-palette-800` | `palette.800` | Very dark gray              |
-| `--ht-colors-palette-900` | `palette.900` | Near black                  |
-| `--ht-colors-palette-950` | `palette.950` | Darkest gray                |
+| Variable | Description                 |
+| -------- | --------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-white` </div><div class="variables-table__item"><span>JS:</span> `white` </div>       | Pure white color            |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-black` </div><div class="variables-table__item"><span>JS:</span> `black` </div>       | Pure black color            |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-transparent` </div><div class="variables-table__item"><span>JS:</span> `transparent` </div> | Transparent color           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-primary-100` </div><div class="variables-table__item"><span>JS:</span> `primary.100` </div> | Lightest primary accent     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-primary-200` </div><div class="variables-table__item"><span>JS:</span> `primary.200` </div> | Light primary accent        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-primary-300` </div><div class="variables-table__item"><span>JS:</span> `primary.300` </div> | Medium-light primary accent |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-primary-400` </div><div class="variables-table__item"><span>JS:</span> `primary.400` </div> | Medium primary accent       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-primary-500` </div><div class="variables-table__item"><span>JS:</span> `primary.500` </div> | Main primary accent         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-primary-600` </div><div class="variables-table__item"><span>JS:</span> `primary.600` </div> | Dark primary accent         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-50` </div><div class="variables-table__item"><span>JS:</span> `palette.50` </div>  | Lightest gray               |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-100` </div><div class="variables-table__item"><span>JS:</span> `palette.100` </div> | Very light gray             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-200` </div><div class="variables-table__item"><span>JS:</span> `palette.200` </div> | Light gray                  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-300` </div><div class="variables-table__item"><span>JS:</span> `palette.300` </div> | Medium-light gray           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-400` </div><div class="variables-table__item"><span>JS:</span> `palette.400` </div> | Medium gray                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-500` </div><div class="variables-table__item"><span>JS:</span> `palette.500` </div> | Medium-dark gray            |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-600` </div><div class="variables-table__item"><span>JS:</span> `palette.600` </div> | Dark gray                   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-700` </div><div class="variables-table__item"><span>JS:</span> `palette.700` </div> | Darker gray                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-800` </div><div class="variables-table__item"><span>JS:</span> `palette.800` </div> | Very dark gray              |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-900` </div><div class="variables-table__item"><span>JS:</span> `palette.900` </div> | Near black                  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-950` </div><div class="variables-table__item"><span>JS:</span> `palette.950` </div> | Darkest gray                |
 
 ### Tokens Variables
 
 #### Typography Variables
 
-| CSS Variable             | JS Option         | Description                          |
-| ------------------------ | ----------------- | ------------------------------------ |
-| `--ht-font-family`       | `fontFamily`      | Font family for all text elements    |
-| `--ht-font-size`         | `fontSize`        | Base font size for all text elements |
-| `--ht-font-size-small`   | `fontSizeSmall`   | Font size for smaller text           |
-| `--ht-line-height`       | `lineHeight`      | Line height for text elements        |
-| `--ht-line-height-small` | `lineHeightSmall` | Line height for smaller text         |
-| `--ht-font-weight`       | `fontWeight`      | Font weight for text elements        |
-| `--ht-letter-spacing`    | `letterSpacing`   | Letter spacing for text elements     |
+| Variable | Description                          |
+| -------- | ------------------------------------ |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-font-family` </div><div class="variables-table__item"><span>JS:</span> `fontFamily` </div>      | Font family for all text elements    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-font-size` </div><div class="variables-table__item"><span>JS:</span> `fontSize` </div>        | Base font size for all text elements |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-font-size-small` </div><div class="variables-table__item"><span>JS:</span> `fontSizeSmall` </div>   | Font size for smaller text           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-line-height` </div><div class="variables-table__item"><span>JS:</span> `lineHeight` </div>      | Line height for text elements        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-line-height-small` </div><div class="variables-table__item"><span>JS:</span> `lineHeightSmall` </div> | Line height for smaller text         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-font-weight` </div><div class="variables-table__item"><span>JS:</span> `fontWeight` </div>      | Font weight for text elements        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-letter-spacing` </div><div class="variables-table__item"><span>JS:</span> `letterSpacing` </div>   | Letter spacing for text elements     |
 
 #### Layout & Spacing Variables
 
-| CSS Variable            | JS Option         | Description                                     |
-| ----------------------- | ----------------- | ----------------------------------------------- |
-| `--ht-gap-size`         | `gapSize`         | Standard gap size used throughout the component |
-| `--ht-icon-size`        | `iconSize`        | Size of icons throughout the interface          |
-| `--ht-table-transition` | `tableTransition` | Transition duration for table animations        |
+| Variable | Description                                     |
+| -------- | ----------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-gap-size` </div><div class="variables-table__item"><span>JS:</span> `gapSize` </div>         | Standard gap size used throughout the component |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-size` </div><div class="variables-table__item"><span>JS:</span> `iconSize` </div>        | Size of icons throughout the interface          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-table-transition` </div><div class="variables-table__item"><span>JS:</span> `tableTransition` </div> | Transition duration for table animations        |
 
 #### Color System Variables
 
-| CSS Variable                      | JS Option                  | Description                                                |
-| --------------------------------- | -------------------------- | ---------------------------------------------------------- |
-| `--ht-border-color`               | `borderColor`              | Default border color for all elements                      |
-| `--ht-accent-color`               | `accentColor`              | Primary accent color used for highlights and active states |
-| `--ht-foreground-color`           | `foregroundColor`          | Primary text color                                         |
-| `--ht-foreground-secondary-color` | `foregroundSecondaryColor` | Secondary text color                                       |
-| `--ht-background-color`           | `backgroundColor`          | Primary background color                                   |
-| `--ht-background-secondary-color` | `backgroundSecondaryColor` | Secondary background color                                 |
-| `--ht-placeholder-color`          | `placeholderColor`         | Color for placeholder text                                 |
-| `--ht-read-only-color`            | `readOnlyColor`            | Color for read-only text                                   |
-| `--ht-disabled-color`             | `disabledColor`            | Color for disabled elements                                |
+| Variable | Description                                                |
+| -------- | ---------------------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-border-color` </div><div class="variables-table__item"><span>JS:</span> `borderColor` </div>              | Default border color for all elements                      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-accent-color` </div><div class="variables-table__item"><span>JS:</span> `accentColor` </div>              | Primary accent color used for highlights and active states |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `foregroundColor` </div>          | Primary text color                                         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-foreground-secondary-color` </div><div class="variables-table__item"><span>JS:</span> `foregroundSecondaryColor` </div> | Secondary text color                                       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-background-color` </div><div class="variables-table__item"><span>JS:</span> `backgroundColor` </div>          | Primary background color                                   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-background-secondary-color` </div><div class="variables-table__item"><span>JS:</span> `backgroundSecondaryColor` </div> | Secondary background color                                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-placeholder-color` </div><div class="variables-table__item"><span>JS:</span> `placeholderColor` </div>         | Color for placeholder text                                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-read-only-color` </div><div class="variables-table__item"><span>JS:</span> `readOnlyColor` </div>            | Color for read-only text                                   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-disabled-color` </div><div class="variables-table__item"><span>JS:</span> `disabledColor` </div>             | Color for disabled elements                                |
 
 #### Shadow Variables
 
-| CSS Variable          | JS Option       | Description                  |
-| --------------------- | --------------- | ---------------------------- |
-| `--ht-shadow-color`   | `shadowColor`   | Base color used for shadows  |
-| `--ht-shadow-x`       | `shadowX`       | Horizontal offset of shadows |
-| `--ht-shadow-y`       | `shadowY`       | Vertical offset of shadows   |
-| `--ht-shadow-blur`    | `shadowBlur`    | Blur radius of shadows       |
-| `--ht-shadow-opacity` | `shadowOpacity` | Opacity of shadows           |
+| Variable | Description                  |
+| -------- | ---------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-shadow-color` </div><div class="variables-table__item"><span>JS:</span> `shadowColor` </div>   | Base color used for shadows  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-shadow-x` </div><div class="variables-table__item"><span>JS:</span> `shadowX` </div>       | Horizontal offset of shadows |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-shadow-y` </div><div class="variables-table__item"><span>JS:</span> `shadowY` </div>       | Vertical offset of shadows   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-shadow-blur` </div><div class="variables-table__item"><span>JS:</span> `shadowBlur` </div>    | Blur radius of shadows       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-shadow-opacity` </div><div class="variables-table__item"><span>JS:</span> `shadowOpacity` </div> | Opacity of shadows           |
 
 #### Bar Variables
 
-| CSS Variable                  | JS Option              | Description                            |
-| ----------------------------- | ---------------------- | -------------------------------------- |
-| `--ht-bar-foreground-color`   | `barForegroundColor`   | Foreground color of bar elements       |
-| `--ht-bar-background-color`   | `barBackgroundColor`   | Background color of bar elements       |
-| `--ht-bar-horizontal-padding` | `barHorizontalPadding` | Horizontal padding inside bar elements |
-| `--ht-bar-vertical-padding`   | `barVerticalPadding`   | Vertical padding inside bar elements   |
+| Variable | Description                            |
+| -------- | -------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-bar-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `barForegroundColor` </div>   | Foreground color of bar elements       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-bar-background-color` </div><div class="variables-table__item"><span>JS:</span> `barBackgroundColor` </div>   | Background color of bar elements       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-bar-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `barHorizontalPadding` </div> | Horizontal padding inside bar elements |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-bar-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `barVerticalPadding` </div>   | Vertical padding inside bar elements   |
 
 #### Cell Border Variables
 
-| CSS Variable                        | JS Option                   | Description                      |
-| ----------------------------------- | --------------------------- | -------------------------------- |
-| `--ht-cell-horizontal-border-color` | `cellHorizontalBorderColor` | Color of horizontal cell borders |
-| `--ht-cell-vertical-border-color`   | `cellVerticalBorderColor`   | Color of vertical cell borders   |
+| Variable | Description                      |
+| -------- | -------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-horizontal-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellHorizontalBorderColor` </div> | Color of horizontal cell borders |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-vertical-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellVerticalBorderColor` </div>   | Color of vertical cell borders   |
 
 #### Wrapper Variables
 
-| CSS Variable                 | JS Option             | Description                        |
-| ---------------------------- | --------------------- | ---------------------------------- |
-| `--ht-wrapper-border-width`  | `wrapperBorderWidth`  | Width of the table wrapper border  |
-| `--ht-wrapper-border-radius` | `wrapperBorderRadius` | Border radius of the table wrapper |
-| `--ht-wrapper-border-color`  | `wrapperBorderColor`  | Color of the table wrapper border  |
+| Variable | Description                        |
+| -------- | ---------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-wrapper-border-width` </div><div class="variables-table__item"><span>JS:</span> `wrapperBorderWidth` </div>  | Width of the table wrapper border  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-wrapper-border-radius` </div><div class="variables-table__item"><span>JS:</span> `wrapperBorderRadius` </div> | Border radius of the table wrapper |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-wrapper-border-color` </div><div class="variables-table__item"><span>JS:</span> `wrapperBorderColor` </div>  | Color of the table wrapper border  |
 
 #### Row Styling Variables
 
-| CSS Variable                            | JS Option                      | Description                           |
-| --------------------------------------- | ------------------------------ | ------------------------------------- |
-| `--ht-row-header-odd-background-color`  | `rowHeaderOddBackgroundColor`  | Background color for odd row headers  |
-| `--ht-row-header-even-background-color` | `rowHeaderEvenBackgroundColor` | Background color for even row headers |
-| `--ht-row-cell-odd-background-color`    | `rowCellOddBackgroundColor`    | Background color for odd row cells    |
-| `--ht-row-cell-even-background-color`   | `rowCellEvenBackgroundColor`   | Background color for even row cells   |
+| Variable | Description                           |
+| -------- | ------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-row-header-odd-background-color` </div><div class="variables-table__item"><span>JS:</span> `rowHeaderOddBackgroundColor` </div>  | Background color for odd row headers  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-row-header-even-background-color` </div><div class="variables-table__item"><span>JS:</span> `rowHeaderEvenBackgroundColor` </div> | Background color for even row headers |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-row-cell-odd-background-color` </div><div class="variables-table__item"><span>JS:</span> `rowCellOddBackgroundColor` </div>    | Background color for odd row cells    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-row-cell-even-background-color` </div><div class="variables-table__item"><span>JS:</span> `rowCellEvenBackgroundColor` </div>   | Background color for even row cells   |
 
 #### Cell Padding Variables
 
-| CSS Variable                   | JS Option               | Description                     |
-| ------------------------------ | ----------------------- | ------------------------------- |
-| `--ht-cell-horizontal-padding` | `cellHorizontalPadding` | Horizontal padding inside cells |
-| `--ht-cell-vertical-padding`   | `cellVerticalPadding`   | Vertical padding inside cells   |
+| Variable | Description                     |
+| -------- | ------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `cellHorizontalPadding` </div> | Horizontal padding inside cells |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `cellVerticalPadding` </div>   | Vertical padding inside cells   |
 
 #### Cell Editor Variables
 
-| CSS Variable                          | JS Option                    | Description                         |
-| ------------------------------------- | ---------------------------- | ----------------------------------- |
-| `--ht-cell-editor-border-width`       | `cellEditorBorderWidth`      | Border width of cell editors        |
-| `--ht-cell-editor-border-color`       | `cellEditorBorderColor`      | Border color of cell editors        |
-| `--ht-cell-editor-foreground-color`   | `cellEditorForegroundColor`  | Text color in cell editors          |
-| `--ht-cell-editor-background-color`   | `cellEditorBackgroundColor`  | Background color of cell editors    |
-| `--ht-cell-editor-shadow-blur-radius` | `cellEditorShadowBlurRadius` | Shadow blur radius for cell editors |
-| `--ht-cell-editor-shadow-color`       | `cellEditorShadowColor`      | Shadow color for cell editors       |
+| Variable | Description                         |
+| -------- | ----------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-editor-border-width` </div><div class="variables-table__item"><span>JS:</span> `cellEditorBorderWidth` </div>      | Border width of cell editors        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-editor-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellEditorBorderColor` </div>      | Border color of cell editors        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-editor-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `cellEditorForegroundColor` </div>  | Text color in cell editors          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-editor-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellEditorBackgroundColor` </div>  | Background color of cell editors    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-editor-shadow-blur-radius` </div><div class="variables-table__item"><span>JS:</span> `cellEditorShadowBlurRadius` </div> | Shadow blur radius for cell editors |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-editor-shadow-color` </div><div class="variables-table__item"><span>JS:</span> `cellEditorShadowColor` </div>      | Shadow color for cell editors       |
 
 #### Cell State Variables
 
-| CSS Variable                           | JS Option                     | Description                                     |
-| -------------------------------------- | ----------------------------- | ----------------------------------------------- |
-| `--ht-cell-success-background-color`   | `cellSuccessBackgroundColor`  | Background color for successful cell operations |
-| `--ht-cell-error-background-color`     | `cellErrorBackgroundColor`    | Background color for error states in cells      |
-| `--ht-cell-read-only-background-color` | `cellReadOnlyBackgroundColor` | Background color for read-only cells            |
+| Variable | Description                                     |
+| -------- | ----------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-success-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellSuccessBackgroundColor` </div>  | Background color for successful cell operations |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-error-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellErrorBackgroundColor` </div>    | Background color for error states in cells      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-read-only-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellReadOnlyBackgroundColor` </div> | Background color for read-only cells            |
 
 #### Cell Selection Variables
 
-| CSS Variable                           | JS Option                      | Description                         |
-| -------------------------------------- | ------------------------------ | ----------------------------------- |
-| `--ht-cell-selection-border-color`     | `cellSelectionBorderColor`     | Border color for selected cells     |
-| `--ht-cell-selection-background-color` | `cellSelectionBackgroundColor` | Background color for selected cells |
+| Variable | Description                         |
+| -------- | ----------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionBorderColor` </div>     | Border color for selected cells     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionBackgroundColor` </div> | Background color for selected cells |
 
 #### Cell Autofill Variables
 
-| CSS Variable                           | JS Option                     | Description                             |
-| -------------------------------------- | ----------------------------- | --------------------------------------- |
-| `--ht-cell-autofill-size`              | `cellAutofillSize`            | Size of the autofill handle             |
-| `--ht-cell-autofill-hit-area-size`     | `cellAutofillHitAreaSize`     | Size of the autofill hit area           |
-| `--ht-cell-autofill-border-width`      | `cellAutofillBorderWidth`     | Border width of autofill elements       |
-| `--ht-cell-autofill-border-radius`     | `cellAutofillBorderRadius`    | Border radius of autofill elements      |
-| `--ht-cell-autofill-border-color`      | `cellAutofillBorderColor`     | Border color of autofill elements       |
-| `--ht-cell-autofill-background-color`  | `cellAutofillBackgroundColor` | Background color of autofill elements   |
-| `--ht-cell-autofill-fill-border-color` | `cellAutofillFillBorderColor` | Border color of autofill fill indicator |
+| Variable | Description                             |
+| -------- | --------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-autofill-size` </div><div class="variables-table__item"><span>JS:</span> `cellAutofillSize` </div>            | Size of the autofill handle             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-autofill-hit-area-size` </div><div class="variables-table__item"><span>JS:</span> `cellAutofillHitAreaSize` </div>     | Size of the autofill hit area           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-autofill-border-width` </div><div class="variables-table__item"><span>JS:</span> `cellAutofillBorderWidth` </div>     | Border width of autofill elements       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-autofill-border-radius` </div><div class="variables-table__item"><span>JS:</span> `cellAutofillBorderRadius` </div>    | Border radius of autofill elements      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-autofill-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellAutofillBorderColor` </div>     | Border color of autofill elements       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-autofill-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellAutofillBackgroundColor` </div> | Background color of autofill elements   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-autofill-fill-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellAutofillFillBorderColor` </div> | Border color of autofill fill indicator |
 
 #### Cell Mobile Handle Variables
 
-| CSS Variable                                 | JS Option                           | Description                          |
-| -------------------------------------------- | ----------------------------------- | ------------------------------------ |
-| `--ht-cell-mobile-handle-size`               | `cellMobileHandleSize`              | Size of mobile touch handles         |
-| `--ht-cell-mobile-handle-border-width`       | `cellMobileHandleBorderWidth`       | Border width of mobile handles       |
-| `--ht-cell-mobile-handle-border-radius`      | `cellMobileHandleBorderRadius`      | Border radius of mobile handles      |
-| `--ht-cell-mobile-handle-border-color`       | `cellMobileHandleBorderColor`       | Border color of mobile handles       |
-| `--ht-cell-mobile-handle-background-color`   | `cellMobileHandleBackgroundColor`   | Background color of mobile handles   |
-| `--ht-cell-mobile-handle-background-opacity` | `cellMobileHandleBackgroundOpacity` | Background opacity of mobile handles |
+| Variable | Description                          |
+| -------- | ------------------------------------ |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-size` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleSize` </div>              | Size of mobile touch handles         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-border-width` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleBorderWidth` </div>       | Border width of mobile handles       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-border-radius` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleBorderRadius` </div>      | Border radius of mobile handles      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleBorderColor` </div>       | Border color of mobile handles       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleBackgroundColor` </div>   | Background color of mobile handles   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-background-opacity` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleBackgroundOpacity` </div> | Background opacity of mobile handles |
 
 #### Indicator Variables
 
-| CSS Variable                  | JS Option              | Description                          |
-| ----------------------------- | ---------------------- | ------------------------------------ |
-| `--ht-resize-indicator-color` | `resizeIndicatorColor` | Color of resize indicators           |
-| `--ht-move-backlight-color`   | `moveBacklightColor`   | Background color for move operations |
-| `--ht-move-backlight-opacity` | `moveBacklightOpacity` | Opacity of move backlight            |
-| `--ht-move-indicator-color`   | `moveIndicatorColor`   | Color of move indicators             |
-| `--ht-hidden-indicator-color` | `hiddenIndicatorColor` | Color of hidden element indicators   |
+| Variable | Description                          |
+| -------- | ------------------------------------ |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-resize-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `resizeIndicatorColor` </div> | Color of resize indicators           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-move-backlight-color` </div><div class="variables-table__item"><span>JS:</span> `moveBacklightColor` </div>   | Background color for move operations |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-move-backlight-opacity` </div><div class="variables-table__item"><span>JS:</span> `moveBacklightOpacity` </div> | Opacity of move backlight            |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-move-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `moveIndicatorColor` </div>   | Color of move indicators             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-hidden-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `hiddenIndicatorColor` </div> | Color of hidden element indicators   |
 
 #### Scrollbar Variables
 
-| CSS Variable                   | JS Option               | Description                          |
-| ------------------------------ | ----------------------- | ------------------------------------ |
-| `--ht-scrollbar-border-radius` | `scrollbarBorderRadius` | Border radius of scrollbars          |
-| `--ht-scrollbar-track-color`   | `scrollbarTrackColor`   | Background color of scrollbar tracks |
-| `--ht-scrollbar-thumb-color`   | `scrollbarThumbColor`   | Color of scrollbar thumbs            |
+| Variable | Description                          |
+| -------- | ------------------------------------ |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-scrollbar-border-radius` </div><div class="variables-table__item"><span>JS:</span> `scrollbarBorderRadius` </div> | Border radius of scrollbars          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-scrollbar-track-color` </div><div class="variables-table__item"><span>JS:</span> `scrollbarTrackColor` </div>   | Background color of scrollbar tracks |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-scrollbar-thumb-color` </div><div class="variables-table__item"><span>JS:</span> `scrollbarThumbColor` </div>   | Color of scrollbar thumbs            |
 
 #### Header Variables
 
-| CSS Variable                               | JS Option                          | Description                              |
-| ------------------------------------------ | ---------------------------------- | ---------------------------------------- |
-| `--ht-header-font-weight`                  | `headerFontWeight`                 | Font weight for header text              |
-| `--ht-header-foreground-color`             | `headerForegroundColor`            | Text color for headers                   |
-| `--ht-header-background-color`             | `headerBackgroundColor`            | Background color for headers             |
-| `--ht-header-highlighted-shadow-size`      | `headerHighlightedShadowSize`      | Shadow size for highlighted headers      |
-| `--ht-header-highlighted-foreground-color` | `headerHighlightedForegroundColor` | Text color for highlighted headers       |
-| `--ht-header-highlighted-background-color` | `headerHighlightedBackgroundColor` | Background color for highlighted headers |
-| `--ht-header-active-border-color`          | `headerActiveBorderColor`          | Border color for active headers          |
-| `--ht-header-active-foreground-color`      | `headerActiveForegroundColor`      | Text color for active headers            |
-| `--ht-header-active-background-color`      | `headerActiveBackgroundColor`      | Background color for active headers      |
-| `--ht-header-filter-background-color`      | `headerFilterBackgroundColor`      | Background color for header filters      |
+| Variable | Description                              |
+| -------- | ---------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-font-weight` </div><div class="variables-table__item"><span>JS:</span> `headerFontWeight` </div>                 | Font weight for header text              |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `headerForegroundColor` </div>            | Text color for headers                   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-background-color` </div><div class="variables-table__item"><span>JS:</span> `headerBackgroundColor` </div>            | Background color for headers             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-highlighted-shadow-size` </div><div class="variables-table__item"><span>JS:</span> `headerHighlightedShadowSize` </div>      | Shadow size for highlighted headers      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-highlighted-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `headerHighlightedForegroundColor` </div> | Text color for highlighted headers       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-highlighted-background-color` </div><div class="variables-table__item"><span>JS:</span> `headerHighlightedBackgroundColor` </div> | Background color for highlighted headers |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-active-border-color` </div><div class="variables-table__item"><span>JS:</span> `headerActiveBorderColor` </div>          | Border color for active headers          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-active-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `headerActiveForegroundColor` </div>      | Text color for active headers            |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-active-background-color` </div><div class="variables-table__item"><span>JS:</span> `headerActiveBackgroundColor` </div>      | Background color for active headers      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-filter-background-color` </div><div class="variables-table__item"><span>JS:</span> `headerFilterBackgroundColor` </div>      | Background color for header filters      |
 
 #### Header Row Variables
 
-| CSS Variable                                   | JS Option                             | Description                                  |
-| ---------------------------------------------- | ------------------------------------- | -------------------------------------------- |
-| `--ht-header-row-foreground-color`             | `headerRowForegroundColor`            | Text color for header rows                   |
-| `--ht-header-row-background-color`             | `headerRowBackgroundColor`            | Background color for header rows             |
-| `--ht-header-row-highlighted-foreground-color` | `headerRowHighlightedForegroundColor` | Text color for highlighted header rows       |
-| `--ht-header-row-highlighted-background-color` | `headerRowHighlightedBackgroundColor` | Background color for highlighted header rows |
-| `--ht-header-row-active-foreground-color`      | `headerRowActiveForegroundColor`      | Text color for active header rows            |
-| `--ht-header-row-active-background-color`      | `headerRowActiveBackgroundColor`      | Background color for active header rows      |
+| Variable | Description                                  |
+| -------- | -------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-row-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `headerRowForegroundColor` </div>            | Text color for header rows                   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-row-background-color` </div><div class="variables-table__item"><span>JS:</span> `headerRowBackgroundColor` </div>            | Background color for header rows             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-row-highlighted-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `headerRowHighlightedForegroundColor` </div> | Text color for highlighted header rows       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-row-highlighted-background-color` </div><div class="variables-table__item"><span>JS:</span> `headerRowHighlightedBackgroundColor` </div> | Background color for highlighted header rows |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-row-active-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `headerRowActiveForegroundColor` </div>      | Text color for active header rows            |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-header-row-active-background-color` </div><div class="variables-table__item"><span>JS:</span> `headerRowActiveBackgroundColor` </div>      | Background color for active header rows      |
 
 #### Checkbox Variables
 
-| CSS Variable                                            | JS Option                                      | Description                                           |
-| ------------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------- |
-| `--ht-checkbox-size`                                    | `checkboxSize`                                 | Size of checkbox elements                             |
-| `--ht-checkbox-border-radius`                           | `checkboxBorderRadius`                         | Border radius of checkboxes                           |
-| `--ht-checkbox-border-color`                            | `checkboxBorderColor`                          | Border color of checkboxes                            |
-| `--ht-checkbox-background-color`                        | `checkboxBackgroundColor`                      | Background color of checkboxes                        |
-| `--ht-checkbox-icon-color`                              | `checkboxIconColor`                            | Color of checkbox icons                               |
-| `--ht-checkbox-focus-border-color`                      | `checkboxFocusBorderColor`                     | Border color of focused checkboxes                    |
-| `--ht-checkbox-focus-background-color`                  | `checkboxFocusBackgroundColor`                 | Background color of focused checkboxes                |
-| `--ht-checkbox-focus-icon-color`                        | `checkboxFocusIconColor`                       | Icon color of focused checkboxes                      |
-| `--ht-checkbox-focus-ring-color`                        | `checkboxFocusRingColor`                       | Focus ring color for checkboxes                       |
-| `--ht-checkbox-disabled-border-color`                   | `checkboxDisabledBorderColor`                  | Border color of disabled checkboxes                   |
-| `--ht-checkbox-disabled-background-color`               | `checkboxDisabledBackgroundColor`              | Background color of disabled checkboxes               |
-| `--ht-checkbox-disabled-icon-color`                     | `checkboxDisabledIconColor`                    | Icon color of disabled checkboxes                     |
-| `--ht-checkbox-checked-border-color`                    | `checkboxCheckedBorderColor`                   | Border color of checked checkboxes                    |
-| `--ht-checkbox-checked-background-color`                | `checkboxCheckedBackgroundColor`               | Background color of checked checkboxes                |
-| `--ht-checkbox-checked-icon-color`                      | `checkboxCheckedIconColor`                     | Icon color of checked checkboxes                      |
-| `--ht-checkbox-checked-focus-border-color`              | `checkboxCheckedFocusBorderColor`              | Border color of focused checked checkboxes            |
-| `--ht-checkbox-checked-focus-background-color`          | `checkboxCheckedFocusBackgroundColor`          | Background color of focused checked checkboxes        |
-| `--ht-checkbox-checked-focus-icon-color`                | `checkboxCheckedFocusIconColor`                | Icon color of focused checked checkboxes              |
-| `--ht-checkbox-checked-disabled-border-color`           | `checkboxCheckedDisabledBorderColor`           | Border color of disabled checked checkboxes           |
-| `--ht-checkbox-checked-disabled-background-color`       | `checkboxCheckedDisabledBackgroundColor`       | Background color of disabled checked checkboxes       |
-| `--ht-checkbox-checked-disabled-icon-color`             | `checkboxCheckedDisabledIconColor`             | Icon color of disabled checked checkboxes             |
-| `--ht-checkbox-indeterminate-border-color`              | `checkboxIndeterminateBorderColor`             | Border color of indeterminate checkboxes              |
-| `--ht-checkbox-indeterminate-background-color`          | `checkboxIndeterminateBackgroundColor`         | Background color of indeterminate checkboxes          |
-| `--ht-checkbox-indeterminate-icon-color`                | `checkboxIndeterminateIconColor`               | Icon color of indeterminate checkboxes                |
-| `--ht-checkbox-indeterminate-focus-border-color`        | `checkboxIndeterminateFocusBorderColor`        | Border color of focused indeterminate checkboxes      |
-| `--ht-checkbox-indeterminate-focus-background-color`    | `checkboxIndeterminateFocusBackgroundColor`    | Background color of focused indeterminate checkboxes  |
-| `--ht-checkbox-indeterminate-focus-icon-color`          | `checkboxIndeterminateFocusIconColor`          | Icon color of focused indeterminate checkboxes        |
-| `--ht-checkbox-indeterminate-disabled-border-color`     | `checkboxIndeterminateDisabledBorderColor`     | Border color of disabled indeterminate checkboxes     |
-| `--ht-checkbox-indeterminate-disabled-background-color` | `checkboxIndeterminateDisabledBackgroundColor` | Background color of disabled indeterminate checkboxes |
-| `--ht-checkbox-indeterminate-disabled-icon-color`       | `checkboxIndeterminateDisabledIconColor`       | Icon color of disabled indeterminate checkboxes       |
+| Variable | Description                                           |
+| -------- | ----------------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-size` </div><div class="variables-table__item"><span>JS:</span> `checkboxSize` </div>                                 | Size of checkbox elements                             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-border-radius` </div><div class="variables-table__item"><span>JS:</span> `checkboxBorderRadius` </div>                         | Border radius of checkboxes                           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-border-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxBorderColor` </div>                          | Border color of checkboxes                            |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-background-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxBackgroundColor` </div>                      | Background color of checkboxes                        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-icon-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxIconColor` </div>                            | Color of checkbox icons                               |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxFocusBorderColor` </div>                     | Border color of focused checkboxes                    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxFocusBackgroundColor` </div>                 | Background color of focused checkboxes                |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-focus-icon-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxFocusIconColor` </div>                       | Icon color of focused checkboxes                      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-focus-ring-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxFocusRingColor` </div>                       | Focus ring color for checkboxes                       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-disabled-border-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxDisabledBorderColor` </div>                  | Border color of disabled checkboxes                   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-disabled-background-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxDisabledBackgroundColor` </div>              | Background color of disabled checkboxes               |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-disabled-icon-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxDisabledIconColor` </div>                    | Icon color of disabled checkboxes                     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-checked-border-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxCheckedBorderColor` </div>                   | Border color of checked checkboxes                    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-checked-background-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxCheckedBackgroundColor` </div>               | Background color of checked checkboxes                |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-checked-icon-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxCheckedIconColor` </div>                     | Icon color of checked checkboxes                      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-checked-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxCheckedFocusBorderColor` </div>              | Border color of focused checked checkboxes            |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-checked-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxCheckedFocusBackgroundColor` </div>          | Background color of focused checked checkboxes        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-checked-focus-icon-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxCheckedFocusIconColor` </div>                | Icon color of focused checked checkboxes              |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-checked-disabled-border-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxCheckedDisabledBorderColor` </div>           | Border color of disabled checked checkboxes           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-checked-disabled-background-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxCheckedDisabledBackgroundColor` </div>       | Background color of disabled checked checkboxes       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-checked-disabled-icon-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxCheckedDisabledIconColor` </div>             | Icon color of disabled checked checkboxes             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-indeterminate-border-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxIndeterminateBorderColor` </div>             | Border color of indeterminate checkboxes              |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-indeterminate-background-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxIndeterminateBackgroundColor` </div>         | Background color of indeterminate checkboxes          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-indeterminate-icon-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxIndeterminateIconColor` </div>               | Icon color of indeterminate checkboxes                |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-indeterminate-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxIndeterminateFocusBorderColor` </div>        | Border color of focused indeterminate checkboxes      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-indeterminate-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxIndeterminateFocusBackgroundColor` </div>    | Background color of focused indeterminate checkboxes  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-indeterminate-focus-icon-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxIndeterminateFocusIconColor` </div>          | Icon color of focused indeterminate checkboxes        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-indeterminate-disabled-border-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxIndeterminateDisabledBorderColor` </div>     | Border color of disabled indeterminate checkboxes     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-indeterminate-disabled-background-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxIndeterminateDisabledBackgroundColor` </div> | Background color of disabled indeterminate checkboxes |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-indeterminate-disabled-icon-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxIndeterminateDisabledIconColor` </div>       | Icon color of disabled indeterminate checkboxes       |
 
 #### Radio Button Variables
 
-| CSS Variable                                   | JS Option                             | Description                                        |
-| ---------------------------------------------- | ------------------------------------- | -------------------------------------------------- |
-| `--ht-radio-size`                              | `radioSize`                           | Size of radio button elements                      |
-| `--ht-radio-border-color`                      | `radioBorderColor`                    | Border color of radio buttons                      |
-| `--ht-radio-background-color`                  | `radioBackgroundColor`                | Background color of radio buttons                  |
-| `--ht-radio-icon-color`                        | `radioIconColor`                      | Color of radio button icons                        |
-| `--ht-radio-focus-border-color`                | `radioFocusBorderColor`               | Border color of focused radio buttons              |
-| `--ht-radio-focus-background-color`            | `radioFocusBackgroundColor`           | Background color of focused radio buttons          |
-| `--ht-radio-focus-icon-color`                  | `radioFocusIconColor`                 | Icon color of focused radio buttons                |
-| `--ht-radio-focus-ring-color`                  | `radioFocusRingColor`                 | Focus ring color for radio buttons                 |
-| `--ht-radio-disabled-border-color`             | `radioDisabledBorderColor`            | Border color of disabled radio buttons             |
-| `--ht-radio-disabled-background-color`         | `radioDisabledBackgroundColor`        | Background color of disabled radio buttons         |
-| `--ht-radio-disabled-icon-color`               | `radioDisabledIconColor`              | Icon color of disabled radio buttons               |
-| `--ht-radio-checked-border-color`              | `radioCheckedBorderColor`             | Border color of checked radio buttons              |
-| `--ht-radio-checked-background-color`          | `radioCheckedBackgroundColor`         | Background color of checked radio buttons          |
-| `--ht-radio-checked-icon-color`                | `radioCheckedIconColor`               | Icon color of checked radio buttons                |
-| `--ht-radio-checked-focus-border-color`        | `radioCheckedFocusBorderColor`        | Border color of focused checked radio buttons      |
-| `--ht-radio-checked-focus-background-color`    | `radioCheckedFocusBackgroundColor`    | Background color of focused checked radio buttons  |
-| `--ht-radio-checked-focus-icon-color`          | `radioCheckedFocusIconColor`          | Icon color of focused checked radio buttons        |
-| `--ht-radio-checked-disabled-border-color`     | `radioCheckedDisabledBorderColor`     | Border color of disabled checked radio buttons     |
-| `--ht-radio-checked-disabled-background-color` | `radioCheckedDisabledBackgroundColor` | Background color of disabled checked radio buttons |
-| `--ht-radio-checked-disabled-icon-color`       | `radioCheckedDisabledIconColor`       | Icon color of disabled checked radio buttons       |
+| Variable | Description                                        |
+| -------- | -------------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-size` </div><div class="variables-table__item"><span>JS:</span> `radioSize` </div>                           | Size of radio button elements                      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-border-color` </div><div class="variables-table__item"><span>JS:</span> `radioBorderColor` </div>                    | Border color of radio buttons                      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-background-color` </div><div class="variables-table__item"><span>JS:</span> `radioBackgroundColor` </div>                | Background color of radio buttons                  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-icon-color` </div><div class="variables-table__item"><span>JS:</span> `radioIconColor` </div>                      | Color of radio button icons                        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `radioFocusBorderColor` </div>               | Border color of focused radio buttons              |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `radioFocusBackgroundColor` </div>           | Background color of focused radio buttons          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-focus-icon-color` </div><div class="variables-table__item"><span>JS:</span> `radioFocusIconColor` </div>                 | Icon color of focused radio buttons                |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-focus-ring-color` </div><div class="variables-table__item"><span>JS:</span> `radioFocusRingColor` </div>                 | Focus ring color for radio buttons                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-disabled-border-color` </div><div class="variables-table__item"><span>JS:</span> `radioDisabledBorderColor` </div>            | Border color of disabled radio buttons             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-disabled-background-color` </div><div class="variables-table__item"><span>JS:</span> `radioDisabledBackgroundColor` </div>        | Background color of disabled radio buttons         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-disabled-icon-color` </div><div class="variables-table__item"><span>JS:</span> `radioDisabledIconColor` </div>              | Icon color of disabled radio buttons               |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-checked-border-color` </div><div class="variables-table__item"><span>JS:</span> `radioCheckedBorderColor` </div>             | Border color of checked radio buttons              |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-checked-background-color` </div><div class="variables-table__item"><span>JS:</span> `radioCheckedBackgroundColor` </div>         | Background color of checked radio buttons          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-checked-icon-color` </div><div class="variables-table__item"><span>JS:</span> `radioCheckedIconColor` </div>               | Icon color of checked radio buttons                |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-checked-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `radioCheckedFocusBorderColor` </div>        | Border color of focused checked radio buttons      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-checked-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `radioCheckedFocusBackgroundColor` </div>    | Background color of focused checked radio buttons  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-checked-focus-icon-color` </div><div class="variables-table__item"><span>JS:</span> `radioCheckedFocusIconColor` </div>          | Icon color of focused checked radio buttons        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-checked-disabled-border-color` </div><div class="variables-table__item"><span>JS:</span> `radioCheckedDisabledBorderColor` </div>     | Border color of disabled checked radio buttons     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-checked-disabled-background-color` </div><div class="variables-table__item"><span>JS:</span> `radioCheckedDisabledBackgroundColor` </div> | Background color of disabled checked radio buttons |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-radio-checked-disabled-icon-color` </div><div class="variables-table__item"><span>JS:</span> `radioCheckedDisabledIconColor` </div>       | Icon color of disabled checked radio buttons       |
 
 #### Icon Button Variables
 
-| CSS Variable                                     | JS Option                              | Description                                     |
-| ------------------------------------------------ | -------------------------------------- | ----------------------------------------------- |
-| `--ht-icon-button-border-radius`                 | `iconButtonBorderRadius`               | Border radius of icon buttons                   |
-| `--ht-icon-button-large-border-radius`           | `iconButtonLargeBorderRadius`          | Border radius of large icon buttons             |
-| `--ht-icon-button-large-padding`                 | `iconButtonLargePadding`               | Padding of large icon buttons                   |
-| `--ht-icon-button-border-color`                  | `iconButtonBorderColor`                | Border color of icon buttons                    |
-| `--ht-icon-button-background-color`              | `iconButtonBackgroundColor`            | Background color of icon buttons                |
-| `--ht-icon-button-icon-color`                    | `iconButtonIconColor`                  | Color of icon button icons                      |
-| `--ht-icon-button-hover-border-color`            | `iconButtonHoverBorderColor`           | Border color of hovered icon buttons            |
-| `--ht-icon-button-hover-background-color`        | `iconButtonHoverBackgroundColor`       | Background color of hovered icon buttons        |
-| `--ht-icon-button-hover-icon-color`              | `iconButtonHoverIconColor`             | Icon color of hovered icon buttons              |
-| `--ht-icon-button-active-border-color`           | `iconButtonActiveBorderColor`          | Border color of active icon buttons             |
-| `--ht-icon-button-active-background-color`       | `iconButtonActiveBackgroundColor`      | Background color of active icon buttons         |
-| `--ht-icon-button-active-icon-color`             | `iconButtonActiveIconColor`            | Icon color of active icon buttons               |
-| `--ht-icon-button-active-hover-border-color`     | `iconButtonActiveHoverBorderColor`     | Border color of hovered active icon buttons     |
-| `--ht-icon-button-active-hover-background-color` | `iconButtonActiveHoverBackgroundColor` | Background color of hovered active icon buttons |
-| `--ht-icon-button-active-hover-icon-color`       | `iconButtonActiveHoverIconColor`       | Icon color of hovered active icon buttons       |
+| Variable | Description                                     |
+| -------- | ----------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-border-radius` </div><div class="variables-table__item"><span>JS:</span> `iconButtonBorderRadius` </div>               | Border radius of icon buttons                   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-large-border-radius` </div><div class="variables-table__item"><span>JS:</span> `iconButtonLargeBorderRadius` </div>          | Border radius of large icon buttons             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-large-padding` </div><div class="variables-table__item"><span>JS:</span> `iconButtonLargePadding` </div>               | Padding of large icon buttons                   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-border-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonBorderColor` </div>                | Border color of icon buttons                    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-background-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonBackgroundColor` </div>            | Background color of icon buttons                |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-icon-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonIconColor` </div>                  | Color of icon button icons                      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-hover-border-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonHoverBorderColor` </div>           | Border color of hovered icon buttons            |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonHoverBackgroundColor` </div>       | Background color of hovered icon buttons        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-hover-icon-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonHoverIconColor` </div>             | Icon color of hovered icon buttons              |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-border-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveBorderColor` </div>          | Border color of active icon buttons             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-background-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveBackgroundColor` </div>      | Background color of active icon buttons         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-icon-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveIconColor` </div>            | Icon color of active icon buttons               |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-hover-border-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveHoverBorderColor` </div>     | Border color of hovered active icon buttons     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveHoverBackgroundColor` </div> | Background color of hovered active icon buttons |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-hover-icon-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveHoverIconColor` </div>       | Icon color of hovered active icon buttons       |
 
 #### Collapse Button Variables
 
-| CSS Variable                                         | JS Option                                 | Description                                          |
-| ---------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------- |
-| `--ht-collapse-button-border-radius`                 | `collapseButtonBorderRadius`              | Border radius of collapse buttons                    |
-| `--ht-collapse-button-open-border-color`             | `collapseButtonOpenBorderColor`           | Border color of open collapse buttons                |
-| `--ht-collapse-button-open-background-color`         | `collapseButtonOpenBackgroundColor`       | Background color of open collapse buttons            |
-| `--ht-collapse-button-open-icon-color`               | `collapseButtonOpenIconColor`             | Icon color of open collapse buttons                  |
-| `--ht-collapse-button-open-icon-active-color`        | `collapseButtonOpenIconActiveColor`       | Active icon color of open collapse buttons           |
-| `--ht-collapse-button-open-hover-border-color`       | `collapseButtonOpenHoverBorderColor`      | Border color of hovered open collapse buttons        |
-| `--ht-collapse-button-open-hover-background-color`   | `collapseButtonOpenHoverBackgroundColor`  | Background color of hovered open collapse buttons    |
-| `--ht-collapse-button-open-hover-icon-color`         | `collapseButtonOpenHoverIconColor`        | Icon color of hovered open collapse buttons          |
-| `--ht-collapse-button-open-hover-icon-active-color`  | `collapseButtonOpenHoverIconActiveColor`  | Active icon color of hovered open collapse buttons   |
-| `--ht-collapse-button-close-border-color`            | `collapseButtonCloseBorderColor`          | Border color of closed collapse buttons              |
-| `--ht-collapse-button-close-background-color`        | `collapseButtonCloseBackgroundColor`      | Background color of closed collapse buttons          |
-| `--ht-collapse-button-close-icon-color`              | `collapseButtonCloseIconColor`            | Icon color of closed collapse buttons                |
-| `--ht-collapse-button-close-icon-active-color`       | `collapseButtonCloseIconActiveColor`      | Active icon color of closed collapse buttons         |
-| `--ht-collapse-button-close-hover-border-color`      | `collapseButtonCloseHoverBorderColor`     | Border color of hovered closed collapse buttons      |
-| `--ht-collapse-button-close-hover-background-color`  | `collapseButtonCloseHoverBackgroundColor` | Background color of hovered closed collapse buttons  |
-| `--ht-collapse-button-close-hover-icon-color`        | `collapseButtonCloseHoverIconColor`       | Icon color of hovered closed collapse buttons        |
-| `--ht-collapse-button-close-hover-icon-active-color` | `collapseButtonCloseHoverIconActiveColor` | Active icon color of hovered closed collapse buttons |
+| Variable | Description                                          |
+| -------- | ---------------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-border-radius` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonBorderRadius` </div>              | Border radius of collapse buttons                    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-open-border-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonOpenBorderColor` </div>           | Border color of open collapse buttons                |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-open-background-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonOpenBackgroundColor` </div>       | Background color of open collapse buttons            |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-open-icon-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonOpenIconColor` </div>             | Icon color of open collapse buttons                  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-open-icon-active-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonOpenIconActiveColor` </div>       | Active icon color of open collapse buttons           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-open-hover-border-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonOpenHoverBorderColor` </div>      | Border color of hovered open collapse buttons        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-open-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonOpenHoverBackgroundColor` </div>  | Background color of hovered open collapse buttons    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-open-hover-icon-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonOpenHoverIconColor` </div>        | Icon color of hovered open collapse buttons          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-open-hover-icon-active-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonOpenHoverIconActiveColor` </div>  | Active icon color of hovered open collapse buttons   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-close-border-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonCloseBorderColor` </div>          | Border color of closed collapse buttons              |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-close-background-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonCloseBackgroundColor` </div>      | Background color of closed collapse buttons          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-close-icon-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonCloseIconColor` </div>            | Icon color of closed collapse buttons                |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-close-icon-active-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonCloseIconActiveColor` </div>      | Active icon color of closed collapse buttons         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-close-hover-border-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonCloseHoverBorderColor` </div>     | Border color of hovered closed collapse buttons      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-close-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonCloseHoverBackgroundColor` </div> | Background color of hovered closed collapse buttons  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-close-hover-icon-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonCloseHoverIconColor` </div>       | Icon color of hovered closed collapse buttons        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-close-hover-icon-active-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonCloseHoverIconActiveColor` </div> | Active icon color of hovered closed collapse buttons |
 
 #### Button Variables
 
-| CSS Variable                     | JS Option                 | Description                   |
-| -------------------------------- | ------------------------- | ----------------------------- |
-| `--ht-button-border-radius`      | `buttonBorderRadius`      | Border radius of buttons      |
-| `--ht-button-horizontal-padding` | `buttonHorizontalPadding` | Horizontal padding of buttons |
-| `--ht-button-vertical-padding`   | `buttonVerticalPadding`   | Vertical padding of buttons   |
+| Variable | Description                   |
+| -------- | ----------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-button-border-radius` </div><div class="variables-table__item"><span>JS:</span> `buttonBorderRadius` </div>      | Border radius of buttons      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-button-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `buttonHorizontalPadding` </div> | Horizontal padding of buttons |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-button-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `buttonVerticalPadding` </div>   | Vertical padding of buttons   |
 
 #### Primary Button Variables
 
-| CSS Variable                                    | JS Option                              | Description                                  |
-| ----------------------------------------------- | -------------------------------------- | -------------------------------------------- |
-| `--ht-primary-button-border-color`              | `primaryButtonBorderColor`             | Border color of primary buttons              |
-| `--ht-primary-button-foreground-color`          | `primaryButtonForegroundColor`         | Text color of primary buttons                |
-| `--ht-primary-button-background-color`          | `primaryButtonBackgroundColor`         | Background color of primary buttons          |
-| `--ht-primary-button-disabled-border-color`     | `primaryButtonDisabledBorderColor`     | Border color of disabled primary buttons     |
-| `--ht-primary-button-disabled-foreground-color` | `primaryButtonDisabledForegroundColor` | Text color of disabled primary buttons       |
-| `--ht-primary-button-disabled-background-color` | `primaryButtonDisabledBackgroundColor` | Background color of disabled primary buttons |
-| `--ht-primary-button-hover-border-color`        | `primaryButtonHoverBorderColor`        | Border color of hovered primary buttons      |
-| `--ht-primary-button-hover-foreground-color`    | `primaryButtonHoverForegroundColor`    | Text color of hovered primary buttons        |
-| `--ht-primary-button-hover-background-color`    | `primaryButtonHoverBackgroundColor`    | Background color of hovered primary buttons  |
-| `--ht-primary-button-focus-border-color`        | `primaryButtonFocusBorderColor`        | Border color of focused primary buttons      |
-| `--ht-primary-button-focus-foreground-color`    | `primaryButtonFocusForegroundColor`    | Text color of focused primary buttons        |
-| `--ht-primary-button-focus-background-color`    | `primaryButtonFocusBackgroundColor`    | Background color of focused primary buttons  |
+| Variable | Description                                  |
+| -------- | -------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-border-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonBorderColor` </div>             | Border color of primary buttons              |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonForegroundColor` </div>         | Text color of primary buttons                |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-background-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonBackgroundColor` </div>         | Background color of primary buttons          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-disabled-border-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonDisabledBorderColor` </div>     | Border color of disabled primary buttons     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-disabled-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonDisabledForegroundColor` </div> | Text color of disabled primary buttons       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-disabled-background-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonDisabledBackgroundColor` </div> | Background color of disabled primary buttons |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-hover-border-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonHoverBorderColor` </div>        | Border color of hovered primary buttons      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-hover-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonHoverForegroundColor` </div>    | Text color of hovered primary buttons        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonHoverBackgroundColor` </div>    | Background color of hovered primary buttons  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonFocusBorderColor` </div>        | Border color of focused primary buttons      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-focus-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonFocusForegroundColor` </div>    | Text color of focused primary buttons        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonFocusBackgroundColor` </div>    | Background color of focused primary buttons  |
 
 #### Secondary Button Variables
 
-| CSS Variable                                      | JS Option                                | Description                                    |
-| ------------------------------------------------- | ---------------------------------------- | ---------------------------------------------- |
-| `--ht-secondary-button-border-color`              | `secondaryButtonBorderColor`             | Border color of secondary buttons              |
-| `--ht-secondary-button-foreground-color`          | `secondaryButtonForegroundColor`         | Text color of secondary buttons                |
-| `--ht-secondary-button-background-color`          | `secondaryButtonBackgroundColor`         | Background color of secondary buttons          |
-| `--ht-secondary-button-disabled-border-color`     | `secondaryButtonDisabledBorderColor`     | Border color of disabled secondary buttons     |
-| `--ht-secondary-button-disabled-foreground-color` | `secondaryButtonDisabledForegroundColor` | Text color of disabled secondary buttons       |
-| `--ht-secondary-button-disabled-background-color` | `secondaryButtonDisabledBackgroundColor` | Background color of disabled secondary buttons |
-| `--ht-secondary-button-hover-border-color`        | `secondaryButtonHoverBorderColor`        | Border color of hovered secondary buttons      |
-| `--ht-secondary-button-hover-foreground-color`    | `secondaryButtonHoverForegroundColor`    | Text color of hovered secondary buttons        |
-| `--ht-secondary-button-hover-background-color`    | `secondaryButtonHoverBackgroundColor`    | Background color of hovered secondary buttons  |
-| `--ht-secondary-button-focus-border-color`        | `secondaryButtonFocusBorderColor`        | Border color of focused secondary buttons      |
-| `--ht-secondary-button-focus-foreground-color`    | `secondaryButtonFocusForegroundColor`    | Text color of focused secondary buttons        |
-| `--ht-secondary-button-focus-background-color`    | `secondaryButtonFocusBackgroundColor`    | Background color of focused secondary buttons  |
+| Variable | Description                                    |
+| -------- | ---------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-border-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonBorderColor` </div>             | Border color of secondary buttons              |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonForegroundColor` </div>         | Text color of secondary buttons                |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-background-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonBackgroundColor` </div>         | Background color of secondary buttons          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-disabled-border-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonDisabledBorderColor` </div>     | Border color of disabled secondary buttons     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-disabled-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonDisabledForegroundColor` </div> | Text color of disabled secondary buttons       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-disabled-background-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonDisabledBackgroundColor` </div> | Background color of disabled secondary buttons |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-hover-border-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonHoverBorderColor` </div>        | Border color of hovered secondary buttons      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-hover-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonHoverForegroundColor` </div>    | Text color of hovered secondary buttons        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonHoverBackgroundColor` </div>    | Background color of hovered secondary buttons  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonFocusBorderColor` </div>        | Border color of focused secondary buttons      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-focus-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonFocusForegroundColor` </div>    | Text color of focused secondary buttons        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonFocusBackgroundColor` </div>    | Background color of focused secondary buttons  |
 
 #### Chip Variables
 
-| CSS Variable                   | JS Option               | Description                         |
-| ------------------------------ | ----------------------- | ----------------------------------- |
-| `--ht-chip-background`         | `chipBackground`        | Background color of chip elements   |
-| `--ht-chip-border-radius`      | `chipBorderRadius`      | Border radius of chip elements      |
-| `--ht-chip-vertical-padding`   | `chipVerticalPadding`   | Vertical padding of chip elements   |
-| `--ht-chip-horizontal-padding` | `chipHorizontalPadding` | Horizontal padding of chip elements |
-| `--ht-chip-gap`                | `chipGap`               | Gap between chip elements           |
+| Variable | Description                         |
+| -------- | ----------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-chip-background` </div><div class="variables-table__item"><span>JS:</span> `chipBackground` </div>        | Background color of chip elements   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-chip-border-radius` </div><div class="variables-table__item"><span>JS:</span> `chipBorderRadius` </div>      | Border radius of chip elements      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-chip-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `chipVerticalPadding` </div>   | Vertical padding of chip elements   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-chip-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `chipHorizontalPadding` </div> | Horizontal padding of chip elements |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-chip-gap` </div><div class="variables-table__item"><span>JS:</span> `chipGap` </div>               | Gap between chip elements           |
 
 #### Comments Variables
 
-| CSS Variable                                    | JS Option                              | Description                                   |
-| ----------------------------------------------- | -------------------------------------- | --------------------------------------------- |
-| `--ht-comments-textarea-horizontal-padding`     | `commentsTextareaHorizontalPadding`    | Horizontal padding of comment textareas       |
-| `--ht-comments-textarea-vertical-padding`       | `commentsTextareaVerticalPadding`      | Vertical padding of comment textareas         |
-| `--ht-comments-textarea-border-width`           | `commentsTextareaBorderWidth`          | Border width of comment textareas             |
-| `--ht-comments-textarea-border-color`           | `commentsTextareaBorderColor`          | Border color of comment textareas             |
-| `--ht-comments-textarea-foreground-color`       | `commentsTextareaForegroundColor`      | Text color of comment textareas               |
-| `--ht-comments-textarea-background-color`       | `commentsTextareaBackgroundColor`      | Background color of comment textareas         |
-| `--ht-comments-textarea-focus-border-width`     | `commentsTextareaFocusBorderWidth`     | Border width of focused comment textareas     |
-| `--ht-comments-textarea-focus-border-color`     | `commentsTextareaFocusBorderColor`     | Border color of focused comment textareas     |
-| `--ht-comments-textarea-focus-foreground-color` | `commentsTextareaFocusForegroundColor` | Text color of focused comment textareas       |
-| `--ht-comments-textarea-focus-background-color` | `commentsTextareaFocusBackgroundColor` | Background color of focused comment textareas |
-| `--ht-comments-indicator-size`                  | `commentsIndicatorSize`                | Size of comment indicators                    |
-| `--ht-comments-indicator-color`                 | `commentsIndicatorColor`               | Color of comment indicators                   |
+| Variable | Description                                   |
+| -------- | --------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-comments-textarea-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `commentsTextareaHorizontalPadding` </div>    | Horizontal padding of comment textareas       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-comments-textarea-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `commentsTextareaVerticalPadding` </div>      | Vertical padding of comment textareas         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-comments-textarea-border-width` </div><div class="variables-table__item"><span>JS:</span> `commentsTextareaBorderWidth` </div>          | Border width of comment textareas             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-comments-textarea-border-color` </div><div class="variables-table__item"><span>JS:</span> `commentsTextareaBorderColor` </div>          | Border color of comment textareas             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-comments-textarea-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `commentsTextareaForegroundColor` </div>      | Text color of comment textareas               |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-comments-textarea-background-color` </div><div class="variables-table__item"><span>JS:</span> `commentsTextareaBackgroundColor` </div>      | Background color of comment textareas         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-comments-textarea-focus-border-width` </div><div class="variables-table__item"><span>JS:</span> `commentsTextareaFocusBorderWidth` </div>     | Border width of focused comment textareas     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-comments-textarea-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `commentsTextareaFocusBorderColor` </div>     | Border color of focused comment textareas     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-comments-textarea-focus-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `commentsTextareaFocusForegroundColor` </div> | Text color of focused comment textareas       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-comments-textarea-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `commentsTextareaFocusBackgroundColor` </div> | Background color of focused comment textareas |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-comments-indicator-size` </div><div class="variables-table__item"><span>JS:</span> `commentsIndicatorSize` </div>                | Size of comment indicators                    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-comments-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `commentsIndicatorColor` </div>               | Color of comment indicators                   |
 
 #### License Variables
 
-| CSS Variable                      | JS Option                  | Description                            |
-| --------------------------------- | -------------------------- | -------------------------------------- |
-| `--ht-license-horizontal-padding` | `licenseHorizontalPadding` | Horizontal padding of license elements |
-| `--ht-license-vertical-padding`   | `licenseVerticalPadding`   | Vertical padding of license elements   |
-| `--ht-license-foreground-color`   | `licenseForegroundColor`   | Text color of license elements         |
-| `--ht-license-background-color`   | `licenseBackgroundColor`   | Background color of license elements   |
+| Variable | Description                            |
+| -------- | -------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-license-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `licenseHorizontalPadding` </div> | Horizontal padding of license elements |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-license-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `licenseVerticalPadding` </div>   | Vertical padding of license elements   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-license-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `licenseForegroundColor` </div>   | Text color of license elements         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-license-background-color` </div><div class="variables-table__item"><span>JS:</span> `licenseBackgroundColor` </div>   | Background color of license elements   |
 
 #### Link Variables
 
-| CSS Variable            | JS Option        | Description            |
-| ----------------------- | ---------------- | ---------------------- |
-| `--ht-link-color`       | `linkColor`      | Color of links         |
-| `--ht-link-hover-color` | `linkHoverColor` | Color of hovered links |
+| Variable | Description            |
+| -------- | ---------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-link-color` </div><div class="variables-table__item"><span>JS:</span> `linkColor` </div>      | Color of links         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-link-hover-color` </div><div class="variables-table__item"><span>JS:</span> `linkHoverColor` </div> | Color of hovered links |
 
 #### Input Variables
 
-| CSS Variable                           | JS Option                      | Description                                 |
-| -------------------------------------- | ------------------------------ | ------------------------------------------- |
-| `--ht-input-border-width`              | `inputBorderWidth`             | Border width of input elements              |
-| `--ht-input-border-radius`             | `inputBorderRadius`            | Border radius of input elements             |
-| `--ht-input-horizontal-padding`        | `inputHorizontalPadding`       | Horizontal padding of input elements        |
-| `--ht-input-vertical-padding`          | `inputVerticalPadding`         | Vertical padding of input elements          |
-| `--ht-input-border-color`              | `inputBorderColor`             | Border color of input elements              |
-| `--ht-input-foreground-color`          | `inputForegroundColor`         | Text color of input elements                |
-| `--ht-input-background-color`          | `inputBackgroundColor`         | Background color of input elements          |
-| `--ht-input-hover-border-color`        | `inputHoverBorderColor`        | Border color of hovered input elements      |
-| `--ht-input-hover-foreground-color`    | `inputHoverForegroundColor`    | Text color of hovered input elements        |
-| `--ht-input-hover-background-color`    | `inputHoverBackgroundColor`    | Background color of hovered input elements  |
-| `--ht-input-disabled-border-color`     | `inputDisabledBorderColor`     | Border color of disabled input elements     |
-| `--ht-input-disabled-foreground-color` | `inputDisabledForegroundColor` | Text color of disabled input elements       |
-| `--ht-input-disabled-background-color` | `inputDisabledBackgroundColor` | Background color of disabled input elements |
-| `--ht-input-focus-border-color`        | `inputFocusBorderColor`        | Border color of focused input elements      |
-| `--ht-input-focus-foreground-color`    | `inputFocusForegroundColor`    | Text color of focused input elements        |
-| `--ht-input-focus-background-color`    | `inputFocusBackgroundColor`    | Background color of focused input elements  |
+| Variable | Description                                 |
+| -------- | ------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-border-width` </div><div class="variables-table__item"><span>JS:</span> `inputBorderWidth` </div>             | Border width of input elements              |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-border-radius` </div><div class="variables-table__item"><span>JS:</span> `inputBorderRadius` </div>            | Border radius of input elements             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `inputHorizontalPadding` </div>       | Horizontal padding of input elements        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `inputVerticalPadding` </div>         | Vertical padding of input elements          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-border-color` </div><div class="variables-table__item"><span>JS:</span> `inputBorderColor` </div>             | Border color of input elements              |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `inputForegroundColor` </div>         | Text color of input elements                |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-background-color` </div><div class="variables-table__item"><span>JS:</span> `inputBackgroundColor` </div>         | Background color of input elements          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-hover-border-color` </div><div class="variables-table__item"><span>JS:</span> `inputHoverBorderColor` </div>        | Border color of hovered input elements      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-hover-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `inputHoverForegroundColor` </div>    | Text color of hovered input elements        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `inputHoverBackgroundColor` </div>    | Background color of hovered input elements  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-disabled-border-color` </div><div class="variables-table__item"><span>JS:</span> `inputDisabledBorderColor` </div>     | Border color of disabled input elements     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-disabled-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `inputDisabledForegroundColor` </div> | Text color of disabled input elements       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-disabled-background-color` </div><div class="variables-table__item"><span>JS:</span> `inputDisabledBackgroundColor` </div> | Background color of disabled input elements |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `inputFocusBorderColor` </div>        | Border color of focused input elements      |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-focus-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `inputFocusForegroundColor` </div>    | Text color of focused input elements        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-input-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `inputFocusBackgroundColor` </div>    | Background color of focused input elements  |
 
 #### Menu Variables
 
-| CSS Variable                          | JS Option                    | Description                             |
-| ------------------------------------- | ---------------------------- | --------------------------------------- |
-| `--ht-menu-border-width`              | `menuBorderWidth`            | Border width of menu elements           |
-| `--ht-menu-border-radius`             | `menuBorderRadius`           | Border radius of menu elements          |
-| `--ht-menu-horizontal-padding`        | `menuHorizontalPadding`      | Horizontal padding of menu elements     |
-| `--ht-menu-vertical-padding`          | `menuVerticalPadding`        | Vertical padding of menu elements       |
-| `--ht-menu-item-horizontal-padding`   | `menuItemHorizontalPadding`  | Horizontal padding of menu items        |
-| `--ht-menu-item-vertical-padding`     | `menuItemVerticalPadding`    | Vertical padding of menu items          |
-| `--ht-menu-border-color`              | `menuBorderColor`            | Border color of menu elements           |
-| `--ht-menu-shadow-x`                  | `menuShadowX`                | Horizontal shadow offset of menus       |
-| `--ht-menu-shadow-y`                  | `menuShadowY`                | Vertical shadow offset of menus         |
-| `--ht-menu-shadow-blur`               | `menuShadowBlur`             | Shadow blur radius of menus             |
-| `--ht-menu-shadow-color`              | `menuShadowColor`            | Shadow color of menus                   |
-| `--ht-menu-shadow-opacity`            | `menuShadowOpacity`          | Shadow opacity of menus                 |
-| `--ht-menu-item-hover-color`          | `menuItemHoverColor`         | Background color of hovered menu items  |
-| `--ht-menu-item-hover-color-opacity`  | `menuItemHoverColorOpacity`  | Opacity of hovered menu item background |
-| `--ht-menu-item-active-color`         | `menuItemActiveColor`        | Background color of active menu items   |
-| `--ht-menu-item-active-color-opacity` | `menuItemActiveColorOpacity` | Opacity of active menu item background  |
+| Variable | Description                             |
+| -------- | --------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-border-width` </div><div class="variables-table__item"><span>JS:</span> `menuBorderWidth` </div>            | Border width of menu elements           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-border-radius` </div><div class="variables-table__item"><span>JS:</span> `menuBorderRadius` </div>           | Border radius of menu elements          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `menuHorizontalPadding` </div>      | Horizontal padding of menu elements     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `menuVerticalPadding` </div>        | Vertical padding of menu elements       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-item-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `menuItemHorizontalPadding` </div>  | Horizontal padding of menu items        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-item-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `menuItemVerticalPadding` </div>    | Vertical padding of menu items          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-border-color` </div><div class="variables-table__item"><span>JS:</span> `menuBorderColor` </div>            | Border color of menu elements           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-shadow-x` </div><div class="variables-table__item"><span>JS:</span> `menuShadowX` </div>                | Horizontal shadow offset of menus       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-shadow-y` </div><div class="variables-table__item"><span>JS:</span> `menuShadowY` </div>                | Vertical shadow offset of menus         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-shadow-blur` </div><div class="variables-table__item"><span>JS:</span> `menuShadowBlur` </div>             | Shadow blur radius of menus             |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-shadow-color` </div><div class="variables-table__item"><span>JS:</span> `menuShadowColor` </div>            | Shadow color of menus                   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-shadow-opacity` </div><div class="variables-table__item"><span>JS:</span> `menuShadowOpacity` </div>          | Shadow opacity of menus                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-item-hover-color` </div><div class="variables-table__item"><span>JS:</span> `menuItemHoverColor` </div>         | Background color of hovered menu items  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-item-hover-color-opacity` </div><div class="variables-table__item"><span>JS:</span> `menuItemHoverColorOpacity` </div>  | Opacity of hovered menu item background |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-item-active-color` </div><div class="variables-table__item"><span>JS:</span> `menuItemActiveColor` </div>        | Background color of active menu items   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-menu-item-active-color-opacity` </div><div class="variables-table__item"><span>JS:</span> `menuItemActiveColorOpacity` </div> | Opacity of active menu item background  |
 
 #### Dialog Variables
 
-| CSS Variable                                      | JS Option                                | Description                                         |
-| ------------------------------------------------- | ---------------------------------------- | --------------------------------------------------- |
-| `--ht-dialog-semi-transparent-background-color`   | `dialogSemiTransparentBackgroundColor`   | Semi-transparent background color of dialog overlay |
-| `--ht-dialog-semi-transparent-background-opacity` | `dialogSemiTransparentBackgroundOpacity` | Opacity of semi-transparent dialog background       |
-| `--ht-dialog-solid-background-color`              | `dialogSolidBackgroundColor`             | Solid background color of dialog overlay            |
-| `--ht-dialog-content-padding-horizontal`          | `dialogContentPaddingHorizontal`         | Horizontal padding of dialog content                |
-| `--ht-dialog-content-padding-vertical`            | `dialogContentPaddingVertical`           | Vertical padding of dialog content                  |
-| `--ht-dialog-content-border-radius`               | `dialogContentBorderRadius`              | Border radius of dialog content                     |
-| `--ht-dialog-content-background-color`            | `dialogContentBackgroundColor`           | Background color of dialog content                  |
+| Variable | Description                                         |
+| -------- | --------------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-semi-transparent-background-color` </div><div class="variables-table__item"><span>JS:</span> `dialogSemiTransparentBackgroundColor` </div>   | Semi-transparent background color of dialog overlay |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-semi-transparent-background-opacity` </div><div class="variables-table__item"><span>JS:</span> `dialogSemiTransparentBackgroundOpacity` </div> | Opacity of semi-transparent dialog background       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-solid-background-color` </div><div class="variables-table__item"><span>JS:</span> `dialogSolidBackgroundColor` </div>             | Solid background color of dialog overlay            |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-content-padding-horizontal` </div><div class="variables-table__item"><span>JS:</span> `dialogContentPaddingHorizontal` </div>         | Horizontal padding of dialog content                |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-content-padding-vertical` </div><div class="variables-table__item"><span>JS:</span> `dialogContentPaddingVertical` </div>           | Vertical padding of dialog content                  |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-content-border-radius` </div><div class="variables-table__item"><span>JS:</span> `dialogContentBorderRadius` </div>              | Border radius of dialog content                     |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-content-background-color` </div><div class="variables-table__item"><span>JS:</span> `dialogContentBackgroundColor` </div>           | Background color of dialog content                  |
 
 #### Pagination Variables
 
-| CSS Variable                             | JS Option                        | Description                          |
-| ---------------------------------------- | -------------------------------- | ------------------------------------ |
-| `--ht-pagination-bar-foreground-color`   | `paginationBarForegroundColor`   | Text color of pagination bar         |
-| `--ht-pagination-bar-background-color`   | `paginationBarBackgroundColor`   | Background color of pagination bar   |
-| `--ht-pagination-bar-horizontal-padding` | `paginationBarHorizontalPadding` | Horizontal padding of pagination bar |
-| `--ht-pagination-bar-vertical-padding`   | `paginationBarVerticalPadding`   | Vertical padding of pagination bar   |
+| Variable | Description                          |
+| -------- | ------------------------------------ |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-bar-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationBarForegroundColor` </div>   | Text color of pagination bar         |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-bar-background-color` </div><div class="variables-table__item"><span>JS:</span> `paginationBarBackgroundColor` </div>   | Background color of pagination bar   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-bar-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `paginationBarHorizontalPadding` </div> | Horizontal padding of pagination bar |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-bar-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `paginationBarVerticalPadding` </div>   | Vertical padding of pagination bar   |
+
+</div>
