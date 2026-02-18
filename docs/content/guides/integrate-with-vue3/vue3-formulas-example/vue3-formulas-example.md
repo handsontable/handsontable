@@ -13,6 +13,7 @@ angular:
   metaTitle: Formulas integration in Vue 3 - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
+menuTag: updated
 ---
 
 # Formulas integration in Vue 3
