@@ -5520,6 +5520,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     return dataSource;
   };
 
+  /**
+   * Gets the instance of the MetaManager.
+   *
+   * @private
+   * @returns {MetaManager}
+   */
+  this._getMetaManager = function() {
+    return metaManager;
+  };
+
   const shortcutManager = createShortcutManager({
     handleEvent() {
       return instance.isListening();

@@ -24,6 +24,8 @@ import {
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
 import { TrimmingMap } from '../../translations';
+import { getValueGetterValue } from '../../utils/valueAccessors';
+import { createObjectPropListener } from '../../helpers/object';
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
@@ -665,10 +667,7 @@ export class Filters extends BasePlugin {
    */
   filter() {
     const { navigableHeaders } = this.hot.getSettings();
-    const dataFilter = this._createDataFilter();
     const needToFilter = !this.conditionCollection.isEmpty();
-    let visibleVisualRows = [];
-
     const conditions = this.exportConditions();
     const allowFiltering = this.hot.runHooks(
       'beforeFilter',
@@ -677,17 +676,19 @@ export class Filters extends BasePlugin {
     );
 
     if (allowFiltering !== false && needToFilter) {
+      const dataFilter = this._createDataFilter();
       const trimmedRows = [];
+      let rowIndexesToShow = [];
 
       this.hot.batchExecution(() => {
         this.filtersRowsMap.clear();
 
-        visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
+        rowIndexesToShow = arrayMap(dataFilter.filter(), rowData => rowData.meta.row);
 
-        const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
+        const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
 
         rangeEach(this.hot.countSourceRows() - 1, (row) => {
-          if (!visibleVisualRowsAssertion(row)) {
+          if (!rowIndexesToShowAssertion(row)) {
             trimmedRows.push(row);
           }
         });
@@ -697,7 +698,7 @@ export class Filters extends BasePlugin {
         });
       }, true);
 
-      if (!navigableHeaders && !visibleVisualRows.length) {
+      if (!navigableHeaders && !rowIndexesToShow.length) {
         this.hot.deselectCell();
       }
 
@@ -746,25 +747,45 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Returns handsontable source data with cell meta based on current selection.
+   * Returns the full dataset for a column with cell meta for each row. The dataset is independent of
+   * any index mapper - no matter if the data is filtered, sorted, or otherwise transformed all rows
+   * are included.
    *
-   * @param {number} [column] The physical column index. By default column index accept the value of the selected column.
-   * @returns {Array} Returns array of objects where keys as row index.
+   * @param {number} physicalColumn The physical column index.
+   * @returns {{meta: CellProperties, value: any}[]} Array of objects with `meta` and `value`, one per source row.
    */
-  getDataMapAtColumn(column) {
-    const visualColumn = this.hot.toVisualColumn(column);
+  getDataMapAtColumn(physicalColumn) {
+    const countSourceRows = this.hot.countSourceRows();
+    const visualColumn = this.hot.toVisualColumn(physicalColumn);
     const data = [];
 
-    arrayEach(this.hot.getSourceDataAtCol(visualColumn), (value, rowIndex) => {
-      const { row, col, visualCol, visualRow, type, instance, dateFormat, locale } =
-        this.hot.getCellMeta(rowIndex, visualColumn);
-      const dataValue = this.hot.getDataAtCell(this.hot.toVisualRow(rowIndex), visualColumn) ?? value;
+    for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
+      const cellMeta = this.hot._getMetaManager().getCellMeta(physicalRow, physicalColumn, {
+        visualRow: physicalRow,
+        visualColumn: physicalColumn,
+        skipMetaExtension: true,
+      });
+      let value = getValueGetterValue(
+        this.hot.getSourceDataAtCell(physicalRow, visualColumn),
+        cellMeta
+      );
+
+      if (this.hot.hasHook('modifyData')) {
+        const valueHolder = createObjectPropListener(value);
+
+        // Physical indexes are passed here on purpose. In this context they match the visual ones.
+        this.hot.runHooks('modifyData', physicalRow, physicalColumn, valueHolder, 'get');
+
+        if (valueHolder.isTouched()) {
+          value = valueHolder.value;
+        }
+      }
 
       data.push({
-        meta: { row, col, visualCol, visualRow, type, instance, dateFormat, locale },
-        value: toEmptyString(dataValue),
+        meta: cellMeta,
+        value: toEmptyString(value),
       });
-    });
+    }
 
     return data;
   }

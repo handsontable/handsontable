@@ -75,7 +75,7 @@ class DataFilter {
     const result = [];
 
     arrayEach(needles, (needleRow) => {
-      const row = needleRow.meta.visualRow;
+      const row = needleRow.meta.row;
 
       if (data[row] !== undefined) {
         result[row] = data[row];

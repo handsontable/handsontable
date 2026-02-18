@@ -309,7 +309,7 @@ describe('Filters UI Value component', () => {
     }
   });
 
-  it('shouldn\'t break "by value" items in the next filter stacks', async() => {
+  it('should not break "by value" items in the next filter stacks', async() => {
     const data = getDataForFilters();
 
     data[3].name = undefined;

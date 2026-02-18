@@ -129,7 +129,7 @@ export class ValueComponent extends BaseComponent {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
         const rowValues = arrayMap(filteredRows, row => row.value);
         const rowMetaMap = new Map(
-          filteredRows.map(row => [row.value, this.hot.getCellMeta(row.meta.visualRow, row.meta.visualCol)])
+          filteredRows.map(row => [row.value, row.meta])
         );
         const unifiedRowValues = unifyColumnValues(rowValues);
 
