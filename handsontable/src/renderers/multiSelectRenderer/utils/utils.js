@@ -143,7 +143,8 @@ export function registerChipRemovingEvents(hotInstance, rendererType) {
     const columnProp = chip.dataset.prop;
     const physicalRow = hotInstance.toPhysicalRow(rowIndex);
     const physicalColumn = typeof columnProp === 'string' ? columnProp : hotInstance.toPhysicalColumn(columnProp);
-    const currentData = hotInstance.getSourceDataAtCell(physicalRow, physicalColumn);
+    const visualColumn = hotInstance.propToCol(columnProp);
+    const currentData = hotInstance.getSourceDataAtCell(physicalRow, visualColumn);
     const keyToRemove = chip.dataset.key;
     const newData = removeValueByKey(parseValue(currentData), keyToRemove);
 

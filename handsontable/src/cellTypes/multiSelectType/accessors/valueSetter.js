@@ -9,10 +9,8 @@ import { isKeyValueObject } from '../../../helpers/object';
  * @returns {*} The new value to be set.
  */
 export function valueSetter(newValue, row, column) {
-  const physicalColumn = typeof column === 'string' ? column : this.toPhysicalColumn(column);
-
   if (Array.isArray(newValue)) {
-    const sourceDataAtCell = this.getSourceDataAtCell(this.toPhysicalRow(row), physicalColumn);
+    const sourceDataAtCell = this.getSourceDataAtCell(this.toPhysicalRow(row), column);
 
     if (
       Array.isArray(sourceDataAtCell) &&
