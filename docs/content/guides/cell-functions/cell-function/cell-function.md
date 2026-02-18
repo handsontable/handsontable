@@ -13,6 +13,7 @@ angular:
   metaTitle: Cell functions - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
+menuTag: updated
 ---
 
 # Cell functions
