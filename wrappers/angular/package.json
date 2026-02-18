@@ -50,6 +50,7 @@
     "lint": "ng lint hot-table",
     "e2e": "ng e2e",
     "publish-package": "cd dist/hot-table && npm publish",
+    "create-package": "cd dist/hot-table && npm pack",
     "release": "npm run test && npm run publish"
   },
   "peerDependencies": {

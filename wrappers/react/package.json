@@ -98,6 +98,7 @@
     "build:min": "cross-env NODE_ENV=min rollup -c --bundleConfigAsCjs",
     "clean": "rimraf ./es/ && rimraf ./commonjs/ && rimraf ./dist/ && rimraf ./*.d.ts",
     "publish-package": "npm publish",
+    "create-package": "npm pack",
     "test": "jest",
     "test.watch": "jest --watch",
     "watch:commonjs": "cross-env NODE_ENV=cjs rollup -c --watch --bundleConfigAsCjs",

@@ -107,6 +107,7 @@
     "watch:umd": "cross-env NODE_ENV=umd rollup -c --watch",
     "clean": "rimraf ./es/ && rimraf ./commonjs/ && rimraf ./dist/ && rimraf ./*.d.ts",
     "publish-package": "npm publish",
+    "create-package": "npm pack",
     "test": "jest"
   }
 }

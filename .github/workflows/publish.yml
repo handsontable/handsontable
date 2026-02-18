@@ -1,28 +1,61 @@
-name: Publish prerelease in NPM
+name: Publish
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: [Tests]
-    types: [completed]
+    inputs:
+      dry_run:
+        description: 'Dry run (log actions without executing them)'
+        required: false
+        type: boolean
+        default: true
+  push:
     branches:
-      - 'develop'
-      - 'release/**'
-      - '!release/**-**'
+      - '_test_release/**' # Must match RELEASE_BRANCH_PREFIX
+  release:
+    types: [created]
+  workflow_run:
+    workflows: ['Tests']
+    types: [completed]
+    branches: [develop]
+
+# DRY_RUN_DEFAULT: Set to 'true' to enable dry-run for push/release triggers.
+# workflow_dispatch uses its own input. Flip to 'false' when done testing.
+env:
+  DRY_RUN_DEFAULT: 'true'
+  RELEASE_BRANCH_PREFIX: '_test_release/'
+  DOCS_BRANCH_PREFIX: '_test_prod-docs/'
+  LTS_BRANCH_PREFIX: '_test_lts_/'
 
 permissions:
-  id-token: write  # Required for OIDC
-  contents: read      
+  contents: write
+  actions: read
 
 jobs:
-  build:
-    name: Build and publish
+  # ============================================================
+  # Scenario A — Pre-release (workflow_dispatch from non-release branch or automatically ran ond develop after testing)
+  # ============================================================
+  pre-release:
+    name: Build and publish a pre-release
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    if: |
+      (github.event_name == 'workflow_dispatch' &&
+        !startsWith(github.ref_name, '_test_release/') &&
+        !startsWith(github.ref_name, '_test_lts_/')) ||
+      (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success')
     steps:
+      - name: Determine branch
+        id: branch
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "ref=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+          else
+            echo "ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
         with:
-          ref: ${{ github.event.workflow_run.head_branch }}
+          ref: ${{ steps.branch.outputs.ref }}
 
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
         name: Install pnpm
@@ -31,9 +64,931 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          registry-url: https://registry.npmjs.org/
           cache: 'pnpm'
-      - run: pnpm install
-      - run: |            
-            npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
+          registry-url: https://registry.npmjs.org/
+
+      - run: |
+          pnpm install
+          npm install -g npm@11.6
+
+      - name: Publish pre-release
+        env:
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would run: npm run pre-release"
+            echo "[DRY RUN] Branch: ${{ github.ref_name }}"
+          else
             npm run pre-release
+          fi
+
+  # ============================================================
+  # Scenario B — First RC (release event with prerelease flag)
+  # ============================================================
+  first-rc-build:
+    name: Build first RC
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'release' &&
+      github.event.release.prerelease == true
+    outputs:
+      release-branch: ${{ steps.create-branch.outputs.release-branch }}
+      rc-version: ${{ steps.version.outputs.rc-version }}
+    steps:
+      - name: Extract version from release name
+        id: version
+        run: |
+          # Release name is like "1.0.0-rc" → strip "-rc" to get "1.0.0"
+          RELEASE_NAME='${{ github.event.release.name }}'
+          VERSION="${RELEASE_NAME%-rc}"
+          RC_VERSION="${VERSION}-rc1"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "rc-version=${RC_VERSION}" >> $GITHUB_OUTPUT
+          echo "Extracted version: ${VERSION} (RC: ${RC_VERSION})"
+
+      - name: Checkout develop
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate version
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          node -e "
+            import { isVersionValid } from './scripts/utils/pre-release.mjs';
+            if (!isVersionValid('${VERSION}')) {
+              console.error('Error: Invalid version format: ${VERSION}');
+              process.exit(1);
+            }
+          "
+
+      - name: Check npm version
+        run: |
+          NPM_VERSION=$(npm --version)
+          echo "npm version: $NPM_VERSION"
+          node -e "
+            import semver from 'semver';
+            if (!semver.satisfies('${NPM_VERSION}'.trim(), '>=7.17.0')) {
+              console.error('Error: npm >= 7.17.0 required (found ${NPM_VERSION})');
+              process.exit(1);
+            }
+          "
+
+      - name: Create release branch
+        id: create-branch
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          RELEASE_BRANCH="${RELEASE_BRANCH_PREFIX}${VERSION}"
+          echo "release-branch=${RELEASE_BRANCH}" >> $GITHUB_OUTPUT
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "${RELEASE_BRANCH}"
+
+      - name: Set version and release date
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          RC_VERSION="${VERSION}-rc1"
+          RELEASE_DATE=$(date +%d/%m/%Y)
+          node -e "
+            import { setVersion, setReleaseDate } from './scripts/utils/pre-release.mjs';
+            setVersion('${RC_VERSION}');
+            setReleaseDate('${RELEASE_DATE}');
+          "
+
+      - name: Clean node_modules and lock files
+        run: |
+          node -e "
+            import { cleanNodeModules } from './scripts/utils/filesystem.mjs';
+            cleanNodeModules();
+          "
+
+      - name: Install fresh dependencies
+        run: pnpm install --force
+
+      - name: Clean old package builds
+        run: npm run all clean -- --e examples
+
+      - name: Build all packages
+        run: npm run all build -- --e examples
+
+      - name: Install next package for examples
+        run: npm run examples:install next
+
+      - name: Build examples
+        run: npm run in examples build
+
+      - name: Verify bundles
+        run: node ./scripts/verify-bundles.mjs
+
+      - name: Pack tarballs
+        run: mkdir _tmp_packs && npm run all create-package -- --e examples --cmdArgs pack-destination="$(pwd)/_tmp_packs/"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # https://github.com/actions/upload-artifact/releases/tag/v4.6.2
+        with:
+          name: npm_packs_${{ steps.version.outputs.rc-version }}
+          path: _tmp_packs/
+
+      - name: Clean up tarballs
+        run: rm -rf _tmp_packs
+
+      - name: Commit and push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          RC_VERSION="${VERSION}-rc1"
+          RELEASE_BRANCH='${{ steps.create-branch.outputs.release-branch }}'
+
+          git add .
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would commit: ${RC_VERSION}"
+            echo "[DRY RUN] Files that would be committed:"
+            git diff --cached --name-only
+          else
+            git commit -m "${RC_VERSION}" || echo "No changes to commit"
+            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+            git push -u origin "${RELEASE_BRANCH}"
+          fi
+
+      - name: Update GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          RC_VERSION="${VERSION}-rc1"
+          RELEASE_TAG="${VERSION}-rc"
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would update release '${RELEASE_TAG}' to point to tag '${RC_VERSION}'"
+          else
+            gh release edit "${RELEASE_TAG}" --tag "${RC_VERSION}" --repo "${{ github.repository }}"
+            echo "Updated release '${RELEASE_TAG}' to point to tag '${RC_VERSION}'"
+          fi
+
+      - name: Publication summary
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          RC_VERSION="${VERSION}-rc1"
+          RELEASE_BRANCH='${{ steps.create-branch.outputs.release-branch }}'
+          {
+            echo "## Publication Summary"
+            echo ""
+            echo "The following release is ready to be published to npm:"
+            echo ""
+            echo "| Property | Value |"
+            echo "|----------|-------|"
+            echo "| **Version** | \`${RC_VERSION}\` |"
+            echo "| **npm Tag** | \`rc\` |"
+            echo "| **Branch** | \`${RELEASE_BRANCH}\` |"
+            echo "| **Release Name** | ${{ github.event.release.name }} |"
+            echo ""
+            echo "**Next step:** The publish job will proceed after approval from the \`approvers\` environment."
+          } >> $GITHUB_STEP_SUMMARY
+
+  first-rc-test:
+    name: Run tests (first RC)
+    needs: [first-rc-build]
+    uses: ./.github/workflows/test.yml
+    with:
+      test-all: true
+    secrets: inherit
+
+  first-rc-publish:
+    name: Publish first RC
+    runs-on: ubuntu-latest
+    needs: [first-rc-build, first-rc-test]
+    environment: approvers
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+        with:
+          ref: ${{ needs.first-rc-build.outputs.release-branch }}
+
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # https://github.com/actions/download-artifact/releases/tag/v4.3.0
+        with:
+          name: npm_packs_${{ needs.first-rc-build.outputs.rc-version }}
+          path: _tmp_packs/
+
+      - name: Publish
+        env:
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          echo "Publishing packages from _tmp_packs/ with tag: rc"
+          for TARBALL in _tmp_packs/*.tgz; do
+            echo "Publishing: $(basename "$TARBALL")"
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "  [DRY RUN] Would run: npm publish \"$TARBALL\" --tag rc"
+            else
+              echo "  [MOCK] npm publish \"$TARBALL\" --tag rc"
+            fi
+          done
+          echo "All packages published successfully."
+
+#      - name: Prepare Slack message
+#        if: always()
+#        env:
+#          JOB_STATUS: ${{ job.status }}
+#          RC_VERSION: ${{ needs.first-rc-build.outputs.rc-version }}
+#          RELEASE_BRANCH: ${{ needs.first-rc-build.outputs.release-branch }}
+#          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+#          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+#        run: |
+#          if [ "$JOB_STATUS" = "success" ]; then EMOJI=":white_check_mark:"; else EMOJI=":x:"; fi
+#
+#          {
+#            echo "${EMOJI} *First RC publish ${JOB_STATUS}*"
+#            echo "Version: \`${RC_VERSION}\` (tag: \`rc\`)"
+#            echo "Branch: \`${RELEASE_BRANCH}\`"
+#            echo ""
+#            echo "<${RUN_URL}|View run>"
+#          } > /tmp/slack-message.txt
+#
+#          jq -n --rawfile text /tmp/slack-message.txt '{text: $text}' > /tmp/slack-payload.json
+#
+#      - name: Notify Slack
+#        if: always()
+#        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+#        with:
+#          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+#          webhook-type: incoming-webhook
+#          payload-file-path: /tmp/slack-payload.json
+
+  # ============================================================
+  # Scenario C — Subsequent RC (push to release/**)
+  # ============================================================
+  rc-build:
+    name: Build RC
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    outputs:
+      rc-version: ${{ steps.rc-version.outputs.rc-version }}
+    steps:
+      - name: Extract version from branch name
+        id: version
+        run: |
+          REF_NAME='${{ github.ref_name }}'
+          VERSION="${REF_NAME#${RELEASE_BRANCH_PREFIX}}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Version from branch: ${VERSION}"
+
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check npm version
+        run: |
+          NPM_VERSION=$(npm --version)
+          echo "npm version: $NPM_VERSION"
+          node -e "
+            import semver from 'semver';
+            if (!semver.satisfies('${NPM_VERSION}'.trim(), '>=7.17.0')) {
+              console.error('Error: npm >= 7.17.0 required (found ${NPM_VERSION})');
+              process.exit(1);
+            }
+          "
+
+      - name: Determine next RC version
+        id: rc-version
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          echo "Determining next RC version for ${VERSION}..."
+
+          git fetch --tags
+          HIGHEST_RC=$(git tag --list "${VERSION}-rc*" | sed -n "s/^${VERSION}-rc\([0-9]\+\)$/\1/p" | sort -n | tail -n 1)
+
+          if [ -z "$HIGHEST_RC" ]; then
+            echo "No existing RC tags found for ${VERSION}, starting at rc1"
+            RC_VERSION="${VERSION}-rc1"
+          else
+            echo "Highest existing RC tag: ${VERSION}-rc${HIGHEST_RC}"
+            RC_VERSION="${VERSION}-rc$((HIGHEST_RC + 1))"
+          fi
+
+          echo "rc-version=${RC_VERSION}" >> $GITHUB_OUTPUT
+          echo "Next RC version: ${RC_VERSION}"
+
+      - name: Set version and release date
+        run: |
+          RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
+          RELEASE_DATE=$(date +%d/%m/%Y)
+          node -e "
+            import { setVersion, setReleaseDate } from './scripts/utils/pre-release.mjs';
+            setVersion('${RC_VERSION}');
+            setReleaseDate('${RELEASE_DATE}');
+          "
+
+      - name: Clean old package builds
+        run: npm run all clean -- --e examples
+
+      - name: Build all packages
+        run: npm run all build -- --e examples
+
+      - name: Verify bundles
+        run: node ./scripts/verify-bundles.mjs
+
+      - name: Pack tarballs
+        run: mkdir _tmp_packs && npm run all create-package -- --e examples --cmdArgs pack-destination="$(pwd)/_tmp_packs/"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # https://github.com/actions/upload-artifact/releases/tag/v4.6.2
+        with:
+          name: npm_packs_${{ steps.rc-version.outputs.rc-version }}
+          path: _tmp_packs/
+
+      - name: Clean up tarballs
+        run: rm -rf _tmp_packs
+
+      - name: Commit and push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would commit: ${RC_VERSION}"
+            echo "[DRY RUN] Files that would be committed:"
+            git diff --cached --name-only
+            echo "[DRY RUN] Would create tag: ${RC_VERSION}"
+          else
+            git commit -m "${RC_VERSION}" || echo "No changes to commit"
+            git tag "${RC_VERSION}"
+            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+            git push
+            git push origin "${RC_VERSION}"
+            git push --tags
+          fi
+
+      - name: Update GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
+          RC_NUMBER=$(echo "$RC_VERSION" | sed -n "s/^${VERSION}-rc\([0-9]\+\)$/\1/p")
+          PREVIOUS_TAG="${VERSION}-rc$((RC_NUMBER - 1))"
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would update release at tag '${PREVIOUS_TAG}' to point to tag '${RC_VERSION}'"
+          else
+            gh release edit "${PREVIOUS_TAG}" --tag "${RC_VERSION}" --repo "${{ github.repository }}"
+            echo "Updated release '${PREVIOUS_TAG}' to point to tag '${RC_VERSION}'"
+          fi
+
+      - name: Publication summary
+        run: |
+          RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
+          {
+            echo "## Publication Summary"
+            echo ""
+            echo "The following release is ready to be published to npm:"
+            echo ""
+            echo "| Property | Value |"
+            echo "|----------|-------|"
+            echo "| **Version** | \`${RC_VERSION}\` |"
+            echo "| **npm Tag** | \`rc\` |"
+            echo "| **Branch** | \`${{ github.ref_name }}\` |"
+            echo ""
+            echo "**Next step:** The publish job will proceed after approval from the \`approvers\` environment."
+          } >> $GITHUB_STEP_SUMMARY
+
+  rc-test:
+    name: Run tests (RC)
+    needs: [rc-build]
+    uses: ./.github/workflows/test.yml
+    with:
+      test-all: true
+    secrets: inherit
+
+  rc-publish:
+    name: Publish RC
+    runs-on: ubuntu-latest
+    needs: [rc-build, rc-test]
+    environment: approvers
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # https://github.com/actions/download-artifact/releases/tag/v4.3.0
+        with:
+          name: npm_packs_${{ needs.rc-build.outputs.rc-version }}
+          path: _tmp_packs/
+
+      - name: Publish
+        env:
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          echo "Publishing packages from _tmp_packs/ with tag: rc"
+          for TARBALL in _tmp_packs/*.tgz; do
+            echo "Publishing: $(basename "$TARBALL")"
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "  [DRY RUN] Would run: npm publish \"$TARBALL\" --tag rc"
+            else
+              echo "  [MOCK] npm publish \"$TARBALL\" --tag rc"
+            fi
+          done
+          echo "All packages published successfully."
+
+#      - name: Prepare Slack message
+#        if: always()
+#        env:
+#          JOB_STATUS: ${{ job.status }}
+#          RC_VERSION: ${{ needs.rc-build.outputs.rc-version }}
+#          BRANCH: ${{ github.ref_name }}
+#          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+#          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+#        run: |
+#          if [ "$JOB_STATUS" = "success" ]; then EMOJI=":white_check_mark:"; else EMOJI=":x:"; fi
+#
+#          VERSION=$(echo "$RC_VERSION" | sed 's/-rc[0-9]*//')
+#          RC_NUMBER=$(echo "$RC_VERSION" | sed -n 's/.*-rc\([0-9]*\)/\1/p')
+#
+#          {
+#            echo "${EMOJI} *RC publish ${JOB_STATUS}*"
+#            echo "Version: \`${RC_VERSION}\` (tag: \`rc\`)"
+#            echo "Branch: \`${BRANCH}\`"
+#          } > /tmp/slack-message.txt
+#
+#          # Changelog: commits between previous RC tag and current RC tag
+#          git fetch --unshallow 2>/dev/null || true
+#          git fetch --tags --quiet
+#          PREV_TAG="${VERSION}-rc$((RC_NUMBER - 1))"
+#
+#          if git rev-parse "$PREV_TAG" >/dev/null 2>&1 && git rev-parse "$RC_VERSION" >/dev/null 2>&1; then
+#            COMMITS=$(git log "${PREV_TAG}..${RC_VERSION}" --pretty=format:"%H %s" --no-merges)
+#            if [ -n "$COMMITS" ]; then
+#              echo "" >> /tmp/slack-message.txt
+#              echo "*Changes since \`${PREV_TAG}\`:*" >> /tmp/slack-message.txt
+#              echo "$COMMITS" | while IFS= read -r line; do
+#                SHA=$(echo "$line" | cut -d' ' -f1)
+#                MSG=$(echo "$line" | cut -d' ' -f2-)
+#                echo "• <${REPO_URL}/commit/${SHA}|${MSG}>" >> /tmp/slack-message.txt
+#              done
+#            fi
+#          fi
+#
+#          echo "" >> /tmp/slack-message.txt
+#          echo "<${RUN_URL}|View run>" >> /tmp/slack-message.txt
+#
+#          jq -n --rawfile text /tmp/slack-message.txt '{text: $text}' > /tmp/slack-payload.json
+#
+#      - name: Notify Slack
+#        if: always()
+#        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+#        with:
+#          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+#          webhook-type: incoming-webhook
+#          payload-file-path: /tmp/slack-payload.json
+
+  # ============================================================
+  # Scenario D — Stable release (release event, not prerelease)
+  # ============================================================
+  stable-build:
+    name: Build stable release
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'release' &&
+      github.event.release.prerelease == false
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release-branch: ${{ steps.version.outputs.release-branch }}
+    steps:
+      - name: Extract and validate version
+        id: version
+        run: |
+          TAG='${{ github.event.release.tag_name }}'
+          VERSION="${TAG#v}"
+          RELEASE_BRANCH="${RELEASE_BRANCH_PREFIX}${VERSION}"
+          TARGET='${{ github.event.release.target_commitish }}'
+
+          if [ "${TARGET}" != "${RELEASE_BRANCH}" ]; then
+            echo "::error::Release target (${TARGET}) doesn't match expected branch (${RELEASE_BRANCH})"
+            exit 1
+          fi
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "release-branch=${RELEASE_BRANCH}" >> $GITHUB_OUTPUT
+          echo "Version: ${VERSION}, Release branch: ${RELEASE_BRANCH}"
+
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+        with:
+          ref: ${{ steps.version.outputs.release-branch }}
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate version
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          node -e "
+            import { isVersionValid } from './scripts/utils/pre-release.mjs';
+            if (!isVersionValid('${VERSION}')) {
+              console.error('Error: Invalid version format: ${VERSION}');
+              process.exit(1);
+            }
+          "
+
+      - name: Check npm version
+        run: |
+          NPM_VERSION=$(npm --version)
+          echo "npm version: $NPM_VERSION"
+          node -e "
+            import semver from 'semver';
+            if (!semver.satisfies('${NPM_VERSION}'.trim(), '>=7.17.0')) {
+              console.error('Error: npm >= 7.17.0 required (found ${NPM_VERSION})');
+              process.exit(1);
+            }
+          "
+
+      - name: Set stable version
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          RELEASE_DATE=$(date +%d/%m/%Y)
+          node -e "
+            import { setVersion, setReleaseDate } from './scripts/utils/pre-release.mjs';
+            setVersion('${VERSION}');
+            setReleaseDate('${RELEASE_DATE}');
+          "
+
+      - name: Clean old package builds
+        run: npm run all clean -- --e examples
+
+      - name: Build all packages
+        run: npm run all build -- --e examples
+
+      - name: Install next package for examples
+        run: npm run examples:install next
+
+      - name: Build examples
+        run: npm run in examples build
+
+      - name: Verify bundles
+        run: node ./scripts/verify-bundles.mjs
+
+      - name: Pack tarballs
+        run: mkdir _tmp_packs && npm run all create-package -- --e examples --cmdArgs pack-destination="$(pwd)/_tmp_packs/"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # https://github.com/actions/upload-artifact/releases/tag/v4.6.2
+        with:
+          name: npm_packs_${{ steps.version.outputs.version }}
+          path: _tmp_packs/
+
+      - name: Clean up tarballs
+        run: rm -rf _tmp_packs
+
+      - name: Generate changelog
+        run: echo "" | npm run changelog consume
+
+      - name: Commit and push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          RELEASE_BRANCH='${{ steps.version.outputs.release-branch }}'
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would commit: ${VERSION}"
+            echo "[DRY RUN] Files that would be committed:"
+            git diff --cached --name-only
+          else
+            git commit -m "${VERSION}" || echo "No changes to commit"
+            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+            git push origin HEAD:${RELEASE_BRANCH}
+          fi
+
+      - name: Create LTS branch for previous even major version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+
+          # Only proceed for x.0.0 versions
+          if [ "$MINOR" != "0" ] || [ "$PATCH" != "0" ]; then
+            echo "Not a x.0.0 version ($VERSION), skipping LTS branch creation"
+            exit 0
+          fi
+
+          PREV_MAJOR=$((MAJOR - 1))
+
+          # Only create LTS branch if previous major is even
+          if [ $((PREV_MAJOR % 2)) -ne 0 ]; then
+            echo "Previous major version ($PREV_MAJOR) is odd, skipping LTS branch creation"
+            exit 0
+          fi
+
+          LTS_BRANCH="${LTS_BRANCH_PREFIX}${PREV_MAJOR}.x"
+
+          # Check if LTS branch already exists
+          if git ls-remote --heads origin "$LTS_BRANCH" | grep -q "$LTS_BRANCH"; then
+            echo "LTS branch $LTS_BRANCH already exists, skipping"
+            exit 0
+          fi
+
+          # Find the latest version tag for the previous major version
+          git fetch --tags origin
+          LATEST_TAG=$(git tag --list "${PREV_MAJOR}.*" --sort=-version:refname | head -n 1)
+
+          if [ -z "$LATEST_TAG" ]; then
+            echo "::error::No tags found for major version ${PREV_MAJOR}. Cannot create LTS branch."
+            exit 1
+          fi
+
+          echo "Creating LTS branch $LTS_BRANCH from tag $LATEST_TAG"
+          git checkout -b "$LTS_BRANCH" "$LATEST_TAG"
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would push LTS branch: $LTS_BRANCH"
+          else
+            git push -u origin "$LTS_BRANCH"
+            echo "Created LTS branch: $LTS_BRANCH"
+          fi
+
+      - name: Publication summary
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          RELEASE_BRANCH='${{ steps.version.outputs.release-branch }}'
+          {
+            echo "## Publication Summary"
+            echo ""
+            echo "The following release is ready to be published to npm:"
+            echo ""
+            echo "| Property | Value |"
+            echo "|----------|-------|"
+            echo "| **Version** | \`${VERSION}\` |"
+            echo "| **Release Tag** | \`${{ github.event.release.tag_name }}\` |"
+            echo "| **npm Tag** | \`latest\` |"
+            echo "| **Branch** | \`${RELEASE_BRANCH}\` |"
+            echo ""
+            echo "This release will be published as \`latest\` and will be the default version installed by users."
+            echo ""
+            echo "**Next step:** The publish job will proceed after approval from the \`approvers\` environment."
+          } >> $GITHUB_STEP_SUMMARY
+
+  stable-publish:
+    name: Publish stable release
+    runs-on: ubuntu-latest
+    needs: [stable-build]
+    environment: approvers
+    steps:
+      - name: Checkout for merge
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+        with:
+          ref: ${{ needs.stable-build.outputs.release-branch }}
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # https://github.com/actions/download-artifact/releases/tag/v4.3.0
+        with:
+          name: npm_packs_${{ needs.stable-build.outputs.version }}
+          path: _tmp_packs/
+
+      - name: Publish
+        env:
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          echo "Publishing packages from _tmp_packs/ with tag: latest"
+          for TARBALL in _tmp_packs/*.tgz; do
+            echo "Publishing: $(basename "$TARBALL")"
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "  [DRY RUN] Would run: npm publish \"$TARBALL\" --tag latest"
+            else
+              echo "  [MOCK] npm publish \"$TARBALL\" --tag latest"
+            fi
+          done
+          echo "All packages published successfully."
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Merge release branch to develop and master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          RELEASE_BRANCH='${{ needs.stable-build.outputs.release-branch }}'
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+
+          echo "Merging ${RELEASE_BRANCH} into develop..."
+          git checkout develop
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would merge ${RELEASE_BRANCH} into develop"
+          else
+            git merge "origin/${RELEASE_BRANCH}" --no-edit
+            git push origin develop
+          fi
+
+          echo "Merging ${RELEASE_BRANCH} into master..."
+          git checkout master
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would merge ${RELEASE_BRANCH} into master"
+          else
+            git merge "origin/${RELEASE_BRANCH}" --no-edit
+            git push origin master
+          fi
+
+          echo "Deleting release branch ${RELEASE_BRANCH}..."
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would delete remote branch ${RELEASE_BRANCH}"
+          else
+            git push origin --delete "${RELEASE_BRANCH}"
+          fi
+
+      - name: Create or update docs production branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          VERSION='${{ needs.stable-build.outputs.version }}'
+          # Strip patch version: "16.0.0" → "16.0"
+          DOCS_BRANCH="${DOCS_BRANCH_PREFIX}${VERSION%.*}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+
+          if git ls-remote --heads origin "$DOCS_BRANCH" | grep -q "$DOCS_BRANCH"; then
+            echo "Docs branch ${DOCS_BRANCH} already exists, checking out..."
+            git checkout "$DOCS_BRANCH"
+            git pull origin "$DOCS_BRANCH"
+          else
+            echo "Creating new docs branch ${DOCS_BRANCH} from tag ${VERSION}..."
+            git checkout -b "$DOCS_BRANCH" "$VERSION"
+
+            # Remove /content/api/ from docs/.gitignore so generated API docs can be committed
+            BEFORE=$(wc -l < docs/.gitignore)
+            grep -v '^/content/api/$' docs/.gitignore > docs/.gitignore.tmp && mv docs/.gitignore.tmp docs/.gitignore
+            AFTER=$(wc -l < docs/.gitignore)
+
+            if [ "$((BEFORE - 1))" != "$AFTER" ]; then
+              echo "::error::docs/.gitignore modification produced unexpected result (before: ${BEFORE}, after: ${AFTER})"
+              exit 1
+            fi
+          fi
+
+      - name: Regenerate docs API and legacy versions
+        run: |
+          cd docs
+          npm ci
+          npm run docs:api
+          npm run docs:scripts:generate-legacy-docs-versions
+
+      - name: Update @handsontable/angular-wrapper version in docs
+        run: |
+          VERSION='${{ needs.stable-build.outputs.version }}'
+          BEFORE=$(wc -l < docs/package.json)
+
+          node -e "
+            import fs from 'fs';
+            const pkg = JSON.parse(fs.readFileSync('docs/package.json', 'utf8'));
+            pkg.devDependencies['@handsontable/angular-wrapper'] = '~${VERSION}';
+            fs.writeFileSync('docs/package.json', JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+          "
+
+          AFTER=$(wc -l < docs/package.json)
+          if [ "$BEFORE" != "$AFTER" ]; then
+            echo "::error::docs/package.json modification changed line count (before: ${BEFORE}, after: ${AFTER})"
+            exit 1
+          fi
+
+      - name: Commit and push docs branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
+        run: |
+          VERSION='${{ needs.stable-build.outputs.version }}'
+          DOCS_BRANCH="${DOCS_BRANCH_PREFIX}${VERSION%.*}"
+
+          git add .
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would commit docs changes as: ${VERSION}"
+            echo "[DRY RUN] Would push to: ${DOCS_BRANCH}"
+            echo "[DRY RUN] Files that would be committed:"
+            git diff --cached --name-only
+          else
+            git commit -m "${VERSION}" || echo "No changes to commit"
+            git push origin "$DOCS_BRANCH"
+          fi
+
+          # Return to develop
+          git checkout develop
+
+#      - name: Prepare Slack message
+#        if: always()
+#        env:
+#          JOB_STATUS: ${{ job.status }}
+#          VERSION: ${{ needs.stable-build.outputs.version }}
+#          RELEASE_BRANCH: ${{ needs.stable-build.outputs.release-branch }}
+#          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+#        run: |
+#          if [ "$JOB_STATUS" = "success" ]; then EMOJI=":white_check_mark:"; else EMOJI=":x:"; fi
+#
+#          {
+#            echo "${EMOJI} *Stable publish ${JOB_STATUS}*"
+#            echo "Version: \`${VERSION}\` (tag: \`latest\`)"
+#            echo "Branch: \`${RELEASE_BRANCH}\`"
+#            echo ""
+#            echo "<${RUN_URL}|View run>"
+#          } > /tmp/slack-message.txt
+#
+#          jq -n --rawfile text /tmp/slack-message.txt '{text: $text}' > /tmp/slack-payload.json
+#
+#      - name: Notify Slack
+#        if: always()
+#        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+#        with:
+#          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+#          webhook-type: incoming-webhook
+#          payload-file-path: /tmp/slack-payload.json

@@ -13,6 +13,7 @@
     "upload": "node ./scripts/upload.mjs",
     "install-system-dependencies": "npx --no playwright install --with-deps",
     "publish-package": "echo \"There is nothing to publish. Skipped.\"",
+    "create-package": "echo \"There is nothing to create. Skipped.\"",
     "clean": "rimraf ./screenshots ./playwright-report"
   },
   "author": "Handsoncode <hello@handsontable.com>",
