@@ -105,7 +105,7 @@ export default {
   secondaryButtonDisabledBackgroundColor: ['colors.palette.100', 'colors.palette.700'],
   secondaryButtonHoverBorderColor: 'tokens.borderColor',
   secondaryButtonHoverForegroundColor: 'tokens.foregroundColor',
-  secondaryButtonHoverBackgroundColor: ['colors.palette.200', 'colors.palette.600'],
+  secondaryButtonHoverBackgroundColor: ['colors.palette.100', 'colors.palette.700'],
   secondaryButtonFocusBorderColor: 'tokens.borderColor',
   secondaryButtonFocusForegroundColor: 'tokens.foregroundColor',
   secondaryButtonFocusBackgroundColor: 'tokens.backgroundColor',

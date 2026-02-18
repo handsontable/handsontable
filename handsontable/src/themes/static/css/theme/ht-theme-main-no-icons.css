@@ -152,7 +152,7 @@
   --ht-secondary-button-disabled-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
   --ht-secondary-button-hover-border-color: var(--ht-border-color);
   --ht-secondary-button-hover-foreground-color: var(--ht-foreground-color);
-  --ht-secondary-button-hover-background-color: light-dark(var(--ht-colors-palette-200), var(--ht-colors-palette-600));
+  --ht-secondary-button-hover-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
   --ht-secondary-button-focus-border-color: var(--ht-border-color);
   --ht-secondary-button-focus-foreground-color: var(--ht-foreground-color);
   --ht-secondary-button-focus-background-color: var(--ht-background-color);
