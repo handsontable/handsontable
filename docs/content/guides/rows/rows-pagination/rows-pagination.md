@@ -26,6 +26,7 @@ angular:
   metaTitle: Row pagination - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 
 # Rows pagination

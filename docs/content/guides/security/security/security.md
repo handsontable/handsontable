@@ -13,6 +13,7 @@ angular:
   metaTitle: Security - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Security
+menuTag: updated
 ---
 
 # Security

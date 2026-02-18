@@ -24,6 +24,7 @@ angular:
   metaTitle: Custom shortcuts - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
+menuTag: updated
 ---
 
 # Custom shortcuts

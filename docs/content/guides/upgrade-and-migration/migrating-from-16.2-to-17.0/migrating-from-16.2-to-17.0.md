@@ -14,6 +14,7 @@ angular:
   metaTitle: Migrate from 16.2 to 17.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
+menuTag: new
 ---
 
 # Migrate from 16.2 to 17.0

@@ -14,6 +14,7 @@ angular:
 searchCategory: Guides
 onlyFor: angular
 category: Getting started
+menuTag: updated
 ---
 
 # Instance methods
