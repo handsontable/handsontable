@@ -17,6 +17,7 @@ angular:
   metaTitle: Binding to data - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 
 # Binding to data

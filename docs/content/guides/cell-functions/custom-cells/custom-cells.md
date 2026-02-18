@@ -13,6 +13,7 @@ angular:
   metaTitle: Custom Cell Definitions - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
+menuTag: new
 ---
 
 # Simplified Custom Cell Definitions

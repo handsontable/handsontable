@@ -17,6 +17,7 @@ angular:
   metaTitle: Configuration options - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 
 # Configuration options
