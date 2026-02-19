@@ -267,8 +267,9 @@ jobs:
           git add .
 
           git commit -m "${RC_VERSION}" || echo "No changes to commit"
+          git tag "${RC_VERSION}"
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-          git push -u origin "${RELEASE_BRANCH}"
+          git push -u origin "${RELEASE_BRANCH}" --tags
 
 
       - name: Update GitHub release
@@ -292,20 +293,29 @@ jobs:
           VERSION='${{ steps.version.outputs.version }}'
           RC_VERSION="${VERSION}-rc1"
           RELEASE_BRANCH='${{ steps.create-branch.outputs.release-branch }}'
-          {
-            echo "## Publication Summary"
-            echo ""
-            echo "The following release is ready to be published to npm:"
-            echo ""
-            echo "| Property | Value |"
-            echo "|----------|-------|"
-            echo "| **Version** | \`${RC_VERSION}\` |"
-            echo "| **npm Tag** | \`rc\` |"
-            echo "| **Branch** | \`${RELEASE_BRANCH}\` |"
-            echo "| **Release Name** | ${{ github.event.release.name || inputs.release_name }} |"
-            echo ""
-            echo "**Next step:** The publish job will proceed after approval from the \`approvers\` environment."
-          } >> $GITHUB_STEP_SUMMARY
+          RELEASE_NAME='${{ github.event.release.name || inputs.release_name }}'
+          cat >> $GITHUB_STEP_SUMMARY <<EOF
+          # 🚀 Pre-release Publication Summary
+
+          > The following release candidate is ready to be published to npm.
+
+          ## 📦 Package Details
+
+          | Property | Value |
+          |----------|-------|
+          | **Version** | \`${RC_VERSION}\` |
+          | **npm Tag** | \`rc\` |
+          | **Branch** | \`${RELEASE_BRANCH}\` |
+          | **Release Name** | ${RELEASE_NAME} |
+
+          ## ⏳ Awaiting Approval
+
+          This job will proceed once approved by the \`approvers\` environment.
+          Review the details above and approve the deployment to publish to npm.
+
+          ---
+          _Triggered by **${{ github.actor }}** on **${{ github.ref_name }}**_
+          EOF
 
   first-rc-test:
     name: Run tests (first RC)
@@ -334,7 +344,6 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download build artifacts
@@ -367,17 +376,47 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
-          if [ "$JOB_STATUS" = "success" ]; then EMOJI=":white_check_mark:"; else EMOJI=":x:"; fi
+          if [ "$JOB_STATUS" = "success" ]; then STATUS_FIELD=":white_check_mark: Success"; else STATUS_FIELD=":x: Failed"; fi
+          CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
 
-          {
-            echo "${EMOJI} *First RC publish ${JOB_STATUS}*"
-            echo "Version: \`${RC_VERSION}\` (tag: \`rc\`)"
-            echo "Branch: \`${RELEASE_BRANCH}\`"
-            echo ""
-            echo "<${RUN_URL}|View run>"
-          } > /tmp/slack-message.txt
-
-          jq -n --rawfile text /tmp/slack-message.txt '{text: $text}' > /tmp/slack-payload.json
+          jq -n \
+            --arg status        "$STATUS_FIELD" \
+            --arg version       "${RC_VERSION}" \
+            --arg branch        "${RELEASE_BRANCH}" \
+            --arg repo_url      "${REPO_URL}" \
+            --arg changelog_url "$CHANGELOG_URL" \
+            --arg run_url       "${RUN_URL}" \
+          '{
+            text: ("🚀 Pre-release " + $version + " published – " + $status),
+            blocks: [
+              {
+                type: "header",
+                text: { type: "plain_text", text: "🚀 Package Pre-release Published", emoji: true }
+              },
+              {
+                type: "section",
+                fields: [
+                  { type: "mrkdwn", text: ("*Status*\n" + $status) },
+                  { type: "mrkdwn", text: "*Type*\n🔖 Pre-release" },
+                  { type: "mrkdwn", text: ("*Version*\n<https://www.npmjs.com/package/handsontable/v/" + $version + "|" + $version + ">") },
+                  { type: "mrkdwn", text: ("*Branch*\n<" + $repo_url + "/tree/" + $branch + "|" + $branch + ">") }
+                ]
+              },
+              { type: "divider" },
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>") }
+              },
+              { type: "divider" },
+              {
+                type: "context",
+                elements: [
+                  { type: "mrkdwn", text: "⚠️ *This is a pre-release.* Not to be used in production." },
+                  { type: "mrkdwn", text: ("<" + $run_url + "|View run>") }
+                ]
+              }
+            ]
+          }' > /tmp/slack-payload.json
           echo "Slack payload:"
           cat /tmp/slack-payload.json
 
@@ -533,19 +572,28 @@ jobs:
       - name: Publication summary
         run: |
           RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
-          {
-            echo "## Publication Summary"
-            echo ""
-            echo "The following release is ready to be published to npm:"
-            echo ""
-            echo "| Property | Value |"
-            echo "|----------|-------|"
-            echo "| **Version** | \`${RC_VERSION}\` |"
-            echo "| **npm Tag** | \`rc\` |"
-            echo "| **Branch** | \`${{ github.ref_name }}\` |"
-            echo ""
-            echo "**Next step:** The publish job will proceed after approval from the \`approvers\` environment."
-          } >> $GITHUB_STEP_SUMMARY
+          BRANCH='${{ github.ref_name }}'
+          cat >> $GITHUB_STEP_SUMMARY <<EOF
+          # 🚀 Pre-release Publication Summary
+
+          > The following release candidate is ready to be published to npm.
+
+          ## 📦 Package Details
+
+          | Property | Value |
+          |----------|-------|
+          | **Version** | \`${RC_VERSION}\` |
+          | **npm Tag** | \`rc\` |
+          | **Branch** | \`${BRANCH}\` |
+
+          ## ⏳ Awaiting Approval
+
+          This job will proceed once approved by the \`approvers\` environment.
+          Review the details above and approve the deployment to publish to npm.
+
+          ---
+          _Triggered by **${{ github.actor }}** on **${{ github.ref_name }}**_
+          EOF
 
   rc-test:
     name: Run tests (RC)
@@ -574,7 +622,6 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Download build artifacts
@@ -607,39 +654,71 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
-          if [ "$JOB_STATUS" = "success" ]; then EMOJI=":white_check_mark:"; else EMOJI=":x:"; fi
+          if [ "$JOB_STATUS" = "success" ]; then STATUS_FIELD=":white_check_mark: Success"; else STATUS_FIELD=":x: Failed"; fi
 
+          # Build commit list since previous RC tag
           VERSION=$(echo "$RC_VERSION" | sed 's/-rc[0-9]*//')
           RC_NUMBER=$(echo "$RC_VERSION" | sed -n 's/.*-rc\([0-9]*\)/\1/p')
-
-          {
-            echo "${EMOJI} *RC publish ${JOB_STATUS}*"
-            echo "Version: \`${RC_VERSION}\` (tag: \`rc\`)"
-            echo "Branch: \`${BRANCH}\`"
-          } > /tmp/slack-message.txt
-
-          # Changelog: commits between previous RC tag and current RC tag
-          git fetch --unshallow 2>/dev/null || true
-          git fetch --tags --quiet
           PREV_TAG="${VERSION}-rc$((RC_NUMBER - 1))"
 
-          if git rev-parse "$PREV_TAG" >/dev/null 2>&1 && git rev-parse "$RC_VERSION" >/dev/null 2>&1; then
-            COMMITS=$(git log "${PREV_TAG}..${RC_VERSION}" --pretty=format:"%H %s" --no-merges)
+          git fetch --unshallow 2>/dev/null || true
+          git fetch --tags --quiet
+
+          COMMITS_TEXT=""
+          if git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
+            COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"%H %s" --no-merges)
             if [ -n "$COMMITS" ]; then
-              echo "" >> /tmp/slack-message.txt
-              echo "*Changes since \`${PREV_TAG}\`:*" >> /tmp/slack-message.txt
-              echo "$COMMITS" | while IFS= read -r line; do
+              while IFS= read -r line; do
                 SHA=$(echo "$line" | cut -d' ' -f1)
                 MSG=$(echo "$line" | cut -d' ' -f2-)
-                echo "• <${REPO_URL}/commit/${SHA}|${MSG}>" >> /tmp/slack-message.txt
-              done
+                COMMITS_TEXT="${COMMITS_TEXT}• <${REPO_URL}/commit/${SHA}|${MSG}>\n"
+              done <<< "$COMMITS"
             fi
           fi
 
-          echo "" >> /tmp/slack-message.txt
-          echo "<${RUN_URL}|View run>" >> /tmp/slack-message.txt
+          if [ -z "$COMMITS_TEXT" ]; then
+            COMMITS_TEXT="No commits found since \`${PREV_TAG}\`."
+          fi
 
-          jq -n --rawfile text /tmp/slack-message.txt '{text: $text}' > /tmp/slack-payload.json
+          jq -n \
+            --arg status     "$STATUS_FIELD" \
+            --arg version    "${RC_VERSION}" \
+            --arg branch     "${BRANCH}" \
+            --arg repo_url   "${REPO_URL}" \
+            --arg prev_tag   "${PREV_TAG}" \
+            --arg commits    "$COMMITS_TEXT" \
+            --arg run_url    "${RUN_URL}" \
+          '{
+            text: ("🚀 Pre-release " + $version + " published – " + $status),
+            blocks: [
+              {
+                type: "header",
+                text: { type: "plain_text", text: "🚀 Package Pre-release Published", emoji: true }
+              },
+              {
+                type: "section",
+                fields: [
+                  { type: "mrkdwn", text: ("*Status*\n" + $status) },
+                  { type: "mrkdwn", text: "*Type*\n🔖 Pre-release" },
+                  { type: "mrkdwn", text: ("*Version*\n<https://www.npmjs.com/package/handsontable/v/" + $version + "|" + $version + ">") },
+                  { type: "mrkdwn", text: ("*Branch*\n<" + $repo_url + "/tree/" + $branch + "|" + $branch + ">") }
+                ]
+              },
+              { type: "divider" },
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: ("*📋 Commits since `" + $prev_tag + "`*\n" + $commits) }
+              },
+              { type: "divider" },
+              {
+                type: "context",
+                elements: [
+                  { type: "mrkdwn", text: "⚠️ *This is a pre-release.* Not to be used in production." },
+                  { type: "mrkdwn", text: ("<" + $run_url + "|View run>") }
+                ]
+              }
+            ]
+          }' > /tmp/slack-payload.json
           echo "Slack payload:"
           cat /tmp/slack-payload.json
 
@@ -834,22 +913,31 @@ jobs:
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           RELEASE_BRANCH='${{ steps.version.outputs.release-branch }}'
-          {
-            echo "## Publication Summary"
-            echo ""
-            echo "The following release is ready to be published to npm:"
-            echo ""
-            echo "| Property | Value |"
-            echo "|----------|-------|"
-            echo "| **Version** | \`${VERSION}\` |"
-            echo "| **Release Tag** | \`${{ github.event.release.tag_name || inputs.tag_name }}\` |"
-            echo "| **npm Tag** | \`latest\` |"
-            echo "| **Branch** | \`${RELEASE_BRANCH}\` |"
-            echo ""
-            echo "This release will be published as \`latest\` and will be the default version installed by users."
-            echo ""
-            echo "**Next step:** The publish job will proceed after approval from the \`approvers\` environment."
-          } >> $GITHUB_STEP_SUMMARY
+          RELEASE_TAG='${{ github.event.release.tag_name || inputs.tag_name }}'
+          cat >> $GITHUB_STEP_SUMMARY <<EOF
+          # ✅ Stable Release Publication Summary
+
+          > The following stable release is ready to be published to npm.
+
+          ## 📦 Package Details
+
+          | Property | Value |
+          |----------|-------|
+          | **Version** | \`${VERSION}\` |
+          | **Release Tag** | \`${RELEASE_TAG}\` |
+          | **npm Tag** | \`latest\` |
+          | **Branch** | \`${RELEASE_BRANCH}\` |
+
+          ## ⏳ Awaiting Approval
+
+          This job will proceed once approved by the \`approvers\` environment.
+          Review the details above and approve the deployment to publish to npm.
+
+          > This release will be published as \`latest\` and will be the default version installed by users.
+
+          ---
+          _Triggered by **${{ github.actor }}** on **${{ github.ref_name }}**_
+          EOF
 
   stable-publish:
     name: Publish stable release
@@ -1016,18 +1104,49 @@ jobs:
           VERSION: ${{ needs.stable-build.outputs.version }}
           RELEASE_BRANCH: ${{ needs.stable-build.outputs.release-branch }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
-          if [ "$JOB_STATUS" = "success" ]; then EMOJI=":white_check_mark:"; else EMOJI=":x:"; fi
+          if [ "$JOB_STATUS" = "success" ]; then STATUS_FIELD=":white_check_mark: Success"; else STATUS_FIELD=":x: Failed"; fi
+          CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
 
-          {
-            echo "${EMOJI} *Stable publish ${JOB_STATUS}*"
-            echo "Version: \`${VERSION}\` (tag: \`latest\`)"
-            echo "Branch: \`${RELEASE_BRANCH}\`"
-            echo ""
-            echo "<${RUN_URL}|View run>"
-          } > /tmp/slack-message.txt
-
-          jq -n --rawfile text /tmp/slack-message.txt '{text: $text}' > /tmp/slack-payload.json
+          jq -n \
+            --arg status        "$STATUS_FIELD" \
+            --arg version       "${VERSION}" \
+            --arg branch        "${RELEASE_BRANCH}" \
+            --arg repo_url      "${REPO_URL}" \
+            --arg changelog_url "$CHANGELOG_URL" \
+            --arg run_url       "${RUN_URL}" \
+          '{
+            text: ("✅ Release " + $version + " published – " + $status),
+            blocks: [
+              {
+                type: "header",
+                text: { type: "plain_text", text: "✅ Release Published", emoji: true }
+              },
+              {
+                type: "section",
+                fields: [
+                  { type: "mrkdwn", text: ("*Status*\n" + $status) },
+                  { type: "mrkdwn", text: "*Type*\n📦 Stable Release" },
+                  { type: "mrkdwn", text: ("*Version*\n<https://www.npmjs.com/package/handsontable/v/" + $version + "|" + $version + ">") },
+                  { type: "mrkdwn", text: ("*Branch*\n<" + $repo_url + "/tree/" + $branch + "|" + $branch + ">") }
+                ]
+              },
+              { type: "divider" },
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>") }
+              },
+              { type: "divider" },
+              {
+                type: "context",
+                elements: [
+                  { type: "mrkdwn", text: "📦 *This is a stable release.* Published as `latest` on npm." },
+                  { type: "mrkdwn", text: ("<" + $run_url + "|View run>") }
+                ]
+              }
+            ]
+          }' > /tmp/slack-payload.json
           echo "Slack payload:"
           cat /tmp/slack-payload.json
 
