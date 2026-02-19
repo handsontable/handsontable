@@ -2020,7 +2020,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * has visible focus highlight.
    *
    * @memberof Core#
-   * @function getSelectedRangeActive
+   * @function getSelectedActive
    * @since 16.1.0
    * @returns {number[]|undefined} Selected range as an array of coordinates or `undefined` if there is no selection.
    */
