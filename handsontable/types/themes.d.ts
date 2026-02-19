@@ -364,7 +364,13 @@ export type TokenKey =
   | 'paginationBarForegroundColor'
   | 'paginationBarBackgroundColor'
   | 'paginationBarHorizontalPadding'
-  | 'paginationBarVerticalPadding';
+  | 'paginationBarVerticalPadding'
+  // Multiselect
+  | 'chipBackground'
+  | 'chipBorderRadius'
+  | 'chipVerticalPadding'
+  | 'chipHorizontalPadding'
+  | 'chipGap';
 
 export type ThemeTokenValue = string | ThemeLightDarkValue;
 
