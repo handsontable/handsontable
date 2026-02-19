@@ -230,7 +230,7 @@ jobs:
         run: npm run all clean -- --e examples
 
       - name: Build all packages
-        run: npm run all build -- --e examples
+        run: npm run all build -- --e examples visual-tests
 
       - name: Install next package for examples
         if: ${{ !inputs.skip_examples }}
@@ -266,15 +266,10 @@ jobs:
 
           git add .
 
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "[DRY RUN] Would commit: ${RC_VERSION}"
-            echo "[DRY RUN] Files that would be committed:"
-            git diff --cached --name-only
-          else
-            git commit -m "${RC_VERSION}" || echo "No changes to commit"
-            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-            git push -u origin "${RELEASE_BRANCH}"
-          fi
+          git commit -m "${RC_VERSION}" || echo "No changes to commit"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+          git push -u origin "${RELEASE_BRANCH}"
+
 
       - name: Update GitHub release
         env:
@@ -386,13 +381,13 @@ jobs:
           echo "Slack payload:"
           cat /tmp/slack-payload.json
 
-#      - name: Notify Slack
-#        if: always()
-#        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
-#        with:
-#          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
-#          webhook-type: incoming-webhook
-#          payload-file-path: /tmp/slack-payload.json
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload-file-path: /tmp/slack-payload.json
 
   # ============================================================
   # Scenario C — Subsequent RC (push to release/**)
@@ -476,7 +471,7 @@ jobs:
         run: npm run all clean -- --e examples
 
       - name: Build all packages
-        run: npm run all build -- --e examples
+        run: npm run all build -- --e examples visual-tests
 
       - name: Verify bundles
         run: node ./scripts/verify-bundles.mjs
@@ -648,13 +643,13 @@ jobs:
           echo "Slack payload:"
           cat /tmp/slack-payload.json
 
-#      - name: Notify Slack
-#        if: always()
-#        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
-#        with:
-#          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
-#          webhook-type: incoming-webhook
-#          payload-file-path: /tmp/slack-payload.json
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload-file-path: /tmp/slack-payload.json
 
   # ============================================================
   # Scenario D — Stable release (release event, not prerelease)
@@ -743,7 +738,7 @@ jobs:
         run: npm run all clean -- --e examples
 
       - name: Build all packages
-        run: npm run all build -- --e examples
+        run: npm run all build -- --e examples visual-tests
 
       - name: Verify bundles
         run: node ./scripts/verify-bundles.mjs
@@ -1036,10 +1031,10 @@ jobs:
           echo "Slack payload:"
           cat /tmp/slack-payload.json
 
-#      - name: Notify Slack
-#        if: always()
-#        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
-#        with:
-#          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
-#          webhook-type: incoming-webhook
-#          payload-file-path: /tmp/slack-payload.json
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload-file-path: /tmp/slack-payload.json
