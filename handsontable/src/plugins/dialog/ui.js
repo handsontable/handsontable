@@ -1,4 +1,5 @@
 import { html, toSingleLine } from '../../helpers/templateLiteralTag';
+import { throwWithCause } from '../../helpers/errors';
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 import {
@@ -102,7 +103,7 @@ export class DialogUI {
         .filter(template => template !== 'base')
         .join(', ');
 
-      throw new Error(toSingleLine`Invalid template: ${templateName}.\x20
+      throwWithCause(toSingleLine`Invalid template: ${templateName}.\x20
         Valid templates are: ${validTemplates}.`);
     }
 

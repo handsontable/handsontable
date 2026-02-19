@@ -13,6 +13,7 @@ module.exports = {
   },
   rules: {
     'compat/compat': 'error',
+    'handsontable/no-native-error-throw': 'error',
     'handsontable/restricted-module-imports': [
       'error',
       '**/cellTypes',
@@ -39,6 +40,7 @@ module.exports = {
         'src/plugins/**/__tests__/helpers/**',
       ],
       rules: {
+        'handsontable/no-native-error-throw': 'off',
         'compat/compat': 'off',
         'no-restricted-syntax': 'off',
         'no-await-in-loop': 'off',

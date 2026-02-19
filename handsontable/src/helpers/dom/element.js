@@ -2,6 +2,7 @@ import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
 import { isWindowsOS, isSafari, isMobileBrowser, isIpadOS } from '../browser';
 import { deprecatedWarn } from '../console';
+import { throwWithCause } from '../../helpers/errors';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -526,7 +527,7 @@ export function isVisible(element) {
         } else if (next.host) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
           return isVisible(next.host);
         }
-        throw new Error('Lost in Web Components world');
+        throwWithCause('Lost in Web Components world');
 
       } else {
         return false; // this is a node detached from document in IE8

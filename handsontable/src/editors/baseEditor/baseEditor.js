@@ -1,4 +1,5 @@
 import { stringify } from '../../helpers/mixed';
+import { throwWithCause } from '../../helpers/errors';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
@@ -133,28 +134,28 @@ export class BaseEditor {
    * Required method to get current value from editable element.
    */
   getValue() {
-    throw Error('Editor getValue() method unimplemented');
+    throwWithCause('Editor getValue() method unimplemented');
   }
 
   /**
    * Required method to set new value into editable element.
    */
   setValue() {
-    throw Error('Editor setValue() method unimplemented');
+    throwWithCause('Editor setValue() method unimplemented');
   }
 
   /**
    * Required method to open editor.
    */
   open() {
-    throw Error('Editor open() method unimplemented');
+    throwWithCause('Editor open() method unimplemented');
   }
 
   /**
    * Required method to close editor.
    */
   close() {
-    throw Error('Editor close() method unimplemented');
+    throwWithCause('Editor close() method unimplemented');
   }
 
   /**

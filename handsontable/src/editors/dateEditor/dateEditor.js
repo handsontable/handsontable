@@ -7,6 +7,7 @@ import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 import { isMobileBrowser } from '../../helpers/browser';
 import { deprecatedWarn } from '../../helpers/console';
+import { throwWithCause } from '../../helpers/errors';
 
 export const EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
@@ -33,11 +34,11 @@ export class DateEditor extends TextEditor {
 
   init() {
     if (typeof moment !== 'function') {
-      throw new Error('You need to include moment.js to your project.');
+      throwWithCause('You need to include moment.js to your project.');
     }
 
     if (typeof Pikaday !== 'function') {
-      throw new Error('You need to include Pikaday to your project.');
+      throwWithCause('You need to include Pikaday to your project.');
     }
 
     super.init();

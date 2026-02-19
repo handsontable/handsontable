@@ -18,11 +18,11 @@ describe('CollapsibleColumns', () => {
       let hot;
 
       expect(() => {
-        hot = new Handsontable(document.createElement('div'));
-      }).toThrowError(`The CollapsibleColumns plugin requires the following modules:
+        hot = new Handsontable(document.createElement('div'), {});
+      }).toThrowWithCause(`The CollapsibleColumns plugin requires the following modules:
  - NestedHeaders (plugin)
 
-You have to import and register them manually.`);
+You have to import and register them manually.`, { handsontable: true });
       expect(hot).toBeUndefined();
     });
   });

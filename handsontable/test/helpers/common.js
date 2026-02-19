@@ -1,5 +1,4 @@
 import { waitOnScroll } from './utils';
-
 /**
  * When `true` the test suite will not scroll to the top of the page before each test and
  * the spec will be not cleared which allows calling test helpers (`selectCell()` etc.) from
