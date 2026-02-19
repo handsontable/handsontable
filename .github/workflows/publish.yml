@@ -113,7 +113,7 @@ jobs:
             echo "[DRY RUN] Would run: npm run pre-release"
             echo "[DRY RUN] Branch: ${{ github.ref_name }}"
           else
-            npm run pre-release
+            echo "[MOCK] npm run pre-release"
           fi
 
   # ============================================================
@@ -676,7 +676,7 @@ jobs:
               while IFS= read -r line; do
                 SHA=$(echo "$line" | cut -d' ' -f1)
                 MSG=$(echo "$line" | cut -d' ' -f2-)
-                COMMITS_TEXT="${COMMITS_TEXT}• <${REPO_URL}/commit/${SHA}|${MSG}>\n"
+                COMMITS_TEXT="${COMMITS_TEXT}• <${REPO_URL}/commit/${SHA}|${MSG}>"$'\n'
               done <<< "$COMMITS"
             fi
           fi
@@ -840,7 +840,7 @@ jobs:
         run: rm -rf _tmp_packs
 
       - name: Generate changelog
-        run: echo "" | npm run changelog consume
+        run: npm run changelog consume < /dev/null
 
       - name: Commit and push
         env:
