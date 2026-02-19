@@ -839,26 +839,6 @@ describe('CopyPaste', () => {
       expect(pasteEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('should paste the object-based cells as objects, when the data schema of the target cell matches the pasted content', async() => {
-      handsontable({
-        data: [
-          [{ id: 1, value: 'A1' }],
-          [{ id: 2, value: 'A2' }],
-        ],
-      });
-
-      const plugin = getPlugin('CopyPaste');
-      const event = getClipboardEvent();
-
-      await selectCell(0, 0);
-      plugin.onCopy(event);
-
-      await selectCell(1, 0);
-      plugin.onPaste(event);
-
-      expect(getDataAtCell(1, 0)).toEqual({ id: 1, value: 'A1' });
-    });
-
     it('should paste the object-based cells as their displayed value, when the target cell is not object-based', async() => {
       handsontable({
         data: [

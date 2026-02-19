@@ -61,6 +61,7 @@ describe('AutocompleteCellType', () => {
         validator: getValidator('autocomplete'),
         valueGetter: AutocompleteCellType.valueGetter,
         valueSetter: AutocompleteCellType.valueSetter,
+        parsePastedValue: true,
       });
     });
   });

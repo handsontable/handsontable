@@ -12,4 +12,5 @@ export const MultiSelectCellType = {
   validator: multiSelectValidator,
   valueGetter,
   valueSetter,
+  parsePastedValue: true,
 };

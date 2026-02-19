@@ -6349,6 +6349,47 @@ export default () => {
      */
     sanitizer: undefined,
 
+    /**
+     * The `parsePastedValue` option determines how pasted content is written to cells when the user pastes
+     * from the clipboard into Handsontable (e.g. from another Handsontable instance or between cells in the same table).
+     * It does not affect how other applications read or process the clipboard.
+     *
+     * When set to `false`, pasted content is written as plain strings. Non-scalar values (e.g. objects) are coerced
+     * to string, so an object becomes `"[object Object]"`.
+     *
+     * When set to `true`, pasted text is parsed so that JSON-like (or other supported) values are converted to
+     * JavaScript values and written to the data source. This allows copying and pasting more sophisticated JavaScript
+     * structures (e.g. objects, arrays) between cells and between Handsontable instances. Cells then store the resulting
+     * object (e.g. `{ id: 1, value: 'A1' }`). Schema validation is relaxed so object-based values can be pasted into
+     * cells that would normally expect a scalar.
+     *
+     * You can set the `parsePastedValue` option to one of the following:
+     *
+     * | Setting           | Description                                      |
+     * | ----------------- | ------------------------------------------------ |
+     * | `false` (default) | Write pasted content as plain strings            |
+     * | `true`            | Parse pasted text and write JavaScript values    |
+     *
+     * @since 17.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category CopyPaste
+     *
+     * @example
+     * ```js
+     * // write pasted content as strings (objects become "[object Object]")
+     * parsePastedValue: false,
+     * ```
+     *
+     * @example
+     * ```js
+     * // parse pasted text so cells receive JavaScript objects when pasted content is object-like
+     * parsePastedValue: true,
+     * ```
+     */
+    parsePastedValue: false,
+
     /* eslint-enable jsdoc/require-description-complete-sentence */
   };
 };

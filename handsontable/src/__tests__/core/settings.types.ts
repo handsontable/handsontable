@@ -208,6 +208,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     showNavigation: true,
     uiContainer: document.body,
   }),
+  parsePastedValue: true,
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
   preventOverflow: oneOf(true, 'vertical', 'horizontal'),
