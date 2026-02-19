@@ -34,9 +34,10 @@ This guide shows how to create a simple feedback editor cell using emoji buttons
 ## What You'll Build
 
 A cell that:
-- Displays emoji feedback buttons when editing
+- Displays emoji feedback buttons (circle-shaped) when editing
 - Shows the selected emoji when viewing
-- Supports keyboard navigation (arrow keys)
+- Uses Handsontable CSS tokens for theme-aware styling
+- Supports keyboard navigation (arrow keys, Tab)
 - Provides click-to-select functionality
 - Works without any external libraries
 
@@ -44,10 +45,11 @@ A cell that:
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
 
 @[code](@/content/recipes/cell-types/feedback/javascript/example1.js)
 @[code](@/content/recipes/cell-types/feedback/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/feedback/javascript/example1.css)
 
 :::
 
@@ -62,6 +64,8 @@ None! This uses only native HTML and JavaScript features.
 ```typescript
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { editorFactory } from 'handsontable/editors';
+import { registerCellType } from 'handsontable/cellTypes';
 
 registerAllModules();
 ```
@@ -72,18 +76,71 @@ registerAllModules();
 - No external emoji libraries
 - Just Handsontable.
 
+## Step 2: Add CSS Styling
 
-## Step 2: Editor - Initialize (`init`)
+Create a separate CSS file for the editor styles. This uses Handsontable CSS custom properties (tokens) so the editor automatically adapts to custom themes and dark mode.
+
+```css
+.feedback-editor {
+  display: flex;
+  gap: var(--ht-gap, 4px);
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box !important;
+  padding: var(--ht-cell-vertical-padding, 4px) var(--ht-cell-horizontal-padding, 8px);
+  background-color: var(--ht-cell-editor-background-color, #ffffff);
+  box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
+    var(--ht-cell-editor-border-color, #1a42e8),
+    0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
+    var(--ht-cell-editor-shadow-color, transparent);
+  border: none;
+  border-radius: 0;
+}
+
+.feedback-editor button {
+  background: var(--ht-background-color, #ffffff);
+  color: var(--ht-foreground-color, #000000);
+  border: 1px solid var(--ht-border-color, #e0e0e0);
+  border-radius: 50%;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 33%;
+  font-size: var(--ht-font-size, 14px);
+  text-align: center;
+  cursor: pointer;
+}
+
+.feedback-editor button:hover {
+  background: var(--ht-border-color, #e0e0e0);
+}
+
+.feedback-editor button.active,
+.feedback-editor button.active:hover {
+  background: var(--ht-accent-color, #1a42e8);
+  color: #ffffff;
+  border-color: var(--ht-accent-color, #1a42e8);
+}
+```
+
+**Handsontable tokens used:**
+- `--ht-cell-editor-border-color` / `--ht-cell-editor-border-width` - blue border matching native editors
+- `--ht-cell-editor-background-color` - editor background
+- `--ht-cell-vertical-padding` / `--ht-cell-horizontal-padding` - consistent cell padding
+- `--ht-background-color` / `--ht-foreground-color` - base button colors
+- `--ht-border-color` - button borders and hover state
+- `--ht-accent-color` - active/selected button highlight
+- `--ht-font-size` / `--ht-gap` - consistent sizing
+
+## Step 3: Editor - Initialize (`init`)
 
 Create the DOM structure with emoji buttons, this function will be called only once.
 
 ```typescript
 init(editor) {
-  // Create container for buttons
-  editor.input = editor.hot.rootDocument.createElement('div') as HTMLDivElement;
-  editor.input.style = 'display: flex; gap: 4px; padding: 5px; background:#eee; border: 1px solid #ccc; border-radius: 4px;';
+  editor.input = editor.hot.rootDocument.createElement('DIV') as HTMLDivElement;
+  editor.input.classList.add('feedback-editor');
 
-  // Set up click handler for buttons
   editor.input.addEventListener('click', (event) => {
     if (event.target instanceof HTMLButtonElement) {
       editor.setValue(event.target.innerText);
@@ -91,54 +148,38 @@ init(editor) {
     }
   });
 
-  // Initial render
   editor.render(editor);
 }
 ```
 
 **What's happening:**
 1. Create a `div` container for the buttons
-2. Style it with flexbox for horizontal layout
+2. Add the `feedback-editor` CSS class (all styling is in the CSS file)
 3. Add click handler to detect button clicks
 4. When a button is clicked, set the value and finish editing
 5. Call `render` to create the initial button layout
 
-**Key styling:**
-- `display: flex` - Horizontal button layout
-- `gap: 4px` - Space between buttons
-- `padding: 5px` - Internal spacing
-- `border-radius: 4px` - Rounded corners
+## Step 4: Editor - Render Function
 
-## Step 3: Editor - Render Function
-
-Create buttons dynamically based on the config.
+Create buttons dynamically based on the config, using CSS classes instead of inline styles.
 
 ```typescript
 render(editor) {
   editor.input.innerHTML = editor.config
-    .map((option) => {
-      const isSelected = editor.value === option;
-      const selectedStyle = isSelected
-        ? 'background: #007bff; color: white;'
-        : '';
-      return `<button style="width:33%; ${selectedStyle}">${option}</button>`;
-    })
+    .map((option) =>
+      `<button class="${editor.value === option ? 'active' : ''}">${option}</button>`
+    )
     .join('');
 }
 ```
 
 **What's happening:**
 - Generate HTML for each button from `config` array
-- Highlight the currently selected button
-- Each button takes 33% width (for 3 options)
-- Selected button has blue background
+- Add `active` class to the currently selected button
+- The `.active` CSS class applies `--ht-accent-color` as background
+- Each button takes 33% width with circle shape (`border-radius: 50%`)
 
-**Dynamic button creation:**
-- Uses `map` to iterate through config options
-- Conditional styling for selected state
-- `join('')` concatenates into single HTML string
-
-## Step 4: Editor - Keyboard Shortcuts
+## Step 5: Editor - Keyboard Shortcuts
 
 Add arrow key navigation to cycle through options.
 
@@ -176,7 +217,7 @@ shortcuts: [
 - Accessible for keyboard-only users
 - Intuitive left/right navigation
 
-## Step 5: Editor – Custom Tab Key Behavior
+## Step 6: Editor – Custom Tab Key Behavior
 
 By default, pressing <kbd>Tab</kbd> in Handsontable saves the cell and moves the selection horizontally, following your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction).
 In this example, we want <kbd>Tab</kbd> to cycle through feedback options—just like the arrow keys—without moving to another cell.
@@ -205,7 +246,7 @@ shortcuts: [
 - Returning `false` blocks Handsontable's built-in tab handler, so editing stays in place
 
 
-## Step 6: Editor - Before Open Hook
+## Step 7: Editor - Before Open Hook
 
 Initialize the editor with the current cell value when editing starts.
 
@@ -221,12 +262,12 @@ beforeOpen(editor, { originalValue }) {
 - Sets the editor's value to match the cell
 - This ensures the correct button is highlighted when editing starts
 
-## Step 7: Complete Cell Definition
+## Step 8: Complete Cell Definition
 
 ```typescript
 const cellDefinition = {
-  editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>({
-    config: ['👍', '👎', '🤷‍♂️'],
+  editor: editorFactory<{ input: HTMLDivElement; value: string; config: string[] }>({
+    config: ['👍', '👎', '🤷'],
     value: '👍',
     shortcuts: [
       {
@@ -238,7 +279,7 @@ const cellDefinition = {
           editor.setValue(editor.config[index]);
 
           return false;
-        }
+        },
       },
       {
         keys: [['ArrowLeft']],
@@ -246,25 +287,21 @@ const cellDefinition = {
           let index = editor.config.indexOf(editor.value);
 
           index = index === 0 ? editor.config.length - 1 : index - 1;
-
           editor.setValue(editor.config[index]);
-        }
-      }
+        },
+      },
     ],
     render: (editor) => {
       editor.input.innerHTML = editor.config
-        .map((option) => {
-          const isSelected = editor.value === option;
-          const selectedStyle = isSelected
-            ? 'background: #007bff; color: white;'
-            : '';
-          return `<button style="width:33%; ${selectedStyle}">${option}</button>`;
-        })
+        .map(
+          (option) =>
+            `<button class="${editor.value === option ? 'active' : ''}">${option}</button>`,
+        )
         .join('');
     },
     init: (editor) => {
-      editor.input = editor.hot.rootDocument.createElement('div') as HTMLDivElement;
-      editor.input.style = 'display: flex; gap: 4px; padding: 5px; background:#eee; border: 1px solid #ccc; border-radius: 4px;';
+      editor.input = document.createElement('DIV') as HTMLDivElement;
+      editor.input.classList.add('feedback-editor');
       editor.input.addEventListener('click', (event) => {
         if (event.target instanceof HTMLButtonElement) {
           editor.setValue(event.target.innerText);
@@ -276,48 +313,49 @@ const cellDefinition = {
     beforeOpen: (editor, { originalValue }) => {
       editor.setValue(originalValue);
     },
-  })
+  }),
 };
 ```
 
 **What's happening:**
-- **config**: Array of emoji options
-- **value**: Default/initial value. This is optional for better readability.
-- **shortcuts**: Keyboard navigation handlers
-- **render**: Function to create button HTML
-- **init**: Sets up DOM and event handlers
-- **beforeOpen**: Initializes editor with cell value
+- **config**: Array of emoji options (`👍`, `👎`, `🤷`)
+- **value**: Default/initial value
+- **shortcuts**: Keyboard navigation (ArrowLeft/Right cycle options, Tab cycles and prevents default)
+- **render**: Creates button HTML with `active` CSS class for the selected option
+- **init**: Sets up the container with `feedback-editor` class and click handler
+- **beforeOpen**: Initializes editor with the current cell value
 
-**Note:** No custom renderer needed! Handsontable's default renderer will display the emoji value in the cell.
+**Note:** No custom renderer needed! Handsontable's default renderer will display the emoji value in the cell. All visual styling is handled by the CSS file using Handsontable tokens.
 
-## Step 8: Use in Handsontable
+## Step 9: Register and Use in Handsontable
+
+Register the cell definition as a reusable cell type, then use it in the column configuration.
 
 ```typescript
+registerCellType('feedback', cellDefinition);
+
 const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
   data: [
-    { id: 1, itemName: 'Lunar Core', feedback: '👍' },
-    { id: 2, itemName: 'Zero Thrusters', feedback: '👎' },
-    { id: 3, itemName: 'EVA Suits', feedback: '🤷‍♂️' },
-    { id: 4, itemName: 'Solar Panels', feedback: '👍' },
+    { feature: 'Dark Mode', category: 'UI', priority: 'High', feedback: '👍', votes: 124, status: 'Planned' },
+    { feature: 'Bulk Edit', category: 'Core', priority: 'High', feedback: '👍', votes: 98, status: 'In Progress' },
+    { feature: 'AI Suggestions', category: 'Beta', priority: 'Medium', feedback: '🤷', votes: 45, status: 'Research' },
+    { feature: 'Offline Mode', category: 'Infra', priority: 'Low', feedback: '👎', votes: 12, status: 'Backlog' },
   ],
-  colHeaders: [
-    'ID',
-    'Item Name',
-    'Item feedback',
-  ],
+  colHeaders: ['Feature', 'Category', 'Priority', 'Feedback', 'Votes', 'Status'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
+  headerClassName: 'htLeft',
   columns: [
-    { data: 'id', type: 'numeric' },
-    { data: 'itemName', type: 'text' },
-    {
-      data: 'feedback',
-      width: 150,
-      ...cellDefinition,
-    }
+    { data: 'feature', type: 'text', width: 200 },
+    { data: 'category', type: 'text', width: 90 },
+    { data: 'priority', type: 'text', width: 100 },
+    { data: 'feedback', width: 100, type: 'feedback' },
+    { data: 'votes', type: 'numeric', width: 60 },
+    { data: 'status', type: 'text', width: 120 },
   ],
   licenseKey: 'non-commercial-and-evaluation',
 };
@@ -325,101 +363,41 @@ const hotOptions: Handsontable.GridSettings = {
 const hot = new Handsontable(container, hotOptions);
 ```
 
+**Key configuration:**
+- `registerCellType('feedback', cellDefinition)` - Registers the editor as a reusable cell type
+- `type: 'feedback'` - Applies the cell type to the Feedback column
+- `headerClassName: 'htLeft'` - Left-aligns all column headers
+
 ## How It Works - Complete Flow
 
-1. **Initial Render**: Cell displays the emoji value (👍, 👎, or 🤷‍♂️)
-2. **User Double-Clicks or Enter**: Editor opens over cell showing three buttons
-3. **Button Display**: All options visible, current value highlighted
+1. **Initial Render**: Cell displays the emoji value (👍, 👎, or 🤷)
+2. **User Double-Clicks or Enter**: Editor opens over cell showing three circle buttons with the Handsontable blue border
+3. **Button Display**: All options visible, current value highlighted using `--ht-accent-color`
 4. **User Interaction**:
-   - Click a button → Selects value and closes editor
-   - Press ArrowLeft/Right → Cycles through options
+   - Click a button: Selects value and closes editor
+   - Press ArrowLeft/Right: Cycles through options
+   - Press Tab: Cycles through options (stays in editor)
    - Enter key saves value and closes editor
-5. **Visual Feedback**: Selected button highlighted in blue
-6. **User Confirms**: Press Enter, click button, or click away
-7. **Save**: Value saved to cell
-8. **Editor Closes**: Cell shows selected emoji
+5. **Visual Feedback**: Selected button highlighted with accent color
+6. **Save**: Value saved to cell
+7. **Editor Closes**: Cell shows selected emoji
 
 ## Enhancements
 
-### 1. Custom Renderer with Styling
+### 1. More Feedback Options
 
-Add a custom renderer to style the emoji display:
-
-```typescript
-renderer: rendererFactory(({ td, value }) => {
-  td.innerHTML = `
-    <div style="text-align: center; font-size: 1.5em; padding: 4px;">
-      ${value || '🤷‍♂️'}
-    </div>
-  `;
-})
-```
-
-**What's happening:**
-- Center-aligns the emoji
-- Increases font size for better visibility
-- Adds padding for spacing
-
-### 2. More Feedback Options
-
-Add more emoji options:
+Add more emoji options by extending the config array and adjusting the button width in CSS:
 
 ```typescript
-config: ['👍', '👎', '🤷‍♂️', '❤️', '🔥', '⭐'],
+config: ['👍', '👎', '🤷', '❤️', '🔥', '⭐'],
 ```
 
-**Adjust button width:**
-```typescript
-render: (editor) => {
-  const buttonWidth = `${100 / editor.config.length}%`;
-
-  editor.input.innerHTML = editor.config
-    .map((option) => {
-      const isSelected = editor.value === option;
-      const selectedStyle = isSelected
-        ? 'background: #007bff; color: white;'
-        : '';
-
-      return `<button style="width:${buttonWidth}; ${selectedStyle}">${option}</button>`;
-    })
-    .join('');
-}
-```
-
-### 3. Custom Button Styling
-
-Enhanced button appearance:
-
-```typescript
-render: (editor) => {
-  editor.input.innerHTML = editor.config
-    .map((option) => {
-      const isSelected = editor.value === option;
-      const baseStyle = `
-        width: 33%;
-        padding: 8px;
-        border: 2px solid ${isSelected ? '#007bff' : '#ddd'};
-        background: ${isSelected ? '#007bff' : 'white'};
-        color: ${isSelected ? 'white' : '#333'};
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 1.2em;
-        transition: all 0.2s;
-      `;
-
-      return `<button style="${baseStyle}">${option}</button>`;
-    })
-    .join('');
-}
-```
-
-### 4. Dynamic Config from Cell Properties
+### 2. Dynamic Config from Cell Properties
 
 Make options configurable per column:
 
 ```typescript
 beforeOpen: (editor, { cellProperties }) => {
-  // Override config if specified in column definition
   if (cellProperties.feedbackOptions) {
     editor.config = cellProperties.feedbackOptions;
   }
@@ -430,224 +408,44 @@ beforeOpen: (editor, { cellProperties }) => {
 // Usage
 columns: [{
   data: 'feedback',
-  ...cellDefinition,
-  feedbackOptions: ['👍', '👎', '❤️', '🔥'] // Custom options
+  type: 'feedback',
+  feedbackOptions: ['👍', '👎', '❤️', '🔥']
 }]
 ```
 
-### 5. Tooltip on Hover
+### 3. Tooltip on Hover
 
 Add tooltips to buttons:
 
 ```typescript
 render: (editor) => {
-  const tooltips = {
-    '👍': 'Positive feedback',
-    '👎': 'Negative feedback',
-    '🤷‍♂️': 'Neutral feedback'
-  };
+  const tooltips = { '👍': 'Positive', '👎': 'Negative', '🤷': 'Neutral' };
 
   editor.input.innerHTML = editor.config
-    .map((option) => {
-      const isSelected = editor.value === option;
-      const selectedStyle = isSelected
-        ? 'background: #007bff; color: white;'
-        : '';
-      const tooltip = tooltips[option] || '';
-
-      return `<button
-        style="width: 33%; ${selectedStyle}"
-        title="${tooltip}"
-      >${option}</button>`;
-    })
+    .map((option) =>
+      `<button class="${editor.value === option ? 'active' : ''}" title="${tooltips[option] || ''}">${option}</button>`
+    )
     .join('');
 }
 ```
 
-### 6. Text Labels Instead of Emojis
+### 4. Text Labels Instead of Emojis
 
 Use text buttons for clarity:
 
 ```typescript
 config: ['Positive', 'Negative', 'Neutral'],
-render: (editor) => {
-  editor.input.innerHTML = editor.config
-    .map((option) => {
-      const isSelected = editor.value === option;
-      const selectedStyle = isSelected
-        ? 'background: #007bff; color: white;'
-        : '';
-
-      return `<button style="width: 33%; ${selectedStyle}">${option}</button>`;
-    })
-    .join('');
-}
 ```
-
 
 ## Accessibility
 
-Buttons are inherently accessible:
-
-```typescript
-render: (editor) => {
-  editor.input.innerHTML = editor.config
-    .map((option, index) => {
-      const isSelected = editor.value === option;
-      const selectedStyle = isSelected
-        ? 'background: #007bff; color: white;'
-        : '';
-
-      return `<button
-        style="width: 33%; ${selectedStyle}"
-        aria-label="${option} feedback option"
-        aria-pressed="${isSelected}"
-        tabindex="${isSelected ? '0' : '-1'}"
-      >${option}</button>`;
-    })
-    .join('');
-}
-```
-
 **Keyboard navigation:**
-- **Tab**: Navigate to editor (focuses first button)
-- **Arrow Left/Right**: Cycle through options (via shortcuts)
-- **Enter**: Select current option and finish editing
-- **Escape**: Cancel editing
+- **Tab**: Cycles through feedback options (stays in editor)
+- **Arrow Left/Right**: Cycles through options
+- **Enter**: Saves value and closes editor
+- **Escape**: Cancels editing
 - **Click**: Direct selection
-
-**ARIA attributes:**
-- `aria-label`: Describes each button
-- `aria-pressed`: Indicates selected state
-- `tabindex`: Controls keyboard focus order
-
-## Performance Considerations
-
-### Why This Is Fast
-
-1. **Simple DOM**: Just a few buttons, minimal markup
-2. **No External Libraries**: Zero overhead
-3. **Efficient Updates**: Only re-renders when value changes
-4. **Native Events**: Browser-optimized click handlers
-
-### The Render Function
-
-```typescript
-render: (editor) => {
-  editor.input.innerHTML = editor.config
-    .map((option) => {
-      // ... create button HTML ...
-    })
-    .join('');
-}
-```
-
-**Is this expensive?**
-- **Fires on**: Value changes (not continuously)
-- **DOM update**: Single `innerHTML` assignment
-- **String concatenation**: Very fast in modern JS
-
-**Performance verdict**: Extremely fast!
-- Minimal DOM manipulation
-- No complex calculations
-- Simple string operations
-
-**Optimization (if needed):**
-For many rows, consider caching button elements:
-
-```typescript
-init(editor) {
-  // Create buttons once
-  editor.buttons = editor.config.map((option) => {
-    const button = document.createElement('button');
-
-    button.textContent = option;
-    button.style.cssText = 'width: 33%;';
-    button.addEventListener('click', () => {
-      editor.setValue(option);
-      editor.finishEditing();
-    });
-
-    return button;
-  });
-
-  // Just update classes in render
-  render: (editor) => {
-    editor.buttons.forEach((button, index) => {
-      const isSelected = editor.value === editor.config[index];
-
-      button.style.background = isSelected ? '#007bff' : '';
-      button.style.color = isSelected ? 'white' : '';
-    });
-  }
-}
-```
-
-## Styling Tips
-
-### Custom Button Appearance (CSS)
-
-```css
-/* Style the editor container */
-.htSelectEditor {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Style buttons */
-.htSelectEditor button {
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.htSelectEditor button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Style selected button */
-.htSelectEditor button[aria-pressed='true'] {
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-```
-
-### Custom Cell Renderer Styling
-
-```typescript
-renderer: rendererFactory(({ td, value }) => {
-  td.innerHTML = `
-    <div style="
-      text-align: center;
-      font-size: 2em;
-      padding: 8px;
-      background: ${value === '👍' ? '#e8f5e9' : value === '👎' ? '#ffebee' : '#f5f5f5'};
-      border-radius: 4px;
-    ">
-      ${value || '🤷‍♂️'}
-    </div>
-  `;
-})
-```
-
-### Responsive Button Layout
-
-```typescript
-init: (editor) => {
-  editor.input = editor.hot.rootDocument.createElement('div') as HTMLDivElement;
-  editor.input.style.cssText = `
-    display: flex;
-    gap: 4px;
-    padding: 8px;
-    background: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  `;
-  // ... rest of init
-}
-```
-
 
 ---
 
-**Congratulations!** You've created a simple feedback editor with emoji buttons using only native HTML and JavaScript, perfect for quick feedback selection in your data grid!
+**Congratulations!** You've created a theme-aware feedback editor with emoji buttons using Handsontable CSS tokens, perfect for quick feedback selection in your data grid!
