@@ -324,7 +324,7 @@ jobs:
   first-rc-publish:
     name: Publish first RC
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && (needs.first-rc-test.result == 'success' || needs.first-rc-test.result == 'skipped') }}
+    if: ${{ !cancelled() && needs.first-rc-build.result == 'success' && (needs.first-rc-test.result == 'success' || needs.first-rc-test.result == 'skipped') }}
     needs: [first-rc-build, first-rc-test]
     environment: approvers
     steps:
@@ -564,7 +564,7 @@ jobs:
   rc-publish:
     name: Publish RC
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && (needs.rc-test.result == 'success' || needs.rc-test.result == 'skipped') }}
+    if: ${{ !cancelled() && needs.rc-build.result == 'success' && (needs.rc-test.result == 'success' || needs.rc-test.result == 'skipped') }}
     needs: [rc-build, rc-test]
     environment: approvers
     steps:
