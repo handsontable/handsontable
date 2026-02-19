@@ -62,7 +62,7 @@ jobs:
 
       - run: |
           pnpm install
-          npm install -g npm@11.6
+          npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
 
       - name: Publish pre-release
         run: npm run pre-release
@@ -115,6 +115,7 @@ jobs:
           VERSION='${{ steps.version.outputs.version }}'
           node -e "
             import { isVersionValid } from './scripts/utils/pre-release.mjs';
+            
             if (!isVersionValid('${VERSION}')) {
               console.error('Error: Invalid version format: ${VERSION}');
               process.exit(1);
@@ -127,6 +128,7 @@ jobs:
           echo "npm version: $NPM_VERSION"
           node -e "
             import semver from 'semver';
+            
             if (!semver.satisfies('${NPM_VERSION}'.trim(), '>=7.17.0')) {
               console.error('Error: npm >= 7.17.0 required (found ${NPM_VERSION})');
               process.exit(1);
@@ -151,6 +153,7 @@ jobs:
           RELEASE_DATE=$(date +%d/%m/%Y)
           node -e "
             import { setVersion, setReleaseDate } from './scripts/utils/pre-release.mjs';
+            
             setVersion('${RC_VERSION}');
             setReleaseDate('${RELEASE_DATE}');
           "
@@ -159,6 +162,7 @@ jobs:
         run: |
           node -e "
             import { cleanNodeModules } from './scripts/utils/filesystem.mjs';
+            
             cleanNodeModules();
           "
 
@@ -401,6 +405,7 @@ jobs:
           echo "npm version: $NPM_VERSION"
           node -e "
             import semver from 'semver';
+            
             if (!semver.satisfies('${NPM_VERSION}'.trim(), '>=7.17.0')) {
               console.error('Error: npm >= 7.17.0 required (found ${NPM_VERSION})');
               process.exit(1);
@@ -433,6 +438,7 @@ jobs:
           RELEASE_DATE=$(date +%d/%m/%Y)
           node -e "
             import { setVersion, setReleaseDate } from './scripts/utils/pre-release.mjs';
+            
             setVersion('${RC_VERSION}');
             setReleaseDate('${RELEASE_DATE}');
           "
@@ -582,8 +588,10 @@ jobs:
           git fetch --tags --quiet
 
           COMMITS_TEXT=""
+          
           if git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
             COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"%H %s" --no-merges)
+            
             if [ -n "$COMMITS" ]; then
               while IFS= read -r line; do
                 SHA=$(echo "$line" | cut -d' ' -f1)
@@ -700,6 +708,7 @@ jobs:
           VERSION='${{ steps.version.outputs.version }}'
           node -e "
             import { isVersionValid } from './scripts/utils/pre-release.mjs';
+            
             if (!isVersionValid('${VERSION}')) {
               console.error('Error: Invalid version format: ${VERSION}');
               process.exit(1);
@@ -712,6 +721,7 @@ jobs:
           echo "npm version: $NPM_VERSION"
           node -e "
             import semver from 'semver';
+            
             if (!semver.satisfies('${NPM_VERSION}'.trim(), '>=7.17.0')) {
               console.error('Error: npm >= 7.17.0 required (found ${NPM_VERSION})');
               process.exit(1);
@@ -724,6 +734,7 @@ jobs:
           RELEASE_DATE=$(date +%d/%m/%Y)
           node -e "
             import { setVersion, setReleaseDate } from './scripts/utils/pre-release.mjs';
+            
             setVersion('${VERSION}');
             setReleaseDate('${RELEASE_DATE}');
           "
