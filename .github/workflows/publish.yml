@@ -513,6 +513,9 @@ jobs:
             setReleaseDate('${RELEASE_DATE}');
           "
 
+      - name: Update lockfile for version change
+        run: pnpm install --lockfile-only
+
       - name: Clean old package builds
         run: npm run all clean -- --e examples
 
@@ -821,6 +824,9 @@ jobs:
             setReleaseDate('${RELEASE_DATE}');
           "
 
+      - name: Update lockfile for version change
+        run: pnpm install --lockfile-only
+
       - name: Clean old package builds
         run: npm run all clean -- --e examples
 
@@ -959,7 +965,7 @@ jobs:
     needs: [stable-build]
     environment: approvers
     steps:
-      - name: Checkout for merge
+      - name: Checkout the release branch
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
         with:
           ref: ${{ needs.stable-build.outputs.release-branch }}
