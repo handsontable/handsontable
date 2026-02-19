@@ -6,6 +6,7 @@ import { rangeEach } from '../../helpers/number';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
+import { createObjectPropListener } from '../../helpers/object';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
@@ -25,8 +26,6 @@ import {
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
 import { TrimmingMap } from '../../translations';
-import { getValueGetterValue } from '../../utils/valueAccessors';
-import { createObjectPropListener } from '../../helpers/object';
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
