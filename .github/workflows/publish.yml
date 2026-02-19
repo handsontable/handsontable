@@ -395,7 +395,7 @@ jobs:
             blocks: [
               {
                 type: "header",
-                text: { type: "plain_text", text: "🚀 Package Pre-release Published", emoji: true }
+                text: { type: "plain_text", text: "🚀 Pre-release Published", emoji: true }
               },
               {
                 type: "section",
@@ -699,7 +699,7 @@ jobs:
             blocks: [
               {
                 type: "header",
-                text: { type: "plain_text", text: "🚀 Package Pre-release Published", emoji: true }
+                text: { type: "plain_text", text: "🚀 Pre-release Published", emoji: true }
               },
               {
                 type: "section",

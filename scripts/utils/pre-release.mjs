@@ -116,13 +116,12 @@ export function setVersion(version, packages = workspacePackages) {
  */
 export function setReleaseDate(date) {
   const hotConfigPath = path.resolve(__dirname, '../../hot.config.js');
-  const replacementStatus = replace.sync({
+
+  replace.sync({
     files: hotConfigPath,
     from: /HOT_RELEASE_DATE: '(.*)'/,
     to: `HOT_RELEASE_DATE: '${date}'`,
   });
-
-  validateReplacementStatus(replacementStatus, date);
 }
 
 /**
