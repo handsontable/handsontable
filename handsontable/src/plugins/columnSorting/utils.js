@@ -170,7 +170,7 @@ export function createDateTimeCompareFunction(sortOrder, format, columnPluginSet
 }
 
 /**
- * Creates intlDate sorting compare function.
+ * Creates intl-date sorting compare function.
  *
  * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
  * @param {string} format Date or time format.
@@ -231,7 +231,7 @@ export function createIntlDateCompareFunction(sortOrder, format, columnPluginSet
 }
 
 /**
- * Creates intlTime sorting compare function.
+ * Creates intl-time sorting compare function.
  *
  * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
  * @param {string} format Date or time format.

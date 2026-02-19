@@ -1682,21 +1682,21 @@ export default () => {
     /**
      * Configures the date format for date cells. Accepts either a string (legacy, for [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md)
      * cells) or an object of [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
-     * options (for [`intlDate`](@/guides/cell-types/date-cell-type/date-cell-type.md) cells).
+     * options (for [`intl-date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cells).
      *
      * ::: warning
      * The string form of `dateFormat` is deprecated and will be removed in the next major release.
-     * It is used only by the `date` cell type (moment.js-based). Use the `intlDate` cell type
-     * with an `Intl.DateTimeFormat` options object instead. In the next major release, `intlDate`
-     * will become the default `date` cell type, and `intlDate` will be an alias for `date`.
+     * It is used only by the `date` cell type (moment.js-based). Use the `intl-date` cell type
+     * with an `Intl.DateTimeFormat` options object instead. In the next major release, `intl-date`
+     * will become the default `date` cell type, and `intl-date` will be an alias for `date`.
      * :::
      *
      * **Object form (Intl.DateTimeFormat options):**
      *
-     * The object form is supported only when the cell type is `intlDate`. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+     * The object form is supported only when the cell type is `intl-date`. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
      *
      * ::: tip Source data format
-     * For `intlDate` cells, source data must be in an ISO 8601 date format (`YYYY-MM-DD`). Otherwise operations such
+     * For `intl-date` cells, source data must be in an ISO 8601 date format (`YYYY-MM-DD`). Otherwise operations such
      * as sorting and filtering can be unstable or unpredictable. The `dateFormat` object affects only how dates are
      * displayed; the underlying value should remain ISO.
      * :::
@@ -1747,7 +1747,7 @@ export default () => {
      * **Deprecated: string form**
      *
      * Passing a string (e.g. `'DD/MM/YYYY'`, `'YYYY-MM-DD'`) is deprecated and works only with the `date` cell type.
-     * Migrate to the `intlDate` cell type and pass an `Intl.DateTimeFormat` options object.
+     * Migrate to the `intl-date` cell type and pass an `Intl.DateTimeFormat` options object.
      *
      * **Migration example:**
      *
@@ -1777,7 +1777,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // intlDate cell type with Intl options
+     * // intl-date cell type with Intl options
      * columns: [
      *   {
      *     type: 'intl-date',
@@ -1805,21 +1805,21 @@ export default () => {
     /**
      * Configures the time format for time cells. Accepts either a string (legacy, for [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md)
      * cells) or an object of [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
-     * options (for [`intlTime`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells).
+     * options (for [`intl-time`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells).
      *
      * ::: warning
      * The string form of `timeFormat` is deprecated and will be removed in the next major release.
-     * It is used only by the `time` cell type. Use the `intlTime` cell type with an `Intl.DateTimeFormat`
+     * It is used only by the `time` cell type. Use the `intl-time` cell type with an `Intl.DateTimeFormat`
      * options object instead.
      * :::
      *
      * **Object form (Intl.DateTimeFormat options):**
      *
-     * The object form is supported only when the cell type is `intlTime`. The locale is controlled separately
+     * The object form is supported only when the cell type is `intl-time`. The locale is controlled separately
      * via the [`locale`](@/api/options.md#locale) option.
      *
      * ::: tip Source data format
-     * For `intlTime` cells, source data must be in 24-hour time format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`), matching
+     * For `intl-time` cells, source data must be in 24-hour time format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`), matching
      * the HTML `input type="time"` value. Otherwise operations such as sorting and filtering can be unstable or unpredictable.
      * The `timeFormat` object affects only how times are displayed; the underlying value should remain in that format.
      * :::
@@ -1862,7 +1862,7 @@ export default () => {
      * **Deprecated: string form**
      *
      * Passing a string (e.g. `'h:mm:ss a'`) is deprecated and works only with the `time` cell type.
-     * Migrate to the `intlTime` cell type and pass an `Intl.DateTimeFormat` options object.
+     * Migrate to the `intl-time` cell type and pass an `Intl.DateTimeFormat` options object.
      *
      * **Migration example:**
      *
@@ -1893,7 +1893,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // intlTime cell type with Intl options
+     * // intl-time cell type with Intl options
      * columns: [
      *   {
      *     type: 'intl-time',
@@ -4769,7 +4769,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // parse editor string to ISO date (e.g. intlDate: display format => source format)
+     * // parse editor string to ISO date (e.g. intl-date: display format => source format)
      * valueParser(value, cellProperties) {
      *   if (value == null || value === '') {
      *     return null;

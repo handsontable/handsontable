@@ -22,8 +22,8 @@ export function dateRenderer(hotInstance, TD, row, col, prop, value, cellPropert
     deprecatedWarn(
       'The `date` cell type with string-based `dateFormat` (moment.js) is deprecated. ' +
       'In the next major release, `date` will accept only Intl.DateTimeFormat options (object). ' +
-      'To start migrating, use the `intlDate` cell type now; it will become the `date` cell type ' +
-      'after the next major release (the `intlDate` will become an alias for `date`).\n\n' +
+      'To start migrating, use the `intl-date` cell type now; it will become the `date` cell type ' +
+      'after the next major release (the `intl-date` will become an alias for `date`).\n\n' +
       'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
       '`date` cell type: https://handsontable.com/docs/date-cell-type/'
     );
