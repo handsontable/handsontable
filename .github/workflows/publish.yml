@@ -2,48 +2,9 @@ name: Publish
 
 on:
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: 'Dry run (log actions without executing them)'
-        required: false
-        type: boolean
-        default: true
-      # ---- [TESTING] inputs below mimic the release event fields ----
-      # Use these to manually trigger the workflow from a feature branch,
-      # since the "release" event always uses the workflow from the default branch.
-      scenario:
-        description: '[TESTING] Scenario to run (leave empty for pre-release)'
-        required: false
-        type: choice
-        options:
-          - ''
-          - first-rc
-          - stable
-      release_name:
-        description: '[TESTING] Release name (e.g. "16.0.0-rc" for first-rc)'
-        required: false
-        type: string
-      tag_name:
-        description: '[TESTING] Tag name (e.g. "v16.0.0" for stable)'
-        required: false
-        type: string
-      target_commitish:
-        description: '[TESTING] Target branch (e.g. "_test_release/16.0.0" for stable)'
-        required: false
-        type: string
-      skip_tests:
-        description: '[TESTING] Skip test jobs and go straight to publish'
-        required: false
-        type: boolean
-        default: false
-      skip_examples:
-        description: '[TESTING] Skip examples install and build steps'
-        required: false
-        type: boolean
-        default: false
   push:
     branches:
-      - '_test_release/**' # Must match RELEASE_BRANCH_PREFIX
+      - 'release/**' # Must match RELEASE_BRANCH_PREFIX
   release:
     types: [created]
   workflow_run:
@@ -51,30 +12,29 @@ on:
     types: [completed]
     branches: [develop]
 
-# DRY_RUN_DEFAULT: Set to 'true' to enable dry-run for push/release triggers.
-# workflow_dispatch uses its own input. Flip to 'false' when done testing.
 env:
-  DRY_RUN_DEFAULT: 'true'
-  RELEASE_BRANCH_PREFIX: '_test_release/'
-  DOCS_BRANCH_PREFIX: '_test_prod-docs/'
-  LTS_BRANCH_PREFIX: '_test_lts_/'
+  RELEASE_BRANCH_PREFIX: 'release/'
+  DOCS_BRANCH_PREFIX: 'prod-docs/'
+  LTS_BRANCH_PREFIX: 'lts/'
+  SKIP_TESTS: 'false'
+  SKIP_EXAMPLES: 'false'
 
 permissions:
+  id-token: write  # Required for OIDC
   contents: write
   actions: read
 
 jobs:
   # ============================================================
-  # Scenario A — Pre-release (workflow_dispatch from non-release branch or automatically ran ond develop after testing)
+  # Scenario A — Pre-release (workflow_dispatch from non-release branch or automatically ran on develop after testing)
   # ============================================================
   pre-release:
     name: Build and publish a pre-release
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'workflow_dispatch' &&
-        inputs.scenario == '' &&
-        !startsWith(github.ref_name, '_test_release/') &&
-        !startsWith(github.ref_name, '_test_lts_/')) ||
+        !startsWith(github.ref_name, 'release/') &&
+        !startsWith(github.ref_name, 'lts/')) ||
       (github.event_name == 'workflow_run' &&
         github.event.workflow_run.conclusion == 'success')
     steps:
@@ -106,15 +66,7 @@ jobs:
           npm install -g npm@11.6
 
       - name: Publish pre-release
-        env:
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
-        run: |
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "[DRY RUN] Would run: npm run pre-release"
-            echo "[DRY RUN] Branch: ${{ github.ref_name }}"
-          else
-            echo "[MOCK] npm run pre-release"
-          fi
+        run: npm run pre-release
 
   # ============================================================
   # Scenario B — First RC (release event with prerelease flag)
@@ -123,10 +75,8 @@ jobs:
     name: Build first RC
     runs-on: ubuntu-latest
     if: |
-      (github.event_name == 'release' &&
-        github.event.release.prerelease == true) ||
-      (github.event_name == 'workflow_dispatch' &&
-        inputs.scenario == 'first-rc')
+      github.event_name == 'release' &&
+      github.event.release.prerelease == true
     outputs:
       release-branch: ${{ steps.create-branch.outputs.release-branch }}
       rc-version: ${{ steps.version.outputs.rc-version }}
@@ -135,28 +85,18 @@ jobs:
         id: version
         run: |
           # Release name is like "1.0.0-rc" → strip "-rc" to get "1.0.0"
-          RELEASE_NAME='${{ github.event.release.name || inputs.release_name }}'
+          RELEASE_NAME='${{ github.event.release.name }}'
           VERSION="${RELEASE_NAME%-rc}"
           RC_VERSION="${VERSION}-rc1"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "rc-version=${RC_VERSION}" >> $GITHUB_OUTPUT
           echo "Extracted version: ${VERSION} (RC: ${RC_VERSION})"
 
-# COMMENTED OUT FOR TESTING
-
-#      - name: Checkout develop
-#        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-#        with:
-#          ref: develop
-#          fetch-depth: 0
-
-#-----------REMOVE AFTER TESTING \/ \/ \/
-      - name: Checkout feature/CU-IT-451
+      - name: Checkout develop
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
         with:
-          ref: feature/CU-IT-451
+          ref: develop
           fetch-depth: 0
-#-----------REMOVE AFTER TESTING /\ /\ /\
 
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
         name: Install pnpm
@@ -233,11 +173,11 @@ jobs:
         run: npm run all build -- --e examples visual-tests
 
       - name: Install next package for examples
-        if: ${{ !inputs.skip_examples }}
+        if: ${{ env.SKIP_EXAMPLES != 'true' }}
         run: npm run examples:install next
 
       - name: Build examples
-        if: ${{ !inputs.skip_examples }}
+        if: ${{ env.SKIP_EXAMPLES != 'true' }}
         run: npm run in examples build
 
       - name: Verify bundles
@@ -261,7 +201,6 @@ jobs:
       - name: Commit and push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           RC_VERSION="${VERSION}-rc1"
@@ -271,36 +210,30 @@ jobs:
 
           git commit -m "${RC_VERSION}" || echo "No changes to commit"
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-          git push -u origin "${RELEASE_BRANCH}"
+          git push -u origin "${RELEASE_BRANCH}" --tags
 
           # Create tag via GitHub API so it's automatically verified
           gh api repos/${{ github.repository }}/git/refs \
             -f ref="refs/tags/${RC_VERSION}" \
             -f sha="$(git rev-parse HEAD)"
 
-
       - name: Update GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           RC_VERSION="${VERSION}-rc1"
           RELEASE_TAG="${VERSION}-rc"
 
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "[DRY RUN] Would update release '${RELEASE_TAG}' to point to tag '${RC_VERSION}'"
-          else
-            gh release edit "${RELEASE_TAG}" --tag "${RC_VERSION}" --repo "${{ github.repository }}"
-            echo "Updated release '${RELEASE_TAG}' to point to tag '${RC_VERSION}'"
-          fi
+          gh release edit "${RELEASE_TAG}" --tag "${RC_VERSION}" --repo "${{ github.repository }}"
+          echo "Updated release '${RELEASE_TAG}' to point to tag '${RC_VERSION}'"
 
       - name: Publication summary
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           RC_VERSION="${VERSION}-rc1"
           RELEASE_BRANCH='${{ steps.create-branch.outputs.release-branch }}'
-          RELEASE_NAME='${{ github.event.release.name || inputs.release_name }}'
+          RELEASE_NAME='${{ github.event.release.name }}'
           cat >> $GITHUB_STEP_SUMMARY <<EOF
           # 🚀 Pre-release Publication Summary
 
@@ -326,7 +259,7 @@ jobs:
 
   first-rc-test:
     name: Run tests (first RC)
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ env.SKIP_TESTS != 'true' }}
     needs: [first-rc-build]
     uses: ./.github/workflows/test.yml
     with:
@@ -360,17 +293,12 @@ jobs:
           path: _tmp_packs/
 
       - name: Publish
-        env:
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
         run: |
+          npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
           echo "Publishing packages from _tmp_packs/ with tag: rc"
           for TARBALL in _tmp_packs/*.tgz; do
             echo "Publishing: $(basename "$TARBALL")"
-            if [ "$DRY_RUN" = "true" ]; then
-              echo "  [DRY RUN] Would run: npm publish \"$TARBALL\" --tag rc"
-            else
-              echo "  [MOCK] npm publish \"$TARBALL\" --tag rc"
-            fi
+            npm publish "$TARBALL" --tag rc
           done
           echo "All packages published successfully."
 
@@ -540,7 +468,6 @@ jobs:
       - name: Commit and push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
         run: |
           RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
 
@@ -560,19 +487,14 @@ jobs:
       - name: Update GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
           RC_NUMBER=$(echo "$RC_VERSION" | sed -n "s/^${VERSION}-rc\([0-9]\+\)$/\1/p")
           PREVIOUS_TAG="${VERSION}-rc$((RC_NUMBER - 1))"
 
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "[DRY RUN] Would update release at tag '${PREVIOUS_TAG}' to point to tag '${RC_VERSION}'"
-          else
-            gh release edit "${PREVIOUS_TAG}" --tag "${RC_VERSION}" --repo "${{ github.repository }}"
-            echo "Updated release '${PREVIOUS_TAG}' to point to tag '${RC_VERSION}'"
-          fi
+          gh release edit "${PREVIOUS_TAG}" --tag "${RC_VERSION}" --repo "${{ github.repository }}"
+          echo "Updated release '${PREVIOUS_TAG}' to point to tag '${RC_VERSION}'"
 
       - name: Publication summary
         run: |
@@ -602,18 +524,12 @@ jobs:
 
   rc-test:
     name: Run tests (RC)
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ env.SKIP_TESTS != 'true' }}
     needs: [rc-build]
-    runs-on: ubuntu-latest
-    #----------- REMOVE AFTER TESTING \/ \/ \/
-    steps:
-      - name: Dummy test
-        run: echo "Dummy test job — skipping real tests for testing purposes"
-    #----------- REMOVE AFTER TESTING /\ /\ /\
-    # uses: ./.github/workflows/test.yml
-    # with:
-    #   test-all: true
-    # secrets: inherit
+    uses: ./.github/workflows/test.yml
+    with:
+      test-all: true
+    secrets: inherit
 
   rc-publish:
     name: Publish RC
@@ -642,17 +558,12 @@ jobs:
           path: _tmp_packs/
 
       - name: Publish
-        env:
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
         run: |
+          npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
           echo "Publishing packages from _tmp_packs/ with tag: rc"
           for TARBALL in _tmp_packs/*.tgz; do
             echo "Publishing: $(basename "$TARBALL")"
-            if [ "$DRY_RUN" = "true" ]; then
-              echo "  [DRY RUN] Would run: npm publish \"$TARBALL\" --tag rc"
-            else
-              echo "  [MOCK] npm publish \"$TARBALL\" --tag rc"
-            fi
+            npm publish "$TARBALL" --tag rc
           done
           echo "All packages published successfully."
 
@@ -748,10 +659,8 @@ jobs:
     name: Build stable release
     runs-on: ubuntu-latest
     if: |
-      (github.event_name == 'release' &&
-        github.event.release.prerelease == false) ||
-      (github.event_name == 'workflow_dispatch' &&
-        inputs.scenario == 'stable')
+      github.event_name == 'release' &&
+      github.event.release.prerelease == false
     outputs:
       version: ${{ steps.version.outputs.version }}
       release-branch: ${{ steps.version.outputs.release-branch }}
@@ -759,10 +668,10 @@ jobs:
       - name: Extract and validate version
         id: version
         run: |
-          TAG='${{ github.event.release.tag_name || inputs.tag_name }}'
+          TAG='${{ github.event.release.tag_name }}'
           VERSION="${TAG#v}"
           RELEASE_BRANCH="${RELEASE_BRANCH_PREFIX}${VERSION}"
-          TARGET='${{ github.event.release.target_commitish || inputs.target_commitish }}'
+          TARGET='${{ github.event.release.target_commitish }}'
 
           if [ "${TARGET}" != "${RELEASE_BRANCH}" ]; then
             echo "::error::Release target (${TARGET}) doesn't match expected branch (${RELEASE_BRANCH})"
@@ -866,7 +775,6 @@ jobs:
       - name: Commit and push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           RELEASE_BRANCH='${{ steps.version.outputs.release-branch }}'
@@ -879,21 +787,12 @@ jobs:
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
           git push origin HEAD:${RELEASE_BRANCH}
 
-          # When triggered via workflow_dispatch, no GH release exists yet so we create the tag via API.
-          # When triggered by a release event, GitHub already created the tag.
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            gh api repos/${{ github.repository }}/git/refs \
-              -f ref="refs/tags/${VERSION}" \
-              -f sha="$(git rev-parse HEAD)"
-            echo "Created tag: ${VERSION}"
-          else
-            echo "Skipping tag creation — already created by GitHub release event"
-          fi
+          # GitHub already created the tag when the release was published — no tag creation needed here.
+          echo "Skipping tag creation — already created by GitHub release event"
 
       - name: Create LTS branch for previous even major version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           MAJOR=$(echo "$VERSION" | cut -d. -f1)
@@ -933,18 +832,14 @@ jobs:
 
           echo "Creating LTS branch $LTS_BRANCH from tag $LATEST_TAG"
           git checkout -b "$LTS_BRANCH" "$LATEST_TAG"
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "[DRY RUN] Would push LTS branch: $LTS_BRANCH"
-          else
-            git push -u origin "$LTS_BRANCH"
-            echo "Created LTS branch: $LTS_BRANCH"
-          fi
+          git push -u origin "$LTS_BRANCH"
+          echo "Created LTS branch: $LTS_BRANCH"
 
       - name: Publication summary
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           RELEASE_BRANCH='${{ steps.version.outputs.release-branch }}'
-          RELEASE_TAG='${{ github.event.release.tag_name || inputs.tag_name }}'
+          RELEASE_TAG='${{ github.event.release.tag_name }}'
           cat >> $GITHUB_STEP_SUMMARY <<EOF
           # ✅ Stable Release Publication Summary
 
@@ -999,17 +894,12 @@ jobs:
           path: _tmp_packs/
 
       - name: Publish
-        env:
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
         run: |
+          npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
           echo "Publishing packages from _tmp_packs/ with tag: latest"
           for TARBALL in _tmp_packs/*.tgz; do
             echo "Publishing: $(basename "$TARBALL")"
-            if [ "$DRY_RUN" = "true" ]; then
-              echo "  [DRY RUN] Would run: npm publish \"$TARBALL\" --tag latest"
-            else
-              echo "  [MOCK] npm publish \"$TARBALL\" --tag latest"
-            fi
+            npm publish "$TARBALL" --tag latest
           done
           echo "All packages published successfully."
 
@@ -1019,7 +909,6 @@ jobs:
       - name: Merge release branch to develop and master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
         run: |
           RELEASE_BRANCH='${{ needs.stable-build.outputs.release-branch }}'
 
@@ -1028,34 +917,21 @@ jobs:
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
 
           echo "Merging ${RELEASE_BRANCH} into develop..."
-          # git checkout develop  # disabled for testing
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "[DRY RUN] Would merge ${RELEASE_BRANCH} into develop"
-          else
-            echo "[MOCK] git merge origin/${RELEASE_BRANCH} --no-edit"
-            echo "[MOCK] git push origin develop"
-          fi
+          git checkout develop
+          git merge origin/${RELEASE_BRANCH} --no-edit
+          git push origin develop
 
           echo "Merging ${RELEASE_BRANCH} into master..."
-          # git checkout master  # disabled for testing
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "[DRY RUN] Would merge ${RELEASE_BRANCH} into master"
-          else
-            echo "[MOCK] git merge origin/${RELEASE_BRANCH} --no-edit"
-            echo "[MOCK] git push origin master"
-          fi
+          git checkout master
+          git merge origin/${RELEASE_BRANCH} --no-edit
+          git push origin master
 
           echo "Deleting release branch ${RELEASE_BRANCH}..."
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "[DRY RUN] Would delete remote branch ${RELEASE_BRANCH}"
-          else
-            echo "[MOCK] git push origin --delete ${RELEASE_BRANCH}"
-          fi
+          git push origin --delete ${RELEASE_BRANCH}
 
       - name: Create or update docs production branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
         run: |
           VERSION='${{ needs.stable-build.outputs.version }}'
           # Strip patch version: "16.0.0" → "16.0"
@@ -1112,7 +988,6 @@ jobs:
       - name: Commit and push docs branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ inputs.dry_run != '' && format('{0}', inputs.dry_run) || env.DRY_RUN_DEFAULT }}
         run: |
           VERSION='${{ needs.stable-build.outputs.version }}'
           DOCS_BRANCH="${DOCS_BRANCH_PREFIX}${VERSION%.*}"
@@ -1121,7 +996,6 @@ jobs:
 
           git commit -m "${VERSION}" || echo "No changes to commit"
           git push origin "$DOCS_BRANCH"
-
 
       - name: Prepare Slack message
         if: always()
