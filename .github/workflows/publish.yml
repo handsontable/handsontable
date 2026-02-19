@@ -267,9 +267,13 @@ jobs:
           git add .
 
           git commit -m "${RC_VERSION}" || echo "No changes to commit"
-          git tag "${RC_VERSION}"
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-          git push -u origin "${RELEASE_BRANCH}" --tags
+          git push -u origin "${RELEASE_BRANCH}"
+
+          # Create tag via GitHub API so it's automatically verified
+          gh api repos/${{ github.repository }}/git/refs \
+            -f ref="refs/tags/${RC_VERSION}" \
+            -f sha="$(git rev-parse HEAD)"
 
 
       - name: Update GitHub release
@@ -545,11 +549,13 @@ jobs:
             echo "[DRY RUN] Would create tag: ${RC_VERSION}"
           else
             git commit -m "${RC_VERSION}" || echo "No changes to commit"
-            git tag "${RC_VERSION}"
             git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-            git push
-            git push origin "${RC_VERSION}"
-            git push --tags
+            git push origin HEAD:${{ github.ref_name }}
+
+            # Create tag via GitHub API so it's automatically verified
+            gh api repos/${{ github.repository }}/git/refs \
+              -f ref="refs/tags/${RC_VERSION}" \
+              -f sha="$(git rev-parse HEAD)"
           fi
 
       - name: Update GitHub release
