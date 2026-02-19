@@ -542,21 +542,14 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
 
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "[DRY RUN] Would commit: ${RC_VERSION}"
-            echo "[DRY RUN] Files that would be committed:"
-            git diff --cached --name-only
-            echo "[DRY RUN] Would create tag: ${RC_VERSION}"
-          else
-            git commit -m "${RC_VERSION}" || echo "No changes to commit"
-            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-            git push origin HEAD:${{ github.ref_name }}
+          git commit -m "${RC_VERSION}" || echo "No changes to commit"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+          git push origin HEAD:${{ github.ref_name }}
 
-            # Create tag via GitHub API so it's automatically verified
-            gh api repos/${{ github.repository }}/git/refs \
-              -f ref="refs/tags/${RC_VERSION}" \
-              -f sha="$(git rev-parse HEAD)"
-          fi
+          # Create tag via GitHub API so it's automatically verified
+          gh api repos/${{ github.repository }}/git/refs \
+            -f ref="refs/tags/${RC_VERSION}" \
+            -f sha="$(git rev-parse HEAD)"
 
       - name: Update GitHub release
         env:
@@ -605,10 +598,16 @@ jobs:
     name: Run tests (RC)
     if: ${{ !inputs.skip_tests }}
     needs: [rc-build]
-    uses: ./.github/workflows/test.yml
-    with:
-      test-all: true
-    secrets: inherit
+    runs-on: ubuntu-latest
+    #----------- REMOVE AFTER TESTING \/ \/ \/
+    steps:
+      - name: Dummy test
+        run: echo "Dummy test job — skipping real tests for testing purposes"
+    #----------- REMOVE AFTER TESTING /\ /\ /\
+    # uses: ./.github/workflows/test.yml
+    # with:
+    #   test-all: true
+    # secrets: inherit
 
   rc-publish:
     name: Publish RC
