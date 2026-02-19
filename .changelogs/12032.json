@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Change the element type for focus catchers",
+  "type": "fixed",
+  "issueOrPR": 12032,
+  "breaking": false,
+  "framework": "none"
+}
