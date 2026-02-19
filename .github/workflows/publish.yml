@@ -31,6 +31,16 @@ on:
         description: '[TESTING] Target branch (e.g. "_test_release/16.0.0" for stable)'
         required: false
         type: string
+      skip_tests:
+        description: '[TESTING] Skip test jobs and go straight to publish'
+        required: false
+        type: boolean
+        default: false
+      skip_examples:
+        description: '[TESTING] Skip examples install and build steps'
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - '_test_release/**' # Must match RELEASE_BRANCH_PREFIX
@@ -223,9 +233,11 @@ jobs:
         run: npm run all build -- --e examples
 
       - name: Install next package for examples
+        if: ${{ !inputs.skip_examples }}
         run: npm run examples:install next
 
       - name: Build examples
+        if: ${{ !inputs.skip_examples }}
         run: npm run in examples build
 
       - name: Verify bundles
@@ -302,6 +314,7 @@ jobs:
 
   first-rc-test:
     name: Run tests (first RC)
+    if: ${{ !inputs.skip_tests }}
     needs: [first-rc-build]
     uses: ./.github/workflows/test.yml
     with:
@@ -311,6 +324,7 @@ jobs:
   first-rc-publish:
     name: Publish first RC
     runs-on: ubuntu-latest
+    if: ${{ !cancelled() && (needs.first-rc-test.result == 'success' || needs.first-rc-test.result == 'skipped') }}
     needs: [first-rc-build, first-rc-test]
     environment: approvers
     steps:
@@ -540,6 +554,7 @@ jobs:
 
   rc-test:
     name: Run tests (RC)
+    if: ${{ !inputs.skip_tests }}
     needs: [rc-build]
     uses: ./.github/workflows/test.yml
     with:
@@ -549,6 +564,7 @@ jobs:
   rc-publish:
     name: Publish RC
     runs-on: ubuntu-latest
+    if: ${{ !cancelled() && (needs.rc-test.result == 'success' || needs.rc-test.result == 'skipped') }}
     needs: [rc-build, rc-test]
     environment: approvers
     steps:
