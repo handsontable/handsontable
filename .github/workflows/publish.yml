@@ -16,6 +16,7 @@ env:
   RELEASE_BRANCH_PREFIX: 'release/'
   DOCS_BRANCH_PREFIX: 'prod-docs/'
   LTS_BRANCH_PREFIX: 'lts/'
+  NPM_PUBLISH_VERSION: '11.6' # npm >= 11.5.1 required for trusted publishing (OIDC)
 
 permissions:
   id-token: write  # Required for OIDC
@@ -289,7 +290,7 @@ jobs:
 
       - name: Publish
         run: |
-          npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
+          npm install -g npm@${{ env.NPM_PUBLISH_VERSION }} # Ensure npm 11.5.1 or later for trusted publishing
           echo "Publishing packages from _tmp_packs/ with tag: rc"
           for TARBALL in _tmp_packs/*.tgz; do
             echo "Publishing: $(basename "$TARBALL")"
@@ -553,7 +554,7 @@ jobs:
 
       - name: Publish
         run: |
-          npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
+          npm install -g npm@${{ env.NPM_PUBLISH_VERSION }} # Ensure npm 11.5.1 or later for trusted publishing
           echo "Publishing packages from _tmp_packs/ with tag: rc"
           for TARBALL in _tmp_packs/*.tgz; do
             echo "Publishing: $(basename "$TARBALL")"
@@ -889,7 +890,7 @@ jobs:
 
       - name: Publish
         run: |
-          npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
+          npm install -g npm@${{ env.NPM_PUBLISH_VERSION }} # Ensure npm 11.5.1 or later for trusted publishing
           echo "Publishing packages from _tmp_packs/ with tag: latest"
           for TARBALL in _tmp_packs/*.tgz; do
             echo "Publishing: $(basename "$TARBALL")"
