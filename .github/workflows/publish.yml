@@ -255,6 +255,9 @@ jobs:
       - name: Clean up tarballs
         run: rm -rf _tmp_packs
 
+      - name: Generate changelog
+        run: npm run changelog consume < /dev/null
+
       - name: Commit and push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -839,9 +842,6 @@ jobs:
       - name: Clean up tarballs
         run: rm -rf _tmp_packs
 
-      - name: Generate changelog
-        run: npm run changelog consume < /dev/null
-
       - name: Commit and push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -854,15 +854,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
 
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "[DRY RUN] Would commit: ${VERSION}"
-            echo "[DRY RUN] Files that would be committed:"
-            git diff --cached --name-only
-          else
-            git commit -m "${VERSION}" || echo "No changes to commit"
-            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-            git push origin HEAD:${RELEASE_BRANCH}
-          fi
+          git commit -m "${VERSION}" || echo "No changes to commit"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+          git push origin HEAD:${RELEASE_BRANCH}
 
       - name: Create LTS branch for previous even major version
         env:
@@ -1092,15 +1086,10 @@ jobs:
           DOCS_BRANCH="${DOCS_BRANCH_PREFIX}${VERSION%.*}"
 
           git add .
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "[DRY RUN] Would commit docs changes as: ${VERSION}"
-            echo "[DRY RUN] Would push to: ${DOCS_BRANCH}"
-            echo "[DRY RUN] Files that would be committed:"
-            git diff --cached --name-only
-          else
-            git commit -m "${VERSION}" || echo "No changes to commit"
-            git push origin "$DOCS_BRANCH"
-          fi
+
+          git commit -m "${VERSION}" || echo "No changes to commit"
+          git push origin "$DOCS_BRANCH"
+
 
       - name: Prepare Slack message
         if: always()
