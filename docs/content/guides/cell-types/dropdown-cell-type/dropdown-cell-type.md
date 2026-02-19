@@ -13,6 +13,12 @@ angular:
   metaTitle: Dropdown cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+tags:
+  - dropdown
+  - select
+  - autocomplete
+  - key value
+  - key-value
 ---
 
 # Dropdown cell type
