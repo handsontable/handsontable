@@ -16,8 +16,6 @@ env:
   RELEASE_BRANCH_PREFIX: 'release/'
   DOCS_BRANCH_PREFIX: 'prod-docs/'
   LTS_BRANCH_PREFIX: 'lts/'
-  SKIP_TESTS: 'false'
-  SKIP_EXAMPLES: 'false'
 
 permissions:
   id-token: write  # Required for OIDC
@@ -173,11 +171,9 @@ jobs:
         run: npm run all build -- --e examples visual-tests
 
       - name: Install next package for examples
-        if: ${{ env.SKIP_EXAMPLES != 'true' }}
         run: npm run examples:install next
 
       - name: Build examples
-        if: ${{ env.SKIP_EXAMPLES != 'true' }}
         run: npm run in examples build
 
       - name: Verify bundles
@@ -259,7 +255,6 @@ jobs:
 
   first-rc-test:
     name: Run tests (first RC)
-    if: ${{ env.SKIP_TESTS != 'true' }}
     needs: [first-rc-build]
     uses: ./.github/workflows/test.yml
     with:
@@ -269,7 +264,7 @@ jobs:
   first-rc-publish:
     name: Publish first RC
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && needs.first-rc-build.result == 'success' && (needs.first-rc-test.result == 'success' || needs.first-rc-test.result == 'skipped') }}
+    if: ${{ !cancelled() && needs.first-rc-build.result == 'success' && needs.first-rc-test.result == 'success' }}
     needs: [first-rc-build, first-rc-test]
     environment: approvers
     steps:
@@ -524,7 +519,6 @@ jobs:
 
   rc-test:
     name: Run tests (RC)
-    if: ${{ env.SKIP_TESTS != 'true' }}
     needs: [rc-build]
     uses: ./.github/workflows/test.yml
     with:
@@ -534,7 +528,7 @@ jobs:
   rc-publish:
     name: Publish RC
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && needs.rc-build.result == 'success' && (needs.rc-test.result == 'success' || needs.rc-test.result == 'skipped') }}
+    if: ${{ !cancelled() && needs.rc-build.result == 'success' && needs.rc-test.result == 'success' }}
     needs: [rc-build, rc-test]
     environment: approvers
     steps:
