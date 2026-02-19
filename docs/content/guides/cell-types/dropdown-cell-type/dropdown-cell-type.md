@@ -5,6 +5,11 @@ metaTitle: Dropdown cell type - JavaScript Data Grid | Handsontable
 description: Collect user input with a searchable list of choices, by using the dropdown cell type.
 permalink: /dropdown-cell-type
 canonicalUrl: /dropdown-cell-type
+tags:
+  - dropdown
+  - select
+  - autocomplete
+  - key value
 react:
   id: 5i86kjqu
   metaTitle: Dropdown cell type - React Data Grid | Handsontable
@@ -13,12 +18,6 @@ angular:
   metaTitle: Dropdown cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
-tags:
-  - dropdown
-  - select
-  - autocomplete
-  - key value
-  - key-value
 ---
 
 # Dropdown cell type
