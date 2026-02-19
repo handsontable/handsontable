@@ -28,7 +28,6 @@ import { MultipleSelectionHandles } from './multipleSelectionHandles';
 import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
 import { Pagination } from './pagination';
-import { PersistentState } from './persistentState';
 import { Search } from './search';
 import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
@@ -74,7 +73,6 @@ export function registerAllPlugins() {
   registerPlugin(NestedHeaders);
   registerPlugin(NestedRows);
   registerPlugin(Pagination);
-  registerPlugin(PersistentState);
   registerPlugin(Search);
   registerPlugin(StretchColumns);
   registerPlugin(TouchScroll);
@@ -116,7 +114,6 @@ export {
   NestedHeaders,
   NestedRows,
   Pagination,
-  PersistentState,
   Search,
   StretchColumns,
   TouchScroll,

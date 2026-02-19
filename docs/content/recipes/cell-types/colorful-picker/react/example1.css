@@ -1,0 +1,25 @@
+.color-picker-editor {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: rgb(238, 238, 238);
+  border: 1px solid rgb(204, 204, 204);
+  border-radius: 4px;
+  width: 100%;
+}
+
+.color-picker-editor .button {
+  padding: 8px 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.color-picker-editor .button:hover {
+  background: #0056b3;
+}

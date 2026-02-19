@@ -20,21 +20,6 @@ const stylingItems = [
   { path: 'guides/styling/legacy-style/legacy-style' },
 ];
 
-const integrateWithVueItems = [
-  { path: 'guides/integrate-with-vue/vue-installation/vue-installation' },
-  { path: 'guides/integrate-with-vue/vue-simple-example/vue-simple-example' },
-  { path: 'guides/integrate-with-vue/vue-modules/vue-modules' },
-  { path: 'guides/integrate-with-vue/vue-hot-column/vue-hot-column' },
-  { path: 'guides/integrate-with-vue/vue-setting-up-a-language/vue-setting-up-a-language' },
-  { path: 'guides/integrate-with-vue/vue-custom-id-class-style/vue-custom-id-class-style' },
-  { path: 'guides/integrate-with-vue/vue-custom-context-menu-example/vue-custom-context-menu-example' },
-  { path: 'guides/integrate-with-vue/vue-custom-editor-example/vue-custom-editor-example' },
-  { path: 'guides/integrate-with-vue/vue-custom-renderer-example/vue-custom-renderer-example' },
-  { path: 'guides/integrate-with-vue/vue-language-change-example/vue-language-change-example' },
-  { path: 'guides/integrate-with-vue/vue-vuex-example/vue-vuex-example' },
-  { path: 'guides/integrate-with-vue/vue-hot-reference/vue-hot-reference' },
-];
-
 const integrateWithVue3Items = [
   { path: 'guides/integrate-with-vue3/vue3-installation/vue3-installation' },
   { path: 'guides/integrate-with-vue3/vue3-simple-example/vue3-simple-example' },
@@ -210,8 +195,7 @@ module.exports = {
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Dialog', children: dialogItems },
     { title: 'Internationalization', children: internationalizationItems },
-    { title: 'Integrate with Vue 2', children: integrateWithVueItems },
-    { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
+    { title: 'Integrate with Vue', children: integrateWithVue3Items },
     { title: 'Tools and building', children: buildingAndToolingItems },
     { title: 'Optimization', children: optimizationItems },
     { title: 'Security', children: securityItems },

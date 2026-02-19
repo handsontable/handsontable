@@ -18,7 +18,7 @@ describe('DropdownMenu', () => {
       let hot;
 
       expect(() => {
-        hot = new Handsontable(document.createElement('div'), { theme: 'ht-theme-classic' });
+        hot = new Handsontable(document.createElement('div'));
       }).toThrowError(`The DropdownMenu plugin requires the following modules:
  - AutoColumnSize (plugin)
 

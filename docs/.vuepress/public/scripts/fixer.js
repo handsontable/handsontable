@@ -94,6 +94,14 @@
         ns = 'ReactDOM';
 
       } else if (key === 'react-colorful') {
+        const m = window['react-colorful'];
+
+        if (m && typeof m.HexColorPicker !== 'undefined') {
+          if (typeof m.default === 'undefined') {
+            Object.defineProperty(m, 'default', { value: m, writable: false, enumerable: false });
+          }
+          return m;
+        }
         return window.exports;
 
       }
@@ -111,10 +119,7 @@
       } else if (key === '@handsontable/react-wrapper') {
         ns = 'Handsontable.react';
 
-      } else if (key === '@handsontable/react') {
-        ns = 'Handsontable.react';
-
-      } else if (key === '@handsontable/vue' || key === '@handsontable/vue3') {
+      } else if (key === '@handsontable/vue3') {
         ns = 'Handsontable.vue';
 
       } else if (key === 'vuex') {

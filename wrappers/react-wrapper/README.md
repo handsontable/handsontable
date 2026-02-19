@@ -126,7 +126,7 @@ const ExampleComponent = () => {
 - [Website](https://handsontable.com)
 - [Demo](https://handsontable.com/demo)
 - [Documentation](https://handsontable.com/docs/react-data-grid)
-- [npm](https://www.npmjs.com/package/@handsontable/react)
+- [npm](https://www.npmjs.com/package/@handsontable/react-wrapper)
 - [CDN](https://www.jsdelivr.com/package/npm/@handsontable/react-wrapper)
 - [Forum](https://forum.handsontable.com/)
 - [Blog](https://handsontable.com/blog)

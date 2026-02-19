@@ -6,7 +6,7 @@ registerCellType(TextCellType);
 
 describe('instanceToHTML', () => {
   it('should convert clear instance into HTML table', () => {
-    const hot = new Handsontable(document.createElement('div'), { theme: 'ht-theme-classic' });
+    const hot = new Handsontable(document.createElement('div'));
 
     expect(instanceToHTML(hot)).toBe([
       '<table><tbody>',
@@ -21,7 +21,6 @@ describe('instanceToHTML', () => {
 
   it('should convert column headers into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {
-      theme: 'ht-theme-classic',
       colHeaders: true,
       data: [
         ['A1', 'B1'],
@@ -41,7 +40,6 @@ describe('instanceToHTML', () => {
 
   it('should convert row headers into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {
-      theme: 'ht-theme-classic',
       rowHeaders: true,
       data: [
         ['A1', 'B1'],
@@ -59,7 +57,6 @@ describe('instanceToHTML', () => {
 
   it('should convert column and rows headers into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {
-      theme: 'ht-theme-classic',
       colHeaders: true,
       rowHeaders: true,
       data: [
@@ -80,7 +77,6 @@ describe('instanceToHTML', () => {
 
   it('should convert merged cells into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {
-      theme: 'ht-theme-classic',
       colHeaders: true,
       rowHeaders: true,
       data: [

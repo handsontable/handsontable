@@ -325,6 +325,49 @@ describe('multiSelectRenderer', () => {
           expect(renderedChips.eq(i).text()).toEqual(expectedText);
         }
       });
+
+      it('should be possible to remove chips using the chip removal button, when the table was initialized ' +
+        'with an AoO (array of objects) type dataset', async() => {
+        handsontable({
+          data: [
+            { color: choices },
+          ],
+          columns: [
+            {
+              data: 'color',
+              type: 'multiselect',
+              source: choices,
+              width: 500,
+            },
+          ],
+        });
+
+        expect(getSourceDataAtCell(0, 0)).toEqual(choices);
+
+        const chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+        const renderedChips = chipsContainer.find('.ht-multi-select-chip');
+
+        expect(renderedChips.length).toEqual(4);
+
+        const removeButton = renderedChips.eq(0).find('.ht-multi-select-chip-remove');
+        const removedChipText = renderedChips.eq(0).text();
+
+        removeButton.click();
+
+        const expectedSourceData = choices.filter(
+          choice => (choice.value || choice) !== removedChipText
+        );
+
+        expect(getSourceDataAtCell(0, 0)).toEqual(expectedSourceData);
+
+        const chipsContainerAfter = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+        const renderedChipsAfter = chipsContainerAfter.find('.ht-multi-select-chip');
+
+        expect(renderedChipsAfter.length).toEqual(3);
+        expect(renderedChipsAfter.eq(0).text()).toEqual(choices[1].value || choices[1]);
+        expect(renderedChipsAfter.eq(1).text()).toEqual(choices[2].value || choices[2]);
+        expect(renderedChipsAfter.eq(2).text()).toEqual(choices[3].value || choices[3]);
+      });
     });
   });
 });

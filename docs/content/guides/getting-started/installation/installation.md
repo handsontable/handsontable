@@ -15,6 +15,7 @@ angular:
   metaTitle: Installation - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 
 # Installation
@@ -70,32 +71,6 @@ pnpm add handsontable @handsontable/angular-wrapper
 
   </code-block>
 </code-group>
-
-## Import Handsontable's CSS
-
-Import Handsontable's CSS into your application to `angular.json`.
-
-```json
-"projects": {
-    "<app_name>": {
-      "architect": {
-        "build": {
-          "options": {
-            "styles": [
-              "handsontable/styles/handsontable.min.css",
-              "handsontable/styles/ht-theme-main.min.css"
-            ]
-          }
-        }
-      }
-    }
-  }
-```
-
-Another option for adding CSS to your application is to import them in the `styles.scss` file.
-
-```scss
-```
 
 ## Register Handsontable's modules
 
@@ -410,13 +385,6 @@ To install Handsontable locally using a package manager, run one of these comman
   </code-block>
 </code-group>
 
-## Import Handsontable's CSS
-
-Import Handsontable's CSS into your application.
-
-```jsx
-```
-
 ## Register Handsontable's modules
 
 Import and register all of Handsontable's modules with a single function call:
@@ -459,9 +427,7 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 ::: tip
 
-`@handsontable/react-wrapper` requires at least React@18 and is built with functional editors and renderers components in mind. If you use a lower version of React or prefer to use class-based components, you can use the `@handsontable/react` package instead.
-
-For more information on `@handsontable/react`, see the [14.6 documentation](https://handsontable.com/docs/14.6/react-data-grid/installation/).
+`@handsontable/react-wrapper` requires at least React@18 and is built with functional editors and renderers components in mind.
 
 :::
 

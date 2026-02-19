@@ -13,11 +13,8 @@
   "devDependencies": {
     "handsontable": "latest",
     "http-server": "^14.1.1",
-    "@handsontable/angular": "latest",
     "@handsontable/angular-wrapper": "latest",
-    "@handsontable/react": "latest",
     "@handsontable/react-wrapper": "latest",
-    "@handsontable/vue": "latest",
     "@handsontable/vue3": "latest"
   },
   "eslintConfig": {
@@ -28,7 +25,7 @@
   },
   "internal": {
     "framework_dirs": [
-      "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|ts|angular|angular-*|react|react-wrapper|vue*)"
+      "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|ts|angular-*|react|react-wrapper|vue*)"
     ]
   }
 }

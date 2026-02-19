@@ -284,9 +284,6 @@ export interface Events {
   modifyTransformEnd?: (delta: CellCoords) => void;
   modifyTransformFocus?: (delta: CellCoords) => void;
   modifyTransformStart?: (delta: CellCoords) => void;
-  persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
-  persistentStateReset?: (key: string) => void;
-  persistentStateSave?: (key: string, value: any) => void;
 }
 
 export class Hooks {
