@@ -879,6 +879,17 @@ jobs:
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
           git push origin HEAD:${RELEASE_BRANCH}
 
+          # When triggered via workflow_dispatch, no GH release exists yet so we create the tag via API.
+          # When triggered by a release event, GitHub already created the tag.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            gh api repos/${{ github.repository }}/git/refs \
+              -f ref="refs/tags/${VERSION}" \
+              -f sha="$(git rev-parse HEAD)"
+            echo "Created tag: ${VERSION}"
+          else
+            echo "Skipping tag creation — already created by GitHub release event"
+          fi
+
       - name: Create LTS branch for previous even major version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
