@@ -760,7 +760,6 @@ export class Filters extends BasePlugin {
     const visualColumn = this.hot.toVisualColumn(physicalColumn);
     const data = [];
 
-<<<<<<< HEAD
     for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
       const cellMeta = this.hot._getMetaManager().getCellMeta(physicalRow, physicalColumn, {
         visualRow: physicalRow,
@@ -782,15 +781,6 @@ export class Filters extends BasePlugin {
           value = valueHolder.value;
         }
       }
-=======
-    arrayEach(this.hot.getSourceDataAtCol(visualColumn), (value, rowIndex) => {
-      const cellMeta = this.hot.getCellMeta(rowIndex, visualColumn);
-      const { row, col, visualCol, visualRow, type, instance, dateFormat, locale } =
-        cellMeta;
-      const valueGetterValue = getValueGetterValue(value, cellMeta);
-
-      const dataValue = this.hot.getDataAtCell(this.hot.toVisualRow(rowIndex), visualColumn) ?? valueGetterValue;
->>>>>>> develop
 
       data.push({
         meta: cellMeta,
