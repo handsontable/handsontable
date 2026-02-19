@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed wrong scrollbar with calculation for scaled environments",
+  "title": "Fixed wrong scrollbar width calculation for scaled environments",
   "type": "fixed",
   "issueOrPR": 12035,
   "breaking": false,
