@@ -737,4 +737,5 @@ jobs:
       - name: Upload the screenshot to Argos CI
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
+          ARGOS_BRANCH: ${{ github.head_ref || github.ref_name }}
         run: npm run in visual-tests upload
