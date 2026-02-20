@@ -298,7 +298,7 @@ jobs:
           echo "Publishing packages from _tmp_packs/ with tag: rc"
           for TARBALL in _tmp_packs/*.tgz; do
             echo "Publishing: $(basename "$TARBALL")"
-            npm publish "$TARBALL" --tag rc
+            npm publish "./$TARBALL" --tag rc
           done
           echo "All packages published successfully."
 
@@ -569,7 +569,7 @@ jobs:
           echo "Publishing packages from _tmp_packs/ with tag: rc"
           for TARBALL in _tmp_packs/*.tgz; do
             echo "Publishing: $(basename "$TARBALL")"
-            npm publish "$TARBALL" --tag rc
+            npm publish "./$TARBALL" --tag rc
           done
           echo "All packages published successfully."
 
@@ -915,7 +915,7 @@ jobs:
           echo "Publishing packages from _tmp_packs/ with tag: latest"
           for TARBALL in _tmp_packs/*.tgz; do
             echo "Publishing: $(basename "$TARBALL")"
-            npm publish "$TARBALL" --tag latest
+            npm publish "./$TARBALL" --tag latest
           done
           echo "All packages published successfully."
 
