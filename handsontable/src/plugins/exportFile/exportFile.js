@@ -1,4 +1,5 @@
 import { BasePlugin } from '../base';
+import { throwWithCause } from '../../helpers/errors';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 
@@ -238,7 +239,7 @@ export class ExportFile extends BasePlugin {
    */
   _createTypeFormatter(format, options = {}) {
     if (!EXPORT_TYPES[format]) {
-      throw new Error(`Export format type "${format}" is not supported.`);
+      throwWithCause(`Export format type "${format}" is not supported.`);
     }
 
     return typeFactory(format, new DataProvider(this.hot), options);

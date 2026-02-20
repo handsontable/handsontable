@@ -1,5 +1,6 @@
 import { isObject } from '../../../helpers/object';
 import { warn } from '../../../helpers/console';
+import { throwWithCause } from '../../../helpers/errors';
 
 /**
  * Valid parameters keys.
@@ -54,6 +55,8 @@ export const VALID_ICON_KEYS = new Set([
   'collapseOff',
   'collapseOn',
   'radio',
+  'chipClose',
+  'search',
 ]);
 
 /**
@@ -350,6 +353,12 @@ const VALID_TOKEN_KEYS = new Set([
   'paginationBarBackgroundColor',
   'paginationBarHorizontalPadding',
   'paginationBarVerticalPadding',
+  // Multiselect
+  'chipBackground',
+  'chipBorderRadius',
+  'chipVerticalPadding',
+  'chipHorizontalPadding',
+  'chipGap',
 ]);
 
 /**
@@ -362,7 +371,7 @@ const VALID_TOKEN_KEYS = new Set([
  */
 function validateName(name, context) {
   if (typeof name !== 'string' || name.trim() === '') {
-    throw new Error(`[ThemeBuilder] ${context}.name must be a non-empty string.`);
+    throwWithCause(`[ThemeBuilder] ${context}.name must be a non-empty string.`);
   }
 
   return name;
@@ -379,7 +388,7 @@ export function validateColorScheme(mode) {
   if (!VALID_COLOR_SCHEMES.has(mode)) {
     const validModes = [...VALID_COLOR_SCHEMES].join(', ');
 
-    throw new Error(`[ThemeBuilder] Invalid color scheme: "${mode}". Must be one of: ${validModes}.`);
+    throwWithCause(`[ThemeBuilder] Invalid color scheme: "${mode}". Must be one of: ${validModes}.`);
   }
 
   return mode;
@@ -396,7 +405,7 @@ export function validateDensityType(type) {
   if (!VALID_DENSITY_TYPES.has(type)) {
     const validTypes = [...VALID_DENSITY_TYPES].join(', ');
 
-    throw new Error(
+    throwWithCause(
       `[ThemeBuilder] Invalid density: "${type}". Must be one of: ${validTypes}.`
     );
   }
@@ -413,7 +422,7 @@ export function validateDensityType(type) {
  */
 function validateDensitySizes(sizes, context) {
   if (!isObject(sizes)) {
-    throw new Error(`[ThemeBuilder] ${context}.sizes must be an object.`);
+    throwWithCause(`[ThemeBuilder] ${context}.sizes must be an object.`);
   }
 
   Object.keys(sizes).forEach((key) => {
@@ -434,7 +443,7 @@ function validateDensitySizes(sizes, context) {
 function validateDensityStructure(density, context) {
   if (isObject(density)) {
     if (!density.type || !density.sizes) {
-      throw new Error(`[ThemeBuilder] ${context} must be a string or an object with a 'type' and 'sizes' property.`);
+      throwWithCause(`[ThemeBuilder] ${context} must be a string or an object with a 'type' and 'sizes' property.`);
     }
 
     validateDensityType(density.type);
@@ -464,7 +473,7 @@ function validateColorsStructure(colors, context) {
     if (isObject(value)) {
       validateColorsStructure(value, currentPath);
     } else {
-      throw new Error(`[ThemeBuilder] ${currentPath} must be a string or an object.`);
+      throwWithCause(`[ThemeBuilder] ${currentPath} must be a string or an object.`);
     }
   });
 }
@@ -529,7 +538,7 @@ export function validateParams(parameters, context, options = {}) {
   const { requiredFields = [] } = options;
 
   if (typeof parameters !== 'object' || parameters === null) {
-    throw new Error(`[ThemeBuilder] ${context} must be an object.`);
+    throwWithCause(`[ThemeBuilder] ${context} must be an object.`);
   }
 
   const {
@@ -547,7 +556,7 @@ export function validateParams(parameters, context, options = {}) {
   // Validate required fields
   requiredFields.forEach((field) => {
     if (parameters[field] === undefined) {
-      throw new Error(`[ThemeBuilder] ${context}.${field} is required.`);
+      throwWithCause(`[ThemeBuilder] ${context}.${field} is required.`);
     }
   });
 
@@ -559,14 +568,14 @@ export function validateParams(parameters, context, options = {}) {
   // Validate sizing
   if (sizing !== undefined) {
     if (!isObject(sizing)) {
-      throw new Error(`[ThemeBuilder] ${context}.sizing must be an object.`);
+      throwWithCause(`[ThemeBuilder] ${context}.sizing must be an object.`);
     }
   }
 
   // Validate density
   if (density !== undefined) {
     if (!isObject(density) && typeof density !== 'string') {
-      throw new Error(`[ThemeBuilder] ${context}.density must be a string or an object.`);
+      throwWithCause(`[ThemeBuilder] ${context}.density must be a string or an object.`);
     }
 
     validateDensityStructure(density, `${context}.density`);
@@ -575,7 +584,7 @@ export function validateParams(parameters, context, options = {}) {
   // Validate icons
   if (icons !== undefined) {
     if (!isObject(icons)) {
-      throw new Error(`[ThemeBuilder] ${context}.icons must be an object.`);
+      throwWithCause(`[ThemeBuilder] ${context}.icons must be an object.`);
     }
 
     validateKeys(icons, VALID_ICON_KEYS, `${context}.icons`, {
@@ -587,7 +596,7 @@ export function validateParams(parameters, context, options = {}) {
   // Validate colors
   if (colors !== undefined) {
     if (!isObject(colors)) {
-      throw new Error(`[ThemeBuilder] ${context}.colors must be an object.`);
+      throwWithCause(`[ThemeBuilder] ${context}.colors must be an object.`);
     }
 
     validateColorsStructure(colors, `${context}.colors`);
@@ -596,7 +605,7 @@ export function validateParams(parameters, context, options = {}) {
   // Validate tokens
   if (tokens !== undefined) {
     if (!isObject(tokens)) {
-      throw new Error(`[ThemeBuilder] ${context}.tokens must be an object.`);
+      throwWithCause(`[ThemeBuilder] ${context}.tokens must be an object.`);
     }
 
     validateKeys(tokens, VALID_TOKEN_KEYS, `${context}.tokens`, {

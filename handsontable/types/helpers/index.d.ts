@@ -3,6 +3,7 @@ export * from './browser';
 export * from './console';
 export * from './data';
 export * from './dateTime';
+export * from './errors';
 export * from './feature';
 export * from './function';
 export * from './mixed';

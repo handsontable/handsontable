@@ -257,7 +257,7 @@
   --ht-radio-checked-disabled-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-800));
   --ht-radio-checked-disabled-icon-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-600));
   --ht-move-backlight-color: light-dark(var(--ht-colors-palette-800), var(--ht-colors-palette-300));
-  --ht-move-backlight-opacity: 25%;
+  --ht-move-backlight-opacity: 16%;
   --ht-move-indicator-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
   --ht-resize-indicator-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
   --ht-hidden-indicator-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));

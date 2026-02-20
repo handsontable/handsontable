@@ -1,7 +1,6 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
 import { generateASCIITable } from './asciiTable';
 import { normalize, pretty } from './htmlNormalize';
-
 // http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 const scrollbarWidth = (function calculateScrollbarWidth() {
   const inner = document.createElement('div');
@@ -345,7 +344,7 @@ beforeEach(function() {
       return {
         compare(checkedArray, conditionFunction) {
           if (typeof conditionFunction !== 'function') {
-            throw Error('Parameter passed to `toBeListFulfillingCondition` should be a function.');
+            throw new Error('Parameter passed to `toBeListFulfillingCondition` should be a function.');
           }
 
           const isListWithValues = Array.isArray(checkedArray) || checkedArray.length > 0;
@@ -536,6 +535,39 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
           };
         },
       };
+    },
+    toThrowWithCause(/* received, expectedMessage, expectedCause */) {
+      return { compare: (received, expectedMessage, expectedCause) => {
+
+        try {
+          received();
+
+          return {
+            pass: false,
+            message: () => 'Expected function to throw',
+          };
+        } catch (error) {
+        // In this method you only can compare strings and objects or regular expressions
+          const messageMatches = expectedMessage === undefined || error.message === expectedMessage;
+          const causeMatches = JSON.stringify(error.cause) === JSON.stringify(expectedCause);
+
+          const messages = [];
+
+          if (!messageMatches) {
+            messages.push(`Expected error with message "${expectedMessage}" but got message "${error.message}"`);
+          }
+
+          if (!causeMatches) {
+            // eslint-disable-next-line max-len
+            messages.push(`Expected error with cause ${JSON.stringify(expectedCause)} but got cause ${JSON.stringify(error.cause)}`);
+          }
+
+          return {
+            pass: messageMatches && causeMatches,
+            message: messages.join('\n')
+          };
+        }
+      } };
     },
   };
 

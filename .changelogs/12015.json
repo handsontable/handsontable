@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Removed deprecated packages Angular, React, Vue wrapper, persistentState plugin and hot undo redo methods",
+  "type": "removed",
+  "issueOrPR": 12015,
+  "breaking": true,
+  "framework": "none"
+}

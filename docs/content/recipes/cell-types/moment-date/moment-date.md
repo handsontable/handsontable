@@ -606,7 +606,6 @@ registerCellType('moment-date', cellDateTypeDefinition);
 ```typescript
 const container = document.querySelector('#example1')!;
 const hotOptions: Handsontable.GridSettings = {
-  themeName: 'ht-theme-main',
   data: [
     { id: 1, itemName: 'Lunar Core', cost: '2026-02-11' },
     { id: 2, itemName: 'Zero Thrusters', cost: '2026-02-11' },

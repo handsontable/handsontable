@@ -1,5 +1,6 @@
 import { arrayEach } from './array';
 import { isDefined } from './mixed';
+import { throwWithCause } from '../helpers/errors';
 
 /**
  * Generate schema for passed object.
@@ -150,7 +151,7 @@ export function mixin(Base, ...mixins) {
 
     objectEach(mixinItem, (value, key) => {
       if (Base.prototype[key] !== undefined) {
-        throw new Error(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
+        throwWithCause(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
       }
       if (typeof value === 'function') {
         Base.prototype[key] = value;

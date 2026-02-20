@@ -1,4 +1,5 @@
 import { iconsMap } from '../static/variables/helpers/iconsMap';
+import { throwWithCause } from '../../helpers/errors';
 import { flattenCssVariables } from './utils/cssVariables';
 
 /**
@@ -128,7 +129,7 @@ export class ThemeManager {
     }
 
     if (themeObject.getThemeConfig === undefined) {
-      throw new Error('[ThemeManager] The "theme" option must be an instance of ThemeBuilder.');
+      throwWithCause('[ThemeManager] The "theme" option must be an instance of ThemeBuilder.');
     }
 
     this.themeConfig = themeObject.getThemeConfig();

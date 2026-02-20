@@ -122,7 +122,7 @@ displaySeparator();
       await execa.command('wc -l < package.json', { cwd: 'docs', shell: true })
     ).stdout, 10);
 
-    // Update @handsontable/angular version in docs/package.json to match the docs version.
+    // Update @handsontable/angular-wrapper version in docs/package.json to match the docs version.
     const docsPackageJsonPath = 'docs/package.json';
     const docsPackageJson = JSON.parse(
       await execa.command(`cat ${docsPackageJsonPath}`, { shell: true }

@@ -15,6 +15,7 @@ import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 import { ChangesObservable } from './changesObservable/observable';
+import { throwWithCause } from '../helpers/errors';
 
 /**
  * A set of deprecated feature names.
@@ -226,7 +227,7 @@ export class IndexMapper {
    */
   createChangesObserver(indexMapType) {
     if (indexMapType !== 'hiding') {
-      throw new Error(`Unsupported index map type "${indexMapType}".`);
+      throwWithCause(`Unsupported index map type "${indexMapType}".`);
     }
 
     return this.hidingChangesObservable.createObserver();
@@ -255,7 +256,7 @@ export class IndexMapper {
     if (this.trimmingMapsCollection.get(uniqueName) ||
         this.hidingMapsCollection.get(uniqueName) ||
         this.variousMapsCollection.get(uniqueName)) {
-      throw Error(`Map with name "${uniqueName}" has been already registered.`);
+      throwWithCause(`Map with name "${uniqueName}" has been already registered.`);
     }
 
     if (indexMap instanceof TrimmingMap) {

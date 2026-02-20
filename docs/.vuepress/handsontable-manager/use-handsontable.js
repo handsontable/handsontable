@@ -36,15 +36,6 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
     const _document = document; // eslint-disable-line no-restricted-globals
     let script = null;
 
-    // As the documentation uses multiple versions of Vue (which reuse the same global variable - `Vue`), every
-    // time the Vue dependency is loaded, the previously used version should be removed.
-    if (globalVarSharedDependency) {
-      script = _document.getElementById(`script-${getId(globalVarSharedDependency)}`);
-
-    } else {
-      script = _document.getElementById(`script-${id}`);
-    }
-
     // clear outdated version
     if (script && (script.getAttribute(ATTR_VERSION) !== version || (globalVarSharedDependency ?? false))) {
       dependentVars.forEach(x => delete x.split('.').reduce((p, c) => p[c] || {}, {}));
@@ -61,6 +52,11 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
 
     // import current version
     if (!script) {
+      // react-colorful UMD expects window.react; React UMD sets window.React
+      if (dep === 'react-colorful' && typeof _document.defaultView.React !== 'undefined') {
+        _document.defaultView.react = _document.defaultView.React;
+      }
+
       script = _document.createElement('script');
       script.src = jsUrl;
       script.id = `script-${id}`;

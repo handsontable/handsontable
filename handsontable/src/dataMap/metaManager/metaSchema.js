@@ -1682,21 +1682,21 @@ export default () => {
     /**
      * Configures the date format for date cells. Accepts either a string (legacy, for [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md)
      * cells) or an object of [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
-     * options (for [`intlDate`](@/guides/cell-types/date-cell-type/date-cell-type.md) cells).
+     * options (for [`intl-date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cells).
      *
      * ::: warning
      * The string form of `dateFormat` is deprecated and will be removed in the next major release.
-     * It is used only by the `date` cell type (moment.js-based). Use the `intlDate` cell type
-     * with an `Intl.DateTimeFormat` options object instead. In the next major release, `intlDate`
-     * will become the default `date` cell type, and `intlDate` will be an alias for `date`.
+     * It is used only by the `date` cell type (moment.js-based). Use the `intl-date` cell type
+     * with an `Intl.DateTimeFormat` options object instead. In the next major release, `intl-date`
+     * will become the default `date` cell type, and `intl-date` will be an alias for `date`.
      * :::
      *
      * **Object form (Intl.DateTimeFormat options):**
      *
-     * The object form is supported only when the cell type is `intlDate`. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+     * The object form is supported only when the cell type is `intl-date`. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
      *
      * ::: tip Source data format
-     * For `intlDate` cells, source data must be in an ISO 8601 date format (`YYYY-MM-DD`). Otherwise operations such
+     * For `intl-date` cells, source data must be in an ISO 8601 date format (`YYYY-MM-DD`). Otherwise operations such
      * as sorting and filtering can be unstable or unpredictable. The `dateFormat` object affects only how dates are
      * displayed; the underlying value should remain ISO.
      * :::
@@ -1747,7 +1747,7 @@ export default () => {
      * **Deprecated: string form**
      *
      * Passing a string (e.g. `'DD/MM/YYYY'`, `'YYYY-MM-DD'`) is deprecated and works only with the `date` cell type.
-     * Migrate to the `intlDate` cell type and pass an `Intl.DateTimeFormat` options object.
+     * Migrate to the `intl-date` cell type and pass an `Intl.DateTimeFormat` options object.
      *
      * **Migration example:**
      *
@@ -1777,7 +1777,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // intlDate cell type with Intl options
+     * // intl-date cell type with Intl options
      * columns: [
      *   {
      *     type: 'intl-date',
@@ -1805,21 +1805,21 @@ export default () => {
     /**
      * Configures the time format for time cells. Accepts either a string (legacy, for [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md)
      * cells) or an object of [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
-     * options (for [`intlTime`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells).
+     * options (for [`intl-time`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells).
      *
      * ::: warning
      * The string form of `timeFormat` is deprecated and will be removed in the next major release.
-     * It is used only by the `time` cell type. Use the `intlTime` cell type with an `Intl.DateTimeFormat`
+     * It is used only by the `time` cell type. Use the `intl-time` cell type with an `Intl.DateTimeFormat`
      * options object instead.
      * :::
      *
      * **Object form (Intl.DateTimeFormat options):**
      *
-     * The object form is supported only when the cell type is `intlTime`. The locale is controlled separately
+     * The object form is supported only when the cell type is `intl-time`. The locale is controlled separately
      * via the [`locale`](@/api/options.md#locale) option.
      *
      * ::: tip Source data format
-     * For `intlTime` cells, source data must be in 24-hour time format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`), matching
+     * For `intl-time` cells, source data must be in 24-hour time format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`), matching
      * the HTML `input type="time"` value. Otherwise operations such as sorting and filtering can be unstable or unpredictable.
      * The `timeFormat` object affects only how times are displayed; the underlying value should remain in that format.
      * :::
@@ -1862,7 +1862,7 @@ export default () => {
      * **Deprecated: string form**
      *
      * Passing a string (e.g. `'h:mm:ss a'`) is deprecated and works only with the `time` cell type.
-     * Migrate to the `intlTime` cell type and pass an `Intl.DateTimeFormat` options object.
+     * Migrate to the `intl-time` cell type and pass an `Intl.DateTimeFormat` options object.
      *
      * **Migration example:**
      *
@@ -1893,7 +1893,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // intlTime cell type with Intl options
+     * // intl-time cell type with Intl options
      * columns: [
      *   {
      *     type: 'intl-time',
@@ -4319,34 +4319,6 @@ export default () => {
     pagination: undefined,
 
     /**
-     * @description
-     * The `persistentState` option configures the [`PersistentState`](@/api/persistentState.md) plugin.
-     *
-     * You can set the `persistentState` to one of the following:
-     *
-     * | Setting           | Description                                                      |
-     * | ----------------- | ---------------------------------------------------------------- |
-     * | `false` (default) | Disable the [`PersistentState`](@/api/persistentState.md) plugin |
-     * | `true`            | Enable the [`PersistentState`](@/api/persistentState.md) plugin  |
-     *
-     * Read more:
-     * - [Saving data: Saving data locally](@/guides/getting-started/saving-data/saving-data.md#save-data-locally)
-     * - [Plugins: `PersistentState`](@/api/persistentState.md)
-     *
-     * @memberof Options#
-     * @type {boolean}
-     * @default false
-     * @category PersistentState
-     *
-     * @example
-     * ```js
-     * // enable the `PersistentState` plugin
-     * persistentState: true,
-     * ```
-     */
-    persistentState: undefined,
-
-    /**
      * The `placeholder` option lets you display placeholder text in every empty cell.
      *
      * You can set the `placeholder` option to one of the following:
@@ -4797,7 +4769,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // parse editor string to ISO date (e.g. intlDate: display format => source format)
+     * // parse editor string to ISO date (e.g. intl-date: display format => source format)
      * valueParser(value, cellProperties) {
      *   if (value == null || value === '') {
      *     return null;
@@ -5500,6 +5472,7 @@ export default () => {
      * | ------------------------------------- | ------------------------------------------------------------------------------------- |
      * | `undefined` (default)                 | Don't apply any theme and use the default main theme                                  |
      * | A string (e.g., `'ht-theme-horizon'`) | Apply a registered theme by name (required to import CSS file)                        |
+     * | A plain theme config object           | Apply a theme with default settings (import and pass the config, e.g. `horizonTheme`) |
      * | A `ThemeBuilder` object               | Apply a theme with runtime configuration (recommended)                                |
      *
      * When using a `ThemeBuilder` object, you can configure the theme at runtime using these methods:
@@ -5522,25 +5495,38 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable a theme by name (required to import CSS file)
+     * // Enable a theme by class name (requires loading the theme CSS)
      * theme: 'ht-theme-horizon',
+     * ```
+     * @example
+     * ```js
+     * // Pass a plain theme config object
+     * import { horizonTheme } from 'handsontable/themes';
      *
-     * // enable a theme using a ThemeBuilder object (recommended)
-     * const horizonTheme = registerTheme(horizonTheme);
+     * const hot = new Handsontable(container, {
+     *   theme: horizonTheme,
+     * });
+     * ```
      *
-     * // configure the theme settings at runtime
-     * horizonTheme.setColorScheme('dark');
-     * horizonTheme.setDensityType('compact');
-     * horizonTheme.params({
-     *  tokens: {
-     *    fontSize: '14px',
-     *    iconSize: 'size_5',
-     *    borderColor: ['colors.palette.100', 'colors.palette.800'],
-     *  },
-     * })
+     * @example
+     * ```js
+     * // Pass a ThemeBuilder object (for customization before initialization)
+     * import { horizonTheme, registerTheme } from 'handsontable/themes';
      *
-     * // use the configured theme
-     * theme: horizonTheme,
+     * const theme = registerTheme(horizonTheme)
+     *   .setColorScheme('dark')
+     *   .setDensityType('compact')
+     *   .params({
+     *     tokens: {
+     *       fontSize: '14px',
+     *       iconSize: 'size_5',
+     *       borderColor: ['colors.palette.100', 'colors.palette.800'],
+     *     },
+     *   });
+     *
+     * const hot = new Handsontable(container, {
+     *   theme,
+     * });
      * ```
      */
     theme: undefined,
@@ -6362,6 +6348,47 @@ export default () => {
      * ```
      */
     sanitizer: undefined,
+
+    /**
+     * The `parsePastedValue` option determines how pasted content is written to cells when the user pastes
+     * from the clipboard into Handsontable (e.g. from another Handsontable instance or between cells in the same table).
+     * It does not affect how other applications read or process the clipboard.
+     *
+     * When set to `false`, pasted content is written as plain strings. Non-scalar values (e.g. objects) are coerced
+     * to string, so an object becomes `"[object Object]"`.
+     *
+     * When set to `true`, pasted text is parsed so that JSON-like (or other supported) values are converted to
+     * JavaScript values and written to the data source. This allows copying and pasting more sophisticated JavaScript
+     * structures (e.g. objects, arrays) between cells and between Handsontable instances. Cells then store the resulting
+     * object (e.g. `{ id: 1, value: 'A1' }`). Schema validation is relaxed so object-based values can be pasted into
+     * cells that would normally expect a scalar.
+     *
+     * You can set the `parsePastedValue` option to one of the following:
+     *
+     * | Setting           | Description                                      |
+     * | ----------------- | ------------------------------------------------ |
+     * | `false` (default) | Write pasted content as plain strings            |
+     * | `true`            | Parse pasted text and write JavaScript values    |
+     *
+     * @since 17.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category CopyPaste
+     *
+     * @example
+     * ```js
+     * // write pasted content as strings (objects become "[object Object]")
+     * parsePastedValue: false,
+     * ```
+     *
+     * @example
+     * ```js
+     * // parse pasted text so cells receive JavaScript objects when pasted content is object-like
+     * parsePastedValue: true,
+     * ```
+     */
+    parsePastedValue: false,
 
     /* eslint-enable jsdoc/require-description-complete-sentence */
   };

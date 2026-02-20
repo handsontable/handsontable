@@ -12,6 +12,7 @@ import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
 import { CellRange } from '../../3rdparty/walkontable/src';
 import { BasePlugin } from '../base';
+import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
@@ -450,7 +451,7 @@ export class Comments extends BasePlugin {
    */
   setComment(value) {
     if (!this.range.from) {
-      throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
+      throwWithCause('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
     const editorValue = this.#editor.getValue();
     let comment = '';
@@ -488,7 +489,7 @@ export class Comments extends BasePlugin {
    */
   removeComment(forceRender = true) {
     if (!this.range.from) {
-      throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
+      throwWithCause('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
 
     const { row, col } = this.#getRangeCoords();
@@ -545,7 +546,7 @@ export class Comments extends BasePlugin {
    */
   show() {
     if (!this.range.from) {
-      throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
+      throwWithCause('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
 
     const { row, col } = this.#getRangeCoords();

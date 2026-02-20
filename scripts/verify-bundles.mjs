@@ -27,25 +27,13 @@ const packagesInfo = {
     entryFile: 'tmp/index.mjs',
     defaultExport: true
   },
-  '@handsontable/angular': {
-    className: 'HotTableModule',
-    entryFile: 'dist/hot-table/fesm2022/handsontable-angular.mjs',
-  },
   '@handsontable/angular-wrapper': {
     className: 'HotTableModule',
     entryFile: 'dist/hot-table/fesm2022/handsontable-angular-wrapper.mjs',
   },
-  '@handsontable/react': {
-    className: 'HotTable',
-    entryFile: 'dist/react-handsontable.js',
-  },
   '@handsontable/react-wrapper': {
     className: 'HotTable',
     entryFile: 'dist/react-handsontable.js',
-  },
-  '@handsontable/vue': {
-    className: 'HotTable',
-    entryFile: 'dist/vue-handsontable.js',
   },
   '@handsontable/vue3': {
     className: 'HotTable',

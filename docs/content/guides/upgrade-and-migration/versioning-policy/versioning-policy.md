@@ -44,7 +44,7 @@ Up to Handsontable 8.3.2, each framework variant of Handsontable was versioned s
 - [Vanilla JavaScript](@/guides/getting-started/introduction/introduction.md)
 - [React wrapper](@/react/guides/getting-started/introduction/introduction.md)
 - [Angular wrapper](@/angular/guides/getting-started/introduction/introduction.md)
-- [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
+- [Vue wrapper](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
 - [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
 
 

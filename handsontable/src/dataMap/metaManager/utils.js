@@ -1,4 +1,5 @@
 import { hasOwnProperty, isObject, objectEach, inherit, extend } from '../../helpers/object';
+import { throwWithCause } from '../../helpers/errors';
 import { getCellType } from '../../cellTypes/registry';
 
 /**
@@ -94,7 +95,7 @@ export function columnFactory(TableMeta, conflictList = []) {
  */
 export function assert(condition, errorMessage) {
   if (!condition()) {
-    throw new Error(`Assertion failed: ${errorMessage}`);
+    throwWithCause(`Assertion failed: ${errorMessage}`);
   }
 }
 

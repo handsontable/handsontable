@@ -18,7 +18,6 @@ describe('`registerAllPlugins`', () => {
       'text',
     ]);
     expect(getPluginsNames()).toEqual([
-      'PersistentState',
       'AutoColumnSize',
       'Autofill',
       'ManualRowResize',

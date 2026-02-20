@@ -22,8 +22,8 @@ export function timeRenderer(hotInstance, TD, row, col, prop, value, cellPropert
     deprecatedWarn(
       'The `time` cell type with string-based `timeFormat` (moment.js) is deprecated. ' +
       'In the next major release, `time` will accept only Intl.DateTimeFormat options (object). ' +
-      'To start migrating, use the `intlTime` cell type now; it will become the `time` cell type ' +
-      'after the next major release (the `intlTime` will become an alias for `time`).\n\n' +
+      'To start migrating, use the `intl-time` cell type now; it will become the `time` cell type ' +
+      'after the next major release (the `intl-time` will become an alias for `time`).\n\n' +
       'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
       '`time` cell type: https://handsontable.com/docs/time-cell-type/'
     );

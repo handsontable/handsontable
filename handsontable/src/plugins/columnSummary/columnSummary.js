@@ -1,4 +1,5 @@
 import { BasePlugin } from '../base';
+import { throwWithCause } from '../../helpers/errors';
 import { objectEach } from '../../helpers/object';
 import Endpoints from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -469,7 +470,7 @@ export class ColumnSummary extends BasePlugin {
 
     if (isNaN(cellValue)) {
       if (!this.endpoints.currentEndpoint.suppressDataTypeErrors) {
-        throw new Error(toSingleLine`ColumnSummary plugin: cell at (${row}, ${col}) is not in a\x20
+        throwWithCause(toSingleLine`ColumnSummary plugin: cell at (${row}, ${col}) is not in a\x20
           numeric format. Cannot do the calculation.`);
       }
     }

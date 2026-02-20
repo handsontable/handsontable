@@ -1,4 +1,5 @@
 import { mixin, createObjectPropListener } from '../../helpers/object';
+import { throwWithCause } from '../../helpers/errors';
 import localHooks from '../../mixins/localHooks';
 
 /**
@@ -341,7 +342,7 @@ export class BaseTransformation {
    * the current processed selection layer.
    */
   calculateOffset() {
-    throw new Error('`calculateOffset` is not implemented');
+    throwWithCause('`calculateOffset` is not implemented');
   }
 
   /**
@@ -349,7 +350,7 @@ export class BaseTransformation {
    * based on their specific transformation logic.
    */
   countRenderableRows() {
-    throw new Error('`countRenderableRows` is not implemented');
+    throwWithCause('`countRenderableRows` is not implemented');
   }
 
   /**
@@ -357,7 +358,7 @@ export class BaseTransformation {
    * based on their specific transformation logic.
    */
   countRenderableColumns() {
-    throw new Error('`countRenderableColumns` is not implemented');
+    throwWithCause('`countRenderableColumns` is not implemented');
   }
 
   /**
@@ -365,7 +366,7 @@ export class BaseTransformation {
    * Child classes can override this method to control the behavior.
    */
   shouldSwitchSelectionLayer() {
-    throw new Error('`shouldSwitchSelectionLayer` is not implemented');
+    throwWithCause('`shouldSwitchSelectionLayer` is not implemented');
   }
 
   /**
@@ -511,7 +512,7 @@ export class BaseTransformation {
     const { row, col } = this.tableApi.visualToRenderableCoords(visualCoords);
 
     if (row === null || col === null) {
-      throw new Error('Renderable coords are not visible.');
+      throwWithCause('Renderable coords are not visible.');
     }
 
     return this.tableApi.createCellCoords(this.#offset.y + row, this.#offset.x + col);

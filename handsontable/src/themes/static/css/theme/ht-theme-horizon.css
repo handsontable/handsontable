@@ -271,9 +271,9 @@
   --ht-menu-shadow-x: var(--ht-shadow-x);
   --ht-menu-shadow-y: var(--ht-shadow-y);
   --ht-menu-shadow-blur: var(--ht-shadow-blur);
-  --ht-menu-shadow-color: var(--ht-shadow-color);
+  --ht-menu-shadow-color: light-dark(var(--ht-colors-palette-950), var(--ht-colors-white));
   --ht-menu-shadow-opacity: 6%;
-  --ht-menu-item-hover-color: var(--ht-accent-color);
+  --ht-menu-item-hover-color: light-dark(var(--ht-colors-palette-500), var(--ht-colors-palette-400));
   --ht-menu-item-hover-color-opacity: 8%;
   --ht-menu-item-active-color: var(--ht-accent-color);
   --ht-menu-item-active-color-opacity: 12%;

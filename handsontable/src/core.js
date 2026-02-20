@@ -56,6 +56,7 @@ import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { warn } from './helpers/console';
+import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
@@ -937,7 +938,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           }
           break;
         default:
-          throw new Error(`There is no such action "${action}"`);
+          throwWithCause(`There is no such action "${action}"`);
       }
 
       if (!keepEmptyRows) {
@@ -1220,6 +1221,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                 if (!hasValueSetter && (typeof orgValue !== 'object' || orgValue === null)) {
                   pushData = false;
 
+                  // Enabling `parsePastedValue` relaxes schema validation, so object-based values can be pasted
+                  // into non-object-based cells
+                  if (cellMeta.parsePastedValue && source === 'CopyPaste.paste') {
+                    pushData = true;
+                  }
+
                 } else if (orgValue !== null) {
                   const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : (orgValue[0] || orgValue));
                   const valueSchema = duckSchema(Array.isArray(value) ? value : (value[0] || value));
@@ -1383,6 +1390,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
 
       themeObject = getTheme('main');
+    } else if (typeof theme.getThemeConfig !== 'function') {
+      themeObject = registerTheme(theme);
     } else {
       themeObject = theme;
     }
@@ -1467,7 +1476,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference) {
           return function(result) {
             if (typeof result !== 'boolean') {
-              throw new Error('Validation error: result is not boolean');
+              throwWithCause('Validation error: result is not boolean');
             }
 
             if (result === false && cellPropertiesReference.allowInvalid === false) {
@@ -1766,10 +1775,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       const [visualRow, visualColumn, newValue] = input[i];
 
       if (typeof input[i] !== 'object') {
-        throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
+        throwWithCause('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
       }
-      if (typeof visualColumn !== 'number') {
-        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`'); // eslint-disable-line max-len
+      if (typeof input[i][1] !== 'number') {
+        // eslint-disable-next-line max-len
+        throwWithCause('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
 
       if (visualColumn >= this.countCols()) {
@@ -1929,7 +1939,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.populateFromArray = function(row, column, input, endRow, endCol, source, method) {
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
-      throw new Error('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
+      throwWithCause('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
     }
 
     const c = typeof endRow === 'number' ? instance._createCellCoords(endRow, endCol) : null;
@@ -2010,7 +2020,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * has visible focus highlight.
    *
    * @memberof Core#
-   * @function getSelectedRangeActive
+   * @function getSelectedActive
    * @since 16.1.0
    * @returns {number[]|undefined} Selected range as an array of coordinates or `undefined` if there is no selection.
    */
@@ -2753,13 +2763,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let j;
 
     if (isDefined(settings.rows)) {
-      throw new Error('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
+      throwWithCause('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
     }
     if (isDefined(settings.cols)) {
-      throw new Error('The "cols" setting is no longer supported. Do you mean startCols, minCols or maxCols?');
+      throwWithCause('The "cols" setting is no longer supported. Do you mean startCols, minCols or maxCols?');
     }
     if (isDefined(settings.ganttChart)) {
-      throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
+      throwWithCause('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
@@ -3649,7 +3659,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.spliceCellsMeta = function(visualIndex, deleteAmount = 0, ...cellMetaRows) {
     if (cellMetaRows.length > 0 && !Array.isArray(cellMetaRows[0])) {
-      throw new Error('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
+      throwWithCause('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
     }
 
     if (deleteAmount > 0) {
@@ -3934,7 +3944,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.validateRows = function(rows, callback) {
     if (!Array.isArray(rows)) {
-      throw new Error('validateRows parameter `rows` must be an array');
+      throwWithCause('validateRows parameter `rows` must be an array');
     }
     this._validateCells(callback, rows);
   };
@@ -3960,7 +3970,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.validateColumns = function(columns, callback) {
     if (!Array.isArray(columns)) {
-      throw new Error('validateColumns parameter `columns` must be an array');
+      throwWithCause('validateColumns parameter `columns` must be an array');
     }
     this._validateCells(callback, undefined, columns);
   };
@@ -4004,7 +4014,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
         instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), (result) => {
           if (typeof result !== 'boolean') {
-            throw new Error('Validation error: result is not boolean');
+            throwWithCause('Validation error: result is not boolean');
           }
           if (result === false) {
             waitingForValidator.valid = false;
@@ -5020,7 +5030,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   function postMortem(method) {
     return () => {
-      throw new Error(`The "${method}" method cannot be called because this Handsontable instance has been destroyed`);
+      throwWithCause(`The "${method}" method cannot be called because this Handsontable instance has been destroyed`);
     };
   }
 
@@ -5208,11 +5218,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {string}
    */
   this.getPluginName = function(plugin) {
-    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
-    if (plugin === this.undoRedo) {
-      return this.undoRedo.constructor.PLUGIN_KEY;
-    }
-
     return pluginsRegistry.getId(plugin);
   };
 
@@ -5520,6 +5525,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     return dataSource;
   };
 
+  /**
+   * Gets the instance of the MetaManager.
+   *
+   * @private
+   * @returns {MetaManager}
+   */
+  this._getMetaManager = function() {
+    return metaManager;
+  };
+
   const shortcutManager = createShortcutManager({
     handleEvent() {
       return instance.isListening();
@@ -5595,7 +5610,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.getFocusScopeManager = function() {
     if (!isRootInstance(instance)) {
-      throw new Error('The FocusScopeManager is only available for the main Handsontable instance.');
+      throwWithCause('The FocusScopeManager is only available for the main Handsontable instance.');
     }
 
     return focusScopeManager;

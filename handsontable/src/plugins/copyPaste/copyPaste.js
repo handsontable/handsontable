@@ -584,8 +584,8 @@ export class CopyPaste extends BasePlugin {
         const {
           skipColumnOnPaste,
           visualCol,
+          parsePastedValue,
         } = this.hot.getCellMeta(visualRow, visualColumnForPopulatedData);
-        const sourceDataAtTarget = this.hot.getSourceDataAtCell(visualRow, visualColumnForPopulatedData);
         const insertedColumn = newRow.length % populatedColumnsLength;
 
         visualColumnForPopulatedData = visualCol + 1;
@@ -601,16 +601,10 @@ export class CopyPaste extends BasePlugin {
         const originalCellValue = originalPlainData?.[insertedRow]?.[insertedColumn];
         let cellValue = plainData[insertedRow][insertedColumn];
 
-        if (sourceData && isJSON(sourceCellValue) && cellValue === originalCellValue) {
+        if (parsePastedValue && sourceData && isJSON(sourceCellValue) && cellValue === originalCellValue) {
           const parsedCellValue = JSON.parse(sourceCellValue);
 
-          if (
-            Array.isArray(sourceDataAtTarget) ||
-            isObject(sourceDataAtTarget) ||
-            sourceDataAtTarget === null
-          ) {
-            cellValue = parsedCellValue;
-          }
+          cellValue = parsedCellValue;
         }
 
         newRow.push(cellValue);

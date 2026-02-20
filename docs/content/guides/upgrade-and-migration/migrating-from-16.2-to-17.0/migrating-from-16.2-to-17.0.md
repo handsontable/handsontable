@@ -14,6 +14,7 @@ angular:
   metaTitle: Migrate from 16.2 to 17.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
+menuTag: new
 ---
 
 # Migrate from 16.2 to 17.0
@@ -59,12 +60,10 @@ The Theme API allows you to register and configure themes programmatically with 
 
 ```js
 import Handsontable from 'handsontable';
-import { classicTheme, registerTheme } from 'handsontable/themes';
-
-const theme = registerTheme(classicTheme);
+import { classicTheme } from 'handsontable/themes';
 
 const hot = new Handsontable(container, {
-  theme: theme,
+  theme: classicTheme,
   // ... other options
 });
 ```
@@ -75,14 +74,12 @@ const hot = new Handsontable(container, {
 
 ```jsx
 import { HotTable } from '@handsontable/react-wrapper';
-import { classicTheme, registerTheme } from 'handsontable/themes';
-
-const theme = registerTheme(classicTheme);
+import { classicTheme } from 'handsontable/themes';
 
 function App() {
   return (
     <HotTable
-      theme={theme}
+      theme={classicTheme}
       // ... other options
     />
   );
@@ -94,16 +91,14 @@ function App() {
 ::: only-for angular
 
 ```ts
-import { classicTheme, registerTheme } from 'handsontable/themes';
-
-const theme = registerTheme(classicTheme);
+import { classicTheme } from 'handsontable/themes';
 
 @Component({
   template: `<hot-table [settings]="hotSettings"></hot-table>`
 })
 export class AppComponent {
   hotSettings = {
-    theme: theme,
+    theme: classicTheme,
     // ... other options
   };
 }
