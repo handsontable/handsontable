@@ -10,13 +10,18 @@ on:
     branches:
       - 'master'
       - 'develop'
-      - 'release/**'
   workflow_dispatch:
     inputs:
       test-all:
         description: 'Test all?'
         type: boolean
         default: false
+  workflow_call:
+    inputs:
+      test-all:
+        description: 'Test all?'
+        type: boolean
+        default: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -31,7 +36,8 @@ jobs:
           endsWith(github.ref, '/master') ||
           endsWith(github.ref, '/develop') ||
           contains(github.ref, '/release/') ||
-          github.event_name == 'workflow_dispatch' && inputs.test-all == true
+          (github.event_name == 'workflow_dispatch' && inputs.test-all == true) ||
+          (github.event_name == 'workflow_call' && inputs.test-all == true)
         }}
       build-handsontable-es-cjs: ${{ steps.path-filter.outputs.build-handsontable-es-cjs }}
       build-handsontable-umd: ${{ steps.path-filter.outputs.build-handsontable-umd }}

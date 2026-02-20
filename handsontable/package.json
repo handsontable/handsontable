@@ -68,6 +68,7 @@
     "build:languages.es": "cross-env-shell BABEL_ENV=es_languages babel src/i18n/languages --out-file-extension .mjs --out-dir languages",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ../hot.config.js webpack",
     "publish-package": "cd tmp && npm publish",
+    "create-package": "cd tmp && npm pack",
     "postbuild": "node ./scripts/prepare-package-for-publish.mjs"
   },
   "keywords": [
