@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Introduce a new publishing flow for versions 17.0.0+.",
+  "type": "changed",
+  "issueOrPR": 12028,
+  "breaking": false,
+  "framework": "none"
+}

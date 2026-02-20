@@ -16,6 +16,7 @@ if (process.env.npm_config_user_agent?.includes('pnpm')) {
 
 const argv = yargs(commandArr)
   .boolean('if-present')
+  .array('cmdArgs')
   .array('exclude')
   .alias('exclude', 'e')
   .argv;
@@ -69,7 +70,9 @@ switch (modifier) {
     }
 
     await spawnProcess(
-      `npm run ${command} ${workspacesCommandList}${argv.ifPresent ? ' --if-present' : ''}`
+      `npm run ${command} ${workspacesCommandList}${argv.ifPresent ? ' --if-present' : ''}${argv.cmdArgs ? ` -- ${
+        argv.cmdArgs.map(arg => `-${arg.replace('==', ' ')}`).join(' ')
+      }` : ''}`
     );
 
     break;
