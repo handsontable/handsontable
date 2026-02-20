@@ -7,7 +7,7 @@
 		var a = typeof exports === 'object' ? factory(require("handsontable")) : factory(root["Handsontable"]);
 		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
 	}
-})(typeof self !== 'undefined' ? self : this, (__WEBPACK_EXTERNAL_MODULE__2__) => {
+})(Object(typeof self !== 'undefined' ? self : this), (__WEBPACK_EXTERNAL_MODULE__2__) => {
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ([
 /* 0 */

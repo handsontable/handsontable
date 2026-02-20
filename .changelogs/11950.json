@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added Theme API",
-  "type": "added",
-  "issueOrPR": 11950,
-  "breaking": true,
-  "framework": "none"
-}

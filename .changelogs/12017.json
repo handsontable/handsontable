@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Removed `core-js` from dependencies",
-  "type": "removed",
-  "issueOrPR": 12017,
-  "breaking": true,
-  "framework": "none"
-}
