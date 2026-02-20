@@ -318,11 +318,11 @@ jobs:
             --arg changelog_url "$CHANGELOG_URL" \
             --arg run_url       "${RUN_URL}" \
           '{
-            text: ("🚀 Pre-release " + $version + " published – " + $status),
+            text: ("🚀 Pre-release " + $version + " generated – " + $status),
             blocks: [
               {
                 type: "header",
-                text: { type: "plain_text", text: "🚀 Pre-release Published", emoji: true }
+                text: { type: "plain_text", text: "🚀 Pre-release Generated", emoji: true }
               },
               {
                 type: "section",
@@ -337,6 +337,11 @@ jobs:
               {
                 type: "section",
                 text: { type: "mrkdwn", text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>") }
+              },
+              { type: "divider" },
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: ("*🎮 Demos*\n• <https://handsontable.com/codesandbox-vm?example-dir=javascript&handsontable-version=" + $version + "|Vanilla JS>\n• <https://handsontable.com/codesandbox-vm?example-dir=react&handsontable-version=" + $version + "|React>\n• <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• <https://handsontable.com/codesandbox-vm?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>") }
               },
               { type: "divider" },
               {
@@ -606,11 +611,11 @@ jobs:
             --arg commits    "$COMMITS_TEXT" \
             --arg run_url    "${RUN_URL}" \
           '{
-            text: ("🚀 Pre-release " + $version + " published – " + $status),
+            text: ("🚀 Pre-release " + $version + " generated – " + $status),
             blocks: [
               {
                 type: "header",
-                text: { type: "plain_text", text: "🚀 Pre-release Published", emoji: true }
+                text: { type: "plain_text", text: "🚀 Pre-release Generated", emoji: true }
               },
               {
                 type: "section",
@@ -625,6 +630,11 @@ jobs:
               {
                 type: "section",
                 text: { type: "mrkdwn", text: ("*📋 Commits since `" + $prev_tag + "`*\n" + $commits) }
+              },
+              { type: "divider" },
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: ("*🎮 Demos*\n• <https://handsontable.com/codesandbox-vm?example-dir=javascript&handsontable-version=" + $version + "|Vanilla JS>\n• <https://handsontable.com/codesandbox-vm?example-dir=react&handsontable-version=" + $version + "|React>\n• <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• <https://handsontable.com/codesandbox-vm?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>") }
               },
               { type: "divider" },
               {
@@ -1012,11 +1022,11 @@ jobs:
             --arg changelog_url "$CHANGELOG_URL" \
             --arg run_url       "${RUN_URL}" \
           '{
-            text: ("✅ Release " + $version + " published – " + $status),
+            text: ("🚀 Release " + $version + " generated – " + $status),
             blocks: [
               {
                 type: "header",
-                text: { type: "plain_text", text: "✅ Release Published", emoji: true }
+                text: { type: "plain_text", text: "🚀 Release Generated", emoji: true }
               },
               {
                 type: "section",
@@ -1031,6 +1041,11 @@ jobs:
               {
                 type: "section",
                 text: { type: "mrkdwn", text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>") }
+              },
+              { type: "divider" },
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: ("*🎮 Demos*\n• <https://handsontable.com/codesandbox-vm?example-dir=javascript&handsontable-version=" + $version + "|Vanilla JS>\n• <https://handsontable.com/codesandbox-vm?example-dir=react&handsontable-version=" + $version + "|React>\n• <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• <https://handsontable.com/codesandbox-vm?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>") }
               },
               { type: "divider" },
               {
