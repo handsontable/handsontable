@@ -7,6 +7,7 @@ import {
   isFirefoxWebKit,
   isMobileBrowser,
   isSafari,
+  isSafari18AndOlder,
   isWindowsOS,
   isMacOS,
   isLinuxOS,
@@ -339,6 +340,38 @@ describe('Browser helper', () => {
       });
 
       expect(isSafari()).toBeTruthy();
+    });
+  });
+
+  describe('isSafari18AndOlder', () => {
+    it('should recognize browser properly (v18.2)', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isSafari18AndOlder()).toBeTruthy();
+    });
+
+    it('should recognize browser properly (v19.0)', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/19.0 Safari/605.1.15',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isSafari18AndOlder()).toBeFalsy();
+    });
+
+    it('should recognize browser properly (v26.3)', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isSafari18AndOlder()).toBeFalsy();
     });
   });
 

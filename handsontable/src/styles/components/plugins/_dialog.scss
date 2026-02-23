@@ -4,6 +4,8 @@
 
 @mixin output {
   .ht-dialog {
+    @include mixins.scrollbar-styles;
+
     position: absolute;
     top: 0;
     left: 0;

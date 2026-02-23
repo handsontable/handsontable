@@ -1,6 +1,6 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
-import { isWindowsOS, isSafari, isMobileBrowser, isIpadOS } from '../browser';
+import { isWindowsOS, isSafari18AndOlder, isMacOS } from '../browser';
 import { deprecatedWarn } from '../console';
 import { throwWithCause } from '../../helpers/errors';
 
@@ -1018,8 +1018,10 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
 
   const outer = rootDocument.createElement('div');
 
-  // Fix for Safari custom scrollbar size
-  if (isSafari() && !isMobileBrowser() && !isIpadOS()) {
+  outer.classList.add('htScrollbarTest');
+
+  // Fix for Safari scrollbar size calculation (v18 and older)
+  if (isSafari18AndOlder() && isMacOS()) {
     outer.classList.add('htScrollbarSafariTest');
   }
 
