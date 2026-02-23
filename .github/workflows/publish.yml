@@ -203,7 +203,7 @@ jobs:
         id: changelog
         run: |
           RC_VERSION='${{ steps.version.outputs.rc-version }}'
-          CONTENT=$(bash .github/scripts/extract-changelog.sh "$RC_VERSION")
+          CONTENT=$(node .github/scripts/extract-changelog.mjs "$RC_VERSION")
           {
             echo "content<<EOF"
             printf '%s\n' "$CONTENT"
@@ -524,7 +524,7 @@ jobs:
         id: changelog
         run: |
           RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
-          CONTENT=$(bash .github/scripts/extract-changelog.sh "$RC_VERSION")
+          CONTENT=$(node .github/scripts/extract-changelog.mjs "$RC_VERSION")
           {
             echo "content<<EOF"
             printf '%s\n' "$CONTENT"
@@ -823,7 +823,7 @@ jobs:
           sudo bash -c 'echo "#!/bin/bash" > /usr/local/bin/nuget && echo "exec mono /tmp/nuget.exe \"$@\"" >> /usr/local/bin/nuget && chmod +x /usr/local/bin/nuget'
 
       - name: Generate NuGet package
-        run: bash .github/scripts/generate-nuget-package.sh
+        run: node .github/scripts/generate-nuget-package.mjs
 
       - name: Upload NuGet package artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # https://github.com/actions/upload-artifact/releases/tag/v4.6.2
