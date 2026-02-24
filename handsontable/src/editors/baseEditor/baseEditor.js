@@ -371,7 +371,9 @@ export class BaseEditor {
       this._fireCallbacks(false);
 
     } else {
-      if (this.close() === false) {
+      const closeResult = this.close();
+
+      if (closeResult === false) {
         return;
       }
 
