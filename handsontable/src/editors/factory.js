@@ -101,6 +101,7 @@ const editorBaseFactory = (params) => {
  * @param {Function} options.afterOpen Called after the editor is opened and made visible.
  * @param {Function} options.afterInit Called immediately after init, useful for event binding, etc.
  * @param {Function} options.afterClose Called when the editor is closed and made invisible.
+ * @param {Function} options.beforeClose Called before the editor is closed. Return false to prevent closing (e.g. While a popup is open).
  * @param {Function} options.beforeOpen Called before the editor is opened so you can set its value/state.
  * @param {Function} options.getValue Called to retrieve the current editor value.
  * @param {Function} options.setValue Called to set the editor's value and update any UI as needed.
@@ -111,7 +112,7 @@ const editorBaseFactory = (params) => {
  * @param {any} options.config The configuration for the editor.
  * @param {string} options.shortcutsGroup The group for the keyboard shortcuts.
  * @param {string} options.position The position of the editor. Either 'container' (default) or 'portal' (for elements outside of the table container viewport).
- * @param {...object} [options.args] Any additional custom fields or helpers you want mixed into the editor instance.
+ * @param {object} [options.args] Any additional custom fields or helpers you want mixed into the editor instance.
  *
  * @returns {BaseEditor} A custom editor class extending Handsontable's BaseEditor.
  */
@@ -148,6 +149,14 @@ export const editorFactory = ({
    * @returns {void}
    */
   afterClose,
+
+  /**
+   * Called before the editor is closed. Return false to prevent closing (e.g. While a dropdown/picker is open).
+   *
+   * @param {BaseEditor} editor
+   * @returns {boolean|void} When false, prevents close. Otherwise closing proceeds.
+   */
+  beforeClose,
 
   /**
    * Called before the editor is opened so you can set its value/state.
@@ -240,7 +249,7 @@ export const editorFactory = ({
      */
     init(editor) {
       Object.assign(editor, { value, config, render, position, ...args });
-      editor._open = false;
+      editor._opened = false;
       editor.container = editor.hot.rootDocument.createElement('DIV');
       editor.container.style.display = 'none';
 
@@ -261,6 +270,9 @@ export const editorFactory = ({
       if (typeof afterInit === 'function') {
         afterInit(editor);
       }
+
+      editor.addHook('afterScrollHorizontally', () => editor.refreshDimensions());
+      editor.addHook('afterScrollVertically', () => editor.refreshDimensions());
     },
     /**
      * Retrieve the value from the editor UI.
@@ -294,13 +306,24 @@ export const editorFactory = ({
       }
     },
     /**
-     * Opens the editor, making the container visible and binding shortcuts.
+     * Refreshes editor position and dimensions (for example, after scroll).
      *
      * @param {BaseEditor} editor The editor instance.
-     * @param {Event} event The event that triggered the editor opening.
      * @returns {void}
      */
-    open(editor, event = undefined) {
+    refreshDimensions(editor) {
+      editor.TD = editor.getEditedCell();
+
+      if (!editor.TD) {
+        editor.close();
+
+        return;
+      }
+
+      if (!editor._opened) {
+        return;
+      }
+
       const containerStyle = editor.container.style;
 
       containerStyle.display = 'block';
@@ -315,14 +338,27 @@ export const editorFactory = ({
       } else {
         const rect = editor.getEditedCellRect();
 
+        if (!rect) {
+          return;
+        }
+
         containerStyle.top = `${rect.top}px`;
         containerStyle[editor.hot.isRtl() ? 'right' : 'left'] = `${rect.start}px`;
         containerStyle.width = `${rect.width}px`;
         containerStyle.height = `${rect.height}px`;
       }
-
-      editor.container.classList.add('ht_editor_visible');
-      editor._open = true;
+    },
+    /**
+     * Opens the editor, making the container visible and binding shortcuts.
+     *
+     * @param {BaseEditor} editor The editor instance.
+     * @param {Event} event The event that triggered the editor opening.
+     * @returns {void}
+     */
+    open(editor, event = undefined) {
+      editor.container.classList.add('ht_clone_master');
+      editor._opened = true;
+      editor.refreshDimensions();
       editor.hot.getShortcutManager().setActiveContextName('editor');
       registerShortcuts(editor);
 
@@ -346,14 +382,19 @@ export const editorFactory = ({
     },
     /**
      * Close the editor UI and cleanup active shortcuts.
+     * If beforeClose returns false, close is skipped and this method returns false.
      *
      * @param {BaseEditor} editor The editor instance.
-     * @returns {void}
+     * @returns {boolean} False when close was prevented by beforeClose, otherwise undefined.
      */
     close(editor) {
-      editor._open = false;
+      if (typeof beforeClose === 'function' && beforeClose(editor) === false) {
+        return false;
+      }
+
+      editor._opened = false;
       editor.container.style.display = 'none';
-      editor.container.classList.remove('ht_editor_visible');
+      editor.container.classList.remove('ht_clone_master');
 
       const shortcutManager = editor.hot.getShortcutManager();
       const editorContext = shortcutManager.getContext('editor');
