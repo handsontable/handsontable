@@ -249,7 +249,7 @@ export const editorFactory = ({
      */
     init(editor) {
       Object.assign(editor, { value, config, render, position, ...args });
-      editor._open = false;
+      editor._opened = false;
       editor.container = editor.hot.rootDocument.createElement('DIV');
       editor.container.style.display = 'none';
 
@@ -320,7 +320,7 @@ export const editorFactory = ({
         return;
       }
 
-      if (!editor._open) {
+      if (!editor._opened) {
         return;
       }
 
@@ -357,7 +357,7 @@ export const editorFactory = ({
      */
     open(editor, event = undefined) {
       editor.container.classList.add('ht_clone_master');
-      editor._open = true;
+      editor._opened = true;
       editor.refreshDimensions();
       editor.hot.getShortcutManager().setActiveContextName('editor');
       registerShortcuts(editor);
@@ -392,7 +392,7 @@ export const editorFactory = ({
         return false;
       }
 
-      editor._open = false;
+      editor._opened = false;
       editor.container.style.display = 'none';
       editor.container.classList.remove('ht_clone_master');
 
