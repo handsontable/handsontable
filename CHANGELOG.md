@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [17.0.0-rc2] - 2026-02-24
+## [17.0.0-rc3] - 2026-02-24
 
 ### Added
 - **Breaking change**: Added Theme API [#11950](https://github.com/handsontable/handsontable/pull/11950)
