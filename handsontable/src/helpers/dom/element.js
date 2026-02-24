@@ -1,6 +1,6 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
-import { isWindowsOS, isMacOS } from '../browser';
+import { isWindowsOS } from '../browser';
 import { deprecatedWarn } from '../console';
 import { throwWithCause } from '../../helpers/errors';
 
@@ -1054,8 +1054,8 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
 
   const defaultScrollbarWidth = calculateScrollbarWidth();
 
-  // Some WebKit builds on macOS report 0 unless explicit ::-webkit-scrollbar size is present.
-  if (defaultScrollbarWidth === 0 && isMacOS()) {
+  // Some WebKit builds report 0 unless explicit ::-webkit-scrollbar size is present.
+  if (defaultScrollbarWidth === 0) {
     return calculateScrollbarWidth(true);
   }
 
