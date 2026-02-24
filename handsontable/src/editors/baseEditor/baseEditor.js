@@ -10,6 +10,7 @@ import {
   outerWidth,
   outerHeight,
 } from '../../helpers/dom/element';
+import { getValueGetterValue } from '../../utils/valueAccessors';
 
 export const EDITOR_TYPE = 'base';
 export const EDITOR_STATE = Object.freeze({
@@ -242,38 +243,28 @@ export class BaseEditor {
     const renderableRowIndex = hotInstance.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumnIndex = hotInstance.columnIndexMapper.getRenderableFromVisualIndex(this.col);
 
-    const openEditor = () => {
-      this.state = EDITOR_STATE.EDITING;
-
-      // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
-      // otherwise IME (editor for Asia users) doesn't work.
-      if (this.isInFullEditMode()) {
-        const originalValue =
-          this.cellProperties.valueGetter ? this.cellProperties.valueGetter(this.originalValue) : this.originalValue;
-        const stringifiedInitialValue = typeof newInitialValue === 'string' ?
-          newInitialValue : stringify(originalValue);
-
-        this.setValue(stringifiedInitialValue);
-      }
-
-      this.open(event);
-      this._opened = true;
-      this.focus();
-
-      // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
-      hotInstance.view.render();
-      hotInstance.runHooks('afterBeginEditing', this.row, this.col);
-    };
-
-    this.hot.addHookOnce('afterScroll', openEditor);
-
-    const wasScroll = hotInstance.view
+    hotInstance.view
       .scrollViewport(hotInstance._createCellCoords(renderableRowIndex, renderableColumnIndex));
 
-    if (!wasScroll) {
-      this.hot.removeHook('afterScroll', openEditor);
-      openEditor();
+    this.state = EDITOR_STATE.EDITING;
+
+    // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
+    // otherwise IME (editor for Asia users) doesn't work.
+    if (this.isInFullEditMode()) {
+      const originalValue = getValueGetterValue(this.originalValue, this.hot.getCellMeta(this.row, this.col));
+      const stringifiedInitialValue = typeof newInitialValue === 'string' ?
+        newInitialValue : stringify(originalValue);
+
+      this.setValue(stringifiedInitialValue);
     }
+
+    this.open(event);
+    this._opened = true;
+    this.focus();
+
+    // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
+    hotInstance.view.render();
+    hotInstance.runHooks('afterBeginEditing', this.row, this.col);
 
     this.addHook('beforeDialogShow', () => this.cancelChanges());
   }
