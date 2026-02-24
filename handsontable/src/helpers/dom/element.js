@@ -1,6 +1,6 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
-import { isWindowsOS, isSafari18AndOlder, isMacOS } from '../browser';
+import { isWindowsOS, isMacOS } from '../browser';
 import { deprecatedWarn } from '../console';
 import { throwWithCause } from '../../helpers/errors';
 
@@ -1011,45 +1011,55 @@ export function getFractionalScalingCompensation(rootDocument = document) {
  */
 // eslint-disable-next-line no-restricted-globals
 function walkontableCalculateScrollbarWidth(rootDocument = document) {
-  const inner = rootDocument.createElement('div');
+  const calculateScrollbarWidth = (shouldForceWebkitScrollbarStyles = false) => {
+    const inner = rootDocument.createElement('div');
 
-  inner.style.height = '200px';
-  inner.style.width = '100%';
+    inner.style.height = '200px';
+    inner.style.width = '100%';
 
-  const outer = rootDocument.createElement('div');
+    const outer = rootDocument.createElement('div');
 
-  outer.classList.add('htScrollbarTest');
+    outer.classList.add('htScrollbarTest');
 
-  // Fix for Safari scrollbar size calculation (v18 and older)
-  if (isSafari18AndOlder() && isMacOS()) {
-    outer.classList.add('htScrollbarSafariTest');
+    if (shouldForceWebkitScrollbarStyles) {
+      outer.classList.add('htScrollbarSafariTest');
+    }
+
+    outer.style.boxSizing = 'content-box';
+    outer.style.height = '150px';
+    outer.style.left = '0px';
+    outer.style.overflow = 'hidden';
+    outer.style.position = 'absolute';
+    outer.style.top = '0px';
+    outer.style.width = '200px';
+    outer.style.visibility = 'hidden';
+    outer.appendChild(inner);
+
+    rootDocument.body.appendChild(outer);
+
+    const w1 = inner.offsetWidth;
+
+    outer.style.overflow = 'scroll';
+
+    let w2 = inner.offsetWidth;
+
+    if (w1 === w2) {
+      w2 = outer.clientWidth;
+    }
+
+    rootDocument.body.removeChild(outer);
+
+    return w1 - w2;
+  };
+
+  const defaultScrollbarWidth = calculateScrollbarWidth();
+
+  // Some WebKit builds on macOS report 0 unless explicit ::-webkit-scrollbar size is present.
+  if (defaultScrollbarWidth === 0 && isMacOS()) {
+    return calculateScrollbarWidth(true);
   }
 
-  outer.style.boxSizing = 'content-box';
-  outer.style.height = '150px';
-  outer.style.left = '0px';
-  outer.style.overflow = 'hidden';
-  outer.style.position = 'absolute';
-  outer.style.top = '0px';
-  outer.style.width = '200px';
-  outer.style.visibility = 'hidden';
-  outer.appendChild(inner);
-
-  rootDocument.body.appendChild(outer);
-
-  const w1 = inner.offsetWidth;
-
-  outer.style.overflow = 'scroll';
-
-  let w2 = inner.offsetWidth;
-
-  if (w1 === w2) {
-    w2 = outer.clientWidth;
-  }
-
-  rootDocument.body.removeChild(outer);
-
-  return w1 - w2;
+  return defaultScrollbarWidth;
 }
 
 let cachedScrollbarWidth;

@@ -9,16 +9,8 @@ export function init() {
   // removeHeightBtn.textContent = 'Remove Height';
   // root.appendChild(removeHeightBtn);
   const container = document.createElement('div');
+
   root.appendChild(container);
-
-  const userAgent = navigator.userAgent;
-  const vendor = navigator.vendor;
-
-  const text = document.createElement('div');
-
-  text.innerHTML = `UserAgent: ${userAgent}<br>Vendor: ${vendor}`;
-
-  container.insertBefore(text, container.firstChild);
 
   const longNestedHeaders = getFromURL('longNestedHeaders', undefined);
 
