@@ -83,7 +83,7 @@ export class DataChangeAction extends BaseAction {
       };
 
       undoRedoPlugin.done(wrappedAction, source);
-    });
+    }, undoRedoPlugin.constructor.PLUGIN_PRIORITY);
   }
 
   /**
