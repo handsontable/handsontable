@@ -371,10 +371,7 @@ export class BaseEditor {
       this._fireCallbacks(false);
 
     } else {
-      const closeResult = this.close();
-
-      // eslint-disable-next-line eqeqeq
-      if (closeResult == false) {
+      if (this.close() === false) {
         return;
       }
 
