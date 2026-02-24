@@ -148,6 +148,82 @@ export const EditorContextProvider: FC<EditorContextProviderProps> = ({
   );
 };
 
+type EditorWithPosition = Handsontable.editors.BaseEditor & { position?: string };
+
+/**
+ * Applies editor overlay position/dimensions to an element.
+ * @returns true if position was applied, false if editor should close (e.g. cell no longer available).
+ */
+function applyEditorPosition(
+  el: HTMLElement,
+  editor: EditorWithPosition,
+  hot: Handsontable.Core,
+  td: Element | null | undefined
+): boolean {
+  const rootWindow = hot.rootWindow || window;
+  const pageX = rootWindow.pageXOffset ?? 0;
+  const pageY = rootWindow.pageYOffset ?? 0;
+  const isRtl = typeof hot.isRtl === 'function' && hot.isRtl();
+  const position = editor.position;
+
+  const applyTdRect = (rect: DOMRect) => {
+    el.style.top = `${pageY + rect.top - 1}px`;
+    el.style.width = `${rect.width + 1}px`;
+    el.style.height = `${rect.height + 1}px`;
+
+    if (isRtl) {
+      el.style.right = `${pageX + rect.right}px`;
+      el.style.left = 'auto';
+    } else {
+      el.style.left = `${pageX + rect.left - 1}px`;
+      el.style.right = 'auto';
+    }
+  };
+
+  if (position === 'portal') {
+    const cell = td ?? (typeof editor.getEditedCell === 'function' ? editor.getEditedCell.call(editor) : null);
+
+    if (!cell?.getBoundingClientRect) return false;
+
+    applyTdRect(cell.getBoundingClientRect());
+
+    return true;
+  }
+
+  const getEditedCellRect = editor.getEditedCellRect;
+  const rect = typeof getEditedCellRect === 'function' ? getEditedCellRect.call(editor) : null;
+
+  if (rect) {
+    const rootElement = hot.rootElement;
+
+    if (rootElement?.getBoundingClientRect) {
+      const rootRect = rootElement.getBoundingClientRect();
+
+      el.style.top = `${pageY + rootRect.top + rect.top}px`;
+      el.style.width = `${rect.width}px`;
+      el.style.height = `${rect.height}px`;
+
+      if (isRtl) {
+        el.style.right = `${pageX + rootRect.right - rect.start}px`;
+        el.style.left = 'auto';
+      } else {
+        el.style.left = `${pageX + rootRect.left + rect.start}px`;
+        el.style.right = 'auto';
+      }
+
+      return true;
+    }
+  }
+
+  if (td?.getBoundingClientRect) {
+    applyTdRect(td.getBoundingClientRect());
+
+    return true;
+  }
+
+  return false;
+}
+
 /**
  * Hook that allows encapsulating custom behaviours of component-based editor by customizing passed ref with overridden hooks object.
  *
@@ -253,6 +329,7 @@ export function EditorComponent<T = any>({
 }: EditorComponentProps & { children?: EditorRenderProp<T> }): React.ReactElement {
   const mainElementRef = useRef<HTMLDivElement>(null);
   const currentValue = useRef<T>(undefined);
+  const [themeClassName, setThemeClassName] = useState<string | undefined>();
   const { hotCustomEditorInstanceRef } = useContext(EditorContext)!;
 
   const registerShortcuts = useCallback(() => {
@@ -289,30 +366,77 @@ export function EditorComponent<T = any>({
     const shortcutManager = hotCustomEditorInstanceRef.current?.hot?.getShortcutManager();
     const editorContext = shortcutManager.getContext("editor")!;
     editorContext.removeShortcutsByGroup(shortcutsGroup);
-
   }, [shortcuts]);
+
+  const refreshDimensions = useCallback(() => {
+    const editor = hotCustomEditorInstanceRef.current as EditorWithPosition | null;
+    const el = mainElementRef.current;
+
+    if (!editor || !el) return;
+
+    const hot = editor.hot;
+
+    if (!hot) return;
+
+    if (typeof editor.isOpened !== 'function' || !editor.isOpened()) return;
+
+    if (!applyEditorPosition(el, editor, hot, null) && typeof editor.close === 'function') {
+      editor.close();
+    }
+  }, []);
+
+  const unRegisterScrollHooks = useCallback(() => {
+    const editor = hotCustomEditorInstanceRef.current;
+    const hot = editor?.hot;
+
+    if (!hot || typeof hot.removeHook !== 'function') return;
+
+    hot.removeHook('afterScrollHorizontally', refreshDimensions);
+    hot.removeHook('afterScrollVertically', refreshDimensions);
+  }, [refreshDimensions]);
+
+  const registerScrollHooks = useCallback(() => {
+    const editor = hotCustomEditorInstanceRef.current;
+    const hot = editor?.hot;
+
+    if (!hot || typeof hot.addHook !== 'function') return;
+
+    hot.addHook('afterScrollHorizontally', refreshDimensions);
+    hot.addHook('afterScrollVertically', refreshDimensions);
+  }, [refreshDimensions]);
 
   const { value, setValue, finishEditing, isOpen, col, row } = useHotEditor<T>({
     onOpen: () => {
       if (!mainElementRef.current) return;
+
+      const themeName = hotCustomEditorInstanceRef.current?.hot.getCurrentThemeName();
+
+      if (themeName) setThemeClassName(themeName);
+  
       mainElementRef.current.style.display = 'block';
+  
       onOpen?.();
+
+      const el = mainElementRef.current;
+      const editor = hotCustomEditorInstanceRef.current as EditorWithPosition | null;
+
+      if (el && editor?.hot) {
+        applyEditorPosition(el, editor, editor.hot, null);
+      }
+
       registerShortcuts();
+      registerScrollHooks();
     },
     onClose: () => {
       if (!mainElementRef.current) return;
+  
       mainElementRef.current.style.display = 'none';
+
       onClose?.();
       unRegisterShortcuts();
+      unRegisterScrollHooks();
     },
     onPrepare: (_row, _column, _prop, TD, _originalValue, _cellProperties) => {
-
-      if (!mainElementRef.current) return;
-      const tdPosition = TD.getBoundingClientRect();
-      mainElementRef.current.style.left = `${tdPosition.left + window.pageXOffset - 1}px`;
-      mainElementRef.current.style.top = `${tdPosition.top + window.pageYOffset - 1}px`;
-      mainElementRef.current.style.width = `${tdPosition.width + 1}px`;
-      mainElementRef.current.style.height = `${tdPosition.height + 1}px`;
       onPrepare?.(_row, _column, _prop, TD, _originalValue, _cellProperties);
     },
     onFocus: () => {
@@ -332,19 +456,18 @@ export function EditorComponent<T = any>({
   return (
     <div
       ref={mainElementRef}
+      className={themeClassName}
       style={{
         display: 'none',
         position: 'absolute',
         background: '#fff',
         border: '0px',
         padding: '0px',
-        zIndex: 999,
+        zIndex: 100,
       }}
       onMouseDown={stopMousedownPropagation}
     >
-
       {(children as EditorRenderProp<T>)({ value: value as T, setValue, finishEditing, mainElementRef: mainElementRef as React.RefObject<HTMLDivElement>, isOpen, col, row })}
-
     </div>
   );
 };
