@@ -29,6 +29,7 @@ describe('UndoRedo plugin in React wrapper', () => {
       ));
 
       const hotInstance = hotTableRef.hotInstance!;
+
       expect(hotInstance).not.toBe(null);
       expect(hotInstance.getDataAtCell(0, 0)).toBe(0);
 
@@ -51,7 +52,7 @@ describe('UndoRedo plugin in React wrapper', () => {
       const firstAction = undoRedoPlugin.doneActions[0];
       const secondAction = undoRedoPlugin.doneActions[1];
 
-      expect(firstAction.changes[0][2]).toBe(0); 
+      expect(firstAction.changes[0][2]).toBe(0);
       expect(firstAction.changes[0][3]).toBe(2);
 
       expect(secondAction.changes[0][2]).toBe(2);
