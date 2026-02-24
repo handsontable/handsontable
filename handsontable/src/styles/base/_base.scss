@@ -133,8 +133,8 @@
       }
     }
 
-    &.htHasScrollX:not(.htHorizontallyScrollableByWindow),
-    &.htHasScrollY:not(.htVerticallyScrollableByWindow) {
+    &.htHasScrollX:not(.htHorizontallyScrollableByWindow):not(.htScrollbarHidden),
+    &.htHasScrollY:not(.htVerticallyScrollableByWindow):not(.htScrollbarHidden) {
       .ht_master {
         .wtHolder {
           border-radius: var(--ht-wrapper-border-radius, 0);
