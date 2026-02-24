@@ -373,7 +373,8 @@ export class BaseEditor {
     } else {
       const closeResult = this.close();
 
-      if (closeResult === false) {
+      // eslint-disable-next-line eqeqeq
+      if (closeResult == false) {
         return;
       }
 
