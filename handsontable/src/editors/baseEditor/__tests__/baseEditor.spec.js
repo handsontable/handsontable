@@ -1,5 +1,6 @@
 describe('BaseEditor', () => {
   const id = 'testContainer';
+  const { editorFactory } = Handsontable.editors;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
@@ -10,6 +11,33 @@ describe('BaseEditor', () => {
       destroy();
       this.$container.remove();
     }
+  });
+
+  it('should not reset editor state when close() returns false (e.g. beforeClose prevents close)', async() => {
+    const CustomEditor = editorFactory({
+      init(editor) {
+        editor.input = document.createElement('input');
+      },
+      beforeClose: () => false,
+    });
+
+    handsontable({
+      data: [['a']],
+      columns: [{ editor: CustomEditor }],
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    expect(getActiveEditor().isOpened()).toBe(true);
+
+    await keyDownUp('enter');
+
+    const editor = getActiveEditor();
+    const shortcutManager = editor.hot.getShortcutManager();
+
+    expect(editor.isOpened()).toBe(true);
+    expect(editor.state).toBe('STATE_FINISHED');
+    expect(shortcutManager.getActiveContextName()).toBe('editor');
   });
 
   it('should export all editors into Handsontable.editors object', async() => {
