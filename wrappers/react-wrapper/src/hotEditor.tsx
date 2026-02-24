@@ -183,7 +183,9 @@ function applyEditorPosition(
   if (position === 'portal') {
     const cell = td ?? (typeof editor.getEditedCell === 'function' ? editor.getEditedCell.call(editor) : null);
 
-    if (!cell?.getBoundingClientRect) return false;
+    if (!cell?.getBoundingClientRect) {
+      return false;
+    }
 
     applyTdRect(cell.getBoundingClientRect());
 
