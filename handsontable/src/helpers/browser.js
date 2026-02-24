@@ -22,16 +22,6 @@ const browsers = {
   firefoxWebKit: tester(ua => /FxiOS/.test(ua)),
   mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
-  safari18AndOlder: tester((ua, vendor) => {
-    if (!/Safari/.test(ua) || !/Apple Computer/.test(vendor)) {
-      return false;
-    }
-
-    const match = /Version\/(\d+(?:\.\d+)?)/i.exec(ua);
-    const version = match ? Number.parseFloat(match[1]) : 0;
-
-    return version <= 18.99;
-  }),
 };
 
 const platforms = {
@@ -96,13 +86,6 @@ export function isFirefoxWebKit() {
  */
 export function isSafari() {
   return browsers.safari.value;
-}
-
-/**
- * @returns {boolean}
- */
-export function isSafari18AndOlder() {
-  return browsers.safari18AndOlder.value;
 }
 
 /**
