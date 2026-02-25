@@ -19,6 +19,7 @@ angular:
   metaTitle: Language - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
+menuTag: updated
 ---
 
 # Language
@@ -141,7 +142,7 @@ registerLanguageDictionary(deDE);
   standalone: true,
   imports: [HotTableModule],
   template: ` <div>
-    <hot-table themeName="ht-theme-main" [settings]="settings" />
+    <hot-table [settings]="settings" />
   </div>`,
 })
 export class Component {

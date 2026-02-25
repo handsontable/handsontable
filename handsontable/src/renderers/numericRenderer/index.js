@@ -1,5 +1,5 @@
 export {
   RENDERER_TYPE,
   numericRenderer,
-  getRenderedValue,
+  valueFormatter,
 } from './numericRenderer';

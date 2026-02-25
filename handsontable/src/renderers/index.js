@@ -4,14 +4,14 @@ import { dropdownRenderer, RENDERER_TYPE as DROPDOWN_RENDERER } from './dropdown
 import { checkboxRenderer, RENDERER_TYPE as CHECKBOX_RENDERER } from './checkboxRenderer';
 import { handsontableRenderer, RENDERER_TYPE as HANDSONTABLE_RENDERER } from './handsontableRenderer';
 import { htmlRenderer, RENDERER_TYPE as HTML_RENDERER } from './htmlRenderer';
+import { intlDateRenderer, RENDERER_TYPE as INTL_DATE_RENDERER } from './intlDateRenderer';
+import { intlTimeRenderer, RENDERER_TYPE as INTL_TIME_RENDERER } from './intlTimeRenderer';
 import { numericRenderer, RENDERER_TYPE as NUMERIC_RENDERER } from './numericRenderer';
 import { passwordRenderer, RENDERER_TYPE as PASSWORD_RENDERER } from './passwordRenderer';
 import { selectRenderer, RENDERER_TYPE as SELECT_RENDERER } from './selectRenderer';
 import { textRenderer, RENDERER_TYPE as TEXT_RENDERER } from './textRenderer';
 import { timeRenderer, RENDERER_TYPE as TIME_RENDERER } from './timeRenderer';
-import {
-  registerRenderer,
-} from './registry';
+import { registerRenderer } from './registry';
 
 /**
  * Registers all available renderers.
@@ -23,6 +23,8 @@ export function registerAllRenderers() {
   registerRenderer(dropdownRenderer);
   registerRenderer(handsontableRenderer);
   registerRenderer(htmlRenderer);
+  registerRenderer(intlDateRenderer);
+  registerRenderer(intlTimeRenderer);
   registerRenderer(numericRenderer);
   registerRenderer(passwordRenderer);
   registerRenderer(selectRenderer);
@@ -37,6 +39,8 @@ export {
   checkboxRenderer, CHECKBOX_RENDERER,
   handsontableRenderer, HANDSONTABLE_RENDERER,
   htmlRenderer, HTML_RENDERER,
+  intlDateRenderer, INTL_DATE_RENDERER,
+  intlTimeRenderer, INTL_TIME_RENDERER,
   numericRenderer, NUMERIC_RENDERER,
   passwordRenderer, PASSWORD_RENDERER,
   selectRenderer, SELECT_RENDERER,
@@ -51,3 +55,4 @@ export {
   hasRenderer,
   registerRenderer,
 } from './registry';
+export { rendererFactory } from './factory';

@@ -17,6 +17,7 @@ import {
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
+import { getValueGetterValue } from '../../utils/valueAccessors';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 
@@ -602,11 +603,8 @@ export class Formulas extends BasePlugin {
     if (isObject(value) && value !== null) {
       const visualRow = this.hot.toVisualRow(row);
       const visualColumn = this.hot.toVisualColumn(column);
-      const valueGetter = this.hot.getCellMeta(visualRow, visualColumn).valueGetter;
 
-      if (valueGetter) {
-        return valueGetter.call(this.hot, value);
-      }
+      value = getValueGetterValue(value, this.hot.getCellMeta(visualRow, visualColumn));
 
       return value.toString();
     }

@@ -13,23 +13,23 @@
 }
 /* General Handsontable container styling */
 .handsontable-container {
-  border: 1px solid #ccc;
+  border: 1px solid #ccc !important;
   border-radius: 5px;
   overflow: hidden;
 }
 
 /* Header styling */
 .handsontable-container .ht_clone_top th {
-  background-color: #1c1558;
-  color: white;
+  background-color: #1c1558 !important;
+  color: white !important;
   font-weight: bold;
   border: 1px solid #ccc;
 }
 
 /* Row header styling */
 .handsontable-container .ht_clone_left th {
-  background-color: #3e8e41;
-  color: white;
+  background-color: #3e8e41 !important;
+  color: white !important;
   font-weight: bold;
   border: 1px solid #ccc;
 }
@@ -54,8 +54,8 @@
 /* Cell styling */
 .handsontable-container td,
 .handsontable-container th {
-  color: #333;
-  border: 1px solid #ddd;
+  color: #333 !important;
+  border: 1px solid #ddd !important;
   text-align: center;
   padding: 8px;
   font-family: 'Arial', sans-serif;
@@ -68,7 +68,7 @@
 
 /* Hover effect */
 .handsontable-container td:hover {
-  background-color: #ffeb3b;
+  background-color: #ffeb3b !important;
 }
 
 /* Selected cells styling */
@@ -82,5 +82,5 @@
 .custom-cell {
   background-color: #e1f5fe !important;
   font-weight: bold;
-  color: #0277bd;
+  color: #0277bd !important;
 }

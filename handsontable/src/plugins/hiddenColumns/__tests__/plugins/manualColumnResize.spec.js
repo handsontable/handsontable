@@ -74,7 +74,7 @@ describe('HiddenColumns', () => {
       const $handle = $('.manualColumnResizer');
 
       expect($handle.offset().left).forThemes(({ classic, main, horizon }) => {
-        classic.toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+        classic.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
         main.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
         horizon.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
       });
@@ -108,7 +108,7 @@ describe('HiddenColumns', () => {
       const $handle = $('.manualColumnResizer');
 
       expect($handle.offset().left).forThemes(({ classic, main, horizon }) => {
-        classic.toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+        classic.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
         main.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
         horizon.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
       });
@@ -146,7 +146,7 @@ describe('HiddenColumns', () => {
       ;
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(80); // 50 (initial column width) + 30
+        classic.toBe(86); // 50 (initial column width) + 30 + 6
         main.toBe(93);
         horizon.toBe(101);
       });

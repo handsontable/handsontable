@@ -3,6 +3,7 @@ describe('editors', () => {
   const {
     registerEditor,
     getEditor,
+    editorFactory,
   } = Handsontable.editors;
 
   beforeEach(function() {
@@ -113,5 +114,138 @@ describe('editors', () => {
     await sleep(50);
 
     expect(getCell(1, 0).innerHTML).not.toEqual('Cup');
+  });
+
+  it('should create a custom editor using the editorFactory', async() => {
+    const myEditor = editorFactory({});
+
+    expect(myEditor).toBeFunction();
+  });
+
+  describe('editorFactory options', () => {
+    const minimalFactoryEditor = (overrides = {}) => editorFactory({
+      init(editor) {
+        editor.input = document.createElement('input');
+      },
+      ...overrides,
+    });
+
+    it('should prevent close when beforeClose returns false', async() => {
+      const beforeClose = jasmine.createSpy('beforeClose').and.returnValue(false);
+      const CustomEditor = minimalFactoryEditor({ beforeClose });
+
+      handsontable({
+        data: [['a']],
+        columns: [{ editor: CustomEditor }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      expect(getActiveEditor().isOpened()).toBe(true);
+
+      const closeResult = getActiveEditor().close();
+
+      expect(closeResult).toBe(false);
+      expect(beforeClose).toHaveBeenCalled();
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(getActiveEditor().container.style.display).not.toBe('none');
+    });
+
+    it('should close normally when beforeClose returns true or undefined', async() => {
+      const CustomEditor = minimalFactoryEditor({ beforeClose: () => true });
+
+      handsontable({
+        data: [['a']],
+        columns: [{ editor: CustomEditor }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      expect(getActiveEditor().close()).not.toBe(false);
+      expect(getActiveEditor().isOpened()).toBe(false);
+    });
+
+    it('should add ht_clone_master class on open and call refreshDimensions', async() => {
+      const CustomEditor = minimalFactoryEditor();
+
+      handsontable({
+        data: [['a']],
+        columns: [{ editor: CustomEditor }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      expect(editor.container.classList.contains('ht_clone_master')).toBe(true);
+      expect(editor.container.style.display).toBe('block');
+    });
+
+    it('should close editor in refreshDimensions when getEditedCell returns null', async() => {
+      const CustomEditor = minimalFactoryEditor();
+
+      handsontable({
+        data: [['a']],
+        columns: [{ editor: CustomEditor }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      spyOn(editor, 'getEditedCell').and.returnValue(null);
+      spyOn(editor, 'close').and.callThrough();
+
+      editor.refreshDimensions();
+
+      expect(editor.close).toHaveBeenCalled();
+    });
+
+    it('should not update container in refreshDimensions when editor is not open', async() => {
+      const CustomEditor = minimalFactoryEditor();
+
+      handsontable({
+        data: [['a']],
+        columns: [{ editor: CustomEditor }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      editor.close();
+      editor.container.style.top = '999px';
+      editor.refreshDimensions();
+
+      expect(editor.container.style.top).toBe('999px');
+    });
+
+    it('should register scroll hooks that call refreshDimensions', async() => {
+      const CustomEditor = minimalFactoryEditor();
+
+      handsontable({
+        data: [['a']],
+        columns: [{ editor: CustomEditor }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      spyOn(editor, 'refreshDimensions');
+
+      editor.hot.runHooks('afterScrollHorizontally');
+      expect(editor.refreshDimensions).toHaveBeenCalled();
+
+      editor.refreshDimensions.calls.reset();
+      editor.hot.runHooks('afterScrollVertically');
+      expect(editor.refreshDimensions).toHaveBeenCalled();
+    });
   });
 });

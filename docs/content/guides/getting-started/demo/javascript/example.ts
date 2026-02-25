@@ -1,8 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { PredefinedMenuItemKey } from 'handsontable/plugins/contextMenu';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -151,7 +149,6 @@ export function addClassesToRows(
 const example = document.getElementById('example')!;
 
 new Handsontable(example, {
-  themeName: 'ht-theme-main',
   data,
   height: 450,
   colWidths: [180, 220, 140, 120, 120, 120, 140],
@@ -174,7 +171,6 @@ new Handsontable(example, {
     {
       data: 4,
       type: 'date',
-      allowInvalid: false,
       dateFormat: 'DD/MM/YYYY',
     },
     {

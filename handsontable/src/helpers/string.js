@@ -83,7 +83,7 @@ export function isPercentValue(value) {
 }
 
 /**
- * Substitute strings placed beetwen square brackets into value defined in `variables` object. String names defined in
+ * Substitute strings placed between square brackets into value defined in `variables` object. String names defined in
  * square brackets must be the same as property name of `variables` object.
  *
  * @param {string} template Template string.
@@ -119,4 +119,18 @@ export function stripTags(string) {
  */
 export function sanitize(string, options) {
   return DOMPurify.sanitize(string, options);
+}
+
+/**
+ * Converts camel case to hyphens in a string.
+ *
+ * @param {string} str - The string to convert.
+ * @returns {string} - The converted string.
+ */
+export function toHyphen(str) {
+  if (typeof str !== 'string') {
+    return str;
+  }
+
+  return str.replace(/([A-Z])/g, '-$1').replace(/_/g, '-').toLowerCase();
 }

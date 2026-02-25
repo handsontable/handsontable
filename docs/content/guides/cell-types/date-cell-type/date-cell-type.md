@@ -2,7 +2,7 @@
 id: p25m5sco
 title: Date cell type
 metaTitle: Date cell type - JavaScript Data Grid | Handsontable
-description: Use the date cell type to display, format, and validate date values. Pick a date using an interactive pop-up editor.
+description: Display, format, sort, and filter dates correctly by using the date cell type.
 permalink: /date-cell-type
 canonicalUrl: /date-cell-type
 react:
@@ -13,175 +13,350 @@ angular:
   metaTitle: Date cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 
 # Date cell type
 
-Use the date cell type to display, format, and validate date values. Pick a date using an interactive pop-up editor.
+Display, format, sort, and filter dates correctly by using the date cell type.
 
 [[toc]]
 
-## Usage
+## Overview
 
-To set the date cell type, use the option `type: 'date'` in the [`columns`](@/api/options.md#columns) array or [`cells`](@/api/options.md#cells) function. The date cell uses [Pikaday datepicker](https://github.com/dbushell/Pikaday) as the UI control. Pikaday uses [Moment.js](https://github.com/moment/moment) as a date formatter.
+The date cell type lets you treat cell values as dates: format how they are displayed, validate input, and use an interactive date picker in the editor. Handsontable supports two configurations: the **object-style** configuration using the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API (recommended), and a **string-style** configuration using [Moment.js](https://github.com/moment/moment) (deprecated).
 
-Note that date cell requires additional modules :
+## Date cell type demo
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@handsontable/pikaday@1.0.0/pikaday.min.js"></script>
-```
-
-## Date format
-
-`date` cells accept strings that are formatted in line with the [`dateFormat`](@/api/options.md#dateformat) setting.
-
-The default date format is `'DD/MM/YYYY'`.
-
-Handsontable doesn't support JavaScript's `Date` object.
-
-### Change the date format
-
-To change the date format accepted by `date` cells, set the [`dateFormat`](@/api/options.md#dateformat) configuration option to a string with your preferred format. For example:
+In the following demo, multiple columns use the date cell type with different formatting styles:
+- **Product date**: Date with short style formatting
+- **Payment date**: Customized date formatting
+- **Registration date**: Customized date formatting with weekday, month, day, year
 
 ::: only-for javascript
+::: example #example1 --html 1 --js 2 --ts 3
 
-```js
-dateFormat: 'YYYY-MM-DD',
-```
-
-:::
-
-::: only-for react
-
-```jsx
-dateFormat={'YYYY-MM-DD'}
-```
-
-:::
-
-::: only-for angular
-
-```ts
-settings = {
-  dateFormat: "YYYY-MM-DD",
-};
-```
-
-:::
-
-### Autocorrect invalid dates
-
-By default, when the user enters a date in a format that doesn't match the [`dateFormat`](@/api/options.md#dateformat) setting, the date is treated as invalid.
-
-You can let Handsontable correct such dates automatically, so they match the required format. To do this, set the [`correctFormat`](@/api/options.md#correctformat) option to `true`. For example:
-
-::: only-for javascript
-
-```js
-dateFormat: 'YYYY-MM-DD',
-
-// default behavior
-// date entered as `30/12/2022` will be invalid
-correctFormat: false,
-
-// date entered as `30/12/2022` will be corrected to `2022/12/30`
-correctFormat: true,
-```
-
-:::
-
-::: only-for react
-
-```jsx
-dateFormat={'YYYY-MM-DD'}
-
-// default behavior
-// date entered as `30/12/2022` will be invalid
-correctFormat={false}
-
-// date entered as `30/12/2022` will be corrected to `2022/12/30`
-correctFormat={true}
-```
-
-:::
-
-::: only-for angular
-
-```ts
-settings = {
-  dateFormat: "YYYY-MM-DD",
-  // default behavior
-  // date entered as `30/12/2022` will be invalid
-  correctFormat: false,
-};
-```
-
-```ts
-settings = {
-  dateFormat: "YYYY-MM-DD",
-  // date entered as `30/12/2022` will be corrected to `2022/12/30`
-  correctFormat: true,
-};
-```
-
-:::
-
-## Basic example
-
-Click on one of the ▼ icons to open an interactive date editor.
-
-::: only-for javascript
-
-::: example #example1 --js 1 --ts 2
-
+@[code](@/content/guides/cell-types/date-cell-type/javascript/example1.html)
 @[code](@/content/guides/cell-types/date-cell-type/javascript/example1.js)
 @[code](@/content/guides/cell-types/date-cell-type/javascript/example1.ts)
 
 :::
-
 :::
 
 ::: only-for react
-
 ::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/date-cell-type/react/example1.jsx)
 @[code](@/content/guides/cell-types/date-cell-type/react/example1.tsx)
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-types/date-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/date-cell-type/angular/example1.html)
 
 :::
+:::
+
+## Use the date cell type
+
+Use the **object-style** configuration by setting the [`type`](@/api/options.md#type) option to `'intl-date'` and [`dateFormat`](@/api/options.md#dateformat) to an object (recommended). The locale is controlled via the [`locale`](@/api/options.md#locale) option.
+
+::: only-for javascript
+
+```js
+// set the date cell type for the entire grid (Intl, recommended)
+type: 'intl-date',
+locale: 'en-US',
+dateFormat: {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+},
+
+// set the date cell type for a single column
+columns: [
+  {
+    type: 'intl-date',
+    locale: 'en-US',
+    dateFormat: {
+      dateStyle: 'short'
+    }
+  }
+],
+
+// set the date cell type for a single cell
+cell: [
+  {
+    row: 0,
+    col: 2,
+    type: 'intl-date',
+    locale: 'en-US',
+    dateFormat: { dateStyle: 'medium' }
+  }
+],
+```
 
 :::
+
+::: only-for react
+
+```jsx
+// set the date cell type for the entire grid (Intl, recommended)
+type="intl-date"
+locale="en-US"
+dateFormat={{
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+}}
+
+// set the date cell type for a single column
+columns={[{
+  type: 'intl-date',
+  locale: 'en-US',
+  dateFormat: { dateStyle: 'short' }
+}]}
+
+// set the date cell type for a single cell
+cell={[{
+  row: 0,
+  col: 2,
+  type: 'intl-date',
+  locale: 'en-US',
+  dateFormat: { dateStyle: 'medium' }
+}]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+// set the date cell type for the entire grid (Intl, recommended)
+settings1 = {
+  type: 'intl-date',
+  locale: 'en-US',
+  dateFormat: {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }
+};
+
+// set the date cell type for a single column
+settings2 = {
+  columns: [
+    {
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: { dateStyle: 'short' }
+    }
+  ]
+};
+
+// set the date cell type for a single cell
+settings3 = {
+  cell: [
+    {
+      row: 0,
+      col: 2,
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: { dateStyle: 'medium' }
+    }
+  ]
+};
+```
+
+:::
+
+For `intl-date` cells, source data **must** be in **ISO 8601 date format** (`YYYY-MM-DD`) for dates to work correctly. The `dateFormat` object only affects how dates are displayed; sorting and filtering rely on the underlying ISO value.
+
+## Format dates
+
+To control how dates are displayed in [cell renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md), use the [`dateFormat`](@/api/options.md#dateformat) option.
+
+Since Handsontable 17.0, the recommended approach is the **object form** of `dateFormat` with the `intl-date` cell type, which uses the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+
+### Using Intl.DateTimeFormat (recommended)
+
+The `dateFormat` option accepts all properties of [`Intl.DateTimeFormat` options](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat). Use it with `type: 'intl-date'`.
+
+::: only-for javascript
+
+```js
+columns: [
+  {
+    type: 'intl-date',
+    locale: 'en-US',
+    dateFormat: {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }
+  },
+  {
+    type: 'intl-date',
+    locale: 'de-DE',
+    dateFormat: {
+      dateStyle: 'long'
+    }
+  }
+]
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  columns={[{
+    type: 'intl-date',
+    locale: 'en-US',
+    dateFormat: {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }
+  }, {
+    type: 'intl-date',
+    locale: 'de-DE',
+    dateFormat: { dateStyle: 'long' }
+  }]}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }
+    },
+    {
+      type: 'intl-date',
+      locale: 'de-DE',
+      dateFormat: { dateStyle: 'long' }
+    }
+  ]
+};
+```
+
+:::
+
+**Date-specific options**
+
+**Style shortcuts:**
+
+| Property     | Possible values                                    | Description                                                                 |
+| ------------ | -------------------------------------------------- | --------------------------------------------------------------------------- |
+| `dateStyle`  | `'full'`, `'long'`, `'medium'`, `'short'`          | Date formatting style (weekday, day, month, year, era)                       |
+| `timeStyle`  | `'full'`, `'long'`, `'medium'`, `'short'`          | Time part style (hour, minute, second, timeZoneName); use for date+time      |
+
+**Date-time component options:**
+
+| Property                 | Possible values                                                                 | Description                |
+| ------------------------ | ------------------------------------------------------------------------------- | -------------------------- |
+| `weekday`                | `'long'`, `'short'`, `'narrow'`                                                 | Weekday representation     |
+| `era`                    | `'long'`, `'short'`, `'narrow'`                                                 | Era representation         |
+| `year`                   | `'numeric'`, `'2-digit'`                                                        | Year representation        |
+| `month`                  | `'numeric'`, `'2-digit'`, `'long'`, `'short'`, `'narrow'`                       | Month representation       |
+| `day`                    | `'numeric'`, `'2-digit'`                                                        | Day representation         |
+| `dayPeriod`              | `'narrow'`, `'short'`, `'long'`                                                 | Day period (e.g. "am")     |
+| `hour`                   | `'numeric'`, `'2-digit'`                                                        | Hour (if time included)    |
+| `minute`                 | `'numeric'`, `'2-digit'`                                                        | Minute                     |
+| `second`                 | `'numeric'`, `'2-digit'`                                                        | Second                     |
+| `fractionalSecondDigits` | `1`, `2`, `3`                                                                   | Fraction-of-second digits  |
+| `timeZoneName`           | `'long'`, `'short'`, `'shortOffset'`, `'longOffset'`, `'shortGeneric'`, `'longGeneric'` | Time zone display    |
+
+**Locale and other options:**
+
+| Property          | Possible values                                           | Description                    |
+| ----------------- | --------------------------------------------------------- | ------------------------------ |
+| `localeMatcher`   | `'best fit'` (default), `'lookup'`                        | Locale matching algorithm      |
+| `calendar`       | `'chinese'`, `'gregory'`, `'persian'`, etc.               | Calendar to use                |
+| `numberingSystem` | `'latn'`, `'arab'`, `'hans'`, etc.                        | Numbering system               |
+| `timeZone`        | IANA time zone (e.g. `'UTC'`, `'America/New_York'`)       | Time zone for formatting       |
+| `hour12`          | `true`, `false`                                           | 12-hour vs 24-hour time        |
+| `hourCycle`       | `'h11'`, `'h12'`, `'h23'`, `'h24'`                        | Hour cycle                     |
+| `formatMatcher`   | `'basic'`, `'best fit'` (default)                         | Format matching algorithm      |
+
+For a complete reference, see the [`dateFormat` API documentation](@/api/options.md#dateformat) or [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
+
+### Using string format with Moment.js (deprecated)
+
+::: warning Deprecated
+The **string form** of [`dateFormat`](@/api/options.md#dateformat) (e.g. `'DD/MM/YYYY'`, `'YYYY-MM-DD'`) is deprecated and will be removed in the next major release. It is used only by the `date` cell type, which relies on [Moment.js](https://github.com/moment/moment) and [Pikaday](https://github.com/dbushell/Pikaday). Migrate to the `intl-date` cell type with an `Intl.DateTimeFormat` options object.
+:::
+
+The `date` cell type with a string `dateFormat` is still supported but will be removed in next major release.
+
+**Deprecated options:**
+
+| Option               | Description | Replacement |
+| -------------------- | ----------- | ----------- |
+| `dateFormat` (string)| Moment.js format (e.g. `'DD/MM/YYYY'`) | Use `intl-date` with `dateFormat` object (see above) |
+| `correctFormat`      | Auto-correct entered date to match format | May be handled by [`valueParser`](@/api/options.md#valueparser) and/or [`valueSetter`](@/api/options.md#valuesetter) options |
+| `datePickerConfig`   | Pikaday options for the date picker | `intl-date` uses a native date picker; no direct equivalent |
+
+**Migration example:**
+
+```js
+// Before (deprecated)
+columns: [{
+  type: 'date',
+  dateFormat: 'YYYY-MM-DD',
+}]
+
+// After (recommended)
+columns: [{
+  type: 'intl-date',
+  locale: 'en-US',
+  dateFormat: {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }
+}]
+```
+
+### Editor behavior
+
+The [`dateFormat`](@/api/options.md#dateformat) option controls how dates are displayed in the cell. The editor (date picker or text input) may show the value in a normalized form; for `intl-date`, the underlying value remains in ISO 8601 format.
 
 ## Related articles
 
 ### Related guides
 
-<div class="boxes-list gray">
-
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
-
-</div>
 
 ### Related API reference
 
 - Configuration options:
-  - [`correctFormat`](@/api/options.md#correctformat)
   - [`dateFormat`](@/api/options.md#dateformat)
+  - [`locale`](@/api/options.md#locale)
+  - [`type`](@/api/options.md#type)
+  - [`correctFormat`](@/api/options.md#correctformat)
   - [`datePickerConfig`](@/api/options.md#datepickerconfig)
   - [`defaultDate`](@/api/options.md#defaultdate)
-  - [`type`](@/api/options.md#type)
+  - [`valueFormatter`](@/api/options.md#valueformatter)
+  - [`valueParser`](@/api/options.md#valueparser)
+  - [`valueSetter`](@/api/options.md#valuesetter)
+  - [`valueGetter`](@/api/options.md#valuegetter)
 - Core methods:
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
   - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
@@ -191,7 +366,7 @@ Click on one of the ▼ icons to open an interactive date editor.
   - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
   - [`removeCellMeta()`](@/api/core.md#removecellmeta)
 - Hooks:
-    - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-    - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-    - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-    - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

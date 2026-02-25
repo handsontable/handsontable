@@ -1,5 +1,5 @@
 import { test } from '../../src/test-runner';
-import { collapseNestedColumn } from '../../src/page-helpers';
+import { collapseNestedColumn, scrollTableToTheInlineEnd } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
 test('Test collapsing nested headers', async({ goto, tablePage }) => {
@@ -8,6 +8,8 @@ test('Test collapsing nested headers', async({ goto, tablePage }) => {
   const table = tablePage.locator(helpers.selectors.mainTable);
 
   await table.waitFor();
+
+  await scrollTableToTheInlineEnd();
 
   await collapseNestedColumn('Category');
   await collapseNestedColumn('System');

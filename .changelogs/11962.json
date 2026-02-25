@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with scrolling in Firefox",
+  "type": "fixed",
+  "issueOrPR": 11962,
+  "breaking": false,
+  "framework": "none"
+}

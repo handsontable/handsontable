@@ -10,11 +10,11 @@ declare const true_or_false: true | false;
 // This can be replaced once `as const` context is shipped: https://github.com/Microsoft/TypeScript/pull/29510
 enum DisableVisualSelection { current = 'current', area = 'area', header = 'header' }
 
-const legacyNumericFormat: Handsontable.NumericFormatOptions = {
+const legacyNumbroNumericFormat: Handsontable.NumericFormatOptions = {
   pattern: '0.00',
   culture: 'en-US',
 };
-const numericFormatOptions: Handsontable.NumericFormatOptions = {
+const numericNumbroFormatOptions: Handsontable.NumericFormatOptions = {
   pattern: {
     prefix: '2',
     postfix: '3',
@@ -48,6 +48,16 @@ const numericFormatOptions: Handsontable.NumericFormatOptions = {
     base: oneOf('decimal', 'binary', 'general'),
   },
   culture: 'en-US'
+};
+const numericIntlFormatOptions: Handsontable.NumericFormatOptions = {
+  style: 'currency',
+  currency: 'USD',
+  useGrouping: false,
+  maximumFractionDigits: 20,
+  minimumFractionDigits: 2,
+  maximumSignificantDigits: 20,
+  minimumSignificantDigits: 2,
+  localeMatcher: 'best fit',
 };
 
 // Use `Required<GridSettings>` to ensure every defined setting is covered here.
@@ -186,7 +196,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   nestedHeaders: [],
   nestedRows: true,
   noWordWrapClassName: 'foo',
-  numericFormat: oneOf(legacyNumericFormat, numericFormatOptions),
+  numericFormat: oneOf(legacyNumbroNumericFormat, numericNumbroFormatOptions, numericIntlFormatOptions),
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, (target: HTMLElement) => false),
   pagination: oneOf(true, {
@@ -198,7 +208,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     showNavigation: true,
     uiContainer: document.body,
   }),
-  persistentState: true,
+  parsePastedValue: true,
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
   preventOverflow: oneOf(true, 'vertical', 'horizontal'),
@@ -215,6 +225,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
+  sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
   search: true,
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectOptions: oneOf(
@@ -230,6 +241,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     ['A', 'B', 'C', 'D'],
     (query: string, callback: (item: string[]) => void) => callback(['A', 'B', 'C', 'D'])
   ),
+  sourceDataValidator: oneOf((value: any, cellMeta: CellProperties) => true),
+  sourceDataWarningMessage: oneOf('The source data is invalid.'),
   startCols: 123,
   startRows: 123,
   stretchH: 'none',
@@ -238,6 +251,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   tabMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 2, col: 2})),
   textEllipsis: false,
   themeName: 'ht-theme-some-theme',
+  theme: '',
   title: 'foo',
   trimDropdown: true,
   trimRows: true,
@@ -319,6 +333,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     /^[0-9]$/,
     'autocomplete', 'date', 'numeric', 'time', 'custom.validator'
   ),
+  valueFormatter: (value: any, cellMeta: CellProperties) => value,
+  valueParser: (value: any, cellMeta: CellProperties) => value,
   valueGetter: (value: any, row: number, column: number, cellMeta: CellProperties) => value,
   valueSetter: (value: any, row: number, column: number, cellMeta: CellProperties) => `${value} at row ${row}, column ${column}`,
   viewportColumnRenderingOffset: oneOf(100, 'auto'),
@@ -748,7 +764,4 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const rowDelta: number = delta.row;
     const colDelta: number = delta.row;
   },
-  persistentStateLoad: () => {},
-  persistentStateReset: () => {},
-  persistentStateSave: () => {},
 };

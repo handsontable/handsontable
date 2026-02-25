@@ -38,13 +38,13 @@ import { Settings as MultiColumnSortingSettings } from './plugins/multiColumnSor
 import { Settings as NestedHeadersSettings } from './plugins/nestedHeaders';
 import { Settings as NestedRowsSettings } from './plugins/nestedRows';
 import { Settings as PaginationSettings } from './plugins/pagination';
-import { Settings as PersistentStateSettings } from './plugins/persistentState';
 import { Settings as SearchSettings } from './plugins/search';
 import { Settings as TrimRowsSettings } from './plugins/trimRows';
 import { Settings as DialogSettings } from './plugins/dialog';
 import { Settings as LoadingSettings } from './plugins/loading';
 import { Settings as EmptyDataStateSettings } from './plugins/emptyDataState';
 import { Settings as UndoRedoSettings } from './plugins/undoRedo';
+import { ThemeBuilder, BaseTheme } from './themes';
 import { EditorType, BaseEditor } from './editors';
 import { RendererType } from './renderers';
 import { BaseRenderer } from './renderers/base';
@@ -146,7 +146,7 @@ export interface GridSettings extends Events {
   disableVisualSelection?: boolean | 'current' | 'area' | 'header' | Array<'current' | 'area' | 'header'>;
   dragToScroll?: DragToScrollSettings;
   dropdownMenu?: DropdownMenuSettings;
-  editor?: EditorType | typeof BaseEditor | boolean | string;
+  editor?: EditorType | typeof BaseEditor | BaseEditor | boolean | string;
   enterBeginsEditing?: boolean;
   enterMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
   fillHandle?: AutofillSettings;
@@ -195,7 +195,7 @@ export interface GridSettings extends Events {
   observeDOMVisibility?: boolean;
   outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
   pagination?: PaginationSettings;
-  persistentState?: PersistentStateSettings;
+  parsePastedValue?: boolean;
   placeholder?: string;
   placeholderCellClassName?: string;
   preventOverflow?: boolean | 'vertical' | 'horizontal';
@@ -208,6 +208,7 @@ export interface GridSettings extends Events {
   rowHeaders?: boolean | string[] | ((index: number) => string);
   rowHeaderWidth?: number | number[];
   rowHeights?: number | string | number[] | string[] | undefined[] | Array<number | string | undefined> | ((index: number) => string | number | undefined);
+  sanitizer?: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => string;
   search?: SearchSettings;
   selectionMode?: 'single' | 'range' | 'multiple';
   selectOptions?: string[] | SelectOptionsObject | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | SelectOptionsObject);
@@ -215,6 +216,8 @@ export interface GridSettings extends Events {
   skipRowOnPaste?: boolean;
   sortByRelevance?: boolean;
   source?: string[] | number[] | { key: any, value: any }[] | ((this: CellProperties, query: string, callback: (items: string[]) => void) => void);
+  sourceDataValidator?: (value: CellValue, cellMeta: CellProperties, source?: string) => boolean;
+  sourceDataWarningMessage?: string;
   startCols?: number;
   startRows?: number;
   stretchH?: 'none' | 'all' | 'last';
@@ -222,6 +225,7 @@ export interface GridSettings extends Events {
   tableClassName?: string | string[];
   tabMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
   textEllipsis?: boolean;
+  theme?: ThemeBuilder | BaseTheme | string;
   themeName?: string;
   title?: string;
   trimDropdown?: boolean;
@@ -234,6 +238,8 @@ export interface GridSettings extends Events {
   emptyDataState?: EmptyDataStateSettings;
   undo?: UndoRedoSettings;
   validator?: BaseValidator | RegExp | ValidatorType | string;
+  valueFormatter?: (this: Core, value: CellValue, cellProperties: CellProperties) => CellValue;
+  valueParser?: (this: Core, value: CellValue, cellProperties: CellProperties) => CellValue;
   valueGetter?: (this: Core, value: CellValue, row: number, column: number, cellProperties: CellProperties) => CellValue;
   valueSetter?: (this: Core, value: CellValue, row: number, column: number, cellProperties: CellProperties) => CellValue;
   viewportColumnRenderingOffset?: number | 'auto';

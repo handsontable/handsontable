@@ -15,6 +15,7 @@ angular:
   metaTitle: Installation - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 
 # Installation
@@ -71,15 +72,6 @@ pnpm add handsontable @handsontable/angular-wrapper
   </code-block>
 </code-group>
 
-## Import Handsontable's CSS
-
-Import Handsontable's CSS into your application to `styles.scss`.
-
-```scss
-@import "handsontable/styles/handsontable.min.css";
-@import "handsontable/styles/ht-theme-main.min.css";
-```
-
 ## Register Handsontable's modules
 
 Import and register all of Handsontable's modules with a single function call (for example, in `app.component.ts`):
@@ -95,7 +87,7 @@ Or, to reduce the size of your JavaScript bundle, [import only the modules that 
 
 ## Configure global settings
 
-You can set global configuration values for the table during the application setup (`app.config.ts`). Using the `HOT_GLOBAL_CONFIG` token, you can define an object that will be read within the wrapper. At any time, you can modify these values using the `HotGlobalConfigService` or override them at the individual table level.
+You can set global configuration values for the table during the application setup (`app.config.ts`). Using the `HOT_GLOBAL_CONFIG` token, you can define an object that will be read within the wrapper. At any time, you can modify these values using the `HotGlobalConfigService` or override them at the individual table level. All properties of `HotGlobalConfig` object are optional.
 
 ```ts
 import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
@@ -107,18 +99,18 @@ import {
   HotGlobalConfig,
   NON_COMMERCIAL_LICENSE,
 } from "@handsontable/angular-wrapper";
+import { registerLanguageDictionary, enUS } from "handsontable/i18n";
+
+registerLanguageDictionary(enUS);
 
 const globalHotConfig: HotGlobalConfig = {
   license: NON_COMMERCIAL_LICENSE,
   layoutDirection: "ltr",
-  language: "en",
-  themeName: "ht-theme-main",
+  language: enUS.languageCode,
 };
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
     { provide: HOT_GLOBAL_CONFIG, useValue: globalHotConfig },
   ],
 };
@@ -153,7 +145,7 @@ import {
   standalone: true,
   imports: [HotTableModule],
   template: ` <div>
-    <hot-table themeName="ht-theme-main" [data]="data" [settings]="gridSettings" />
+    <hot-table [data]="data" [settings]="gridSettings" />
   </div>`,
 })
 export class HotTableWrapperComponent {
@@ -197,6 +189,55 @@ For more information on `@handsontable/angular`, see the [15.3 documentation](ht
 
 ### Troubleshooting
 If you're using Angular 21 or newer, please note that older versions of `@handsontable/angular-wrapper` are incompatible due to recent breaking changes in Angular. To ensure smooth integration, upgrade to `@handsontable/angular-wrapper@16.2` or later.
+
+## Server Side Rendering (SSR)
+
+Currently, `HotTable` cannot be rendered on the server-side. If your application uses SSR, render it only in the browser using an `*ngIf*` statement.
+
+```ts
+import { CommonModule, isPlatformBrowser } from "@angular/common";
+import { Component, inject, PLATFORM_ID } from "@angular/core";
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
+
+import { registerAllModules } from "handsontable/registry";
+
+registerAllModules();
+
+@Component({
+  selector: "app-root",
+  imports: [HotTableModule, CommonModule],
+  templateUrl: "./app.html",
+  styleUrl: "./app.scss",
+})
+export class App {
+  private platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
+
+  readonly data = [
+    ["", "Tesla", "Volvo", "Toyota", "Ford"],
+    ["2019", 10, 11, 12, 13],
+    ["2020", 20, 11, 14, 13],
+    ["2021", 30, 15, 12, 13],
+  ];
+  readonly gridSettings: GridSettings = {
+    rowHeaders: true,
+    colHeaders: true,
+    height: "auto",
+    autoWrapRow: true,
+    autoWrapCol: true,
+    manualRowResize: true,
+    manualColumnResize: true,
+  };
+}
+```
+
+```html
+<div>
+  <ng-container *ngIf="isBrowser">
+    <hot-table [data]="data" [settings]="gridSettings" />
+  </ng-container>
+</div>
+```
 
 :::
 
@@ -243,8 +284,6 @@ To install Handsontable locally using a package manager, run one of these comman
 To get Handsontable's files from a CDN, use the following locations:
 
 - [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
-- [https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css](https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css)
-- [https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css](https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css)
 
 ## Import Handsontable's JavaScript
 
@@ -274,28 +313,6 @@ Use the `script` tag. For example, if you're loading Handsontable's JavaScript f
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 ```
 
-## Import Handsontable's CSS
-
-Import Handsontable's CSS into your application.
-
-### Using `import`
-
-If your bundler allows it, you can import Handsontable's full distribution CSS file, using an `import` statement.
-
-```js
-import 'handsontable/styles/handsontable.min.css';
-import 'handsontable/styles/ht-theme-main.min.css';
-```
-
-### Using the `link` tag
-
-You can also import Handsontable's CSS using a link tag:
-
-```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
-```
-
 ## Create a container
 
 In your HTML, add an empty `div`, which serves as a container for your Handsontable instance.
@@ -312,9 +329,6 @@ Now turn your container into a data grid with sample data.
 const container = document.querySelector('#example');
 
 const hot = new Handsontable(container, {
-  // theme name with obligatory ht-theme-* prefix
-  themeName: 'ht-theme-main-dark-auto',
-  // other options
   data: [
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
     ['2019', 10, 11, 12, 13],
@@ -371,15 +385,6 @@ To install Handsontable locally using a package manager, run one of these comman
   </code-block>
 </code-group>
 
-## Import Handsontable's CSS
-
-Import Handsontable's CSS into your application.
-
-```jsx
-import 'handsontable/styles/handsontable.min.css';
-import 'handsontable/styles/ht-theme-main.min.css';
-```
-
 ## Register Handsontable's modules
 
 Import and register all of Handsontable's modules with a single function call:
@@ -405,8 +410,6 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 ```jsx
 <HotTable
-  themeName="ht-theme-main-dark-auto"
-  // other options
   data={[
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
     ['2019', 10, 11, 12, 13],
@@ -424,9 +427,7 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 ::: tip
 
-`@handsontable/react-wrapper` requires at least React@18 and is built with functional editors and renderers components in mind. If you use a lower version of React or prefer to use class-based components, you can use the `@handsontable/react` package instead.
-
-For more information on `@handsontable/react`, see the [14.6 documentation](https://handsontable.com/docs/14.6/react-data-grid/installation/).
+`@handsontable/react-wrapper` requires at least React@18 and is built with functional editors and renderers components in mind.
 
 :::
 

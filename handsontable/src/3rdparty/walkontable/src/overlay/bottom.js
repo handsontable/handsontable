@@ -11,6 +11,7 @@ import { Overlay } from './_base';
 import {
   CLONE_BOTTOM,
 } from './constants';
+import { throwWithCause } from '../../../../helpers/errors';
 
 /**
  * @class BottomOverlay
@@ -242,7 +243,7 @@ export class BottomOverlay extends Overlay {
       this.spreader.style.top = '0';
 
     } else {
-      throw new Error('Incorrect value of the rowsRenderCalculator');
+      throwWithCause('Incorrect value of the rowsRenderCalculator');
     }
 
     this.spreader.style.bottom = '';

@@ -1296,7 +1296,7 @@ export class Example1DemoComponent {
     columns: [
       { data: 1 },
       { data: 3 },
-      { data: 4, type: 'date', allowInvalid: false },
+      { data: 4, type: 'date' },
       { data: 6, type: 'checkbox', className: 'htCenter' },
       { data: 7, type: 'numeric' },
       { data: 5 },
@@ -1324,7 +1324,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig
     }

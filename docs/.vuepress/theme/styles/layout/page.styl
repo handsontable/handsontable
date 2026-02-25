@@ -316,6 +316,10 @@
         box-shadow: 0 0 0 1px $borderColor
         padding: 0 !important
         border-radius: $radius
+
+        code {
+            white-space: normal;
+        }
     }
 
     table:not(.htCore) {
@@ -539,4 +543,14 @@
     line-height: var(--ht-line-height-small) !important;
     margin: 0 !important;
     padding: 0 !important;
+}
+
+.variables-table {
+    &__item {
+        display: flex;
+
+        span {
+            width: 38px;
+        }
+    }
 }

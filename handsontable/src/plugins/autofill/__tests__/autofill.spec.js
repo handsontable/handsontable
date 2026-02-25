@@ -741,7 +741,70 @@ describe('AutoFill', () => {
     ]); // Extra test for checking wrong data propagation.
   });
 
-  it('should work properly when two instances are initialized with different fillHandle settings (#3257)', async() => {
+  describe('should works properly when two or more instances of Handsontable was initialized with ' +
+           'other settings (#3257)', () => {
+    let getData;
+    let $container1;
+    let $container2;
+
+    beforeAll(() => {
+      getData = () => [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ];
+
+      $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
+        data: getData(),
+        fillHandle: true,
+        themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
+      });
+
+      $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
+        data: getData(),
+        fillHandle: 'horizontal',
+        themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
+      });
+    });
+
+    it('checking drag vertically on 1. instance of Handsontable - should change cell value', async() => {
+      $container1.handsontable('selectCell', 0, 0);
+      $container1.find('.wtBorder.current.corner').simulate('mousedown');
+      $container1.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
+
+      expect($container1.handsontable('getDataAtCell', 1, 0)).toEqual(1);
+    });
+
+    describe('-> updating settings on 2. instance of Handsontable', () => {
+      beforeAll(() => {
+        $container2.handsontable('updateSettings', {
+          fillHandle: 'vertical', themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
+        });
+      });
+
+      it('checking drag vertically on 2. instance of Handsontable - should change cell value', async() => {
+        $container2.handsontable('selectCell', 0, 2);
+        $container2.find('.wtBorder.current.corner').simulate('mousedown');
+        $container2.find('tbody tr:eq(1) td:eq(2)').simulate('mouseover').simulate('mouseup');
+
+        expect($container2.handsontable('getDataAtCell', 1, 2)).toEqual(3);
+      });
+    });
+
+    afterAll(() => {
+      // destroing containers
+
+      $container1.handsontable('destroy');
+      $container1.remove();
+
+      $container2.handsontable('destroy');
+      $container2.remove();
+    });
+  });
+
+  it('should run afterAutofill once after each set of autofill changes have been applied', async() => {
+    const afterAutofill = jasmine.createSpy('afterAutofill');
     const $container2 = $(`<div id="${id}2"></div>`).appendTo('body');
 
     handsontable({
@@ -1209,7 +1272,7 @@ describe('AutoFill', () => {
 
       const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
       const hitAreaStyle = getComputedStyle(corner, '::after');
-      const expectedHitAreaSize = Math.max(autofillHandlerSize, 14);
+      const expectedHitAreaSize = Math.max(autofillHandlerSize, 12);
 
       expect(hitAreaStyle.width).toBe(`${expectedHitAreaSize}px`);
       expect(hitAreaStyle.height).toBe(`${expectedHitAreaSize}px`);

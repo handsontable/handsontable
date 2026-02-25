@@ -398,7 +398,7 @@ describe('HiddenColumns', () => {
           const $guideline = spec().$container.find('.ht__manualColumnMove--guideline');
 
           expect($guideline.offset().left).forThemes(({ classic, main, horizon }) => {
-            classic.toBe($secondHeaderTH.offset().left - 1);
+            classic.toBe($secondHeaderTH.offset().left - 0.5);
             main.toBe($secondHeaderTH.offset().left - 0.5);
             horizon.toBe($secondHeaderTH.offset().left - 0.5);
           });
@@ -433,7 +433,7 @@ describe('HiddenColumns', () => {
           const $guideline = spec().$container.find('.ht__manualColumnMove--guideline');
 
           expect($guideline.offset().left).forThemes(({ classic, main, horizon }) => {
-            classic.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width());
+            classic.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width() + 0.5);
             main.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width() + 0.5);
             horizon.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width() + 0.5);
           });
@@ -468,7 +468,7 @@ describe('HiddenColumns', () => {
           const $guideline = spec().$container.find('.ht__manualColumnMove--guideline');
 
           expect($guideline.offset().left).forThemes(({ classic, main, horizon }) => {
-            classic.toBe($secondHeaderTH.offset().left - 1);
+            classic.toBe($secondHeaderTH.offset().left - 0.5);
             main.toBe($secondHeaderTH.offset().left - 0.5);
             horizon.toBe($secondHeaderTH.offset().left - 0.5);
           });
@@ -503,7 +503,7 @@ describe('HiddenColumns', () => {
           const $guideline = spec().$container.find('.ht__manualColumnMove--guideline');
 
           expect($guideline.offset().left).forThemes(({ classic, main, horizon }) => {
-            classic.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width());
+            classic.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width() + 0.5);
             main.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width() + 0.5);
             horizon.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width() + 0.5);
           });

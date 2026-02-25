@@ -7,7 +7,6 @@ import {
 } from "@handsontable/angular-wrapper";
 
 const globalHotConfig: HotGlobalConfig = {
-  themeName: "ht-theme-main-dark-auto",
   license: NON_COMMERCIAL_LICENSE,
 };
 

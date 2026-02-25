@@ -17,6 +17,7 @@ import {
   SELECTION_TYPE_UNRECOGNIZED,
 } from './utils';
 import { toSingleLine } from './../helpers/templateLiteralTag';
+import { throwWithCause } from '../helpers/errors';
 import { A11Y_SELECTED } from '../helpers/a11y';
 
 /**
@@ -1076,7 +1077,7 @@ class Selection {
       return false;
 
     } else if (selectionType === SELECTION_TYPE_UNRECOGNIZED) {
-      throw new Error(toSingleLine`Unsupported format of the selection ranges was passed. To select cells pass\x20
+      throwWithCause(toSingleLine`Unsupported format of the selection ranges was passed. To select cells pass\x20
         the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd,\x20
         columnEnd/columnPropEnd]]) or as an array of CellRange objects.`);
     }
@@ -1315,8 +1316,11 @@ class Selection {
     }
 
     const ranges = this.selectedRange.ranges.map(range => range.clone());
+    const selectionSource = this.getSelectionSource();
 
-    this.markSource('refresh');
+    if (selectionSource === 'unknown') {
+      this.markSource('refresh');
+    }
 
     const selectedByRowHeader = new Set(this.selectedByRowHeader);
     const selectedByColumnHeader = new Set(this.selectedByColumnHeader);

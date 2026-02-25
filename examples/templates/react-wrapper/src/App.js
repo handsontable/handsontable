@@ -26,7 +26,7 @@ function App() {
       <HotTable
         data={data}
         width="100%"
-        height="100%"
+        height="auto"
         colHeaders={true}
         rowHeaders={true}
         licenseKey="non-commercial-and-evaluation"

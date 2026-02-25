@@ -3,8 +3,6 @@ import ReactDOM from 'react-dom/client';
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -145,7 +143,6 @@ export function addClassesToRows(TD, row, column, _prop, _value, cellProperties)
 const App = () => {
   return (
     <HotTable
-      themeName="ht-theme-main"
       data={data}
       height={450}
       colWidths={[180, 220, 140, 120, 120, 120, 140]}
@@ -183,7 +180,7 @@ const App = () => {
     >
       <HotColumn data={1} />
       <HotColumn data={3} />
-      <HotColumn data={4} type="date" allowInvalid={false} />
+      <HotColumn data={4} type="date" />
       <HotColumn data={6} type="checkbox" className="htCenter" />
       <HotColumn data={7} type="numeric" />
       <HotColumn data={5} />

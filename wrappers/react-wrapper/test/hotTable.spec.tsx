@@ -159,7 +159,18 @@ describe('Updating the Handsontable settings', () => {
 
   it('should NOT throw an error when trying to update settings after inializing the component if the other settings' +
   'contain init-only entries', async () => {
-    console.error = jest.fn();
+    const errorMock = jest.fn();
+    const originalError = console.error;
+
+    // Filter out jsdom CSS parsing errors (jsdom doesn't support modern CSS features like light-dark())
+    console.error = (...args: unknown[]) => {
+      const message = args[0];
+
+      if (typeof message === 'string' && message.includes('Could not parse CSS stylesheet')) {
+        return;
+      }
+      errorMock(...args);
+    };
 
     let updateState = null;
 
@@ -188,11 +199,24 @@ describe('Updating the Handsontable settings', () => {
 
     await expect(updateStateAndRender).not.toThrowError();
 
-    expect(console.error).not.toHaveBeenCalled();
+    expect(errorMock).not.toHaveBeenCalled();
+
+    console.error = originalError;
   });
 
   it('should NOT throw an error when definiting init-only settings, without updating them afterwards', async () => {
-    console.error = jest.fn();
+    const errorMock = jest.fn();
+    const originalError = console.error;
+
+    // Filter out jsdom CSS parsing errors (jsdom doesn't support modern CSS features like light-dark())
+    console.error = (...args: unknown[]) => {
+      const message = args[0];
+
+      if (typeof message === 'string' && message.includes('Could not parse CSS stylesheet')) {
+        return;
+      }
+      errorMock(...args);
+    };
 
     function ExampleComponent() {
       return (
@@ -213,7 +237,9 @@ describe('Updating the Handsontable settings', () => {
       <ExampleComponent/>
     ));
 
-    expect(console.error).not.toHaveBeenCalled();
+    expect(errorMock).not.toHaveBeenCalled();
+
+    console.error = originalError;
   });
 });
 

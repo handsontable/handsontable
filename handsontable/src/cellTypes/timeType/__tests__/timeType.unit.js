@@ -23,22 +23,22 @@ describe('TimeCellType', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
         getEditor('time');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
         getRenderer('time');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
         getValidator('time');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
         getCellType('time');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
     });
 
     it('should register cell type', () => {

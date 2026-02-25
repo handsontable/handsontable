@@ -35,8 +35,11 @@ describe('CollapsibleColumns (RTL)', () => {
           collapsibleColumns: true
         });
 
-        expect(window.getComputedStyle(getCell(-1, 3).querySelector('.collapsibleIndicator'))
-          .getPropertyValue('left')).toEqual('5px');
+        const indicatorComputedStyle = window.getComputedStyle(getCell(-1, 3).querySelector('.collapsibleIndicator'));
+
+        expect(indicatorComputedStyle.marginInlineStart).toEqual('2px');
+        expect(indicatorComputedStyle.position).toEqual('relative');
+        expect(indicatorComputedStyle.float).toEqual('left');
       });
 
       it.forTheme('main')('should be placed in correct place', async() => {

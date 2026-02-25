@@ -41,7 +41,20 @@ describe('UndoRedo -> RemoveColumn action', () => {
       columnPositions: [0, 1, 2, 3, 4],
       rowPositions: [0, 1, 2, 3, 4],
       fixedColumnsStart: 0,
-      removedCellMetas: [],
+      removedCellMetas: [
+        [0, 1, jasmine.objectContaining({ visualRow: 0, visualCol: 1, row: 0, col: 1, prop: 1 })],
+        [1, 1, jasmine.objectContaining({ visualRow: 1, visualCol: 1, row: 1, col: 1, prop: 1 })],
+        [2, 1, jasmine.objectContaining({ visualRow: 2, visualCol: 1, row: 2, col: 1, prop: 1 })],
+        [3, 1, jasmine.objectContaining({ visualRow: 3, visualCol: 1, row: 3, col: 1, prop: 1 })],
+        [4, 1, jasmine.objectContaining({ visualRow: 4, visualCol: 1, row: 4, col: 1, prop: 1 })],
+        [5, 1, jasmine.objectContaining({ visualRow: 5, visualCol: 1, row: 5, col: 1, prop: 1 })],
+        [0, 2, jasmine.objectContaining({ visualRow: 0, visualCol: 2, row: 0, col: 2, prop: 2 })],
+        [1, 2, jasmine.objectContaining({ visualRow: 1, visualCol: 2, row: 1, col: 2, prop: 2 })],
+        [2, 2, jasmine.objectContaining({ visualRow: 2, visualCol: 2, row: 2, col: 2, prop: 2 })],
+        [3, 2, jasmine.objectContaining({ visualRow: 3, visualCol: 2, row: 3, col: 2, prop: 2 })],
+        [4, 2, jasmine.objectContaining({ visualRow: 4, visualCol: 2, row: 4, col: 2, prop: 2 })],
+        [5, 2, jasmine.objectContaining({ visualRow: 5, visualCol: 2, row: 5, col: 2, prop: 2 })],
+      ],
     });
   });
 

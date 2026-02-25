@@ -1,5 +1,6 @@
 import { addClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
+import { throwWithCause } from '../helpers/errors';
 
 /**
  * @class GhostTable
@@ -64,7 +65,7 @@ class GhostTable {
    */
   addRow(row, samples) {
     if (this.columns.length) {
-      throw new Error('Doesn\'t support multi-dimensional table');
+      throwWithCause('Doesn\'t support multi-dimensional table');
     }
     if (!this.rows.length) {
       this.container = this.createContainer(this.hot.rootElement.className);
@@ -118,7 +119,7 @@ class GhostTable {
    */
   addColumn(column, samples) {
     if (this.rows.length) {
-      throw new Error('Doesn\'t support multi-dimensional table');
+      throwWithCause('Doesn\'t support multi-dimensional table');
     }
     if (!this.columns.length) {
       this.container = this.createContainer(this.hot.rootElement.className);

@@ -1,8 +1,6 @@
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -114,7 +112,6 @@ const Table = memo(({ hotTableRef, data }) => {
   return (
     <HotTable
       ref={hotTableRef}
-      themeName="ht-theme-main"
       pagination={true}
       autoRowSize={true}
       tabNavigation={false}

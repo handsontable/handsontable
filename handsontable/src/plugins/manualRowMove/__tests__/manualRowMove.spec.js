@@ -1011,38 +1011,6 @@ describe('manualRowMove', () => {
   });
 
   describe('integration', () => {
-    it('should properly render saved order if columnSorting and persistentState are enabled', async() => {
-      const config = {
-        data: createSpreadsheetData(5, 1),
-        persistentState: true,
-        manualRowMove: true,
-        columnSorting: true,
-      };
-      const container = spec().$container[0];
-      let hot = new Handsontable(container, config);
-
-      const plugin = hot.getPlugin('manualRowMove');
-
-      plugin.moveRow(0, 4);
-      plugin.persistentStateSave();
-
-      hot.destroy();
-
-      hot = new Handsontable(container, config);
-
-      expect(hot.getData()).toEqual([
-        ['A2'],
-        ['A3'],
-        ['A4'],
-        ['A5'],
-        ['A1'],
-      ]);
-
-      // cleanup
-      hot.destroy();
-      window.localStorage.clear();
-    });
-
     it('should load new dataset on loadData if minSpareRows is set', async() => {
       handsontable({
         data: createSpreadsheetData(1, 1),

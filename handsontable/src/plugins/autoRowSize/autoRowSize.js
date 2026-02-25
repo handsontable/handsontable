@@ -115,7 +115,7 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -203,8 +203,10 @@ export class AutoRowSize extends BasePlugin {
       return false;
     }
 
+    let cellMeta;
+
     if (row >= 0 && column >= 0) {
-      const cellMeta = this.hot.getCellMeta(row, column);
+      cellMeta = this.hot.getCellMeta(row, column);
 
       if (cellMeta.hidden) {
         // do not generate samples for cells that are covered by merged cell (null values)
@@ -217,6 +219,9 @@ export class AutoRowSize extends BasePlugin {
     if (row >= 0) {
       cellValue = this.hot.getDataAtCell(row, column);
 
+      if (typeof cellMeta?.valueFormatter === 'function') {
+        cellValue = cellMeta.valueFormatter(cellValue, cellMeta);
+      }
     } else if (row === -1) {
       cellValue = this.hot.getColHeader(column);
     }
@@ -554,10 +559,7 @@ export class AutoRowSize extends BasePlugin {
     if (cachedHeight !== null && cachedHeight > defaultHeight) {
       height = cachedHeight;
 
-      if (
-        !this.hot.stylesHandler.isClassicTheme() &&
-        row === this.hot.view.getFirstRenderedVisibleRow()
-      ) {
+      if (row === this.hot.view.getFirstRenderedVisibleRow()) {
         // add 1px border-top-width compensation for the first rendered row
         height += 1;
       }

@@ -2,7 +2,7 @@
   A stylesheet customizing app (custom renderers)
 */
 table.htCore tr.odd td {
-  background: #fafbff;
+  background: #fafbff !important;
 }
 
 /*
@@ -13,16 +13,15 @@ table.htCore tr.odd td {
   text-align: center;
 }
 
-.handsontable .htRight .changeType {
-  margin: 3px 1px 0 13px;
-}
 .handsontable .green {
-  background: #37bc6c;
+  background: #37bc6c !important;
+  color: #222 !important;
   font-weight: bold;
 }
 
 .handsontable .orange {
-  background: #fcb515;
+  background: #fcb515 !important;
+  color: #222 !important;
   font-weight: bold;
 }
 
@@ -31,10 +30,12 @@ table.htCore tr.odd td {
   font: 1.4em sans-serif;
 }
 [data-color='green'] {
-  background: #37bc6c;
+  background: #37bc6c !important;
+  color: #222 !important;
 }
 [data-color='orange'] {
-  background: #fcb515;
+  background: #fcb515 !important;
+  color: #222 !important;
 }
 .bold-text {
   font-weight: bold;

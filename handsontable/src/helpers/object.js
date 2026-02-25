@@ -1,4 +1,6 @@
 import { arrayEach } from './array';
+import { isDefined } from './mixed';
+import { throwWithCause } from '../helpers/errors';
 
 /**
  * Generate schema for passed object.
@@ -149,7 +151,7 @@ export function mixin(Base, ...mixins) {
 
     objectEach(mixinItem, (value, key) => {
       if (Base.prototype[key] !== undefined) {
-        throw new Error(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
+        throwWithCause(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
       }
       if (typeof value === 'function') {
         Base.prototype[key] = value;
@@ -427,4 +429,48 @@ export function assignObjectDefaults(target, defaults) {
   });
 
   return result;
+}
+
+/**
+ * Deeply merges two objects.
+ * For every key:
+ *  - If both source and target values are plain objects, they are merged recursively.
+ *  - Otherwise, the source value replaces the target value.
+ *
+ * @param {object} target The target object.
+ * @param {object} source The source object.
+ * @returns {object} The merged object.
+ */
+export function deepMerge(target = {}, source = {}) {
+  const result = {
+    ...target,
+  };
+
+  Object.keys(source).forEach((key) => {
+    // Prevent prototype pollution
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      return;
+    }
+
+    const sourceValue = source[key];
+    const targetValue = result[key];
+
+    if (isObject(sourceValue) && isObject(targetValue)) {
+      result[key] = deepMerge(targetValue, sourceValue);
+    } else {
+      result[key] = sourceValue;
+    }
+  });
+
+  return result;
+}
+
+/**
+ * Checks if the value is a key/value object.
+ *
+ * @param {*} value The value to check.
+ * @returns {boolean}
+ */
+export function isKeyValueObject(value) {
+  return isObject(value) && isDefined(value.key) && isDefined(value.value);
 }

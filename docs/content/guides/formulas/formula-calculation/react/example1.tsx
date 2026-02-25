@@ -1,8 +1,6 @@
 import { HyperFormula } from 'hyperformula';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -35,7 +33,6 @@ const ExampleComponent = () => {
     <>
       <h3 className="demo-preview">Sheet 1</h3>
       <HotTable
-        themeName="ht-theme-main"
         data={data1}
         colHeaders={true}
         rowHeaders={true}

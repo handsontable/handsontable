@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added support for Intl.DateTimeFormat options",
+  "type": "added",
+  "issueOrPR": 11999,
+  "breaking": false,
+  "framework": "none"
+}

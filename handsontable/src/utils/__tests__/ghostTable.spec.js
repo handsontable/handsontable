@@ -116,19 +116,19 @@ describe('GhostTable', () => {
       expect(heightSpy.calls.count()).toBe(3);
       expect(heightSpy.calls.argsFor(0)[0]).toBe(0);
       expect(heightSpy.calls.argsFor(0)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(23);
+        classic.toBe(26);
         main.toBe(29);
         horizon.toBe(37);
       });
       expect(heightSpy.calls.argsFor(1)[0]).toBe(1);
       expect(heightSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(64);
+        classic.toBe(68);
         main.toBe(69);
         horizon.toBe(77);
       });
       expect(heightSpy.calls.argsFor(2)[0]).toBe(2);
       expect(heightSpy.calls.argsFor(2)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(43);
+        classic.toBe(47);
         main.toBe(49);
         horizon.toBe(57);
       });
@@ -234,19 +234,19 @@ describe('GhostTable', () => {
       expect(widthSpy.calls.count()).toBe(3);
       expect(widthSpy.calls.argsFor(0)[0]).toBe(0);
       expect(widthSpy.calls.argsFor(0)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(66);
+        classic.toBe(75);
         main.toBe(84);
         horizon.toBe(92);
       });
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
       expect(widthSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(31);
+        classic.toBe(38);
         main.toBe(43);
         horizon.toBe(51);
       });
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
       expect(widthSpy.calls.argsFor(2)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
+        classic.toBe(61);
         main.toBe(68);
         horizon.toBe(76);
       });

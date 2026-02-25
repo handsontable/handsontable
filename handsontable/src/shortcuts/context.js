@@ -4,6 +4,7 @@ import { isUndefined, isDefined } from '../helpers/mixed';
 import { isFunction } from '../helpers/function';
 import { objectEach, isObject } from '../helpers/object';
 import { toSingleLine } from '../helpers/templateLiteralTag';
+import { throwWithCause } from '../helpers/errors';
 
 const __kindOf = Symbol('shortcut-context');
 
@@ -68,15 +69,15 @@ export const createContext = (name, scope = 'table') => {
     } = {}) => {
 
     if (isUndefined(group)) {
-      throw new Error('You need to define the shortcut\'s group.');
+      throwWithCause('You need to define the shortcut\'s group.');
     }
 
     if (isFunction(callback) === false) {
-      throw new Error('The shortcut\'s callback needs to be a function.');
+      throwWithCause('The shortcut\'s callback needs to be a function.');
     }
 
     if (Array.isArray(keys) === false) {
-      throw new Error(toSingleLine`Pass the shortcut\'s keys as an array of arrays,\x20
+      throwWithCause(toSingleLine`Pass the shortcut\'s keys as an array of arrays,\x20
       using the KeyboardEvent.key properties:\x20
       https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.`);
     }

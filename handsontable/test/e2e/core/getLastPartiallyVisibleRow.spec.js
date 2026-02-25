@@ -17,7 +17,7 @@ describe('Core.getLastPartiallyVisibleRow', () => {
       height: 200,
     });
 
-    expect(getLastPartiallyVisibleRow()).toBe(8);
+    expect(getLastPartiallyVisibleRow()).toBe(7);
   });
 
   it.forTheme('main')('should return last partially visible row index', async() => {
@@ -53,7 +53,7 @@ describe('Core.getLastPartiallyVisibleRow', () => {
     rowMapper.setValueAtIndex(1, true);
     await render();
 
-    expect(getLastPartiallyVisibleRow()).toBe(10);
+    expect(getLastPartiallyVisibleRow()).toBe(9);
   });
 
   it.forTheme('main')('should return last partially visible and not hidden row index', async() => {
@@ -98,7 +98,7 @@ describe('Core.getLastPartiallyVisibleRow', () => {
     await scrollViewportVertically(355); // row 23 (A24) is partially visible
     await render();
 
-    expect(getLastPartiallyVisibleRow()).toBe(23);
+    expect(getLastPartiallyVisibleRow()).toBe(20);
   });
 
   it.forTheme('main')('should return last partially visible row index (scrolled viewport)', async() => {

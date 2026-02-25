@@ -1,4 +1,5 @@
 import { DIALOG_CLASS_NAME } from '../constants';
+import { throwWithCause } from '../../../helpers/errors';
 import { html } from '../../../helpers/templateLiteralTag';
 
 /**
@@ -42,7 +43,7 @@ export function baseTemplate() {
    */
   function focusableElements() {
     if (fragment === null) {
-      throw new Error('Compile the template first.');
+      throwWithCause('Compile the template first.');
     }
 
     return [];

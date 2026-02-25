@@ -18,7 +18,6 @@ describe('`registerAllPlugins`', () => {
       'text',
     ]);
     expect(getPluginsNames()).toEqual([
-      'PersistentState',
       'AutoColumnSize',
       'Autofill',
       'ManualRowResize',
@@ -59,6 +58,7 @@ describe('`registerAllPlugins`', () => {
     ]);
     expect(getRegisteredRendererNames()).toEqual([
       'text',
+      'base',
     ]);
     expect(getRegisteredValidatorNames()).toEqual([]);
   });

@@ -145,7 +145,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 0, y: 1932 });
+        classic.toEqual({ x: 0, y: 2210 });
         main.toEqual({ x: 0, y: 2494 });
         horizon.toEqual({ x: 0, y: 3219 });
       });
@@ -168,7 +168,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 1850, y: 0 });
+        classic.toEqual({ x: 1887, y: 0 });
         main.toEqual({ x: 2001, y: 0 });
         horizon.toEqual({ x: 2292, y: 0 });
       });
@@ -214,7 +214,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 0, y: 92 });
+        classic.toEqual({ x: 0, y: 130 });
         main.toEqual({ x: 0, y: 174 });
         horizon.toEqual({ x: 0, y: 259 });
       });
@@ -241,7 +241,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 0, y: 1265 });
+        classic.toEqual({ x: 0, y: 1456 });
         main.toEqual({ x: 0, y: 1653 });
         horizon.toEqual({ x: 0, y: 2146 });
       });
@@ -264,7 +264,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 1100, y: 1012 });
+        classic.toEqual({ x: 1100, y: 1170 });
         main.toEqual({ x: 1132, y: 1334 });
         horizon.toEqual({ x: 1303, y: 1739 });
       });
@@ -290,7 +290,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 1100, y: 1836 });
+        classic.toEqual({ x: 1100, y: 2109 });
         main.toEqual({ x: 1187, y: 2385 });
         horizon.toEqual({ x: 1366, y: 3121 });
       });
@@ -354,9 +354,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        // 2050 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
-        classic.toEqual({ x: 1747, y: 1035 });
-
+        classic.toEqual({ x: 1800, y: 1196 });
         main.toEqual({ x: 1942, y: 1334 });
         horizon.toEqual({ x: 2265, y: 1739 });
       });
@@ -379,7 +377,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 0, y: 1035 });
+        classic.toEqual({ x: 0, y: 1170 });
         main.toEqual({ x: 0, y: 1334 });
         horizon.toEqual({ x: 0, y: 1739 });
       });
@@ -402,7 +400,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 0, y: 1035 });
+        classic.toEqual({ x: 0, y: 1170 });
         main.toEqual({ x: 0, y: 1334 });
         horizon.toEqual({ x: 0, y: 1739 });
       });
@@ -427,9 +425,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        // 1300 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
-        classic.toEqual({ x: 996, y: 916 });
-
+        classic.toEqual({ x: 996, y: 1069 });
         main.toEqual({ x: 1035, y: 1225 });
         horizon.toEqual({ x: 1238, y: 1641 });
       });
@@ -437,7 +433,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 996, y: 916 });
+        classic.toEqual({ x: 996, y: 1069 });
         main.toEqual({ x: 1035, y: 1225 });
         horizon.toEqual({ x: 1238, y: 1641 });
       });

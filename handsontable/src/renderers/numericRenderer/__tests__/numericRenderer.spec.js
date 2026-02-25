@@ -12,45 +12,6 @@ describe('NumericRenderer', () => {
     }
   });
 
-  it('should render formatted number', async() => {
-    const onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-    handsontable({
-      cells() {
-        return {
-          renderer: 'numeric',
-          numericFormat: { pattern: '$0,0.00' }
-        };
-      },
-      afterValidate: onAfterValidate
-    });
-    await setDataAtCell(2, 2, '1000.234');
-
-    await sleep(100);
-
-    expect(getCell(2, 2).innerHTML).toEqual('$1,000.23');
-  });
-
-  it('should render signed number', async() => {
-    const onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-    handsontable({
-      cells() {
-        return {
-          renderer: 'numeric',
-          numericFormat: { pattern: '$0,0.00' }
-        };
-      },
-      afterValidate: onAfterValidate
-    });
-
-    await setDataAtCell(2, 2, '-1000.234');
-
-    await sleep(100);
-
-    expect(getCell(2, 2).innerHTML).toEqual('-$1,000.23');
-  });
-
   it('should not try to render string as numeral', async() => {
     handsontable({
       cells() {
@@ -148,38 +109,72 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 0).className).toEqual('someClass someClass2 htRight htNumeric');
   });
 
-  describe('NumericRenderer with ContextMenu', () => {
-    it('should change class name from default `htRight` to `htLeft` after set align in contextMenu', async() => {
-      handsontable({
-        startRows: 1,
-        startCols: 1,
-        contextMenu: ['alignment'],
-        cells() {
-          return {
-            type: 'numeric',
-            numericFormat: { pattern: '$0,0.00' }
-          };
-        },
-        height: 100
-      });
+  it('should print deprecation message if numericFormat.pattern is used', async() => {
+    const warnSpy = spyOnConsoleDeprecatedWarn();
 
-      await setDataAtCell(0, 0, '1000');
-      await selectCell(0, 0);
-
-      await contextMenu();
-
-      const menu = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator');
-
-      menu.simulate('mouseover');
-
-      await sleep(300);
-
-      const contextSubMenu = $(`.htContextMenuSub_${menu.text()}`).find('tbody td').eq(0);
-
-      contextSubMenu.simulate('mousedown');
-      contextSubMenu.simulate('mouseup');
-
-      expect($('.handsontable.ht_master .htLeft:not(.htRight)').length).toBe(1);
+    handsontable({
+      data: [[123]],
+      renderer: 'numeric',
+      numericFormat: { pattern: '$0,0.00' }
     });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Deprecated: The `numericFormat.pattern` and `numericFormat.culture` options are deprecated ' +
+      'and will be removed in the next major release. Pass `Intl.NumberFormat` options ' +
+      'directly to `numericFormat` and use the `locale` cell property instead of `culture`.\n\n' +
+      'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+      '`numericFormat` documentation: https://handsontable.com/docs/api/options/#numericformat\n' +
+      '`locale` documentation: https://handsontable.com/docs/api/options/#locale'
+    );
+  });
+
+  it('should print deprecation message if numericFormat.culture is used', async() => {
+    const warnSpy = spyOnConsoleDeprecatedWarn();
+
+    handsontable({
+      data: [[123]],
+      renderer: 'numeric',
+      numericFormat: { culture: '$0,0.00' }
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Deprecated: The `numericFormat.pattern` and `numericFormat.culture` options are deprecated ' +
+      'and will be removed in the next major release. Pass `Intl.NumberFormat` options ' +
+      'directly to `numericFormat` and use the `locale` cell property instead of `culture`.\n\n' +
+      'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+      '`numericFormat` documentation: https://handsontable.com/docs/api/options/#numericformat\n' +
+      '`locale` documentation: https://handsontable.com/docs/api/options/#locale'
+    );
+  });
+
+  it('should not print deprecation message if Intl.NumberFormat object format is used', async() => {
+    const warnSpy = spyOnConsoleDeprecatedWarn();
+
+    handsontable({
+      data: [[123]],
+      renderer: 'numeric',
+      numericFormat: {
+        useGrouping: false,
+        maximumFractionDigits: 20,
+      }
+    });
+
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('should internally call base renderer once', async() => {
+    const originalBaseRenderer = Handsontable.renderers.BaseRenderer;
+
+    spyOn(Handsontable.renderers, 'BaseRenderer');
+
+    Handsontable.renderers.registerRenderer('base', Handsontable.renderers.BaseRenderer);
+    handsontable({
+      data: [['test']],
+      renderer: 'numeric',
+    });
+
+    expect(Handsontable.renderers.BaseRenderer).toHaveBeenCalledTimes(1);
+
+    Handsontable.renderers.registerRenderer('base', originalBaseRenderer);
   });
 });

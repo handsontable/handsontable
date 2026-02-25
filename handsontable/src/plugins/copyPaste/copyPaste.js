@@ -3,7 +3,8 @@ import { Hooks } from '../../core/hooks';
 import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
 import { sanitize, isJSON } from '../../helpers/string';
-import { isObject } from '../../helpers/object';
+import { isObject, deepClone } from '../../helpers/object';
+import { deprecatedWarn } from '../../helpers/console';
 import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
@@ -41,6 +42,8 @@ const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
 ].join('');
+
+const sanitizeDeprecatedMessageShown = new WeakSet();
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -373,7 +376,9 @@ export class CopyPaste extends BasePlugin {
               this.hot.getCopyableSourceData(row, column) :
               this.hot.getCopyableData(row, column);
 
-          if (useSourceData && isObject(copyableCellData)) {
+          if (useSourceData &&
+            (isObject(copyableCellData) || Array.isArray(copyableCellData))
+          ) {
             copyableCellData = JSON.stringify(copyableCellData);
           }
 
@@ -532,18 +537,20 @@ export class CopyPaste extends BasePlugin {
    * Prepares new values to populate them into datasource.
    *
    * @private
-   * @param {Array} inputArray An array of the data to populate.
-   * @param {Array} sourceInputArray An array of the source data to populate.
-   * @param {Array} [selection] The selection which indicates from what position the data will be populated.
-   * @returns {Array} Range coordinates after populate data.
+   * @param {object} pasteData An object with the data to populate.
+   * @param {object} pasteData.plainData The plain data to populate.
+   * @param {object} pasteData.sourceData The source data to populate.
+   * @param {object} pasteData.originalPlainData The original plain data before user modifications in beforePaste.
+   * @returns {number[]} Range coordinates after populate data.
    */
-  populateValues(inputArray, sourceInputArray, selection = this.hot.getSelectedRangeActive()) {
-    if (!inputArray.length) {
+  populateValues({ plainData, originalPlainData, sourceData }) {
+    if (!plainData.length) {
       return [null, null, null, null];
     }
 
-    const populatedRowsLength = inputArray.length;
-    const populatedColumnsLength = inputArray[0].length;
+    const selection = this.hot.getSelectedRangeActive();
+    const populatedRowsLength = plainData.length;
+    const populatedColumnsLength = plainData[0].length;
     const newRows = [];
 
     const { row: startRow, col: startColumn } = selection.getTopStartCorner();
@@ -577,8 +584,8 @@ export class CopyPaste extends BasePlugin {
         const {
           skipColumnOnPaste,
           visualCol,
+          parsePastedValue,
         } = this.hot.getCellMeta(visualRow, visualColumnForPopulatedData);
-        const sourceDataAtTarget = this.hot.getSourceDataAtCell(visualRow, visualColumnForPopulatedData);
         const insertedColumn = newRow.length % populatedColumnsLength;
 
         visualColumnForPopulatedData = visualCol + 1;
@@ -590,15 +597,14 @@ export class CopyPaste extends BasePlugin {
 
         lastVisualColumn = visualCol;
 
-        const sourceCellValue = sourceInputArray?.[insertedRow]?.[insertedColumn];
-        let cellValue = inputArray[insertedRow][insertedColumn];
+        const sourceCellValue = sourceData?.[insertedRow]?.[insertedColumn];
+        const originalCellValue = originalPlainData?.[insertedRow]?.[insertedColumn];
+        let cellValue = plainData[insertedRow][insertedColumn];
 
-        if (sourceInputArray && isJSON(sourceCellValue)) {
+        if (parsePastedValue && sourceData && isJSON(sourceCellValue) && cellValue === originalCellValue) {
           const parsedCellValue = JSON.parse(sourceCellValue);
 
-          if (isObject(sourceDataAtTarget) || sourceDataAtTarget === null) {
-            cellValue = parsedCellValue;
-          }
+          cellValue = parsedCellValue;
         }
 
         newRow.push(cellValue);
@@ -775,11 +781,29 @@ export class CopyPaste extends BasePlugin {
         pastedSourceData = parsedSourceConfig.data;
       }
 
-      const textHTML = sanitize(event.clipboardData.getData('text/html'), {
-        ADD_TAGS: ['meta'],
-        ADD_ATTR: ['content'],
-        FORCE_BODY: true,
-      });
+      const rawTextHTML = event.clipboardData.getData('text/html');
+      const { sanitizer } = this.hot.getSettings();
+      let textHTML = rawTextHTML;
+
+      if (typeof sanitizer === 'function') {
+        textHTML = sanitizer(rawTextHTML, 'CopyPaste.paste');
+      } else {
+        if (!sanitizeDeprecatedMessageShown.has(this.hot)) {
+          sanitizeDeprecatedMessageShown.add(this.hot);
+          deprecatedWarn(
+            'The HTML sanitization using DOMPurify library is deprecated and will be removed in ' +
+            'the next major release. Use the `sanitizer` option instead.\n\n' +
+            'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+            '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
+          );
+        }
+
+        textHTML = sanitize(rawTextHTML, {
+          ADD_TAGS: ['meta'],
+          ADD_ATTR: ['content'],
+          FORCE_BODY: true,
+        });
+      }
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);
@@ -801,11 +825,19 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
+    // Store a copy of the original pasted data before user can modify it in beforePaste hook.
+    // This is needed to detect if user modified values and respect their modifications over source data.
+    const originalPastedData = deepClone(pastedData);
+
     if (this.hot.runHooks('beforePaste', pastedData, this.copyableRanges) === false) {
       return;
     }
 
-    const [startRow, startColumn, endRow, endColumn] = this.populateValues(pastedData, pastedSourceData);
+    const [startRow, startColumn, endRow, endColumn] = this.populateValues({
+      plainData: pastedData,
+      sourceData: pastedSourceData,
+      originalPlainData: originalPastedData,
+    });
 
     if (startRow !== null && startColumn !== null) {
       this.hot.selectCell(

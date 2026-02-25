@@ -25,7 +25,7 @@ describe('MergeCells scrolling', () => {
     await simulateClick(getCell(5, 0));
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(115);
+      classic.toBe(130);
       main.toBe(130);
       horizon.toBe(160);
     });
@@ -37,7 +37,7 @@ describe('MergeCells scrolling', () => {
     await simulateClick(getCell(5, 2));
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(115);
+      classic.toBe(130);
       main.toBe(130);
       horizon.toBe(130);
     });
@@ -86,7 +86,7 @@ describe('MergeCells scrolling', () => {
     await simulateClick(getCell(5, 0));
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(116);
+      classic.toBe(131);
       main.toBe(146);
       horizon.toBe(186);
     });
