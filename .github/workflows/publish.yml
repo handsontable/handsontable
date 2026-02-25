@@ -980,6 +980,12 @@ jobs:
           done
           echo "All packages published successfully."
 
+      - name: Unpack handsontable tarball for CDN purge
+        run: |
+          mkdir -p handsontable/tmp
+          tar -xzf _tmp_packs/handsontable-${{ needs.stable-build.outputs.version }}.tgz \
+            -C handsontable/tmp --strip-components=1
+
       - name: Purge jsDelivr CDN cache
         continue-on-error: true
         run: node .github/scripts/purge-jsdelivr-cache.mjs '${{ needs.stable-build.outputs.version }}'

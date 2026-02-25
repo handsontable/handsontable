@@ -7,6 +7,9 @@
  *   e.g. node purge-jsdelivr-cache.mjs 12.1.3
  */
 
+import { readdirSync } from 'fs';
+import { join, relative } from 'path';
+
 const version = process.argv[2];
 
 if (!version) {
@@ -16,75 +19,40 @@ if (!version) {
 
 const [major, minor, patch] = version.split('.').map(Number);
 
-const DIST_FILES = [
-  'handsontable.js',
-  'handsontable.min.js',
-  'handsontable.full.js',
-  'handsontable.full.min.js',
-  'themes/classic.js',
-  'themes/classic.min.js',
-  'themes/horizon.js',
-  'themes/horizon.min.js',
-  'themes/main.js',
-  'themes/main.min.js',
-  'themes/static/variables/colors/ant.js',
-  'themes/static/variables/colors/ant.min.js',
-  'themes/static/variables/colors/classic.js',
-  'themes/static/variables/colors/classic.min.js',
-  'themes/static/variables/colors/horizon.js',
-  'themes/static/variables/colors/horizon.min.js',
-  'themes/static/variables/colors/main.js',
-  'themes/static/variables/colors/main.min.js',
-  'themes/static/variables/colors/material.js',
-  'themes/static/variables/colors/material.min.js',
-  'themes/static/variables/colors/shadcn.js',
-  'themes/static/variables/colors/shadcn.min.js',
-  'themes/static/variables/density.js',
-  'themes/static/variables/density.min.js',
-  'themes/static/variables/helpers/iconsMap.js',
-  'themes/static/variables/helpers/iconsMap.min.js',
-  'themes/static/variables/icons/horizon.js',
-  'themes/static/variables/icons/horizon.min.js',
-  'themes/static/variables/icons/main.js',
-  'themes/static/variables/icons/main.min.js',
-  'themes/static/variables/sizing.js',
-  'themes/static/variables/sizing.min.js',
-  'themes/static/variables/tokens/classic.js',
-  'themes/static/variables/tokens/classic.min.js',
-  'themes/static/variables/tokens/horizon.js',
-  'themes/static/variables/tokens/horizon.min.js',
-  'themes/static/variables/tokens/main.js',
-  'themes/static/variables/tokens/main.min.js',
-];
+const EXTENSIONS = ['.js', '.css'];
 
-const STYLES_FILES = [
-  'handsontable.css',
-  'handsontable.min.css',
-  'handsontableStyles.js',
-  'handsontableStyles.mjs',
-  'ht-icons-horizon.css',
-  'ht-icons-horizon.min.css',
-  'ht-icons-main.css',
-  'ht-icons-main.min.css',
-  'ht-theme-classic.css',
-  'ht-theme-classic.min.css',
-  'ht-theme-classic-no-icons.css',
-  'ht-theme-classic-no-icons.min.css',
-  'ht-theme-horizon.css',
-  'ht-theme-horizon.min.css',
-  'ht-theme-horizon-no-icons.css',
-  'ht-theme-horizon-no-icons.min.css',
-  'ht-theme-main.css',
-  'ht-theme-main.min.css',
-  'ht-theme-main-no-icons.css',
-  'ht-theme-main-no-icons.min.css',
-];
+function collectFiles(dir) {
+  const results = [];
+
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      results.push(...collectFiles(fullPath));
+
+    } else if (EXTENSIONS.some(ext => entry.name.endsWith(ext))) {
+      results.push(fullPath);
+    }
+  }
+
+  return results;
+}
+
+const PKG_DIR = 'handsontable/tmp';
+
+const distDir = join(PKG_DIR, 'dist');
+const stylesDir = join(PKG_DIR, 'styles');
+
+const DIST_FILES = collectFiles(distDir)
+  .map(f => relative(distDir, f));
+
+const STYLES_FILES = collectFiles(stylesDir)
+  .map(f => relative(stylesDir, f));
 
 const tags = ['latest'];
 
 if (patch !== 0) {
   tags.push(`${major}`, `${major}.${minor}`);
-
 } else if (minor !== 0) {
   tags.push(`${major}`);
 }
