@@ -7,6 +7,7 @@ import {
   isFirefoxWebKit,
   isMobileBrowser,
   isSafari,
+  isSafariBefore261,
   isWindowsOS,
   isMacOS,
   isLinuxOS,
@@ -339,6 +340,57 @@ describe('Browser helper', () => {
       });
 
       expect(isSafari()).toBeTruthy();
+    });
+  });
+
+  describe('isSafariBefore261', () => {
+    it('should return true for Safari 26.0 and lower (v18.2)', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isSafariBefore261()).toBeTruthy();
+    });
+
+    it('should return true for Safari 26.0', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isSafariBefore261()).toBeTruthy();
+    });
+
+    it('should return false for Safari 26.1 and above (v26.1)', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Safari/605.1.15',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isSafariBefore261()).toBeFalsy();
+    });
+
+    it('should return false for Safari 26.1 and above (v26.3)', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isSafariBefore261()).toBeFalsy();
+    });
+
+    it('should return false for non-Safari', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0',
+        vendor: 'Google Inc.',
+      });
+
+      expect(isSafariBefore261()).toBeFalsy();
     });
   });
 

@@ -1,6 +1,6 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
-import { isWindowsOS } from '../browser';
+import { isSafariBefore261, isWindowsOS } from '../browser';
 import { deprecatedWarn } from '../console';
 import { throwWithCause } from '../../helpers/errors';
 
@@ -1054,8 +1054,15 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
 
   const defaultScrollbarWidth = calculateScrollbarWidth();
 
-  // Some WebKit builds report 0 unless explicit ::-webkit-scrollbar size is present.
-  if (defaultScrollbarWidth === 0) {
+  // Safari around 26.x (e.g. 26.2/26.3) changed how scrollbars are rendered: overlay scrollbars
+  // and the standard scrollbar-color/scrollbar-width properties are preferred. When those are set
+  // (e.g. on .wtHolder via theme), they override the non-standard ::-webkit-scrollbar per spec,
+  // so the real scrollbar can be 0-width. Older Safari (before 26.1) sometimes reports 0 because
+  // it needs explicit ::-webkit-scrollbar size to lay out a classic scrollbar; the fallback below
+  // forces that via htScrollbarSafariTest so we get a correct non-zero width. We must only run
+  // this fallback when isSafariBefore261(), otherwise Safari 26.1+ with overlay scrollbars would
+  // be given 9px from the probe (which has no theme) while .wtHolder actually has 0-width overlay.
+  if (defaultScrollbarWidth === 0 && isSafariBefore261()) {
     return calculateScrollbarWidth(true);
   }
 
