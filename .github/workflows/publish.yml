@@ -981,6 +981,7 @@ jobs:
           echo "All packages published successfully."
 
       - name: Unpack handsontable tarball for CDN purge
+        continue-on-error: true
         run: |
           mkdir -p handsontable/tmp
           tar -xzf _tmp_packs/handsontable-${{ needs.stable-build.outputs.version }}.tgz \
