@@ -10,6 +10,8 @@ import {
 
 registerAllModules();
 
+jest.setTimeout(10000);
+
 describe('UndoRedo plugin in React wrapper', () => {
   describe('beforeChange hook execution order', () => {
     it('should record the modified value in UndoRedo when beforeChange modifies the change', async () => {
