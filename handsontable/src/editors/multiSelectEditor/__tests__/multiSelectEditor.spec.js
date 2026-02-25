@@ -984,7 +984,7 @@ describe('MultiSelectEditor', () => {
       });
 
       it('should toggle selection when clicking on the label', async() => {
-        handsontable({
+        const hot = handsontable({
           data: [
             [[]],
           ],
@@ -996,13 +996,15 @@ describe('MultiSelectEditor', () => {
           ],
         });
 
+        const instanceId = hot.guid;
+
         await selectCell(0, 0);
         await keyDownUp('enter');
         await sleep(10);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
-        const $label = $dropdown.find('label[for="ht-multi-select-editor-item-0"]');
+        const $label = $dropdown.find(`label[for="${instanceId}-ht-multi-select-editor-item-0"]`);
 
         expect($checkbox.prop('checked')).toBe(false);
         expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
@@ -1207,6 +1209,50 @@ describe('MultiSelectEditor', () => {
         expect($checkedCheckboxes.eq(0).data('value')).toBe('yellow');
         expect($checkedCheckboxes.eq(1).data('value')).toBe('red');
         expect($checkedCheckboxes.eq(2).data('value')).toBe('orange');
+      });
+    });
+
+    describe('multiple Handsontable instances on the same page', () => {
+      it('should save the selection to the currently edited instance when clicking a label, ' +
+        'not to a cell from a previously edited instance', async() => {
+        handsontable({
+          data: [[[]]],
+          columns: [{ type: 'multiselect', source: choices }],
+        });
+
+        const $container2 = $('<div style="width: 300px; height: 300px;"></div>').appendTo('body');
+        const hot2 = new Handsontable($container2[0], {
+          data: [[[]]],
+          columns: [{ type: 'multiselect', source: choices }],
+        });
+
+        // Open the editor on instance 1 then close it without selecting anything
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+        await keyDownUp('escape');
+        await sleep(10);
+
+        // Open the editor on instance 2
+        hot2.selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(10);
+
+        // Click the label of the first checkbox in instance 2's dropdown
+        const $dropdown2 = $(hot2.rootElement).find('.ht-multi-select-editor');
+        const $label2 = $dropdown2.find('label').first();
+
+        await simulateClick($label2);
+        await sleep(10);
+
+        // The value should be saved to instance 2's cell
+        expect(hot2.getSourceDataAtCell(0, 0)).toEqual([choices[0]]);
+
+        // Instance 1's cell should remain unchanged
+        expect(getSourceDataAtCell(0, 0)).toEqual([]);
+
+        hot2.destroy();
+        $container2.remove();
       });
     });
   });
