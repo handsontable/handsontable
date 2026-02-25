@@ -115,7 +115,7 @@ jobs:
           VERSION='${{ steps.version.outputs.version }}'
           node -e "
             import { isVersionValid } from './scripts/utils/pre-release.mjs';
-            
+
             if (!isVersionValid('${VERSION}')) {
               console.error('Error: Invalid version format: ${VERSION}');
               process.exit(1);
@@ -128,7 +128,7 @@ jobs:
           echo "npm version: $NPM_VERSION"
           node -e "
             import semver from 'semver';
-            
+
             if (!semver.satisfies('${NPM_VERSION}'.trim(), '>=7.17.0')) {
               console.error('Error: npm >= 7.17.0 required (found ${NPM_VERSION})');
               process.exit(1);
@@ -153,7 +153,7 @@ jobs:
           RELEASE_DATE=$(date +%d/%m/%Y)
           node -e "
             import { setVersion, setReleaseDate } from './scripts/utils/pre-release.mjs';
-            
+
             setVersion('${RC_VERSION}');
             setReleaseDate('${RELEASE_DATE}');
           "
@@ -162,7 +162,7 @@ jobs:
         run: |
           node -e "
             import { cleanNodeModules } from './scripts/utils/filesystem.mjs';
-            
+
             cleanNodeModules();
           "
 
@@ -180,6 +180,9 @@ jobs:
 
       - name: Build examples
         run: npm run in examples build
+
+      - name: Run Examples tests
+        run: npm run in examples test
 
       - name: Verify bundles
         run: node ./scripts/verify-bundles.mjs
@@ -423,7 +426,7 @@ jobs:
           echo "npm version: $NPM_VERSION"
           node -e "
             import semver from 'semver';
-            
+
             if (!semver.satisfies('${NPM_VERSION}'.trim(), '>=7.17.0')) {
               console.error('Error: npm >= 7.17.0 required (found ${NPM_VERSION})');
               process.exit(1);
@@ -456,7 +459,7 @@ jobs:
           RELEASE_DATE=$(date +%d/%m/%Y)
           node -e "
             import { setVersion, setReleaseDate } from './scripts/utils/pre-release.mjs';
-            
+
             setVersion('${RC_VERSION}');
             setReleaseDate('${RELEASE_DATE}');
           "
@@ -635,10 +638,10 @@ jobs:
           git fetch --tags --quiet
 
           COMMITS_TEXT=""
-          
+
           if git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
             COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"%H %s" --no-merges)
-            
+
             if [ -n "$COMMITS" ]; then
               while IFS= read -r line; do
                 SHA=$(echo "$line" | cut -d' ' -f1)
@@ -760,7 +763,7 @@ jobs:
           VERSION='${{ steps.version.outputs.version }}'
           node -e "
             import { isVersionValid } from './scripts/utils/pre-release.mjs';
-            
+
             if (!isVersionValid('${VERSION}')) {
               console.error('Error: Invalid version format: ${VERSION}');
               process.exit(1);
@@ -773,7 +776,7 @@ jobs:
           echo "npm version: $NPM_VERSION"
           node -e "
             import semver from 'semver';
-            
+
             if (!semver.satisfies('${NPM_VERSION}'.trim(), '>=7.17.0')) {
               console.error('Error: npm >= 7.17.0 required (found ${NPM_VERSION})');
               process.exit(1);
@@ -786,7 +789,7 @@ jobs:
           RELEASE_DATE=$(date +%d/%m/%Y)
           node -e "
             import { setVersion, setReleaseDate } from './scripts/utils/pre-release.mjs';
-            
+
             setVersion('${VERSION}');
             setReleaseDate('${RELEASE_DATE}');
           "
@@ -976,6 +979,17 @@ jobs:
             npm publish "./$TARBALL" --tag latest
           done
           echo "All packages published successfully."
+
+      - name: Unpack handsontable tarball for CDN purge
+        continue-on-error: true
+        run: |
+          mkdir -p handsontable/tmp
+          tar -xzf _tmp_packs/handsontable-${{ needs.stable-build.outputs.version }}.tgz \
+            -C handsontable/tmp --strip-components=1
+
+      - name: Purge jsDelivr CDN cache
+        continue-on-error: true
+        run: node .github/scripts/purge-jsdelivr-cache.mjs '${{ needs.stable-build.outputs.version }}'
 
       - name: Download NuGet package artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # https://github.com/actions/download-artifact/releases/tag/v4.3.0
