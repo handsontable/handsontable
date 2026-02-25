@@ -1,6 +1,6 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
-import { isSafariBefore261, isWindowsOS } from '../browser';
+import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
 import { deprecatedWarn } from '../console';
 import { throwWithCause } from '../../helpers/errors';
 
@@ -1062,7 +1062,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   // forces that via htScrollbarSafariTest so we get a correct non-zero width. We must only run
   // this fallback when isSafariBefore261(), otherwise Safari 26.1+ with overlay scrollbars would
   // be given 9px from the probe (which has no theme) while .wtHolder actually has 0-width overlay.
-  if (defaultScrollbarWidth === 0 && isSafariBefore261()) {
+  if (defaultScrollbarWidth === 0 && isSafariBefore261() && !isMobileBrowser() && !isIpadOS()) {
     return calculateScrollbarWidth(true);
   }
 
