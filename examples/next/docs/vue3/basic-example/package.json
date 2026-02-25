@@ -27,6 +27,6 @@
     "vue-tsc": "^2.0.6",
     "jasmine": "5.3.0",
     "jasmine-console-reporter": "3.1.0",
-    "puppeteer": "23.4.0"
+    "puppeteer": "^24.2.1"
   }
 }
