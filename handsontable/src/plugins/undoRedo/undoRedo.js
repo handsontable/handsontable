@@ -173,7 +173,9 @@ export class UndoRedo extends BasePlugin {
     const newAction = wrappedAction();
     const undoneActionsCopy = this.undoneActions.slice();
 
-    this.doneActions.push(newAction);
+    if (newAction !== null) {
+      this.doneActions.push(newAction);
+    }
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
