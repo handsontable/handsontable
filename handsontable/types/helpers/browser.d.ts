@@ -10,6 +10,7 @@ export function isChromeWebKit(): boolean;
 export function isFirefox(): boolean;
 export function isFirefoxWebKit(): boolean;
 export function isSafari(): boolean;
+export function isSafariBefore261(): boolean;
 export function isEdge(): boolean;
 export function isEdgeWebKit(): boolean;
 export function isIE(): boolean;

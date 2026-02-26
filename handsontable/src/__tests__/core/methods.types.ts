@@ -15,6 +15,17 @@ const cellProperties: Handsontable.CellProperties = {
   prop: 'foo'
 };
 
+const container: HTMLElement = hot.container;
+const guid: string = hot.guid;
+const isDestroyed: boolean = hot.isDestroyed;
+const rootContainer: HTMLElement = hot.rootContainer;
+const rootWrapperElement: HTMLElement = hot.rootWrapperElement;
+const rootGridElement: HTMLElement = hot.rootGridElement;
+const rootPortalElement: HTMLElement = hot.rootPortalElement;
+const rootElement: HTMLElement = hot.rootElement;
+const rootDocument: Document = hot.rootDocument;
+const rootWindow: Window = hot.rootWindow;
+
 hot.addHook('afterChange', (changes: any[] | null, source: string) => {});
 hot.addHook('afterChange', [(changes: any[] | null, source: string) => {}]);
 hot.addHook('afterChange', [(changes: any[] | null, source: string) => {}], 3);
@@ -214,7 +225,6 @@ hot.validateCells((valid: boolean) => {});
 hot.validateColumns([1, 2, 3], (valid: boolean) => {});
 hot.validateRows([1, 2, 3], (valid: boolean) => {});
 
-const isDestroyed: boolean = hot.isDestroyed;
 const testToHTMLTableElement: HTMLTableElement = hot.toTableElement();
 const testToHTML: string = hot.toHTML();
 const currentThemeName: string|undefined = hot.getCurrentThemeName();

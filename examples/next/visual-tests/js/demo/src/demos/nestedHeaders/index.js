@@ -9,6 +9,7 @@ export function init() {
   // removeHeightBtn.textContent = 'Remove Height';
   // root.appendChild(removeHeightBtn);
   const container = document.createElement('div');
+
   root.appendChild(container);
 
   const longNestedHeaders = getFromURL('longNestedHeaders', undefined);

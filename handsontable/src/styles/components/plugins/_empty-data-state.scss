@@ -4,6 +4,8 @@
 
 @mixin output {
   .ht-empty-data-state {
+    @include mixins.scrollbar-styles;
+
     display: none;
     position: absolute;
     width: 100%;

@@ -92,9 +92,16 @@ export function setVersion(version, packages = workspacePackages) {
 
         } else {
           const isPreRelease = version.includes('-next-');
-          const newVersion = isPreRelease ? version : `${semverPrefix}${semver.major(
-            semver.maxSatisfying([version, previousVersion], '*')
-          )}.0.0`;
+          const isMajorRC = !isPreRelease && /^\d+\.0\.0-/.test(version);
+          let newVersion;
+
+          if (isPreRelease) {
+            newVersion = version;
+          } else if (isMajorRC) {
+            newVersion = `^${semver.major(version)}.0.0`;
+          } else {
+            newVersion = `${semverPrefix}${semver.major(semver.maxSatisfying([version, previousVersion], '*'))}.0.0`;
+          }
 
           // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
           return `"handsontable": "${newVersion}"`;
@@ -116,13 +123,12 @@ export function setVersion(version, packages = workspacePackages) {
  */
 export function setReleaseDate(date) {
   const hotConfigPath = path.resolve(__dirname, '../../hot.config.js');
-  const replacementStatus = replace.sync({
+
+  replace.sync({
     files: hotConfigPath,
     from: /HOT_RELEASE_DATE: '(.*)'/,
     to: `HOT_RELEASE_DATE: '${date}'`,
   });
-
-  validateReplacementStatus(replacementStatus, date);
 }
 
 /**

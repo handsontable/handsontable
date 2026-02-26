@@ -752,7 +752,7 @@ export class Filters extends BasePlugin {
    * are included.
    *
    * @param {number} physicalColumn The physical column index.
-   * @returns {{meta: CellProperties, value: any}[]} Array of objects with `meta` and `value`, one per source row.
+   * @returns {Array<{meta: CellProperties, value: any}>} Array of objects with `meta` and `value`, one per source row.
    */
   getDataMapAtColumn(physicalColumn) {
     const countSourceRows = this.hot.countSourceRows();

@@ -1,5 +1,6 @@
 describe('BaseEditor', () => {
   const id = 'testContainer';
+  const { editorFactory } = Handsontable.editors;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
@@ -12,7 +13,34 @@ describe('BaseEditor', () => {
     }
   });
 
-  it('should exported all editors into Handsontable.editors object', async() => {
+  it('should not reset editor state when close() returns false (e.g. beforeClose prevents close)', async() => {
+    const CustomEditor = editorFactory({
+      init(editor) {
+        editor.input = document.createElement('input');
+      },
+      beforeClose: () => false,
+    });
+
+    handsontable({
+      data: [['a']],
+      columns: [{ editor: CustomEditor }],
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    expect(getActiveEditor().isOpened()).toBe(true);
+
+    await keyDownUp('enter');
+
+    const editor = getActiveEditor();
+    const shortcutManager = editor.hot.getShortcutManager();
+
+    expect(editor.isOpened()).toBe(true);
+    expect(editor.state).toBe('STATE_FINISHED');
+    expect(shortcutManager.getActiveContextName()).toBe('editor');
+  });
+
+  it('should export all editors into Handsontable.editors object', async() => {
     expect(Handsontable.editors.AutocompleteEditor).toBeDefined();
     expect(Handsontable.editors.BaseEditor).toBeDefined();
     expect(Handsontable.editors.CheckboxEditor).toBeDefined();
@@ -81,6 +109,21 @@ describe('BaseEditor', () => {
     expect(document.activeElement).not.toBe(externalInputElement);
 
     document.body.removeChild(externalInputElement);
+  });
+
+  it('should open the editor immediately after the `beginEditing` method is called (#dev-2961)', async() => {
+    handsontable({
+      data: createSpreadsheetData(100, 1),
+    });
+
+    await selectCell(99, 0);
+    await scrollViewportTo({ row: 0, col: 0 });
+
+    spyOn(getActiveEditor(), 'open').and.callThrough();
+
+    getActiveEditor().beginEditing();
+
+    expect(getActiveEditor().open).toHaveBeenCalled();
   });
 
   describe('should populate value from the currently active cell to every cell in the selected range', () => {

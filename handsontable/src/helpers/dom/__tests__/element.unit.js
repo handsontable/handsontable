@@ -3,6 +3,7 @@ import {
   closest,
   closestDown,
   getParent,
+  getScrollbarWidth,
   getFractionalScalingCompensation,
   hasClass,
   isInput,
@@ -948,6 +949,19 @@ describe('DomElement helper', () => {
       setPlatformMeta({ platform: 'Win32' });
 
       expect(getFractionalScalingCompensation(mockDocument)).toBe(2);
+    });
+  });
+
+  //
+  // Handsontable.helper.getScrollbarWidth
+  //
+  describe('getScrollbarWidth', () => {
+    it('should not use the `getBoundingClientRect` method to calculate the scrollbar width', () => {
+      const spy = spyOn(Element.prototype, 'getBoundingClientRect');
+
+      getScrollbarWidth();
+
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 });

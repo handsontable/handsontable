@@ -9,6 +9,7 @@
     </div>
     <div class="nav-item">
       <NavLink :item="recipesLink"/>
+      <span class="tag tag-new">New</span>
     </div>
     <div class="nav-item changelog">
       <NavLink :item="changelogLink"/>

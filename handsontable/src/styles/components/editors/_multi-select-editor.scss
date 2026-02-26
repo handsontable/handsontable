@@ -7,6 +7,7 @@
 
     .ht-multi-select-editor {
       @include mixins.menu-box-shadow;
+      @include mixins.scrollbar-styles;
 
       overflow-y: auto;
       border-radius: 0 0 var(--ht-menu-border-radius) var(--ht-menu-border-radius);
@@ -103,6 +104,11 @@
           background: var(--ht-background-color);
           padding: var(--ht-menu-item-vertical-padding) var(--ht-menu-item-horizontal-padding);
           user-select: none;
+          cursor: pointer;
+
+          * {
+            cursor: pointer;
+          }
 
           &.ht-multi-select-editor-item-selected {
             background: color-mix(in srgb, var(--ht-menu-item-active-color) var(--ht-menu-item-active-color-opacity, 100%), transparent);
