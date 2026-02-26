@@ -2244,19 +2244,27 @@ describe('CollapsibleColumns', () => {
           ['A1', { label: 'Very long header text', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
           ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
         ],
-        collapsibleColumns: true
+        collapsibleColumns: true,
       });
 
       await setDataAtCell(0, 1, 'Longer value');
 
-      expect(getColWidth(1)).toBe(99);
+      expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(90);
+        main.toBe(90);
+        horizon.toBe(107);
+      });
 
       $(getCell(-2, 1).querySelector('.collapsibleIndicator')) // header "B1"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
 
-      expect(getColWidth(1)).toBe(99);
+      expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(90);
+        main.toBe(99);
+        horizon.toBe(107);
+      });
     });
   });
 
