@@ -103,6 +103,11 @@
           background: var(--ht-background-color);
           padding: var(--ht-menu-item-vertical-padding) var(--ht-menu-item-horizontal-padding);
           user-select: none;
+          cursor: pointer;
+
+          * {
+            cursor: pointer;
+          }
 
           &.ht-multi-select-editor-item-selected {
             background: color-mix(in srgb, var(--ht-menu-item-active-color) var(--ht-menu-item-active-color-opacity, 100%), transparent);

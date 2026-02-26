@@ -214,7 +214,8 @@ export function enableAllCheckboxes({ dropdownListElement }) {
  * Creates a single dropdown row with a checkbox and label.
  *
  * @param {object} options Options object.
- * @param {Document} options.rootElement Root document element.
+ * @param {Document} options.rootDocument Root document element.
+ * @param {string} options.instanceId Handsontable instance id.
  * @param {string} options.itemKey Key stored in the associated checkbox dataset.
  * @param {string} options.itemValue Text shown next to the checkbox.
  * @param {number} options.indexWithinList Index of the item within the list.
@@ -223,19 +224,20 @@ export function enableAllCheckboxes({ dropdownListElement }) {
  * @returns {HTMLLIElement}
  */
 export function createListItemElement({
-  rootElement,
+  rootDocument,
+  instanceId,
   itemKey,
   itemValue,
   indexWithinList,
   checked = false,
   disabled = false,
 }) {
-  const itemElement = rootElement.createElement('li');
-  const innerContainer = rootElement.createElement('div');
-  const checkboxElement = rootElement.createElement('input');
-  const labelElement = rootElement.createElement('label');
+  const itemElement = rootDocument.createElement('li');
+  const innerContainer = rootDocument.createElement('div');
+  const checkboxElement = rootDocument.createElement('input');
+  const labelElement = rootDocument.createElement('label');
 
-  checkboxElement.id = `${CHECKBOX_ID_PREFIX}${indexWithinList}`;
+  checkboxElement.id = `${instanceId}-${CHECKBOX_ID_PREFIX}${indexWithinList}`;
   checkboxElement.type = 'checkbox';
   checkboxElement.dataset.value = itemValue;
   checkboxElement.dataset.index = indexWithinList;
