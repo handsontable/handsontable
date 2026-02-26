@@ -1973,6 +1973,12 @@ class TableView {
     } else {
       removeClass(rootElement, 'htHorizontallyScrollableByWindow');
     }
+
+    if (getScrollbarWidth() === 0) {
+      addClass(rootElement, 'htScrollbarHidden');
+    } else {
+      removeClass(rootElement, 'htScrollbarHidden');
+    }
   }
 
   /**
