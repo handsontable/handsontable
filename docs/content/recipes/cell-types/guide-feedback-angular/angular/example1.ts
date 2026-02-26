@@ -3,56 +3,28 @@ import { Component, ChangeDetectorRef, inject } from '@angular/core';
 import { GridSettings, HotCellEditorAdvancedComponent, KeyboardShortcutConfig } from '@handsontable/angular-wrapper';
 
 export const inputData = [
-  {
-    id: 640329,
-    itemName: 'Lunar Core',
-  },
-  {
-    id: 863104,
-    itemName: 'Zero Thrusters',
-  },
-  {
-    id: 395603,
-    itemName: 'EVA Suits',
-  },
-  {
-    id: 679083,
-    itemName: 'Solar Panels',
-  },
-  {
-    id: 912663,
-    itemName: 'Comm Array',
-  },
-  {
-    id: 315806,
-    itemName: 'Habitat Dome',
-  },
-  {
-    id: 954632,
-    itemName: 'Oxygen Unit',
-  },
+  { feature: 'Dark Mode', category: 'UI', priority: 'High', feedback: '👍', votes: 124, status: 'Planned' },
+  { feature: 'Bulk Edit', category: 'Core', priority: 'High', feedback: '👍', votes: 98, status: 'In Progress' },
+  { feature: 'AI Suggestions', category: 'Beta', priority: 'Medium', feedback: '🤷', votes: 45, status: 'Research' },
+  { feature: 'Offline Mode', category: 'Infra', priority: 'Low', feedback: '👎', votes: 12, status: 'Backlog' },
 ];
 
 @Component({
   selector: 'example1-feedback-angular',
   standalone: false,
   template: `
-    <div style="display: flex; gap: 4px; background:#eee; border: 1px solid #ccc; border-radius: 4px;">
+    <div class="feedback-editor">
       @for (option of config; track option) {
-      <button
-        style="width:33%;"
-        [style.backgroundColor]="option === getValue() ? '#90f5e7ff' : '#fff'"
-        [style.color]="option === getValue() ? '#ffffffff' : '#000'"
-        (click)="onClick(option)"
-      >
+      <button [class.active]="option === getValue()" (click)="onClick(option)">
         {{ option }}
       </button>
       }
     </div>
   `,
+  styleUrls: ['./example1.css'],
 })
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
-  override config = ['👍', '👎', '🤷‍♂️'];
+  override config = ['👍', '👎', '🤷'];
   override value = '👍';
 
   override shortcuts?: KeyboardShortcutConfig[] = [
@@ -96,30 +68,28 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
   </div>`,
 })
 export class Example1GuideFeedbackAngularComponent {
-  readonly data = inputData.map((el) => ({
-    ...el,
-    feedback: Math.random() > 0.5 ? '👍' : '👎',
-  }));
+  readonly data = inputData;
 
   readonly gridSettings: GridSettings = {
     autoRowSize: true,
     rowHeaders: true,
     autoWrapRow: true,
     height: 'auto',
-    manualColumnResize: true,
-    manualRowResize: true,
-    colHeaders: ['ID', 'Item Name', 'Item feedback'],
+    width: '100%',
+    headerClassName: 'htLeft',
+    colHeaders: ['Feature', 'Category', 'Priority', 'Feedback', 'Votes', 'Status'],
     columns: [
-      { data: 'id', type: 'numeric' },
-      {
-        data: 'itemName',
-        type: 'text',
-      },
+      { data: 'feature', type: 'text', width: 200 },
+      { data: 'category', type: 'text', width: 90 },
+      { data: 'priority', type: 'text', width: 100 },
       {
         data: 'feedback',
-        width: 150,
+        width: 100,
         editor: FeedbackEditorComponent,
+        config: ['👍', '👎', '🤷'],
       },
+      { data: 'votes', type: 'numeric', width: 60 },
+      { data: 'status', type: 'text', width: 120 },
     ],
   };
 }

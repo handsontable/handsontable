@@ -125,7 +125,7 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
         throw new AbortError();
       }
 
-      const exceptions = ['fixer', 'react-colorful', 'multiple-select-vanilla', 'flatpickr', 'coloris'];
+      const exceptions = ['fixer', 'react-colorful', 'flatpickr', 'Pickr'];
 
       // Ensure that `fixer.js` is not loaded while injecting new dependencies (with an exception for `react-colorful` and others).
       if (!exceptions.includes(dep)) {

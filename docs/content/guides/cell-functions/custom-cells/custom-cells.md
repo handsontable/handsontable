@@ -1151,19 +1151,27 @@ By default, Handsontable will attempt to close a custom editor whenever the user
 
 Use this pattern for editors that display dropdowns, popovers, or similar UI elements that aren't direct children of the editor container. Without this, clicking the dropdown will be interpreted as clicking "outside," causing the editor to close unexpectedly.
 
+**Using `preventCloseElement`**
+
+Inside your `init` or `afterInit` callback, assign an **`HTMLElement`** to **`editor.preventCloseElement`** (for example, your dropdown or picker DOM node). The factory will attach a `mousedown` listener to that element that stops propagation, so clicks on it are not treated as "click-outside" and the editor stays open.
+
+Create the element in `init` or `afterInit`, assign it to `editor.preventCloseElement`, and append it to the editor container (or to the document if the dropdown is rendered outside the container).
+
 **Example:**
 ```typescript
-init(editor) {
-  editor.input = document.createElement('select') as HTMLSelectElement;
-  // ...dropdown setup, create dropdown DOM as needed
+const MyEditor = editorFactory({
+  init(editor) {
+    editor.input = document.createElement('input');
 
-  editor.hot.rootDocument.addEventListener('mousedown', (event) => {
-    // If the click occurs inside the dropdown, don't let Handsontable close the editor
-    if (editor.dropdown?.contains(event.target as Node)) {
-      event.stopPropagation(); // Prevents editor from closing
-    }
-  });
-}
+    const dropdownEl = document.createElement('div');
+    dropdownEl.className = 'my-picker-dropdown';
+
+    // Clicks on dropdownEl will not close the editor
+    editor.preventCloseElement = dropdownEl;
+  },
+  getValue(editor) { /* ... */ },
+  setValue(editor, value) { /* ... */ },
+});
 ```
 
 ### Pattern 4: Per-Cell Configuration

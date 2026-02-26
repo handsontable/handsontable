@@ -4,9 +4,21 @@
   margin: 3px 0 0 -1px;
 }
 
+.rating-star {
+  color: var(--ht-background-secondary-color, #e0e0e0);
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rating-star.active {
+  color: #facc15;
+}
+
 .rating-editor {
   display: flex;
   align-items: center;
+  width: 100%;
   height: 100%;
   box-sizing: border-box !important;
   border: none;
@@ -18,7 +30,16 @@
   background-color: var(--ht-cell-editor-background-color, #ffffff);
   padding: var(--ht-cell-vertical-padding, 4px)
     var(--ht-cell-horizontal-padding, 8px);
-  font-family: var(--ht-font-family, inherit);
-  font-size: var(--ht-font-size, 14px);
-  line-height: var(--ht-line-height, 1.5);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
+
+.rating-editor .rating-star {
+  cursor: pointer;
+}
+
+.rating-editor .rating-star.current {
+  color: var(--ht-accent-color, #1a42e8);
 }

@@ -1,4 +1,6 @@
 import { BaseEditor } from './baseEditor/baseEditor';
+import EventManager from '../eventManager';
+import { throwWithCause } from '../helpers/errors';
 
 /**
  * Factory function for creating custom Handsontable editors by extending BaseEditor.
@@ -101,7 +103,6 @@ const editorBaseFactory = (params) => {
  * @param {Function} options.afterOpen Called after the editor is opened and made visible.
  * @param {Function} options.afterInit Called immediately after init, useful for event binding, etc.
  * @param {Function} options.afterClose Called when the editor is closed and made invisible.
- * @param {Function} options.beforeClose Called before the editor is closed. Return false to prevent closing (e.g. While a popup is open).
  * @param {Function} options.beforeOpen Called before the editor is opened so you can set its value/state.
  * @param {Function} options.getValue Called to retrieve the current editor value.
  * @param {Function} options.setValue Called to set the editor's value and update any UI as needed.
@@ -149,14 +150,6 @@ export const editorFactory = ({
    * @returns {void}
    */
   afterClose,
-
-  /**
-   * Called before the editor is closed. Return false to prevent closing (e.g. While a dropdown/picker is open).
-   *
-   * @param {BaseEditor} editor
-   * @returns {boolean|void} When false, prevents close. Otherwise closing proceeds.
-   */
-  beforeClose,
 
   /**
    * Called before the editor is opened so you can set its value/state.
@@ -262,13 +255,21 @@ export const editorFactory = ({
       init(editor);
 
       if (!editor.input) {
-        // TODO: what should we do here?
-        // console.error('input not found');
+        throwWithCause('Input is not assigned. Assign it in the init callback.');
       }
+
       editor.container.appendChild(editor.input);
 
       if (typeof afterInit === 'function') {
         afterInit(editor);
+      }
+
+      if (editor.preventCloseElement && editor.preventCloseElement instanceof HTMLElement) {
+        editor.eventManager = new EventManager(editor.hot);
+
+        editor.eventManager.addEventListener(editor.preventCloseElement, 'mousedown', (event) => {
+          event.stopPropagation();
+        });
       }
 
       editor.addHook('afterScrollHorizontally', () => editor.refreshDimensions());
@@ -382,16 +383,11 @@ export const editorFactory = ({
     },
     /**
      * Close the editor UI and cleanup active shortcuts.
-     * If beforeClose returns false, close is skipped and this method returns false.
      *
      * @param {BaseEditor} editor The editor instance.
-     * @returns {boolean} False when close was prevented by beforeClose, otherwise undefined.
+     * @returns {void}
      */
     close(editor) {
-      if (typeof beforeClose === 'function' && beforeClose(editor) === false) {
-        return false;
-      }
-
       editor._opened = false;
       editor.container.style.display = 'none';
       editor.container.classList.remove('ht_clone_master');

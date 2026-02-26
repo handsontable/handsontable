@@ -34,7 +34,7 @@ This guide shows how to create a simple feedback editor cell using emoji buttons
 ## What You'll Build
 
 A cell that:
-- Displays emoji feedback buttons (circle-shaped) when editing
+- Displays emoji feedback buttons (rounded) when editing
 - Shows the selected emoji when viewing
 - Uses Handsontable CSS tokens for theme-aware styling
 - Supports keyboard navigation (arrow keys, Tab)
@@ -101,7 +101,7 @@ Create a separate CSS file for the editor styles. This uses Handsontable CSS cus
   background: var(--ht-background-color, #ffffff);
   color: var(--ht-foreground-color, #000000);
   border: 1px solid var(--ht-border-color, #e0e0e0);
-  border-radius: 50%;
+  border-radius: var(--ht-border-radius, 4px);
   padding: 0;
   margin: 0;
   height: 100%;
@@ -130,6 +130,7 @@ Create a separate CSS file for the editor styles. This uses Handsontable CSS cus
 - `--ht-background-color` / `--ht-foreground-color` - base button colors
 - `--ht-border-color` - button borders and hover state
 - `--ht-accent-color` - active/selected button highlight
+- `--ht-border-radius` - button corner rounding
 - `--ht-font-size` / `--ht-gap` - consistent sizing
 
 ## Step 3: Editor - Initialize (`init`)
@@ -138,7 +139,7 @@ Create the DOM structure with emoji buttons, this function will be called only o
 
 ```typescript
 init(editor) {
-  editor.input = editor.hot.rootDocument.createElement('DIV') as HTMLDivElement;
+  editor.input = document.createElement('DIV') as HTMLDivElement;
   editor.input.classList.add('feedback-editor');
 
   editor.input.addEventListener('click', (event) => {
@@ -177,7 +178,7 @@ render(editor) {
 - Generate HTML for each button from `config` array
 - Add `active` class to the currently selected button
 - The `.active` CSS class applies `--ht-accent-color` as background
-- Each button takes 33% width with circle shape (`border-radius: 50%`)
+- Each button takes 33% width with rounded corners (`--ht-border-radius`)
 
 ## Step 5: Editor - Keyboard Shortcuts
 
@@ -226,7 +227,7 @@ To achieve this, we use the editor's `shortcuts`  and return `false` in callback
 ```typescript
 shortcuts: [
   {
-    keys: [['ArrowRight'],[ 'Tab']],
+    keys: [['ArrowRight'], ['Tab']],
     callback: (editor, _event) => {
       let index = editor.config.indexOf(editor.value);
 
@@ -251,7 +252,7 @@ shortcuts: [
 Initialize the editor with the current cell value when editing starts.
 
 ```typescript
-beforeOpen(editor, { originalValue }) {
+beforeOpen(editor, { originalValue, cellProperties }) {
   editor.setValue(originalValue);
 }
 ```
@@ -310,7 +311,7 @@ const cellDefinition = {
       });
       editor.render(editor);
     },
-    beforeOpen: (editor, { originalValue }) => {
+    beforeOpen: (editor, { originalValue, cellProperties }) => {
       editor.setValue(originalValue);
     },
   }),
@@ -346,6 +347,7 @@ const hotOptions: Handsontable.GridSettings = {
   colHeaders: ['Feature', 'Category', 'Priority', 'Feedback', 'Votes', 'Status'],
   autoRowSize: true,
   rowHeaders: true,
+  autoWrapRow: true,
   height: 'auto',
   width: '100%',
   headerClassName: 'htLeft',
@@ -371,7 +373,7 @@ const hot = new Handsontable(container, hotOptions);
 ## How It Works - Complete Flow
 
 1. **Initial Render**: Cell displays the emoji value (👍, 👎, or 🤷)
-2. **User Double-Clicks or Enter**: Editor opens over cell showing three circle buttons with the Handsontable blue border
+2. **User Double-Clicks or Enter**: Editor opens over cell showing three rounded buttons with the Handsontable blue border
 3. **Button Display**: All options visible, current value highlighted using `--ht-accent-color`
 4. **User Interaction**:
    - Click a button: Selects value and closes editor
