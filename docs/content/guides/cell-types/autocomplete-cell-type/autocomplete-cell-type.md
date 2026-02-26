@@ -18,7 +18,6 @@ angular:
   metaTitle: Autocomplete cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
-
 ---
 
 # Autocomplete cell type
