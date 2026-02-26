@@ -1,6 +1,6 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
-import { isWindowsOS, isSafari, isMobileBrowser, isIpadOS } from '../browser';
+import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
 import { deprecatedWarn } from '../console';
 import { throwWithCause } from '../../helpers/errors';
 
@@ -1011,43 +1011,62 @@ export function getFractionalScalingCompensation(rootDocument = document) {
  */
 // eslint-disable-next-line no-restricted-globals
 function walkontableCalculateScrollbarWidth(rootDocument = document) {
-  const inner = rootDocument.createElement('div');
+  const calculateScrollbarWidth = (shouldForceWebkitScrollbarStyles = false) => {
+    const inner = rootDocument.createElement('div');
 
-  inner.style.height = '200px';
-  inner.style.width = '100%';
+    inner.style.height = '200px';
+    inner.style.width = '100%';
 
-  const outer = rootDocument.createElement('div');
+    const outer = rootDocument.createElement('div');
 
-  // Fix for Safari custom scrollbar size
-  if (isSafari() && !isMobileBrowser() && !isIpadOS()) {
-    outer.classList.add('htScrollbarSafariTest');
+    outer.classList.add('htScrollbarTest');
+
+    if (shouldForceWebkitScrollbarStyles) {
+      outer.classList.add('htScrollbarSafariTest');
+    }
+
+    outer.style.boxSizing = 'content-box';
+    outer.style.height = '150px';
+    outer.style.left = '0px';
+    outer.style.overflow = 'hidden';
+    outer.style.position = 'absolute';
+    outer.style.top = '0px';
+    outer.style.width = '200px';
+    outer.style.visibility = 'hidden';
+    outer.appendChild(inner);
+
+    rootDocument.body.appendChild(outer);
+
+    const w1 = inner.offsetWidth;
+
+    outer.style.overflow = 'scroll';
+
+    let w2 = inner.offsetWidth;
+
+    if (w1 === w2) {
+      w2 = outer.clientWidth;
+    }
+
+    rootDocument.body.removeChild(outer);
+
+    return w1 - w2;
+  };
+
+  const defaultScrollbarWidth = calculateScrollbarWidth();
+
+  // Safari around 26.x (e.g. 26.2/26.3) changed how scrollbars are rendered: overlay scrollbars
+  // and the standard scrollbar-color/scrollbar-width properties are preferred. When those are set
+  // (e.g. on .wtHolder via theme), they override the non-standard ::-webkit-scrollbar per spec,
+  // so the real scrollbar can be 0-width. Older Safari (before 26.1) sometimes reports 0 because
+  // it needs explicit ::-webkit-scrollbar size to lay out a classic scrollbar; the fallback below
+  // forces that via htScrollbarSafariTest so we get a correct non-zero width. We must only run
+  // this fallback when isSafariBefore261(), otherwise Safari 26.1+ with overlay scrollbars would
+  // be given 9px from the probe (which has no theme) while .wtHolder actually has 0-width overlay.
+  if (defaultScrollbarWidth === 0 && isSafariBefore261() && !isMobileBrowser() && !isIpadOS()) {
+    return calculateScrollbarWidth(true);
   }
 
-  outer.style.boxSizing = 'content-box';
-  outer.style.height = '150px';
-  outer.style.left = '0px';
-  outer.style.overflow = 'hidden';
-  outer.style.position = 'absolute';
-  outer.style.top = '0px';
-  outer.style.width = '200px';
-  outer.style.visibility = 'hidden';
-  outer.appendChild(inner);
-
-  rootDocument.body.appendChild(outer);
-
-  const w1 = inner.offsetWidth;
-
-  outer.style.overflow = 'scroll';
-
-  let w2 = inner.offsetWidth;
-
-  if (w1 === w2) {
-    w2 = outer.clientWidth;
-  }
-
-  rootDocument.body.removeChild(outer);
-
-  return w1 - w2;
+  return defaultScrollbarWidth;
 }
 
 let cachedScrollbarWidth;

@@ -31,6 +31,19 @@
     min-height: 0;
   }
 
+  // Style for scrollbar width calculation
+  .htScrollbarTest {
+    @include mixins.scrollbar-styles;
+  }
+
+  // Fix for Safari (v18 and older) scrollbar size calculation
+  .htScrollbarSafariTest {
+    &::-webkit-scrollbar {
+      width: 9px;
+      height: 9px;
+    }
+  }
+
   .handsontable {
     @include mixins.font-family;
 
@@ -43,13 +56,10 @@
     /* Miscellaneous */
     touch-action: manipulation;
 
-    // Scrollbars
-    scrollbar-width: thin;
-    scrollbar-color: var(--ht-scrollbar-thumb-color)
-      var(--ht-scrollbar-track-color);
-
-    // Styles for browsers that don't support scrollbar-width and scrollbar-color
     .wtHolder {
+      @include mixins.scrollbar-styles;
+
+      // Styles for browsers that don't support scrollbar-width and scrollbar-color
       &::-webkit-scrollbar {
         width: 9px;
         height: 9px;
@@ -642,14 +652,6 @@
     div[class^="ht_clone"] tbody .ht__highlight .relative::after {
       right: auto;
       left: -1px;
-    }
-  }
-
-  // Fix for Safari custom scrollbar size calculation
-  .htScrollbarSafariTest {
-    &::-webkit-scrollbar {
-      width: 9px;
-      height: 9px;
     }
   }
 }
