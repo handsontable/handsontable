@@ -36,6 +36,11 @@
     .htRight {
       .columnSorting {
         &.sortAction {
+          &.ascending, &.descending {
+            padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);
+            padding-inline-end: 0;
+          }
+
           &::before {
             left: 2px;
             right: auto;
@@ -58,9 +63,25 @@
         }
       }
 
+      .htRight {
+        .columnSorting {
+          &.sortAction {
+            &.ascending, &.descending {
+              padding-inline-start: 0;
+              padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
+            }
+          }
+        }
+      }
+
       .htLeft {
         .columnSorting {
           &.sortAction {
+            &.ascending, &.descending {
+              padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);
+              padding-inline-end: 0;
+            }
+
             &::before {
               left: auto;
               right: 2px;
