@@ -41,7 +41,7 @@ export class DataChangeAction extends BaseAction {
         return;
       }
 
-      const hasDifferences = changes.find((change) => {
+      changes.find((change) => {
         if (change === null) {
           return false;
         }
@@ -50,10 +50,6 @@ export class DataChangeAction extends BaseAction {
 
         return oldValue !== newValue;
       });
-
-      if (!hasDifferences) {
-        return;
-      }
 
       const wrappedAction = () => {
         const clonedChanges = changes.reduce((arr, change) => {
