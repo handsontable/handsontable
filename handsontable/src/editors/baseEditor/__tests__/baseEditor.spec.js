@@ -1,6 +1,5 @@
 describe('BaseEditor', () => {
   const id = 'testContainer';
-  const { editorFactory } = Handsontable.editors;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
