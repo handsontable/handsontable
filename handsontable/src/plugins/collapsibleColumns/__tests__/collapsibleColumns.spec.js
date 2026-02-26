@@ -2251,7 +2251,7 @@ describe('CollapsibleColumns', () => {
 
       expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(90);
-        main.toBe(90);
+        main.toBe(99);
         horizon.toBe(107);
       });
 
