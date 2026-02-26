@@ -23,10 +23,6 @@
   appearance: none;
 }
 
-.pickr {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  pointer-events: none;
+html[data-theme="dark"] .pcr-app {
+  background-color: #1a1a1a;
 }

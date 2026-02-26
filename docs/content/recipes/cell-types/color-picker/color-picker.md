@@ -101,34 +101,19 @@ Create a separate CSS file for the cell and editor styles. This uses Handsontabl
 .color-picker-editor {
   width: 100%;
   height: 100%;
-  box-sizing: border-box !important;
   border: none;
-  border-radius: 0;
   outline: none;
-  box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
-    var(--ht-cell-editor-border-color, #1a42e8),
-    0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
-    var(--ht-cell-editor-shadow-color, transparent);
-  background-color: var(--ht-cell-editor-background-color, #ffffff);
-  color: var(--ht-cell-editor-foreground-color);
-  padding: var(--ht-cell-vertical-padding, 4px) var(--ht-cell-horizontal-padding, 8px);
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
+  box-sizing: border-box !important;
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
-}
-
-.color-picker-editor:focus {
-  outline: none;
 }
 ```
 
 **What's happening:**
 - `.color-picker-cell` centers the circle swatch inside the cell
 - `.color-picker-swatch` renders a small circle with `border-radius: 50%`
-- `.color-picker-editor` mirrors Handsontable's native text editor styling using CSS tokens like `--ht-cell-editor-border-color` and `--ht-cell-editor-border-width`, so the editor automatically adapts to custom themes
+- `.color-picker-editor` removes default input borders and appearance so the editor can be styled as needed
 
 ## Step 3: Create the Renderer
 
@@ -136,9 +121,7 @@ The renderer controls how the cell looks when not being edited. It displays a co
 
 ```typescript
 renderer: rendererFactory(({ td, value }) => {
-  td.innerHTML = `<span class="color-picker-cell">` +
-    `<span class="color-picker-swatch" style="background:${value}"></span>` +
-  `</span>`;
+  td.innerHTML = `<span class="color-picker-cell"><span class="color-picker-swatch" style="background:${value}"></span></span>`;
 })
 ```
 
@@ -189,7 +172,7 @@ init(editor) {
 **Key points:**
 - Use `editor.hot.rootDocument.createElement()` (not `document.createElement()`) for iframe/shadow DOM compatibility
 - The input stores the current hex value; a button added in `afterInit` will open the Pickr popup
-- The CSS class applies Handsontable's native editor border style via CSS tokens
+- The CSS class styles the editor (no border, full size) so the picker button is the main control
 
 ## Step 6: Editor - After Init Hook (`afterInit`)
 
@@ -326,9 +309,7 @@ type ColorPickerEditor = {
 
 const cellDefinition = {
   renderer: rendererFactory(({ td, value }) => {
-    td.innerHTML = `<span class="color-picker-cell">` +
-      `<span class="color-picker-swatch" style="background:${value}"></span>` +
-    `</span>`;
+    td.innerHTML = `<span class="color-picker-cell"><span class="color-picker-swatch" style="background:${value}"></span></span>`;
   }),
   validator: (value, callback) => {
     callback(value.length === 7 && value[0] == '#');
@@ -402,25 +383,22 @@ const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
   data: [
-    { id: 1, itemName: 'Lunar Core', color: '#FF5733' },
-    { id: 2, itemName: 'Zero Thrusters', color: '#33FF57' },
-    { id: 3, itemName: 'EVA Suits', color: '#3357FF' },
+    { id: 1, itemName: 'Lunar Core', color: '#FF5733', itemNo: 'XJ-12', cost: 350000, valueStock: 700000 },
+    { id: 2, itemName: 'Zero Thrusters', color: '#33FF57', itemNo: 'QL-54', cost: 450000, valueStock: 0 },
+    { id: 3, itemName: 'EVA Suits', color: '#3357FF', itemNo: 'PM-67', cost: 150000, valueStock: 7500000 },
   ],
-  colHeaders: [
-    'ID',
-    'Item Name',
-    'Item Color',
-  ],
+  colHeaders: ['ID', 'Item Name', 'Item Color', 'Item No.', 'Cost', 'Value in Stock'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
   columns: [
-    { data: 'id', type: 'numeric' },
-    { data: 'itemName', type: 'text' },
-    {
-      data: 'color',
-      ...cellDefinition,
-    }
+    { data: 'id', type: 'numeric', width: 80, headerClassName: 'htLeft' },
+    { data: 'itemName', type: 'text', width: 200, headerClassName: 'htLeft' },
+    { data: 'color', headerClassName: 'htLeft', ...cellDefinition },
+    { data: 'itemNo', type: 'text', width: 100, headerClassName: 'htLeft' },
+    { data: 'cost', type: 'numeric', width: 70, headerClassName: 'htLeft' },
+    { data: 'valueStock', type: 'numeric', width: 130, headerClassName: 'htRight' },
   ],
   licenseKey: 'non-commercial-and-evaluation',
 };
@@ -429,8 +407,9 @@ const hot = new Handsontable(container, hotOptions);
 ```
 
 **Key configuration:**
-- `...cellDefinition` - Spreads renderer, validator, and editor into the column config
+- `...cellDefinition` - Spreads renderer, validator, and editor into the color column config
 - The validator ensures only valid hex colors are saved
+- The live example uses more rows and random hex colors; you can use any data that includes a `color` field
 
 ## How It Works - Complete Flow
 
