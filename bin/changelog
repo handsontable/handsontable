@@ -305,6 +305,94 @@ ${chalk.yellow.italic(compiled)}
   } to undo.`);
 };
 
+const syncCommand = async(args) => {
+  const { dryRun } = args;
+  let text = await fs.readFile(changelogPath, 'utf8');
+
+  const version = args.version || text.match(/^## \[([^\]]+)\]/m)?.[1];
+
+  if (!version) throw new Error('No versioned sections found in CHANGELOG.md');
+
+  const start = text.indexOf(`## [${version}]`);
+
+  if (start === -1) throw new Error(`Version ${version} not found in CHANGELOG.md`);
+
+  const nextStart = text.indexOf('\n## [', start + 1);
+  const end = nextStart === -1 ? text.length : nextStart;
+  const section = text.slice(start, end);
+
+  // Parse the section into type buckets
+  const buckets = {};
+  let curType = null;
+
+  for (const line of section.split('\n')) {
+    const m = line.match(/^### (\w+)/);
+
+    if (m) {
+      curType = m[1].toLowerCase();
+      buckets[curType] = buckets[curType] || [];
+    } else if (curType && line.startsWith('- ')) {
+      buckets[curType].push(line);
+    }
+  }
+
+  // Load entries, skipping ones already present in this section
+  const entryFiles = await glob('*.json', { absolute: true, cwd: path.join(__dirname, '..', changelogsDirectoryName) });
+
+  if (!entryFiles.length) {
+    console.log('No changelog entries found in the .changelogs directory.');
+
+    return;
+  }
+
+  const newEntries = (await Promise.all(entryFiles.map(p => fs.readFile(p, 'utf8'))))
+    .map(c => assertChangelogEntryFormat(JSON.parse(c)))
+    .filter(e => !section.includes(`/${e.issueOrPR})`));
+
+  if (!newEntries.length) {
+    console.log(`All changelog entries are already present in version ${version}.`);
+
+    return;
+  }
+
+  console.log(chalk.dim(`\nSyncing into [${version}] in ${chalk.reset.blue.underline(path.basename(changelogPath))}:\n`));
+  newEntries.forEach(e => console.log(chalk.yellow.italic(`  - ${stringifyChangelogEntryObject(e)}`)));
+  console.log();
+
+  if (dryRun) {
+    console.log('Dry run, skipping write.');
+
+    process.exit(0);
+  }
+
+  await askToProceedOrExit(`Write the new ${path.basename(changelogPath)} and delete the changelog entry .json files?`);
+
+  // Merge entries into buckets
+  for (const e of newEntries) {
+    (buckets[e.type] = buckets[e.type] || []).push(`- ${stringifyChangelogEntryObject(e)}`);
+  }
+
+  // Re-serialize the version section
+  const newSection = section.split('\n')[0] + '\n' +
+    changelogEntryTypes
+      .filter(t => buckets[t]?.length)
+      .map(t => `\n### ${uppercaseFirstLetter(t)}\n${buckets[t].join('\n')}\n`)
+      .join('');
+
+  console.log();
+  console.log(chalk.dim('Writing the new changelog...'));
+  await fs.writeFile(changelogPath, text.slice(0, start) + newSection + text.slice(end));
+
+  console.log(chalk.dim('Deleting changelog entries...'));
+  await Promise.all(entryFiles.map(p => fs.unlink(p)));
+
+  console.log();
+  console.log(`Changelog updated! Run ${
+    chalk.blackBright(`\`git checkout ${path.relative(process.cwd(), changelogPath)
+    } ${path.relative(process.cwd(), path.join(__dirname, '..', changelogsDirectoryName))}\``)
+  } to undo.`);
+};
+
 // eslint-disable-next-line no-unused-expressions
 yargs(hideBin(process.argv))
   .command('entry [title..]', 'create a new changelog entry', (y) => {
@@ -319,6 +407,9 @@ yargs(hideBin(process.argv))
       .option('date', { type: 'string' })
       .option('dry-run', { type: 'boolean' });
   }, argv => consumeCommand(argv))
+  .command('sync [version]', `sync all \`${changelogsDirectoryName}/*.json\` entries into an existing version section`, (y) => {
+    return y.option('dry-run', { type: 'boolean' });
+  }, argv => syncCommand(argv))
   .help()
   .demandCommand()
   .version(false)
