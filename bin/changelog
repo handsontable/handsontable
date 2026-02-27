@@ -307,15 +307,19 @@ ${chalk.yellow.italic(compiled)}
 
 const syncCommand = async(args) => {
   const { dryRun } = args;
-  let text = await fs.readFile(changelogPath, 'utf8');
+  const text = await fs.readFile(changelogPath, 'utf8');
 
   const version = args.version || text.match(/^## \[([^\]]+)\]/m)?.[1];
 
-  if (!version) throw new Error('No versioned sections found in CHANGELOG.md');
+  if (!version) {
+    throw new Error('No versioned sections found in CHANGELOG.md');
+  }
 
   const start = text.indexOf(`## [${version}]`);
 
-  if (start === -1) throw new Error(`Version ${version} not found in CHANGELOG.md`);
+  if (start === -1) {
+    throw new Error(`Version ${version} not found in CHANGELOG.md`);
+  }
 
   const nextStart = text.indexOf('\n## [', start + 1);
   const end = nextStart === -1 ? text.length : nextStart;
@@ -325,7 +329,7 @@ const syncCommand = async(args) => {
   const buckets = {};
   let curType = null;
 
-  for (const line of section.split('\n')) {
+  section.split('\n').forEach((line) => {
     const m = line.match(/^### (\w+)/);
 
     if (m) {
@@ -334,10 +338,13 @@ const syncCommand = async(args) => {
     } else if (curType && line.startsWith('- ')) {
       buckets[curType].push(line);
     }
-  }
+  });
 
   // Load entries, skipping ones already present in this section
-  const entryFiles = await glob('*.json', { absolute: true, cwd: path.join(__dirname, '..', changelogsDirectoryName) });
+  const entryFiles = await glob('*.json', {
+    absolute: true,
+    cwd: path.join(__dirname, '..', changelogsDirectoryName)
+  });
 
   if (!entryFiles.length) {
     console.log('No changelog entries found in the .changelogs directory.');
@@ -355,7 +362,9 @@ const syncCommand = async(args) => {
     return;
   }
 
-  console.log(chalk.dim(`\nSyncing into [${version}] in ${chalk.reset.blue.underline(path.basename(changelogPath))}:\n`));
+  console.log(chalk.dim(
+    `\nSyncing into [${version}] in ${chalk.reset.blue.underline(path.basename(changelogPath))}:\n`
+  ));
   newEntries.forEach(e => console.log(chalk.yellow.italic(`  - ${stringifyChangelogEntryObject(e)}`)));
   console.log();
 
@@ -368,16 +377,17 @@ const syncCommand = async(args) => {
   await askToProceedOrExit(`Write the new ${path.basename(changelogPath)} and delete the changelog entry .json files?`);
 
   // Merge entries into buckets
-  for (const e of newEntries) {
+  newEntries.forEach((e) => {
     (buckets[e.type] = buckets[e.type] || []).push(`- ${stringifyChangelogEntryObject(e)}`);
-  }
+  });
 
   // Re-serialize the version section
-  const newSection = section.split('\n')[0] + '\n' +
+  const newSection = `${section.split('\n')[0]}\n${
     changelogEntryTypes
       .filter(t => buckets[t]?.length)
       .map(t => `\n### ${uppercaseFirstLetter(t)}\n${buckets[t].join('\n')}\n`)
-      .join('');
+      .join('')
+  }`;
 
   console.log();
   console.log(chalk.dim('Writing the new changelog...'));
@@ -407,9 +417,12 @@ yargs(hideBin(process.argv))
       .option('date', { type: 'string' })
       .option('dry-run', { type: 'boolean' });
   }, argv => consumeCommand(argv))
-  .command('sync [version]', `sync all \`${changelogsDirectoryName}/*.json\` entries into an existing version section`, (y) => {
-    return y.option('dry-run', { type: 'boolean' });
-  }, argv => syncCommand(argv))
+  .command(
+    'sync [version]',
+    `sync all \`${changelogsDirectoryName}/*.json\` entries into an existing version section`,
+    y => y.option('dry-run', { type: 'boolean' }),
+    argv => syncCommand(argv)
+  )
   .help()
   .demandCommand()
   .version(false)
