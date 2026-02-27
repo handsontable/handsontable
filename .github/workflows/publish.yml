@@ -865,9 +865,6 @@ jobs:
           name: nuget_pack_${{ steps.version.outputs.version }}
           path: Handsontable.*.nupkg
 
-      - name: Update docs changelog
-        run: node .github/scripts/update-docs-changelog.mjs '${{ steps.version.outputs.version }}'
-
       - name: Update changelog release date
         run: |
           VERSION='${{ steps.version.outputs.version }}'
@@ -1100,6 +1097,9 @@ jobs:
               exit 1
             fi
           fi
+
+      - name: Update docs changelog
+        run: node .github/scripts/update-docs-changelog.mjs '${{ needs.stable-build.outputs.version }}'
 
       - name: Regenerate docs API and legacy versions
         run: |
