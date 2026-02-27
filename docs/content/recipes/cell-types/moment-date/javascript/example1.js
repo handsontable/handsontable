@@ -114,59 +114,32 @@ const data = [
     operationalStatus: 'Operational',
   },
 ];
+
 /* end:skip-in-preview */
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1');
-
 const correctFormat = (value, dateFormat) => {
   const dateFromDate = moment(value);
   const dateFromMoment = moment(value, dateFormat);
   const isAlphanumeric = value.search(/[A-Za-z]/g) > -1;
   let date;
 
-  if ((dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) ||
-      !dateFromMoment.isValid() ||
-      isAlphanumeric) {
+  if (
+    (dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) ||
+    !dateFromMoment.isValid() ||
+    isAlphanumeric
+  ) {
     date = dateFromDate;
-
   } else {
     date = dateFromMoment;
   }
 
   return date.format(dateFormat);
-}
-
-const copyStyleFromElements = (source, target, keys = [], keysStartsWith = []) => {
-  const computedStyle = getComputedStyle(source);
-
-  Array.from(computedStyle)
-    .filter((key) => {
-      if (keys.length === 0 && keysStartsWith.length === 0) {
-        return true;
-      }
-
-      if (keys.length > 0) {
-        if (keys.includes(key)) {
-          return true;
-        }
-      }
-
-      if (keysStartsWith.length > 0) {
-        if (keysStartsWith.some((startsWith) => key.startsWith(startsWith))) {
-          return true;
-        }
-      }
-
-      return false;
-    })
-    .forEach((key) =>
-      target.style.setProperty(key, computedStyle.getPropertyValue(key), computedStyle.getPropertyPriority(key))
-    );
 };
 
 const cellDateTypeDefinition = {
   renderer: getRenderer('autocomplete'),
-  validator: function(value, callback) {
+  validator(value, callback) {
     let valid = true;
 
     if (value === null || value === undefined) {
@@ -180,9 +153,11 @@ const cellDateTypeDefinition = {
       isValidDate = true;
       isValidFormat = true;
     }
+
     if (!isValidDate) {
       valid = false;
     }
+
     if (!isValidDate && isValidFormat) {
       valid = true;
     }
@@ -307,7 +282,6 @@ const cellDateTypeDefinition = {
       // @ts-ignore
       const isMouseDown = editor.hot.view.isMouseDown();
       const isMeta = event && 'keyCode' in event ? Handsontable.helper.isFunctionKey(event.keyCode) : false;
-
       let dateStr;
 
       editor.datePicker.style.display = 'block';
@@ -361,22 +335,10 @@ const cellDateTypeDefinition = {
       }
     },
     afterOpen(editor, event) {
-      copyStyleFromElements(
-        editor.TD,
-        editor.input,
-        [
-          'width',
-          'height',
-          'background',
-          'font-family',
-          'font-size',
-          'font-weight',
-          'line-height',
-          'color',
-          'box-sizing',
-        ],
-        ['border-', 'padding-', 'margin-']
-      );
+      const cellRect = editor.TD.getBoundingClientRect();
+
+      editor.input.style.width = `${cellRect.width}px`;
+      editor.input.style.height = `${cellRect.height}px`;
       editor.showDatepicker(editor, event);
     },
     getValue(editor) {
@@ -396,26 +358,21 @@ registerCellType('moment-date', cellDateTypeDefinition);
 // Define configuration options for the Handsontable
 const hotOptions = {
   data,
-  colHeaders: ['ID', 'Item Name', 'Restock Date', 'Item Cost'],
+  colHeaders: ['Item Name', 'Category', 'Lead Engineer', 'Restock Date', 'Cost'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
+  autoWrapRow: true,
+  headerClassName: 'htLeft',
   columns: [
-    {
-      data: 'id',
-      type: 'numeric',
-      numericFormat: {
-        pattern: '0,0',
-        culture: 'en-US',
-      },
-    },
-    {
-      data: 'itemName',
-      type: 'text',
-    },
+    { data: 'itemName', type: 'text', width: 130 },
+    { data: 'category', type: 'text', width: 120 },
+    { data: 'leadEngineer', type: 'text', width: 150 },
     {
       data: 'restockDate',
       type: 'moment-date',
+      width: 150,
       dateFormat: 'YYYY-MM-DD',
       correctFormat: true,
       datePickerConfig: {
@@ -429,6 +386,8 @@ const hotOptions = {
     {
       data: 'cost',
       type: 'numeric',
+      width: 120,
+      className: 'htRight',
       numericFormat: {
         pattern: '$0,0.00',
         culture: 'en-US',

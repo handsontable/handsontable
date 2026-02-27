@@ -148,10 +148,9 @@ const buildDependencyGetter = (version) => {
       'theme-classic': [getPackageUrls('handsontable', version, 'dist/themes/classic.min.js'), ['classicTheme']],
       moment: ['https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js', [/* todo */]],
       'date-fns': ['https://cdnjs.cloudflare.com/ajax/libs/date-fns/4.1.0/cdn.min.js', [/* todo */]],
-      coloris: ['https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/umd/coloris.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/coloris.min.css'],
+      '@simonwep/pickr': ['https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js', ['Pickr']],
       pikaday: ['https://cdn.jsdelivr.net/npm/@handsontable/pikaday/pikaday.js', [/* todo */]],
-      flatpickr: ['https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css'],
-      'multiple-select-vanilla': ['https://cdn.jsdelivr.net/npm/multiple-select-vanilla/dist/browser/multiple-select.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/multiple-select-vanilla/dist/styles/css/multiple-select.min.css', false, true]
+      flatpickr: ['https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js', ['flatpickr']],
     };
     /* eslint-enable max-len */
 
@@ -162,7 +161,7 @@ const buildDependencyGetter = (version) => {
 
 const presetMap = {
   /* eslint-disable max-len */
-  'hot-recipe': ['hot', 'moment', 'pikaday', 'date-fns', 'coloris', 'flatpickr', 'numbro', 'multiple-select-vanilla', 'fixer'],
+  'hot-recipe': ['hot', 'moment', 'pikaday', 'date-fns', '@simonwep/pickr', 'flatpickr', 'numbro', 'fixer'],
   hot: ['hot', 'fixer'],
   'hot-lang': ['hot', 'languages', 'fixer'],
   'hot-numbro': ['hot', 'numbro', 'fixer'],

@@ -7,8 +7,7 @@ import { rendererFactory } from "handsontable/renderers";
 registerAllModules();
 
 /* start:skip-in-preview */
-
-export const data = [
+const data = [
   { product: "Dashboard Pro", category: "Analytics", rating: 5, reviews: 342, price: 49 },
   { product: "Form Builder", category: "Tools", rating: 4, reviews: 218, price: 29 },
   { product: "Chart Engine", category: "Analytics", rating: 3, reviews: 156, price: 39 },
@@ -18,9 +17,7 @@ export const data = [
   { product: "Search Index", category: "Tools", rating: 1, reviews: 31, price: 35 },
   { product: "Cache Layer", category: "Infra", rating: 4, reviews: 112, price: 20 },
 ];
-
 /* end:skip-in-preview */
-
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector("#example1")!;
 

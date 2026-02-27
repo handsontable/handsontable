@@ -9,7 +9,7 @@ registerAllModules();
 
 /* start:skip-in-preview */
 
-export const data = [
+const data = [
   { feature: "Dark Mode", category: "UI", priority: "High", feedback: "👍", votes: 124, status: "Planned" },
   { feature: "Bulk Edit", category: "Core", priority: "High", feedback: "👍", votes: 98, status: "In Progress" },
   { feature: "AI Suggestions", category: "Beta", priority: "Medium", feedback: "🤷", votes: 45, status: "Research" },

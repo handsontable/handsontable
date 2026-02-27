@@ -174,34 +174,31 @@ const cellTimeTypeDefinition = {
 registerCellType('moment-time', cellTimeTypeDefinition);
 
 // Define configuration options for the Handsontable
-const hotOptions = {
+const hotOptions: Handsontable.GridSettings = {
   data,
-  colHeaders: ['ID', 'Item Name', 'Arrival Time', 'Item Cost'],
+  colHeaders: ['Item Name', 'Category', 'Lead Engineer', 'Arrival Time', 'Cost'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
+  autoWrapRow: true,
+  headerClassName: 'htLeft',
   columns: [
-    {
-      data: 'id',
-      type: 'numeric',
-      numericFormat: {
-        pattern: '0,0',
-        culture: 'en-US',
-      },
-    },
-    {
-      data: 'itemName',
-      type: 'text',
-    },
+    { data: 'itemName', type: 'text', width: 130 },
+    { data: 'category', type: 'text', width: 120 },
+    { data: 'leadEngineer', type: 'text', width: 150 },
     {
       data: 'time',
       type: 'moment-time',
+      width: 150,
       timeFormat: 'HH:mm',
       correctFormat: true,
     },
     {
       data: 'cost',
       type: 'numeric',
+      width: 120,
+      className: 'htRight',
       numericFormat: {
         pattern: '$0,0.00',
         culture: 'en-US',

@@ -1,11 +1,15 @@
 /* file: app.component.ts */
 import { Component, ChangeDetectorRef, ChangeDetectionStrategy, inject } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import {
   GridSettings,
   HotCellEditorAdvancedComponent,
   KeyboardShortcutConfig,
   HotCellRendererAdvancedComponent,
 } from '@handsontable/angular-wrapper';
+
+export const starSvg =
+  '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
 
 export const inputData = [
   {
@@ -41,15 +45,18 @@ export const inputData = [
 @Component({
   selector: 'example1-guide-star-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: ` <div>
-    @for (star of stars; track $index) {
-    <span [attr.data-value]="$index + 1" [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
-    }
-  </div>`,
+  template: `
+    <div class="rating-cell">
+      @for (star of stars; track $index) {
+        <span class="rating-star" [class.active]="$index < value" [innerHTML]="starSvgMarkup"></span>
+      }
+    </div>`,
+  styleUrls: ['./example1.css'],
   standalone: false,
 })
 export class StarRendererComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
+  readonly starSvgMarkup = inject(DomSanitizer).bypassSecurityTrustHtml(starSvg);
 }
 
 @Component({
@@ -57,18 +64,30 @@ export class StarRendererComponent extends HotCellRendererAdvancedComponent<numb
   standalone: false,
   template: `
     <div
-      style="background: #eee; padding: 5px 8px; border:1px solid blue; cursor: pointer; border-radius: 4px; font-size: 16px;"
+      class="rating-editor"
       (mouseover)="onMouseOver($event)"
       (mousedown)="onMouseDown()"
     >
       @for (star of stars; track $index) {
-      <span [attr.data-value]="$index + 1" [style.opacity]="$index < getValue() ? '1' : '0.4'">⭐</span>
+        <span
+          [attr.data-value]="$index + 1"
+          class="rating-star"
+          [class.active]="$index < getValue()"
+          [class.current]="isCurrentStar($index)"
+          [innerHTML]="starSvgMarkup"
+        ></span>
       }
     </div>
   `,
+  styleUrls: ['./example1.css'],
 })
 export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> {
   readonly stars = Array(5);
+  readonly starSvgMarkup = inject(DomSanitizer).bypassSecurityTrustHtml(starSvg);
+
+  isCurrentStar(index: number): boolean {
+    return (index + 1) === parseInt(this.getValue()?.toString() ?? '0', 10);
+  }
 
   override shortcuts?: KeyboardShortcutConfig[] = [
     {
@@ -98,13 +117,12 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
   private readonly cdr = inject(ChangeDetectorRef);
 
   onMouseOver(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
+    const star = (event.target as HTMLElement).closest('.rating-star') as HTMLElement | null;
     if (
-      target instanceof HTMLSpanElement &&
-      target.dataset['value'] &&
-      parseInt(this.getValue().toString()) !== parseInt(target.dataset['value'])
+      star?.dataset['value'] &&
+      parseInt(this.getValue()?.toString() ?? '0', 10) !== parseInt(star.dataset['value'], 10)
     ) {
-      this.setValue(parseInt(target.dataset['value']));
+      this.setValue(parseInt(star.dataset['value'], 10));
     }
     this.cdr.detectChanges();
   }
