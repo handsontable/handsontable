@@ -132,7 +132,13 @@ class GhostTable {
         const th = rootDocument.createElement('th');
         const headerSettings = this.nestedHeaderSettingsGetter(row, visualColumnsIndex);
 
-        if (headerSettings && (!headerSettings.isPlaceholder || headerSettings.isHidden)) {
+        if (
+          headerSettings &&
+          (
+            (!headerSettings.isPlaceholder && !headerSettings.isCollapsed) ||
+            headerSettings.isHidden
+          )
+        ) {
           let label = headerSettings.label;
 
           if (isDropdownEnabled) {
