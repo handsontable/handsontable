@@ -136,34 +136,6 @@ const correctFormat = (value: string, dateFormat: string): string => {
   return date.format(dateFormat);
 }
 
-const copyStyleFromElements = (source: HTMLElement, target: HTMLElement, keys: string[] = [], keysStartsWith: string[] = []): void => {
-  const computedStyle = getComputedStyle(source);
-
-  Array.from(computedStyle)
-    .filter((key) => {
-      if (keys.length === 0 && keysStartsWith.length === 0) {
-        return true;
-      }
-
-      if (keys.length > 0) {
-        if (keys.includes(key)) {
-          return true;
-        }
-      }
-
-      if (keysStartsWith.length > 0) {
-        if (keysStartsWith.some((startsWith) => key.startsWith(startsWith))) {
-          return true;
-        }
-      }
-
-      return false;
-    })
-    .forEach((key) =>
-      target.style.setProperty(key, computedStyle.getPropertyValue(key), computedStyle.getPropertyPriority(key))
-    );
-};
-
 const cellDateTypeDefinition = {
   renderer: getRenderer('autocomplete'),
   validator: function(value, callback) {
@@ -361,22 +333,10 @@ const cellDateTypeDefinition = {
       }
     },
     afterOpen(editor, event) {
-      copyStyleFromElements(
-        editor.TD,
-        editor.input,
-        [
-          'width',
-          'height',
-          'background',
-          'font-family',
-          'font-size',
-          'font-weight',
-          'line-height',
-          'color',
-          'box-sizing',
-        ],
-        ['border-', 'padding-', 'margin-']
-      );
+      const cellRect = editor.TD.getBoundingClientRect();
+
+      editor.input.style.width = `${cellRect.width}px`;
+      editor.input.style.height = `${cellRect.height}px`;
       editor.showDatepicker(editor, event);
     },
     getValue(editor) {
@@ -394,34 +354,29 @@ const cellDateTypeDefinition = {
 registerCellType('moment-date', cellDateTypeDefinition);
 
 // Define configuration options for the Handsontable
-const hotOptions = {
+const hotOptions: Handsontable.GridSettings = {
   data,
-  colHeaders: ['ID', 'Item Name', 'Restock Date', 'Item Cost'],
+  colHeaders: ['Item Name', 'Category', 'Lead Engineer', 'Restock Date', 'Cost'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
+  autoWrapRow: true,
+  headerClassName: 'htLeft',
   columns: [
-    {
-      data: 'id',
-      type: 'numeric',
-      numericFormat: {
-        pattern: '0,0',
-        culture: 'en-US',
-      },
-    },
-    {
-      data: 'itemName',
-      type: 'text',
-    },
+    { data: 'itemName', type: 'text', width: 130 },
+    { data: 'category', type: 'text', width: 120 },
+    { data: 'leadEngineer', type: 'text', width: 150 },
     {
       data: 'restockDate',
       type: 'moment-date',
+      width: 150,
       dateFormat: 'YYYY-MM-DD',
       correctFormat: true,
       datePickerConfig: {
         firstDay: 0,
         showWeekNumber: true,
-        disableDayFn(date) {
+        disableDayFn(date: Date) {
           return date.getDay() === 0 || date.getDay() === 6;
         },
       },
@@ -429,6 +384,8 @@ const hotOptions = {
     {
       data: 'cost',
       type: 'numeric',
+      width: 120,
+      className: 'htRight',
       numericFormat: {
         pattern: '$0,0.00',
         culture: 'en-US',

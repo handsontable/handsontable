@@ -2,11 +2,9 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
-// CSS must be imported for the color picker to work in production
-// import "@melloware/coloris/dist/coloris.css";
-import Coloris from '@melloware/coloris';
+import Pickr from '@simonwep/pickr';
+import '@simonwep/pickr/dist/themes/nano.min.css';
 
-Coloris.init();
 // Register all Handsontable's modules.
 registerAllModules();
 
@@ -184,7 +182,7 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map((el) => ({
+const data = inputData.map((el) => ({
   ...el,
   // eslint-disable-next-line no-mixed-operators
   color: `#${
@@ -193,7 +191,7 @@ export const data = inputData.map((el) => ({
       .toString(16)
       .slice(1)
       .toUpperCase()
-  }`,
+    }`,
 }));
 /* end:skip-in-preview */
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
@@ -208,23 +206,44 @@ const cellDefinition = {
   editor: editorFactory({
     init(editor) {
       editor.input = editor.hot.rootDocument.createElement('INPUT');
-      editor.input.setAttribute('data-coloris', '');
+      editor.input.setAttribute('aria-label', 'Open color picker');
       editor.input.classList.add('color-picker-editor');
     },
     afterInit(editor) {
-      Coloris({ el: editor.input, closeButton: true, closeLabel: 'Apply Colour', alpha: false, wrap: false });
-      editor.input.addEventListener('close', () => {
+      const button = editor.hot.rootDocument.createElement('button');
+      button.textContent = 'Open color picker';
+      button.classList.add('color-picker-button');
+      editor.input.after(button);
+
+      editor.pickr = Pickr.create({
+        el: button,
+        theme: 'nano',
+        default: editor.input.value || '#000000',
+        components: {
+          preview: true,
+          hue: true,
+        }
+      });
+
+      editor.preventCloseElement = editor.pickr._root.app;
+
+      editor.pickr.on('change', (color) => {
+        if (color) {
+          const hex = color.toHEXA().toString();
+          editor.input.value = hex;
+        }
+      });
+
+      editor.pickr.on('hide', () => {
         editor.finishEditing();
       });
     },
     afterOpen(editor) {
-      const isDark = editor.hot.rootDocument.documentElement.getAttribute('data-theme') === 'dark';
-
-      Coloris({ themeMode: isDark ? 'dark' : 'light' });
-      editor.input.click();
+      editor.pickr.setColor(editor.input.value || '#000000');
+      editor.pickr.show();
     },
-    afterClose() {
-      Coloris.close();
+    afterClose(editor) {
+      editor.pickr.hide();
     },
     getValue(editor) {
       return editor.input.value;
@@ -236,7 +255,7 @@ const cellDefinition = {
       {
         keys: [['Tab']],
         callback: (editor) => {
-          editor.finishEditing();
+          editor.pickr.hide();
         },
       },
     ],

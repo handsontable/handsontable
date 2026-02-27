@@ -34,12 +34,12 @@ This guide shows how to create a color picker editor cell using `react-colorful`
 ## What You'll Build
 
 A cell that:
-- Displays a hex color picker when editing
-- Shows the selected color when viewing
+- Displays an input showing the hex value and a popover with a color picker when editing
+- Shows the selected color as a swatch when viewing (custom renderer)
 - Stores values as hex color strings (e.g., `#FF5733`)
-- Provides an "Apply Color" button to confirm selection
+- Validates input so only valid hex values (e.g. `#RRGGBB`) are accepted
 - Works with React's component-based architecture
-- Supports custom renderer to display color swatches
+- Uses `hotRenderer` to display color swatches in cells
 
 ## Complete Example
 
@@ -72,6 +72,7 @@ npm install @handsontable/react-wrapper react-colorful
 ```tsx
 import { HotTable, HotColumn, EditorComponent } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
+import { rendererFactory } from 'handsontable/renderers';
 import { HexColorPicker } from 'react-colorful';
 
 registerAllModules();
@@ -80,26 +81,23 @@ registerAllModules();
 **What we're importing:**
 - `EditorComponent` - React component for creating custom editors
 - `HotTable` and `HotColumn` - React wrapper components
+- `rendererFactory` - For the custom cell renderer (color swatch)
 - `HexColorPicker` - Lightweight color picker from react-colorful
-- Handsontable styles
 
 ## Step 2: Create the Editor Component
 
-Create a React component that uses `EditorComponent` with the render prop pattern.
+Create a React component that uses `EditorComponent` with the render prop pattern. The editor shows an input with the current hex value and a popover containing the color picker.
 
 ```tsx
 export const ColorPickerEditor = () => {
   return (
-    <EditorComponent<string>>
-      {({ value, setValue, finishEditing }) => (
+    <EditorComponent>
+      {({ value, setValue }) => (
         <div className="color-picker-editor">
-          <HexColorPicker
-            color={value || '#000000'}
-            onChange={(color) => setValue(color)}
-          />
-          <button className="button" onClick={() => finishEditing()}>
-            Apply Color
-          </button>
+          <input className="color-picker-editor-input" value={value} readOnly />
+          <div className="color-picker-editor-popover">
+            <HexColorPicker color={value || '#000000'} onChange={(color) => setValue(color)} />
+          </div>
         </div>
       )}
     </EditorComponent>
@@ -112,102 +110,132 @@ export const ColorPickerEditor = () => {
 2. The `children` prop is a function that receives editor state
 3. `value` - Current cell value (hex color string)
 4. `setValue` - Function to update the value
-5. `finishEditing` - Function to save and close the editor
-6. `HexColorPicker` displays the color picker and updates on change
-7. "Apply Color" button confirms selection and closes the editor
+5. The input displays the current hex value; the popover shows `HexColorPicker` for picking a color
+6. When the user selects a color, `setValue(color)` updates the value; the editor closes on blur (e.g. clicking outside)
 
 **Key concepts:**
 - **Render prop pattern**: `EditorComponent` uses a function as children
 - **Controlled component**: `HexColorPicker` receives `color` and `onChange`
-- **Explicit confirmation**: User clicks "Apply Color" to save (alternative: close on blur)
+- **Input + popover**: The input shows the hex code; the popover is positioned below and contains the picker
 
 ## Step 3: Add Styling
 
-Style the editor container and button using CSS.
+Style the cell (swatch display), the editor container, the input, and the popover. The popover is positioned below the editor so the color picker appears when the cell is in edit mode.
 
 ```css
-.color-picker-editor {
-  box-sizing: border-box;
+.color-picker-cell {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px;
-  background: rgb(238, 238, 238);
-  border: 1px solid rgb(204, 204, 204);
-  border-radius: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+.color-picker-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.color-picker-editor {
   width: 100%;
-}
-
-.color-picker-editor .button {
-  padding: 8px 16px;
-  background: #007bff;
-  color: white;
+  height: 100%;
+  box-sizing: border-box !important;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
+  border-radius: 0;
+  outline: none;
 }
 
-.color-picker-editor .button:hover {
-  background: #0056b3;
+.color-picker-editor-popover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  padding-top: 8px;
+}
+
+.color-picker-editor:focus {
+  outline: none;
+}
+
+.color-picker-editor-input {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box !important;
+  border: none;
+  border-radius: 0;
+  outline: none;
 }
 ```
 
 **What's happening:**
-- Container uses flexbox with column layout (picker above button)
+- `.color-picker-cell` and `.color-picker-swatch` display a circular color swatch in the cell
+- `.color-picker-editor` is the editor wrapper; `.color-picker-editor-input` styles the hex value input
+- `.color-picker-editor-popover` positions the color picker below the editor (e.g. `top: 100%`, `left: 0`)
 - `HexColorPicker` has built-in styling from react-colorful
-- Button styled for clear call-to-action
 
 ## Step 4: Prepare Sample Data
 
-Create data with hex color values for the color column.
+Use an array of row objects and add a `color` property with random hex values. The example uses an inventory-style dataset (with columns like `id`, `itemName`, `itemNo`, `cost`, `valueStock`, and optionally more); you can use any structure as long as each row has a `color` field.
 
 ```tsx
-const inputData = new Array(10)
-  .fill(null)
-  .map((_, row) =>
-    new Array(10)
-      .fill(null)
-      .map((_, column) => `${row}, ${column}`)
-  );
+const inputData = [
+  { id: 640329, itemName: 'Lunar Core', itemNo: 'XJ-12', cost: 350000, valueStock: 700000 },
+  { id: 863104, itemName: 'Zero Thrusters', itemNo: 'QL-54', cost: 450000, valueStock: 0 },
+  // ... more rows
+];
 
 export const data = inputData.map((el) => ({
   ...el,
-  color:
-    '#' +
+  color: `#${
     Math.round(0x1000000 + 0xffffff * Math.random())
       .toString(16)
       .slice(1)
-      .toUpperCase(),
+      .toUpperCase()
+  }`,
 }));
 ```
 
 **What's happening:**
-- Generates a 10×10 grid with random hex colors
-- Each row has a `color` property with format `#RRGGBB`
+- Each row is an object with columns such as `id`, `itemName`, `itemNo`, `cost`, `valueStock`
+- A `color` property is added with a random hex value in `#RRGGBB` format
 
 ## Step 5: Use in Handsontable
 
-Use the editor component in your `HotTable`:
+Use the editor, custom renderer, and validator on the color column. The example table has multiple columns; the color column uses `hotRenderer` and `validator`.
 
 ```tsx
+const colorCellRenderer = rendererFactory(({ td, value }) => {
+  td.innerHTML = `<span class="color-picker-cell"><span class="color-picker-swatch" style="background:${value}"></span></span>`;
+});
+
+const colorValidator = (value, callback) => {
+  callback(value.length === 7 && value[0] === '#'); // validate hex format
+};
+
 const ExampleComponent = () => {
   return (
     <HotTable
+      data={data}
+      colHeaders={['ID', 'Item Name', 'Item Color', 'Item No.', 'Cost', 'Value in Stock']}
       autoRowSize={true}
       rowHeaders={true}
-      autoWrapRow={true}
-      licenseKey="non-commercial-and-evaluation"
       height="auto"
-      data={data}
-      colHeaders={true}
+      width="100%"
+      licenseKey="non-commercial-and-evaluation"
     >
+      <HotColumn data="id" type="numeric" width={80} className="htLeft" />
+      <HotColumn data="itemName" type="text" width={200} className="htLeft" />
       <HotColumn
-        width={250}
-        editor={ColorPickerEditor}
         data="color"
-        title="Colour"
+        width={120}
+        editor={ColorPickerEditor}
+        hotRenderer={colorCellRenderer}
+        validator={colorValidator}
+        className="htLeft"
       />
+      <HotColumn data="itemNo" type="text" width={100} className="htLeft" />
+      <HotColumn data="cost" type="numeric" width={70} className="htLeft" />
+      <HotColumn data="valueStock" type="numeric" width={130} className="htRight" />
     </HotTable>
   );
 };
@@ -215,127 +243,94 @@ const ExampleComponent = () => {
 
 **What's happening:**
 - `editor={ColorPickerEditor}` - Assigns the color picker editor to the column
-- `data="color"` - Binds to the color property in each row
-- Column displays hex values; double-click opens the picker
+- `hotRenderer={colorCellRenderer}` - Renders a color swatch in the cell instead of the raw hex string
+- `validator={colorValidator}` - Ensures only valid hex values (e.g. `#RRGGBB`) are accepted
+- `data="color"` - Binds to the `color` property in each row; double-click opens the picker
 
 **Key features:**
-- Simple, focused editor for color selection
-- Values stored as hex strings
-- Type-safe with TypeScript
+- Swatch display via custom renderer, validation, and type-safe editor with TypeScript
 
 ## How It Works - Complete Flow
 
-1. **Initial Render**: Cell displays the hex color value (e.g., `#FF5733`)
+1. **Initial Render**: Cell shows a color swatch (custom renderer); value is stored as hex (e.g. `#FF5733`)
 2. **User Double-Clicks or Enter**: Editor opens
-3. **Editor Opens**: `EditorComponent` positions container over cell
-4. **Color Picker Display**: `HexColorPicker` shows with current color selected
-5. **User Interaction**:
-   - Drag sliders or click palette → `setValue(color)` updates preview
-   - Click "Apply Color" → `finishEditing()` saves and closes
-6. **Save**: Hex value saved to cell
-7. **Editor Closes**: Cell shows the hex string
+3. **Editor Opens**: `EditorComponent` positions container over cell; input shows current hex value; popover with `HexColorPicker` appears below
+4. **User Interaction**: Drag sliders or click palette → `setValue(color)` updates the value; input and picker stay in sync
+5. **Close**: User blurs the editor (e.g. clicks outside) → value is saved and editor closes
+6. **Validation**: `colorValidator` ensures value is valid hex before saving
+7. **Save**: Hex value saved to cell; cell renderer shows the new swatch
 
 ## Enhancements
 
-### 1. Custom Renderer with Color Swatch
+### 1. Custom Renderer with Color Swatch (and Optional Hex Label)
 
-Add a custom renderer to display a color swatch instead of the raw hex value:
+The example uses `hotRenderer` to show only a circular swatch. You can extend it to show the hex code next to the swatch:
 
 ```tsx
 import { rendererFactory } from 'handsontable/renderers';
 
-const colorRenderer = rendererFactory(({ td, value }) => {
+// Swatch only (as in the example)
+const colorCellRenderer = rendererFactory(({ td, value }) => {
+  td.innerHTML = `<span class="color-picker-cell"><span class="color-picker-swatch" style="background:${value}"></span></span>`;
+});
+
+// Or swatch + hex label
+const colorRendererWithHex = rendererFactory(({ td, value }) => {
   const hexColor = value || '#cccccc';
   td.innerHTML = `
-    <div style="
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px;
-    ">
-      <div style="
-        width: 24px;
-        height: 24px;
-        background: ${hexColor};
-        border: 1px solid #ddd;
-        border-radius: 4px;
-      "></div>
+    <div style="display: flex; align-items: center; gap: 8px; padding: 4px;">
+      <div style="width: 24px; height: 24px; background: ${hexColor}; border: 1px solid #ddd; border-radius: 4px;"></div>
       <span style="font-family: monospace; font-size: 12px;">${hexColor}</span>
     </div>
   `;
 });
 
-// Use in HotColumn
+// Use hotRenderer in HotColumn
 <HotColumn
-  width={250}
-  editor={ColorPickerEditor}
-  renderer={colorRenderer}
   data="color"
-  title="Colour"
+  editor={ColorPickerEditor}
+  hotRenderer={colorCellRenderer}
+  validator={colorValidator}
 />
 ```
 
 **What's happening:**
-- Renders a colored square (swatch) next to the hex code
-- Improves visual recognition of colors
-- Monospace font for hex values
+- `hotRenderer` is used in the React wrapper for custom cell rendering
+- Swatch-only keeps the cell compact; adding the hex label improves readability when needed
 
-### 2. Close on Color Select (Optional)
+### 2. Explicit "Apply" Button (Optional)
 
-To close the editor immediately when a color is picked (without "Apply" button):
+The example closes the editor on blur. If you prefer explicit confirmation, add a button and use `finishEditing` from the render props:
 
 ```tsx
-<HexColorPicker
-  color={value || '#000000'}
-  onChange={(color) => {
-    setValue(color);
-    finishEditing(); // Close immediately
-  }}
-/>
+<EditorComponent>
+  {({ value, setValue, finishEditing }) => (
+    <div className="color-picker-editor">
+      <input className="color-picker-editor-input" value={value} readOnly />
+      <div className="color-picker-editor-popover">
+        <HexColorPicker color={value || '#000000'} onChange={(color) => setValue(color)} />
+      </div>
+      <button className="button" type="button" onClick={() => finishEditing()}>
+        Apply Colour
+      </button>
+    </div>
+  )}
+</EditorComponent>
 ```
-
-Remove the "Apply Color" button if using this approach.
 
 ### 3. Using External CSS File
 
-Move styles to a separate CSS file:
-
-```css
-/* color-picker-editor.css */
-.color-picker-editor {
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px;
-  background: rgb(238, 238, 238);
-  border: 1px solid rgb(204, 204, 204);
-  border-radius: 4px;
-  width: 100%;
-}
-
-.color-picker-editor .button {
-  padding: 8px 16px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.color-picker-editor .button:hover {
-  background: #0056b3;
-}
-```
+The example uses a separate CSS file for cell and editor styles (e.g. `example1.css`). Import it in your component:
 
 ```tsx
-import './color-picker-editor.css';
+import './example1.css'; // or your color-picker-editor.css
 
 const ColorPickerEditor = () => {
   // ... component code
 };
 ```
+
+Keep the `.color-picker-cell`, `.color-picker-swatch`, `.color-picker-editor`, `.color-picker-editor-input`, and `.color-picker-editor-popover` rules so the swatch and the editor look correct.
 
 ### 4. RGBA or HSL Variants
 
@@ -363,22 +358,18 @@ The `|| '#000000'` ensures the picker always has a valid color.
 
 ## Accessibility
 
-The `HexColorPicker` from react-colorful provides keyboard support. Enhance the button:
+The `HexColorPicker` from react-colorful provides keyboard support. For the editor input, you can add an `aria-label` so screen readers describe the field:
 
 ```tsx
-<button
-  className="button"
-  onClick={() => finishEditing()}
-  aria-label="Apply selected color"
-  type="button"
->
-  Apply Color
-</button>
+<input
+  className="color-picker-editor-input"
+  value={value}
+  aria-label="Hex color value"
+/>
 ```
 
 **Keyboard navigation:**
 - **Tab**: Navigate to editor
-- **Enter**: Confirm (when focused on Apply button)
 - **Escape**: Cancel editing
 - **Click**: Direct selection in color picker
 
@@ -401,35 +392,36 @@ import { HexColorPicker } from 'react-colorful';
 
 ## TypeScript Support
 
-`EditorComponent` is fully typed. Specify the value type for hex strings:
+`EditorComponent` is fully typed. For the color editor, the value is a string (hex). You can type the validator as well:
 
 ```tsx
-<EditorComponent<string>>
-  {({ value, setValue, finishEditing }) => {
-    // TypeScript knows value is string | undefined
-    // TypeScript knows setValue accepts string
-    return (
-      <div className="color-picker-editor">
-        <HexColorPicker
-          color={value || '#000000'}
-          onChange={(color) => setValue(color)}
-        />
-        <button className="button" onClick={() => finishEditing()}>
-          Apply Color
-        </button>
-      </div>
-    );
-  }}
-</EditorComponent>
+const colorValidator = (value: string, callback: (valid: boolean) => void) => {
+  callback(value.length === 7 && value[0] === '#'); // validate color format
+};
+
+export const ColorPickerEditor = () => {
+  return (
+    <EditorComponent>
+      {({ value, setValue }) => (
+        <div className="color-picker-editor">
+          <input className="color-picker-editor-input" value={value} readOnly />
+          <div className="color-picker-editor-popover">
+            <HexColorPicker color={value || '#000000'} onChange={(color) => setValue(color)} />
+          </div>
+        </div>
+      )}
+    </EditorComponent>
+  );
+};
 ```
 
 ## Best Practices
 
 1. **Provide fallback for empty values** - Use `value || '#000000'` for HexColorPicker
-2. **Call `finishEditing()` appropriately** - When user confirms (button click or optional blur)
-3. **Use custom renderer** - Display color swatches for better UX
-4. **Store as hex** - Hex strings are portable and easy to validate
-5. **Consider UX** - "Apply" button gives users a chance to preview before committing
+2. **Use hotRenderer** - Display color swatches in cells for better UX
+3. **Store as hex** - Hex strings are portable and easy to validate
+4. **Input + popover** - Showing the hex in an input with the picker in a popover keeps the cell compact and clear
+5. **Optional "Apply" button** - For explicit confirmation, add a button that calls `finishEditing()` from the render props
 
 ---
 

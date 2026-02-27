@@ -10,14 +10,10 @@ const cellTypesItems = [
   { path: 'cell-types/numbro/numbro', title: 'Numbro', onlyFor: ['javascript'] },
   { path: 'cell-types/pikaday/pikaday', title: 'Date picker pikaday', onlyFor: ['javascript'] },
   { path: 'cell-types/rating/rating', title: 'Stars Rating', onlyFor: ['javascript'] },
-  { path: 'cell-types/select-multiple/select-multiple', title: 'Multiple Select Dropdown', onlyFor: ['javascript'] },
   { path: 'cell-types/guide-feedback-angular/guide-feedback', title: 'Simple Feedback', onlyFor: ['angular'] },
   { path: 'cell-types/guide-rating-angular/guide-rating', title: 'Stars Rating', onlyFor: ['angular'] },
   { path: 'cell-types/guide-color-picker-angular/guide-color-picker', title: 'Color picker', onlyFor: ['angular'] },
-  { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] },
-  { path: 'cell-types/guide-select-multiple-angular/guide-select-multiple', title: 'Multiple Select Dropdown', onlyFor: ['angular'] },
-  { path: 'cell-types/guide-checkbox-angular/guide-checkbox', title: 'Checkbox Editor', onlyFor: ['angular'] }
-
+  { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] }
 ];
 
 const themesItems = [

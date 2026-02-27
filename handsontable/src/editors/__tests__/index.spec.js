@@ -130,9 +130,19 @@ describe('editors', () => {
       ...overrides,
     });
 
-    it('should prevent close when beforeClose returns false', async() => {
-      const beforeClose = jasmine.createSpy('beforeClose').and.returnValue(false);
-      const CustomEditor = minimalFactoryEditor({ beforeClose });
+    it('should assign preventCloseElement to the editor instance when provided', async() => {
+      let preventCloseEl;
+
+      const CustomEditor = editorFactory({
+        init(editor) {
+          editor.input = document.createElement('input');
+
+          preventCloseEl = document.createElement('div');
+          preventCloseEl.className = 'picker-dropdown';
+
+          editor.preventCloseElement = preventCloseEl;
+        }
+      });
 
       handsontable({
         data: [['a']],
@@ -142,18 +152,24 @@ describe('editors', () => {
       await selectCell(0, 0);
       await keyDownUp('enter');
 
-      expect(getActiveEditor().isOpened()).toBe(true);
+      const editor = getActiveEditor();
 
-      const closeResult = getActiveEditor().close();
-
-      expect(closeResult).toBe(false);
-      expect(beforeClose).toHaveBeenCalled();
-      expect(getActiveEditor().isOpened()).toBe(true);
-      expect(getActiveEditor().container.style.display).not.toBe('none');
+      expect(editor.preventCloseElement).toBe(preventCloseEl);
     });
 
-    it('should close normally when beforeClose returns true or undefined', async() => {
-      const CustomEditor = minimalFactoryEditor({ beforeClose: () => true });
+    it('should create eventManager and attach mousedown listener when preventCloseElement is provided', async() => {
+      let preventCloseEl;
+
+      const CustomEditor = editorFactory({
+        init(editor) {
+          editor.input = document.createElement('input');
+
+          preventCloseEl = document.createElement('div');
+          preventCloseEl.className = 'picker-dropdown';
+
+          editor.preventCloseElement = preventCloseEl;
+        }
+      });
 
       handsontable({
         data: [['a']],
@@ -163,8 +179,33 @@ describe('editors', () => {
       await selectCell(0, 0);
       await keyDownUp('enter');
 
-      expect(getActiveEditor().close()).not.toBe(false);
-      expect(getActiveEditor().isOpened()).toBe(false);
+      const editor = getActiveEditor();
+
+      expect(editor.eventManager).toBeDefined();
+
+      const stopPropagationSpy = spyOn(Event.prototype, 'stopPropagation');
+
+      preventCloseEl.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+
+      expect(stopPropagationSpy).toHaveBeenCalled();
+      stopPropagationSpy.and.callThrough();
+    });
+
+    it('should not create eventManager when preventCloseElement is not provided', async() => {
+      const CustomEditor = minimalFactoryEditor();
+
+      handsontable({
+        data: [['a']],
+        columns: [{ editor: CustomEditor }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      expect(editor.eventManager).toBeUndefined();
+      expect(editor.preventCloseElement).toBeUndefined();
     });
 
     it('should add ht_clone_master class on open and call refreshDimensions', async() => {
@@ -246,6 +287,31 @@ describe('editors', () => {
       editor.refreshDimensions.calls.reset();
       editor.hot.runHooks('afterScrollVertically');
       expect(editor.refreshDimensions).toHaveBeenCalled();
+    });
+
+    it('should throw an error if input is not assigned in init callback', async() => {
+      let caughtError;
+
+      const CustomEditor = editorFactory({
+        init() {
+          // Intentionally not assigning editor.input
+        }
+      });
+
+      handsontable({
+        data: [['a']],
+        columns: [{ editor: CustomEditor }],
+      });
+
+      try {
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+      } catch (error) {
+        caughtError = error;
+      }
+
+      expect(caughtError).toBeDefined();
+      expect(caughtError.message).toContain('Input is not assigned');
     });
   });
 });

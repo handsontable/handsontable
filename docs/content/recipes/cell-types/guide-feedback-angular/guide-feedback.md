@@ -1,7 +1,7 @@
 ---
 id: 2rti5w12
-title: "Recipe: Feedback Editor"
-metaTitle: "Recipe: Feedback Editor - JavaScript Data Grid | Handsontable"
+title: "Feedback Editor"
+metaTitle: "Feedback Editor - JavaScript Data Grid | Handsontable"
 description: Learn how to create a custom Handsontable cell type using emoji buttons for quick feedback selection directly in your data grid.
 permalink: /recipes/feedback-angular
 canonicalUrl: /recipes/feedback-angular
@@ -11,10 +11,10 @@ tags:
   - recipes
 react:
   id: 64rvr6nb
-  metaTitle: "Recipe: Feedback Editor - React Data Grid | Handsontable"
+  metaTitle: "Feedback Editor - React Data Grid | Handsontable"
 angular:
   id: dg9oi3jt
-  metaTitle: "Recipe: Feedback Editor - Angular Data Grid | Handsontable"
+  metaTitle: "Feedback Editor - Angular Data Grid | Handsontable"
 searchCategory: Recipes
 category: Cells
 ---
@@ -37,6 +37,7 @@ A cell that:
 
 - Displays emoji feedback buttons when editing
 - Shows the selected emoji when viewing
+- Uses Handsontable CSS tokens for theme-aware styling (same look as the [Feedback recipe](@/recipes/cell-types/feedback))
 - Supports keyboard navigation (arrow keys and Tab)
 - Provides click-to-select functionality
 - Works with Angular's component-based architecture
@@ -46,10 +47,11 @@ A cell that:
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #example1 :angular --ts 1 --html 2 --css 3
 
 @[code](@/content/recipes/cell-types/guide-feedback-angular/angular/example1.ts)
 @[code](@/content/recipes/cell-types/guide-feedback-angular/angular/example1.html)
+@[code](@/content/recipes/cell-types/guide-feedback-angular/angular/example1.css)
 
 :::
 
@@ -93,21 +95,18 @@ Create an Angular component that extends [`HotCellEditorAdvancedComponent`](@/gu
 @Component({
   standalone: false,
   template: `
-    <div style="display: flex; gap: 4px; background:#eee; border: 1px solid #ccc; border-radius: 4px;">
+    <div class="feedback-editor">
       @for (option of config; track option) {
-      <button
-        [style.backgroundColor]="option === getValue() ? '#90f5e7ff' : '#fff'"
-        [style.color]="option === getValue() ? '#ffffffff' : '#000'"
-        (click)="onClick(option)"
-      >
+      <button [class.active]="option === getValue()" (click)="onClick(option)">
         {{ option }}
       </button>
       }
     </div>
   `,
+  styleUrls: ['./example1.css'],
 })
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
-  override config = ["👍", "👎", "🤷‍♂️"];
+  override config = ["👍", "👎", "🤷"];
   override value = "👍";
 
   private readonly cdr = inject(ChangeDetectorRef);
@@ -122,14 +121,14 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 **What's happening:**
 
 1. Class extends [`HotCellEditorAdvancedComponent<string>`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent) - base class for custom editors
-2. `@Component` decorator with inline template
-3. `override config` - array of options to display
+2. `@Component` decorator with inline template and `styleUrls` for theme-aware CSS (Handsontable tokens)
+3. `override config` - array of options to display (`👍`, `👎`, `🤷`)
 4. `override value` - default value for the editor
 5. `getValue()` / `setValue()` - inherited methods for value management
 6. `finishEdit.emit()` - emits event to save and close the editor
 7. `ChangeDetectorRef` - injected for manual change detection
 8. `@for` - loops through config options
-9. Angular style binding - `[style.backgroundColor]`, `[style.color]`
+9. `feedback-editor` and `active` CSS classes - styled via external CSS using Handsontable tokens (same as the [Feedback recipe](@/recipes/cell-types/feedback))
 
 **Key concepts:**
 
@@ -139,52 +138,56 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 
 ## Step 3: Add Styling
 
-Style the editor container and buttons using inline styles or Angular style binding.
+Use a separate CSS file with Handsontable CSS custom properties (tokens) so the editor matches native editors and adapts to themes and dark mode—same approach as the [Feedback recipe](@/recipes/cell-types/feedback).
 
-```typescript
-@Component({
-  standalone: false,
-  template: `
-    <div style="display: flex; gap: 4px; background:#eee; border: 1px solid #ccc; border-radius: 4px;">
-      @for (option of config; track option) {
-      <button
-        style="width:33%;"
-        [style.backgroundColor]="option === getValue() ? '#90f5e7ff' : '#fff'"
-        [style.color]="option === getValue() ? '#ffffffff' : '#000'"
-        (click)="onClick(option)"
-      >
-        {{ option }}
-      </button>
-      }
-    </div>
-  `,
-})
-export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
-  override config = ["👍", "👎", "🤷‍♂️"];
-  override value = "👍";
+**example1.css:**
 
-  private readonly cdr = inject(ChangeDetectorRef);
+```css
+.feedback-editor {
+  display: flex;
+  gap: var(--ht-gap, 4px);
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box !important;
+  padding: var(--ht-cell-vertical-padding, 4px) var(--ht-cell-horizontal-padding, 8px);
+  background-color: var(--ht-cell-editor-background-color, #ffffff);
+  box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
+    var(--ht-cell-editor-border-color, #1a42e8),
+    0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
+    var(--ht-cell-editor-shadow-color, transparent);
+  border: none;
+  border-radius: 0;
+}
 
-  onClick(option: string): void {
-    this.setValue(option);
-    this.finishEdit.emit();
-  }
+.feedback-editor button {
+  background: var(--ht-background-color, #ffffff);
+  color: var(--ht-foreground-color, #000000);
+  border: 1px solid var(--ht-border-color, #e0e0e0);
+  border-radius: var(--ht-border-radius, 4px);
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 33%;
+  font-size: var(--ht-font-size, 14px);
+  text-align: center;
+  cursor: pointer;
+}
+
+.feedback-editor button:hover {
+  background: var(--ht-border-color, #e0e0e0);
+}
+
+.feedback-editor button.active,
+.feedback-editor button.active:hover {
+  background: var(--ht-accent-color, #1a42e8);
+  color: #ffffff;
+  border-color: var(--ht-accent-color, #1a42e8);
 }
 ```
 
-**What's happening:**
+Reference it in the component with `styleUrls: ['./example1.css']` and use classes `feedback-editor` and `active` in the template.
 
-- Container uses flexbox for horizontal button layout
-- Buttons dynamically size based on config length
-- Active button has different background color
-- Angular style binding for conditional styles
-
-**Key styling:**
-
-- `display: flex` - Horizontal button layout
-- `gap: 4px` - Space between buttons
-- `[style.backgroundColor]` - Angular style binding for active state
-- `[style.color]` - Conditional text color
+**Key tokens:** `--ht-cell-editor-border-color`, `--ht-cell-editor-background-color`, `--ht-accent-color`, `--ht-background-color`, `--ht-foreground-color`, `--ht-border-color`, `--ht-font-size`, `--ht-gap`.
 
 ## Step 4: Read Config from Cell Properties
 
@@ -200,20 +203,26 @@ import { GridSettings } from "@handsontable/angular-wrapper";
 })
 export class ExampleComponent {
   readonly data = [
-    { id: 1, itemName: "Product A", feedback: "👍" },
-    { id: 2, itemName: "Product B", feedback: "👎" },
+    { feature: "Dark Mode", category: "UI", priority: "High", feedback: "👍", votes: 124, status: "Planned" },
+    { feature: "Bulk Edit", category: "Core", priority: "High", feedback: "👍", votes: 98, status: "In Progress" },
+    { feature: "AI Suggestions", category: "Beta", priority: "Medium", feedback: "🤷", votes: 45, status: "Research" },
+    { feature: "Offline Mode", category: "Infra", priority: "Low", feedback: "👎", votes: 12, status: "Backlog" },
   ];
 
   readonly gridSettings: GridSettings = {
     ...,
     columns: [
-      ...,
+      { data: "feature", type: "text", width: 200 },
+      { data: "category", type: "text", width: 90 },
+      { data: "priority", type: "text", width: 100 },
       {
         data: "feedback",
-        width: 150,
+        width: 100,
         editor: FeedbackEditorComponent,
-        config: ["👍", "👎", "🤷‍♂️"],
-      }
+        config: ["👍", "👎", "🤷"],
+      },
+      { data: "votes", type: "numeric", width: 60 },
+      { data: "status", type: "text", width: 120 },
     ],
   };
 }
@@ -261,7 +270,7 @@ Add keyboard navigation using the `shortcuts` property.
   template: `...`,
 })
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
-  override config = ["👍", "👎", "🤷‍♂️"];
+  override config = ["👍", "👎", "🤷"];
   override value = "👍";
 
   override shortcuts: KeyboardShortcutConfig[] = [
@@ -319,22 +328,18 @@ Put it all together:
 @Component({
   standalone: false,
   template: `
-    <div style="display: flex; gap: 4px; background:#eee; border: 1px solid #ccc; border-radius: 4px;">
+    <div class="feedback-editor">
       @for (option of config; track option) {
-      <button
-        style="width:33%;"
-        [style.backgroundColor]="option === getValue() ? '#90f5e7ff' : '#fff'"
-        [style.color]="option === getValue() ? '#ffffffff' : '#000'"
-        (click)="onClick(option)"
-      >
+      <button [class.active]="option === getValue()" (click)="onClick(option)">
         {{ option }}
       </button>
       }
     </div>
   `,
+  styleUrls: ['./example1.css'],
 })
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
-  override config = ["👍", "👎", "🤷‍♂️"];
+  override config = ["👍", "👎", "🤷"];
   override value = "👍";
 
   override shortcuts: KeyboardShortcutConfig[] = [
@@ -371,14 +376,14 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 **What's happening:**
 
 - **Class properties**: `config`, `value`, and `shortcuts` defined as class properties
-- **Template**: Inline template with Angular syntax
+- **Template**: Uses `feedback-editor` and `active` classes; styling from CSS file with Handsontable tokens
 - **Keyboard shortcuts**: Defined directly as class property
 - **Change detection**: Manual trigger with `ChangeDetectorRef`
-- **Styling**: Inline styles and Angular style binding
+- **Styling**: External CSS with theme-aware tokens (same look as the [Feedback recipe](@/recipes/cell-types/feedback))
 
 ## Step 7: Use in Handsontable
 
-Use the editor component in your Angular component:
+Use the editor component in your Angular component (same table structure as the [Feedback recipe](@/recipes/cell-types/feedback)):
 
 ```typescript
 import { Component } from "@angular/core";
@@ -390,8 +395,10 @@ import { GridSettings } from "@handsontable/angular-wrapper";
 })
 export class ExampleComponent {
   readonly data = [
-    { id: 1, itemName: "Product A", feedback: "👍" },
-    { id: 2, itemName: "Product B", feedback: "👎" },
+    { feature: "Dark Mode", category: "UI", priority: "High", feedback: "👍", votes: 124, status: "Planned" },
+    { feature: "Bulk Edit", category: "Core", priority: "High", feedback: "👍", votes: 98, status: "In Progress" },
+    { feature: "AI Suggestions", category: "Beta", priority: "Medium", feedback: "🤷", votes: 45, status: "Research" },
+    { feature: "Offline Mode", category: "Infra", priority: "Low", feedback: "👎", votes: 12, status: "Backlog" },
   ];
 
   readonly gridSettings: GridSettings = {
@@ -399,23 +406,21 @@ export class ExampleComponent {
     rowHeaders: true,
     autoWrapRow: true,
     height: "auto",
-    manualColumnResize: true,
-    colHeaders: ["ID", "Item Name", "Feedback", "Rating"],
+    width: "100%",
+    headerClassName: "htLeft",
+    colHeaders: ["Feature", "Category", "Priority", "Feedback", "Votes", "Status"],
     columns: [
-      { data: "id", type: "numeric" },
-      { data: "itemName", type: "text" },
+      { data: "feature", type: "text", width: 200 },
+      { data: "category", type: "text", width: 90 },
+      { data: "priority", type: "text", width: 100 },
       {
         data: "feedback",
-        width: 150,
+        width: 100,
         editor: FeedbackEditorComponent,
-        config: ["👍", "👎", "🤷‍♂️"],
+        config: ["👍", "👎", "🤷"],
       },
-      {
-        data: "stars",
-        width: 150,
-        editor: FeedbackEditorComponent,
-        config: ["1", "2", "3", "4", "5"],
-      },
+      { data: "votes", type: "numeric", width: 60 },
+      { data: "status", type: "text", width: 120 },
     ],
   };
 }
@@ -430,13 +435,13 @@ export class ExampleComponent {
 **What's happening:**
 
 - `editor: FeedbackEditorComponent` - Assigns the editor class to the column
-- `config: ['👍', '👎', '🤷‍♂️']` - Column-specific options
-- Same editor component, different configurations per column
+- `config: ['👍', '👎', '🤷']` - Column-specific options
+- Same editor component can be reused with different `config` per column
 - Configuration through `GridSettings` interface
 
 **Key features:**
 
-- Reusable editor component
+- Reusable editor component with theme-aware styling
 - Per-column configuration
 - Type-safe with TypeScript
 - Declarative settings object
@@ -445,7 +450,7 @@ export class ExampleComponent {
 
 ### 1. More Feedback Options
 
-Add more emoji options:
+Add more emoji options (same as the [Feedback recipe](@/recipes/cell-types/feedback#1-more-feedback-options)):
 
 ```typescript
 readonly gridSettings: GridSettings = {
@@ -453,7 +458,7 @@ readonly gridSettings: GridSettings = {
     {
       data: 'feedback',
       editor: FeedbackEditorComponent,
-      config: ['👍', '👎', '🤷‍♂️', '❤️', '🔥', '⭐'],
+      config: ['👍', '👎', '🤷', '❤️', '🔥', '⭐'],
     },
   ],
 };
@@ -463,56 +468,20 @@ The editor automatically adjusts button widths based on config length.
 
 ### 2. Custom Button Styling
 
-Enhanced button appearance with inline styles or component styles:
+You can add extra styles (e.g. transitions, hover effects) in your CSS file while keeping Handsontable tokens for theme consistency. For example, in `example1.css`:
 
-```typescript
-@Component({
-  standalone: false,
-  template: `
-    <div class="editor-container">
-      @for (option of config; track option) {
-      <button class="feedback-button" [class.active]="option === getValue()" (click)="onClick(option)">
-        {{ option }}
-      </button>
-      }
-    </div>
-  `,
-  styles: [
-    `
-      .editor-container {
-        display: flex;
-        gap: 4px;
-        background: #eee;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-      }
-      .feedback-button {
-        padding: 8px;
-        border: 2px solid #ddd;
-        background: white;
-        color: #333;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 1.2em;
-        transition: all 0.2s;
-        width: 33%;
-      }
-      .feedback-button.active {
-        border-color: #007bff;
-        background: #007bff;
-        color: white;
-      }
-      .feedback-button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      }
-    `,
-  ],
-})
-export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
-  // ... rest of the component
+```css
+.feedback-editor button {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.feedback-editor button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 ```
+
+Keep using the existing `.feedback-editor` and `.active` rules with `var(--ht-*)` tokens so the editor stays theme-aware.
 
 ### 3. Dynamic Config from Cell Properties
 
@@ -556,33 +525,33 @@ columns: [
 
 ### 4. Tooltip on Hover
 
-Add tooltips to buttons:
+Add tooltips to buttons using the `title` attribute:
 
-```tsx
-{
-  config.map((item) => {
-    const tooltips: Record<string, string> = {
-      "👍": "Positive feedback",
-      "👎": "Negative feedback",
-      "🤷‍♂️": "Neutral feedback",
-    };
-
-    return (
-      <button
-        key={item}
-        className={`button ${value === item ? "active" : ""}`}
-        onClick={() => {
-          setValue(item);
-          finishEditing();
-        }}
-        title={tooltips[item] || ""}
-      >
-        {item}
-      </button>
-    );
-  });
-}
+```typescript
+const tooltips: Record<string, string> = {
+  "👍": "Positive",
+  "👎": "Negative",
+  "🤷": "Neutral",
+};
 ```
+
+In the template:
+
+```html
+<div class="feedback-editor">
+  @for (option of config; track option) {
+  <button
+    [class.active]="option === getValue()"
+    [attr.title]="tooltips[option] ?? ''"
+    (click)="onClick(option)"
+  >
+    {{ option }}
+  </button>
+  }
+</div>
+```
+
+Expose `tooltips` as a class property or use a getter.
 
 ### 5. Text Labels Instead of Emojis
 
@@ -602,72 +571,23 @@ The editor works with any string values, not just emojis.
 
 ### 6. Using External CSS File
 
-Move styles to a separate CSS file:
-
-```css
-/* feedback-editor.component.css */
-.editor-container {
-  box-sizing: border-box;
-  display: flex;
-  gap: 4px;
-  padding: 3px;
-  background: rgb(238, 238, 238);
-  border: 1px solid rgb(204, 204, 204);
-  border-radius: 4px;
-  height: 100%;
-  width: 100%;
-}
-
-.feedback-button {
-  background: #fff;
-  color: black;
-  border: none;
-  padding: 0;
-  margin: 0;
-  height: 100%;
-  width: 33%;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-  cursor: pointer;
-}
-
-.feedback-button.active {
-  background: #90f5e7ff;
-  color: white;
-}
-
-.feedback-button:hover {
-  background: #f0f0f0;
-}
-```
-
-```typescript
-@Component({
-  standalone: false,
-  templateUrl: "./feedback-editor.component.html",
-  styleUrls: ["./feedback-editor.component.css"],
-})
-export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
-  // ... component code
-}
-```
+The main example already uses an external CSS file (`example1.css`) with Handsontable tokens—see **Step 3** and the [Feedback recipe](@/recipes/cell-types/feedback) CSS. Use `styleUrls: ['./example1.css']` (or your own path) in the component. For a different file name or folder, point `styleUrls` to that file and keep the same `.feedback-editor` and `.active` rules with `var(--ht-*)` tokens for theme-aware styling.
 
 ## Accessibility
 
-HTML buttons are inherently accessible, but you can enhance them:
+HTML buttons are inherently accessible, but you can enhance them with ARIA attributes:
 
 ```typescript
 @Component({
   standalone: false,
   template: `
-    <div style="display: flex; gap: 4px; background:#eee; border: 1px solid #ccc; border-radius: 4px;">
+    <div class="feedback-editor">
       @for (option of config; track $index) {
       <button
         [attr.aria-label]="option + ' feedback option'"
         [attr.aria-pressed]="option === getValue()"
         [tabIndex]="option === getValue() ? 0 : -1"
-        [style.backgroundColor]="option === getValue() ? '#90f5e7ff' : '#fff'"
+        [class.active]="option === getValue()"
         (click)="onClick(option)"
       >
         {{ option }}
@@ -675,6 +595,7 @@ HTML buttons are inherently accessible, but you can enhance them:
       }
     </div>
   `,
+  styleUrls: ['./example1.css'],
 })
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
   // ... component code
@@ -697,4 +618,4 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 
 ---
 
-**Congratulations!** You've created a simple feedback editor with emoji buttons using Angular's [`HotCellEditorAdvancedComponent<`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent), perfect for quick feedback selection in your data grid!
+**Congratulations!** You've created a theme-aware feedback editor with emoji buttons using Angular's [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent), matching the look of the [Feedback recipe](@/recipes/cell-types/feedback) and perfect for quick feedback selection in your data grid!

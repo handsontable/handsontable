@@ -1,8 +1,8 @@
 ---
 id: ibewekco
-title: "Recipe: Star Rating Editor"
-metaTitle: "Recipe: Star Rating Editor - JavaScript Data Grid | Handsontable"
-description: Learn how to create a custom Handsontable cell type using star emojis for intuitive 1-5 star ratings directly in your data grid.
+title: "Star Rating Editor"
+metaTitle: "Star Rating Editor - JavaScript Data Grid | Handsontable"
+description: Learn how to create a custom Handsontable cell type using SVG stars for intuitive 1-5 star ratings directly in your data grid.
 permalink: /recipes/stars-rating-angular
 canonicalUrl: /recipes/stars-rating-angular
 tags:
@@ -11,45 +11,48 @@ tags:
   - recipes
 react:
   id: a070f35k
-  metaTitle: "Recipe: Star Rating Editor - React Data Grid | Handsontable"
+  metaTitle: "Star Rating Editor - React Data Grid | Handsontable"
 angular:
   id: 66fxpbip
-  metaTitle: "Recipe: Star Rating Editor - Angular Data Grid | Handsontable"
+  metaTitle: "Star Rating Editor - Angular Data Grid | Handsontable"
 searchCategory: Recipes
-category: Cells
+category: Cell Types
 ---
 
-# Star Rating Editor Cell - Step-by-Step Guide
+# Star Rating Cell Type - Step-by-Step Guide (Angular)
 
 [[toc]]
 
 ## Overview
 
-This guide shows how to create an interactive star rating cell using emoji stars. Perfect for product ratings, review scores, or any scenario where users need to provide a 1-5 star rating.
+This guide shows how to create an interactive star rating cell using inline SVG stars with Angular's custom cell components. Perfect for product ratings, review scores, or any scenario where users need to provide a 1-5 star rating.
 
 **Difficulty:** Beginner
 **Time:** ~15 minutes
-**Libraries:** None
+**Libraries:** None (pure HTML, SVG and JavaScript)
 
 ## What You'll Build
 
 A cell that:
 
-- Displays 5 stars both when editing and viewing
-- Shows filled stars (opacity 1.0) and unfilled stars (opacity 0.4)
+- Displays 5 SVG stars both when editing and viewing
+- Shows filled stars (gold) and unfilled stars (gray)
+- Uses Handsontable CSS tokens for theme-aware editor styling
 - Supports mouse hover for preview
 - Allows keyboard input (1-5 keys, arrow keys)
 - Provides immediate visual feedback
+- Highlights the current star (accent color) while editing
 - Works without any external libraries
 
 ## Complete Example
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #example1 :angular --ts 1 --html 2 --css 3
 
 @[code](@/content/recipes/cell-types/guide-rating-angular/angular/example1.ts)
 @[code](@/content/recipes/cell-types/guide-rating-angular/angular/example1.html)
+@[code](@/content/recipes/cell-types/guide-rating-angular/angular/example1.css)
 
 :::
 
@@ -59,6 +62,7 @@ A cell that:
 
 ```typescript
 import { Component, ChangeDetectorRef, ChangeDetectionStrategy, inject } from "@angular/core";
+import { DomSanitizer } from "@angular/platform-browser";
 import {
   GridSettings,
   HotCellEditorAdvancedComponent,
@@ -76,6 +80,7 @@ registerAllModules();
 - [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent) - Base class for custom editors with advanced features
 - `KeyboardShortcutConfig` - Type for keyboard shortcuts configuration
 - `GridSettings` - Type for Handsontable configuration
+- `DomSanitizer` - Required so we can render SVG via `[innerHTML]` (Angular strips SVG by default)
 - Angular core modules for component creation
 
 **What we're NOT importing:**
@@ -86,55 +91,107 @@ registerAllModules();
 
 ## Step 2: Create the Renderer Component
 
-The renderer displays 5 stars with filled stars (opacity 1.0) and unfilled stars (opacity 0.4).
+The renderer displays 5 SVG stars wrapped in a flex container using CSS classes for color control (same approach as the [Star Rating recipe](@/recipes/cell-types/rating)).
 
 ```typescript
+const starSvg =
+  '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+
 @Component({
   selector: "star-renderer",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: ` <div>
-    @for (star of stars; track $index) {
-    <span [attr.data-value]="$index + 1" [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
-    }
-  </div>`,
+  template: `
+    <div class="rating-cell">
+      @for (star of stars; track $index) {
+        <span class="rating-star" [class.active]="$index < value" [innerHTML]="starSvgMarkup"></span>
+      }
+    </div>`,
+  styleUrls: ["./example1.css"],
   standalone: false,
 })
 export class StarRendererComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
+  readonly starSvgMarkup = inject(DomSanitizer).bypassSecurityTrustHtml(starSvg);
 }
 ```
 
 **What's happening:**
 
-### Key concepts:
-
 - `extends HotCellRendererAdvancedComponent<number>` - Inherits base renderer functionality with typed value
 - `value` property - Automatically provided by the base class (1-5 rating)
-- `[style.opacity]` - Angular property binding for dynamic styles
-- `$index < value ? '1' : '0.4'` - Stars up to the rating are filled (opacity 1.0), rest are unfilled (0.4)
+- `.rating-cell` - Flex container wrapping the stars (matches the editor layout)
+- `.rating-star` - Base class for each star (gray via CSS token `--ht-background-secondary-color`)
+- `.active` - Filled stars (gold `#facc15`)
+- `[innerHTML]="starSvgMarkup"` - Inline SVG with `fill="currentColor"` so CSS controls the star color
+- `inject(DomSanitizer).bypassSecurityTrustHtml(starSvg)` - Angular sanitizes `[innerHTML]` and strips SVG by default; marking the SVG as trusted allows it to render
 
-**Template structure:**
+**Why SVG instead of emoji?**
 
-- `stars = Array(5)` - Creates an array with 5 elements for iteration
-- `[attr.data-value]` - Sets HTML data attribute for potential interactions
+- Consistent rendering across all browsers and operating systems
+- Full control over color, size, and styling via CSS
+- Theme-aware when using Handsontable CSS tokens
 
-**Visual example:**
+## Step 3: Add CSS Styling
 
-- Rating 3: ⭐⭐⭐<span style="opacity:0.4">⭐⭐</span> (first 3 stars full opacity, last 2 faded)
-- Rating 5: ⭐⭐⭐⭐⭐ (all 5 stars full opacity)
-- Rating 1: ⭐<span style="opacity:0.4">⭐⭐⭐⭐</span> (first star full, rest faded)
+Create a separate CSS file for the rating styles. This uses Handsontable CSS custom properties (tokens) so the editor automatically adapts to custom themes and dark mode.
 
-**Why opacity instead of showing/hiding?**
+```css
+.rating-cell {
+  display: flex;
+  align-items: center;
+  margin: 3px 0 0 -1px;
+}
 
-- Creates smooth visual feedback
-- All stars always visible (easier to understand scale)
-- Intuitive "filled vs unfilled" appearance
+.rating-star {
+  color: var(--ht-background-secondary-color, #e0e0e0);
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+}
 
-**Change Detection:**
+.rating-star.active {
+  color: #facc15;
+}
 
-- `ChangeDetectionStrategy.OnPush` - Optimizes performance by only checking when inputs change
+.rating-editor {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box !important;
+  border: none;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
+    var(--ht-cell-editor-border-color, #1a42e8),
+    0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
+    var(--ht-cell-editor-shadow-color, transparent);
+  background-color: var(--ht-cell-editor-background-color, #ffffff);
+  padding: var(--ht-cell-vertical-padding, 4px)
+    var(--ht-cell-horizontal-padding, 8px);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
 
-## Step 3: Column Configuration (Optional Validator)
+.rating-editor .rating-star {
+  cursor: pointer;
+}
+
+.rating-editor .rating-star.current {
+  color: var(--ht-accent-color, #1a42e8);
+}
+```
+
+**Handsontable tokens used:**
+
+- `--ht-background-secondary-color` - Inactive star color (adapts to theme)
+- `--ht-accent-color` - Current star highlight in editor
+- `--ht-cell-editor-border-color` / `--ht-cell-editor-border-width` - Editor border
+- `--ht-cell-editor-background-color` - Editor background
+- `--ht-cell-vertical-padding` / `--ht-cell-horizontal-padding` - Cell padding
+
+## Step 4: Column Configuration (Optional Validator)
 
 In Angular, validators are typically configured at the column level in `GridSettings`. Here's how to ensure values are within the 1-5 star range:
 
@@ -168,74 +225,69 @@ columns: [
 - Ensuring data integrity
 - Providing visual feedback for invalid values
 
-## Step 4: Create the Editor Component
+## Step 5: Create the Editor Component
 
-The editor component extends [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent) and provides interactive star selection.
+The editor component extends [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent) and provides interactive star selection using the same SVG and CSS classes as the renderer.
 
 ```typescript
 @Component({
   standalone: false,
   template: `
     <div
-      style="background: #eee; padding: 5px 8px; border:1px solid blue; cursor: pointer; border-radius: 4px; font-size: 16px;"
+      class="rating-editor"
       (mouseover)="onMouseOver($event)"
       (mousedown)="onMouseDown()"
     >
       @for (star of stars; track $index) {
-      <span [attr.data-value]="$index + 1" [style.opacity]="$index < getValue() ? '1' : '0.4'">⭐</span>
+        <span
+          [attr.data-value]="$index + 1"
+          class="rating-star"
+          [class.active]="$index < getValue()"
+          [class.current]="isCurrentStar($index)"
+          [innerHTML]="starSvgMarkup"
+        ></span>
       }
     </div>
   `,
+  styleUrls: ["./example1.css"],
 })
 export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> {
   readonly stars = Array(5);
+  readonly starSvgMarkup = inject(DomSanitizer).bypassSecurityTrustHtml(starSvg);
 
-  private readonly cdr = inject(ChangeDetectorRef);
+  isCurrentStar(index: number): boolean {
+    return (index + 1) === parseInt(this.getValue()?.toString() ?? "0", 10);
+  }
+  // ... event handlers and shortcuts
 }
 ```
 
 **What's happening:**
 
-### Template Structure:
+- **Container** - `class="rating-editor"` uses the same theme-aware styling as the [Star Rating recipe](@/recipes/cell-types/rating) (blue border, padding, background via CSS tokens)
+- **Stars** - Same SVG as the renderer (via sanitized `starSvgMarkup`); `.active` for filled (gold), `.current` for the selected star (accent color)
+- **isCurrentStar(index)** - Template expressions can't call global `parseInt`, so we use a component method to compare the current value with the star index
+- **getValue()** - Method from base class returns current editor value
+- **Event bindings** - `(mouseover)` for hover preview, `(mousedown)` for selection
 
-1. **Container div** - Styled with background, padding, border, and cursor pointer
-2. **Event bindings** - `(mouseover)` for hover preview, `(mousedown)` for selection
-3. **getValue()** - Method from base class returns current editor value
+## Step 6: Editor - Mouse Event Handlers
 
-### Key styling:
-
-- `background: #eee` - Light gray background
-- `padding: 5px 8px` - Internal spacing
-- `border: 1px solid blue` - Visual border
-- `cursor: pointer` - Indicates interactivity
-- `border-radius: 4px` - Rounded corners
-- `font-size: 16px` - Star emoji size
-
-### Base Class Features:
-
-- `extends HotCellEditorAdvancedComponent<number>` - Provides editor lifecycle and methods
-- `value` property - Stores current rating (managed by base class)
-- `getValue()` / `setValue()` - Methods to get/set current value
-- `finishEdit` / `cancelEdit` - EventEmitters to control editing
-
-## Step 5: Editor - Mouse Event Handlers
-
-Add mouse interaction for hover preview and click selection.
+Add mouse interaction for hover preview and click selection. Use `closest('.rating-star')` so that when the user hovers over the SVG (or its `<path>`), we still find the parent span with `data-value`.
 
 ```typescript
 export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> {
   readonly stars = Array(5);
+  readonly starSvgMarkup = starSvg;
 
   private readonly cdr = inject(ChangeDetectorRef);
 
   onMouseOver(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
+    const star = (event.target as HTMLElement).closest(".rating-star") as HTMLElement | null;
     if (
-      target instanceof HTMLSpanElement &&
-      target.dataset["value"] &&
-      parseInt(this.getValue().toString()) !== parseInt(target.dataset["value"])
+      star?.dataset["value"] &&
+      parseInt(this.getValue()?.toString() ?? "0", 10) !== parseInt(star.dataset["value"], 10)
     ) {
-      this.setValue(parseInt(target.dataset["value"]));
+      this.setValue(parseInt(star.dataset["value"], 10));
     }
     this.cdr.detectChanges();
   }
@@ -250,32 +302,23 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
 
 ### onMouseOver (Hover Preview):
 
-1. Get the hovered element from event
-2. Check if it's a star span with `data-value` attribute
-3. Parse the rating value from the data attribute
-4. If different from current value, update it with `setValue()`
-5. Trigger change detection to update the view
-6. Creates a "preview" effect as user hovers
+1. Get the hovered element; with inline SVG, the target may be the `<svg>` or `<path>`, not the span
+2. Use `closest('.rating-star')` to find the parent span with `data-value`
+3. If the hovered star's value differs from the current value, update it with `setValue()`
+4. Call `cdr.detectChanges()` so the view updates immediately
 
 ### onMouseDown (Click Selection):
 
 1. User clicks anywhere in the editor
-2. Emit `finishEdit` event to close editor
-3. Current value is saved to the cell
+2. Emit `finishEdit` to close the editor and save the value
 
-**Why mousedown instead of click?**
+**Why `closest()`?**
 
-- `mousedown` fires earlier than `click`
-- Feels more responsive
-- User sees immediate feedback
+- With inline SVGs, the event target is often the inner `<path>` or `<svg>` element
+- `closest('.rating-star')` walks up the DOM to the span that has `data-value`
+- Ensures hover and click work regardless of which part of the star is under the cursor
 
-**Change Detection:**
-
-- `cdr.detectChanges()` - Manually triggers Angular's change detection
-- Necessary because event is triggered outside Angular's zone
-- Ensures stars update immediately on hover
-
-## Step 6: Editor - Keyboard Shortcuts
+## Step 7: Editor - Keyboard Shortcuts
 
 Add keyboard support for rating selection using the `shortcuts` property from the base class.
 
@@ -346,7 +389,7 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
 - Number keys for direct selection, arrows for adjustment
 - All shortcuts handled by Handsontable's shortcut manager
 
-## Step 7: Complete Column Configuration
+## Step 8: Complete Column Configuration
 
 Now combine the renderer and editor components in your column configuration:
 
@@ -393,7 +436,7 @@ export class AppComponent {
 3. Passes cell data to components via `@Input` properties
 4. Listens to component `@Output` events for editor lifecycle
 
-## Step 8: Create the Angular Component
+## Step 9: Create the Angular Component
 
 Put it all together in your Angular component:
 
@@ -433,7 +476,7 @@ export class AppComponent {
 }
 ```
 
-## Step 9: Register in Angular Module
+## Step 10: Register in Angular Module
 
 Declare all components in your Angular module:
 
@@ -486,18 +529,20 @@ Display the numeric rating alongside stars:
   selector: "star-renderer-with-number",
   template: `
     <div style="display: flex; align-items: center; gap: 8px;">
-      <div>
+      <div class="rating-cell">
         @for (star of stars; track $index) {
-        <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
+          <span class="rating-star" [class.active]="$index < value" [innerHTML]="starSvgMarkup"></span>
         }
       </div>
       <span style="color: #666; font-size: 14px;">({{ value }}/5)</span>
     </div>
   `,
+  styleUrls: ["./example1.css"],
   standalone: false,
 })
 export class StarRendererWithNumberComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
+  readonly starSvgMarkup = inject(DomSanitizer).bypassSecurityTrustHtml(starSvg);
 }
 ```
 
@@ -509,18 +554,25 @@ Change star color based on rating value:
 @Component({
   selector: "star-renderer-colored",
   template: `
-    <div>
+    <div class="rating-cell">
       @for (star of stars; track $index) {
-      <span [style.opacity]="$index < value ? '1' : '0.4'" [style.color]="getColor()">⭐</span>
+        <span
+          class="rating-star"
+          [class.active]="$index < value"
+          [style.color]="$index < value ? getColor() : undefined"
+          [innerHTML]="starSvgMarkup"
+        ></span>
       }
     </div>
   `,
+  styleUrls: ["./example1.css"],
   standalone: false,
 })
 export class StarRendererColoredComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
+  readonly starSvgMarkup = inject(DomSanitizer).bypassSecurityTrustHtml(starSvg);
 
-  get getColor(): string {
+  getColor(): string {
     if (this.value >= 4) return "#ffd700"; // Gold
     if (this.value === 3) return "#ffa500"; // Orange
     return "#ff6347"; // Red
@@ -536,24 +588,26 @@ Support half-star ratings (0.5 increments):
 @Component({
   selector: "star-renderer-half",
   template: `
-    <div>
+    <div class="rating-cell">
       @for (star of stars; track $index) {
       <span>
         @if ($index < fullStars) {
-        <span style="opacity: 1">⭐</span>
+        <span class="rating-star active" [innerHTML]="starSvgMarkup"></span>
         } @if ($index === fullStars && hasHalf) {
-        <span style="opacity: 0.7">⭐</span>
+        <span class="rating-star" style="opacity: 0.7" [innerHTML]="starSvgMarkup"></span>
         } @if ($index >= fullStars && !($index === fullStars && hasHalf)) {
-        <span style="opacity: 0.4">⭐</span>
+        <span class="rating-star" [innerHTML]="starSvgMarkup"></span>
         }
       </span>
       }
     </div>
   `,
+  styleUrls: ["./example1.css"],
   standalone: false,
 })
 export class StarRendererHalfComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
+  readonly starSvgMarkup = inject(DomSanitizer).bypassSecurityTrustHtml(starSvg);
 
   get fullStars(): number {
     return Math.floor(this.value);
@@ -585,17 +639,20 @@ Configurable number of stars per column using `rendererProps`:
 @Component({
   selector: "star-renderer-custom",
   template: `
-    <div>
+    <div class="rating-cell">
       @for (star of getStarsArray(); track $index) {
-      <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
+      <span class="rating-star" [class.active]="$index < value" [innerHTML]="starSvgMarkup"></span>
       }
     </div>
   `,
+  styleUrls: ["./example1.css"],
   standalone: false,
 })
 export class StarRendererCustomComponent extends HotCellRendererAdvancedComponent<number, { maxStars?: number }> {
-  getStarsArray(): any[] {
-    const maxStars = this.getProps().maxStars || 5;
+  readonly starSvgMarkup = inject(DomSanitizer).bypassSecurityTrustHtml(starSvg);
+
+  getStarsArray(): unknown[] {
+    const maxStars = this.getProps().maxStars ?? 5;
     return Array(maxStars);
   }
 }
@@ -620,9 +677,9 @@ Add text labels like "Excellent", "Good", etc.:
   selector: "star-renderer-labels",
   template: `
     <div style="display: flex; flex-direction: column; gap: 4px;">
-      <div>
+      <div class="rating-cell">
         @for (star of stars; track $index) {
-        <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
+          <span class="rating-star" [class.active]="$index < value" [innerHTML]="starSvgMarkup"></span>
         }
       </div>
       <div style="font-size: 12px; color: #666;">
@@ -630,14 +687,16 @@ Add text labels like "Excellent", "Good", etc.:
       </div>
     </div>
   `,
+  styleUrls: ["./example1.css"],
   standalone: false,
 })
 export class StarRendererLabelsComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
+  readonly starSvgMarkup = inject(DomSanitizer).bypassSecurityTrustHtml(starSvg);
   readonly labels = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
 
-  get getLabel(): string {
-    return this.labels[this.value] || "";
+  getLabel(): string {
+    return this.labels[this.value] ?? "";
   }
 }
 ```
@@ -651,33 +710,41 @@ Add ARIA attributes for screen readers:
   selector: "star-editor-accessible",
   template: `
     <div
+      class="rating-editor"
       role="radiogroup"
       aria-label="Star rating from 1 to 5"
-      style="background: #eee; padding: 5px 8px; border:1px solid blue; cursor: pointer; border-radius: 4px; font-size: 16px;"
       (mouseover)="onMouseOver($event)"
       (mousedown)="onMouseDown()"
     >
       @for (star of stars; track $index) {
       <span
         [attr.data-value]="$index + 1"
-        [style.opacity]="$index < getValue() ? '1' : '0.4'"
+        class="rating-star"
+        [class.active]="$index < getValue()"
+        [class.current]="isCurrentStar($index)"
+        [innerHTML]="starSvgMarkup"
         role="radio"
         [attr.aria-checked]="$index < getValue()"
         [attr.aria-label]="$index + 1 + ' star' + ($index > 0 ? 's' : '')"
         tabindex="0"
-        >⭐</span
-      >
+      ></span>
       }
     </div>
   `,
+  styleUrls: ["./example1.css"],
   standalone: false,
 })
 export class StarEditorAccessibleComponent extends HotCellEditorAdvancedComponent<number> {
   readonly stars = Array(5);
+  readonly starSvgMarkup = inject(DomSanitizer).bypassSecurityTrustHtml(starSvg);
+
+  isCurrentStar(index: number): boolean {
+    return (index + 1) === parseInt(this.getValue()?.toString() ?? "0", 10);
+  }
 
   private readonly cdr = inject(ChangeDetectorRef);
 
-  // ... rest of implementation
+  // ... rest of implementation (onMouseOver with closest('.rating-star'), onMouseDown)
 }
 ```
 
@@ -692,11 +759,12 @@ export class StarEditorAccessibleComponent extends HotCellEditorAdvancedComponen
 
 **ARIA attributes:**
 
-- `role="button"`: Identifies stars as interactive buttons
+- `role="radiogroup"`: Identifies the star group
+- `role="radio"`: Identifies each star as a radio option
 - `aria-label`: Describes each star (e.g., "1 star", "2 stars")
-- `aria-pressed`: Indicates selected stars
+- `aria-checked`: Indicates selected stars
 - `tabindex`: Controls keyboard focus order
 
 ---
 
-**Congratulations!** You've created an interactive star rating editor with hover preview and keyboard support using Angular components, perfect for intuitive 1-5 star ratings in your data grid!
+**Congratulations!** You've created a theme-aware SVG star rating editor with hover preview and keyboard support using Angular components, perfect for intuitive 1-5 star ratings in your data grid!

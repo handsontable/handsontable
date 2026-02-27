@@ -35,7 +35,7 @@ This guide shows how to create a custom time cell type using the [Moment.js](htt
 
 ## Complete Example
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps moment @handsontable/pikaday
 
 @[code](@/content/recipes/cell-types/moment-time/javascript/example1.js)
 @[code](@/content/recipes/cell-types/moment-time/javascript/example1.ts)
@@ -45,10 +45,10 @@ This guide shows how to create a custom time cell type using the [Moment.js](htt
 ## What You'll Build
 
 A cell that:
-- Displays the time value as text with a formatted value
-- Cell that accepts `timeFormat` options for cell formatting customization
-- Validates time format
-- Corrects time format if needed
+- Displays time values as formatted text
+- Accepts `timeFormat` options for customization (e.g., `HH:mm`, `h:mm:ss a`)
+- Validates time input using Moment.js
+- Auto-corrects time format when `correctFormat` is enabled
 
 ## Prerequisites
 
@@ -70,11 +70,13 @@ registerAllModules();
 ```
 
 **Why this matters:**
-- Import moment library for date formatting and validation functionality
+- `moment` handles time parsing, validation, and formatting
+- `getRenderer('text')` and `getEditor('text')` reuse Handsontable's built-in text renderer and editor
+- `registerCellType` registers the custom cell type for use in column config
 
 ## Step 2: Create the Renderer
 
-The renderer controls how the cell looks when not being edited. We use the `getRenderer` helper to get already built-in called `text` renderer.
+We reuse the built-in `text` renderer, which displays the time value as plain text:
 
 ```typescript
 renderer: getRenderer('text')
@@ -82,7 +84,7 @@ renderer: getRenderer('text')
 
 ## Step 3: Create the Validator
 
-The validator controls how the cell is validated when the user is editing a cell. We use the `moment` library to validate the time format and the time itself. We also allow the user to correct the time format if needed.
+The validator parses the input using Moment.js and checks it against the configured `timeFormat`. It handles Unix timestamps, two-digit shorthand (e.g., `9` becomes `9:00`), and auto-correction:
 
 ```typescript
 validator: function(value, callback) {
@@ -138,79 +140,28 @@ validator: function(value, callback) {
 ```
 
 **What's happening:**
-- We check if the value is null or undefined and set it to an empty string if it is
-- We validate the time format using the `moment` library
-- We validate the time itself using the `moment` library
-- We allow the user to correct the time format if needed
-- We call the callback with the validation result
+- Converts numeric-only input (3+ digits) to integers for Unix timestamp parsing
+- Appends `:00` to 1-2 digit values (e.g., `9` becomes `9:00`)
+- Tries ISO 8601 and Unix timestamp formats first, then falls back to the configured `timeFormat`
+- If `correctFormat` is enabled, auto-corrects valid but misformatted times
 
 ## Step 4: Create the Editor
 
-The editor controls how the cell is edited when the user is editing a cell. We use the `getEditor` helper to get already built-in called `text` editor.
+We reuse the built-in `text` editor — a simple text input for editing the time value:
 
 ```typescript
 editor: getEditor('text')
 ```
 
-**What's happening:**
-- We use the `getEditor` helper to get already built-in called `text` editor. It is a simple text input that allows the user to edit the time value.
-
 ## Step 5: Complete Cell Type Definition
 
-Put all the pieces together:
+Put all the pieces together and register the cell type:
 
 ```typescript
 const cellTimeTypeDefinition = {
   renderer: getRenderer('text'),
   validator: function(value, callback) {
-    const timeFormat = this.timeFormat ?? 'h:mm:ss a';
-    let valid = true;
-
-    if (value === null) {
-      value = '';
-    }
-
-    value = /^\d{3,}$/.test(value) ? parseInt(value, 10) : value;
-
-    const twoDigitValue = /^\d{1,2}$/.test(value);
-
-    if (twoDigitValue) {
-      value += ':00';
-    }
-
-    const date = moment(value, [
-      'YYYY-MM-DDTHH:mm:ss.SSSZ',
-      'X', // Unix timestamp
-      'x' // Unix ms timestamp
-    ], true).isValid() ?
-      moment(value) : moment(value, timeFormat);
-    let isValidTime = date.isValid();
-
-    // is it in the specified format
-    let isValidFormat = moment(value, timeFormat, true).isValid() && !twoDigitValue;
-
-    if (this.allowEmpty && value === '') {
-      isValidTime = true;
-      isValidFormat = true;
-    }
-    if (!isValidTime) {
-      valid = false;
-    }
-    if (!isValidTime && isValidFormat) {
-      valid = true;
-    }
-    if (isValidTime && !isValidFormat) {
-      if (this.correctFormat === true) {
-        const correctedValue = date.format(timeFormat);
-
-        this.instance.setDataAtCell(this.visualRow, this.visualCol, correctedValue, 'timeValidator');
-        valid = true;
-      } else {
-        valid = false;
-      }
-    }
-
-    callback(valid);
+    // ... validator code from Step 3
   },
   editor: getEditor('text'),
 };
@@ -219,38 +170,46 @@ registerCellType('moment-time', cellTimeTypeDefinition);
 ```
 
 **What's happening:**
-- **renderer**: Uses the build-in `text` renderer to display the time value as text
-- **validator**: Creates a custom validator that validates the time format and the time itself using the `moment` library
-- **editor**: Uses the build-in `text` editor to allow the user to edit the time value
-- **registerCellType**: Registers a new cell type called `moment-time` ready to be used in the Handsontable grid
+- **renderer**: Uses the built-in `text` renderer to display the time value
+- **validator**: Custom validator that validates and optionally corrects time format using Moment.js
+- **editor**: Uses the built-in `text` editor for simple text input
+- **registerCellType**: Registers the `moment-time` cell type for use in column config
 
 ## Step 6: Use in Handsontable
 
 ```typescript
-const container = document.querySelector('#example1')!;
+registerCellType('moment-time', cellTimeTypeDefinition);
+
 const hotOptions: Handsontable.GridSettings = {
-  data: [
-    { id: 1, itemName: 'Lunar Core', time: '09:30' },
-    { id: 2, itemName: 'Zero Thrusters', time: '14:15' },
-    { id: 3, itemName: 'EVA Suits', time: '08:00' },
-  ],
-  colHeaders: [
-    'ID',
-    'Item Name',
-    'Arrival Time',
-  ],
+  data,
+  colHeaders: ['Item Name', 'Category', 'Lead Engineer', 'Arrival Time', 'Cost'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
+  autoWrapRow: true,
+  headerClassName: 'htLeft',
   columns: [
-    { data: 'id', type: 'numeric' },
-    { data: 'itemName', type: 'text' },
+    { data: 'itemName', type: 'text', width: 130 },
+    { data: 'category', type: 'text', width: 120 },
+    { data: 'leadEngineer', type: 'text', width: 150 },
     {
-      data: 'cost',
-      type: 'moment-time', // a new cell type
+      data: 'time',
+      type: 'moment-time',
+      width: 150,
       timeFormat: 'HH:mm',
       correctFormat: true,
-    }
+    },
+    {
+      data: 'cost',
+      type: 'numeric',
+      width: 120,
+      className: 'htRight',
+      numericFormat: {
+        pattern: '$0,0.00',
+        culture: 'en-US',
+      },
+    },
   ],
   licenseKey: 'non-commercial-and-evaluation',
 };
@@ -259,13 +218,15 @@ const hot = new Handsontable(container, hotOptions);
 ```
 
 **Key configuration:**
-- `type` - sets the cell type to `moment-time`
-- `timeFormat` - the time format to use for the cell. Defaults to `HH:mm`
-- `correctFormat` - whether to correct the time format if it is not valid.
+- `type: 'moment-time'` - uses the custom cell type on the Arrival Time column
+- `timeFormat: 'HH:mm'` - the Moment.js format string for 24-hour time
+- `correctFormat: true` - automatically reformats valid times to the expected format
+- `headerClassName: 'htLeft'` - left-aligns all column headers
 
 ## How It Works - Complete Flow
 
-1. **Initial Render**: Cell displays example value with formatted value using the `moment` library
-2. **User enters time**: Time is validated and saved to cell
-3. **Validation**: Validator checks if the time format and the time itself are valid
-4. **Save**: If valid, value is saved to cell; if invalid, editor may stay open
+1. **Initial Render**: Cell displays the time value as plain text using the `text` renderer
+2. **User clicks cell**: The built-in text editor opens for editing
+3. **User enters time**: Input like `9`, `14:30`, or a Unix timestamp is accepted
+4. **Validation**: Moment.js checks the format and time validity; auto-corrects if `correctFormat` is enabled
+5. **Save**: Valid values are saved to the cell; invalid values are rejected

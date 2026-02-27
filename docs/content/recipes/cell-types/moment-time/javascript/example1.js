@@ -113,12 +113,13 @@ const data = [
     operationalStatus: 'Operational',
   },
 ];
+
 /* end:skip-in-preview */
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1');
 const cellTimeTypeDefinition = {
   renderer: getRenderer('text'),
-  validator: function(value, callback) {
+  validator(value, callback) {
     const timeFormat = this.timeFormat ?? 'h:mm:ss a';
     let valid = true;
 
@@ -134,14 +135,19 @@ const cellTimeTypeDefinition = {
       value += ':00';
     }
 
-    const date = moment(value, [
-      'YYYY-MM-DDTHH:mm:ss.SSSZ',
-      'X', // Unix timestamp
-      'x' // Unix ms timestamp
-    ], true).isValid() ?
-      moment(value) : moment(value, timeFormat);
-    let isValidTime = date.isValid();
+    const date = moment(
+      value,
+      [
+        'YYYY-MM-DDTHH:mm:ss.SSSZ',
+        'X',
+        'x', // Unix ms timestamp
+      ],
+      true
+    ).isValid()
+      ? moment(value)
+      : moment(value, timeFormat);
 
+    let isValidTime = date.isValid();
     // is it in the specified format
     let isValidFormat = moment(value, timeFormat, true).isValid() && !twoDigitValue;
 
@@ -149,12 +155,15 @@ const cellTimeTypeDefinition = {
       isValidTime = true;
       isValidFormat = true;
     }
+
     if (!isValidTime) {
       valid = false;
     }
+
     if (!isValidTime && isValidFormat) {
       valid = true;
     }
+
     if (isValidTime && !isValidFormat) {
       if (this.correctFormat === true) {
         const correctedValue = date.format(timeFormat);
@@ -176,32 +185,29 @@ registerCellType('moment-time', cellTimeTypeDefinition);
 // Define configuration options for the Handsontable
 const hotOptions = {
   data,
-  colHeaders: ['ID', 'Item Name', 'Arrival Time', 'Item Cost'],
+  colHeaders: ['Item Name', 'Category', 'Lead Engineer', 'Arrival Time', 'Cost'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
+  autoWrapRow: true,
+  headerClassName: 'htLeft',
   columns: [
-    {
-      data: 'id',
-      type: 'numeric',
-      numericFormat: {
-        pattern: '0,0',
-        culture: 'en-US',
-      },
-    },
-    {
-      data: 'itemName',
-      type: 'text',
-    },
+    { data: 'itemName', type: 'text', width: 130 },
+    { data: 'category', type: 'text', width: 120 },
+    { data: 'leadEngineer', type: 'text', width: 150 },
     {
       data: 'time',
       type: 'moment-time',
+      width: 150,
       timeFormat: 'HH:mm',
       correctFormat: true,
     },
     {
       data: 'cost',
       type: 'numeric',
+      width: 120,
+      className: 'htRight',
       numericFormat: {
         pattern: '$0,0.00',
         culture: 'en-US',

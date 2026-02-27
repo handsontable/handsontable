@@ -207,28 +207,34 @@ const cellTypeDefinition = {
 registerCellType('numbro', cellTypeDefinition);
 
 // Define configuration options for the Handsontable
-const hotOptions = {
+const hotOptions: Handsontable.GridSettings = {
   data,
-  colHeaders: ['ID', 'Item Name', 'Item Cost'],
+  colHeaders: ['Item Name', 'Category', 'Lead Engineer', 'Quantity', 'Cost'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
+  autoWrapRow: true,
+  headerClassName: 'htLeft',
   columns: [
+    { data: 'itemName', type: 'text', width: 130 },
+    { data: 'category', type: 'text', width: 120 },
+    { data: 'leadEngineer', type: 'text', width: 150 },
     {
-      data: 'id',
+      data: 'quantity',
       type: 'numbro',
+      width: 150,
+      className: 'htRight',
       numericFormat: {
         pattern: '0,0',
         culture: 'en-US',
       },
     },
     {
-      data: 'itemName',
-      type: 'text',
-    },
-    {
       data: 'cost',
       type: 'numbro',
+      width: 120,
+      className: 'htRight',
       numericFormat: {
         pattern: '$0,0.00',
         culture: 'en-US',
