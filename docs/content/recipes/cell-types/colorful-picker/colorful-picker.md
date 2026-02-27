@@ -94,7 +94,7 @@ export const ColorPickerEditor = () => {
     <EditorComponent>
       {({ value, setValue }) => (
         <div className="color-picker-editor">
-          <input className="color-picker-editor-input" value={value} />
+          <input className="color-picker-editor-input" value={value} readOnly />
           <div className="color-picker-editor-popover">
             <HexColorPicker color={value || '#000000'} onChange={(color) => setValue(color)} />
           </div>
@@ -404,7 +404,7 @@ export const ColorPickerEditor = () => {
     <EditorComponent>
       {({ value, setValue }) => (
         <div className="color-picker-editor">
-          <input className="color-picker-editor-input" value={value} />
+          <input className="color-picker-editor-input" value={value} readOnly />
           <div className="color-picker-editor-popover">
             <HexColorPicker color={value || '#000000'} onChange={(color) => setValue(color)} />
           </div>
