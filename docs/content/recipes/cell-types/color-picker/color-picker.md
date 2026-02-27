@@ -108,6 +108,14 @@ Create a separate CSS file for the cell and editor styles. This uses Handsontabl
   -webkit-appearance: none;
   appearance: none;
 }
+
+.pickr {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+}
 ```
 
 **What's happening:**

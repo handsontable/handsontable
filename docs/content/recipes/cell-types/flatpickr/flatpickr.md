@@ -221,12 +221,10 @@ Without it:
 
 ## Step 6: Editor - After Open Hook (`afterOpen`)
 
-Set the calendar display format and toggle the dark theme.
+Toggle the dark theme when the editor opens.
 
 ```typescript
 afterOpen(editor) {
-  editor.flatpickr.dateFormat = editor.cellProperties.renderFormat;
-
   const isDark = editor.hot.rootDocument.documentElement.getAttribute('data-theme') === 'dark';
   const head = editor.hot.rootDocument.head;
 
@@ -239,9 +237,8 @@ afterOpen(editor) {
 ```
 
 **What's happening:**
-1. Set Flatpickr's `dateFormat` from the cell's `renderFormat` so the calendar shows dates in the same format as the column (e.g., EU vs US)
-2. Check the current theme by reading the `data-theme` attribute on the `<html>` element
-3. Dynamically add or remove the Flatpickr dark theme stylesheet
+1. Check the current theme by reading the `data-theme` attribute on the `<html>` element
+2. Dynamically add or remove the Flatpickr dark theme stylesheet
 
 **Why dynamic theme loading?**
 - Flatpickr themes are CSS files, not runtime APIs
@@ -389,7 +386,6 @@ const cellDefinition = {
       editor._darkThemeLink.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css';
     },
     afterOpen(editor) {
-      editor.flatpickr.dateFormat = editor.cellProperties.renderFormat;
       const isDark = editor.hot.rootDocument.documentElement.getAttribute('data-theme') === 'dark';
       const head = editor.hot.rootDocument.head;
       if (isDark && !editor._darkThemeLink.parentNode) {

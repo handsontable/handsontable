@@ -109,8 +109,6 @@ const cellDefinition = {
       editor._darkThemeLink.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css';
     },
     afterOpen(editor) {
-      editor.flatpickr.dateFormat = editor.cellProperties.renderFormat;
-      
       const isDark = editor.hot.rootDocument.documentElement.getAttribute('data-theme') === 'dark';
 
       const head = editor.hot.rootDocument.head;
