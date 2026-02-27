@@ -67,7 +67,7 @@ const lines = fs.readFileSync(docsPath, 'utf8').split('\n');
 const topIdx = lines.findIndex(l => /^## /.test(l));
 
 // Does it belong to the same base version? (e.g. 16.0.0, 16.0.0-rc1, 16.0.0-rc2 all share base 16.0.0)
-const escapedBase = base.replace(/\./g, '\\.');
+const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const sameBase = topIdx !== -1 && new RegExp(`^## ${escapedBase}(-rc\\d+)?\\s*$`).test(lines[topIdx]);
 
 if (sameBase && !trimmedContent) {
