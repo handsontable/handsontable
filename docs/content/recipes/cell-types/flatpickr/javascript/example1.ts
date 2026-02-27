@@ -120,6 +120,9 @@ const cellDefinition: Pick<
       editor._darkThemeLink.rel = 'stylesheet';
       editor._darkThemeLink.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css';
     },
+    afterClose(editor) {
+      editor.flatpickr.close();
+    },
     afterOpen(editor) {
       const isDark = editor.hot.rootDocument.documentElement.getAttribute('data-theme') === 'dark';
 
@@ -130,6 +133,8 @@ const cellDefinition: Pick<
       } else if (!isDark && editor._darkThemeLink.parentNode) {
         head.removeChild(editor._darkThemeLink);
       }
+
+      editor.flatpickr.open();
     },
     beforeOpen(editor, { cellProperties }) {
       for (const key in cellProperties.flatpickrSettings) {

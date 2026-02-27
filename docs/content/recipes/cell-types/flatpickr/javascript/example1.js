@@ -121,6 +121,8 @@ const cellDefinition = {
       } else if (!isDark && editor._darkThemeLink.parentNode) {
         head.removeChild(editor._darkThemeLink);
       }
+
+      editor.flatpickr.open();
     },
     beforeOpen(editor, { cellProperties }) {
       for (const key in cellProperties.flatpickrSettings) {
