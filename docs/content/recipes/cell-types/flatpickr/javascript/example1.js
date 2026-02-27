@@ -108,6 +108,9 @@ const cellDefinition = {
       editor._darkThemeLink.rel = 'stylesheet';
       editor._darkThemeLink.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css';
     },
+    afterClose(editor) {
+      editor.flatpickr.close();
+    },
     afterOpen(editor) {
       const isDark = editor.hot.rootDocument.documentElement.getAttribute('data-theme') === 'dark';
 
