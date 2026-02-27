@@ -4,7 +4,7 @@
         padding: 0
     }
     #introduction ~ .boxes-list,
-    #open-source-software-components ~ .boxes-list
+    #open-source-software-components ~ .boxes-list,
     #handsontable-api-reference  ~ .boxes-list  {
         padding: 0
 
@@ -145,6 +145,29 @@
                         }
                     }
                 }
+            }
+        }
+    }
+
+    #open-source-software-components ~ .boxes-list,
+    #handsontable-api-reference  ~ .boxes-list  {
+        ul {
+            grid-template-columns: repeat(2, 1fr);
+
+            li {
+                flex-direction: column;
+                align-items: stretch;
+                font-size: 14px;
+                line-height: 22px;
+
+                p {
+                    font-size: 14px;
+                    line-height: 22px;
+                }
+            }
+
+            @media (max-width: $medium) {
+                grid-template-columns: repeat(1, 1fr);
             }
         }
     }
