@@ -26,6 +26,7 @@
 [![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
 [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
 [![FOSSA status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
+[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20Handsontable%20Guru-006BFF?style=for-the-badge)](https://gurubase.io/g/handsontable)
 
   <br>
 
