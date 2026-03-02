@@ -2266,18 +2266,21 @@ describe('UndoRedo', () => {
     });
   });
 
-  it('should save the undo action only if a new value is different than the previous one', async() => {
+  it('should save the undo action even if a new value is the same as the previous one', async() => {
     handsontable({
       data: createSpreadsheetData(2, 2)
     });
 
     expect(getDataAtCell(0, 0)).toBe('A1');
+
     await setDataAtCell(0, 0, 'A1');
 
-    expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
-
-    await setDataAtCell(0, 0, 'A');
     expect(getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+
+    getPlugin('undoRedo').undo();
+
+    expect(getDataAtCell(0, 0)).toBe('A1');
+    expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
   });
 
   it('should not save the undo action if old and new values are not string, number or boolean', async() => {

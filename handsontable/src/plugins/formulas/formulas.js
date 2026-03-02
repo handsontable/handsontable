@@ -948,7 +948,7 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
   #onAfterSetDataAtCell(changes, source) {
-    if (isBlockedSource(source)) {
+    if (isBlockedSource(source) || changes.length === 0) {
       return;
     }
 
