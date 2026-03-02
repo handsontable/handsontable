@@ -28,7 +28,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
-## 17.0.0-rc10
+## 17.0.0-rc11
 
 Released on March 2nd, 2026
 
@@ -69,6 +69,7 @@ For more information about this release, see:
 - Fixed a Data Factory issue in filters that could return zero results even when matches exist. [#12031](https://github.com/handsontable/handsontable/pull/12031)
 - Changed the element type for focus catchers. [#12032](https://github.com/handsontable/handsontable/pull/12032)
 - Fixed incorrect scrollbar width calculation for scaled environments. [#12035](https://github.com/handsontable/handsontable/pull/12035)
+- Fixed and issue with column headers styles [#12058](https://github.com/handsontable/handsontable/pull/12058)
 
 ## 16.2.0
 

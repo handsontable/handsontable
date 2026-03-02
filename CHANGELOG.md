@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [17.0.0-rc10] - 2026-03-02
+## [17.0.0-rc11] - 2026-03-02
 
 ### Added
 - **Breaking change**: Added the Theme API. [#11950](https://github.com/handsontable/handsontable/pull/11950)
@@ -45,6 +45,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed a Data Factory issue in filters that could return zero results even when matches exist. [#12031](https://github.com/handsontable/handsontable/pull/12031)
 - Changed the element type for focus catchers. [#12032](https://github.com/handsontable/handsontable/pull/12032)
 - Fixed incorrect scrollbar width calculation for scaled environments. [#12035](https://github.com/handsontable/handsontable/pull/12035)
+- Fixed and issue with column headers styles [#12058](https://github.com/handsontable/handsontable/pull/12058)
 
 ## [16.2.0] - 2025-11-25
 
