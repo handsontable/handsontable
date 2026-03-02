@@ -230,7 +230,7 @@ jobs:
 
           git commit -m "${RC_VERSION}" || echo "No changes to commit"
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-          git push -u origin "${RELEASE_BRANCH}" --tags
+          git push -u origin "${RELEASE_BRANCH}"
 
           # Create tag via GitHub API so it's automatically verified
           gh api repos/${{ github.repository }}/git/refs \
@@ -853,7 +853,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mono-complete
-          curl -o /tmp/nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+          curl -o /tmp/nuget.exe https://dist.nuget.org/win-x86-commandline/v7.3.0/nuget.exe
           sudo bash -c 'echo "#!/bin/bash" > /usr/local/bin/nuget && echo "exec mono /tmp/nuget.exe \"$@\"" >> /usr/local/bin/nuget && chmod +x /usr/local/bin/nuget'
 
       - name: Generate NuGet package
@@ -1028,7 +1028,7 @@ jobs:
           name: nuget_pack_${{ needs.stable-build.outputs.version }}
 
       - name: NuGet login (OIDC trusted publishing)
-        uses: NuGet/login@v1
+        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1
         id: nuget-login
         with:
           user: ${{ secrets.NUGET_USER }}
@@ -1066,6 +1066,20 @@ jobs:
 
           echo "Deleting release branch ${RELEASE_BRANCH}..."
           git push origin --delete ${RELEASE_BRANCH}
+
+      - name: Move version tag to post-merge master commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION='${{ needs.stable-build.outputs.version }}'
+          NEW_SHA=$(git rev-parse HEAD) # HEAD is master after the merge step
+
+          gh api repos/${{ github.repository }}/git/refs/tags/${VERSION} \
+            -X PATCH \
+            -f sha="$NEW_SHA" \
+            -f force=true
+
+          echo "Tag ${VERSION} updated to ${NEW_SHA} (post-merge master)"
 
       - name: Create or update docs production branch
         env:
@@ -1143,17 +1157,15 @@ jobs:
         env:
           JOB_STATUS: ${{ job.status }}
           VERSION: ${{ needs.stable-build.outputs.version }}
-          RELEASE_BRANCH: ${{ needs.stable-build.outputs.release-branch }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
           if [ "$JOB_STATUS" = "success" ]; then STATUS_FIELD=":white_check_mark: Success"; else STATUS_FIELD=":x: Failed"; fi
-          CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
+          CHANGELOG_URL="${REPO_URL}/blob/master/CHANGELOG.md"
 
           jq -n \
             --arg status        "$STATUS_FIELD" \
             --arg version       "${VERSION}" \
-            --arg branch        "${RELEASE_BRANCH}" \
             --arg repo_url      "${REPO_URL}" \
             --arg changelog_url "$CHANGELOG_URL" \
             --arg run_url       "${RUN_URL}" \
@@ -1170,7 +1182,7 @@ jobs:
                   { type: "mrkdwn", text: ("*Status*\n" + $status) },
                   { type: "mrkdwn", text: "*Type*\n📦 Stable Release" },
                   { type: "mrkdwn", text: ("*Version*\n<https://www.npmjs.com/package/handsontable/v/" + $version + "|" + $version + ">") },
-                  { type: "mrkdwn", text: ("*Branch*\n<" + $repo_url + "/tree/" + $branch + "|" + $branch + ">") }
+                  { type: "mrkdwn", text: ("*Branch*\n<" + $repo_url + "/tree/master|master>") }
                 ]
               },
               { type: "divider" },

@@ -100,6 +100,18 @@ if (sameBase && !trimmedContent) {
 } else {
   // New base version: prepend after [[toc]]
   if (!trimmedContent) {
+    // Patch release on an existing docs branch: the top entry belongs to the same
+    // major.minor line but a different patch (e.g. promoting 16.2.1 when 16.2.0 is
+    // already at the top). There is no RC-sourced content to prepend, so skip.
+    const escapedMajorMinor = majorMinor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const sameMajorMinor = topIdx !== -1 &&
+      new RegExp(`^## ${escapedMajorMinor}\\.`).test(lines[topIdx]);
+
+    if (sameMajorMinor) {
+      process.stdout.write(`Patch release ${version} — docs branch already on ${majorMinor}.x, skipping changelog prepend.\n`);
+      process.exit(0);
+    }
+
     process.stderr.write(`Error: no changelog content provided for new version ${version}.\n`);
     process.exit(1);
   }
