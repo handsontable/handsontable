@@ -359,6 +359,10 @@ const syncCommand = async(args) => {
   if (!newEntries.length) {
     console.log(`All changelog entries are already present in version ${version}.`);
 
+    if (!dryRun) {
+      await Promise.all(entryFiles.map(p => fs.unlink(p)));
+    }
+
     return;
   }
 
