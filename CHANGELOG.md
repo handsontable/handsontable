@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [17.0.0-rc8] - 2026-02-27
+## [17.0.0-rc9] - 2026-03-02
 
 ### Added
 - **Breaking change**: Added the Theme API. [#11950](https://github.com/handsontable/handsontable/pull/11950)
@@ -31,6 +31,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Removed
 - **Breaking change**: Removed deprecated wrapper packages for Angular, React, and Vue, the `PersistentState` plugin, and the legacy undo/redo methods. [#12015](https://github.com/handsontable/handsontable/pull/12015)
 - **Breaking change**: Removed `core-js` from dependencies. [#12017](https://github.com/handsontable/handsontable/pull/12017)
+- Removed the `languages` folder from git + updated the `17.0+` release workflow. [#12049](https://github.com/handsontable/handsontable/pull/12049)
 
 ### Fixed
 - Fixed errors triggered by certain keyboard shortcuts. [#11951](https://github.com/handsontable/handsontable/pull/11951)
