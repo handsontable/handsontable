@@ -110,7 +110,7 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
       const dep = dependencies[i];
 
       if (abortSignal?.aborted) {
-        break;
+        throw new AbortError();
       }
 
       // Ensure that `fixer.js` is not loaded while injecting new dependencies (with an exception for `react-colorful`).
@@ -121,8 +121,13 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
 
         if (fixerScript) {
           fixerScript.remove();
-          delete window.require;
-          delete window.exports;
+          try {
+            delete window.require;
+            delete window.exports;
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Error deleting require and exports', error);
+          }
         }
       }
 
@@ -135,11 +140,21 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
   const currentPresetPromise = globalLoadingChain.then(async() => {
     try {
       await loadPreset();
-      callback();
     } catch (err) {
       if (!(err instanceof AbortError)) {
         throw err;
       }
+
+      return;
+    }
+
+    // Execute callback separately - errors from example code should not break
+    // the loading chain for other examples on the page
+    try {
+      callback();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Example callback error:', err);
     }
   });
 
