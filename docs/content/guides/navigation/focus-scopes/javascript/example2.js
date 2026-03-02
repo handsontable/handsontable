@@ -183,10 +183,13 @@ dialogPlugin.show();
 
 const debugIntervalId = setInterval(function updateDebugInformation() {
   const examplesContainer = document.getElementById('example2container');
+
   if (!examplesContainer || hot.isDestroyed) {
     clearInterval(debugIntervalId);
+
     return;
   }
+
   const isListeningElement = examplesContainer.querySelector('.isListening');
   const focusScopeElement = examplesContainer.querySelector('.focusScope');
   const shortcutsContextElement = examplesContainer.querySelector('.shortcutsContext');

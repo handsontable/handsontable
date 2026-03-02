@@ -174,10 +174,13 @@ const hot = new Handsontable(container, {
 
 const debugIntervalId = setInterval(function updateDebugInformation() {
   const examplesContainer = document.getElementById('example1container');
+
   if (!examplesContainer || hot.isDestroyed) {
     clearInterval(debugIntervalId);
+
     return;
   }
+
   const isListeningElement = examplesContainer.querySelector('.isListening');
   const focusScopeElement = examplesContainer.querySelector('.focusScope');
   const shortcutsContextElement = examplesContainer.querySelector('.shortcutsContext');
