@@ -152,8 +152,9 @@
       }
     }
 
-    &:not(.htHorizontallyScrollableByWindow),
-    &:not(.htVerticallyScrollableByWindow) {
+    &.htPagination,
+    &.htHasScrollX:not(.htHorizontallyScrollableByWindow),
+    &.htHasScrollY:not(.htVerticallyScrollableByWindow) {
       .ht_master {
         .wtHolder {
           background-color: var(--ht-background-color);
