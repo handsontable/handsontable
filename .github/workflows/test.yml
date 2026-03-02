@@ -134,6 +134,8 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
       - run: pnpm install && pnpm -r rebuild
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "true"
 
       - name: Build
         run: |
@@ -169,6 +171,8 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
       - run: pnpm install && pnpm -r rebuild
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "true"
 
       - name: Build
         run: |
@@ -206,6 +210,8 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
       - run: pnpm install && pnpm -r rebuild
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "true"
 
       - name: Test
         run: |
@@ -231,6 +237,8 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
       - run: pnpm install && pnpm -r rebuild
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "true"
 
       - name: Test
         run: |
