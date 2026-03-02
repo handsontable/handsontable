@@ -213,6 +213,11 @@ jobs:
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
+      - name: Update docs changelog
+        env:
+          CHANGELOG_CONTENT: ${{ steps.changelog.outputs.content }}
+        run: node .github/scripts/update-docs-changelog.mjs '${{ steps.version.outputs.rc-version }}'
+
       - name: Commit and push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -225,7 +230,7 @@ jobs:
 
           git commit -m "${RC_VERSION}" || echo "No changes to commit"
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-          git push -u origin "${RELEASE_BRANCH}" --tags
+          git push -u origin "${RELEASE_BRANCH}"
 
           # Create tag via GitHub API so it's automatically verified
           gh api repos/${{ github.repository }}/git/refs \
@@ -393,6 +398,7 @@ jobs:
     if: github.event_name == 'push'
     outputs:
       rc-version: ${{ steps.rc-version.outputs.rc-version }}
+      changelog-synced: ${{ steps.sync-changelog.outputs.synced }}
     steps:
       - name: Extract version from branch name
         id: version
@@ -504,6 +510,33 @@ jobs:
           sed -i "s/${PATTERN}/## [${RC_VERSION}] - ${TODAY}/" CHANGELOG.md
           echo "Updated CHANGELOG.md: ## [${RC_VERSION}] - ${TODAY}"
 
+      - name: Sync pending changelog entries
+        id: sync-changelog
+        run: |
+          if ls .changelogs/*.json 2>/dev/null | grep -q .; then
+            npm run changelog sync < /dev/null
+            echo "synced=true" >> $GITHUB_OUTPUT
+          else
+            echo "No pending changelog entries to sync."
+            echo "synced=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
+          CONTENT=$(node .github/scripts/extract-changelog.mjs "$RC_VERSION")
+          {
+            echo "content<<EOF"
+            printf '%s\n' "$CONTENT"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Update docs changelog
+        env:
+          CHANGELOG_CONTENT: ${{ steps.changelog.outputs.content }}
+        run: node .github/scripts/update-docs-changelog.mjs '${{ steps.rc-version.outputs.rc-version }}'
+
       - name: Commit and push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -522,17 +555,6 @@ jobs:
           gh api repos/${{ github.repository }}/git/refs \
             -f ref="refs/tags/${RC_VERSION}" \
             -f sha="$(git rev-parse HEAD)"
-
-      - name: Extract changelog for this version
-        id: changelog
-        run: |
-          RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
-          CONTENT=$(node .github/scripts/extract-changelog.mjs "$RC_VERSION")
-          {
-            echo "content<<EOF"
-            printf '%s\n' "$CONTENT"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
 
       - name: Update GitHub release
         env:
@@ -655,14 +677,17 @@ jobs:
             COMMITS_TEXT="No commits found since \`${PREV_TAG}\`."
           fi
 
+          CHANGELOG_SYNCED='${{ needs.rc-build.outputs.changelog-synced }}'
+
           jq -n \
-            --arg status     "$STATUS_FIELD" \
-            --arg version    "${RC_VERSION}" \
-            --arg branch     "${BRANCH}" \
-            --arg repo_url   "${REPO_URL}" \
-            --arg prev_tag   "${PREV_TAG}" \
-            --arg commits    "$COMMITS_TEXT" \
-            --arg run_url    "${RUN_URL}" \
+            --arg status            "$STATUS_FIELD" \
+            --arg version           "${RC_VERSION}" \
+            --arg branch            "${BRANCH}" \
+            --arg repo_url          "${REPO_URL}" \
+            --arg prev_tag          "${PREV_TAG}" \
+            --arg commits           "$COMMITS_TEXT" \
+            --arg run_url           "${RUN_URL}" \
+            --arg changelog_synced  "${CHANGELOG_SYNCED}" \
           '{
             text: ("🚀 Pre-release " + $version + " generated – " + $status),
             blocks: [
@@ -684,6 +709,12 @@ jobs:
                 type: "section",
                 text: { type: "mrkdwn", text: ("*📋 Commits since `" + $prev_tag + "`*\n" + $commits) }
               },
+              if $changelog_synced == "true" then
+                {
+                  type: "context",
+                  elements: [{ type: "mrkdwn", text: "❗ *Changelog extended with new entries!*" }]
+                }
+              else empty end,
               { type: "divider" },
               {
                 type: "section",
@@ -822,7 +853,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mono-complete
-          curl -o /tmp/nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+          curl -o /tmp/nuget.exe https://dist.nuget.org/win-x86-commandline/v7.3.0/nuget.exe
           sudo bash -c 'echo "#!/bin/bash" > /usr/local/bin/nuget && echo "exec mono /tmp/nuget.exe \"$@\"" >> /usr/local/bin/nuget && chmod +x /usr/local/bin/nuget'
 
       - name: Generate NuGet package
@@ -997,7 +1028,7 @@ jobs:
           name: nuget_pack_${{ needs.stable-build.outputs.version }}
 
       - name: NuGet login (OIDC trusted publishing)
-        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1.1.0
+        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1.0.0
         id: nuget-login
         with:
           user: ${{ secrets.NUGET_USER }}
@@ -1036,6 +1067,20 @@ jobs:
           echo "Deleting release branch ${RELEASE_BRANCH}..."
           git push origin --delete ${RELEASE_BRANCH}
 
+      - name: Move version tag to post-merge master commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION='${{ needs.stable-build.outputs.version }}'
+          NEW_SHA=$(git rev-parse HEAD) # HEAD is master after the merge step
+
+          gh api repos/${{ github.repository }}/git/refs/tags/${VERSION} \
+            -X PATCH \
+            -f sha="$NEW_SHA" \
+            -F force=true
+
+          echo "Tag ${VERSION} updated to ${NEW_SHA} (post-merge master)"
+
       - name: Create or update docs production branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1066,6 +1111,9 @@ jobs:
               exit 1
             fi
           fi
+
+      - name: Update docs changelog
+        run: node .github/scripts/update-docs-changelog.mjs '${{ needs.stable-build.outputs.version }}'
 
       - name: Regenerate docs API and legacy versions
         run: |
@@ -1109,17 +1157,15 @@ jobs:
         env:
           JOB_STATUS: ${{ job.status }}
           VERSION: ${{ needs.stable-build.outputs.version }}
-          RELEASE_BRANCH: ${{ needs.stable-build.outputs.release-branch }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
           if [ "$JOB_STATUS" = "success" ]; then STATUS_FIELD=":white_check_mark: Success"; else STATUS_FIELD=":x: Failed"; fi
-          CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
+          CHANGELOG_URL="${REPO_URL}/blob/master/CHANGELOG.md"
 
           jq -n \
             --arg status        "$STATUS_FIELD" \
             --arg version       "${VERSION}" \
-            --arg branch        "${RELEASE_BRANCH}" \
             --arg repo_url      "${REPO_URL}" \
             --arg changelog_url "$CHANGELOG_URL" \
             --arg run_url       "${RUN_URL}" \
@@ -1136,7 +1182,7 @@ jobs:
                   { type: "mrkdwn", text: ("*Status*\n" + $status) },
                   { type: "mrkdwn", text: "*Type*\n📦 Stable Release" },
                   { type: "mrkdwn", text: ("*Version*\n<https://www.npmjs.com/package/handsontable/v/" + $version + "|" + $version + ">") },
-                  { type: "mrkdwn", text: ("*Branch*\n<" + $repo_url + "/tree/" + $branch + "|" + $branch + ">") }
+                  { type: "mrkdwn", text: ("*Branch*\n<" + $repo_url + "/tree/master|master>") }
                 ]
               },
               { type: "divider" },
