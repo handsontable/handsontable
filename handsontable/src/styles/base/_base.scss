@@ -146,11 +146,11 @@
       }
     }
 
-    &.htPagination,
-    &.htHasScrollX,
-    &.htHasScrollY {
-      &:not(.htHorizontallyScrollableByWindow),
-      &:not(.htVerticallyScrollableByWindow) {
+    &:not(.htHorizontallyScrollableByWindow),
+    &:not(.htVerticallyScrollableByWindow) {
+      &.htPagination,
+      &.htHasScrollX,
+      &.htHasScrollY {
         .ht_master {
           .wtHolder {
             background-color: var(--ht-background-color);
