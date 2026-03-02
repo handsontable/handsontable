@@ -1077,7 +1077,7 @@ jobs:
           gh api repos/${{ github.repository }}/git/refs/tags/${VERSION} \
             -X PATCH \
             -f sha="$NEW_SHA" \
-            -f force=true
+            -F force=true
 
           echo "Tag ${VERSION} updated to ${NEW_SHA} (post-merge master)"
 
