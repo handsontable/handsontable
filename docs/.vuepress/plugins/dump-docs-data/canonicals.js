@@ -24,7 +24,8 @@ async function generateCommonCanonicalURLs(currentCanonicals) {
     headers: fetchCommonHeaders
   });
   const docsData = await response.json();
-  const allDocsVersions = [...docsData.versions];
+  const allDocsVersions = [...docsData.versions].filter(version => version !== '17.0'); // TEMPORARY: exclude 17.0 version
+
   const latestDocsVersion = currentCanonicals.v === 'next' ? 'next' : docsData.latestVersion;
 
   if (!allDocsVersions.includes(currentCanonicals.v)) {
