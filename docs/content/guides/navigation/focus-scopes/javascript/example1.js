@@ -172,15 +172,19 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-function updateDebugInformation() {
+const debugIntervalId = setInterval(function updateDebugInformation() {
   const examplesContainer = document.getElementById('example1container');
+  if (!examplesContainer || hot.isDestroyed) {
+    clearInterval(debugIntervalId);
+    return;
+  }
   const isListeningElement = examplesContainer.querySelector('.isListening');
   const focusScopeElement = examplesContainer.querySelector('.focusScope');
   const shortcutsContextElement = examplesContainer.querySelector('.shortcutsContext');
 
-  isListeningElement.textContent = `${hot.isListening()}`;
-  focusScopeElement.textContent = `${hot.getFocusScopeManager().getActiveScopeId()}`;
-  shortcutsContextElement.textContent = `${hot.getShortcutManager().getActiveContextName()}`;
-}
-
-setInterval(updateDebugInformation, 200);
+  if (isListeningElement && focusScopeElement && shortcutsContextElement) {
+    isListeningElement.textContent = `${hot.isListening()}`;
+    focusScopeElement.textContent = `${hot.getFocusScopeManager().getActiveScopeId()}`;
+    shortcutsContextElement.textContent = `${hot.getShortcutManager().getActiveContextName()}`;
+  }
+}, 200);
