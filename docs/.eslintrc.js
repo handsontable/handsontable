@@ -11,6 +11,10 @@ module.exports = {
     '**/guides/**/*.jsx',
     '**/guides/**/*.tsx',
     '**/public/scripts/prebuilt-umd/*.*',
+    '**/recipes/**/*.js',
+    '**/recipes/**/*.ts',
+    '**/recipes/**/*.jsx',
+    '**/recipes/**/*.tsx',
   ],
   rules: {
     'no-restricted-globals': 'off',
@@ -26,10 +30,16 @@ module.exports = {
       }
     },
     {
-      files: ['SvgFrameworkIcons.vue'],
+      files: ['SvgFrameworkIcons.vue', 'Navbar.vue', '.vuepress/3rdparty-scripts.js', 'CopyMarkdown.vue'],
       rules: {
         'max-len': 'off'
       }
-    }
+    },
+    {
+      files: ['content/recipes/**/*.ts', 'content/recipes/**/*.tsx'],
+      rules: {
+        'no-undef': 'off'
+      }
+    }    
   ]
 };

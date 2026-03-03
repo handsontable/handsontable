@@ -1,4 +1,5 @@
 import { BasePlugin } from '../base';
+import { throwWithCause } from '../../helpers/errors';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 
@@ -41,7 +42,7 @@ export const PLUGIN_PRIORITY = 240;
  *   columnHeaders: true,        // default false
  *   rowHeaders: true,           // default false
  *   columnDelimiter: ';',       // default ','
- *   range: [1, 1, 6, 6]         // [startRow, endRow, startColumn, endColumn]
+ *   range: [1, 1, 6, 6]         // [startRow, startColumn, endRow, endColumn]
  * });
  * ```
  * :::
@@ -77,7 +78,7 @@ export const PLUGIN_PRIORITY = 240;
  *   columnHeaders: true,        // default false
  *   rowHeaders: true,           // default false
  *   columnDelimiter: ';',       // default ','
- *   range: [1, 1, 6, 6]         // [startRow, endRow, startColumn, endColumn]
+ *   range: [1, 1, 6, 6]         // [startRow, startColumn, endRow, endColumn]
  * });
  * ```
  * :::
@@ -96,7 +97,7 @@ export const PLUGIN_PRIORITY = 240;
  *   standalone: true,
  *   imports: [HotTableModule],
  *   template: ` <div>
- *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *     <hot-table [settings]="gridSettings" />
  *   </div>`,
  * })
  * export class ExampleComponent implements AfterViewInit {
@@ -129,7 +130,7 @@ export const PLUGIN_PRIORITY = 240;
  *       columnHeaders: true, // default false
  *       rowHeaders: true, // default false
  *       columnDelimiter: ";", // default ','
- *       range: [1, 1, 6, 6], // [startRow, endRow, startColumn, endColumn]
+ *       range: [1, 1, 6, 6], // [startRow, startColumn, endRow, endColumn]
  *     });
  *   }
  *
@@ -160,23 +161,23 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
-   * @typedef ExportOptions
-   * @memberof ExportFile
-   * @type {object}
-   * @property {boolean} [exportHiddenRows=false] Include hidden rows in the exported file.
-   * @property {boolean} [exportHiddenColumns=false] Include hidden columns in the exported file.
-   * @property {boolean} [columnHeaders=false] Include column headers in the exported file.
-   * @property {boolean} [rowHeaders=false] Include row headers in the exported file.
-   * @property {string} [columnDelimiter=','] Column delimiter.
-   * @property {string} [range=[]] Cell range that will be exported to file.
-   * @property {boolean|RegExp|Function} [sanitizeValues=false] Controls the sanitization of cell value.
-   */
-
-  /**
    * Exports table data as a string.
    *
    * @param {string} format Export format type eq. `'csv'`.
-   * @param {ExportOptions} options Export options.
+   * @param {object} options Export options.
+   * @param {string} [options.mimeType] MIME type (e.g. `'text/csv'` for CSV). Default depends on format.
+   * @param {string} [options.fileExtension] File extension (e.g. `'csv'`). Default depends on format.
+   * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name. Placeholders `[YYYY]`, `[MM]`, `[DD]` are replaced with the current date.
+   * @param {string} [options.encoding='utf-8'] Character encoding.
+   * @param {boolean} [options.bom] Include BOM signature. Default depends on format (e.g. `true` for CSV).
+   * @param {string} [options.columnDelimiter=','] Column delimiter (CSV).
+   * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV).
+   * @param {boolean} [options.columnHeaders=false] Include column headers in the exported file.
+   * @param {boolean} [options.rowHeaders=false] Include row headers in the exported file.
+   * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns in the exported file.
+   * @param {boolean} [options.exportHiddenRows=false] Include hidden rows in the exported file.
+   * @param {number[]} [options.range=[]] Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes).
+   * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (e.g. CSV injection).
    * @returns {string}
    */
   exportAsString(format, options = {}) {
@@ -187,7 +188,20 @@ export class ExportFile extends BasePlugin {
    * Exports table data as a blob object.
    *
    * @param {string} format Export format type eq. `'csv'`.
-   * @param {ExportOptions} options Export options.
+   * @param {object} options Export options.
+   * @param {string} [options.mimeType] MIME type (e.g. `'text/csv'` for CSV). Default depends on format.
+   * @param {string} [options.fileExtension] File extension (e.g. `'csv'`). Default depends on format.
+   * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name. Placeholders `[YYYY]`, `[MM]`, `[DD]` are replaced with the current date.
+   * @param {string} [options.encoding='utf-8'] Character encoding.
+   * @param {boolean} [options.bom] Include BOM signature. Default depends on format (e.g. `true` for CSV).
+   * @param {string} [options.columnDelimiter=','] Column delimiter (CSV).
+   * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV).
+   * @param {boolean} [options.columnHeaders=false] Include column headers in the exported file.
+   * @param {boolean} [options.rowHeaders=false] Include row headers in the exported file.
+   * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns in the exported file.
+   * @param {boolean} [options.exportHiddenRows=false] Include hidden rows in the exported file.
+   * @param {number[]} [options.range=[]] Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes).
+   * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (e.g. CSV injection).
    * @returns {Blob}
    */
   exportAsBlob(format, options = {}) {
@@ -198,7 +212,20 @@ export class ExportFile extends BasePlugin {
    * Exports table data as a downloadable file.
    *
    * @param {string} format Export format type eg. `'csv'`.
-   * @param {ExportOptions} options Export options.
+   * @param {object} options Export options.
+   * @param {string} [options.mimeType] MIME type (e.g. `'text/csv'` for CSV). Default depends on format.
+   * @param {string} [options.fileExtension] File extension (e.g. `'csv'`). Default depends on format.
+   * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name. Placeholders `[YYYY]`, `[MM]`, `[DD]` are replaced with the current date.
+   * @param {string} [options.encoding='utf-8'] Character encoding.
+   * @param {boolean} [options.bom] Include BOM signature. Default depends on format (e.g. `true` for CSV).
+   * @param {string} [options.columnDelimiter=','] Column delimiter (CSV).
+   * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV).
+   * @param {boolean} [options.columnHeaders=false] Include column headers in the exported file.
+   * @param {boolean} [options.rowHeaders=false] Include row headers in the exported file.
+   * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns in the exported file.
+   * @param {boolean} [options.exportHiddenRows=false] Include hidden rows in the exported file.
+   * @param {number[]} [options.range=[]] Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes).
+   * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (e.g. CSV injection).
    */
   downloadFile(format, options = {}) {
     const { rootDocument, rootWindow } = this.hot;
@@ -233,12 +260,25 @@ export class ExportFile extends BasePlugin {
    *
    * @private
    * @param {string} format Export format type eq. `'csv'`.
-   * @param {ExportOptions} options Export options.
+   * @param {object} options Export options.
+   * @param {string} [options.mimeType] MIME type (e.g. `'text/csv'` for CSV). Default depends on format.
+   * @param {string} [options.fileExtension] File extension (e.g. `'csv'`). Default depends on format.
+   * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name. Placeholders `[YYYY]`, `[MM]`, `[DD]` are replaced with the current date.
+   * @param {string} [options.encoding='utf-8'] Character encoding.
+   * @param {boolean} [options.bom] Include BOM signature. Default depends on format (e.g. `true` for CSV).
+   * @param {string} [options.columnDelimiter=','] Column delimiter (CSV).
+   * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV).
+   * @param {boolean} [options.columnHeaders=false] Include column headers in the exported file.
+   * @param {boolean} [options.rowHeaders=false] Include row headers in the exported file.
+   * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns in the exported file.
+   * @param {boolean} [options.exportHiddenRows=false] Include hidden rows in the exported file.
+   * @param {number[]} [options.range=[]] Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes).
+   * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (e.g. CSV injection).
    * @returns {BaseType}
    */
   _createTypeFormatter(format, options = {}) {
     if (!EXPORT_TYPES[format]) {
-      throw new Error(`Export format type "${format}" is not supported.`);
+      throwWithCause(`Export format type "${format}" is not supported.`);
     }
 
     return typeFactory(format, new DataProvider(this.hot), options);
@@ -248,7 +288,7 @@ export class ExportFile extends BasePlugin {
    * Creates blob object based on provided type formatter class.
    *
    * @private
-   * @param {BaseType} typeFormatter The instance of the specyfic formatter/exporter.
+   * @param {BaseType} typeFormatter The instance of the specific formatter/exporter.
    * @returns {Blob}
    */
   _createBlob(typeFormatter) {

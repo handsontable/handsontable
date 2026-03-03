@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -110,9 +108,7 @@ const data = [
 ];
 
 const container = document.querySelector('#example3');
-
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   pagination: {
     pageSize: 25,
@@ -222,23 +218,18 @@ function updateUI() {
 
 updateUI();
 hot.addHook('afterPageChange', updateUI);
-
 firstPageElement.addEventListener('click', () => {
   paginationPlugin.firstPage();
 });
-
 prevPageElement.addEventListener('click', () => {
   paginationPlugin.prevPage();
 });
-
 nextPageElement.addEventListener('click', () => {
   paginationPlugin.nextPage();
 });
-
 lastPageElement.addEventListener('click', () => {
   paginationPlugin.lastPage();
 });
-
 pageNumberElement.addEventListener('input', (event) => {
   const pageNumber = parseInt(event.target.value, 10);
 

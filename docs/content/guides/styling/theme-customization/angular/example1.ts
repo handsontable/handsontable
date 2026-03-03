@@ -46,6 +46,7 @@ import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 /* start:skip-in-compilation */
 import { Example1DemoComponent } from './app.component';
 /* end:skip-in-compilation */
+import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -55,7 +56,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
+        theme: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig
     }

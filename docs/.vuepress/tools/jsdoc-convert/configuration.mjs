@@ -410,19 +410,6 @@ export default {
         metaTitle: 'Pagination - Angular Data Grid | Handsontable',
       },
     },
-    'PersistentState.md': {
-      id: 'eh8nz1kw',
-      metaTitle: 'PersistentState - JavaScript Data Grid | Handsontable',
-      description: 'Use the PersistentState plugin with its API options and methods to keep the state of column sorting, column positions, and column sizes between page reloads.',
-      react: {
-        id: '8he28jcj',
-        metaTitle: 'PersistentState - React Data Grid | Handsontable',
-      },
-      angular: {
-        id: 'e9x0g8ab',
-        metaTitle: 'PersistentState - Angular Data Grid | Handsontable',
-      },
-    },
     'Search.md': {
       id: '4r6t4j1z',
       metaTitle: 'Search - JavaScript Data Grid | Handsontable',
@@ -564,6 +551,32 @@ export default {
       angular: {
         id: 'p8i1r9wx',
         metaTitle: 'ShortcutManager - Angular Data Grid | Handsontable',
+      },
+    },
+    'createFocusScopeManager.md': {
+      id: 's7s2ynzo',
+      metaTitle: 'createFocusScopeManager - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s createFocusScopeManager API.',
+      react: {
+        id: 'z2jlexbv',
+        metaTitle: 'createFocusScopeManager - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: '94anm50w',
+        metaTitle: 'createFocusScopeManager - Angular Data Grid | Handsontable',
+      },
+    },
+    'FocusScopeManager.md': {
+      id: 'yqlpna1z',
+      metaTitle: 'FocusScopeManager - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s ShortcutManager API.',
+      react: {
+        id: '1jvf0v47',
+        metaTitle: 'FocusScopeManager - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: '0zo4k7a5',
+        metaTitle: 'FocusScopeManager - Angular Data Grid | Handsontable',
       },
     },
     'DataMap.md': {
@@ -733,6 +746,45 @@ export default {
       angular: {
         id: 'c5v4e2wx',
         metaTitle: 'EventManager - Angular Data Grid | Handsontable',
+      },
+    },
+    'Dialog.md': {
+      id: 'fk91r7t',
+      metaTitle: 'Dialog - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s Dialog API.',
+      react: {
+        id: '5j79k2r2',
+        metaTitle: 'Dialog - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'c5v4e21x',
+        metaTitle: 'Dialog - Angular Data Grid | Handsontable',
+      },
+    },
+    'Loading.md': {
+      id: 'h2m8p4v9',
+      metaTitle: 'Loading - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s Loading API.',
+      react: {
+        id: 'n6k3b8r4',
+        metaTitle: 'Loading - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'w7t5x9q2',
+        metaTitle: 'Loading - Angular Data Grid | Handsontable',
+      },
+    },
+    'EmptyDataState.md': {
+      id: '4k5m6n7o',
+      metaTitle: 'EmptyDataState - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s EmptyDataState API.',
+      react: {
+        id: '2l3m4n5o',
+        metaTitle: 'EmptyDataState - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'x8y9z0a1',
+        metaTitle: 'EmptyDataState - Angular Data Grid | Handsontable',
       },
     },
   }

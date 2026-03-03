@@ -2,7 +2,7 @@
 id: 1k7arh9z
 title: Migrating from 15.3 to 16.0
 metaTitle: Migrating from 15.3 to 16.0 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 15.3 to Handsontable 16.0, released on [].
+description: Migrate from Handsontable 15.3 to Handsontable 16.0, released on [09/07/2025].
 permalink: /migration-from-15.3-to-16.0
 canonicalUrl: /migration-from-15.3-to-16.0
 pageClass: migration-guide
@@ -20,7 +20,8 @@ category: Upgrade and migration
 
 Migrate from Handsontable 15.3 to Handsontable 16.0, released on 09/07/2025.
 
-More information about this release can be found in the [`16.0.0` release blog post](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements]).
+More information about this release can be found in the [`16.0.0` release blog post](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements).<br/>
+For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_16-0-0).
 
 [[toc]]
 
@@ -53,7 +54,7 @@ body
 │        ├── .ht-wrapper.handsontable // Root Container
 │        │   └── Data grid content
 │        ├── .htFocusCatcher // Focus Catcher (down)
-│        ├── .hot-display-license-info // License key notification bar
+│        └── .hot-display-license-info // License key notification bar
 └── .ht-portal // Portal Element
     └── Context menus, dropdowns, pop-ups, sidebars
         (absolutely positioned elements)
@@ -386,7 +387,6 @@ Ensure you're importing the correct CSS files for themes.
 
 **CSS imports (same for both wrappers):**
 ```scss
-@import 'handsontable/styles/handsontable.min.css';
 @import 'handsontable/styles/ht-theme-main.min.css';
 ```
 

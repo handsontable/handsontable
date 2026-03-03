@@ -61,6 +61,7 @@ export interface Events {
   afterColumnFreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
   afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
+  afterColumnSequenceCacheUpdate?: (indexesChangesState: { indexesSequenceChanged: boolean, trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean }) => void;
   afterColumnSequenceChange?: (source: 'init' | 'move' | 'insert' | 'remove' | 'update') => void;
   afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void;
   afterColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void;
@@ -68,6 +69,17 @@ export interface Events {
   afterContextMenuHide?: (context: ContextMenu) => void;
   afterContextMenuShow?: (context: ContextMenu) => void;
   afterCopy?: (data: CellValue[][], coords: RangeType[], copiedHeadersCount: { columnHeadersCount: number }) => void;
+  afterDialogFocus?: (focusSource: 'tab_from_above' | 'tab_from_below' | 'click' | 'show') => void;
+  afterDialogHide?: () => void;
+  afterDialogShow?: () => void;
+  beforeLoadingShow?: () => boolean | void;
+  afterLoadingShow?: () => void;
+  beforeLoadingHide?: () => boolean | void;
+  afterLoadingHide?: () => void;
+  beforeEmptyDataStateShow?: () => void;
+  afterEmptyDataStateShow?: () => void;
+  beforeEmptyDataStateHide?: () => void;
+  afterEmptyDataStateHide?: () => void;
   afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
   afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
   afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
@@ -124,6 +136,7 @@ export interface Events {
   afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
+  afterRowSequenceCacheUpdate?: (indexesChangesState: { indexesSequenceChanged: boolean, trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean }) => void;
   afterRowSequenceChange?: (source: 'init' | 'move' | 'insert' | 'remove' | 'update') => void;
   afterScrollHorizontally?: () => void;
   afterScrollVertically?: () => void;
@@ -178,6 +191,8 @@ export interface Events {
   beforeContextMenuShow?: (context: ContextMenu) => void;
   beforeCopy?: (data: CellValue[][], coords: RangeType[], copiedHeadersCount: { columnHeadersCount: number }) => void | boolean;
   beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
+  beforeDialogHide?: () => void;
+  beforeDialogShow?: () => void;
   beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
@@ -244,6 +259,8 @@ export interface Events {
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
   beforeWidthChange?: (width: number | string) => number | string;
   construct?: () => void;
+  dialogFocusNextElement?: () => void;
+  dialogFocusPreviousElement?: () => void;
   init?: () => void;
   modifyAutoColumnSizeSeed?: (seed: string, cellProperties: CellProperties, cellValue: CellValue) => string | void;
   modifyAutofillRange?: (startArea: Array<[number, number, number, number]>, entireArea: Array<[number, number, number, number]>) => void;
@@ -267,9 +284,6 @@ export interface Events {
   modifyTransformEnd?: (delta: CellCoords) => void;
   modifyTransformFocus?: (delta: CellCoords) => void;
   modifyTransformStart?: (delta: CellCoords) => void;
-  persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
-  persistentStateReset?: (key: string) => void;
-  persistentStateSave?: (key: string, value: any) => void;
 }
 
 export class Hooks {

@@ -386,7 +386,7 @@ describe('HiddenRows', () => {
 
           expect($backlight.offset().top).toBe($headerTH.offset().top);
           expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
-            classic.toBe(23);
+            classic.toBe(26);
             main.toBe(29);
             horizon.toBe(37);
           });
@@ -421,7 +421,7 @@ describe('HiddenRows', () => {
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
           expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
-            classic.toBe(69); // 23 * 3
+            classic.toBe(78); // 26 * 3
             main.toBe(87); // 29 * 3
             horizon.toBe(111); // 37 * 3
           });
@@ -448,7 +448,7 @@ describe('HiddenRows', () => {
 
           expect($backlight.offset().top).toBe($headerTH.offset().top);
           expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
-            classic.toBe(23);
+            classic.toBe(26);
             main.toBe(29);
             horizon.toBe(37);
           });
@@ -483,7 +483,7 @@ describe('HiddenRows', () => {
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
           expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
-            classic.toBe(69); // 23 * 3
+            classic.toBe(78); // 26 * 3
             main.toBe(87); // 29 * 3
             horizon.toBe(111); // 37 * 3
           });
@@ -521,7 +521,7 @@ describe('HiddenRows', () => {
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
           expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-            classic.toBe($secondHeaderTH.offset().top - 2);
+            classic.toBe($secondHeaderTH.offset().top - 1);
             main.toBe($secondHeaderTH.offset().top - 1);
             horizon.toBe($secondHeaderTH.offset().top - 1);
           });
@@ -556,7 +556,7 @@ describe('HiddenRows', () => {
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
           expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-            classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+            classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
             main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
             horizon.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
           });
@@ -592,7 +592,7 @@ describe('HiddenRows', () => {
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
           expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-            classic.toBe($secondHeaderTH.offset().top - 2);
+            classic.toBe($secondHeaderTH.offset().top - 1);
             main.toBe($secondHeaderTH.offset().top - 1);
             horizon.toBe($secondHeaderTH.offset().top - 1);
           });
@@ -627,7 +627,7 @@ describe('HiddenRows', () => {
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
           expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-            classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+            classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
             main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
             horizon.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
           });

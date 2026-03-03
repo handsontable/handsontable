@@ -44,10 +44,12 @@ export function init() {
         bottom: {
           width: 3,
           color: "red",
+          style: "dashed",
         },
         right: {
           width: 3,
           color: "magenta",
+          style: "dashed",
         },
       },
       {
@@ -64,10 +66,12 @@ export function init() {
         top: {
           width: 2,
           color: "magenta",
+          style: "dotted",
         },
         left: {
           width: 2,
           color: "blue",
+          style: "dotted",
         },
         bottom: {
           width: 2,

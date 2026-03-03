@@ -1,6 +1,6 @@
 describe('manualRowResize', () => {
   const id = 'test';
-  const defaultRowHeight = 22;
+  const defaultRowHeight = getDefaultRowHeight();
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -20,7 +20,7 @@ describe('manualRowResize', () => {
     });
 
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(51);
+      classic.toEqual(50);
       main.toEqual(50);
       horizon.toEqual(50);
     });
@@ -52,15 +52,15 @@ describe('manualRowResize', () => {
       manualRowResize: true
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2); // + Double border
-    expect(rowHeight(spec().$container, 1)).toEqual(defaultRowHeight + 1); // + Single border
-    expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1); // + Single border
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1); // + Single border
+    expect(rowHeight(spec().$container, 1)).toEqual(defaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight);
 
     await updateSettings({
       manualRowResize: [60, 50, 80]
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(61);
+    expect(rowHeight(spec().$container, 0)).toEqual(60);
     expect(rowHeight(spec().$container, 1)).toEqual(50);
     expect(rowHeight(spec().$container, 2)).toEqual(80);
   });
@@ -111,7 +111,7 @@ describe('manualRowResize', () => {
     });
 
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(61); // not sure if correct?
+      classic.toEqual(60);
       main.toEqual(60);
       horizon.toEqual(60);
     });
@@ -123,9 +123,9 @@ describe('manualRowResize', () => {
     });
 
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(31);
+      classic.toEqual(30);
       main.toEqual(30);
-      horizon.toEqual(37);
+      horizon.toEqual(38);
     });
     expect(rowHeight(spec().$container, 1)).toEqual(80);
     expect(rowHeight(spec().$container, 2)).toEqual(100);
@@ -137,7 +137,7 @@ describe('manualRowResize', () => {
     });
 
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(61);
+      classic.toEqual(60);
       main.toEqual(60);
       horizon.toEqual(60);
     });
@@ -149,7 +149,7 @@ describe('manualRowResize', () => {
     });
 
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(61);
+      classic.toEqual(60);
       main.toEqual(60);
       horizon.toEqual(60);
     });
@@ -162,7 +162,7 @@ describe('manualRowResize', () => {
       manualRowResize: [60, 50, 80]
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(61);
+    expect(rowHeight(spec().$container, 0)).toEqual(60);
     expect(rowHeight(spec().$container, 1)).toEqual(50);
     expect(rowHeight(spec().$container, 2)).toEqual(80);
 
@@ -170,9 +170,9 @@ describe('manualRowResize', () => {
       manualRowResize: undefined
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2); // + Double border
-    expect(rowHeight(spec().$container, 1)).toEqual(defaultRowHeight + 1); // + Single border
-    expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1); // + Single border
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1); // + Single border
+    expect(rowHeight(spec().$container, 1)).toEqual(defaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight);
   });
 
   it.forTheme('main')('should change the row height to defaults when undefined is passed', async() => {
@@ -220,17 +220,17 @@ describe('manualRowResize', () => {
       manualRowResize: true
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
-    expect(rowHeight(spec().$container, 1)).toEqual(defaultRowHeight + 1);
-    expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 1)).toEqual(defaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight);
 
     await updateSettings({
       manualRowResize: true
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
-    expect(rowHeight(spec().$container, 1)).toEqual(defaultRowHeight + 1);
-    expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 1)).toEqual(defaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight);
   });
 
   it.forTheme('main')('should reset row height', async() => {
@@ -278,16 +278,16 @@ describe('manualRowResize', () => {
       manualRowResize: [undefined, undefined, 120]
     });
 
-    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
-    expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight);
     expect(rowHeight(spec().$container, 2)).toBe(120);
-    expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight);
 
     await alter('insert_row_above', 0);
 
-    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
-    expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight + 1);
-    expect(rowHeight(spec().$container, 2)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toBe(defaultRowHeight);
     expect(rowHeight(spec().$container, 3)).toBe(120);
   });
 
@@ -336,17 +336,17 @@ describe('manualRowResize', () => {
       manualRowResize: [undefined, undefined, 120]
     });
 
-    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
-    expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight);
     expect(rowHeight(spec().$container, 2)).toBe(120);
-    expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight);
 
     await alter('remove_row', 0);
 
-    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 1);
     expect(rowHeight(spec().$container, 1)).toBe(120);
-    expect(rowHeight(spec().$container, 2)).toBe(defaultRowHeight + 1);
-    expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 2)).toBe(defaultRowHeight);
+    expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight);
   });
 
   it.forTheme('main')('should keep proper row heights after removing row', async() => {
@@ -399,12 +399,12 @@ describe('manualRowResize', () => {
       beforeRowResize: beforeRowResizeCallback
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
 
     await resizeRow(0, 100);
 
     expect(beforeRowResizeCallback).toHaveBeenCalledWith(100, 0, false);
-    expect(rowHeight(spec().$container, 0)).toEqual(101);
+    expect(rowHeight(spec().$container, 0)).toEqual(100);
   });
 
   it.forTheme('main')('should trigger beforeRowResize event after row height changes', async() => {
@@ -453,7 +453,7 @@ describe('manualRowResize', () => {
     });
 
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(24);
+      classic.toEqual(27);
       main.toEqual(30);
       horizon.toEqual(38);
     });
@@ -474,7 +474,7 @@ describe('manualRowResize', () => {
     await sleep(700);
 
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(201);
+      classic.toEqual(200);
       main.toEqual(200);
       horizon.toEqual(200);
     });
@@ -490,11 +490,11 @@ describe('manualRowResize', () => {
       afterRowResize: afterRowResizeCallback
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
 
     await resizeRow(0, 100);
     expect(afterRowResizeCallback).toHaveBeenCalledWith(100, 0, false);
-    expect(rowHeight(spec().$container, 0)).toEqual(101);
+    expect(rowHeight(spec().$container, 0)).toEqual(100);
   });
 
   it.forTheme('main')('should trigger afterRowResize event after row height changes', async() => {
@@ -544,11 +544,11 @@ describe('manualRowResize', () => {
       afterRowResize: afterRowResizeCallback
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
 
-    await resizeRow(0, defaultRowHeight + 2);
+    await resizeRow(0, defaultRowHeight + 1);
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
   });
 
   it.forTheme('main')(`should not trigger afterRowResize event if row height
@@ -600,7 +600,7 @@ describe('manualRowResize', () => {
       afterRowResize: afterRowResizeCallback
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
 
     const $th = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
 
@@ -612,7 +612,7 @@ describe('manualRowResize', () => {
     await simulateClick($resizer, { clientY: resizerPosition.top });
 
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
   });
 
   it.forTheme('main')(`should not trigger afterRowResize event after if row height does not change
@@ -680,7 +680,7 @@ describe('manualRowResize', () => {
       afterRowResize: afterRowResizeCallback
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
 
     const $th = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
 
@@ -694,8 +694,8 @@ describe('manualRowResize', () => {
 
     expect(afterRowResizeCallback.calls.count()).toEqual(1);
     expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
-    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(defaultRowHeight + 1);
-    expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
+    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(defaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight);
   });
 
   it.forTheme('main')('should trigger an afterRowResize after row size changes, after double click', async() => {
@@ -788,7 +788,7 @@ describe('manualRowResize', () => {
       await sleep(1000);
 
       expect($rowHeaders.eq(0).height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
+        classic.toBe(25);
         main.toBe(28);
         horizon.toBe(36);
       });
@@ -809,12 +809,12 @@ describe('manualRowResize', () => {
       await sleep(1000);
 
       expect($rowHeaders.eq(0).height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
+        classic.toBe(25);
         main.toBe(28);
         horizon.toBe(36);
       });
       expect($rowHeaders.eq(1).height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(42);
+        classic.toBe(46);
         main.toBe(48);
         horizon.toBe(56);
       });
@@ -835,7 +835,7 @@ describe('manualRowResize', () => {
       afterRowResize: afterRowResizeCallback
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
 
     const $th = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
 
@@ -847,7 +847,7 @@ describe('manualRowResize', () => {
     await simulateClick($resizer, { clientY: resizerPosition.top });
 
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
-    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
   });
 
   it.forTheme('main')('should not trigger afterRowResize event after if row height does not change ' +
@@ -947,7 +947,7 @@ describe('manualRowResize', () => {
     await sleep(1000);
 
     expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(23, 1);
+      classic.toBeAroundValue(26, 1);
       main.toBeAroundValue(29, 1);
       horizon.toBeAroundValue(37, 1);
     });
@@ -976,17 +976,17 @@ describe('manualRowResize', () => {
     await sleep(1000);
 
     expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(24);
+      classic.toBeAroundValue(26);
       main.toBeAroundValue(29);
       horizon.toBeAroundValue(37);
     });
     expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(24);
+      classic.toBeAroundValue(26);
       main.toBeAroundValue(29);
       horizon.toBeAroundValue(37);
     });
     expect(rowHeight(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(24);
+      classic.toBeAroundValue(26);
       main.toBeAroundValue(29);
       horizon.toBeAroundValue(37);
     });
@@ -1012,7 +1012,7 @@ describe('manualRowResize', () => {
     await sleep(600);
 
     expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(24);
+      classic.toBeAroundValue(26);
       main.toBeAroundValue(29);
       horizon.toBeAroundValue(37);
     });
@@ -1090,7 +1090,7 @@ describe('manualRowResize', () => {
 
     expect($resizer.position()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual({
-        top: 113,
+        top: 125,
         left: 0,
       });
       main.toEqual({
@@ -1110,7 +1110,7 @@ describe('manualRowResize', () => {
 
     expect($resizer.position()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual({
-        top: 67,
+        top: 73,
         left: 0,
       });
       main.toEqual({
@@ -1141,7 +1141,7 @@ describe('manualRowResize', () => {
 
     expect($resizer.position()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual({
-        top: 113,
+        top: 125,
         left: 0,
       });
       main.toEqual({
@@ -1161,7 +1161,7 @@ describe('manualRowResize', () => {
 
     expect($resizer.position()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual({
-        top: 18,
+        top: 21,
         left: 0,
       });
       main.toEqual({
@@ -1194,17 +1194,17 @@ describe('manualRowResize', () => {
     $resizer.simulate('mouseup');
 
     expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(52);
+      classic.toBe(55);
       main.toBe(58);
       horizon.toBe(66);
     });
     expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(22);
+      classic.toBe(25);
       main.toBe(28);
       horizon.toBe(36);
     });
     expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(22);
+      classic.toBe(25);
       main.toBe(28);
       horizon.toBe(36);
     });
@@ -1219,17 +1219,17 @@ describe('manualRowResize', () => {
     });
 
     expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(22);
+      classic.toBe(25);
       main.toBe(28);
       horizon.toBe(36);
     });
     expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(22);
+      classic.toBe(25);
       main.toBe(28);
       horizon.toBe(36);
     });
     expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(22);
+      classic.toBe(25);
       main.toBe(28);
       horizon.toBe(36);
     });
@@ -1246,17 +1246,17 @@ describe('manualRowResize', () => {
     $resizer.simulate('mouseup');
 
     expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(52);
+      classic.toBe(54);
       main.toBe(57);
       horizon.toBe(65);
     });
     expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(52);
+      classic.toBe(55);
       main.toBe(58);
       horizon.toBe(66);
     });
     expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(52);
+      classic.toBe(55);
       main.toBe(58);
       horizon.toBe(66);
     });
@@ -1430,19 +1430,19 @@ describe('manualRowResize', () => {
 
       expect(getInlineStartClone().find('tbody tr:eq(12) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(52);
+          classic.toBe(55);
           main.toBe(58);
           horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(52);
+          classic.toBe(55);
           main.toBe(58);
           horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(14) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(52);
+          classic.toBe(55);
           main.toBe(58);
           horizon.toBe(66);
         });
@@ -1473,19 +1473,19 @@ describe('manualRowResize', () => {
 
       expect(getInlineStartClone().find('tbody tr:eq(12) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(52);
+          classic.toBe(55);
           main.toBe(58);
           horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(52);
+          classic.toBe(55);
           main.toBe(58);
           horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(14) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(52);
+          classic.toBe(55);
           main.toBe(58);
           horizon.toBe(66);
         });
@@ -1512,31 +1512,31 @@ describe('manualRowResize', () => {
 
       expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(22);
+          classic.toBe(25);
           main.toBe(28);
           horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(52);
+          classic.toBe(55);
           main.toBe(58);
           horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(4) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(52);
+          classic.toBe(55);
           main.toBe(58);
           horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(5) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(52);
+          classic.toBe(55);
           main.toBe(58);
           horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(6) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(22);
+          classic.toBe(25);
           main.toBe(28);
           horizon.toBe(36);
         });
@@ -1571,61 +1571,61 @@ describe('manualRowResize', () => {
 
       expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(22);
+          classic.toBe(25);
           main.toBe(28);
           horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(52);
+          classic.toBe(55);
           main.toBe(58);
           horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(4) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(22);
+          classic.toBe(25);
           main.toBe(28);
           horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(5) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(22);
+          classic.toBe(25);
           main.toBe(28);
           horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(6) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(22);
+          classic.toBe(25);
           main.toBe(28);
           horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(7) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(52);
+          classic.toBe(55);
           main.toBe(58);
           horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(8) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(22);
+          classic.toBe(25);
           main.toBe(28);
           horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(9) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(22);
+          classic.toBe(25);
           main.toBe(28);
           horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(10) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(52);
+          classic.toBe(55);
           main.toBe(58);
           horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(11) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(22);
+          classic.toBe(25);
           main.toBe(28);
           horizon.toBe(36);
         });
@@ -1650,12 +1650,12 @@ describe('manualRowResize', () => {
       $resizer.simulate('mouseup');
 
       expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
+        classic.toBe(55);
         main.toBe(58);
         horizon.toBe(66);
       });
       expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
+        classic.toBe(25);
         main.toBe(28);
         horizon.toBe(36);
       });
@@ -1697,7 +1697,7 @@ describe('manualRowResize', () => {
         const $handle = $('.manualRowResizer');
 
         expect($handle.offset().top)
-          .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+          .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
         expect($handle.offset().left).toBeCloseTo($headerTH.offset().left, 0);
         expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
       });
@@ -1876,14 +1876,14 @@ describe('manualRowResize', () => {
 
       $handle.simulate('mousedown', { clientY: resizerPosition.top });
 
-      // To watch whether color has changed.
-      expect(getComputedStyle($handle[0]).backgroundColor).toBe('rgb(52, 169, 219)');
+      // To watch whether opacity has changed.
+      expect(getComputedStyle($handle[0]).opacity).toBe('1');
 
       $handle.simulate('contextmenu');
 
       await sleep(0);
 
-      expect(getComputedStyle($handle[0]).backgroundColor).not.toBe('rgb(52, 169, 219)');
+      expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
 
     it.forTheme('main')('should remove resize handler when user clicks RMB', async() => {
@@ -1962,12 +1962,12 @@ describe('manualRowResize', () => {
       await resizeRow(2, -10);
 
       expect(beforeRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([23, 2, false]);
+        classic.toEqual([26, 2, false]);
         main.toEqual([29, 2, false]);
         horizon.toEqual([37, 2, false]);
       });
       expect(afterRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([23, 2, false]);
+        classic.toEqual([26, 2, false]);
         main.toEqual([29, 2, false]);
         horizon.toEqual([37, 2, false]);
       });
@@ -1982,12 +1982,12 @@ describe('manualRowResize', () => {
       await resizeRow(2, 5);
 
       expect(beforeRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([23, 2, false]);
+        classic.toEqual([26, 2, false]);
         main.toEqual([29, 2, false]);
         horizon.toEqual([37, 2, false]);
       });
       expect(afterRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([23, 2, false]);
+        classic.toEqual([26, 2, false]);
         main.toEqual([29, 2, false]);
         horizon.toEqual([37, 2, false]);
       });
@@ -2020,7 +2020,7 @@ describe('manualRowResize', () => {
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + $resizer.height() - 50 });
       $resizer.simulate('mouseup');
 
-      expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + 6]);
+      expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + 11]);
     });
 
     it.forTheme('main')('should be able to get the last desired row height from the ' +
@@ -2081,6 +2081,39 @@ describe('manualRowResize', () => {
       $resizer.simulate('mouseup');
 
       expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + 6]);
+    });
+  });
+
+  describe('with the AutoRowSize plugin', () => {
+    it('should not cause row misalignment when manualRowResize is enabled via `updateSettings` ' +
+      'after autoRowSize initialization', async() => {
+      const data = createSpreadsheetData(3, 5);
+
+      data[0][4] = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas hendrerit elit sed quam porta ' +
+        'tempus. Quisque eget vulputate metus. Cras pulvinar diam ipsum, eget rhoncus dolor lacinia a. ' +
+        'Aliquam vitae eros varius, feugiat nibh id, auctor lorem. Phasellus vulputate odio diam, sed interdum ' +
+        'elit consectetur ut. Fusce vulputate ligula tincidunt lectus tempor, ac elementum nulla tempus. Fusce ' +
+        'rutrum lorem et eros euismod fermentum. Aenean varius dui vel nunc tristique, vel finibus tortor gravida. ' +
+        'Ut molestie nisl a velit ultricies, gravida volutpat lectus pulvinar. Nulla sed purus sit amet justo ' +
+        'ullamcorper vel non nisl. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia ' +
+        'curae; Cras auctor, lacus non euismod venenatis, augue nulla auctor risus, placerat porta dui enim eu odio. ' +
+        'Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.';
+
+      handsontable({
+        data,
+        fixedColumnsStart: 1,
+        rowHeaders: true,
+        autoRowSize: true,
+        colWidths: 100,
+      });
+
+      await sleep(100);
+
+      await updateSettings({
+        manualRowResize: [50, 50, 50],
+      });
+
+      expect(getInlineStartClone().find('table').height()).toBe(getMaster().find('table').height());
     });
   });
 });

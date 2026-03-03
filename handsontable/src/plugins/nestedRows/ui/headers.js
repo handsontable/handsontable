@@ -66,8 +66,13 @@ class HeadersUI extends BaseUI {
    */
   appendLevelIndicators(row, TH) {
     const rowIndex = this.hot.toPhysicalRow(row);
-    const rowLevel = this.dataManager.getRowLevel(rowIndex);
     const rowObject = this.dataManager.getDataObject(rowIndex);
+
+    if (!rowObject) {
+      return;
+    }
+
+    const rowLevel = this.dataManager.getRowLevel(rowIndex);
     const innerDiv = TH.getElementsByTagName('DIV')[0];
     const innerSpan = innerDiv.querySelector('span.rowHeader');
     const previousIndicators = innerDiv.querySelectorAll('[class^="ht_nesting"]');
@@ -146,11 +151,9 @@ class HeadersUI extends BaseUI {
 
     let completeVerticalPadding = 11;
 
-    if (!this.hot.stylesHandler.isClassicTheme()) {
-      const verticalPadding = this.hot.stylesHandler.getCSSVariableValue('cell-horizontal-padding');
+    const verticalPadding = this.hot.stylesHandler.getCSSVariableValue('cell-horizontal-padding');
 
-      completeVerticalPadding = verticalPadding * 2;
-    }
+    completeVerticalPadding = verticalPadding * 2;
 
     this.rowHeaderWidthCache = Math.max(50, completeVerticalPadding + (10 * deepestLevelIndex) + 25);
 

@@ -8,8 +8,8 @@
 
     padding: var(--ht-license-vertical-padding, 16px)
       var(--ht-license-horizontal-padding, 16px);
-    font-size: calc(var(--ht-font-size) - 2px);
-    line-height: calc(var(--ht-line-height) - 2px);
+    font-size: var(--ht-font-size-small);
+    line-height: var(--ht-line-height-small);
     color: var(--ht-license-foreground-color);
     background-color: var(--ht-license-background-color, #f7f7f9);
     text-align: left;

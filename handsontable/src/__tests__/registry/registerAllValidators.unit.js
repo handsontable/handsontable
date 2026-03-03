@@ -20,11 +20,15 @@ describe('`registerAllValidators`', () => {
     expect(getPluginsNames()).toEqual([]);
     expect(getRegisteredRendererNames()).toEqual([
       'text',
+      'base',
     ]);
     expect(getRegisteredValidatorNames()).toEqual([
       'autocomplete',
       'dropdown',
       'date',
+      'intl-date',
+      'intl-time',
+      'multiselect',
       'numeric',
       'time',
     ]);

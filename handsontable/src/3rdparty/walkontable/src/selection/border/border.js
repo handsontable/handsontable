@@ -15,6 +15,10 @@ import { objectEach } from '../../../../../helpers/object';
 import { isMobileBrowser } from '../../../../../helpers/browser';
 import { getCornerStyle } from './utils';
 
+const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
+const BORDER_STYLE_VERTICAL_SUFFIX = '-vertical';
+const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
+
 /**
  *
  */
@@ -165,19 +169,35 @@ class Border {
     for (let i = 0; i < 5; i++) {
       const position = borderDivs[i];
       const div = rootDocument.createElement('div');
+      const getSettingsProperty = property => ((this.settings[position] && this.settings[position][property]) ?
+        this.settings[position][property] : settings.border[property]);
 
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
 
       if (this.settings[position] && this.settings[position].hide) {
         div.className += ' hidden';
       }
+
       style = div.style;
-      style.backgroundColor = (this.settings[position] && this.settings[position].color) ?
-        this.settings[position].color : settings.border.color;
-      style.height = (this.settings[position] && this.settings[position].width) ?
-        `${this.settings[position].width}px` : `${settings.border.width}px`;
-      style.width = (this.settings[position] && this.settings[position].width) ?
-        `${this.settings[position].width}px` : `${settings.border.width}px`;
+
+      const borderStyle = getSettingsProperty('style');
+
+      if (borderStyle) {
+        if (['start', 'end'].includes(position)) {
+          div.className += ` ${BORDER_STYLE_CLASS_PREFIX}${borderStyle}${BORDER_STYLE_VERTICAL_SUFFIX}`;
+        } else {
+          div.className += ` ${BORDER_STYLE_CLASS_PREFIX}${borderStyle}${BORDER_STYLE_HORIZONTAL_SUFFIX}`;
+        }
+
+        style.setProperty('--ht-custom-border-size', `${getSettingsProperty('width')}px`);
+        style.setProperty('--ht-custom-border-color', getSettingsProperty('color'));
+
+      } else {
+        style.backgroundColor = getSettingsProperty('color');
+      }
+
+      style.height = `${getSettingsProperty('width')}px`;
+      style.width = `${getSettingsProperty('width')}px`;
 
       this.main.appendChild(div);
     }
@@ -228,6 +248,8 @@ class Border {
     const cellMobileHandleSize = stylesHandler.getCSSVariableValue('cell-mobile-handle-size');
     const cellMobileHandleBorderRadius = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-radius');
     const cellMobileHandleBackgroundColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-background-color');
+    const cellMobileHandleBackgroundOpacity =
+      stylesHandler.getCSSVariableValue('cell-mobile-handle-background-opacity');
     const cellMobileHandleBorderWidth = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-width');
     const cellMobileHandleBorderColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-color');
 
@@ -237,7 +259,6 @@ class Border {
       bottom: rootDocument.createElement('DIV'),
       bottomHitArea: rootDocument.createElement('DIV')
     };
-    const width = 10;
     const hitAreaWidth = 40;
 
     this.selectionHandles.top.className = 'topSelectionHandle topLeftSelectionHandle';
@@ -264,19 +285,13 @@ class Border {
       this.selectionHandles.styles.topHitArea[key] = value;
     });
 
-    const handleStyle = stylesHandler.isClassicTheme() ? {
-      position: 'absolute',
-      height: `${width}px`,
-      width: `${width}px`,
-      'border-radius': `${parseInt(width / 1.5, 10)}px`,
-      background: '#F5F5FF',
-      border: '1px solid #4285c8'
-    } : {
+    const handleStyle = {
       position: 'absolute',
       height: `${cellMobileHandleSize}px`,
       width: `${cellMobileHandleSize}px`,
       'border-radius': `${cellMobileHandleBorderRadius}px`,
-      background: `${cellMobileHandleBackgroundColor}`,
+      // eslint-disable-next-line max-len
+      background: `color-mix(in srgb, ${cellMobileHandleBackgroundColor} ${cellMobileHandleBackgroundOpacity}, transparent)`,
       border: `${cellMobileHandleBorderWidth}px solid ${cellMobileHandleBorderColor}`
     };
 
@@ -411,7 +426,6 @@ class Border {
 
     const { wtTable, rootDocument, rootWindow } = this.wot;
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    const isClassicTheme = this.wot.wtSettings.getSetting('stylesHandler').isClassicTheme();
     const firstRenderedRow = wtTable.getFirstRenderedRow();
     const lastRenderedRow = wtTable.getLastRenderedRow();
     const firstRenderedColumn = wtTable.getFirstRenderedColumn();
@@ -577,7 +591,7 @@ class Border {
         trimmingContainer = rootDocument.documentElement;
       }
 
-      // -1 was initially removed from the base position to compansate for the table border. We need to exclude it from
+      // -1 was initially removed from the base position to compensate for the table border. We need to exclude it from
       // the corner width.
       const cornerBorderCompensation = parseInt(this.cornerDefaultStyle.borderWidth, 10) - 1;
       const cornerHalfWidth = Math.ceil(parseInt(this.cornerDefaultStyle.width, 10) / 2);
@@ -602,14 +616,12 @@ class Border {
             inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
           );
 
-          if (isClassicTheme) {
-            this.cornerStyle[inlinePosProperty] = `${inlineStartPosition}px`;
-            this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
+          addClass(this.corner, 'wtCornerInlineEndEdge');
 
-          } else {
-            this.cornerStyle[inlinePosProperty] = `${inlineStartPosition - 1}px`;
-          }
+          this.cornerStyle[inlinePosProperty] = `${inlineStartPosition - 1}px`;
         }
+      } else {
+        removeClass(this.corner, 'wtCornerInlineEndEdge');
       }
 
       if (toRow === this.wot.getSetting('totalRows') - 1) {
@@ -622,16 +634,12 @@ class Border {
             top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation
           );
 
-          if (isClassicTheme) {
-            // styles for classic theme
-            this.cornerStyle.top = `${cornerTopPosition}px`;
-            this.cornerStyle.borderBottomWidth = 0;
+          addClass(this.corner, 'wtCornerBlockEndEdge');
 
-          } else {
-            // styles for ht-theme
-            this.cornerStyle.top = `${cornerTopPosition - 1}px`;
-          }
+          this.cornerStyle.top = `${cornerTopPosition - 1}px`;
         }
+      } else {
+        removeClass(this.corner, 'wtCornerBlockEndEdge');
       }
 
       this.cornerStyle.display = 'block';

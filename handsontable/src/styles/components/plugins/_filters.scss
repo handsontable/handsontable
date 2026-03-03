@@ -27,8 +27,8 @@
 
     // Menu label
     .htFiltersMenuLabel {
-      font-size: calc(var(--ht-font-size) - 2px);
-      line-height: calc(var(--ht-line-height) - 4px);
+      font-size: var(--ht-font-size-small);
+      line-height: var(--ht-line-height-small);
       font-weight: var(--ht-font-weight);
       margin-bottom: calc(var(--ht-gap-size, 2px) * 2);
 
@@ -142,6 +142,19 @@
       tr,
       td {
         background: none;
+      }
+    }
+
+    // Button
+    .htUIInput {
+      &.htUIButton {
+        cursor: pointer;
+        display: inline-block;
+      }
+
+      &.htUIButtonOK {
+        margin-inline-start: 0;
+        margin-inline-end: calc(2 * var(--ht-gap-size, 2px));
       }
     }
   }

@@ -1,5 +1,4 @@
 import { waitOnScroll } from './utils';
-
 /**
  * When `true` the test suite will not scroll to the top of the page before each test and
  * the spec will be not cleared which allows calling test helpers (`selectCell()` etc.) from
@@ -13,6 +12,8 @@ beforeEach(function() {
 
   if (!process.env.JEST_WORKER_ID) {
     this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
+    // Expose loaded theme globally for the jQuery wrapper to use
+    window.__HOT_TEST_THEME__ = this.loadedTheme;
 
     if (!DEBUG) {
       window.scrollTo(0, 0);
@@ -23,6 +24,7 @@ beforeEach(function() {
 afterEach(() => {
   if (!DEBUG) {
     specContext.spec = null;
+    delete window.__HOT_TEST_THEME__;
   }
 });
 
@@ -30,6 +32,29 @@ beforeAll(() => {
   // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
   if (!process.env.JEST_WORKER_ID) {
     $('.jasmine_html-reporter').hide();
+
+    // Wrap jQuery handsontable function to inject theme in tests
+    const originalHandsontable = $.fn.handsontable;
+
+    $.fn.handsontable = function(action, ...args) {
+      // Only inject theme on init (when action is an object or undefined)
+      if (typeof action !== 'string') {
+        const userSettings = action || {};
+
+        if (!userSettings.themeName && window.__HOT_TEST_THEME__) {
+          const hasThemeClass = this.is('[class*="ht-theme-"]') ||
+            this.parents('[class*="ht-theme-"]').length > 0;
+
+          if (!hasThemeClass) {
+            userSettings.themeName = `ht-theme-${window.__HOT_TEST_THEME__}`;
+          }
+        }
+
+        return originalHandsontable.call(this, userSettings);
+      }
+
+      return originalHandsontable.call(this, action, ...args);
+    };
   }
 });
 
@@ -133,6 +158,7 @@ export const getColumnMeta = handsontableMethodFactory('getColumnMeta');
 export const getColWidth = handsontableMethodFactory('getColWidth');
 export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
+export const getCopyableSourceData = handsontableMethodFactory('getCopyableSourceData');
 export const getCopyableText = handsontableMethodFactory('getCopyableText');
 export const getCurrentThemeName = handsontableMethodFactory('getCurrentThemeName');
 export const getData = handsontableMethodFactory('getData');
@@ -149,6 +175,7 @@ export const getFirstPartiallyVisibleRow = handsontableMethodFactory('getFirstPa
 export const getFirstRenderedVisibleColumn = handsontableMethodFactory('getFirstRenderedVisibleColumn');
 export const getFirstRenderedVisibleRow = handsontableMethodFactory('getFirstRenderedVisibleRow');
 export const getFocusManager = handsontableMethodFactory('getFocusManager');
+export const getFocusScopeManager = handsontableMethodFactory('getFocusScopeManager');
 export const getInstance = handsontableMethodFactory('getInstance');
 export const getLastFullyVisibleColumn = handsontableMethodFactory('getLastFullyVisibleColumn');
 export const getLastFullyVisibleRow = handsontableMethodFactory('getLastFullyVisibleRow');
@@ -231,9 +258,21 @@ export function getDefaultRowHeight() {
       return 29;
     case 'horizon':
       return 37;
+    case 'classic':
     default:
-      return 23; // classic
+      return 26;
   }
+}
+
+/**
+ * @returns {number} Returns the default row height for the first rendered row.
+ */
+export function getFirstRenderedRowDefaultHeight() {
+  if (typeof __ENV_ARGS__.HOT_THEME !== 'undefined' && __ENV_ARGS__.HOT_THEME !== '') {
+    return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
+  }
+
+  return getDefaultRowHeight();
 }
 
 /**
@@ -462,20 +501,10 @@ export async function scrollWindowBy(x, y) {
  * @returns {Handsontable}
  */
 export function handsontable(options, explicitOptions = false, container = spec().$container) {
-  const loadedTheme = spec().loadedTheme;
-
   // Add a license key to every Handsontable instance.
   if (!explicitOptions) {
     if (!options) {
       options = {};
-    }
-
-    if (
-      !options.themeName &&
-      loadedTheme &&
-      loadedTheme !== 'classic'
-    ) {
-      options.themeName = `ht-theme-${loadedTheme}`;
     }
 
     options.licenseKey = 'non-commercial-and-evaluation';
@@ -539,24 +568,6 @@ export function getBottomClone() {
  */
 export function getBottomInlineStartClone() {
   return $(hot().rootElement).find('.ht_clone_bottom_inline_start_corner');
-}
-
-/**
- * Emulates the browser's TAB navigation to the Handsontable (from element above).
- *
- * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
- */
-export function triggerTabNavigationFromTop(hotInstance = hot()) {
-  $(hotInstance.rootWrapperElement).find('.htFocusCatcher').first().focus();
-}
-
-/**
- * Emulates the browser's Shift+TAB navigation to the Handsontable (from element below).
- *
- * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
- */
-export function triggerTabNavigationFromBottom(hotInstance = hot()) {
-  $(hotInstance.rootWrapperElement).find('.htFocusCatcher').last().focus();
 }
 
 /**
@@ -964,12 +975,12 @@ export function rowHeight($elem, row) {
 /**
  * Returns value that has been rendered in table cell.
  *
- * @param {number} trIndex The visual index.
- * @param {number} tdIndex The visual index.
+ * @param {number} row The visual row index.
+ * @param {number} col The visual column index.
  * @returns {string}
  */
-export function getRenderedValue(trIndex, tdIndex) {
-  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).html();
+export function getRenderedValue(row, col) {
+  return getCell(row, col, true).innerHTML;
 }
 
 /**
@@ -1347,6 +1358,58 @@ export function getClipboardEvent({ target = document.body } = {}) {
   event.composedPath = () => [target];
 
   return event;
+}
+
+/**
+ * Spies on the console.warn method and returns a function that can be used to assert that
+ * the warning was not called.
+ *
+ * @returns {Function}
+ */
+export function spyOnConsoleWarn() {
+  const warnSpy = spyOn(console, 'warn');
+  // eslint-disable-next-line no-console
+  const originalWarn = console.warn;
+
+  // eslint-disable-next-line no-console
+  console.warn = (...args) => {
+    if (args[0].includes('Deprecated:')) {
+      return;
+    }
+
+    originalWarn(...args);
+  };
+
+  return warnSpy;
+}
+
+/**
+ * Spies on the console.warn method and returns a function that can be used to assert that
+ * the deprecated warning was not called.
+ *
+ * @returns {Function}
+ */
+export function spyOnConsoleDeprecatedWarn() {
+  const warnSpy = spyOn(console, 'warn');
+  // eslint-disable-next-line no-console
+  const originalWarn = console.warn;
+
+  /* eslint-disable max-len */
+  const IGNORED_MESSAGES = [
+    'Deprecated: The stylesheet you are using is deprecated and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.',
+  ];
+  /* eslint-enable max-len */
+
+  // eslint-disable-next-line no-console
+  console.warn = (...args) => {
+    if (!args[0].startsWith('Deprecated:') || IGNORED_MESSAGES.includes(args[0])) {
+      return;
+    }
+
+    originalWarn(...args);
+  };
+
+  return warnSpy;
 }
 
 class DataTransferObject {

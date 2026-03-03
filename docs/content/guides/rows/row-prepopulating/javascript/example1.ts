@@ -1,7 +1,9 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { BaseRenderer } from 'handsontable/renderers';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const templateValues: string[] = ['one', 'two', 'three'];
 const data: (string | number)[][] = [
@@ -37,7 +39,6 @@ const defaultValueRenderer: BaseRenderer = (instance, td, row, col, prop, value,
 const container = document.querySelector('#example1')!;
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   startRows: 8,
   startCols: 5,
   minSpareRows: 1,

@@ -157,13 +157,12 @@ class ConditionUpdateObserver {
           columnData => this.columnDataFactory(columnData)
         )).filter();
       }
-      visibleRows = arrayMap(visibleRows, rowData => rowData.meta.visualRow);
-
-      const visibleRowsAssertion = createArrayAssertion(visibleRows);
+      const rowIndexesToShow = arrayMap(visibleRows, rowData => rowData.meta.row);
+      const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
 
       splitConditionCollection.destroy();
 
-      return arrayFilter(allRows, rowData => visibleRowsAssertion(rowData.meta.visualRow));
+      return arrayFilter(allRows, rowData => rowIndexesToShowAssertion(rowData.meta.row));
     })(conditionsBefore);
 
     const editedConditions = [].concat(this.conditionCollection.getConditions(column));

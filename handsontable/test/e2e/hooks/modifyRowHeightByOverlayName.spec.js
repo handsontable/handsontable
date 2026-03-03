@@ -40,39 +40,39 @@ describe('Hook', () => {
 
       // master table
       expect(getCell(0, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
+        classic.toBe(25);
         main.toBe(28);
         horizon.toBe(36);
       });
       expect(getCell(1, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
+        classic.toBe(25);
         main.toBe(28);
         horizon.toBe(36);
       });
       expect(getCell(2, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
+        classic.toBe(25);
         main.toBe(28);
         horizon.toBe(36);
       });
       expect(getCell(3, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
+        classic.toBe(25);
         main.toBe(28);
         horizon.toBe(36);
       });
       expect(getCell(4, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
+        classic.toBe(25);
         main.toBe(28);
         horizon.toBe(36);
       });
       // top inline start corner
       expect(getCell(0, 0, true).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(29);
+        classic.toBe(28);
         main.toBe(28);
         horizon.toBe(36);
       });
       // top overlay
       expect(getCell(0, 2, true).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(34);
+        classic.toBe(33);
         main.toBe(33);
         horizon.toBe(36);
       });
@@ -80,7 +80,7 @@ describe('Hook', () => {
       expect(getCell(2, 0, true).clientHeight).toBe(39);
       // bottom inline start corner
       expect(getCell(3, 0, true).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(44);
+        classic.toBe(43);
         main.toBe(43);
         horizon.toBe(43);
       });

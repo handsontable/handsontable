@@ -6,14 +6,26 @@
   .handsontable {
     // Fill
     @for $i from 0 through 7 {
-      td.area#{if($i == 0, "", "-#{$i}")} {
-        @include mixins.area-styles;
+      @if $i == 0 {
+        td.area {
+          @include mixins.area-styles;
+        }
+      } @else {
+        td.area-#{$i} {
+          @include mixins.area-styles;
+        }
       }
     }
 
     @for $i from 0 through 7 {
-      td.area#{if($i == 0, "", "-#{$i}")}:before {
-        opacity: mixins.get-opacity($i);
+      @if $i == 0 {
+        td.area::before {
+          opacity: mixins.get-opacity($i);
+        }
+      } @else {
+        td.area-#{$i}::before {
+          opacity: mixins.get-opacity($i);
+        }
       }
     }
 
@@ -39,7 +51,7 @@
       &:nth-child(4) {
         z-index: 1;
       }
-      
+
       &.hidden {
         display: none !important;
       }
@@ -74,6 +86,22 @@
         font-size: 0;
         cursor: crosshair;
         z-index: 10;
+
+        &::after {
+          content: '';
+          position: absolute;
+          border-radius: var(--ht-cell-autofill-border-radius);
+          inset: min(0px, calc((var(--ht-cell-autofill-size) - var(--ht-cell-autofill-hit-area-size)) / 2));
+          background: transparent;
+        }
+
+        &.wtCornerInlineEndEdge::after {
+          inset-inline-end: 0;
+        }
+
+        &.wtCornerBlockEndEdge::after {
+          inset-block-end: 0;
+        }
       }
     }
   }

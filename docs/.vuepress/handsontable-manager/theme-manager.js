@@ -1,56 +1,49 @@
-const STORAGE_KEY = 'handsontable/docs::color-scheme';
+const setTheme = () => {
+  try {
+    // Skip auto theme sync for examples that manage their own theme (e.g., theme demo page)
+    if (document.querySelector('.disable-auto-theme')) {
+      return;
+    }
 
-const _getThemeClassName = (colorScheme) => {
-  switch (colorScheme) {
-    case 'dark':
-      return 'ht-theme-main-dark';
-    case 'light':
-      return 'ht-theme-main';
-    default:
-      return 'ht-theme-main-dark-auto';
+    // eslint-disable-next-line no-undef
+    if (typeof Handsontable !== 'undefined' && Handsontable.themes) {
+      // eslint-disable-next-line no-undef
+      const themeNames = Handsontable.themes.getThemeNames();
+      // eslint-disable-next-line no-undef
+      const mainTheme = themeNames.includes('main') ? Handsontable.themes.getTheme('main') : undefined;
+
+      if (mainTheme) {
+        if (
+          document.documentElement.classList.contains('theme-dark')
+          && mainTheme.getThemeConfig().colorScheme !== 'dark'
+        ) {
+          mainTheme.setColorScheme('dark');
+        } else if (
+          !document.documentElement.classList.contains('theme-dark')
+          && mainTheme.getThemeConfig().colorScheme !== 'light'
+        ) {
+          mainTheme.setColorScheme('light');
+        }
+      }
+    }
+  } catch (e) {
+    // Silently ignore theme errors to prevent breaking HOT instances
+    // eslint-disable-next-line no-console
+    console.warn('Theme manager: Failed to set theme', e);
   }
 };
 
 const ensureCorrectHotThemes = () => {
   if (typeof Handsontable !== 'undefined') {
     // eslint-disable-next-line no-undef
-    Handsontable.hooks.add('afterSetTheme', function() {
-      if (this.rootContainer.closest('.disable-auto-theme')) {
-        return;
-      }
-
-      const themeName = _getThemeClassName(localStorage.getItem(STORAGE_KEY));
-
-      if (this.getCurrentThemeName() !== themeName) {
-        this.useTheme(themeName);
-      }
+    Handsontable.hooks.add('afterInit', () => {
+      setTheme();
     });
   }
 };
 
-const switchExamplesTheme = (hotInstances) => {
-  hotInstances.forEach((hotInstance) => {
-    if (hotInstance.rootContainer.closest('.disable-auto-theme')) {
-      return;
-    }
-
-    const version = localStorage.getItem(STORAGE_KEY);
-    const currentThemeName = hotInstance.getCurrentThemeName();
-
-    // Remove the '-auto' suffix from the theme name.
-    const newThemeName = currentThemeName.replace('-auto', '');
-    const isCurrentlyDark = newThemeName.includes('dark');
-
-    switch (version) {
-      case 'dark':
-        hotInstance.useTheme(isCurrentlyDark ? newThemeName : `${newThemeName}-dark`);
-        break;
-      case 'light':
-        hotInstance.useTheme(isCurrentlyDark ? newThemeName.replace('-dark', '') : newThemeName);
-        break;
-      default:
-    }
-  });
+const switchExamplesTheme = () => {
+  setTheme();
 };
 
 module.exports = {

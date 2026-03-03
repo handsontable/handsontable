@@ -49,5 +49,15 @@ describe('DomEvent helper', () => {
     it('should return false for invalid touch events', () => {
       expect(isTouchEvent(new MouseEvent('mousedown'))).toBe(false);
     });
+
+    it('should return false if TouchEvent is not supported', () => {
+      const OriginalTouchEvent = window.TouchEvent;
+
+      window.TouchEvent = undefined;
+
+      expect(isTouchEvent(new OriginalTouchEvent('touchstart'))).toBe(false);
+
+      window.TouchEvent = OriginalTouchEvent;
+    });
   });
 });

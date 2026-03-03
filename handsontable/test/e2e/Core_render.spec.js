@@ -194,7 +194,11 @@ describe('Core_render', () => {
     await scrollWindowBy(0, 10);
     await sleep(100);
 
+    expect(wotRenderSpy).toHaveBeenCalledTimes(0);
+
+    // Change the scrolling position to horizontally distant (can trigger a "full" render)
     await scrollWindowBy(9500, -9500);
+    wotRenderSpy.calls.reset();
 
     await scrollWindowBy(0, 10);
     await sleep(100);

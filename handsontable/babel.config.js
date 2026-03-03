@@ -4,10 +4,10 @@ const allowedE2EModules = [
   'jasmine-co',
   'jest-matcher-utils',
   'html-parse-stringify',
-  'core-js/*',
   'regenerator-runtime/runtime*',
   '@babel/runtime/*',
   './htmlNormalize',
+  './focusNavigator',
   './common',
   './utils',
   './jasmine-helpers',
@@ -23,6 +23,9 @@ const allowedE2EModules = [
   './__mocks__/*',
   './MemoryLeakTest',
   '../MemoryLeakTest',
+  '../../../src/themes/static/variables/icons/*',
+  '../../../src/themes/static/variables/colors/*',
+  '../../../src/themes/static/variables/tokens/*',
 ];
 
 module.exports = {

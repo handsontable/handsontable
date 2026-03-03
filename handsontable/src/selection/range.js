@@ -57,6 +57,18 @@ class SelectionRange {
   }
 
   /**
+   * Pushes a new CellRange instance to the collection.
+   *
+   * @param {CellRange} cellRange The CellRange instance with defined visual coordinates.
+   * @returns {SelectionRange}
+   */
+  push(cellRange) {
+    this.ranges.push(cellRange);
+
+    return this;
+  }
+
+  /**
    * Removes from the stack the last added coordinates.
    *
    * @returns {CellRange}

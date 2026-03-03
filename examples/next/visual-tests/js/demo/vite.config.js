@@ -11,7 +11,6 @@ export default defineConfig({
         copy({
           targets: [
             { src: 'src/styles/*.css', dest: 'dist/assets' },
-            { src: '../node_modules/handsontable/dist/*.css', dest: 'dist/assets/handsontable/dist' },
             { src: '../node_modules/handsontable/styles/*.css', dest: 'dist/assets/handsontable/styles' },
           ],
           hook: 'writeBundle' // Ensure the copy happens after the bundle is written

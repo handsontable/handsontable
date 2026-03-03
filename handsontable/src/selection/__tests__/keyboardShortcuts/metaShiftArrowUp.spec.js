@@ -438,5 +438,17 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,-1 from: -1,-1 to: -1,-1']);
     });
+
+    it('should do nothing when no selection is present', async() => {
+      handsontable({
+        startRows: 5,
+        startCols: 5
+      });
+
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
+
+      expect(getSelectedRange()).toBeUndefined();
+    });
   });
 });

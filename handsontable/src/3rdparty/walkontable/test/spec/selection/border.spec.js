@@ -405,7 +405,7 @@ describe('WalkontableBorder', () => {
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(88);
-    expect($corner.position().left).toBe(193);
+    expect($corner.position().left).toBe(192);
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
 
     $td3.simulate('mousedown');
@@ -458,7 +458,7 @@ describe('WalkontableBorder', () => {
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
     expect(spec().$table.css('height')).toBe('116px');
-    expect($corner.position().top).toBe(109); // table.height - corner.height - corner.borderTop
+    expect($corner.position().top).toBe(108); // table.height - corner.height - corner.borderTop
     expect($corner.position().left).toBe(45);
     expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
   });
@@ -505,9 +505,71 @@ describe('WalkontableBorder', () => {
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
     expect(spec().$table.css('height')).toBe('24px');
-    expect($corner.position().top).toBe(17); // table.height - corner.height - corner.borderTop
-    expect($corner.position().left).toBe(43);
+    expect($corner.position().top).toBe(16); // table.height - corner.height - corner.borderTop
+    expect($corner.position().left).toBe(42);
     expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
+  });
+
+  it('should add a ht-border-style-[style name]-vertical to a border element if "style" property is added ' +
+    'to the border configuration', async() => {
+    const selections = createSelectionController({});
+    const wt = walkontable({
+      data: getData,
+      totalRows: 5,
+      totalColumns: 5,
+      selections,
+    });
+
+    const customSelection = selections.getCustomHighlight({
+      border: {
+        width: 5,
+        style: 'dashed'
+      }
+    }).add(new Walkontable.CellCoords(0, 0))
+      .add(new Walkontable.CellCoords(2, 2));
+
+    wt.draw();
+
+    let focusBorder = wt.selectionManager.getBorderInstance(customSelection);
+
+    expect($(focusBorder.start).hasClass('ht-border-style-dashed-vertical')).toBe(true);
+    expect($(focusBorder.end).hasClass('ht-border-style-dashed-vertical')).toBe(true);
+    expect($(focusBorder.top).hasClass('ht-border-style-dashed-horizontal')).toBe(true);
+    expect($(focusBorder.bottom).hasClass('ht-border-style-dashed-horizontal')).toBe(true);
+
+    customSelection.clear();
+
+    const customSelection2 = selections.getCustomHighlight({
+      border: {
+        width: 5,
+      },
+      top: {
+        width: 5,
+        style: 'dashed'
+      },
+      bottom: {
+        width: 5,
+        style: 'dotted'
+      },
+      start: {
+        width: 5,
+        style: 'dashed'
+      },
+      end: {
+        width: 5,
+        style: 'dotted'
+      }
+    }).add(new Walkontable.CellCoords(0, 0))
+      .add(new Walkontable.CellCoords(2, 2));
+
+    wt.draw();
+
+    focusBorder = wt.selectionManager.getBorderInstance(customSelection2);
+
+    expect($(focusBorder.start).hasClass('ht-border-style-dashed-vertical')).toBe(true);
+    expect($(focusBorder.end).hasClass('ht-border-style-dotted-vertical')).toBe(true);
+    expect($(focusBorder.top).hasClass('ht-border-style-dashed-horizontal')).toBe(true);
+    expect($(focusBorder.bottom).hasClass('ht-border-style-dotted-horizontal')).toBe(true);
   });
 });

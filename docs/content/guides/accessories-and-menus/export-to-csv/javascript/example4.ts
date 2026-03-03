@@ -1,12 +1,13 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { ExportFile } from 'handsontable/plugins';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example4')!;
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [
     ['https://handsontable.com', '=WEBSERVICE(A1)'],
     ['https://github.com', '=WEBSERVICE(A2)'],

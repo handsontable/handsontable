@@ -1,7 +1,6 @@
 import {
   extendByMetaType,
   columnFactory,
-  isUnsignedNumber,
   assert,
   isNullish,
 } from '../utils';
@@ -95,12 +94,23 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'validator']),
+        _automaticallyAssignedMetaProps: new Set(
+          [
+            'editor',
+            'validator',
+            'valueGetter',
+            'valueSetter',
+            'parsePastedValue',
+          ]
+        ),
         copyPaste: true,
         test: 'foo',
         renderer: 'type-renderer',
         editor: getCellType('autocomplete').editor,
         validator: getCellType('autocomplete').validator,
+        valueGetter: getCellType('autocomplete').valueGetter,
+        valueSetter: getCellType('autocomplete').valueSetter,
+        parsePastedValue: getCellType('autocomplete').parsePastedValue,
       });
 
       extendByMetaType(metaObject, {
@@ -108,13 +118,19 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'dataType']),
+        _automaticallyAssignedMetaProps: new Set([
+          'editor', 'validator', 'valueGetter', 'valueSetter', 'dataType', 'valueFormatter', 'parsePastedValue',
+        ]),
         copyPaste: true,
         test: 'foo',
         renderer: 'type-renderer',
         dataType: 'number',
         editor: getCellType('numeric').editor,
         validator: getCellType('numeric').validator,
+        valueGetter: getCellType('autocomplete').valueGetter,
+        valueSetter: getCellType('numeric').valueSetter,
+        valueFormatter: getCellType('numeric').valueFormatter,
+        parsePastedValue: getCellType('autocomplete').parsePastedValue,
       });
 
       extendByMetaType(metaObject, {
@@ -122,13 +138,19 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'dataType']),
+        _automaticallyAssignedMetaProps: new Set([
+          'editor', 'validator', 'valueGetter', 'valueSetter', 'dataType', 'valueFormatter', 'parsePastedValue',
+        ]),
         copyPaste: true,
         test: 'foo',
         renderer: 'type-renderer',
         dataType: 'number',
         editor: getCellType('text').editor,
         validator: getCellType('numeric').validator,
+        valueGetter: getCellType('autocomplete').valueGetter,
+        valueSetter: getCellType('numeric').valueSetter,
+        valueFormatter: getCellType('numeric').valueFormatter,
+        parsePastedValue: getCellType('autocomplete').parsePastedValue,
       });
     });
 
@@ -140,10 +162,15 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'renderer', 'validator']),
+        _automaticallyAssignedMetaProps: new Set([
+          'editor', 'renderer', 'validator', 'valueGetter', 'valueSetter', 'parsePastedValue',
+        ]),
         renderer: getCellType('autocomplete').renderer,
         editor: getCellType('autocomplete').editor,
         validator: getCellType('autocomplete').validator,
+        valueGetter: getCellType('autocomplete').valueGetter,
+        valueSetter: getCellType('autocomplete').valueSetter,
+        parsePastedValue: getCellType('autocomplete').parsePastedValue,
       });
 
       metaObject.renderer = 'my-renderer';
@@ -153,10 +180,15 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'validator']),
+        _automaticallyAssignedMetaProps: new Set([
+          'editor', 'validator', 'valueGetter', 'valueSetter', 'parsePastedValue',
+        ]),
         renderer: 'my-renderer',
         editor: getCellType('autocomplete').editor,
         validator: getCellType('autocomplete').validator,
+        valueGetter: getCellType('autocomplete').valueGetter,
+        valueSetter: getCellType('autocomplete').valueSetter,
+        parsePastedValue: getCellType('autocomplete').parsePastedValue,
       });
     });
 
@@ -205,25 +237,6 @@ describe('MetaManager utils', () => {
       expect(column.data).toBeUndefined();
       expect(column.width).toBeUndefined();
       expect(column.copyPaste).toBe(true);
-    });
-  });
-
-  describe('isUnsignedNumber', () => {
-    it('should return true only for valid signed numbers', () => {
-      expect(isUnsignedNumber()).toBe(false);
-      expect(isUnsignedNumber(null)).toBe(false);
-      expect(isUnsignedNumber(false)).toBe(false);
-      expect(isUnsignedNumber('')).toBe(false);
-      expect(isUnsignedNumber('1')).toBe(false);
-      expect(isUnsignedNumber({ a: 1 })).toBe(false);
-      expect(isUnsignedNumber(Infinity)).toBe(false);
-      expect(isUnsignedNumber(-1)).toBe(false);
-      expect(isUnsignedNumber(-999)).toBe(false);
-
-      expect(isUnsignedNumber(0)).toBe(true);
-      expect(isUnsignedNumber(1)).toBe(true);
-      expect(isUnsignedNumber(100)).toBe(true);
-      expect(isUnsignedNumber(Number.MAX_SAFE_INTEGER)).toBe(true);
     });
   });
 

@@ -323,23 +323,6 @@
                                 bottom: 8px
                                 border-color: $accentColor
                             }
-                        }  
-                        .tag-update, .tag-new, .tag-deprecated  { 
-                            font-size: 11px
-                            line-height: $line-height-xxs
-                            display: block;
-                            border-radius: $radius-s
-                            padding: 1px 5px;
-                            background-color: #238349
-                            color: $bgColor
-                            margin:-1px 0;
-                            width:auto
-                        }
-                        .tag-new { 
-                            background-color: $accentColor
-                        }
-                        .tag-deprecated { 
-                            background-color: $depricatedColor
                         }
                     }
                 }
@@ -353,6 +336,7 @@
             flex-direction: column
 
             .nav-item {
+                
                 a, button { 
                     font-size: $font-size-xs
                     line-height: $font-size-xs
@@ -586,7 +570,24 @@
     padding-bottom: 12px
     display: block !important;
 
+    .nav-item {
+        position: relative
 
+        .tag  { 
+            pointer-events: none;
+            font-size: $font-size-xxs
+            line-height: $line-height-xxs
+            display: block;
+            border-radius: $radius-s
+            padding: 2px 8px;
+            background-color: $accentColor
+            color: $bgColor
+            position: absolute
+            right: 30px
+            top: 14px
+        }
+    }
+    
     .nav-frameworks {
         button, 
         .ico {

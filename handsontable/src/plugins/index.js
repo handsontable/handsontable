@@ -28,12 +28,14 @@ import { MultipleSelectionHandles } from './multipleSelectionHandles';
 import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
 import { Pagination } from './pagination';
-import { PersistentState } from './persistentState';
 import { Search } from './search';
 import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
 import { UndoRedo } from './undoRedo';
+import { Dialog } from './dialog';
+import { Loading } from './loading';
+import { EmptyDataState } from './emptyDataState';
 import {
   registerPlugin,
 } from './registry';
@@ -71,12 +73,14 @@ export function registerAllPlugins() {
   registerPlugin(NestedHeaders);
   registerPlugin(NestedRows);
   registerPlugin(Pagination);
-  registerPlugin(PersistentState);
   registerPlugin(Search);
   registerPlugin(StretchColumns);
   registerPlugin(TouchScroll);
   registerPlugin(TrimRows);
   registerPlugin(UndoRedo);
+  registerPlugin(Dialog);
+  registerPlugin(Loading);
+  registerPlugin(EmptyDataState);
 }
 
 export {
@@ -110,12 +114,14 @@ export {
   NestedHeaders,
   NestedRows,
   Pagination,
-  PersistentState,
   Search,
   StretchColumns,
   TouchScroll,
   TrimRows,
   UndoRedo,
+  Dialog,
+  Loading,
+  EmptyDataState,
 };
 
 export {

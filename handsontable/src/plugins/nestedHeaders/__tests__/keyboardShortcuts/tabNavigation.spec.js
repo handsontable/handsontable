@@ -32,7 +32,7 @@ describe('NestedHeaders navigation keyboard shortcuts', () => {
         ],
       }, false, spec().$container1);
 
-      triggerTabNavigationFromTop(); // emulates native browser Tab navigation
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,-1 from: -1,-1 to: -1,-1']);
       expect(hot1.getSelectedRange()).toBeUndefined();
@@ -48,13 +48,11 @@ describe('NestedHeaders navigation keyboard shortcuts', () => {
       expect(hot1.getSelectedRange()).toBeUndefined();
 
       await keyDownUp('tab');
-      triggerTabNavigationFromTop(hot1); // emulates native browser Tab navigation
 
       expect(getSelectedRange()).toBeUndefined();
       expect(hot1.getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
 
       await keyDownUp(['shift', 'tab']);
-      triggerTabNavigationFromBottom(); // emulates native browser Tab navigation
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
       expect(hot1.getSelectedRange()).toBeUndefined();

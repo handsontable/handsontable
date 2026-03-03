@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
-import { GridSettings } from "@handsontable/angular-wrapper";
+import { GridSettings } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'app-example5',
@@ -55,7 +55,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig
     }

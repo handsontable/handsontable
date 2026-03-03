@@ -448,5 +448,59 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe(expectedResult);
     });
+
+    it('should stringify the object-based cells as JSON under `application/ht-source-data-json-html`', async() => {
+      handsontable({
+        data: [
+          [{ id: 1, value: 'A1' }, 'test'],
+          [{ id: 3, value: 'A2' }, 'test2'],
+        ],
+        columns: [
+          {
+            valueGetter: value => value.value,
+          },
+          {},
+        ],
+      });
+
+      const plugin = getPlugin('CopyPaste');
+      const copyEvent = getClipboardEvent();
+
+      await selectCells([[0, 0, 1, 0]]);
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('application/ht-source-data-json-html')).toEqual([
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
+        '<table><tbody>' +
+        '<tr><td>{"id":1,"value":"A1"}</td></tr>' +
+        '<tr><td>{"id":3,"value":"A2"}</td></tr>' +
+        '</tbody></table>',
+      ].join(''));
+
+      await selectCells([[0, 1, 1, 1]]);
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('application/ht-source-data-json-html')).toEqual([
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
+        '<table><tbody>' +
+        '<tr><td>test</td></tr>' +
+        '<tr><td>test2</td></tr>' +
+        '</tbody></table>',
+      ].join(''));
+
+      await selectAll();
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('application/ht-source-data-json-html')).toEqual([
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
+        '<table><tbody>' +
+        '<tr><td>{"id":1,"value":"A1"}</td><td>test</td></tr>' +
+        '<tr><td>{"id":3,"value":"A2"}</td><td>test2</td></tr>' +
+        '</tbody></table>',
+      ].join(''));
+    });
   });
 });

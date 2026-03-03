@@ -8,7 +8,6 @@ import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
 import { CONDITION_BY_VALUE, CONDITION_NONE } from '../constants';
 import { getConditionDescriptor } from '../conditionRegisterer';
-import { getRenderedValue as getRenderedNumericValue } from '../../../renderers/numericRenderer';
 
 /**
  * @private
@@ -22,6 +21,13 @@ export class ValueComponent extends BaseComponent {
    */
   name = '';
 
+  /**
+   * Whether to uncheck filtered queries.
+   *
+   * @type {string}
+   */
+  searchMode;
+
   constructor(hotInstance, options) {
     super(hotInstance, {
       id: options.id,
@@ -29,7 +35,10 @@ export class ValueComponent extends BaseComponent {
     });
 
     this.name = options.name;
-    this.elements.push(new MultipleSelectUI(this.hot));
+    this.searchMode = options.searchMode;
+    this.elements.push(new MultipleSelectUI(this.hot, {
+      searchMode: this.searchMode
+    }));
 
     this.registerHooks();
   }
@@ -120,7 +129,7 @@ export class ValueComponent extends BaseComponent {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
         const rowValues = arrayMap(filteredRows, row => row.value);
         const rowMetaMap = new Map(
-          filteredRows.map(row => [row.value, this.hot.getCellMeta(row.meta.visualRow, row.meta.visualCol)])
+          filteredRows.map(row => [row.value, row.meta])
         );
         const unifiedRowValues = unifyColumnValues(rowValues);
 
@@ -254,6 +263,14 @@ export class ValueComponent extends BaseComponent {
       this.runLocalHooks('cancel');
       stopImmediatePropagation(event);
     }
+
+    if (isKey(event.keyCode, 'ENTER')) {
+      if (this.searchMode === 'apply') {
+        this.runLocalHooks('accept');
+      }
+
+      stopImmediatePropagation(event);
+    }
   }
 
   /**
@@ -277,12 +294,11 @@ export class ValueComponent extends BaseComponent {
    * @returns {*} Returns the modified value.
    */
   #onModifyDisplayedValue(value, meta) {
-    switch (meta.type) {
-      case 'numeric':
-        return getRenderedNumericValue(value, meta);
-      default:
-        return value;
+    if (meta.valueFormatter) {
+      return meta.valueFormatter(value, meta);
     }
+
+    return value;
   }
 
   /**

@@ -172,10 +172,11 @@ class Overlays {
     // TODO refactoring: probably invalid place to this logic
     this.scrollbarSize = getScrollbarWidth(rootDocument);
 
-    const isOverflowHidden = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
-      .getPropertyValue('overflow') === 'hidden';
+    const computedOverflow = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
+      .getPropertyValue('overflow');
+    const isOverflowClip = computedOverflow === 'hidden' || computedOverflow === 'clip';
 
-    this.scrollableElement = isOverflowHidden ? wtTable.holder : getScrollableElement(wtTable.TABLE);
+    this.scrollableElement = isOverflowClip ? wtTable.holder : getScrollableElement(wtTable.TABLE);
 
     this.initOverlays();
 
@@ -609,8 +610,11 @@ class Overlays {
     }
     const { wtTable } = this;
     const { rootWindow } = this.domBindings;
+    const computedOverflow = rootWindow
+      .getComputedStyle(wtTable.wtRootElement.parentNode)
+      .getPropertyValue('overflow');
 
-    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+    if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
       this.scrollableElement = wtTable.holder;
     } else {
       this.scrollableElement = getScrollableElement(wtTable.TABLE);
@@ -706,7 +710,7 @@ class Overlays {
     // The internal row height calculator contains a known issue that results in a 1px miscalculation.
     // Ideally, this should be addressed at the core level. However, resolving it is non-trivial,
     // as the flaw is embedded across multiple core modules and corresponding test cases.
-    // This limitation does not affect when the the external calculator is used (AutoRowSize), which
+    // This limitation does not affect when the external calculator is used (AutoRowSize), which
     // computes heights accurately, so no adjustment is required when using it.
     const hiderHeightComp = this.wtSettings.getSetting('externalRowCalculator') ? 0 : 1;
     const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp;

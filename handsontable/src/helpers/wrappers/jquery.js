@@ -1,3 +1,5 @@
+import { throwWithCause } from '../../helpers/errors';
+
 /**
  * @param {Core} Handsontable The Handsontable instance.
  */
@@ -41,7 +43,7 @@ export default function jQueryWrapper(Handsontable) {
         }
 
       } else {
-        throw new Error(`Handsontable do not provide action: ${action}`);
+        throwWithCause(`Handsontable do not provide action: ${action}`);
       }
     }
 

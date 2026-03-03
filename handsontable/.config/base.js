@@ -1,4 +1,3 @@
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 const fs = require('fs');
 const webpack = require('webpack');
@@ -31,14 +30,6 @@ module.exports.create = function create(envArgs) {
     mode: 'none',
     module: {
       rules: [
-        {
-          test: /\.(scss|css)$/,
-          use: [
-            { loader: MiniCssExtractPlugin.loader },
-            { loader: 'css-loader', options: { sourceMap: false } },
-            { loader: 'sass-loader' },
-          ],
-        },
         {
           test: [
             // Disable loading languages from numbro and moment into final bundle

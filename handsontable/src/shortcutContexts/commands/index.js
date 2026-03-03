@@ -6,6 +6,7 @@ import { command as scrollToFocusedCell } from './scrollToFocusedCell';
 import { command as selectAllCells } from './selectAllCells';
 import { command as selectAllCellsAndHeaders } from './selectAllCellsAndHeaders';
 import { command as populateSelectedCellsData } from './populateSelectedCellsData';
+import { command as tabNavigation } from './tabNavigation';
 
 const allCommands = [
   ...getAllEditorCommands(),
@@ -16,6 +17,7 @@ const allCommands = [
   selectAllCells,
   selectAllCellsAndHeaders,
   populateSelectedCellsData,
+  tabNavigation,
 ];
 
 /**

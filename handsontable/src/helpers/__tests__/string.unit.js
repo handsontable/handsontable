@@ -3,6 +3,8 @@ import {
   sanitize,
   substitute,
   stripTags,
+  isJSON,
+  toHyphen,
 } from 'handsontable/helpers/string';
 
 describe('String helper', () => {
@@ -88,6 +90,80 @@ describe('String helper', () => {
       expect(stripTags('<script>alert()</script>')).toBe('');
       expect(stripTags('<strong>Hello</strong> <span class="my">my</span> world<sup>2</sup>')).toBe('Hello my world2');
       expect(stripTags('This is my <a href="https://handsontable.com">link</a>')).toBe('This is my link');
+    });
+  });
+
+  //
+  // Handsontable.helper.isJSON
+  //
+  describe('isJSON', () => {
+    it('should return true for valid JSON object strings', () => {
+      expect(isJSON('{"foo": "bar"}')).toBe(true);
+      expect(isJSON('{"foo": 1, "bar": {"baz": true}}')).toBe(true);
+      expect(isJSON('{"foo": null}')).toBe(true);
+      expect(isJSON('{"foo": [1,2,3]}')).toBe(true);
+    });
+
+    it('should return true for valid JSON array strings', () => {
+      expect(isJSON('[1,2,3]')).toBe(true);
+      expect(isJSON('["foo", "bar"]')).toBe(true);
+      expect(isJSON('[{"foo": "bar"}, {"baz": true}]')).toBe(true);
+      expect(isJSON('[]')).toBe(true);
+    });
+
+    it('should return false for invalid JSON strings', () => {
+      expect(isJSON('{foo:"bar"}')).toBe(false);
+      expect(isJSON('foo: bar')).toBe(false);
+      expect(isJSON('[1,2,')).toBe(false);
+      expect(isJSON('{"foo": undefined}')).toBe(false);
+    });
+
+    it('should return false for non-object/array JSON values', () => {
+      expect(isJSON('"foo"')).toBe(false);
+      expect(isJSON('123')).toBe(false);
+      expect(isJSON('true')).toBe(false);
+      expect(isJSON('null')).toBe(false);
+    });
+
+    it('should return false for non-string inputs', () => {
+      expect(isJSON(null)).toBe(false);
+      expect(isJSON(undefined)).toBe(false);
+      expect(isJSON(123)).toBe(false);
+      expect(isJSON({})).toBe(false);
+      expect(isJSON([])).toBe(false);
+    });
+  });
+
+  //
+  // Handsontable.helper.toHyphen
+  //
+  describe('toHyphen', () => {
+    it('should convert camelCase strings to hyphen-case', () => {
+      expect(toHyphen('camelCase')).toBe('camel-case');
+      expect(toHyphen('backgroundColor')).toBe('background-color');
+      expect(toHyphen('borderTopWidth')).toBe('border-top-width');
+    });
+
+    it('should convert PascalCase strings to hyphen-case', () => {
+      expect(toHyphen('PascalCase')).toBe('-pascal-case');
+      expect(toHyphen('MyComponent')).toBe('-my-component');
+    });
+
+    it('should return the input unchanged for non-string values', () => {
+      expect(toHyphen(123)).toBe(123);
+      expect(toHyphen(null)).toBe(null);
+      expect(toHyphen(undefined)).toBe(undefined);
+      expect(toHyphen({})).toEqual({});
+      expect(toHyphen([])).toEqual([]);
+    });
+
+    it('should handle empty strings', () => {
+      expect(toHyphen('')).toBe('');
+    });
+
+    it('should handle strings that are already hyphenated', () => {
+      expect(toHyphen('already-hyphenated')).toBe('already-hyphenated');
+      expect(toHyphen('my-component')).toBe('my-component');
     });
   });
 });

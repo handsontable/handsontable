@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  EnvironmentInjector,
   Input,
   NgZone,
   OnChanges,
@@ -46,7 +47,12 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   private __hotInstance: Handsontable | null = null;
   private configSubscription: Subscription;
 
-  constructor(private _hotSettingsResolver: HotSettingsResolver, private _hotConfig: HotGlobalConfigService, public ngZone: NgZone) {}
+  constructor(
+    private _hotSettingsResolver: HotSettingsResolver,
+    private _hotConfig: HotGlobalConfigService,
+    public ngZone: NgZone,
+    private readonly environmentInjector: EnvironmentInjector
+  ) {}
 
   /**
    * Gets the Handsontable instance.
@@ -82,6 +88,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     this.ngZone.runOutsideAngular(() => {
       this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
+
+      (this.hotInstance as any)._angularEnvironmentInjector = this.environmentInjector;
 
       this.hotInstance.init();
     });
@@ -167,8 +175,16 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     const negotiatedSettings: Handsontable.GridSettings = {};
 
     negotiatedSettings.licenseKey = settings.licenseKey ?? hotConfig.license;
-    negotiatedSettings.themeName = settings.themeName ?? hotConfig.themeName;
     negotiatedSettings.language = settings.language ?? hotConfig.language;
+
+    const theme = settings.theme ?? hotConfig.theme;
+    const themeName = settings.themeName ?? hotConfig.themeName;
+
+    if (theme !== undefined) {
+      negotiatedSettings.theme = theme as Handsontable.GridSettings['theme'];
+    } else if (themeName) {
+      negotiatedSettings.themeName = themeName;
+    }
 
     // settings that can be set only before the Handsontable instance is initialized
     if (!this.__hotInstance) {

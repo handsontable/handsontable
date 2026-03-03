@@ -23,22 +23,22 @@ describe('DropdownCellType', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
         getEditor('dropdown');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
         getRenderer('dropdown');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
         getValidator('dropdown');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
         getCellType('dropdown');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
     });
 
     it('should register cell type', () => {
@@ -60,8 +60,11 @@ describe('DropdownCellType', () => {
         editor: getEditor('dropdown'),
         renderer: getRenderer('dropdown'),
         validator: getValidator('dropdown'),
+        valueGetter: DropdownCellType.valueGetter,
+        valueSetter: DropdownCellType.valueSetter,
         filter: false,
         strict: true,
+        parsePastedValue: true,
       });
     });
   });

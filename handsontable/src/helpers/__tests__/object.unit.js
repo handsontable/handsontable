@@ -1,5 +1,6 @@
 import {
   isObjectEqual,
+  isKeyValueObject,
   duckSchema,
   mixin,
   clone,
@@ -8,6 +9,8 @@ import {
   createObjectPropListener,
   setProperty,
   extend,
+  assignObjectDefaults,
+  deepMerge,
 } from 'handsontable/helpers/object';
 
 describe('Object helper', () => {
@@ -409,6 +412,140 @@ describe('Object helper', () => {
       );
 
       expect(testObject).toEqual({ prop1: 0 });
+    });
+  });
+
+  describe('assignObjectDefaults', () => {
+    it('should return defaults if target is not an object', () => {
+      expect(assignObjectDefaults({}, { test: 1 })).toEqual({ test: 1 });
+    });
+
+    it('should return target object values if target is an object', () => {
+      expect(assignObjectDefaults({ test: 1 }, { test: 2 })).toEqual({ test: 1 });
+    });
+
+    it('should return object with defaults and plugin settings', () => {
+      expect(assignObjectDefaults({ test: 1 }, { test: 2, test2: 3 })).toEqual({ test: 1, test2: 3 });
+    });
+
+    it('should return target object values if defaults is null', () => {
+      expect(assignObjectDefaults({ test: 1 }, null)).toEqual({ test: 1 });
+    });
+
+    it('should return target object values if defaults is undefined', () => {
+      expect(assignObjectDefaults({ test: 1 }, undefined)).toEqual({ test: 1 });
+    });
+
+    it('should return target object values if defaults is a string', () => {
+      expect(assignObjectDefaults({ test: 1 }, 'test')).toEqual({ test: 1 });
+    });
+
+    it('should return defaults object values if target is null', () => {
+      expect(assignObjectDefaults(null, { test: 2 })).toEqual({ test: 2 });
+    });
+
+    it('should return defaults object values if target is undefined', () => {
+      expect(assignObjectDefaults(undefined, { test: 2 })).toEqual({ test: 2 });
+    });
+
+    it('should return defaults object values if target is a string', () => {
+      expect(assignObjectDefaults('test', { test: 2 })).toEqual({ test: 2 });
+    });
+
+    it('should return null if target is null and defaults is null', () => {
+      expect(assignObjectDefaults(null, null)).toEqual(null);
+    });
+
+    it('should return object with defaults for nested objects', () => {
+      expect(assignObjectDefaults(
+        { test: { test2: 1 } }, { test: { test2: 2, test3: 3 } })
+      ).toEqual({ test: { test2: 1, test3: 3 } });
+    });
+
+    it('should return empty object when target and defaults are empty objects', () => {
+      expect(assignObjectDefaults({}, {})).toEqual({});
+    });
+  });
+
+  describe('deepMerge', () => {
+    it('should merge objects and deeply merge nested objects', () => {
+      expect(deepMerge({ a: 1 }, { b: 2 })).toEqual({ a: 1, b: 2 });
+      expect(deepMerge({ a: 1, b: 2 }, { b: 20 })).toEqual({ a: 1, b: 20 });
+      expect(deepMerge(
+        { nested: { a: 1, b: 2 } },
+        { nested: { b: 20, c: 3 } }
+      )).toEqual({ nested: { a: 1, b: 20, c: 3 } });
+    });
+
+    it('should replace arrays and handle type changes', () => {
+      expect(deepMerge({ arr: [1, 2, 3] }, { arr: [4, 5] })).toEqual({ arr: [4, 5] });
+      expect(deepMerge({ prop: { a: 1 } }, { prop: [1, 2] })).toEqual({ prop: [1, 2] });
+      expect(deepMerge({ prop: 'string' }, { prop: { a: 1 } })).toEqual({ prop: { a: 1 } });
+      expect(deepMerge({ nested: { a: 1 } }, { nested: null })).toEqual({ nested: null });
+    });
+
+    it('should handle empty and undefined arguments', () => {
+      expect(deepMerge({}, {})).toEqual({});
+      expect(deepMerge({ a: 1 }, {})).toEqual({ a: 1 });
+      expect(deepMerge(undefined, { a: 1 })).toEqual({ a: 1 });
+      expect(deepMerge({ a: 1 }, undefined)).toEqual({ a: 1 });
+    });
+
+    it('should return a new object without modifying inputs', () => {
+      const target = { a: 1, nested: { b: 2 } };
+      const source = { a: 10, nested: { c: 3 } };
+      const result = deepMerge(target, source);
+
+      expect(result).toEqual({ a: 10, nested: { b: 2, c: 3 } });
+      expect(target).toEqual({ a: 1, nested: { b: 2 } });
+      expect(result).not.toBe(target);
+    });
+
+    it('should prevent prototype pollution', () => {
+      const malicious = JSON.parse('{"__proto__": {"polluted": true}}');
+
+      deepMerge({}, malicious);
+
+      expect({}.polluted).toBeUndefined();
+
+      const result = deepMerge({}, { constructor: { prototype: { bad: true } } });
+
+      expect(Object.prototype.hasOwnProperty.call(result, 'constructor')).toBe(false);
+    });
+
+    it('should handle special object types as values', () => {
+      const fn = () => 'test';
+      const date = new Date('2025-01-01');
+
+      const result = deepMerge({ a: 1 }, { fn, date });
+
+      expect(result.fn).toBe(fn);
+      expect(result.date).toBe(date);
+    });
+  });
+
+  //
+  // Handsontable.helper.isKeyValueObject
+  //
+  describe('isKeyValueObject', () => {
+    it('should return true if the object is a key/value object', () => {
+      expect(isKeyValueObject({ key: 'value', value: 'value' })).toBe(true);
+    });
+
+    it('should return false if the object is not a key/value object', () => {
+      expect(isKeyValueObject({ value: 'value' })).toBe(false);
+    });
+
+    it('should return false if the object is not an object', () => {
+      expect(isKeyValueObject('value')).toBe(false);
+    });
+
+    it('should return false if the object is null', () => {
+      expect(isKeyValueObject(null)).toBe(false);
+    });
+
+    it('should return false if the object is undefined', () => {
+      expect(isKeyValueObject(undefined)).toBe(false);
     });
   });
 });

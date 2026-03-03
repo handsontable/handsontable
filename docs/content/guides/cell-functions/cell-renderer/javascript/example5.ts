@@ -1,7 +1,9 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { BaseRenderer } from 'handsontable/renderers';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 let isChecked = false;
 const exampleContainer = document.querySelector('#exampleContainer5')!;
@@ -18,7 +20,6 @@ const customRenderer: BaseRenderer = (instance, td, ...rest) => {
 };
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   height: 'auto',
   columns: [{}, { renderer: customRenderer }],
   colHeaders(col) {

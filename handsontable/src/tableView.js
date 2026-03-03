@@ -305,7 +305,7 @@ class TableView {
    * @private
    */
   registerEvents() {
-    const { rootElement, rootDocument, selection, rootWindow } = this.hot;
+    const { rootWrapperElement, rootElement, rootDocument, selection, rootWindow } = this.hot;
     const documentElement = rootDocument.documentElement;
 
     this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
@@ -352,7 +352,7 @@ class TableView {
       }
 
       if (isOutsideInputElement || (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
-          !rootElement.contains(event.target) && !isRightClick(event))) {
+          !(rootWrapperElement ?? rootElement).contains(event.target) && !isRightClick(event))) {
         this.hot.unlisten();
       }
     });
@@ -828,18 +828,36 @@ class TableView {
           value = this.hot.runHooks('beforeValueRender', value, cellProperties);
         }
 
+        const renderer = this.hot.getCellRenderer(cellProperties);
+        let formattedValue = value;
+
+        if (typeof cellProperties.valueFormatter === 'function') {
+          formattedValue = cellProperties.valueFormatter(formattedValue, cellProperties);
+
+        } else if (typeof renderer.valueFormatter === 'function') {
+          formattedValue = renderer.valueFormatter.call(cellProperties, formattedValue, cellProperties);
+        }
+
         this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
-        this.hot.getCellRenderer(cellProperties)(
+
+        const rendererArgs = [
           this.hot,
           TD,
           visualRowIndex,
           visualColumnIndex,
           prop,
-          value,
-          cellProperties
-        );
+          formattedValue,
+          cellProperties,
+        ];
+
+        renderer(...rendererArgs);
+
+        if (!cellProperties._isBaseRendererCalled) {
+          this.hot.getCellRenderer({ renderer: 'base' })(...rendererArgs);
+        }
 
         this.hot.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
+        cellProperties._isBaseRendererCalled = false;
       },
       selections: this.hot.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
@@ -1460,7 +1478,7 @@ class TableView {
     }
 
     if (renderedIndex > -1) {
-      fastInnerHTML(element, content(index, headerLevel));
+      fastInnerHTML(element, content(index, headerLevel), this.hot.getSettings().sanitizer);
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946
@@ -1843,6 +1861,28 @@ class TableView {
   }
 
   /**
+   * Gets the current scroll position of the table.
+   *
+   * @returns {{ left: number, top: number }} The current scroll position.
+   */
+  getTableScrollPosition() {
+    return {
+      left: this._wt.wtTable.holder.scrollLeft,
+      top: this._wt.wtTable.holder.scrollTop,
+    };
+  }
+
+  /**
+   * Sets the table's scroll position.
+   *
+   * @param {{ left: number, top: number }} position The scroll position.
+   */
+  setTableScrollPosition(position) {
+    this._wt.wtTable.holder.scrollLeft = position.left;
+    this._wt.wtTable.holder.scrollTop = position.top;
+  }
+
+  /**
    * Gets the row header width. If there are multiple row headers, the width of
    * the sum of all of them is returned.
    *
@@ -1932,6 +1972,12 @@ class TableView {
       addClass(rootElement, 'htHorizontallyScrollableByWindow');
     } else {
       removeClass(rootElement, 'htHorizontallyScrollableByWindow');
+    }
+
+    if (getScrollbarWidth() === 0) {
+      addClass(rootElement, 'htScrollbarHidden');
+    } else {
+      removeClass(rootElement, 'htScrollbarHidden');
     }
   }
 

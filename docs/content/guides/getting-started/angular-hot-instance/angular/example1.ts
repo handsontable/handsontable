@@ -13,7 +13,7 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
     </div>`,
 })
 export class Example1InstanceAccessComponent {
-  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+  @ViewChild(HotTableComponent, { static: true }) readonly hotTable!: HotTableComponent;
 
   readonly data: string[][] = [
     ['A1', 'B1', 'C1', 'D1'],
@@ -34,9 +34,7 @@ export class Example1InstanceAccessComponent {
     this.hotTable?.hotInstance?.selectCell(1, 1);
   }
 }
-
 /* end-file */
-
 
 /* file: app.module.ts */
 import { NgModule, ApplicationConfig } from '@angular/core';
@@ -57,7 +55,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig
     }

@@ -1663,12 +1663,14 @@ describe('AutoFill', () => {
 
       $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
         data: getData(),
-        fillHandle: true
+        fillHandle: true,
+        themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
       });
 
       $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
         data: getData(),
-        fillHandle: 'horizontal'
+        fillHandle: 'horizontal',
+        themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
       });
     });
 
@@ -1682,7 +1684,9 @@ describe('AutoFill', () => {
 
     describe('-> updating settings on 2. instance of Handsontable', () => {
       beforeAll(() => {
-        $container2.handsontable('updateSettings', { fillHandle: 'vertical' });
+        $container2.handsontable('updateSettings', {
+          fillHandle: 'vertical', themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
+        });
       });
 
       it('checking drag vertically on 2. instance of Handsontable - should change cell value', async() => {
@@ -1850,6 +1854,289 @@ describe('AutoFill', () => {
     window.onerror = prevError;
   });
 
+  describe('Using object-based cell content', () => {
+    using('configuration object', [
+      { coords: [[0, 1], [4, 1]] }, // Autofill downward
+      { coords: [[4, 1], [0, 1]] }, // Autofill upward
+    ], ({ coords }) => {
+
+      it('should utilize the source data when filling object-based cells with object-based content (if the schema matches)', async() => {
+        handsontable({
+          data: [
+            ['A1', { id: 1, value: 'A1' }, 'test'],
+            ['A2', { id: 2, value: 'A2' }, 'test2'],
+            ['A3', { id: 3, value: 'A3' }, 'test3'],
+            ['A4', { id: 4, value: 'A4' }, 'test4'],
+            ['A5', { id: 5, value: 'A5' }, 'test5'],
+          ],
+          columns: [
+            {},
+            {
+              valueGetter: value => value?.value,
+            },
+            {},
+          ],
+        });
+
+        const baseCellSource = getSourceDataAtCell(...coords[0]);
+        const baseCellData = getDataAtCell(...coords[0]);
+
+        await selectCell(...coords[0]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(...coords[1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCell(1, 1)).toEqual(baseCellSource);
+        expect(getSourceDataAtCell(2, 1)).toEqual(baseCellSource);
+        expect(getSourceDataAtCell(3, 1)).toEqual(baseCellSource);
+        expect(getSourceDataAtCell(4, 1)).toEqual(baseCellSource);
+
+        expect(getDataAtCell(1, 1)).toEqual(baseCellData);
+        expect(getDataAtCell(2, 1)).toEqual(baseCellData);
+        expect(getDataAtCell(3, 1)).toEqual(baseCellData);
+        expect(getDataAtCell(4, 1)).toEqual(baseCellData);
+      });
+
+      it('should utilize the non-source data when filling text-based cells with object-based content', async() => {
+        handsontable({
+          data: [
+            ['A1', 'xyz', 'test'],
+            ['A2', 'xyz', 'test2'],
+            ['A3', 'xyz', 'test3'],
+            ['A4', 'xyz', 'test4'],
+            ['A5', 'xyz', 'test5'],
+          ],
+        });
+
+        await setSourceDataAtCell(coords[0][0], coords[0][1], { id: 1, value: 'A1' });
+        await setCellMeta(coords[0][0], coords[0][1], 'valueGetter', value => value?.value);
+
+        await render();
+
+        await selectCell(...coords[0]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(...coords[1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCell(...coords[0])).toEqual({ id: 1, value: 'A1' });
+        expect(getSourceDataAtCell(1, 1)).toEqual('A1');
+        expect(getSourceDataAtCell(2, 1)).toEqual('A1');
+        expect(getSourceDataAtCell(3, 1)).toEqual('A1');
+        expect(getSourceDataAtCell(...coords[1])).toEqual('A1');
+
+        expect(getDataAtCell(...coords[0])).toEqual('A1');
+        expect(getDataAtCell(1, 1)).toEqual('A1');
+        expect(getDataAtCell(2, 1)).toEqual('A1');
+        expect(getDataAtCell(3, 1)).toEqual('A1');
+        expect(getDataAtCell(...coords[1])).toEqual('A1');
+      });
+
+      it('should not perform autofill when filling object-based cells with object-based content (if the schema does not match)', async() => {
+        handsontable({
+          data: [
+            ['A1', { a: 1, b: 2 }, 'test'],
+            ['A2', { a: 2, b: 3 }, 'test2'],
+            ['A3', { a: 3, b: 4 }, 'test3'],
+            ['A4', { a: 4, b: 5 }, 'test4'],
+            ['A5', { a: 5, b: 6 }, 'test5'],
+          ],
+          valueGetter: value => value?.a,
+        });
+
+        const sourceDataAtTarget = getSourceDataAtCell(...coords[1]);
+        const dataAtTarget = getDataAtCell(...coords[1]);
+
+        await setSourceDataAtCell(coords[0][0], coords[0][1], { id: 1, value: 'A1' });
+        await setCellMeta(coords[0][0], coords[0][1], 'valueGetter', value => value?.value);
+
+        await render();
+
+        await selectCell(...coords[0]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(...coords[1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCell(...coords[0])).toEqual({ id: 1, value: 'A1' });
+        expect(getSourceDataAtCell(1, 1)).toEqual({ a: 2, b: 3 });
+        expect(getSourceDataAtCell(2, 1)).toEqual({ a: 3, b: 4 });
+        expect(getSourceDataAtCell(3, 1)).toEqual({ a: 4, b: 5 });
+        expect(getSourceDataAtCell(...coords[1])).toEqual(sourceDataAtTarget);
+
+        expect(getDataAtCell(...coords[0])).toEqual('A1');
+        expect(getDataAtCell(1, 1)).toEqual(2);
+        expect(getDataAtCell(2, 1)).toEqual(3);
+        expect(getDataAtCell(3, 1)).toEqual(4);
+        expect(getDataAtCell(...coords[1])).toEqual(dataAtTarget);
+      });
+
+      it('should utilize the source data when filling mixed-typed cells with mixed-typed content (schema of the object-based content matches the schema of the target cell)', async() => {
+        handsontable({
+          data: [
+            ['A1', { id: 1, value: 'A1' }, 'test'],
+            ['A2', { id: 2, value: 'A2' }, 'test2'],
+            ['A3', { id: 3, value: 'A3' }, 'test3'],
+            ['A4', { id: 4, value: 'A4' }, 'test4'],
+            ['A5', { id: 5, value: 'A5' }, 'test5'],
+          ],
+          columns: [
+            {},
+            {
+              valueGetter: value => value?.value,
+            },
+            {},
+          ],
+        });
+
+        const sourceDataAtBaseRow = getSourceDataAtRow(coords[0][0]);
+        const dataAtBaseRow = getDataAtRow(coords[0][0]);
+
+        await selectCells([[coords[0][0], 0, coords[0][0], 2]]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(coords[1][0], 2, true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtRow(0)).toEqual(sourceDataAtBaseRow);
+        expect(getSourceDataAtRow(1)).toEqual(sourceDataAtBaseRow);
+        expect(getSourceDataAtRow(2)).toEqual(sourceDataAtBaseRow);
+        expect(getSourceDataAtRow(3)).toEqual(sourceDataAtBaseRow);
+        expect(getSourceDataAtRow(4)).toEqual(sourceDataAtBaseRow);
+
+        expect(getDataAtRow(0)).toEqual(dataAtBaseRow);
+        expect(getDataAtRow(1)).toEqual(dataAtBaseRow);
+        expect(getDataAtRow(2)).toEqual(dataAtBaseRow);
+        expect(getDataAtRow(3)).toEqual(dataAtBaseRow);
+        expect(getDataAtRow(4)).toEqual(dataAtBaseRow);
+      });
+    });
+
+    using('configuration object', [
+      { coords: [[1, 0], [1, 2]] }, // Autofill right
+      { coords: [[1, 2], [1, 0]] }, // Autofill left
+    ], ({ coords }) => {
+      it('should utilize the source data when filling object-based cells with object-based content (if the schema matches)', async() => {
+        handsontable({
+          data: [
+            ['A1', 'B1', 'test'],
+            [{ id: 1, value: 'A2' }, { id: 2, value: 'B2' }, { id: 3, value: 'C3' }],
+            ['A3', 'B3', 'test3'],
+          ],
+          valueGetter: value => value?.value ?? value,
+        });
+
+        const baseCellSource = getSourceDataAtCell(...coords[0]);
+        const baseCellData = getDataAtCell(...coords[0]);
+
+        await selectCell(...coords[0]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(...coords[1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCell(1, 0)).toEqual(baseCellSource);
+        expect(getSourceDataAtCell(1, 1)).toEqual(baseCellSource);
+        expect(getSourceDataAtCell(1, 2)).toEqual(baseCellSource);
+
+        expect(getDataAtCell(1, 0)).toEqual(baseCellData);
+        expect(getDataAtCell(1, 1)).toEqual(baseCellData);
+        expect(getDataAtCell(1, 2)).toEqual(baseCellData);
+      });
+
+      it('should utilize the non-source data when filling text-based cells with object-based content', async() => {
+        handsontable({
+          data: [
+            ['A1', 'xyz', 'test'],
+            ['A2', 'xyz', 'test2'],
+            ['A3', 'xyz', 'test3'],
+          ],
+        });
+
+        await setSourceDataAtCell(coords[0][0], coords[0][1], { id: 1, value: 'A1' });
+        await setCellMeta(coords[0][0], coords[0][1], 'valueGetter', value => value?.value);
+
+        await render();
+
+        await selectCell(...coords[0]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(...coords[1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCell(...coords[0])).toEqual({ id: 1, value: 'A1' });
+        expect(getSourceDataAtCell(1, 1)).toEqual('A1');
+        expect(getSourceDataAtCell(...coords[1])).toEqual('A1');
+
+        expect(getDataAtCell(...coords[0])).toEqual('A1');
+        expect(getDataAtCell(1, 1)).toEqual('A1');
+        expect(getDataAtCell(...coords[1])).toEqual('A1');
+      });
+
+      it('should not perform autofill when filling object-based cells with object-based content (if the schema does not match)', async() => {
+        handsontable({
+          data: [
+            ['A1', 'B1', 'test'],
+            [{ a: 1, b: 2 }, { a: 2, b: 3 }, { a: 3, b: 4 }],
+            ['A3', 'B3', 'test3'],
+          ],
+          valueGetter: value => value?.a ?? value,
+        });
+
+        const sourceDataAtTarget = getSourceDataAtCell(...coords[1]);
+        const dataAtTarget = getDataAtCell(...coords[1]);
+
+        await setSourceDataAtCell(coords[0][0], coords[0][1], { id: 1, value: 'A1' });
+        await setCellMeta(coords[0][0], coords[0][1], 'valueGetter', value => value?.value);
+
+        await render();
+
+        await selectCell(...coords[0]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(...coords[1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCell(...coords[0])).toEqual({ id: 1, value: 'A1' });
+        expect(getSourceDataAtCell(1, 1)).toEqual({ a: 2, b: 3 });
+        expect(getSourceDataAtCell(...coords[1])).toEqual(sourceDataAtTarget);
+
+        expect(getDataAtCell(...coords[0])).toEqual('A1');
+        expect(getDataAtCell(1, 1)).toEqual(2);
+        expect(getDataAtCell(...coords[1])).toEqual(dataAtTarget);
+      });
+
+      it('should utilize the source data when filling mixed-typed cells with mixed-typed content (schema of the object-based content matches the schema of the target cell)', async() => {
+        handsontable({
+          data: [
+            ['A1', 'B1', 'test'],
+            [{ id: 1, value: 'A2' }, { id: 2, value: 'B2' }, { id: 3, value: 'C3' }],
+            ['A3', 'B3', 'test3'],
+          ],
+          valueGetter: value => value?.value ?? value,
+        });
+
+        const sourceDataAtBaseCol = getSourceDataAtCol(coords[0][1]);
+        const dataAtBaseCol = getDataAtCol(coords[0][1]);
+
+        await selectCells([[0, coords[0][1], 2, coords[0][1]]]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(2, coords[1][1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCol(0)).toEqual(sourceDataAtBaseCol);
+        expect(getSourceDataAtCol(1)).toEqual(sourceDataAtBaseCol);
+        expect(getSourceDataAtCol(2)).toEqual(sourceDataAtBaseCol);
+
+        expect(getDataAtCol(0)).toEqual(dataAtBaseCol);
+        expect(getDataAtCol(1)).toEqual(dataAtBaseCol);
+        expect(getDataAtCol(2)).toEqual(dataAtBaseCol);
+      });
+    });
+  });
+
   describe('fill border position', () => {
     it('display the fill border in the correct position', async() => {
       handsontable({
@@ -1967,5 +2254,120 @@ describe('AutoFill', () => {
       expect(Handsontable.dom.hasClass(getCell(5, 3), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(5, 4), 'fill')).toBe(true);
     });
+  });
+
+  using('autofill handler size', [
+    2, 4, 6, 8, 10, 12, 14, 16,
+  ], (autofillHandlerSize) => {
+    beforeEach(() => {
+      const style = document.createElement('style');
+      const styleText = `
+        .handsontable {
+          --ht-cell-autofill-size: ${autofillHandlerSize}px;
+        }`;
+
+      style.id = 'autofill-handler-size-style';
+      style.textContent = styleText;
+      document.head.appendChild(style);
+    });
+
+    afterEach(() => {
+      document.getElementById('autofill-handler-size-style').remove();
+    });
+
+    it('should render corner hit area with a proper size', async() => {
+      if (spec().loadedTheme === 'classic') {
+        return;
+      }
+
+      const hot = handsontable({
+        width: 200,
+        height: 200,
+        startRows: 10,
+        startCols: 10,
+      });
+
+      await selectCell(1, 1);
+
+      const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+      const hitAreaStyle = getComputedStyle(corner, '::after');
+      const expectedHitAreaSize = Math.max(autofillHandlerSize, 12);
+
+      expect(hitAreaStyle.width).toBe(`${expectedHitAreaSize}px`);
+      expect(hitAreaStyle.height).toBe(`${expectedHitAreaSize}px`);
+    });
+
+    it('should cut the hit area at the bottom of the table when the last row is selected', async() => {
+      if (spec().loadedTheme === 'classic') {
+        return;
+      }
+
+      const hot = handsontable({
+        width: 200,
+        height: 200,
+        startRows: 10,
+        startCols: 10,
+      });
+
+      await selectCell(9, 1);
+
+      const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+      const hitAreaStyle = getComputedStyle(corner, '::after');
+
+      expect(hitAreaStyle.insetBlockEnd).toBe('0px');
+    });
+
+    it('should cut the hit area at the right side of the table when the last column is selected', async() => {
+      if (spec().loadedTheme === 'classic') {
+        return;
+      }
+
+      const hot = handsontable({
+        width: 200,
+        height: 200,
+        startRows: 10,
+        startCols: 10,
+      });
+
+      await selectCell(1, 9);
+
+      const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+      const hitAreaStyle = getComputedStyle(corner, '::after');
+
+      expect(hitAreaStyle.insetInlineEnd).toBe('0px');
+    });
+  });
+
+  it('should be possible to change the hit area size', async() => {
+    if (spec().loadedTheme === 'classic') {
+      return;
+    }
+
+    const style = document.createElement('style');
+    const styleText = `
+      .handsontable {
+        --ht-cell-autofill-hit-area-size: 10px;
+      }`;
+
+    style.id = 'autofill-handler-size-style';
+    style.textContent = styleText;
+    document.head.appendChild(style);
+
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 10,
+      startCols: 10,
+    });
+
+    await selectCell(1, 1);
+
+    const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+    const hitAreaStyle = getComputedStyle(corner, '::after');
+
+    expect(hitAreaStyle.width).toBe('10px');
+    expect(hitAreaStyle.height).toBe('10px');
+
+    style.remove();
   });
 });

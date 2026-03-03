@@ -2,6 +2,7 @@
  * Utility to register plugins and common namespace for keeping the reference to all plugins classes.
  */
 import { toUpperCaseFirst } from '../helpers/string';
+import { throwWithCause } from '../helpers/errors';
 import { createPriorityMap } from '../utils/dataStructures/priorityMap';
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { createUniqueSet } from '../utils/dataStructures/uniqueSet';
@@ -93,7 +94,7 @@ function _registerPlugin(pluginName, pluginClass, priority) {
   const unifiedPluginName = toUpperCaseFirst(pluginName);
 
   if (uniquePluginsList.hasItem(unifiedPluginName)) {
-    throw new Error(ERROR_PLUGIN_REGISTERED(unifiedPluginName));
+    throwWithCause(ERROR_PLUGIN_REGISTERED(unifiedPluginName));
   }
 
   if (priority === undefined) {

@@ -1,7 +1,9 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const data = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
@@ -12,7 +14,6 @@ const data = [
 
 const container = document.querySelector('#example-named-expressions1');
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   colHeaders: true,
   rowHeaders: true,

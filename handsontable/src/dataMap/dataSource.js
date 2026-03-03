@@ -314,6 +314,24 @@ class DataSource {
   }
 
   /**
+   * Returns single value from the data array (intended for clipboard copy to an external application).
+   *
+   * @param {number} row Visual row index.
+   * @param {number} prop The column property.
+   * @since 16.1.0
+   * @returns {string}
+   */
+  getCopyable(row, prop) {
+    const visualColumn = this.propToCol(prop);
+
+    if (this.hot.getCellMeta(row, visualColumn).copyable) {
+      return this.getAtCell(this.hot.toPhysicalRow(row), visualColumn);
+    }
+
+    return '';
+  }
+
+  /**
    * Count number of rows.
    *
    * @returns {number}

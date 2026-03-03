@@ -315,6 +315,18 @@ export const REGISTERED_HOOKS = [
   'beforeCreateCol',
 
   /**
+   * Fired after the cache of the column sequence has been updated.
+   *
+   * @since 16.2.0
+   * @event Hooks#afterColumnSequenceCacheUpdate
+   * @param {object} indexesChangesState Object containing information about the changes to the column sequence.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
+   * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   */
+  'afterColumnSequenceCacheUpdate',
+
+  /**
    * Fired after the order of columns has changed.
    * This hook is fired by changing column indexes of any type supported by the {@link IndexMapper}.
    *
@@ -619,6 +631,18 @@ export const REGISTERED_HOOKS = [
    * @param {object} cellProperties Object containing the cell's properties.
    */
   'afterRenderer',
+
+  /**
+   * Fired after the cache of the row sequence has been updated.
+   *
+   * @since 16.2.0
+   * @event Hooks#afterRowSequenceCacheUpdate
+   * @param {object} indexesChangesState Object containing information about the changes to the row sequence.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
+   * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   */
+  'afterRowSequenceCacheUpdate',
 
   /**
    * Fired after the order of rows has changed.
@@ -1883,6 +1907,7 @@ export const REGISTERED_HOOKS = [
    * @param {'from_above' | 'from_below'} tabActivationDir The browsers Tab navigation direction. Depending on
    * whether the user activated the table from the element above or below, another cell can be selected.
    * @param {CellCoords} visualCoords The coords that will be used to select a cell.
+   * @returns {undefined|boolean} If `false` is returned, the table will not be focused.
    */
   'modifyFocusOnTabNavigation',
 
@@ -1915,37 +1940,6 @@ export const REGISTERED_HOOKS = [
    * @returns {number|undefined}
    */
   'beforeHighlightingColumnHeader',
-
-  /**
-   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage.
-   *
-   * The `persistentStateLoad` hook is fired even when the {@link Options#persistentState} option is disabled.
-   *
-   * @event Hooks#persistentStateLoad
-   * @param {string} key Key.
-   * @param {object} valuePlaceholder Object containing the loaded value under `valuePlaceholder.value` (if no value have been saved, `value` key will be undefined).
-   */
-  'persistentStateLoad',
-
-  /**
-   * Fired by {@link PersistentState} plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
-   * This hook is fired when {@link Options#persistentState} option is enabled.
-   *
-   * @event Hooks#persistentStateReset
-   * @param {string} [key] Key.
-   */
-  'persistentStateReset',
-
-  /**
-   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage.
-   *
-   * The `persistentStateSave` hook is fired even when the {@link Options#persistentState} option is disabled.
-   *
-   * @event Hooks#persistentStateSave
-   * @param {string} key Key.
-   * @param {Mixed} value Value to save.
-   */
-  'persistentStateSave',
 
   /**
    * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
@@ -3138,6 +3132,144 @@ export const REGISTERED_HOOKS = [
    * Returning `true` removes those restrictions.
    */
   'beforeBeginEditing',
+
+  /**
+   * Fired by {@link Dialog} plugin after hiding the dialog. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#afterDialogHide
+   */
+  'afterDialogHide',
+
+  /**
+   * Fired by {@link Dialog} plugin after showing the dialog. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#afterDialogShow
+   */
+  'afterDialogShow',
+
+  /**
+   * Fired by {@link Dialog} plugin before hiding the dialog. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#beforeDialogHide
+   */
+  'beforeDialogHide',
+
+  /**
+   * Fired by {@link Dialog} plugin before showing the dialog. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#beforeDialogShow
+   */
+  'beforeDialogShow',
+
+  /**
+   * Fired by {@link Dialog} plugin before focusing the previous element. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#dialogFocusPreviousElement
+   */
+  'dialogFocusPreviousElement',
+
+  /**
+   * Fired by {@link Dialog} plugin before focusing the next element. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#dialogFocusNextElement
+   */
+  'dialogFocusNextElement',
+
+  /**
+   * Fired by {@link Dialog} plugin when the focus is set. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#afterDialogFocus
+   * @param {'tab_from_above' | 'tab_from_below' | 'click' | 'show'} focusSource The source of the focus.
+   */
+  'afterDialogFocus',
+
+  /**
+   * Fired by {@link Loading} plugin before showing the loading indicator. This hook is fired when {@link Options#loading}
+   * option is enabled. The callback can return `false` to prevent the loading indicator from being shown.
+   *
+   * @since 16.1.0
+   * @event Hooks#beforeLoadingShow
+   * @returns {boolean | undefined} If returns `false`, the action will be skipped.
+   */
+  'beforeLoadingShow',
+
+  /**
+   * Fired by {@link Loading} plugin after showing the loading indicator. This hook is fired when {@link Options#loading}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#afterLoadingShow
+   */
+  'afterLoadingShow',
+
+  /**
+   * Fired by {@link Loading} plugin before hiding the loading indicator. This hook is fired when {@link Options#loading}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#beforeLoadingHide
+   * @returns {boolean | undefined} If returns `false`, the action will be skipped.
+   */
+  'beforeLoadingHide',
+
+  /**
+   * Fired by {@link Loading} plugin after hiding the loading indicator. This hook is fired when {@link Options#loading}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#afterLoadingHide
+   */
+  'afterLoadingHide',
+
+  /**
+   * Fired by {@link EmptyDataState} plugin before showing the empty data state overlay. This hook is fired when {@link Options#emptyDataState}
+   * option is enabled.
+   *
+   * @since 16.2.0
+   * @event Hooks#beforeEmptyDataStateShow
+   */
+  'beforeEmptyDataStateShow',
+
+  /**
+   * Fired by {@link EmptyDataState} plugin after showing the empty data state overlay. This hook is fired when {@link Options#emptyDataState}
+   * option is enabled.
+   *
+   * @since 16.2.0
+   * @event Hooks#afterEmptyDataStateShow
+   */
+  'afterEmptyDataStateShow',
+
+  /**
+   * Fired by {@link EmptyDataState} plugin before hiding the empty data state overlay. This hook is fired when {@link Options#emptyDataState}
+   * option is enabled.
+   *
+   * @since 16.2.0
+   * @event Hooks#beforeEmptyDataStateHide
+   */
+  'beforeEmptyDataStateHide',
+
+  /**
+   * Fired by {@link EmptyDataState} plugin after hiding the empty data state overlay. This hook is fired when {@link Options#emptyDataState}
+   * option is enabled.
+   *
+   * @since 16.2.0
+   * @event Hooks#afterEmptyDataStateHide
+   */
+  'afterEmptyDataStateHide',
 
   /**
    * Fired after the editor is opened and rendered.

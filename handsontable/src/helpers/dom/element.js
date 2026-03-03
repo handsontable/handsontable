@@ -1,6 +1,9 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
-import { isWindowsOS, isSafari, isMobileBrowser } from '../browser';
+import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
+import { deprecatedWarn } from '../console';
+import { throwWithCause } from '../../helpers/errors';
+
 /**
  * Get the parent of the specified node in the DOM tree.
  *
@@ -452,17 +455,28 @@ export function empty(element) {
 }
 
 export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
+let dompurifyDeprecatedMessageShown = false;
 
 /**
  * Insert content into element trying to avoid innerHTML method.
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
- * @param {boolean} [sanitizeContent=true] If `true`, the content will be sanitized before writing to the element.
+ * @param {function(string): string | boolean} [sanitizer] The sanitizer to use for the content.
  */
-export function fastInnerHTML(element, content, sanitizeContent = true) {
+export function fastInnerHTML(element, content, sanitizer = sanitize) {
   if (HTML_CHARACTERS.test(content)) {
-    element.innerHTML = sanitizeContent ? sanitize(content) : content;
+    if (!dompurifyDeprecatedMessageShown && sanitizer === sanitize) {
+      dompurifyDeprecatedMessageShown = true;
+      deprecatedWarn(
+        'The HTML sanitization using DOMPurify library is deprecated and will be removed in the next major release. ' +
+        'Use the `sanitizer` option instead.\n\n' +
+        'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+        '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
+      );
+    }
+
+    element.innerHTML = typeof sanitizer === 'function' ? sanitizer(content, 'innerHTML') : content;
   } else {
     fastInnerText(element, content);
   }
@@ -513,7 +527,7 @@ export function isVisible(element) {
         } else if (next.host) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
           return isVisible(next.host);
         }
-        throw new Error('Lost in Web Components world');
+        throwWithCause('Lost in Web Components world');
 
       } else {
         return false; // this is a node detached from document in IE8
@@ -542,7 +556,10 @@ export function hasZeroHeight(element) {
 
   while (currentElement.parentNode) {
     if (currentElement.style.height === '0px' || currentElement.style.height === '0') {
-      return rootWindow.getComputedStyle(currentElement).overflow === 'hidden';
+      const computedOverflow = rootWindow.getComputedStyle(currentElement)
+        .getPropertyValue('overflow');
+
+      return computedOverflow === 'hidden' || computedOverflow === 'clip';
     }
 
     currentElement = currentElement.parentNode;
@@ -737,7 +754,7 @@ export function getTrimmingContainer(base) {
     }
 
     const computedStyle = rootWindow.getComputedStyle(el);
-    const allowedProperties = ['scroll', 'hidden', 'auto'];
+    const allowedProperties = ['scroll', 'hidden', 'auto', 'clip'];
     const property = computedStyle.getPropertyValue('overflow');
     const propertyY = computedStyle.getPropertyValue('overflow-y');
     const propertyX = computedStyle.getPropertyValue('overflow-x');
@@ -831,7 +848,7 @@ export function outerWidth(element) {
  * @returns {number} Element's outer height.
  */
 export function outerHeight(element) {
-  return element.getBoundingClientRect().height;
+  return element.offsetHeight;
 }
 
 /**
@@ -967,8 +984,6 @@ export function setCaretPosition(element, pos, endPos) {
   }
 }
 
-let cachedScrollbarWidth;
-
 /**
  * Returns the fractional scaling compensation for scrollbar width calculation.
  *
@@ -991,52 +1006,76 @@ export function getFractionalScalingCompensation(rootDocument = document) {
  * Source: https://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes.
  *
  * @private
- * @param {Document} rootDocument The onwer of the document.
+ * @param {Document} rootDocument The owner of the document.
  * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
 function walkontableCalculateScrollbarWidth(rootDocument = document) {
-  const inner = rootDocument.createElement('div');
+  const calculateScrollbarWidth = (shouldForceWebkitScrollbarStyles = false) => {
+    const inner = rootDocument.createElement('div');
 
-  inner.style.height = '200px';
-  inner.style.width = '100%';
+    inner.style.height = '200px';
+    inner.style.width = '100%';
 
-  const outer = rootDocument.createElement('div');
+    const outer = rootDocument.createElement('div');
 
-  // Fix for Safari custom scrollbar size
-  if (isSafari() && !isMobileBrowser()) {
-    outer.classList.add('htScrollbarSafariTest');
+    outer.classList.add('htScrollbarTest');
+
+    if (shouldForceWebkitScrollbarStyles) {
+      outer.classList.add('htScrollbarSafariTest');
+    }
+
+    outer.style.boxSizing = 'content-box';
+    outer.style.height = '150px';
+    outer.style.left = '0px';
+    outer.style.overflow = 'hidden';
+    outer.style.position = 'absolute';
+    outer.style.top = '0px';
+    outer.style.width = '200px';
+    outer.style.visibility = 'hidden';
+    outer.appendChild(inner);
+
+    rootDocument.body.appendChild(outer);
+
+    const w1 = inner.offsetWidth;
+
+    outer.style.overflow = 'scroll';
+
+    let w2 = inner.offsetWidth;
+
+    if (w1 === w2) {
+      w2 = outer.clientWidth;
+    }
+
+    rootDocument.body.removeChild(outer);
+
+    return w1 - w2;
+  };
+
+  const defaultScrollbarWidth = calculateScrollbarWidth();
+
+  // Safari around 26.x (e.g. 26.2/26.3) changed how scrollbars are rendered: overlay scrollbars
+  // and the standard scrollbar-color/scrollbar-width properties are preferred. When those are set
+  // (e.g. on .wtHolder via theme), they override the non-standard ::-webkit-scrollbar per spec,
+  // so the real scrollbar can be 0-width. Older Safari (before 26.1) sometimes reports 0 because
+  // it needs explicit ::-webkit-scrollbar size to lay out a classic scrollbar; the fallback below
+  // forces that via htScrollbarSafariTest so we get a correct non-zero width. We must only run
+  // this fallback when isSafariBefore261(), otherwise Safari 26.1+ with overlay scrollbars would
+  // be given 9px from the probe (which has no theme) while .wtHolder actually has 0-width overlay.
+  if (defaultScrollbarWidth === 0 && isSafariBefore261() && !isMobileBrowser() && !isIpadOS()) {
+    return calculateScrollbarWidth(true);
   }
 
-  outer.style.boxSizing = 'content-box';
-  outer.style.height = '150px';
-  outer.style.left = '0px';
-  outer.style.overflow = 'hidden';
-  outer.style.position = 'absolute';
-  outer.style.top = '0px';
-  outer.style.width = '200px';
-  outer.style.visibility = 'hidden';
-  outer.appendChild(inner);
-
-  (rootDocument.body || rootDocument.documentElement).appendChild(outer);
-  const w1 = inner.getBoundingClientRect().width;
-
-  outer.style.overflow = 'scroll';
-  let w2 = inner.getBoundingClientRect().width;
-
-  if (w1 === w2) {
-    w2 = outer.clientWidth;
-  }
-  (rootDocument.body || rootDocument.documentElement).removeChild(outer);
-
-  return parseFloat((w1 - w2).toFixed(3));
+  return defaultScrollbarWidth;
 }
+
+let cachedScrollbarWidth;
 
 /**
  * Returns the computed width of the native browser scroll bar.
  *
  * @param {Document} [rootDocument] The owner of the document.
- * @returns {number} Width.
+ * @returns {number} The computed width of the native browser scroll bar.
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollbarWidth(rootDocument = document) {

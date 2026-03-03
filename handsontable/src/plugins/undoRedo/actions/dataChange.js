@@ -41,22 +41,28 @@ export class DataChangeAction extends BaseAction {
         return;
       }
 
-      const hasDifferences = changes.find((change) => {
+      changes.find((change) => {
+        if (change === null) {
+          return false;
+        }
+
         const [, , oldValue, newValue] = change;
 
         return oldValue !== newValue;
       });
 
-      if (!hasDifferences) {
-        return;
-      }
-
       const wrappedAction = () => {
         const clonedChanges = changes.reduce((arr, change) => {
-          arr.push([...change]);
+          if (change !== null) {
+            arr.push([...change]);
+          }
 
           return arr;
         }, []);
+
+        if (clonedChanges.length === 0) {
+          return null;
+        }
 
         clonedChanges.forEach((change) => {
           change[1] = hot.propToCol(change[1]);
@@ -73,7 +79,7 @@ export class DataChangeAction extends BaseAction {
       };
 
       undoRedoPlugin.done(wrappedAction, source);
-    });
+    }, undoRedoPlugin.constructor.PLUGIN_PRIORITY);
   }
 
   /**
@@ -87,23 +93,25 @@ export class DataChangeAction extends BaseAction {
       data[i].splice(3, 1);
     }
 
-    hot.addHookOnce('afterChange', undoneCallback);
+    hot.addHookOnce('afterChange', () => {
+      const rowsToRemove = hot.countRows() - this.countRows;
+
+      if (rowsToRemove > 0) {
+        hot.alter('remove_row', null, rowsToRemove, 'UndoRedo.undo');
+      }
+
+      const columnsToRemove = hot.countCols() - this.countCols;
+
+      if (columnsToRemove > 0 && hot.isColumnModificationAllowed()) {
+        hot.alter('remove_col', null, columnsToRemove, 'UndoRedo.undo');
+      }
+
+      hot.scrollToFocusedCell();
+      hot.selectCells(this.selected, false, false);
+
+      undoneCallback();
+    });
     hot.setDataAtCell(data, null, null, 'UndoRedo.undo');
-
-    const rowsToRemove = hot.countRows() - this.countRows;
-
-    if (rowsToRemove > 0) {
-      hot.alter('remove_row', null, rowsToRemove, 'UndoRedo.undo');
-    }
-
-    const columnsToRemove = hot.countCols() - this.countCols;
-
-    if (columnsToRemove > 0 && hot.isColumnModificationAllowed()) {
-      hot.alter('remove_col', null, columnsToRemove, 'UndoRedo.undo');
-    }
-
-    hot.scrollToFocusedCell();
-    hot.selectCells(this.selected, false, false);
   }
 
   /**
@@ -117,11 +125,11 @@ export class DataChangeAction extends BaseAction {
       data[i].splice(2, 1);
     }
 
-    hot.addHookOnce('afterChange', redoneCallback);
-    hot.setDataAtCell(data, null, null, 'UndoRedo.redo');
-
-    if (this.selected) {
+    hot.addHookOnce('afterChange', () => {
       hot.selectCells(this.selected, false, false);
-    }
+
+      redoneCallback();
+    });
+    hot.setDataAtCell(data, null, null, 'UndoRedo.redo');
   }
 }

@@ -108,9 +108,11 @@ To enable the [`ColumnSummary`](@/api/columnSummary.md) plugin, set the [`column
 ::: only-for javascript
 
 ```js
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const hot = new Handsontable(document.querySelector('#example'), {
   licenseKey: 'non-commercial-and-evaluation',
@@ -121,7 +123,8 @@ const hot = new Handsontable(document.querySelector('#example'), {
   ],
   colHeaders: true,
   rowHeaders: true,
-  // set the `columnSummary` configuration option to an array of objects
+  // set the `columnSummary` configuration option to an array of
+  // objects
   columnSummary: [
     {},
     {}
@@ -136,8 +139,6 @@ const hot = new Handsontable(document.querySelector('#example'), {
 ```jsx
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -264,14 +265,16 @@ You can also summarize individual ranges of rows (rather than a whole column). T
 columnSummary: [
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-2, 4, and 6-8
+    // set this column summary to only summarize rows with physical
+    // indexes 0-2, 4, and 6-8
     ranges: [
       [0, 2], [4], [6, 8]
     ],
   },
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-5
+    // set this column summary to only summarize rows with physical
+    // indexes 0-5
     ranges: [
       [0, 5]
     ],
@@ -287,14 +290,16 @@ columnSummary: [
 columnSummary={[
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-2, 4, and 6-8
+    // set this column summary to only summarize rows with physical
+    // indexes 0-2, 4, and 6-8
     ranges: [
       [0, 2], [4], [6, 8]
     ],
   },
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-5
+    // set this column summary to only summarize rows with physical
+    // indexes 0-5
     ranges: [
       [0, 5]
     ],
@@ -310,12 +315,14 @@ columnSummary={[
 columnSummary: [
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-2, 4, and 6-8
+    // set this column summary to only summarize rows with physical
+    // indexes 0-2, 4, and 6-8
     ranges: [[0, 2], [4], [6, 8]],
   },
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-5
+    // set this column summary to only summarize rows with physical
+    // indexes 0-5
     ranges: [[0, 5]],
   },
 ];
@@ -338,12 +345,14 @@ You can:
 columnSummary: [
   {
     sourceColumn: 0,
-    // set this column summary to return the sum all values in the summarized column
+    // set this column summary to return the sum all values in the
+    // summarized column
     type: 'sum',
   },
   {
     sourceColumn: 1,
-    // set this column summary to return the lowest value in the summarized column
+    // set this column summary to return the lowest value in the
+    // summarized column
     type: 'min',
   },
 ];
@@ -357,12 +366,14 @@ columnSummary: [
 columnSummary={[
   {
     sourceColumn: 0,
-    // set this column summary to return the sum all values in the summarized column
+    // set this column summary to return the sum all values in the
+    // summarized column
     type: 'sum',
   },
   {
     sourceColumn: 1,
-    // set this column summary to return the lowest value in the summarized column
+    // set this column summary to return the lowest value in the
+    // summarized column
     type: 'min',
   }
 ]}
@@ -376,12 +387,14 @@ columnSummary={[
 columnSummary: [
   {
     sourceColumn: 0,
-    // set this column summary to return the sum all values in the summarized column
+    // set this column summary to return the sum all values in the
+    // summarized column
     type: "sum",
   },
   {
     sourceColumn: 1,
-    // set this column summary to return the lowest value in the summarized column
+    // set this column summary to return the lowest value in the
+    // summarized column
     type: "min",
   },
 ];
@@ -795,8 +808,9 @@ The [`roundFloat`](@/api/columnSummary.md) option accepts the following values:
 | Integer 0-100 (n) | Round the result to n digits after the decimal point.   |
 | Integer < 0       | Round the result to 0 digits after the decimal point.   |
 | Integer > 100     | Round the result to 100 digits after the decimal point. |
+| `'auto'`          | Automatically adjust the number of digits after the decimal point so the entire number fits into 8 digits. |
 
-If you enable [`roundFloat`](@/api/columnSummary.md), the data type returned by Handsontable's data-retrieving methods 
+If you enable [`roundFloat`](@/api/columnSummary.md), the data type returned by Handsontable's data-retrieving methods
 (like [`getDataAtCell()`](@/api/core.md#getdataatcell)) changes from `number` to `string`.
 
 ## Handle non-numeric values

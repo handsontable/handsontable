@@ -1,6 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 let searchResultCount = 0;
 const data = [
@@ -25,7 +27,6 @@ function searchResultCounter(instance, row, column, value, result) {
 
 const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   colHeaders: true,
   // enable the `Search` plugin

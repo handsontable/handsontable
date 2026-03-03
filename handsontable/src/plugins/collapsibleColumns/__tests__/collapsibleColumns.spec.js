@@ -2236,6 +2236,36 @@ describe('CollapsibleColumns', () => {
         </tbody>
         `);
     });
+
+    it('should calculate the column width on the longest cell value, not the header text size (#dev-2151)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        nestedHeaders: [
+          ['A1', { label: 'Very long header text', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ],
+        collapsibleColumns: true,
+      });
+
+      await setDataAtCell(0, 1, 'Longer value');
+
+      expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(90);
+        main.toBe(99);
+        horizon.toBe(107);
+      });
+
+      $(getCell(-2, 1).querySelector('.collapsibleIndicator')) // header "B1"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(90);
+        main.toBe(99);
+        horizon.toBe(107);
+      });
+    });
   });
 
   describe('expanding headers functionality', () => {
@@ -3324,8 +3354,11 @@ describe('CollapsibleColumns', () => {
           collapsibleColumns: true
         });
 
-        expect(window.getComputedStyle(getCell(-1, 3).querySelector('.collapsibleIndicator'))
-          .getPropertyValue('right')).toEqual('5px');
+        const indicatorComputedStyle = window.getComputedStyle(getCell(-1, 3).querySelector('.collapsibleIndicator'));
+
+        expect(indicatorComputedStyle.marginInlineStart).toEqual('2px');
+        expect(indicatorComputedStyle.position).toEqual('relative');
+        expect(indicatorComputedStyle.float).toEqual('right');
       });
 
       it.forTheme('main')('should be placed in correct place', async() => {

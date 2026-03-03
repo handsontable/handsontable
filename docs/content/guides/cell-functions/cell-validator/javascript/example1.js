@@ -1,6 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example1');
 const output = document.querySelector('#output');
@@ -18,7 +20,6 @@ const emailValidator = (value, callback) => {
 };
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [
     {
       id: 1,
@@ -126,7 +127,7 @@ new Handsontable(container, {
     { data: 'name.first' },
     { data: 'name.last' },
     { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
-    { data: 'email', validator: emailValidator, allowInvalid: false },
+    { data: 'email', validator: emailValidator },
   ],
   autoWrapRow: true,
   autoWrapCol: true,

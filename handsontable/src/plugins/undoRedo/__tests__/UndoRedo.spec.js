@@ -12,48 +12,43 @@ describe('UndoRedo', () => {
     }
   });
 
-  it('should exposed new methods when plugin is enabled', async() => {
+  it('should expose undo/redo plugin when plugin is enabled', async() => {
     const hot = handsontable({
       undo: false
     });
 
-    expect(hot.undo).toBeUndefined();
-    expect(hot.redo).toBeUndefined();
-    expect(hot.isUndoAvailable).toBeUndefined();
-    expect(hot.isRedoAvailable).toBeUndefined();
-    expect(hot.clearUndo).toBeUndefined();
+    expect(hot.getPlugin('undoRedo')).toBeDefined();
+    expect(hot.getPlugin('undoRedo').enabled).toBe(false);
 
     await updateSettings({
       undo: true
     });
 
-    expect(typeof hot.undo).toEqual('function');
-    expect(typeof hot.redo).toEqual('function');
-    expect(typeof hot.isUndoAvailable).toEqual('function');
-    expect(typeof hot.isRedoAvailable).toEqual('function');
-    expect(typeof hot.clearUndo).toEqual('function');
+    const undoRedoPlugin = hot.getPlugin('undoRedo');
+
+    expect(undoRedoPlugin).toBeDefined();
+    expect(typeof undoRedoPlugin.undo).toEqual('function');
+    expect(typeof undoRedoPlugin.redo).toEqual('function');
+    expect(typeof undoRedoPlugin.isUndoAvailable).toEqual('function');
+    expect(typeof undoRedoPlugin.isRedoAvailable).toEqual('function');
+    expect(typeof undoRedoPlugin.clear).toEqual('function');
   });
 
-  it('should remove exposed methods when plugin is disabled', async() => {
+  it('should not expose undo/redo plugin when plugin is disabled', async() => {
     const hot = handsontable({
       undo: true
     });
 
-    expect(typeof hot.undo).toEqual('function');
-    expect(typeof hot.redo).toEqual('function');
-    expect(typeof hot.isUndoAvailable).toEqual('function');
-    expect(typeof hot.isRedoAvailable).toEqual('function');
-    expect(typeof hot.clearUndo).toEqual('function');
+    expect(hot.getPlugin('undoRedo')).toBeDefined();
+    expect(hot.getPlugin('undoRedo').enabled).toBe(true);
 
     await updateSettings({
       undo: false
     });
 
-    expect(hot.undo).toBeUndefined();
-    expect(hot.redo).toBeUndefined();
-    expect(hot.isUndoAvailable).toBeUndefined();
-    expect(hot.isRedoAvailable).toBeUndefined();
-    expect(hot.clearUndo).toBeUndefined();
+    // When disabled, the plugin remains in the registry but is not enabled
+    expect(hot.getPlugin('undoRedo')).toBeDefined();
+    expect(hot.getPlugin('undoRedo').enabled).toBe(false);
   });
 
   it('should not undo changes in the other cells if editor is open', async() => {
@@ -1641,11 +1636,11 @@ describe('UndoRedo', () => {
         expect(hot1.getDataAtCell(0, 0)).toEqual(1);
         expect(hot2.getDataAtCell(0, 0)).toEqual('A');
 
-        hot2.redo();
+        hot2.getPlugin('undoRedo').redo();
         expect(hot1.getDataAtCell(0, 0)).toEqual(1);
         expect(hot2.getDataAtCell(0, 0)).toEqual('A');
 
-        hot1.redo();
+        hot1.getPlugin('undoRedo').redo();
         expect(hot1.getDataAtCell(0, 0)).toEqual(4);
         expect(hot2.getDataAtCell(0, 0)).toEqual('A');
 
@@ -2271,18 +2266,21 @@ describe('UndoRedo', () => {
     });
   });
 
-  it('should save the undo action only if a new value is different than the previous one', async() => {
+  it('should save the undo action even if a new value is the same as the previous one', async() => {
     handsontable({
       data: createSpreadsheetData(2, 2)
     });
 
     expect(getDataAtCell(0, 0)).toBe('A1');
+
     await setDataAtCell(0, 0, 'A1');
 
-    expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
-
-    await setDataAtCell(0, 0, 'A');
     expect(getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+
+    getPlugin('undoRedo').undo();
+
+    expect(getDataAtCell(0, 0)).toBe('A1');
+    expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
   });
 
   it('should not save the undo action if old and new values are not string, number or boolean', async() => {
@@ -2297,5 +2295,79 @@ describe('UndoRedo', () => {
     await setDataAtCell(0, 0, { key1: 'abc' });
 
     expect(getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+  });
+
+  it('should only record changes in undo stack that are not nullified by beforeChange hook', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      beforeChange(changes) {
+        // Nullify changes made in the second column (index 1)
+        for (let i = 0; i < changes.length; i++) {
+          if (changes[i] && changes[i][1] === 1) {
+            changes[i] = null;
+          }
+        }
+      }
+    });
+
+    await setDataAtCell([
+      [0, 0, 'X1'],
+      [0, 1, 'Y1'], // Will be nullified
+      [1, 0, 'X2'],
+      [1, 1, 'Y2'], // Will be nullified
+    ]);
+
+    const undoPlugin = getPlugin('undoRedo');
+    const lastAction = undoPlugin.doneActions[undoPlugin.doneActions.length - 1];
+
+    expect(lastAction.changes.length).toBe(2);
+
+    expect(lastAction.changes.every(change => change[1] === 0)).toBe(true);
+  });
+
+  it('should undo only changes that are not nullified by beforeChange hook', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      beforeChange(changes) {
+        // Nullify changes made in the second column (index 1)
+        for (let i = 0; i < changes.length; i++) {
+          if (changes[i] && changes[i][1] === 1) {
+            changes[i] = null;
+          }
+        }
+      }
+    });
+
+    await setDataAtCell(0, 0, 'X1');
+    await setDataAtCell(0, 1, 'Y1'); // Will be nullified
+
+    expect(getDataAtCell(0, 0)).toBe('X1');
+    expect(getDataAtCell(0, 1)).toBe('B1'); // Unchanged because nullified
+
+    expect(getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+
+    getPlugin('undoRedo').undo();
+
+    expect(getDataAtCell(0, 0)).toBe('A1');
+    expect(getDataAtCell(0, 1)).toBe('B1');
+
+    expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+  });
+
+  it('should not add to undo stack when all changes are nullified by beforeChange hook', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      beforeChange(changes) {
+        for (let i = 0; i < changes.length; i++) {
+          changes[i] = null;
+        }
+      }
+    });
+
+    await setDataAtCell(0, 0, 'X1');
+
+    expect(getDataAtCell(0, 0)).toBe('A1');
+
+    expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
   });
 });

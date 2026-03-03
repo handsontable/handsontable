@@ -27,7 +27,7 @@ describe('Core.await refreshDimensions()', () => {
     expect(beforeRefreshDimensions).forThemes(({ classic, main, horizon }) => {
       classic.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 116 },
+        { width: 1265, height: 131 },
         true,
       );
       main.toHaveBeenCalledOnceWith(
@@ -44,7 +44,7 @@ describe('Core.await refreshDimensions()', () => {
     expect(afterRefreshDimensions).forThemes(({ classic, main, horizon }) => {
       classic.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 116 },
+        { width: 1265, height: 131 },
         true,
       );
       main.toHaveBeenCalledOnceWith(
@@ -58,6 +58,27 @@ describe('Core.await refreshDimensions()', () => {
         true,
       );
     });
+  });
+
+  it('should trigger `render` and `adjustElementsSize` methods internally if the root element size is changed between calls', async() => {
+    spec().$container.css('height', 100).css('overflow', 'hidden');
+
+    const hot = handsontable({
+      data: createSpreadsheetData(5, 5),
+    });
+
+    await refreshDimensions();
+
+    spec().$container.css('height', 200);
+
+    spyOn(hot, 'render');
+    spyOn(hot.view, 'adjustElementsSize');
+
+    await refreshDimensions();
+
+    expect(hot.render).toHaveBeenCalledTimes(1);
+    expect(hot.view.adjustElementsSize).toHaveBeenCalledBefore(hot.render);
+    expect(hot.view.adjustElementsSize).toHaveBeenCalledTimes(1);
   });
 
   it('should trigger `render` and `adjustElementsSize` methods internally (#dev-1876)', async() => {

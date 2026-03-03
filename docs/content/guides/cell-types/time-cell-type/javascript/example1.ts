@@ -1,43 +1,64 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example1')!;
+const localeSelect = document.querySelector('#localeSelect')!;
+const data = [
+  { shift: 'Morning', start: '09:00', breakStart: '12:00', end: '17:00' },
+  { shift: 'Afternoon', start: '13:30', breakStart: '16:00', end: '21:00' },
+  { shift: 'Night', start: '22:00', breakStart: '01:00', end: '06:00' },
+  { shift: 'Split', start: '08:00', breakStart: '12:30', end: '20:00' },
+  { shift: 'Short day', start: '10:00', breakStart: '13:00', end: '15:00' },
+];
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
-  data: [
-    ['Mercedes', 'A 160', 1332284400000, 6999.95],
-    ['Citroen', 'C4 Coupe', '10 30', 8330],
-    ['Audi', 'A4 Avant', '8:00 PM', 33900],
-    ['Opel', 'Astra', 1332284400000, 7000],
-    ['BMW', '320i Coupe', 1332284400000, 30500],
-  ],
-  colHeaders: ['Car', 'Model', 'Registration time', 'Price'],
-  columnSorting: true,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  data,
+  colHeaders: ['Shift', 'Start', 'Break start', 'End'],
   columns: [
     {
       type: 'text',
+      data: 'shift',
     },
     {
-      // 2nd cell is simple text, no special options here
+      type: 'intl-time',
+      data: 'start',
+      timeFormat: {
+        timeStyle: 'short',
+      },
     },
     {
-      type: 'time',
-      timeFormat: 'h:mm:ss a',
-      correctFormat: true,
+      type: 'intl-time',
+      data: 'breakStart',
+      timeFormat: {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      },
     },
     {
-      type: 'numeric',
-      numericFormat: {
-        pattern: '$0,0.00',
+      type: 'intl-time',
+      data: 'end',
+      timeFormat: {
+        hour: 'numeric',
+        hourCycle: 'h12',
+        dayPeriod: 'short',
       },
     },
   ],
+  columnSorting: true,
+  filters: true,
+  dropdownMenu: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
   autoWrapRow: true,
   autoWrapCol: true,
 });
 
-hot.validateCells();
+localeSelect.addEventListener('change', (event) => {
+  hot.updateSettings({
+    locale: (event.target as HTMLSelectElement).value,
+  });
+});

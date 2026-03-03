@@ -1,8 +1,10 @@
 import Handsontable from 'handsontable';
+import { mainTheme, horizonTheme, classicTheme, registerTheme, getTheme } from 'handsontable/themes';
 import { PredefinedMenuItemKey } from 'handsontable/plugins/contextMenu';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
-import 'handsontable/styles/ht-theme-horizon.css';
+
+registerTheme(mainTheme);
+registerTheme(horizonTheme);
+registerTheme(classicTheme);
 
 // constants.js
 export const data: (string | number | boolean)[][] = [
@@ -111,6 +113,7 @@ export const data: (string | number | boolean)[][] = [
 const example = document.getElementById('exampleTheme')!;
 
 const hotInstance = new Handsontable(example, {
+  theme: getTheme('main'),
   data,
   height: 450,
   colWidths: [180, 220, 140, 120, 120, 120, 140],
@@ -141,7 +144,6 @@ const hotInstance = new Handsontable(example, {
     {
       data: 4,
       type: 'date',
-      allowInvalid: false,
       dateFormat: 'DD/MM/YYYY',
       headerClassName: 'htLeft',
     },
@@ -187,17 +189,18 @@ const hotInstance = new Handsontable(example, {
 const colorBox = document.getElementById('colorBox')!;
 const themeSelect = document.getElementById('themeSelect')!;
 const currentTheme = document.querySelector('html')?.classList.contains('theme-dark')
-  ? 'ht-theme-horizon-dark'
-  : 'ht-theme-horizon';
+  ? 'horizon-dark'
+  : 'horizon-light';
 
 const setTheme = (theme: string) => {
-  colorBox.classList.value = `color-box ${theme}`;
-  hotInstance.useTheme(theme === 'ht-no-theme' ? undefined : theme);
+  const [themeName, colorScheme] = theme.split('-');
+
+  colorBox.classList.value = `color-box ht-theme-${themeName}`;
+  hotInstance.updateSettings({ theme: getTheme(themeName).setColorScheme(colorScheme || 'auto') });
 };
 
 (themeSelect as HTMLSelectElement).value = currentTheme;
 setTheme(currentTheme);
-
 themeSelect.addEventListener('change', (event) => {
   const themeName = (event.target as HTMLSelectElement).value;
 

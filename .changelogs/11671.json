@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with incorrect row and column resizing that occurs when the user double-clicks a column or row separator to auto-size it and then moves the mouse",
-  "type": "fixed",
-  "issueOrPR": 11671,
-  "breaking": false,
-  "framework": "none"
-}

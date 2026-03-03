@@ -1,0 +1,15 @@
+import Handsontable from 'handsontable';
+
+const container = document.getElementById('example1');
+
+new Handsontable(container, {
+  data: [],
+  height: 'auto',
+  colHeaders: true,
+  rowHeaders: true,
+  navigableHeaders: true,
+  dropdownMenu: true,
+  filters: true,
+  emptyDataState: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});

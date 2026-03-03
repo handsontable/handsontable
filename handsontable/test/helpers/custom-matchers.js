@@ -1,7 +1,6 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
 import { generateASCIITable } from './asciiTable';
 import { normalize, pretty } from './htmlNormalize';
-
 // http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 const scrollbarWidth = (function calculateScrollbarWidth() {
   const inner = document.createElement('div');
@@ -345,7 +344,7 @@ beforeEach(function() {
       return {
         compare(checkedArray, conditionFunction) {
           if (typeof conditionFunction !== 'function') {
-            throw Error('Parameter passed to `toBeListFulfillingCondition` should be a function.');
+            throw new Error('Parameter passed to `toBeListFulfillingCondition` should be a function.');
           }
 
           const isListWithValues = Array.isArray(checkedArray) || checkedArray.length > 0;
@@ -430,12 +429,13 @@ list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the con
      * '|'   - The symbol which indicates the left overlay edge.
      * '---' - The symbol which indicates the top overlay edge.
      *
+     * @param {Handsontable} hotInstance The Handsontable instance.
      * @returns {object}
      */
-    toBeMatchToSelectionPattern() {
+    toBeMatchToSelectionPattern(hotInstance = hot()) {
       return {
         compare(actualPattern) {
-          const asciiTable = generateASCIITable(hot().rootElement);
+          const asciiTable = generateASCIITable(hotInstance.rootElement);
 
           const patternParts = (actualPattern || '').split(/\n/);
           const redundantPadding = patternParts.reduce((padding, line) => {
@@ -476,16 +476,12 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
     },
     forThemes(matchersUtil) {
       const currentTheme = currentSpec.loadedTheme;
-      const createThemeHelper = (theme, expectationMatchers, classicThemeExpectationMatchers) => {
+      const createThemeHelper = (theme, expectationMatchers) => {
         return new Proxy({}, {
           get(_, matcher) {
             return (...args) => {
               if (currentTheme === theme) {
                 expectationMatchers.push([matcher, ...args]);
-              }
-
-              if (theme === 'classic') {
-                classicThemeExpectationMatchers.push([matcher, ...args]);
               }
             };
           }
@@ -498,23 +494,14 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
       return {
         compare(actualValue, callback) {
           const expectationMatchers = [];
-          const classicThemeExpectationMatchers = [];
-          let expectationMatcher;
 
           callback({
-            classic: createThemeHelper('classic', expectationMatchers, classicThemeExpectationMatchers),
-            horizon: createThemeHelper('horizon', expectationMatchers, classicThemeExpectationMatchers),
-            main: createThemeHelper('main', expectationMatchers, classicThemeExpectationMatchers),
+            classic: createThemeHelper('classic', expectationMatchers),
+            horizon: createThemeHelper('horizon', expectationMatchers),
+            main: createThemeHelper('main', expectationMatchers),
           });
 
-          if (classicThemeExpectationMatchers.length === 0) {
-            return {
-              pass: false,
-              message: 'No expectation for the classic theme was provided. ' +
-                'Please provide an expectation for the classic theme.',
-            };
-
-          } else if (expectationMatchers.length > 1 || classicThemeExpectationMatchers.length > 1) {
+          if (expectationMatchers.length > 1) {
             return {
               pass: false,
               message: 'More than one expectation per-theme was provided. ' +
@@ -522,15 +509,15 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
             };
           }
 
-          // If no expectation for the current theme was provided, use the classic theme expectation.
+          // If no expectation for the current theme was provided, skip the test.
           if (expectationMatchers.length === 0) {
-            expectationMatcher = classicThemeExpectationMatchers.pop();
-
-          } else {
-            expectationMatcher = expectationMatchers.pop();
+            return {
+              pass: true,
+              message: 'No expectation provided for the current theme.',
+            };
           }
 
-          const [matcherName, ...matcherArgs] = expectationMatcher;
+          const [matcherName, ...matcherArgs] = expectationMatchers.pop();
 
           const expectationResult = (
             jasmine.matchers[matcherName] || matchersUtil.customMatchers[matcherName]
@@ -544,10 +531,43 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
             // Fallback for matchers that don't provide the `message` prop (like `toBe`).
             message:
               expectationResult.message ||
-              `Expected ${actualValue} ${camelCaseToSpaced(matcherName)} ${expectationMatcher[1]}`,
+              `Expected ${actualValue} ${camelCaseToSpaced(matcherName)} ${matcherArgs[0]}`,
           };
         },
       };
+    },
+    toThrowWithCause(/* received, expectedMessage, expectedCause */) {
+      return { compare: (received, expectedMessage, expectedCause) => {
+
+        try {
+          received();
+
+          return {
+            pass: false,
+            message: () => 'Expected function to throw',
+          };
+        } catch (error) {
+        // In this method you only can compare strings and objects or regular expressions
+          const messageMatches = expectedMessage === undefined || error.message === expectedMessage;
+          const causeMatches = JSON.stringify(error.cause) === JSON.stringify(expectedCause);
+
+          const messages = [];
+
+          if (!messageMatches) {
+            messages.push(`Expected error with message "${expectedMessage}" but got message "${error.message}"`);
+          }
+
+          if (!causeMatches) {
+            // eslint-disable-next-line max-len
+            messages.push(`Expected error with cause ${JSON.stringify(expectedCause)} but got cause ${JSON.stringify(error.cause)}`);
+          }
+
+          return {
+            pass: messageMatches && causeMatches,
+            message: messages.join('\n')
+          };
+        }
+      } };
     },
   };
 

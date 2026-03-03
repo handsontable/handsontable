@@ -138,7 +138,7 @@ describe('MergeCells open editor', () => {
 
       expect(isEditorVisible()).toBe(true);
       expect($(getActiveEditor().TEXTAREA_PARENT).offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 49, left: 50 });
+        classic.toEqual({ top: 52, left: 50 });
         main.toEqual({ top: 58, left: 50 });
         horizon.toEqual({ top: 74, left: 50 });
       });

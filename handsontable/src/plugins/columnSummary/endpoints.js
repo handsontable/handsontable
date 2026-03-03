@@ -1,5 +1,6 @@
 import { arrayEach } from '../../helpers/array';
 import { warn } from '../../helpers/console';
+import { roundFloat } from './utils';
 
 /**
  * Class used to make all endpoint-related operations.
@@ -238,8 +239,12 @@ class Endpoints {
    * @param {boolean} [forceRefresh] `true` of the endpoints should refresh after completing the function.
    */
   resetSetupAfterStructureAlteration(action, index, number, logicRows, source, forceRefresh = true) {
-    if (this.settingsType === 'function') {
+    // Automatic row/column creation (`minSpareRows`/`minSpareCols`) should not trigger the endpoint recalculation.
+    if (source === 'auto') {
+      return;
+    }
 
+    if (this.settingsType === 'function') {
       // We need to run it on a next avaiable hook, because the TrimRows' `afterCreateRow` hook triggers after this one,
       // and it needs to be run to properly calculate the endpoint value.
       const beforeViewRenderCallback = () => {
@@ -435,7 +440,9 @@ class Endpoints {
       this.resetEndpointValue(endpoint, useOffset);
     });
 
-    this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    if (this.cellsToSetCache.length) {
+      this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    }
 
     this.cellsToSetCache = [];
   }
@@ -453,7 +460,9 @@ class Endpoints {
     });
     this.currentEndpoint = null;
 
-    this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    if (this.cellsToSetCache.length) {
+      this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    }
 
     this.cellsToSetCache = [];
   }
@@ -485,7 +494,10 @@ class Endpoints {
       this.refreshEndpoint(this.getEndpoint(value));
     });
 
-    this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    if (this.cellsToSetCache.length) {
+      this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    }
+
     this.cellsToSetCache = [];
   }
 
@@ -568,23 +580,7 @@ class Endpoints {
       }
     }
 
-    if (
-      (
-        endpoint.roundFloat === true ||
-        Number.isInteger(endpoint.roundFloat)
-      ) &&
-      !isNaN(endpoint.result)
-    ) {
-      const roundFloatValue = endpoint.roundFloat;
-      let decimalPlacesCount = 0;
-
-      // `toFixed` method accepts only values between 0 and 100
-      if (Number.isInteger(roundFloatValue)) {
-        decimalPlacesCount = Math.min(Math.max(0, roundFloatValue), 100);
-      }
-
-      endpoint.result = endpoint.result.toFixed(decimalPlacesCount);
-    }
+    endpoint.result = roundFloat(endpoint.result, endpoint.roundFloat);
 
     if (render) {
       this.hot.setDataAtCell(visualEndpointRowIndex, endpoint.destinationColumn, endpoint.result, 'ColumnSummary.set');

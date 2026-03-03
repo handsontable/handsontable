@@ -5,6 +5,18 @@ const hot = new Handsontable(document.createElement('div'), {
   filters: true,
 });
 
+new Handsontable(document.createElement('div'), {
+  filters: {
+    searchMode: 'show',
+  }
+});
+
+new Handsontable(document.createElement('div'), {
+  filters: {
+    searchMode: 'apply',
+  }
+});
+
 const filters = hot.getPlugin('filters');
 
 filters.enablePlugin();

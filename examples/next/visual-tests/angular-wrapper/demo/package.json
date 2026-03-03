@@ -46,9 +46,9 @@
     "http-server": "^14.1.1",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
-    "puppeteer": "14.3.0",
+    "puppeteer": "^24.2.1",
     "ts-node": "8.3.0",
-    "typescript": "~5.6.2"
+    "typescript": "~5.7.0"
   },
   "license": "SEE LICENSE IN LICENSE.txt"
 }

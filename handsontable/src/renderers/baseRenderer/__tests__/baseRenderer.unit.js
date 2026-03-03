@@ -16,7 +16,7 @@ describe('baseRenderer', () => {
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
         getRenderer(RENDERER_TYPE);
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
     });
 
     it('should register renderer', () => {

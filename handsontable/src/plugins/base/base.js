@@ -1,4 +1,5 @@
-import { defineGetter, objectEach, isObject } from '../../helpers/object';
+import { defineGetter, objectEach, isObject, assignObjectDefaults, getProperty } from '../../helpers/object';
+import { throwWithCause } from '../../helpers/errors';
 import { arrayEach } from '../../helpers/array';
 import { getPluginsNames, hasPlugin } from '../registry';
 import { hasCellType } from '../../cellTypes/registry';
@@ -6,6 +7,7 @@ import { hasEditor } from '../../editors/registry';
 import { hasRenderer } from '../../renderers/registry';
 import { hasValidator } from '../../validators/registry';
 import EventManager from '../../eventManager';
+import { warn } from '../../helpers/console';
 
 const DEPS_TYPE_CHECKERS = new Map([
   ['plugin', hasPlugin],
@@ -53,6 +55,21 @@ export class BasePlugin {
     return {};
   }
 
+  /**
+   * Validators for plugin settings.
+   *
+   * @type {Function|object|null}
+   */
+  static get SETTINGS_VALIDATORS() {
+    return null;
+  }
+
+  /**
+   * Plugin settings.
+   *
+   * @type {object|null}
+   */
+  #pluginSettings = null;
   /**
    * The instance of the {@link EventManager} class.
    *
@@ -106,6 +123,7 @@ export class BasePlugin {
 
   init() {
     this.pluginName = this.hot.getPluginName(this);
+    this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
 
     const pluginDeps = this.constructor.PLUGIN_DEPS;
     const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
@@ -117,7 +135,7 @@ export class BasePlugin {
         const [type, moduleName] = dependency.split(':');
 
         if (!DEPS_TYPE_CHECKERS.has(type)) {
-          throw new Error(`Unknown plugin dependency type "${type}" was found.`);
+          throwWithCause(`Unknown plugin dependency type "${type}" was found.`);
         }
 
         if (!DEPS_TYPE_CHECKERS.get(type)(moduleName)) {
@@ -160,7 +178,7 @@ export class BasePlugin {
 
         missingDepsMsgs.length = 0;
 
-        throw new Error(errorMsg);
+        throwWithCause(errorMsg);
       }
 
       this.hot.runHooks('afterPluginsInitialized');
@@ -194,30 +212,126 @@ export class BasePlugin {
    * @returns {*}
    */
   getSetting(settingName) {
-    const pluginSettings = this.hot.getSettings()[this.constructor.PLUGIN_KEY];
+    const defaultSettings = this.constructor.DEFAULT_SETTINGS;
+    const settingsValidators = this.constructor.SETTINGS_VALIDATORS;
 
     if (settingName === undefined) {
-      return pluginSettings;
-    }
-
-    const defaultSettings = this.constructor.DEFAULT_SETTINGS;
-
-    if (
-      (Array.isArray(pluginSettings) || isObject(pluginSettings)) &&
-      defaultSettings[defaultMainSettingSymbol] === settingName
-    ) {
-      if (Array.isArray(pluginSettings)) {
-        return pluginSettings;
+      if (isObject(this.#pluginSettings)) {
+        return assignObjectDefaults(this.#pluginSettings, defaultSettings);
       }
 
-      return pluginSettings[settingName] ?? defaultSettings[settingName];
+      return this.#pluginSettings;
     }
 
-    if (isObject(pluginSettings)) {
-      return pluginSettings[settingName] ?? defaultSettings[settingName];
+    let settingValue;
+
+    if (
+      (Array.isArray(this.#pluginSettings) || isObject(this.#pluginSettings)) &&
+      defaultSettings[defaultMainSettingSymbol] === settingName
+    ) {
+      if (Array.isArray(this.#pluginSettings)) {
+        settingValue = this.#pluginSettings;
+      } else {
+        settingValue = this.#pluginSettings[settingName] ?? defaultSettings[settingName];
+      }
+    } else if (settingName.includes('.')) {
+      const pluginValue = getProperty(this.#pluginSettings, settingName);
+      const defaultValue = getProperty(defaultSettings, settingName);
+
+      if (isObject(pluginValue)) {
+        settingValue = assignObjectDefaults(pluginValue, defaultValue);
+      } else {
+        settingValue = pluginValue !== undefined ? pluginValue : defaultValue;
+      }
+    } else if (isObject(this.#pluginSettings)) {
+      settingValue = assignObjectDefaults(this.#pluginSettings, defaultSettings)[settingName];
+    } else {
+      settingValue = defaultSettings[settingName];
     }
 
-    return defaultSettings[settingName];
+    if (typeof settingValue === 'function' && settingsValidators && typeof settingsValidators === 'object') {
+      const validator = settingsValidators[settingName];
+
+      if (validator && typeof validator === 'function') {
+        return (...args) => {
+          const result = settingValue(...args);
+          const isValid = validator(result);
+
+          if (isValid === false) {
+            const formattedArgs = args.map(arg => (typeof arg === 'string' ? `"${arg}"` : '')).join(', ');
+            const source = args.length > 0 ? formattedArgs : '';
+
+            warn(`${this.pluginName} Plugin: "${settingName}" function (${source}) result \
+               is not valid and will be ignored.`);
+
+            return;
+          }
+
+          return result;
+        };
+      }
+    }
+
+    return settingValue;
+  }
+
+  /**
+   * Update plugin settings.
+   *
+   * @param {*} newSettings New settings.
+   * @returns {object} Updated settings object.
+   */
+  updatePluginSettings(newSettings) {
+    const settingsValidators = this.constructor.SETTINGS_VALIDATORS;
+
+    if (settingsValidators &&
+      typeof settingsValidators === 'function' &&
+      typeof newSettings !== 'object'
+    ) {
+      const isValid = settingsValidators(newSettings);
+
+      if (isValid === false) {
+        warn(`${this.pluginName} Plugin: option is not valid and it will be ignored.`);
+
+        return;
+      }
+
+      this.#pluginSettings = newSettings;
+
+      return this.#pluginSettings;
+    }
+
+    if (settingsValidators &&
+       typeof settingsValidators === 'object' &&
+       typeof newSettings === 'object'
+    ) {
+      if (this.#pluginSettings === null || typeof this.#pluginSettings !== 'object') {
+        this.#pluginSettings = { ...this.constructor.DEFAULT_SETTINGS };
+      }
+
+      Object.keys(settingsValidators).forEach((key) => {
+        if (!(key in newSettings)) {
+          return;
+        }
+
+        const validator = settingsValidators[key];
+        const isValid = validator ? validator(newSettings[key]) : true;
+
+        if (isValid === false) {
+          warn(`${this.pluginName} Plugin: "${key}" option is not valid and it will be ignored.`);
+
+          return;
+        }
+
+        this.#pluginSettings[key] = newSettings[key];
+      });
+
+      return this.#pluginSettings;
+    }
+
+    this.#pluginSettings = newSettings;
+
+    return newSettings;
   }
 
   /**
@@ -341,6 +455,7 @@ export class BasePlugin {
         this.isEnabled() &&
         relevantToSettings
       ) {
+        this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
         this.updatePlugin(newSettings);
       }
     }
@@ -359,6 +474,7 @@ export class BasePlugin {
    * Destroy plugin.
    */
   destroy() {
+    this.#pluginSettings = null;
     this.eventManager?.destroy();
     this.clearHooks();
 

@@ -420,22 +420,22 @@ describe('manualColumnResize', () => {
     await sleep(1000);
 
     expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(221);
+      classic.toBe(220);
       main.toBe(219);
       horizon.toBe(217);
     });
     expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(19);
+      classic.toBe(22);
       main.toBe(27);
       horizon.toBe(35);
     });
     expect($columnHeaders.eq(2).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(222);
+      classic.toBe(221);
       main.toBe(220);
       horizon.toBe(218);
     });
     expect($columnHeaders.eq(3).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(222);
+      classic.toBe(221);
       main.toBe(220);
       horizon.toBe(218);
     });
@@ -460,7 +460,7 @@ describe('manualColumnResize', () => {
 
     expect($columnHeaders.eq(0).width()).toBe(64);
     expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(49);
+      classic.toBe(48);
       main.toBe(48);
       horizon.toBe(48); // TODO: seems to be an issue with how .width() reads the width value.
     });
@@ -479,12 +479,12 @@ describe('manualColumnResize', () => {
     await sleep(1000);
 
     expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(19);
+      classic.toBeAroundValue(22);
       main.toBeAroundValue(27);
       horizon.toBeAroundValue(35);
     });
     expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(49);
+      classic.toBe(48);
       main.toBe(48);
       horizon.toBe(48);
     });
@@ -499,7 +499,7 @@ describe('manualColumnResize', () => {
       horizon.toBe(49);
     });
     expect($columnHeaders.eq(4).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(738);
+      classic.toBeAroundValue(736);
       main.toBeAroundValue(730);
       horizon.toBeAroundValue(723);
     });
@@ -533,12 +533,12 @@ describe('manualColumnResize', () => {
       await sleep(1000);
 
       expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
+        classic.toBe(29);
         main.toBe(35);
         horizon.toBe(43);
       });
       expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(119);
+        classic.toBe(118);
         main.toBe(118);
         horizon.toBe(118);
       });
@@ -559,12 +559,12 @@ describe('manualColumnResize', () => {
       await sleep(1000);
 
       expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
+        classic.toBe(29);
         main.toBe(35);
         horizon.toBe(43);
       });
       expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(70);
+        classic.toBe(78);
         main.toBe(87);
         horizon.toBe(95);
       });
@@ -733,12 +733,12 @@ describe('manualColumnResize', () => {
 
     expect(afterColumnResizeCallback).toHaveBeenCalledTimes(1);
     expect(afterColumnResizeCallback).forThemes(({ classic, main, horizon }) => {
-      classic.toHaveBeenCalledWith(26, 0, true);
+      classic.toHaveBeenCalledWith(30, 0, true);
       main.toHaveBeenCalledWith(36, 0, true);
       horizon.toHaveBeenCalledWith(44, 0, true);
     });
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
+      classic.toBe(30);
       main.toBe(36);
       horizon.toBe(44);
     });
@@ -823,17 +823,17 @@ describe('manualColumnResize', () => {
     await sleep(600);
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
+      classic.toBe(30);
       main.toBe(36);
       horizon.toBe(44);
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
+      classic.toBe(31);
       main.toBe(36);
       horizon.toBe(44);
     });
     expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
+      classic.toBe(31);
       main.toBe(36);
       horizon.toBe(44);
     });
@@ -857,7 +857,7 @@ describe('manualColumnResize', () => {
     await sleep(600);
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
+      classic.toBe(30);
       main.toBe(36);
       horizon.toBe(44);
     });
@@ -882,7 +882,7 @@ describe('manualColumnResize', () => {
     let handleBox = handle[0].getBoundingClientRect();
     let thBox = th0[0].getBoundingClientRect();
 
-    expect(handleBox.left + handleBox.width).toEqual(thBox.left + thBox.width - 1);
+    expect(handleBox.left).toEqual(thBox.left + thBox.width - (handleBox.width / 2) - 1);
 
     maxed = true;
 
@@ -892,7 +892,7 @@ describe('manualColumnResize', () => {
     handleBox = handle[0].getBoundingClientRect();
     thBox = th0[0].getBoundingClientRect();
 
-    expect(handleBox.left + handleBox.width).toEqual(thBox.left + thBox.width - 1);
+    expect(handleBox.left).toEqual(thBox.left + thBox.width - (handleBox.width / 2) - 1);
   });
 
   it.forTheme('main')('should adjust resize handles position after table size changed', async() => {
@@ -1426,7 +1426,7 @@ describe('manualColumnResize', () => {
         const $handle = $('.manualColumnResizer');
 
         expect($handle.offset().left)
-          .toEqual($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+          .toEqual($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
         expect($handle.height()).toEqual($headerTH.outerHeight());
       });
 
@@ -1548,14 +1548,13 @@ describe('manualColumnResize', () => {
 
       $handle.simulate('mousedown', { clientX: resizerPosition.left });
 
-      // To watch whether color has changed.
-      expect(getComputedStyle($handle[0]).backgroundColor).toBe('rgb(52, 169, 219)');
+      expect(getComputedStyle($handle[0]).opacity).toBe('1');
 
       $handle.simulate('contextmenu');
 
       await sleep(0);
 
-      expect(getComputedStyle($handle[0]).backgroundColor).not.toBe('rgb(52, 169, 219)');
+      expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
 
     it.forTheme('main')('should remove resize handler when user clicks RMB', async() => {
@@ -1606,6 +1605,39 @@ describe('manualColumnResize', () => {
       await sleep(0);
 
       expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
+    });
+  });
+
+  describe('with the AutoColumnSize plugin', () => {
+    it('should not cause row misalignment when manualRowResize is enabled via `updateSettings` ' +
+      'after autoRowSize initialization', async() => {
+      const data = createSpreadsheetData(5, 3);
+
+      data[4][0] = 'Loremipsumdolorsitametconsecteturadipiscing elit. Maecenas hendrerit elit sed quam porta ' +
+        'tempus. Quisque eget vulputate metus. Cras pulvinar diam ipsum, eget rhoncus dolor lacinia a. ' +
+        'Aliquam vitae eros varius, feugiat nibh id, auctor lorem. Phasellus vulputate odio diam, sed interdum ' +
+        'elit consectetur ut. Fusce vulputate ligula tincidunt lectus tempor, ac elementum nulla tempus. Fusce ' +
+        'rutrum lorem et eros euismod fermentum. Aenean varius dui vel nunc tristique, vel finibus tortor gravida. ' +
+        'Ut molestie nisl a velit ultricies, gravida volutpat lectus pulvinar. Nulla sed purus sit amet justo ' +
+        'ullamcorper vel non nisl. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia ' +
+        'curae; Cras auctor, lacus non euismod venenatis, augue nulla auctor risus, placerat porta dui enim eu odio. ' +
+        'Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.';
+
+      handsontable({
+        data,
+        fixedRowsTop: 1,
+        rowHeaders: true,
+        autoColumnSize: true,
+        rowHeights: 100,
+      });
+
+      await sleep(100);
+
+      await updateSettings({
+        manualColumnResize: [50, 50, 50],
+      });
+
+      expect(getTopClone().find('table').width()).toBe(getMaster().find('table').width());
     });
   });
 });

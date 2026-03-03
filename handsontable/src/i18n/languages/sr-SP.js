@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'sr-SP',
+
+  [C.OK]: 'U redu',
+  [C.CANCEL]: 'Otkaži',
+
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nema dostupnih opcija',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Unesi red iznad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Unesi red ispod',
@@ -110,6 +114,14 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: 'Idi na prethodnu stranicu',
   [C.PAGINATION_NEXT_PAGE]: 'Idi na sledeću stranicu',
   [C.PAGINATION_LAST_PAGE]: 'Idi na poslednju stranicu',
+
+  [C.LOADING_TITLE]: 'Učitavanje...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'Nema dostupnih podataka',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Još uvek nema ništa za prikaz.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nema pronađenih rezultata',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Izgleda da vaši trenutni filteri skrivaju sve rezultate.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetuj filtere',
 };
 
 export default dictionary;

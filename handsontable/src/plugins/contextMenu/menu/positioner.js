@@ -166,7 +166,7 @@ export class Positioner {
       const paddingTop = Number.parseInt(style.paddingTop, 10);
       const borderTop = Number.parseInt(style.borderTop, 10);
 
-      top = this.#cursor.top - paddingTop - borderTop - 1;
+      top = this.#cursor.top - paddingTop - borderTop;
     }
 
     this.#container.style.top = `${top}px`;

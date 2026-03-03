@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a Data Factory for filters that could cause zero results even when they should exist",
+  "type": "fixed",
+  "issueOrPR": 12031,
+  "breaking": false,
+  "framework": "none"
+}

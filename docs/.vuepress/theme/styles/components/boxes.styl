@@ -4,37 +4,41 @@
         padding: 0
     }
     #introduction ~ .boxes-list,
-    #open-source-software-components ~ .boxes-list
+    #open-source-software-components ~ .boxes-list,
     #handsontable-api-reference  ~ .boxes-list  {
         padding: 0
 
         ul {
+            list-style: none
             margin-top: 24px
             margin-bottom: 24px
-            list-style: none
-            display: flex
-            flex-wrap: wrap
-            gap: 16px
             padding: 0
+            display: grid
+            grid-template-columns: repeat(3, 1fr)
+            gap: 16px
+
+            @media (max-width: $medium) {
+                grid-template-columns: repeat(2, 1fr)
+            }
 
             li { 
-                display: flex 
-                flex-direction: column
-                gap: 0
+                width: 100%
+                display: flex
+                align-items: center
+                gap: 6px
                 border-radius: $radius
-                width: calc(50% - 16px)
                 transition: all $t ease-in-out
                 position: relative
-                padding: 24px
+                padding: 12px
                 border: 1px solid $onsurfaceColor
                 box-sizing: border-box
-                font-size: $font-size-xs
-                line-height: $line-height-xs
+                font-size: 12px
+                line-height: 12px
                 margin:0
 
                 p {
-                    font-size: $font-size-xs
-                    line-height: $line-height-xs
+                    font-size: 12px
+                    line-height: 12px
                     padding: 0
                 }
 
@@ -46,8 +50,8 @@
                 p > a {
                     margin-top: 8px
                     display: inline-block
-                    font-size: $font-size-xs
-                    line-height: $line-height-xs
+                    font-size: 12px
+                    line-height: 12px
                 }
 
                 strong { 
@@ -66,25 +70,24 @@
                 }
 
                 i {
-                    height: 40px
-                    width: 40px
+                    height: 34px
+                    width: 34px
                     border-radius: $radius
                     padding: 12px
                     box-sizing: border-box
                     background-size: 20px
                     background-position: center
                     background-repeat: no-repeat
-                    margin-bottom: 16px
                     z-index: 1
 
                     + a:before {
                         content:''
                         transition: all $t ease-in-out
-                        height: 40px
-                        width: 40px
+                        height: 34px
+                        width: 34px
                         position: absolute
-                        top: 24px
-                        left: 24px
+                        top: 12px
+                        left: 12px
                         border-radius: $radius
                         background-color: $borderColor
                     }
@@ -94,7 +97,6 @@
                     font-weight: 500
                     font-size: $font-size-s
                     color: $textColor
-                    word-break: break-all
                     
                     &:after {
                         content: ''
@@ -145,57 +147,27 @@
                 }
             }
         }
+    }
 
-        &.small {
-            li { 
-                padding: 16px
-                flex-direction: row
-                align-items: center
-                gap: 16px
-                i {
-                    margin-bottom: 0
-                    + a:before {
-                        top: 16px
-                        left: 16px
-                    }
-                }
-            }
-        }
+    #open-source-software-components ~ .boxes-list,
+    #handsontable-api-reference  ~ .boxes-list  {
+        ul {
+            grid-template-columns: repeat(2, 1fr);
 
-        &.col3 {
             li {
-                width: calc(33% - 9px)
-            }
-        }
+                flex-direction: column;
+                align-items: stretch;
+                font-size: 14px;
+                line-height: 22px;
 
-        @media (max-width: $medium) {
-            ul li {
-                width: 100%
-            }
-            &.small {
-                li {
-                    gap: 4px
-
-                    i + a:before {
-                        top: 12px
-                        left: 12px
-                    }
+                p {
+                    font-size: 14px;
+                    line-height: 22px;
                 }
             }
-            &.col3 {
-                li {
-                    width: calc(50% - 8px)
-                    padding: 12px
 
-                    a { 
-                        font-size: 16px
-                    }
-                }
-            }
-        }
-        @media (max-width: 360px) {
-            &.col3 li {
-                width: 100%
+            @media (max-width: $medium) {
+                grid-template-columns: repeat(1, 1fr);
             }
         }
     }

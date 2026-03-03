@@ -1,4 +1,4 @@
-import { EDITOR_EDIT_GROUP } from './constants';
+import { EDITOR_EDIT_GROUP, EDITOR_SCOPE, GRID_SCOPE } from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';
 
 /**
@@ -7,7 +7,7 @@ import { createKeyboardShortcutCommandsPool } from './commands';
  * @param {Handsontable} hot The Handsontable instance.
  */
 export function shortcutsEditorContext(hot) {
-  const context = hot.getShortcutManager().addContext('editor');
+  const context = hot.getShortcutManager().addContext(EDITOR_SCOPE);
   const commandsPool = createKeyboardShortcutCommandsPool(hot);
   const config = { group: EDITOR_EDIT_GROUP };
 
@@ -20,7 +20,7 @@ export function shortcutsEditorContext(hot) {
     callback: (event, keys) => commandsPool.editorCloseAndSaveByEnter(event, keys),
   }, {
     keys: [['Tab'], ['Tab', 'Shift'], ['PageDown'], ['PageUp']],
-    forwardToContext: hot.getShortcutManager().getContext('grid'),
+    forwardToContext: hot.getShortcutManager().getContext(GRID_SCOPE),
     callback: (event, keys) => commandsPool.editorCloseAndSave(event, keys),
   }, {
     keys: [['ArrowDown'], ['ArrowUp'], ['ArrowLeft'], ['ArrowRight']],

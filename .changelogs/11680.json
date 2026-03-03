@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with mouse wheel zooming on Windows",
-  "type": "fixed",
-  "issueOrPR": 11680,
-  "breaking": false,
-  "framework": "none"
-}

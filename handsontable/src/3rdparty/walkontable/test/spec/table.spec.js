@@ -237,6 +237,63 @@ describe('WalkontableTable', () => {
     expect(firstRow.find('td:last').text()).toBe('b');
   });
 
+  it('should not trigger the "fastDraw" for oversized rows if none of the partially visible rows are rendered', async() => {
+    const cellRenderer = jasmine.createSpy('cellRenderer');
+
+    createDataArray(10, 5);
+    spec().$wrapper.width(600).height(600);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeight: (row) => {
+        return [40000, 30, 30, 40000, 30, 30, 30, 40000, 30, 30][row];
+      },
+      rowHeightByOverlayName: (row) => {
+        return [40000, 30, 30, 40000, 30, 30, 30, 40000, 30, 30][row];
+      },
+      cellRenderer
+    });
+
+    wt.draw();
+
+    cellRenderer.calls.reset();
+
+    getTableMaster().find('.wtHolder').scrollTop(54615);
+
+    await sleep(50);
+
+    expect(cellRenderer).toHaveBeenCalledTimes(5); // one row of 5 cells
+    expect(wt.getCell({ row: 3, col: 0 })).not.toBe(-2);
+  });
+
+  it('should not trigger the "fastDraw" for oversized columns if none of the partially visible columns are rendered', async() => {
+    const cellRenderer = jasmine.createSpy('cellRenderer');
+
+    createDataArray(5, 10);
+    spec().$wrapper.width(600).height(600);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnWidth: [40000, 30, 30, 40000, 30, 30, 30, 40000, 30, 30],
+      cellRenderer
+    });
+
+    wt.draw();
+
+    cellRenderer.calls.reset();
+
+    getTableMaster().find('.wtHolder').scrollLeft(54615);
+
+    await sleep(50);
+
+    expect(cellRenderer).toHaveBeenCalledTimes(5); // one row of 5 cells
+    expect(wt.getCell({ row: 0, col: 3 })).not.toBe(-2);
+  });
+
   it('should render oversized rows correctly across the entire range of the vertical table scrollbar', async() => {
     createDataArray(10, 10);
     spec().$wrapper.width(300);

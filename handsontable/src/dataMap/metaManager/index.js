@@ -4,6 +4,7 @@ import ColumnMeta from './metaLayers/columnMeta';
 import CellMeta from './metaLayers/cellMeta';
 import localHooks from '../../mixins/localHooks';
 import { mixin } from '../../helpers/object';
+import { throwWithCause } from '../../helpers/errors';
 
 /**
  * With the Meta Manager class, it can be possible to manage with meta objects for different layers in
@@ -164,7 +165,7 @@ export default class MetaManager {
    */
   getCellMetaKeyValue(physicalRow, physicalColumn, key) {
     if (typeof key !== 'string') {
-      throw new Error('The passed cell meta object key is not a string');
+      throwWithCause('The passed cell meta object key is not a string');
     }
 
     return this.cellMeta.getMeta(physicalRow, physicalColumn, key);

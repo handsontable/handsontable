@@ -27,6 +27,9 @@
       &::before {
         content: "";
         display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
         width: var(--ht-checkbox-size);
         height: var(--ht-checkbox-size);
         border-radius: var(--ht-checkbox-border-radius);
@@ -46,6 +49,8 @@
         left: 0;
         color: var(--ht-checkbox-icon-color);
         pointer-events: none;
+        width: var(--ht-checkbox-size) !important;
+        height: var(--ht-checkbox-size) !important;
       }
 
       &:checked {

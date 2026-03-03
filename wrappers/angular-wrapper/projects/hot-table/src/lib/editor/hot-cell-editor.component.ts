@@ -6,6 +6,8 @@ import { CellProperties } from 'handsontable/settings';
  */
 @Directive()
 export abstract class HotCellEditorComponent<T extends string | number | boolean> {
+  static readonly EDITOR_MARKER = Symbol('HotCellEditorComponent');
+
   /** The tabindex attribute for the editor. */
   @HostBinding('attr.tabindex') protected tabindex = -1;
 

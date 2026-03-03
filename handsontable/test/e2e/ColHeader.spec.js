@@ -394,7 +394,7 @@ describe('ColHeader', () => {
     await render();
 
     expect(spec().$container.find('th').eq(0).height()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(40);
+      classic.toEqual(39);
       main.toEqual(39);
       horizon.toEqual(39);
     });
@@ -429,7 +429,7 @@ describe('ColHeader', () => {
 
     expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(1) th:nth-child(1)').height())
       .forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(45);
+        classic.toEqual(43);
         main.toEqual(43);
         horizon.toEqual(43);
       });

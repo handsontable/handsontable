@@ -1,11 +1,12 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example10')!;
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
   data: [[0, 1, 2], ['3c', '4b', 5], [], []],
   colHeaders: true,

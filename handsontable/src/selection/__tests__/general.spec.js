@@ -1778,7 +1778,9 @@ describe('Selection', () => {
       doc.write(`
         <!doctype html>
         <head>
-          <link type="text/css" rel="stylesheet" href="../dist/handsontable.css">
+          <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
+          <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
+          <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
         </head>`);
       doc.close();
 
@@ -1805,7 +1807,11 @@ describe('Selection', () => {
 
       await sleep(100);
 
-      expect(spec().$iframeContainer.find('.wtBorder.current')[0].style.top).toEqual('23px');
+      expect(spec().$iframeContainer.find('.wtBorder.current')[0].style.top).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual('26px');
+        main.toEqual('29px');
+        horizon.toEqual('37px');
+      });
     });
   });
 });

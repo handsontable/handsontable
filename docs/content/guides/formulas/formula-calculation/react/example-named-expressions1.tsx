@@ -3,8 +3,6 @@ import { HyperFormula } from 'hyperformula';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { DetailedSettings } from 'handsontable/plugins/formulas';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -36,7 +34,6 @@ const ExampleComponent = () => {
   return (
     <>
       <HotTable
-        themeName="ht-theme-main"
         ref={hotNamedExpressionsRef}
         data={data}
         colHeaders={true}

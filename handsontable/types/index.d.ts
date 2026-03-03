@@ -14,6 +14,30 @@ import {
   CellMeta,
   CellProperties,
 } from './settings';
+import {
+  ThemeConfig,
+  ThemeColorScheme,
+  ThemeColorsConfig,
+  ThemeDensityConfig,
+  ThemeDensitySizes,
+  ThemeIconsConfig,
+  ThemeLightDarkValue,
+  ThemeSizingConfig,
+  ThemeTokenValue,
+  ThemeTokensConfig,
+  ThemeBuilder,
+  ThemeParams,
+  BaseTheme,
+  hasTheme,
+  getTheme,
+  getThemeNames,
+  getThemes,
+  registerTheme,
+  reinitTheme,
+  classicTheme,
+  mainTheme,
+  horizonTheme,
+} from './themes';
 import * as RecordTranslation from './translations';
 import {
   AutocompleteCellType,
@@ -22,6 +46,8 @@ import {
   DateCellType,
   DropdownCellType,
   HandsontableCellType,
+  IntlDateCellType,
+  IntlTimeCellType,
   NumericCellType,
   PasswordCellType,
   SelectCellType,
@@ -37,6 +63,8 @@ import {
   DateEditor,
   DropdownEditor,
   HandsontableEditor,
+  IntlDateEditor,
+  IntlTimeEditor,
   NumericEditor,
   PasswordEditor,
   SelectEditor,
@@ -45,6 +73,7 @@ import {
   EditorType,
   getEditor,
   registerEditor,
+  editorFactory,
 } from './editors';
 import {
   RendererType,
@@ -55,6 +84,8 @@ import {
   checkboxRenderer,
   htmlRenderer,
   handsontableRenderer,
+  intlDateRenderer,
+  intlTimeRenderer,
   numericRenderer,
   passwordRenderer,
   selectRenderer,
@@ -62,12 +93,15 @@ import {
   timeRenderer,
   getRenderer,
   registerRenderer,
+  rendererFactory,
 } from './renderers';
 import {
   ValidatorType,
   autocompleteValidator,
   dropdownValidator,
   dateValidator,
+  intlDateValidator,
+  intlTimeValidator,
   numericValidator,
   timeValidator ,
   getValidator,
@@ -215,10 +249,6 @@ import {
   Settings as PaginationSettings,
 } from './plugins/pagination';
 import {
-  PersistentState as _PersistentState,
-  Settings as PersistentStateSettings,
-} from './plugins/persistentState';
-import {
   Search as _Search,
   Settings as SearchSettings,
   SearchCallback,
@@ -235,6 +265,18 @@ import {
   TrimRows as _TrimRows,
   Settings as TrimRowsSettings,
 } from './plugins/trimRows';
+import {
+  Dialog as _Dialog,
+  Settings as DialogSettings,
+} from './plugins/dialog';
+import {
+  Loading as _Loading,
+  Settings as LoadingSettings,
+} from './plugins/loading';
+import {
+  EmptyDataState as _EmptyDataState,
+  Settings as EmptyDataStateSettings,
+} from './plugins/emptyDataState';
 import {
   UndoRedo as _UndoRedo,
   Settings as UndoRedoSettings,
@@ -274,6 +316,29 @@ declare namespace Handsontable {
     ColumnSettings,
     GridSettings,
     NumericFormatOptions,
+    // themes
+    ThemeConfig,
+    ThemeColorScheme,
+    ThemeColorsConfig,
+    ThemeDensityConfig,
+    ThemeDensitySizes,
+    ThemeIconsConfig,
+    ThemeLightDarkValue,
+    ThemeSizingConfig,
+    ThemeTokenValue,
+    ThemeTokensConfig,
+    ThemeBuilder,
+    ThemeParams,
+    BaseTheme,
+    hasTheme,
+    getTheme,
+    getThemeNames,
+    getThemes,
+    registerTheme,
+    reinitTheme,
+    classicTheme,
+    mainTheme,
+    horizonTheme,
     // coords
     CellCoords,
     CellRange,
@@ -302,6 +367,8 @@ declare namespace Handsontable {
     export { DateCellType as date };
     export { DropdownCellType as dropdown };
     export { HandsontableCellType as handsontable };
+    export { IntlDateCellType as intlDate };
+    export { IntlTimeCellType as intlTime };
     export { NumericCellType as numeric };
     export { PasswordCellType as password };
     export { TextCellType as text };
@@ -318,6 +385,8 @@ declare namespace Handsontable {
     export { DateEditor };
     export { DropdownEditor };
     export { HandsontableEditor };
+    export { IntlDateEditor };
+    export { IntlTimeEditor };
     export { NumericEditor };
     export { PasswordEditor };
     export { SelectEditor };
@@ -325,6 +394,7 @@ declare namespace Handsontable {
     export { TimeEditor };
     export { registerEditor };
     export { getEditor };
+    export { editorFactory };
   }
 
   export namespace renderers {
@@ -335,6 +405,8 @@ declare namespace Handsontable {
     export { checkboxRenderer as CheckboxRenderer };
     export { htmlRenderer as HtmlRenderer };
     export { handsontableRenderer as HandsontableRenderer };
+    export { intlDateRenderer as IntlDateRenderer };
+    export { intlTimeRenderer as IntlTimeRenderer };
     export { numericRenderer as NumericRenderer };
     export { passwordRenderer as PasswordRenderer };
     export { textRenderer as TextRenderer };
@@ -343,16 +415,28 @@ declare namespace Handsontable {
     export { timeRenderer as TimeRenderer };
     export { registerRenderer };
     export { getRenderer };
+    export { rendererFactory };
   }
 
   export namespace validators {
     export { autocompleteValidator as AutocompleteValidator };
     export { dropdownValidator as DropdownValidator };
     export { dateValidator as DateValidator };
+    export { intlDateValidator as IntlDateValidator };
+    export { intlTimeValidator as IntlTimeValidator };
     export { numericValidator as NumericValidator };
     export { timeValidator as TimeValidator };
     export { registerValidator };
     export { getValidator };
+  }
+
+  export namespace themes {
+    export { hasTheme };
+    export { getTheme };
+    export { getThemeNames };
+    export { getThemes };
+    export { registerTheme };
+    export { reinitTheme };
   }
 
   export namespace plugins {
@@ -385,10 +469,12 @@ declare namespace Handsontable {
     export class NestedHeaders extends _NestedHeaders {}
     export class NestedRows extends _NestedRows {}
     export class Pagination extends _Pagination {}
-    export class PersistentState extends _PersistentState {}
     export class Search extends _Search {}
     export class TouchScroll extends _TouchScroll {}
     export class TrimRows extends _TrimRows {}
+    export class Dialog extends _Dialog {}
+    export class Loading extends _Loading {}
+    export class EmptyDataState extends _EmptyDataState {}
     export class UndoRedo extends _UndoRedo {}
 
     export namespace AutoColumnSize {
@@ -525,10 +611,6 @@ declare namespace Handsontable {
       export { PaginationSettings as Settings };
     }
 
-    export namespace PersistentState {
-      export { PersistentStateSettings as Settings };
-    }
-
     export namespace Search {
       export { SearchSettings as Settings };
       export { SearchCallback };
@@ -545,6 +627,18 @@ declare namespace Handsontable {
 
     export namespace TrimRows {
       export { TrimRowsSettings as Settings };
+    }
+
+    export namespace Dialog {
+      export { DialogSettings as Settings };
+    }
+
+    export namespace Loading {
+      export { LoadingSettings as Settings };
+    }
+
+    export namespace EmptyDataState {
+      export { EmptyDataStateSettings as Settings };
     }
 
     export namespace UndoRedo {
@@ -564,5 +658,14 @@ export {
   CellCoords,
   CellRange,
   Events,
+  hasTheme,
+  getTheme,
+  getThemeNames,
+  getThemes,
+  registerTheme,
+  reinitTheme,
+  classicTheme,
+  mainTheme,
+  horizonTheme,
 };
 export default Handsontable;

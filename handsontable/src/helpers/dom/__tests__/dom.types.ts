@@ -15,6 +15,9 @@ Handsontable.dom.closest(domElement, ['foo'], domElement);
 Handsontable.dom.closestDown(domElement, [domElement, domElement]);
 Handsontable.dom.closestDown(domElement, [domElement], domElement);
 Handsontable.dom.empty(domElement);
+Handsontable.dom.fastInnerHTML(domElement, 'foo', (content) => {
+  return String(content).trim();
+});
 Handsontable.dom.fastInnerHTML(domElement, 'foo');
 Handsontable.dom.fastInnerText(domElement, 'foo');
 Handsontable.dom.getCaretPosition(domElement);

@@ -102,15 +102,15 @@ describe('HandsontableEditor positioning', () => {
     });
 
     const scrollEdgePositions = {
-      horizon: 116,
-      main: 70,
-      classic: 25,
+      horizon: 132,
+      main: 71,
+      classic: 46,
     };
 
     const scrollPositionBase = scrollEdgePositions[spec().loadedTheme];
 
     if (scrollPositionBase === undefined) {
-      throw new Error('Missing scroll position base for the current theme');
+      throw new Error('Missing scroll position base for the current theme', { cause: { handsontable: true } });
     }
 
     // scroll the viewport to the point where the editor may be rendered on the bottom (there is enough space)

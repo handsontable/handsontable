@@ -39,13 +39,16 @@ export function createMenuItemRenderer(mainTableHot) {
    * @param {number} col The visual index.
    * @param {string} prop The column property if used.
    * @param {string} value The cell value.
+   * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
-  return (menuHot, TD, row, col, prop, value) => {
+  return (menuHot, TD, row, col, prop, value, cellProperties) => {
     const item = menuHot.getSourceDataAtRow(row);
     const wrapper = mainTableHot.rootDocument.createElement('div');
     const itemValue = typeof value === 'function' ? value.call(mainTableHot) : value;
     const ariaLabel = typeof item.ariaLabel === 'function' ? item.ariaLabel.call(mainTableHot) : item.ariaLabel;
     const ariaChecked = typeof item.ariaChecked === 'function' ? item.ariaChecked.call(mainTableHot) : item.ariaChecked;
+
+    cellProperties.readOnlyCellClassName = '';
 
     empty(TD);
     addClass(wrapper, 'htItemWrapper');
@@ -81,7 +84,7 @@ export function createMenuItemRenderer(mainTableHot) {
       TD.appendChild(item.renderer(menuHot, wrapper, row, col, prop, itemValue));
 
     } else {
-      fastInnerHTML(wrapper, itemValue);
+      fastInnerHTML(wrapper, itemValue, mainTableHot.getSettings().sanitizer);
     }
 
     if (isItemDisabled(item, mainTableHot)) {

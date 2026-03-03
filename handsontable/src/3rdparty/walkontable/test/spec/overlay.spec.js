@@ -48,6 +48,34 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
   });
 
+  it('should cloned overlays have to have proper dimensions (overflow clip)', async() => {
+    spec().$wrapper.css({ overflow: 'clip' });
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      fixedColumnsStart: 2,
+      fixedRowsTop: 2,
+      fixedRowsBottom: 2,
+    });
+
+    wt.draw();
+
+    expect($(wt.wtTable.holder).width()).toBe(OUTER_WIDTH);
+    expect($(wt.wtTable.holder).height()).toBe(OUTER_HEIGHT);
+    expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(CLIENT_WIDTH); // 200px - 15px scrollbar width
+    expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(47);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(47);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(CLIENT_HEIGHT);
+    expect($(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(47);
+    expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).width()).toBe(CLIENT_WIDTH);
+    expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
+  });
+
   it('should cloned overlays have to have proper dimensions (window object as scrollable element)', async() => {
     spec().$wrapper
       .css('overflow', '')

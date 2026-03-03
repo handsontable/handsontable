@@ -138,8 +138,8 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfSelect = $(conditionSelectRootElements().first).width();
-    const bothWrapperMargins = 20;
-    const bothCustomRendererPaddings = 12;
+    const bothWrapperMargins = 16;
+    const bothCustomRendererPaddings = 8;
     const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings;
 
     expect(widthOfSelect).toEqual(widthOfMenu - parentsPaddings);
@@ -329,12 +329,8 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfValueBox = $(byValueBoxRootElement()).width();
-    const bothWrapperMargins = 20;
-    const bothCustomRendererPaddings = 12;
 
-    const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings;
-
-    expect(widthOfValueBox).toEqual(widthOfMenu - parentsPaddings);
+    expect(widthOfValueBox).toEqual(widthOfMenu);
   });
 
   it.forTheme('main')('should scale the value box element (pixel perfect)', async() => {

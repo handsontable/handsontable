@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -110,9 +108,7 @@ const data = [
 ];
 
 const container = document.querySelector('#example5');
-
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   pagination: true,
   autoRowSize: true,

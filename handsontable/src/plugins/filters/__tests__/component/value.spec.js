@@ -77,7 +77,7 @@ describe('Filters UI Value component', () => {
 
     expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length)
       .forThemes(({ classic, main, horizon }) => {
-        classic.toBe(7);
+        classic.toBe(6);
         main.toBe(6);
         horizon.toBe(6);
       });
@@ -205,7 +205,7 @@ describe('Filters UI Value component', () => {
     await dropdownMenu(1);
 
     const unifiedColDataSample = [
-      'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash', 'Carissa Villarreal'
+      'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash',
     ];
 
     for (let i = 0; i < unifiedColDataSample.length; i++) {
@@ -213,7 +213,7 @@ describe('Filters UI Value component', () => {
         byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
       ).toBe(`Pre ${unifiedColDataSample[i]}`);
     }
-    expect(unifiedColDataSample.length).toBe(6);
+    expect(unifiedColDataSample.length).toBe(5);
   });
 
   it.forTheme('main')(`should utilize the 'modifyFiltersMultiSelectValue' hook to display
@@ -307,6 +307,61 @@ describe('Filters UI Value component', () => {
         byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
       ).toBe(`$${getDataAtCell(i, 1)}.00`);
     }
+  });
+
+  it('should display the formatted renderer output in the multi-selection component if the column ' +
+    'being filtered contains array-based cell data and not show duplicates ' +
+    'of the same values of that type', async() => {
+    handsontable({
+      data: [
+        [['A', 'B']],
+        [['A', 'B']],
+        [['A', 'B']],
+        [['E', 'F']],
+        [['E', 'F']],
+        [['E', 'F']],
+        [['E', 'F']],
+      ],
+      colHeaders: true,
+      columns: [
+        {
+          type: 'multiselect',
+          source: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+        }
+      ],
+      filters: true,
+      dropdownMenu: true,
+    });
+
+    await dropdownMenu(0);
+    await sleep(20);
+
+    // deselect "E, F"
+    $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot tr:nth-of-type(2) td input'))
+      .simulate('click');
+    $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+    await selectCell(toPhysicalRow(0), 1);
+    await keyDownUp('enter');
+    await sleep(10);
+
+    const $dropdown = $('.ht-multi-select-editor');
+    const $checkboxes = $dropdown.find('input[type="checkbox"]');
+
+    $checkboxes.eq(3).simulate('click');
+
+    await sleep(20);
+
+    await dropdownMenu(0);
+    await sleep(20);
+
+    expect(Array.from(document.querySelectorAll('.htUIMultipleSelectHot td label')).filter(
+      el => el.textContent === 'E,F'
+    ).length).toBe(0);
+
+    expect(Array.from(document.querySelectorAll('.htUIMultipleSelectHot td label')).filter(
+      el => el.textContent === 'E, F'
+    ).length).toBe(1);
   });
 
   it('shouldn\'t break "by value" items in the next filter stacks', async() => {

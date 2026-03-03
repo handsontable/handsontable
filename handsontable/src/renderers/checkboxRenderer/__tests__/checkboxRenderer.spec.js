@@ -332,26 +332,26 @@ describe('CheckboxRenderer', () => {
       ]
     });
 
-    // 2 x 4px padding + 1px border === 9px calculated by the `offsetWidth`
-    expect(getCell(0, 0).querySelector('label').offsetWidth).not.toBe(getCell(0, 0).offsetWidth - 9);
-    expect(getCell(0, 1).querySelector('label').offsetWidth).not.toBe(getCell(0, 1).offsetWidth - 9);
+    // 2 x 6px padding + 1px border === 13px calculated by the `offsetWidth`
+    expect(getCell(0, 0).querySelector('label').offsetWidth).not.toBe(getCell(0, 0).offsetWidth - 13);
+    expect(getCell(0, 1).querySelector('label').offsetWidth).not.toBe(getCell(0, 1).offsetWidth - 13);
     expect(getCell(0, 2).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getCell(0, 2).offsetWidth - 9);
+      classic.toBe(getCell(0, 2).offsetWidth - 13);
       main.toBe(getCell(0, 2).offsetWidth - 17);
       horizon.toBe(getCell(0, 2).offsetWidth - 25);
     });
     expect(getCell(0, 3).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getCell(0, 3).offsetWidth - 9);
+      classic.toBe(getCell(0, 3).offsetWidth - 13);
       main.toBe(getCell(0, 3).offsetWidth - 17);
       horizon.toBe(getCell(0, 3).offsetWidth - 25);
     });
     expect(getCell(0, 4).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getCell(0, 4).offsetWidth - 9);
+      classic.toBe(getCell(0, 4).offsetWidth - 13);
       main.toBe(getCell(0, 4).offsetWidth - 17);
       horizon.toBe(getCell(0, 4).offsetWidth - 25);
     });
     expect(getCell(0, 5).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getCell(0, 5).offsetWidth - 9);
+      classic.toBe(getCell(0, 5).offsetWidth - 13);
       main.toBe(getCell(0, 5).offsetWidth - 17);
       horizon.toBe(getCell(0, 5).offsetWidth - 25);
     });
@@ -663,5 +663,21 @@ describe('CheckboxRenderer', () => {
 
       expect($('.handsontable.ht_master .htRight').length).toBe(1);
     });
+  });
+
+  it('should internally call base renderer once', async() => {
+    const originalBaseRenderer = Handsontable.renderers.BaseRenderer;
+
+    spyOn(Handsontable.renderers, 'BaseRenderer');
+
+    Handsontable.renderers.registerRenderer('base', Handsontable.renderers.BaseRenderer);
+    handsontable({
+      data: [['test']],
+      renderer: 'checkbox',
+    });
+
+    expect(Handsontable.renderers.BaseRenderer).toHaveBeenCalledTimes(1);
+
+    Handsontable.renderers.registerRenderer('base', originalBaseRenderer);
   });
 });

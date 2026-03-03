@@ -37,4 +37,12 @@ packageExtensions:
   'jest-preset-angular@14.6.0': # Add a missing peer dependency of zone.js used by the jest preset.
     peerDependencies:
       'zone.js': '*'
-
+  'jsdom@16':
+    peerDependencies:
+      'form-data': '3.0.4'
+  'jsdom@24':
+    peerDependencies:
+      'form-data': '4.0.4'
+  'jsdom@20':
+    peerDependencies:
+      'form-data': '4.0.4'

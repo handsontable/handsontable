@@ -1,12 +1,13 @@
 // to import filtering as an individual module, see the 'Import the filtering module' section of this page
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#exampleFilterBasicDemo');
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [
     {
       brand: 'Jetpulse',

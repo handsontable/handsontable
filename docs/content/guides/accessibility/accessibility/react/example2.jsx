@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 registerAllModules();
 
@@ -480,7 +478,6 @@ const countries = data.reduce((acc, curr) => {
 /* end:skip-in-preview */
 // Handsontable options
 const hotOptions = {
-  themeName: 'ht-theme-main',
   data,
   height: 464,
   colWidths: [160, 165, 130, 120, 100, 110, 216],
@@ -512,10 +509,12 @@ const ExampleComponent = () => {
 
   return (
     <div className="example-container">
+      {/* DemoOptions component for changing Handsontable options */}
       <DemoOptions changeToggleOptions={setToggleableOptions} {...toggleableOptions} />
 
       <input className="placeholder-input" type="text" placeholder="Focusable text input" />
 
+      {/* Handsontable component with dynamic options */}
       <HotTable
         // Handsontable needs to reload when changing virtualization
         // by changing the key, we force the component to reload
@@ -524,9 +523,10 @@ const ExampleComponent = () => {
         // Pass in the options which can change for demo
         {...toggleableOptions}
       >
+        {/* Define HotColumns for the data */}
         <HotColumn data="companyName" type="text" />
         <HotColumn data="productName" type="text" />
-        <HotColumn data="sellDate" dateFormat="DD/MM/YYYY" correctFormat type="date" allowInvalid={false} />
+        <HotColumn data="sellDate" dateFormat="DD/MM/YYYY" correctFormat type="date" />
         <HotColumn data="inStock" type="checkbox" className="htCenter" headerClassName="htCenter" />
         <HotColumn data="qty" type="numeric" headerClassName="htRight" />
         <HotColumn data="orderId" type="text" />

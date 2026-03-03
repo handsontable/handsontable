@@ -10,6 +10,7 @@ import { warn } from '../../helpers/console';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
+const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
@@ -156,7 +157,6 @@ export class Pagination extends BasePlugin {
    * @type {boolean}
    */
   #internalRenderCall = false;
-
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link Pagination#enablePlugin} method is called.
@@ -200,10 +200,10 @@ export class Pagination extends BasePlugin {
 
     if (!this.#ui) {
       this.#ui = new PaginationUI({
-        rootElement: this.hot.rootElement,
+        rootElement: this.hot.rootGridElement,
         uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
-        themeName: this.hot.getSettings().themeName,
+        themeName: this.hot.getCurrentThemeName(),
         phraseTranslator: (...args) => this.hot.getTranslatedPhrase(...args),
         shouldHaveBorder: () => this.#computeNeedsBorder(),
         a11yAnnouncer: message => announce(message),
@@ -216,6 +216,7 @@ export class Pagination extends BasePlugin {
         .addLocalHook('nextPageClick', () => this.nextPage())
         .addLocalHook('lastPageClick', () => this.lastPage())
         .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
+
     }
 
     // Place the onInit hook before others to make sure that the pagination state is computed
@@ -230,10 +231,12 @@ export class Pagination extends BasePlugin {
     this.addHook('afterRender', (...args) => this.#onAfterRender(...args));
     this.addHook('afterScrollVertically', (...args) => this.#onAfterScrollVertically(...args));
     this.addHook('afterLanguageChange', (...args) => this.#onAfterLanguageChange(...args));
-    this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
+
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
+
+    this.#registerFocusScope();
 
     super.enablePlugin();
   }
@@ -257,6 +260,8 @@ export class Pagination extends BasePlugin {
     this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
       .unregisterMap(this.pluginName);
+
+    this.#unregisterFocusScope();
 
     this.#ui.destroy();
     this.#ui = null;
@@ -591,11 +596,14 @@ export class Pagination extends BasePlugin {
         return view.getViewportHeight() - scrollbarWidth;
       },
       itemsSizeProvider: () => {
-        const defaultRowHeight = stylesHandler.getDefaultRowHeight();
         const rowHeights = this.hot.rowIndexMapper
           .getRenderableIndexes()
-          .map(physicalIndex => this.hot
-            .getRowHeight(this.hot.toVisualRow(physicalIndex)) ?? defaultRowHeight);
+          .map((physicalIndex) => {
+            const visualRowIndex = this.hot.toVisualRow(physicalIndex);
+
+            return this.hot
+              .getRowHeight(visualRowIndex) ?? stylesHandler.getDefaultRowHeight(visualRowIndex);
+          });
 
         return rowHeights;
       },
@@ -624,8 +632,10 @@ export class Pagination extends BasePlugin {
 
     this.#internalExecutionCall = false;
 
+    const paginationData = this.getPaginationData();
+
     this.#ui.updateState({
-      ...this.getPaginationData(),
+      ...paginationData,
       totalRenderedRows: renderableRowsLength,
     });
   }
@@ -656,6 +666,36 @@ export class Pagination extends BasePlugin {
     } = this.getPaginationData();
 
     return view.getLastFullyVisibleRow() !== lastVisibleRowIndex;
+  }
+
+  /**
+   * Registers the focus scope for the pagination plugin.
+   */
+  #registerFocusScope() {
+    this.hot.getFocusScopeManager()
+      .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
+        shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+        runOnlyIf: () => this.getSetting('showPageSize') || this.getSetting('showNavigation'),
+        onActivate: (focusSource) => {
+          const focusableElements = this.#ui.getFocusableElements();
+
+          if (focusableElements.length > 0) {
+            if (focusSource === 'tab_from_above') {
+              focusableElements.at(0).focus();
+
+            } else if (focusSource === 'tab_from_below') {
+              focusableElements.at(-1).focus();
+            }
+          }
+        },
+      });
+  }
+
+  /**
+   * Unregisters the focus scope for the pagination plugin.
+   */
+  #unregisterFocusScope() {
+    this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
   }
 
   /**
@@ -744,31 +784,6 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Called when the row height is modified. It adds 1px border top compensation for
-   * the first row of the each page to make sure that the table's hider element
-   * height is correctly calculated.
-   *
-   * @param {number | undefined} height Row height.
-   * @param {number} row Visual row index.
-   * @returns {number}
-   */
-  #onModifyRowHeight(height, row) {
-    if (height === undefined || !this.#calcStrategy.getState(this.#currentPage)) {
-      return;
-    }
-
-    const {
-      firstVisibleRowIndex,
-    } = this.getPaginationData();
-
-    if (row !== 0 && row === firstVisibleRowIndex) {
-      height += 1; // 1px border top compensation for the first row of the page.
-    }
-
-    return height;
-  }
-
-  /**
    * Called after the view is rendered. It recalculates the pagination state only when
    * the `pageSize` is set to `'auto'`. In this case, the plugin will compute the
    * page size based on the viewport size and row heights for each render cycle to make sure
@@ -806,6 +821,34 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Called before the height of the table is changed. It adjusts the table height to fit the pagination container
+   * in declared height.
+   *
+   * @param {number|string} height Table height.
+   * @returns {string} Returns the new table height.
+   */
+  #onBeforeHeightChange(height) {
+    if (this.getSetting('uiContainer')) {
+      return height;
+    }
+
+    const isPixelValue = (
+      typeof height === 'number' ||
+      (typeof height === 'string' && /^\d+$/.test(height)) ||
+      (typeof height === 'string' && height.endsWith('px'))
+    );
+
+    if (!isPixelValue) {
+      return height;
+    }
+
+    const heightValue = typeof height === 'string' && height.endsWith('px')
+      ? height : `${height}px`;
+
+    return `calc(${heightValue} - ${this.#ui.getHeight()}px)`;
+  }
+
+  /**
    * Called after the initialization of the plugin. It computes the initial state of the pagination.
    */
   #onInit() {
@@ -829,21 +872,6 @@ export class Pagination extends BasePlugin {
    */
   #onAfterLanguageChange() {
     this.#computeAndApplyState();
-  }
-
-  /**
-   * Called before the height of the table is changed. It adjusts the table height to fit the pagination container
-   * in declared height.
-   *
-   * @param {number} height Table height.
-   * @returns {string} Returns the new table height.
-   */
-  #onBeforeHeightChange(height) {
-    if (this.getSetting('uiContainer')) {
-      return height;
-    }
-
-    return `calc(${height}${/[0-9]$/.test(height) ? 'px' : ''} - ${this.#ui.getHeight()}px)`;
   }
 
   /**

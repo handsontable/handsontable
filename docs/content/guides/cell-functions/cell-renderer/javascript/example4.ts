@@ -1,7 +1,9 @@
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { BaseRenderer } from 'handsontable/renderers';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 interface Book {
   title: string;
@@ -60,7 +62,6 @@ const coverRenderer: BaseRenderer = (_instance, td, _row, _col, _prop, value) =>
 const container = document.querySelector('#example4')!;
 
 new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   colWidths: [200, 200, 200, 80],
   colHeaders: ['Title', 'Description', 'Comments', 'Cover'],

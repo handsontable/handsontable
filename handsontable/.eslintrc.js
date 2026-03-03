@@ -1,10 +1,19 @@
+const { BROWSERS_LIST } = require('../browser-targets.js');
+
 module.exports = {
   extends: ['../.eslintrc.js'],
   parser: '@babel/eslint-parser',
   plugins: [
     'handsontable',
+    'compat',
   ],
+  settings: {
+    browsers: BROWSERS_LIST,
+    lintAllEsApis: true,
+  },
   rules: {
+    'compat/compat': 'error',
+    'handsontable/no-native-error-throw': 'error',
     'handsontable/restricted-module-imports': [
       'error',
       '**/cellTypes',
@@ -31,6 +40,8 @@ module.exports = {
         'src/plugins/**/__tests__/helpers/**',
       ],
       rules: {
+        'handsontable/no-native-error-throw': 'off',
+        'compat/compat': 'off',
         'no-restricted-syntax': 'off',
         'no-await-in-loop': 'off',
         'import/extensions': 'off',

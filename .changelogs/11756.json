@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Allow focus navigation between multiple selection layers",
-  "type": "changed",
-  "issueOrPR": 11756,
-  "breaking": false,
-  "framework": "none"
-}

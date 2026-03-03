@@ -1,7 +1,5 @@
 import { useRef } from 'react';
 import { HotTable, HotColumn, useHotEditor } from '@handsontable/react-wrapper';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 const EditorComponent = () => {
   const mainElementRef = useRef(null);
@@ -78,7 +76,6 @@ const data = [
 const ExampleComponent = () => {
   return (
     <HotTable
-      themeName="ht-theme-main"
       data={data}
       rowHeaders={true}
       autoWrapRow={true}

@@ -1,7 +1,3 @@
-html.theme-dark .handsontable {
-    color-scheme: light;
-}
-
 html.theme-dark {
     color-scheme dark
 
@@ -93,6 +89,9 @@ html.theme-dark {
     #nprogress .bar { 
         background: $accentColor 
     }
+
+    hr {border: none; border-top: 1px solid $lightBorderColor}
+
 
     /* Sidebar 
     ------------------------------- */
@@ -186,19 +185,6 @@ html.theme-dark {
                             &:after {
                                 border-color: $accentColor
                             }
-                        }
-
-                        .tag-update  { 
-                            background-color: $successColor
-                            color: $bgColor
-                        }
-                        .tag-new {
-                            background: $accentColor
-                            color: $textColor
-                        }
-                        .tag-deprecated {
-                            background: $depricatedBgColor
-                            color: $depricatedColor
                         }
                     }
                 }
@@ -1418,6 +1404,19 @@ html.theme-dark {
 
     .img-dark {
         display: block
+    }
+
+    .tag-updated  { 
+        background-color: $successColor
+        color: $bgColor
+    }
+    .tag-new {
+        background: $accentColor
+        color: $textColor
+    }
+    .tag-deprecated {
+        background: $depricatedBgColor
+        color: $depricatedColor
     }
 }
 
