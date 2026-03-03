@@ -14,12 +14,10 @@
 
     .collapsibleIndicator,
     .ht_nestingButton {
-      --ht-collapse-button-hit-area-size: 24px;
-
       position: relative;
-      width: var(--ht-collapse-button-hit-area-size);
-      height: var(--ht-collapse-button-hit-area-size);
-      margin: calc(-1 * (var(--ht-collapse-button-hit-area-size) - var(--ht-icon-size)) / 2);
+      width: var(--ht-icon-button-hit-area-size);
+      height: var(--ht-icon-button-hit-area-size);
+      margin: calc(-1 * (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2);
       box-sizing: border-box;
       overflow: visible;
       cursor: pointer;
