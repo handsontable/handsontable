@@ -277,13 +277,13 @@ export class DropdownMenu extends BasePlugin {
         const { from } = this.hot.getSelectedRangeActive();
         const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
         const target = this.hot.getCell(-1, from.col, true).querySelector(`.${BUTTON_CLASS_NAME}`);
-        const rect = target.getBoundingClientRect();
+        const buttonRect = this.#getButtonRect(target);
 
         this.open({
-          left: rect.left + offset.left,
-          top: rect.top + target.offsetHeight + offset.top,
+          left: buttonRect.left + offset.left,
+          top: buttonRect.bottom + offset.top,
         }, {
-          left: rect.width,
+          left: buttonRect.width,
           right: 0,
           above: 0,
           below: 3,
@@ -440,21 +440,56 @@ export class DropdownMenu extends BasePlugin {
   #onTableClick(event) {
     if (hasClass(event.target, BUTTON_CLASS_NAME)) {
       const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
-      const rect = event.target.getBoundingClientRect();
+      const buttonRect = this.#getButtonRect(event.target);
 
       event.stopPropagation();
       this.#isButtonClicked = false;
 
       this.open({
-        left: rect.left + offset.left,
-        top: rect.top + event.target.offsetHeight + offset.top,
+        left: buttonRect.left + offset.left,
+        top: buttonRect.bottom + offset.top,
       }, {
-        left: rect.width,
+        left: buttonRect.width,
         right: 0,
         above: 0,
         below: 3,
       });
     }
+  }
+
+  /**
+   * Returns the bounding rect of the button's ignoring the hit area box.
+   *
+   * @param {HTMLElement} button The change-type button element.
+   * @returns {{ top: number, left: number, right: number, bottom: number, width: number, height: number }}
+   */
+  #getButtonRect(button) {
+    const rect = button.getBoundingClientRect();
+    const beforeStyle = this.hot.rootWindow.getComputedStyle(button, '::before');
+    const iconSize = Number.parseFloat(beforeStyle.width, 10);
+
+    if (Number.isFinite(iconSize) && rect.width >= iconSize && rect.height >= iconSize) {
+      const left = rect.left + ((rect.width - iconSize) / 2);
+      const top = rect.top + ((rect.height - iconSize) / 2);
+
+      return {
+        top,
+        left,
+        right: left + iconSize,
+        bottom: top + iconSize,
+        width: iconSize,
+        height: iconSize,
+      };
+    }
+
+    return {
+      top: rect.top,
+      left: rect.left,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+    };
   }
 
   /**
