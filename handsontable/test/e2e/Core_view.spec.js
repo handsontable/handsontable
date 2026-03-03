@@ -968,4 +968,53 @@ describe('Core_view', () => {
         .toEqual(rowHeight);
     });
   });
+
+  it('should have correct wtHider size on first render when nestedRows is enabled', async() => {
+    const nestedData = [
+      {
+        id: 1,
+        name: 'father 1',
+        __children: [
+          {
+            id: 2,
+            name: 'Child 1.1',
+            __children: [
+              {
+                id: 3,
+                name: 'Child 1.1.1',
+                __children: [
+                  {
+                    id: 4,
+                    name: 'Child 1.1.1.1'
+                  }
+                ]
+              },
+            ]
+          },
+        ]
+      },
+    ];
+
+    handsontable({
+      data: nestedData,
+      colHeaders: ['ID', 'Name'],
+      columns: [
+        { data: 'id', type: 'numeric' },
+        { data: 'name', type: 'text' }
+      ],
+      nestedRows: true,
+      rowHeaders: true,
+      contextMenu: true
+    });
+
+    await sleep(100);
+
+    const $htCore = spec().$container.find('.ht_master .wtHolder .wtHider .wtSpreader .htCore');
+    const $wtHider = spec().$container.find('.ht_master .wtHolder .wtHider');
+
+    const htCoreWidth = $htCore.width();
+    const wtHiderWidth = $wtHider.width();
+
+    expect(wtHiderWidth).toEqual(htCoreWidth);
+  });
 });
