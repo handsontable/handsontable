@@ -1,7 +1,7 @@
 {
   "name": "handsontable-visual-tests",
   "private": true,
-  "version": "17.0.0-rc11",
+  "version": "17.0.0-rc12",
   "description": "",
   "main": "index.js",
   "scripts": {
