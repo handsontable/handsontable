@@ -1023,12 +1023,12 @@ jobs:
         run: node .github/scripts/purge-jsdelivr-cache.mjs '${{ needs.stable-build.outputs.version }}'
 
       - name: Download NuGet package artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # https://github.com/actions/download-artifact/releases/tag/v4.3.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
         with:
           name: nuget_pack_${{ needs.stable-build.outputs.version }}
 
       - name: NuGet login (OIDC trusted publishing)
-        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1
+        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1.0.0
         id: nuget-login
         with:
           user: ${{ secrets.NUGET_USER }}
