@@ -6,10 +6,6 @@
 
 @mixin output {
   .handsontable {
-    .collapsibleIndicator {
-      top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
-    }
-
     .collapsibleIndicator,
     .ht_nestingButton {
       position: relative;
@@ -110,8 +106,9 @@
     }
 
     .collapsibleIndicator {
-      margin-inline-start: var(--ht-gap-size);
-      margin-inline-end: 1px;
+      top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+      margin-inline-start: calc(var(--ht-gap-size) - (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2);
+      margin-inline-end: calc(1px - (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2);
     }
 
     th {
