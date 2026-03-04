@@ -368,6 +368,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               ' or not imported correctly. Import the correct CSS files in order to use that theme.');
           }
         }
+
+        this.view?._wt?.selectionManager?.refreshAllBorderHandleStyles();
       }
     },
     injectCoreCss: typeof userSettings?.injectCoreCss === 'boolean' ? userSettings.injectCoreCss : true,
@@ -2869,7 +2871,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           instance.useTheme(instance.themeManager.getClassName());
 
         } else {
-          instance.themeManager.update(settings.theme);
+          let themeObject;
+
+          if (typeof settings.theme.getThemeConfig !== 'function') {
+            themeObject = registerTheme(settings.theme);
+          } else {
+            themeObject = settings.theme;
+          }
+
+          instance.themeManager.update(themeObject);
           instance.useTheme(instance.themeManager.getClassName());
         }
       }
