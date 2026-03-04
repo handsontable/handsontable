@@ -543,11 +543,17 @@ class Overlays {
     let scrollX = this.scrollableElement.scrollLeft;
     let scrollY = this.scrollableElement.scrollTop;
 
-    if (this.wot.wtViewport.isHorizontallyScrollableByWindow() && preventOverflow !== 'horizontal') {
+    if (
+      this.wot.wtViewport.isHorizontallyScrollableByWindow()
+      && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'horizontal')
+    ) {
       scrollX = this.scrollableElement.scrollX;
     }
 
-    if (this.wot.wtViewport.isVerticallyScrollableByWindow() && preventOverflow !== 'vertical') {
+    if (
+      this.wot.wtViewport.isVerticallyScrollableByWindow()
+      && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'vertical')
+    ) {
       scrollY = this.scrollableElement.scrollY;
     }
 
