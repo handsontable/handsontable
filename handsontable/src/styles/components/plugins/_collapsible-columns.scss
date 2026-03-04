@@ -8,8 +8,6 @@
   .handsontable {
     .collapsibleIndicator {
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
-      margin-inline-start: var(--ht-gap-size);
-      margin-inline-end: 1px;
     }
 
     .collapsibleIndicator,
@@ -109,6 +107,11 @@
           }
         }
       }
+    }
+
+    .collapsibleIndicator {
+      margin-inline-start: var(--ht-gap-size);
+      margin-inline-end: 1px;
     }
 
     th {
