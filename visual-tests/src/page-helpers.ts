@@ -624,21 +624,17 @@ export async function resizeRow(rowIndex: number, resizeAmount: number, tableLoc
 }
 
 /**
- * Clicks the page at the specified offset relative to the viewport.
+ * Converts viewport-relative offsets to absolute viewport coordinates (CSS pixels).
+ * Positive offsets are from left/top; negative are from right/bottom.
  *
  * @param {number} offsetX The offset X. Positive values move the mouse from the left position (0), negative
  * values move the mouse from the right position (viewport width).
  * @param {number} offsetY The offset Y. Positive values move the mouse from the top position (0), negative
  * values move the mouse from the bottom position (viewport height).
- * @param {string} button The button to click.
+ * @returns {object} The x and y coordinates.
  */
-export async function clickRelativeToViewport(
-  offsetX: number,
-  offsetY: number,
-  button: 'left' | 'right' = 'left',
-) {
+function viewportOffsetToCoordinates(offsetX: number, offsetY: number): { x: number; y: number } {
   const viewportSize = getPageInstance().viewportSize();
-
   let x = offsetX;
   let y = offsetY;
 
@@ -652,13 +648,33 @@ export async function clickRelativeToViewport(
   x = Math.min(x, viewportSize!.width);
   y = Math.min(y, viewportSize!.height);
 
+  return { x, y };
+}
+
+/**
+ * Clicks the page at the specified offset relative to the viewport.
+ *
+ * @param {number} offsetX The offset X. Positive values move the mouse from the left position (0), negative
+ * values move the mouse from the right position (viewport width).
+ * @param {number} offsetY The offset Y. Positive values move the mouse from the top position (0), negative
+ * values move the mouse from the bottom position (viewport height).
+ * @param {string} button The button to click.
+ */
+export async function clickRelativeToViewport(
+  offsetX: number,
+  offsetY: number,
+  button: 'left' | 'right' = 'left',
+) {
+  const { x, y } = viewportOffsetToCoordinates(offsetX, offsetY);
+
   await getPageInstance().mouse.click(x, y, {
     button,
   });
 }
 
 /**
- * Double clicks the page at the specified offset relative to the viewport.
+ * Double-clicks the page at the specified offset relative to the viewport.
+ * Uses Playwright's native dblclick so the browser fires a real `dblclick` DOM event (clickCount: 2).
  *
  * @param {number} offsetX The offset X. Positive values move the mouse from the left position (0), negative
  * values move the mouse from the right position (viewport width).
@@ -669,10 +685,13 @@ export async function clickRelativeToViewport(
 export async function doubleClickRelativeToViewport(
   offsetX: number,
   offsetY: number,
-  button: 'left' | 'right' = 'left'
+  button: 'left' | 'right' = 'left',
 ) {
-  await clickRelativeToViewport(offsetX, offsetY, button);
-  await clickRelativeToViewport(offsetX, offsetY, button);
+  const { x, y } = viewportOffsetToCoordinates(offsetX, offsetY);
+
+  await getPageInstance().mouse.dblclick(x, y, {
+    button,
+  });
 }
 
 /**

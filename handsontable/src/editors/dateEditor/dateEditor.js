@@ -364,7 +364,9 @@ export class DateEditor extends TextEditor {
       if (top + pickerHeight > viewportBottom) {
         const aboveCell = viewportTop + offset.top - pickerHeight;
 
-        top = aboveCell >= viewportTop ? aboveCell - 1 : viewportBottom - pickerHeight;
+        top = aboveCell >= viewportTop
+          ? Math.max(viewportTop, aboveCell - 1)
+          : viewportBottom - pickerHeight;
       }
 
       this.datePickerStyle.top = `${top}px`;
@@ -380,7 +382,10 @@ export class DateEditor extends TextEditor {
           pickerLeftPosition = Math.min(cellLeft, viewportRight - pickerWidth);
         }
 
-        pickerLeftPosition = Math.max(viewportLeft, Math.min(pickerLeftPosition, viewportRight - pickerWidth));
+        pickerLeftPosition = Math.max(
+          viewportLeft,
+          Math.min(pickerLeftPosition, viewportRight - pickerWidth)
+        );
       } else {
         pickerLeftPosition = cellLeft;
 
@@ -388,7 +393,10 @@ export class DateEditor extends TextEditor {
           pickerLeftPosition = Math.max(cellRight - pickerWidth, viewportLeft);
         }
 
-        pickerLeftPosition = Math.max(viewportLeft, Math.min(pickerLeftPosition, viewportRight - pickerWidth));
+        pickerLeftPosition = Math.max(
+          viewportLeft,
+          Math.min(pickerLeftPosition, viewportRight - pickerWidth)
+        );
       }
 
       this.datePickerStyle.left = `${pickerLeftPosition}px`;
