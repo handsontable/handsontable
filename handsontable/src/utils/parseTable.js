@@ -151,6 +151,106 @@ export function _dataToHTML(input) {
   return result.join('');
 }
 
+const TD_OPEN = /<td\b[^>]*>/i;
+const TD_CLOSE = /<\/\s*td\s*>/i;
+const paragraphRegexp = /<p.*?>/g;
+
+/**
+ * Finds the closing `</td>` that matches the first `<td...>` in `html` at `openEndIndex`.
+ * Handles nested `<td>...</td>` (e.g. Excel cells with shapes that contain inner tables).
+ *
+ * @param {string} html Full HTML string.
+ * @param {number} openEndIndex Index right after the opening `<td...>` (after the `>`).
+ * @returns {{ start: number, length: number }|null} Start index and length of the matching `</td>`, or null.
+ */
+function findMatchingTdClose(html, openEndIndex) {
+  let depth = 1;
+  let searchStart = openEndIndex;
+
+  while (depth > 0) {
+    const tail = html.substring(searchStart);
+    const openMatch = tail.match(TD_OPEN);
+    const closeMatch = tail.match(TD_CLOSE);
+
+    if (!closeMatch) {
+      return null;
+    }
+
+    const closeIndex = searchStart + closeMatch.index;
+    const closeTagLength = closeMatch[0].length;
+    const openIndex = openMatch ? searchStart + openMatch.index : html.length;
+
+    if (openIndex < closeIndex) {
+      depth += 1;
+      searchStart = openIndex + openMatch[0].length;
+    } else {
+      depth -= 1;
+
+      if (depth === 0) {
+        return { start: closeIndex, length: closeTagLength };
+      }
+
+      searchStart = closeIndex + closeTagLength;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Replaces each `<td>...</td>` in the HTML string with a normalized version that keeps only
+ * text-like content (strips nested tables, VML/shapes, etc.). Uses matching close-tag search
+ * so that nested `<td>` (e.g. from Excel paste with shapes) do not truncate the payload.
+ * Exported so clipboard HTML can be normalized before sanitization.
+ *
+ * @param {string} html Raw HTML (e.g. from clipboard text/html).
+ * @returns {string} HTML with each cell replaced by opening tag + stripped text + `</td>`.
+ */
+export function replaceTdCellsWithTextContent(html) {
+  const result = [];
+  let pos = 0;
+
+  while (pos < html.length) {
+    const openMatch = html.substring(pos).match(TD_OPEN);
+
+    if (!openMatch) {
+      result.push(html.substring(pos));
+      break;
+    }
+
+    const openStart = pos + openMatch.index;
+    const openTag = openMatch[0];
+    const openEnd = openStart + openTag.length;
+
+    result.push(html.substring(pos, openStart));
+
+    const closeInfo = findMatchingTdClose(html, openEnd);
+
+    if (!closeInfo) {
+      // Malformed HTML (no matching </td>): leave rest as-is to avoid truncation.
+      result.push(html.substring(openStart));
+      break;
+    }
+
+    const cellFragment = html.substring(openStart, closeInfo.start + closeInfo.length);
+    const contentEnd = closeInfo.start - openStart;
+    const rawContent = cellFragment
+      .substring(openTag.length, contentEnd)
+      .trim()
+      .replaceAll(/\n\s+/g, ' ') // HTML tags may be split using multiple new lines and whitespaces
+      .replaceAll(paragraphRegexp, '\n') // Only paragraphs should split text using new line characters
+      .replace(/^\n+/, '') // First paragraph shouldn't start with new line characters
+      .replaceAll(/<\/(.*)>\s+$/mg, '</$1>') // HTML tags may end with whitespace.
+      .replace(/(<(?!br)([^>]+)>)/gi, '') // Removing HTML tags
+      .replaceAll(/^&nbsp;$/mg, ''); // Removing single &nbsp; characters separating new lines
+
+    result.push(`${openTag}${rawContent}</td>`);
+    pos = closeInfo.start + closeInfo.length;
+  }
+
+  return result.join('');
+}
+
 /**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
@@ -169,22 +269,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
   let checkElement = element;
 
   if (typeof checkElement === 'string') {
-    const escapedAdjacentHTML = checkElement.replace(/<td\b[^>]*?>([\s\S]*?)<\/\s*td>/g, (cellFragment) => {
-      const openingTag = cellFragment.match(/<td\b[^>]*?>/g)[0];
-      const paragraphRegexp = /<p.*?>/g;
-      const cellValue = cellFragment
-        .substring(openingTag.length, cellFragment.lastIndexOf('<'))
-        .trim() // Removing whitespaces from the start and the end of HTML fragment
-        .replaceAll(/\n\s+/g, ' ') // HTML tags may be split using multiple new lines and whitespaces
-        .replaceAll(paragraphRegexp, '\n') // Only paragraphs should split text using new line characters
-        .replace('\n', '') // First paragraph shouldn't start with new line characters
-        .replaceAll(/<\/(.*)>\s+$/mg, '</$1>') // HTML tags may end with whitespace.
-        .replace(/(<(?!br)([^>]+)>)/gi, '') // Removing HTML tags
-        .replaceAll(/^&nbsp;$/mg, ''); // Removing single &nbsp; characters separating new lines
-      const closingTag = '</td>';
-
-      return `${openingTag}${cellValue}${closingTag}`;
-    });
+    const escapedAdjacentHTML = replaceTdCellsWithTextContent(checkElement);
 
     tempElem.insertAdjacentHTML('afterbegin', `${escapedAdjacentHTML}`);
     checkElement = tempElem.querySelector('table');
