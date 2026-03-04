@@ -11,7 +11,7 @@ beforeEach(function() {
   specContext.spec = this;
 
   if (!process.env.JEST_WORKER_ID) {
-    this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
+    this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'main';
     // Expose loaded theme globally for the jQuery wrapper to use
     window.__HOT_TEST_THEME__ = this.loadedTheme;
 
