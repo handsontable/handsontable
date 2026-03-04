@@ -239,6 +239,53 @@ describe('Core.themeManager', () => {
       expect($(hot.rootPortalElement).hasClass('ht-theme-update-theme-2')).toBe(true);
     });
 
+    it('should update existing themeManager with plain theme config (no getThemeConfig) via updateSettings', async() => {
+      const testTheme1 = Handsontable.themes.registerTheme(createValidThemeConfig({
+        name: 'update-registered-first',
+      }));
+
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        theme: testTheme1,
+      }, true);
+
+      expect(hot.themeManager.getClassName()).toBe('ht-theme-update-registered-first');
+
+      const plainThemeConfig = createValidThemeConfig({ name: 'update-plain-when-manager-exists' });
+
+      await updateSettings({
+        theme: plainThemeConfig,
+      });
+
+      expect(hot.themeManager.getClassName()).toBe('ht-theme-update-plain-when-manager-exists');
+      expect(getCurrentThemeName()).toBe('ht-theme-update-plain-when-manager-exists');
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-update-plain-when-manager-exists')).toBe(true);
+    });
+
+    it('should use theme object directly when it has getThemeConfig (registered theme) on update', async() => {
+      const testTheme1 = Handsontable.themes.registerTheme(createValidThemeConfig({
+        name: 'getThemeConfig-theme-1',
+      }));
+
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        theme: testTheme1,
+      }, true);
+
+      const testTheme2 = Handsontable.themes.registerTheme(createValidThemeConfig({
+        name: 'getThemeConfig-theme-2',
+      }));
+
+      expect(typeof testTheme2.getThemeConfig).toBe('function');
+
+      await updateSettings({
+        theme: testTheme2,
+      });
+
+      expect(hot.themeManager.getClassName()).toBe('ht-theme-getThemeConfig-theme-2');
+      expect(getCurrentThemeName()).toBe('ht-theme-getThemeConfig-theme-2');
+    });
+
     it('should fire afterSetTheme hook on theme update with initial flag set to false', async() => {
       const afterSetThemeSpy = jasmine.createSpy('afterSetTheme');
       const testTheme1 = Handsontable.themes.registerTheme(createValidThemeConfig({
@@ -334,6 +381,31 @@ describe('Core.themeManager', () => {
       testTheme.setColorScheme('dark');
 
       expect(renderSpy).toHaveBeenCalled();
+    });
+
+    it('should refresh selection border handle styles when theme is changed', async() => {
+      const testTheme1 = Handsontable.themes.registerTheme(createValidThemeConfig({
+        name: 'border-handles-theme-1',
+      }));
+      const testTheme2 = Handsontable.themes.registerTheme(createValidThemeConfig({
+        name: 'border-handles-theme-2',
+      }));
+
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        theme: testTheme1,
+      }, true);
+
+      expect(hot.view).toBeDefined();
+      expect(hot.view._wt.selectionManager).toBeDefined();
+
+      const refreshSpy = spyOn(hot.view._wt.selectionManager, 'refreshAllBorderHandleStyles');
+
+      await updateSettings({
+        theme: testTheme2,
+      });
+
+      expect(refreshSpy).toHaveBeenCalled();
     });
   });
 

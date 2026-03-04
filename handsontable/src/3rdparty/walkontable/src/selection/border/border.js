@@ -243,15 +243,8 @@ class Border {
    * Create multiple selector handler for mobile devices.
    */
   createMultipleSelectorHandles() {
-    const { rootDocument, wtSettings } = this.wot;
-    const stylesHandler = wtSettings.getSetting('stylesHandler');
-    const cellMobileHandleSize = stylesHandler.getCSSVariableValue('cell-mobile-handle-size');
-    const cellMobileHandleBorderRadius = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-radius');
-    const cellMobileHandleBackgroundColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-background-color');
-    const cellMobileHandleBackgroundOpacity =
-      stylesHandler.getCSSVariableValue('cell-mobile-handle-background-opacity');
-    const cellMobileHandleBorderWidth = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-width');
-    const cellMobileHandleBorderColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-color');
+    const hitAreaWidth = 40;
+    const { rootDocument } = this.wot;
 
     this.selectionHandles = {
       top: rootDocument.createElement('DIV'),
@@ -259,7 +252,6 @@ class Border {
       bottom: rootDocument.createElement('DIV'),
       bottomHitArea: rootDocument.createElement('DIV')
     };
-    const hitAreaWidth = 40;
 
     this.selectionHandles.top.className = 'topSelectionHandle topLeftSelectionHandle';
     this.selectionHandles.topHitArea.className = 'topSelectionHandle-HitArea topLeftSelectionHandle-HitArea';
@@ -285,13 +277,40 @@ class Border {
       this.selectionHandles.styles.topHitArea[key] = value;
     });
 
+    this.updateMultipleSelectorHandlesStyles();
+
+    this.main.appendChild(this.selectionHandles.top);
+    this.main.appendChild(this.selectionHandles.bottom);
+    this.main.appendChild(this.selectionHandles.topHitArea);
+    this.main.appendChild(this.selectionHandles.bottomHitArea);
+  }
+
+  /**
+   * Updates the multiple selector handle styles from the current theme after a theme change.
+   * Rereads CSS variables and applies them to existing handle elements.
+   */
+  updateMultipleSelectorHandlesStyles() {
+    if (!this.selectionHandles) {
+      return;
+    }
+
+    const wtSettings = this.wot.wtSettings;
+    const stylesHandler = wtSettings.getSetting('stylesHandler');
+    const cellMobileHandleSize = stylesHandler.getCSSVariableValue('cell-mobile-handle-size');
+    const cellMobileHandleBorderRadius = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-radius');
+    const cellMobileHandleBackgroundColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-background-color');
+    const cellMobileHandleBackgroundOpacity =
+      stylesHandler.getCSSVariableValue('cell-mobile-handle-background-opacity');
+    const cellMobileHandleBorderWidth = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-width');
+    const cellMobileHandleBorderColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-color');
+
     const handleStyle = {
       position: 'absolute',
       height: `${cellMobileHandleSize}px`,
       width: `${cellMobileHandleSize}px`,
       'border-radius': `${cellMobileHandleBorderRadius}px`,
       // eslint-disable-next-line max-len
-      background: `color-mix(in srgb, ${cellMobileHandleBackgroundColor} ${cellMobileHandleBackgroundOpacity}, transparent)`,
+      background: `color-mix(in srgb, ${cellMobileHandleBackgroundColor} ${cellMobileHandleBackgroundOpacity}%, transparent)`,
       border: `${cellMobileHandleBorderWidth}px solid ${cellMobileHandleBorderColor}`
     };
 
@@ -299,11 +318,6 @@ class Border {
       this.selectionHandles.styles.bottom[key] = value;
       this.selectionHandles.styles.top[key] = value;
     });
-
-    this.main.appendChild(this.selectionHandles.top);
-    this.main.appendChild(this.selectionHandles.bottom);
-    this.main.appendChild(this.selectionHandles.topHitArea);
-    this.main.appendChild(this.selectionHandles.bottomHitArea);
   }
 
   /**
