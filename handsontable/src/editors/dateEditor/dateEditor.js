@@ -349,15 +349,46 @@ export class DateEditor extends TextEditor {
       this.col >= firstVisibleColumn && this.col <= lastVisibleColumn
     ) {
       const offset = this.TD.getBoundingClientRect();
+      const pickerWidth = outerWidth(this.datePicker);
+      const pickerHeight = outerHeight(this.datePicker);
+      const cellHeight = outerHeight(this.TD);
+      const win = this.hot.rootWindow;
+      const doc = this.hot.rootDocument.documentElement;
+      const viewportTop = win.pageYOffset;
+      const viewportBottom = win.pageYOffset + doc.clientHeight;
+      const viewportLeft = win.pageXOffset;
+      const viewportRight = win.pageXOffset + doc.clientWidth;
 
-      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
+      let top = viewportTop + offset.top + cellHeight;
 
-      let pickerLeftPosition = this.hot.rootWindow.pageXOffset;
+      if (top + pickerHeight > viewportBottom) {
+        const aboveCell = viewportTop + offset.top - pickerHeight;
+
+        top = aboveCell >= viewportTop ? aboveCell - 1 : viewportBottom - pickerHeight;
+      }
+
+      this.datePickerStyle.top = `${top}px`;
+
+      const cellLeft = viewportLeft + offset.left;
+      const cellRight = viewportLeft + offset.right;
+      let pickerLeftPosition;
 
       if (this.hot.isRtl()) {
-        pickerLeftPosition += offset.right - outerWidth(this.datePicker);
+        pickerLeftPosition = cellRight - pickerWidth;
+
+        if (pickerLeftPosition < viewportLeft) {
+          pickerLeftPosition = Math.min(cellLeft, viewportRight - pickerWidth);
+        }
+
+        pickerLeftPosition = Math.max(viewportLeft, Math.min(pickerLeftPosition, viewportRight - pickerWidth));
       } else {
-        pickerLeftPosition += offset.left;
+        pickerLeftPosition = cellLeft;
+
+        if (pickerLeftPosition + pickerWidth > viewportRight) {
+          pickerLeftPosition = Math.max(cellRight - pickerWidth, viewportLeft);
+        }
+
+        pickerLeftPosition = Math.max(viewportLeft, Math.min(pickerLeftPosition, viewportRight - pickerWidth));
       }
 
       this.datePickerStyle.left = `${pickerLeftPosition}px`;

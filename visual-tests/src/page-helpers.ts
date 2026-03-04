@@ -632,7 +632,11 @@ export async function resizeRow(rowIndex: number, resizeAmount: number, tableLoc
  * values move the mouse from the bottom position (viewport height).
  * @param {string} button The button to click.
  */
-export async function clickRelativeToViewport(offsetX: number, offsetY: number, button: 'left' | 'right' = 'left') {
+export async function clickRelativeToViewport(
+  offsetX: number,
+  offsetY: number,
+  button: 'left' | 'right' = 'left',
+) {
   const viewportSize = getPageInstance().viewportSize();
 
   let x = offsetX;
@@ -651,6 +655,24 @@ export async function clickRelativeToViewport(offsetX: number, offsetY: number, 
   await getPageInstance().mouse.click(x, y, {
     button,
   });
+}
+
+/**
+ * Double clicks the page at the specified offset relative to the viewport.
+ *
+ * @param {number} offsetX The offset X. Positive values move the mouse from the left position (0), negative
+ * values move the mouse from the right position (viewport width).
+ * @param {number} offsetY The offset Y. Positive values move the mouse from the top position (0), negative
+ * values move the mouse from the bottom position (viewport height).
+ * @param {string} button The button to click.
+ */
+export async function doubleClickRelativeToViewport(
+  offsetX: number,
+  offsetY: number,
+  button: 'left' | 'right' = 'left'
+) {
+  await clickRelativeToViewport(offsetX, offsetY, button);
+  await clickRelativeToViewport(offsetX, offsetY, button);
 }
 
 /**
