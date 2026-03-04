@@ -25,6 +25,12 @@ const data = [
   ['Charles de Gaulle Airport', ['Textiles', 'Industrial Equipment']],
   ['Tokyo Haneda Airport', ['Pharmaceuticals', 'Consumer Goods']],
   ['Singapore Changi Airport', ['Machine Parts', 'Food Products']],
+  ['Luton Airport', ['Electronics and Gadgets', 'Pharmaceuticals']],
+  ['Frankfurt Airport', ['Industrial Equipment', 'Auto Parts', 'Consumer Goods']],
+  ['Sydney Kingsford Smith Airport', ['Fresh Produce', 'Food Products']],
+  ['Toronto Pearson International Airport', ['Medical Supplies', 'Textiles']],
+  ['Hong Kong International Airport', ['Machine Parts', 'Electronics and Gadgets', 'Industrial Equipment']],
+  ['Heathrow Airport', ['Textiles', 'Consumer Goods']],
 ];
 
 new Handsontable(container, {
@@ -42,6 +48,7 @@ new Handsontable(container, {
   ],
   autoWrapRow: true,
   autoWrapCol: true,
-  preventOverflow: 'horizontal',
-  colWidths: 300,
+  height: 'auto',
+  stretchH: 'last',
+  width: '100%',
 });

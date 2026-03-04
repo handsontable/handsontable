@@ -43,7 +43,7 @@ The `source` option can be provided in two formats:
 You can provide the `source` option as an array of values that will be used as the MultiSelect options.
 
 ::: only-for javascript
-::: example #example1 .docs-height-small --js 1 --ts 2
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/multiselect-cell-type/javascript/example1.js)
 
@@ -53,7 +53,7 @@ You can provide the `source` option as an array of values that will be used as t
 :::
 
 ::: only-for react
-::: example #example1 .docs-height-small :react --js 1 --ts 2
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/multiselect-cell-type/react/example1.jsx)
 
@@ -63,7 +63,7 @@ You can provide the `source` option as an array of values that will be used as t
 :::
 
 ::: only-for angular
-::: example #example1 .docs-height-small :angular --ts 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-types/multiselect-cell-type/angular/example1.ts)
 
@@ -77,7 +77,7 @@ You can provide the `source` option as an array of values that will be used as t
 You can provide the `source` option as an array of objects with `key` and `value` properties. The `value` property will be used as the MultiSelect's option label, while the entire object will be used as the value saved to the cell's source data.
 
 ::: only-for javascript
-::: example #example2 .docs-height-small --js 1 --ts 2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/multiselect-cell-type/javascript/example2.js)
 
@@ -87,7 +87,7 @@ You can provide the `source` option as an array of objects with `key` and `value
 :::
 
 ::: only-for react
-::: example #example2 .docs-height-small :react --js 1 --ts 2
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/multiselect-cell-type/react/example2.jsx)
 
@@ -98,7 +98,7 @@ You can provide the `source` option as an array of objects with `key` and `value
 
 
 ::: only-for angular
-::: example #example2 .docs-height-small :angular --ts 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-types/multiselect-cell-type/angular/example2.ts)
 
@@ -138,7 +138,7 @@ These options allow you to modify the MultiSelect cell type's appearance, usabil
 The demo below showcases some the options in an interactive example.
 
 ::: only-for javascript
-::: example #example3 .docs-height-small --js 1 --ts 2
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/multiselect-cell-type/javascript/example3.js)
 
@@ -148,7 +148,7 @@ The demo below showcases some the options in an interactive example.
 :::
 
 ::: only-for react
-::: example #example3 .docs-height-small :react --js 1 --ts 2
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/multiselect-cell-type/react/example3.jsx)
 
@@ -158,7 +158,7 @@ The demo below showcases some the options in an interactive example.
 :::
 
 ::: only-for angular
-::: example #example3 .docs-height-small :angular --ts 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-types/multiselect-cell-type/angular/example3.ts)
 

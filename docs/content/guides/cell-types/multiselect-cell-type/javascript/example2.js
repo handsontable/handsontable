@@ -54,6 +54,50 @@ const data = [
       { key: 'food', value: 'Food Products' },
     ],
   ],
+  [
+    'Luton Airport',
+    [
+      { key: 'electronics', value: 'Electronics and Gadgets' },
+      { key: 'pharmaceuticals', value: 'Pharmaceuticals' },
+    ],
+  ],
+  [
+    'Frankfurt Airport',
+    [
+      { key: 'industrial', value: 'Industrial Equipment' },
+      { key: 'auto-parts', value: 'Auto Parts' },
+      { key: 'consumer', value: 'Consumer Goods' },
+    ],
+  ],
+  [
+    'Sydney Kingsford Smith Airport',
+    [
+      { key: 'fresh-produce', value: 'Fresh Produce' },
+      { key: 'food', value: 'Food Products' },
+    ],
+  ],
+  [
+    'Toronto Pearson International Airport',
+    [
+      { key: 'medical', value: 'Medical Supplies' },
+      { key: 'textiles', value: 'Textiles' },
+    ],
+  ],
+  [
+    'Hong Kong International Airport',
+    [
+      { key: 'machine-parts', value: 'Machine Parts' },
+      { key: 'electronics', value: 'Electronics and Gadgets' },
+      { key: 'industrial', value: 'Industrial Equipment' },
+    ],
+  ],
+  [
+    'Heathrow Airport',
+    [
+      { key: 'textiles', value: 'Textiles' },
+      { key: 'consumer', value: 'Consumer Goods' },
+    ],
+  ],
 ];
 
 new Handsontable(container, {
@@ -71,6 +115,7 @@ new Handsontable(container, {
   ],
   autoWrapRow: true,
   autoWrapCol: true,
-  preventOverflow: 'horizontal',
-  colWidths: 300,
+  height: 'auto',
+  stretchH: 'last',
+  width: '100%',
 });
