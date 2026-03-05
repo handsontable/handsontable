@@ -4,7 +4,7 @@ import { waitOnScroll } from './utils';
  * the spec will be not cleared which allows calling test helpers (`selectCell()` etc.) from
  * the console.
  */
-const DEBUG = true;
+const DEBUG = false;
 const specContext = {};
 
 beforeEach(function() {
