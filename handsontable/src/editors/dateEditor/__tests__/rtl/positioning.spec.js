@@ -1,7 +1,7 @@
 describe('DateEditor (RTL mode)', () => {
   using('configuration object', [
     { htmlDir: 'rtl', layoutDirection: 'inherit' },
-    // { htmlDir: 'ltr', layoutDirection: 'rtl' },
+    { htmlDir: 'ltr', layoutDirection: 'rtl' },
   ], ({ htmlDir, layoutDirection }) => {
     const id = 'testContainer';
 
