@@ -382,25 +382,19 @@ export class DateEditor extends TextEditor {
         if (pickerLeftPosition < viewportLeft) {
           pickerLeftPosition = Math.min(cellLeft, viewportRight - pickerWidth);
         }
-
-        pickerLeftPosition = clamp(
-          pickerLeftPosition,
-          viewportLeft,
-          viewportRight - pickerWidth
-        );
       } else {
         pickerLeftPosition = cellLeft;
 
         if (pickerLeftPosition + pickerWidth > viewportRight) {
           pickerLeftPosition = Math.max(cellRight - pickerWidth, viewportLeft);
         }
-
-        pickerLeftPosition = clamp(
-          pickerLeftPosition,
-          viewportLeft,
-          viewportRight - pickerWidth
-        );
       }
+
+      pickerLeftPosition = clamp(
+        pickerLeftPosition,
+        viewportLeft,
+        viewportRight - pickerWidth
+      );
 
       this.datePickerStyle.left = `${pickerLeftPosition}px`;
 
