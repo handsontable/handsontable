@@ -5,7 +5,6 @@
  */
 const TerserPlugin = require('terser-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const configFactory = require('./development');
 const { getClosest } = require('./helper/path');

@@ -18,7 +18,7 @@ describe('DateEditor', () => {
       width: 230,
       height: 230,
       type: 'date',
-      rowHeights: 35,
+      rowHeights: 40,
     });
 
     await selectCell(2, 2);
@@ -35,7 +35,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    await scrollViewportVertically(90); // scroll the viewport so the edited cell is partially visible from above
+    await scrollViewportVertically(100); // scroll the viewport so the edited cell is partially visible from above
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + editorElement.outerHeight(),
@@ -43,7 +43,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    await scrollViewportVertically(110); // scroll the viewport so the edited cell is not visible
+    await scrollViewportVertically(125); // scroll the viewport so the edited cell is not visible
 
     expect(pikaElement.is(':visible')).toBe(false);
   });
@@ -54,7 +54,7 @@ describe('DateEditor', () => {
       width: 230,
       height: 230,
       type: 'date',
-      rowHeights: 35,
+      rowHeights: 40,
     });
 
     await selectCell(25, 2);
@@ -69,7 +69,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    await scrollViewportVertically(665); // scroll the viewport so the edited cell is partially visible from below
+    await scrollViewportVertically(805); // scroll the viewport so the edited cell is partially visible from below
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + editorElement.outerHeight(),
@@ -77,7 +77,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    await scrollViewportVertically(650); // scroll the viewport so the edited cell is not visible
+    await scrollViewportVertically(780); // scroll the viewport so the edited cell is not visible
 
     expect(pikaElement.is(':visible')).toBe(false);
   });

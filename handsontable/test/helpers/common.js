@@ -4,27 +4,21 @@ import { waitOnScroll } from './utils';
  * the spec will be not cleared which allows calling test helpers (`selectCell()` etc.) from
  * the console.
  */
-const DEBUG = false;
+const DEBUG = true;
 const specContext = {};
 
 beforeEach(function() {
   specContext.spec = this;
+  this.loadedTheme = __ENV_ARGS__.HOT_THEME;
 
-  if (!process.env.JEST_WORKER_ID) {
-    this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'main';
-    // Expose loaded theme globally for the jQuery wrapper to use
-    window.__HOT_TEST_THEME__ = this.loadedTheme;
-
-    if (!DEBUG) {
-      window.scrollTo(0, 0);
-    }
+  if (!process.env.JEST_WORKER_ID && !DEBUG) {
+    window.scrollTo(0, 0);
   }
 });
 
 afterEach(() => {
   if (!DEBUG) {
     specContext.spec = null;
-    delete window.__HOT_TEST_THEME__;
   }
 });
 
@@ -41,12 +35,12 @@ beforeAll(() => {
       if (typeof action !== 'string') {
         const userSettings = action || {};
 
-        if (!userSettings.themeName && window.__HOT_TEST_THEME__) {
+        if (!userSettings.themeName) {
           const hasThemeClass = this.is('[class*="ht-theme-"]') ||
             this.parents('[class*="ht-theme-"]').length > 0;
 
           if (!hasThemeClass) {
-            userSettings.themeName = `ht-theme-${window.__HOT_TEST_THEME__}`;
+            userSettings.themeName = `ht-theme-${__ENV_ARGS__.HOT_THEME}`;
           }
         }
 
@@ -268,11 +262,7 @@ export function getDefaultRowHeight() {
  * @returns {number} Returns the default row height for the first rendered row.
  */
 export function getFirstRenderedRowDefaultHeight() {
-  if (typeof __ENV_ARGS__.HOT_THEME !== 'undefined' && __ENV_ARGS__.HOT_THEME !== '') {
-    return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
-  }
-
-  return getDefaultRowHeight();
+  return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
 }
 
 /**

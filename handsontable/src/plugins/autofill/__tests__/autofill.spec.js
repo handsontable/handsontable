@@ -1664,13 +1664,13 @@ describe('AutoFill', () => {
       $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
         data: getData(),
         fillHandle: true,
-        themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
+        themeName: `ht-theme-${spec().loadedTheme}`
       });
 
       $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
         data: getData(),
         fillHandle: 'horizontal',
-        themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
+        themeName: `ht-theme-${spec().loadedTheme}`
       });
     });
 
@@ -1685,7 +1685,7 @@ describe('AutoFill', () => {
     describe('-> updating settings on 2. instance of Handsontable', () => {
       beforeAll(() => {
         $container2.handsontable('updateSettings', {
-          fillHandle: 'vertical', themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
+          fillHandle: 'vertical', themeName: `ht-theme-${spec().loadedTheme}`
         });
       });
 

@@ -6,7 +6,6 @@
 const path = require('path');
 const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
-const fsExtra = require('fs-extra');
 const { getClosest }  = require('./helper/path');
 
 module.exports.create = function create(envArgs) {
@@ -44,11 +43,8 @@ module.exports.create = function create(envArgs) {
         baseJasminePath: '../../',
         externalCssFiles: [
           'lib/normalize.css',
-          ...((envArgs.HOT_THEME) ? [
-              `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
-              'helpers/common-themes.css',
-            ] : []
-          ),
+          `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
+          'helpers/common-themes.css',
           `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
         ],
         externalJsFiles: [
