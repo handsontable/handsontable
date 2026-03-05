@@ -1664,13 +1664,13 @@ describe('AutoFill', () => {
       $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
         data: getData(),
         fillHandle: true,
-        themeName: `ht-theme-${spec().loadedTheme}`
+        themeName: `ht-theme-${getLoadedTheme()}`
       });
 
       $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
         data: getData(),
         fillHandle: 'horizontal',
-        themeName: `ht-theme-${spec().loadedTheme}`
+        themeName: `ht-theme-${getLoadedTheme()}`
       });
     });
 
@@ -1685,7 +1685,7 @@ describe('AutoFill', () => {
     describe('-> updating settings on 2. instance of Handsontable', () => {
       beforeAll(() => {
         $container2.handsontable('updateSettings', {
-          fillHandle: 'vertical', themeName: `ht-theme-${spec().loadedTheme}`
+          fillHandle: 'vertical', themeName: `ht-theme-${getLoadedTheme()}`
         });
       });
 
@@ -2276,7 +2276,7 @@ describe('AutoFill', () => {
     });
 
     it('should render corner hit area with a proper size', async() => {
-      if (spec().loadedTheme === 'classic') {
+      if (getLoadedTheme() === 'classic') {
         return;
       }
 
@@ -2298,7 +2298,7 @@ describe('AutoFill', () => {
     });
 
     it('should cut the hit area at the bottom of the table when the last row is selected', async() => {
-      if (spec().loadedTheme === 'classic') {
+      if (getLoadedTheme() === 'classic') {
         return;
       }
 
@@ -2318,7 +2318,7 @@ describe('AutoFill', () => {
     });
 
     it('should cut the hit area at the right side of the table when the last column is selected', async() => {
-      if (spec().loadedTheme === 'classic') {
+      if (getLoadedTheme() === 'classic') {
         return;
       }
 
@@ -2339,7 +2339,7 @@ describe('AutoFill', () => {
   });
 
   it('should be possible to change the hit area size', async() => {
-    if (spec().loadedTheme === 'classic') {
+    if (getLoadedTheme() === 'classic') {
       return;
     }
 

@@ -10,13 +10,8 @@ const specContext = {};
 beforeEach(function() {
   specContext.spec = this;
 
-  if (!process.env.JEST_WORKER_ID) {
-    // Default value is set in the webpack entry file (./handsontable/webpack.config.js).
-    this.loadedTheme = __ENV_ARGS__.HOT_THEME;
-
-    if (!DEBUG) {
-      window.scrollTo(0, 0);
-    }
+  if (!process.env.JEST_WORKER_ID && !DEBUG) {
+    window.scrollTo(0, 0);
   }
 });
 
@@ -44,7 +39,7 @@ beforeAll(() => {
             this.parents('[class*="ht-theme-"]').length > 0;
 
           if (!hasThemeClass) {
-            userSettings.themeName = `ht-theme-${__ENV_ARGS__.HOT_THEME}`;
+            userSettings.themeName = `ht-theme-${getLoadedTheme()}`;
           }
         }
 
@@ -81,6 +76,15 @@ export function sleep(delay = 100) {
  */
 export function promisfy(fn) {
   return new Promise((resolve, reject) => fn(resolve, reject));
+}
+
+/**
+ * Get the loaded theme name. The default value can be changed in the webpack entry file (./handsontable/webpack.config.js).
+ *
+ * @returns {string} The loaded theme name.
+ */
+export function getLoadedTheme() {
+  return __ENV_ARGS__.HOT_THEME;
 }
 
 /**
@@ -251,7 +255,7 @@ export const validateRows = handsontableMethodFactory('validateRows');
  * @returns {number} Returns the default row height based on the current theme.
  */
 export function getDefaultRowHeight() {
-  switch (__ENV_ARGS__.HOT_THEME) {
+  switch (getLoadedTheme()) {
     case 'classic':
       return 26;
     case 'horizon':
@@ -273,7 +277,7 @@ export function getFirstRenderedRowDefaultHeight() {
  * @returns {number} Returns the default row height based on the current theme.
  */
 export function getDefaultColumnWidth() {
-  switch (__ENV_ARGS__.HOT_THEME) {
+  switch (getLoadedTheme()) {
     case 'classic':
     case 'main':
     case 'horizon':
@@ -287,7 +291,7 @@ export function getDefaultColumnWidth() {
  * @returns {number} Returns the default column header height based on the current theme.
  */
 export function getDefaultColumnHeaderHeight() {
-  switch (__ENV_ARGS__.HOT_THEME) {
+  switch (getLoadedTheme()) {
     case 'classic':
       return 25;
     case 'horizon':
@@ -302,7 +306,7 @@ export function getDefaultColumnHeaderHeight() {
  * @returns {number} Returns the default column header height based on the current theme.
  */
 export function getDefaultRowHeaderWidth() {
-  switch (__ENV_ARGS__.HOT_THEME) {
+  switch (getLoadedTheme()) {
     case 'classic':
       return 50;
     case 'horizon':
