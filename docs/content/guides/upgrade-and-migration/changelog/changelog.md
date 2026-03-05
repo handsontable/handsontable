@@ -28,7 +28,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
-## 17.0.0-rc14
+## 17.0.0-rc15
 
 Released on March 5th, 2026
 
