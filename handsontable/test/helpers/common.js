@@ -254,13 +254,13 @@ export const validateRows = handsontableMethodFactory('validateRows');
  */
 export function getDefaultRowHeight() {
   switch (__ENV_ARGS__.HOT_THEME) {
-    case 'main':
-      return 29;
+    case 'classic':
+      return 26;
     case 'horizon':
       return 37;
-    case 'classic':
+    case 'main':
     default:
-      return 26;
+      return 29; // default theme is 'main' when HOT_THEME is falsy
   }
 }
 
@@ -280,12 +280,12 @@ export function getFirstRenderedRowDefaultHeight() {
  */
 export function getDefaultColumnWidth() {
   switch (__ENV_ARGS__.HOT_THEME) {
+    case 'classic':
     case 'main':
-      return 50;
     case 'horizon':
       return 50;
     default:
-      return 50; // classic
+      return 50; // default theme is 'main' when HOT_THEME is falsy
   }
 }
 
@@ -294,12 +294,13 @@ export function getDefaultColumnWidth() {
  */
 export function getDefaultColumnHeaderHeight() {
   switch (__ENV_ARGS__.HOT_THEME) {
-    case 'main':
-      return 28;
+    case 'classic':
+      return 25;
     case 'horizon':
       return 36;
+    case 'main':
     default:
-      return 25; // classic
+      return 28; // default theme is 'main' when HOT_THEME is falsy
   }
 }
 
@@ -308,12 +309,13 @@ export function getDefaultColumnHeaderHeight() {
  */
 export function getDefaultRowHeaderWidth() {
   switch (__ENV_ARGS__.HOT_THEME) {
-    case 'main':
-      return 49;
+    case 'classic':
+      return 50;
     case 'horizon':
       return 49;
+    case 'main':
     default:
-      return 50; // classic
+      return 49; // default theme is 'main' when HOT_THEME is falsy
   }
 }
 
