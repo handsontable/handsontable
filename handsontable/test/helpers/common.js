@@ -9,10 +9,14 @@ const specContext = {};
 
 beforeEach(function() {
   specContext.spec = this;
-  this.loadedTheme = __ENV_ARGS__.HOT_THEME;
 
-  if (!process.env.JEST_WORKER_ID && !DEBUG) {
-    window.scrollTo(0, 0);
+  if (!process.env.JEST_WORKER_ID) {
+    // Default value is set in the webpack entry file (./handsontable/webpack.config.js).
+    this.loadedTheme = __ENV_ARGS__.HOT_THEME;
+
+    if (!DEBUG) {
+      window.scrollTo(0, 0);
+    }
   }
 });
 
