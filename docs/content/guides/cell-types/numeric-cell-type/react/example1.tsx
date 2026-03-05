@@ -97,7 +97,7 @@ const ExampleComponent = () => {
               <option value="ja-JP">Japanese (Japan)</option>
               <option value="ko-KR">Korean (Korea)</option>
               <option value="lv-LV">Latvian (Latvia)</option>
-              <option value="nb-NO">Norwegian Bokmål (Norway)</option>
+              <option value="nb-NO">Norwegian Bokmal (Norway)</option>
               <option value="nl-NL">Dutch (Netherlands)</option>
               <option value="pl-PL">Polish (Poland)</option>
               <option value="pt-BR">Portuguese (Brazil)</option>

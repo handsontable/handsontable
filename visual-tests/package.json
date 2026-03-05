@@ -19,7 +19,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "license": "CC BY 4.0",
   "devDependencies": {
-    "@argos-ci/cli": "^2.5.4",
+    "@argos-ci/core": "^5.1.1",
     "@playwright/test": "~1.58.2",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
     "@typescript-eslint/parser": "^5.48.1",

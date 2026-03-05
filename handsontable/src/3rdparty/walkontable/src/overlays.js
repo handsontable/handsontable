@@ -538,15 +538,22 @@ class Overlays {
 
     const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
     const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     let scrollX = this.scrollableElement.scrollLeft;
     let scrollY = this.scrollableElement.scrollTop;
 
-    if (this.wot.wtViewport.isHorizontallyScrollableByWindow()) {
+    if (
+      this.wot.wtViewport.isHorizontallyScrollableByWindow()
+      && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'horizontal')
+    ) {
       scrollX = this.scrollableElement.scrollX;
     }
 
-    if (this.wot.wtViewport.isVerticallyScrollableByWindow()) {
+    if (
+      this.wot.wtViewport.isVerticallyScrollableByWindow()
+      && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'vertical')
+    ) {
       scrollY = this.scrollableElement.scrollY;
     }
 
