@@ -8,6 +8,7 @@ import { isFunctionKey } from '../../helpers/unicode';
 import { isMobileBrowser } from '../../helpers/browser';
 import { deprecatedWarn } from '../../helpers/console';
 import { throwWithCause } from '../../helpers/errors';
+import { clamp } from '../../helpers/number';
 
 export const EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
@@ -382,9 +383,10 @@ export class DateEditor extends TextEditor {
           pickerLeftPosition = Math.min(cellLeft, viewportRight - pickerWidth);
         }
 
-        pickerLeftPosition = Math.max(
+        pickerLeftPosition = clamp(
+          pickerLeftPosition,
           viewportLeft,
-          Math.min(pickerLeftPosition, viewportRight - pickerWidth)
+          viewportRight - pickerWidth
         );
       } else {
         pickerLeftPosition = cellLeft;
@@ -393,9 +395,10 @@ export class DateEditor extends TextEditor {
           pickerLeftPosition = Math.max(cellRight - pickerWidth, viewportLeft);
         }
 
-        pickerLeftPosition = Math.max(
+        pickerLeftPosition = clamp(
+          pickerLeftPosition,
           viewportLeft,
-          Math.min(pickerLeftPosition, viewportRight - pickerWidth)
+          viewportRight - pickerWidth
         );
       }
 
