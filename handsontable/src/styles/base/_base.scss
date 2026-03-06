@@ -14,9 +14,12 @@
 
     &:has(> .ht-after-grid > div) {
       .ht-wrapper {
-        .ht_master {
-          .wtHolder {
-            background-color: var(--ht-background-color);
+        &:not(.htHorizontallyScrollableByWindow),
+        &:not(.htVerticallyScrollableByWindow) {
+          .ht_master {
+            .wtHolder {
+              background-color: var(--ht-background-color);
+            }
           }
         }
       }
