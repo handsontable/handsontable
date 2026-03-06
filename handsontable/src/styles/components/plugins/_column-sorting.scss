@@ -15,9 +15,7 @@
           max-width: calc(
             100% - calc(
               var(--ht-icon-size, 16px) +
-              var(--ht-icon-button-hit-area-size, 24px) +
-              var(--ht-gap-size, 4px) +
-              3px
+              var(--ht-icon-button-hit-area-size, 24px)
             )
           ) !important;
         }
