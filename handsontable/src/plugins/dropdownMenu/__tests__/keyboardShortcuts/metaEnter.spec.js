@@ -82,7 +82,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
-      const buttonOffset = $(cell.querySelector('.changeType')).offset();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
@@ -113,8 +113,8 @@ describe('DropdownMenu keyboard shortcut', () => {
       const menuOffset = $dropdownMenu.offset();
       const menuWidth = $dropdownMenu.outerWidth();
       const cellOffset = $(cell).offset();
-      const buttonOffset = $(cell.querySelector('.changeType')).offset();
-      const buttonWidth = $(cell.querySelector('.changeType')).outerWidth();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, lastColumn);
+      const buttonWidth = getDropdownMenuButtonIconWidth(-1, lastColumn);
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
@@ -162,7 +162,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
-      const buttonOffset = $(cell.querySelector('.changeType')).offset();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
@@ -191,7 +191,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
-      const buttonOffset = $(cell.querySelector('.changeType')).offset();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
@@ -292,7 +292,7 @@ describe('DropdownMenu keyboard shortcut', () => {
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
         const menuOffset = $dropdownMenu.offset();
         const cellOffset = $(cell).offset();
-        const buttonOffset = $(cell.querySelector('.changeType')).offset();
+        const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
         expect($dropdownMenu.length).toBe(1);
         expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
