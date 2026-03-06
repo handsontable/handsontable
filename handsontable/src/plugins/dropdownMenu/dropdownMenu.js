@@ -466,7 +466,7 @@ export class DropdownMenu extends BasePlugin {
   #getButtonRect(button) {
     const rect = button.getBoundingClientRect();
     const beforeStyle = this.hot.rootWindow.getComputedStyle(button, '::before');
-    const iconSize = Number.parseFloat(beforeStyle.width, 10);
+    const iconSize = Number.parseFloat(beforeStyle.width);
 
     if (Number.isFinite(iconSize) && rect.width >= iconSize && rect.height >= iconSize) {
       const left = rect.left + ((rect.width - iconSize) / 2);
