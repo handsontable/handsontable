@@ -1,13 +1,12 @@
 import { useRef, useCallback } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
@@ -31,10 +30,7 @@ const ExampleComponent = () => {
   );
 
   //  define your custom query method
-  function onlyExactMatch(
-    queryStr: { toString: () => any },
-    value: { toString: () => any }
-  ) {
+  function onlyExactMatch(queryStr: { toString: () => any }, value: { toString: () => any }) {
     return queryStr.toString() === value.toString();
   }
 

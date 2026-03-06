@@ -8,8 +8,15 @@ import {
   spawnProcess
 } from './utils/index.mjs';
 
-const argv = yargs(hideBin(process.argv))
+let commandArr = hideBin(process.argv);
+
+if (process.env.npm_config_user_agent?.includes('pnpm')) {
+  commandArr = commandArr.filter(arg => arg !== '--');
+}
+
+const argv = yargs(commandArr)
   .boolean('if-present')
+  .array('cmdArgs')
   .array('exclude')
   .alias('exclude', 'e')
   .argv;
@@ -44,9 +51,8 @@ switch (modifier) {
     // eslint-disable-next-line prefer-template
     let workspacesCommandList = '-w ' + [
       'handsontable',
-      '@handsontable/angular',
-      '@handsontable/react',
-      '@handsontable/vue',
+      '@handsontable/angular-wrapper',
+      '@handsontable/react-wrapper',
       '@handsontable/vue3',
       'visual-tests',
       'examples',
@@ -64,7 +70,9 @@ switch (modifier) {
     }
 
     await spawnProcess(
-      `npm run ${command} ${workspacesCommandList}${argv.ifPresent ? ' --if-present' : ''}`
+      `npm run ${command} ${workspacesCommandList}${argv.ifPresent ? ' --if-present' : ''}${argv.cmdArgs ? ` -- ${
+        argv.cmdArgs.map(arg => `-${arg.replace('==', ' ')}`).join(' ')
+      }` : ''}`
     );
 
     break;

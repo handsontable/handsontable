@@ -1,0 +1,5 @@
+.handsontable .ht_nestingParent,
+.handsontable .ht_nestingParent ~ td {
+  background: #b5b5b5;
+  color: #222;
+}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where the table could go into an endless resize loop when one of the instance's parents were using `dvh` values for sizing and the table was not given any size itself.",
-  "type": "fixed",
-  "issueOrPR": 11021,
-  "breaking": false,
-  "framework": "none"
-}

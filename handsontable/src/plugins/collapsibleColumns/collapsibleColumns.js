@@ -1,4 +1,5 @@
 import { BasePlugin } from '../base';
+import { throwWithCause } from '../../helpers/errors';
 import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
@@ -16,8 +17,6 @@ import {
   A11Y_EXPANDED,
   A11Y_HIDDEN
 } from '../../helpers/a11y';
-
-import './collapsibleColumns.scss';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -106,6 +105,37 @@ const actionDictionary = new Map([
  *     {row: -3, col: 5, collapsible: true}
  *   ]}
  * />
+ * ```
+ * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * // Enable the collapsibleColumns plugin
+ * settings = {
+ *   data: generateDataObj(),
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   nestedHeaders: true,
+ *   // enable plugin
+ *   collapsibleColumns: true,
+ * };
+ *
+ * // Or enable and configure specific collapsible columns
+ * settings = {
+ *   data: generateDataObj(),
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   nestedHeaders: true,
+ *   // enable and configure which columns can be collapsed
+ *   collapsibleColumns: [
+ *     { row: -4, col: 1, collapsible: true },
+ *     { row: -3, col: 5, collapsible: true },
+ *   ],
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings"></hot-table>
  * ```
  * :::
  */
@@ -251,7 +281,7 @@ export class CollapsibleColumns extends BasePlugin {
       .addShortcut({
         keys: [['Enter']],
         callback: () => {
-          const { row, col } = this.hot.getSelectedRangeLast().highlight;
+          const { row, col } = this.hot.getSelectedRangeActive().highlight;
           const {
             collapsible,
             isCollapsed,
@@ -271,8 +301,8 @@ export class CollapsibleColumns extends BasePlugin {
           // prevent default Enter behavior (move to the next row within a selection range)
           return false;
         },
-        runOnlyIf: () => this.hot.getSelectedRangeLast()?.isSingle() &&
-          this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        runOnlyIf: () => this.hot.getSelectedRangeActive()?.isSingle() &&
+          this.hot.getSelectedRangeActive()?.highlight.isHeader(),
         group: SHORTCUTS_GROUP,
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
         position: 'before',
@@ -408,7 +438,7 @@ export class CollapsibleColumns extends BasePlugin {
    */
   toggleCollapsibleSection(coords, action) {
     if (!actionDictionary.has(action)) {
-      throw new Error(`Unsupported action is passed (${action}).`);
+      throwWithCause(`Unsupported action is passed (${action}).`);
     }
     if (!Array.isArray(coords)) {
       return;
@@ -482,7 +512,7 @@ export class CollapsibleColumns extends BasePlugin {
     }, true);
 
     const isActionPerformed = this.getCollapsedColumns().length !== currentCollapsedColumns.length;
-    const selectionRange = this.hot.getSelectedRangeLast();
+    const selectionRange = this.hot.getSelectedRangeActive();
 
     if (action === 'collapse' && isActionPerformed && selectionRange) {
       const { row, col } = selectionRange.highlight;
@@ -506,8 +536,8 @@ export class CollapsibleColumns extends BasePlugin {
       isActionPerformed,
     );
 
-    this.hot.render();
     this.hot.view.adjustElementsSize();
+    this.hot.render();
   }
 
   /**

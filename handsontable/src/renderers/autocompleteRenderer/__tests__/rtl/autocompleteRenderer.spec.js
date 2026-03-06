@@ -15,7 +15,7 @@ describe('AutocompleteRenderer (RTL mode)', () => {
     }
   });
 
-  it('should render the cell without messing with "dir" attribute', () => {
+  it('should render the cell without messing with "dir" attribute', async() => {
     handsontable({
       data: [['foo']],
       renderer: 'autocomplete'

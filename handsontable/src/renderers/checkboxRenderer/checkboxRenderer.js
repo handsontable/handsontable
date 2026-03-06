@@ -1,13 +1,11 @@
-import { baseRenderer } from '../baseRenderer';
 import EventManager from '../../eventManager';
-import { empty, addClass, setAttribute } from '../../helpers/dom/element';
+import { empty, addClass, setAttribute, isHTMLElement } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
-
-import './checkboxRenderer.css';
+import { BAD_VALUE_TEXT } from '../../helpers/constants';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -21,28 +19,24 @@ export const RENDERER_TYPE = 'checkbox';
 Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMeta, cellValue) {
   const { label, type, row, column, prop } = cellMeta;
 
-  if (type !== RENDERER_TYPE) {
+  if (type !== RENDERER_TYPE || !label) {
     return;
   }
 
-  if (label) {
-    const { value: labelValue, property: labelProperty } = label;
-    let labelText = cellValue;
+  const { value: labelValue, property: labelProperty } = label;
+  let labelText = cellValue;
 
-    if (labelValue) {
-      labelText = typeof labelValue === 'function' ?
-        labelValue(row, column, prop, cellValue) : labelValue;
+  if (labelValue) {
+    labelText = typeof labelValue === 'function' ?
+      labelValue(row, column, prop, cellValue) : labelValue;
 
-    } else if (labelProperty) {
-      const labelData = this.getDataAtRowProp(row, labelProperty);
+  } else if (labelProperty) {
+    const labelData = this.getDataAtRowProp(row, labelProperty);
 
-      labelText = labelData !== null ? labelData : cellValue;
-    }
-
-    bundleSeed = labelText;
+    labelText = labelData !== null ? labelData : cellValue;
   }
 
-  return bundleSeed;
+  return `${stringify(labelText).length}`;
 });
 /**
  * Checkbox renderer.
@@ -60,7 +54,6 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
   const { rootDocument } = hotInstance;
   const ariaEnabled = hotInstance.getSettings().ariaTags;
 
-  baseRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
   registerEvents(hotInstance);
 
   let input = createInput(rootDocument);
@@ -152,7 +145,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
   }
 
   if (badValue) {
-    TD.appendChild(rootDocument.createTextNode('#bad-value#'));
+    TD.appendChild(rootDocument.createTextNode(BAD_VALUE_TEXT));
   }
 
   if (!isListeningKeyDownEvent.has(hotInstance)) {
@@ -181,7 +174,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: () => hotInstance.getSelectedRangeLast()?.highlight.isCell(),
+      runOnlyIf: () => hotInstance.getSelectedRangeActive()?.highlight.isCell(),
     }, {
       keys: [['enter']],
       callback: () => {
@@ -190,9 +183,11 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
       runOnlyIf: () => {
-        const range = hotInstance.getSelectedRangeLast();
+        const range = hotInstance.getSelectedRangeActive();
 
-        return hotInstance.getSettings().enterBeginsEditing && range?.isSingle() && range.highlight.isCell();
+        return hotInstance.getSettings().enterBeginsEditing &&
+          range?.highlight.isCell() &&
+          !hotInstance.selection.isMultiple();
       },
     }, {
       keys: [['delete'], ['backspace']],
@@ -201,7 +196,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: () => hotInstance.getSelectedRangeLast()?.highlight.isCell(),
+      runOnlyIf: () => hotInstance.getSelectedRangeActive()?.highlight.isCell(),
     }], config);
   }
 
@@ -214,6 +209,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
   function changeSelectedCheckboxesState(uncheckCheckbox = false) {
     const selRange = hotInstance.getSelectedRange();
     const changesPerSubSelection = [];
+    const nonCheckboxChanges = new Map();
     let changes = [];
     let changeCounter = 0;
 
@@ -228,13 +224,34 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
           const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+
+          /* eslint-disable no-continue */
+          if (cachedCellProperties.hidden) {
+            continue;
+          }
+
           const templates = {
             checkedTemplate: cachedCellProperties.checkedTemplate,
             uncheckedTemplate: cachedCellProperties.uncheckedTemplate,
           };
 
+          // TODO: In the future it'd be better if non-checkbox changes were handled by the non-checkbox
+          //  `delete` keypress logic.
+          /* eslint-disable no-continue */
           if (cachedCellProperties.type !== 'checkbox') {
-            return;
+            if (uncheckCheckbox === true && !cachedCellProperties.readOnly) {
+              if (nonCheckboxChanges.has(changesPerSubSelection.length)) {
+                nonCheckboxChanges.set(changesPerSubSelection.length, [
+                  ...nonCheckboxChanges.get(changesPerSubSelection.length),
+                  [visualRow, visualColumn, null]
+                ]);
+
+              } else {
+                nonCheckboxChanges.set(changesPerSubSelection.length, [[visualRow, visualColumn, null]]);
+              }
+            }
+
+            continue;
           }
 
           /* eslint-disable no-continue */
@@ -282,8 +299,15 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
     if (changes.length > 0) {
       // TODO: This is workaround for handsontable/dev-handsontable#1747 not being a breaking change.
       // Technically, the changes don't need to be split into chunks when sent to `setDataAtCell`.
-      changesPerSubSelection.forEach((changesCount) => {
-        const changesChunk = changes.splice(0, changesCount);
+      changesPerSubSelection.forEach((changesCount, sectionCount) => {
+        let changesChunk = changes.splice(0, changesCount);
+
+        if (nonCheckboxChanges.size && nonCheckboxChanges.has(sectionCount)) {
+          changesChunk = [
+            ...changesChunk,
+            ...nonCheckboxChanges.get(sectionCount)
+          ];
+        }
 
         hotInstance.setDataAtCell(changesChunk);
       });
@@ -309,21 +333,19 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
       for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
-          const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+          const cellMeta = hotInstance.getCellMeta(visualRow, visualColumn);
 
-          if (cachedCellProperties.type !== 'checkbox') {
-            return false;
+          /* eslint-disable no-continue */
+          if (cellMeta.readOnly) {
+            continue;
           }
 
           const cell = hotInstance.getCell(visualRow, visualColumn);
 
-          if (cell === null || cell === undefined) {
-            return true;
-
-          } else {
+          if (isHTMLElement(cell)) {
             const checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
-            if (checkboxes.length > 0 && !cachedCellProperties.readOnly) {
+            if (checkboxes.length > 0) {
               return true;
             }
           }
@@ -389,7 +411,17 @@ function createLabel(rootDocument, text, fullWidth) {
   const label = rootDocument.createElement('label');
 
   label.className = `htCheckboxRendererLabel ${fullWidth ? 'fullWidth' : ''}`;
-  label.appendChild(rootDocument.createTextNode(text));
+
+  const textNode = rootDocument.createTextNode(text);
+
+  if (fullWidth) {
+    const span = rootDocument.createElement('span');
+
+    span.appendChild(textNode);
+    label.appendChild(span);
+  } else {
+    label.appendChild(textNode);
+  }
 
   return label.cloneNode(true);
 }

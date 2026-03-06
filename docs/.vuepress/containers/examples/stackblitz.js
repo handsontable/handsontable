@@ -1,7 +1,7 @@
 const { getBody } = require('../../code-structure-builder/getBody');
 
-const stackblitz = (id, html, js, css, docsVersion, preset, lang) => {
-  const body = getBody({ id, html, js, css, docsVersion, preset, sandbox: 'stackblitz', lang });
+const stackblitz = (id, html, js, css, docsVersion, preset, lang, extraDeps = []) => {
+  const body = getBody({ id, html, js, css, docsVersion, preset, sandbox: 'stackblitz', lang, extraDeps });
 
   const projects = body?.files
     ? Object.entries(body?.files).map(([key, value]) => (
@@ -10,18 +10,37 @@ const stackblitz = (id, html, js, css, docsVersion, preset, lang) => {
 
   const addReactDependencies = preset.includes('react')
     // eslint-disable-next-line max-len
-    ? ', "@handsontable/react": "latest", "react": "latest", "react-dom": "latest", "redux": "latest", "react-redux": "latest", "react-colorful": "latest", "react-star-rating-component": "latest", "@types/react": "latest", "@types/react-dom": "latest"'
+    ? ', "@handsontable/react-wrapper": "latest", "react": "latest", "react-dom": "latest", "@types/react": "latest", "@types/react-dom": "latest", "typescript": "latest"'
+    : '';
+
+  const addExtraDependencies = extraDeps.length
+    ? extraDeps.map((d) => {
+      const name = typeof d === 'string' ? d : d.name;
+      const ver = typeof d === 'string' ? 'latest' : d.version;
+
+      return `"${name}": "${ver}"`;
+    }).join(', ')
     : '';
 
   const getTemplate = () => {
-    if (preset.includes('react')) return 'create-react-app';
+    if (preset.includes('react')) {
+      return 'create-react-app';
+    }
 
-    if (preset.includes('hot') && lang === 'JavaScript') return 'javascript';
+    if (preset.includes('hot') && lang === 'JavaScript') {
+      return 'javascript';
+    }
 
-    if (preset.includes('hot') && lang === 'TypeScript') return 'typescript';
+    if (preset.includes('hot') && lang === 'TypeScript') {
+      return 'typescript';
+    }
 
     return 'node';
   };
+
+  const dependenciesJson = `{"hyperformula":"latest", "handsontable": "latest"${addReactDependencies}${
+    addExtraDependencies ? `, ${addExtraDependencies}` : ''
+  }}`;
 
   return `
   <form
@@ -33,9 +52,7 @@ const stackblitz = (id, html, js, css, docsVersion, preset, lang) => {
     ${projects.join('\n')}
     <input type="hidden" name="project[title]" value="handsontable"/>
     <input type="hidden" name="project[description]" value="demo"/>
-    <input type="hidden" name="project[dependencies]" 
-      value='{"hyperformula":"latest", "handsontable": "latest"${addReactDependencies}}'
-    />
+    <input type="hidden" name="project[dependencies]" value='${dependenciesJson}'/>
     <input type="hidden" name="project[template]" value="${getTemplate()}"/>
     
     <div class="js-stackblitz-link">

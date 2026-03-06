@@ -11,6 +11,7 @@ import { PlaywrightTestConfig, devices } from '@playwright/test';
  */
 const config: PlaywrightTestConfig = {
   testDir: './tests',
+  testIgnore: '**/cross-browser/**',
   /* Maximum time one test can run for. */
   timeout: 10 * 1000,
   expect: {

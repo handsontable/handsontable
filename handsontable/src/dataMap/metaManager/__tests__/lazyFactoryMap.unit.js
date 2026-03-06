@@ -313,6 +313,21 @@ describe('LazyFactoryMap', () => {
       expect(iterator.next()).toEqual({ done: false, value: 13 });
       expect(iterator.next()).toEqual({ done: true, value: undefined });
     });
+
+    it('should return all values in the collection except that not-obtained yet (non-undefined)', () => {
+      const map = createLazyFactoryMap(index => index / 2);
+
+      map.obtain(10);
+      map.obtain(11);
+
+      map.insert();
+
+      const iterator = map.values();
+
+      expect(iterator.next()).toEqual({ done: false, value: 5 });
+      expect(iterator.next()).toEqual({ done: false, value: 5.5 });
+      expect(iterator.next()).toEqual({ done: true, value: undefined });
+    });
   });
 
   describe('entries()', () => {
@@ -353,6 +368,21 @@ describe('LazyFactoryMap', () => {
       expect(iterator.next()).toEqual({ done: false, value: [11, 6.5] });
       expect(iterator.next()).toEqual({ done: true, value: undefined });
     });
+
+    it('should return all values in the collection except that not-obtained yet (non-undefined)', () => {
+      const map = createLazyFactoryMap(index => index / 2);
+
+      map.obtain(10);
+      map.obtain(11);
+
+      map.insert();
+
+      const iterator = map.entries();
+
+      expect(iterator.next()).toEqual({ done: false, value: [10, 5] });
+      expect(iterator.next()).toEqual({ done: false, value: [11, 5.5] });
+      expect(iterator.next()).toEqual({ done: true, value: undefined });
+    });
   });
 
   describe('Iterator protocol', () => {
@@ -382,6 +412,17 @@ describe('LazyFactoryMap', () => {
 
       // Proof that physical index was changed but data value is still intact.
       expect(Array.from(map)).toEqual([[10, 6], [11, 6.5]]);
+    });
+
+    it('should return all values in the collection except that not-obtained yet (non-undefined)', () => {
+      const map = createLazyFactoryMap(index => index / 2);
+
+      map.obtain(10);
+      map.obtain(11);
+
+      map.insert();
+
+      expect(Array.from(map)).toEqual([[10, 5], [11, 5.5]]);
     });
   });
 });

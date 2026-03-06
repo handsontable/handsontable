@@ -2,15 +2,16 @@ name: Docs Production Deployment
 
 env:
   GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation
-  NODE_VERSION: 20
-  DOCSEARCH_API_KEY: ${{ secrets.DOCSEARCH_API_KEY }}
-  DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
 
 on:
   push:
     branches:
       - 'prod-docs/**'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 defaults:
   run:
@@ -19,17 +20,19 @@ defaults:
 jobs:
   docker:
     name: Build and push Docker image
+    if: ${{ github.ref != 'refs/heads/prod-docs/latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
+          cache-dependency-path: docs/package-lock.json
 
-      - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # https://github.com/actions/github-script/releases/tag/v6.3.3
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
         id: get-docs-version
         with:
           script: return context.ref.match(/^refs\/heads\/prod\-docs\/(\d+\.\d+)$/)[1] ?? '';
@@ -67,11 +70,37 @@ jobs:
         run: |
           docker push $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
 
-      - name: Deploy the Docs image
-        uses: satak/webrequest-action@6127ff14e9269df0d49bcaec84f948dc8b50df1f # v1.2.4
+      - name: Build and deploy the production to Netlify (from Docker images)
+        run: |
+          cd netlify
+          mkdir -p docs/docs
+          ./build_current_version.sh
+
+      - name: Publish production to Netlify
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # https://github.com/nick-fields/retry/releases/tag/v3.0.2
         with:
-          url: 'https://docs.handsontable.com/api/deploy'
-          method: POST
-          username: ${{secrets.DOCS_DEPLOYMENT_USER}}
-          password: ${{secrets.DOCS_DEPLOYMENT_PASSWORD}}
-          payload: '{"token": "${{secrets.DOCS_DEPLOYMENT_TOKEN}}","docsVersion": "${{steps.get-docs-version.outputs.result}}"}'
+          timeout_seconds: 1600
+          max_attempts: 3
+          retry_on: error
+          command: |
+            cd docs
+            cd netlify
+            npm install netlify-cli -g
+            netlify deploy --prod --build --context production
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
+
+      - name: Algolia crawler start
+        env:
+          crawler-name: Github Crawler
+          crawler-id: 8062e3d3-ea11-422a-a31a-3b8003bef6f6
+          crawler-user-id: 61f462d3-fa0d-465f-8fc1-e39231615539
+          crawler-api-key: ${{ secrets.CRAWLER_API_KEY }}
+          site-url: 'https://handsontable.com'
+        run: |
+          wget --method POST \
+            --auth-no-challenge \
+            --user='${{ env.crawler-user-id }}' \
+            --password='${{ env.crawler-api-key}}'  \
+            'https://crawler.algolia.com/api/1/crawlers/${{ env.crawler-id }}/reindex'

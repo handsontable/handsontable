@@ -1,12 +1,13 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 // generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
-  const array2d = [...new Array(rows)].map((_) =>
-    [...new Array(columns)].map((_) => counter++)
-  );
+  const array2d = [...new Array(rows)].map((_) => [...new Array(columns)].map((_) => counter++));
 
   // add an empty row at the bottom, to display column summaries
   if (additionalRows) {

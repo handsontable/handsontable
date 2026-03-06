@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 interface Manufacturer {
   name: string;
@@ -7,16 +10,7 @@ interface Manufacturer {
   owner: string;
 }
 
-const colorData: [string][] = [
-  ['yellow'],
-  ['red'],
-  ['orange'],
-  ['green'],
-  ['blue'],
-  ['gray'],
-  ['black'],
-  ['white'],
-];
+const colorData: [string][] = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
 
 const manufacturerData: Manufacturer[] = [
   { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },

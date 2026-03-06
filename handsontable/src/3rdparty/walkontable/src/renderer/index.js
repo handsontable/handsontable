@@ -1,9 +1,9 @@
-import RowHeadersRenderer from './rowHeaders';
-import ColumnHeadersRenderer from './columnHeaders';
-import ColGroupRenderer from './colGroup';
-import RowsRenderer from './rows';
-import CellsRenderer from './cells';
-import TableRenderer from './table';
+import { RowHeadersRenderer } from './rowHeaders';
+import { ColumnHeadersRenderer } from './columnHeaders';
+import { ColGroupRenderer } from './colGroup';
+import { RowsRenderer } from './rows';
+import { CellsRenderer } from './cells';
+import { TableRenderer } from './table';
 
 /**
  * Content renderer.
@@ -11,13 +11,13 @@ import TableRenderer from './table';
  * @class Renderer
  */
 class Renderer {
-  constructor({ TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer } = {}) {
+  constructor({ TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer, stylesHandler } = {}) {
     /**
      * General renderer class used to render Walkontable content on screen.
      *
      * @type {TableRenderer}
      */
-    this.renderer = new TableRenderer(TABLE, { cellRenderer });
+    this.renderer = new TableRenderer(TABLE, { cellRenderer, stylesHandler });
     this.renderer.setRenderers({
       rowHeaders: new RowHeadersRenderer(),
       columnHeaders: new ColumnHeadersRenderer(THEAD),

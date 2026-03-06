@@ -19,7 +19,7 @@ describe('Text Editor', () => {
       return;
     }
 
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'text',
@@ -29,9 +29,8 @@ describe('Text Editor', () => {
 
     const cell = hot.getCell(0, 0);
 
-    selectCell(0, 0);
-
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = getActiveEditor();
 
@@ -41,5 +40,40 @@ describe('Text Editor', () => {
     editor.eventManager.fireEvent(editor.TEXTAREA, 'focusout');
 
     expect(cell.textContent).toBe('test');
+  });
+
+  it('should have correct border radius value in editor textarea', async() => {
+    handsontable({
+      columns: [
+        {
+          type: 'text',
+        }
+      ]
+    });
+
+    hot.getCell(0, 0);
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
+    const editor = getActiveEditor();
+    const compStyle = getComputedStyle(editor.TEXTAREA);
+
+    expect(compStyle.borderRadius).toBe('0px');
+  });
+
+  it('should open an editor on double tap', async() => {
+    handsontable({});
+
+    await selectCell(0, 0);
+
+    const cell = getCell(0, 0);
+
+    await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
+    await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
+
+    expect(getActiveEditor().isOpened()).toBe(true);
   });
 });

@@ -43,6 +43,19 @@ const bindTypeToMapStrategy = new Map([
  * />
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   data: getData(),
+ *   bindRowsWithHeaders: true,
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings" />
+ * ```
+ * :::
  */
 export class BindRowsWithHeaders extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -79,13 +92,7 @@ export class BindRowsWithHeaders extends BasePlugin {
       return;
     }
 
-    let bindType = this.hot.getSettings()[PLUGIN_KEY];
-
-    if (typeof bindType !== 'string') {
-      bindType = DEFAULT_BIND;
-    }
-
-    const MapStrategy = bindTypeToMapStrategy.get(bindType);
+    const MapStrategy = bindTypeToMapStrategy.get(this.getSetting()) ?? bindTypeToMapStrategy.get(DEFAULT_BIND);
 
     this.headerIndexes = this.hot.rowIndexMapper.registerMap('bindRowsWithHeaders', new MapStrategy());
 

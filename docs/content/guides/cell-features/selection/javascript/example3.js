@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
@@ -17,7 +20,6 @@ const hot = new Handsontable(container, {
   width: 'auto',
   height: 'auto',
   colWidths: 100,
-  rowHeights: 23,
   rowHeaders: true,
   colHeaders: true,
   outsideClickDeselects: false,
@@ -42,11 +44,7 @@ button.addEventListener('click', () => {
     const endCol = Math.max(column1, column2);
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
-      for (
-        let columnIndex = startCol;
-        columnIndex <= endCol;
-        columnIndex += 1
-      ) {
+      for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
         hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
         hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
       }

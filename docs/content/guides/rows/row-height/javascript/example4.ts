@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example4')!;
 
@@ -14,7 +17,7 @@ new Handsontable(container, {
   height: 'auto',
   colHeaders: true,
   rowHeaders: true,
-  rowHeights: 40,
+  minRowHeights: 40,
   manualRowResize: true,
   autoWrapRow: true,
   autoWrapCol: true,

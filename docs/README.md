@@ -17,19 +17,30 @@ We update the documentation:
 
 To start a local Handsontable documentation server:
 
-1. From the `docs` directory, install the documentation dependencies:
+1. From the root directory, build the Handsontable and wrapper packages:
+    ```bash
+    npm run build
+    ```
+2. From the `docs` directory, install the documentation dependencies:
     ```bash
     npm install
     ```
-2. Generate the API reference:
+
+    > **Note:** If `npm install` fails with an `ERESOLVE` peer dependency conflict (e.g., due to Vue 2/Vue 3 wrapper packages in the monorepo), run:
+    >
+    > ```bash
+    > npm install --legacy-peer-deps
+    > ```
+    
+3. Generate the API reference:
    ```bash
    npm run docs:api
    ```
-3. Start your local documentation server:
+4. Start your local documentation server:
    ```bash
-   npm run docs:start
+   npm run docs:watch:no-cache
    ```
-4. In your browser, go to: http://localhost:8080/docs/.
+5. In your browser, go to: http://localhost:8080/docs/.
 
 ## Handsontable documentation code examples
 
@@ -39,6 +50,8 @@ E.g.:
 1. Modify `content/guides/some/example.ts` file.
 2. Run `npm run docs:code-examples:generate-js content/guides/some/example.ts` to generate `content/guides/some/example.js`.
 3. Commit both `content/guides/some/example.ts` and `content/guides/some/example.js`.
+
+In `watch` mode, running local server with `npm run docs:watch:no-cache` or `npm run docs:watch` steps above are executed automatically. 
 
 In case of TSX file, the script will generate JSX version of the code example, so the workflow is the same as above.
 
@@ -60,8 +73,8 @@ From the `docs` directory, you can run the following npm scripts:
 * `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
 * `npm run docs:test:example-checker` – Runs the tests that checks if all Docs examples work.
 * `npm run docs:code-examples:generate-js content/guides/path/to/example.ts` – Generate JS/JSX version of the code example (needs to be run before commiting any change to TS/TSX code example)
-* `npm run docs:code-examples:generate-all-js` – Generate all JS/JSX versions of the TS/TSX code examples in content/guides/ directory
-* `npm run docs:code-examples:format-all-ts"` – Runs the autoformatter on all TS and TSX example files in the content/guides/ directory
+* `npm run docs:code-examples:generate-all-js` – Generate all JS/JSX versions of the TS/TSX code examples in content/guides/ directory (ignores the angular examples)
+* `npm run docs:code-examples:format-all-ts"` – Runs the autoformatter on all TS and TSX example files in the content/guides/ directory (ignores the angular examples)
 
 ## Handsontable documentation directory structure
 
@@ -88,6 +101,7 @@ docs                            # All documentation files
 │   │   ├── check-links.js      # The documentation's link checker
 │   │   ├── jsdoc-convert       # JSDoc-to-Markdown converter
 │   │   ├── utils.js            # Tools utilities
+│   │   ├── watch.mjs           # Watch script for running local server
 │   ├── config.js               # VuePress configuration
 │   ├── docs-links.js           # Lets us link within the currently-selected docs version and framework with `@` (e.g. [link](@/guides/path/file/file.md).)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
@@ -101,8 +115,8 @@ docs                            # All documentation files
 │   ├── guides                  # The guides' source files: Markdown content
 │   └── sidebars.js             # Sidebars configuration
 ├── .build-tmp                  # Temporary directory created for storing symlinked directories, containing .MD files. It's needed for generating multi-frameworked Docs content.
-│   ├── javascript-data-grid  # Symbolic link to content directory. Do not edit! Make changes in the source content directory.
-│   └── react-data-grid       # As above
+│   ├── javascript-data-grid    # Symbolic link to content directory. Do not edit! Make changes in the source content directory.
+│   └── react-data-grid         # As above
 ├── README-DEPLOYMENT.md        # Documentation deployment guidelines
 ├── README-EDITING.md           # Documentation editing guidelines
 └── README.md                   # The file you're looking at right now!
@@ -110,17 +124,19 @@ docs                            # All documentation files
 
 ## Handsontable documentation branches structure
 
-Each documentation version has its own production branch from which the deployment is happening. The documentation branches are created using the following pattern `prod-docs/<MAJOR.MINOR>`.
+Each documentation version has its own production branch from which the deployment is happening. The documentation branches are created using the following pattern `prod-docs/<MAJOR.MINOR>`. The `prod-docs/latest` branch contains all files necessary for Netlify deployment.
 
-The documentation branches are created automatically once the Handsontable release script finishes its job. Depending on the Handsontable release version, two scenarios may happen:
+The documentation branches are created and updated automatically by the `stable-publish` job in `.github/workflows/publish.yml`. Depending on the Handsontable release version, two scenarios may happen:
 1. Patch release:
-    * Checkout to the existing branch;
-    * Regenerate Docs content for the API by executing `npm run docs:api`;
+    * Check out the existing `prod-docs/<MAJOR.MINOR>` branch;
+    * Update the docs changelog and regenerate API content via `npm run docs:api`;
     * Commit and push the changes to the origin;
 2. Major or Minor release:
-    * Create a new Docs branch, e.g. `prod-docs/13.0` from the `develop` branch (after the release branch is merged to the `develop` branch);
-    * Generate Docs content for the API by executing `npm run docs:api`;
+    * Create a new Docs branch, e.g. `prod-docs/13.0`, from the version tag (after the release branch is merged to `master`);
+    * Update the docs changelog and generate API content via `npm run docs:api`;
     * Commit and push the changes to the origin;
+
+The prod-docs/latest branch is automatically recreated by the CI/CD pipeline whenever a patch or release update is applied to the latest documentation version. This branch triggers a GitHub workflow that initiates a rebuild and deploys to Netlify on each push or when a new branch `prod-docs/<MAJOR.MINOR>` is created.
 
 Committing directly to the Documentation production branch triggers GitHub workflow that deploys the changes to the server. The exception is the `develop` branch that holds the changes for the "next" version. The staging version can be deployed only [manually](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment).
 

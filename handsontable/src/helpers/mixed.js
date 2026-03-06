@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { toSingleLine } from './templateLiteralTag';
 
 /**
@@ -115,7 +114,7 @@ const domMessages = {
   non_commercial: () => '',
 };
 
-export function _injectProductInfo(key, element) {
+export function _injectProductInfo(key, element, releaseDate) {
   const hasValidType = !isEmpty(key);
   const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
   const hotVersion = process.env.HOT_VERSION;
@@ -129,11 +128,16 @@ export function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = moment(process.env.HOT_RELEASE_DATE, 'DD/MM/YYYY');
-      const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
+      const [dd, mm, yyyy] = releaseDate.split('/').map(Number);
+      const releaseDays = Math.floor(Date.UTC(yyyy, mm - 1, dd) / 8.64e7);
       const keyValidityDays = _extractTime(key);
 
-      keyValidityDate = moment((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
+      keyValidityDate = new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: '2-digit',
+        timeZone: 'UTC',
+      }).format((keyValidityDays + 1) * 8.64e7);
 
       if (releaseDays > keyValidityDays) {
         consoleMessageState = 'expired';
@@ -177,7 +181,7 @@ export function _injectProductInfo(key, element) {
     _notified = true;
   }
 
-  if (domMessageState !== 'valid' && element.parentNode) {
+  if (domMessageState !== 'valid' && element) {
     const message = domMessages[domMessageState]({
       keyValidityDate,
       hotVersion,
@@ -186,12 +190,13 @@ export function _injectProductInfo(key, element) {
     if (message) {
       const messageNode = document.createElement('div');
 
-      messageNode.className = 'hot-display-license-info';
+      messageNode.className = 'handsontable hot-display-license-info';
       messageNode.innerHTML = domMessages[domMessageState]({
         keyValidityDate,
         hotVersion,
       });
-      element.parentNode.insertBefore(messageNode, element.nextSibling);
+
+      element.appendChild(messageNode);
     }
   }
 }

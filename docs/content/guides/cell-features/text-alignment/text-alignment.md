@@ -8,6 +8,9 @@ canonicalUrl: /text-alignment
 react:
   id: 959g5cbf
   metaTitle: Text alignment - React Data Grid | Handsontable
+angular:
+  id: h6sbjq1g
+  metaTitle: Text alignment - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
@@ -34,6 +37,14 @@ className: 'htCenter'
 
 ```jsx
 className="htCenter"
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = { className: "htCenter" };
 ```
 
 :::
@@ -68,6 +79,17 @@ The following code sample configures the grid to use `htCenter` and configures i
 
 @[code](@/content/guides/cell-features/text-alignment/react/example1.jsx)
 @[code](@/content/guides/cell-features/text-alignment/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/text-alignment/angular/example1.ts)
+@[code](@/content/guides/cell-features/text-alignment/angular/example1.html)
 
 :::
 

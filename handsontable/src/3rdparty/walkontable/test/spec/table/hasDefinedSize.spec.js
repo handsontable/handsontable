@@ -22,7 +22,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('hasDefinedSize()', () => {
-    it('should return `false` when the table is initialized in the container which the size doesn\'t set.', () => {
+    it('should return `false` when the table is initialized in the container which the size doesn\'t set.', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,

@@ -1,17 +1,11 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { BaseRenderer } from 'handsontable/renderers';
 
-const colors: string[] = [
-  'yellow',
-  'red',
-  'orange',
-  'green',
-  'blue',
-  'gray',
-  'black',
-  'white',
-];
+// Register all Handsontable's modules.
+registerAllModules();
+
+const colors: string[] = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
 
 const yellowRenderer: BaseRenderer = (instance, td, ...rest) => {
   Handsontable.renderers.TextRenderer(instance, td, ...rest);

@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
@@ -18,8 +21,6 @@ const hot = new Handsontable(container, {
 
 hot.updateSettings({
   cells(row, _col, prop) {
-    return hot.getDataAtRowProp(row, prop) === 'Nissan'
-      ? { editor: false }
-      : { editor: 'text' };
+    return hot.getDataAtRowProp(row, prop) === 'Nissan' ? { editor: false } : { editor: 'text' };
   },
 });

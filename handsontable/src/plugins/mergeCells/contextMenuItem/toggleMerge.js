@@ -9,13 +9,13 @@ export default function toggleMergeItem(plugin) {
   return {
     key: 'mergeCells',
     name() {
-      const sel = this.getSelectedLast();
+      const selection = this.getSelectedActive();
 
-      if (sel) {
-        const info = plugin.mergedCellsCollection.get(sel[0], sel[1]);
+      if (selection) {
+        const info = plugin.mergedCellsCollection.get(selection[0], selection[1]);
 
-        if (info.row === sel[0] && info.col === sel[1] &&
-            info.row + info.rowspan - 1 === sel[2] && info.col + info.colspan - 1 === sel[3]) {
+        if (info.row === selection[0] && info.col === selection[1] &&
+            info.row + info.rowspan - 1 === selection[2] && info.col + info.colspan - 1 === selection[3]) {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNMERGE_CELLS);
         }
       }
@@ -23,31 +23,31 @@ export default function toggleMergeItem(plugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS);
     },
     callback() {
-      const currentRange = this.getSelectedRangeLast();
+      const activeRange = this.getSelectedRangeActive();
 
-      if (!currentRange) {
+      if (!activeRange) {
         return;
       }
 
-      currentRange.setDirection(this.isRtl() ? 'NE-SW' : 'NW-SE');
+      activeRange.setDirection(this.isRtl() ? 'NE-SW' : 'NW-SE');
 
-      const { from, to } = currentRange;
+      const { from, to } = activeRange;
 
-      plugin.toggleMerge(currentRange);
+      plugin.toggleMerge(activeRange);
       this.selectCell(from.row, from.col, to.row, to.col, false);
     },
     disabled() {
-      const sel = this.getSelectedLast();
+      const selection = this.getSelectedActive();
 
-      if (!sel) {
+      if (!selection) {
         return true;
       }
 
       const isSingleCell = MergedCellCoords.isSingleCell({
-        row: sel[0],
-        col: sel[1],
-        rowspan: sel[2] - sel[0] + 1,
-        colspan: sel[3] - sel[1] + 1
+        row: selection[0],
+        col: selection[1],
+        rowspan: selection[2] - selection[0] + 1,
+        colspan: selection[3] - selection[1] + 1
       });
 
       return isSingleCell || this.selection.isSelectedByCorner();

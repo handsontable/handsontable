@@ -1,6 +1,9 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const data = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],

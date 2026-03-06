@@ -22,13 +22,23 @@ const browsers = {
   firefoxWebKit: tester(ua => /FxiOS/.test(ua)),
   mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
+  safariBefore261: tester((ua, vendor) => {
+    if (!/Safari/.test(ua) || !/Apple Computer/.test(vendor)) {
+      return false;
+    }
+
+    const match = /Version\/(\d+(?:\.\d+)?)/i.exec(ua);
+    const version = match ? Number.parseFloat(match[1]) : 0;
+
+    return version < 26.1;
+  }),
 };
 
 const platforms = {
   mac: tester(platform => /^Mac/.test(platform)),
   win: tester(platform => /^Win/.test(platform)),
   linux: tester(platform => /^Linux/.test(platform)),
-  ios: tester(ua => /iPhone|iPad|iPod/i.test(ua))
+  ios: tester(platform => /iPhone|iPad|iPod/i.test(platform)),
 };
 
 /**
@@ -86,6 +96,15 @@ export function isFirefoxWebKit() {
  */
 export function isSafari() {
   return browsers.safari.value;
+}
+
+/**
+ * Returns true for Safari 26.0 and lower (26.1 and above return false).
+ *
+ * @returns {boolean}
+ */
+export function isSafariBefore261() {
+  return browsers.safariBefore261.value;
 }
 
 /**

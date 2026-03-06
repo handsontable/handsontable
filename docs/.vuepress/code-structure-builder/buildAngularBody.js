@@ -28,31 +28,31 @@ const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
     "build": "ng build"
   },
   "dependencies": {
-    "@angular/animations": "^17.3.0",
-    "@angular/common": "^17.3.0",
-    "@angular/compiler": "^17.3.0",
-    "@angular/core": "^17.3.0",
-    "@angular/forms": "^17.3.0",
-    "@angular/platform-browser": "^17.3.0",
-    "@angular/platform-browser-dynamic": "^17.3.0",
-    "@angular/router": "^17.3.0",
+    "@angular/core": "^20.2.0",
+    "@angular/common": "^20.2.0",
+    "@angular/forms": "^20.2.0",
+    "@angular/platform-browser": "^20.2.0",
+    "@angular/platform-browser-dynamic": "^20.2.0",
+    "@angular/animations": "^20.2.0",
+    "@angular/compiler": "^20.2.0",
+    "@angular/router": "^20.2.0",
     "numbro": "^2.4.0",
     "rxjs": "^7.8.0",
     "tslib": "^2.6.2",
-    "zone.js": "^0.14.4",
+    "zone.js": "~0.15.0",
     "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
-    "@handsontable/angular": "${version}"
+    "@handsontable/angular-wrapper": "${version}"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^17.3.0",
+    "@angular-devkit/build-angular": "^20.2.0",
     "@angular/localize": "latest",
     "@angular/service-worker": "latest",
-    "@angular/cli": "^17.3.0",
-    "@angular/compiler-cli": "^17.3.0",
-    "@types/node": "12.20.7",
-    "ts-node": "8.3.0",
-    "typescript": "5.4.2"
+    "@angular/cli": "^20.2.0",
+    "@angular/compiler-cli": "^20.2.0",
+    "@types/node": "~22.18.0",
+    "ts-node": "~10.9.0",
+    "typescript": "~5.8.0"
   }
 }`,
       },
@@ -81,9 +81,7 @@ const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
             "main": "src/main.ts",
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
-            "styles": [
-              "node_modules/handsontable/dist/handsontable.full.css"
-            ],
+            "styles": [],
             "scripts": [],
             "preserveSymlinks": true,
             "allowedCommonJsDependencies": [
@@ -122,14 +120,14 @@ const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "sandbox:build"
+            "buildTarget": "sandbox:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "sandbox:build:production"
+              "buildTarget": "sandbox:build:production"
             },
             "development": {
-              "browserTarget": "sandbox:build:development"
+              "buildTarget": "sandbox:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -137,7 +135,7 @@ const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "sandbox:build"
+            "buildTarget": "sandbox:build"
           }
         }
       }

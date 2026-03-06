@@ -12,48 +12,56 @@ describe('Core.suspendExecution', () => {
     }
   });
 
-  it('should suspend the table execution process', () => {
+  it('should suspend the table execution process', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
 
-    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnIndexCacheUpdated);
-    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowIndexCacheUpdated);
+    columnIndexMapper().addLocalHook('cacheUpdated', columnIndexCacheUpdated);
+    rowIndexMapper().addLocalHook('cacheUpdated', rowIndexCacheUpdated);
 
     expect(hot.executionSuspendedCounter).toBe(0);
 
-    hot.suspendExecution();
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    await suspendExecution();
+
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     expect(hot.executionSuspendedCounter).toBe(1);
     expect(columnIndexCacheUpdated).not.toHaveBeenCalled();
     expect(rowIndexCacheUpdated).not.toHaveBeenCalled();
   });
 
-  it('should wrap multiple calls of the table suspend execution', () => {
+  it('should wrap multiple calls of the table suspend execution', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
 
-    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnIndexCacheUpdated);
-    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowIndexCacheUpdated);
+    columnIndexMapper().addLocalHook('cacheUpdated', columnIndexCacheUpdated);
+    rowIndexMapper().addLocalHook('cacheUpdated', rowIndexCacheUpdated);
 
     expect(hot.executionSuspendedCounter).toBe(0);
 
-    hot.suspendExecution();
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.suspendExecution();
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.suspendExecution();
-    hot.suspendExecution();
-    hot.columnIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
-    hot.suspendExecution();
-    hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+    await suspendExecution();
+
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+
+    await suspendExecution();
+
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+
+    await suspendExecution();
+    await suspendExecution();
+
+    columnIndexMapper().setIndexesSequence([0, 1, 2, 3, 4]);
+
+    await suspendExecution();
+
+    rowIndexMapper().setIndexesSequence([0, 1, 2, 3, 4]);
 
     expect(hot.executionSuspendedCounter).toBe(5);
     expect(columnIndexCacheUpdated).not.toHaveBeenCalled();

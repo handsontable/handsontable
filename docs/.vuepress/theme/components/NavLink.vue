@@ -30,7 +30,7 @@
     </section>
 
     <template v-else>
-      {{ item.text }}
+      <i v-if="item.icon" class="ico" :class="item.icon"></i>{{ item.text }}
     </template>
     <OutboundLink v-if="isBlankTarget" />
   </a>

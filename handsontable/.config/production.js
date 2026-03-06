@@ -1,18 +1,14 @@
 /**
  * Config responsible for building Handsontable `dist/` minified files:
  *  - handsontable.min.js
- *  - handsontable.min.css
  *  - handsontable.full.min.js
- *  - handsontable.full.min.css
  */
 const TerserPlugin = require('terser-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const configFactory = require('./development');
-const { getClosest }  = require('./helper/path');
-
-const PACKAGE_FILENAME = process.env.HOT_FILENAME;
+const { getClosest } = require('./helper/path');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -33,17 +29,6 @@ module.exports.create = function create(envArgs) {
         new CssMinimizerPlugin(),
       ],
     };
-
-    // Remove all 'MiniCssExtractPlugin' instances
-    c.plugins = c.plugins.filter(function(plugin) {
-      return !(plugin instanceof MiniCssExtractPlugin);
-    });
-
-    c.plugins.push(
-      new MiniCssExtractPlugin({
-        filename: `${PACKAGE_FILENAME}${isFullBuild ? '.full' : ''}.min.css`,
-      }),
-    );
 
     if (isFullBuild) {
       c.plugins.push(

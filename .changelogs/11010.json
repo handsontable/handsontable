@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed selection expanding for merged cells.",
-  "type": "fixed",
-  "issueOrPR": 11010,
-  "breaking": false,
-  "framework": "none"
-}

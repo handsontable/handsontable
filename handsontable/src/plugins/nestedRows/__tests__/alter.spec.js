@@ -13,7 +13,7 @@ describe('NestedRows', () => {
   });
 
   describe('should work properly when some alters have been performed', () => {
-    it('inserting and removing rows', () => {
+    it('inserting and removing rows', async() => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
@@ -22,21 +22,21 @@ describe('NestedRows', () => {
 
       const dataAtStart = getData();
 
-      alter('insert_row_above', 0, 2);
+      await alter('insert_row_above', 0, 2);
 
       expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
 
-      alter('remove_row', 0, 2);
+      await alter('remove_row', 0, 2);
 
       expect(getData()).toEqual(dataAtStart);
 
-      alter('insert_row_above', 0, 2);
+      await alter('insert_row_above', 0, 2);
 
       expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
     });
 
     describe('inserting rows and changing cell values ', () => {
-      it('(by API)', () => {
+      it('(by API)', async() => {
         handsontable({
           data: getSimplerNestedData(),
           nestedRows: true,
@@ -45,16 +45,16 @@ describe('NestedRows', () => {
 
         const dataAtStart = getData();
 
-        alter('insert_row_above', 0, 1);
+        await alter('insert_row_above', 0, 1);
 
-        setDataAtCell(0, 0, 'value');
+        await setDataAtCell(0, 0, 'value');
 
-        alter('insert_row_above', 0, 1);
+        await alter('insert_row_above', 0, 1);
 
         expect(getData()).toEqual([[null, null, null, null], ['value', null, null, null], ...dataAtStart]);
       });
 
-      it('(using context menu)', () => {
+      it('(using context menu)', async() => {
         handsontable({
           data: getSimplerNestedData(),
           nestedRows: true,
@@ -64,8 +64,8 @@ describe('NestedRows', () => {
 
         const dataAtStart = getData();
 
-        selectCell(0, 0);
-        contextMenu();
+        await selectCell(0, 0);
+        await contextMenu();
 
         $('.htContextMenu .ht_master .htCore')
           .find('tbody td')
@@ -74,10 +74,10 @@ describe('NestedRows', () => {
           .simulate('mousedown')
           .simulate('mouseup');
 
-        setDataAtCell(0, 0, 'value');
+        await setDataAtCell(0, 0, 'value');
 
-        selectCell(0, 0);
-        contextMenu();
+        await selectCell(0, 0);
+        await contextMenu();
 
         $('.htContextMenu .ht_master .htCore')
           .find('tbody td')
@@ -90,25 +90,25 @@ describe('NestedRows', () => {
       });
     });
 
-    it('inserting rows after calling the `updateSettings` method and changing a cell value', () => {
+    it('inserting rows after calling the `updateSettings` method and changing a cell value', async() => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
         rowHeaders: true
       });
 
-      updateSettings({});
+      await updateSettings({});
 
-      setDataAtCell(0, 0, 'value');
+      await setDataAtCell(0, 0, 'value');
 
       const dataAtStart = getData();
 
-      alter('insert_row_above', 0, 1);
+      await alter('insert_row_above', 0, 1);
 
       expect(getData()).toEqual([[null, null, null, null], ...dataAtStart]);
     });
 
-    it('inserting rows after moving some row and changing a cell value', () => {
+    it('inserting rows after moving some row and changing a cell value', async() => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
@@ -118,11 +118,11 @@ describe('NestedRows', () => {
 
       getPlugin('manualRowMove').dragRows([3], 5);
 
-      setDataAtCell(0, 0, 'value');
+      await setDataAtCell(0, 0, 'value');
 
       const dataAtStart = getData();
 
-      alter('insert_row_above', 0, 1);
+      await alter('insert_row_above', 0, 1);
 
       expect(getData()).toEqual([[null, null, null, null], ...dataAtStart]);
     });

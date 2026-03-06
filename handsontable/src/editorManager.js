@@ -65,14 +65,7 @@ class EditorManager {
     this.eventManager = new EventManager(hotInstance);
 
     this.hot.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
-
-    // Open editor when text composition is started (IME editor)
-    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'compositionstart', (event) => {
-      if (!this.destroyed && this.hot.isListening()) {
-        this.openEditor('', event);
-      }
-    });
-
+    this.hot.addHook('beforeCompositionStart', event => this.#onAfterDocumentKeyDown(event));
     this.hot.view._wt.update('onCellDblClick', (event, coords, elem) => this.#onCellDblClick(event, coords, elem));
   }
 
@@ -99,14 +92,14 @@ class EditorManager {
       return;
     }
 
-    const highlight = this.hot.getSelectedRangeLast()?.highlight;
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
     if (!highlight || highlight.isHeader()) {
       return;
     }
 
     const { row, col } = highlight;
-    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', row, col);
+    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', row, col, false, 'meta');
     let visualRowToCheck = row;
     let visualColumnToCheck = col;
 
@@ -164,7 +157,7 @@ class EditorManager {
       return;
     }
 
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
     let allowOpening = this.hot.runHooks(
       'beforeBeginEditing',
       selection.highlight.row,
@@ -174,7 +167,7 @@ class EditorManager {
       enableFullEditMode,
     );
 
-    // If the above hook does not return boolean apply default behavior which disallows opening
+    // If the above hook does not return boolean then the default behavior is applied which disallows opening
     // an editor after double mouse click for non-contiguous selection (while pressing Ctrl/Cmd) and
     // for multiple selected cells (while pressing SHIFT).
     if (event instanceof MouseEvent && typeof allowOpening !== 'boolean') {
@@ -255,7 +248,7 @@ class EditorManager {
    * @returns {boolean}
    */
   isCellEditable() {
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
 
     if (!selection) {
       return false;
@@ -305,7 +298,7 @@ class EditorManager {
    * @param {KeyboardEvent} event The keyboard event object.
    */
   #onAfterDocumentKeyDown(event) {
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
 
     if (!this.hot.isListening() || !selection || selection.highlight.isHeader() ||
         isImmediatePropagationStopped(event)) {
@@ -332,7 +325,11 @@ class EditorManager {
    */
   #onCellDblClick(event, coords) {
     if (coords.isCell()) {
-      this.openEditor(null, event, true);
+      if (this.hot.getShortcutManager().isCtrlPressed()) {
+        this.clearActiveEditor();
+      } else {
+        this.openEditor(null, event, true);
+      }
     }
   }
 

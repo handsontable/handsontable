@@ -1,5 +1,5 @@
 {
-    "name": "handsontable-javascript-demo",
+    "name": "handsontable-pr-javascript-demo",
     "version": "1.0.0",
     "description": "",
     "main": "index.html",
@@ -9,7 +9,7 @@
       "build": "parcel build index.html"
     },
     "dependencies": {
-      "handsontable": "14.4.0"
+      "handsontable": "latest"
     },
     "devDependencies": {
       "@babel/core": "^7.14.3",

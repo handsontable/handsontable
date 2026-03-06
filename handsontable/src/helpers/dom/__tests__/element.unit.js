@@ -3,6 +3,8 @@ import {
   closest,
   closestDown,
   getParent,
+  getScrollbarWidth,
+  getFractionalScalingCompensation,
   hasClass,
   isInput,
   removeAttribute,
@@ -11,7 +13,12 @@ import {
   setAttribute,
   fastInnerHTML,
   isVisible,
+  findFirstParentWithClass,
+  isHTMLElement,
+  outerHeight,
+  outerWidth,
 } from 'handsontable/helpers/dom/element';
+import { setPlatformMeta } from 'handsontable/helpers/browser';
 
 describe('DomElement helper', () => {
   //
@@ -136,6 +143,79 @@ describe('DomElement helper', () => {
 
         expect(closest(element, nodes, until)).toBe(null);
       });
+    });
+  });
+
+  //
+  // Handsontable.helper.closestDown
+  //
+  describe('findFirstParentWithClass', () => {
+    const test1 = '<div class="wrapper1"><table><tbody><tr class="ht-test-sth">' +
+      '<td>test1</td></tr></tbody></table></div>';
+    const test2 = `<div><table class="test2 test2-2"><tbody class="ht-test-sth ht-test-sth2"><tr>' +
+      '<td>test2${test1}</td></tr></tbody></table></div>`;
+
+    it('should return the closest parent with the provided class', () => {
+      const wrapper1 = document.createElement('div');
+      const wrapper2 = document.createElement('div');
+
+      wrapper1.innerHTML = test1;
+      wrapper2.innerHTML = test2;
+
+      const td1 = wrapper1.querySelector('td');
+      const td2 = wrapper2.querySelector('td');
+
+      expect(findFirstParentWithClass(td1, 'ht-test-sth').element).toBe(wrapper1.querySelector('.ht-test-sth'));
+      expect(findFirstParentWithClass(td1, 'ht-test-sth').classNames).toEqual(['ht-test-sth']);
+      expect(findFirstParentWithClass(td1, 'wrapper1').element).toBe(wrapper1.querySelector('.wrapper1'));
+      expect(findFirstParentWithClass(td1, 'wrapper1').classNames).toEqual(['wrapper1']);
+
+      expect(findFirstParentWithClass(td2, 'ht-test-sth').element).toBe(wrapper2.querySelector('.ht-test-sth'));
+      expect(findFirstParentWithClass(td2, 'ht-test-sth').classNames).toEqual(['ht-test-sth']);
+      expect(findFirstParentWithClass(td2, 'test2').element).toBe(wrapper2.querySelector('.test2'));
+      expect(findFirstParentWithClass(td2, 'test2').classNames).toEqual(['test2']);
+    });
+
+    it('should return the closest parent with a class that matches the provided regex', () => {
+      const wrapper1 = document.createElement('div');
+      const wrapper2 = document.createElement('div');
+
+      wrapper1.innerHTML = test1;
+      wrapper2.innerHTML = test2;
+
+      const td1 = wrapper1.querySelector('td');
+      const td2 = wrapper2.querySelector('td');
+
+      expect(findFirstParentWithClass(td1, /xt-test-(.*)/).element).toBe(undefined);
+      expect(findFirstParentWithClass(td1, /xt-test-(.*)/).classNames).toEqual([]);
+      expect(findFirstParentWithClass(td1, /vrapper(.*)/).element).toBe(undefined);
+      expect(findFirstParentWithClass(td1, /vrapper(.*)/).classNames).toEqual([]);
+
+      expect(findFirstParentWithClass(td2, /xt-test-(.*)/).element).toBe(undefined);
+      expect(findFirstParentWithClass(td2, /xt-test-(.*)/).classNames).toEqual([]);
+      expect(findFirstParentWithClass(td2, /xtest2(.*)/).element).toBe(undefined);
+      expect(findFirstParentWithClass(td2, /xtest2(.*)/).classNames).toEqual([]);
+    });
+
+    it('should return `undefined` as the element and an empty array as the class list array if no elements were found', () => {
+      const wrapper1 = document.createElement('div');
+      const wrapper2 = document.createElement('div');
+
+      wrapper1.innerHTML = test1;
+      wrapper2.innerHTML = test2;
+
+      const td1 = wrapper1.querySelector('td');
+      const td2 = wrapper2.querySelector('td');
+
+      expect(findFirstParentWithClass(td1, /ht-test-(.*)/).element).toBe(wrapper1.querySelector('.ht-test-sth'));
+      expect(findFirstParentWithClass(td1, /ht-test-(.*)/).classNames).toEqual(['ht-test-sth']);
+      expect(findFirstParentWithClass(td1, /wrapper(.*)/).element).toBe(wrapper1.querySelector('.wrapper1'));
+      expect(findFirstParentWithClass(td1, /wrapper(.*)/).classNames).toEqual(['wrapper1']);
+
+      expect(findFirstParentWithClass(td2, /ht-test-(.*)/).element).toBe(wrapper2.querySelector('.ht-test-sth'));
+      expect(findFirstParentWithClass(td2, /ht-test-(.*)/).classNames).toEqual(['ht-test-sth', 'ht-test-sth2']);
+      expect(findFirstParentWithClass(td2, /test2(.*)/).element).toBe(wrapper2.querySelector('.test2'));
+      expect(findFirstParentWithClass(td2, /test2(.*)/).classNames).toEqual(['test2', 'test2-2']);
     });
   });
 
@@ -621,6 +701,31 @@ describe('DomElement helper', () => {
   // Handsontable.helper.fastInnerHTML
   //
   describe('fastInnerHTML', () => {
+    it('should print a deprecation warning if the default sanitizer is used', () => {
+      spyOn(console, 'warn');
+
+      fastInnerHTML({ innerHTML: '' }, '<img src onerror=alert(1)>');
+
+      // eslint-disable-next-line no-console
+      expect(console.warn).toHaveBeenCalledWith(
+        'Deprecated: The HTML sanitization using DOMPurify library is deprecated and will be removed in ' +
+        'the next major release. Use the `sanitizer` option instead.\n\n' +
+        'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+        '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
+      );
+    });
+
+    it('should not print a deprecation warning if a custom sanitizer is used', () => {
+      spyOn(console, 'warn');
+
+      fastInnerHTML({ innerHTML: '' }, '<img src onerror=alert(1)>', (content) => {
+        return content.replace('alert(1)', 'alert(2)');
+      });
+
+      // eslint-disable-next-line no-console
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
     it('should be possible to sanitize the HTML (by default the content is sanitized)', () => {
       const elementMock = {
         innerHTML: '',
@@ -676,6 +781,18 @@ describe('DomElement helper', () => {
 
       expect(elementMock.innerHTML)
         .toBe('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>');
+    });
+
+    it('should be possible to pass a custom sanitizer function', () => {
+      const elementMock = {
+        innerHTML: '',
+      };
+
+      fastInnerHTML(elementMock, '<img src onerror=alert(1)>', (content) => {
+        return content.replace('alert(1)', 'alert(2)');
+      });
+
+      expect(elementMock.innerHTML).toBe('<img src onerror=alert(2)>');
     });
   });
 
@@ -740,6 +857,111 @@ describe('DomElement helper', () => {
       expect(isVisible(elementParent)).toBe(false);
 
       elementParent.remove();
+    });
+  });
+
+  //
+  // Handsontable.helper.isHTMLElement
+  //
+  describe('isHTMLElement', () => {
+    it('should return `false` when the element is not na HTML Element', () => {
+      const element = 3;
+
+      expect(isHTMLElement(element)).toBe(false);
+    });
+
+    it('should return `true` when the element is an HTML Element', () => {
+      const element = document.createElement('div');
+
+      expect(isHTMLElement(element)).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.helper.outerHeight
+  //
+  describe('outerHeight', () => {
+    // Make sure that the value is returned from the element's offsetHeight property,
+    // not from getBoundingClientRect().height. The second returns a value after applying
+    // the CSS transform matrix, which when passed to element.style.height for example
+    // results in a different value, hence misalignments.
+    it('should return value from offsetHeight', () => {
+      const elementMock = {
+        offsetHeight: 100,
+      };
+
+      expect(outerHeight(elementMock)).toBe(100);
+    });
+  });
+
+  //
+  // Handsontable.helper.outerWidth
+  //
+  describe('outerWidth', () => {
+    // Make sure that the value is returned from the element's offsetHeight property,
+    // not from getBoundingClientRect().height. The second returns a value after applying
+    // the CSS transform matrix, which when passed to element.style.height for example
+    // results in a different value, hence misalignments.
+    it('should return value from offsetWidth', () => {
+      const elementMock = {
+        offsetWidth: 100,
+      };
+
+      expect(outerWidth(elementMock)).toBe(100);
+    });
+  });
+
+  //
+  // Handsontable.helper.getFractionalScalingCompensation
+  //
+  describe('getFractionalScalingCompensation', () => {
+    it('should return 0 for non-Windows platforms', () => {
+      const mockDocument = {
+        defaultView: {
+          devicePixelRatio: 1.5
+        }
+      };
+
+      setPlatformMeta({ platform: 'MacIntel' });
+
+      expect(getFractionalScalingCompensation(mockDocument)).toBe(0);
+    });
+
+    it('should return 0 for Windows with integer devicePixelRatio', () => {
+      const mockDocument = {
+        defaultView: {
+          devicePixelRatio: 2
+        }
+      };
+
+      setPlatformMeta({ platform: 'Win32' });
+
+      expect(getFractionalScalingCompensation(mockDocument)).toBe(0);
+    });
+
+    it('should return 2 for Windows with fractional devicePixelRatio', () => {
+      const mockDocument = {
+        defaultView: {
+          devicePixelRatio: 1.5
+        }
+      };
+
+      setPlatformMeta({ platform: 'Win32' });
+
+      expect(getFractionalScalingCompensation(mockDocument)).toBe(2);
+    });
+  });
+
+  //
+  // Handsontable.helper.getScrollbarWidth
+  //
+  describe('getScrollbarWidth', () => {
+    it('should not use the `getBoundingClientRect` method to calculate the scrollbar width', () => {
+      const spy = spyOn(Element.prototype, 'getBoundingClientRect');
+
+      getScrollbarWidth();
+
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 });

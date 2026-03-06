@@ -5,7 +5,6 @@
       <span v-if="Boolean(getVersion)">{{ getVersion }}<span></span>{{$page.frameworkName}} Data Grid</span>
     </a>
     <a :href="getPageUrl">
-      <span v-if="$page.frontmatter.category">{{$page.frontmatter.category}}</span>
       <span>{{$page.frontmatter.title}}</span>
     </a>
   </div>
@@ -20,6 +19,14 @@ export default {
       const versions = this.$page.versionsWithPatches?.size
         ? [...this.$page.versionsWithPatches]
         : [];
+
+      if (this.$page.currentVersion !== 'next') {
+        const findVersion = versions.find(version => version[0] === this.$page.currentVersion);
+
+        if (findVersion) {
+          return findVersion[1][0];
+        }
+      }
 
       if (versions.length && versions[0].length >= 2 && versions[0][1].length) {
         return `${versions[0][1][0]}`;

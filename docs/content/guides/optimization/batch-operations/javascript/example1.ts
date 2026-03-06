@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example1')!;
 const buttonWithout = document.querySelector('#buttonWithout')!;
@@ -19,9 +22,7 @@ const data1: (string | number)[][] = [
   [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no'],
 ];
 
-const data2: (string | number)[][] = [
-  [11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes'],
-];
+const data2: (string | number)[][] = [[11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes']];
 
 const data3: (string | number)[][] = [
   [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],

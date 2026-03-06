@@ -3,11 +3,14 @@ import Handsontable from 'handsontable';
 const hot = new Handsontable(document.createElement('div'), {
   search: true,
 });
+
 new Handsontable(document.createElement('div'), {
   search: {
     searchResultClass: 'searchResultClass',
-    queryMethod: () => true,
-    callback: () => true,
+    queryMethod(queryStr: string, value: any) {
+      return true;
+    },
+    callback(instance: Handsontable, row: number, column: number, value: any, result: boolean) {}
   },
 });
 const plugin = hot.getPlugin('search');

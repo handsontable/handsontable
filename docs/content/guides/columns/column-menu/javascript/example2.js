@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example2');
 
@@ -12,13 +15,7 @@ new Handsontable(container, {
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',
-  dropdownMenu: [
-    'remove_col',
-    '---------',
-    'make_read_only',
-    '---------',
-    'alignment',
-  ],
+  dropdownMenu: ['remove_col', '---------', 'make_read_only', '---------', 'alignment'],
   autoWrapRow: true,
   autoWrapCol: true,
 });

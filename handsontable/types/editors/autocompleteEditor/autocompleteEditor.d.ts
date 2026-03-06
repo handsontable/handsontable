@@ -3,26 +3,21 @@ import { HandsontableEditor } from '../handsontableEditor';
 
 export const EDITOR_TYPE: 'autocomplete';
 
+type ChoiceObject = {
+  key: any;
+  value: any;
+};
+type ChoiceArray = (string | number)[] | ChoiceObject[];
+
 export class AutocompleteEditor extends HandsontableEditor {
   constructor(instance: Core);
 
   query: string;
-  strippedChoices: string[];
-  rawChoices: string[];
+  strippedChoices: ChoiceArray;
+  rawChoices: ChoiceArray;
 
-  getValue(): string;
   queryChoices(query: string): void;
-  updateChoicesList(choicesList: string[]): void;
-  flipDropdownIfNeeded(): boolean;
-  limitDropdownIfNeeded(spaceAvailable: number, dropdownHeight: number): void;
-  flipDropdown(dropdownHeight: number): void;
-  unflipDropdown(): void;
-  updateDropdownHeight(): void;
-  setDropdownHeight(height: number): void;
-  highlightBestMatchingChoice(index?: number): void;
-  getDropdownHeight(): number;
-  stripValueIfNeeded(value: string): string;
-  stripValuesIfNeeded(values: string[]): string[];
+  updateChoicesList(choicesList: ChoiceArray): void;
 }
 export namespace AutocompleteEditor {
   export function sortByRelevance(value: any, choices: string[], caseSensitive: boolean): number[];

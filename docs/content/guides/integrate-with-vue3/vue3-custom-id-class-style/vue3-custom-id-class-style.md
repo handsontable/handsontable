@@ -8,6 +8,9 @@ canonicalUrl: /vue3-custom-id-class-style
 react:
   id: jeuzzosp
   metaTitle: Custom ID, class, and style - Vue 3 Data Grid | Handsontable
+angular:
+  id: 9zzwqp3r
+  metaTitle: Custom ID, class, and style - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
@@ -30,7 +33,6 @@ Each of them will be applied to the root Handsontable element, allowing further 
 ::: example #example1 :vue3 --html 1 --js 2
 
 @[code](@/content/guides/integrate-with-vue3/vue3-custom-id-class-style/vue/example1.html)
-
 @[code](@/content/guides/integrate-with-vue3/vue3-custom-id-class-style/vue/example1.js)
 
 :::

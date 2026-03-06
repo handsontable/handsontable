@@ -12,48 +12,7 @@ describe('NumericRenderer', () => {
     }
   });
 
-  it('should render formatted number', (done) => {
-    const onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-    handsontable({
-      cells() {
-        return {
-          renderer: 'numeric',
-          numericFormat: { pattern: '$0,0.00' }
-        };
-      },
-      afterValidate: onAfterValidate
-    });
-    setDataAtCell(2, 2, '1000.234');
-
-    setTimeout(() => {
-      expect(getCell(2, 2).innerHTML).toEqual('$1,000.23');
-      done();
-    }, 200);
-  });
-
-  it('should render signed number', (done) => {
-    const onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-    handsontable({
-      cells() {
-        return {
-          renderer: 'numeric',
-          numericFormat: { pattern: '$0,0.00' }
-        };
-      },
-      afterValidate: onAfterValidate
-    });
-
-    setDataAtCell(2, 2, '-1000.234');
-
-    setTimeout(() => {
-      expect(getCell(2, 2).innerHTML).toEqual('-$1,000.23');
-      done();
-    }, 200);
-  });
-
-  it('should not try to render string as numeral', (done) => {
+  it('should not try to render string as numeral', async() => {
     handsontable({
       cells() {
         return {
@@ -63,15 +22,14 @@ describe('NumericRenderer', () => {
       },
     });
 
-    setDataAtCell(2, 2, '123 simple test');
+    await setDataAtCell(2, 2, '123 simple test');
 
-    setTimeout(() => {
-      expect(getCell(2, 2).innerHTML).toEqual('123 simple test');
-      done();
-    }, 100);
+    await sleep(100);
+
+    expect(getCell(2, 2).innerHTML).toEqual('123 simple test');
   });
 
-  it('should render the cell with "dir" attribute set as "ltr" as long as the value is of a numeric-like type', () => {
+  it('should render the cell with "dir" attribute set as "ltr" as long as the value is of a numeric-like type', async() => {
     handsontable({
       data: [[1, '1', '1.1']],
       renderer: 'numeric'
@@ -82,7 +40,7 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 2).getAttribute('dir')).toBe('ltr');
   });
 
-  it('should render the cell without messing "dir" attribute as long as the value is not of a numeric-like type', () => {
+  it('should render the cell without messing "dir" attribute as long as the value is not of a numeric-like type', async() => {
     handsontable({
       data: [['1z', 'z', true]],
       renderer: 'numeric'
@@ -93,85 +51,130 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 2).getAttribute('dir')).toBeNull();
   });
 
-  it('should add class names `htNumeric` and `htRight` to the cell if it renders a number', () => {
-    const DIV = document.createElement('DIV');
-    const instance = new Handsontable(DIV, {});
-    const TD = document.createElement('TD');
+  it('should add class names `htNumeric` and `htRight` to the cell if it is a number', async() => {
+    handsontable({
+      data: [[123]],
+      renderer: 'numeric',
+    });
 
-    TD.className = 'someClass';
-    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {});
-    expect(TD.className).toEqual('someClass htRight htNumeric');
-    instance.destroy();
+    expect(getCell(0, 0).className).toEqual('htRight htNumeric');
   });
 
-  it('should add class names `htNumeric` and `htRight` to the cell if it renders a numeric string', () => {
-    const DIV = document.createElement('DIV');
-    const instance = new Handsontable(DIV, {});
-    const TD = document.createElement('TD');
+  it('should add class names `htNumeric` and `htRight` to the cell if it is a number passed as string', async() => {
+    handsontable({
+      data: [['123']],
+      renderer: 'numeric',
+    });
 
-    TD.className = 'someClass';
-    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, '123', {});
-    expect(TD.className).toEqual('someClass htRight htNumeric');
-    instance.destroy();
+    expect(getCell(0, 0).className).toEqual('htRight htNumeric');
   });
 
-  it('should not add class name `htNumeric` to the cell if it renders a text', () => {
-    const DIV = document.createElement('DIV');
-    const instance = new Handsontable(DIV, {});
-    const TD = document.createElement('TD');
+  it('should not add class name `htNumeric` to the cell if it is string (text)', async() => {
+    handsontable({
+      data: [['abc']],
+      renderer: 'numeric',
+    });
 
-    TD.className = 'someClass';
-    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 'abc', {});
-    expect(TD.className).toEqual('someClass');
-    instance.destroy();
+    expect(getCell(0, 0).className).toEqual('');
   });
 
-  it('should add class name `htDimmed` to a read only cell', () => {
-    const DIV = document.createElement('DIV');
-    const instance = new Handsontable(DIV, {});
-    const TD = document.createElement('TD');
-
-    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {
+  it('should add class name `htDimmed` to the cell', async() => {
+    handsontable({
+      data: [[123]],
+      renderer: 'numeric',
       readOnly: true,
       readOnlyCellClassName: 'htDimmed',
     });
-    expect(TD.className).toContain('htDimmed');
-    instance.destroy();
+
+    expect(getCell(0, 0).className).toEqual('htRight htNumeric htDimmed');
   });
 
-  describe('NumericRenderer with ContextMenu', () => {
-    it('should change class name from default `htRight` to `htLeft` after set align in contextMenu', (done) => {
-      handsontable({
-        startRows: 1,
-        startCols: 1,
-        contextMenu: ['alignment'],
-        cells() {
-          return {
-            type: 'numeric',
-            numericFormat: { pattern: '$0,0.00' }
-          };
-        },
-        height: 100
-      });
-
-      setDataAtCell(0, 0, '1000');
-      selectCell(0, 0);
-
-      contextMenu();
-
-      const menu = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator');
-
-      menu.simulate('mouseover');
-
-      setTimeout(() => {
-        const contextSubMenu = $(`.htContextMenuSub_${menu.text()}`).find('tbody td').eq(0);
-
-        contextSubMenu.simulate('mousedown');
-        contextSubMenu.simulate('mouseup');
-
-        expect($('.handsontable.ht_master .htLeft:not(.htRight)').length).toBe(1);
-        done();
-      }, 500);
+  it('should add custom class as string to the cell if it is a number', async() => {
+    handsontable({
+      data: [[123]],
+      renderer: 'numeric',
+      className: 'someClass',
     });
+
+    expect(getCell(0, 0).className).toEqual('someClass htRight htNumeric');
+  });
+
+  it('should add custom class as an array to the cell if it is a number', async() => {
+    handsontable({
+      data: [[123]],
+      renderer: 'numeric',
+      className: ['someClass', 'someClass2'],
+    });
+
+    expect(getCell(0, 0).className).toEqual('someClass someClass2 htRight htNumeric');
+  });
+
+  it('should print deprecation message if numericFormat.pattern is used', async() => {
+    const warnSpy = spyOnConsoleDeprecatedWarn();
+
+    handsontable({
+      data: [[123]],
+      renderer: 'numeric',
+      numericFormat: { pattern: '$0,0.00' }
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Deprecated: The `numericFormat.pattern` and `numericFormat.culture` options are deprecated ' +
+      'and will be removed in the next major release. Pass `Intl.NumberFormat` options ' +
+      'directly to `numericFormat` and use the `locale` cell property instead of `culture`.\n\n' +
+      'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+      '`numericFormat` documentation: https://handsontable.com/docs/api/options/#numericformat\n' +
+      '`locale` documentation: https://handsontable.com/docs/api/options/#locale'
+    );
+  });
+
+  it('should print deprecation message if numericFormat.culture is used', async() => {
+    const warnSpy = spyOnConsoleDeprecatedWarn();
+
+    handsontable({
+      data: [[123]],
+      renderer: 'numeric',
+      numericFormat: { culture: '$0,0.00' }
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Deprecated: The `numericFormat.pattern` and `numericFormat.culture` options are deprecated ' +
+      'and will be removed in the next major release. Pass `Intl.NumberFormat` options ' +
+      'directly to `numericFormat` and use the `locale` cell property instead of `culture`.\n\n' +
+      'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+      '`numericFormat` documentation: https://handsontable.com/docs/api/options/#numericformat\n' +
+      '`locale` documentation: https://handsontable.com/docs/api/options/#locale'
+    );
+  });
+
+  it('should not print deprecation message if Intl.NumberFormat object format is used', async() => {
+    const warnSpy = spyOnConsoleDeprecatedWarn();
+
+    handsontable({
+      data: [[123]],
+      renderer: 'numeric',
+      numericFormat: {
+        useGrouping: false,
+        maximumFractionDigits: 20,
+      }
+    });
+
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('should internally call base renderer once', async() => {
+    const originalBaseRenderer = Handsontable.renderers.BaseRenderer;
+
+    spyOn(Handsontable.renderers, 'BaseRenderer');
+
+    Handsontable.renderers.registerRenderer('base', Handsontable.renderers.BaseRenderer);
+    handsontable({
+      data: [['test']],
+      renderer: 'numeric',
+    });
+
+    expect(Handsontable.renderers.BaseRenderer).toHaveBeenCalledTimes(1);
+
+    Handsontable.renderers.registerRenderer('base', originalBaseRenderer);
   });
 });

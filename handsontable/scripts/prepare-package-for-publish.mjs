@@ -1,7 +1,7 @@
 import path from 'path';
 import fse from 'fs-extra';
 import glob from 'glob';
-import { displayErrorMessage } from '../../scripts/utils/console.mjs';
+import { displayErrorMessage, displayWarningMessage } from '../../scripts/utils/console.mjs';
 
 const TARGET_PATH = './tmp/';
 const PACKAGE_PATH = path.resolve('package.json');
@@ -35,10 +35,13 @@ FILES_TO_COPY.forEach((fileToCopy) => {
       file = path.join(...path.normalize(file).split(path.sep).slice(pathSlice));
     }
 
-    fse.copySync(
-      from,
-      path.resolve(`${TARGET_PATH}${file.replace('../', '')}`),
-      { overwrite: true });
+    const to = path.resolve(`${TARGET_PATH}${file.replace('../', '')}`);
+
+    if (fse.existsSync(from)) {
+      fse.copySync(from, to, { overwrite: true });
+    } else {
+      displayWarningMessage(`The copy source file or directory does not exist: ${from}`);
+    }
   });
 });
 

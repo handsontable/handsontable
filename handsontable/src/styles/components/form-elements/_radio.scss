@@ -1,0 +1,138 @@
+@use "../../utils/mixins";
+
+// Handsontable Input
+//  Used in Dropdown Menu
+
+@mixin output {
+  .handsontable {
+    .htUIRadio {
+      position: relative;
+      display: inline-flex;
+      margin: 0;
+      padding: var(--ht-gap-size) calc(2 * var(--ht-gap-size));
+      padding-bottom: 0;
+      align-items: center;
+      gap: var(--ht-gap-size);
+      cursor: pointer;
+
+      &:first-child {
+        padding-inline-start: 0;
+      }
+
+      > input[type="radio"] {
+        position: relative;
+        width: var(--ht-radio-size);
+        height: var(--ht-radio-size);
+        margin: 0;
+        appearance: none;
+        cursor: pointer;
+        border-radius: calc(0.5 * var(--ht-radio-size));
+        outline: none;
+
+        // Circle overlay
+        &::before {
+          @include mixins.pseudo;
+
+          position: absolute;
+          inset: 0;
+          border-radius: calc(0.5 * var(--ht-radio-size));
+          border: 1px solid var(--ht-radio-border-color);
+          background-color: var(--ht-radio-background-color);
+        }
+
+        // Circle
+        &::after {
+          @include mixins.pseudo;
+
+          position: absolute;
+          color: var(--ht-radio-icon-color);
+        }
+
+        &:checked {
+          // Circle overlay
+          &::before {
+            border-color: var(--ht-radio-checked-border-color);
+            background-color: var(--ht-radio-checked-background-color);
+          }
+
+          // Circle
+          &::after {
+            color: var(--ht-radio-checked-icon-color);
+          }
+
+          &:disabled {
+            cursor: initial;
+
+            // Circle overlay
+            &::before {
+              border-color: var(--ht-radio-checked-disabled-border-color);
+              background-color: var(
+                --ht-radio-checked-disabled-background-color
+              );
+            }
+
+            // Circle
+            &::after {
+              color: var(--ht-radio-checked-disabled-icon-color);
+            }
+          }
+
+          &:focus {
+            // Circle overlay
+            &::before {
+              border-color: var(--ht-radio-checked-focus-border-color);
+              background-color: var(--ht-radio-checked-focus-background-color);
+            }
+
+            // Circle
+            &::after {
+              color: var(--ht-radio-checked-focus-icon-color);
+            }
+          }
+        }
+
+        &:disabled {
+          cursor: initial;
+
+          // Circle overlay
+          &::before {
+            border-color: var(--ht-radio-disabled-border-color);
+            background-color: var(--ht-radio-disabled-background-color);
+          }
+
+          // Circle
+          &::after {
+            color: var(--ht-radio-disabled-icon-color);
+          }
+        }
+
+        &:focus {
+          // Circle overlay
+          &::before {
+            border-color: var(--ht-radio-focus-border-color);
+            background-color: var(--ht-radio-focus-background-color);
+            outline: 1px solid var(--ht-radio-focus-ring-color);
+          }
+
+          // Circle
+          &::after {
+            color: var(--ht-radio-focus-icon-color);
+          }
+        }
+      }
+
+      label {
+        vertical-align: middle;
+        cursor: pointer;
+        color: inherit;
+
+        &::before {
+          @include mixins.pseudo;
+
+          position: absolute;
+          inset: 0;
+        }
+      }
+    }
+  }
+}

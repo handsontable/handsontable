@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -17,8 +16,8 @@ const ExampleComponent = () => {
   ];
 
   //  define your custom callback function
-  function searchResultCounter(instance, row, col, value, result) {
-    const DEFAULT_CALLBACK = function (instance, row, col, data, testResult) {
+  function searchResultCounter(_instance, _row, _col, _value, result) {
+    const DEFAULT_CALLBACK = function (instance, row, col, _data, testResult) {
       instance.getCellMeta(row, col).isSearchResult = testResult;
     };
 
@@ -43,12 +42,7 @@ const ExampleComponent = () => {
     <>
       <div className="example-controls-container">
         <div className="controls">
-          <input
-            id="search_field4"
-            type="search"
-            placeholder="Search"
-            onKeyUp={handleKeyUp}
-          />
+          <input id="search_field4" type="search" placeholder="Search" onKeyUp={handleKeyUp} />
         </div>
         <output className="console" id="output">
           {resultCount} results

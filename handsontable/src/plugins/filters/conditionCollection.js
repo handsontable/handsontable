@@ -1,5 +1,5 @@
-import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { mixin } from '../../helpers/object';
+import { throwWithCause } from '../../helpers/errors';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import localHooks from '../../mixins/localHooks';
 import { getCondition } from './conditionRegisterer';
@@ -103,8 +103,8 @@ class ConditionCollection {
    */
   addCondition(column, conditionDefinition, operation = OPERATION_AND, position) {
     const localeForColumn = this.hot.getCellMeta(0, column).locale;
-    const args = arrayMap(conditionDefinition.args,
-      v => (typeof v === 'string' ? v.toLocaleLowerCase(localeForColumn) : v));
+    const args = conditionDefinition.args
+      .map(v => (typeof v === 'string' ? v.toLocaleLowerCase(localeForColumn) : v));
     const name = conditionDefinition.name || conditionDefinition.command.key;
 
     this.runLocalHooks('beforeAdd', column);
@@ -113,14 +113,14 @@ class ConditionCollection {
 
     if (columnType) {
       if (columnType !== operation) {
-        throw Error(toSingleLine`The column of index ${column} has been already applied with a \`${columnType}\`\x20
+        throwWithCause(toSingleLine`The column of index ${column} has been already applied with a \`${columnType}\`\x20
         filter operation. Use \`removeConditions\` to clear the current conditions and then add new ones.\x20
         Mind that you cannot mix different types of operations (for instance, if you use \`conjunction\`,\x20
         use it consequently for a particular column).`);
       }
 
     } else if (isUndefined(operations[operation])) {
-      throw new Error(toSingleLine`Unexpected operation named \`${operation}\`. Possible ones are\x20
+      throwWithCause(toSingleLine`Unexpected operation named \`${operation}\`. Possible ones are\x20
         \`disjunction\` and \`conjunction\`.`);
     }
 
@@ -194,15 +194,16 @@ class ConditionCollection {
    * @returns {Array}
    */
   exportAllConditions() {
-    return arrayReduce(this.filteringStates.getEntries(), (allConditions, [column, { operation, conditions }]) => {
-      allConditions.push({
-        column,
-        operation,
-        conditions: arrayMap(conditions, ({ name, args }) => ({ name, args })),
-      });
+    return this.filteringStates.getEntries()
+      .reduce((allConditions, [column, { operation, conditions }]) => {
+        allConditions.push({
+          column,
+          operation,
+          conditions: conditions.map(({ name, args }) => ({ name, args: [...args] })),
+        });
 
-      return allConditions;
-    }, []);
+        return allConditions;
+      }, []);
   }
 
   /**
@@ -213,8 +214,8 @@ class ConditionCollection {
   importAllConditions(conditions) {
     this.clean();
 
-    arrayEach(conditions, (stack) => {
-      arrayEach(stack.conditions, condition => this.addCondition(stack.column, condition));
+    conditions.forEach((stack) => {
+      stack.conditions.forEach(condition => this.addCondition(stack.column, condition));
     });
   }
 

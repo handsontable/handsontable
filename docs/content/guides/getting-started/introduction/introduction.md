@@ -8,6 +8,9 @@ canonicalUrl: /
 react:
   id: fexwrrj2
   metaTitle: React Data Grid - Documentation | Handsontable
+angular:
+  id: igd8lqh8
+  metaTitle: Angular Data Grid - Documentation | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -24,29 +27,40 @@ You can use Handsontable for all types of data-rich, accessible applications, em
 
 Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. This guide will walk you through the basics, from installation to creating your first data grid.
 
-<div class="boxes-list gray small col3">
+<div class="boxes-list gray">
 
-- <i class="ico i-react"></i> 
+- <i class="ico i-react"></i>
 [React](@/react/guides/getting-started/installation/installation.md)
 - <i class="ico i-javascript"></i> 
-[JavaScript](@/guides/getting-started/installation/installation.md)
-- <i class="ico i-angular"></i> 
-[Angular](@/guides/integrate-with-angular/angular-installation/angular-installation.md)
-- <i class="ico i-vue"></i> 
-[Vue 2](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
+[JavaScript](@/javascript/guides/getting-started/installation/installation.md)
+- <i class="ico i-angular"></i>
+[Angular](@/angular/guides/getting-started/installation/installation.md)
 - <i class="ico i-vue"></i> 
 [Vue 3](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
 
 </div>
 
-## Examples with SSR
+## Examples 
 
-<div class="boxes-list gray col3">
+<div class="boxes-list gray">
 
-- [Next.js](https://stackblitz.com/edit/stackblitz-starters-ie1h3d?file=README.md)
-- [Astro](https://stackblitz.com/edit/withastro-astro-1dnjnf?file=README.md) 
-- [Remix](https://stackblitz.com/edit/remix-run-remix-yewmxd?file=README.md)
-- [Nuxt](https://stackblitz.com/edit/nuxt-starter-zqydax?file=README.md)
+- [Angular](https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version={{$currentVersion}})
+- [Vanilla JS](https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version={{$currentVersion}})
+- [React TS](https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version={{$currentVersion}})
+- [React JS](https://handsontable.com/codesandbox-browser?example-dir=react-js&handsontable-version={{$currentVersion}})
+- [TypeScript](https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version={{$currentVersion}})
+- [Vue 3](https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version={{$currentVersion}})
+
+</div>
+
+Examples with SSR (Server Side Rendering): 
+
+<div class="boxes-list gray">
+
+- [Next.js](https://handsontable.com/codesandbox-vm?example-dir=next.js&handsontable-version={{$currentVersion}})
+- [Astro](https://handsontable.com/codesandbox-vm?example-dir=astro&handsontable-version={{$currentVersion}}) 
+- [Remix](https://handsontable.com/codesandbox-vm?example-dir=remix&handsontable-version={{$currentVersion}})
+- [Nuxt](https://handsontable.com/codesandbox-vm?example-dir=nuxt&handsontable-version={{$currentVersion}})
 
 </div>
 
@@ -81,6 +95,7 @@ Handsontable's built-in features make it a perfect fit for applications across d
 ## Join our Community 🙌
 
 You are welcome to join our GitHub community. Discuss new releases, propose features, and report bugs on:
+
 - [GitHub Discussions](https://github.com/handsontable/handsontable/discussions)
 - [Developers' forum](https://forum.handsontable.com/)
 - [X](https://x.com/handsontable)
@@ -92,10 +107,7 @@ Implementing Handsontable requires a certain level of front-end development skil
 
 ## Stay in the loop
 
-- [Roadmap](@/guides/upgrade-and-migration/roadmap/roadmap.md)
 - [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md)
 - [Blog](https://handsontable.com/blog)
 - [X](https://x.com/handsontable)
 - [LinkedIn](https://linkedin.com/company/handsontable)
-
-<span class="decoration-right"></span>

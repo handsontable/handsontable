@@ -3,6 +3,7 @@ import {
   isItemDisabled,
   isItemSelectionDisabled,
   isItemSeparator,
+  isItemCheckable,
 } from './utils';
 import {
   addClass,
@@ -11,11 +12,13 @@ import {
   setAttribute,
 } from '../../../helpers/dom/element';
 import {
+  A11Y_MENU_ITEM_CHECKBOX,
   A11Y_DISABLED,
   A11Y_EXPANDED,
   A11Y_LABEL,
   A11Y_MENU_ITEM,
   A11Y_TABINDEX,
+  A11Y_CHECKED,
 } from '../../../helpers/a11y';
 
 /**
@@ -36,15 +39,16 @@ export function createMenuItemRenderer(mainTableHot) {
    * @param {number} col The visual index.
    * @param {string} prop The column property if used.
    * @param {string} value The cell value.
+   * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
-  return (menuHot, TD, row, col, prop, value) => {
-    if (TD.hasAttribute('ghost-table')) {
-      return;
-    }
-
+  return (menuHot, TD, row, col, prop, value, cellProperties) => {
     const item = menuHot.getSourceDataAtRow(row);
     const wrapper = mainTableHot.rootDocument.createElement('div');
     const itemValue = typeof value === 'function' ? value.call(mainTableHot) : value;
+    const ariaLabel = typeof item.ariaLabel === 'function' ? item.ariaLabel.call(mainTableHot) : item.ariaLabel;
+    const ariaChecked = typeof item.ariaChecked === 'function' ? item.ariaChecked.call(mainTableHot) : item.ariaChecked;
+
+    cellProperties.readOnlyCellClassName = '';
 
     empty(TD);
     addClass(wrapper, 'htItemWrapper');
@@ -55,8 +59,14 @@ export function createMenuItemRenderer(mainTableHot) {
         !isItemSeparator(item);
 
       setAttribute(TD, [
-        A11Y_MENU_ITEM(),
-        A11Y_LABEL(itemValue),
+        ...(isItemCheckable(item) ? [
+          A11Y_MENU_ITEM_CHECKBOX(),
+          A11Y_LABEL(ariaLabel),
+          A11Y_CHECKED(ariaChecked)
+        ] : [
+          A11Y_MENU_ITEM(),
+          A11Y_LABEL(itemValue)
+        ]),
         ...(isFocusable ? [A11Y_TABINDEX(-1)] : []),
         ...(isItemDisabled(item, mainTableHot) ? [A11Y_DISABLED()] : []),
         ...(isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
@@ -74,7 +84,7 @@ export function createMenuItemRenderer(mainTableHot) {
       TD.appendChild(item.renderer(menuHot, wrapper, row, col, prop, itemValue));
 
     } else {
-      fastInnerHTML(wrapper, itemValue);
+      fastInnerHTML(wrapper, itemValue, mainTableHot.getSettings().sanitizer);
     }
 
     if (isItemDisabled(item, mainTableHot)) {

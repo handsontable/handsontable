@@ -1,5 +1,5 @@
 import { IndexMapper } from './translations';
-import { Events } from './pluginHooks';
+import { Events } from './core/hooks';
 import {
   CellValue,
   RowObject,
@@ -19,7 +19,7 @@ import { BaseValidator } from './validators/base';
 import { Plugins } from './plugins';
 import { CellType } from './cellTypes';
 import { ShortcutManager } from './shortcuts';
-import { FocusManager } from './focusManager';
+import { GridFocusManager, FocusScopeManager } from './focusManager';
 
 type AlterActions = 'insert_row_above' | 'insert_row_below' |
                     'insert_col_start' | 'insert_col_end' |
@@ -33,7 +33,6 @@ export default class Core {
   batchExecution<R>(wrappedOperations: () => R, forceFlushChanges: boolean): R;
   batchRender<R>(wrappedOperations: () => R): R;
   clear(): void;
-  clearUndo(): void;
   colToProp(column: number): string | number;
   columnIndexMapper: IndexMapper;
   constructor(element: Element, options: GridSettings);
@@ -56,10 +55,11 @@ export default class Core {
   emptySelectedCells(): void;
   forceFullRender: boolean;
   getActiveEditor(): BaseEditor | undefined;
+  getActiveSelectionLayerIndex(): number;
   getCell(row: number, column: number, topmost?: boolean): HTMLTableCellElement | null;
   getCellEditor(cellMeta: CellMeta): BaseEditor;
   getCellEditor(row: number, column: number): BaseEditor;
-  getCellMeta(row: number, column: number): CellProperties;
+  getCellMeta(row: number, column: number, options?: { skipMetaExtension: boolean }): CellProperties;
   getCellMetaAtRow(row: number): CellProperties[];
   getCellRenderer(cellMeta: CellMeta): BaseRenderer;
   getCellRenderer(row: number, column: number): BaseRenderer;
@@ -69,10 +69,12 @@ export default class Core {
   getColHeader(): Array<number | string>;
   getColHeader(column: number, headerLevel?: number): number | string;
   getColumnMeta(column: number): ColumnSettings;
-  getColWidth(column: number): number;
+  getColWidth(column: number, source?: string): number;
   getCoords(element: Element | null): CellCoords;
   getCopyableData(row: number, column: number): string;
+  getCopyableSourceData(row: number, column: number): string;
   getCopyableText(startRow: number, startColumn: number, endRow: number, endColumn: number): string;
+  getCurrentThemeName(): string | undefined;
   getData(row?: number, column?: number, row2?: number, column2?: number): CellValue[];
   getDataAtCell(row: number, column: number): CellValue;
   getDataAtCol(column: number): CellValue[];
@@ -81,18 +83,33 @@ export default class Core {
   getDataAtRowProp(row: number, prop: string): CellValue;
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): CellType | 'mixed';
   getDirectionFactor(): 1 | -1;
-  getFocusManager(): FocusManager;
+  getFirstFullyVisibleColumn(): number | null;
+  getFirstFullyVisibleRow(): number | null;
+  getFirstPartiallyVisibleColumn(): number | null;
+  getFirstPartiallyVisibleRow(): number | null;
+  getFirstRenderedVisibleColumn(): number | null;
+  getFirstRenderedVisibleRow(): number | null;
+  getFocusManager(): GridFocusManager;
+  getFocusScopeManager(): FocusScopeManager;
   getInstance(): Core;
+  getLastFullyVisibleColumn(): number | null;
+  getLastFullyVisibleRow(): number | null;
+  getLastPartiallyVisibleColumn(): number | null;
+  getLastPartiallyVisibleRow(): number | null;
+  getLastRenderedVisibleColumn(): number | null;
+  getLastRenderedVisibleRow(): number | null;
   getPlugin<T extends keyof Plugins>(pluginName: T): Plugins[T];
   getPlugin(pluginName: string): Plugins['basePlugin'];
   getRowHeader(): Array<string | number>;
   getRowHeader(row: number): string | number;
-  getRowHeight(row: number): number;
+  getRowHeight(row: number, source?: string): number;
   getSchema(): RowObject;
   getSelected(): Array<[number, number, number, number]> | undefined;
   getSelectedLast(): number[] | undefined;
+  getSelectedActive(): number[] | undefined;
   getSelectedRange(): CellRange[] | undefined;
   getSelectedRangeLast(): CellRange | undefined;
+  getSelectedRangeActive(): CellRange | undefined;
   getSettings(): GridSettings;
   getShortcutManager(): ShortcutManager;
   getSourceData(row?: number, column?: number, row2?: number, column2?: number): CellValue[][] | RowObject[];
@@ -100,8 +117,11 @@ export default class Core {
   getSourceDataAtCell(row: number, column: number): CellValue;
   getSourceDataAtCol(column: number): CellValue[];
   getSourceDataAtRow(row: number): CellValue[] | RowObject;
+  getTableWidth(): number;
+  getTableHeight(): number;
   getTranslatedPhrase(dictionaryKey: string, extraArguments: any): string | null;
   getValue(): CellValue;
+  guid: string;
   hasColHeaders(): boolean;
   hasHook(key: keyof Events): boolean;
   hasRowHeaders(): boolean;
@@ -113,34 +133,33 @@ export default class Core {
   isExecutionSuspended(): boolean;
   isListening(): boolean;
   isLtr(): boolean;
-  isRedoAvailable(): boolean;
   isRenderSuspended(): boolean;
   isRtl(): boolean;
-  isUndoAvailable(): boolean;
   listen(): void;
   loadData(data: CellValue[][] | RowObject[], source?: string): void;
   populateFromArray(row: number, column: number, input: CellValue[][], endRow?: number,
     endColumn?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite'): void;
   propToCol<T extends number | string>(prop: string | number): T;
-  redo(): void;
   refreshDimensions(): void;
   removeCellMeta(row: number, column: number, key: (keyof CellMeta) | string): void;
   removeHook<K extends keyof Events>(key: K, callback: Events[K]): void;
   render(): void;
-  renderCall: boolean;
   resumeExecution(): void;
   resumeRender(): void;
+  rootContainer: HTMLElement;
   rootDocument: Document;
   rootElement: HTMLElement;
+  rootGridElement: HTMLElement;
+  rootPortalElement: HTMLElement;
   rootWindow: Window;
+  rootWrapperElement: HTMLElement;
   rowIndexMapper: IndexMapper;
   runHooks(key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
-  scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: 'top' | 'bottom', horizontalSnap?: 'start' | 'end', considerHiddenIndexes?: boolean }): boolean;
+  scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: 'top' | 'bottom', horizontalSnap?: 'start' | 'end', considerHiddenIndexes?: boolean }, callback?: () => void): boolean;
   scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean, considerHiddenIndexes?: boolean): boolean;
   scrollToFocusedCell(callback?: () => void): void;
   selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean, options?: { focusPosition?: SimpleCellCoords | CellCoords, disableHeadersHighlight?: boolean }): void;
-  selectCell(row: number, column: number, endRow?: number, endColumn?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
-  selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
+  selectCell(row: number, column: number | string, endRow?: number, endColumn?: number | string, scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectCells(coords: Array<[number, number | string, number, number | string]> | CellRange[], scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectColumns(startColumn: number | string, endColumn?: number | string, focusPosition?: number | SimpleCellCoords | CellCoords): boolean;
   selectRows(startRow: number, endRow?: number, focusPosition?: number | SimpleCellCoords | CellCoords): boolean;
@@ -164,10 +183,10 @@ export default class Core {
   toTableElement(): HTMLTableElement;
   toVisualColumn(column: number): number;
   toVisualRow(row: number): number;
-  undo(): void;
   unlisten(): void;
   updateData(data: CellValue[][] | RowObject[], source?: string): void;
   updateSettings(settings: GridSettings, init?: boolean): void;
+  useTheme(themeName: string|boolean|undefined): void;
   validateCell(value: any, cellProperties: CellProperties, callback: (valid: boolean) => void, source: string): void;
   validateCells(callback?: (valid: boolean) => void): void;
   validateColumns(columns: number[], callback?: (valid: boolean) => void): void;

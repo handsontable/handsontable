@@ -39,21 +39,21 @@ describe('HandsontableEditor (RTL mode)', () => {
       }
     });
 
-    it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+    it('should render an editable editor\'s element without messing with "dir" attribute', async() => {
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         editor: 'handsontable',
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       const editableElement = getActiveEditor().TEXTAREA;
 
       expect(editableElement.getAttribute('dir')).toBeNull();
     });
 
-    it('should render an editor in specified position at cell 0, 0', () => {
+    it('should render an editor in specified position at cell 0, 0', async() => {
       handsontable({
         layoutDirection,
         columns: [
@@ -67,16 +67,16 @@ describe('HandsontableEditor (RTL mode)', () => {
         ],
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-      keyDown('enter');
+      await keyDown('enter');
 
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 0), editor.outerWidth(), true));
     });
 
-    it('should render an editor in specified position at cell 0, 0 when all headers are selected', () => {
+    it('should render an editor in specified position at cell 0, 0 when all headers are selected', async() => {
       handsontable({
         layoutDirection,
         rowHeaders: true,
@@ -92,21 +92,22 @@ describe('HandsontableEditor (RTL mode)', () => {
         ],
       });
 
-      selectAll();
-      listen();
+      await listen();
+
+      await selectAll();
 
       const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-      keyDown('F2');
+      await keyDown('F2');
 
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 0), editor.outerWidth(), true));
     });
 
     it('should render an editor in specified position while opening an editor from top to bottom when ' +
-      'top and bottom overlays are enabled', () => {
+      'top and bottom overlays are enabled', async() => {
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(8, 2),
+        data: createSpreadsheetData(8, 2),
         rowHeaders: true,
         colHeaders: true,
         fixedRowsTop: 3,
@@ -123,16 +124,16 @@ describe('HandsontableEditor (RTL mode)', () => {
         ],
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-      keyDown('enter');
+      await keyDown('enter');
 
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 0, true), editor.outerWidth(), true));
 
-      keyDown('enter');
-      keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
       // Cells that do not touch the edges of the table have an additional top border.
       const editorOffset = () => ({
@@ -142,43 +143,43 @@ describe('HandsontableEditor (RTL mode)', () => {
 
       expect(editorOffset()).toEqual(offsetForRtl(getCell(1, 0, true), editor.outerWidth(), true));
 
-      keyDown('enter');
-      keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
       expect(editorOffset()).toEqual(offsetForRtl(getCell(2, 0, true), editor.outerWidth(), true));
 
-      keyDown('enter');
-      keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
       expect(editorOffset()).toEqual(offsetForRtl(getCell(3, 0, true), editor.outerWidth(), true));
 
-      keyDown('enter');
-      keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
       expect(editorOffset()).toEqual(offsetForRtl(getCell(4, 0, true), editor.outerWidth(), true));
 
-      keyDown('enter');
-      keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
       // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
       expect(editor.offset()).toEqual(offsetForRtl(getCell(5, 0, true), editor.outerWidth(), true));
 
-      keyDown('enter');
-      keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
       expect(editorOffset()).toEqual(offsetForRtl(getCell(6, 0, true), editor.outerWidth(), true));
 
-      keyDown('enter');
-      keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
       expect(editorOffset()).toEqual(offsetForRtl(getCell(7, 0, true), editor.outerWidth(), true));
     });
 
     it('should render an editor in specified position while opening an editor from right to left when ' +
-      'right overlay is enabled', () => {
+      'right overlay is enabled', async() => {
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         rowHeaders: true,
         colHeaders: true,
         fixedColumnsStart: 3,
@@ -189,40 +190,40 @@ describe('HandsontableEditor (RTL mode)', () => {
         }
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-      keyDown('enter');
+      await keyDown('enter');
 
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 0, true), editor.outerWidth(), true));
 
-      selectCell(0, 1);
-      keyDown('enter');
+      await selectCell(0, 1);
+      await keyDown('enter');
 
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 1, true), editor.outerWidth()));
 
-      selectCell(0, 2);
-      keyDown('enter');
+      await selectCell(0, 2);
+      await keyDown('enter');
 
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 2, true), editor.outerWidth()));
 
-      selectCell(0, 3);
-      keyDown('enter');
+      await selectCell(0, 3);
+      await keyDown('enter');
 
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 3, true), editor.outerWidth()));
 
-      selectCell(0, 4);
-      keyDown('enter');
+      await selectCell(0, 4);
+      await keyDown('enter');
 
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 4, true), editor.outerWidth()));
     });
 
     it('should render an editor in specified position while opening an editor from top to bottom when ' +
-      'top and bottom overlays are enabled and the first row of the both overlays are hidden', () => {
+      'top and bottom overlays are enabled and the first row of the both overlays are hidden', async() => {
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(8, 2),
+        data: createSpreadsheetData(8, 2),
         rowHeaders: true,
         colHeaders: true,
         fixedRowsTop: 3,
@@ -243,17 +244,17 @@ describe('HandsontableEditor (RTL mode)', () => {
         ],
       });
 
-      selectCell(1, 0);
+      await selectCell(1, 0);
 
       const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-      keyDown('enter');
+      await keyDown('enter');
 
       // First renderable row index.
       expect(editor.offset()).toEqual(offsetForRtl(getCell(1, 0, true), editor.outerWidth(), true));
 
-      keyDown('enter');
-      keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
       // Cells that do not touch the edges of the table have an additional top border.
       const editorOffset = () => ({
@@ -263,33 +264,33 @@ describe('HandsontableEditor (RTL mode)', () => {
 
       expect(editorOffset()).toEqual(offsetForRtl(getCell(2, 0, true), editor.outerWidth(), true));
 
-      keyDown('enter');
-      keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
       expect(editorOffset()).toEqual(offsetForRtl(getCell(3, 0, true), editor.outerWidth(), true));
 
-      keyDown('enter');
-      keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
       expect(editorOffset()).toEqual(offsetForRtl(getCell(4, 0, true), editor.outerWidth(), true));
 
-      keyDown('enter');
-      keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
       // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
       expect(editor.offset()).toEqual(offsetForRtl(getCell(6, 0, true), editor.outerWidth(), true));
 
-      keyDown('enter');
-      keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
       expect(editorOffset()).toEqual(offsetForRtl(getCell(7, 0, true), editor.outerWidth(), true));
     });
 
     it('should render an editor in specified position while opening an editor from right to left when ' +
-      'right overlay is enabled and the first column of the overlay is hidden', () => {
+      'right overlay is enabled and the first column of the overlay is hidden', async() => {
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         rowHeaders: true,
         colHeaders: true,
         fixedColumnsStart: 3,
@@ -304,27 +305,27 @@ describe('HandsontableEditor (RTL mode)', () => {
         }
       });
 
-      selectCell(0, 1);
+      await selectCell(0, 1);
 
       const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-      keyDown('enter');
+      await keyDown('enter');
 
       // First renderable column index.
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 1, true), editor.outerWidth(), true));
 
-      selectCell(0, 2);
-      keyDown('enter');
+      await selectCell(0, 2);
+      await keyDown('enter');
 
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 2, true), editor.outerWidth()));
 
-      selectCell(0, 3);
-      keyDown('enter');
+      await selectCell(0, 3);
+      await keyDown('enter');
 
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 3, true), editor.outerWidth()));
 
-      selectCell(0, 4);
-      keyDown('enter');
+      await selectCell(0, 4);
+      await keyDown('enter');
 
       expect(editor.offset()).toEqual(offsetForRtl(getCell(0, 4, true), editor.outerWidth()));
     });

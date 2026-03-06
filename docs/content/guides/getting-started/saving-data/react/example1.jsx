@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -55,29 +54,14 @@ const ExampleComponent = () => {
     <>
       <div className="example-controls-container">
         <div className="controls">
-          <button
-            id="load"
-            className="button button--primary button--blue"
-            onClick={loadClickCallback}
-          >
+          <button id="load" className="button button--primary button--blue" onClick={loadClickCallback}>
             Load data
           </button>
-          &nbsp;
-          <button
-            id="save"
-            className="button button--primary button--blue"
-            onClick={saveClickCallback}
-          >
+          <button id="save" className="button button--primary button--blue" onClick={saveClickCallback}>
             Save data
           </button>
           <label>
-            <input
-              type="checkbox"
-              name="autosave"
-              id="autosave"
-              checked={isAutosave}
-              onClick={autosaveClickCallback}
-            />
+            <input type="checkbox" name="autosave" id="autosave" checked={isAutosave} onClick={autosaveClickCallback} />
             Autosave
           </label>
         </div>
@@ -112,14 +96,8 @@ const ExampleComponent = () => {
             },
             body: JSON.stringify({ data: change }),
           }).then(() => {
-            setOutput(
-              `Autosaved (${change?.length} cell${
-                (change?.length || 0) > 1 ? 's' : ''
-              })`
-            );
-            console.log(
-              'The POST request is only used here for the demo purposes'
-            );
+            setOutput(`Autosaved (${change?.length} cell${(change?.length || 0) > 1 ? 's' : ''})`);
+            console.log('The POST request is only used here for the demo purposes');
           });
         }}
       />

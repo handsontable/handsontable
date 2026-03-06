@@ -1,13 +1,13 @@
 import { useRef } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
+
   const copyBtnClickCallback = function () {
     document.execCommand('copy');
   };
@@ -30,6 +30,14 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div className="controls">
+        <button id="copy" onMouseDown={() => copyBtnMousedownCallback()} onClick={() => copyBtnClickCallback()}>
+          Select and copy cell B2
+        </button>
+        <button id="cut" onMouseDown={() => cutBtnMousedownCallback()} onClick={() => cutBtnClickCallback()}>
+          Select and cut cell B2
+        </button>
+      </div>
       <HotTable
         ref={hotRef}
         rowHeaders={true}
@@ -47,22 +55,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button
-          id="copy"
-          onMouseDown={() => copyBtnMousedownCallback()}
-          onClick={() => copyBtnClickCallback()}
-        >
-          Select and copy cell B2
-        </button>
-        <button
-          id="cut"
-          onMouseDown={() => cutBtnMousedownCallback()}
-          onClick={() => cutBtnClickCallback()}
-        >
-          Select and cut cell B2
-        </button>
-      </div>
     </>
   );
 };

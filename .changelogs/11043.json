@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem, where disabling `navigableHeaders` broke keyboard navigation in the first row, if the option was previously enabled and used.",
-  "type": "fixed",
-  "issueOrPR": 11043,
-  "breaking": false,
-  "framework": "none"
-}

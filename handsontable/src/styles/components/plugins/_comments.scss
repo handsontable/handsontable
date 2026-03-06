@@ -1,0 +1,63 @@
+@use "../../utils/mixins";
+
+// Comments
+
+@mixin output {
+  .handsontable {
+    .htCommentCell {
+      position: relative;
+
+      &::after {
+        @include mixins.pseudo;
+
+        position: absolute;
+        top: 0;
+        inset-inline-end: 0;
+        inset-inline-start: unset;
+        border-inline-start: var(--ht-comments-indicator-size, 4px) solid
+          transparent;
+        border-inline-end: none;
+        border-top: var(--ht-comments-indicator-size, 4px) solid
+          var(--ht-comments-indicator-color, #1a42e8);
+      }
+    }
+  }
+
+  .htCommentsContainer {
+    .htComments {
+      display: none;
+      z-index: 1059;
+      position: absolute;
+    }
+
+    .htCommentTextArea {
+      @include mixins.font-family;
+      @include mixins.menu-box-shadow;
+
+      width: 240px;
+      height: 88px;
+      font-size: var(--ht-font-size);
+      line-height: var(--ht-line-height);
+      font-weight: var(--ht-font-weight);
+      margin: 0 -1px;
+      padding: var(--ht-comments-textarea-vertical-padding)
+        var(--ht-comments-textarea-horizontal-padding);
+      border: var(--ht-comments-textarea-border-width, 1px) solid
+        var(--ht-comments-textarea-border-color, transparent);
+      border-inline-start: var(--ht-comments-textarea-border-width, 1px) solid
+        var(--ht-comments-textarea-border-color, #1a42e8);
+      color: var(--ht-comments-textarea-foreground-color);
+      background-color: var(--ht-comments-textarea-background-color, #ffffff);
+      outline: 0 !important;
+      box-sizing: border-box;
+      -webkit-appearance: none;
+
+      &:focus {
+        border: var(--ht-comments-textarea-focus-border-width, 1px) solid
+          var(--ht-comments-textarea-focus-border-color, #1a42e8);
+        color: var(--ht-comments-textarea-focus-foreground-color);
+        background-color: var(--ht-comments-textarea-focus-background-color, #ffffff);
+      }
+    }
+  }
+}

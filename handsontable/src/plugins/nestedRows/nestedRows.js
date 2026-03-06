@@ -9,8 +9,6 @@ import { TrimmingMap } from '../../translations';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import RowMoveController from './utils/rowMoveController';
 
-import './nestedRows.scss';
-
 export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
@@ -71,6 +69,12 @@ export class NestedRows extends BasePlugin {
    * @type {boolean}
    */
   #skipCoreAPIModifiers = false;
+  /**
+   * State of the first render.
+   *
+   * @type {boolean}
+   */
+  #isFirstRender = true;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -91,6 +95,7 @@ export class NestedRows extends BasePlugin {
     }
 
     this.collapsedRowsMap = this.hot.rowIndexMapper.registerMap('nestedRows', new TrimmingMap());
+    this.#isFirstRender = true;
 
     this.dataManager = new DataManager(this, this.hot);
     this.collapsingUI = new CollapsingUI(this, this.hot);
@@ -99,6 +104,7 @@ export class NestedRows extends BasePlugin {
     this.rowMoveController = new RowMoveController(this);
 
     this.addHook('afterInit', (...args) => this.#onAfterInit(...args));
+    this.addHook('afterRender', (...args) => this.#onAfterRender(...args));
     this.addHook('beforeViewRender', (...args) => this.#onBeforeViewRender(...args));
     this.addHook('modifyRowData', (...args) => this.onModifyRowData(...args));
     this.addHook('modifySourceLength', (...args) => this.onModifySourceLength(...args));
@@ -164,7 +170,7 @@ export class NestedRows extends BasePlugin {
       .addShortcut({
         keys: [['Enter']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeLast();
+          const { highlight } = this.hot.getSelectedRangeActive();
           const row = this.collapsingUI.translateTrimmedRow(highlight.row);
 
           if (this.collapsingUI.areChildrenCollapsed(row)) {
@@ -177,9 +183,9 @@ export class NestedRows extends BasePlugin {
           return false;
         },
         runOnlyIf: () => {
-          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-          return highlight && this.hot.getSelectedRangeLast()?.isSingle() &&
+          return highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
             this.hot.selection.isCellVisible(highlight) && highlight.col === -1 && highlight.row >= 0;
         },
         group: SHORTCUTS_GROUP,
@@ -448,6 +454,22 @@ export class NestedRows extends BasePlugin {
    */
   #onAfterInit() {
     this.headersUI.updateRowHeaderWidth();
+  }
+
+  /**
+   * `afterRender` hook callback.
+   * Recalculates table dimensions after the first render. Fixes the wtHider size being too small on initial display.
+   */
+  #onAfterRender() {
+    if (this.#isFirstRender && this.hot.view) {
+      this.#isFirstRender = false;
+
+      this.hot.rootWindow.requestAnimationFrame(() => {
+        if (this.hot && this.hot.view && !this.hot.isDestroyed) {
+          this.hot.view.adjustElementsSize(true);
+        }
+      });
+    }
   }
 
   /**

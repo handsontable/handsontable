@@ -1,4 +1,7 @@
-import { align, getAlignmentClasses, checkSelectionConsistency, markLabelAsSelected } from '../utils';
+import {
+  align,
+  getAlignmentClasses,
+} from '../utils';
 import { KEY as SEPARATOR } from './separator';
 import * as C from '../../../i18n/constants';
 
@@ -18,7 +21,7 @@ export default function alignmentItem() {
         return true;
       }
 
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (!range) {
         return true;
@@ -35,20 +38,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:left`,
           name() {
-            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
-
-              if (className && className.indexOf('htLeft') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
-              label = markLabelAsSelected(label);
-            }
-
-            return label;
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT);
           },
           callback() {
             const selectedRange = this.getSelectedRange();
@@ -66,20 +56,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:center`,
           name() {
-            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
-
-              if (className && className.indexOf('htCenter') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
-              label = markLabelAsSelected(label);
-            }
-
-            return label;
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER);
           },
           callback() {
             const selectedRange = this.getSelectedRange();
@@ -97,20 +74,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:right`,
           name() {
-            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
-
-              if (className && className.indexOf('htRight') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
-              label = markLabelAsSelected(label);
-            }
-
-            return label;
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT);
           },
           callback() {
             const selectedRange = this.getSelectedRange();
@@ -128,20 +92,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:justify`,
           name() {
-            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
-
-              if (className && className.indexOf('htJustify') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
-              label = markLabelAsSelected(label);
-            }
-
-            return label;
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY);
           },
           callback() {
             const selectedRange = this.getSelectedRange();
@@ -162,20 +113,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:top`,
           name() {
-            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
-
-              if (className && className.indexOf('htTop') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
-              label = markLabelAsSelected(label);
-            }
-
-            return label;
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP);
           },
           callback() {
             const selectedRange = this.getSelectedRange();
@@ -193,20 +131,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:middle`,
           name() {
-            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
-
-              if (className && className.indexOf('htMiddle') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
-              label = markLabelAsSelected(label);
-            }
-
-            return label;
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE);
           },
           callback() {
             const selectedRange = this.getSelectedRange();
@@ -224,20 +149,7 @@ export default function alignmentItem() {
         {
           key: `${KEY}:bottom`,
           name() {
-            let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
-
-              if (className && className.indexOf('htBottom') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
-              label = markLabelAsSelected(label);
-            }
-
-            return label;
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM);
           },
           callback() {
             const selectedRange = this.getSelectedRange();

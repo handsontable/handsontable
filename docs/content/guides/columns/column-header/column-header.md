@@ -8,6 +8,9 @@ canonicalUrl: /column-header
 react:
   id: 5e0tnexi
   metaTitle: Column headers - React Data Grid | Handsontable
+angular:
+  id: owl7h4t1
+  metaTitle: Column headers - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
@@ -50,6 +53,17 @@ Setting the [`colHeaders`](@/api/options.md#colheaders) option to `true` enables
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-header/angular/example1.ts)
+@[code](@/content/guides/columns/column-header/angular/example1.html)
+
+:::
+
+:::
+
 ## Header labels as an array
 An array of labels can be used to set the [`colHeaders`](@/api/options.md#colheaders) as shown in the example below:
 
@@ -70,6 +84,17 @@ An array of labels can be used to set the [`colHeaders`](@/api/options.md#colhea
 
 @[code](@/content/guides/columns/column-header/react/example2.jsx)
 @[code](@/content/guides/columns/column-header/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-header/angular/example2.ts)
+@[code](@/content/guides/columns/column-header/angular/example2.html)
 
 :::
 
@@ -100,7 +125,18 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 
 :::
 
-## Header labels alignment and styling
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-header/angular/example3.ts)
+@[code](@/content/guides/columns/column-header/angular/example3.html)
+
+:::
+
+:::
+
+## Customize column headers
 
 You can align the text in the header label with the [`headerClassName`](@/api/options.md#headerclassname) option. Setting it to `htLeft`, `htCenter`, or `htRight` will align the header labels to the left, center, or right, respectively.
 
@@ -108,9 +144,10 @@ You can also set the alignment for a specific column by using the [`columns`](@/
 
 ::: only-for javascript
 
-::: example #example4
+::: example #example4 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-header/javascript/example4.js)
+@[code](@/content/guides/columns/column-header/javascript/example4.ts)
 
 :::
 
@@ -118,9 +155,21 @@ You can also set the alignment for a specific column by using the [`columns`](@/
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-header/react/example4.jsx)
+@[code](@/content/guides/columns/column-header/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-header/angular/example4.ts)
+@[code](@/content/guides/columns/column-header/angular/example4.html)
 
 :::
 
@@ -130,11 +179,11 @@ If you want to style the header labels, you can pass any number of class names, 
 
 ::: only-for javascript
 
-::: example #example5 --css 1 --js 2
+::: example #example5 --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-header/javascript/example5.css)
-
 @[code](@/content/guides/columns/column-header/javascript/example5.js)
+@[code](@/content/guides/columns/column-header/javascript/example5.ts)
 
 :::
 
@@ -142,11 +191,22 @@ If you want to style the header labels, you can pass any number of class names, 
 
 ::: only-for react
 
-::: example #example5 :react --css 1 --js 2
+::: example #example5 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-header/react/example5.css)
-
 @[code](@/content/guides/columns/column-header/react/example5.jsx)
+@[code](@/content/guides/columns/column-header/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-header/angular/example5.ts)
+@[code](@/content/guides/columns/column-header/angular/example5.html)
 
 :::
 

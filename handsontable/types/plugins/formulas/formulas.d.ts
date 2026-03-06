@@ -32,7 +32,7 @@ export class Formulas extends BasePlugin {
 
   engine: HyperFormula | null;
   sheetName: string | null;
-  get sheetId(): number | null;
+  sheetId: number | null;
 
   isEnabled(): boolean;
   addSheet(sheetName?: string | null, sheetData?: CellValue[][]): string | boolean;

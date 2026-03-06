@@ -21,9 +21,9 @@ describe('keyboard navigation', () => {
         type: 'select',
       });
 
-      selectCell(1, 1);
-      keyDownUp('enter');
-      keyDownUp('tab');
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
     });
@@ -36,9 +36,9 @@ describe('keyboard navigation', () => {
         type: 'select',
       });
 
-      selectCell(1, 1);
-      keyDownUp('space');
-      keyDownUp('tab');
+      await selectCell(1, 1);
+      await keyDownUp('space');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
     });
@@ -53,9 +53,9 @@ describe('keyboard navigation', () => {
         type: 'select',
       });
 
-      selectCell(1, 1);
-      keyDownUp('enter');
-      keyDownUp(['shift', 'tab']);
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+      await keyDownUp(['shift', 'tab']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
     });
@@ -68,9 +68,9 @@ describe('keyboard navigation', () => {
         type: 'select',
       });
 
-      selectCell(1, 1);
-      keyDownUp('space');
-      keyDownUp(['shift', 'tab']);
+      await selectCell(1, 1);
+      await keyDownUp('space');
+      await keyDownUp(['shift', 'tab']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
     });

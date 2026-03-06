@@ -12,7 +12,11 @@ const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const headerAnchor = require('./plugins/markdown-it-header-anchor');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
-const includeCodeSnippet = require('./plugins/markdown-it-include-code-snippet');
+const tableWrapper = require('./plugins/markdown-it-table-wrapper');
+const includeCodeSnippetPlugin = require('./plugins/include-code-snippet');
+const thirdPartyScripts = require('./3rdparty-scripts');
+const rawMarkdownPlugin = require('./plugins/raw-markdown');
+
 const {
   createSymlinks,
   getDocsBase,
@@ -25,29 +29,12 @@ const {
 
 require('dotenv').config();
 
-const DOCSEARCH_API_KEY = process.env.DOCSEARCH_API_KEY;
-const DOCSEARCH_APP_ID = process.env.DOCSEARCH_APP_ID;
-
-if (!DOCSEARCH_API_KEY || !DOCSEARCH_APP_ID) {
-  throw new Error('DOCSEARCH_API_KEY or DOCSEARCH_APP_ID is missing in docs/.env');
-}
-
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction
   ? [
     // Google Tag Manager, an extra element within the `ssr.html` file.
-    [
-      'script',
-      {},
-      `
-      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-      })(window,document,'script','dataLayer','GTM-55L5D3');
-    `,
-    ],
+    ...thirdPartyScripts.productionOnly,
   ]
   : [];
 
@@ -56,6 +43,13 @@ const environmentHead = isProduction
 createSymlinks();
 
 module.exports = {
+  shouldPrefetch: (_, type) => {
+    if (type === 'script') {
+      return false;
+    }
+
+    return true;
+  },
   define: {
     GA_ID: 'UA-33932793-7',
   },
@@ -95,13 +89,25 @@ module.exports = {
       'meta',
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
     ],
-    // Sentry monitoring
+    ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
     [
       'script',
       {},
       `
       window.sentryOnLoad = function () {
         Sentry.init({
+          beforeSend(event, hint) {
+            const error = hint.originalException;
+            if (error) {
+              if (error.cause?.handsontable) {
+                return null;
+              }
+              if (error.message.match(/ColumnSummary plugin: cell at/i)) {
+                return null;
+              }
+            }
+            return event;
+          },
           environment: '${buildMode || 'testing'}',
           tracesSampleRate: 0,
           profilesSampleRate: 0,
@@ -120,53 +126,7 @@ module.exports = {
       };
     `,
     ],
-    [
-      'script',
-      {
-        id: 'Sentry.io',
-        src: 'https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js',
-        crossorigin: 'anonymous',
-        defer: true,
-      },
-    ],
-    // Cookiebot - cookie consent popup
-    [
-      'script',
-      {
-        id: 'Cookiebot',
-        src: 'https://consent.cookiebot.com/uc.js',
-        'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646',
-        defer: true,
-      },
-    ],
-    // Headwayapp
-    [
-      'script',
-      {
-        id: 'Headwayapp',
-        src: 'https://cdn.headwayapp.co/widget.js',
-        defer: true,
-      },
-    ],
-    ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
-    [
-      'script',
-      {},
-      `
-      (function(w, d) {
-        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
-        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
-        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
-
-        if (preferredScheme === 'dark') {
-          d.documentElement.classList.add('theme-dark');
-          d.documentElement.setAttribute('data-theme', 'dark');
-        }
-
-        w.SELECTED_COLOR_SCHEME = preferredScheme;
-      }(window, document));
-    `,
-    ],
+    ...thirdPartyScripts.allEnvironments,
     ...environmentHead,
   ],
   markdown: {
@@ -183,10 +143,10 @@ module.exports = {
       rel: 'nofollow noopener noreferrer',
     },
     extendMarkdown(md) {
-      md.use(includeCodeSnippet)
-        .use(conditionalContainer)
+      md.use(conditionalContainer)
         .use(firstHeaderInjection)
-        .use(headerAnchor);
+        .use(headerAnchor)
+        .use(tableWrapper);
     },
   },
   configureWebpack: {
@@ -208,6 +168,8 @@ module.exports = {
     },
   },
   plugins: [
+    rawMarkdownPlugin,
+    includeCodeSnippetPlugin,
     extendPageDataPlugin,
     'tabs',
     [
@@ -254,10 +216,20 @@ module.exports = {
 
             token.attrs.forEach(([name, value], index) => {
               if (name === 'href') {
-                token.attrs[index][1] = decodeURIComponent(value).replace(
-                  '{{$basePath}}',
-                  getDocsBaseFullUrl()
-                );
+                if (decodeURIComponent(value).includes('{{$currentVersion}}')) {
+                  const version = getThisDocsVersion();
+
+                  token.attrs[index][1] = decodeURIComponent(value).replace(
+                    '{{$currentVersion}}',
+                    version === 'next' ? 'latest' : version
+                  );
+                } else if (decodeURIComponent(value).includes('{{$basePath}}')) {
+                  token.attrs[index][1] = decodeURIComponent(value).replace(
+                    '{{$basePath}}',
+                    getDocsBaseFullUrl()
+                  );
+                }
+
               }
             });
           });
@@ -385,13 +357,13 @@ module.exports = {
         'https://twitter.com/handsontable',
         'https://www.linkedin.com/company/handsontable',
       ],
-      image: `${getDocsBaseFullUrl()}/img/handsonable-docs-cover.png`
+      image: `${getDocsBaseFullUrl()}/img/handsontable-docs-cover.png`
     },
     searchPlaceholder: 'Search...',
     algolia: {
-      indexName: 'handsontable',
-      apiKey: DOCSEARCH_API_KEY,
-      appId: DOCSEARCH_APP_ID
+      indexName: 'handsontable', // or 'handsontable-with-versions'
+      apiKey: 'c2430302c91e0162df988d4b383c9d8b',
+      appId: 'MMN6OTJMGX'
     }
   },
 };

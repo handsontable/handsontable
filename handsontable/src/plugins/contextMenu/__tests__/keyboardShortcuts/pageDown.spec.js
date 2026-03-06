@@ -12,13 +12,13 @@ describe('ContextMenu keyboard shortcut', () => {
 
   describe('"PageDown"', () => {
     it('should move the menu item selection to the last item that is visible in the browser viewport ' +
-       'when there is no initial selection', () => {
+       'when there is no initial selection', async() => {
       handsontable({
         contextMenu: generateRandomContextMenuItems(200),
       });
 
-      contextMenu();
-      keyDownUp('pagedown');
+      await contextMenu();
+      await keyDownUp('pagedown');
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 200');
       // check if the viewport is scrolled to the bottom
@@ -27,14 +27,14 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should move the menu item selection to the last item when the menu fits within the browser viewport ' +
-       'and there is initial selection', () => {
+       'and there is initial selection', async() => {
       handsontable({
         contextMenu: generateRandomContextMenuItems(10),
       });
 
-      contextMenu();
+      await contextMenu();
       getPlugin('contextMenu').menu.getNavigator().toFirstItem();
-      keyDownUp('pagedown');
+      await keyDownUp('pagedown');
 
       const hotMenu = getPlugin('contextMenu').menu.hotMenu;
 
@@ -42,25 +42,21 @@ describe('ContextMenu keyboard shortcut', () => {
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 10');
     });
 
-    it('should move the menu item selection down by the count of visible items in the browser viewport', () => {
+    it('should move the menu item selection down by the count of visible items in the browser viewport', async() => {
       handsontable({
         contextMenu: generateRandomContextMenuItems(200),
       });
 
-      contextMenu();
+      await contextMenu();
       getPlugin('contextMenu').menu.getNavigator().toFirstItem();
-      keyDownUp('pagedown');
+      await keyDownUp('pagedown');
 
+      const menuView = getPlugin('contextMenu').menu.hotMenu.view;
       let firstVisibleRow = 0;
 
       {
-        // create rows calculator that allows gather information about what rows are already
-        // visible in the browser viewport. The -2 argument means that the calculator takes into
-        // account rows that are partially visible.
-        const {
-          startRow,
-          endRow,
-        } = getPlugin('contextMenu').menu.hotMenu.view._wt.wtViewport.createRowsCalculator(-2);
+        const startRow = menuView.getFirstPartiallyVisibleRow();
+        const endRow = menuView.getLastPartiallyVisibleRow();
 
         expect(startRow).toBe(firstVisibleRow);
         expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe(`Test item ${endRow}`);
@@ -68,13 +64,11 @@ describe('ContextMenu keyboard shortcut', () => {
         firstVisibleRow = (endRow - 1);
       }
 
-      keyDownUp('pagedown');
+      await keyDownUp('pagedown');
 
       {
-        const {
-          startRow,
-          endRow,
-        } = getPlugin('contextMenu').menu.hotMenu.view._wt.wtViewport.createRowsCalculator(-2);
+        const startRow = menuView.getFirstPartiallyVisibleRow();
+        const endRow = menuView.getLastPartiallyVisibleRow();
 
         expect(startRow).toBe(firstVisibleRow);
         expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe(`Test item ${endRow}`);
@@ -82,13 +76,11 @@ describe('ContextMenu keyboard shortcut', () => {
         firstVisibleRow = (endRow - 1);
       }
 
-      keyDownUp('pagedown');
+      await keyDownUp('pagedown');
 
       {
-        const {
-          startRow,
-          endRow,
-        } = getPlugin('contextMenu').menu.hotMenu.view._wt.wtViewport.createRowsCalculator(-2);
+        const startRow = menuView.getFirstPartiallyVisibleRow();
+        const endRow = menuView.getLastPartiallyVisibleRow();
 
         expect(startRow).toBe(firstVisibleRow);
         expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe(`Test item ${endRow}`);
@@ -96,13 +88,11 @@ describe('ContextMenu keyboard shortcut', () => {
         firstVisibleRow = (endRow - 1);
       }
 
-      keyDownUp('pagedown');
+      await keyDownUp('pagedown');
 
       {
-        const {
-          startRow,
-          endRow,
-        } = getPlugin('contextMenu').menu.hotMenu.view._wt.wtViewport.createRowsCalculator(-2);
+        const startRow = menuView.getFirstPartiallyVisibleRow();
+        const endRow = menuView.getLastPartiallyVisibleRow();
 
         expect(startRow).toBe(firstVisibleRow);
         expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe(`Test item ${endRow}`);

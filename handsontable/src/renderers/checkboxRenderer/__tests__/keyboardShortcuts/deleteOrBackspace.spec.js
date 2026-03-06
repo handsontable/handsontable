@@ -14,7 +14,7 @@ describe('CheckboxRenderer', () => {
       }
     });
 
-    it('should change checkbox state to unchecked', () => {
+    it('should change checkbox state to unchecked', async() => {
       handsontable({
         data: [[true], [false], [true]],
         columns: [
@@ -33,10 +33,10 @@ describe('CheckboxRenderer', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [false], [true]]);
 
-      selectCell(0, 0);
-      keyDownUp(key);
-      selectCell(0, 1);
-      keyDownUp(key);
+      await selectCell(0, 0);
+      await keyDownUp(key);
+      await selectCell(0, 1);
+      await keyDownUp(key);
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -50,7 +50,33 @@ describe('CheckboxRenderer', () => {
         .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
     });
 
-    it('should change state to unchecked (from #bad-value# state)', () => {
+    it('should be possible to change the state of the cell in the active selection layer', async() => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        data: [
+          [true], [true], [true], [true], [true], [true],
+        ],
+        columns: [
+          { type: 'checkbox' }
+        ]
+      });
+
+      await simulateClick(getCell(1, 0));
+      await keyDown('control/meta');
+      await simulateClick(getCell(3, -1));
+      await keyDownUp('control/meta');
+      await keyDownUp(['shift', 'tab']); // select the previous selection layer
+
+      await keyDownUp(key);
+
+      expect(getData()).toEqual([
+        [true], [false], [true], [false], [true], [true],
+      ]);
+    });
+
+    it('should change state to unchecked (from #bad-value# state)', async() => {
       handsontable({
         data: [['foo'], ['bar']],
         columns: [
@@ -65,10 +91,10 @@ describe('CheckboxRenderer', () => {
       expect(getDataAtCell(0, 0)).toBe('foo');
       expect(getDataAtCell(1, 0)).toBe('bar');
 
-      selectCell(0, 0);
-      keyDownUp(key);
-      selectCell(1, 0);
-      keyDownUp(key);
+      await selectCell(0, 0);
+      await keyDownUp(key);
+      await selectCell(1, 0);
+      await keyDownUp(key);
 
       expect(getDataAtCell(0, 0)).toBe(false);
       expect(getDataAtCell(1, 0)).toBe(false);
@@ -79,7 +105,35 @@ describe('CheckboxRenderer', () => {
         .toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit');
     });
 
-    it('should not change checkbox state when the column header is selected', () => {
+    it('should delete non-checkbox cell content when selected area is out of the table viewport (#dev-2106)', async() => {
+      handsontable({
+        data: createSpreadsheetData(100, 4).map(rowData => [...rowData, Math.random() > 0.5]),
+        width: 400,
+        height: 200,
+        columns: [
+          { type: 'text' },
+          { type: 'text' },
+          { type: 'text' },
+          { type: 'text' },
+          { type: 'checkbox' },
+        ]
+      });
+
+      await selectCells([[1, 1, 3, 3]]);
+      await scrollViewportTo({
+        row: countRows() - 1,
+        col: countCols() - 1,
+      });
+      await keyDownUp(key);
+
+      expect(getData(1, 1, 3, 3)).toEqual([
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+    });
+
+    it('should not change checkbox state when the column header is selected', async() => {
       handsontable({
         data: [[true], [false], [true]],
         columns: [
@@ -97,8 +151,8 @@ describe('CheckboxRenderer', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [false], [true]]);
 
-      selectCell(-1, 0);
-      keyDownUp(key);
+      await selectCell(-1, 0);
+      await keyDownUp(key);
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -108,7 +162,24 @@ describe('CheckboxRenderer', () => {
       expect(getData()).toEqual([[true], [false], [true]]);
     });
 
-    it('should not steal the event when the column header is selected', () => {
+    it('should change the checkbox state to unchecked and clear the non-checkbox cells\' content when both the' +
+      ' checkbox-typed and non-checkbox-typed cells are selected', async() => {
+      handsontable({
+        data: [['foo', true], ['bar', true]],
+        columns: [
+          { type: 'text' },
+          { type: 'checkbox' }
+        ]
+      });
+
+      await selectCells([[0, 0, 1, 1]]);
+
+      await keyDownUp(key);
+
+      expect(getData()).toEqual([[null, false], [null, false]]);
+    });
+
+    it('should not steal the event when the column header is selected', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -126,8 +197,8 @@ describe('CheckboxRenderer', () => {
         callback,
       }], { group: 'grid' });
 
-      selectCell(-1, 0);
-      keyDownUp(key);
+      await selectCell(-1, 0);
+      await keyDownUp(key);
 
       expect(callback).toHaveBeenCalledTimes(1);
     });

@@ -1,13 +1,12 @@
 import { useRef } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
 
   const buttonClickCallback = () => {
     const hot = hotRef.current?.hotInstance;
@@ -23,11 +22,7 @@ const ExampleComponent = () => {
       const endCol = Math.max(column1, column2);
 
       for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
-        for (
-          let columnIndex = startCol;
-          columnIndex <= endCol;
-          columnIndex += 1
-        ) {
+        for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
           hot?.setDataAtCell(rowIndex, columnIndex, 'data changed');
           hot?.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
         }
@@ -61,7 +56,6 @@ const ExampleComponent = () => {
         width="auto"
         height="auto"
         colWidths={100}
-        rowHeights={23}
         rowHeaders={true}
         colHeaders={true}
         outsideClickDeselects={false}

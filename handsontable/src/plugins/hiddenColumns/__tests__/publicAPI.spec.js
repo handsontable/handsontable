@@ -14,25 +14,25 @@ describe('HiddenColumns', () => {
 
   describe('public API', () => {
     describe('hideColumn()', () => {
-      it('should hide column by passing the visual column index', () => {
+      it('should hide column by passing the visual column index', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 3),
+          data: createSpreadsheetData(1, 3),
           hiddenColumns: true,
         });
 
         expect(getCell(0, 1).innerText).toBe('B1');
 
         getPlugin('hiddenColumns').hideColumn(1);
-        render();
+        await render();
 
         expect(getCell(0, 1)).toBe(null);
       });
     });
 
     describe('showColumn()', () => {
-      it('should show column by passing the visual column index', () => {
+      it('should show column by passing the visual column index', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 3),
+          data: createSpreadsheetData(1, 3),
           hiddenColumns: {
             columns: [1],
           },
@@ -41,16 +41,16 @@ describe('HiddenColumns', () => {
         expect(getCell(0, 1)).toBe(null);
 
         getPlugin('hiddenColumns').showColumn(1);
-        render();
+        await render();
 
         expect(getCell(0, 1).innerText).toBe('B1');
       });
     });
 
     describe('showColumns', () => {
-      it('should update the table width, when calling `showColumns` after running `hideColumns` beforehand', () => {
+      it('should update the table width, when calling `showColumns` after running `hideColumns` beforehand', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 7),
+          data: createSpreadsheetData(5, 7),
           colHeaders: true,
           rowHeaders: true,
           hiddenColumns: {
@@ -61,18 +61,18 @@ describe('HiddenColumns', () => {
         const initialHiderWidth = $(hot().view._wt.wtTable.hider).width();
 
         getPlugin('hiddenColumns').hideColumns([2, 3, 4, 5]);
-        render();
+        await render();
         getPlugin('hiddenColumns').showColumns([2, 3, 4, 5]);
-        render();
+        await render();
 
         expect($(hot().view._wt.wtTable.hider).width()).toEqual(initialHiderWidth);
       });
     });
 
     describe('isHidden()', () => {
-      it('should return `true` for hidden column', () => {
+      it('should return `true` for hidden column', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           hiddenColumns: {
             columns: [1],
           },
@@ -85,14 +85,14 @@ describe('HiddenColumns', () => {
         expect(plugin.isHidden(2)).toBe(false);
 
         getPlugin('hiddenColumns').showColumn(1);
-        render();
+        await render();
 
         expect(plugin.isHidden(0)).toBe(false);
         expect(plugin.isHidden(1)).toBe(false);
         expect(plugin.isHidden(2)).toBe(false);
 
         getPlugin('hiddenColumns').hideColumn(2);
-        render();
+        await render();
 
         expect(plugin.isHidden(0)).toBe(false);
         expect(plugin.isHidden(1)).toBe(false);
@@ -101,9 +101,9 @@ describe('HiddenColumns', () => {
     });
 
     describe('getHiddenColumns()', () => {
-      it('should return collection of hidden visual column indexes', () => {
+      it('should return collection of hidden visual column indexes', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           hiddenColumns: {
             columns: [1],
           },
@@ -114,20 +114,20 @@ describe('HiddenColumns', () => {
         expect(plugin.getHiddenColumns()).toEqual([1]);
 
         getPlugin('hiddenColumns').showColumn(1);
-        render();
+        await render();
 
         expect(plugin.getHiddenColumns()).toEqual([]);
 
         getPlugin('hiddenColumns').hideColumns([0, 2]);
-        render();
+        await render();
 
         expect(plugin.getHiddenColumns()).toEqual([0, 2]);
       });
 
       it('should return correct visual indexes when columns sequence is non-contiguous ' +
-         '(force desync between physical and visual indexes)', () => {
-        const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 10),
+         '(force desync between physical and visual indexes)', async() => {
+        handsontable({
+          data: createSpreadsheetData(1, 10),
           colHeaders: true,
           hiddenColumns: {
             columns: [1],
@@ -135,28 +135,28 @@ describe('HiddenColumns', () => {
           },
         });
 
-        hot.columnIndexMapper.setIndexesSequence([0, 9, 1, 2, 3, 4, 5, 6, 7, 8]);
+        columnIndexMapper().setIndexesSequence([0, 9, 1, 2, 3, 4, 5, 6, 7, 8]);
 
         const plugin = getPlugin('hiddenColumns');
 
         expect(plugin.getHiddenColumns()).toEqual([2]);
 
         getPlugin('hiddenColumns').showColumn(2);
-        render();
+        await render();
 
         expect(plugin.getHiddenColumns()).toEqual([]);
 
         getPlugin('hiddenColumns').hideColumns([3, 6]);
-        render();
+        await render();
 
         expect(plugin.getHiddenColumns()).toEqual([3, 6]);
       });
     });
 
     describe('isValidConfig()', () => {
-      it('should return `false` for columns passed as not a number', () => {
+      it('should return `false` for columns passed as not a number', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           hiddenColumns: true,
         });
 
@@ -175,9 +175,9 @@ describe('HiddenColumns', () => {
         expect(plugin.isValidConfig([{ index: 1 }])).toBe(false);
       });
 
-      it('should return `true` for columns, which are within the range of the table size', () => {
+      it('should return `true` for columns, which are within the range of the table size', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           hiddenColumns: true,
         });
 
@@ -194,17 +194,18 @@ describe('HiddenColumns', () => {
       });
     });
     describe('clear()', () => {
-      it('should clear the data from hidden column when hidden column is second last one', () => {
+      it('should clear the data from hidden column when hidden column is second last one', async() => {
         const col = 2;
-        const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(2, col),
+
+        handsontable({
+          data: createSpreadsheetData(2, col),
           hiddenColumns: {
             columns: [col - 1], // hide penultimate column
           }
         });
 
-        hot.clear();
-        const emptyData = hot.getData();
+        await clear();
+        const emptyData = getData();
         const empyDataComparision = [[null, null], [null, null]];
 
         expect(emptyData).toEqual(empyDataComparision);
@@ -212,8 +213,8 @@ describe('HiddenColumns', () => {
     });
 
     describe('setDataAtCell()', () => {
-      it('should correctly render the changed values subjected to validation when there is a hidden column next to it', () => {
-        const hot = handsontable({
+      it('should correctly render the changed values subjected to validation when there is a hidden column next to it', async() => {
+        handsontable({
           data: [[1, 2, 'Smith']],
           hiddenColumns: {
             columns: [0], // hide the first column
@@ -228,10 +229,10 @@ describe('HiddenColumns', () => {
           ]
         });
 
-        hot.setDataAtCell(0, 1, 'aa'); // set such data in the second column so that it does not pass validation
+        await setDataAtCell(0, 1, 'aa'); // set such data in the second column so that it does not pass validation
 
-        expect(hot.getDataAtCell(0, 1)).toBe(2);
-        expect(hot.getCell(0, 1).textContent).toBe('2');
+        expect(getDataAtCell(0, 1)).toBe(2);
+        expect(getCell(0, 1).textContent).toBe('2');
       });
     });
   });

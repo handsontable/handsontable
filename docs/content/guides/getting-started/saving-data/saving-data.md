@@ -12,6 +12,9 @@ tags:
 react:
   id: rib1rhmf
   metaTitle: Saving data - React Data Grid | Handsontable
+angular:
+  id: uny2nvqk
+  metaTitle: Saving data - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -30,9 +33,10 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2 --ts 3
+::: example #example1 --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/getting-started/saving-data/javascript/example1.html)
+@[code](@/content/guides/getting-started/saving-data/javascript/example1.css)
 @[code](@/content/guides/getting-started/saving-data/javascript/example1.js)
 @[code](@/content/guides/getting-started/saving-data/javascript/example1.ts)
 
@@ -42,8 +46,9 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 ::: only-for react
 
-::: example #example1 :react --js 1 --ts 2
+::: example #example1 :react --css 1 --js 2 --ts 3
 
+@[code](@/content/guides/getting-started/saving-data/react/example1.css)
 @[code](@/content/guides/getting-started/saving-data/react/example1.jsx)
 @[code](@/content/guides/getting-started/saving-data/react/example1.tsx)
 
@@ -51,35 +56,25 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/getting-started/saving-data/angular/example1.ts)
+@[code](@/content/guides/getting-started/saving-data/angular/example1.html)
+
+:::
+
+:::
+
 ## Save data locally
 
-You can save any type of data in local storage to preserve the table state after page reloads. The [`persistentState`](@/api/options.md#persistentstate) option must be set to `true` to enable the data storage mechanism. You can set it either during the Handsontable initialization or using the [`updateSettings()`](@/api/core.md#updatesettings) method.
-
-Persistent state storage is particularly useful when running multiple instances of Handsontable on one page as it allows data separation per each instance.
-
-When the [`persistentState`](@/api/options.md#persistentstate) option is enabled, the [`PersistentState`](@/api/persistentState.md) plugin exposes hooks listed below:
-
-- [`persistentStateSave`](@/api/hooks.md#persistentstatesave)
-- [`persistentStateLoad`](@/api/hooks.md#persistentstateload)
-- [`persistentStateReset`](@/api/hooks.md#persistentstatereset)
-
-## [`PersistentState`](@/api/persistentState.md) vs `localStorage`
-
-The main benefit of using the [`PersistentState`](@/api/persistentState.md) plugin hooks rather than the regular `localStorage` API is that it ensures separation of data stored by multiple Handsontable instances. For example, if you have two or more instances of Handsontable on one page, data saved by one instance will be inaccessible to the second instance. Those two instances can store data under the same key, and no data would be overwritten.
-
-For the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+To persist table state (e.g. column order, column widths, row order) across page reloads, use the browser's [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) API or [`sessionStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage) in your application. Listen to the appropriate hooks (e.g. `afterColumnMove`, `afterColumnResize`) and save or restore state as needed.
 
 ## Related API reference
 
-- Configuration options:
-  - [`persistentState`](@/api/options.md#persistentstate)
 - Core methods:
   - [`updateSettings()`](@/api/core.md#updatesettings)
 - Hooks:
   - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
   - [`afterChange`](@/api/hooks.md#afterchange)
-  - [`persistentStateLoad`](@/api/hooks.md#persistentstateload)
-  - [`persistentStateReset`](@/api/hooks.md#persistentstatereset)
-  - [`persistentStateSave`](@/api/hooks.md#persistentstatesave)
-- Plugins:
-  - [`PersistentState`](@/api/persistentState.md)

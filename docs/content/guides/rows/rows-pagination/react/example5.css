@@ -1,0 +1,9 @@
+.example-modify-pagedata-container {
+  display: flex;
+  flex-direction: column;
+  align-items: self-start;
+  background: transparent;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  padding: 12px 30px;
+}

@@ -1,18 +1,63 @@
+import { waitOnScroll } from './utils';
+/**
+ * When `true` the test suite will not scroll to the top of the page before each test and
+ * the spec will be not cleared which allows calling test helpers (`selectCell()` etc.) from
+ * the console.
+ */
+const DEBUG = false;
 const specContext = {};
 
 beforeEach(function() {
   specContext.spec = this;
+
+  if (!process.env.JEST_WORKER_ID) {
+    this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
+    // Expose loaded theme globally for the jQuery wrapper to use
+    window.__HOT_TEST_THEME__ = this.loadedTheme;
+
+    if (!DEBUG) {
+      window.scrollTo(0, 0);
+    }
+  }
 });
+
 afterEach(() => {
-  specContext.spec = null;
+  if (!DEBUG) {
+    specContext.spec = null;
+    delete window.__HOT_TEST_THEME__;
+  }
 });
 
 beforeAll(() => {
   // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
   if (!process.env.JEST_WORKER_ID) {
     $('.jasmine_html-reporter').hide();
+
+    // Wrap jQuery handsontable function to inject theme in tests
+    const originalHandsontable = $.fn.handsontable;
+
+    $.fn.handsontable = function(action, ...args) {
+      // Only inject theme on init (when action is an object or undefined)
+      if (typeof action !== 'string') {
+        const userSettings = action || {};
+
+        if (!userSettings.themeName && window.__HOT_TEST_THEME__) {
+          const hasThemeClass = this.is('[class*="ht-theme-"]') ||
+            this.parents('[class*="ht-theme-"]').length > 0;
+
+          if (!hasThemeClass) {
+            userSettings.themeName = `ht-theme-${window.__HOT_TEST_THEME__}`;
+          }
+        }
+
+        return originalHandsontable.call(this, userSettings);
+      }
+
+      return originalHandsontable.call(this, action, ...args);
+    };
   }
 });
+
 afterAll(() => {
   // After the test are finished show the test suite dots
   if (!process.env.JEST_WORKER_ID) {
@@ -74,25 +119,32 @@ export function handsontableMethodFactory(method) {
 }
 
 export const _getColWidthFromSettings = handsontableMethodFactory('_getColWidthFromSettings');
+export const _getEditorManager = handsontableMethodFactory('_getEditorManager');
 export const addHook = handsontableMethodFactory('addHook');
+export const addHookOnce = handsontableMethodFactory('addHookOnce');
 export const alter = handsontableMethodFactory('alter');
+export const batch = handsontableMethodFactory('batch');
+export const batchExecution = handsontableMethodFactory('batchExecution');
+export const batchRender = handsontableMethodFactory('batchRender');
 export const clear = handsontableMethodFactory('clear');
 export const colToProp = handsontableMethodFactory('colToProp');
+export const countColHeaders = handsontableMethodFactory('countColHeaders');
 export const countCols = handsontableMethodFactory('countCols');
 export const countEmptyCols = handsontableMethodFactory('countEmptyCols');
 export const countEmptyRows = handsontableMethodFactory('countEmptyRows');
+export const countRenderedCols = handsontableMethodFactory('countRenderedCols');
+export const countRenderedRows = handsontableMethodFactory('countRenderedRows');
+export const countRowHeaders = handsontableMethodFactory('countRowHeaders');
 export const countRows = handsontableMethodFactory('countRows');
 export const countSourceCols = handsontableMethodFactory('countSourceCols');
 export const countSourceRows = handsontableMethodFactory('countSourceRows');
-export const countRenderedRows = handsontableMethodFactory('countRenderedRows');
-export const countRenderedCols = handsontableMethodFactory('countRenderedCols');
-export const countRowHeaders = handsontableMethodFactory('countRowHeaders');
-export const countColHeaders = handsontableMethodFactory('countColHeaders');
 export const countVisibleCols = handsontableMethodFactory('countVisibleCols');
+export const countVisibleRows = handsontableMethodFactory('countVisibleRows');
 export const deselectCell = handsontableMethodFactory('deselectCell');
 export const destroy = handsontableMethodFactory('destroy');
 export const destroyEditor = handsontableMethodFactory('destroyEditor');
 export const emptySelectedCells = handsontableMethodFactory('emptySelectedCells');
+export const getActiveSelectionLayerIndex = handsontableMethodFactory('getActiveSelectionLayerIndex');
 export const getActiveEditor = handsontableMethodFactory('getActiveEditor');
 export const getCell = handsontableMethodFactory('getCell');
 export const getCellEditor = handsontableMethodFactory('getCellEditor');
@@ -106,7 +158,9 @@ export const getColumnMeta = handsontableMethodFactory('getColumnMeta');
 export const getColWidth = handsontableMethodFactory('getColWidth');
 export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
+export const getCopyableSourceData = handsontableMethodFactory('getCopyableSourceData');
 export const getCopyableText = handsontableMethodFactory('getCopyableText');
+export const getCurrentThemeName = handsontableMethodFactory('getCurrentThemeName');
 export const getData = handsontableMethodFactory('getData');
 export const getDataAtCell = handsontableMethodFactory('getDataAtCell');
 export const getDataAtCol = handsontableMethodFactory('getDataAtCol');
@@ -114,16 +168,31 @@ export const getDataAtProp = handsontableMethodFactory('getDataAtProp');
 export const getDataAtRow = handsontableMethodFactory('getDataAtRow');
 export const getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 export const getDataType = handsontableMethodFactory('getDataType');
+export const getFirstFullyVisibleColumn = handsontableMethodFactory('getFirstFullyVisibleColumn');
+export const getFirstFullyVisibleRow = handsontableMethodFactory('getFirstFullyVisibleRow');
+export const getFirstPartiallyVisibleColumn = handsontableMethodFactory('getFirstPartiallyVisibleColumn');
+export const getFirstPartiallyVisibleRow = handsontableMethodFactory('getFirstPartiallyVisibleRow');
+export const getFirstRenderedVisibleColumn = handsontableMethodFactory('getFirstRenderedVisibleColumn');
+export const getFirstRenderedVisibleRow = handsontableMethodFactory('getFirstRenderedVisibleRow');
 export const getFocusManager = handsontableMethodFactory('getFocusManager');
+export const getFocusScopeManager = handsontableMethodFactory('getFocusScopeManager');
 export const getInstance = handsontableMethodFactory('getInstance');
+export const getLastFullyVisibleColumn = handsontableMethodFactory('getLastFullyVisibleColumn');
+export const getLastFullyVisibleRow = handsontableMethodFactory('getLastFullyVisibleRow');
+export const getLastPartiallyVisibleColumn = handsontableMethodFactory('getLastPartiallyVisibleColumn');
+export const getLastPartiallyVisibleRow = handsontableMethodFactory('getLastPartiallyVisibleRow');
+export const getLastRenderedVisibleColumn = handsontableMethodFactory('getLastRenderedVisibleColumn');
+export const getLastRenderedVisibleRow = handsontableMethodFactory('getLastRenderedVisibleRow');
 export const getPlugin = handsontableMethodFactory('getPlugin');
 export const getRowHeader = handsontableMethodFactory('getRowHeader');
 export const getRowHeight = handsontableMethodFactory('getRowHeight');
 export const getSchema = handsontableMethodFactory('getSchema');
 export const getSelected = handsontableMethodFactory('getSelected');
 export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
+export const getSelectedActive = handsontableMethodFactory('getSelectedActive');
 export const getSelectedRange = handsontableMethodFactory('getSelectedRange');
 export const getSelectedRangeLast = handsontableMethodFactory('getSelectedRangeLast');
+export const getSelectedRangeActive = handsontableMethodFactory('getSelectedRangeActive');
 export const getSettings = handsontableMethodFactory('getSettings');
 export const getShortcutManager = handsontableMethodFactory('getShortcutManager');
 export const getSourceData = handsontableMethodFactory('getSourceData');
@@ -131,24 +200,31 @@ export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray'
 export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
 export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
+export const getTableHeight = handsontableMethodFactory('getTableHeight');
+export const getTableWidth = handsontableMethodFactory('getTableWidth');
 export const getValue = handsontableMethodFactory('getValue');
+export const hasHook = handsontableMethodFactory('hasHook');
+export const isExecutionSuspended = handsontableMethodFactory('isExecutionSuspended');
 export const isListening = handsontableMethodFactory('isListening');
+export const isRenderSuspended = handsontableMethodFactory('isRenderSuspended');
 export const listen = handsontableMethodFactory('listen');
 export const loadData = handsontableMethodFactory('loadData');
 export const populateFromArray = handsontableMethodFactory('populateFromArray');
 export const propToCol = handsontableMethodFactory('propToCol');
-export const redo = handsontableMethodFactory('redo');
 export const refreshDimensions = handsontableMethodFactory('refreshDimensions');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
+export const removeHook = handsontableMethodFactory('removeHook');
 export const render = handsontableMethodFactory('render');
-export const updateData = handsontableMethodFactory('updateData');
-export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
-export const scrollToFocusedCell = handsontableMethodFactory('scrollToFocusedCell');
-export const selectAll = handsontableMethodFactory('selectAll');
-export const selectCell = handsontableMethodFactory('selectCell');
-export const selectCells = handsontableMethodFactory('selectCells');
-export const selectColumns = handsontableMethodFactory('selectColumns');
-export const selectRows = handsontableMethodFactory('selectRows');
+export const resumeExecution = handsontableMethodFactory('resumeExecution');
+export const resumeRender = handsontableMethodFactory('resumeRender');
+export const runHooks = handsontableMethodFactory('runHooks');
+export const scrollToFocusedCell = waitOnScroll(handsontableMethodFactory('scrollToFocusedCell'));
+export const scrollViewportTo = waitOnScroll(handsontableMethodFactory('scrollViewportTo'));
+export const selectAll = waitOnScroll(handsontableMethodFactory('selectAll'));
+export const selectCell = waitOnScroll(handsontableMethodFactory('selectCell'));
+export const selectCells = waitOnScroll(handsontableMethodFactory('selectCells'));
+export const selectColumns = waitOnScroll(handsontableMethodFactory('selectColumns'));
+export const selectRows = waitOnScroll(handsontableMethodFactory('selectRows'));
 export const setCellMeta = handsontableMethodFactory('setCellMeta');
 export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
 export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
@@ -156,12 +232,90 @@ export const setSourceDataAtCell = handsontableMethodFactory('setSourceDataAtCel
 export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
+export const suspendExecution = handsontableMethodFactory('suspendExecution');
+export const suspendRender = handsontableMethodFactory('suspendRender');
+export const toHTML = handsontableMethodFactory('toHTML');
+export const toPhysicalColumn = handsontableMethodFactory('toPhysicalColumn');
+export const toPhysicalRow = handsontableMethodFactory('toPhysicalRow');
+export const toTableElement = handsontableMethodFactory('toTableElement');
+export const toVisualColumn = handsontableMethodFactory('toVisualColumn');
 export const toVisualRow = handsontableMethodFactory('toVisualRow');
-export const undo = handsontableMethodFactory('undo');
+export const unlisten = handsontableMethodFactory('unlisten');
+export const updateData = handsontableMethodFactory('updateData');
 export const updateSettings = handsontableMethodFactory('updateSettings');
+export const useTheme = handsontableMethodFactory('useTheme');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
-export const unlisten = handsontableMethodFactory('unlisten');
+export const validateColumns = handsontableMethodFactory('validateColumns');
+export const validateRows = handsontableMethodFactory('validateRows');
+
+/**
+ * @returns {number} Returns the default row height based on the current theme.
+ */
+export function getDefaultRowHeight() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return 29;
+    case 'horizon':
+      return 37;
+    case 'classic':
+    default:
+      return 26;
+  }
+}
+
+/**
+ * @returns {number} Returns the default row height for the first rendered row.
+ */
+export function getFirstRenderedRowDefaultHeight() {
+  if (typeof __ENV_ARGS__.HOT_THEME !== 'undefined' && __ENV_ARGS__.HOT_THEME !== '') {
+    return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
+  }
+
+  return getDefaultRowHeight();
+}
+
+/**
+ * @returns {number} Returns the default row height based on the current theme.
+ */
+export function getDefaultColumnWidth() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return 50;
+    case 'horizon':
+      return 50;
+    default:
+      return 50; // classic
+  }
+}
+
+/**
+ * @returns {number} Returns the default column header height based on the current theme.
+ */
+export function getDefaultColumnHeaderHeight() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return 28;
+    case 'horizon':
+      return 36;
+    default:
+      return 25; // classic
+  }
+}
+
+/**
+ * @returns {number} Returns the default column header height based on the current theme.
+ */
+export function getDefaultRowHeaderWidth() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return 49;
+    case 'horizon':
+      return 49;
+    default:
+      return 50; // classic
+  }
+}
 
 /**
  * @returns {object} Returns the spec object for currently running test.
@@ -174,7 +328,31 @@ export function spec() {
  * @returns {Handsontable} Returns the Handsontable instance.
  */
 export function hot() {
-  return spec().$container.data('handsontable');
+  return spec().hotInstance ?? spec().$container?.data('handsontable');
+}
+
+/**
+ * @returns {Selection} Returns the Handsontable Selection instance.
+ */
+export function selection() {
+  return hot().selection;
+}
+
+/**
+ * @returns {TableView} Returns the Handsontable TableView instance.
+ */
+export function tableView() {
+  return hot().view;
+}
+
+/**
+ * Sets the Handsontable instance as a main instance that will be used in
+ * the helper functions (`simulateClick`, `selectCell` etc).
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance.
+ */
+export function setCurrentHotInstance(hotInstance) {
+  spec().hotInstance = hotInstance;
 }
 
 /**
@@ -231,12 +409,24 @@ export function bottomInlineStartCornerOverlay() {
  *
  * @param {number} y The scroll position.
  */
-export function setScrollTop(y) {
-  if (hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow) {
-    window.scrollTo(window.scrollX, y);
-  } else {
-    getMaster().find('.wtHolder')[0].scrollTop = y;
-  }
+export async function scrollViewportVertically(y) {
+  const isWindow = hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow;
+  const scrollableElement = isWindow ? window : getMaster().find('.wtHolder')[0];
+
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      scrollableElement.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    scrollableElement.addEventListener('scroll', scrollHandler);
+
+    if (isWindow) {
+      scrollableElement.scrollTo(scrollableElement.scrollX, y);
+    } else {
+      scrollableElement.scrollTop = y;
+    }
+  });
 }
 
 /**
@@ -244,12 +434,61 @@ export function setScrollTop(y) {
  *
  * @param {number} x The scroll position.
  */
-export function setScrollLeft(x) {
-  if (hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow) {
-    window.scrollTo(x, window.scrollY);
-  } else {
-    getMaster().find('.wtHolder')[0].scrollLeft = x;
-  }
+export async function scrollViewportHorizontally(x) {
+  const isWindow = hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow;
+  const scrollableElement = isWindow ? window : getMaster().find('.wtHolder')[0];
+
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      scrollableElement.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    scrollableElement.addEventListener('scroll', scrollHandler);
+    x = hot().isRtl() ? -x : x;
+
+    if (isWindow) {
+      scrollableElement.scrollTo(x, scrollableElement.scrollY);
+    } else {
+      scrollableElement.scrollLeft = x;
+    }
+  });
+}
+
+/**
+ * Moves the browser's viewport to the specified x and y scroll position.
+ *
+ * @param {number} x The scroll vertical position.
+ * @param {number} y The scroll horizontal position.
+ */
+export async function scrollWindowTo(x, y) {
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      window.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    window.addEventListener('scroll', scrollHandler);
+    window.scrollTo(hot().isRtl() ? -x : x, y);
+  });
+}
+
+/**
+ * Moves the browser's viewport to the specified x and y scroll position.
+ *
+ * @param {number} x The scroll vertical position.
+ * @param {number} y The scroll horizontal position.
+ */
+export async function scrollWindowBy(x, y) {
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      window.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    window.addEventListener('scroll', scrollHandler);
+    window.scrollBy(x, y);
+  });
 }
 
 /**
@@ -263,7 +502,11 @@ export function setScrollLeft(x) {
  */
 export function handsontable(options, explicitOptions = false, container = spec().$container) {
   // Add a license key to every Handsontable instance.
-  if (options && !explicitOptions) {
+  if (!explicitOptions) {
+    if (!options) {
+      options = {};
+    }
+
     options.licenseKey = 'non-commercial-and-evaluation';
   }
 
@@ -282,67 +525,49 @@ export function handsontable(options, explicitOptions = false, container = spec(
  * @returns {jQuery} The reference to the original htCore.
  */
 export function getHtCore() {
-  return spec().$container.find('.htCore').first();
+  return $(hot().rootElement).find('.htCore').first();
 }
 
 /**
  * @returns {jQuery}
  */
 export function getMaster() {
-  return spec().$container.find('.ht_master');
+  return $(hot().rootElement).find('.ht_master');
 }
 
 /**
  * @returns {jQuery}
  */
 export function getTopClone() {
-  return spec().$container.find('.ht_clone_top');
+  return $(hot().rootElement).find('.ht_clone_top');
 }
 
 /**
  * @returns {jQuery}
  */
 export function getTopInlineStartClone() {
-  return spec().$container.find('.ht_clone_top_inline_start_corner');
+  return $(hot().rootElement).find('.ht_clone_top_inline_start_corner');
 }
 
 /**
  * @returns {jQuery}
  */
 export function getInlineStartClone() {
-  return spec().$container.find('.ht_clone_inline_start');
+  return $(hot().rootElement).find('.ht_clone_inline_start');
 }
 
 /**
  * @returns {jQuery}
  */
 export function getBottomClone() {
-  return spec().$container.find('.ht_clone_bottom');
+  return $(hot().rootElement).find('.ht_clone_bottom');
 }
 
 /**
  * @returns {jQuery}
  */
 export function getBottomInlineStartClone() {
-  return spec().$container.find('.ht_clone_bottom_inline_start_corner');
-}
-
-/**
- * Emulates the browser's TAB navigation to the Handsontable (from element above).
- *
- * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
- */
-export function triggerTabNavigationFromTop(hotInstance = hot()) {
-  $(hotInstance.rootElement).find('.htFocusCatcher').first().focus();
-}
-
-/**
- * Emulates the browser's Shift+TAB navigation to the Handsontable (from element below).
- *
- * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
- */
-export function triggerTabNavigationFromBottom(hotInstance = hot()) {
-  $(hotInstance.rootElement).find('.htFocusCatcher').last().focus();
+  return $(hot().rootElement).find('.ht_clone_bottom_inline_start_corner');
 }
 
 /**
@@ -440,7 +665,7 @@ export function getCorrespondingOverlay(cell, container) {
  * @param {HTMLElement} cell The cell element to check.
  * @param {Handsontable} [instance] The Handsontable instance.
  */
-export function contextMenu(cell, instance) {
+export const contextMenu = waitOnScroll((cell, instance) => {
   const hotInstance = instance || spec().$container.data('handsontable');
   let clickedCell = cell;
   let selected = hotInstance.getSelectedLast();
@@ -461,7 +686,7 @@ export function contextMenu(cell, instance) {
     clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hotInstance.rootWindow),
     clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hotInstance.rootWindow),
   });
-}
+});
 
 /**
  * Opens and executes the context menu item action and closes the menu.
@@ -532,7 +757,7 @@ export function closeContextMenu() {
  *
  * @param {number|HTMLTableCellElement} [columnIndexOrCell=0] The column index or TD element under which the dropdown menu is triggered.
  */
-export function dropdownMenu(columnIndexOrCell = 0) {
+export const dropdownMenu = waitOnScroll((columnIndexOrCell = 0) => {
   let th = columnIndexOrCell;
 
   if (!(columnIndexOrCell instanceof HTMLTableCellElement)) {
@@ -548,7 +773,7 @@ export function dropdownMenu(columnIndexOrCell = 0) {
     $(button).simulate('mouseup');
     $(button).simulate('click');
   }
-}
+});
 
 /**
  * Opens and executes the dropdown menu item action and closes the menu.
@@ -750,12 +975,12 @@ export function rowHeight($elem, row) {
 /**
  * Returns value that has been rendered in table cell.
  *
- * @param {number} trIndex The visual index.
- * @param {number} tdIndex The visual index.
+ * @param {number} row The visual row index.
+ * @param {number} col The visual column index.
  * @returns {string}
  */
-export function getRenderedValue(trIndex, tdIndex) {
-  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).html();
+export function getRenderedValue(row, col) {
+  return getCell(row, col, true).innerHTML;
 }
 
 /**
@@ -1061,6 +1286,30 @@ export function simulateTouch(target) {
 }
 
 /**
+ * Simulates the application of modern theme styles to a Handsontable context.
+ *
+ * @param {HTMLElement|jQuery} container - The container element to which the styles will be applied.
+ */
+export function simulateModernThemeStylesheet(container) {
+  const element = container instanceof $ ? container.get(0) : container;
+
+  element.style.setProperty('--ht-line-height', '17px');
+  element.style.setProperty('--ht-cell-vertical-padding', '5px');
+}
+
+/**
+ * Clears the modern theme styles simulation applied using the `simulateModernThemeStylesheet` method.
+ *
+ * @param {HTMLElement|jQuery} container - The container element.
+ */
+export function clearModernThemeStylesheetMock(container) {
+  const element = container instanceof $ ? container.get(0) : container;
+
+  element.style.removeProperty('--ht-line-height');
+  element.style.removeProperty('--ht-cell-vertical-padding');
+}
+
+/**
  * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label
  * values (e.q "A1", "A2"...).
  *
@@ -1069,6 +1318,17 @@ export function simulateTouch(target) {
  */
 export function createSpreadsheetData(...args) {
   return Handsontable.helper.createSpreadsheetData(...args);
+}
+
+/**
+ *
+ * Creates spreadsheet data as an array of arrays filled with an empty string.
+ *
+ * @param {*} args The arguments passed directly to the Handsontable helper.
+ * @returns {Array}
+ */
+export function createEmptySpreadsheetData(...args) {
+  return Handsontable.helper.createEmptySpreadsheetData(...args);
 }
 
 /**
@@ -1083,15 +1343,73 @@ export function createSpreadsheetObjectData(...args) {
 }
 
 /**
+ * Creates the mock of the clipboard event.
+ *
+ * @param {object} options The options for the event.
+ * @param {HTMLElement} options.target The target element for the event.
  * @returns {Event}
  */
-export function getClipboardEvent() {
+export function getClipboardEvent({ target = document.body } = {}) {
   const event = {};
 
   event.clipboardData = new DataTransferObject();
   event.preventDefault = () => { };
+  event.target = target;
+  event.composedPath = () => [target];
 
   return event;
+}
+
+/**
+ * Spies on the console.warn method and returns a function that can be used to assert that
+ * the warning was not called.
+ *
+ * @returns {Function}
+ */
+export function spyOnConsoleWarn() {
+  const warnSpy = spyOn(console, 'warn');
+  // eslint-disable-next-line no-console
+  const originalWarn = console.warn;
+
+  // eslint-disable-next-line no-console
+  console.warn = (...args) => {
+    if (args[0].includes('Deprecated:')) {
+      return;
+    }
+
+    originalWarn(...args);
+  };
+
+  return warnSpy;
+}
+
+/**
+ * Spies on the console.warn method and returns a function that can be used to assert that
+ * the deprecated warning was not called.
+ *
+ * @returns {Function}
+ */
+export function spyOnConsoleDeprecatedWarn() {
+  const warnSpy = spyOn(console, 'warn');
+  // eslint-disable-next-line no-console
+  const originalWarn = console.warn;
+
+  /* eslint-disable max-len */
+  const IGNORED_MESSAGES = [
+    'Deprecated: The stylesheet you are using is deprecated and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.',
+  ];
+  /* eslint-enable max-len */
+
+  // eslint-disable-next-line no-console
+  console.warn = (...args) => {
+    if (!args[0].startsWith('Deprecated:') || IGNORED_MESSAGES.includes(args[0])) {
+      return;
+    }
+
+    originalWarn(...args);
+  };
+
+  return warnSpy;
 }
 
 class DataTransferObject {

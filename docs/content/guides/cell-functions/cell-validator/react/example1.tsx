@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 import { CellChange } from 'handsontable/common';
 
 // register Handsontable's modules
@@ -13,10 +12,7 @@ const ExampleComponent = () => {
   const ipValidatorRegexp =
     /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
 
-  const emailValidator = (
-    value: string,
-    callback: (value: boolean) => void
-  ) => {
+  const emailValidator = (value: string, callback: (value: boolean) => void) => {
     setTimeout(() => {
       if (/.+@.+/.test(value)) {
         callback(true);
@@ -115,14 +111,9 @@ const ExampleComponent = () => {
               return false;
             }
             // capitalise first letter in column 1 and 2
-            else if (
-              cellChanges[i][1] === 'name.first' ||
-              cellChanges[i][1] === 'name.last'
-            ) {
+            else if (cellChanges[i][1] === 'name.first' || cellChanges[i][1] === 'name.last') {
               if (cellChanges[i][3] !== null) {
-                cellChanges[i][3] =
-                  cellChanges[i][3].charAt(0).toUpperCase() +
-                  cellChanges[i][3].slice(1);
+                cellChanges[i][3] = cellChanges[i][3].charAt(0).toUpperCase() + cellChanges[i][3].slice(1);
               }
             }
           }
@@ -142,7 +133,7 @@ const ExampleComponent = () => {
           { data: 'name.first' },
           { data: 'name.last' },
           { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
-          { data: 'email', validator: emailValidator, allowInvalid: false },
+          { data: 'email', validator: emailValidator },
         ]}
       />
     </>

@@ -1,3 +1,4 @@
+/* eslint-disable handsontable/require-await */
 describe('Core.batch', () => {
   const id = 'testContainer';
 
@@ -14,7 +15,7 @@ describe('Core.batch', () => {
 
   it('should batch multi-line operations into one render and execution call', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       autoColumnSize: false,
       autoRowSize: false,
     });
@@ -29,21 +30,21 @@ describe('Core.batch', () => {
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
 
-    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnIndexCacheUpdated);
-    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowIndexCacheUpdated);
+    columnIndexMapper().addLocalHook('cacheUpdated', columnIndexCacheUpdated);
+    rowIndexMapper().addLocalHook('cacheUpdated', rowIndexCacheUpdated);
 
-    const result = hot.batch(() => {
-      hot.setDataAtCell(2, 2, 'X');
-      hot.alter('insert_row_above', 1, 3);
-      hot.alter('insert_col_start', 1, 3);
+    const result = await batch(() => {
+      setDataAtCell(2, 2, 'X');
+      alter('insert_row_above', 1, 3);
+      alter('insert_col_start', 1, 3);
 
-      hot.columnIndexMapper.setIndexesSequence([0, 4, 5, 6, 7, 1, 2, 3]);
-      hot.rowIndexMapper.setIndexesSequence([0, 4, 5, 6, 7, 1, 2, 3]);
+      columnIndexMapper().setIndexesSequence([0, 4, 5, 6, 7, 1, 2, 3]);
+      rowIndexMapper().setIndexesSequence([0, 4, 5, 6, 7, 1, 2, 3]);
 
-      hot.setDataAtCell(2, 2, 'Y');
+      setDataAtCell(2, 2, 'Y');
 
-      hot.columnIndexMapper.setIndexesSequence([0, 1, 2, 3, 4, 5, 6, 7]);
-      hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4, 5, 6, 7]);
+      columnIndexMapper().setIndexesSequence([0, 1, 2, 3, 4, 5, 6, 7]);
+      rowIndexMapper().setIndexesSequence([0, 1, 2, 3, 4, 5, 6, 7]);
 
       return 'test';
     });
@@ -74,9 +75,9 @@ describe('Core.batch', () => {
     });
   });
 
-  it('should batch showing/hiding headers correctly', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+  it('should batch showing/hiding headers correctly', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       colHeaders: false,
       rowHeaders: false,
     });
@@ -88,22 +89,34 @@ describe('Core.batch', () => {
     expect(getInlineStartClone().width()).toBe(0);
     expect(getInlineStartClone().height()).toBe(0);
 
-    hot.batch(() => {
-      hot.updateSettings({
+    await batch(() => {
+      updateSettings({
         colHeaders: true,
         rowHeaders: true,
       });
     });
 
     expect(getTopClone().width()).toBe(300);
-    expect(getTopClone().height()).toBe(26);
+    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(26);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
     expect(getTopInlineStartClone().width()).toBe(50);
-    expect(getTopInlineStartClone().height()).toBe(26);
+    expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(26);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
     expect(getInlineStartClone().width()).toBe(50);
-    expect(getInlineStartClone().height()).toBe(142);
+    expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(157);
+      main.toBe(175);
+      horizon.toBe(223);
+    });
 
-    hot.batch(() => {
-      hot.updateSettings({
+    await batch(() => {
+      updateSettings({
         colHeaders: false,
         rowHeaders: false,
       });
@@ -117,9 +130,9 @@ describe('Core.batch', () => {
     expect(getInlineStartClone().height()).toBe(0);
   });
 
-  it('should batch adjusting fixed headers correctly', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+  it('should batch adjusting fixed headers correctly', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       fixedRowsTop: 0,
       fixedColumnsStart: 0,
       fixedRowsBottom: 0,
@@ -136,8 +149,8 @@ describe('Core.batch', () => {
     expect(getBottomClone().width()).toBe(0);
     expect(getBottomClone().height()).toBe(0);
 
-    hot.batch(() => {
-      hot.updateSettings({
+    await batch(() => {
+      updateSettings({
         fixedRowsTop: 1,
         fixedColumnsStart: 1,
         fixedRowsBottom: 1,
@@ -145,18 +158,38 @@ describe('Core.batch', () => {
     });
 
     expect(getTopClone().width()).toBe(250);
-    expect(getTopClone().height()).toBe(24);
+    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(27);
+      main.toBe(30);
+      horizon.toBe(38);
+    });
     expect(getTopInlineStartClone().width()).toBe(50);
-    expect(getTopInlineStartClone().height()).toBe(24);
+    expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(27);
+      main.toBe(30);
+      horizon.toBe(38);
+    });
     expect(getInlineStartClone().width()).toBe(50);
-    expect(getInlineStartClone().height()).toBe(116);
+    expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(132);
+      main.toBe(147);
+      horizon.toBe(187);
+    });
     expect(getBottomInlineStartClone().width()).toBe(50);
-    expect(getBottomInlineStartClone().height()).toBe(24);
+    expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(27);
+      main.toBe(30);
+      horizon.toBe(38);
+    });
     expect(getBottomClone().width()).toBe(250);
-    expect(getBottomClone().height()).toBe(24);
+    expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(27);
+      main.toBe(30);
+      horizon.toBe(38);
+    });
 
-    hot.batch(() => {
-      hot.updateSettings({
+    await batch(() => {
+      updateSettings({
         fixedRowsTop: 0,
         fixedColumnsStart: 0,
         fixedRowsBottom: 0,

@@ -66,7 +66,7 @@ describe('WalkontableScroll', () => {
       $('html').attr('dir', 'ltr');
     });
 
-    it('should scroll to the last row and column when headers are not enabled', () => {
+    it('should scroll to the last row and column when headers are not enabled', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -88,7 +88,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('AX100');
     });
 
-    it('should scroll to the last row and column when headers are enabled', () => {
+    it('should scroll to the last row and column when headers are enabled', async() => {
       function plusOne(i) {
         return i + 1;
       }
@@ -120,7 +120,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('AX100');
     });
 
-    it('should not scroll the viewport when the cell is already visible in the viewport', () => {
+    it('should not scroll the viewport when the cell is already visible in the viewport', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -140,7 +140,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('E9');
     });
 
-    it('should scroll to the cell so that it sticks to the right edge of the viewport (without headers)', () => {
+    it('should scroll to the cell so that it sticks to the right edge of the viewport (without headers)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -160,7 +160,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('K9');
     });
 
-    it('should scroll to the cell so that it sticks to the right edge of the viewport (with headers)', () => {
+    it('should scroll to the cell so that it sticks to the right edge of the viewport (with headers)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -186,7 +186,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('K8');
     });
 
-    it('should scroll to the cell so that it sticks to the right edge of the viewport (forced by method flag)', () => {
+    it('should scroll to the cell so that it sticks to the right edge of the viewport (forced by method flag)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -196,7 +196,7 @@ describe('WalkontableScroll', () => {
       wt.draw();
       wt.scrollViewport(new Walkontable.CellCoords(0, getTotalColumns() - 1));
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(0, 10), undefined, true, undefined, false); // snap K1 to the right
+      wt.scrollViewport(new Walkontable.CellCoords(0, 10), 'end', 'auto'); // snap K1 to the right
       wt.draw();
 
       const firstRow = getTableMaster().find('tbody tr:first');
@@ -205,7 +205,7 @@ describe('WalkontableScroll', () => {
       expect(firstRow.find('td:last').text()).toBe('K1');
     });
 
-    it('should scroll to the cell so that it sticks to the left edge of the viewport (without headers)', () => {
+    it('should scroll to the cell so that it sticks to the left edge of the viewport (without headers)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -227,7 +227,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('O9');
     });
 
-    it('should scroll to the cell so that it sticks to the left edge of the viewport (with headers)', () => {
+    it('should scroll to the cell so that it sticks to the left edge of the viewport (with headers)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -255,7 +255,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('M8');
     });
 
-    it('should scroll to the cell so that it sticks to the left edge of the viewport (forced by method flag)', () => {
+    it('should scroll to the cell so that it sticks to the left edge of the viewport (forced by method flag)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -263,7 +263,7 @@ describe('WalkontableScroll', () => {
       });
 
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(0, 10), undefined, false, undefined, true); // snap K1 to the left
+      wt.scrollViewport(new Walkontable.CellCoords(0, 10), 'start', 'auto'); // snap K1 to the left
       wt.draw();
 
       const firstRow = getTableMaster().find('tbody tr:first');
@@ -272,7 +272,7 @@ describe('WalkontableScroll', () => {
       expect(firstRow.find('td:last').text()).toBe('O1');
     });
 
-    it('should scroll to the cell so that it sticks to the bottom edge of the viewport (without headers)', () => {
+    it('should scroll to the cell so that it sticks to the bottom edge of the viewport (without headers)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -292,7 +292,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('E52');
     });
 
-    it('should scroll to the cell so that it sticks to the bottom edge of the viewport (with headers)', () => {
+    it('should scroll to the cell so that it sticks to the bottom edge of the viewport (with headers)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -318,7 +318,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('D52');
     });
 
-    it('should scroll to the cell so that it sticks to the bottom edge of the viewport (forced by method flag)', () => {
+    it('should scroll to the cell so that it sticks to the bottom edge of the viewport (forced by method flag)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -326,7 +326,7 @@ describe('WalkontableScroll', () => {
       });
 
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(20, 0), false, undefined, true, undefined); // snap A21 to the bottom
+      wt.scrollViewport(new Walkontable.CellCoords(20, 0), 'auto', 'bottom'); // snap A21 to the bottom
       wt.draw();
 
       const firstRow = getTableMaster().find('tbody tr:first');
@@ -336,7 +336,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:first').text()).toBe('A22');
     });
 
-    it('should scroll to the cell so that it sticks to the top edge of the viewport (without headers)', () => {
+    it('should scroll to the cell so that it sticks to the top edge of the viewport (without headers)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -358,7 +358,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('E59');
     });
 
-    it('should scroll to the cell so that it sticks to the top edge of the viewport (with headers)', () => {
+    it('should scroll to the cell so that it sticks to the top edge of the viewport (with headers)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -386,7 +386,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('D57');
     });
 
-    it('should scroll to the cell so that it sticks to the top edge of the viewport (forced by method flag)', () => {
+    it('should scroll to the cell so that it sticks to the top edge of the viewport (forced by method flag)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -396,7 +396,7 @@ describe('WalkontableScroll', () => {
       wt.draw();
       wt.scrollViewport(new Walkontable.CellCoords(getTotalRows() - 1, 0));
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(20, 0), true, undefined, false, undefined); // snap A21 to the top
+      wt.scrollViewport(new Walkontable.CellCoords(20, 0), 'auto', 'top'); // snap A21 to the top
       wt.draw();
 
       const firstRow = getTableMaster().find('tbody tr:first');
@@ -406,7 +406,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:first').text()).toBe('A29');
     });
 
-    it('should scroll to the cell that is after viewport and is not fully visible', () => {
+    it('should scroll to the cell that is after viewport and is not fully visible', async() => {
       spec().$wrapper.width(175 + getScrollbarWidth()).height(175 + getScrollbarWidth());
 
       const wt = walkontable({
@@ -432,7 +432,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getLastVisibleColumn()).toBe(3);
     });
 
-    it('should scroll to the cell that is after viewport, is not fully visible and is long and wide', () => {
+    it('should scroll to the cell that is after viewport, is not fully visible and is long and wide', async() => {
       spec().$wrapper.width(175 + getScrollbarWidth()).height(175 + getScrollbarWidth());
 
       const wt = walkontable({
@@ -473,7 +473,7 @@ describe('WalkontableScroll', () => {
     });
 
     it('should scroll to the cell that is after viewport, is not fully visible and is oversized ' +
-       '(bigger than table\'s viewport size)', () => {
+       '(bigger than table\'s viewport size)', async() => {
       spec().$wrapper.width(175 + getScrollbarWidth()).height(175 + getScrollbarWidth());
 
       const wt = walkontable({
@@ -517,7 +517,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getLastRenderedColumn()).toBe(3);
     });
 
-    it('should scroll to the cell that is before viewport and is not fully visible', () => {
+    it('should scroll to the cell that is before viewport and is not fully visible', async() => {
       spec().$wrapper.width(175 + getScrollbarWidth()).height(175 + getScrollbarWidth());
 
       const wt = walkontable({
@@ -545,7 +545,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getLastVisibleColumn()).toBe(48);
     });
 
-    it('should scroll to the cell that is before viewport, is not fully visible and is long and wide', () => {
+    it('should scroll to the cell that is before viewport, is not fully visible and is long and wide', async() => {
       spec().$wrapper.width(175 + getScrollbarWidth()).height(175 + getScrollbarWidth());
 
       const wt = walkontable({
@@ -588,7 +588,7 @@ describe('WalkontableScroll', () => {
     });
 
     it('should scroll to the cell that is before viewport, is not fully visible and is oversized ' +
-       '(bigger than table\'s viewport size)', () => {
+       '(bigger than table\'s viewport size)', async() => {
       spec().$wrapper.width(175 + getScrollbarWidth()).height(175 + getScrollbarWidth());
 
       const wt = walkontable({
@@ -632,7 +632,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getLastRenderedColumn()).toBe(46);
     });
 
-    it('should keep the viewport scroll position in the same place when the last row is removed', () => {
+    it('should keep the viewport scroll position in the same place when the last row is removed', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -656,7 +656,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('E99');
     });
 
-    it('should keep the viewport scroll position in the same place when the last column is removed', () => {
+    it('should keep the viewport scroll position in the same place when the last column is removed', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -680,7 +680,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('AW9');
     });
 
-    it('should keep the viewport scroll position in the last row when the smaller dataset is loaded', () => {
+    it('should keep the viewport scroll position in the last row when the smaller dataset is loaded', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -704,7 +704,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('E12');
     });
 
-    it('should keep the viewport scroll position in the last column when the smaller dataset is loaded', () => {
+    it('should keep the viewport scroll position in the last column when the smaller dataset is loaded', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -728,7 +728,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('E9');
     });
 
-    it('should scroll to the last row when all rows are very long (but not longer than table\'s viewport height)', () => {
+    it('should scroll to the last row when all rows are very long (but not longer than table\'s viewport height)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -749,7 +749,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('E100');
     });
 
-    it('should scroll to the last row when all rows are very long (longer than table\'s viewport height)', () => {
+    it('should scroll to the last row when all rows are very long (longer than table\'s viewport height)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -770,7 +770,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('E100');
     });
 
-    it('should scroll to the last column when all columns are very wide (but not wider than table\'s viewport width)', () => {
+    it('should scroll to the last column when all columns are very wide (but not wider than table\'s viewport width)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -791,7 +791,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('AX9');
     });
 
-    it('should scroll to the last column when all columns are very wide (wider than table\'s viewport width)', () => {
+    it('should scroll to the last column when all columns are very wide (wider than table\'s viewport width)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -812,7 +812,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('AX9');
     });
 
-    it('should scroll to the cell when row points outside the viewport and column points to the left overlay', () => {
+    it('should scroll to the cell when row points outside the viewport and column points to the left overlay', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -833,7 +833,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('E12');
     });
 
-    it('should scroll to the cell when column points outside the viewport and row points to the top overlay', () => {
+    it('should scroll to the cell when column points outside the viewport and row points to the top overlay', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -854,7 +854,7 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('K9');
     });
 
-    it('should scroll to the cell when column points outside the viewport and row points to the bottom overlay', () => {
+    it('should scroll to the cell when column points outside the viewport and row points to the bottom overlay', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -912,7 +912,7 @@ describe('WalkontableScroll', () => {
       inlineStartOverlayHolder.removeEventListener('scroll', inlineStartOverlayCallback);
     });
 
-    it('should call onScrollVertically hook, if scrollTop was changed', async() => {
+    it('should call onScrollVertically hook, if scrollTop was changed (from 0 to N)', async() => {
       createDataArray(100, 100);
       spec().$wrapper.width(245 + getScrollbarWidth()).height(186 + getScrollbarWidth());
 
@@ -923,8 +923,6 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsStart: 2,
-        fixedRowsTop: 2,
         onScrollVertically: scrollVertically,
         onScrollHorizontally: scrollHorizontally,
       });
@@ -939,7 +937,7 @@ describe('WalkontableScroll', () => {
       expect(scrollHorizontally.calls.count()).toEqual(0);
     });
 
-    it('should call onScrollHorizontally hook, if scrollLeft was changed', async() => {
+    it('should call onScrollVertically hook, if scrollTop was changed (from N to 0)', async() => {
       createDataArray(100, 100);
       spec().$wrapper.width(245 + getScrollbarWidth()).height(186 + getScrollbarWidth());
 
@@ -950,8 +948,39 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsStart: 2,
-        fixedRowsTop: 2,
+        onScrollVertically: scrollVertically,
+        onScrollHorizontally: scrollHorizontally,
+      });
+
+      wt.draw();
+      wt.wtTable.holder.scrollTop = 400;
+      wt.draw();
+
+      await sleep(50);
+
+      scrollVertically.calls.reset();
+      scrollHorizontally.calls.reset();
+
+      wt.wtTable.holder.scrollTop = 0;
+      wt.draw();
+
+      await sleep(50);
+
+      expect(scrollVertically.calls.count()).toBe(1);
+      expect(scrollHorizontally.calls.count()).toBe(0);
+    });
+
+    it('should call onScrollHorizontally hook, if scrollLeft was changed (from 0 to N)', async() => {
+      createDataArray(100, 100);
+      spec().$wrapper.width(245 + getScrollbarWidth()).height(186 + getScrollbarWidth());
+
+      const scrollHorizontally = jasmine.createSpy('scrollHorizontal');
+      const scrollVertically = jasmine.createSpy('scrollVertically');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
         onScrollVertically: scrollVertically,
         onScrollHorizontally: scrollHorizontally,
       });
@@ -962,12 +991,45 @@ describe('WalkontableScroll', () => {
 
       await sleep(50);
 
-      expect(scrollVertically.calls.count()).toEqual(0);
-      expect(scrollHorizontally.calls.count()).toEqual(1);
+      expect(scrollVertically.calls.count()).toBe(0);
+      expect(scrollHorizontally.calls.count()).toBe(1);
+    });
+
+    it('should call onScrollHorizontally hook, if scrollLeft was changed (from N to 0)', async() => {
+      createDataArray(100, 100);
+      spec().$wrapper.width(245 + getScrollbarWidth()).height(186 + getScrollbarWidth());
+
+      const scrollHorizontally = jasmine.createSpy('scrollHorizontal');
+      const scrollVertically = jasmine.createSpy('scrollVertically');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        onScrollVertically: scrollVertically,
+        onScrollHorizontally: scrollHorizontally,
+      });
+
+      wt.draw();
+      wt.wtTable.holder.scrollLeft = 400;
+      wt.draw();
+
+      await sleep(50);
+
+      scrollVertically.calls.reset();
+      scrollHorizontally.calls.reset();
+
+      wt.wtTable.holder.scrollLeft = 0;
+      wt.draw();
+
+      await sleep(50);
+
+      expect(scrollVertically.calls.count()).toBe(0);
+      expect(scrollHorizontally.calls.count()).toBe(1);
     });
 
     it('should add the "innerBorderInlineStart" CSS class (compensation for 1px border bug) to the root element when ' +
-       'the table is horizontally scrolled', () => {
+       'the table is horizontally scrolled', async() => {
       spec().$wrapper.width(186 + getScrollbarWidth()).height(186 + getScrollbarWidth());
       const wt = walkontable({
         data: getData,
@@ -1305,7 +1367,7 @@ describe('WalkontableScroll', () => {
     });
 
     describe('horizontal scroll', () => {
-      it('should return `false` if given number is smaller than 0', () => {
+      it('should return `false` if given number is smaller than 0', async() => {
         const wt = walkontable({
           data: getData,
           totalRows: getTotalRows,
@@ -1317,7 +1379,7 @@ describe('WalkontableScroll', () => {
         expect(wt.scrollViewportHorizontally(-1)).toBe(false);
       });
 
-      it('should return `false` if given number is bigger than total columns count in dataset', () => {
+      it('should return `false` if given number is bigger than total columns count in dataset', async() => {
         const wt = walkontable({
           data: getData,
           totalRows: getTotalRows,
@@ -1329,7 +1391,7 @@ describe('WalkontableScroll', () => {
         expect(wt.scrollViewportHorizontally(999)).toBe(false);
       });
 
-      it('should scroll to the next cell that is after viewport when all columns are oversized', () => {
+      it('should scroll to the next cell that is after viewport when all columns are oversized', async() => {
         const wt = walkontable({
           data: getData,
           totalRows: getTotalRows,
@@ -1381,7 +1443,7 @@ describe('WalkontableScroll', () => {
         expect(wt.wtTable.getLastRenderedColumn()).toBe(49);
       });
 
-      it('should scroll to the next cell that is before viewport when all columns are oversized', () => {
+      it('should scroll to the next cell that is before viewport when all columns are oversized', async() => {
         const wt = walkontable({
           data: getData,
           totalRows: getTotalRows,
@@ -1427,7 +1489,7 @@ describe('WalkontableScroll', () => {
     });
 
     describe('vertical scroll', () => {
-      it('should return `false` if given number is smaller than 0', () => {
+      it('should return `false` if given number is smaller than 0', async() => {
         const wt = walkontable({
           data: getData,
           totalRows: getTotalRows,
@@ -1439,7 +1501,7 @@ describe('WalkontableScroll', () => {
         expect(wt.scrollViewportVertically(-1)).toBe(false);
       });
 
-      it('should return `false` if given number is bigger than total rows count in dataset', () => {
+      it('should return `false` if given number is bigger than total rows count in dataset', async() => {
         const wt = walkontable({
           data: getData,
           totalRows: getTotalRows,
@@ -1451,64 +1513,80 @@ describe('WalkontableScroll', () => {
         expect(wt.scrollViewportVertically(999)).toBe(false);
       });
 
-      it('should scroll to the next cell that is below viewport when all rows are oversized', () => {
+      it('should scroll to the next cell that is below viewport when all rows are oversized', async() => {
         const wt = walkontable({
           data: getData,
           totalRows: getTotalRows,
           totalColumns: getTotalColumns,
           rowHeight: 500,
+          rowHeightByOverlayName: 500,
         });
 
         wt.draw();
         wt.scrollViewport(new Walkontable.CellCoords(1, 0));
         wt.draw();
 
-        const firstRow = getTableMaster().find('tbody tr:first');
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
 
-        expect(firstRow.find('td:first').text()).toBe('A2');
-        expect(firstRow.find('td:last').text()).toBe('E2');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(1);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(1);
+          expect(firstRow.find('td:first').text()).toBe('A2');
+          expect(firstRow.find('td:last').text()).toBe('E2');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(1);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(1);
+        }
 
         wt.scrollViewport(new Walkontable.CellCoords(2, 0));
         wt.draw();
 
-        expect(firstRow.find('td:first').text()).toBe('A3');
-        expect(firstRow.find('td:last').text()).toBe('E3');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(2);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(2);
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
+
+          expect(firstRow.find('td:first').text()).toBe('A3');
+          expect(firstRow.find('td:last').text()).toBe('E3');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(2);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(2);
+        }
 
         wt.scrollViewport(new Walkontable.CellCoords(10, 0));
         wt.draw();
 
-        expect(firstRow.find('td:first').text()).toBe('A11');
-        expect(firstRow.find('td:last').text()).toBe('E11');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(10);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(10);
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
+
+          expect(firstRow.find('td:first').text()).toBe('A11');
+          expect(firstRow.find('td:last').text()).toBe('E11');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(10);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(10);
+        }
 
         wt.scrollViewport(new Walkontable.CellCoords(getTotalRows() - 1, 0));
         wt.draw();
 
-        expect(firstRow.find('td:first').text()).toBe('A100');
-        expect(firstRow.find('td:last').text()).toBe('E100');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(99);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(99);
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
+
+          expect(firstRow.find('td:first').text()).toBe('A100');
+          expect(firstRow.find('td:last').text()).toBe('E100');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(99);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(99);
+        }
       });
 
-      it('should scroll to the next cell that is above viewport when all rows are oversized', () => {
+      it('should scroll to the next cell that is above viewport when all rows are oversized', async() => {
         const wt = walkontable({
           data: getData,
           totalRows: getTotalRows,
           totalColumns: getTotalColumns,
           rowHeight: 500,
+          rowHeightByOverlayName: 500,
         });
 
         wt.draw();
@@ -1517,34 +1595,44 @@ describe('WalkontableScroll', () => {
         wt.scrollViewport(new Walkontable.CellCoords(90, 0));
         wt.draw();
 
-        const firstRow = getTableMaster().find('tbody tr:first');
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
 
-        expect(firstRow.find('td:first').text()).toBe('A91');
-        expect(firstRow.find('td:last').text()).toBe('E91');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(90);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(90);
+          expect(firstRow.find('td:first').text()).toBe('A91');
+          expect(firstRow.find('td:last').text()).toBe('E91');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(90);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(90);
+        }
 
         wt.scrollViewport(new Walkontable.CellCoords(50, 0));
         wt.draw();
 
-        expect(firstRow.find('td:first').text()).toBe('A51');
-        expect(firstRow.find('td:last').text()).toBe('E51');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(50);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(50);
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
+
+          expect(firstRow.find('td:first').text()).toBe('A51');
+          expect(firstRow.find('td:last').text()).toBe('E51');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(50);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(50);
+        }
 
         wt.scrollViewport(new Walkontable.CellCoords(0, 0));
         wt.draw();
 
-        expect(firstRow.find('td:first').text()).toBe('A1');
-        expect(firstRow.find('td:last').text()).toBe('E1');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(0);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(0);
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
+
+          expect(firstRow.find('td:first').text()).toBe('A1');
+          expect(firstRow.find('td:last').text()).toBe('E1');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(0);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(0);
+        }
       });
     });
   });

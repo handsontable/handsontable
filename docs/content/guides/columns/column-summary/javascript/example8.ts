@@ -1,7 +1,10 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { NestedRows } from 'handsontable/plugins';
 import { DetailedSettings } from 'handsontable/plugins/columnSummary';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example8')!;
 
@@ -23,9 +26,7 @@ new Handsontable(container, {
   columnSummary() {
     const endpoints: DetailedSettings[] = [];
     const nestedRowsPlugin: NestedRows = this.hot.getPlugin('nestedRows');
-    const getRowIndex = nestedRowsPlugin.dataManager!.getRowIndex.bind(
-      nestedRowsPlugin.dataManager
-    );
+    const getRowIndex = nestedRowsPlugin.dataManager!.getRowIndex.bind(nestedRowsPlugin.dataManager);
 
     const resultColumn = 0;
 
@@ -42,10 +43,7 @@ new Handsontable(container, {
     }
 
     for (let i = 0; i < nestedRowsCache.levels[0].length; i++) {
-      if (
-        !nestedRowsCache.levels[0][i].__children ||
-        nestedRowsCache.levels[0][i].__children.length === 0
-      ) {
+      if (!nestedRowsCache.levels[0][i].__children || nestedRowsCache.levels[0][i].__children.length === 0) {
         continue;
       }
 
@@ -59,11 +57,7 @@ new Handsontable(container, {
 
       tempEndpoint.ranges!.push([
         getRowIndex(nestedRowsCache.levels[0][i].__children[0]),
-        getRowIndex(
-          nestedRowsCache.levels[0][i].__children[
-            nestedRowsCache.levels[0][i].__children.length - 1
-          ]
-        ),
+        getRowIndex(nestedRowsCache.levels[0][i].__children[nestedRowsCache.levels[0][i].__children.length - 1]),
       ]);
 
       endpoints.push(tempEndpoint);

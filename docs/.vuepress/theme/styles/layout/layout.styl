@@ -3,8 +3,15 @@ html {
 	line-height: $line-height
 	background: $bgColor
 	color: $textColor
+
+	&.disable-transition {
+		*, :after, :before {
+			transition: none !important
+		}
+	}
 }
-body { 
+
+body {
 	font-family: $font
 	background: $bgColor
 	-webkit-font-smoothing: antialiased
@@ -13,15 +20,15 @@ body {
 .Inter { font-family: $font }
 h1,h2,h3,h4,h5,h6 { font-family: $font-aeonik }
 .whitespace-nowrap { white-space nowrap}
-	
-a { 
-	color: $accentColor 
+
+a {
+	color: $accentColor
 	font-weight: 400
 }
 
 #app,
 .layout-container,
-.theme-container { 
+.theme-container {
 	min-height:100vh
 	min-height:100dvh
 }
@@ -29,38 +36,33 @@ a {
 	scrollbar-color: $borderColor transparent;
 	scrollbar-width:thin
 
-	.handsontable {
-		scrollbar-color: auto
-	}
-
 	pre { scrollbar-color: $lightBorderColor transparent;}
 }
 
+hr {border: none; border-top: 1px solid $lightBorderColor}
+
 ::selection {
-		//background-color: $accentColor
-		//color: $bgColor
+  // background-color: $accentColor
+  // color: $bgColor
 }
 
-:not(.handsontable) {
-	* { 
-		outline: $accentColor solid 0 
-		outline-offset: -2px;
-	}
-
-	:focus-visible {
-		outline: $accentColor solid 1px 
-	}
+*:not(.handsontable):not(.handsontable *) {
+  outline: $accentColor solid 0;
+  outline-offset: -2px;
 }
 
-
-#nprogress .bar { 
-	background: $accentColor 
+*:not(.handsontable):not(.handsontable *):focus-visible {
+  outline: $accentColor solid 1px;
 }
-.hidden { 
+
+#nprogress .bar {
+	background: $accentColor
+}
+.hidden {
 	display:none
 }
 
-.visually-hidden { 
+.visually-hidden {
 	border: 0
 	clip: rect(0, 0, 0, 0)
 	height: 1px
@@ -69,25 +71,25 @@ a {
 	padding: 0
 	overflow: hidden
 	white-space: nowrap
-	position: absolute
+	position: absolute !important
 }
 
 @media (min-width: $xxxLarge) {
-	#app { 
+	#app {
 		width:$xxxLarge
 		margin: 0 auto
 
-		.navbar .navbar-wrapper { 
+		.navbar .navbar-wrapper {
 			width:$xxxLarge
 			margin: 0 auto
 		}
-		.sidebar { 
+		.sidebar {
 			left: 50%
-			transform: translateX(16 + $xxxLarge/-2)  
+			transform: translateX(16 + $xxxLarge/-2)
 		}
-		.table-of-contents { 
+		.table-of-contents {
 			right:50%
-			transform: translateX(0 + $xxxLarge/2)  
+			transform: translateX(0 + $xxxLarge/2)
 		}
 	}
 }
@@ -99,32 +101,15 @@ a {
 
 			.footer-links {
 				flex-wrap: wrap
-				
-				.edit-link { 
+
+				.edit-link {
 					order: -1
-					margin-left: 0	
+					margin-left: 0
 				}
 			}
 		}
 	}
 }
-
-.decoration-right { 
-	display: block
-	background:  url('{{$basePath}}/img/deco3.svg');
-	background-size: 100%
-	width: 80vh
-	height: 80vh
-	position: fixed
-	pointer-events: none
-	z-index -1
-	opacity: .5
-	zoom: 1.8;
-	filter: blur(30px) hue-rotate(45deg) saturate(4.5);
-	right: -250px;
-	bottom: -240px;
-} 
-
 
 .theme-container {
 	overflow: hidden
@@ -132,4 +117,30 @@ a {
 
 .no-pointer {
 	pointer-events: none
+}
+
+.img-light {
+	display: block
+}
+
+.img-dark {
+	display: none
+}
+
+.tag-updated, .tag-new, .tag-deprecated  { 
+		font-size: 11px
+		line-height: $line-height-xxs
+		display: block;
+		border-radius: $radius-s
+		padding: 1px 5px;
+		background-color: #238349
+		color: $bgColor
+		margin: -1px 0;
+		width: auto !important
+}
+.tag-new { 
+		background-color: $accentColor
+}
+.tag-deprecated { 
+		background-color: $depricatedColor
 }

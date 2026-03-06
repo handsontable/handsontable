@@ -15,7 +15,7 @@ describe('HiddenRows', () => {
   describe('AutoRowSize', () => {
     it('should display proper row height (when indicator is enabled) #1', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
         autoRowSize: true,
@@ -25,12 +25,16 @@ describe('HiddenRows', () => {
         }
       });
 
-      expect(rowHeight(spec().$container, 0)).toBe(24);
+      expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(27);
+        main.toBe(30);
+        horizon.toBe(38);
+      });
     });
 
     it('should display proper row height (when indicator is enabled) #2', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
         autoRowSize: true,
@@ -40,12 +44,16 @@ describe('HiddenRows', () => {
         }
       });
 
-      expect(rowHeight(spec().$container, 0)).toBe(24);
+      expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(27);
+        main.toBe(30);
+        horizon.toBe(38);
+      });
     });
 
     it('should display proper row height (when indicator is enabled) #3', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
         autoRowSize: true,
@@ -55,12 +63,16 @@ describe('HiddenRows', () => {
         }
       });
 
-      expect(rowHeight(spec().$container, 0)).toBe(24);
+      expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(27);
+        main.toBe(30);
+        horizon.toBe(38);
+      });
     });
 
-    it('should display proper row height (when indicator is disabled)', () => {
+    it('should display proper row height (when indicator is disabled)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
         autoRowSize: true,
@@ -69,11 +81,15 @@ describe('HiddenRows', () => {
         }
       });
 
-      expect(rowHeight(spec().$container, 0)).toBe(24);
+      expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(27);
+        main.toBe(30);
+        horizon.toBe(38);
+      });
     });
 
     it('should return proper values from the `getRowHeight` function (when indicator is enabled)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           { id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' },
           { id: 'Somewhat long', name: 'Long', lastName: 'The very longest one' },
@@ -96,13 +112,13 @@ describe('HiddenRows', () => {
       // The AutoRowSize calculates the row heights asynchronously.
       await sleep(100);
 
-      expect(hot.getRowHeight(0)).toBe(0);
-      expect(hot.getRowHeight(1)).toBe(0);
-      expect(hot.getRowHeight(2)).toBe(23);
+      expect(getRowHeight(0)).toBe(0);
+      expect(getRowHeight(1)).toBe(0);
+      expect(getRowHeight(2)).toBe(getFirstRenderedRowDefaultHeight()); // first rendered row
     });
 
     it('should return proper values from the `getRowHeight` function (when indicator is disabled)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           { id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' },
           { id: 'Somewhat long', name: 'Long', lastName: 'The very longest one' },
@@ -124,31 +140,30 @@ describe('HiddenRows', () => {
       // The AutoRowSize calculates the row heights asynchronously.
       await sleep(100);
 
-      expect(hot.getRowHeight(0)).toBe(0);
-      expect(hot.getRowHeight(1)).toBe(0);
-      expect(hot.getRowHeight(2)).toBe(23);
+      expect(getRowHeight(0)).toBe(0);
+      expect(getRowHeight(1)).toBe(0);
+      expect(getRowHeight(2)).toBe(getFirstRenderedRowDefaultHeight()); // first rendered row
     });
 
-    it('should return proper values from the `getRowHeight` function when the `ManualRowResize` plugin define sizes for some rows', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 1),
+    it('should return proper values from the `getRowHeight` function when the `ManualRowResize` plugin define sizes for some rows', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 1),
         hiddenRows: {
           rows: [0, 2],
         },
-        stretchH: 'all',
         manualRowResize: [30, 31, 32, 33, 34],
       });
 
-      expect(hot.getRowHeight(0)).toBe(0);
-      expect(hot.getRowHeight(1)).toBe(31);
-      expect(hot.getRowHeight(2)).toBe(0);
-      expect(hot.getRowHeight(3)).toBe(33);
-      expect(hot.getRowHeight(4)).toBe(34);
-      expect(hot.getRowHeight(5)).toBeUndefined();
+      expect(getRowHeight(0)).toBe(0);
+      expect(getRowHeight(1)).toBe(31);
+      expect(getRowHeight(2)).toBe(0);
+      expect(getRowHeight(3)).toBe(33);
+      expect(getRowHeight(4)).toBe(34);
+      expect(getRowHeight(5)).toBeUndefined();
     });
 
-    it('should return proper values from the `getRowHeader` function', () => {
-      const hot = handsontable({
+    it('should return proper values from the `getRowHeader` function', async() => {
+      handsontable({
         data: [
           { id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' },
           { id: 'Somewhat long', name: 'Long', lastName: 'The very longest one' },
@@ -167,9 +182,9 @@ describe('HiddenRows', () => {
         autoRowSize: true,
       });
 
-      expect(hot.getRowHeader(0)).toBe(1);
-      expect(hot.getRowHeader(1)).toBe(2);
-      expect(hot.getRowHeader(2)).toBe(3);
+      expect(getRowHeader(0)).toBe(1);
+      expect(getRowHeader(1)).toBe(2);
+      expect(getRowHeader(2)).toBe(3);
     });
   });
 });

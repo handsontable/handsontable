@@ -21,9 +21,8 @@ describe('Comments keyboard shortcut', () => {
         comments: true,
       });
 
-      selectCell(1, 1);
-      keyDownUp(['control', 'alt', 'm']);
-
+      await selectCell(1, 1);
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       const plugin = getPlugin('comments');
@@ -34,14 +33,61 @@ describe('Comments keyboard shortcut', () => {
       expect(document.activeElement).toBe(editor);
       expect(plugin.range).toEqualCellRange('highlight: 1,1 from: 1,1 to: 1,1');
 
-      keyDownUp(['m']); // typing printable characters should not trigger cell editor
+      await keyDownUp(['m']); // typing printable characters should not trigger cell editor
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
       expect(document.activeElement).toBe(editor);
     });
 
+    it('should open and create a new comment for different focus position in different selection layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+      });
+
+      await selectCells([
+        [1, 1, 2, 2],
+        [3, 3, 4, 5],
+        [6, 6, 6, 6],
+      ]);
+
+      await keyDownUp('enter'); // moves focus to the next selection layer
+      await keyDownUp(['control', 'alt', 'm']);
+      await sleep(10);
+
+      const plugin = getPlugin('comments');
+      const editor = plugin.getEditorInputElement();
+
+      expect(editor.parentNode.style.display).toBe('block');
+      expect(editor.value).toBe('');
+      expect(document.activeElement).toBe(editor);
+      expect(plugin.range).toEqualCellRange('highlight: 1,1 from: 1,1 to: 2,2');
+
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
+      expect(document.activeElement).toBe(editor);
+
+      await keyDownUp('escape');
+
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter'); // moves focus to the next selection layer
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter'); // places the focus in the middle of the selection range
+
+      await keyDownUp(['control', 'alt', 'm']);
+      await sleep(10);
+
+      expect(plugin.range).toEqualCellRange('highlight: 4,4 from: 3,3 to: 4,5');
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
+      expect(document.activeElement).toBe(editor);
+    });
+
     it('should scroll the viewport, open and create a new comment when the focused cell is outside the table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(500, 50),
         width: 300,
         height: 300,
@@ -51,19 +97,15 @@ describe('Comments keyboard shortcut', () => {
         comments: true,
       });
 
-      selectCell(400, 40);
-      scrollViewportTo({
+      await selectCell(400, 40);
+      await scrollViewportTo({
         row: 0,
         col: 0,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
 
-      await sleep(10);
-
-      keyDownUp(['control', 'alt', 'm']);
-
-      await sleep(10);
+      await keyDownUp(['control', 'alt', 'm']);
 
       const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();
@@ -74,8 +116,12 @@ describe('Comments keyboard shortcut', () => {
       expect(plugin.range).toEqualCellRange('highlight: 400,40 from: 400,40 to: 400,40');
 
       // 2050 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1816);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(8966);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(1816);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(10169);
+        main.toBe(11375);
+        horizon.toBe(14591);
+      });
     });
 
     it('should open and edit a comment, make it active, and ready for typing', async() => {
@@ -89,9 +135,8 @@ describe('Comments keyboard shortcut', () => {
         ],
       });
 
-      selectCell(1, 1);
-      keyDownUp(['control', 'alt', 'm']);
-
+      await selectCell(1, 1);
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       const plugin = getPlugin('comments');
@@ -102,9 +147,40 @@ describe('Comments keyboard shortcut', () => {
       expect(document.activeElement).toBe(editor);
       expect(plugin.range).toEqualCellRange('highlight: 1,1 from: 1,1 to: 1,1');
 
-      keyDownUp(['m']); // typing printable characters should not trigger cell editor
+      await keyDownUp(['m']); // typing printable characters should not trigger cell editor
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
+      expect(document.activeElement).toBe(editor);
+    });
+
+    it('should refocus the comment for the cell with already opened a comment', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: {
+          displayDelay: 10
+        },
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Hello world!' } }
+        ],
+      });
+
+      await selectCell(1, 1);
+
+      $(getCell(1, 1)).simulate('mouseover', {
+        clientX: Handsontable.dom.offset(getCell(1, 1)).left + 5,
+        clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
+      });
+
+      await sleep(50);
+      await keyDownUp(['control', 'alt', 'm']);
+      await sleep(10);
+
+      const plugin = getPlugin('comments');
+      const editor = plugin.getEditorInputElement();
+
+      expect(editor.parentNode.style.display).toBe('block');
       expect(document.activeElement).toBe(editor);
     });
 
@@ -116,9 +192,8 @@ describe('Comments keyboard shortcut', () => {
         comments: true,
       });
 
-      selectCells([[3, 3, 2, 1]]);
-      keyDownUp(['control', 'alt', 'm']);
-
+      await selectCells([[3, 3, 2, 1]]);
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       const plugin = getPlugin('comments');
@@ -129,7 +204,7 @@ describe('Comments keyboard shortcut', () => {
       expect(document.activeElement).toBe(editor);
       expect(plugin.range).toEqualCellRange('highlight: 3,3 from: 3,3 to: 2,1');
 
-      keyDownUp(['m']); // typing printable characters should not trigger cell editor
+      await keyDownUp(['m']); // typing printable characters should not trigger cell editor
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
       expect(document.activeElement).toBe(editor);
@@ -144,9 +219,8 @@ describe('Comments keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['control', 'alt', 'm']);
-
+      await selectCell(-1, 1);
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       const plugin = getPlugin('comments');
@@ -166,9 +240,8 @@ describe('Comments keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      selectCell(1, -1);
-      keyDownUp(['control', 'alt', 'm']);
-
+      await selectCell(1, -1);
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       const plugin = getPlugin('comments');
@@ -188,8 +261,8 @@ describe('Comments keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
-      keyDownUp(['control', 'alt', 'm']);
+      await selectCell(-1, -1);
+      await keyDownUp(['control', 'alt', 'm']);
 
       await sleep(10);
 
@@ -211,18 +284,49 @@ describe('Comments keyboard shortcut', () => {
         comments: true,
       });
 
-      selectCell(1, 1);
-      keyDownUp(['control', 'alt', 'm']);
-
+      await selectCell(1, 1);
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
 
-      keyDownUp(['control/meta', 'enter']);
-
+      await keyDownUp(['control/meta', 'enter']);
       await sleep(50);
 
       expect(getCellMeta(1, 1).comment.value).toBe('Test comment');
+    });
+
+    it('should close the comment and save the value (comment opened by keyboard shortcut) - multiple cells', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+      });
+
+      await selectCells([
+        [1, 1, 2, 2],
+        [3, 3, 4, 5],
+        [6, 6, 6, 6],
+      ]);
+
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp(['control', 'alt', 'm']);
+      await sleep(10);
+
+      getPlugin('comments').getEditorInputElement().value = 'Test comment';
+
+      await keyDownUp(['control/meta', 'enter']);
+      await sleep(50);
+
+      expect(getCellMeta(4, 4).comment.value).toBe('Test comment');
     });
 
     it('should close the comment and save the value (comment opened through the context menu)', async() => {
@@ -234,14 +338,14 @@ describe('Comments keyboard shortcut', () => {
         contextMenu: true,
       });
 
-      selectCell(1, 1);
-      contextMenu();
-      selectContextMenuOption('Add comment');
+      await selectCell(1, 1);
+      await contextMenu();
+      await selectContextMenuOption('Add comment');
+
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
-      deselectCell();
 
-      keyDownUp(['control/meta', 'enter']);
-
+      await deselectCell();
+      await keyDownUp(['control/meta', 'enter']);
       await sleep(50);
 
       expect(getCellMeta(1, 1).comment.value).toBe('Test comment');
@@ -257,12 +361,12 @@ describe('Comments keyboard shortcut', () => {
         comments: true,
       });
 
-      selectCell(1, 1);
-      keyDownUp(['escape']);
+      await selectCell(1, 1);
+      await keyDownUp(['escape']);
+
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
 
-      keyDownUp(['control/meta', 'enter']);
-
+      await keyDownUp(['control/meta', 'enter']);
       await sleep(50);
 
       expect(getCellMeta(1, 1).comment).toBeUndefined();
@@ -279,15 +383,154 @@ describe('Comments keyboard shortcut', () => {
         ],
       });
 
-      selectCell(1, 1);
-      keyDownUp(['escape']);
+      await selectCell(1, 1);
+      await keyDownUp(['escape']);
+
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
 
-      keyDownUp(['control/meta', 'enter']);
-
+      await keyDownUp(['control/meta', 'enter']);
       await sleep(50);
 
       expect(getCellMeta(1, 1).comment.value).toBe('Hello world!');
+    });
+  });
+
+  describe('"TAB"', () => {
+    it('should close the comment, save the value and move the selection to the next cell (grid default for TAB)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+      });
+
+      await selectCell(1, 1);
+      await keyDownUp(['control', 'alt', 'm']);
+      await sleep(50);
+
+      const plugin = getPlugin('comments');
+      const commentsInput = plugin.getEditorInputElement();
+
+      expect(commentsInput.parentNode.style.display).toEqual('block');
+
+      commentsInput.value = 'Test comment';
+
+      await keyDownUp(['TAB']);
+      await sleep(50);
+
+      expect(getCellMeta(1, 1).comment).toEqual({ value: 'Test comment' });
+      expect(commentsInput.parentNode.style.display).toEqual('none');
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
+      expect(document.activeElement).toBe(getCell(1, 2));
+    });
+
+    it('should close the comment, save the value and move the selection to the next cell (grid default for TAB) - multiple cells', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+      });
+
+      await selectCells([
+        [1, 1, 2, 3],
+        [3, 3, 4, 5],
+        [6, 6, 6, 6],
+      ]);
+
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab'); // select C3
+      await keyDownUp(['control', 'alt', 'm']);
+      await sleep(50);
+
+      const plugin = getPlugin('comments');
+      const commentsInput = plugin.getEditorInputElement();
+
+      expect(commentsInput.parentNode.style.display).toEqual('block');
+
+      commentsInput.value = 'Test comment';
+
+      await keyDownUp(['tab']);
+      await sleep(50);
+
+      expect(getCellMeta(2, 2).comment).toEqual({ value: 'Test comment' });
+      expect(commentsInput.parentNode.style.display).toEqual('none');
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 2,3 from: 1,1 to: 2,3',
+        'highlight: 3,3 from: 3,3 to: 4,5',
+        'highlight: 6,6 from: 6,6 to: 6,6',
+      ]);
+      expect(document.activeElement).toBe(getCell(2, 3));
+    });
+  });
+
+  describe('"Shift + TAB"', () => {
+    it('should close the comment, save the value and move the selection to the previous cell (grid default for TAB)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+      });
+
+      await selectCell(1, 1);
+      await keyDownUp(['control', 'alt', 'm']);
+      await sleep(50);
+
+      const plugin = getPlugin('comments');
+      const commentsInput = plugin.getEditorInputElement();
+
+      expect(commentsInput.parentNode.style.display).toEqual('block');
+      commentsInput.value = 'Test comment';
+
+      await keyDownUp(['SHIFT', 'TAB']);
+      await sleep(50);
+
+      expect(getCellMeta(1, 1).comment).toEqual({ value: 'Test comment' });
+      expect(commentsInput.parentNode.style.display).toEqual('none');
+      expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+      expect(document.activeElement).toBe(getCell(1, 0));
+    });
+
+    it('should close the comment, save the value and move the selection to the previous cell (grid default for TAB) - multiple cells', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+      });
+
+      await selectCells([
+        [1, 1, 2, 3],
+        [3, 3, 4, 5],
+        [6, 6, 6, 6],
+      ]);
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']); // select E5
+      await keyDownUp(['control', 'alt', 'm']);
+      await sleep(50);
+
+      const plugin = getPlugin('comments');
+      const commentsInput = plugin.getEditorInputElement();
+
+      expect(commentsInput.parentNode.style.display).toEqual('block');
+
+      commentsInput.value = 'Test comment';
+
+      await keyDownUp(['shift', 'tab']);
+      await sleep(50);
+
+      expect(getCellMeta(4, 4).comment).toEqual({ value: 'Test comment' });
+      expect(commentsInput.parentNode.style.display).toEqual('none');
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 1,1 from: 1,1 to: 2,3',
+        'highlight: 4,3 from: 3,3 to: 4,5',
+        'highlight: 6,6 from: 6,6 to: 6,6',
+      ]);
+      expect(document.activeElement).toBe(getCell(4, 3));
     });
   });
 });

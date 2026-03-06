@@ -17,6 +17,7 @@ describe('settings', () => {
       const origMarginTop = document.body.style.marginTop;
 
       document.body.style.marginTop = '2000px';
+
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -26,9 +27,7 @@ describe('settings', () => {
         preventOverflow: 'horizontal',
       });
 
-      window.scrollTo(0, 100);
-
-      await sleep(50);
+      await scrollWindowTo(0, 100);
 
       expect(getMaster().hasClass('innerBorderTop')).toBe(false);
 
@@ -39,6 +38,7 @@ describe('settings', () => {
       const origMarginLeft = document.body.style.marginLeft;
 
       document.body.style.marginLeft = '2000px';
+
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -48,9 +48,7 @@ describe('settings', () => {
         preventOverflow: 'vertical',
       });
 
-      window.scrollTo(100, 0);
-
-      await sleep(50);
+      await scrollWindowTo(100, 0);
 
       expect(getMaster().hasClass('innerBorderInlineStart')).toBe(false);
       expect(getMaster().hasClass('innerBorderLeft')).toBe(false);

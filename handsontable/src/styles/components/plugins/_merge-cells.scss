@@ -1,0 +1,17 @@
+@use "../../utils/mixins";
+
+// Handsontable Merge Cells
+
+@mixin output {
+  .handsontable tbody td[rowspan][class*=area][class*=highlight]:not([class*=fullySelectedMergedCell])::before {
+    opacity: 0;
+  }
+  
+  .handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-multiple]::before {
+    opacity: 0.14;
+  }
+
+  @for $i from 0 through 7 {
+    @include mixins.selection-opacity($i);
+  }
+}

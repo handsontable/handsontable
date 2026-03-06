@@ -14,7 +14,7 @@ describe('Performance', () => {
     }
   });
 
-  it('should call renderer once for one cell (fixed column width)', () => {
+  it('should call renderer once for one cell (fixed column width)', async() => {
     let count = 0;
 
     handsontable({
@@ -30,7 +30,7 @@ describe('Performance', () => {
     expect(count).toEqual(1); // only for master table
   });
 
-  it('should call renderer twice for one cell (auto column width)', () => {
+  it('should call renderer twice for one cell (auto column width)', async() => {
     let count = 0;
 
     handsontable({
@@ -45,7 +45,7 @@ describe('Performance', () => {
     expect(count).toEqual(2); // 1 for autoColumnSize, 1 for actual cell render
   });
 
-  it('should call renderer twice for one cell (auto row height)', () => {
+  it('should call renderer twice for one cell (auto row height)', async() => {
     let count = 0;
 
     handsontable({
@@ -60,7 +60,7 @@ describe('Performance', () => {
     expect(count).toEqual(1); // 1 for actual cell render (colWidths prevent autoColumnSize to enable)
   });
 
-  it('should call renderer triple times for one cell (auto row height, auto column width)', () => {
+  it('should call renderer triple times for one cell (auto row height, auto column width)', async() => {
     let count = 0;
 
     handsontable({
@@ -76,7 +76,7 @@ describe('Performance', () => {
     expect(count).toEqual(3); // 1 for autoColumnSize, 1 for autoRowSize, 1 for actual cell render
   });
 
-  it('should call getCellMeta minimum number of times for one cell (auto column width, without overlays)', () => {
+  it('should call getCellMeta minimum number of times for one cell (auto column width, without overlays)', async() => {
     let count = 0;
 
     handsontable({
@@ -89,10 +89,10 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
-  it('should call getCellMeta minimum number of times for one cell (auto row height, without overlays)', () => {
+  it('should call getCellMeta minimum number of times for one cell (auto row height, without overlays)', async() => {
     let count = 0;
 
     handsontable({
@@ -105,10 +105,10 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
-  it('should call getCellMeta minimum number of times for one cell (auto column width, with left overlay)', () => {
+  it('should call getCellMeta minimum number of times for one cell (auto column width, with left overlay)', async() => {
     let count = 0;
 
     handsontable({
@@ -122,10 +122,10 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
-  it('should call getCellMeta minimum number of times for one cell (auto row height, with left overlay)', () => {
+  it('should call getCellMeta minimum number of times for one cell (auto row height, with left overlay)', async() => {
     let count = 0;
 
     handsontable({
@@ -139,10 +139,10 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
-  it('should call getCellMeta minimum number of times for one cell (auto column width, with top overlay)', () => {
+  it('should call getCellMeta minimum number of times for one cell (auto column width, with top overlay)', async() => {
     let count = 0;
 
     handsontable({
@@ -156,10 +156,10 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
-  it('should call getCellMeta minimum number of times for one cell (auto row height, with top overlay)', () => {
+  it('should call getCellMeta minimum number of times for one cell (auto row height, with top overlay)', async() => {
     let count = 0;
 
     handsontable({
@@ -173,10 +173,10 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
-  it('should call getCellMeta minimum number of times for one cell (auto column width, with all overlays)', () => {
+  it('should call getCellMeta minimum number of times for one cell (auto column width, with all overlays)', async() => {
     let count = 0;
 
     handsontable({
@@ -191,10 +191,10 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
-  it('should call getCellMeta minimum number of times for one cell (auto row height, with all overlays)', () => {
+  it('should call getCellMeta minimum number of times for one cell (auto row height, with all overlays)', async() => {
     let count = 0;
 
     handsontable({
@@ -209,10 +209,10 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
-  it('should call renderer twice for each cell (auto column width)', () => {
+  it('should call renderer twice for each cell (auto column width)', async() => {
     let count = 0;
 
     handsontable({
@@ -229,7 +229,7 @@ describe('Performance', () => {
     expect(count).toEqual(28);
   });
 
-  it('should call renderer twice for each cell (auto row height)', () => {
+  it('should call renderer twice for each cell (auto row height)', async() => {
     let count = 0;
 
     handsontable({
@@ -246,7 +246,7 @@ describe('Performance', () => {
     expect(count).toEqual(28); // 16 in main table and 4 rows for autoRowSize
   });
 
-  it('should call renderer twice for each cell (auto row height, auto column width)', () => {
+  it('should call renderer twice for each cell (auto row height, auto column width)', async() => {
     let count = 0;
 
     handsontable({

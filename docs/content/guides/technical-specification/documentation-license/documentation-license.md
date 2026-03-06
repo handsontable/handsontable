@@ -8,6 +8,9 @@ canonicalUrl: /documentation-license
 react:
   id: u3lvnmzh
   metaTitle: Documentation license - React Data Grid | Handsontable
+angular:
+  id: g9ytiw67
+  metaTitle: Documentation license - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Technical specification
 ---

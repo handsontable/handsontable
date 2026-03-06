@@ -10,9 +10,9 @@ describe('Core.getSelectedRangeLast', () => {
     }
   });
 
-  it('should return valid coordinates', () => {
+  it('should return valid coordinates', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      data: createSpreadsheetObjectData(10, 10),
       selectionMode: 'multiple',
     });
 
@@ -23,31 +23,31 @@ describe('Core.getSelectedRangeLast', () => {
       { from: { row: 7, col: 6 }, to: { row: 8, col: 7 } },
     ];
 
-    mouseDown(getCell(5, 4));
-    mouseOver(getCell(1, 1));
-    mouseUp(getCell(1, 1));
+    await mouseDown(getCell(5, 4));
+    await mouseOver(getCell(1, 1));
+    await mouseUp(getCell(1, 1));
 
     expect(getSelectedRangeLast().toObject()).toEqual(snapshot[0]);
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
-    mouseDown(getCell(2, 2));
-    mouseOver(getCell(7, 2));
-    mouseUp(getCell(7, 2));
+    await mouseDown(getCell(2, 2));
+    await mouseOver(getCell(7, 2));
+    await mouseUp(getCell(7, 2));
 
     expect(getSelectedRangeLast().toObject()).toEqual(snapshot[1]);
 
-    mouseDown(getCell(2, 4));
-    mouseOver(getCell(2, 4));
-    mouseUp(getCell(2, 4));
+    await mouseDown(getCell(2, 4));
+    await mouseOver(getCell(2, 4));
+    await mouseUp(getCell(2, 4));
 
     expect(getSelectedRangeLast().toObject()).toEqual(snapshot[2]);
 
-    mouseDown(getCell(7, 6));
-    mouseOver(getCell(8, 7));
-    mouseUp(getCell(8, 7));
+    await mouseDown(getCell(7, 6));
+    await mouseOver(getCell(8, 7));
+    await mouseUp(getCell(8, 7));
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     expect(getSelectedRangeLast().toObject()).toEqual(snapshot[3]);
   });

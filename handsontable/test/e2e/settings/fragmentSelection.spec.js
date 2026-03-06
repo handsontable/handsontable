@@ -53,9 +53,9 @@ describe('settings', () => {
     }
 
     describe('constructor', () => {
-      it('should disallow fragmentSelection when set to false', () => {
-        const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(4, 4),
+      it('should disallow fragmentSelection when set to false', async() => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
           fragmentSelection: false
         });
 
@@ -72,16 +72,16 @@ describe('settings', () => {
         expect(sel).toEqual(''); // copyPaste has selected space in textarea
 
         const copyEvent = getClipboardEvent();
-        const plugin = hot.getPlugin('CopyPaste');
+        const plugin = getPlugin('CopyPaste');
 
         plugin.onCopy(copyEvent);
 
         expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1\tD1');
       });
 
-      it('should allow fragmentSelection when set to true', () => {
-        const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(4, 4),
+      it('should allow fragmentSelection when set to true', async() => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
 
@@ -94,69 +94,70 @@ describe('settings', () => {
         expect(getSelected()).toEqual('B1C1D1');
 
         const copyEvent = getClipboardEvent();
-        const plugin = hot.getPlugin('CopyPaste');
+        const plugin = getPlugin('CopyPaste');
 
         plugin.onCopy(copyEvent);
 
         expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1\tD1');
       });
 
-      it('should allow fragmentSelection from one cell when set to `cell`', () => {
-        const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(4, 4),
+      it('should allow fragmentSelection from one cell when set to `cell`', async() => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
         });
 
         const $TD = spec().$container.find('tr:eq(0) td:eq(1)');
 
         selectElementText($TD[0], 1);
-        mouseDown($TD);
-        mouseOver($TD);
-        mouseMove($TD);
-        mouseUp($TD);
-        mouseClick($TD);
+
+        await mouseDown($TD);
+        await mouseOver($TD);
+        await mouseMove($TD);
+        await mouseUp($TD);
+        await mouseClick($TD);
 
         expect(getSelected()).toEqual('B1');
 
         const copyEvent = getClipboardEvent();
-        const plugin = hot.getPlugin('CopyPaste');
+        const plugin = getPlugin('CopyPaste');
 
         plugin.onCopy(copyEvent);
 
         expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1');
       });
 
-      it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', () => {
-        const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(4, 4),
+      it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', async() => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
         });
 
         selectElementText(spec().$container.find('td')[1], 1);
-        mouseDown(spec().$container.find('tr:eq(0) td:eq(1)'));
-        mouseOver(spec().$container.find('tr:eq(0) td:eq(2)'));
-        mouseMove(spec().$container.find('tr:eq(0) td:eq(2)'));
-        mouseUp(spec().$container.find('tr:eq(0) td:eq(2)'));
-        mouseClick(spec().$container.find('tr:eq(0) td:eq(2)'));
+        await mouseDown(spec().$container.find('tr:eq(0) td:eq(1)'));
+        await mouseOver(spec().$container.find('tr:eq(0) td:eq(2)'));
+        await mouseMove(spec().$container.find('tr:eq(0) td:eq(2)'));
+        await mouseUp(spec().$container.find('tr:eq(0) td:eq(2)'));
+        await mouseClick(spec().$container.find('tr:eq(0) td:eq(2)'));
 
         expect(getSelected()).toEqual(''); // copyPaste has selected space in textarea
 
         const copyEvent = getClipboardEvent();
-        const plugin = hot.getPlugin('CopyPaste');
+        const plugin = getPlugin('CopyPaste');
 
         plugin.onCopy(copyEvent);
 
         expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1');
       });
 
-      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', () => {
-        handsontable({
-          data: Handsontable.helper.createSpreadsheetData(4, 4),
+      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(4, 4),
           fragmentSelection: false
         });
         const $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
 
-        spec().$container.append($div);
+        hot.rootElement.append($div);
         selectElementText($div[0], 1);
 
         $($div).simulate('mousedown');
@@ -166,14 +167,14 @@ describe('settings', () => {
         expect(sel).toEqual('');
       });
 
-      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to true', () => {
-        handsontable({
-          data: Handsontable.helper.createSpreadsheetData(4, 4),
+      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to true', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
         const $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
 
-        spec().$container.append($div);
+        hot.rootElement.append($div);
         selectElementText($div[0], 1);
 
         $($div).simulate('mousedown');
@@ -185,13 +186,13 @@ describe('settings', () => {
     });
 
     describe('dynamic', () => {
-      it('should disallow fragmentSelection when set to false', () => {
-        const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(4, 4),
+      it('should disallow fragmentSelection when set to false', async() => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
 
-        updateSettings({ fragmentSelection: false });
+        await updateSettings({ fragmentSelection: false });
 
         selectElementText(spec().$container.find('td')[1], 3);
         $(spec().$container.find('tr:eq(0) td:eq(1)')).simulate('mousedown');
@@ -204,20 +205,20 @@ describe('settings', () => {
         expect(sel).toEqual(''); // copyPaste has selected space in textarea
 
         const copyEvent = getClipboardEvent();
-        const plugin = hot.getPlugin('CopyPaste');
+        const plugin = getPlugin('CopyPaste');
 
         plugin.onCopy(copyEvent);
 
         expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1\tD1');
       });
 
-      it('should allow fragmentSelection when set to true', () => {
-        const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(4, 4),
+      it('should allow fragmentSelection when set to true', async() => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
           fragmentSelection: false
         });
 
-        updateSettings({ fragmentSelection: true });
+        await updateSettings({ fragmentSelection: true });
 
         selectElementText(spec().$container.find('td')[1], 3);
         $(spec().$container.find('tr:eq(0) td:eq(1)')).simulate('mousedown');
@@ -228,7 +229,7 @@ describe('settings', () => {
         expect(getSelected()).toEqual('B1C1D1');
 
         const copyEvent = getClipboardEvent();
-        const plugin = hot.getPlugin('CopyPaste');
+        const plugin = getPlugin('CopyPaste');
 
         plugin.onCopy(copyEvent);
 

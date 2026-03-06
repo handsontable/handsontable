@@ -26,7 +26,7 @@ describe('Selection navigation', () => {
   }
 
   describe('"Tab"', () => {
-    it('should move the selection right for single cell selection', () => {
+    it('should move the selection right for single cell selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -34,8 +34,8 @@ describe('Selection navigation', () => {
         startCols: 5,
       });
 
-      selectCell(2, 2);
-      keyDownUp('tab');
+      await selectCell(2, 2);
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,3 from: 2,3 to: 2,3']);
       expect(`
@@ -49,7 +49,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection right within a multiple selected cells only', () => {
+    it('should move the selection right within a multiple selected cells only', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -57,8 +57,8 @@ describe('Selection navigation', () => {
         startCols: 5,
       });
 
-      selectCell(1, 1, 2, 2);
-      keyDownUp('tab');
+      await selectCell(1, 1, 2, 2);
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,1 to: 2,2']);
       expect(`
@@ -71,7 +71,7 @@ describe('Selection navigation', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 1,1 to: 2,2']);
       expect(`
@@ -84,7 +84,7 @@ describe('Selection navigation', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 1,1 to: 2,2']);
       expect(`
@@ -97,7 +97,7 @@ describe('Selection navigation', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 2,2']);
       expect(`
@@ -111,7 +111,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection right within a non-contiguous selection only for the last layer', () => {
+    it('should move the selection right within a non-contiguous selection and jump to the next layers (selected multiple cells)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -119,42 +119,11 @@ describe('Selection navigation', () => {
         startCols: 5,
       });
 
-      selectCells([[0, 0, 2, 2], [4, 2, 4, 4], [1, 1, 2, 2]]);
-      keyDownUp('tab');
-
-      expect(getSelectedRange()).toEqualCellRange([
-        'highlight: 0,0 from: 0,0 to: 2,2',
-        'highlight: 4,2 from: 4,2 to: 4,4',
-        'highlight: 1,2 from: 1,1 to: 2,2',
-      ]);
-      expect(`
-        |   ║ - : - : - : - : - |
-        |===:===:===:===:===:===|
-        | - ║ 0 : 0 : 0 :   :   |
-        | - ║ 0 : 1 : B :   :   |
-        | - ║ 0 : 1 : 1 :   :   |
-        |   ║   :   :   :   :   |
-        | - ║   :   : 0 : 0 : 0 |
-      `).toBeMatchToSelectionPattern();
-
-      keyDownUp('tab');
-
-      expect(getSelectedRange()).toEqualCellRange([
-        'highlight: 0,0 from: 0,0 to: 2,2',
-        'highlight: 4,2 from: 4,2 to: 4,4',
-        'highlight: 2,1 from: 1,1 to: 2,2',
-      ]);
-      expect(`
-        |   ║ - : - : - : - : - |
-        |===:===:===:===:===:===|
-        | - ║ 0 : 0 : 0 :   :   |
-        | - ║ 0 : 1 : 1 :   :   |
-        | - ║ 0 : B : 1 :   :   |
-        |   ║   :   :   :   :   |
-        | - ║   :   : 0 : 0 : 0 |
-      `).toBeMatchToSelectionPattern();
-
-      keyDownUp('tab');
+      await selectCells([[0, 0, 2, 2], [4, 2, 4, 4], [1, 1, 2, 2]]);
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab'); // moves focus to the next layer
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,0 from: 0,0 to: 2,2',
@@ -164,18 +133,45 @@ describe('Selection navigation', () => {
       expect(`
         |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | - ║ 0 : 0 : 0 :   :   |
+        | - ║ A : 0 : 0 :   :   |
         | - ║ 0 : 1 : 1 :   :   |
-        | - ║ 0 : 1 : B :   :   |
+        | - ║ 0 : 1 : 1 :   :   |
         |   ║   :   :   :   :   |
         | - ║   :   : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab'); // moves focus to the next layer
 
       expect(getSelectedRange()).toEqualCellRange([
-        'highlight: 0,0 from: 0,0 to: 2,2',
+        'highlight: 2,2 from: 0,0 to: 2,2',
         'highlight: 4,2 from: 4,2 to: 4,4',
+        'highlight: 2,2 from: 1,1 to: 2,2',
+      ]);
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        | - ║ 0 : 0 : 0 :   :   |
+        | - ║ 0 : 1 : 1 :   :   |
+        | - ║ 0 : 1 : 1 :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   :   : A : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 2,2 from: 0,0 to: 2,2',
+        'highlight: 4,4 from: 4,2 to: 4,4',
         'highlight: 1,1 from: 1,1 to: 2,2',
       ]);
       expect(`
@@ -187,9 +183,114 @@ describe('Selection navigation', () => {
         |   ║   :   :   :   :   |
         | - ║   :   : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
+
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 2,2',
+        'highlight: 4,4 from: 4,2 to: 4,4',
+        'highlight: 2,2 from: 1,1 to: 2,2',
+      ]);
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        | - ║ A : 0 : 0 :   :   |
+        | - ║ 0 : 1 : 1 :   :   |
+        | - ║ 0 : 1 : 1 :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   :   : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection right within a column header selection', () => {
+    it('should move the selection right within a non-contiguous selection and jump to the next layers (selected multiple single cells)', async() => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+      });
+
+      await selectCells([[0, 0, 1, 1], [4, 4, 4, 4], [2, 2, 2, 2], [4, 1, 4, 1]]);
+      await keyDownUp('tab'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 1,1',
+        'highlight: 4,4 from: 4,4 to: 4,4',
+        'highlight: 2,2 from: 2,2 to: 2,2',
+        'highlight: 4,1 from: 4,1 to: 4,1',
+      ]);
+      expect(`
+        |   ║ - : - : - :   : - |
+        |===:===:===:===:===:===|
+        | - ║ A : 0 :   :   :   |
+        | - ║ 0 : 0 :   :   :   |
+        | - ║   :   : 0 :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : 0 :   :   : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab');
+      await keyDownUp('tab'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 1,1 from: 0,0 to: 1,1',
+        'highlight: 4,4 from: 4,4 to: 4,4',
+        'highlight: 2,2 from: 2,2 to: 2,2',
+        'highlight: 4,1 from: 4,1 to: 4,1',
+      ]);
+      expect(`
+        |   ║ - : - : - :   : - |
+        |===:===:===:===:===:===|
+        | - ║ 0 : 0 :   :   :   |
+        | - ║ 0 : 0 :   :   :   |
+        | - ║   :   : 0 :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : 0 :   :   : A |
+      `).toBeMatchToSelectionPattern();
+
+      await keyDownUp('tab'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 1,1 from: 0,0 to: 1,1',
+        'highlight: 4,4 from: 4,4 to: 4,4',
+        'highlight: 2,2 from: 2,2 to: 2,2',
+        'highlight: 4,1 from: 4,1 to: 4,1',
+      ]);
+      expect(`
+        |   ║ - : - : - :   : - |
+        |===:===:===:===:===:===|
+        | - ║ 0 : 0 :   :   :   |
+        | - ║ 0 : 0 :   :   :   |
+        | - ║   :   : A :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : 0 :   :   : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      await keyDownUp('tab'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 1,1 from: 0,0 to: 1,1',
+        'highlight: 4,4 from: 4,4 to: 4,4',
+        'highlight: 2,2 from: 2,2 to: 2,2',
+        'highlight: 4,1 from: 4,1 to: 4,1',
+      ]);
+      expect(`
+        |   ║ - : - : - :   : - |
+        |===:===:===:===:===:===|
+        | - ║ 0 : 0 :   :   :   |
+        | - ║ 0 : 0 :   :   :   |
+        | - ║   :   : 0 :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : A :   :   : 0 |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should move the selection right within a column header selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -201,9 +302,9 @@ describe('Selection navigation', () => {
         },
       });
 
-      selectColumns(2, 3, -2);
-      listen();
-      keyDownUp('tab');
+      await selectColumns(2, 3, -2);
+      await listen();
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -2,2 to: 1,3']);
       expect(`
@@ -214,7 +315,7 @@ describe('Selection navigation', () => {
         | - ║   :   : 0 : 0 :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: -2,2 to: 1,3']);
       expect(`
@@ -225,7 +326,7 @@ describe('Selection navigation', () => {
         | - ║   :   : A : 0 :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: -2,2 to: 1,3']);
       expect(`
@@ -236,7 +337,7 @@ describe('Selection navigation', () => {
         | - ║   :   : 0 : A :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -2,2 to: 1,3']);
       expect(`
@@ -248,7 +349,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection right within a row header selection', () => {
+    it('should move the selection right within a row header selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -260,9 +361,9 @@ describe('Selection navigation', () => {
         },
       });
 
-      selectRows(2, 3, -2);
-      listen();
-      keyDownUp('tab');
+      await selectRows(2, 3, -2);
+      await listen();
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-2 to: 3,1']);
       expect(`
@@ -275,7 +376,7 @@ describe('Selection navigation', () => {
         |   :   ║   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 2,-2 to: 3,1']);
       expect(`
@@ -288,7 +389,7 @@ describe('Selection navigation', () => {
         |   :   ║   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 2,-2 to: 3,1']);
       expect(`
@@ -301,7 +402,7 @@ describe('Selection navigation', () => {
         |   :   ║   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 2,-2 to: 3,1']);
       expect(`
@@ -314,7 +415,7 @@ describe('Selection navigation', () => {
         |   :   ║   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-2 to: 3,1']);
       expect(`
@@ -328,7 +429,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection right ignoring hidden indexes', () => {
+    it('should move the selection right ignoring hidden indexes', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -344,10 +445,10 @@ describe('Selection navigation', () => {
 
       rowHiddenMapper.setValueAtIndex(1, true);
       columnHiddenMapper.setValueAtIndex(2, true);
-      render();
+      await render();
 
-      selectCell(1, 1, 3, 3);
-      keyDownUp('tab');
+      await selectCell(1, 1, 3, 3);
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,3 from: 1,1 to: 3,3']);
       expect(`
@@ -359,7 +460,7 @@ describe('Selection navigation', () => {
         |   :   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 1,1 to: 3,3']);
       expect(`
@@ -371,7 +472,7 @@ describe('Selection navigation', () => {
         |   :   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,3 from: 1,1 to: 3,3']);
       expect(`
@@ -383,7 +484,7 @@ describe('Selection navigation', () => {
         |   :   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 1,1 to: 3,3']);
       expect(`
@@ -396,7 +497,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection right when there is no columns (navigableHeaders on)', () => {
+    it('should move the selection right when there is no columns (navigableHeaders on)', async() => {
       handsontable({
         data: [[], [], [], [], []],
         rowHeaders: true,
@@ -405,9 +506,9 @@ describe('Selection navigation', () => {
         autoWrapCol: true,
       });
 
-      selectRows(1, 3, -1);
-      listen();
-      keyDownUp('tab');
+      await selectRows(1, 3, -1);
+      await listen();
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 2,-1']);
       expect(`
@@ -418,7 +519,7 @@ describe('Selection navigation', () => {
         |   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-1 from: 3,-1 to: 3,-1']);
       expect(`
@@ -430,7 +531,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection right when all columns are hidden (navigableHeaders on)', () => {
+    it('should move the selection right when all columns are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -440,11 +541,11 @@ describe('Selection navigation', () => {
       });
 
       columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-      render();
+      await render();
 
-      selectRows(1, 3, -1);
-      listen();
-      keyDownUp('tab');
+      await selectRows(1, 3, -1);
+      await listen();
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,-1 from: 2,-1 to: 2,-1']);
       expect(`
@@ -455,7 +556,7 @@ describe('Selection navigation', () => {
         |   |
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-1 from: 3,-1 to: 3,-1']);
       expect(`
@@ -467,7 +568,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection right when there is no rows (navigableHeaders on)', () => {
+    it('should move the selection right when there is no rows (navigableHeaders on)', async() => {
       handsontable({
         data: [],
         columns: [{}, {}, {}, {}, {}],
@@ -478,9 +579,9 @@ describe('Selection navigation', () => {
         },
       });
 
-      selectColumns(1, 2, -2);
-      listen();
-      keyDownUp('tab');
+      await selectColumns(1, 2, -2);
+      await listen();
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -2,2 from: -2,2 to: -2,2']);
       expect(`
@@ -489,7 +590,7 @@ describe('Selection navigation', () => {
         |===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -2,3 from: -2,3 to: -2,3']);
       expect(`
@@ -499,7 +600,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection right when all rows are hidden (navigableHeaders on)', () => {
+    it('should move the selection right when all rows are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -510,11 +611,11 @@ describe('Selection navigation', () => {
       });
 
       rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-      render();
+      await render();
 
-      selectColumns(1, 2, -2);
-      listen();
-      keyDownUp('tab');
+      await selectColumns(1, 2, -2);
+      await listen();
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -2,2 from: -2,2 to: -2,2']);
       expect(`
@@ -523,7 +624,7 @@ describe('Selection navigation', () => {
         |===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -2,3 from: -2,3 to: -2,3']);
       expect(`

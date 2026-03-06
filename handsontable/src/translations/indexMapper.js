@@ -15,6 +15,7 @@ import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 import { ChangesObservable } from './changesObservable/observable';
+import { throwWithCause } from '../helpers/errors';
 
 /**
  * A set of deprecated feature names.
@@ -226,7 +227,7 @@ export class IndexMapper {
    */
   createChangesObserver(indexMapType) {
     if (indexMapType !== 'hiding') {
-      throw new Error(`Unsupported index map type "${indexMapType}".`);
+      throwWithCause(`Unsupported index map type "${indexMapType}".`);
     }
 
     return this.hidingChangesObservable.createObserver();
@@ -255,7 +256,7 @@ export class IndexMapper {
     if (this.trimmingMapsCollection.get(uniqueName) ||
         this.hidingMapsCollection.get(uniqueName) ||
         this.variousMapsCollection.get(uniqueName)) {
-      throw Error(`Map with name "${uniqueName}" has been already registered.`);
+      throwWithCause(`Map with name "${uniqueName}" has been already registered.`);
     }
 
     if (indexMap instanceof TrimmingMap) {
@@ -656,22 +657,29 @@ export class IndexMapper {
    * @private
    * @param {number} firstInsertedVisualIndex First inserted visual index.
    * @param {number} amountOfIndexes Amount of inserted indexes.
+   * @param {'start' | 'end'} [mode] Sets where the column is inserted: at the start of the passed index or at the end.
    */
-  insertIndexes(firstInsertedVisualIndex, amountOfIndexes) {
+  insertIndexes(firstInsertedVisualIndex, amountOfIndexes, mode = 'start') {
     const nthVisibleIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
-    const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex) ? nthVisibleIndex : this.getNumberOfIndexes();
-    const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ?
+    const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex)
+      ? nthVisibleIndex
+      : this.getNumberOfIndexes();
+    const visualInsertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ?
       this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex),
       (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
     this.suspendOperations();
     this.indexesChangeSource = 'insert';
-    this.indexesSequence.insert(insertionIndex, insertedIndexes);
+
+    this.indexesSequence.insert(visualInsertionIndex, insertedIndexes);
     this.indexesChangeSource = undefined;
-    this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
-    this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
-    this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
+
+    const modInsertedIndexes = mode === 'end' ? insertedIndexes.map(index => index + 1) : insertedIndexes;
+
+    this.trimmingMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
+    this.hidingMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
+    this.variousMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
     this.resumeOperations();
   }
 

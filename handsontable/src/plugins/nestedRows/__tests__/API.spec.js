@@ -15,7 +15,7 @@ describe('NestedRows', () => {
   describe('API', () => {
     describe('disableCoreAPIModifiers and enableCoreAPIModifiers', () => {
       it('should kill the runtime of the core API modifying hook callbacks - ' +
-        'onModifyRowData, onModifySourceLength and onBeforeDataSplice', () => {
+        'onModifyRowData, onModifySourceLength and onBeforeDataSplice', async() => {
         handsontable({
           data: getSimplerNestedData(),
           nestedRows: true,
@@ -41,15 +41,15 @@ describe('NestedRows', () => {
   });
 
   describe('Core.loadData', () => {
-    it('should recreate the nested structure when updating the data', () => {
+    it('should recreate the nested structure when updating the data', async() => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
         contextMenu: true
       });
 
-      setCellMeta(1, 1, 'className', 'red');
-      loadData(getMoreComplexNestedData());
+      await setCellMeta(1, 1, 'className', 'red');
+      await loadData(getMoreComplexNestedData());
 
       const nrPlugin = getPlugin('nestedRows');
 
@@ -61,15 +61,15 @@ describe('NestedRows', () => {
   });
 
   describe('Core.updateData', () => {
-    it('should recreate the nested structure when updating the data', () => {
+    it('should recreate the nested structure when updating the data', async() => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
         contextMenu: true
       });
 
-      setCellMeta(1, 1, 'className', 'red');
-      updateData(getMoreComplexNestedData());
+      await setCellMeta(1, 1, 'className', 'red');
+      await updateData(getMoreComplexNestedData());
 
       const nrPlugin = getPlugin('nestedRows');
 

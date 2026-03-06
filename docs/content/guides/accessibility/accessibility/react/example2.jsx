@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { HotTable, HotColumn } from '@handsontable/react';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 registerAllModules();
 
@@ -257,7 +256,7 @@ const data = [
     inStock: true,
     qty: 385,
     orderId: '13-7828353',
-    country: 'French Southern Territories',
+    country: 'Switzerland',
   },
   {
     companyName: 'Reichel Group',
@@ -284,7 +283,7 @@ const data = [
     inStock: true,
     qty: 305,
     orderId: '63-2315723',
-    country: 'French Southern Territories',
+    country: 'Switzerland',
   },
   {
     companyName: 'Weber Inc',
@@ -481,17 +480,9 @@ const countries = data.reduce((acc, curr) => {
 const hotOptions = {
   data,
   height: 464,
-  colWidths: [140, 165, 100, 100, 100, 110, 178],
+  colWidths: [160, 165, 130, 120, 100, 110, 216],
   autoRowSize: true,
-  colHeaders: [
-    'Company name',
-    'Product name',
-    'Sell date',
-    'In stock',
-    'Qty',
-    'Order ID',
-    'Country',
-  ],
+  colHeaders: ['Company name', 'Product name', 'Sell date', 'In stock', 'Qty', 'Order ID', 'Country'],
   dropdownMenu: true,
   hiddenColumns: {
     indicators: true,
@@ -512,22 +503,18 @@ const ExampleComponent = () => {
     enterBeginsEditing: true,
     autoWrapRow: true,
     autoWrapCol: true,
+    headerClassName: 'htLeft',
     enterMoves: { col: 0, row: 1 },
   });
 
   return (
     <div className="example-container">
-      <DemoOptions
-        changeToggleOptions={setToggleableOptions}
-        {...toggleableOptions}
-      />
+      {/* DemoOptions component for changing Handsontable options */}
+      <DemoOptions changeToggleOptions={setToggleableOptions} {...toggleableOptions} />
 
-      <input
-        className="placeholder-input"
-        type="text"
-        placeholder="Focusable text input"
-      />
+      <input className="placeholder-input" type="text" placeholder="Focusable text input" />
 
+      {/* Handsontable component with dynamic options */}
       <HotTable
         // Handsontable needs to reload when changing virtualization
         // by changing the key, we force the component to reload
@@ -536,25 +523,16 @@ const ExampleComponent = () => {
         // Pass in the options which can change for demo
         {...toggleableOptions}
       >
+        {/* Define HotColumns for the data */}
         <HotColumn data="companyName" type="text" />
         <HotColumn data="productName" type="text" />
-        <HotColumn
-          data="sellDate"
-          dateFormat="DD/MM/YYYY"
-          correctFormat
-          type="date"
-          allowInvalid={false}
-        />
-        <HotColumn data="inStock" type="checkbox" className="htCenter" />
-        <HotColumn data="qty" type="numeric" />
+        <HotColumn data="sellDate" dateFormat="DD/MM/YYYY" correctFormat type="date" />
+        <HotColumn data="inStock" type="checkbox" className="htCenter" headerClassName="htCenter" />
+        <HotColumn data="qty" type="numeric" headerClassName="htRight" />
         <HotColumn data="orderId" type="text" />
         <HotColumn data="country" type="dropdown" source={countries} />
       </HotTable>
-      <input
-        className="placeholder-input"
-        type="text"
-        placeholder="Focusable text input"
-      />
+      <input className="placeholder-input" type="text" placeholder="Focusable text input" />
     </div>
   );
 };
@@ -622,8 +600,7 @@ function DemoOptions({
       case 'enable-enter-focus-editing':
         changeToggleOptions((existing) => ({
           ...existing,
-          enterMoves:
-            enterMoves.row !== 1 ? { col: 0, row: 1 } : { col: 0, row: 0 },
+          enterMoves: enterMoves.row !== 1 ? { col: 0, row: 1 } : { col: 0, row: 0 },
         }));
 
         break;
@@ -637,11 +614,7 @@ function DemoOptions({
       <div className="checkbox-container">
         <div className="checkbox-group">
           <div>
-            <label
-              className="option-label"
-              htmlFor="enable-tab-navigation"
-              id="tab-navigation-label"
-            >
+            <label className="option-label" htmlFor="enable-tab-navigation" id="tab-navigation-label">
               <input
                 checked={tabNavigation}
                 type="checkbox"
@@ -673,29 +646,23 @@ function DemoOptions({
                 <path
                   fill="currentColor"
                   d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                ></path>
+                />
                 <polygon
                   fill="currentColor"
                   points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                ></polygon>
+                />
               </svg>
             </a>
           </div>
           <div>
-            <label
-              className="option-label"
-              htmlFor="enable-header-navigation"
-              id="header-navigation-label"
-            >
+            <label className="option-label" htmlFor="enable-header-navigation" id="header-navigation-label">
               <input
                 checked={navigableHeaders}
                 type="checkbox"
                 id="enable-header-navigation"
                 name="enable-header-navigation"
                 aria-labelledby="header-navigation-label"
-                onChange={() =>
-                  handleCheckboxChange('enable-header-navigation')
-                }
+                onChange={() => handleCheckboxChange('enable-header-navigation')}
               />
               Enable navigation across headers
             </label>
@@ -720,29 +687,23 @@ function DemoOptions({
                 <path
                   fill="currentColor"
                   d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                ></path>
+                />
                 <polygon
                   fill="currentColor"
                   points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                ></polygon>
+                />
               </svg>
             </a>
           </div>
           <div>
-            <label
-              className="option-label"
-              htmlFor="enable-cell-virtualization"
-              id="cell-virtualization-label"
-            >
+            <label className="option-label" htmlFor="enable-cell-virtualization" id="cell-virtualization-label">
               <input
                 checked={!renderAllRows}
                 type="checkbox"
                 id="enable-cell-virtualization"
                 name="enable-cell-virtualization"
                 aria-labelledby="cell-virtualization-label"
-                onChange={() =>
-                  handleCheckboxChange('enable-cell-virtualization')
-                }
+                onChange={() => handleCheckboxChange('enable-cell-virtualization')}
               />
               Enable cells virtualization
             </label>
@@ -767,29 +728,23 @@ function DemoOptions({
                 <path
                   fill="currentColor"
                   d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                ></path>
+                />
                 <polygon
                   fill="currentColor"
                   points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                ></polygon>
+                />
               </svg>
             </a>
           </div>
           <div>
-            <label
-              className="option-label"
-              htmlFor="enable-cell-enter-editing"
-              id="cell-enter-editing-label"
-            >
+            <label className="option-label" htmlFor="enable-cell-enter-editing" id="cell-enter-editing-label">
               <input
                 checked={enterBeginsEditing}
                 type="checkbox"
                 id="enable-cell-enter-editing"
                 name="enable-cell-enter-editing"
                 aria-labelledby="cell-enter-editing-label"
-                onChange={() =>
-                  handleCheckboxChange('enable-cell-enter-editing')
-                }
+                onChange={() => handleCheckboxChange('enable-cell-enter-editing')}
               />
               The Enter key begins cell editing
             </label>
@@ -814,11 +769,11 @@ function DemoOptions({
                 <path
                   fill="currentColor"
                   d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                ></path>
+                />
                 <polygon
                   fill="currentColor"
                   points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                ></polygon>
+                />
               </svg>
             </a>
           </div>
@@ -836,9 +791,7 @@ function DemoOptions({
                 id="enable-arrow-rl-first-last-column"
                 name="enableArrowFirstLastColumn"
                 aria-labelledby="arrow-rl-first-last-column-label"
-                onChange={() =>
-                  handleCheckboxChange('enable-arrow-rl-first-last-column')
-                }
+                onChange={() => handleCheckboxChange('enable-arrow-rl-first-last-column')}
               />
               The right/left arrow keys move the focus to the first/last column
             </label>
@@ -863,11 +816,11 @@ function DemoOptions({
                 <path
                   fill="currentColor"
                   d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                ></path>
+                />
                 <polygon
                   fill="currentColor"
                   points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                ></polygon>
+                />
               </svg>
             </a>
           </div>
@@ -883,9 +836,7 @@ function DemoOptions({
                 id="enable-arrow-td-first-last-column"
                 name="enable-arrow-td-first-last-column"
                 aria-labelledby="arrow-td-first-last-column-label"
-                onChange={() =>
-                  handleCheckboxChange('enable-arrow-td-first-last-column')
-                }
+                onChange={() => handleCheckboxChange('enable-arrow-td-first-last-column')}
               />
               The up/down arrow keys move the focus to the first/last row
             </label>
@@ -910,29 +861,23 @@ function DemoOptions({
                 <path
                   fill="currentColor"
                   d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                ></path>
+                />
                 <polygon
                   fill="currentColor"
                   points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                ></polygon>
+                />
               </svg>
             </a>
           </div>
           <div>
-            <label
-              className="option-label"
-              htmlFor="enable-enter-focus-editing"
-              id="enter-focus-editing-label"
-            >
+            <label className="option-label" htmlFor="enable-enter-focus-editing" id="enter-focus-editing-label">
               <input
                 checked={enterMoves.row !== 0}
                 type="checkbox"
                 id="enable-enter-focus-editing"
                 name="enable-enter-focus-editing"
                 aria-labelledby="enter-focus-editing-label"
-                onChange={() =>
-                  handleCheckboxChange('enable-enter-focus-editing')
-                }
+                onChange={() => handleCheckboxChange('enable-enter-focus-editing')}
               />
               The Enter key moves the focus after cell edition
             </label>
@@ -957,11 +902,11 @@ function DemoOptions({
                 <path
                   fill="currentColor"
                   d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                ></path>
+                />
                 <polygon
                   fill="currentColor"
                   points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                ></polygon>
+                />
               </svg>
             </a>
           </div>

@@ -20,7 +20,7 @@ describe('WalkontableBorder', () => {
     this.wotInstance.destroy();
   });
 
-  it('should add/remove border to selection when cell is clicked', () => {
+  it('should add/remove border to selection when cell is clicked', async() => {
     const selections = createSelectionController({
       border: {
         width: 1,
@@ -81,7 +81,7 @@ describe('WalkontableBorder', () => {
     expect($start.position().left).toBe(49);
   });
 
-  it('should add/remove border to selection when cell is clicked and the table has only one column', () => {
+  it('should add/remove border to selection when cell is clicked and the table has only one column', async() => {
     const selections = createSelectionController({
       border: {
         width: 1,
@@ -126,7 +126,7 @@ describe('WalkontableBorder', () => {
     expect($start.position().left).toBe(0);
   });
 
-  it('should properly add a selection border on an entirely selected column', () => {
+  it('should properly add a selection border on an entirely selected column', async() => {
     const selections = createSelectionController({
       border: {
         width: 1,
@@ -172,7 +172,7 @@ describe('WalkontableBorder', () => {
     expect($start.position().left).toBe(0);
   });
 
-  it('should add/remove corner to selection when cell is clicked', () => {
+  it('should add/remove corner to selection when cell is clicked', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,
@@ -217,7 +217,7 @@ describe('WalkontableBorder', () => {
     expect($corner.position().left).toBe(95);
   });
 
-  it('should render selection corner in the correct position', () => {
+  it('should render selection corner in the correct position', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,
@@ -254,7 +254,7 @@ describe('WalkontableBorder', () => {
     expect($corner.css('left')).toBe('95px');
   });
 
-  it('should properly render a selection corner on the edge of the left fixed column', () => {
+  it('should properly render a selection corner on the edge of the left fixed column', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,
@@ -291,7 +291,7 @@ describe('WalkontableBorder', () => {
       .toBe($corner.position().left + $corner.outerWidth());
   });
 
-  it('should properly render a selection corner on the edge of the top fixed row', () => {
+  it('should properly render a selection corner on the edge of the top fixed row', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,
@@ -328,7 +328,7 @@ describe('WalkontableBorder', () => {
       .toBe($corner.position().top + $corner.outerHeight());
   });
 
-  it('should draw only one corner if selection is added between overlays', () => {
+  it('should draw only one corner if selection is added between overlays', async() => {
     const selections = createSelectionController();
     const wt = walkontable({
       data: getData,
@@ -356,7 +356,7 @@ describe('WalkontableBorder', () => {
     expect(corners.length).toBe(1);
   });
 
-  it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', () => {
+  it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', async() => {
     spec().$wrapper.css({
       overflow: 'hidden',
       width: '200px',
@@ -405,7 +405,7 @@ describe('WalkontableBorder', () => {
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
     expect($corner.position().top).toBe(88);
-    expect($corner.position().left).toBe(193);
+    expect($corner.position().left).toBe(192);
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
 
     $td3.simulate('mousedown');
@@ -417,7 +417,7 @@ describe('WalkontableBorder', () => {
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
   });
 
-  it('should move the fill handle / corner border to the top, if in the position it would overlap the container (e.g.: far-bottom)', () => {
+  it('should move the fill handle / corner border to the top, if in the position it would overlap the container (e.g.: far-bottom)', async() => {
     spec().$wrapper.css({
       height: '',
       marginTop: '2000px',
@@ -458,12 +458,12 @@ describe('WalkontableBorder', () => {
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
     expect(spec().$table.css('height')).toBe('116px');
-    expect($corner.position().top).toBe(109); // table.height - corner.height - corner.borderTop
+    expect($corner.position().top).toBe(108); // table.height - corner.height - corner.borderTop
     expect($corner.position().left).toBe(45);
     expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
   });
 
-  it('should move the corner border to the top-left, if is not enough area on the bottom-right corner of container', () => {
+  it('should move the corner border to the top-left, if is not enough area on the bottom-right corner of container', async() => {
     spec().$wrapper.css({
       height: '',
       width: '50px',
@@ -505,9 +505,71 @@ describe('WalkontableBorder', () => {
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
     expect(spec().$table.css('height')).toBe('24px');
-    expect($corner.position().top).toBe(17); // table.height - corner.height - corner.borderTop
-    expect($corner.position().left).toBe(43);
+    expect($corner.position().top).toBe(16); // table.height - corner.height - corner.borderTop
+    expect($corner.position().left).toBe(42);
     expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
+  });
+
+  it('should add a ht-border-style-[style name]-vertical to a border element if "style" property is added ' +
+    'to the border configuration', async() => {
+    const selections = createSelectionController({});
+    const wt = walkontable({
+      data: getData,
+      totalRows: 5,
+      totalColumns: 5,
+      selections,
+    });
+
+    const customSelection = selections.getCustomHighlight({
+      border: {
+        width: 5,
+        style: 'dashed'
+      }
+    }).add(new Walkontable.CellCoords(0, 0))
+      .add(new Walkontable.CellCoords(2, 2));
+
+    wt.draw();
+
+    let focusBorder = wt.selectionManager.getBorderInstance(customSelection);
+
+    expect($(focusBorder.start).hasClass('ht-border-style-dashed-vertical')).toBe(true);
+    expect($(focusBorder.end).hasClass('ht-border-style-dashed-vertical')).toBe(true);
+    expect($(focusBorder.top).hasClass('ht-border-style-dashed-horizontal')).toBe(true);
+    expect($(focusBorder.bottom).hasClass('ht-border-style-dashed-horizontal')).toBe(true);
+
+    customSelection.clear();
+
+    const customSelection2 = selections.getCustomHighlight({
+      border: {
+        width: 5,
+      },
+      top: {
+        width: 5,
+        style: 'dashed'
+      },
+      bottom: {
+        width: 5,
+        style: 'dotted'
+      },
+      start: {
+        width: 5,
+        style: 'dashed'
+      },
+      end: {
+        width: 5,
+        style: 'dotted'
+      }
+    }).add(new Walkontable.CellCoords(0, 0))
+      .add(new Walkontable.CellCoords(2, 2));
+
+    wt.draw();
+
+    focusBorder = wt.selectionManager.getBorderInstance(customSelection2);
+
+    expect($(focusBorder.start).hasClass('ht-border-style-dashed-vertical')).toBe(true);
+    expect($(focusBorder.end).hasClass('ht-border-style-dotted-vertical')).toBe(true);
+    expect($(focusBorder.top).hasClass('ht-border-style-dashed-horizontal')).toBe(true);
+    expect($(focusBorder.bottom).hasClass('ht-border-style-dotted-horizontal')).toBe(true);
   });
 });

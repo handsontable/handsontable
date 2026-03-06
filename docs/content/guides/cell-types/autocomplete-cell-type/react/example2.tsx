@@ -1,6 +1,5 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -34,12 +33,7 @@ const ExampleComponent = () => {
         ['Chrysler', 2019, 'yellow', 'black'],
         ['Volvo', 2020, 'white', 'gray'],
       ]}
-      colHeaders={[
-        'Car<br>(allowInvalid true)',
-        'Year',
-        'Chassis color<br>(allowInvalid false)',
-        'Bumper color<br>(allowInvalid true)',
-      ]}
+      colHeaders={['Car<br>(allowInvalid true)', 'Year', 'Chassis color', 'Bumper color<br>(allowInvalid true)']}
       columns={[
         {
           type: 'autocomplete',
@@ -52,7 +46,6 @@ const ExampleComponent = () => {
           type: 'autocomplete',
           source: colors,
           strict: true,
-          allowInvalid: false,
         },
         {
           type: 'autocomplete',

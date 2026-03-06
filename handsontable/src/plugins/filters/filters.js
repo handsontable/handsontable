@@ -5,6 +5,8 @@ import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
+import { getValueGetterValue } from '../../utils/valueAccessors';
+import { createObjectPropListener } from '../../helpers/object';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
@@ -24,8 +26,6 @@ import {
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
 import { TrimmingMap } from '../../translations';
-
-import './filters.scss';
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
@@ -65,6 +65,22 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * />
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   data: getData(),
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   dropdownMenu: true,
+ *   filters: true,
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings"></hot-table>
+ * ```
+ * :::
  */
 export class Filters extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -73,6 +89,18 @@ export class Filters extends BasePlugin {
 
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  static get DEFAULT_SETTINGS() {
+    return {
+      searchMode: 'show',
+    };
+  }
+
+  static get SETTINGS_VALIDATORS() {
+    return {
+      searchMode: value => typeof value === 'string' && ['show', 'apply'].includes(value),
+    };
   }
 
   static get PLUGIN_DEPS() {
@@ -130,11 +158,24 @@ export class Filters extends BasePlugin {
    * @type {MenuFocusNavigator|undefined}
    */
   #menuFocusNavigator;
+  /**
+   * Traces the new menu instances to apply the focus navigation to the latest one.
+   *
+   * @type {WeakSet<Menu>}
+   */
+  #dropdownMenuTraces = new WeakSet();
+  /**
+   * Stores the previous state of the condition stack before the latest filter operation.
+   * This is used in the `beforeFilter` plugin to allow performing the undo operation.
+   *
+   * @type {Array}
+   */
+  #previousConditionStack = [];
 
   constructor(hotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
-    this.hot.addHook('afterGetColHeader', (col, TH) => this.#onAfterGetColHeader(col, TH));
+    this.hot.addHook('afterGetColHeader', (...args) => this.#onAfterGetColHeader(...args));
   }
 
   /**
@@ -160,7 +201,7 @@ export class Filters extends BasePlugin {
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
-    const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
+    const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootPortalElement;
     const addConfirmationHooks = (component) => {
       component.addLocalHook('accept', () => this.#onActionBarSubmit('accept'));
       component.addLocalHook('cancel', () => this.#onActionBarSubmit('cancel'));
@@ -206,9 +247,12 @@ export class Filters extends BasePlugin {
     }
 
     if (!this.components.get('filter_by_value')) {
+      const searchMode = this.getSetting('searchMode');
+
       this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {
         id: 'filter_by_value',
-        name: filterValueLabel
+        name: filterValueLabel,
+        searchMode,
       })));
     }
 
@@ -234,8 +278,8 @@ export class Filters extends BasePlugin {
 
     this.components.forEach(component => component.show());
 
-    this.addHook('afterDropdownMenuDefaultOptions',
-      defaultOptions => this.#onAfterDropdownMenuDefaultOptions(defaultOptions));
+    this.addHook('afterDropdownMenuDefaultOptions', (...args) => this.#onAfterDropdownMenuDefaultOptions(...args));
+    this.addHook('beforeDropdownMenuShow', () => this.#onBeforeDropdownMenuShow());
     this.addHook('afterDropdownMenuShow', () => this.#onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.#onAfterDropdownMenuHide());
     this.addHook('afterChange', changes => this.#onAfterChange(changes));
@@ -247,16 +291,16 @@ export class Filters extends BasePlugin {
     }
 
     if (!this.#menuFocusNavigator && this.dropdownMenuPlugin.enabled) {
-      const mainMenu = this.dropdownMenuPlugin.menu;
       const focusableItems = [
         // A fake menu item that once focused allows escaping from the focus navigation (using Tab keys)
         // to the menu navigation using arrow keys.
         {
           focus: () => {
-            const menuNavigator = mainMenu.getNavigator();
+            const menu = this.#menuFocusNavigator.getMenu();
+            const menuNavigator = menu.getNavigator();
             const lastSelectedMenuItem = this.#menuFocusNavigator.getLastMenuPage();
 
-            mainMenu.focus();
+            menu.focus();
 
             if (lastSelectedMenuItem > 0) {
               menuNavigator.setCurrentPage(lastSelectedMenuItem);
@@ -270,7 +314,7 @@ export class Filters extends BasePlugin {
           .flat(),
       ];
 
-      this.#menuFocusNavigator = createMenuFocusController(mainMenu, focusableItems);
+      this.#menuFocusNavigator = createMenuFocusController(this.dropdownMenuPlugin.menu, focusableItems);
 
       const forwardToFocusNavigation = (event) => {
         this.#menuFocusNavigator.listen();
@@ -293,6 +337,16 @@ export class Filters extends BasePlugin {
 
     this.registerShortcuts();
     super.enablePlugin();
+  }
+
+  /**
+   * Update plugin state after Handsontable settings update.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    super.updatePlugin();
   }
 
   /**
@@ -462,6 +516,64 @@ export class Filters extends BasePlugin {
    * ```
    * :::
    *
+   * ::: only-for angular
+   * ```ts
+   * import { AfterViewInit, Component, ViewChild } from "@angular/core";
+   * import {
+   *   GridSettings,
+   *   HotTableModule,
+   *   HotTableComponent,
+   * } from "@handsontable/angular-wrapper";
+   *
+   * `@Component`({
+   *   selector: "app-example",
+   *   standalone: true,
+   *   imports: [HotTableModule],
+   *   template: ` <div>
+   *     <hot-table [settings]="gridSettings" />
+   *   </div>`,
+   * })
+   * export class ExampleComponent implements AfterViewInit {
+   *   `@ViewChild`(HotTableComponent, { static: false })
+   *   readonly hotTable!: HotTableComponent;
+   *
+   *   readonly gridSettings = <GridSettings>{
+   *     data: this.getData(),
+   *     filters: true,
+   *   };
+   *
+   *   ngAfterViewInit(): void {
+   *     // Access to filters plugin instance
+   *     const hot = this.hotTable.hotInstance;
+   *     const filtersPlugin = hot.getPlugin("filters");
+   *
+   *     // Add filter "Greater than" 95 to column at index 1
+   *     filtersPlugin.addCondition(1, "gt", [95]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "By value" to column at index 1
+   *     // In this case, all values that don't match will be filtered.
+   *     filtersPlugin.addCondition(1, "by_value", [["ing", "ed", "as", "on"]]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Begins with" with value "de" AND "Not contains" with value "ing"
+   *     filtersPlugin.addCondition(1, "begins_with", ["de"], "conjunction");
+   *     filtersPlugin.addCondition(1, "not_contains", ["ing"], "conjunction");
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Begins with" with value "de" OR "Not contains" with value "ing"
+   *     filtersPlugin.addCondition(1, "begins_with", ["de"], "disjunction");
+   *     filtersPlugin.addCondition(1, "not_contains", ["ing"], "disjunction");
+   *     filtersPlugin.filter();
+   *   }
+   *
+   *   private getData(): any[] {
+   *     // Get some data
+   *   }
+   * }
+   * ```
+   * :::
+   *
    * @param {number} column Visual column index.
    * @param {string} name Condition short name.
    * @param {Array} args Condition arguments.
@@ -503,6 +615,51 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Imports filter conditions to all columns to the plugin. The method accepts
+   * the array of conditions with the same structure as the {@link Filters#exportConditions} method returns.
+   * Importing conditions will replace the current conditions. Once replaced, the state of the condition
+   * will be reflected in the UI. To apply the changes and filter the table, call
+   * the {@link Filters#filter} method eventually.
+   *
+   * @param {Array} conditions Array of conditions.
+   */
+  importConditions(conditions) {
+    this.conditionCollection.importAllConditions(conditions);
+  }
+
+  /* eslint-disable jsdoc/require-description-complete-sentence */
+  /**
+   * Exports filter conditions for all columns from the plugin.
+   * The array represents the filter state for each column. For example:
+   *
+   * ```js
+   * [
+   *   {
+   *     column: 1,
+   *     operation: 'conjunction',
+   *     conditions: [
+   *       { name: 'gt', args: [95] },
+   *     ]
+   *   },
+   *   {
+   *     column: 7,
+   *     operation: 'conjunction',
+   *     conditions: [
+   *       { name: 'contains', args: ['mike'] },
+   *       { name: 'begins_with', args: ['m'] },
+   *     ]
+   *   },
+   * ]
+   * ```
+   *
+   * @returns {Array}
+   */
+  exportConditions() {
+    return this.conditionCollection.exportAllConditions();
+  }
+  /* eslint-enable jsdoc/require-description-complete-sentence */
+
+  /**
    * Filters data based on added filter conditions.
    *
    * @fires Hooks#beforeFilter
@@ -510,53 +667,62 @@ export class Filters extends BasePlugin {
    */
   filter() {
     const { navigableHeaders } = this.hot.getSettings();
-    const dataFilter = this._createDataFilter();
     const needToFilter = !this.conditionCollection.isEmpty();
-    let visibleVisualRows = [];
+    const conditions = this.exportConditions();
+    const allowFiltering = this.hot.runHooks(
+      'beforeFilter',
+      conditions,
+      this.#previousConditionStack
+    );
 
-    const conditions = this.conditionCollection.exportAllConditions();
-    const allowFiltering = this.hot.runHooks('beforeFilter', conditions);
+    if (allowFiltering !== false && needToFilter) {
+      const dataFilter = this._createDataFilter();
+      const trimmedRows = [];
+      let rowIndexesToShow = [];
 
-    if (allowFiltering !== false) {
-      if (needToFilter) {
-        const trimmedRows = [];
-
-        this.hot.batchExecution(() => {
-          this.filtersRowsMap.clear();
-
-          visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
-
-          const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
-
-          rangeEach(this.hot.countSourceRows() - 1, (row) => {
-            if (!visibleVisualRowsAssertion(row)) {
-              trimmedRows.push(row);
-            }
-          });
-
-          arrayEach(trimmedRows, (physicalRow) => {
-            this.filtersRowsMap.setValueAtIndex(physicalRow, true);
-          });
-        }, true);
-
-        if (!navigableHeaders && !visibleVisualRows.length) {
-          this.hot.deselectCell();
-        }
-      } else {
+      this.hot.batchExecution(() => {
         this.filtersRowsMap.clear();
+
+        rowIndexesToShow = arrayMap(dataFilter.filter(), rowData => rowData.meta.row);
+
+        const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
+
+        rangeEach(this.hot.countSourceRows() - 1, (row) => {
+          if (!rowIndexesToShowAssertion(row)) {
+            trimmedRows.push(row);
+          }
+        });
+
+        arrayEach(trimmedRows, (physicalRow) => {
+          this.filtersRowsMap.setValueAtIndex(physicalRow, true);
+        });
+      }, true);
+
+      if (!navigableHeaders && !rowIndexesToShow.length) {
+        this.hot.deselectCell();
       }
+
+      this.#previousConditionStack = this.exportConditions();
+
+    } else if (allowFiltering !== false && !needToFilter) {
+      this.#previousConditionStack = this.exportConditions();
+      this.filtersRowsMap.clear();
+
+    } else {
+      this.importConditions(this.#previousConditionStack);
     }
-
-    this.hot.runHooks('afterFilter', conditions);
-
-    this.hot.view.adjustElementsSize();
-    this.hot.render();
 
     if (this.hot.selection.isSelected()) {
       this.hot.selectCell(
         navigableHeaders ? -1 : 0,
-        this.hot.getSelectedRangeLast().highlight.col,
+        this.hot.getSelectedRangeActive().highlight.col,
       );
+    }
+
+    if (allowFiltering !== false) {
+      this.hot.runHooks('afterFilter', conditions);
+      this.hot.view.adjustElementsSize();
+      this.hot.render();
     }
   }
 
@@ -568,7 +734,7 @@ export class Filters extends BasePlugin {
    * the index of the column.
    */
   getSelectedColumn() {
-    const highlight = this.hot.getSelectedRangeLast()?.highlight;
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
     if (!highlight) {
       return null;
@@ -581,25 +747,45 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Returns handsontable source data with cell meta based on current selection.
+   * Returns the full dataset for a column with cell meta for each row. The dataset is independent of
+   * any index mapper - no matter if the data is filtered, sorted, or otherwise transformed all rows
+   * are included.
    *
-   * @param {number} [column] The physical column index. By default column index accept the value of the selected column.
-   * @returns {Array} Returns array of objects where keys as row index.
+   * @param {number} physicalColumn The physical column index.
+   * @returns {Array<{meta: CellProperties, value: any}>} Array of objects with `meta` and `value`, one per source row.
    */
-  getDataMapAtColumn(column) {
-    const visualColumn = this.hot.toVisualColumn(column);
+  getDataMapAtColumn(physicalColumn) {
+    const countSourceRows = this.hot.countSourceRows();
+    const visualColumn = this.hot.toVisualColumn(physicalColumn);
     const data = [];
 
-    arrayEach(this.hot.getSourceDataAtCol(visualColumn), (value, rowIndex) => {
-      const { row, col, visualCol, visualRow, type, instance, dateFormat, locale } =
-        this.hot.getCellMeta(rowIndex, visualColumn);
-      const dataValue = this.hot.getDataAtCell(this.hot.toVisualRow(rowIndex), visualColumn) ?? value;
+    for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
+      const cellMeta = this.hot._getMetaManager().getCellMeta(physicalRow, physicalColumn, {
+        visualRow: physicalRow,
+        visualColumn: physicalColumn,
+        skipMetaExtension: true,
+      });
+      let value = getValueGetterValue(
+        this.hot.getSourceDataAtCell(physicalRow, visualColumn),
+        cellMeta
+      );
+
+      if (this.hot.hasHook('modifyData')) {
+        const valueHolder = createObjectPropListener(value);
+
+        // Physical indexes are passed here on purpose. In this context they match the visual ones.
+        this.hot.runHooks('modifyData', physicalRow, physicalColumn, valueHolder, 'get');
+
+        if (valueHolder.isTouched()) {
+          value = valueHolder.value;
+        }
+      }
 
       data.push({
-        meta: { row, col, visualCol, visualRow, type, instance, dateFormat, locale },
-        value: toEmptyString(dataValue),
+        meta: cellMeta,
+        value: toEmptyString(value),
       });
-    });
+    }
 
     return data;
   }
@@ -659,7 +845,11 @@ export class Filters extends BasePlugin {
    * After dropdown menu show listener.
    */
   #onAfterDropdownMenuShow() {
+    const menu = this.dropdownMenuPlugin.menu;
+
     this.restoreComponents(Array.from(this.components.values()));
+
+    menu.updateMenuDimensions();
   }
 
   /**
@@ -668,6 +858,19 @@ export class Filters extends BasePlugin {
   #onAfterDropdownMenuHide() {
     this.components.get('filter_by_condition').getSelectElement().closeOptions();
     this.components.get('filter_by_condition2').getSelectElement().closeOptions();
+  }
+
+  /**
+   * Hooks applies the new dropdown menu instance to the focus navigator.
+   */
+  #onBeforeDropdownMenuShow() {
+    const mainMenu = this.dropdownMenuPlugin.menu;
+
+    if (!this.#dropdownMenuTraces.has(mainMenu)) {
+      this.#menuFocusNavigator.setMenu(mainMenu);
+    }
+
+    this.#dropdownMenuTraces.add(mainMenu);
   }
 
   /**
@@ -761,7 +964,6 @@ export class Filters extends BasePlugin {
 
       this.conditionUpdateObserver.flush();
       this.components.forEach(component => component.saveState(physicalIndex));
-      this.filtersRowsMap.clear();
       this.filter();
     }
 
@@ -775,11 +977,15 @@ export class Filters extends BasePlugin {
    * @param {object} command Menu item object (command).
    */
   #onComponentChange(component, command) {
+    const menu = this.dropdownMenuPlugin.menu;
+
     this.updateDependentComponentsVisibility();
 
     if (component.constructor === ConditionComponent && !command.inputsCount) {
       this.setListeningDropdownMenu();
     }
+
+    menu.updateMenuDimensions();
   }
 
   /**
@@ -826,11 +1032,18 @@ export class Filters extends BasePlugin {
    *
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
+   * @param {number} headerLevel The index of header level counting from the top (positive
+   *                             values counting from 0 to N).
+   *
    */
-  #onAfterGetColHeader(col, TH) {
+  #onAfterGetColHeader(col, TH, headerLevel) {
     const physicalColumn = this.hot.toPhysicalColumn(col);
 
-    if (this.enabled && this.conditionCollection.hasConditions(physicalColumn)) {
+    if (
+      this.enabled
+      && this.conditionCollection.hasConditions(physicalColumn)
+      && headerLevel === this.hot.view.getColumnHeadersCount() - 1
+    ) {
       addClass(TH, 'htFiltersActive');
     } else {
       removeClass(TH, 'htFiltersActive');
@@ -864,8 +1077,25 @@ export class Filters extends BasePlugin {
       editedConditionStack: {
         conditions,
         column,
-      }
+      },
+      conditionArgsChange,
     } = conditionsState;
+
+    if (Array.isArray(conditionArgsChange)) {
+      // update the previous condition stack (only for 'by_value' condition) on each dataset
+      // change to make the undo/redo work properly
+      this.#previousConditionStack = this.#previousConditionStack.map((stack) => {
+        if (stack.column === column && conditions.length > 0) {
+          stack.conditions.forEach((condition) => {
+            if (condition.name === 'by_value') {
+              condition.args = [[...conditionArgsChange]];
+            }
+          });
+        }
+
+        return stack;
+      });
+    }
 
     const conditionsByValue = conditions.filter(condition => condition.name === CONDITION_BY_VALUE);
     const conditionsWithoutByValue = conditions.filter(condition => condition.name !== CONDITION_BY_VALUE);

@@ -14,9 +14,9 @@ describe('settings', () => {
     });
 
     describe('works on init', () => {
-      it('should show data properly when `minRows` is set to 3', () => {
+      it('should show data properly when `minRows` is set to 3', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minRows: 3
         });
 
@@ -29,12 +29,12 @@ describe('settings', () => {
     });
 
     describe('update settings works', () => {
-      it('should show data properly after `minRows` is updated to 3', () => {
+      it('should show data properly after `minRows` is updated to 3', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1)
+          data: createSpreadsheetData(1, 1)
         });
 
-        updateSettings({
+        await updateSettings({
           minRows: 3
         });
 
@@ -46,13 +46,13 @@ describe('settings', () => {
       });
 
       // Currently this is a bug (#6571)
-      xit('should show data properly after `minRows` is updated from 5 to 3', () => {
+      xit('should show data properly after `minRows` is updated from 5 to 3', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minRows: 5
         });
 
-        updateSettings({
+        await updateSettings({
           minRows: 3
         });
 
@@ -65,16 +65,16 @@ describe('settings', () => {
     });
 
     describe('cell meta', () => {
-      it('should be rendered as is without shifting the cell meta objects', () => {
+      it('should be rendered as is without shifting the cell meta objects', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minRows: 3,
         });
 
         getCellMeta(4, 0).test = 'foo';
         getCellMeta(5, 0).test = 'bar';
 
-        updateSettings({
+        await updateSettings({
           minRows: 5
         });
 

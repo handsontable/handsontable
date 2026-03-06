@@ -17,9 +17,9 @@ describe('manualColumnMove (RTL mode)', () => {
 
   describe('moving by drag', () => {
     describe('should position the cells properly', () => {
-      it('when the second column is dropped before the left side of first column', () => {
+      it('when the second column is dropped before the left side of first column', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 10),
+          data: createSpreadsheetData(3, 10),
           colHeaders: true,
           manualColumnMove: true
         });
@@ -42,9 +42,9 @@ describe('manualColumnMove (RTL mode)', () => {
         expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
       });
 
-      it('when the second column is dropped before the fourth column', () => {
+      it('when the second column is dropped before the fourth column', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 10),
+          data: createSpreadsheetData(3, 10),
           colHeaders: true,
           manualColumnMove: true
         });
@@ -67,9 +67,9 @@ describe('manualColumnMove (RTL mode)', () => {
         expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
       });
 
-      it('when the first column is dropped after the last column', () => {
+      it('when the first column is dropped after the last column', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 10),
+          data: createSpreadsheetData(3, 10),
           colHeaders: true,
           manualColumnMove: true
         });
@@ -93,9 +93,9 @@ describe('manualColumnMove (RTL mode)', () => {
         expect(spec().$container.find('tbody tr:eq(0) td:eq(9)').text()).toEqual('A1');
       });
 
-      it('when the last column is dropped before the first column', () => {
+      it('when the last column is dropped before the first column', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 10),
+          data: createSpreadsheetData(3, 10),
           colHeaders: true,
           manualColumnMove: true
         });
@@ -120,9 +120,9 @@ describe('manualColumnMove (RTL mode)', () => {
         expect(spec().$container.find('tbody tr:eq(0) td:eq(9)').text()).toEqual('I1');
       });
 
-      it('when multiple columns are dragged from the left to the right', () => {
+      it('when multiple columns are dragged from the left to the right', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 10),
+          data: createSpreadsheetData(3, 10),
           colHeaders: true,
           manualColumnMove: true
         });
@@ -130,7 +130,7 @@ describe('manualColumnMove (RTL mode)', () => {
         const $firstHeader = spec().$container.find('thead tr:eq(0) th:eq(0)');
         const $fourthHeader = spec().$container.find('thead tr:eq(0) th:eq(4)');
 
-        selectColumns(0, 2);
+        await selectColumns(0, 2);
 
         $firstHeader
           .simulate('mousedown')
@@ -150,9 +150,9 @@ describe('manualColumnMove (RTL mode)', () => {
         expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('C1');
       });
 
-      it('when multiple columns are dragged from the right to the left', () => {
+      it('when multiple columns are dragged from the right to the left', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 10),
+          data: createSpreadsheetData(3, 10),
           colHeaders: true,
           manualColumnMove: true
         });
@@ -160,7 +160,7 @@ describe('manualColumnMove (RTL mode)', () => {
         const $fourthHeader = spec().$container.find('thead tr:eq(0) th:eq(3)');
         const $secondHeader = spec().$container.find('thead tr:eq(0) th:eq(1)');
 
-        selectColumns(3, 5);
+        await selectColumns(3, 5);
 
         $fourthHeader
           .simulate('mousedown')

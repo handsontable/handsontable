@@ -1,16 +1,12 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
   // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
-  const removeColumnMenuButton = (
-    col: number,
-    TH: { querySelector: (value: string) => any }
-  ) => {
+  const removeColumnMenuButton = (col: number, TH: { querySelector: (value: string) => any }) => {
     if (col > 1) {
       const button = TH.querySelector('.changeType');
 
@@ -82,7 +78,7 @@ const ExampleComponent = () => {
           type: 'numeric',
           data: 'price',
           numericFormat: {
-            pattern: '$ 0,0.00',
+            pattern: '$0,0.00',
             culture: 'en-US',
           },
         },

@@ -10,8 +10,12 @@ tags:
 react:
   id: weudz1vh
   metaTitle: Modules - React Data Grid | Handsontable
+angular:
+  id: 9i62e6cn
+  metaTitle: Modules - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
+menuTag: updated
 ---
 
 # Modules
@@ -29,6 +33,7 @@ To make this possible, Handsontable is divided into modules.
 ### Use modules
 
 To get the most out of using Handsontable's modules:
+
 1. Import the [base module](#base-module).
 2. Import [optional modules](#optional-modules) of your choice.
 3. Remove redundant code (so-called tree shaking).
@@ -38,6 +43,7 @@ To get the most out of using Handsontable's modules:
 To use Handsontable's modules, your environment needs to support the `import` syntax, which is typically provided by a bundler.
 
 We successfully tested Handsontable with the following bundlers:
+
 - webpack
 - Parcel
 - Rollup
@@ -48,6 +54,7 @@ If Handsontable's modules don't work with your bundler, report it as a [bug](htt
 ## Base module
 
 No matter which of the optional modules you use, you always need to import the base module (`handsontable/base`), which covers:
+
 - Handsontable's core functionalities
 - The default cell type: [`text`](@/guides/cell-types/cell-type/cell-type.md#available-cell-types)
 
@@ -65,17 +72,22 @@ To get the base JavaScript module, import Handsontable from `handsontable/base` 
 
 :::
 
+::: only-for angular
+
+To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the full distribution package):
+
+:::
+
 ```js
 import Handsontable from 'handsontable/base';
 ```
 
-Handsontable's CSS stylesheets are not modular. You need to import them separately:
-- [Import Handsontable's CSS](@/guides/getting-started/installation/installation.md#import-handsontable-s-css)
-
 Now, you're ready to use any [optional modules](#optional-modules) of your choice.
+
 ## Optional modules
 
 Handsontable's optional modules are grouped into:
+
 - [Cell type modules](#cell-type-modules)
 - [Plugin modules](#plugin-modules)
 - [Translation modules](#translation-modules)
@@ -154,6 +166,7 @@ Each cell type module contains a different cell type:
 #### Renderer, editor, and validator modules
 
 Each cell type module is made of:
+
 - A [renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) module
 - An [editor](@/guides/cell-functions/cell-editor/cell-editor.md) module
 - A [validator](@/guides/cell-functions/cell-validator/cell-validator.md) module (optionally)
@@ -198,7 +211,7 @@ new Handsontable(container, {
 
 ```jsx
 import Handsontable from 'handsontable/base';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import {
   registerCellType,
   NumericCellType,
@@ -215,6 +228,42 @@ const container = document.querySelector('#example1');
     }
   ]}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { Component, ViewChild } from "@angular/core";
+import {
+  GridSettings,
+  HotTableComponent,
+  HotTableModule,
+} from "@handsontable/angular-wrapper";
+import { registerCellType, NumericCellType } from "handsontable/cellTypes";
+
+registerCellType(NumericCellType);
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: `<div>
+    <hot-table [settings]="gridSettings" />
+  </div>`,
+})
+export class ExampleComponent {
+  @ViewChild(HotTableComponent, { static: false })
+  readonly hotTable!: HotTableComponent;
+
+  readonly gridSettings = <GridSettings>{
+    columns: [
+      {
+        type: "numeric",
+      },
+    ],
+  };
+}
 ```
 
 :::
@@ -261,7 +310,7 @@ new Handsontable(container, {
 
 ```jsx
 import Handsontable from 'handsontable/base';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import {
   registerRenderer,
   numericRenderer,
@@ -290,7 +339,49 @@ registerValidator(numericValidator);
     }
   ]}
 />
+```
 
+:::
+
+::: only-for angular
+
+```ts
+import { Component, ViewChild } from "@angular/core";
+import {
+  GridSettings,
+  HotTableComponent,
+  HotTableModule,
+} from "@handsontable/angular-wrapper";
+import { registerRenderer, numericRenderer } from "handsontable/renderers";
+import { registerEditor, NumericEditor } from "handsontable/editors";
+import { registerValidator, numericValidator } from "handsontable/validators";
+
+registerRenderer(numericRenderer);
+registerEditor(NumericEditor);
+registerValidator(numericValidator);
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: `<div>
+    <hot-table [settings]="gridSettings" />
+  </div>`,
+})
+export class ExampleComponent {
+  @ViewChild(HotTableComponent, { static: false })
+  readonly hotTable!: HotTableComponent;
+
+  readonly gridSettings = <GridSettings>{
+    columns: [
+      {
+        renderer: "numeric",
+        editor: "numeric",
+        validator: "numeric",
+        dataType: "number",
+      },
+    ],
+  };
+}
 ```
 
 :::
@@ -333,8 +424,8 @@ import {
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
-  PersistentState,
   Search,
+  StretchColumns,
   TouchScroll,
   TrimRows,
   UndoRedo,
@@ -376,8 +467,8 @@ Each plugin module contains a different plugin:
 | `MultipleSelectionHandles` | `MultipleSelectionHandles`                            |
 | `NestedHeaders`            | [`NestedHeaders`](@/api/nestedHeaders.md)             |
 | `NestedRows`               | [`NestedRows`](@/api/nestedRows.md)                   |
-| `PersistentState`          | [`PersistentState`](@/api/persistentState.md)         |
 | `Search`                   | [`Search`](@/api/search.md)                           |
+| `StretchColumns`           | [`StretchColumns`](@/api/stretchColumns.md)           |
 | `TouchScroll`              | `TouchScroll`                                         |
 | `TrimRows`                 | [`TrimRows`](@/api/trimRows.md)                       |
 | `UndoRedo`                 | [`UndoRedo`](@/api/undoRedo.md)                       |
@@ -398,6 +489,7 @@ Each plugin module contains a different plugin:
     } from 'handsontable/plugins';
     ```
 3. Register your plugin module, to let Handsontable recognize it. For example:
+
     ```js
     registerPlugin(ContextMenu);
     ```
@@ -429,6 +521,7 @@ import {
   deDE,
   enUS,
   esMX,
+  faIR,
   frFR,
   hrHR,
   itIT,
@@ -458,6 +551,7 @@ Each translation module contains a different translation package:
 | `deDE` | German - Germany            |
 | `enUS` | English - United States     |
 | `esMX` | Spanish - Mexico            |
+| `faIR` | Persian - Iran              |
 | `frFR` | French - France             |
 | `hrHR` | Croatian - Croatia          |
 | `itIT` | Italian - Italy             |
@@ -489,6 +583,7 @@ Each translation module contains a different translation package:
     } from 'handsontable/i18n';
     ```
 3. Register your translation module, to let Handsontable recognize it. For example:
+
     ```js
     registerLanguageDictionary(plPL);
     ```
@@ -516,12 +611,12 @@ The table below lists all of Handsontable's modules:
 | [Cell renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md)   | `baseRenderer`<br>`autocompleteRenderer`<br>`checkboxRenderer`<br>`dateRenderer`<br>`dropdownRenderer`<br>`handsontableRenderer`<br>`htmlRenderer`<br>`numericRenderer`<br>`passwordRenderer`<br>`selectRenderer`<br>`textRenderer`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Optional            |
 | [Cell editors](@/guides/cell-functions/cell-editor/cell-editor.md)       | `AutocompleteEditor`<br>`BaseEditor`<br>`CheckboxEditor`<br>`DateEditor`<br>`DropdownEditor`<br>`HandsontableEditor`<br>`NumericEditor`<br>`PasswordEditor`<br>`SelectEditor`<br>`TextEditor`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Optional            |
 | [Cell validators](@/guides/cell-functions/cell-validator/cell-validator.md) | `autocompleteValidator`<br>`dateValidator`<br>`dropdownValidator`<br>`numericValidator`<br>`timeValidator`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Optional            |
-| [Plugins](@/api/plugins.md)                                  | [`AutoColumnSize`](@/api/autoColumnSize.md)<br>[`Autofill`](@/api/autofill.md)<br>[`AutoRowSize`](@/api/autoRowSize.md)<br>[`BasePlugin`](@/api/basePlugin.md)<br>[`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)<br>[`CollapsibleColumns`](@/api/collapsibleColumns.md)<br>[`ColumnSorting`](@/api/columnSorting.md)<br>[`ColumnSummary`](@/api/columnSummary.md)<br>[`Comments`](@/api/comments.md)<br>[`ContextMenu`](@/api/contextMenu.md)<br>[`CopyPaste`](@/api/copyPaste.md)<br>[`CustomBorders`](@/api/customBorders.md)<br>[`DragToScroll`](@/api/dragToScroll.md)<br>[`DropdownMenu`](@/api/dropdownMenu.md)<br>[`ExportFile`](@/api/exportFile.md)<br>[`Filters`](@/api/filters.md)<br>[`Formulas`](@/api/formulas.md)<br>[`HiddenColumns`](@/api/hiddenColumns.md)<br>[`HiddenRows`](@/api/hiddenRows.md)<br>[`ManualColumnFreeze`](@/api/manualColumnFreeze.md)<br>[`ManualColumnMove`](@/api/manualColumnMove.md)<br>[`ManualColumnResize`](@/api/manualColumnResize.md)<br>[`ManualRowMove`](@/api/manualRowMove.md)<br>[`ManualRowResize`](@/api/manualRowResize.md)<br>[`MergeCells`](@/api/mergeCells.md)<br>[`MultiColumnSorting`](@/api/multiColumnSorting.md)<br>`MultipleSelectionHandles`<br>[`NestedHeaders`](@/api/nestedHeaders.md)<br>[`NestedRows`](@/api/nestedRows.md)<br>[`PersistentState`](@/api/persistentState.md)<br>[`Search`](@/api/search.md)<br>`TouchScroll`<br>[`TrimRows`](@/api/trimRows.md)<br>[`UndoRedo`](@/api/undoRedo.md) | Optional            |
-| [Translations](@/guides/internationalization/language/language.md)    | `arAR` `csCZ` `deCH` `deDE` `enUS` `esMX`<br>`frFR` `hrHR` `itIT` `jaJP` `koKR`<br>`lvLV` `nbNO` `nlNL` `plPL`<br>`ptBR` `ruRU` `srSP` `zhCN` `zhTW`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Optional            |
+| [Plugins](@/api/plugins.md)                                  | [`AutoColumnSize`](@/api/autoColumnSize.md)<br>[`Autofill`](@/api/autofill.md)<br>[`AutoRowSize`](@/api/autoRowSize.md)<br>[`BasePlugin`](@/api/basePlugin.md)<br>[`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)<br>[`CollapsibleColumns`](@/api/collapsibleColumns.md)<br>[`ColumnSorting`](@/api/columnSorting.md)<br>[`ColumnSummary`](@/api/columnSummary.md)<br>[`Comments`](@/api/comments.md)<br>[`ContextMenu`](@/api/contextMenu.md)<br>[`CopyPaste`](@/api/copyPaste.md)<br>[`CustomBorders`](@/api/customBorders.md)<br>[`DragToScroll`](@/api/dragToScroll.md)<br>[`DropdownMenu`](@/api/dropdownMenu.md)<br>[`ExportFile`](@/api/exportFile.md)<br>[`Filters`](@/api/filters.md)<br>[`Formulas`](@/api/formulas.md)<br>[`HiddenColumns`](@/api/hiddenColumns.md)<br>[`HiddenRows`](@/api/hiddenRows.md)<br>[`ManualColumnFreeze`](@/api/manualColumnFreeze.md)<br>[`ManualColumnMove`](@/api/manualColumnMove.md)<br>[`ManualColumnResize`](@/api/manualColumnResize.md)<br>[`ManualRowMove`](@/api/manualRowMove.md)<br>[`ManualRowResize`](@/api/manualRowResize.md)<br>[`MergeCells`](@/api/mergeCells.md)<br>[`MultiColumnSorting`](@/api/multiColumnSorting.md)<br>`MultipleSelectionHandles`<br>[`NestedHeaders`](@/api/nestedHeaders.md)<br>[`NestedRows`](@/api/nestedRows.md)<br>[`Search`](@/api/search.md)<br>[`StretchColumns`](@/api/stretchColumns.md)<br>`TouchScroll`<br>[`TrimRows`](@/api/trimRows.md)<br>[`UndoRedo`](@/api/undoRedo.md) | Optional            || [Translations](@/guides/internationalization/language/language.md)    | `arAR` `csCZ` `deCH` `deDE` `enUS` `esMX`<br>`frFR` `faIR` `hrHR` `itIT` `jaJP` `koKR`<br>`lvLV` `nbNO` `nlNL` `plPL`<br>`ptBR` `ruRU` `srSP` `zhCN` `zhTW`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Optional            |
 
 ## List of all module imports
 
 To quickly register all modules in bulk, use these registering functions:
+
 - `registerAllCellTypes()`
 - `registerAllRenderers()`
 - `registerAllEditors()`
@@ -614,8 +709,8 @@ import {
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
-  PersistentState,
   Search,
+  StretchColumns,
   TouchScroll,
   TrimRows,
   UndoRedo,
@@ -645,7 +740,8 @@ import {
   zhTW,
 } from 'handsontable/i18n';
 
-// registering functions that let you quickly register all modules at once
+// registering functions that let you quickly register all modules at
+// once
 import {
   registerAllCellTypes,
   registerAllRenderers,
@@ -653,7 +749,7 @@ import {
   registerAllValidators,
   registerAllPlugins,
   registerAllModules,
-} from 'handsontable/registry'
+} from 'handsontable/registry';
 
 // register all cell types at once
 registerAllCellTypes();
@@ -698,6 +794,7 @@ registerAllModules();
 :::
 
 To register individual modules explicitly, use these registering functions:
+
 - `registerCellType()`
 - `registerRenderer()`
 - `registerEditor()`
@@ -728,6 +825,7 @@ import {
 // renderer modules
 import {
   registerRenderer, // renderers' registering function
+  rendererFactory, // renderers' factory function
   baseRenderer,
   autocompleteRenderer,
   checkboxRenderer,
@@ -741,6 +839,7 @@ import {
 // editor modules
 import {
   registerEditor, // editors' registering function
+  editorFactory, // editors' factory function
   AutocompleteEditor,
   BaseEditor,
   CheckboxEditor,
@@ -795,8 +894,8 @@ import {
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
-  PersistentState,
   Search,
+  StretchColumns,
   TouchScroll,
   TrimRows,
   UndoRedo,
@@ -896,8 +995,8 @@ registerPlugin(MultiColumnSorting);
 registerPlugin(MultipleSelectionHandles);
 registerPlugin(NestedHeaders);
 registerPlugin(NestedRows);
-registerPlugin(PersistentState);
 registerPlugin(Search);
+registerPlugin(StretchColumns);
 registerPlugin(TouchScroll);
 registerPlugin(TrimRows);
 registerPlugin(UndoRedo);
@@ -947,6 +1046,7 @@ import { TextCellType } from 'handsontable/cellTypes/textType';
 import { TimeCellType } from 'handsontable/cellTypes/timeType';
 
 import { registerRenderer } from 'handsontable/renderers/registry';
+import { rendererFactory } from 'handsontable/renderers/factory';
 import { autocompleteRenderer } from 'handsontable/renderers/autocompleteRenderer';
 import { baseRenderer } from 'handsontable/renderers/baseRenderer';
 import { checkboxRenderer } from 'handsontable/renderers/checkboxRenderer';
@@ -957,6 +1057,7 @@ import { passwordRenderer } from 'handsontable/renderers/passwordRenderer';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 import { registerEditor } from 'handsontable/editors/registry';
+import { editorFactory } from 'handsontable/editors/factory';
 import { AutocompleteEditor } from 'handsontable/editors/autocompleteEditor';
 import { BaseEditor } from 'handsontable/editors/baseEditor';
 import { CheckboxEditor } from 'handsontable/editors/checkboxEditor';
@@ -1002,8 +1103,8 @@ import { MergeCells } from 'handsontable/plugins/mergeCells';
 import { MultipleSelectionHandles } from 'handsontable/plugins/multipleSelectionHandles';
 import { NestedHeaders } from 'handsontable/plugins/nestedHeaders';
 import { NestedRows } from 'handsontable/plugins/nestedRows';
-import { PersistentState } from 'handsontable/plugins/persistentState';
 import { Search } from 'handsontable/plugins/search';
+import { StretchColumns } from 'handsontable/plugins/stretchColumns';
 import { TouchScroll } from 'handsontable/plugins/touchScroll';
 import { TrimRows } from 'handsontable/plugins/trimRows';
 import { UndoRedo } from 'handsontable/plugins/undoRedo';
@@ -1022,9 +1123,8 @@ You can also use modules with Handsontable's framework wrappers:
 <div class="boxes-list">
 
 - [Using modules with React](@/react/guides/tools-and-building/modules/modules.md)
-- [Using modules with Angular](@/guides/integrate-with-angular/angular-modules/angular-modules.md)
-- [Using modules with Vue 2](@/guides/integrate-with-vue/vue-modules/vue-modules.md)
-- [Using modules with Vue 3](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
+- [Using modules with Angular](@/angular/guides/tools-and-building/modules/modules.md)
+- [Using modules with Vue](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
 
 </div>
 
@@ -1042,9 +1142,8 @@ You can also use modules with Handsontable's framework wrappers:
 ::: only-for javascript
 
 - [Modules in React](@/react/guides/tools-and-building/modules/modules.md)
-- [Modules in Angular](@/guides/integrate-with-angular/angular-modules/angular-modules.md)
-- [Modules in Vue 2](@/guides/integrate-with-vue/vue-modules/vue-modules.md)
-- [Modules in Vue 3](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
+- [Modules in Angular](@/angular/guides/tools-and-building/modules/modules.md)
+- [Modules in Vue](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
 
 :::
 

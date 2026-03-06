@@ -1,0 +1,161 @@
+@use "../../utils/mixins";
+
+// Filters
+//  Base styling in Dropdown Menu Plugin
+
+@mixin output {
+  .handsontable {
+    &.htFiltersConditionsMenu {
+      &:not(.htGhostTable) {
+        z-index: 1070;
+      }
+    }
+
+    .ht_master {
+      table {
+        td {
+          &.htCustomMenuRenderer {
+            cursor: auto;
+
+            &.htFiltersMenuActionBar {
+              padding-top: calc(var(--ht-menu-item-vertical-padding, 4px) * 2);
+            }
+          }
+        }
+      }
+    }
+
+    // Menu label
+    .htFiltersMenuLabel {
+      font-size: var(--ht-font-size-small);
+      line-height: var(--ht-line-height-small);
+      font-weight: var(--ht-font-weight);
+      margin-bottom: calc(var(--ht-gap-size, 2px) * 2);
+
+      &:empty {
+        display: none;
+      }
+    }
+
+    // Component filter by conditional
+    .htFiltersMenuCondition {
+      padding-top: calc(var(--ht-gap-size, 2px) * 3) !important;
+      padding-bottom: 0 !important;
+
+      .border {
+        border-bottom: 1px solid var(--ht-border-color) !important;
+      }
+
+      .htUIInput {
+        margin-top: calc(var(--ht-gap-size, 2px) * 2);
+      }
+    }
+
+    .htFiltersMenuValue {
+      padding-top: calc(var(--ht-gap-size, 2px) * 3) !important;
+      padding-bottom: 0 !important;
+      border-bottom: 1px solid var(--ht-border-color) !important;
+    }
+
+    .htFiltersMenuOperators {
+      padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
+      padding-bottom: 0 !important;
+    }
+
+    .htUISelectionControls {
+      padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
+      padding-bottom: var(--ht-gap-size, 2px) !important;
+      margin: 0 calc(var(--ht-gap-size, 2px) * -1);
+    }
+
+    .htUIMultipleSelectHot {
+      --ht-cell-horizontal-padding: calc(
+              var(--ht-menu-item-horizontal-padding, 2px) +
+              var(--ht-gap-size, 2px) * 2);
+
+      overflow: initial !important;
+      width: calc(
+        100% + var(--ht-menu-item-horizontal-padding, 2px) * 2 +
+          var(--ht-gap-size, 2px) * 4
+      );
+      margin: 0 calc(
+              (var(--ht-menu-item-horizontal-padding, 2px) +
+              var(--ht-gap-size, 2px) * 2) * -1
+      );
+
+      &::before {
+        @include mixins.pseudo;
+
+        position: absolute;
+        top: -1px;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background-color: var(--ht-border-color);
+      }
+
+      .wtHolder {
+        padding: 0;
+        overflow-x: hidden;
+        box-sizing: border-box;
+
+        .wtSpreader {
+          padding: calc(var(--ht-gap-size) * 2) 0;
+        }
+
+        td {
+          height: auto !important;
+          padding: 4px var(--ht-cell-horizontal-padding);
+        }
+      }
+    }
+
+    // Filter Links
+    .htUIClearAll,
+    .htUISelectAll {
+      display: inline-block;
+      margin-right: var(--ht-gap-size, 4px);
+      margin-bottom: var(--ht-gap-size, 4px);
+
+      a {
+        font-size: var(--ht-font-size);
+        line-height: var(--ht-line-height);
+        color: var(--ht-link-color);
+        border-radius: var(--ht-button-border-radius);
+
+        &:hover {
+          color: var(--ht-link-hover-color);
+        }
+
+        &:focus {
+          outline: 1px solid var(--ht-link-hover-color);
+        }
+      }
+    }
+
+    // SelectMultiple
+    .htUIMultipleSelect .ht_master .wtHolder {
+      overflow: auto;
+
+      .wtHider,
+      .htCore,
+      tr,
+      td {
+        background: none;
+      }
+    }
+
+    // Button
+    .htUIInput {
+      &.htUIButton {
+        cursor: pointer;
+        display: inline-block;
+      }
+
+      &.htUIButtonOK {
+        margin-inline-start: 0;
+        margin-inline-end: calc(2 * var(--ht-gap-size, 2px));
+      }
+    }
+  }
+}

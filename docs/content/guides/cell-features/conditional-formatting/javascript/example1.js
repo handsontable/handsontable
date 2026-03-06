@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
@@ -15,24 +18,8 @@ const firstRowRenderer = (instance, td, ...rest) => {
   td.style.background = '#CEC';
 };
 
-const negativeValueRenderer = (
-  instance,
-  td,
-  row,
-  col,
-  prop,
-  value,
-  cellProperties
-) => {
-  Handsontable.renderers.TextRenderer(
-    instance,
-    td,
-    row,
-    col,
-    prop,
-    value,
-    cellProperties
-  );
+const negativeValueRenderer = (instance, td, row, col, prop, value, cellProperties) => {
+  Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
 
   // if the row contains a negative number
   if (parseInt(value, 10) < 0) {
@@ -41,7 +28,7 @@ const negativeValueRenderer = (
   }
 
   if (!value || value === '') {
-    td.style.background = '#EEE';
+    td.style.background = 'rgb(238, 238, 238, 0.4)';
   } else {
     if (instance.getDataAtCell(0, col) === 'Nissan') {
       td.style.fontStyle = 'italic';
@@ -52,10 +39,7 @@ const negativeValueRenderer = (
 };
 
 // maps function to a lookup string
-Handsontable.renderers.registerRenderer(
-  'negativeValueRenderer',
-  negativeValueRenderer
-);
+Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
 const container = document.querySelector('#example1');
 

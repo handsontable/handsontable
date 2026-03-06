@@ -12,28 +12,23 @@ export default function rowBelowItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW);
     },
     callback() {
-      const latestSelection = this.getSelectedRangeLast().getBottomRightCorner();
+      const activeSelection = this.getSelectedRangeActive().getBottomRightCorner();
 
-      this.alter('insert_row_below', latestSelection.row, 1, 'ContextMenu.rowBelow');
+      this.alter('insert_row_below', activeSelection.row, 1, 'ContextMenu.rowBelow');
     },
     disabled() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
-      if (!range) {
+      if (
+        !range ||
+        this.selection.isSelectedByColumnHeader() ||
+        (range.isSingleHeader() && range.highlight.row < 0) ||
+        (this.countSourceRows() >= this.getSettings().maxRows)
+      ) {
         return true;
       }
 
-      if (range.isSingleHeader() && range.highlight.row < 0) {
-        return true;
-      }
-
-      if (this.selection.isSelectedByCorner()) {
-        // Enable "Insert row below" always when the menu is triggered by corner click.
-        return false;
-      }
-
-      return this.selection.isSelectedByColumnHeader() ||
-        this.countRows() >= this.getSettings().maxRows;
+      return false;
     },
     hidden() {
       return !this.getSettings().allowInsertRow;

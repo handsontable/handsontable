@@ -1,5 +1,6 @@
-import { WORKING_SPACE_TOP, WORKING_SPACE_BOTTOM } from './constants';
-import ViewSizeSet from './viewSizeSet';
+import { ViewSizeSet } from './viewSizeSet';
+import { ViewDiffer } from './viewDiffer';
+import { createRendererAdapter } from './rendererAdapter';
 
 /**
  * Executive model for each table renderer. It's responsible for injecting DOM nodes in a
@@ -9,7 +10,7 @@ import ViewSizeSet from './viewSizeSet';
  *
  * @class {OrderView}
  */
-export default class OrderView {
+export class OrderView {
   /**
    * The root node to manage with.
    *
@@ -19,7 +20,7 @@ export default class OrderView {
   /**
    * Factory for newly created DOM elements.
    *
-   * @type {Function}
+   * @type {function(number): HTMLElement}
    */
   nodesPool;
   /**
@@ -29,28 +30,36 @@ export default class OrderView {
    */
   sizeSet = new ViewSizeSet();
   /**
+   * The list of DOM elements which are rendered for this render cycle.
+   *
+   * @type {HTMLElement[]}
+   */
+  collectedNodes = [];
+  /**
+   * The differ which calculates the differences between current and next view. It generates
+   * commands that are processed by the OrderView (see `applyCommand` method).
+   *
+   * @type {ViewDiffer}
+   */
+  viewDiffer = new ViewDiffer(this.sizeSet);
+  /**
    * Node type which the order view will manage while rendering the DOM elements.
    *
    * @type {string}
    */
   childNodeType;
   /**
-   * The visual index of currently processed row.
+   * The renderer adapter that handles browser-specific rendering logic.
    *
-   * @type {number}
+   * @type {StandardRendererAdapter|FirefoxRendererAdapter}
    */
-  visualIndex = 0;
-  /**
-   * The list of DOM elements which are rendered for this render cycle.
-   *
-   * @type {HTMLElement[]}
-   */
-  collectedNodes = [];
+  rendererAdapter;
 
   constructor(rootNode, nodesPool, childNodeType) {
     this.rootNode = rootNode;
     this.nodesPool = nodesPool;
-    this.childNodeType = childNodeType.toUpperCase();
+    this.childNodeType = childNodeType;
+    this.rendererAdapter = createRendererAdapter(this);
   }
 
   /**
@@ -112,64 +121,11 @@ export default class OrderView {
   }
 
   /**
-   * Returns rendered child count for this instance.
-   *
-   * @returns {number}
-   */
-  getRenderedChildCount() {
-    const { rootNode, sizeSet } = this;
-    let childElementCount = 0;
-
-    if (this.isSharedViewSet()) {
-      let element = rootNode.firstElementChild;
-
-      while (element) {
-        if (element.tagName === this.childNodeType) {
-          childElementCount += 1;
-
-        } else if (sizeSet.isPlaceOn(WORKING_SPACE_TOP)) {
-          break;
-        }
-        element = element.nextElementSibling;
-      }
-    } else {
-      childElementCount = rootNode.childElementCount;
-    }
-
-    return childElementCount;
-  }
-
-  /**
    * Setups and prepares all necessary properties and start the rendering process.
    * This method has to be called only once (at the start) for the render cycle.
    */
   start() {
-    this.collectedNodes.length = 0;
-    this.visualIndex = 0;
-
-    const { rootNode, sizeSet } = this;
-    const isShared = this.isSharedViewSet();
-    const { nextSize } = sizeSet.getViewSize();
-
-    let childElementCount = this.getRenderedChildCount();
-
-    while (childElementCount < nextSize) {
-      const newNode = this.nodesPool();
-
-      if (!isShared || (isShared && sizeSet.isPlaceOn(WORKING_SPACE_BOTTOM))) {
-        rootNode.appendChild(newNode);
-      } else {
-        rootNode.insertBefore(newNode, rootNode.firstChild);
-      }
-      childElementCount += 1;
-    }
-
-    const isSharedPlacedOnTop = (isShared && sizeSet.isPlaceOn(WORKING_SPACE_TOP));
-
-    while (childElementCount > nextSize) {
-      rootNode.removeChild(isSharedPlacedOnTop ? rootNode.firstChild : rootNode.lastChild);
-      childElementCount -= 1;
-    }
+    this.rendererAdapter.start();
   }
 
   /**
@@ -177,29 +133,14 @@ export default class OrderView {
    * This method has to be called as many times as the size count is met (to cover all previously rendered DOM elements).
    */
   render() {
-    const { rootNode, sizeSet } = this;
-    let visualIndex = this.visualIndex;
-
-    if (this.isSharedViewSet() && sizeSet.isPlaceOn(WORKING_SPACE_BOTTOM)) {
-      visualIndex += sizeSet.sharedSize.nextSize;
-    }
-
-    let node = rootNode.childNodes[visualIndex];
-
-    if (node.tagName !== this.childNodeType) {
-      const newNode = this.nodesPool();
-
-      rootNode.replaceChild(newNode, node);
-      node = newNode;
-    }
-
-    this.collectedNodes.push(node);
-    this.visualIndex += 1;
+    this.rendererAdapter.render();
   }
 
   /**
    * Ends the render process.
    * This method has to be called only once (at the end) for the render cycle.
    */
-  end() { }
+  end() {
+    this.rendererAdapter.end();
+  }
 }

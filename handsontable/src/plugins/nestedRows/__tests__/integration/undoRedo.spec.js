@@ -13,7 +13,7 @@ describe('NestedRows', () => {
   });
 
   describe('working with UndoRedo plugin', () => {
-    it('should properly undo remove of the child row', () => {
+    it('should properly undo remove of the child row', async() => {
       handsontable({
         data: [
           {
@@ -24,10 +24,35 @@ describe('NestedRows', () => {
         nestedRows: true,
       });
 
-      alter('remove_row', 1);
-      undo();
+      await alter('remove_row', 1);
+      getPlugin('undoRedo').undo();
 
       expect(getDataAtCell(1, 0)).toBe('A1.1');
+    });
+
+    it('should not throw an error when removing a parent row', async() => {
+      const onErrorSpy = spyOn(window, 'onerror').and.returnValue(true);
+
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        data: [
+          {
+            col1: 'A1',
+            __children: [{ col1: 'A1.1' }],
+          },
+        ],
+        nestedRows: true,
+      });
+
+      await alter('remove_row', 0);
+
+      getPlugin('undoRedo').undo();
+
+      await sleep(50);
+
+      expect(onErrorSpy).not.toHaveBeenCalled();
     });
   });
 });

@@ -8,7 +8,6 @@ import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 export const PLUGIN_KEY = 'manualColumnResize';
 export const PLUGIN_PRIORITY = 130;
-const PERSISTENT_STATE_KEY = 'manualColumnWidths';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -17,8 +16,7 @@ const PERSISTENT_STATE_KEY = 'manualColumnWidths';
  * @class ManualColumnResize
  *
  * @description
- * This plugin allows to change columns width. To make columns width persistent the {@link Options#persistentState}
- * plugin should be enabled.
+ * This plugin allows to change columns width.
  *
  * The plugin creates additional components to make resizing possibly using user interface:
  * - handle - the draggable element that sets the desired width of the column.
@@ -139,11 +137,9 @@ export class ManualColumnResize extends BasePlugin {
     this.#columnWidthsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.columnIndexMapper.registerMap(this.pluginName, this.#columnWidthsMap);
 
-    this.addHook('modifyColWidth', (width, col) => this.#onModifyColWidth(width, col), 1);
-    this.addHook('beforeStretchingColumnWidth',
-      (stretchedWidth, column) => this.#onBeforeStretchingColumnWidth(stretchedWidth, column));
-    this.addHook('beforeColumnResize',
-      (newSize, column, isDoubleClick) => this.#onBeforeColumnResize(newSize, column, isDoubleClick));
+    this.addHook('modifyColWidth', (...args) => this.#onModifyColWidth(...args), 1);
+    this.addHook('beforeStretchingColumnWidth', (...args) => this.#onBeforeStretchingColumnWidth(...args), 1);
+    this.addHook('beforeColumnResize', (...args) => this.#onBeforeColumnResize(...args));
 
     this.bindEvents();
 
@@ -170,29 +166,6 @@ export class ManualColumnResize extends BasePlugin {
     this.#config = this.#columnWidthsMap.getValues();
     this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     super.disablePlugin();
-  }
-
-  /**
-   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @fires Hooks#persistentStateSave
-   */
-  saveManualColumnWidths() {
-    this.hot.runHooks('persistentStateSave', PERSISTENT_STATE_KEY, this.#columnWidthsMap.getValues());
-  }
-
-  /**
-   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @returns {Array}
-   * @fires Hooks#persistentStateLoad
-   */
-  loadManualColumnWidths() {
-    const storedState = {};
-
-    this.hot.runHooks('persistentStateLoad', PERSISTENT_STATE_KEY, storedState);
-
-    return storedState.value;
   }
 
   /**
@@ -229,16 +202,8 @@ export class ManualColumnResize extends BasePlugin {
    */
   #onMapInit() {
     const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
-    const loadedManualColumnWidths = this.loadManualColumnWidths();
 
-    if (typeof loadedManualColumnWidths !== 'undefined') {
-      this.hot.batchExecution(() => {
-        loadedManualColumnWidths.forEach((width, physicalIndex) => {
-          this.#columnWidthsMap.setValueAtIndex(physicalIndex, width);
-        });
-      }, true);
-
-    } else if (Array.isArray(initialSetting)) {
+    if (Array.isArray(initialSetting)) {
       this.hot.batchExecution(() => {
         initialSetting.forEach((width, physicalIndex) => {
           this.#columnWidthsMap.setValueAtIndex(physicalIndex, width);
@@ -263,7 +228,7 @@ export class ManualColumnResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
-    if (!TH.parentNode) {
+    if (!TH.parentNode || this.#dblclick > 1) {
       return;
     }
 
@@ -355,14 +320,14 @@ export class ManualColumnResize extends BasePlugin {
   setupGuidePosition() {
     const handleHeight = parseInt(outerHeight(this.#handle), 10);
     const handleBottomPosition = parseInt(this.#handle.style.top, 10) + handleHeight;
-    const maximumVisibleElementHeight = parseInt(this.hot.view.maximumVisibleElementHeight(0), 10);
+    const tableHeight = this.hot.view.getTableHeight();
 
     addClass(this.#handle, 'active');
     addClass(this.#guide, 'active');
 
     this.#guide.style.top = `${handleBottomPosition}px`;
     this.refreshGuidePosition();
-    this.#guide.style.height = `${maximumVisibleElementHeight - handleHeight}px`;
+    this.#guide.style.height = `${tableHeight - handleHeight}px`;
     this.hot.rootElement.appendChild(this.#guide);
   }
 
@@ -464,9 +429,8 @@ export class ManualColumnResize extends BasePlugin {
    */
   afterMouseDownTimeout() {
     const render = () => {
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
       this.hot.view.adjustElementsSize();
+      this.hot.render();
     };
     const resize = (column, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeColumnResize', this.#newSize, column, true);
@@ -475,13 +439,7 @@ export class ManualColumnResize extends BasePlugin {
         this.#newSize = hookNewSize;
       }
 
-      if (this.hot.getSettings().stretchH === 'all') {
-        this.clearManualSize(column);
-      } else {
-        this.setManualSize(column, this.#newSize); // double click sets by auto row size plugin
-      }
-
-      this.saveManualColumnWidths();
+      this.setManualSize(column, this.#newSize); // double click sets by auto row size plugin
 
       this.hot.runHooks('afterColumnResize', this.#newSize, column, true);
 
@@ -563,9 +521,8 @@ export class ManualColumnResize extends BasePlugin {
    */
   #onMouseUp() {
     const render = () => {
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
       this.hot.view.adjustElementsSize();
+      this.hot.render();
     };
     const resize = (column, forceRender) => {
       this.hot.runHooks('beforeColumnResize', this.#newSize, column, false);
@@ -573,8 +530,6 @@ export class ManualColumnResize extends BasePlugin {
       if (forceRender) {
         render();
       }
-
-      this.saveManualColumnWidths();
 
       this.hot.runHooks('afterColumnResize', this.#newSize, column, false);
     };
@@ -615,7 +570,7 @@ export class ManualColumnResize extends BasePlugin {
 
     // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
     // shouldn't be drawn just after removing it.
-    this.hot._registerImmediate(() => {
+    this.hot._registerMicrotask(() => {
       this.#isTriggeredByRMB = false;
     });
   }
@@ -665,13 +620,13 @@ export class ManualColumnResize extends BasePlugin {
    * @returns {number}
    */
   #onBeforeStretchingColumnWidth(stretchedWidth, column) {
-    let width = this.#columnWidthsMap.getValueAtIndex(column);
+    const width = this.#columnWidthsMap.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
-    if (width === null) {
-      width = stretchedWidth;
+    if (typeof width === 'number') {
+      return width;
     }
 
-    return width;
+    return stretchedWidth;
   }
 
   /**

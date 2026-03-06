@@ -12,30 +12,28 @@ export default function rowAboveItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_ABOVE);
     },
     callback() {
-      const latestSelection = this.getSelectedRangeLast().getTopLeftCorner();
+      const activeSelection = this.getSelectedRangeActive().getTopLeftCorner();
 
-      this.alter('insert_row_above', latestSelection.row, 1, 'ContextMenu.rowAbove');
+      this.alter('insert_row_above', activeSelection.row, 1, 'ContextMenu.rowAbove');
     },
     disabled() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
-      if (!range) {
-        return true;
-      }
-
-      if (range.isSingleHeader() && range.highlight.row < 0) {
+      if (
+        !range ||
+        this.selection.isSelectedByColumnHeader() ||
+        (range.isSingleHeader() && range.highlight.row < 0) ||
+        (this.countSourceRows() >= this.getSettings().maxRows)
+      ) {
         return true;
       }
 
       if (this.selection.isSelectedByCorner()) {
-        const totalRows = this.countRows();
-
         // Enable "Insert row above" only when there is at least one row.
-        return totalRows === 0;
+        return this.countRows() === 0;
       }
 
-      return this.selection.isSelectedByColumnHeader() ||
-        this.countRows() >= this.getSettings().maxRows;
+      return false;
     },
     hidden() {
       return !this.getSettings().allowInsertRow;

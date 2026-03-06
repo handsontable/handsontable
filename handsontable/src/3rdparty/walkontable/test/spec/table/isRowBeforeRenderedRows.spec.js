@@ -22,7 +22,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('isRowBeforeRenderedRows()', () => {
-    it('should return value that is relevant to a given overlay', () => {
+    it('should return value that is relevant to a given overlay', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 

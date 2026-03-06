@@ -21,7 +21,7 @@ describe('WalkontableTable', () => {
     this.wotInstance.destroy();
   });
 
-  it('should create as many rows as fits in height', () => {
+  it('should create as many rows as fits in height', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -32,8 +32,8 @@ describe('WalkontableTable', () => {
     expect(spec().$table.find('tbody tr').length).toBe(9);
   });
 
-  it('should create as many rows as in `totalRows` if it is smaller than `height`', function() {
-    this.data.splice(5, this.data.length - 5);
+  it('should create as many rows as in `totalRows` if it is smaller than `height`', async() => {
+    spec().data.splice(5, spec().data.length - 5);
 
     const wt = walkontable({
       data: getData,
@@ -42,10 +42,11 @@ describe('WalkontableTable', () => {
     });
 
     wt.draw();
+
     expect(spec().$table.find('tbody tr').length).toBe(5);
   });
 
-  it('first row should have as many columns as in THEAD', () => {
+  it('first row should have as many columns as in THEAD', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -59,7 +60,7 @@ describe('WalkontableTable', () => {
     expect(spec().$table.find('tbody tr:first td').length).toBe(spec().$table.find('thead th').length);
   });
 
-  it('should put a blank cell in the corner if both rowHeaders and colHeaders are set', () => {
+  it('should put a blank cell in the corner if both rowHeaders and colHeaders are set', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -87,7 +88,7 @@ describe('WalkontableTable', () => {
     expect(spec().$table.find('tbody tr:first th:eq(0)')[0].innerHTML).toBe('Row');
   });
 
-  it('should use custom cell renderer if provided', () => {
+  it('should use custom cell renderer if provided', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -109,8 +110,8 @@ describe('WalkontableTable', () => {
     expect(spec().$table.find('td:first')[0].style.backgroundColor).toBe('yellow');
   });
 
-  it('should remove rows if they were removed in data source', function() {
-    this.data.splice(8);
+  it('should remove rows if they were removed in data source', async() => {
+    spec().data.splice(8);
 
     const wt = walkontable({
       data: getData,
@@ -121,12 +122,13 @@ describe('WalkontableTable', () => {
     wt.draw();
     expect(spec().$table.find('tbody tr').length).toBe(8);
 
-    this.data.splice(7);
+    spec().data.splice(7);
     wt.draw();
+
     expect(spec().$table.find('tbody tr').length).toBe(7);
   });
 
-  it('should render as much columns as the container width allows, if width is null', () => {
+  it('should render as much columns as the container width allows, if width is null', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -146,7 +148,7 @@ describe('WalkontableTable', () => {
     expect(spec().$table.find('tbody tr:first').children().length).toBe(4);
   });
 
-  it('should render as much columns as the container width allows, if width is null (with row header)', () => {
+  it('should render as much columns as the container width allows, if width is null (with row header)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -235,6 +237,63 @@ describe('WalkontableTable', () => {
     expect(firstRow.find('td:last').text()).toBe('b');
   });
 
+  it('should not trigger the "fastDraw" for oversized rows if none of the partially visible rows are rendered', async() => {
+    const cellRenderer = jasmine.createSpy('cellRenderer');
+
+    createDataArray(10, 5);
+    spec().$wrapper.width(600).height(600);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeight: (row) => {
+        return [40000, 30, 30, 40000, 30, 30, 30, 40000, 30, 30][row];
+      },
+      rowHeightByOverlayName: (row) => {
+        return [40000, 30, 30, 40000, 30, 30, 30, 40000, 30, 30][row];
+      },
+      cellRenderer
+    });
+
+    wt.draw();
+
+    cellRenderer.calls.reset();
+
+    getTableMaster().find('.wtHolder').scrollTop(54615);
+
+    await sleep(50);
+
+    expect(cellRenderer).toHaveBeenCalledTimes(5); // one row of 5 cells
+    expect(wt.getCell({ row: 3, col: 0 })).not.toBe(-2);
+  });
+
+  it('should not trigger the "fastDraw" for oversized columns if none of the partially visible columns are rendered', async() => {
+    const cellRenderer = jasmine.createSpy('cellRenderer');
+
+    createDataArray(5, 10);
+    spec().$wrapper.width(600).height(600);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnWidth: [40000, 30, 30, 40000, 30, 30, 30, 40000, 30, 30],
+      cellRenderer
+    });
+
+    wt.draw();
+
+    cellRenderer.calls.reset();
+
+    getTableMaster().find('.wtHolder').scrollLeft(54615);
+
+    await sleep(50);
+
+    expect(cellRenderer).toHaveBeenCalledTimes(5); // one row of 5 cells
+    expect(wt.getCell({ row: 0, col: 3 })).not.toBe(-2);
+  });
+
   it('should render oversized rows correctly across the entire range of the vertical table scrollbar', async() => {
     createDataArray(10, 10);
     spec().$wrapper.width(300);
@@ -244,15 +303,14 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       rowHeight: 2000, // the rows are wider than table viewport height
+      rowHeightByOverlayName: 2000, // the rows are wider than table viewport height
     });
 
     wt.draw();
     getTableMaster().find('.wtHolder').scrollTop(100);
 
-    const firstRow = getTableMaster().find('tbody tr:first');
-
     expect(getTableMaster().find('tbody tr').length).toBe(1);
-    expect(firstRow.find('td:first').text()).toBe('0');
+    expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('0');
 
     getTableMaster().find('.wtHolder').scrollTop(2000);
 
@@ -260,7 +318,7 @@ describe('WalkontableTable', () => {
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
-    expect(firstRow.find('td:first').text()).toBe('1');
+    expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('1');
 
     getTableMaster().find('.wtHolder').scrollTop(3814); // 1px before the 3rd row is loaded
 
@@ -268,7 +326,7 @@ describe('WalkontableTable', () => {
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
-    expect(firstRow.find('td:first').text()).toBe('1');
+    expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('1');
 
     getTableMaster().find('.wtHolder').scrollTop(3815); // the 3rd row is loaded
 
@@ -276,7 +334,7 @@ describe('WalkontableTable', () => {
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(2);
-    expect(firstRow.find('td:first').text()).toBe('1');
+    expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('1');
 
     getTableMaster().find('.wtHolder').scrollTop(3500);
 
@@ -284,7 +342,7 @@ describe('WalkontableTable', () => {
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
-    expect(firstRow.find('td:first').text()).toBe('1');
+    expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('1');
 
     getTableMaster().find('.wtHolder').scrollTop(4000);
 
@@ -292,10 +350,10 @@ describe('WalkontableTable', () => {
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
-    expect(firstRow.find('td:first').text()).toBe('2');
+    expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('2');
   });
 
-  it('should use column width function to get column width', () => {
+  it('should use column width function to get column width', async() => {
     spec().$wrapper.width(600);
 
     const wt = walkontable({
@@ -320,7 +378,7 @@ describe('WalkontableTable', () => {
     expect(spec().$table.find('tbody tr:first td:eq(3)').outerWidth()).toBe(200);
   });
 
-  it('should use column width array to get column width', () => {
+  it('should use column width array to get column width', async() => {
     spec().$wrapper.width(600);
 
     const wt = walkontable({
@@ -343,7 +401,7 @@ describe('WalkontableTable', () => {
     expect(spec().$table.find('tbody tr:first td:eq(3)').outerWidth()).toBe(201);
   });
 
-  it('should use column width integer to get column width', () => {
+  it('should use column width integer to get column width', async() => {
     spec().$wrapper.width(600);
 
     const wt = walkontable({
@@ -366,9 +424,8 @@ describe('WalkontableTable', () => {
     expect(spec().$table.find('tbody tr:first td:eq(3)').outerWidth()).toBe(100);
   });
 
-  it('should use column width also when there are no rows', function() {
-    this.data.length = 0;
-
+  it('should use column width also when there are no rows', async() => {
+    spec().data.length = 0;
     spec().$wrapper.width(600);
 
     const wt = walkontable({
@@ -385,6 +442,7 @@ describe('WalkontableTable', () => {
     });
 
     wt.draw();
+
     // start from eq(1) because eq(0) is corner header
     expect(spec().$table.find('thead tr:first th:eq(1)').outerWidth()).toBe(100);
     expect(spec().$table.find('thead tr:first th:eq(2)').outerWidth()).toBe(100);
@@ -392,7 +450,7 @@ describe('WalkontableTable', () => {
     expect(spec().$table.find('thead tr:first th:eq(4)').outerWidth()).toBe(100);
   });
 
-  it('should render a cell that is outside of the viewport horizontally', () => {
+  it('should render a cell that is outside of the viewport horizontally', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -406,7 +464,7 @@ describe('WalkontableTable', () => {
     expect(spec().$table.find('tbody tr:first td').length).toBe(2);
   });
 
-  it('should not render a cell when fastDraw == true', () => {
+  it('should not render a cell when fastDraw == true', async() => {
     let count = 0;
     const wt = walkontable({
       data: getData,
@@ -427,7 +485,7 @@ describe('WalkontableTable', () => {
     expect(count).toBe(oldCount);
   });
 
-  it('should not ignore fastDraw == true when grid was scrolled by amount of rows that doesn\'t exceed endRow', () => {
+  it('should not ignore fastDraw == true when grid was scrolled by amount of rows that doesn\'t exceed endRow', async() => {
     let count = 0;
     const wt = walkontable({
       data: getData,
@@ -452,7 +510,7 @@ describe('WalkontableTable', () => {
     expect(count).not.toBeGreaterThan(oldCount);
   });
 
-  it('should ignore fastDraw == true when grid was scrolled by amount of rows that exceeds endRow', () => {
+  it('should ignore fastDraw == true when grid was scrolled by amount of rows that exceeds endRow', async() => {
     let count = 0;
     const wt = walkontable({
       data: getData,
@@ -482,7 +540,7 @@ describe('WalkontableTable', () => {
     expect(count).toBeGreaterThan(oldCount);
   });
 
-  it('should not ignore fastDraw == true when grid was scrolled by amount of columns that doesn\'t exceed endColumn', () => {
+  it('should not ignore fastDraw == true when grid was scrolled by amount of columns that doesn\'t exceed endColumn', async() => {
     createDataArray(50, 50);
     let count = 0;
     const wt = walkontable({
@@ -507,7 +565,7 @@ describe('WalkontableTable', () => {
     expect(count).not.toBeGreaterThan(oldCount);
   });
 
-  it('should ignore fastDraw == true when grid was scrolled by amount of columns that exceeds endColumn', () => {
+  it('should ignore fastDraw == true when grid was scrolled by amount of columns that exceeds endColumn', async() => {
     createDataArray(50, 50);
     let count = 0;
     const wt = walkontable({
@@ -539,7 +597,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('cell header border', () => {
-    it('both left and right borders should be set on the first TH in the top overlay if `fixedColumns` is set but there are no `rowHeaders`', () => {
+    it('both left and right borders should be set on the first TH in the top overlay if `fixedColumns` is set but there are no `rowHeaders`', async() => {
       createDataArray(50, 50);
       spec().$wrapper.width(500).height(400);
 
@@ -561,7 +619,7 @@ describe('WalkontableTable', () => {
     });
   });
 
-  it('should render a table with overlays with corresponding backward compatible CSS classes', () => {
+  it('should render a table with overlays with corresponding backward compatible CSS classes', async() => {
     const wt = walkontable({
       data: getData,
       fixedRowsTop: 2,
@@ -578,7 +636,7 @@ describe('WalkontableTable', () => {
     expect($('.ht_clone_bottom_inline_start_corner')[0]).toHaveClass('ht_clone_bottom_left_corner');
   });
 
-  it('should not re-render the full table when the table has `display: none` declared', () => {
+  it('should not re-render the full table when the table has `display: none` declared', async() => {
     const cellRenderer = jasmine.createSpy('cellRenderer');
     const wt = walkontable({
       data: getData,

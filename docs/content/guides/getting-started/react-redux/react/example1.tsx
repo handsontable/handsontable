@@ -1,18 +1,9 @@
-import {
-  useRef,
-  MouseEvent,
-  JSXElementConstructor,
-  Key,
-  ReactElement,
-  ReactNode,
-  ReactPortal,
-} from 'react';
+import { useRef, MouseEvent, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
 import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -75,10 +66,7 @@ const ExampleComponentContent = () => {
                             | string
                             | number
                             | boolean
-                            | ReactElement<
-                                any,
-                                string | JSXElementConstructor<any>
-                              >
+                            | ReactElement<any, string | JSXElementConstructor<any>>
                             | Iterable<ReactNode>
                             | ReactPortal
                             | null

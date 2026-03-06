@@ -14,9 +14,19 @@ export default {
   },
   methods: {
     initialize(userOptions, lang) {
+
+      if (this.$page.currentVersion === 'next') {
+        // Disable search for next version as it's not crawled by Algolia
+        return;
+      }
+
+      const isLatestReleasedVersion = this.$page.currentVersion === this.$page.latestVersion;
+
       docsearch({
         container: '#algolia-search',
         ...userOptions,
+        indexName: isLatestReleasedVersion ? 'handsontable' : 'handsontable-with-versions',
+
         placeholder: this.$site.themeConfig.searchPlaceholder || 'Search',
         translations: {
           button: {
@@ -26,7 +36,8 @@ export default {
           },
         },
         searchParameters: {
-          facetFilters: [`lang:${lang}`, `tags:${this.$page.currentFramework}`],
+          // eslint-disable-next-line max-len
+          facetFilters: isLatestReleasedVersion ? [`lang:${lang}`, `tags:${this.$page.currentFramework}`] : [`lang:${lang}`, `tags:${this.$page.currentFramework}`, `version:${this.$page.currentVersion}`],
         },
       });
     },

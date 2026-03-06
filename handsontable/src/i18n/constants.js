@@ -2,6 +2,11 @@
  * Constants for parts of translation.
  */
 
+export const COMMON_NAMESPACE = 'Common:';
+
+export const OK = `${COMMON_NAMESPACE}ok`;
+export const CANCEL = `${COMMON_NAMESPACE}cancel`;
+
 export const CONTEXT_MENU_ITEMS_NAMESPACE = 'ContextMenu:items';
 
 const CM_ALIAS = CONTEXT_MENU_ITEMS_NAMESPACE;
@@ -101,6 +106,27 @@ export const FILTERS_BUTTONS_PLACEHOLDER_SEARCH = `${FILTERS_NAMESPACE}buttons.p
 export const FILTERS_BUTTONS_PLACEHOLDER_VALUE = `${FILTERS_NAMESPACE}buttons.placeholder.value`;
 export const FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE = `${FILTERS_NAMESPACE}buttons.placeholder.secondValue`;
 
+export const PAGINATION_NAMESPACE = 'Pagination:';
+export const PAGINATION_SECTION = `${PAGINATION_NAMESPACE}section.pagination`;
+export const PAGINATION_PAGE_SIZE_AUTO = `${PAGINATION_NAMESPACE}.pageSize.auto`;
+export const PAGINATION_PAGE_SIZE_SECTION = `${PAGINATION_NAMESPACE}section.pageSize`;
+export const PAGINATION_COUNTER_SECTION = `${PAGINATION_NAMESPACE}section.counter`;
+export const PAGINATION_NAV_SECTION = `${PAGINATION_NAMESPACE}section.navigation`;
+export const PAGINATION_FIRST_PAGE = `${PAGINATION_NAMESPACE}firstPage`;
+export const PAGINATION_PREV_PAGE = `${PAGINATION_NAMESPACE}prevPage`;
+export const PAGINATION_NEXT_PAGE = `${PAGINATION_NAMESPACE}nextPage`;
+export const PAGINATION_LAST_PAGE = `${PAGINATION_NAMESPACE}lastPage`;
+
 export const CHECKBOX_RENDERER_NAMESPACE = 'CheckboxRenderer:';
 export const CHECKBOX_CHECKED = `${CHECKBOX_RENDERER_NAMESPACE}checked`;
 export const CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;
+
+export const LOADING_NAMESPACE = 'Loading:';
+export const LOADING_TITLE = `${LOADING_NAMESPACE}title`;
+
+export const EMPTY_DATA_STATE_NAMESPACE = 'EmptyDataState:';
+export const EMPTY_DATA_STATE_TITLE = `${EMPTY_DATA_STATE_NAMESPACE}title`;
+export const EMPTY_DATA_STATE_DESCRIPTION = `${EMPTY_DATA_STATE_NAMESPACE}description`;
+export const EMPTY_DATA_STATE_TITLE_FILTERS = `${EMPTY_DATA_STATE_NAMESPACE}title.filters`;
+export const EMPTY_DATA_STATE_DESCRIPTION_FILTERS = `${EMPTY_DATA_STATE_NAMESPACE}description.filters`;
+export const EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET = `${EMPTY_DATA_STATE_NAMESPACE}buttons.filters.reset`;

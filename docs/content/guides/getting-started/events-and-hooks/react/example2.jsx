@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -30,11 +29,7 @@ const ExampleComponent = () => {
         // ENTER
         else if (e.keyCode === 13) {
           // if last change affected a single cell and did not change it's values
-          if (
-            lastChange &&
-            lastChange.length === 1 &&
-            lastChange[0][2] == lastChange[0][3]
-          ) {
+          if (lastChange && lastChange.length === 1 && lastChange[0][2] == lastChange[0][3]) {
             e.stopImmediatePropagation();
             hot.spliceCol(selection[1], selection[0], 0, '');
             // add new cell

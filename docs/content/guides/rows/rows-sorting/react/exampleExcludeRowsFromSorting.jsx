@@ -1,8 +1,7 @@
 // you need `useRef` to call Handsontable's instance methods
 import { useRef } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -14,15 +13,9 @@ const ExampleComponent = () => {
     const lastRowIndex = (handsontableInstance?.countRows() || 0) - 1;
 
     // after each sorting, take row 1 and change its index to 0
-    handsontableInstance?.rowIndexMapper.moveIndexes(
-      handsontableInstance.toVisualRow(0),
-      0
-    );
+    handsontableInstance?.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
     // after each sorting, take row 16 and change its index to 15
-    handsontableInstance?.rowIndexMapper.moveIndexes(
-      handsontableInstance.toVisualRow(lastRowIndex),
-      lastRowIndex
-    );
+    handsontableInstance?.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(lastRowIndex), lastRowIndex);
   };
 
   return (
@@ -164,7 +157,7 @@ const ExampleComponent = () => {
           type: 'numeric',
           data: 'price',
           numericFormat: {
-            pattern: '$ 0,0.00',
+            pattern: '$0,0.00',
             culture: 'en-US',
           },
         },
@@ -198,8 +191,7 @@ const ExampleComponent = () => {
       afterColumnSort={exclude}
       cells={(row, col, prop) => {
         if (hotTableComponentRef.current != null) {
-          const lastRowIndex =
-            (hotTableComponentRef.current?.hotInstance?.countRows() || 0) - 1;
+          const lastRowIndex = (hotTableComponentRef.current?.hotInstance?.countRows() || 0) - 1;
 
           if (row === 0) {
             return {

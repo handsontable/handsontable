@@ -30,11 +30,9 @@ describe('NumericEditor keyboard shortcut', () => {
         tabNavigation: true,
       });
 
-      selectCell(0, 4);
-      keyDownUp('enter');
-      keyDownUp('tab');
-
-      await sleep(50);
+      await selectCell(0, 4);
+      await keyDownUp('enter');
+      await keyDownUp('tab');
 
       expect(spy.test.calls.count()).toBe(0);
 

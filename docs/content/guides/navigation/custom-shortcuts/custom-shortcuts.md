@@ -19,8 +19,12 @@ tags:
 react:
   id: d5ay8gj1
   metaTitle: Custom shortcuts - React Data Grid | Handsontable
+angular:
+  id: lqk5kuws
+  metaTitle: Custom shortcuts - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
+menuTag: updated
 ---
 
 # Custom shortcuts
@@ -45,27 +49,39 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 :::
 
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+
+:::
+
 1. Access the [`ShortcutManager`](@/api/shortcutManager.md) API:
-   ```js
-   hot.getShortcutManager();
-   ```
+  ```js
+  hot.getShortcutManager();
+  ```
 2. Select a keyboard shortcut [context](#keyboard-shortcut-contexts), for example:
-   ```js
-   const gridContext = hot.getShortcutManager().getContext('grid');
-   ```
+  ```js
+  const gridContext = hot.getShortcutManager().getContext('grid');
+  ```
 3. Use the selected context's [methods](@/api/shortcutContext.md). For example, to use the [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method in the
    `grid` context:
 
-   ```js
-   const gridContext = hot.getShortcutManager().getContext('grid');
+  ```js
+  const gridContext = hot.getShortcutManager().getContext('grid');
 
-   gridContext.addShortcut({
-     group: 'group_ID', // a string value; the user can decide on its name. 
-     // Each shortcut should be assigned to the group.
-     keys: [['enter']],
-     callback: () => {},
-   });
-   ```
+  gridContext.addShortcut({
+    group: 'group_ID', // a string value; the user can decide on its name. 
+    // Each shortcut should be assigned to the group.
+    keys: [['enter']],
+    callback: () => {},
+  });
+  ```
 
 ## Keyboard shortcut contexts
 
@@ -98,21 +114,21 @@ For example: if you're using a complex [custom editor](@/guides/cell-functions/c
 To add a custom keyboard shortcut:
 
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to add a shortcut, for example:
-   ```js
-   const gridContext = hot.getShortcutManager().getContext('grid');
-   ```
+  ```js
+  const gridContext = hot.getShortcutManager().getContext('grid');
+  ```
 2. Using the selected context's [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method, add your keyboard shortcut:
 
-   ```js
-   const gridContext = hot.getShortcutManager().getContext('grid');
+  ```js
+  const gridContext = hot.getShortcutManager().getContext('grid');
 
-   gridContext.addShortcut({
-     group: 'group_ID', // a string value; the user can decide on its name. 
-     // Each shortcut should be assigned to the group.
-     keys: [['enter']],
-     callback: () => {},
-   });
-   ```
+  gridContext.addShortcut({
+    group: 'group_ID', // a string value; the user can decide on its name. 
+    // Each shortcut should be assigned to the group.
+    keys: [['enter']],
+    callback: () => {},
+  });
+  ```
 
    The [`keys`](@/api/shortcutContext.md#addshortcut) parameter:
 
@@ -239,6 +255,25 @@ hot.addHook('beforeKeyDown', (event) => {
     }
   }}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  beforeKeyDown: (event) => {
+    // the `Enter` shortcut won't work
+    if (event.key === "enter") {
+      return false;
+    }
+  },
+};
+```
+
+```html
+<hot-table [settings]="settings" />
 ```
 
 :::

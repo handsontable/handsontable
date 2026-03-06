@@ -12,8 +12,12 @@ tags:
 react:
   id: pcflnieu
   metaTitle: Custom builds - React Data Grid | Handsontable
+angular:
+  id: 098p9wiw
+  metaTitle: Custom builds - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
+menuTag: updated
 ---
 
 # Custom builds
@@ -28,13 +32,12 @@ Handsontable's building process transforms the source files located in the code 
 
 The Handsontable repository is a monorepo that contains the following projects:
 
-| Project                 | Location            | Description                                                                           |
-| ----------------------- | ------------------- | ------------------------------------------------------------------------------------- |
-| `handsontable`          | `/handsontable`     | Main Handsontable project                                                             |
-| `@handsontable/react`   | `/wrappers/react`   | [React wrapper](@/react/guides/getting-started/introduction/introduction.md)                       |
-| `@handsontable/angular` | `/wrappers/angular` | [Angular wrapper](@/javascript/guides/integrate-with-angular/angular-installation/angular-installation.md) |
-| `@handsontable/vue`     | `/wrappers/vue`     | [Vue 2 wrapper](@/javascript/guides/integrate-with-vue/vue-installation/vue-installation.md)           |
-| `@handsontable/vue3`    | `/wrappers/vue3`    | [Vue 3 wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)         |
+| Project                 | Location                  | Description                                                                                          |
+| ----------------------- |---------------------------|------------------------------------------------------------------------------------------------------|
+| `handsontable`          | `/handsontable`           | Main Handsontable project                                                                            |
+| `@handsontable/react-wrapper`  | `/wrappers/react-wrapper` | [React wrapper](@/react/guides/getting-started/introduction/introduction.md) |
+| `@handsontable/angular-wrapper` | `/wrappers/angular-wrapper`       | [Angular (v16+) wrapper](@/angular/guides/getting-started/introduction/introduction.md)              |
+| `@handsontable/vue3`    | `/wrappers/vue3`          | [Vue wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)      |
 
 All the projects are released together, under the same version number.
 But each project has its own [building](#build-processes) and [testing](@/guides/tools-and-building/testing/testing.md) processes.
@@ -43,13 +46,14 @@ But each project has its own [building](#build-processes) and [testing](@/guides
 
 The building processes transform the source files located in the `/handsontable/src/` directory into the following output files:
 
-- `/handsontable/dist/handsontable.js`
-- `/handsontable/dist/handsontable.css`
-- `/handsontable/dist/handsontable.full.js`
-- `/handsontable/dist/handsontable.full.css`
-- `/handsontable/dist/handsontable.full.min.js`
-- `/handsontable/dist/handsontable.full.min.css`
-- `/handsontable/dist/languages/*`
+- `/handsontable/dist/`
+    - handsontable UMD files, including minified versions
+    - the language file
+    - the themes and variables files
+- `/handsontable/styles/`
+    - modern theme CSS files, including minified versions
+- `handsontable/tmp/`
+    - ESM, CommonJS and UMD builds, type definition files etc.
 
 ::: tip
 
@@ -62,31 +66,34 @@ For more information on the distribution packages, see [this file](https://githu
 ### Build requirements
 
 Handsontable building processes require:
-- [Node.js](https://nodejs.org/) (version **20.x**+)
-- [npm](https://www.npmjs.com/) (version **9.x**+)
-- Node modules installed through `npm install` (e.g. [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
+
+- [Node.js](https://nodejs.org/) (version defined in `.nvmrc` in the root of the repository)
+- [pnpm](https://pnpm.io/) (in version relevant to the one defined in the `packageManager` field of the root's `package.json`)
+- [npm](https://www.npmjs.com/) (version corresponding to the Node.js version)
+- Node modules installed through `pnpm install` (e.g. [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
 
 ### `package.json` files
 
 Each Handsontable [project](#monorepo) has its own building processes defined in its own `package.json` file. Apart from that, the root directory has its own `package.json` file as well:
 
-| File                             | Holds tasks for building:                           |
-| -------------------------------- | --------------------------------------------------- |
-| `/package.json`                  | - All the packages at once<br>- Individual packages |
-| `/handsontable/package.json`     | The JavaScript package                              |
-| `/wrappers/react/package.json`   | The React package                                   |
-| `/wrappers/angular/package.json` | The Angular package                                 |
-| `/wrappers/vue/package.json`     | The Vue 2 package                                   |
-| `/wrappers/vue3/package.json`    | The Vue 3 package                                   |
+| File                                   | Holds tasks for building:                           |
+|----------------------------------------|-----------------------------------------------------|
+| `/package.json`                        | - All the packages at once<br>- Individual packages |
+| `/handsontable/package.json`           | The JavaScript package                              |
+| `/wrappers/react-wrapper/package.json` | The React package                      |
+| `/wrappers/angular-wrapper/package.json`       | The Angular (v16+) package                          |
+| `/wrappers/vue3/package.json`          | The Vue package                                   |
 
 ## Run your first build
 
 To run your first build:
-1. Install [Node.js](https://nodejs.org/) (version **20.x**+).
-2. Install [npm](https://www.npmjs.com/) (version **9.x**+).
-3. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
-4. From the root directory, run `npm install`.<br>All the required dependencies get installed.
-5. From the root directory, run `npm run build`.<br>All the Handsontable packages get built.
+
+1. Install [Node.js](https://nodejs.org/).
+2. Install [npm](https://www.npmjs.com/) (needed for the `examples` and `docs` packages).
+3. Install [pnpm](https://pnpm.io/) (needed for the monorepo dependency management). <br>The version should correspond to the one defined in the `packageManager` field of the root's `package.json`.
+4. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
+5. From the root directory, run `pnpm install`.<br>All the required dependencies get installed.
+6. From the root directory, run `pnpm run build`.<br>All the Handsontable packages get built.
 
 ## Build the packages
 
@@ -95,24 +102,29 @@ You can either build all the packages at once, or build each package individuall
 ### Build all the packages
 
 To build all the packages at once:
+
 1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
 3. Run `npm run build`.<br>The script builds the following packages:
      - The JavaScript package
      - The React package
-     - The Angular package
+     - The Angular package _**<small>(deprecated)</small>**_
+     - The Angular (v16+) package
      - The Vue 2 package
      - The Vue 3 package
      - A code examples package
+     - Visual-tests package
 
 ### Build the JavaScript package
 
 To build the JavaScript package:
+
 1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to `/handsontable`.
 3. Run `npm run build`.<br>Only the JavaScript package builds.
 
 To build the JavaScript package from the root directory:
+
 1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
 3. Run `npm run in handsontable build`.<br>Only the JavaScript package builds.
@@ -124,38 +136,44 @@ From the `/handsontable` directory, you can also run individual JavaScript `buil
 ::: details JavaScript build tasks
 
 `npm run build:commonjs`
+
   - Transpiles the files into the CommonJS format.
 
 `npm run build:es`
+
   - Transpiles the files into the ESM format.
 
 `npm run build:umd`
+
   - Creates the following bundles compatible with the Universal Module Definition:
     - `/handsontable/dist/handsontable.js`
-    - `/handsontable/dist/handsontable.css`
     - `/handsontable/dist/handsontable.full.js`
-    - `/handsontable/dist/handsontable.full.css`
+    - `/handsontable/styles/*` - non-minified theme CSS files
 
 `npm run build:umd.min`
+
   - Creates the minified bundles compatible with the Universal Module Definition:
     - `/handsontable/dist/handsontable.min.js`
-    - `/handsontable/dist/handsontable.min.css`
     - `/handsontable/dist/handsontable.min.full.js`
-    - `/handsontable/dist/handsontable.min.full.css`
+    - `/handsontable/styles/*` - minified theme CSS files
 
 `npm run build:walkontable`
+
   - Builds Walkontable, an essential part of Handsontable that's responsible for the rendering process.
 
 `npm run build:languages`
+
   - Creates the [language](@/guides/internationalization/language/language.md) bundles compatible with the Universal Module Definition, for example:
     - `/handsontable/dist/languages/de-DE.js`
     - `/handsontable/dist/languages/all.js`
 
 `build:languages.es`
+
   - Creates the [language](@/guides/internationalization/language/language.md) bundles compatible with the ESM format, for example:
     - `languages/en-US.mjs`
 
 `npm run build:languages.min`
+
    - Creates the minified [language](@/guides/internationalization/language/language.md) bundles compatible with the Universal Module Definition, for example:
      - `/handsontable/dist/languages/de-DE.min.js`
      - `/handsontable/dist/languages/all.min.js`
@@ -165,145 +183,114 @@ From the `/handsontable` directory, you can also run individual JavaScript `buil
 ### Build the React package
 
 To build the React package:
+
 1. Make sure you meet the [build requirements](#build-requirements).
-2. Go to `/wrappers/react`.
+2. Go to `/wrappers/react-wrapper`.
 3. Run `npm run build`.<br>Only the React package builds.
 
 To build the React package from the root directory:
+
 1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
-3. Run `npm run in react build`.<br>Only the React package builds.
+3. Run `npm run in react-wrapper build`.<br>Only the React package builds.
 
 #### React build tasks
 
-From the `/wrappers/react` directory, you can also run individual React `build` tasks:
+From the React wrapper directory, you can also run individual React `build` tasks:
 
 ::: details React build tasks
 
 `npm run build:commonjs`
+
   - Transpiles the files into the CommonJS format.
-  - Places the output in `/wrappers/react/commonjs/react-handsontable.js`
+  - Places the output in `/commonjs/react-handsontable.js`
 
 `npm run build:umd`
+
   - Creates the following bundles compatible with the Universal Module Definition:
-    - `/wrappers/react/dist/react-handsontable.js`
-    - `/wrappers/react/dist/react-handsontable.js.map`
+    - `/dist/react-handsontable.js`
+    - `/dist/react-handsontable.js.map`
 
 `npm run build:es`
+
   - Transpiles the files into the ESM format.
-  - Places the output in `/wrappers/react/es/react-handsontable.mjs`
+  - Places the output in `/es/react-handsontable.mjs`
 
 `npm run build:min`
+
   - Creates the minified bundles:
-    - `/wrappers/react/dist/react-handsontable.min.js`
-    - `/wrappers/react/dist/react-handsontable.min.js.map`
+    - `/dist/react-handsontable.min.js`
+    - `/dist/react-handsontable.min.js.map`
 
 :::
-
-::: only-for javascript
 
 ### Build the Angular package
 
 To build the Angular package:
+
 1. Make sure you meet the [build requirements](#build-requirements).
-3. Go to `/wrappers/angular`.
-4. Run `npm run build`.<br>Only the Angular package builds.
+2. Go to `/wrappers/angular-wrapper`.
+3. Run `npm run build`.<br>Only the Angular package builds.
 
 To build the Angular package from the root directory:
+
 1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
-3. Run `npm run in angular build`.<br>Only the Angular package builds.
+3. Run `npm run in angular-wrapper build`.<br>Only the Angular package builds.
 
 #### Angular build tasks
 
-From the `/wrappers/angular` directory, You can also run individual Angular `build` tasks:
+From the `/wrappers/angular-wrapper` directory, You can also run individual Angular `build` tasks:
 
 ::: details Angular build tasks
 
 `npm run build`
-  - Builds the `@handsontable/angular` package for multiple module systems.
-  - Places the output in the `/wrappers/angular/dist/hot-table/` directory.
 
-:::
-
-:::
-
-::: only-for javascript
-
-### Build the Vue 2 package
-
-To build the Vue 2 package:
-1. Make sure you meet the [build requirements](#build-requirements).
-2. Go to `/wrappers/vue`.
-3. Run `npm run build`.<br>Only the Vue 2 package builds.
-
-To build the Vue 2 package from the root directory:
-1. Make sure you meet the [build requirements](#build-requirements).
-2. Go to the root directory.
-3. Run `npm run in vue build`.<br>Only the Vue 2 package builds.
-
-#### Vue 2 build tasks
-
-From the `/wrappers/vue` directory, you can also run individual Vue 2 `build` tasks:
-
-::: details Vue 2 build tasks
-
-`npm run build:commonjs`
-  - Transpiles the files into the CommonJS format.
-  - Places the output in `/wrappers/vue/commonjs/vue-handsontable.js`
-
-`npm run build:umd`
-  - Creates the following bundles compatible with the Universal Module Definition:
-    - `/wrappers/vue/dist/vue-handsontable.js`
-    - `/wrappers/vue/dist/vue-handsontable.js.map`
-
-`npm run build:es`
-  - Transpiles the files into the ESM format.
-  - Places the output in `/wrappers/vue/es/vue-handsontable.mjs`
-
-`npm run build:min`
-  - Creates the minified bundles:
-    - `/wrappers/vue/dist/vue-handsontable.min.js`
-    - `/wrappers/vue/dist/vue-handsontable.min.js.map`
-
-:::
+- Builds the `@handsontable/angular-wrapper` package for multiple module systems.
+- Places the output in the `/wrappers/angular-wrapper/dist/hot-table/` directory.
 
 :::
 
 ::: only-for javascript
 
-### Build the Vue 3 package
+### Build the Vue package
 
-To build the Vue 3 package:
+To build the Vue package:
+
 1. Make sure you meet the [build requirements](#build-requirements).
-2. Go to `/wrappers/vue3 `.
-3. Run `npm run build`.<br>Only the Vue 3 package builds.
+2. Go to `/wrappers/vue3`.
+3. Run `npm run build`.<br>Only the Vue package builds.
 
-To build the Vue 3 package from the root directory:
+To build the Vue package from the root directory:
+
 1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
-3. Run `npm run in vue3 build`.<br>Only the Vue 3 package builds.
+3. Run `npm run in vue3 build`.<br>Only the Vue package builds.
 
-#### Vue 3 build tasks
+#### Vue build tasks
 
-From the `/wrappers/vue3` directory, you can also run individual Vue 3 `build` tasks:
+From the `/wrappers/vue3` directory, you can also run individual Vue `build` tasks:
 
-::: details Vue 3 build tasks
+::: details Vue build tasks
 
 `npm run build:commonjs`
+
   - Transpiles the files into the CommonJS format.
   - Places the output in `/wrappers/vue3/commonjs/vue-handsontable.js`
 
 `npm run build:umd`
+
   - Creates the following bundles compatible with the Universal Module Definition:
     - `/wrappers/vue3/dist/vue-handsontable.js`
     - `/wrappers/vue3/dist/vue-handsontable.js.map`
 
 `npm run build:es`
+
   - Transpiles the files into the ESM format.
   - Places the output in `/wrappers/vue3/es/vue-handsontable.mjs`
 
 `npm run build:min`
+
   - Creates the minified bundles:
     - `/wrappers/vue3/dist/vue-handsontable.min.js`
     - `/wrappers/vue3/dist/vue-handsontable.min.js.map`

@@ -14,25 +14,25 @@ describe('HiddenRows', () => {
 
   describe('public API', () => {
     describe('hideRow()', () => {
-      it('should hide row by passing the visual row index', () => {
+      it('should hide row by passing the visual row index', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           hiddenRows: true,
         });
 
         expect(getCell(1, 0).innerText).toBe('A2');
 
         getPlugin('hiddenRows').hideRow(1);
-        render();
+        await render();
 
         expect(getCell(1, 0)).toBe(null);
       });
     });
 
     describe('showRow()', () => {
-      it('should show row by passing the visual row index', () => {
+      it('should show row by passing the visual row index', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           hiddenRows: {
             rows: [1],
           },
@@ -41,16 +41,16 @@ describe('HiddenRows', () => {
         expect(getCell(1, 0)).toBe(null);
 
         getPlugin('hiddenRows').showRow(1);
-        render();
+        await render();
 
         expect(getCell(1, 0).innerText).toBe('A2');
       });
     });
 
     describe('isHidden()', () => {
-      it('should return `true` for hidden row', () => {
+      it('should return `true` for hidden row', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           hiddenRows: {
             rows: [1],
           },
@@ -63,14 +63,14 @@ describe('HiddenRows', () => {
         expect(plugin.isHidden(2)).toBe(false);
 
         getPlugin('hiddenRows').showRow(1);
-        render();
+        await render();
 
         expect(plugin.isHidden(0)).toBe(false);
         expect(plugin.isHidden(1)).toBe(false);
         expect(plugin.isHidden(2)).toBe(false);
 
         getPlugin('hiddenRows').hideRow(2);
-        render();
+        await render();
 
         expect(plugin.isHidden(0)).toBe(false);
         expect(plugin.isHidden(1)).toBe(false);
@@ -79,9 +79,9 @@ describe('HiddenRows', () => {
     });
 
     describe('getHiddenRows()', () => {
-      it('should return collection of hidden visual row indexes', () => {
+      it('should return collection of hidden visual row indexes', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           hiddenRows: {
             rows: [1],
           },
@@ -92,20 +92,20 @@ describe('HiddenRows', () => {
         expect(plugin.getHiddenRows()).toEqual([1]);
 
         getPlugin('hiddenRows').showRow(1);
-        render();
+        await render();
 
         expect(plugin.getHiddenRows()).toEqual([]);
 
         getPlugin('hiddenRows').hideRows([0, 2]);
-        render();
+        await render();
 
         expect(plugin.getHiddenRows()).toEqual([0, 2]);
       });
 
       it('should return correct visual indexes when rows sequence is non-contiguous ' +
-         '(force desync between physical and visual indexes)', () => {
-        const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 1),
+         '(force desync between physical and visual indexes)', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 1),
           rowHeaders: true,
           hiddenRows: {
             rows: [1],
@@ -113,28 +113,28 @@ describe('HiddenRows', () => {
           },
         });
 
-        hot.rowIndexMapper.setIndexesSequence([0, 9, 1, 2, 3, 4, 5, 6, 7, 8]);
+        rowIndexMapper().setIndexesSequence([0, 9, 1, 2, 3, 4, 5, 6, 7, 8]);
 
         const plugin = getPlugin('hiddenRows');
 
         expect(plugin.getHiddenRows()).toEqual([2]);
 
         getPlugin('hiddenRows').showRow(2);
-        render();
+        await render();
 
         expect(plugin.getHiddenRows()).toEqual([]);
 
         getPlugin('hiddenRows').hideRows([3, 6]);
-        render();
+        await render();
 
         expect(plugin.getHiddenRows()).toEqual([3, 6]);
       });
     });
 
     describe('isValidConfig()', () => {
-      it('should return `false` for rows passed as not a number', () => {
+      it('should return `false` for rows passed as not a number', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           hiddenRows: true,
         });
 
@@ -153,9 +153,9 @@ describe('HiddenRows', () => {
         expect(plugin.isValidConfig([{ index: 1 }])).toBe(false);
       });
 
-      it('should return `true` for rows, which are within the range of the table size', () => {
+      it('should return `true` for rows, which are within the range of the table size', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           hiddenRows: true,
         });
 
@@ -172,17 +172,19 @@ describe('HiddenRows', () => {
       });
     });
     describe('clear()', () => {
-      it('should clear the data from hidden row when hidden row is second last one', () => {
+      it('should clear the data from hidden row when hidden row is second last one', async() => {
         const row = 2;
-        const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(row, 2),
+
+        handsontable({
+          data: createSpreadsheetData(row, 2),
           hiddenRows: {
             rows: [row - 1], // hide penultimate row
           }
         });
 
-        hot.clear();
-        const emptyData = hot.getData();
+        await clear();
+
+        const emptyData = getData();
         const empyDataComparision = [[null, null], [null, null]];
 
         expect(emptyData).toEqual(empyDataComparision);

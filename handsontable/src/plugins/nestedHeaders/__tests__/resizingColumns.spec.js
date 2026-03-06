@@ -13,9 +13,9 @@ describe('NestedHeaders', () => {
   });
 
   describe('resizing columns', () => {
-    it('should be possible to resize a column manually when both `manualColumnResize` and `nestedHeaders` plugins are enabled', () => {
+    it('should be possible to resize a column manually when both `manualColumnResize` and `nestedHeaders` plugins are enabled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         manualColumnResize: true,
@@ -37,12 +37,16 @@ describe('NestedHeaders', () => {
       $resizer.simulate('mousemove', { clientX: resizerPosition.left - 50 });
       $resizer.simulate('mouseup');
 
-      expect(colWidth(spec().$container, 1)).toBe(20);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(28);
+        main.toBe(37);
+        horizon.toBe(45);
+      });
     });
 
-    it('should be possible to resize a column using the `manualColumnSize` settings when both `manualColumnResize` and `nestedHeaders` plugins are enabled', () => {
+    it('should be possible to resize a column using the `manualColumnSize` settings when both `manualColumnResize` and `nestedHeaders` plugins are enabled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         manualColumnResize: [20, 20, 20, 20, 20],

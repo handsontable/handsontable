@@ -3,6 +3,8 @@
 .idea
 .vscode
 .cache
+.cursor
+.claude
 dev*.html
 dev*.js
 npm-debug.log
@@ -13,3 +15,6 @@ node_modules/
 docs/tests/test-artifacts/
 docs/tests/.env
 docs/.env
+
+# Local Netlify folder
+.netlify

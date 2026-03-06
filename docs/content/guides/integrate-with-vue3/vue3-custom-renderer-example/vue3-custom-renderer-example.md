@@ -8,6 +8,9 @@ canonicalUrl: /vue3-custom-renderer-example
 react:
   id: ijm6kk3v
   metaTitle: Custom cell renderer - Vue 3 Data Grid | Handsontable
+angular:
+  id: karjf4av
+  metaTitle: Custom cell renderer - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

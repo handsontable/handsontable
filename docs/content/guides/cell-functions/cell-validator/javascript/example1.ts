@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example1')!;
 const output = document.querySelector('#output') as HTMLElement;
@@ -103,13 +106,9 @@ new Handsontable(container, {
         return false;
       }
       // capitalise first letter in column 1 and 2
-      else if (
-        currChange[1] === 'name.first' ||
-        currChange[1] === 'name.last'
-      ) {
+      else if (currChange[1] === 'name.first' || currChange[1] === 'name.last') {
         if (currChange[3] !== null) {
-          changes[i]![3] =
-            currChange[3].charAt(0).toUpperCase() + currChange[3].slice(1);
+          changes[i]![3] = currChange[3].charAt(0).toUpperCase() + currChange[3].slice(1);
         }
       }
     }
@@ -129,7 +128,7 @@ new Handsontable(container, {
     { data: 'name.first' },
     { data: 'name.last' },
     { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
-    { data: 'email', validator: emailValidator, allowInvalid: false },
+    { data: 'email', validator: emailValidator },
   ],
   autoWrapRow: true,
   autoWrapCol: true,

@@ -1,8 +1,11 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
 import { Formulas } from 'handsontable/plugins';
 import { DetailedSettings } from 'handsontable/plugins/formulas';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const data: (string | number)[][] = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
@@ -37,9 +40,6 @@ const formulasPlugin: Formulas = hot.getPlugin('formulas');
 const button = document.getElementById('named-expressions-button')!;
 
 button!.addEventListener('click', () => {
-  formulasPlugin.engine?.changeNamedExpression(
-    'ADDITIONAL_COST',
-    (input as HTMLInputElement).value
-  );
+  formulasPlugin.engine?.changeNamedExpression('ADDITIONAL_COST', (input as HTMLInputElement).value);
   hot.render();
 });

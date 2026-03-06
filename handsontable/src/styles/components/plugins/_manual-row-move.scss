@@ -1,0 +1,57 @@
+@use "../../utils/mixins";
+
+// Handsontable Row Move
+
+@mixin output {
+  .handsontable {
+    .wtHider {
+      position: relative;
+    }
+
+    .ht__manualRowMove,
+    &.ht__manualRowMove {
+      &.after-selection--rows tbody th.ht__highlight {
+        @include mixins.cursor-grab;
+      }
+
+      &.on-moving--rows {
+        & *,
+        tbody th.ht__highlight {
+          @include mixins.cursor-grabbing;
+        }
+
+        .manualRowResizer {
+          display: none;
+        }
+      }
+
+      &--guideline,
+      &--backlight {
+        position: absolute;
+        width: 100%;
+        display: none;
+      }
+
+      &--guideline {
+        border-top: 1px solid var(--ht-move-indicator-color);
+        left: 0;
+        z-index: 205;
+      }
+
+      &--backlight {
+        display: none;
+        z-index: 205;
+        pointer-events: none;
+        background: color-mix(in srgb, var(--ht-move-backlight-color) var(--ht-move-backlight-opacity, 100%), transparent);
+      }
+    }
+
+    .on-moving--rows,
+    &.on-moving--rows {
+      &.show-ui .ht__manualRowMove--guideline,
+      .ht__manualRowMove--backlight {
+        display: block;
+      }
+    }
+  }
+}

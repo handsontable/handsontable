@@ -14,7 +14,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
   }
 
   class ColumnUtilsMock {
-    getStretchedColumnWidth() {
+    getWidth() {
       return 100;
     }
     getHeaderWidth() {
@@ -43,7 +43,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     };
   });
 
-  it('should generate as many COLs as the `columnsToRender` and `rowHeadersCount` is set', () => {
+  it('should generate as many COLs as the `columnsToRender` and `rowHeadersCount` is set', async() => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     tableMock.columnsToRender = 5;
@@ -115,7 +115,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
       `);
   });
 
-  it('should reuse previously created elements on next render cycle', () => {
+  it('should reuse previously created elements on next render cycle', async() => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     tableMock.columnsToRender = 5;
@@ -148,7 +148,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     expect(rootNode.children[2]).toBe(prevChildren[2]);
   });
 
-  it('should reuse previously created elements when offset is changed', () => {
+  it('should reuse previously created elements when offset is changed', async() => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     tableMock.columnsToRender = 2;
@@ -179,13 +179,13 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     expect(rootNode.children[2]).toBe(prevChildren[2]);
   });
 
-  it('should render column widths', () => {
+  it('should render column widths', async() => {
     const { renderer, tableMock, rootNode, columnUtilsMock } = createRenderer();
 
     spyOn(columnUtilsMock, 'getHeaderWidth').and.callFake((sourceColumnIndex) => {
       return sourceColumnIndex + 100;
     });
-    spyOn(columnUtilsMock, 'getStretchedColumnWidth').and.callFake((sourceColumnIndex) => {
+    spyOn(columnUtilsMock, 'getWidth').and.callFake((sourceColumnIndex) => {
       return sourceColumnIndex + 100;
     });
 
@@ -205,7 +205,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
       `);
   });
 
-  it('should render column widths based on source column index (offseted value)', () => {
+  it('should render column widths based on source column index (offset value)', async() => {
     const { renderer, tableMock, rootNode, columnUtilsMock } = createRenderer();
 
     spyOn(tableMock, 'renderedColumnToSource').and.callFake((index) => {
@@ -214,7 +214,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     spyOn(columnUtilsMock, 'getHeaderWidth').and.callFake((sourceColumnIndex) => {
       return sourceColumnIndex + 100;
     });
-    spyOn(columnUtilsMock, 'getStretchedColumnWidth').and.callFake((sourceColumnIndex) => {
+    spyOn(columnUtilsMock, 'getWidth').and.callFake((sourceColumnIndex) => {
       return sourceColumnIndex + 100;
     });
 

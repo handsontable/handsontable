@@ -189,7 +189,11 @@ export class ConditionComponent extends BaseComponent {
 
         wrapper.appendChild(label);
 
-        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
+        // The SelectUI should not extend the menu width (it should adjust to the menu item width only).
+        // That's why it's skipped from rendering when the GhostTable tries to render it.
+        if (!wrapper.parentElement.hasAttribute('ghost-table')) {
+          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
+        }
 
         return wrapper;
       }
@@ -224,6 +228,7 @@ export class ConditionComponent extends BaseComponent {
   #onConditionSelect(command) {
     arrayEach(this.getInputElements(), (element, index) => {
       element[command.inputsCount > index ? 'show' : 'hide']();
+      element.options.type = command.inputType ?? 'text';
 
       if (index === 0) {
         this.hot._registerTimeout(() => element.focus(), 10);

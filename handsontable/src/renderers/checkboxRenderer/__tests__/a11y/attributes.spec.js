@@ -13,7 +13,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   });
 
   it('should add an `aria-checked` attribute to every input of the checkbox-typed cells and mark it `checked` when' +
-    ' the checkbox had been checked', () => {
+    ' the checkbox had been checked', async() => {
     handsontable({
       data: [[false], [true], [false]],
       columns: [
@@ -29,7 +29,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(getInputAtCell(1, 0).getAttribute('aria-checked')).toEqual('true');
     expect(getInputAtCell(2, 0).getAttribute('aria-checked')).toEqual('false');
 
-    setDataAtCell(0, 0, true);
+    await setDataAtCell(0, 0, true);
 
     expect(getInputAtCell(0, 0).getAttribute('aria-checked')).toEqual('true');
 
@@ -43,7 +43,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   });
 
   it('should add an `aria-label` attribute to every input of the checkbox-typed cells describing the current state' +
-    ' of the checkbox', () => {
+    ' of the checkbox', async() => {
     handsontable({
       data: [[false], [true], [false]],
       columns: [
@@ -59,7 +59,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(getInputAtCell(1, 0).getAttribute('aria-label')).toEqual('Checked');
     expect(getInputAtCell(2, 0).getAttribute('aria-label')).toEqual('Unchecked');
 
-    setDataAtCell(0, 0, true);
+    await setDataAtCell(0, 0, true);
 
     expect(getInputAtCell(0, 0).getAttribute('aria-label')).toEqual('Checked');
 
@@ -73,7 +73,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   });
 
   it('should add an `role=checkbox` attribute to every input of the checkbox-typed cells and mark it `checked` when' +
-    ' the checkbox had been checked', () => {
+    ' the checkbox had been checked', async() => {
     handsontable({
       data: [[false], [true], [false]],
       columns: [

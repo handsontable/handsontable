@@ -14,12 +14,12 @@ describe('settings', () => {
       }
     });
 
-    it('should print information about key invalidation right after the Handsontable root element', () => {
+    it('should print information about key invalidation right after the Handsontable root element', async() => {
       handsontable({}, true);
 
-      const info = spec().$container[0].nextSibling;
+      const info = spec().$container[0].querySelector('.hot-display-license-info');
 
-      expect(info.className).toBe('hot-display-license-info');
+      expect(info.className).toBe('handsontable hot-display-license-info');
       expect(info.innerText).toBe([
         'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
         'Alternatively, you can activate Handsontable to use for non-commercial purposes ',
@@ -28,7 +28,7 @@ describe('settings', () => {
       ].join(''));
     });
 
-    it('should destroy all DOM elements related to the invalidation information for specific HoT instance only', () => {
+    it('should destroy all DOM elements related to the invalidation information for specific HoT instance only', async() => {
       const element2 = $('<div id="hot2"></div>').appendTo('body');
 
       const hot1 = handsontable({}, true);

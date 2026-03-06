@@ -131,9 +131,9 @@ describe('Hook', () => {
         afterRefreshDimensions,
       });
 
-      await sleep(2000);
+      await sleep(6000);
 
-      expect(afterRefreshDimensions).toHaveBeenCalledTimes(100);
+      expect(afterRefreshDimensions).toHaveBeenCalledTimes(300);
       // eslint-disable-next-line no-console
       expect(console.warn).toHaveBeenCalledWith(
         'The ResizeObserver callback was fired too many times in direct succession.' +
@@ -147,7 +147,7 @@ describe('Hook', () => {
     });
 
     describe('running in iframe', () => {
-      beforeEach(function() {
+      beforeEach(async function() {
         this.$iframe = $('<iframe width="500px" height="60px"/>').appendTo(this.$container);
 
         const doc = this.$iframe[0].contentDocument;
@@ -156,11 +156,16 @@ describe('Hook', () => {
         doc.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="../dist/handsontable.css">
+            <link type="text/css" rel="stylesheet" href="lib/normalize.css">
+            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
+            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
+            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
           </head>`);
         doc.close();
 
         this.$iframeContainer = $('<div/>').appendTo(doc.body);
+
+        await sleep(50); // wait for iframe to load to prevent double resize events
       });
 
       afterEach(function() {
@@ -175,9 +180,9 @@ describe('Hook', () => {
           afterRefreshDimensions,
         });
 
-        spec().$iframe[0].style.width = '50px';
+        spec().$iframe[0].width = '50px';
 
-        await sleep(300);
+        await sleep(50);
 
         expect(afterRefreshDimensions.calls.count()).toBe(1);
       });
@@ -189,15 +194,27 @@ describe('Hook', () => {
           afterRefreshDimensions,
         });
 
-        spec().$iframe[0].style.width = '50px';
+        spec().$iframe[0].width = '50px';
 
-        await sleep(300);
+        await sleep(50);
 
-        expect(afterRefreshDimensions).toHaveBeenCalledWith(
-          { width: 469, height: 0 },
-          { width: 19, height: 116 },
-          true,
-        );
+        expect(afterRefreshDimensions).forThemes(({ classic, main, horizon }) => {
+          classic.toHaveBeenCalledWith(
+            { width: 500, height: 0 },
+            { width: 35, height: 131 },
+            true,
+          );
+          main.toHaveBeenCalledWith(
+            { width: 500, height: 0 },
+            { width: 35, height: 146 },
+            true,
+          );
+          horizon.toHaveBeenCalledWith(
+            { width: 500, height: 0 },
+            { width: 35, height: 186 },
+            true,
+          );
+        });
       });
 
       it('should be fired with proper arguments (when window size does not changed)', async() => {
@@ -209,9 +226,9 @@ describe('Hook', () => {
           height: 300,
         });
 
-        spec().$iframe[0].style.width = '50px';
+        spec().$iframe[0].width = '50px';
 
-        await sleep(300);
+        await sleep(50);
 
         expect(afterRefreshDimensions).toHaveBeenCalledWith(
           { width: 300, height: 300 },

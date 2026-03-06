@@ -21,17 +21,35 @@ export default function clearColumnItem() {
       }
     },
     disabled() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
-      if (!range) {
+      if (
+        !range ||
+        range.isSingleHeader() && range.highlight.col < 0 ||
+        !this.selection.isSelectedByColumnHeader()
+      ) {
         return true;
       }
 
-      if (range.isSingleHeader() && range.highlight.col < 0) {
-        return true;
-      }
+      let atLeastOneNonReadOnly = false;
 
-      return !this.selection.isSelectedByColumnHeader();
+      range.forAll((row, col) => {
+        if (row < 0 || col < 0) {
+          return true;
+        }
+
+        const { readOnly } = this.getCellMeta(row, col);
+
+        if (!readOnly) {
+          atLeastOneNonReadOnly = true;
+
+          return false;
+        }
+
+        return true;
+      });
+
+      return !atLeastOneNonReadOnly;
     }
   };
 }

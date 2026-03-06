@@ -1,0 +1,150 @@
+@use "../../utils/mixins";
+
+// Dropdown Editor [Listbox]
+
+@mixin output {
+  .handsontable {
+    &.listbox {
+      @include mixins.menu-box-shadow;
+
+      margin: 0;
+      border: var(--ht-menu-border-width, 1px) solid
+        var(--ht-menu-border-color, #e5e5e9);
+
+      .ht_master {
+        overflow: hidden;
+        background-color: var(--ht-background-color);
+      }
+
+      .wtHolder {
+        overflow: auto;
+        border-radius: 0 !important;
+      }
+
+      .wtHider, .htCore {
+        border-radius: 0 !important;
+      }
+
+      table {
+        overflow: hidden;
+
+        th,
+        tr:first-child th,
+        tr:last-child th,
+        tr:first-child td,
+        td {
+          border-color: transparent !important;
+        }
+
+        th,
+        td {
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          border-radius: 0 !important;
+        }
+
+        .wtBorder {
+          visibility: hidden;
+        }
+
+        strong {
+          font-weight: bold;
+          color: inherit;
+        }
+
+        tr {
+          td {
+            &:hover {
+              td {
+                background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;
+                cursor: pointer;
+                box-shadow: none !important;
+              }
+            }
+          }
+        }
+
+        td {
+          transition: var(--ht-table-transition) background ease-in-out;
+
+          &:hover {
+            background-color: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;
+            cursor: pointer;
+          }
+
+          &.current:not([aria-expanded="true"]) {
+            box-shadow: inset 0 0 0 1px var(--ht-accent-color);
+          }
+
+          &.htDimmed {
+            cursor: default;
+            font-style: inherit;
+            color: inherit !important;
+          }
+
+          &.htDimmed:not(&:hover) {
+            background-color: inherit !important;
+          }
+        }
+
+        thead {
+          th {
+            height: auto !important;
+            text-align: left;
+
+            .relative {
+              padding-top: calc(var(--ht-cell-vertical-padding) + var(--ht-gap-size));
+              padding-bottom: calc(var(--ht-cell-vertical-padding) + var(--ht-gap-size));
+            }
+          }
+        }
+      }
+
+      .ht_clone_top {
+        .wtHider {
+          overflow: hidden;
+        }
+
+        table {
+          border-radius: 0;
+        }
+      }
+
+      .htBorders {
+        div {
+          background: none !important;
+        }
+      }
+    }
+
+    &.autocompleteEditor {
+      tr {
+        &.ht__row_even {
+          th,
+          td {
+            background-color: var(--ht-background-color, #ffffff);
+          }
+        }
+
+        &.ht__row_odd {
+          th,
+          td {
+            background-color: var(--ht-background-color, #ffffff);
+          }
+        }
+      }
+    }
+  }
+
+  [dir="rtl"].handsontable {
+    &.listbox {
+      table {
+        thead {
+          th {
+            text-align: right;
+          }
+        }
+      }
+    }
+  }
+}

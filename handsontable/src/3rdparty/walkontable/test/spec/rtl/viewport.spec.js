@@ -23,7 +23,7 @@ describe('WalkontableViewport (RTL mode)', () => {
   });
 
   describe('getWorkspaceWidth()', () => {
-    it('should return correct viewport width in case when the root element has defined size', () => {
+    it('should return correct viewport width in case when the root element has defined size', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -35,7 +35,7 @@ describe('WalkontableViewport (RTL mode)', () => {
       expect(wt.wtViewport.getWorkspaceWidth()).toBe(200);
     });
 
-    it('should return correct viewport width in case when the table has not defined size', () => {
+    it('should return correct viewport width in case when the table has not defined size', async() => {
       spec().$wrapper
         .css('overflow', '')
         .css('width', '')

@@ -1,6 +1,7 @@
 export function getParent(element: HTMLElement, level?: number): HTMLElement;
 export function getFrameElement(frame: Window): HTMLIFrameElement;
 export function getParentWindow(frame: Window): Window;
+export function getFractionalScalingCompensation(rootDocument?: Document): number;
 export function hasAccessToParentWindow(frame: Window): boolean;
 export function closest(element: HTMLElement, nodes?: Array<string | HTMLElement>, until?: HTMLElement): HTMLElement;
 export function closestDown(element: HTMLElement, nodes: HTMLElement[], until?: HTMLElement): HTMLElement;
@@ -12,7 +13,7 @@ export function addClass(element: HTMLElement, className: string | string[]): vo
 export function removeClass(element: HTMLElement, className: string | string[]): void;
 export function removeTextNodes(element: HTMLElement): void;
 export function empty(element: HTMLElement): void;
-export function fastInnerHTML(element: HTMLElement, content: string, sanitizeContent?: boolean): void;
+export function fastInnerHTML(element: HTMLElement, content: string, sanitizer?: (content: string, source: string) => string): void;
 export function fastInnerText(element: HTMLElement, content: string): void;
 export function isVisible(element: HTMLElement): boolean;
 export function offset(element: HTMLElement): { left: number, top: number };
@@ -24,7 +25,6 @@ export function getScrollableElement(element: HTMLElement): HTMLElement;
 export function getTrimmingContainer(base: HTMLElement): HTMLElement;
 export function getStyle(element: HTMLElement, prop: string, rootWindow?: Window): string;
 export function matchesCSSRules(element: Element, rule: CSSRule): boolean;
-export function getComputedStyle(element: HTMLElement, rootWindow?: Window): any;
 export function outerWidth(element: HTMLElement): number;
 export function outerHeight(element: HTMLElement): number;
 export function innerHeight(element: HTMLElement): number;
@@ -39,6 +39,7 @@ export function setCaretPosition(element: Element, pos: number, endPos: number):
 export function getScrollbarWidth(rootDocument?: Document): number;
 export function hasVerticalScrollbar(element: HTMLElement): boolean;
 export function hasHorizontalScrollbar(element: HTMLElement): boolean;
+export function hasZeroHeight(element: HTMLElement): boolean;
 export function setOverlayPosition(overlayElem: HTMLElement, left: string | number, top: string | number): void;
 export function getCssTransform(element: HTMLElement): number;
 export function resetCssTransform(element: HTMLElement): void;
@@ -46,4 +47,5 @@ export function isInput(element: HTMLElement): boolean;
 export function isOutsideInput(element: HTMLElement): boolean;
 export function selectElementIfAllowed(element: HTMLElement): void;
 export function isDetached(element: HTMLElement): boolean;
+export function isHTMLElement(element: any): boolean;
 export const HTML_CHARACTERS: RegExp;

@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'nl-NL',
+
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Annuleren',
+
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Rij boven invoegen',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Rij onder invoegen',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Kolom links invoegen',
@@ -101,7 +105,25 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Zoeken',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Waarde',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Tweede waarde'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Tweede waarde',
+
+  [C.PAGINATION_SECTION]: 'Paginering',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Aantal rijen',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] van [total]',
+  [C.PAGINATION_NAV_SECTION]: 'Pagina [currentPage] van [totalPages]',
+  [C.PAGINATION_FIRST_PAGE]: 'Ga naar eerste pagina',
+  [C.PAGINATION_PREV_PAGE]: 'Ga naar vorige pagina',
+  [C.PAGINATION_NEXT_PAGE]: 'Ga naar volgende pagina',
+  [C.PAGINATION_LAST_PAGE]: 'Ga naar laatste pagina',
+
+  [C.LOADING_TITLE]: 'Laden...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'Geen gegevens beschikbaar',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Er is nog niets te tonen.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Geen resultaten gevonden',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Het lijkt erop dat uw huidige filters alle resultaten verbergen.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Filters resetten',
 };
 
 export default dictionary;

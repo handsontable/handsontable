@@ -20,6 +20,9 @@ tags:
 react:
   id: x82phf34
   metaTitle: Accessibility - React Data Grid | Handsontable
+angular:
+  id: 99l3uae8
+  metaTitle: Accessibility - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessibility
 ---
@@ -106,7 +109,7 @@ Each new version of Handsontable is thoroughly tested for accessibility with the
 
 Check out the interactive demo below to see how various Handsontable settings impact its accessibility level and affect the user experience.
 
-::: only-for javascript angular vue
+::: only-for javascript vue
 
 ::: example #example1 --html 1 --css 2 --js 3 --ts 4
 
@@ -126,6 +129,17 @@ Check out the interactive demo below to see how various Handsontable settings im
 @[code](@/content/guides/accessibility/accessibility/react/example2.css)
 @[code](@/content/guides/accessibility/accessibility/react/example2.jsx)
 @[code](@/content/guides/accessibility/accessibility/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessibility/accessibility/angular/example1.ts)
+@[code](@/content/guides/accessibility/accessibility/angular/example1.html)
 
 :::
 
@@ -169,6 +183,25 @@ const hot = new Handsontable(container, {
   // disable row virtualization
   renderAllRows={true}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  // disable column virtualization
+  renderAllColumns: true,
+  // disable row virtualization
+  renderAllRows: true,
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
 ```
 
 :::

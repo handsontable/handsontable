@@ -1,7 +1,7 @@
-import BaseRenderer from './_base';
-import { warn } from './../../../../helpers/console';
-import { toSingleLine } from './../../../../helpers/templateLiteralTag';
-import { addClass } from './../../../../helpers/dom/element';
+import { BaseRenderer } from './_base';
+import { warn } from '../../../../helpers/console';
+import { toSingleLine } from '../../../../helpers/templateLiteralTag';
+import { addClass } from '../../../../helpers/dom/element';
 
 let performanceWarningAppeared = false;
 
@@ -17,7 +17,7 @@ let performanceWarningAppeared = false;
  *
  * @class {ColGroupRenderer}
  */
-export default class ColGroupRenderer extends BaseRenderer {
+export class ColGroupRenderer extends BaseRenderer {
   constructor(rootNode) {
     super(null, rootNode); // NodePool is not implemented for this renderer yet
   }
@@ -65,7 +65,7 @@ export default class ColGroupRenderer extends BaseRenderer {
     // Render column nodes for cells
     for (let visibleColumnIndex = 0; visibleColumnIndex < columnsToRender; visibleColumnIndex++) {
       const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
-      const width = this.table.columnUtils.getStretchedColumnWidth(sourceColumnIndex);
+      const width = this.table.columnUtils.getWidth(sourceColumnIndex);
 
       this.rootNode.childNodes[visibleColumnIndex + rowHeadersCount].style.width = `${width}px`;
     }

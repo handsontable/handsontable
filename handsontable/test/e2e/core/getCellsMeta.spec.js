@@ -12,7 +12,7 @@ describe('Core.getCellsMeta', () => {
     }
   });
 
-  it('should return all initialized cells meta as flatten array', () => {
+  it('should return all initialized cells meta as flatten array', async() => {
     handsontable();
 
     const metas = getCellsMeta();

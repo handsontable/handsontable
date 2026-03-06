@@ -12,33 +12,28 @@ export default function columnRightItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
     },
     callback() {
-      const latestSelection = this.getSelectedRangeLast().getTopRightCorner();
+      const activeSelection = this.getSelectedRangeActive().getTopRightCorner();
       const alterAction = this.isRtl() ? 'insert_col_start' : 'insert_col_end';
 
-      this.alter(alterAction, latestSelection.col, 1, 'ContextMenu.columnRight');
+      this.alter(alterAction, activeSelection.col, 1, 'ContextMenu.columnRight');
     },
     disabled() {
       if (!this.isColumnModificationAllowed()) {
         return true;
       }
 
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
-      if (!range) {
+      if (
+        !range ||
+        this.selection.isSelectedByRowHeader() ||
+        (range.isSingleHeader() && range.highlight.col < 0) ||
+        (this.countSourceCols() >= this.getSettings().maxCols)
+      ) {
         return true;
       }
 
-      if (range.isSingleHeader() && range.highlight.col < 0) {
-        return true;
-      }
-
-      if (this.selection.isSelectedByCorner()) {
-        // Enable "Insert column right" always when the menu is triggered by corner click.
-        return false;
-      }
-
-      return this.selection.isSelectedByRowHeader() ||
-        this.countCols() >= this.getSettings().maxCols;
+      return false;
     },
     hidden() {
       return !this.getSettings().allowInsertColumn;

@@ -3,12 +3,9 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
     { htmlDir: 'rtl', layoutDirection: 'inherit' },
     { htmlDir: 'ltr', layoutDirection: 'rtl' },
   ], ({ htmlDir, layoutDirection }) => {
-
-    const id = 'testContainer';
-
     beforeEach(function() {
       $('html').attr('dir', htmlDir);
-      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+      this.$container = $('<div id="testContainer"></div>').appendTo('body');
     });
 
     afterEach(function() {
@@ -31,19 +28,24 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
           dropdownMenu: true
         });
 
-        selectCell(-1, 1);
-        keyDownUp(['control/meta', 'enter']);
+        await selectCell(-1, 1);
+        await keyDownUp(['control/meta', 'enter']);
 
         const cell = getCell(-1, 1, true);
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
         const menuOffset = $dropdownMenu.offset();
         const menuWidth = $dropdownMenu.outerWidth();
         const cellOffset = $(cell).offset();
-        const cellWidth = $(cell).outerWidth();
+        const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
+        const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth + cellWidth);
+        expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
+          classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
+          main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+          horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
+        });
+        expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, 0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
       });
 
@@ -59,17 +61,22 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
 
         const lastColumn = countCols() - 1;
 
-        selectCell(-1, lastColumn);
-        keyDownUp(['control/meta', 'enter']);
+        await selectCell(-1, lastColumn);
+        await keyDownUp(['control/meta', 'enter']);
 
         const cell = getCell(-1, lastColumn, true);
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
         const menuOffset = $dropdownMenu.offset();
         const cellOffset = $(cell).offset();
+        const buttonOffset = getDropdownMenuButtonIconOffset(-1, lastColumn);
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+        expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
+          classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
+          main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+          horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
+        });
+        expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
         expect(getSelectedRange()).toEqualCellRange([
           `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
         ]);

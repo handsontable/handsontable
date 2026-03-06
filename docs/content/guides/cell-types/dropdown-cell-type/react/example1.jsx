@@ -1,6 +1,5 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -20,29 +19,11 @@ const ExampleComponent = () => {
         { type: 'numeric' },
         {
           type: 'dropdown',
-          source: [
-            'yellow',
-            'red',
-            'orange',
-            'green',
-            'blue',
-            'gray',
-            'black',
-            'white',
-          ],
+          source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
         },
         {
           type: 'dropdown',
-          source: [
-            'yellow',
-            'red',
-            'orange',
-            'green',
-            'blue',
-            'gray',
-            'black',
-            'white',
-          ],
+          source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
         },
       ]}
       autoWrapRow={true}

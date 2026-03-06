@@ -207,10 +207,14 @@ class DataSource {
       }
     }
 
+    if (['__proto__', 'constructor', 'prototype'].includes(row)) {
+      // prevent prototype pollution
+      return;
+    }
+
     if (!Number.isInteger(column)) {
       // column argument is the prop name
       setProperty(this.data[row], column, value);
-
     } else {
       this.data[row][column] = value;
     }
@@ -307,6 +311,24 @@ class DataSource {
     });
 
     return result;
+  }
+
+  /**
+   * Returns single value from the data array (intended for clipboard copy to an external application).
+   *
+   * @param {number} row Visual row index.
+   * @param {number} prop The column property.
+   * @since 16.1.0
+   * @returns {string}
+   */
+  getCopyable(row, prop) {
+    const visualColumn = this.propToCol(prop);
+
+    if (this.hot.getCellMeta(row, visualColumn).copyable) {
+      return this.getAtCell(this.hot.toPhysicalRow(row), visualColumn);
+    }
+
+    return '';
   }
 
   /**

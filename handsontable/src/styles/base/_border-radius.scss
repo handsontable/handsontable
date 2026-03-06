@@ -1,0 +1,289 @@
+// Table Border Radius
+@mixin output {
+  .handsontable {
+    &.ht-wrapper {
+      &:not(.htColumnHeaders) {
+        .ht_master {
+          .htCore {
+            tbody {
+              tr {
+                &:first-child {
+                  td {
+                    &:first-child {
+                      border-start-start-radius: var(
+                        --ht-wrapper-border-radius
+                      );
+                    }
+
+                    &:last-child {
+                      border-start-end-radius: var(--ht-wrapper-border-radius);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .ht_clone_top_inline_start_corner {
+          .htCore {
+            tbody {
+              tr {
+                &:first-child {
+                  td {
+                    &:first-child {
+                      border-start-start-radius: var(
+                        --ht-wrapper-border-radius
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .ht_clone_top {
+          .htCore {
+            tbody {
+              tr {
+                &:first-child {
+                  td {
+                    &:first-child {
+                      border-start-start-radius: var(
+                        --ht-wrapper-border-radius
+                      );
+                    }
+
+                    &:last-child {
+                      border-start-end-radius: var(--ht-wrapper-border-radius);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .ht_clone_inline_start {
+          .htCore {
+            tbody {
+              tr {
+                &:first-child {
+                  th,
+                  td {
+                    &:first-child {
+                      border-start-start-radius: var(
+                        --ht-wrapper-border-radius
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .ht_master {
+        .htCore {
+          border-radius: var(--ht-wrapper-border-radius);
+
+          thead {
+            tr {
+              &:first-child {
+                th {
+                  &:first-child {
+                    border-start-start-radius: var(--ht-wrapper-border-radius);
+                  }
+
+                  &:last-child {
+                    border-start-end-radius: var(--ht-wrapper-border-radius);
+                  }
+                }
+              }
+
+              &:last-child {
+                th {
+                  &:first-child {
+                    border-end-start-radius: var(--ht-wrapper-border-radius);
+                  }
+
+                  &:last-child {
+                    border-end-end-radius: var(--ht-wrapper-border-radius);
+                  }
+                }
+              }
+            }
+          }
+
+          tbody {
+            tr {
+              &:last-child {
+                td {
+                  &:first-child {
+                    border-end-start-radius: var(--ht-wrapper-border-radius);
+                  }
+
+                  &:last-child {
+                    border-end-end-radius: var(--ht-wrapper-border-radius);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .ht_clone_top_inline_start_corner {
+        .htCore {
+          border-start-start-radius: var(--ht-wrapper-border-radius);
+
+          thead {
+            tr {
+              &:first-child {
+                th {
+                  &:first-child {
+                    border-start-start-radius: var(--ht-wrapper-border-radius);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .ht_clone_top {
+        .htCore {
+          border-start-start-radius: var(--ht-wrapper-border-radius);
+          border-start-end-radius: var(--ht-wrapper-border-radius);
+
+          thead {
+            tr {
+              &:first-child {
+                th {
+                  &:first-child {
+                    border-start-start-radius: var(--ht-wrapper-border-radius);
+                  }
+
+                  &:last-child {
+                    border-start-end-radius: var(--ht-wrapper-border-radius);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .ht_clone_inline_start {
+        .htCore {
+          border-start-start-radius: var(--ht-wrapper-border-radius);
+          border-end-start-radius: var(--ht-wrapper-border-radius);
+
+          thead {
+            tr {
+              &:first-child {
+                th {
+                  &:first-child {
+                    border-start-start-radius: var(--ht-wrapper-border-radius);
+                  }
+                }
+              }
+            }
+          }
+
+          tbody {
+            tr {
+              &:last-child {
+                th,
+                td {
+                  &:first-child {
+                    border-end-start-radius: var(--ht-wrapper-border-radius);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .ht_clone_bottom_inline_start_corner {
+        .htCore {
+          border-end-start-radius: var(--ht-wrapper-border-radius);
+
+          tr {
+            &:last-child {
+              th,
+              td {
+                &:first-child {
+                  border-end-start-radius: var(--ht-wrapper-border-radius);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .ht_clone_bottom {
+        .htCore {
+          border-end-start-radius: var(--ht-wrapper-border-radius);
+          border-end-end-radius: var(--ht-wrapper-border-radius);
+
+          tr {
+            &:last-child {
+              th,
+              td {
+                &:first-child {
+                  border-end-start-radius: var(--ht-wrapper-border-radius);
+                }
+
+                &:last-child {
+                  border-end-end-radius: var(--ht-wrapper-border-radius);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      &.htHasScrollX {
+        .htCore {
+          border-end-start-radius: 0;
+          border-end-end-radius: 0;
+
+          thead tr:last-child th:first-child,
+          tbody tr:last-child td:first-child,
+          tbody tr:last-child th:first-child {
+            border-end-start-radius: 0 !important;
+          }
+
+          thead tr:last-child th:last-child,
+          tbody tr:last-child td:last-child,
+          tbody tr:last-child th:last-child {
+            border-end-end-radius: 0 !important;
+          }
+        }
+      }
+
+      &.htHasScrollY:not(.htVerticallyScrollableByWindow) {
+        .htCore {
+          border-start-end-radius: 0;
+          border-end-end-radius: 0;
+
+          thead tr:first-child th:last-child,
+          tbody tr:first-child td:last-child,
+          tbody tr:first-child th:last-child {
+            border-start-end-radius: 0 !important;
+          }
+
+          thead tr:last-child th:last-child,
+          tbody tr:last-child td:last-child,
+          tbody tr:last-child th:last-child {
+            border-end-end-radius: 0 !important;
+          }
+        }
+      }
+    }
+  }
+}

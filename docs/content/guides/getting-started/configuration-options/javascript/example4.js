@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example4');
 const data = [
@@ -38,7 +41,7 @@ const hot = new Handsontable(container, {
   autoWrapCol: true,
 });
 
-// check a cell's options
+// checks a cell's options
 // returns `true`
 hot.getCellMeta(0, 0).readOnly;
 // returns `false`

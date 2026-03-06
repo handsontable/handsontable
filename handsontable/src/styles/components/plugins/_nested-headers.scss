@@ -1,0 +1,15 @@
+// Handsontable Nested Headers
+
+@mixin output {
+  .handsontable {
+    thead th.hiddenHeader:not(:first-of-type) {
+      display: none;
+    }
+
+    thead th.hiddenHeaderText {
+      .colHeader {
+        opacity: 0;
+      }
+    }
+  }
+}

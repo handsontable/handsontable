@@ -1,4 +1,5 @@
-import { defineGetter, objectEach } from '../../helpers/object';
+import { defineGetter, objectEach, isObject, assignObjectDefaults, getProperty } from '../../helpers/object';
+import { throwWithCause } from '../../helpers/errors';
 import { arrayEach } from '../../helpers/array';
 import { getPluginsNames, hasPlugin } from '../registry';
 import { hasCellType } from '../../cellTypes/registry';
@@ -6,6 +7,7 @@ import { hasEditor } from '../../editors/registry';
 import { hasRenderer } from '../../renderers/registry';
 import { hasValidator } from '../../validators/registry';
 import EventManager from '../../eventManager';
+import { warn } from '../../helpers/console';
 
 const DEPS_TYPE_CHECKERS = new Map([
   ['plugin', hasPlugin],
@@ -15,6 +17,7 @@ const DEPS_TYPE_CHECKERS = new Map([
   ['validator', hasValidator],
 ]);
 
+export const defaultMainSettingSymbol = Symbol('mainSetting');
 export const PLUGIN_KEY = 'base';
 const missingDepsMsgs = [];
 let initializedPlugins = null;
@@ -43,6 +46,30 @@ export class BasePlugin {
     ];
   }
 
+  /**
+   * The `DEFAULT_SETTINGS` getter defines the plugin default settings.
+   *
+   * @returns {object}
+   */
+  static get DEFAULT_SETTINGS() {
+    return {};
+  }
+
+  /**
+   * Validators for plugin settings.
+   *
+   * @type {Function|object|null}
+   */
+  static get SETTINGS_VALIDATORS() {
+    return null;
+  }
+
+  /**
+   * Plugin settings.
+   *
+   * @type {object|null}
+   */
+  #pluginSettings = null;
   /**
    * The instance of the {@link EventManager} class.
    *
@@ -96,6 +123,7 @@ export class BasePlugin {
 
   init() {
     this.pluginName = this.hot.getPluginName(this);
+    this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
 
     const pluginDeps = this.constructor.PLUGIN_DEPS;
     const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
@@ -107,7 +135,7 @@ export class BasePlugin {
         const [type, moduleName] = dependency.split(':');
 
         if (!DEPS_TYPE_CHECKERS.has(type)) {
-          throw new Error(`Unknown plugin dependency type "${type}" was found.`);
+          throwWithCause(`Unknown plugin dependency type "${type}" was found.`);
         }
 
         if (!DEPS_TYPE_CHECKERS.get(type)(moduleName)) {
@@ -129,13 +157,6 @@ export class BasePlugin {
       initializedPlugins = getPluginsNames();
     }
 
-    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
-    // Without this line the `callOnPluginsReady` callback won't be triggered after all plugin
-    // initialization.
-    if (initializedPlugins.indexOf('UndoRedo') >= 0) {
-      initializedPlugins.splice(initializedPlugins.indexOf('UndoRedo'), 1);
-    }
-
     if (initializedPlugins.indexOf(this.pluginName) >= 0) {
       initializedPlugins.splice(initializedPlugins.indexOf(this.pluginName), 1);
     }
@@ -155,7 +176,9 @@ export class BasePlugin {
           'You have to import and register them manually.',
         ].join('');
 
-        throw new Error(errorMsg);
+        missingDepsMsgs.length = 0;
+
+        throwWithCause(errorMsg);
       }
 
       this.hot.runHooks('afterPluginsInitialized');
@@ -178,6 +201,137 @@ export class BasePlugin {
     this.eventManager?.clear();
     this.clearHooks();
     this.enabled = false;
+  }
+
+  /**
+   * Gets the plugin settings. If there is no setting under the provided key, it returns the default setting
+   * provided by the DEFAULT_SETTINGS static property of the class.
+   *
+   * @param {string} [settingName] The setting name. If the setting name is not provided, it returns
+   * the whole plugin's settings object.
+   * @returns {*}
+   */
+  getSetting(settingName) {
+    const defaultSettings = this.constructor.DEFAULT_SETTINGS;
+    const settingsValidators = this.constructor.SETTINGS_VALIDATORS;
+
+    if (settingName === undefined) {
+      if (isObject(this.#pluginSettings)) {
+        return assignObjectDefaults(this.#pluginSettings, defaultSettings);
+      }
+
+      return this.#pluginSettings;
+    }
+
+    let settingValue;
+
+    if (
+      (Array.isArray(this.#pluginSettings) || isObject(this.#pluginSettings)) &&
+      defaultSettings[defaultMainSettingSymbol] === settingName
+    ) {
+      if (Array.isArray(this.#pluginSettings)) {
+        settingValue = this.#pluginSettings;
+      } else {
+        settingValue = this.#pluginSettings[settingName] ?? defaultSettings[settingName];
+      }
+    } else if (settingName.includes('.')) {
+      const pluginValue = getProperty(this.#pluginSettings, settingName);
+      const defaultValue = getProperty(defaultSettings, settingName);
+
+      if (isObject(pluginValue)) {
+        settingValue = assignObjectDefaults(pluginValue, defaultValue);
+      } else {
+        settingValue = pluginValue !== undefined ? pluginValue : defaultValue;
+      }
+    } else if (isObject(this.#pluginSettings)) {
+      settingValue = assignObjectDefaults(this.#pluginSettings, defaultSettings)[settingName];
+    } else {
+      settingValue = defaultSettings[settingName];
+    }
+
+    if (typeof settingValue === 'function' && settingsValidators && typeof settingsValidators === 'object') {
+      const validator = settingsValidators[settingName];
+
+      if (validator && typeof validator === 'function') {
+        return (...args) => {
+          const result = settingValue(...args);
+          const isValid = validator(result);
+
+          if (isValid === false) {
+            const formattedArgs = args.map(arg => (typeof arg === 'string' ? `"${arg}"` : '')).join(', ');
+            const source = args.length > 0 ? formattedArgs : '';
+
+            warn(`${this.pluginName} Plugin: "${settingName}" function (${source}) result \
+               is not valid and will be ignored.`);
+
+            return;
+          }
+
+          return result;
+        };
+      }
+    }
+
+    return settingValue;
+  }
+
+  /**
+   * Update plugin settings.
+   *
+   * @param {*} newSettings New settings.
+   * @returns {object} Updated settings object.
+   */
+  updatePluginSettings(newSettings) {
+    const settingsValidators = this.constructor.SETTINGS_VALIDATORS;
+
+    if (settingsValidators &&
+      typeof settingsValidators === 'function' &&
+      typeof newSettings !== 'object'
+    ) {
+      const isValid = settingsValidators(newSettings);
+
+      if (isValid === false) {
+        warn(`${this.pluginName} Plugin: option is not valid and it will be ignored.`);
+
+        return;
+      }
+
+      this.#pluginSettings = newSettings;
+
+      return this.#pluginSettings;
+    }
+
+    if (settingsValidators &&
+       typeof settingsValidators === 'object' &&
+       typeof newSettings === 'object'
+    ) {
+      if (this.#pluginSettings === null || typeof this.#pluginSettings !== 'object') {
+        this.#pluginSettings = { ...this.constructor.DEFAULT_SETTINGS };
+      }
+
+      Object.keys(settingsValidators).forEach((key) => {
+        if (!(key in newSettings)) {
+          return;
+        }
+
+        const validator = settingsValidators[key];
+        const isValid = validator ? validator(newSettings[key]) : true;
+
+        if (isValid === false) {
+          warn(`${this.pluginName} Plugin: "${key}" option is not valid and it will be ignored.`);
+
+          return;
+        }
+
+        this.#pluginSettings[key] = newSettings[key];
+      });
+
+      return this.#pluginSettings;
+    }
+
+    this.#pluginSettings = newSettings;
+
+    return newSettings;
   }
 
   /**
@@ -301,6 +455,7 @@ export class BasePlugin {
         this.isEnabled() &&
         relevantToSettings
       ) {
+        this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
         this.updatePlugin(newSettings);
       }
     }
@@ -319,6 +474,7 @@ export class BasePlugin {
    * Destroy plugin.
    */
   destroy() {
+    this.#pluginSettings = null;
     this.eventManager?.destroy();
     this.clearHooks();
 

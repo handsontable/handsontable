@@ -22,7 +22,7 @@ describe('Walkontable.Selection', () => {
   });
 
   describe('"focus" selection type', () => {
-    it('should highlight the cell', () => {
+    it('should highlight the cell', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -59,7 +59,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight the column header', () => {
+    it('should highlight the column header', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -96,7 +96,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight the row header', () => {
+    it('should highlight the row header', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -133,7 +133,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight the corner', () => {
+    it('should highlight the corner', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -170,7 +170,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight all cells and headers', () => {
+    it('should highlight all cells and headers', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -211,7 +211,7 @@ describe('Walkontable.Selection', () => {
   });
 
   describe('"fill" selection type', () => {
-    it('should highlight the cell', () => {
+    it('should highlight the cell', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -248,7 +248,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not highlight the column header', () => {
+    it('should not highlight the column header', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -285,7 +285,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not highlight the row header', () => {
+    it('should not highlight the row header', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -322,7 +322,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not highlight the corner', () => {
+    it('should not highlight the corner', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -359,7 +359,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight all cells only', () => {
+    it('should highlight all cells only', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -400,7 +400,7 @@ describe('Walkontable.Selection', () => {
   });
 
   describe('"area" selection type', () => {
-    it('should highlight the cell', () => {
+    it('should highlight the cell', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -437,7 +437,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not highlight the column header', () => {
+    it('should not highlight the column header', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -474,7 +474,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not highlight the row header', () => {
+    it('should not highlight the row header', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -511,7 +511,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not highlight the corner', () => {
+    it('should not highlight the corner', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -548,7 +548,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight all cells only', () => {
+    it('should highlight all cells only', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -587,7 +587,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should add more layers of the same type', () => {
+    it('should add more layers of the same type', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -634,7 +634,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should draw intersected selections as many as there are overlapping highlights', () => {
+    it('should draw intersected selections as many as there are overlapping highlights', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -686,7 +686,7 @@ describe('Walkontable.Selection', () => {
   });
 
   describe('"header" selection type', () => {
-    it('should highlight the row header', () => {
+    it('should highlight the row header', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -723,7 +723,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight multiple row headers', () => {
+    it('should highlight multiple row headers', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -762,7 +762,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight header in the corner', () => {
+    it('should highlight header in the corner', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -799,7 +799,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight the column header', () => {
+    it('should highlight the column header', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -836,7 +836,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight multiple column headers', () => {
+    it('should highlight multiple column headers', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -875,7 +875,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight all headers (cells should be untouched)', () => {
+    it('should highlight all headers (cells should be untouched)', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -916,7 +916,7 @@ describe('Walkontable.Selection', () => {
   });
 
   describe('"active-header" selection type', () => {
-    it('should highlight the row header', () => {
+    it('should highlight the row header', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -953,7 +953,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight multiple row headers', () => {
+    it('should highlight multiple row headers', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -992,7 +992,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight header in the corner', () => {
+    it('should highlight header in the corner', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -1029,7 +1029,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight the column header', () => {
+    it('should highlight the column header', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -1066,7 +1066,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight multiple column headers', () => {
+    it('should highlight multiple column headers', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -1105,7 +1105,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight all headers (cells should be untouched)', () => {
+    it('should highlight all headers (cells should be untouched)', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -1146,7 +1146,7 @@ describe('Walkontable.Selection', () => {
   });
 
   describe('"row" selection type', () => {
-    it('should highlight all cells in a row', () => {
+    it('should highlight all cells in a row', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -1183,7 +1183,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight all cells in a row including headers', () => {
+    it('should highlight all cells in a row including headers', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -1222,7 +1222,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight cells in a row by adding more layers', () => {
+    it('should highlight cells in a row by adding more layers', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -1266,7 +1266,7 @@ describe('Walkontable.Selection', () => {
   });
 
   describe('"column" selection type', () => {
-    it('should highlight all cells in a row', () => {
+    it('should highlight all cells in a row', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -1303,7 +1303,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight all cells in a row including headers', () => {
+    it('should highlight all cells in a row including headers', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -1342,7 +1342,7 @@ describe('Walkontable.Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight cells in a row by adding more layers', () => {
+    it('should highlight cells in a row by adding more layers', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -1386,7 +1386,7 @@ describe('Walkontable.Selection', () => {
   });
 
   describe('unknown selection type', () => {
-    it('should not highlights any cells or headers', () => {
+    it('should not highlights any cells or headers', async() => {
       const selections = createSelectionController();
       const wt = walkontable({
         data: getData,
@@ -1426,7 +1426,7 @@ describe('Walkontable.Selection', () => {
     });
   });
 
-  it('should draw all selection types at once without disturbing', () => {
+  it('should draw all selection types at once without disturbing', async() => {
     const selections = createSelectionController();
     const wt = walkontable({
       data: getData,
@@ -1544,7 +1544,7 @@ describe('Walkontable.Selection', () => {
     expect(tds[2].className).toBe('area');
   });
 
-  it('should not add class to selection until it is rerendered', () => {
+  it('should not add class to selection until it is rerendered', async() => {
     const selections = createSelectionController();
     const wt = walkontable({
       data: getData,
@@ -1565,7 +1565,7 @@ describe('Walkontable.Selection', () => {
     expect($td1.hasClass('current')).toBe(true);
   });
 
-  it('should add a selection that is outside of the viewport', () => {
+  it('should add a selection that is outside of the viewport', async() => {
     const selections = createSelectionController();
     const wt = walkontable({
       data: getData,
@@ -1582,7 +1582,7 @@ describe('Walkontable.Selection', () => {
       .toEqual(new Walkontable.CellCoords(0, 0));
   });
 
-  it('should not scroll the viewport after selection is cleared', () => {
+  it('should not scroll the viewport after selection is cleared', async() => {
     const scrollbarWidth = getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
 
     spec().data = createSpreadsheetData(100, 4);
@@ -1616,7 +1616,7 @@ describe('Walkontable.Selection', () => {
     expect(wt.wtTable.getLastVisibleRow()).toBeAroundValue(17);
   });
 
-  it('should remove highlight when selection is cleared', () => {
+  it('should remove highlight when selection is cleared', async() => {
     const selections = createSelectionController();
     const wt = walkontable({
       data: getData,

@@ -1,0 +1,15 @@
+{
+  "name": "angular-umd-builder",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "umd-builder:install": "echo \"Installing the Angular UMD Builder dependencies...\n\" && npm i --no-audit",
+    "umd-builder:build-umd": "webpack --config angular-webpack.config.js",
+    "umd-builder:clean": "echo \"Cleaning up the Angular UMD Builder...\n\" && rimraf ./node_modules/ && rimraf package-lock.json",
+    "umd-builder:full-build": "npm run umd-builder:install && npm run umd-builder:build-umd && npm run umd-builder:clean"
+  },
+  "devDependencies": {
+    "webpack": "5.99.7",
+    "webpack-cli": "5.1.4"
+  }
+}

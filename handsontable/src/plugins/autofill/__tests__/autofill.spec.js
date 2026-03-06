@@ -12,27 +12,27 @@ describe('AutoFill', () => {
     }
   });
 
-  it('should appear when fillHandle equals true', () => {
+  it('should appear when fillHandle equals true', async() => {
     handsontable({
       fillHandle: true
     });
 
-    selectCell(2, 2);
+    await selectCell(2, 2);
 
     expect(isFillHandleVisible()).toBe(true);
   });
 
-  it('should appear when fillHandle is enabled as `string` value', () => {
+  it('should appear when fillHandle is enabled as `string` value', async() => {
     handsontable({
       fillHandle: 'horizontal'
     });
 
-    selectCell(2, 2);
+    await selectCell(2, 2);
 
     expect(isFillHandleVisible()).toBe(true);
   });
 
-  it('should render selection borders with set proper z-indexes', () => {
+  it('should render selection borders with set proper z-indexes', async() => {
     const hot = handsontable({
       width: 200,
       height: 200,
@@ -42,17 +42,17 @@ describe('AutoFill', () => {
       rowHeaders: true
     });
 
-    hot.selectCell(1, 1, 2, 2);
+    await selectCell(1, 1, 2, 2);
 
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex)
+    expect(getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex)
       .toBe('10');
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex)
+    expect(getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex)
       .toBe('8');
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .fill')).zIndex)
+    expect(getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .fill')).zIndex)
       .toBe('6');
   });
 
-  it('should not change cell value (drag vertically when fillHandle option is set to `horizontal`)', () => {
+  it('should not change cell value (drag vertically when fillHandle option is set to `horizontal`)', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -63,14 +63,14 @@ describe('AutoFill', () => {
       fillHandle: 'horizontal'
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
 
     expect(getDataAtCell(1, 0)).toEqual(7);
   });
 
-  it('should not change cell value (drag horizontally when fillHandle option is set to `vertical`)', () => {
+  it('should not change cell value (drag horizontally when fillHandle option is set to `vertical`)', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -81,14 +81,14 @@ describe('AutoFill', () => {
       fillHandle: 'vertical'
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
 
     expect(getDataAtCell(0, 1)).toEqual(2);
   });
 
-  it('should work properly when fillHandle option is set to object with property `direction` set to `vertical`)', () => {
+  it('should work properly when fillHandle option is set to object with property `direction` set to `vertical`)', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -101,20 +101,20 @@ describe('AutoFill', () => {
       }
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
 
     expect(getDataAtCell(0, 1)).toEqual(2);
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
 
     expect(getDataAtCell(1, 0)).toEqual(1);
   });
 
-  it('should work properly when fillHandle option is set to object with property `direction` set to `horizontal`)', () => {
+  it('should work properly when fillHandle option is set to object with property `direction` set to `horizontal`)', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -127,20 +127,20 @@ describe('AutoFill', () => {
       }
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
 
     expect(getDataAtCell(0, 1)).toEqual(1);
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
 
     expect(getDataAtCell(1, 0)).toEqual(7);
   });
 
-  it('should fill the cells when dragging the handle triggered by row header selection', () => {
+  it('should fill the cells when dragging the handle triggered by row header selection', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -151,7 +151,7 @@ describe('AutoFill', () => {
       fillHandle: true,
     });
 
-    selectRows(1);
+    await selectRows(1);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(3) td:eq(5)').simulate('mouseover').simulate('mouseup');
 
@@ -164,7 +164,7 @@ describe('AutoFill', () => {
     expect(getSelected()).toEqual([[1, 0, 3, 5]]);
   });
 
-  it('should fill the cells when dragging the handle triggered by column header selection', () => {
+  it('should fill the cells when dragging the handle triggered by column header selection', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -175,7 +175,7 @@ describe('AutoFill', () => {
       fillHandle: true,
     });
 
-    selectColumns(1);
+    await selectColumns(1);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(3) td:eq(5)').simulate('mouseover').simulate('mouseup');
 
@@ -188,7 +188,7 @@ describe('AutoFill', () => {
     expect(getSelected()).toEqual([[0, 1, 3, 5]]);
   });
 
-  it('should not change cell value (drag when fillHandle is set to `false`)', () => {
+  it('should not change cell value (drag when fillHandle is set to `false`)', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -201,7 +201,7 @@ describe('AutoFill', () => {
 
     // checking drag vertically - should not change cell value
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
 
@@ -209,14 +209,14 @@ describe('AutoFill', () => {
 
     // checking drag horizontally - should not change cell value
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
 
     expect(getDataAtCell(0, 1)).toEqual(2);
   });
 
-  it('should work properly when using updateSettings', () => {
+  it('should work properly when using updateSettings', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -227,21 +227,21 @@ describe('AutoFill', () => {
       fillHandle: 'horizontal'
     });
 
-    updateSettings({ fillHandle: 'vertical' });
+    await updateSettings({ fillHandle: 'vertical' });
 
     // checking drag vertically - should change cell value
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
 
     expect(getDataAtCell(0, 1)).toEqual(2);
 
-    updateSettings({ fillHandle: false });
+    await updateSettings({ fillHandle: false });
 
     // checking drag vertically - should not change cell value
 
-    selectCell(0, 1);
+    await selectCell(0, 1);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(1)').simulate('mouseover').simulate('mouseup');
 
@@ -249,83 +249,83 @@ describe('AutoFill', () => {
 
     // checking drag horizontally - should not change cell value
 
-    selectCell(0, 1);
+    await selectCell(0, 1);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(0) td:eq(2)').simulate('mouseover').simulate('mouseup');
 
     expect(getDataAtCell(0, 2)).toEqual(3);
   });
 
-  it('should appear when fillHandle is enabled as `object` value', () => {
+  it('should appear when fillHandle is enabled as `object` value', async() => {
     handsontable({
       fillHandle: {
         allowInsertRow: true
       }
     });
 
-    selectCell(2, 2);
+    await selectCell(2, 2);
 
     expect(isFillHandleVisible()).toBe(true);
   });
 
-  it('should not appear when fillHandle equals false', () => {
+  it('should not appear when fillHandle equals false', async() => {
     handsontable({
       fillHandle: false
     });
-    selectCell(2, 2);
+    await selectCell(2, 2);
 
     expect(isFillHandleVisible()).toBe(false);
   });
 
-  it('should disappear when beginediting is triggered', () => {
+  it('should disappear when beginediting is triggered', async() => {
     handsontable({
       fillHandle: true
     });
-    selectCell(2, 2);
 
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
 
     expect(isFillHandleVisible()).toBe(false);
   });
 
-  it('should appear when finishediting is triggered', () => {
+  it('should appear when finishediting is triggered', async() => {
     handsontable({
       fillHandle: true
     });
-    selectCell(2, 2);
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(isFillHandleVisible()).toBe(true);
   });
 
-  it('should not appear when fillHandle equals false and finishediting is triggered', () => {
+  it('should not appear when fillHandle equals false and finishediting is triggered', async() => {
     handsontable({
       fillHandle: false
     });
-    selectCell(2, 2);
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(isFillHandleVisible()).toBe(false);
   });
 
-  it('should appear when editor is discarded using the ESC key', () => {
+  it('should appear when editor is discarded using the ESC key', async() => {
     handsontable({
       fillHandle: true
     });
-    selectCell(2, 2);
 
-    keyDownUp('enter');
-    keyDownUp('escape');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+    await keyDownUp('escape');
 
     expect(isFillHandleVisible()).toBe(true);
   });
 
   describe('beforeAutofill hook autofill value overrides', () => {
-    it('should use a custom value when mutating the selection data array', () => {
+    it('should use a custom value when mutating the selection data array', async() => {
       handsontable({
         data: [
           [1, 2, 3, 4, 5, 6],
@@ -337,7 +337,7 @@ describe('AutoFill', () => {
           selectionData[0][0] = 'test';
         }
       });
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       spec().$container.find('.wtBorder.corner').simulate('mousedown');
       spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
@@ -348,10 +348,10 @@ describe('AutoFill', () => {
       expect(getDataAtCell(1, 0)).toEqual('test');
     });
 
-    it('should pass correct arguments to `beforeAutofill`', () => {
+    it('should pass correct arguments to `beforeAutofill`', async() => {
       const beforeAutofill = jasmine.createSpy();
 
-      const hot = handsontable({
+      handsontable({
         data: [
           [1, 2, 3, 4, 5, 6],
           ['x', 'x', 3, 4, 5, 6],
@@ -361,13 +361,15 @@ describe('AutoFill', () => {
         beforeAutofill
       });
 
-      hot.selectAll();
-      const CellRange = hot.getSelectedRangeLast().constructor;
+      await selectAll();
 
-      hot.deselectCell();
-      const CellCoords = hot.getCoords(hot.getCell(0, 0)).constructor;
+      const CellRange = getSelectedRangeLast().constructor;
 
-      selectCell(0, 0, 0, 1);
+      await deselectCell();
+
+      const CellCoords = getCoords(getCell(0, 0)).constructor;
+
+      await selectCell(0, 0, 0, 1);
 
       spec().$container.find('.wtBorder.corner').simulate('mousedown');
       spec().$container.find('tr:eq(2) td:eq(2)').simulate('mouseover');
@@ -415,8 +417,8 @@ describe('AutoFill', () => {
       );
     });
 
-    it('should clear the whole target range if `beforeAutofill` returns an empty array of arrays', () => {
-      const hot = handsontable({
+    it('should clear the whole target range if `beforeAutofill` returns an empty array of arrays', async() => {
+      handsontable({
         data: [
           [1, 2, 3, 4, 5, 6],
           [1, 2, 3, 4, 5, 6],
@@ -428,13 +430,13 @@ describe('AutoFill', () => {
         }
       });
 
-      selectCell(0, 0, 0, 3);
+      await selectCell(0, 0, 0, 3);
 
       spec().$container.find('.wtBorder.corner').simulate('mousedown');
       spec().$container.find('tr:eq(3) td:eq(3)').simulate('mouseover');
       spec().$container.find('.wtBorder.corner').simulate('mouseup');
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         [1, 2, 3, 4, 5, 6],
         [undefined, undefined, undefined, undefined, 5, 6],
         [undefined, undefined, undefined, undefined, 5, 6],
@@ -442,8 +444,8 @@ describe('AutoFill', () => {
       ]);
     });
 
-    it('should use input from `beforeAutofill` if data is returned', () => {
-      const hot = handsontable({
+    it('should use input from `beforeAutofill` if data is returned', async() => {
+      handsontable({
         data: [
           [1, 2, 3, 4, 5, 6],
           [1, 2, 3, 4, 5, 6],
@@ -455,13 +457,13 @@ describe('AutoFill', () => {
         }
       });
 
-      selectCell(0, 0, 0, 3);
+      await selectCell(0, 0, 0, 3);
 
       spec().$container.find('.wtBorder.corner').simulate('mousedown');
       spec().$container.find('tr:eq(3) td:eq(3)').simulate('mouseover');
       spec().$container.find('.wtBorder.corner').simulate('mouseup');
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         [1, 2, 3, 4, 5, 6],
         [7, 8, 7, 8, 5, 6],
         [9, 10, 9, 10, 5, 6],
@@ -469,8 +471,8 @@ describe('AutoFill', () => {
       ]);
     });
 
-    it('should use input from `beforeAutofill` if data is returned, in the correct order, upwards', () => {
-      const hot = handsontable({
+    it('should use input from `beforeAutofill` if data is returned, in the correct order, upwards', async() => {
+      handsontable({
         data: [
           ['x'],
           ['x'],
@@ -488,13 +490,13 @@ describe('AutoFill', () => {
         }
       });
 
-      selectCell(5, 0, 6, 0);
+      await selectCell(5, 0, 6, 0);
 
       spec().$container.find('.wtBorder.corner').simulate('mousedown');
       spec().$container.find('tr:eq(0) td:eq(0)').simulate('mouseover');
       spec().$container.find('.wtBorder.corner').simulate('mouseup');
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['b'],
         ['a'],
         ['b'],
@@ -507,7 +509,7 @@ describe('AutoFill', () => {
   });
 
   describe('beforeChange hook autofill value overrides', () => {
-    it('should use a custom value when introducing changes', () => {
+    it('should use a custom value when introducing changes', async() => {
       handsontable({
         data: [
           [1, 2, 3, 4, 5, 6],
@@ -521,7 +523,7 @@ describe('AutoFill', () => {
           changes[2][3] = 'test4';
         }
       });
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       spec().$container.find('.wtBorder.corner').simulate('mousedown');
       spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
@@ -538,7 +540,7 @@ describe('AutoFill', () => {
     });
   });
 
-  it('should pass correct arguments to `afterAutofill`', () => {
+  it('should pass correct arguments to `afterAutofill`', async() => {
     const afterAutofill = jasmine.createSpy();
 
     handsontable({
@@ -551,15 +553,15 @@ describe('AutoFill', () => {
       afterAutofill
     });
 
-    selectAll();
+    await selectAll();
 
     const CellRange = getSelectedRangeLast().constructor;
 
-    deselectCell();
+    await deselectCell();
 
     const CellCoords = getCoords(getCell(0, 0)).constructor;
 
-    selectCell(0, 0, 0, 1);
+    await selectCell(0, 0, 0, 1);
 
     spec().$container.find('.wtBorder.corner').simulate('mousedown');
     spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
@@ -608,7 +610,7 @@ describe('AutoFill', () => {
     );
   });
 
-  it('should detect custom input from `beforeAutofill` in `afterAutofill` arguments', () => {
+  it('should detect custom input from `beforeAutofill` in `afterAutofill` arguments', async() => {
     const afterAutofill = jasmine.createSpy();
 
     handsontable({
@@ -624,15 +626,15 @@ describe('AutoFill', () => {
       afterAutofill
     });
 
-    selectAll();
+    await selectAll();
 
     const CellRange = getSelectedRangeLast().constructor;
 
-    deselectCell();
+    await deselectCell();
 
     const CellCoords = getCoords(getCell(0, 0)).constructor;
 
-    selectCell(0, 0, 0, 1);
+    await selectCell(0, 0, 0, 1);
 
     spec().$container.find('.wtBorder.corner').simulate('mousedown');
     spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
@@ -680,7 +682,7 @@ describe('AutoFill', () => {
     );
   });
 
-  it('should cancel autofill if beforeAutofill returns false', () => {
+  it('should cancel autofill if beforeAutofill returns false', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -692,7 +694,8 @@ describe('AutoFill', () => {
         return false;
       }
     });
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     spec().$container.find('.wtBorder.corner').simulate('mousedown');
     spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
@@ -703,7 +706,7 @@ describe('AutoFill', () => {
     expect(getDataAtCell(1, 0)).toEqual(1);
   });
 
-  it('should use correct cell coordinates also when Handsontable is used inside a TABLE (#355)', () => {
+  it('should use correct cell coordinates also when Handsontable is used inside a TABLE (#355)', async() => {
     const $table = $('<table><tr><td></td></tr></table>').appendTo('body');
 
     spec().$container.appendTo($table.find('td'));
@@ -719,7 +722,7 @@ describe('AutoFill', () => {
         selectionData[0][0] = 'test';
       }
     });
-    selectCell(1, 1);
+    await selectCell(1, 1);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
@@ -732,7 +735,7 @@ describe('AutoFill', () => {
     document.body.removeChild($table[0]);
   });
 
-  it('should fill empty cells below until the end of content in the neighbouring column with current cell\'s data', () => {
+  it('should fill empty cells below until the end of content in the neighbouring column with current cell\'s data', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -742,16 +745,17 @@ describe('AutoFill', () => {
       ]
     });
 
-    selectCell(1, 3);
+    await selectCell(1, 3);
+
     const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
 
-    mouseDoubleClick(fillHandle);
+    await mouseDoubleClick(fillHandle);
 
     expect(getDataAtCell(2, 3)).toEqual(null);
     expect(getDataAtCell(3, 3)).toEqual(null);
 
-    selectCell(1, 2);
-    mouseDoubleClick(fillHandle);
+    await selectCell(1, 2);
+    await mouseDoubleClick(fillHandle);
 
     expect(getDataAtCell(2, 2)).toEqual(3);
     expect(getDataAtCell(3, 2)).toEqual(3);
@@ -759,7 +763,7 @@ describe('AutoFill', () => {
 
   // https://github.com/handsontable/dev-handsontable/issues/1757
   it('should fill empty cells below until the end of content in the neighbouring column with current cell\'s data' +
-    'and NOT treat cells filled with 0s as empty', () => {
+    'and NOT treat cells filled with 0s as empty', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -770,25 +774,26 @@ describe('AutoFill', () => {
       ]
     });
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
+
     const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
 
-    mouseDoubleClick(fillHandle);
+    await mouseDoubleClick(fillHandle);
 
     expect(getDataAtCell(1, 2)).toEqual(0);
     expect(getDataAtCell(2, 2)).toEqual(0);
     expect(getDataAtCell(3, 2)).toEqual(0);
     expect(getDataAtCell(4, 2)).toEqual(null);
 
-    selectCell(1, 3);
-    mouseDoubleClick(fillHandle);
+    await selectCell(1, 3);
+    await mouseDoubleClick(fillHandle);
 
     expect(getDataAtCell(2, 3)).toEqual(4);
     expect(getDataAtCell(3, 3)).toEqual(4);
     expect(getDataAtCell(4, 3)).toEqual(null);
   });
 
-  it('should fill cells below until the end of content in the neighbouring column with the currently selected area\'s data', () => {
+  it('should fill cells below until the end of content in the neighbouring column with the currently selected area\'s data', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -798,18 +803,19 @@ describe('AutoFill', () => {
       ]
     });
 
-    selectCell(1, 3, 1, 4);
+    await selectCell(1, 3, 1, 4);
+
     const fillHandle = spec().$container.find('.wtBorder.area.corner')[0];
 
-    mouseDoubleClick(fillHandle);
+    await mouseDoubleClick(fillHandle);
 
     expect(getDataAtCell(2, 3)).toEqual(null);
     expect(getDataAtCell(3, 3)).toEqual(null);
     expect(getDataAtCell(2, 4)).toEqual(null);
     expect(getDataAtCell(3, 4)).toEqual(null);
 
-    selectCell(1, 2, 1, 3);
-    mouseDoubleClick(fillHandle);
+    await selectCell(1, 2, 1, 3);
+    await mouseDoubleClick(fillHandle);
 
     expect(getDataAtCell(2, 2)).toEqual(3);
     expect(getDataAtCell(3, 2)).toEqual(3);
@@ -817,7 +823,7 @@ describe('AutoFill', () => {
     expect(getDataAtCell(3, 3)).toEqual(4);
   });
 
-  it('shouldn\'t fill cells left #5023', () => {
+  it('shouldn\'t fill cells left #5023', async() => {
     handsontable({
       data: [
         ['1', '2', '', '3', '4'],
@@ -828,10 +834,10 @@ describe('AutoFill', () => {
       ]
     });
 
-    selectCell(0, 3);
+    await selectCell(0, 3);
     const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
 
-    mouseDoubleClick(fillHandle);
+    await mouseDoubleClick(fillHandle);
 
     expect(getDataAtCell(0, 3)).toEqual('3');
     expect(getDataAtCell(0, 2)).toEqual('');
@@ -850,7 +856,7 @@ describe('AutoFill', () => {
       fillHandle: true
     });
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
@@ -858,11 +864,13 @@ describe('AutoFill', () => {
     expect(countRows()).toBe(4);
 
     await sleep(300);
+
     expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
     await sleep(300);
+
     expect(countRows()).toBe(6);
 
     expect(getData()).toEqual([
@@ -888,7 +896,7 @@ describe('AutoFill', () => {
       }
     });
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
@@ -896,11 +904,13 @@ describe('AutoFill', () => {
     expect(countRows()).toBe(4);
 
     await sleep(300);
+
     expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
     await sleep(300);
+
     expect(countRows()).toBe(6);
 
     expect(getData()).toEqual([
@@ -914,7 +924,7 @@ describe('AutoFill', () => {
   });
 
   it('should add new row after dragging the handle to the last table row (autoInsertRow as true, vertical)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -927,24 +937,26 @@ describe('AutoFill', () => {
       }
     });
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
 
     await sleep(300);
-    expect(hot.countRows()).toBe(5);
+
+    expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
     await sleep(300);
-    expect(hot.countRows()).toBe(6);
+
+    expect(countRows()).toBe(6);
   });
 
   it('should not add new row after dragging the handle to the last table row (autoInsertRow as true, horizontal)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -957,26 +969,26 @@ describe('AutoFill', () => {
       }
     });
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
 
     await sleep(300);
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
     await sleep(300);
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
   });
 
   it('should not add new row after dragging the handle below the viewport when `autoInsertRow` is disabled', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -988,13 +1000,14 @@ describe('AutoFill', () => {
       }
     });
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
     const ev = {};
     const $lastRow = spec().$container.find('tr:last-child td:eq(2)');
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
 
     ev.clientX = $lastRow.offset().left / 2;
     ev.clientY = $lastRow.offset().top + 50;
@@ -1003,18 +1016,18 @@ describe('AutoFill', () => {
 
     await sleep(300);
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
 
     ev.clientY = $lastRow.offset().top + 150;
     $(document.documentElement).simulate('mousemove', ev);
 
     await sleep(300);
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
   });
 
   it('should not add new rows if the current number of rows reaches the maxRows setting', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -1027,26 +1040,26 @@ describe('AutoFill', () => {
       maxRows: 5
     });
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
 
     await sleep(200);
 
-    expect(hot.countRows()).toBe(5);
+    expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
     await sleep(200);
 
-    expect(hot.countRows()).toBe(5);
+    expect(countRows()).toBe(5);
   });
 
   it('should add new row after dragging the handle below the viewport', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -1058,13 +1071,13 @@ describe('AutoFill', () => {
       },
     });
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     const ev = {};
     const $lastRow = spec().$container.find('tr:last-child td:eq(2)');
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
 
     ev.clientX = $lastRow.offset().left / 2;
     ev.clientY = $lastRow.offset().top + 50;
@@ -1073,17 +1086,17 @@ describe('AutoFill', () => {
 
     await sleep(300);
 
-    expect(hot.countRows()).toBe(5);
+    expect(countRows()).toBe(5);
 
     ev.clientY = $lastRow.offset().top + 150;
     $(document.documentElement).simulate('mousemove', ev);
 
     await sleep(300);
 
-    expect(hot.countRows()).toBe(6);
+    expect(countRows()).toBe(6);
   });
 
-  it('should fill cells when dragging the handle to the headers', () => {
+  it('should fill cells when dragging the handle to the headers', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -1097,7 +1110,7 @@ describe('AutoFill', () => {
 
     // col headers:
 
-    selectCell(2, 2);
+    await selectCell(2, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
 
@@ -1116,7 +1129,7 @@ describe('AutoFill', () => {
     expect($('.fill').filter(function() { return $(this).css('display') !== 'none'; }).length).toEqual(0); // check if fill selection is refreshed
 
     // row headers:
-    selectCell(2, 2);
+    await selectCell(2, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
 
@@ -1136,7 +1149,8 @@ describe('AutoFill', () => {
 
   it('should not add a new row if dragging from the last row upwards or sideways', async() => {
     const mouseOverSpy = jasmine.createSpy('mouseOverSpy');
-    const hot = handsontable({
+
+    handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -1146,33 +1160,36 @@ describe('AutoFill', () => {
       afterOnCellMouseOver: mouseOverSpy
     });
 
-    selectCell(3, 2);
+    await selectCell(3, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:nth-child(3) td:eq(2)').simulate('mouseover');
 
     await sleep(300);
-    expect(hot.countRows()).toBe(4);
 
-    selectCell(3, 2);
+    expect(countRows()).toBe(4);
+
+    await selectCell(3, 2);
+
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:nth-child(4) td:eq(3)').simulate('mouseover');
 
     await sleep(200);
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
 
-    selectCell(3, 2);
+    await selectCell(3, 2);
+
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:nth-child(4) td:eq(1)').simulate('mouseover');
 
     await sleep(200);
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
   });
 
   it('should add new row after dragging the handle below the viewport', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -1184,13 +1201,13 @@ describe('AutoFill', () => {
       },
     });
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     const ev = {};
     const $lastRow = spec().$container.find('tr:last-child td:eq(2)');
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
 
     ev.clientX = $lastRow.offset().left / 2;
     ev.clientY = $lastRow.offset().top + 50;
@@ -1199,18 +1216,18 @@ describe('AutoFill', () => {
 
     await sleep(300);
 
-    expect(hot.countRows()).toBe(5);
+    expect(countRows()).toBe(5);
 
     ev.clientY = $lastRow.offset().top + 150;
     $(document.documentElement).simulate('mousemove', ev);
 
     await sleep(300);
 
-    expect(hot.countRows()).toBe(6);
+    expect(countRows()).toBe(6);
   });
 
   it('should not add new row after dragging the handle below the viewport (direction is set to horizontal)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -1223,13 +1240,13 @@ describe('AutoFill', () => {
       }
     });
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     const ev = {};
     const $lastRow = spec().$container.find('tr:last-child td:eq(2)');
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
 
     ev.clientX = $lastRow.offset().left / 2;
     ev.clientY = $lastRow.offset().top + 50;
@@ -1238,10 +1255,10 @@ describe('AutoFill', () => {
 
     await sleep(300);
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
   });
 
-  it('should populate the filled data in the correct order, when dragging the fill handle upwards (selection from left to right)', () => {
+  it('should populate the filled data in the correct order, when dragging the fill handle upwards (selection from left to right)', async() => {
     handsontable({
       data: [
         [null, null, null, null],
@@ -1255,7 +1272,7 @@ describe('AutoFill', () => {
       ]
     });
 
-    selectCell(4, 1, 6, 2);
+    await selectCell(4, 1, 6, 2);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
     $(getCell(0, 2)).simulate('mouseover').simulate('mouseup');
 
@@ -1271,7 +1288,7 @@ describe('AutoFill', () => {
     ]);
   });
 
-  it('should populate the filled data in the correct order, when dragging the fill handle upwards (selection from right to left)', () => {
+  it('should populate the filled data in the correct order, when dragging the fill handle upwards (selection from right to left)', async() => {
     handsontable({
       data: [
         [null, null, null, null],
@@ -1285,7 +1302,7 @@ describe('AutoFill', () => {
       ]
     });
 
-    selectCell(6, 2, 4, 1);
+    await selectCell(6, 2, 4, 1);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
     $(getCell(0, 2)).simulate('mouseover').simulate('mouseup');
 
@@ -1301,7 +1318,7 @@ describe('AutoFill', () => {
     ]);
   });
 
-  it('should populate the filled data in the correct order, when dragging the fill handle downward (selection from left to right)', () => {
+  it('should populate the filled data in the correct order, when dragging the fill handle downward (selection from left to right)', async() => {
     handsontable({
       data: [
         [null, null, null, null],
@@ -1315,7 +1332,7 @@ describe('AutoFill', () => {
       ]
     });
 
-    selectCell(1, 1, 3, 2);
+    await selectCell(1, 1, 3, 2);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
     $(getCell(7, 2)).simulate('mouseover').simulate('mouseup');
 
@@ -1331,7 +1348,7 @@ describe('AutoFill', () => {
     ]);
   });
 
-  it('should populate the filled data in the correct order, when dragging the fill handle downward (selection from right to left)', () => {
+  it('should populate the filled data in the correct order, when dragging the fill handle downward (selection from right to left)', async() => {
     handsontable({
       data: [
         [null, null, null, null],
@@ -1345,7 +1362,7 @@ describe('AutoFill', () => {
       ]
     });
 
-    selectCell(3, 2, 1, 1);
+    await selectCell(3, 2, 1, 1);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
     $(getCell(7, 2)).simulate('mouseover').simulate('mouseup');
 
@@ -1361,7 +1378,7 @@ describe('AutoFill', () => {
     ]);
   });
 
-  it('should populate the filled data in the correct order, when dragging the fill handle towards left (selection from left to right)', () => {
+  it('should populate the filled data in the correct order, when dragging the fill handle towards left (selection from left to right)', async() => {
     handsontable({
       data: [
         [null, null, null, null, null, null, null, null],
@@ -1371,7 +1388,7 @@ describe('AutoFill', () => {
       ]
     });
 
-    selectCell(1, 4, 2, 6);
+    await selectCell(1, 4, 2, 6);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
     $(getCell(2, 0)).simulate('mouseover').simulate('mouseup');
 
@@ -1383,7 +1400,7 @@ describe('AutoFill', () => {
     ]);
   });
 
-  it('should populate the filled data in the correct order, when dragging the fill handle towards left (selection from right to left)', () => {
+  it('should populate the filled data in the correct order, when dragging the fill handle towards left (selection from right to left)', async() => {
     handsontable({
       data: [
         [null, null, null, null, null, null, null, null],
@@ -1393,7 +1410,7 @@ describe('AutoFill', () => {
       ]
     });
 
-    selectCell(2, 6, 1, 4);
+    await selectCell(2, 6, 1, 4);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
     $(getCell(2, 0)).simulate('mouseover').simulate('mouseup');
 
@@ -1405,7 +1422,7 @@ describe('AutoFill', () => {
     ]);
   });
 
-  it('should populate the filled data in the correct order, when dragging the fill handle towards right (selection from left to right)', () => {
+  it('should populate the filled data in the correct order, when dragging the fill handle towards right (selection from left to right)', async() => {
     handsontable({
       data: [
         [null, null, null, null, null, null, null, null],
@@ -1415,7 +1432,7 @@ describe('AutoFill', () => {
       ]
     });
 
-    selectCell(1, 1, 2, 3);
+    await selectCell(1, 1, 2, 3);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
     $(getCell(2, 7)).simulate('mouseover').simulate('mouseup');
 
@@ -1427,7 +1444,7 @@ describe('AutoFill', () => {
     ]);
   });
 
-  it('should populate the filled data in the correct order, when dragging the fill handle towards right (selection from right to left)', () => {
+  it('should populate the filled data in the correct order, when dragging the fill handle towards right (selection from right to left)', async() => {
     handsontable({
       data: [
         [null, null, null, null, null, null, null, null],
@@ -1437,7 +1454,8 @@ describe('AutoFill', () => {
       ]
     });
 
-    selectCell(2, 3, 1, 1);
+    await selectCell(2, 3, 1, 1);
+
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
     $(getCell(2, 7)).simulate('mouseover').simulate('mouseup');
 
@@ -1449,7 +1467,7 @@ describe('AutoFill', () => {
     ]);
   });
 
-  it('should omit data propagation for hidden cells - fill vertically (option `copyPasteEnabled` set to `false` for the both plugins)', () => {
+  it('should omit data propagation for hidden cells - fill vertically (option `copyPasteEnabled` set to `false` for the both plugins)', async() => {
     handsontable({
       data: [
         [0, 0, 0, 0, 0, 0],
@@ -1469,7 +1487,7 @@ describe('AutoFill', () => {
       },
     });
 
-    selectCell(0, 0, 0, 2);
+    await selectCell(0, 0, 0, 2);
 
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
     $(getCell(2, 2, true)).simulate('mouseover').simulate('mouseup');
@@ -1494,7 +1512,7 @@ describe('AutoFill', () => {
     ]); // Extra test for checking wrong data propagation.
   });
 
-  it('should propagate data for hidden cells - fill vertically (option `copyPasteEnabled` set to `true` for the both plugins)', () => {
+  it('should propagate data for hidden cells - fill vertically (option `copyPasteEnabled` set to `true` for the both plugins)', async() => {
     handsontable({
       data: [
         [0, 0, 0, 0, 0, 0],
@@ -1514,7 +1532,7 @@ describe('AutoFill', () => {
       },
     });
 
-    selectCell(0, 0, 0, 2);
+    await selectCell(0, 0, 0, 2);
 
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
     $(getCell(2, 2, true)).simulate('mouseover').simulate('mouseup');
@@ -1539,7 +1557,7 @@ describe('AutoFill', () => {
     ]); // Extra test for checking wrong data propagation.
   });
 
-  it('should omit data propagation for hidden cells - fill horizontally (option `copyPasteEnabled` set to `false` for the both plugins)', () => {
+  it('should omit data propagation for hidden cells - fill horizontally (option `copyPasteEnabled` set to `false` for the both plugins)', async() => {
     handsontable({
       data: [
         [0, 1, 2, 3, 4, 5],
@@ -1559,7 +1577,7 @@ describe('AutoFill', () => {
       },
     });
 
-    selectCell(0, 0, 2, 0);
+    await selectCell(0, 0, 2, 0);
 
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
     $(getCell(2, 2, true)).simulate('mouseover').simulate('mouseup');
@@ -1584,7 +1602,7 @@ describe('AutoFill', () => {
     ]); // Extra test for checking wrong data propagation.
   });
 
-  it('should propagate data for hidden cells - fill horizontally (option `copyPasteEnabled` set to `true` for the both plugins)', () => {
+  it('should propagate data for hidden cells - fill horizontally (option `copyPasteEnabled` set to `true` for the both plugins)', async() => {
     handsontable({
       data: [
         [0, 1, 2, 3, 4, 5],
@@ -1604,7 +1622,7 @@ describe('AutoFill', () => {
       },
     });
 
-    selectCell(0, 0, 2, 0);
+    await selectCell(0, 0, 2, 0);
 
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
     $(getCell(2, 2, true)).simulate('mouseover').simulate('mouseup');
@@ -1645,16 +1663,18 @@ describe('AutoFill', () => {
 
       $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
         data: getData(),
-        fillHandle: true
+        fillHandle: true,
+        themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
       });
 
       $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
         data: getData(),
-        fillHandle: 'horizontal'
+        fillHandle: 'horizontal',
+        themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
       });
     });
 
-    it('checking drag vertically on 1. instance of Handsontable - should change cell value', () => {
+    it('checking drag vertically on 1. instance of Handsontable - should change cell value', async() => {
       $container1.handsontable('selectCell', 0, 0);
       $container1.find('.wtBorder.current.corner').simulate('mousedown');
       $container1.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
@@ -1664,10 +1684,12 @@ describe('AutoFill', () => {
 
     describe('-> updating settings on 2. instance of Handsontable', () => {
       beforeAll(() => {
-        $container2.handsontable('updateSettings', { fillHandle: 'vertical' });
+        $container2.handsontable('updateSettings', {
+          fillHandle: 'vertical', themeName: `ht-theme-${spec()?.loadedTheme || 'classic'}`
+        });
       });
 
-      it('checking drag vertically on 2. instance of Handsontable - should change cell value', () => {
+      it('checking drag vertically on 2. instance of Handsontable - should change cell value', async() => {
         $container2.handsontable('selectCell', 0, 2);
         $container2.find('.wtBorder.current.corner').simulate('mousedown');
         $container2.find('tbody tr:eq(1) td:eq(2)').simulate('mouseover').simulate('mouseup');
@@ -1687,7 +1709,7 @@ describe('AutoFill', () => {
     });
   });
 
-  it('should run afterAutofill once after each set of autofill changes have been applied', () => {
+  it('should run afterAutofill once after each set of autofill changes have been applied', async() => {
     const afterAutofill = jasmine.createSpy('afterAutofill');
 
     handsontable({
@@ -1700,13 +1722,15 @@ describe('AutoFill', () => {
       afterAutofill
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
+
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
 
     expect(afterAutofill).toHaveBeenCalledTimes(1);
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
+
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
 
@@ -1715,7 +1739,7 @@ describe('AutoFill', () => {
     expect(afterAutofill).toHaveBeenCalledTimes(2);
   });
 
-  it('should not call afterAutofill if beforeAutofill returns false', () => {
+  it('should not call afterAutofill if beforeAutofill returns false', async() => {
     const afterAutofill = jasmine.createSpy('afterAutofill');
 
     handsontable({
@@ -1731,20 +1755,22 @@ describe('AutoFill', () => {
       afterAutofill,
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
+
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
 
     expect(afterAutofill).toHaveBeenCalledTimes(0);
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
+
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
 
     expect(afterAutofill).toHaveBeenCalledTimes(0);
   });
 
-  it('should not call beforeAutofill and afterAutofill if we return to the cell from where we start', () => {
+  it('should not call beforeAutofill and afterAutofill if we return to the cell from where we start', async() => {
     const beforeAutofill = jasmine.createSpy('beforeAutofill');
     const afterAutofill = jasmine.createSpy('afterAutofill');
 
@@ -1762,7 +1788,8 @@ describe('AutoFill', () => {
       }
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
+
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover');
     spec().$container.find('tbody tr:eq(0) td:eq(0)').simulate('mouseover').simulate('mouseup');
@@ -1771,7 +1798,7 @@ describe('AutoFill', () => {
     expect(afterAutofill).toHaveBeenCalledTimes(0);
   });
 
-  it('should not change cell value if we return to the cell from where we start (when fillHandle option is set to `vertical`)', () => {
+  it('should not change cell value if we return to the cell from where we start (when fillHandle option is set to `vertical`)', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -1782,7 +1809,7 @@ describe('AutoFill', () => {
       fillHandle: 'vertical'
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover');
     spec().$container.find('tbody tr:eq(0) td:eq(0)').simulate('mouseover').simulate('mouseup');
@@ -1809,7 +1836,7 @@ describe('AutoFill', () => {
 
     window.onerror = errorSpy.test;
 
-    selectCell(0, 1);
+    await selectCell(0, 1);
 
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
 
@@ -1827,14 +1854,297 @@ describe('AutoFill', () => {
     window.onerror = prevError;
   });
 
+  describe('Using object-based cell content', () => {
+    using('configuration object', [
+      { coords: [[0, 1], [4, 1]] }, // Autofill downward
+      { coords: [[4, 1], [0, 1]] }, // Autofill upward
+    ], ({ coords }) => {
+
+      it('should utilize the source data when filling object-based cells with object-based content (if the schema matches)', async() => {
+        handsontable({
+          data: [
+            ['A1', { id: 1, value: 'A1' }, 'test'],
+            ['A2', { id: 2, value: 'A2' }, 'test2'],
+            ['A3', { id: 3, value: 'A3' }, 'test3'],
+            ['A4', { id: 4, value: 'A4' }, 'test4'],
+            ['A5', { id: 5, value: 'A5' }, 'test5'],
+          ],
+          columns: [
+            {},
+            {
+              valueGetter: value => value?.value,
+            },
+            {},
+          ],
+        });
+
+        const baseCellSource = getSourceDataAtCell(...coords[0]);
+        const baseCellData = getDataAtCell(...coords[0]);
+
+        await selectCell(...coords[0]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(...coords[1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCell(1, 1)).toEqual(baseCellSource);
+        expect(getSourceDataAtCell(2, 1)).toEqual(baseCellSource);
+        expect(getSourceDataAtCell(3, 1)).toEqual(baseCellSource);
+        expect(getSourceDataAtCell(4, 1)).toEqual(baseCellSource);
+
+        expect(getDataAtCell(1, 1)).toEqual(baseCellData);
+        expect(getDataAtCell(2, 1)).toEqual(baseCellData);
+        expect(getDataAtCell(3, 1)).toEqual(baseCellData);
+        expect(getDataAtCell(4, 1)).toEqual(baseCellData);
+      });
+
+      it('should utilize the non-source data when filling text-based cells with object-based content', async() => {
+        handsontable({
+          data: [
+            ['A1', 'xyz', 'test'],
+            ['A2', 'xyz', 'test2'],
+            ['A3', 'xyz', 'test3'],
+            ['A4', 'xyz', 'test4'],
+            ['A5', 'xyz', 'test5'],
+          ],
+        });
+
+        await setSourceDataAtCell(coords[0][0], coords[0][1], { id: 1, value: 'A1' });
+        await setCellMeta(coords[0][0], coords[0][1], 'valueGetter', value => value?.value);
+
+        await render();
+
+        await selectCell(...coords[0]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(...coords[1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCell(...coords[0])).toEqual({ id: 1, value: 'A1' });
+        expect(getSourceDataAtCell(1, 1)).toEqual('A1');
+        expect(getSourceDataAtCell(2, 1)).toEqual('A1');
+        expect(getSourceDataAtCell(3, 1)).toEqual('A1');
+        expect(getSourceDataAtCell(...coords[1])).toEqual('A1');
+
+        expect(getDataAtCell(...coords[0])).toEqual('A1');
+        expect(getDataAtCell(1, 1)).toEqual('A1');
+        expect(getDataAtCell(2, 1)).toEqual('A1');
+        expect(getDataAtCell(3, 1)).toEqual('A1');
+        expect(getDataAtCell(...coords[1])).toEqual('A1');
+      });
+
+      it('should not perform autofill when filling object-based cells with object-based content (if the schema does not match)', async() => {
+        handsontable({
+          data: [
+            ['A1', { a: 1, b: 2 }, 'test'],
+            ['A2', { a: 2, b: 3 }, 'test2'],
+            ['A3', { a: 3, b: 4 }, 'test3'],
+            ['A4', { a: 4, b: 5 }, 'test4'],
+            ['A5', { a: 5, b: 6 }, 'test5'],
+          ],
+          valueGetter: value => value?.a,
+        });
+
+        const sourceDataAtTarget = getSourceDataAtCell(...coords[1]);
+        const dataAtTarget = getDataAtCell(...coords[1]);
+
+        await setSourceDataAtCell(coords[0][0], coords[0][1], { id: 1, value: 'A1' });
+        await setCellMeta(coords[0][0], coords[0][1], 'valueGetter', value => value?.value);
+
+        await render();
+
+        await selectCell(...coords[0]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(...coords[1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCell(...coords[0])).toEqual({ id: 1, value: 'A1' });
+        expect(getSourceDataAtCell(1, 1)).toEqual({ a: 2, b: 3 });
+        expect(getSourceDataAtCell(2, 1)).toEqual({ a: 3, b: 4 });
+        expect(getSourceDataAtCell(3, 1)).toEqual({ a: 4, b: 5 });
+        expect(getSourceDataAtCell(...coords[1])).toEqual(sourceDataAtTarget);
+
+        expect(getDataAtCell(...coords[0])).toEqual('A1');
+        expect(getDataAtCell(1, 1)).toEqual(2);
+        expect(getDataAtCell(2, 1)).toEqual(3);
+        expect(getDataAtCell(3, 1)).toEqual(4);
+        expect(getDataAtCell(...coords[1])).toEqual(dataAtTarget);
+      });
+
+      it('should utilize the source data when filling mixed-typed cells with mixed-typed content (schema of the object-based content matches the schema of the target cell)', async() => {
+        handsontable({
+          data: [
+            ['A1', { id: 1, value: 'A1' }, 'test'],
+            ['A2', { id: 2, value: 'A2' }, 'test2'],
+            ['A3', { id: 3, value: 'A3' }, 'test3'],
+            ['A4', { id: 4, value: 'A4' }, 'test4'],
+            ['A5', { id: 5, value: 'A5' }, 'test5'],
+          ],
+          columns: [
+            {},
+            {
+              valueGetter: value => value?.value,
+            },
+            {},
+          ],
+        });
+
+        const sourceDataAtBaseRow = getSourceDataAtRow(coords[0][0]);
+        const dataAtBaseRow = getDataAtRow(coords[0][0]);
+
+        await selectCells([[coords[0][0], 0, coords[0][0], 2]]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(coords[1][0], 2, true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtRow(0)).toEqual(sourceDataAtBaseRow);
+        expect(getSourceDataAtRow(1)).toEqual(sourceDataAtBaseRow);
+        expect(getSourceDataAtRow(2)).toEqual(sourceDataAtBaseRow);
+        expect(getSourceDataAtRow(3)).toEqual(sourceDataAtBaseRow);
+        expect(getSourceDataAtRow(4)).toEqual(sourceDataAtBaseRow);
+
+        expect(getDataAtRow(0)).toEqual(dataAtBaseRow);
+        expect(getDataAtRow(1)).toEqual(dataAtBaseRow);
+        expect(getDataAtRow(2)).toEqual(dataAtBaseRow);
+        expect(getDataAtRow(3)).toEqual(dataAtBaseRow);
+        expect(getDataAtRow(4)).toEqual(dataAtBaseRow);
+      });
+    });
+
+    using('configuration object', [
+      { coords: [[1, 0], [1, 2]] }, // Autofill right
+      { coords: [[1, 2], [1, 0]] }, // Autofill left
+    ], ({ coords }) => {
+      it('should utilize the source data when filling object-based cells with object-based content (if the schema matches)', async() => {
+        handsontable({
+          data: [
+            ['A1', 'B1', 'test'],
+            [{ id: 1, value: 'A2' }, { id: 2, value: 'B2' }, { id: 3, value: 'C3' }],
+            ['A3', 'B3', 'test3'],
+          ],
+          valueGetter: value => value?.value ?? value,
+        });
+
+        const baseCellSource = getSourceDataAtCell(...coords[0]);
+        const baseCellData = getDataAtCell(...coords[0]);
+
+        await selectCell(...coords[0]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(...coords[1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCell(1, 0)).toEqual(baseCellSource);
+        expect(getSourceDataAtCell(1, 1)).toEqual(baseCellSource);
+        expect(getSourceDataAtCell(1, 2)).toEqual(baseCellSource);
+
+        expect(getDataAtCell(1, 0)).toEqual(baseCellData);
+        expect(getDataAtCell(1, 1)).toEqual(baseCellData);
+        expect(getDataAtCell(1, 2)).toEqual(baseCellData);
+      });
+
+      it('should utilize the non-source data when filling text-based cells with object-based content', async() => {
+        handsontable({
+          data: [
+            ['A1', 'xyz', 'test'],
+            ['A2', 'xyz', 'test2'],
+            ['A3', 'xyz', 'test3'],
+          ],
+        });
+
+        await setSourceDataAtCell(coords[0][0], coords[0][1], { id: 1, value: 'A1' });
+        await setCellMeta(coords[0][0], coords[0][1], 'valueGetter', value => value?.value);
+
+        await render();
+
+        await selectCell(...coords[0]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(...coords[1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCell(...coords[0])).toEqual({ id: 1, value: 'A1' });
+        expect(getSourceDataAtCell(1, 1)).toEqual('A1');
+        expect(getSourceDataAtCell(...coords[1])).toEqual('A1');
+
+        expect(getDataAtCell(...coords[0])).toEqual('A1');
+        expect(getDataAtCell(1, 1)).toEqual('A1');
+        expect(getDataAtCell(...coords[1])).toEqual('A1');
+      });
+
+      it('should not perform autofill when filling object-based cells with object-based content (if the schema does not match)', async() => {
+        handsontable({
+          data: [
+            ['A1', 'B1', 'test'],
+            [{ a: 1, b: 2 }, { a: 2, b: 3 }, { a: 3, b: 4 }],
+            ['A3', 'B3', 'test3'],
+          ],
+          valueGetter: value => value?.a ?? value,
+        });
+
+        const sourceDataAtTarget = getSourceDataAtCell(...coords[1]);
+        const dataAtTarget = getDataAtCell(...coords[1]);
+
+        await setSourceDataAtCell(coords[0][0], coords[0][1], { id: 1, value: 'A1' });
+        await setCellMeta(coords[0][0], coords[0][1], 'valueGetter', value => value?.value);
+
+        await render();
+
+        await selectCell(...coords[0]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(...coords[1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCell(...coords[0])).toEqual({ id: 1, value: 'A1' });
+        expect(getSourceDataAtCell(1, 1)).toEqual({ a: 2, b: 3 });
+        expect(getSourceDataAtCell(...coords[1])).toEqual(sourceDataAtTarget);
+
+        expect(getDataAtCell(...coords[0])).toEqual('A1');
+        expect(getDataAtCell(1, 1)).toEqual(2);
+        expect(getDataAtCell(...coords[1])).toEqual(dataAtTarget);
+      });
+
+      it('should utilize the source data when filling mixed-typed cells with mixed-typed content (schema of the object-based content matches the schema of the target cell)', async() => {
+        handsontable({
+          data: [
+            ['A1', 'B1', 'test'],
+            [{ id: 1, value: 'A2' }, { id: 2, value: 'B2' }, { id: 3, value: 'C3' }],
+            ['A3', 'B3', 'test3'],
+          ],
+          valueGetter: value => value?.value ?? value,
+        });
+
+        const sourceDataAtBaseCol = getSourceDataAtCol(coords[0][1]);
+        const dataAtBaseCol = getDataAtCol(coords[0][1]);
+
+        await selectCells([[0, coords[0][1], 2, coords[0][1]]]);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+        await $(getCell(2, coords[1][1], true)).simulate('mouseover').simulate('mouseup');
+
+        expect(getSourceDataAtCol(0)).toEqual(sourceDataAtBaseCol);
+        expect(getSourceDataAtCol(1)).toEqual(sourceDataAtBaseCol);
+        expect(getSourceDataAtCol(2)).toEqual(sourceDataAtBaseCol);
+
+        expect(getDataAtCol(0)).toEqual(dataAtBaseCol);
+        expect(getDataAtCol(1)).toEqual(dataAtBaseCol);
+        expect(getDataAtCol(2)).toEqual(dataAtBaseCol);
+      });
+    });
+  });
+
   describe('fill border position', () => {
-    it('display the fill border in the correct position', () => {
+    it('display the fill border in the correct position', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         fillHandle: true
       });
 
-      selectCell(3, 3, 5, 5);
+      await selectCell(3, 3, 5, 5);
 
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
 
@@ -1944,5 +2254,120 @@ describe('AutoFill', () => {
       expect(Handsontable.dom.hasClass(getCell(5, 3), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(5, 4), 'fill')).toBe(true);
     });
+  });
+
+  using('autofill handler size', [
+    2, 4, 6, 8, 10, 12, 14, 16,
+  ], (autofillHandlerSize) => {
+    beforeEach(() => {
+      const style = document.createElement('style');
+      const styleText = `
+        .handsontable {
+          --ht-cell-autofill-size: ${autofillHandlerSize}px;
+        }`;
+
+      style.id = 'autofill-handler-size-style';
+      style.textContent = styleText;
+      document.head.appendChild(style);
+    });
+
+    afterEach(() => {
+      document.getElementById('autofill-handler-size-style').remove();
+    });
+
+    it('should render corner hit area with a proper size', async() => {
+      if (spec().loadedTheme === 'classic') {
+        return;
+      }
+
+      const hot = handsontable({
+        width: 200,
+        height: 200,
+        startRows: 10,
+        startCols: 10,
+      });
+
+      await selectCell(1, 1);
+
+      const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+      const hitAreaStyle = getComputedStyle(corner, '::after');
+      const expectedHitAreaSize = Math.max(autofillHandlerSize, 12);
+
+      expect(hitAreaStyle.width).toBe(`${expectedHitAreaSize}px`);
+      expect(hitAreaStyle.height).toBe(`${expectedHitAreaSize}px`);
+    });
+
+    it('should cut the hit area at the bottom of the table when the last row is selected', async() => {
+      if (spec().loadedTheme === 'classic') {
+        return;
+      }
+
+      const hot = handsontable({
+        width: 200,
+        height: 200,
+        startRows: 10,
+        startCols: 10,
+      });
+
+      await selectCell(9, 1);
+
+      const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+      const hitAreaStyle = getComputedStyle(corner, '::after');
+
+      expect(hitAreaStyle.insetBlockEnd).toBe('0px');
+    });
+
+    it('should cut the hit area at the right side of the table when the last column is selected', async() => {
+      if (spec().loadedTheme === 'classic') {
+        return;
+      }
+
+      const hot = handsontable({
+        width: 200,
+        height: 200,
+        startRows: 10,
+        startCols: 10,
+      });
+
+      await selectCell(1, 9);
+
+      const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+      const hitAreaStyle = getComputedStyle(corner, '::after');
+
+      expect(hitAreaStyle.insetInlineEnd).toBe('0px');
+    });
+  });
+
+  it('should be possible to change the hit area size', async() => {
+    if (spec().loadedTheme === 'classic') {
+      return;
+    }
+
+    const style = document.createElement('style');
+    const styleText = `
+      .handsontable {
+        --ht-cell-autofill-hit-area-size: 10px;
+      }`;
+
+    style.id = 'autofill-handler-size-style';
+    style.textContent = styleText;
+    document.head.appendChild(style);
+
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 10,
+      startCols: 10,
+    });
+
+    await selectCell(1, 1);
+
+    const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+    const hitAreaStyle = getComputedStyle(corner, '::after');
+
+    expect(hitAreaStyle.width).toBe('10px');
+    expect(hitAreaStyle.height).toBe('10px');
+
+    style.remove();
   });
 });

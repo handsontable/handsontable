@@ -1,5 +1,9 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import numbro from 'numbro';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const config: Handsontable.GridSettings = {
   data: [
@@ -72,7 +76,7 @@ function log_events(event, data) {
       }
 
       if (str.length > 20) {
-        str = data[d].toString();
+        str = typeof data[d] === 'object' ? `object: ${str.substr(0, 20)}...}` : str.toString();
       }
 
       if (d < data.length - 1) {
@@ -83,12 +87,7 @@ function log_events(event, data) {
     }
 
     if (window.console) {
-      console.log(
-        i,
-        `@${numbro(diff / 1000).format('0.000')}`,
-        `[${event}]`,
-        data
-      );
+      console.log(i, `@${numbro(diff / 1000).format('0.000')}`, `[${event}]`, data);
     }
 
     const div = document.createElement('div');
@@ -112,25 +111,17 @@ const example1 = document.querySelector('#example1')!;
 
 new Handsontable(example1, config);
 
-document
-  .querySelector('#check_select_all')!
-  .addEventListener('click', function () {
-    const state = this.checked;
-    const inputs = document.querySelectorAll(
-      '#hooksList input[type=checkbox]'
-    ) as NodeListOf<HTMLInputElement>;
+document.querySelector('#check_select_all')!.addEventListener('click', function () {
+  const state = this.checked;
+  const inputs = document.querySelectorAll('#hooksList input[type=checkbox]') as NodeListOf<HTMLInputElement>;
 
-    Array.prototype.forEach.call(inputs, (input: HTMLInputElement) => {
-      input.checked = state;
-    });
+  Array.prototype.forEach.call(inputs, (input: HTMLInputElement) => {
+    input.checked = state;
   });
+});
 
-document
-  .querySelector('#hooksList input[type=checkbox]')!
-  .addEventListener('click', function () {
-    if (!this.checked) {
-      (
-        document.getElementById('check_select_all') as HTMLInputElement
-      ).checked = false;
-    }
-  });
+document.querySelector('#hooksList input[type=checkbox]')!.addEventListener('click', function () {
+  if (!this.checked) {
+    (document.getElementById('check_select_all') as HTMLInputElement).checked = false;
+  }
+});

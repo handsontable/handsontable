@@ -8,6 +8,9 @@ canonicalUrl: /vue3-setting-up-a-translation
 react:
   id: 5sootj6b
   metaTitle: Setting up a translation - Vue 3 Data Grid | Handsontable
+angular:
+  id: wangjjlr
+  metaTitle: Setting up a translation - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
@@ -27,7 +30,6 @@ The following example shows a Handsontable instance with translations set up in 
 ::: example #example1 :vue3-numbro --html 1 --js 2
 
 @[code](@/content/guides/integrate-with-vue3/vue3-setting-up-a-language/vue/example1.html)
-
 @[code](@/content/guides/integrate-with-vue3/vue3-setting-up-a-language/vue/example1.js)
 
 :::

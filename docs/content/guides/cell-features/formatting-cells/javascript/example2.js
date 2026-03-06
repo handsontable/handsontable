@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const customStylesRenderer = (hotInstance, TD, ...rest) => {
   Handsontable.renderers.TextRenderer(hotInstance, TD, ...rest);
@@ -8,10 +11,7 @@ const customStylesRenderer = (hotInstance, TD, ...rest) => {
   TD.style.background = '#d7f1e1';
 };
 
-Handsontable.renderers.registerRenderer(
-  'customStylesRenderer',
-  customStylesRenderer
-);
+Handsontable.renderers.registerRenderer('customStylesRenderer', customStylesRenderer);
 
 const container = document.querySelector('#example2');
 

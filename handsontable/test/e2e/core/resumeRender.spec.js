@@ -13,9 +13,9 @@ describe('Core.resumeRender', () => {
   });
 
   it('should resume the table rendering process and render the table using slow redrawing ' +
-     '(the same redrawing, which was postponed)', () => {
+     '(the same redrawing, which was postponed)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');
@@ -31,11 +31,11 @@ describe('Core.resumeRender', () => {
     addHook('beforeViewRender', beforeViewRender);
     addHook('afterViewRender', afterViewRender);
 
-    hot.suspendRender();
-    hot.render();
-    hot.render();
-    hot.render();
-    hot.resumeRender();
+    await suspendRender();
+    await render();
+    await render();
+    await render();
+    await resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw
@@ -49,9 +49,9 @@ describe('Core.resumeRender', () => {
   });
 
   it('should resume the table rendering process and render the table using fast redrawing ' +
-     '(the same redrawing, which was postponed)', () => {
+     '(the same redrawing, which was postponed)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');
@@ -67,11 +67,11 @@ describe('Core.resumeRender', () => {
     addHook('beforeViewRender', beforeViewRender);
     addHook('afterViewRender', afterViewRender);
 
-    hot.suspendRender();
-    hot.selectCell(0, 0);
-    hot.selectCell(1, 1);
-    hot.selectCell(2, 2);
-    hot.resumeRender();
+    await suspendRender();
+    await selectCell(0, 0);
+    await selectCell(1, 1);
+    await selectCell(2, 2);
+    await resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
@@ -83,56 +83,60 @@ describe('Core.resumeRender', () => {
     expect(afterViewRender).toHaveBeenCalledTimes(0);
   });
 
-  it('should resume the table rendering process and adjust the overlays\' sizes', () => {
+  it('should resume the table rendering process and adjust the overlays\' sizes', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');
     spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
-    hot.suspendRender();
-    hot.view.adjustElementsSize();
-    hot.view.adjustElementsSize();
-    hot.view.adjustElementsSize();
-    hot.resumeRender();
+    await suspendRender();
+
+    tableView().adjustElementsSize();
+    tableView().adjustElementsSize();
+    tableView().adjustElementsSize();
+
+    await resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
     expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
   });
 
-  it('should render the table only on the last resume call (a call that resets the counter of nested suspend calls)', () => {
+  it('should render the table only on the last resume call (a call that resets the counter of nested suspend calls)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');
     spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
-    hot.suspendRender();
-    hot.suspendRender();
-    hot.suspendRender();
+    await suspendRender();
+    await suspendRender();
+    await suspendRender();
 
     // fast render
-    hot.selectCell(1, 1);
-    hot.resumeRender();
+    await selectCell(1, 1);
+    await resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(2);
 
     // slow render
-    hot.render();
-    hot.resumeRender();
+    await render();
+    await resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(1);
 
     // fast render
-    hot.selectCell(2, 2);
-    hot.view.adjustElementsSize();
-    hot.resumeRender(); // Counter is now equals to 0, it calls render.
-    hot.resumeRender();
-    hot.resumeRender();
-    hot.resumeRender();
+    await selectCell(2, 2);
+
+    tableView().adjustElementsSize();
+
+    await resumeRender(); // Counter is now equals to 0, it calls render.
+    await resumeRender();
+    await resumeRender();
+    await resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw

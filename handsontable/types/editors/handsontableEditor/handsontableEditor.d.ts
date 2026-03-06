@@ -7,4 +7,12 @@ export class HandsontableEditor extends TextEditor {
 
   htEditor: Core;
   htContainer: HTMLElement;
+  isFlippedVertically: boolean;
+  isFlippedHorizontally: boolean;
+
+  getValue(): string;
+  getDropdownHeight(): number;
+  getDropdownWidth(): number;
+  getTargetDropdownWidth(): number;
+  getTargetDropdownHeight(): number;
 }

@@ -1,10 +1,9 @@
 import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.min.css";
 import "@handsontable/pikaday/css/pikaday.css";
 
 import { data } from "./constants";
 
-import { alignHeaders, addClassesToRows } from "./hooksCallbacks";
+import { addClassesToRows } from "./hooksCallbacks";
 
 const example = document.getElementById("example1");
 if (example) {
@@ -33,10 +32,12 @@ if (example) {
         data: 6,
         type: "checkbox",
         className: "htCenter",
+        headerClassName: "htCenter"
       },
       {
         data: 7,
         type: "numeric",
+        headerClassName: "htRight"
       },
       { data: 5, type: "text" },
       { data: 2, type: "text" },
@@ -50,7 +51,7 @@ if (example) {
     multiColumnSorting: true,
     filters: true,
     rowHeaders: true,
-    afterGetColHeader: alignHeaders,
+    headerClassName: "htLeft",
     beforeRenderer: addClassesToRows,
     licenseKey: "non-commercial-and-evaluation",
   });

@@ -12,13 +12,13 @@ let docsSHA = null;
 const fullyProcessedFrameworks = [
   'javascript',
   'react',
+  'angular',
 ];
 
 const frameworkToPrettyName = new Map([
   ['javascript', 'JavaScript'],
   ['react', 'React'],
   ['angular', 'Angular'],
-  ['vue', 'Vue 2'],
   ['vue3', 'Vue 3'],
 ]);
 
@@ -56,10 +56,19 @@ function getPrettyFrameworkName(framework) {
  * @returns {string}
  */
 function getThisDocsVersion() {
+  const { DOCS_LATEST_VERSION } = process.env;
+
+  if (DOCS_LATEST_VERSION) {
+    docsVersion = DOCS_LATEST_VERSION;
+
+    return DOCS_LATEST_VERSION;
+  }
+
   if (docsVersion === null) {
+
     const branchName = execa.sync('git rev-parse --abbrev-ref HEAD', { shell: true }).stdout;
 
-    if (versionFromBranchRegExp.test(branchName)) {
+    if (versionFromBranchRegExp.test(branchName) === true) {
       docsVersion = branchName.match(versionFromBranchRegExp)[1];
     } else {
       docsVersion = 'next';
@@ -76,14 +85,19 @@ function getThisDocsVersion() {
  */
 function getSidebars() {
   const filterByFramework = (guides, currentFramework) => {
-    const filterElementsForFramework = element =>
-      (Array.isArray(element.onlyFor) && element.onlyFor.includes(currentFramework)) ||
+
+    const filterElementsForFramework = (element) => {
+      return (Array.isArray(element.onlyFor) && element.onlyFor.includes(currentFramework)) ||
       (typeof element.onlyFor === 'string' && element.onlyFor === currentFramework) ||
       typeof element.onlyFor === 'undefined';
+    };
     const guidesSections = JSON.parse(JSON.stringify(guides)); // Copy sidebar definition
     const filteredGuidesSections = guidesSections.filter(filterElementsForFramework);
 
     filteredGuidesSections.forEach((filteredGuidesSection) => {
+      if (typeof filteredGuidesSection === 'string') {
+        return;
+      }
       filteredGuidesSection.children = filteredGuidesSection.children.reduce((newGuides, guide) => {
         if (filterElementsForFramework(guide)) {
           newGuides.push(guide.path);
@@ -103,8 +117,17 @@ function getSidebars() {
   getFrameworks().forEach((framework) => {
     Object.entries(sidebarConfig).forEach(([parentPath, subjectChildren]) => {
       const childrenClone = JSON.parse(JSON.stringify(subjectChildren));
-      const isGuidesPage = parentPath === 'guides';
-      const sidebarChildren = isGuidesPage ? filterByFramework(childrenClone, framework) : childrenClone;
+      const childrenClone2 = JSON.parse(JSON.stringify(subjectChildren));
+      const isGuidesPage = parentPath === 'guides'; // || parentPath === 'recipes';
+      const isRecipesPage = parentPath === 'recipes';
+      let sidebarChildren = childrenClone;
+
+      if (isGuidesPage) {
+        sidebarChildren = filterByFramework(childrenClone, framework);
+      }
+      if (isRecipesPage) {
+        sidebarChildren = filterByFramework(childrenClone2, framework);
+      }
       const fullPath = `/${framework}${FRAMEWORK_SUFFIX}/${isGuidesPage ? '' : `${parentPath}/`}`;
 
       sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}${fullPath}`] = sidebarChildren.map((child) => {
@@ -114,6 +137,7 @@ function getSidebars() {
 
         return child;
       });
+
     });
   });
 
@@ -197,7 +221,7 @@ function parseFramework(url) {
  * @returns {string|null}
  */
 function parsePartialFramework(filePath) {
-  const frameworkMatch = filePath.match(/guides\/integrate-with-(vue3|vue|angular)?/);
+  const frameworkMatch = filePath.match(/guides\/integrate-with-(vue3)?/);
 
   return frameworkMatch ? frameworkMatch[1] : null;
 }
@@ -257,6 +281,11 @@ function getDocsBase() {
  * @returns {string}
  */
 function getDocsBaseFullUrl() {
+
+  if (process.env.BUILD_MODE === 'preview') {
+    return `${process.env.NETLIFY_SITE_URL || ''}/docs/`;
+  }
+
   return `${getDocsHostname()}${getDocsBase()}`;
 }
 

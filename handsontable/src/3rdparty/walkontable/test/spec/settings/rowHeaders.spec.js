@@ -21,7 +21,7 @@ describe('rowHeaders option', () => {
     this.wotInstance.destroy();
   });
 
-  it('should not add class `htRowHeader` when row headers are disabled', () => {
+  it('should not add class `htRowHeader` when row headers are disabled', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -33,7 +33,7 @@ describe('rowHeaders option', () => {
     expect(spec().$wrapper.hasClass('htRowHeaders')).toBe(false);
   });
 
-  it('should add class `htRowHeader` when row headers are enabled', () => {
+  it('should add class `htRowHeader` when row headers are enabled', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -48,7 +48,7 @@ describe('rowHeaders option', () => {
     expect(spec().$wrapper.hasClass('htRowHeaders')).toBe(true);
   });
 
-  it('should create table row headers', () => {
+  it('should create table row headers', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -71,7 +71,7 @@ describe('rowHeaders option', () => {
     expect(spec().$wrapper.find('.ht_master tbody tr').length).toBe(9);
   });
 
-  it('should generate headers from function', () => {
+  it('should generate headers from function', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -90,7 +90,7 @@ describe('rowHeaders option', () => {
     expect(spec().$table.find('tbody tr:first th')[0].innerHTML).toBe('1'); // this should be the first row header
   });
 
-  it('should add \'rowHeader\' class to row header column', () => {
+  it('should add \'rowHeader\' class to row header column', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,

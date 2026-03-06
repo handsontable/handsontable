@@ -1,12 +1,10 @@
 import { BasePlugin } from '../base';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
-
-import './manualRowMove.css';
 
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
@@ -25,8 +23,7 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * @class ManualRowMove
  *
  * @description
- * This plugin allows to change rows order. To make rows order persistent the {@link Options#persistentState}
- * plugin should be enabled.
+ * This plugin allows to change rows order.
  *
  * API:
  * - `moveRow` - move single row to the new position.
@@ -298,7 +295,8 @@ export class ManualRowMove extends BasePlugin {
       const renderableIndex = rowMapper.getRenderableFromVisualIndex(visualRowIndex);
 
       if (renderableIndex !== null) {
-        rowsHeight += this.hot.view._wt.wtTable.getRowHeight(renderableIndex) || 23;
+        rowsHeight += this.hot.view._wt.wtTable.getRowHeight(renderableIndex)
+          || this.hot.stylesHandler.getDefaultRowHeight();
       }
     }
 
@@ -306,7 +304,7 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Loads initial settings when persistent state is saved or when plugin was initialized as an array.
+   * Loads initial settings when state was saved (e.g. via hooks) or when plugin was initialized as an array.
    *
    * @private
    */
@@ -316,12 +314,6 @@ export class ManualRowMove extends BasePlugin {
     if (Array.isArray(pluginSettings)) {
       this.moveRows(pluginSettings, 0);
 
-    } else if (pluginSettings !== undefined) {
-      const persistentState = this.persistentStateLoad();
-
-      if (persistentState.length) {
-        this.moveRows(persistentState, 0);
-      }
     }
   }
 
@@ -348,39 +340,13 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Saves the manual row positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @private
-   * @fires Hooks#persistentStateSave
-   */
-  persistentStateSave() {
-    // The `PersistentState` plugin should be refactored.
-    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.hot.rowIndexMapper.getIndexesSequence());
-  }
-
-  /**
-   * Loads the manual row positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @private
-   * @fires Hooks#persistentStateLoad
-   * @returns {Array} Stored state.
-   */
-  persistentStateLoad() {
-    const storedState = {};
-
-    this.hot.runHooks('persistentStateLoad', 'manualRowMove', storedState);
-
-    return storedState.value ? storedState.value : [];
-  }
-
-  /**
    * Prepares an array of indexes based on actual selection.
    *
    * @private
    * @returns {Array}
    */
   prepareRowsToMoving() {
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
     const selectedRows = [];
 
     if (!selection) {
@@ -405,8 +371,8 @@ export class ManualRowMove extends BasePlugin {
    */
   refreshPositions() {
     const coords = this.#target.coords;
-    const firstVisible = this.hot.view.getFirstFullyVisibleRow();
-    const lastVisible = this.hot.view.getLastFullyVisibleRow();
+    const firstVisible = this.hot.getFirstFullyVisibleRow();
+    const lastVisible = this.hot.getLastFullyVisibleRow();
     const countRows = this.hot.countRows();
 
     if (this.isFixedRowTop(coords.row) && firstVisible > 0) {
@@ -508,7 +474,7 @@ export class ManualRowMove extends BasePlugin {
   #onBeforeOnCellMouseDown(event, coords, TD, controller) {
     const { wtTable, wtViewport } = this.hot.view._wt;
     const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
 
     if (!selection || !isHeaderSelection || this.#pressed || event.button !== 0) {
       this.#pressed = false;
@@ -540,7 +506,7 @@ export class ManualRowMove extends BasePlugin {
       this.#rowsToMove = this.prepareRowsToMoving();
 
       const leftPos = wtTable.holder.scrollLeft + wtViewport.getRowHeaderWidth();
-      const topOffset = this.getRowsHeight(start, coords.row - 1) + event.offsetY;
+      const topOffset = this.getRowsHeight(start, coords.row - 1) + (event.clientY - TD.getBoundingClientRect().top);
 
       this.#backlight.setPosition(null, leftPos);
       this.#backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
@@ -581,7 +547,7 @@ export class ManualRowMove extends BasePlugin {
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   #onBeforeOnCellMouseOver(event, coords, TD, controller) {
-    const selectedRange = this.hot.getSelectedRangeLast();
+    const selectedRange = this.hot.getSelectedRangeActive();
 
     if (!selectedRange || !this.#pressed) {
       return;
@@ -627,9 +593,8 @@ export class ManualRowMove extends BasePlugin {
     this.#rowsToMove.length = 0;
 
     if (movePerformed === true) {
-      this.persistentStateSave();
-      this.hot.render();
       this.hot.view.adjustElementsSize();
+      this.hot.render();
 
       const selectionStart = this.hot.toVisualRow(firstMovedPhysicalRow);
       const selectionEnd = selectionStart + rowsLen - 1;

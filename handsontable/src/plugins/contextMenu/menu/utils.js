@@ -169,3 +169,13 @@ export function filterSeparators(items, separator = SEPARATOR) {
 
   return result;
 }
+
+/**
+ * Check if the provided element presents the checkboxable menu item.
+ *
+ * @param {object} itemToTest Item element.
+ * @returns {boolean}
+ */
+export function isItemCheckable(itemToTest) {
+  return itemToTest.checkable === true;
+}

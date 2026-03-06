@@ -44,7 +44,7 @@ describe('Core_getDataAt*', () => {
     ];
   };
 
-  it('should return data at specified row', () => {
+  it('should return data at specified row', async() => {
     handsontable({
       data: arrayOfArrays()
     });
@@ -52,7 +52,7 @@ describe('Core_getDataAt*', () => {
     expect(getDataAtRow(0)).toEqual(['', 'Kia', 'Nissan', 'Toyota', 'Honda']);
   });
 
-  it('should return data at specified col', () => {
+  it('should return data at specified col', async() => {
     handsontable({
       data: arrayOfArrays()
     });
@@ -60,9 +60,9 @@ describe('Core_getDataAt*', () => {
     expect(getDataAtCol(1)).toEqual(['Kia', 10, 20, 30]);
   });
 
-  it('should not throw an exception while getting data for column by its index (big dataset)', () => {
+  it('should not throw an exception while getting data for column by its index (big dataset)', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(130000, 5),
+      data: createSpreadsheetData(130000, 5),
     });
 
     expect(() => {
@@ -70,9 +70,9 @@ describe('Core_getDataAt*', () => {
     }).not.toThrowError();
   });
 
-  it('should not throw an exception while getting data for column by its property (big dataset)', () => {
+  it('should not throw an exception while getting data for column by its property (big dataset)', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(130000, 5),
+      data: createSpreadsheetData(130000, 5),
     });
 
     expect(() => {
@@ -81,7 +81,7 @@ describe('Core_getDataAt*', () => {
   });
 
   describe('Core_getDataAtRowProp', () => {
-    it('should return data at specified column', () => {
+    it('should return data at specified column', async() => {
       handsontable({
         data: arrayOfObjects()
       });
@@ -90,88 +90,6 @@ describe('Core_getDataAt*', () => {
       expect(getDataAtRowProp(1, 'id')).toBe(2);
       expect(getDataAtRowProp(1, 'id')).toBe(2);
       expect(getDataAtRowProp(1, 'details.city')).toBe('New York');
-    });
-  });
-
-  describe('`modifyData` hook', () => {
-    it('should be fired with specified arguments on every `set`, `get` operation (array of arrays)', () => {
-      const spy = jasmine.createSpy();
-
-      handsontable({
-        data: arrayOfArrays(),
-        autoColumnSize: false,
-        modifyData: spy,
-      });
-
-      expect(spy.calls.count()).toBe(20); // call for all cells
-      expect(spy.calls.argsFor(1)[0]).toBe(0);
-      expect(spy.calls.argsFor(1)[1]).toBe(1);
-      expect(spy.calls.argsFor(1)[2].value).toBe('Kia');
-      expect(spy.calls.argsFor(1)[3]).toBe('get');
-
-      spy.calls.reset();
-      setDataAtCell(2, 3, 'foo');
-
-      expect(spy.calls.count()).toBe(21); // call for all cells + 1 from setDataAtCell
-      expect(spy.calls.argsFor(0)[0]).toBe(2);
-      expect(spy.calls.argsFor(0)[1]).toBe(3);
-      expect(spy.calls.argsFor(0)[2].value).toBe('foo');
-      expect(spy.calls.argsFor(0)[3]).toBe('set');
-    });
-
-    it('should be fired with specified arguments on every `set`, `get` operation (array of objects)', () => {
-      const spy = jasmine.createSpy();
-
-      handsontable({
-        data: arrayOfObjects(),
-        autoColumnSize: false,
-        modifyData: spy,
-      });
-
-      expect(spy.calls.count()).toBe(10); // call for all cells
-      expect(spy.calls.argsFor(2)[0]).toBe(0);
-      expect(spy.calls.argsFor(2)[1]).toBe(2);
-      expect(spy.calls.argsFor(2)[2].value).toBe('Nannie Patel');
-      expect(spy.calls.argsFor(2)[3]).toBe('get');
-
-      spy.calls.reset();
-      setDataAtRowProp(2, 'name', 'foo');
-
-      expect(spy.calls.count()).toBe(16);
-      expect(spy.calls.argsFor(0)[0]).toBe(2);
-      expect(spy.calls.argsFor(0)[1]).toBe(2);
-      expect(spy.calls.argsFor(0)[2].value).toBe('foo');
-      expect(spy.calls.argsFor(0)[3]).toBe('set');
-    });
-
-    it('should overwrite value while loading data', () => {
-      handsontable({
-        data: arrayOfArrays(),
-        modifyData(row, column, valueHolder, ioMode) {
-          if (ioMode === 'get' && row === 1 && column === 2) {
-            valueHolder.value = 'foo';
-          }
-        },
-      });
-
-      expect(getDataAtCell(1, 2)).toBe('foo');
-      expect(getSourceDataAtCell(1, 2)).toBe(11);
-    });
-
-    it('should overwrite value while saving data', () => {
-      handsontable({
-        data: arrayOfArrays(),
-        modifyData(row, column, valueHolder, ioMode) {
-          if (ioMode === 'set' && row === 1 && column === 2) {
-            valueHolder.value = 'foo';
-          }
-        },
-      });
-
-      setDataAtCell(1, 2, 'bar');
-
-      expect(getDataAtCell(1, 2)).toBe('foo');
-      expect(getSourceDataAtCell(1, 2)).toBe('foo');
     });
   });
 });

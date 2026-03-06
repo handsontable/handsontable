@@ -19,6 +19,9 @@ tags:
 react:
   id: 87ulwfs2
   metaTitle: Row heights - React Data Grid | Handsontable
+angular:
+  id: h42skmvo
+  metaTitle: Row heights - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
@@ -31,10 +34,10 @@ Configure row heights, using a number, an array or a function. Let your users ma
 
 ## Overview
 
-The default (and minimum) row height is 23 px (22 px + 1 px of the row's bottom border). Unless configured otherwise, Handsontable assumes that your cell contents fit in this default row height.
+The default (and minimum) row height is calculated based on the used theme's line height, vertical padding and cell border values and in the `main` theme it's 29px, in the `horizon` it's 37px and in the `classic` styles it's 26 px. Unless configured otherwise, Handsontable assumes that your cell contents fit in this default row height.
 
-If your cell contents require heights greater than the default 23 px (because you use multiline text, or [custom renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md), or custom styles), use one of the following configurations to avoid potential layout problems:
-  - Configure your row heights in advance: set the [`rowHeights`](@/api/options.md#rowheights) option to a [number](#set-row-heights-to-a-number), or an [array](#set-row-heights-with-an-array), or a [function](#set-row-heights-with-a-function). This requires you to know the heights beforehand, but results in the best runtime performance.
+If your cell contents require heights greater than default (because you use multiline text, or [custom renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md), or custom styles), use one of the following configurations to avoid potential layout problems:
+  - Configure your row heights in advance: set the [`minRowHeights`](@/api/options.md#minrowheights) option to a [number](#set-row-heights-to-a-number), or an [array](#set-row-heights-with-an-array), or a [function](#set-row-heights-with-a-function). This requires you to know the heights beforehand, but results in the best runtime performance.
   - Set the [`manualRowResize`](@/api/options.md#manualrowresize) option to an array, to configure initial row heights and let your users [adjust the row heights manually](#adjust-row-heights-manually).
   - Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin, by setting `autoRowSize: true`. This tells Handsontable to measure the actual row heights in the DOM. It impacts runtime performance but is accurate.
 
@@ -59,6 +62,17 @@ We set the same height of `40px` for all rows across the entire grid in this exa
 
 @[code](@/content/guides/rows/row-height/react/example1.jsx)
 @[code](@/content/guides/rows/row-height/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-height/angular/example1.ts)
+@[code](@/content/guides/rows/row-height/angular/example1.html)
 
 :::
 
@@ -90,6 +104,17 @@ In this example, the height is only set for the first rows. Each additional row 
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-height/angular/example2.ts)
+@[code](@/content/guides/rows/row-height/angular/example2.html)
+
+:::
+
+:::
+
 ## Set row heights with a function
 
 The row height can be set using a function. In this example, the size of all rows is set using a function that takes a row `index` (1, 2 ...) and multiplies it by `20px` for each consecutive row.
@@ -111,6 +136,17 @@ The row height can be set using a function. In this example, the size of all row
 
 @[code](@/content/guides/rows/row-height/react/example3.jsx)
 @[code](@/content/guides/rows/row-height/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-height/angular/example3.ts)
+@[code](@/content/guides/rows/row-height/angular/example3.html)
 
 :::
 
@@ -144,12 +180,23 @@ You can adjust the size of one or multiple rows simultaneously, even if the sele
 
 :::
 
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-height/angular/example4.ts)
+@[code](@/content/guides/rows/row-height/angular/example4.html)
+
+:::
+
+:::
+
 ## Related API reference
 
 - Configuration options:
   - [`autoRowSize`](@/api/options.md#autorowsize)
   - [`manualRowResize`](@/api/options.md#manualrowresize)
-  - [`rowHeights`](@/api/options.md#rowheights)
+  - [`minRowHeights`](@/api/options.md#minRowHeights)
 - Core methods:
   - [`getRowHeight()`](@/api/core.md#getrowheight)
 - Hooks:

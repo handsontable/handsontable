@@ -1,13 +1,11 @@
 import { BasePlugin } from '../base';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, hasClass, outerWidth } from '../../helpers/dom/element';
 import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
-
-import './manualColumnMove.css';
 
 Hooks.getSingleton().register('beforeColumnMove');
 Hooks.getSingleton().register('afterColumnMove');
@@ -26,8 +24,7 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  * @class ManualColumnMove
  *
  * @description
- * This plugin allows to change columns order. To make columns order persistent the {@link Options#persistentState}
- * plugin should be enabled.
+ * This plugin allows to change columns order.
  *
  * API:
  * - `moveColumn` - move single column to the new position.
@@ -314,15 +311,13 @@ export class ManualColumnMove extends BasePlugin {
     let columnsWidth = 0;
 
     for (let visualColumnIndex = fromColumn; visualColumnIndex <= toColumn; visualColumnIndex += 1) {
-      // We can't use just `getColWidth` (even without indexes translation) as it doesn't return proper values
-      // when column is stretched.
       const renderableIndex = columnMapper.getRenderableFromVisualIndex(visualColumnIndex);
 
       if (visualColumnIndex < 0) {
         columnsWidth += this.hot.view._wt.wtViewport.getRowHeaderWidth() || 0;
 
       } else if (renderableIndex !== null) {
-        columnsWidth += this.hot.view._wt.wtTable.getStretchedColumnWidth(renderableIndex) || 0;
+        columnsWidth += this.hot.view._wt.wtTable.getColumnWidth(renderableIndex) || 0;
       }
     }
 
@@ -330,7 +325,7 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Loads initial settings when persistent state is saved or when plugin was initialized as an array.
+   * Loads initial settings when state was saved (e.g. via hooks) or when plugin was initialized as an array.
    *
    * @private
    */
@@ -340,12 +335,6 @@ export class ManualColumnMove extends BasePlugin {
     if (Array.isArray(pluginSettings)) {
       this.moveColumns(pluginSettings, 0);
 
-    } else if (pluginSettings !== undefined) {
-      const persistentState = this.persistentStateLoad();
-
-      if (persistentState.length) {
-        this.moveColumns(persistentState, 0);
-      }
     }
   }
 
@@ -358,31 +347,6 @@ export class ManualColumnMove extends BasePlugin {
    */
   isFixedColumnsStart(column) {
     return column < this.hot.getSettings().fixedColumnsStart;
-  }
-
-  /**
-   * Saves the manual column positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @private
-   * @fires Hooks#persistentStateSave
-   */
-  persistentStateSave() {
-    this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.hot.columnIndexMapper.getIndexesSequence()); // The `PersistentState` plugin should be refactored.
-  }
-
-  /**
-   * Loads the manual column positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @private
-   * @fires Hooks#persistentStateLoad
-   * @returns {Array} Stored state.
-   */
-  persistentStateLoad() {
-    const storedState = {};
-
-    this.hot.runHooks('persistentStateLoad', 'manualColumnMove', storedState);
-
-    return storedState.value ? storedState.value : [];
   }
 
   /**
@@ -534,7 +498,7 @@ export class ManualColumnMove extends BasePlugin {
   #onBeforeOnCellMouseDown(event, coords, TD, controller) {
     const wtTable = this.hot.view._wt.wtTable;
     const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
     // This block action shouldn't be handled below.
     const isSortingElement = hasClass(event.target, 'sortAction');
 
@@ -620,7 +584,7 @@ export class ManualColumnMove extends BasePlugin {
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   #onBeforeOnCellMouseOver(event, coords, TD, controller) {
-    const selectedRange = this.hot.getSelectedRangeLast();
+    const selectedRange = this.hot.getSelectedRangeActive();
 
     if (!selectedRange || !this.#pressed) {
       return;
@@ -667,9 +631,8 @@ export class ManualColumnMove extends BasePlugin {
     this.#columnsToMove.length = 0;
 
     if (movePerformed === true) {
-      this.persistentStateSave();
-      this.hot.render();
       this.hot.view.adjustElementsSize();
+      this.hot.render();
 
       const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
       const selectionEnd = selectionStart + columnsLen - 1;

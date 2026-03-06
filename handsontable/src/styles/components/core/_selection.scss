@@ -1,0 +1,108 @@
+@use "../../utils/mixins";
+
+// Selection
+
+@mixin output {
+  .handsontable {
+    // Fill
+    @for $i from 0 through 7 {
+      @if $i == 0 {
+        td.area {
+          @include mixins.area-styles;
+        }
+      } @else {
+        td.area-#{$i} {
+          @include mixins.area-styles;
+        }
+      }
+    }
+
+    @for $i from 0 through 7 {
+      @if $i == 0 {
+        td.area::before {
+          opacity: mixins.get-opacity($i);
+        }
+      } @else {
+        td.area-#{$i}::before {
+          opacity: mixins.get-opacity($i);
+        }
+      }
+    }
+
+    td.area {
+      border-color: color-mix(
+        in srgb,
+        var(--ht-border-color),
+        var(--ht-foreground-color) 10%
+      );
+    }
+
+    // Borders
+    .wtBorder {
+      position: absolute;
+      font-size: 0;
+
+      &:nth-child(1),
+      &:nth-child(3) {
+        z-index: 2;
+      }
+
+      &:nth-child(2),
+      &:nth-child(4) {
+        z-index: 1;
+      }
+
+      &.hidden {
+        display: none !important;
+      }
+
+      // A layer order of the selection types
+      &.current {
+        z-index: 10;
+        background-color: var(--ht-cell-selection-border-color) !important;
+      }
+
+      &.area {
+        z-index: 8;
+        background-color: var(--ht-cell-selection-border-color) !important;
+      }
+
+      &.fill {
+        z-index: 6;
+        background-color: var(
+          --ht-cell-autofill-fill-border-color,
+          #68696c
+        ) !important;
+      }
+
+      // Fill handle
+      &.corner {
+        border-radius: var(--ht-cell-autofill-border-radius) !important;
+        background-color: var(
+          --ht-cell-autofill-background-color,
+          #1a42e8
+        ) !important;
+        border-color: var(--ht-cell-autofill-border-color) !important;
+        font-size: 0;
+        cursor: crosshair;
+        z-index: 10;
+
+        &::after {
+          content: '';
+          position: absolute;
+          border-radius: var(--ht-cell-autofill-border-radius);
+          inset: min(0px, calc((var(--ht-cell-autofill-size) - var(--ht-cell-autofill-hit-area-size)) / 2));
+          background: transparent;
+        }
+
+        &.wtCornerInlineEndEdge::after {
+          inset-inline-end: 0;
+        }
+
+        &.wtCornerBlockEndEdge::after {
+          inset-block-end: 0;
+        }
+      }
+    }
+  }
+}

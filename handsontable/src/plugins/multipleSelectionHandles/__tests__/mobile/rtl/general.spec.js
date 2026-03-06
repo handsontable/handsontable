@@ -19,7 +19,7 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
       }
     });
 
-    it('should not stretch the container of the scrollable element (#9475)', () => {
+    it('should not stretch the container of the scrollable element (#9475)', async() => {
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(5, 8),
@@ -28,7 +28,7 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
       });
 
       // try to scroll the viewport max to the left
-      getMaster().find('.wtHolder').scrollLeft(-9999);
+      await scrollViewportHorizontally(9999);
 
       // there should be no scroll as the 8 columns fit to the table's width
       expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);

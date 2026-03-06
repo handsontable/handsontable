@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the header selection with `nestedHeaders` enabled not working on mobile devices.",
-  "type": "fixed",
-  "issueOrPR": 11051,
-  "breaking": false,
-  "framework": "none"
-}

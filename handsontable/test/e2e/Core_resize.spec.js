@@ -21,15 +21,15 @@ describe('Core resize', () => {
     }
   });
 
-  it('should not change table height after window is resized when a handsontable parent elements have not defined height', () => {
+  it('should not change table height after window is resized when a handsontable parent elements have not defined height', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 2),
+      data: createSpreadsheetData(10, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsBottom: 1,
     });
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(getMaster().height()).toBe(0);
     expect(getTopClone().height()).toBe(0);
@@ -38,17 +38,17 @@ describe('Core resize', () => {
     expect(getBottomInlineStartClone().height()).toBe(0);
   });
 
-  it('should not change table height after window is resized when a handsontable parent elements have not defined height and has overflow scroll', () => {
+  it('should not change table height after window is resized when a handsontable parent elements have not defined height and has overflow scroll', async() => {
     spec().$wrapper.css({ overflow: 'scroll' });
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 2),
+      data: createSpreadsheetData(10, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsBottom: 1,
     });
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(getMaster().height()).toBe(0);
     expect(getTopClone().height()).toBe(0);
@@ -57,9 +57,9 @@ describe('Core resize', () => {
     expect(getBottomInlineStartClone().height()).toBe(0);
   });
 
-  it('should change table height after changing parent element height', () => {
+  it('should change table height after changing parent element height', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 2),
+      data: createSpreadsheetData(10, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsBottom: 1,
@@ -68,18 +68,42 @@ describe('Core resize', () => {
     spec().$wrapper.css('height', 200);
     hot().render();
 
-    expect(getMaster().height()).toBe(200);
-    expect(getTopClone().height()).toBe(26);
-    expect(getBottomClone().height()).toBe(24);
     expect(getInlineStartClone().height()).toBe(200);
-    expect(getBottomInlineStartClone().height()).toBe(24);
+    expect(getMaster().height()).toBe(200);
+    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(26);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(27);
+      main.toBe(30);
+      horizon.toBe(38);
+    });
+    expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(27);
+      main.toBe(30);
+      horizon.toBe(38);
+    });
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(getMaster().height()).toBe(200);
-    expect(getTopClone().height()).toBe(26);
-    expect(getBottomClone().height()).toBe(24);
     expect(getInlineStartClone().height()).toBe(200);
-    expect(getBottomInlineStartClone().height()).toBe(24);
+    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(26);
+      main.toBe(29);
+      horizon.toBe(37);
+    });
+    expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(27);
+      main.toBe(30);
+      horizon.toBe(38);
+    });
+    expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(27);
+      main.toBe(30);
+      horizon.toBe(38);
+    });
   });
 });

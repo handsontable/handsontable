@@ -1,0 +1,87 @@
+@use "../../utils/mixins";
+
+// Handsontable Select
+//  Used in Dropdown Menu
+
+@mixin output {
+  .handsontable {
+    .htUISelectCaption {
+      width: 100%;
+      padding: var(--ht-input-vertical-padding)
+        var(--ht-input-horizontal-padding);
+      padding-inline-end: calc(
+        var(--ht-input-horizontal-padding) + var(--ht-icon-size)
+      );
+      margin: 0;
+      font-family: inherit;
+      font-size: var(--ht-font-size);
+      line-height: var(--ht-line-height);
+      font-weight: var(--ht-font-weight);
+      border-radius: var(--ht-input-border-radius);
+      box-sizing: border-box;
+      cursor: pointer;
+      outline: none !important;
+      border: var(--ht-input-border-width) solid var(--ht-input-border-color);
+      color: var(--ht-input-foreground-color);
+      background-color: var(--ht-input-background-color);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: var(--ht-table-transition) all ease-in-out;
+
+      &::after {
+        @include mixins.pseudo;
+
+        position: absolute;
+        right: calc(
+          var(--ht-input-horizontal-padding) - var(--ht-icon-size) / 4
+        );
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      &:hover {
+        border-color: var(--ht-input-hover-border-color);
+        color: var(--ht-input-hover-foreground-color);
+        background-color: var(--ht-input-hover-background-color);
+      }
+
+      &:disabled {
+        border-color: var(--ht-input-disabled-border-color);
+        color: var(--ht-input-disabled-foreground-color);
+        background-color: var(--ht-input-disabled-background-color);
+      }
+
+      &:focus {
+        border-color: var(--ht-input-focus-border-color);
+        color: var(--ht-input-focus-foreground-color);
+        background-color: var(--ht-input-focus-background-color);
+      }
+    }
+
+    .htUISelect {
+      cursor: pointer;
+      position: relative;
+      outline: none !important;
+
+      &:focus {
+        .htUISelectCaption {
+          border-color: var(--ht-input-focus-border-color);
+          color: var(--ht-input-focus-foreground-color);
+          background-color: var(--ht-input-focus-background-color);
+        }
+      }
+    }
+  }
+
+  [dir="rtl"].handsontable {
+    .htUISelectCaption {
+      &::after {
+        right: auto;
+        left: calc(
+          var(--ht-input-horizontal-padding) - var(--ht-icon-size) / 4
+        );
+      }
+    }
+  }
+}

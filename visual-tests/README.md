@@ -34,6 +34,37 @@ the **Visual tests** check on on your pull request fails, and you can't merge yo
         You can then merge your changes to `develop`.
         As a result, the modified screenshots become the new baseline.
 
+## Visual tests structure
+
+Visual tests are divided into:
+
+   - multi-frameworks: tests run on Chromium using classic, horizon, horizon-dark, main and main-dark themes against Handsontable instance created in:
+      - Vanilla JS
+      - Angular
+      - React
+      - React (functional)
+      - Vue 2
+      - Vue 3
+   - cross-browser: tests run against vanilla JS Handsontable instance using:
+      - Chromium
+      - Firefox
+      - Webkit
+
+   There is a separate Playwright config for cross-browser tests: `playwright-cross-browser.config.ts`
+
+## Visual tests demos
+
+All the test examples are available at `examples/next/visual-tests` and configured to be served from `localhost:8082`
+
+There main demo available for all frameworks is served on `/`. There are additional demos available only for vanilla JS (to be used with cross-browser tests):
+
+- `/cell-types-demo`,
+- `/arabic-rtl-demo`,
+- `/custom-style-demo`,
+- `/merged-cells-demo`,
+- `/nested-headers-demo`,
+- `/nested-rows-demo`,
+
 ## Run visual tests through GitHub Actions
 
 Our GitHub Actions configuration runs the visual tests automatically, but you can run them manually as well:
@@ -48,10 +79,9 @@ You can manually run visual tests on your machine and then upload the resulting 
 
 First, prepare your local visual testing environment:
 
-1. Make sure your [Docker Desktop](https://www.docker.com/products/docker-desktop/) app is running.
-2. Make sure you're using the Node and npm versions mentioned [here](https://handsontable.com/docs/react-data-grid/custom-builds/#build-requirements).
-3. From the `./visual-tests/` directory, run `npm install`.
-4. In the `./visual-tests/` directory, create a file called `.env`. In the file, add the Argos token:
+1. Make sure you're using the Node and npm versions mentioned [here](https://handsontable.com/docs/react-data-grid/custom-builds/#build-requirements).
+2. From the `./visual-tests/` directory, run `npm install`.
+3. In the `./visual-tests/` directory, create a file called `.env`. In the file, add the Argos token:
    ```bash
    ARGOS_TOKEN=xxx
    ```
@@ -62,7 +92,8 @@ To run the visual tests locally:
 1. From the `./visual-tests/` directory, run one of the following commands:
    | Command                               | Action                                                                                             |
    | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
-   | `npm run test`                        | Run all the visual tests,<br>for all the configured frameworks,<br>for all the supported browsers. |
+   | `npm run test`                        | Run multi-framework visual tests,<br>for all the configured frameworks,<br>using Chromium only. |
+   | `npm run test:cross-browser`                        | Run cross-browser visual tests,<br>using vanilla JS framework,<br>for all the supported browsers. <br> You can pass the test name to run a single cross-browser test: `npm run test:cross-browser borders`|
    | `npx playwright test {{ file name }}` | Run a specific test.<br><br>For example: `npx playwright test mouse-wheel`                         |
 
    The resulting screenshots are saved in `./visual-tests/screenshots/`.
@@ -112,6 +143,12 @@ const dropdownMenu = page.locator(helpers.selectors.dropdownMenu);
 
 await dropdownMenu.screenshot({ path: helpers.screenshotPath() });
 ```
+
+For cross-browser tests we are using
+```js
+  await page.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, url, suffix) });
+```
+for easier screenshot identification.
 
 ### Helpers
 

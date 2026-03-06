@@ -1,6 +1,5 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -66,7 +65,7 @@ const ExampleComponent = () => {
           type: 'numeric',
           data: 'price',
           numericFormat: {
-            pattern: '$ 0,0.00',
+            pattern: '$0,0.00',
             culture: 'en-US',
           },
         },
@@ -103,12 +102,8 @@ const ExampleComponent = () => {
       beforeFilter={function (conditionsStack) {
         // gather information about the filters
         console.log(`The amount of filters: ${conditionsStack.length}`);
-        console.log(
-          `The last changed column index: ${conditionsStack[0].column}`
-        );
-        console.log(
-          `The amount of filters added to this column: ${conditionsStack[0].conditions.length}`
-        );
+        console.log(`The last changed column index: ${conditionsStack[0].column}`);
+        console.log(`The amount of filters added to this column: ${conditionsStack[0].conditions.length}`);
         // the list of filter conditions
         console.log(conditionsStack[0].conditions);
 

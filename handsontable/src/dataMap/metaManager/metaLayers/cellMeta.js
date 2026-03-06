@@ -1,7 +1,8 @@
-import { extend } from '../../../helpers/object';
-import { extendByMetaType, assert, isUnsignedNumber } from '../utils';
+import { extendByMetaType, assert } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
+import { extend } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
+import { isUnsignedNumber } from '../../../helpers/number';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**

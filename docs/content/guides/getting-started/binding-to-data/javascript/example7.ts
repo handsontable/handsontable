@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 interface Person {
   id: number | undefined;
@@ -22,11 +25,7 @@ new Handsontable(container, {
   height: 'auto',
   width: 'auto',
   colHeaders: ['ID', 'Name', 'Address'],
-  columns: [
-    { data: property('id') },
-    { data: property('name') },
-    { data: property('address') },
-  ],
+  columns: [{ data: property('id') }, { data: property('name') }, { data: property('address') }],
   minSpareRows: 1,
   autoWrapRow: true,
   autoWrapCol: true,
@@ -66,6 +65,5 @@ function model(person: Partial<Person>) {
 }
 
 function property(attr: string) {
-  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) =>
-    (row as Person).attr(attr, value);
+  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) => (row as Person).attr(attr, value);
 }

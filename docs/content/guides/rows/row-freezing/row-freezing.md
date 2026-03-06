@@ -12,6 +12,9 @@ tags:
 react:
   id: y5wx1mrk
   metaTitle: Row freezing - React Data Grid | Handsontable
+angular:
+  id: mskor25j
+  metaTitle: Row freezing - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
@@ -49,6 +52,17 @@ The following example specifies two fixed rows with `fixedRowsTop: 2`. Horizonta
 
 @[code](@/content/guides/rows/row-freezing/react/example1.jsx)
 @[code](@/content/guides/rows/row-freezing/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-freezing/angular/example1.ts)
+@[code](@/content/guides/rows/row-freezing/angular/example1.html)
 
 :::
 

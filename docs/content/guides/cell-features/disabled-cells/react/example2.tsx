@@ -1,14 +1,13 @@
 import { useRef, useEffect } from 'react';
-import Handsontable from 'handsontable';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import Handsontable from 'handsontable/base';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
 
   useEffect(() => {
     const hot = hotRef.current?.hotInstance;

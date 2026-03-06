@@ -12,7 +12,7 @@ describe('Core.getColumnMeta', () => {
     }
   });
 
-  it('should get the column meta', () => {
+  it('should get the column meta', async() => {
     handsontable({
       testMeta: true,
       columns: [
@@ -27,7 +27,7 @@ describe('Core.getColumnMeta', () => {
     expect(getColumnMeta(2).testMeta).toBe('test');
   });
 
-  it('should utilize the visual column indexes as arguments', () => {
+  it('should utilize the visual column indexes as arguments', async() => {
     handsontable({
       testMeta: true,
       columns: [

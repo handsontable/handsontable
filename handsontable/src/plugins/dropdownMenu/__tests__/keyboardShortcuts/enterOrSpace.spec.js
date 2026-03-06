@@ -14,7 +14,7 @@ describe('DropdownMenu keyboard shortcut', () => {
     ['Enter'],
     ['Space'],
   ], (keyboardShortcut) => {
-    it('should execute the selected menu action', () => {
+    it('should execute the selected menu action', async() => {
       const itemAction = jasmine.createSpy('itemAction');
 
       handsontable({
@@ -31,23 +31,23 @@ describe('DropdownMenu keyboard shortcut', () => {
         height: 100
       });
 
-      dropdownMenu();
+      await dropdownMenu();
 
       const menuHot = getPlugin('dropdownMenu').menu.hotMenu;
 
-      keyDownUp('arrowdown');
+      await keyDownUp('arrowdown');
 
       expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
       expect(itemAction).not.toHaveBeenCalled();
 
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       expect(itemAction).toHaveBeenCalled();
       expect($(getPlugin('dropdownMenu').menu).is(':visible')).toBe(false);
     });
 
-    it('should not throw an error when any of the menu item is not selected', () => {
+    it('should not throw an error when any of the menu item is not selected', async() => {
       const spy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;
 
@@ -62,24 +62,24 @@ describe('DropdownMenu keyboard shortcut', () => {
         dropdownMenu: true,
       });
 
-      contextMenu();
-      keyDownUp('enter');
+      await contextMenu();
+      await keyDownUp('enter');
 
       expect(spy.test.calls.count()).toBe(0);
 
       window.onerror = prevError;
     });
 
-    it('should trigger the submenu to be opened', () => {
+    it('should trigger the submenu to be opened', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: ['alignment'],
       });
 
-      dropdownMenu();
+      await dropdownMenu();
 
-      keyDownUp('arrowdown');
-      keyDownUp(keyboardShortcut);
+      await keyDownUp('arrowdown');
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('dropdownMenu').menu.hotSubMenus.alignment.hotMenu.getSelected()).toEqual([
         [0, 0, 0, 0]

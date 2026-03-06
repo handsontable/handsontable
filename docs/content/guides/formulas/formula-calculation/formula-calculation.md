@@ -18,6 +18,9 @@ tags:
 react:
   id: 05z3cjez
   metaTitle: Formula calculation - React Data Grid | Handsontable
+angular:
+  id: hqzll0fz
+  metaTitle: Formula calculation - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Formulas
 ---
@@ -60,11 +63,8 @@ Double click on a cell to open the editor and preview the formula.
 ::: example #example1 --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.html)
-
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.css)
-
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.js)
-
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.ts)
 
 :::
@@ -78,6 +78,17 @@ Double click on a cell to open the editor and preview the formula.
 @[code](@/content/guides/formulas/formula-calculation/react/example1.css)
 @[code](@/content/guides/formulas/formula-calculation/react/example1.jsx)
 @[code](@/content/guides/formulas/formula-calculation/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/formulas/formula-calculation/angular/example1.ts)
+@[code](@/content/guides/formulas/formula-calculation/angular/example1.html)
 
 :::
 
@@ -105,6 +116,17 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 @[code](@/content/guides/formulas/formula-calculation/react/example-data-grid.jsx)
 @[code](@/content/guides/formulas/formula-calculation/react/example-data-grid.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/formulas/formula-calculation/angular/example2.ts)
+@[code](@/content/guides/formulas/formula-calculation/angular/example2.html)
 
 :::
 
@@ -167,6 +189,19 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 
 :::
 
+::: only-for angular
+
+```ts
+{
+  formulas: {
+    engine: HyperFormula,
+    // [plugin configuration]
+  }
+}
+```
+
+:::
+
 or
 
 ::: only-for javascript
@@ -201,6 +236,24 @@ or
     // [plugin configuration]
   }}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+{
+  formulas: {
+    engine: {
+      hyperformula: HyperFormula, // or `engine: hyperformulaInstance`
+      leapYear1900: false,
+      // ...and more engine configuration options.
+      // See https://handsontable.github.io/hyperformula/api/interfaces/configparams.html#number
+    },
+    // [plugin configuration]
+  }
+}
 ```
 
 :::
@@ -243,6 +296,31 @@ const ExampleComponent = () => {
     />
   );
 };
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import {HyperFormula} from 'hyperformula';
+
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
+ 
+const configurationOptions: GridSettings = {
+  formulas: {
+    engine: hyperformulaInstance
+  }
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
 ```
 
 :::
@@ -292,6 +370,28 @@ const ExampleComponent = () => {
     </>
   );
 };
+```
+
+:::
+
+::: only-for angular
+
+```ts
+// Instance 1
+{
+  formulas: {
+    engine: HyperFormula,
+    // [plugin configuration]
+  }
+}
+
+// Instance 2
+{
+  formulas: {
+    engine: HyperFormula,
+    // [plugin configuration]
+  }
+}
 ```
 
 :::
@@ -387,6 +487,36 @@ const ExampleComponent = () => {
 
 :::
 
+::: only-for angular
+
+```ts
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
+
+// Instance 1
+{
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet1'
+    // [plugin configuration]
+  }
+}
+
+// Instance 2
+{
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet2'
+    // [plugin configuration]
+  }
+}
+```
+
+:::
+
 ## Available options and methods
 
 For the list of available settings and methods, visit the [API reference](@/api/formulas.md).
@@ -444,6 +574,32 @@ const ExampleComponent = () => {
 
 :::
 
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import {HyperFormula} from 'hyperformula';
+
+const afterFormulasValuesUpdate = (changes) => {
+  changes.forEach((change) => {
+    console.log('change', change.address, change.newValue);
+  });
+};
+
+const configurationOptions: GridSettings = {
+  formulas: {
+    engine: HyperFormula,
+  },
+  afterFormulasValuesUpdate,
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
 ## Named expressions
 
 You can use custom-named expressions in your formula expressions. A named expression can be either
@@ -475,6 +631,17 @@ pass an array with `name` and `expression` to your `formulas` configuration obje
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/formulas/formula-calculation/angular/example3.ts)
+@[code](@/content/guides/formulas/formula-calculation/angular/example3.html)
+
+:::
+
+:::
+
 For more information about named expressions, refer to the
 [HyperFormula docs](https://hyperformula.handsontable.com/guide/cell-references.html#relative-references).
 
@@ -494,15 +661,17 @@ Different versions of Handsontable support different versions of HyperFormula.
 
 To find out which HyperFormula version to use, see the table below:
 
-| Handsontable version                                                                    | HyperFormula version                                                                                           |
-| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| [`8.x.x`](https://github.com/handsontable/handsontable/releases/tag/8.0.0) and lower    | No HyperFormula support (old [Formulas](https://handsontable.com/docs/8.0.0/demo-formula-support.html) plugin) |
-| [`9.x.x`](https://github.com/handsontable/handsontable/releases/tag/9.0.0)              | [`0.6.2`](https://github.com/handsontable/hyperformula/releases/tag/0.6.2)                                     |
-| [`10.x.x`](https://github.com/handsontable/handsontable/releases/tag/10.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
-| [`11.x.x`](https://github.com/handsontable/handsontable/releases/tag/11.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
-| [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0)            | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0)                                    |
-| [`13.x.x`](https://github.com/handsontable/handsontable/releases/tag/13.0.0)            | [`^2.4.0`](https://github.com/handsontable/hyperformula/releases/tag/2.4.0)                                    |
-| [`14.x.x`](https://github.com/handsontable/handsontable/releases/tag/14.0.0) and higher | [`^2.4.0`](https://github.com/handsontable/hyperformula/releases/tag/2.4.0)                                    |
+| Handsontable version                                                                    | HyperFormula version                                                        |
+|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| [`8.x.x`](https://github.com/handsontable/handsontable/releases/tag/8.0.0) and lower    | No HyperFormula support
+| [`9.x.x`](https://github.com/handsontable/handsontable/releases/tag/9.0.0)              | [`0.6.2`](https://github.com/handsontable/hyperformula/releases/tag/0.6.2)  |
+| [`10.x.x`](https://github.com/handsontable/handsontable/releases/tag/10.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0) |
+| [`11.x.x`](https://github.com/handsontable/handsontable/releases/tag/11.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0) |
+| [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0)            | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0) |
+| [`13.x.x`](https://github.com/handsontable/handsontable/releases/tag/13.0.0)            | [`^2.4.0`](https://github.com/handsontable/hyperformula/releases/tag/2.4.0) |
+| [`14.x.x`](https://github.com/handsontable/handsontable/releases/tag/14.0.0)            | [`^2.4.0`](https://github.com/handsontable/hyperformula/releases/tag/2.4.0) |
+| [`14.3.x - 15.0.x`](https://github.com/handsontable/handsontable/releases/tag/14.3.0)   | [`^2.6.2`](https://github.com/handsontable/hyperformula/releases/tag/2.6.2) |
+| [`15.1.x`](https://github.com/handsontable/handsontable/releases/tag/15.1.0) and higher | [`^3.0.0`](https://github.com/handsontable/hyperformula/releases/tag/3.0.0) |
 
 ::: tip
 

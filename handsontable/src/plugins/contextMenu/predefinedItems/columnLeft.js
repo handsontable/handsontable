@@ -12,35 +12,33 @@ export default function columnLeftItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT);
     },
     callback() {
-      const latestSelection = this.getSelectedRangeLast().getTopLeftCorner();
+      const activeSelection = this.getSelectedRangeActive().getTopLeftCorner();
       const alterAction = this.isRtl() ? 'insert_col_end' : 'insert_col_start';
 
-      this.alter(alterAction, latestSelection.col, 1, 'ContextMenu.columnLeft');
+      this.alter(alterAction, activeSelection.col, 1, 'ContextMenu.columnLeft');
     },
     disabled() {
       if (!this.isColumnModificationAllowed()) {
         return true;
       }
 
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
-      if (!range) {
-        return true;
-      }
-
-      if (range.isSingleHeader() && range.highlight.col < 0) {
+      if (
+        !range ||
+        this.selection.isSelectedByRowHeader() ||
+        (range.isSingleHeader() && range.highlight.col < 0) ||
+        (this.countSourceCols() >= this.getSettings().maxCols)
+      ) {
         return true;
       }
 
       if (this.selection.isSelectedByCorner()) {
-        const totalColumns = this.countCols();
-
         // Enable "Insert column left" only when there is at least one column.
-        return totalColumns === 0;
+        return this.countCols() === 0;
       }
 
-      return this.selection.isSelectedByRowHeader() ||
-        this.countCols() >= this.getSettings().maxCols;
+      return false;
     },
     hidden() {
       return !this.getSettings().allowInsertColumn;

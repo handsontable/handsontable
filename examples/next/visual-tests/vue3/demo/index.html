@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handsontable for Vue3 example</title>
+    <script>
+      (function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const theme = urlParams.get('theme');
+        const themeLink = document.createElement('link');
+
+        themeLink.rel = 'stylesheet';
+
+        if (theme === 'main' || theme === 'main-dark') {
+          themeLink.href = `/assets/handsontable/styles/ht-theme-main.css`;
+
+        } else if (theme === 'horizon' || theme === 'horizon-dark') {
+          themeLink.href = `/assets/handsontable/styles/ht-theme-horizon.css`;
+
+        } else if (theme === 'classic' || theme === 'classic-dark') {
+          themeLink.href = `/assets/handsontable/styles/ht-theme-classic.css`;
+
+        }
+
+        [themeLink].forEach((link) => {
+          if (link.href) {
+            document.head.appendChild(link);
+          }
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

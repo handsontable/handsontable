@@ -1,4 +1,4 @@
-/* global Handsontable, ReactDOM, ng */
+/* global Handsontable, ng */
 /**
  * Returns a function that will destroy the demo resources.
  *
@@ -10,23 +10,29 @@
  */
 function createDestroyableResource(presetType, { rootExampleElement, hotInstance }) {
   return () => {
-    if (presetType.startsWith('vue3')) {
-      rootExampleElement.firstChild.__vue_app__.unmount();
+    const resource = {
+      destroy: () => {
+        if (presetType.startsWith('vue3')) {
+          rootExampleElement.firstChild.__vue_app__.unmount();
 
-    } else if (presetType.startsWith('vue')) {
-      rootExampleElement.firstChild.__vue__.$root.$destroy();
+        } else if (presetType.startsWith('react')) {
+          rootExampleElement.firstChild?._reactRoot.unmount();
 
-    } else if (presetType.startsWith('react')) {
-      ReactDOM.unmountComponentAtNode(rootExampleElement.firstChild);
+        } else if (presetType.startsWith('angular')) {
+          if (ng.core.getPlatform()) {
+            ng.core.getPlatform().destroy();
+          }
 
-    } else if (presetType.startsWith('angular')) {
-      ng.core.getPlatform().destroy();
+        } else if (!hotInstance.isDestroyed) {
+          // Skip internal HoT-based components (e.g. context menu, dropdown menu). They
+          // are managed by the HoT itself.
+          hotInstance.destroy();
+        }
+      },
+      hotInstance
+    };
 
-    } else if (!hotInstance.isDestroyed) {
-      // Skip internal HoT-based components (e.g. context menu, dropdown menu). They
-      // are managed by the HoT itself.
-      hotInstance.destroy();
-    }
+    return resource;
   };
 }
 
@@ -78,10 +84,22 @@ function createRegister() {
           if (rootExampleElement) {
             const examplePresetType = rootExampleElement.getAttribute('data-preset-type');
             const exampleId = rootExampleElement.getAttribute('data-example-id');
+            const currentEntry = register.get(exampleId);
+            const currentHotInstance =
+              typeof currentEntry === 'function' ?
+                register.get(exampleId)()?.hotInstance :
+                null;
+
+            const loader = rootExampleElement.closest('.example-container')
+              ?.querySelector('.examples-loader-container');
+
+            if (loader) {
+              loader.remove();
+            }
 
             register.set(exampleId, createDestroyableResource(examplePresetType, {
               rootExampleElement,
-              hotInstance: this,
+              hotInstance: currentHotInstance || this,
             }));
           }
         });
@@ -93,13 +111,13 @@ function createRegister() {
   };
 
   const destroyAll = () => {
-    register.forEach(destroyableResource => destroyableResource());
+    register.forEach(instanceResource => instanceResource().destroy());
     register.clear();
   };
 
   const destroyExample = (exampleId) => {
     if (register.has(exampleId)) {
-      register.get(exampleId)();
+      register.get(exampleId)().destroy();
       register.delete(exampleId);
     }
   };
@@ -110,14 +128,21 @@ function createRegister() {
     abortControllers.forEach(ctrl => ctrl.abort());
     abortControllers.add(new AbortController());
 
+    // Remove dynamically injected theme CSS from fixer.js
+    document.querySelectorAll('link[id^="dynamic-css-ht-theme-"]').forEach(link => link.remove());
+
     destroyAll();
   };
 
   const getAbortSignal = () => {
     const controllers = Array.from(abortControllers);
 
-    return controllers[controllers.length - 1].signal;
+    return controllers[controllers.length - 1]?.signal;
   };
+
+  const getAllHotInstances =
+    () =>
+      Array.from(register.values()).map(instanceResource => instanceResource().hotInstance);
 
   return {
     initPage,
@@ -125,6 +150,7 @@ function createRegister() {
     destroyAll,
     destroyExample,
     getAbortSignal,
+    getAllHotInstances,
   };
 }
 

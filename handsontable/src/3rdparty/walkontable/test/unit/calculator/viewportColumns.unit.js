@@ -1,15 +1,26 @@
 import {
-  RENDER_TYPE,
-  FULLY_VISIBLE_TYPE,
-  PARTIALLY_VISIBLE_TYPE,
   ViewportColumnsCalculator,
+  RenderedColumnsCalculationType,
+  FullyVisibleColumnsCalculationType,
+  PartiallyVisibleColumnsCalculationType,
 } from '../../../src/calculator';
 
-describe('ViewportColumnsCalculator', () => {
-  function allColumns20() {
-    return 20;
-  }
+function allColumns20() {
+  return 20;
+}
 
+function createViewportColumnsCalculator(options) {
+  return new ViewportColumnsCalculator({
+    ...options,
+    calculationTypes: [
+      ['rendered', new RenderedColumnsCalculationType()],
+      ['fullyVisible', new FullyVisibleColumnsCalculationType()],
+      ['partiallyVisible', new PartiallyVisibleColumnsCalculationType()],
+    ],
+  });
+}
+
+describe('ViewportColumnsCalculator', () => {
   it('should render first 5 columns in unscrolled container', () => {
     const options = {
       viewportWidth: 100,
@@ -17,12 +28,11 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 1000,
       columnWidthFn: index => allColumns20(index),
       overrideFn: undefined,
-      stretchMode: undefined,
-      stretchingColumnWidthFn: undefined,
     };
-    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportColumnsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startColumn).toBe(0);
     expect(renderedCalc.startPosition).toBe(0);
@@ -45,12 +55,11 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 1000,
       columnWidthFn: index => allColumns20(index),
       overrideFn: undefined,
-      stretchMode: undefined,
-      stretchingColumnWidthFn: undefined,
     };
-    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportColumnsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startColumn).toBe(3);
     expect(renderedCalc.startPosition).toBe(60);
@@ -77,12 +86,11 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 1000,
       columnWidthFn: index => allColumns20(index),
       overrideFn: calc => overrideFn(calc),
-      stretchMode: undefined,
-      stretchingColumnWidthFn: undefined,
     };
-    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportColumnsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startColumn).toBe(1);
     expect(renderedCalc.startPosition).toBe(20);
@@ -100,7 +108,7 @@ describe('ViewportColumnsCalculator', () => {
 
   it('should not exceed endColumn index beyond total columns (using render overrides)', () => {
     const overrideFn = function(calc) {
-      calc.startColumn -= 2;
+      calc.startColumn -= 20;
       calc.endColumn += 30;
     };
     const options = {
@@ -109,12 +117,11 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 8,
       columnWidthFn: index => allColumns20(index),
       overrideFn: calc => overrideFn(calc),
-      stretchMode: undefined,
-      stretchingColumnWidthFn: undefined,
     };
-    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportColumnsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startColumn).toBe(0);
     expect(renderedCalc.startPosition).toBe(0);
@@ -137,12 +144,11 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 1000,
       columnWidthFn: index => allColumns20(index),
       overrideFn: undefined,
-      stretchMode: undefined,
-      stretchingColumnWidthFn: undefined,
     };
-    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportColumnsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.count).toBe(6);
     expect(fullyVisibleCalc.count).toBe(4);
@@ -156,12 +162,11 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 8,
       columnWidthFn: index => allColumns20(index),
       overrideFn: undefined,
-      stretchMode: undefined,
-      stretchingColumnWidthFn: undefined,
     };
-    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportColumnsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startColumn).toBe(0);
     expect(renderedCalc.endColumn).toBe(7);
@@ -183,12 +188,11 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 10,
       columnWidthFn: index => allColumns20(index),
       overrideFn: undefined,
-      stretchMode: undefined,
-      stretchingColumnWidthFn: undefined,
     };
-    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportColumnsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startColumn).toBe(0);
     expect(renderedCalc.endColumn).toBe(9);
@@ -210,12 +214,11 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 10,
       columnWidthFn: index => allColumns20(index),
       overrideFn: undefined,
-      stretchMode: undefined,
-      stretchingColumnWidthFn: undefined,
     };
-    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportColumnsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startColumn).toBe(0);
     expect(renderedCalc.endColumn).toBe(9);
@@ -237,12 +240,11 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 0,
       columnWidthFn: index => allColumns20(index),
       overrideFn: undefined,
-      stretchMode: undefined,
-      stretchingColumnWidthFn: undefined,
     };
-    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportColumnsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startColumn).toBe(null);
     expect(renderedCalc.startPosition).toBe(null);
@@ -269,12 +271,11 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 0,
       columnWidthFn: index => allColumns20(index),
       overrideFn: calc => overrideFn(calc),
-      stretchMode: undefined,
-      stretchingColumnWidthFn: undefined,
     };
-    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportColumnsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startColumn).toBe(null);
     expect(renderedCalc.startPosition).toBe(null);
@@ -297,12 +298,11 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 20,
       columnWidthFn: index => allColumns20(index),
       overrideFn: undefined,
-      stretchMode: undefined,
-      stretchingColumnWidthFn: undefined,
     };
-    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportColumnsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startColumn).toBe(10);
     expect(renderedCalc.startPosition).toBe(200);
@@ -326,9 +326,10 @@ describe('ViewportColumnsCalculator', () => {
       totalColumns: 1000,
       columnWidthFn: () => NaN,
     };
-    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportColumnsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportColumnsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startColumn).toBe(0);
     expect(renderedCalc.startPosition).toBe(0);

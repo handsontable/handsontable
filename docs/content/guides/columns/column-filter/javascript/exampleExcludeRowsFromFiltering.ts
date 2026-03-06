@@ -1,6 +1,9 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { Filters } from 'handsontable/plugins';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#exampleExcludeRowsFromFiltering')!;
 
@@ -135,7 +138,7 @@ new Handsontable(container, {
       type: 'numeric',
       data: 'price',
       numericFormat: {
-        pattern: '$ 0,0.00',
+        pattern: '$0,0.00',
         culture: 'en-US',
       },
       className: 'htRight',
@@ -178,10 +181,7 @@ new Handsontable(container, {
     const filtersRowsMap = filtersPlugin.filtersRowsMap;
 
     filtersRowsMap.setValueAtIndex(0, false);
-    filtersRowsMap.setValueAtIndex(
-      filtersRowsMap.indexedValues.length - 1,
-      false
-    );
+    filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
   },
   autoWrapRow: true,
   autoWrapCol: true,

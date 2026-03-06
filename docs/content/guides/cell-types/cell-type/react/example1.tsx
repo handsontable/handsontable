@@ -1,23 +1,13 @@
-import { HotTable } from '@handsontable/react';
-import Handsontable from 'handsontable';
+import { HotTable } from '@handsontable/react-wrapper';
+import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 import { BaseRenderer } from 'handsontable/renderers';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const colors: string[] = [
-    'yellow',
-    'red',
-    'orange',
-    'green',
-    'blue',
-    'gray',
-    'black',
-    'white',
-  ];
+  const colors: string[] = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
 
   const yellowRenderer: BaseRenderer = (instance, td, ...rest) => {
     Handsontable.renderers.TextRenderer(instance, td, ...rest);

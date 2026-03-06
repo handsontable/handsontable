@@ -1,6 +1,5 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -17,7 +16,7 @@ const ExampleComponent = () => {
       height="auto"
       colHeaders={true}
       rowHeaders={true}
-      rowHeights={function (index: number) {
+      minRowHeights={function (index: number) {
         return (index + 1) * 20;
       }}
       manualRowResize={true}

@@ -1,2 +1,3 @@
-export * from './focusCatcher';
+export * from './coordsMapper';
+export * from './hooks';
 export * from './viewportScroll';

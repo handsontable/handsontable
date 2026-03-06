@@ -30,6 +30,7 @@ const hot = new Handsontable(document.createElement('div'), {
       type: 'count',
       destinationRow: 3,
       destinationColumn: 3,
+      roundFloat: 'auto',
       reversedRowCoords: true,
     },
     {
@@ -43,7 +44,7 @@ const hot = new Handsontable(document.createElement('div'), {
     },
   ],
 });
-const hot2 = new Handsontable(document.createElement('div'), {
+new Handsontable(document.createElement('div'), {
   columnSummary() {
     return [
       {
@@ -87,6 +88,21 @@ const endpoint2: Endpoint = {
   customFunction: null,
 };
 
+const endpoint3: Endpoint = {
+  destinationRow: 0,
+  destinationColumn: 0,
+  forceNumeric: false,
+  reversedRowCoords: true,
+  suppressDataTypeErrors: true,
+  readOnly: true,
+  roundFloat: 'auto',
+  ranges: [[1, 1, 2, 2]],
+  sourceColumn: 0,
+  type: 'sum',
+  result: 0,
+  customFunction: null,
+};
+
 columnSummary.calculate(endpoint);
 const sum: number = columnSummary.calculateSum(endpoint);
 const min: number | string = columnSummary.calculateMinMax(endpoint, 'min');
@@ -94,3 +110,7 @@ const max: number | string = columnSummary.calculateMinMax(endpoint, 'max');
 const avr: number = columnSummary.calculateAverage(endpoint);
 const empty: number = columnSummary.countEmpty([[1, 1, 2, 2]], 2);
 const entries: number = columnSummary.countEntries(endpoint);
+const cellValue: number = columnSummary.getCellValue(2, 2);
+const partialMin: number = columnSummary.getPartialMinMax([[1, 1, 2, 2]], 2, 'min');
+const partialMax: number = columnSummary.getPartialMinMax([[1, 1, 2, 2]], 2, 'max');
+const partialSum: number = columnSummary.getPartialSum([[1, 1, 2, 2]], 2);

@@ -6,15 +6,11 @@ import { registerRootComparator } from '../columnSorting/sortService';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
-import { warnAboutPluginsConflict } from './utils';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 
-import './multiColumnSorting.scss';
-
 export const PLUGIN_KEY = 'multiColumnSorting';
 export const PLUGIN_PRIORITY = 170;
-const CONFLICTED_PLUGIN_KEY = 'columnSorting';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
@@ -95,19 +91,13 @@ export class MultiColumnSorting extends ColumnSorting {
    * @returns {boolean}
    */
   isEnabled() {
-    return super.isEnabled();
+    return !!(this.hot.getSettings()[this.pluginKey]);
   }
 
   /**
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
-    if (!this.enabled && this.hot.getSettings()[this.pluginKey] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY]) {
-      warnAboutPluginsConflict();
-
-      this.hot.getPlugin(CONFLICTED_PLUGIN_KEY).disablePlugin();
-    }
-
     super.enablePlugin();
   }
 
@@ -130,7 +120,7 @@ export class MultiColumnSorting extends ColumnSorting {
       .addShortcut({
         keys: [['Shift', 'Enter']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeLast();
+          const { highlight } = this.hot.getSelectedRangeActive();
 
           if (highlight.row === -1 && highlight.col >= 0) {
             this.sort(this.getNextSortConfig(highlight.col, APPEND_COLUMN_CONFIG_STRATEGY));
@@ -140,9 +130,9 @@ export class MultiColumnSorting extends ColumnSorting {
           return false;
         },
         runOnlyIf: () => {
-          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-          return highlight && this.hot.getSelectedRangeLast()?.isSingle() &&
+          return highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
             this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
         },
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
@@ -280,21 +270,6 @@ export class MultiColumnSorting extends ColumnSorting {
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
     }
-  }
-
-  /**
-   * Overwriting base plugin's `onUpdateSettings` method. Please keep in mind that `onAfterUpdateSettings` isn't called
-   * for `updateSettings` in specific situations.
-   *
-   * @private
-   * @param {object} newSettings New settings object.
-   */
-  onUpdateSettings(newSettings) {
-    if (this.hot.getSettings()[this.pluginKey] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY]) {
-      warnAboutPluginsConflict();
-    }
-
-    super.onUpdateSettings(newSettings);
   }
 
   /**

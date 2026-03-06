@@ -16,7 +16,7 @@ describe('CopyPaste', () => {
   });
 
   describe('`afterCopy` hook', () => {
-    it('should be called with coords and dataset points to the cells only', () => {
+    it('should be called with coords and dataset points to the cells only', async() => {
       const afterCopy = jasmine.createSpy('afterCopy');
 
       handsontable({
@@ -29,7 +29,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 2, 3, 4);
+      await selectCell(1, 2, 3, 4);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -43,7 +43,7 @@ describe('CopyPaste', () => {
     });
 
     it('should be called with coords and dataset points to the cells and the first column headers ' +
-       'nearest the cells (single-line column headers configuration)', () => {
+       'nearest the cells (single-line column headers configuration)', async() => {
       const afterCopy = jasmine.createSpy('afterCopy');
 
       handsontable({
@@ -56,7 +56,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 2, 3, 4);
+      await selectCell(1, 2, 3, 4);
 
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -73,7 +73,7 @@ describe('CopyPaste', () => {
     });
 
     it('should be called with coords and dataset points to the cells and the first column headers ' +
-       'nearest the cells (multi-line column headers configuration)', () => {
+       'nearest the cells (multi-line column headers configuration)', async() => {
       const afterCopy = jasmine.createSpy('afterCopy');
 
       handsontable({
@@ -95,7 +95,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 2, 3, 4);
+      await selectCell(1, 2, 3, 4);
 
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -111,7 +111,7 @@ describe('CopyPaste', () => {
       );
     });
 
-    it('should be called with coords and dataset points to the cells and all column header layers', () => {
+    it('should be called with coords and dataset points to the cells and all column header layers', async() => {
       const afterCopy = jasmine.createSpy('afterCopy');
 
       handsontable({
@@ -136,7 +136,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 2, 3, 3);
+      await selectCell(1, 2, 3, 3);
 
       plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event

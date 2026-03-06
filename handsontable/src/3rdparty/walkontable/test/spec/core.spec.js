@@ -20,7 +20,7 @@ describe('WalkontableCore', () => {
     this.wotInstance.destroy();
   });
 
-  it('first row should have the same text as in data source', () => {
+  it('first row should have the same text as in data source', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -34,7 +34,7 @@ describe('WalkontableCore', () => {
     expect(TDs[1].innerHTML).toBe('a');
   });
 
-  it('should bootstrap table if empty TABLE is given', () => {
+  it('should bootstrap table if empty TABLE is given', async() => {
     spec().$wrapper.width(200).height(200);
 
     const wt = walkontable({
@@ -49,7 +49,7 @@ describe('WalkontableCore', () => {
     expect(spec().$table.find('td').length).toBe(400);
   });
 
-  it('should bootstrap column headers if THEAD is given', () => {
+  it('should bootstrap column headers if THEAD is given', async() => {
     spec().$table.remove();
     spec().$table = $('<table><thead><tr><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead></table>')
       .addClass('htCore');
@@ -71,7 +71,7 @@ describe('WalkontableCore', () => {
     expect(spec().$table.find('tbody tr:first td').length).toBe(4);
   });
 
-  it('should figure out how many columns to display if width param given', () => {
+  it('should figure out how many columns to display if width param given', async() => {
     spec().$wrapper.width(100);
 
     const wt = walkontable({
@@ -84,7 +84,7 @@ describe('WalkontableCore', () => {
     expect(spec().$table.find('tbody tr:first td').length).toBe(2);
   });
 
-  it('should not render table that is removed from DOM', () => {
+  it('should not render table that is removed from DOM', async() => {
     spec().$wrapper.remove();
     const wt = walkontable({
       data: getData,
@@ -97,7 +97,7 @@ describe('WalkontableCore', () => {
     expect(wt.drawInterrupted).toBe(true);
   });
 
-  it('should not render table that is `display: none`', () => {
+  it('should not render table that is `display: none`', async() => {
     const $div = $('<div style="display: none"></div>').appendTo('body');
 
     $div.append(spec().$wrapper);
@@ -115,7 +115,22 @@ describe('WalkontableCore', () => {
     $div.remove();
   });
 
-  it('should render empty table (limited height)', () => {
+  it('should not render the table if the container has the height of 0px', async() => {
+    spec().$wrapper.height(0);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+
+    wt.draw();
+
+    expect(wt.drawn).toBe(false);
+    expect(wt.drawInterrupted).toBe(true);
+  });
+
+  it('should render empty table (limited height)', async() => {
     createDataArray(0, 5);
 
     const wt = walkontable({
@@ -131,7 +146,7 @@ describe('WalkontableCore', () => {
     }).not.toThrow();
   });
 
-  it('should render empty table (unlimited height)', () => {
+  it('should render empty table (unlimited height)', async() => {
     createDataArray(0, 5);
 
     const wt = walkontable({
@@ -147,7 +162,7 @@ describe('WalkontableCore', () => {
     }).not.toThrow();
   });
 
-  it('should render empty then filled table (limited height)', () => {
+  it('should render empty then filled table (limited height)', async() => {
     createDataArray(0, 5);
 
     const wt = walkontable({
@@ -164,7 +179,7 @@ describe('WalkontableCore', () => {
     }).not.toThrow();
   });
 
-  it('should render empty then filled table (unlimited height)', () => {
+  it('should render empty then filled table (unlimited height)', async() => {
     createDataArray(0, 5);
 
     const wt = walkontable({
@@ -181,7 +196,7 @@ describe('WalkontableCore', () => {
     }).not.toThrow();
   });
 
-  it('should render table with rows but no columns', () => {
+  it('should render table with rows but no columns', async() => {
     createDataArray(5, 0);
 
     const wt = walkontable({

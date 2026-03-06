@@ -22,7 +22,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('isVisible()', () => {
-    it('should return `false` when holder element is hidden', () => {
+    it('should return `false` when holder element is hidden', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,

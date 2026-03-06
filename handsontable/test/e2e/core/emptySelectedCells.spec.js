@@ -10,33 +10,33 @@ describe('Core.emptySelectedCells', () => {
     }
   });
 
-  it('should make all selected cells empty', () => {
+  it('should make all selected cells empty', async() => {
     handsontable({
       data: createSpreadsheetObjectData(9, 8),
       selectionMode: 'multiple',
     });
 
-    mouseDown(getCell(5, 4));
-    mouseOver(getCell(1, 1));
-    mouseUp(getCell(1, 1));
+    await mouseDown(getCell(5, 4));
+    await mouseOver(getCell(1, 1));
+    await mouseUp(getCell(1, 1));
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
-    mouseDown(getCell(2, 2));
-    mouseOver(getCell(7, 2));
-    mouseUp(getCell(7, 2));
+    await mouseDown(getCell(2, 2));
+    await mouseOver(getCell(7, 2));
+    await mouseUp(getCell(7, 2));
 
-    mouseDown(getCell(2, 4));
-    mouseOver(getCell(2, 4));
-    mouseUp(getCell(2, 4));
+    await mouseDown(getCell(2, 4));
+    await mouseOver(getCell(2, 4));
+    await mouseUp(getCell(2, 4));
 
-    mouseDown(getCell(7, 6));
-    mouseOver(getCell(8, 7));
-    mouseUp(getCell(8, 7));
+    await mouseDown(getCell(7, 6));
+    await mouseOver(getCell(8, 7));
+    await mouseUp(getCell(8, 7));
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
-    emptySelectedCells();
+    await emptySelectedCells();
 
     /* eslint-disable no-multi-spaces, comma-spacing */
     const snapshot = [
@@ -55,7 +55,7 @@ describe('Core.emptySelectedCells', () => {
     expect(getData()).toEqual(snapshot);
   });
 
-  it('should not make the cells empty when the focus points to the header', () => {
+  it('should not make the cells empty when the focus points to the header', async() => {
     const beforeChange = jasmine.createSpy('beforeChange');
 
     handsontable({
@@ -66,8 +66,9 @@ describe('Core.emptySelectedCells', () => {
       beforeChange,
     });
 
-    selectCell(-1, 1);
-    emptySelectedCells();
+    await selectCell(-1, 1);
+
+    await emptySelectedCells();
 
     expect(getData()).toEqual([
       ['A1', 'B1', 'C1'],
@@ -77,21 +78,22 @@ describe('Core.emptySelectedCells', () => {
     expect(beforeChange).not.toHaveBeenCalled();
   });
 
-  it('should not throw an error when method is called when all headers are selected', () => {
+  it('should not throw an error when method is called when all headers are selected', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
       colHeaders: true,
     });
 
-    selectAll();
+    await selectAll();
 
     expect(() => {
+      // eslint-disable-next-line handsontable/require-await
       emptySelectedCells();
     }).not.toThrowError();
   });
 
-  it('should not be performed, when there are no rows (even when there are headers selected)', () => {
+  it('should not be performed, when there are no rows (even when there are headers selected)', async() => {
     // We're using the `beforeChange` hook, as the `emptySelectedCells` method ends up doing a bunch of changes to
     // clear the selected cells.
     const onBeforeChange = jasmine.createSpy('beforeChange');
@@ -104,14 +106,14 @@ describe('Core.emptySelectedCells', () => {
       beforeChange: onBeforeChange
     });
 
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
 
-    emptySelectedCells();
+    await emptySelectedCells();
 
     expect(onBeforeChange).not.toHaveBeenCalled();
   });
 
-  it('should not be performed, when there are no columns (even when there are headers selected)', () => {
+  it('should not be performed, when there are no columns (even when there are headers selected)', async() => {
     // We're using the `beforeChange` hook, as the `emptySelectedCells` method ends up doing a bunch of changes to
     // clear the selected cells.
     const onBeforeChange = jasmine.createSpy('beforeChange');
@@ -124,14 +126,14 @@ describe('Core.emptySelectedCells', () => {
       beforeChange: onBeforeChange
     });
 
-    simulateClick(spec().$container.find('.ht_clone_inline_start tr:eq(1) th:eq(0)'));
+    await simulateClick(spec().$container.find('.ht_clone_inline_start tr:eq(1) th:eq(0)'));
 
-    emptySelectedCells();
+    await emptySelectedCells();
 
     expect(onBeforeChange).not.toHaveBeenCalled();
   });
 
-  it('should not be performed, when all rows are trimmed (even when there are headers selected)', () => {
+  it('should not be performed, when all rows are trimmed (even when there are headers selected)', async() => {
     // We're using the `beforeChange` hook, as the `emptySelectedCells` method ends up doing a bunch of changes to
     // clear the selected cells.
     const onBeforeChange = jasmine.createSpy('beforeChange');
@@ -145,14 +147,14 @@ describe('Core.emptySelectedCells', () => {
       beforeChange: onBeforeChange
     });
 
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
 
-    emptySelectedCells();
+    await emptySelectedCells();
 
     expect(onBeforeChange).not.toHaveBeenCalled();
   });
 
-  it('should override cleared values using `beforeChange` hook', () => {
+  it('should override cleared values using `beforeChange` hook', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -165,9 +167,9 @@ describe('Core.emptySelectedCells', () => {
       }
     });
 
-    selectCells([[0, 0, 2, 2]]);
+    await selectCells([[0, 0, 2, 2]]);
 
-    emptySelectedCells();
+    await emptySelectedCells();
 
     expect(getData()).toEqual([
       ['test', null, null, 4, 5, 6],

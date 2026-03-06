@@ -126,7 +126,7 @@ class Overlays {
 
       this.#containerDomResizeCount += 1;
 
-      if (this.#containerDomResizeCount === 100) {
+      if (this.#containerDomResizeCount === 300) {
         warn('The ResizeObserver callback was fired too many times in direct succession.' +
           '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
           'with the `dvh` units) to a Handsontable container\'s parent. ' +
@@ -172,15 +172,13 @@ class Overlays {
     // TODO refactoring: probably invalid place to this logic
     this.scrollbarSize = getScrollbarWidth(rootDocument);
 
-    const isOverflowHidden = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
-      .getPropertyValue('overflow') === 'hidden';
+    const computedOverflow = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
+      .getPropertyValue('overflow');
+    const isOverflowClip = computedOverflow === 'hidden' || computedOverflow === 'clip';
 
-    this.scrollableElement = isOverflowHidden ? wtTable.holder : getScrollableElement(wtTable.TABLE);
+    this.scrollableElement = isOverflowClip ? wtTable.holder : getScrollableElement(wtTable.TABLE);
 
     this.initOverlays();
-
-    this.hasScrollbarBottom = false;
-    this.hasScrollbarRight = false;
 
     this.destroyed = false;
     this.keyPressed = false;
@@ -367,41 +365,31 @@ class Overlays {
     ];
 
     overlays.forEach((overlay) => {
-      if (overlay && overlay.needFullRender) {
-        const { holder } = overlay.clone.wtTable; // todo rethink, maybe: overlay.getHolder()
-
-        this.eventManager.addEventListener(
-          holder,
-          'wheel',
-          event => this.onCloneWheel(event, preventWheel),
-          wheelEventOptions
-        );
-      }
+      this.eventManager.addEventListener(
+        overlay.clone.wtTable.holder,
+        'wheel',
+        event => this.onCloneWheel(event, preventWheel),
+        wheelEventOptions
+      );
     });
 
     let resizeTimeout;
 
     this.eventManager.addEventListener(rootWindow, 'resize', () => {
-      clearTimeout(resizeTimeout);
-
-      resizeTimeout = setTimeout(() => {
+      requestAnimationFrame(() => {
+        clearTimeout(resizeTimeout);
         this.wtSettings.getSetting('onWindowResize');
 
-        // Remove resizing the window from the ResizeObserver's endless-loop-blocking logic.
-        this.#containerDomResizeCount = 0;
-      }, 200);
+        resizeTimeout = setTimeout(() => {
+          // Remove resizing the window from the ResizeObserver's endless-loop-blocking logic.
+          this.#containerDomResizeCount = 0;
+        }, 200);
+      });
     });
 
     if (!isScrollOnWindow) {
       this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);
     }
-  }
-
-  /**
-   * Deregister all previously registered listeners.
-   */
-  deregisterListeners() {
-    this.eventManager.clearEvents(true);
   }
 
   /**
@@ -436,6 +424,11 @@ class Overlays {
    * @param {boolean} preventDefault If `true`, the `preventDefault` will be called on event object.
    */
   onCloneWheel(event, preventDefault) {
+    // Fix for Windows OS, where the ctrl key is used to zoom the page (issue #dev-2405).
+    if (event.ctrlKey) {
+      return;
+    }
+
     const { rootWindow } = this.domBindings;
 
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
@@ -543,29 +536,44 @@ class Overlays {
       return;
     }
 
-    const { rootWindow } = this.domBindings;
     const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
     const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
-    const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
+    let scrollX = this.scrollableElement.scrollLeft;
+    let scrollY = this.scrollableElement.scrollTop;
 
-    this.horizontalScrolling = (topHolder.scrollLeft !== scrollLeft || this.lastScrollX !== rootWindow.scrollX);
-    this.verticalScrolling = (leftHolder.scrollTop !== scrollTop || this.lastScrollY !== rootWindow.scrollY);
-    this.lastScrollX = rootWindow.scrollX;
-    this.lastScrollY = rootWindow.scrollY;
+    if (
+      this.wot.wtViewport.isHorizontallyScrollableByWindow()
+      && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'horizontal')
+    ) {
+      scrollX = this.scrollableElement.scrollX;
+    }
+
+    if (
+      this.wot.wtViewport.isVerticallyScrollableByWindow()
+      && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'vertical')
+    ) {
+      scrollY = this.scrollableElement.scrollY;
+    }
+
+    this.horizontalScrolling = this.lastScrollX !== scrollX;
+    this.verticalScrolling = this.lastScrollY !== scrollY;
+    this.lastScrollX = scrollX;
+    this.lastScrollY = scrollY;
 
     if (this.horizontalScrolling) {
-      topHolder.scrollLeft = scrollLeft;
+      topHolder.scrollLeft = scrollX;
 
       const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null; // todo rethink
 
       if (bottomHolder) {
-        bottomHolder.scrollLeft = scrollLeft;
+        bottomHolder.scrollLeft = scrollX;
       }
     }
 
     if (this.verticalScrolling) {
-      leftHolder.scrollTop = scrollTop;
+      leftHolder.scrollTop = scrollY;
     }
 
     this.refreshAll();
@@ -599,7 +607,7 @@ class Overlays {
    * Update the main scrollable elements for all the overlays.
    */
   updateMainScrollableElements() {
-    this.deregisterListeners();
+    this.eventManager.clearEvents(true);
 
     this.inlineStartOverlay.updateMainScrollableElement();
     this.topOverlay.updateMainScrollableElement();
@@ -609,8 +617,11 @@ class Overlays {
     }
     const { wtTable } = this;
     const { rootWindow } = this.domBindings;
+    const computedOverflow = rootWindow
+      .getComputedStyle(wtTable.wtRootElement.parentNode)
+      .getPropertyValue('overflow');
 
-    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+    if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
       this.scrollableElement = wtTable.holder;
     } else {
       this.scrollableElement = getScrollableElement(wtTable.TABLE);
@@ -625,7 +636,7 @@ class Overlays {
   destroy() {
     this.resizeObserver.disconnect();
     this.eventManager.destroy();
-    // todo, probably all below `destory` calls has no sense. To analyze
+    // todo, probably all below `destroy` calls has no sense. To analyze
     this.topOverlay.destroy();
 
     if (this.bottomOverlay.clone) {
@@ -703,7 +714,13 @@ class Overlays {
     const totalRows = this.wtSettings.getSetting('totalRows');
     const headerRowSize = wtViewport.getRowHeaderWidth();
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
-    const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1;
+    // The internal row height calculator contains a known issue that results in a 1px miscalculation.
+    // Ideally, this should be addressed at the core level. However, resolving it is non-trivial,
+    // as the flaw is embedded across multiple core modules and corresponding test cases.
+    // This limitation does not affect when the external calculator is used (AutoRowSize), which
+    // computes heights accurately, so no adjustment is required when using it.
+    const hiderHeightComp = this.wtSettings.getSetting('externalRowCalculator') ? 0 : 1;
+    const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp;
     const proposedHiderWidth = headerRowSize + this.inlineStartOverlay.sumCellSizes(0, totalColumns);
     const hiderElement = wtTable.hider;
     const hiderStyle = hiderElement.style;
@@ -724,26 +741,6 @@ class Overlays {
     // we need to adjust the hider dimensions by the header border size. (https://github.com/handsontable/dev-handsontable/issues/1772)
     hiderStyle.width = `${proposedHiderWidth + rowHeaderBorderCompensation}px`;
     hiderStyle.height = `${proposedHiderHeight + columnHeaderBorderCompensation}px`;
-
-    if (this.scrollbarSize > 0) { // todo refactoring, looking as a part of logic which should be moved outside the class
-      const {
-        scrollHeight: rootElemScrollHeight,
-        scrollWidth: rootElemScrollWidth,
-      } = wtTable.wtRootElement;
-      const {
-        scrollHeight: holderScrollHeight,
-        scrollWidth: holderScrollWidth,
-      } = wtTable.holder;
-
-      this.hasScrollbarRight = rootElemScrollHeight < holderScrollHeight;
-      this.hasScrollbarBottom = rootElemScrollWidth < holderScrollWidth;
-
-      if (this.hasScrollbarRight && wtTable.hider.scrollWidth + this.scrollbarSize > rootElemScrollWidth) {
-        this.hasScrollbarBottom = true;
-      } else if (this.hasScrollbarBottom && wtTable.hider.scrollHeight + this.scrollbarSize > rootElemScrollHeight) {
-        this.hasScrollbarRight = true;
-      }
-    }
 
     this.topOverlay.adjustElementsSize();
     this.inlineStartOverlay.adjustElementsSize();

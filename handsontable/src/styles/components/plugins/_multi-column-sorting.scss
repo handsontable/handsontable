@@ -1,0 +1,88 @@
+@use "../../utils/mixins";
+
+// Multi Column Sorting
+//  Helper element for:
+//   - Manual Column Sorting
+
+@mixin output {
+  .handsontable {
+    // Column's number position
+    .colHeader {
+      &.columnSorting {
+        &::after {
+          @include mixins.pseudo;
+
+          width: 8px;
+          position: absolute;
+          top: 50%;
+          right: 0;
+          transform: translateY(-50%);
+          margin-top: 4px;
+          font-size: 8px;
+          text-align: right;
+        }
+
+        // We support up to 7 numeric indicators, describing order of column in sorted columns queue
+        &[class^="sort-"]::after,
+        &[class*=" sort-"]::after {
+          content: "+";
+        }
+
+        // Numeric indicators
+        @for $i from 1 through 7 {
+          &.sort-#{$i}::after {
+            content: "#{$i}";
+          }
+        }
+      }
+    }
+
+    .htRight {
+      .colHeader {
+        &.columnSorting {
+          &::after {
+            left: 0;
+            right: auto;
+            text-align: left;
+          }
+        }
+      }
+    }
+  }
+
+  [dir="rtl"] {
+    .handsontable {
+      // Column's number position
+      .colHeader {
+        &.columnSorting {
+          &::after {
+            left: 0;
+            right: auto;
+            text-align: left;
+          }
+        }
+      }
+
+      .htLeft {
+        .colHeader {
+          &.columnSorting {
+            &::after {
+              left: auto;
+              right: 0;
+              text-align: right;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Drop-down menu
+  .htGhostTable
+    th
+    div
+    button.changeType
+    + span.colHeader.columnSorting:not(.indicatorDisabled) {
+    padding-right: var(--ht-gap-size);
+  }
+}

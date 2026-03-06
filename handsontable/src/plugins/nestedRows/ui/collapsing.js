@@ -486,10 +486,9 @@ class CollapsingUI extends BaseUI {
    * @private
    */
   renderAndAdjust() {
-    this.hot.render();
-
     // Dirty workaround to prevent scroll height not adjusting to the table height. Needs refactoring in the future.
     this.hot.view.adjustElementsSize();
+    this.hot.render();
   }
 }
 

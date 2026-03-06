@@ -1,5 +1,5 @@
-import RowsRenderer from 'walkontable/renderer/rows';
-import OrderView from 'walkontable/utils/orderView/view';
+import { RowsRenderer } from 'walkontable/renderer/rows';
+import { OrderView } from 'walkontable/utils/orderView/view';
 
 jest.mock('walkontable/utils/orderView/view');
 

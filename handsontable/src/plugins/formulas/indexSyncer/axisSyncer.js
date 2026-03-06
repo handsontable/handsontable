@@ -103,7 +103,10 @@ class AxisSyncer {
     const indexesSequence = this.#indexMapper.getIndexesSequence();
     const notTrimmedIndexes = this.#indexMapper.getNotTrimmedIndexes();
 
-    return indexesSequence.indexOf(notTrimmedIndexes[visualIndex]);
+    // Optimization:
+    // notTrimmedIndexes is a subset of indexesSequence,
+    // so for every x indexesSequence.indexOf(x) is always >= notTrimmedIndexes.indexOf(x)
+    return indexesSequence.indexOf(notTrimmedIndexes[visualIndex], visualIndex);
   }
 
   /**

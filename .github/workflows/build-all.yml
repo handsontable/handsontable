@@ -8,8 +8,12 @@ on:
       - 'release/**'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
-  NODE_VERSION: 20  
+  NODE_VERSION: 22
   PYTHON_VERSION: '3.11'
 
 jobs:
@@ -22,22 +26,25 @@ jobs:
       matrix:
         os: [ ubuntu-latest, macos-latest ]
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-      
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+
       # should resolve node-gyp issue we have been having with builds
       - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1  # v4.7.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # https://github.com/actions/setup-python/releases/tag/v6.2.0
         with:
          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
 
       - name: Install the dependencies
-        run: npm ci
+        run: pnpm install
 
       - name: Build all packages
         run: npm run all build
@@ -46,22 +53,38 @@ jobs:
     name: Build all packages in windows-latest
     runs-on: windows-latest
     timeout-minutes: 60
+    env:
+      # Force npm operations to use the D drive (much faster)
+      npm_config_cache: D:/npm-cache
+      TEMP: D:/Temp
+      TMP: D:/Temp
     steps:
-      # on C drive there is more free space left to do this job (https://github.com/actions/runner-images/issues/1341#issuecomment-667478747)
-      - name: Checkout
+      # Use D drive for checkout (much faster)
+      - name: Checkout to D drive
         run: |
-          mkdir C:/handsontable
-          git clone -b $env:GITHUB_REF_NAME https://github.com/handsontable/handsontable C:/handsontable --depth 1
+          mkdir D:/handsontable
+          git clone -b $env:GITHUB_REF_NAME https://github.com/handsontable/handsontable D:/handsontable --depth 1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+      # Create temp and cache directories on D drive
+      - name: Setup D drive directories
+        run: |
+          mkdir D:/Temp -Force
+          mkdir D:/npm-cache -Force
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+        name: Install pnpm
+        with:
+          version: 10 # On Windows the `packageManager` field of `package.json` seems to not be recognized.
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install the dependencies
-        working-directory: C:/handsontable
-        run: npm ci
+        working-directory: D:/handsontable
+        run: pnpm install
 
       - name: Build all packages
-        working-directory: C:/handsontable
+        working-directory: D:/handsontable
         run: npm run all build

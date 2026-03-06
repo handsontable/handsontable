@@ -1,4 +1,5 @@
-import staticRegister from '../utils/staticRegister';
+import { staticRegister } from '../utils/staticRegister';
+import { throwWithCause } from '../helpers/errors';
 import { registerEditor } from '../editors/registry';
 import { registerRenderer } from '../renderers/registry';
 import { registerValidator } from '../validators/registry';
@@ -19,7 +20,7 @@ const {
  */
 function _getItem(name) {
   if (!hasItem(name)) {
-    throw Error(`You declared cell type "${name}" as a string that is not mapped to a known object.
+    throwWithCause(`You declared cell type "${name}" as a string that is not mapped to a known object.
                  Cell type must be an object or a string mapped to an object registered by
                  "Handsontable.cellTypes.registerCellType" method`);
   }

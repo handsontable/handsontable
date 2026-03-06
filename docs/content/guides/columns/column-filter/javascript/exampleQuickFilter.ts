@@ -1,6 +1,9 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { Filters } from 'handsontable/plugins';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#exampleQuickFilter')!;
 const filterField = document.querySelector('#filterField')!;
@@ -64,7 +67,7 @@ const hot = new Handsontable(container, {
       type: 'numeric',
       data: 'price',
       numericFormat: {
-        pattern: '$ 0,0.00',
+        pattern: '$0,0.00',
         culture: 'en-US',
       },
     },
@@ -104,9 +107,7 @@ filterField.addEventListener('keyup', (event) => {
   const columnValue = columnSelector.value as unknown as number;
 
   filters.removeConditions(columnValue);
-  filters.addCondition(columnValue, 'contains', [
-    (event.target as HTMLInputElement).value,
-  ]);
+  filters.addCondition(columnValue, 'contains', [(event.target as HTMLInputElement).value]);
   filters.filter();
 
   hot.render();

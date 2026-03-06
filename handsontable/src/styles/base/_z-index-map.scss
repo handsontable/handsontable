@@ -1,0 +1,26 @@
+@use "sass:map";
+
+// Z-index map
+
+$z-indexes: (
+  "ht_clone_master": 100,
+  "ht_clone_inline_start": 120,
+  "ht_clone_bottom": 130,
+  "ht_clone_bottom_inline_start_corner": 150,
+  "ht_clone_top": 160,
+  "ht_clone_top_inline_start_corner": 180,
+  "ht_editor_hidden": -1,
+  "ht_editor_visible": 200,
+);
+
+@mixin apply-z-index($class) {
+  z-index: map.get($z-indexes, $class);
+}
+
+@mixin output {
+  @each $class, $z-index in $z-indexes {
+    .#{$class} {
+      @include apply-z-index($class);
+    }
+  }
+}

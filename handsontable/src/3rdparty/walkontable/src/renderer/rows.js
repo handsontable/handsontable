@@ -1,14 +1,23 @@
-import BaseRenderer from './_base';
-import { warn } from './../../../../helpers/console';
-import { toSingleLine } from './../../../../helpers/templateLiteralTag';
-import { OrderView } from './../utils/orderView';
-import { setAttribute } from '../../../../helpers/dom/element';
+import { BaseRenderer } from './_base';
+import { warn } from '../../../../helpers/console';
+import { toSingleLine } from '../../../../helpers/templateLiteralTag';
+import { OrderView } from '../utils/orderView';
+import {
+  addClass,
+  hasClass,
+  removeClass,
+  setAttribute
+} from '../../../../helpers/dom/element';
 import {
   A11Y_ROW,
   A11Y_ROWGROUP,
   A11Y_ROWINDEX
 } from '../../../../helpers/a11y';
 
+const ROW_CLASSNAMES = {
+  rowEven: 'ht__row_even',
+  rowOdd: 'ht__row_odd',
+};
 let performanceWarningAppeared = false;
 
 /**
@@ -23,7 +32,7 @@ let performanceWarningAppeared = false;
  *
  * @class {RowsRenderer}
  */
-export default class RowsRenderer extends BaseRenderer {
+export class RowsRenderer extends BaseRenderer {
   /**
    * Cache for OrderView classes connected to specified node.
    *
@@ -87,6 +96,16 @@ export default class RowsRenderer extends BaseRenderer {
           // `aria-rowindex` is incremented by both tbody and thead rows.
           A11Y_ROWINDEX(sourceRowIndex + (this.table.rowUtils?.dataAccessObject?.columnHeaders.length ?? 0) + 1),
         ]);
+      }
+
+      if ((sourceRowIndex + 1) % 2 === 0) {
+        if (!hasClass(TR, ROW_CLASSNAMES.rowEven)) {
+          removeClass(TR, ROW_CLASSNAMES.rowOdd);
+          addClass(TR, ROW_CLASSNAMES.rowEven);
+        }
+      } else if (!hasClass(TR, ROW_CLASSNAMES.rowOdd)) {
+        removeClass(TR, ROW_CLASSNAMES.rowEven);
+        addClass(TR, ROW_CLASSNAMES.rowOdd);
       }
     }
 

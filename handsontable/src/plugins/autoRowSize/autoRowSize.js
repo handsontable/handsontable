@@ -1,15 +1,18 @@
 import { BasePlugin } from '../base';
 import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';
-import { isObject, hasOwnProperty } from '../../helpers/object';
+import { isObject } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { addClass, removeClass } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
+const FIRST_COLUMN_NOT_RENDERED_CLASS_NAME = 'htFirstDatasetColumnNotRendered';
+const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -23,8 +26,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * resize the rows accordingly.
  * If you experience problems with the performance, try turning this feature off and declaring the row heights manually.
  *
- * But, to display Handsontable's [scrollbar](https://handsontable.com/docs/8.0.0/demo-scrolling.html)
- * in a proper size, you need to enable the `AutoRowSize` plugin,
+ * But, to display Handsontable's scrollbar in a proper size, you need to enable the `AutoRowSize` plugin,
  * by setting the [`autoRowSize`](@/api/options.md#autoRowSize) option to `true`.
  *
  * Row height calculations are divided into sync and async part. Each of this parts has their own advantages and
@@ -45,6 +47,11 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
  * height. __Note__, that this might have a negative impact on performance.
+ *
+ * ::: tip
+ * Note: Updating some of the table's settings can cause the row heights to change (e.g. `wordWrap`, `textEllipsis`, renderers etc.).
+ * In those cases, to ensure that the row heights are properly recalculated, you need to call the {@link AutoRowSize#recalculateAllRowsHeight} method after calling {@link Core#updateSettings}.
+ * :::
  *
  * To configure this plugin see {@link Options#autoRowSize}.
  *
@@ -93,6 +100,51 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * }
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * import { AfterViewInit, Component, ViewChild } from "@angular/core";
+ * import {
+ *   GridSettings,
+ *   HotTableModule,
+ *   HotTableComponent,
+ * } from "@handsontable/angular-wrapper";
+ *
+ * `@Component`({
+ *   selector: "app-example",
+ *   standalone: true,
+ *   imports: [HotTableModule],
+ *   template: ` <div>
+ *     <hot-table [settings]="gridSettings" />
+ *   </div>`,
+ * })
+ * export class ExampleComponent implements AfterViewInit {
+ *   `@ViewChild`(HotTableComponent, { static: false })
+ *   readonly hotTable!: HotTableComponent;
+ *
+ *   readonly gridSettings = <GridSettings>{
+ *     data: this.getData(),
+ *     autoRowSize: true,
+ *   };
+ *
+ *   ngAfterViewInit(): void {
+ *     // Access to plugin instance:
+ *     const hot = this.hotTable.hotInstance;
+ *     const plugin = hot.getPlugin("autoRowSize");
+ *
+ *     plugin.getRowHeight(4);
+ *
+ *     if (plugin.isEnabled()) {
+ *       // code...
+ *     }
+ *   }
+ *
+ *   private getData(): any[] {
+ *     // get some data
+ *   }
+ * }
+ * ```
+ * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export class AutoRowSize extends BasePlugin {
@@ -106,6 +158,14 @@ export class AutoRowSize extends BasePlugin {
 
   static get SETTING_KEYS() {
     return true;
+  }
+
+  static get DEFAULT_SETTINGS() {
+    return {
+      useHeaders: true,
+      samplingRatio: null,
+      allowSampleDuplicates: false,
+    };
   }
 
   static get CALCULATION_STEP() {
@@ -137,15 +197,16 @@ export class AutoRowSize extends BasePlugin {
    * @type {SamplesGenerator}
    */
   samplesGenerator = new SamplesGenerator((row, column) => {
-    const physicalRow = this.hot.toPhysicalRow(row);
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    if (this.hot.rowIndexMapper.isHidden(physicalRow) || this.hot.columnIndexMapper.isHidden(physicalColumn)) {
+    if (this.hot.columnIndexMapper.isHidden(physicalColumn)) {
       return false;
     }
 
+    let cellMeta;
+
     if (row >= 0 && column >= 0) {
-      const cellMeta = this.hot.getCellMeta(row, column);
+      cellMeta = this.hot.getCellMeta(row, column);
 
       if (cellMeta.hidden) {
         // do not generate samples for cells that are covered by merged cell (null values)
@@ -158,6 +219,9 @@ export class AutoRowSize extends BasePlugin {
     if (row >= 0) {
       cellValue = this.hot.getDataAtCell(row, column);
 
+      if (typeof cellMeta?.valueFormatter === 'function') {
+        cellValue = cellMeta.valueFormatter(cellValue, cellMeta);
+      }
     } else if (row === -1) {
       cellValue = this.hot.getColHeader(column);
     }
@@ -190,6 +254,13 @@ export class AutoRowSize extends BasePlugin {
    */
   #visualRowsToRefresh = [];
 
+  /**
+   * `true` value indicates that the #onInit() function has been already called.
+   *
+   * @type {boolean}
+   */
+  #isInitialized = false;
+
   constructor(hotInstance) {
     super(hotInstance);
     this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
@@ -219,16 +290,25 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
-    this.setSamplingOptions();
+    this.samplesGenerator.setAllowDuplicates(this.getSetting('allowSampleDuplicates'));
+
+    const samplingRatio = this.getSetting('samplingRatio');
+
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
+    }
 
     this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
     this.addHook('beforeChangeRender', (...args) => this.#onBeforeChange(...args));
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
     this.addHook('afterFormulasValuesUpdate', (...args) => this.#onAfterFormulasValuesUpdate(...args));
+    this.addHook('beforeViewRender', () => this.#onBeforeViewRender());
     this.addHook('beforeRender', () => this.#onBeforeRender());
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
     this.addHook('init', () => this.#onInit());
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
+
+    addClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
 
     super.enablePlugin();
   }
@@ -239,7 +319,12 @@ export class AutoRowSize extends BasePlugin {
   disablePlugin() {
     this.headerHeight = null;
 
+    removeClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
+
     super.disablePlugin();
+
+    // Remove the "first dataset column not rendered" class name when the plugin is disabled.
+    this.#toggleFirstDatasetColumnRenderedClassName(false);
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
@@ -262,7 +347,7 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
-    const overwriteCache = this.hot.renderCall;
+    const overwriteCache = this.hot.forceFullRender;
 
     this.calculateRowsHeight({ from: firstVisibleRow, to: lastVisibleRow }, undefined, overwriteCache);
   }
@@ -358,11 +443,6 @@ export class AutoRowSize extends BasePlugin {
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
         this.hot.view.adjustElementsSize();
-
-        // tmp
-        if (this.hot.view._wt.wtOverlays.inlineStartOverlay.needFullRender) {
-          this.hot.view._wt.wtOverlays.inlineStartOverlay.clone.draw();
-        }
       }
     };
 
@@ -415,27 +495,6 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Sets the sampling options.
-   *
-   * @private
-   */
-  setSamplingOptions() {
-    const setting = this.hot.getSettings()[PLUGIN_KEY];
-    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
-      setting.samplingRatio : undefined;
-    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
-      setting.allowSampleDuplicates : undefined;
-
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
-    }
-
-    if (allowSampleDuplicates) {
-      this.samplesGenerator.setAllowDuplicates(allowSampleDuplicates);
-    }
-  }
-
-  /**
    * Recalculates all rows height (overwrite cache values).
    */
   recalculateAllRowsHeight() {
@@ -483,12 +542,27 @@ export class AutoRowSize extends BasePlugin {
    * @param {number} [defaultHeight] If no height is found, `defaultHeight` is returned instead.
    * @returns {number} The height of the specified row, in pixels.
    */
-  getRowHeight(row, defaultHeight) {
-    const cachedHeight = row < 0 ? this.headerHeight : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
+  getRowHeight(row, defaultHeight = this.hot.stylesHandler.getDefaultRowHeight(row)) {
+    if (row < 0) {
+      return this.headerHeight ?? defaultHeight;
+    }
+
+    const physicalRow = this.hot.toPhysicalRow(row);
+
+    if (this.hot.rowIndexMapper.isHidden(physicalRow)) {
+      return defaultHeight;
+    }
+
+    const cachedHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
     let height = defaultHeight;
 
-    if (cachedHeight !== null && cachedHeight > (defaultHeight || 0)) {
+    if (cachedHeight !== null && cachedHeight > defaultHeight) {
       height = cachedHeight;
+
+      if (row === this.hot.view.getFirstRenderedVisibleRow()) {
+        // add 1px border-top-width compensation for the first rendered row
+        height += 1;
+      }
     }
 
     return height;
@@ -509,7 +583,7 @@ export class AutoRowSize extends BasePlugin {
    * @returns {number} Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.
    */
   getFirstVisibleRow() {
-    return this.hot.view.getFirstRenderedVisibleRow() ?? -1;
+    return this.hot.getFirstRenderedVisibleRow() ?? -1;
   }
 
   /**
@@ -518,7 +592,7 @@ export class AutoRowSize extends BasePlugin {
    * @returns {number} Returns row index or -1 if table is not rendered.
    */
   getLastVisibleRow() {
-    return this.hot.view.getLastRenderedVisibleRow() ?? -1;
+    return this.hot.getLastRenderedVisibleRow() ?? -1;
   }
 
   /**
@@ -568,7 +642,36 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * On before view render listener.
+   * Toggles the "first dataset column not rendered" class name.
+   * Used to apply special styling when the first column is visible (used only in the classic (legacy) theme, with the AutoRowSize plugin enabled).
+   *
+   * @param {boolean} [forceState] Force the class to be added or removed (`true` to add, `false` to remove).
+   */
+  #toggleFirstDatasetColumnRenderedClassName(forceState) {
+    const firstRenderedColumnVisualIndex = this.hot.getFirstRenderedVisibleColumn();
+    const firstRenderedColumnPhysicalIndex =
+      this.hot.columnIndexMapper.getPhysicalFromVisualIndex(firstRenderedColumnVisualIndex);
+
+    if (
+      forceState === false ||
+      firstRenderedColumnPhysicalIndex === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
+    ) {
+      removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
+
+    } else {
+      addClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
+    }
+  }
+
+  /**
+   * `beforeViewRender` hook listener.
+   */
+  #onBeforeViewRender() {
+    this.#toggleFirstDatasetColumnRenderedClassName();
+  }
+
+  /**
+   * `beforeRender` hook listener.
    */
   #onBeforeRender() {
     this.calculateVisibleRowsHeight();
@@ -633,6 +736,7 @@ export class AutoRowSize extends BasePlugin {
    */
   #onInit() {
     this.recalculateAllRowsHeight();
+    this.#isInitialized = true;
   }
 
   /**
@@ -641,6 +745,10 @@ export class AutoRowSize extends BasePlugin {
    * @param {Array} changes An array of modified data.
    */
   #onAfterFormulasValuesUpdate(changes) {
+    if (!this.#isInitialized) {
+      return;
+    }
+
     const changedRows = changes.reduce((acc, change) => {
       const physicalRow = change.address?.row;
 

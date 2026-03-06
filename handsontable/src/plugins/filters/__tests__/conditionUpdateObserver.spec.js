@@ -19,13 +19,13 @@ describe('ConditionUpdateObserver', () => {
     }
   });
 
-  it('should be initialized and accessible from the plugin', () => {
+  it('should be initialized and accessible from the plugin', async() => {
     const conditionObserver = getConditionUpdateObserver();
 
     expect(conditionObserver).toBeDefined();
   });
 
-  it('should create properties and setup default values to them', () => {
+  it('should create properties and setup default values to them', async() => {
     const conditionObserver = getConditionUpdateObserver();
 
     expect(conditionObserver.conditionCollection).toBeDefined();
@@ -36,7 +36,7 @@ describe('ConditionUpdateObserver', () => {
     expect(conditionObserver.latestOrderStack).toEqual([]);
   });
 
-  it('should fire `update` hook on every modified condition', () => {
+  it('should fire `update` hook on every modified condition', async() => {
     const conditionObserver = getConditionUpdateObserver();
     const updateSpy = jasmine.createSpy('update');
 
@@ -79,7 +79,7 @@ describe('ConditionUpdateObserver', () => {
   });
 
   describe('groupChanges', () => {
-    it('should fire `update` hook only once on `flush` method call when groupChanges is enabled', () => {
+    it('should fire `update` hook only once on `flush` method call when groupChanges is enabled', async() => {
       const conditionObserver = getConditionUpdateObserver();
       const updateSpy = jasmine.createSpy('update');
 
@@ -117,7 +117,7 @@ describe('ConditionUpdateObserver', () => {
   });
 
   describe('destroy', () => {
-    it('should nullable all properties', () => {
+    it('should nullable all properties', async() => {
       const conditionObserver = getConditionUpdateObserver();
 
       conditionObserver.conditionCollection = {};

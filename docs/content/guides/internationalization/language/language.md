@@ -14,8 +14,12 @@ tags:
 react:
   id: qz0qgi9f
   metaTitle: Language - React Data Grid | Handsontable
+angular:
+  id: eujz2e6s
+  metaTitle: Language - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
+menuTag: updated
 ---
 
 # Language
@@ -41,6 +45,7 @@ To properly use the internationalization feature, you need to load the language 
 ::: only-for javascript
 
 1. **ES modules (ESM)**
+
   ```js
   import Handsontable from 'handsontable/base';
   import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
@@ -53,6 +58,7 @@ To properly use the internationalization feature, you need to load the language 
   ```
 
 2. **CommonJS (CJS)**
+
   ```js
   const Handsontable = require('handsontable/base').default;
   const { registerLanguageDictionary, deDE } = require('handsontable/i18n');
@@ -82,9 +88,10 @@ To properly use the internationalization feature, you need to load the language 
 ::: only-for react
 
 1. **ES modules (ESM)**
+
   ```js
   import Handsontable from 'handsontable/base';
-  import { HotTable } from '@handsontable/react';
+  import { HotTable } from '@handsontable/react-wrapper';
   import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 
   registerLanguageDictionary(deDE);
@@ -99,6 +106,7 @@ To properly use the internationalization feature, you need to load the language 
   ```
 
 2. **CommonJS (CJS)**
+
   ```js
   const Handsontable = require('handsontable/base').default;
   const { registerLanguageDictionary, deDE } = require('handsontable/i18n');
@@ -110,9 +118,39 @@ To properly use the internationalization feature, you need to load the language 
       <HotTable
         language={deDE.languageCode}
       />
-    );
-  };
+  });
   ```
+
+:::
+
+::: only-for angular
+
+1. **ES modules (ESM)**
+
+```ts
+import { Component } from "@angular/core";
+import {
+  GridSettings,
+  HotTableComponent,
+  HotTableModule,
+} from "@handsontable/angular-wrapper";
+import { registerLanguageDictionary, deDE } from "handsontable/i18n";
+
+registerLanguageDictionary(deDE);
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: ` <div>
+    <hot-table [settings]="settings" />
+  </div>`,
+})
+export class Component {
+  settings: GridSettings = {
+    language: deDE.languageCode,
+  };
+}
+```
 
 :::
 
@@ -144,17 +182,34 @@ Language files were loaded after loading Handsontable.
 
 :::
 
-::: only-for react
+::: only-for angular
 
-::: tip
+::: example #example1 :angular-languages --ts 1 --html 2
 
-Note that the `language` property is bound to the component separately using `language={language}`, but it could be included in the `settings` property just as well.
+@[code](@/content/guides/internationalization/language/angular/example1.ts)
+@[code](@/content/guides/internationalization/language/angular/example1.html)
 
 :::
 
-::: example #example2 :react-languages
+:::
+
+::: only-for react
+
+::: example #example2 :react-languages --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/language/react/example2.jsx)
+@[code](@/content/guides/internationalization/language/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular-languages --ts 1 --html 2
+
+@[code](@/content/guides/internationalization/language/angular/example2.ts)
+@[code](@/content/guides/internationalization/language/angular/example2.html)
 
 :::
 
@@ -175,8 +230,16 @@ Below is a list of features which can be translated:
 - Freezing
 - Merge cells
 - Read-only
+- Pagination
+- Dialogs (including Loading indicator)
 
 ## List of available languages
+
+::: tip
+
+When using languages that require IME (Input Method Editor), such as Chinese, Japanese, or Korean, consider enabling the [`imeFastEdit`](@/api/options.md#imefastedit) option to improve editing experience. For more information, see the [IME support](@/guides/internationalization/ime-support/ime-support.md) guide.
+
+:::
 
 By default, Handsontable uses the **English - United States** language-country set (`en-US` code) for creating the text of UI elements. However, it can be used like every extra, "non-standard" language file, thus the `en-US.js` file can be found in `/dist/languages`, `/languages` and `/src/languages` folders. Currently, we also distribute extra language-country files:
 
@@ -185,11 +248,12 @@ By default, Handsontable uses the **English - United States** language-country s
 - `de-CH.js` for **German - Switzerland** (`de-CH` code).
 - `de-DE.js` for **German - Germany** (`de-DE` code).
 - `es-MX.js` for **Spanish - Mexico** (`es-MX` code).
+- `fa-IR.js` for **Persian - Iran** (`fa-IR` code).
 - `fr-FR.js` for **French - France** (`fr-FR` code).
 - `hr-HR.js` for **Croatian - Croatia** (`hr-HR` code).
 - `it-IT.js` for **Italian - Italy** (`it-IT` code).
-- `ja-JP.js` for **Japanese - Japan** (`ja-JP` code).
-- `ko-KR.js` for **Korean - Korea** (`ko-KR` code).
+- `ja-JP.js` for **Japanese - Japan** (`ja-JP` code)**\***.
+- `ko-KR.js` for **Korean - Korea** (`ko-KR` code)**\***.
 - `lv-LV.js` for **Latvian - Latvia** (`lv-LV` code).
 - `nb-NO.js` for **Norwegian (Bokmål) - Norway** (`nb-NO` code).
 - `nl-NL.js` for **Dutch - Netherlands** (`nl-NL` code).
@@ -197,8 +261,10 @@ By default, Handsontable uses the **English - United States** language-country s
 - `pt-BR.js` for **Portuguese - Brazil** (`pt-BR` code).
 - `ru-RU.js` for **Russian - Russia** (`ru-RU` code).
 - `sr-SP.js` for **Serbian (Latin) - Serbia** (`sr-SP` code).
-- `zh-CN.js` for **Chinese - China** (`zh-CN` code).
-- `zh-TW.js` for **Chinese - Taiwan** (`zh-TW` code).
+- `zh-CN.js` for **Chinese - China** (`zh-CN` code)**\***.
+- `zh-TW.js` for **Chinese - Taiwan** (`zh-TW` code)**\***.
+
+**\*** Consider enabling the [`imeFastEdit`](@/api/options.md#imefastedit) option for better editing experience.
 
 ### Create custom languages
 

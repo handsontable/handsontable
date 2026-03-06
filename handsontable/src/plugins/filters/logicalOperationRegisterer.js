@@ -1,3 +1,5 @@
+import { throwWithCause } from '../../helpers/errors';
+
 export const operations = {};
 
 /**
@@ -8,7 +10,7 @@ export const operations = {};
  */
 export function getOperationFunc(id) {
   if (!operations[id]) {
-    throw Error(`Operation with id "${id}" does not exist.`);
+    throwWithCause(`Operation with id "${id}" does not exist.`);
   }
   const func = operations[id].func;
 

@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('beforeSelectionHighlightSet', () => {
-    it('should be fired every time the selection is changed', () => {
+    it('should be fired every time the selection is changed', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -23,18 +23,19 @@ describe('Hook', () => {
       const beforeSelectionHighlightSet = jasmine.createSpy('beforeSelectionHighlightSet');
 
       addHook('beforeSelectionHighlightSet', beforeSelectionHighlightSet);
-      selectColumns(2, 4);
+      await selectColumns(2, 4);
 
       expect(beforeSelectionHighlightSet).toHaveBeenCalledWith();
       expect(beforeSelectionHighlightSet).toHaveBeenCalledTimes(1);
 
       beforeSelectionHighlightSet.calls.reset();
-      selectRows(2, 4);
+      await selectRows(2, 4);
 
       expect(beforeSelectionHighlightSet).toHaveBeenCalledTimes(1);
 
       beforeSelectionHighlightSet.calls.reset();
-      selectCell(2, 4);
+
+      await selectCell(2, 4);
 
       expect(beforeSelectionHighlightSet).toHaveBeenCalledTimes(1);
 
@@ -57,7 +58,7 @@ describe('Hook', () => {
       expect(beforeSelectionHighlightSet).toHaveBeenCalledTimes(1);
     });
 
-    it('should be possible to modify selection before it\'s applied to the Walkontable API', () => {
+    it('should be possible to modify selection before it\'s applied to the Walkontable API', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -74,7 +75,7 @@ describe('Hook', () => {
         }
       });
 
-      selectCell(4, 4);
+      await selectCell(4, 4);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,9 from: 2,3 to: 8,7']);
     });

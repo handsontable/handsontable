@@ -13,22 +13,19 @@ describe('Scrolling', () => {
   });
 
   it('should load cells below the viewport on scroll down (dimensions of the table was set)', async() => {
-    const hot = handsontable({
+    handsontable({
       width: 400,
       height: 400,
-      data: Handsontable.helper.createSpreadsheetObjectData(100, 15)
+      data: createSpreadsheetObjectData(100, 15)
     });
 
-    const mainHolder = hot.view._wt.wtTable.holder;
     const $htCore = $(getHtCore());
 
     let TRs = $htCore.find('tr');
     let lastTR = [...TRs.toArray()].pop();
     const lastTRTextAtStart = $(lastTR).text();
 
-    $(mainHolder).scrollTop(400);
-
-    await sleep(300);
+    await scrollViewportVertically(400);
 
     TRs = $htCore.find('tr');
     lastTR = [...TRs.toArray()].pop();
@@ -39,7 +36,7 @@ describe('Scrolling', () => {
 
   it('should load cells below the viewport on scroll down (dimensions of the table was not set)', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(100, 15)
+      data: createSpreadsheetObjectData(100, 15)
     });
 
     const $htCore = $(getHtCore());

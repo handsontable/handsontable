@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'lv-LV',
+
+  [C.OK]: 'Labi',
+  [C.CANCEL]: 'Atcelt',
+
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nav pieejamu opciju',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Ievietot rindu augšā',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Ievietot rindu apakšā',
@@ -99,7 +103,25 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Meklēt',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Vērtība',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Otra vērtība'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Otra vērtība',
+
+  [C.PAGINATION_SECTION]: 'Paginācija',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Rindu skaits',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] no [total]',
+  [C.PAGINATION_NAV_SECTION]: 'Lapa [currentPage] no [totalPages]',
+  [C.PAGINATION_FIRST_PAGE]: 'Pāriet uz pirmo lapu',
+  [C.PAGINATION_PREV_PAGE]: 'Pāriet uz iepriekšējo lapu',
+  [C.PAGINATION_NEXT_PAGE]: 'Pāriet uz nākamo lapu',
+  [C.PAGINATION_LAST_PAGE]: 'Pāriet uz pēdējo lapu',
+
+  [C.LOADING_TITLE]: 'Ielādē...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'Nav pieejamu datu',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Vēl nav ko rādīt.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Rezultāti nav atrasti',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Šķiet, ka jūsu pašreizējie filtri paslēpj visus rezultātus.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Atiestatīt filtrus',
 };
 
 export default dictionary;

@@ -6,8 +6,6 @@ export const EDITOR_TYPE: 'date';
 export class DateEditor extends TextEditor {
   constructor(instance: Core);
 
-  defaultDateFormat: string;
-  isCellEdited: boolean;
   parentDestroyed: boolean;
 
   destroyElements(): void;

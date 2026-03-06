@@ -12,9 +12,9 @@ describe('Core.suspendRender', () => {
     }
   });
 
-  it('should suspend the table rendering process and mark that the slow redraw was used', () => {
+  it('should suspend the table rendering process and mark that the slow redraw was used', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');
@@ -32,13 +32,12 @@ describe('Core.suspendRender', () => {
 
     expect(hot.renderSuspendedCounter).toBe(0);
 
-    hot.suspendRender();
-    hot.render();
-    hot.render();
-    hot.render();
+    await suspendRender();
+    await render();
+    await render();
+    await render();
 
     expect(hot.renderSuspendedCounter).toBe(1);
-    expect(hot.renderCall).toBe(true);
     expect(hot.forceFullRender).toBe(true);
     expect(hot.view._wt.draw).not.toHaveBeenCalled();
     expect(hot.view._wt.wtOverlays.adjustElementsSize).not.toHaveBeenCalled();
@@ -48,9 +47,9 @@ describe('Core.suspendRender', () => {
     expect(afterViewRender).not.toHaveBeenCalled();
   });
 
-  it('should suspend the table rendering process and mark that the fast redraw was used', () => {
+  it('should suspend the table rendering process and mark that the fast redraw was used', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');
@@ -68,11 +67,10 @@ describe('Core.suspendRender', () => {
 
     expect(hot.renderSuspendedCounter).toBe(0);
 
-    hot.suspendRender();
-    hot.selectCell(1, 1);
+    await suspendRender();
+    await selectCell(1, 1);
 
     expect(hot.renderSuspendedCounter).toBe(1);
-    expect(hot.renderCall).toBe(false);
     expect(hot.forceFullRender).toBe(false);
     expect(hot.view._wt.draw).not.toHaveBeenCalled();
     expect(hot.view._wt.wtOverlays.adjustElementsSize).not.toHaveBeenCalled();
@@ -82,9 +80,9 @@ describe('Core.suspendRender', () => {
     expect(afterViewRender).not.toHaveBeenCalled();
   });
 
-  it('should wrap multiple calls of the table suspend rendering', () => {
+  it('should wrap multiple calls of the table suspend rendering', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');
@@ -102,16 +100,16 @@ describe('Core.suspendRender', () => {
 
     expect(hot.renderSuspendedCounter).toBe(0);
 
-    hot.suspendRender();
-    hot.render();
-    hot.suspendRender();
-    hot.render();
-    hot.suspendRender();
-    hot.suspendRender();
-    hot.selectCell(1, 1);
-    hot.suspendRender();
-    hot.render();
-    hot.selectCell(1, 1);
+    await suspendRender();
+    await render();
+    await suspendRender();
+    await render();
+    await suspendRender();
+    await suspendRender();
+    await selectCell(1, 1);
+    await suspendRender();
+    await render();
+    await selectCell(1, 1);
 
     expect(hot.renderSuspendedCounter).toBe(5);
     expect(hot.view._wt.draw).not.toHaveBeenCalled();

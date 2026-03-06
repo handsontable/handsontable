@@ -13,13 +13,13 @@ describe('Core.getCellRenderer', () => {
     }
   });
 
-  it('should return text-type renderer when no `renderer` or `type` is defined', () => {
+  it('should return text-type renderer when no `renderer` or `type` is defined', async() => {
     handsontable({});
 
     expect(getCellRenderer(1, 1)).toBe(getCellType('text').renderer);
   });
 
-  it('should return renderer defined as custom function', () => {
+  it('should return renderer defined as custom function', async() => {
     const myRenderer = () => {};
 
     handsontable({
@@ -29,7 +29,7 @@ describe('Core.getCellRenderer', () => {
     expect(getCellRenderer(1, 1)).toBe(myRenderer);
   });
 
-  it('should be possible to get renderer using row, col coords or by passing the cell meta object', () => {
+  it('should be possible to get renderer using row, col coords or by passing the cell meta object', async() => {
     handsontable({
       type: 'numeric',
     });
@@ -38,7 +38,7 @@ describe('Core.getCellRenderer', () => {
     expect(getCellRenderer(getCellMeta(1, 1))).toBe(getCellType('numeric').renderer);
   });
 
-  it('should return renderer defined by `renderer` in the table settings and ignore the `type` setting', () => {
+  it('should return renderer defined by `renderer` in the table settings and ignore the `type` setting', async() => {
     handsontable({
       type: 'numeric',
       renderer: 'password',
@@ -48,7 +48,7 @@ describe('Core.getCellRenderer', () => {
     expect(getCellRenderer(getCellMeta(1, 1))).toBe(getCellType('password').renderer);
   });
 
-  it('should return renderer defined by `renderer` in the columns and cells setting and ignore the `type` setting', () => {
+  it('should return renderer defined by `renderer` in the columns and cells setting and ignore the `type` setting', async() => {
     const myRenderer = () => {};
     const myRenderer2 = () => {};
     const myRenderer3 = () => {};
@@ -88,7 +88,7 @@ describe('Core.getCellRenderer', () => {
     expect(getCellRenderer(2, 2)).toBe(getCellType('text').renderer);
   });
 
-  it('should return numeric-type renderer when the `type` is defined in the global settings', () => {
+  it('should return numeric-type renderer when the `type` is defined in the global settings', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       type: 'numeric',
@@ -101,7 +101,7 @@ describe('Core.getCellRenderer', () => {
     expect(getCellRenderer(4, 4)).toBe(getCellType('numeric').renderer);
   });
 
-  it('should return numeric-type renderer when the `renderer` is defined in the global settings', () => {
+  it('should return numeric-type renderer when the `renderer` is defined in the global settings', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       renderer: 'numeric',
@@ -114,7 +114,7 @@ describe('Core.getCellRenderer', () => {
     expect(getCellRenderer(4, 4)).toBe(getCellType('numeric').renderer);
   });
 
-  it('should return correct type renderers defined as `type` according to column settings', () => {
+  it('should return correct type renderers defined as `type` according to column settings', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       type: 'numeric',
@@ -134,7 +134,7 @@ describe('Core.getCellRenderer', () => {
     expect(getCellRenderer(0, 4)).toBe(getCellType('numeric').renderer);
   });
 
-  it('should return correct type renderers defined as `renderer` according to column settings', () => {
+  it('should return correct type renderers defined as `renderer` according to column settings', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       renderer: 'numeric',
@@ -155,7 +155,7 @@ describe('Core.getCellRenderer', () => {
   });
 
   it('should return type renderer defined as `type` in the table setting when the coords targets beyond ' +
-     'the dataset range', () => {
+     'the dataset range', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       type: 'numeric',
@@ -167,7 +167,7 @@ describe('Core.getCellRenderer', () => {
   });
 
   it('should return type renderer defined as `renderer` in the table setting when the coords targets beyond ' +
-     'the dataset range', () => {
+     'the dataset range', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       renderer: 'numeric',
@@ -179,7 +179,7 @@ describe('Core.getCellRenderer', () => {
   });
 
   it('should return type renderer defined as `type` in the columns setting when the coords targets beyond ' +
-     'the dataset range', () => {
+     'the dataset range', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       type: 'numeric',
@@ -198,7 +198,7 @@ describe('Core.getCellRenderer', () => {
   });
 
   it('should return type renderer defined as `renderer` in the columns setting when the coords targets beyond ' +
-     'the dataset range', () => {
+     'the dataset range', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       renderer: 'numeric',

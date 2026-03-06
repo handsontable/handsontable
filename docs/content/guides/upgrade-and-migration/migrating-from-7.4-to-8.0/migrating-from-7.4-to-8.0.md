@@ -9,6 +9,9 @@ pageClass: migration-guide
 react:
   id: ivkac4xa
   metaTitle: Migrate from 7.4 to 8.0 - React Data Grid | Handsontable
+angular:
+  id: wo49dhyu
+  metaTitle: Migrate from 7.4 to 8.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -16,6 +19,9 @@ category: Upgrade and migration
 # Migrate from 7.4 to 8.0
 
 Migrate from Handsontable 7.4 to Handsontable 8.0, released on August 5, 2020.
+
+More information about this release can be found in the [`8.0.0` release blog post](https://handsontable.com/blog/the-new-handsontable-8-is-now-available).<br/>
+For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_8-0-0).
 
 [[toc]]
 
@@ -560,7 +566,7 @@ hot.setSourceDataAtCell(0, 'available', true) // in 8.0.0, this sets a new prope
 
 ::: only-for react
 ```js
-<HotTable>
+<HotTable
   data={[
     { model: 'Roadster', company: 'Tesla' },
     { model: 'i3', company: 'BMW' },
@@ -593,11 +599,19 @@ If the [`NestedRows`](@/api/nestedRows.md) plugin is enabled, moving rows is pos
 
 The `drag*` methods come with a parameter called `dropIndex`. It directs where to **place** the dragged elements. The place you intend to drag the element is managed by **drop indexes**. You can imagine some sort of a drop zone between actual indexes of elements:
 
+<span class="img-invert">
+
 ![drag_action]({{$basePath}}/img/drag_action.svg)
+
+</span>
 
 The `move*` methods come with a parameter called `finalIndex`. It tells where to **overlap** the first element from the moved ones. The place you intend to move the element is managed by **visual indexes**.
 
+<span class="img-invert">
+
 ![move_action]({{$basePath}}/img/move_action.svg)
+
+</span>
 
 Please note that in case of `move*` methods some move actions are limited. For example, if you initiate a move of **more than one element** to the **last position** (visual index = the number of items - 1) the operation will be canceled. The first element in the collection you would like to move will try to reach the last position (`finalIndex`) which is feasible. However, the next ones will attempt to reach the position exceeding the number of all items.
 
@@ -651,11 +665,19 @@ const hotInstance = new Handsontable(container, {
 
 The results before:
 
+<span class="img-invert">
+
 ![before_8]({{$basePath}}/img/spare_before_8.svg)
+
+</span>
 
 The results after:
 
+<span class="img-invert">
+
 ![after_8]({{$basePath}}/img/spare_after_8.svg)
+
+</span>
 
 To ensure your application works as expected you should review it and search the use cases of [`minSpareRows`](@/api/options.md#minsparerows) or [`minRows`](@/api/options.md#minrows). If your application relies on this mechanism, you may need to adapt your application's code. For example, in prior versions the following code:
 
@@ -822,22 +844,32 @@ Left mouse-button click on the corner will select all cells with headers in 8.0.
 
 It used to select just one cell:
 
+<span class="img-invert">
+
 ![LMB_was]({{$basePath}}/img/LMB_was.gif)
+
+</span>
 
 Now the expected behavior is to select all cells:
 
+<span class="img-invert">
+
 ![LMB_is]({{$basePath}}/img/LMB_is.gif)
+
+</span>
 
 To keep the previous behavior you need to use the following workaround:
 
 ```js
 // manipulate the event that happens before the click on cells
 beforeOnCellMouseDown(event, coords) {
-  // apply only for coordinates that are top left corner outside the grid
+  // apply only for coordinates that are top left corner outside the
+  // grid
   if (coords.col === -1 && coords.row === -1) {
     // stop other event listeners of the same event from being called
     event.stopImmediatePropagation();
-    // use the index mapper method - getVisualFromRenderableIndex on both row and column to choose visual indexes
+    // use the index mapper method - getVisualFromRenderableIndex on
+    // both row and column to choose visual indexes
     // this will result in selecting the first cell in the corner
     const visualRow = this.rowIndexMapper.getVisualFromRenderableIndex(0);
     const visualColumn = this.columnIndexMapper.getVisualFromRenderableIndex(0);

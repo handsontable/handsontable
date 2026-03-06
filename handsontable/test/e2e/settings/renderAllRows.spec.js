@@ -13,13 +13,13 @@ describe('settings', () => {
       }
     });
 
-    it('should be `false` by default', () => {
+    it('should be `false` by default', async() => {
       handsontable({});
 
       expect(getSettings().renderAllRows).toBe(false);
     });
 
-    it('should pass the option value to the Walkontable', () => {
+    it('should pass the option value to the Walkontable', async() => {
       const hot = handsontable({
         renderAllRows: true,
       });

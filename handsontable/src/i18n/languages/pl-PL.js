@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'pl-PL',
+
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Anuluj',
+
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Brak dostępnych opcji',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Wstaw wiersz powyżej',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Wstaw wiersz poniżej',
@@ -104,8 +108,26 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Wartość',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga wartość',
 
+  [C.PAGINATION_SECTION]: 'Paginacja',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Liczba wierszy',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] z [total]',
+  [C.PAGINATION_NAV_SECTION]: 'Strona [currentPage] z [totalPages]',
+  [C.PAGINATION_FIRST_PAGE]: 'Przejdź do pierwszej strony',
+  [C.PAGINATION_PREV_PAGE]: 'Przejdź do poprzedniej strony',
+  [C.PAGINATION_NEXT_PAGE]: 'Przejdź do następnej strony',
+  [C.PAGINATION_LAST_PAGE]: 'Przejdź do ostatniej strony',
+
   [C.CHECKBOX_CHECKED]: 'Zaznaczony',
   [C.CHECKBOX_UNCHECKED]: 'Odznaczony',
+
+  [C.LOADING_TITLE]: 'Ładowanie...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'Brak dostępnych danych',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Nie ma jeszcze nic do wyświetlenia.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nie znaleziono wyników',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Wygląda na to, że Twoje obecne filtry ukrywają wszystkie wyniki.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetuj filtry',
 };
 
 export default dictionary;

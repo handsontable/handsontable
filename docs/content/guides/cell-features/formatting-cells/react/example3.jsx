@@ -1,6 +1,5 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -37,6 +36,7 @@ const ExampleComponent = () => {
           top: {
             width: 2,
             color: '#5292F7',
+            style: 'dotted',
           },
           bottom: {
             width: 2,
@@ -45,6 +45,7 @@ const ExampleComponent = () => {
           start: {
             width: 2,
             color: 'orange',
+            style: 'dashed',
           },
           end: {
             width: 2,

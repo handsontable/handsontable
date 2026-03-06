@@ -1,8 +1,11 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import numbro from 'numbro';
 import jaJP from 'numbro/languages/ja-JP';
 import trTR from 'numbro/languages/tr-TR';
-import 'handsontable/dist/handsontable.full.min.css';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 // register the languages you need
 numbro.registerLanguage(jaJP);
@@ -43,18 +46,18 @@ new Handsontable(container, {
     {
       data: 'productName',
       type: 'text',
-      width: '120',
+      width: '150',
     },
     {
       data: 'JP_price',
       type: 'numeric',
-      width: '120',
+      width: '150',
       numericFormat: formatJP,
     },
     {
       data: 'TR_price',
       type: 'numeric',
-      width: '120',
+      width: '150',
       numericFormat: formatTR,
     },
   ],

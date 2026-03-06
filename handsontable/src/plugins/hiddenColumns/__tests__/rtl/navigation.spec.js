@@ -21,17 +21,17 @@ describe('HiddenColumns (RTL mode)', () => {
 
     describe('navigation', () => {
       describe('should go to the closest not hidden cell in a row while navigating', () => {
-        it('by HOME key (without fixed rows and columns)', () => {
+        it('by HOME key (without fixed rows and columns)', async() => {
           handsontable({
             layoutDirection,
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             hiddenColumns: {
               columns: [0, 1, 3],
             },
           });
 
-          selectCell(4, 4);
-          keyDownUp('home');
+          await selectCell(4, 4);
+          await keyDownUp('home');
 
           expect(`
           |   :   |
@@ -49,10 +49,10 @@ describe('HiddenColumns (RTL mode)', () => {
           expect(getSelectedRangeLast().to.col).toBe(2);
         });
 
-        it('by HOME key (with fixed rows and columns)', () => {
+        it('by HOME key (with fixed rows and columns)', async() => {
           handsontable({
             layoutDirection,
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             fixedColumnsStart: 2,
             fixedRowsTop: 1,
             fixedRowsBottom: 1,
@@ -61,8 +61,8 @@ describe('HiddenColumns (RTL mode)', () => {
             },
           });
 
-          selectCell(2, 4);
-          keyDownUp('home');
+          await selectCell(2, 4);
+          await keyDownUp('home');
 
           expect(`
           |   :   |   |
@@ -82,17 +82,17 @@ describe('HiddenColumns (RTL mode)', () => {
           expect(getSelectedRangeLast().to.col).toBe(3);
         });
 
-        it('by shift + HOME key', () => {
+        it('by shift + HOME key', async() => {
           handsontable({
             layoutDirection,
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             hiddenColumns: {
               columns: [0, 1, 3],
             },
           });
 
-          selectCell(4, 4);
-          keyDownUp(['shift', 'home']);
+          await selectCell(4, 4);
+          await keyDownUp(['shift', 'home']);
 
           expect(`
           |   :   |
@@ -111,17 +111,17 @@ describe('HiddenColumns (RTL mode)', () => {
           expect(getSelectedRangeLast().to.col).toBe(2);
         });
 
-        it('by END key', () => {
+        it('by END key', async() => {
           handsontable({
             layoutDirection,
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             hiddenColumns: {
               columns: [1, 3, 4],
             },
           });
 
-          selectCell(0, 0);
-          keyDownUp('end');
+          await selectCell(0, 0);
+          await keyDownUp('end');
 
           expect(`
           | # :   |
@@ -139,17 +139,17 @@ describe('HiddenColumns (RTL mode)', () => {
           expect(getSelectedRangeLast().to.col).toBe(2);
         });
 
-        it('by shift + END key', () => {
+        it('by shift + END key', async() => {
           handsontable({
             layoutDirection,
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             hiddenColumns: {
               columns: [1, 3, 4],
             },
           });
 
-          selectCell(0, 0);
-          keyDownUp(['shift', 'end']);
+          await selectCell(0, 0);
+          await keyDownUp(['shift', 'end']);
 
           expect(`
           | 0 : A |
@@ -169,17 +169,17 @@ describe('HiddenColumns (RTL mode)', () => {
       });
 
       describe('should go to the closest not hidden cell of the table while navigating', () => {
-        it('by ctrl/cmd + HOME key (without fixed rows and columns)', () => {
+        it('by ctrl/cmd + HOME key (without fixed rows and columns)', async() => {
           handsontable({
             layoutDirection,
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             hiddenColumns: {
               columns: [1, 3],
             },
           });
 
-          selectCell(4, 4);
-          keyDownUp(['control/meta', 'home']);
+          await selectCell(4, 4);
+          await keyDownUp(['control/meta', 'home']);
 
           expect(`
           |   :   : # |
@@ -198,10 +198,10 @@ describe('HiddenColumns (RTL mode)', () => {
           expect(getSelectedRangeLast().to.col).toBe(0);
         });
 
-        it('by ctrl/cmd + HOME key (with fixed rows and columns)', () => {
+        it('by ctrl/cmd + HOME key (with fixed rows and columns)', async() => {
           handsontable({
             layoutDirection,
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             fixedColumnsStart: 2,
             fixedRowsTop: 1,
             fixedRowsBottom: 1,
@@ -210,8 +210,8 @@ describe('HiddenColumns (RTL mode)', () => {
             },
           });
 
-          selectCell(4, 4);
-          keyDownUp(['control/meta', 'home']);
+          await selectCell(4, 4);
+          await keyDownUp(['control/meta', 'home']);
 
           expect(`
           |   :   |   |
@@ -232,17 +232,17 @@ describe('HiddenColumns (RTL mode)', () => {
           expect(getSelectedRangeLast().to.col).toBe(3);
         });
 
-        it('by ctrl/cmd + END key (without fixed rows and columns)', () => {
+        it('by ctrl/cmd + END key (without fixed rows and columns)', async() => {
           handsontable({
             layoutDirection,
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             hiddenColumns: {
               columns: [1, 3],
             },
           });
 
-          selectCell(1, 1);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(1, 1);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(`
           |   :   :   |
@@ -260,10 +260,10 @@ describe('HiddenColumns (RTL mode)', () => {
           expect(getSelectedRangeLast().to.col).toBe(4);
         });
 
-        it('by ctrl/cmd + END key (with fixed rows and columns)', () => {
+        it('by ctrl/cmd + END key (with fixed rows and columns)', async() => {
           handsontable({
             layoutDirection,
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             fixedColumnsStart: 2,
             fixedRowsTop: 1,
             fixedRowsBottom: 1,
@@ -272,8 +272,8 @@ describe('HiddenColumns (RTL mode)', () => {
             },
           });
 
-          selectCell(1, 1);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(1, 1);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(`
           |   :   |   |

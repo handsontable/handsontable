@@ -1,18 +1,15 @@
 import { useRef, ChangeEvent } from 'react';
-import Handsontable from 'handsontable';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import Handsontable from 'handsontable/base';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
 
-  const selectOptionChangeCallback = (
-    event: ChangeEvent<HTMLSelectElement>
-  ) => {
+  const selectOptionChangeCallback = (event: ChangeEvent<HTMLSelectElement>) => {
     const hot = hotRef.current?.hotInstance;
 
     const value = (event.target as HTMLSelectElement).value;
@@ -25,11 +22,7 @@ const ExampleComponent = () => {
     <>
       <div className="controls">
         <label>
-          <select
-            id="selectOption"
-            onChange={(...args) => selectOptionChangeCallback(...args)}
-            defaultValue="multiple"
-          >
+          <select id="selectOption" onChange={(...args) => selectOptionChangeCallback(...args)} defaultValue="multiple">
             <option value="single">Single selection</option>
             <option value="range">Range selection</option>
             <option value="multiple">Multiple ranges selection</option>
@@ -52,7 +45,6 @@ const ExampleComponent = () => {
         width="auto"
         height="auto"
         colWidths={100}
-        rowHeights={23}
         rowHeaders={true}
         colHeaders={true}
         selectionMode="multiple" // 'single', 'range' or 'multiple',

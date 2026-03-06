@@ -23,14 +23,15 @@ module.exports.create = function create(envArgs) {
     c.plugins.push(
       new JasmineHtml({
         filename: path.resolve(__dirname, '../test/MobileRunner.html'),
-        baseJasminePath: `${
-          fsExtra.pathExistsSync('./node_modules/jasmine-core') ? '../' : '../../'
-        }`,
+        baseJasminePath: '../../',
         externalCssFiles: [
           'lib/normalize.css',
-          '../dist/handsontable.css',
+          ...((envArgs.HOT_THEME) ? [
+              `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
+              'helpers/common-themes.css',
+            ] : []
+          ),
           `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
-          'helpers/common.css',
         ],
         externalJsFiles: [
           'helpers/jasmine-bridge-reporter.js',

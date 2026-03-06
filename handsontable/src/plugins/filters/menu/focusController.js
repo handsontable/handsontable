@@ -29,11 +29,12 @@ export function createMenuFocusController(mainMenu, menuItems) {
    * into the focus mode triggered by the TAB or SHIFT+TAB keys).
    */
   let lastSelectedMenuItem = -1;
+  let menuInstance;
 
   const focusNavigator = createFocusNavigator(menuItems);
   const updateNavigatorPosition = element => () => {
-    if (mainMenu.isOpened()) {
-      mainMenu.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
+    if (menuInstance.isOpened()) {
+      menuInstance.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
     }
 
     focusNavigator.setCurrentPage(menuItems.indexOf(element));
@@ -48,11 +49,7 @@ export function createMenuFocusController(mainMenu, menuItems) {
     }
   });
 
-  mainMenu.addLocalHook('afterSelectionChange', (selectedItem) => {
-    if (!selectedItem.key.startsWith('filter_')) {
-      focusNavigator.clear();
-    }
-  });
+  setMenu(mainMenu);
 
   /**
    * Extends the menu and submenus with new keyboard shortcuts.
@@ -60,7 +57,7 @@ export function createMenuFocusController(mainMenu, menuItems) {
    * @param {*} menu The menu (as main menu or submenu) instance.
    */
   function addKeyboardShortcuts(menu) {
-    const mainMenuShortcutsCtrl = mainMenu.getKeyboardShortcutsCtrl();
+    const mainMenuShortcutsCtrl = menuInstance.getKeyboardShortcutsCtrl();
     const currentMenuShortcutsCtrl = menu.getKeyboardShortcutsCtrl();
 
     focusNavigator.clear();
@@ -84,7 +81,7 @@ export function createMenuFocusController(mainMenu, menuItems) {
     mainMenuShortcutsCtrl.addCustomShortcuts([{
       keys: [['Tab'], ['Shift', 'Tab']],
       callback: (event) => {
-        const menuNavigator = mainMenu.getNavigator();
+        const menuNavigator = menuInstance.getNavigator();
 
         if (menuNavigator.getCurrentPage() > -1) {
           lastSelectedMenuItem = menuNavigator.getCurrentPage();
@@ -101,7 +98,7 @@ export function createMenuFocusController(mainMenu, menuItems) {
     }, {
       keys: [['Escape']],
       callback: () => {
-        mainMenu.close();
+        menuInstance.close();
       }
     }, {
       keys: [['Enter'], ['Space']],
@@ -126,16 +123,40 @@ export function createMenuFocusController(mainMenu, menuItems) {
     }], SHORTCUTS_MENU_CONTEXT);
   }
 
-  mainMenu.addLocalHook('afterSubmenuOpen', addKeyboardShortcuts);
-  mainMenu.addLocalHook('afterOpen', addKeyboardShortcuts);
-
   /**
    * Focuses the menu and switches its shortcut context to that one which controls
    * the focus navigation.
    */
   function listen() {
-    mainMenu.focus();
-    mainMenu.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
+    menuInstance.focus();
+    menuInstance.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
+  }
+
+  /**
+   * Applies the focus controller to the new menu instance.
+   *
+   * @param {Menu} menu The new menu instance.
+   */
+  function setMenu(menu) {
+    menu.addLocalHook('afterSelectionChange', (selectedItem) => {
+      if (!selectedItem.key.startsWith('filter_')) {
+        focusNavigator.clear();
+      }
+    });
+
+    menu.addLocalHook('afterSubmenuOpen', addKeyboardShortcuts);
+    menu.addLocalHook('afterOpen', addKeyboardShortcuts);
+
+    menuInstance = menu;
+  }
+
+  /**
+   * Retrieves the current menu instance.
+   *
+   * @returns {Menu} The current menu instance.
+   */
+  function getMenu() {
+    return menuInstance;
   }
 
   /**
@@ -150,6 +171,8 @@ export function createMenuFocusController(mainMenu, menuItems) {
   return {
     ...focusNavigator,
     listen,
+    setMenu,
+    getMenu,
     getLastMenuPage,
   };
 }

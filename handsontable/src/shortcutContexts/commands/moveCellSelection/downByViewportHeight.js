@@ -1,10 +1,13 @@
 export const command = {
   name: 'moveCellSelectionDownByViewportHeight',
   callback(hot) {
+    const { selection } = hot;
     const { navigableHeaders } = hot.getSettings();
     const columnHeadersCount = (navigableHeaders ? hot.countColHeaders() : 0);
-    const { row } = hot.getSelectedRangeLast().highlight;
+    const { row } = hot.getSelectedRangeActive().highlight;
     let rowsStep = hot.countVisibleRows() + columnHeadersCount;
+
+    rowsStep = rowsStep === 0 ? 1 : rowsStep;
 
     // if the last row is currently selected move the focus to the first row (if autoWrap is enabled)
     if (row === hot.countRows() - 1) {
@@ -16,9 +19,11 @@ export const command = {
       rowsStep = hot.countRows() - row - 1;
     }
 
-    hot.selection.transformStart(rowsStep, 0);
+    selection.markSource('keyboard');
+    selection.transformStart(rowsStep, 0);
+    selection.markEndSource();
 
-    if (hot.getSelectedRangeLast().highlight.row < 0) {
+    if (hot.getSelectedRangeActive().highlight.row < 0) {
       hot.scrollViewportTo({ row: 0 });
     }
   },

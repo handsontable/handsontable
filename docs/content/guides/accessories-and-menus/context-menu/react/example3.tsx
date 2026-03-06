@@ -1,10 +1,6 @@
-import { HotTable } from '@handsontable/react';
-import {
-  DetailedSettings,
-  MenuItemConfig,
-} from 'handsontable/plugins/contextMenu';
+import { HotTable } from '@handsontable/react-wrapper';
+import { DetailedSettings, MenuItemConfig } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -74,7 +70,7 @@ const contextMenuSettings: DetailedSettings = {
       renderer() {
         const elem = document.createElement('marquee');
 
-        elem.style.cssText = 'background: lightgray;';
+        elem.style.cssText = 'background: lightgray; color: #222222;';
         elem.textContent = 'Brought to you by...';
 
         return elem;

@@ -21,7 +21,7 @@ describe('GhostTable', () => {
   });
 
   describe('row', () => {
-    it('should throw exception if we try to add column after added row', () => {
+    it('should throw exception if we try to add column after added row', async() => {
       const hot = handsontable(hotSettings);
       const samples = new Map();
       let exception = false;
@@ -39,7 +39,7 @@ describe('GhostTable', () => {
       expect(exception).toBe(true);
     });
 
-    it('should create container element only for first row', () => {
+    it('should create container element only for first row', async() => {
       const hot = handsontable(hotSettings);
       const samples = new Map();
 
@@ -54,10 +54,11 @@ describe('GhostTable', () => {
       gt.addRow(2, samples);
 
       expect(gt.createContainer.calls.count()).toBe(1);
-      expect(gt.createContainer.calls.mostRecent().args).toEqual(['handsontable']);
+      expect(gt.createContainer.calls.mostRecent().args)
+        .toEqual(['ht-wrapper handsontable htVerticallyScrollableByWindow htHorizontallyScrollableByWindow']);
     });
 
-    it('should add row to rows collection after call `addRow` method', () => {
+    it('should add row to rows collection after call `addRow` method', async() => {
       const hot = handsontable(hotSettings);
       const samples = new Map();
 
@@ -72,7 +73,6 @@ describe('GhostTable', () => {
 
       expect(gt.rows.length).toBe(1);
       expect(gt.rows[0].row).toBe(0);
-      expect(gt.rows[0].table.className).toBe('htCore');
       expect(gt.rows[0].table.nodeName).toBe('TABLE');
       expect(gt.rows[0].table.querySelectorAll('colgroup > col').length).toBe(2);
       expect(gt.rows[0].table.querySelector('tbody > tr > td').innerHTML).toBe('Foo');
@@ -90,7 +90,7 @@ describe('GhostTable', () => {
       expect(gt.rows[1].table.querySelector('tbody > tr > td').innerHTML).toBe('Bar');
     });
 
-    it('should get valid heights', () => {
+    it('should get valid heights', async() => {
       const hot = handsontable(hotSettings);
       const heightSpy = jasmine.createSpy();
       const samples = new Map();
@@ -115,16 +115,28 @@ describe('GhostTable', () => {
 
       expect(heightSpy.calls.count()).toBe(3);
       expect(heightSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(heightSpy.calls.argsFor(0)[1]).toBe(23);
+      expect(heightSpy.calls.argsFor(0)[1]).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(26);
+        main.toBe(29);
+        horizon.toBe(37);
+      });
       expect(heightSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(heightSpy.calls.argsFor(1)[1]).toBe(64);
+      expect(heightSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(68);
+        main.toBe(69);
+        horizon.toBe(77);
+      });
       expect(heightSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(heightSpy.calls.argsFor(2)[1]).toBe(43);
+      expect(heightSpy.calls.argsFor(2)[1]).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(47);
+        main.toBe(49);
+        horizon.toBe(57);
+      });
     });
   });
 
   describe('column', () => {
-    it('should throw exception if we try to add row after added column', () => {
+    it('should throw exception if we try to add row after added column', async() => {
       const hot = handsontable(hotSettings);
       const samples = new Map();
       let exception = false;
@@ -142,7 +154,7 @@ describe('GhostTable', () => {
       expect(exception).toBe(true);
     });
 
-    it('should create container element only for first column', () => {
+    it('should create container element only for first column', async() => {
       const hot = handsontable(hotSettings);
       const samples = new Map();
 
@@ -157,10 +169,11 @@ describe('GhostTable', () => {
       gt.addColumn(2, samples);
 
       expect(gt.createContainer.calls.count()).toBe(1);
-      expect(gt.createContainer.calls.mostRecent().args).toEqual(['handsontable']);
+      expect(gt.createContainer.calls.mostRecent().args)
+        .toEqual(['ht-wrapper handsontable htVerticallyScrollableByWindow htHorizontallyScrollableByWindow']);
     });
 
-    it('should add column to columns collection after call `addColumn` method', () => {
+    it('should add column to columns collection after call `addColumn` method', async() => {
       const hot = handsontable(hotSettings);
       const samples = new Map();
 
@@ -195,7 +208,7 @@ describe('GhostTable', () => {
       expect(gt.columns[1].table.querySelector('tbody > tr > td').innerHTML).toBe('Bar');
     });
 
-    it('should get valid widths', () => {
+    it('should get valid widths', async() => {
       const hot = handsontable(hotSettings);
       const widthSpy = jasmine.createSpy();
       const samples = new Map();
@@ -220,14 +233,26 @@ describe('GhostTable', () => {
 
       expect(widthSpy.calls.count()).toBe(3);
       expect(widthSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(widthSpy.calls.argsFor(0)[1]).toBe(66);
+      expect(widthSpy.calls.argsFor(0)[1]).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(75);
+        main.toBe(84);
+        horizon.toBe(92);
+      });
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(widthSpy.calls.argsFor(1)[1]).toBe(31);
+      expect(widthSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(38);
+        main.toBe(43);
+        horizon.toBe(51);
+      });
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(widthSpy.calls.argsFor(2)[1]).toBe(53);
+      expect(widthSpy.calls.argsFor(2)[1]).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(61);
+        main.toBe(68);
+        horizon.toBe(76);
+      });
     });
 
-    it('should get rounded up widths when the browser calculates the columns as a decimal values', () => {
+    it('should get rounded up widths when the browser calculates the columns as a decimal values', async() => {
       const hot = handsontable(hotSettings);
       const widthSpy = jasmine.createSpy();
       const samples = new Map();
@@ -249,7 +274,7 @@ describe('GhostTable', () => {
     });
   });
 
-  it('should reset internal state after call `clean` method', () => {
+  it('should reset internal state after call `clean` method', async() => {
     const hot = handsontable(hotSettings);
     const samples = new Map();
 
@@ -274,7 +299,7 @@ describe('GhostTable', () => {
     expect(document.querySelector('.htGhostTable')).toBe(null);
   });
 
-  it('should be detected as vertical if at least one row is added', () => {
+  it('should be detected as vertical if at least one row is added', async() => {
     const hot = handsontable(hotSettings);
     const samples = new Map();
 
@@ -286,7 +311,7 @@ describe('GhostTable', () => {
     expect(gt.isHorizontal()).toBe(false);
   });
 
-  it('should be detected as horizontal if at least one column is added', () => {
+  it('should be detected as horizontal if at least one column is added', async() => {
     const hot = handsontable(hotSettings);
     const samples = new Map();
 
@@ -298,7 +323,7 @@ describe('GhostTable', () => {
     expect(gt.isHorizontal()).toBe(true);
   });
 
-  it('should not change the coords of the cell meta after row rendering', () => {
+  it('should not change the coords of the cell meta after row rendering', async() => {
     const hot = handsontable(hotSettings);
 
     gt = new Handsontable.__GhostTable(hot);
@@ -323,7 +348,7 @@ describe('GhostTable', () => {
     expect(cellMeta.visualCol).toBe(6);
   });
 
-  it('should not change the coords of the cell meta after column rendering', () => {
+  it('should not change the coords of the cell meta after column rendering', async() => {
     const hot = handsontable(hotSettings);
 
     gt = new Handsontable.__GhostTable(hot);

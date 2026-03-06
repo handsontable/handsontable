@@ -1,8 +1,11 @@
 describe('Horizontal scroll', () => {
   const id = 'testContainer';
+  let scrollIntoViewSpy;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    scrollIntoViewSpy = spyOn(Element.prototype, 'scrollIntoView');
   });
 
   afterEach(function() {
@@ -25,14 +28,16 @@ describe('Horizontal scroll', () => {
     });
 
     // make sure that the `I` column is partially visible
-    inlineStartOverlay().setScrollPosition(415);
-
-    await sleep(10);
-
+    await scrollViewportHorizontally(415);
     // select the `I` column
-    selectCell(0, 8);
+    await selectCell(0, 8);
 
     // expect that the viewport is scrolled to the beginning of the `I` column
     expect(inlineStartOverlay().getScrollPosition()).toBe(400);
+    expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 8, true));
+    expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+      block: 'nearest',
+      inline: 'nearest',
+    });
   });
 });

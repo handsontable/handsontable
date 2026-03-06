@@ -1,3 +1,5 @@
+import { throwWithCause } from '../../../../helpers/errors';
+
 /**
  * The NodeModifiers module is responsible for the modification of a tree structure
  * in a way to achieve new column headers state.
@@ -30,7 +32,7 @@ const availableModifiers = new Map([
  */
 export function triggerNodeModification(actionName, nodeToProcess, gridColumnIndex) {
   if (!availableModifiers.has(actionName)) {
-    throw new Error(`The node modifier action ("${actionName}") does not exist.`);
+    throwWithCause(`The node modifier action ("${actionName}") does not exist.`);
   }
 
   return availableModifiers.get(actionName)(nodeToProcess, gridColumnIndex);

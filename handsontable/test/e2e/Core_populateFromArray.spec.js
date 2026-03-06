@@ -21,7 +21,7 @@ describe('Core_populateFromArray', () => {
     ];
   };
 
-  it('should call onChange callback', () => {
+  it('should call onChange callback', async() => {
     let output = null;
 
     handsontable({
@@ -30,12 +30,12 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(0, 0, [['test', 'test'], ['test', 'test']], 1, 1);
+    await populateFromArray(0, 0, [['test', 'test'], ['test', 'test']], 1, 1);
 
     expect(output).toEqual([[0, 0, '', 'test'], [0, 1, 'Kia', 'test'], [1, 0, '2008', 'test'], [1, 1, 10, 'test']]);
   });
 
-  it('should override populated values using `beforeChange` hook', () => {
+  it('should override populated values using `beforeChange` hook', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -48,7 +48,7 @@ describe('Core_populateFromArray', () => {
         changes[3][3] = 'test4';
       }
     });
-    populateFromArray(0, 0, [['test', 'test'], ['test', 'test']], 1, 1);
+    await populateFromArray(0, 0, [['test', 'test'], ['test', 'test']], 1, 1);
 
     expect(getData()).toEqual([
       ['test1', 'test', 3, 4, 5, 6],
@@ -58,7 +58,7 @@ describe('Core_populateFromArray', () => {
     ]);
   });
 
-  it('should populate single value for whole selection', () => {
+  it('should populate single value for whole selection', async() => {
     let output = null;
 
     handsontable({
@@ -67,7 +67,7 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(0, 0, [['test']], 3, 0);
+    await populateFromArray(0, 0, [['test']], 3, 0);
 
     expect(output).toEqual([
       [0, 0, '', 'test'],
@@ -77,7 +77,7 @@ describe('Core_populateFromArray', () => {
     ]);
   });
 
-  it('should populate value for whole selection only if populated data isn\'t an array', () => {
+  it('should populate value for whole selection only if populated data isn\'t an array', async() => {
     let output = null;
 
     handsontable({
@@ -86,12 +86,12 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(0, 0, [['test'], [[1, 2, 3]]], 3, 0);
+    await populateFromArray(0, 0, [['test'], [[1, 2, 3]]], 3, 0);
 
     expect(output).toEqual([[0, 0, '', 'test'], [2, 0, '2009', 'test']]);
   });
 
-  it('should populate value for whole selection only if populated data isn\'t an object', () => {
+  it('should populate value for whole selection only if populated data isn\'t an object', async() => {
     let output = null;
 
     handsontable({
@@ -100,12 +100,12 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(0, 0, [['test'], [{ test: 1 }]], 3, 0);
+    await populateFromArray(0, 0, [['test'], [{ test: 1 }]], 3, 0);
 
     expect(output).toEqual([[0, 0, '', 'test'], [2, 0, '2009', 'test']]);
   });
 
-  it('shouldn\'t populate value if original value doesn\'t have the same data structure', () => {
+  it('shouldn\'t populate value if original value doesn\'t have the same data structure', async() => {
     let output = null;
 
     handsontable({
@@ -114,12 +114,12 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(1, 3, [['test']], 1, 5);
+    await populateFromArray(1, 3, [['test']], 1, 5);
 
     expect(output).toEqual([[1, 3, 12, 'test'], [1, 4, 13, 'test']]);
   });
 
-  it('should populate value for array data when array selection is changed to empty', () => {
+  it('should populate value for array data when array selection is changed to empty', async() => {
     // Resolving issue #5675: https://github.com/handsontable/handsontable/issues/5675
     let output = null;
     const dataArray = arrayOfArrays();
@@ -132,12 +132,12 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(0, 0, [[[]]], 0, 0);
+    await populateFromArray(0, 0, [[[]]], 0, 0);
 
     expect(output).toEqual([[0, 0, ['2011'], []]]);
   });
 
-  it('should populate value for array data when bound data begins as empty with new row', () => {
+  it('should populate value for array data when bound data begins as empty with new row', async() => {
     // Resolving issue #5675: https://github.com/handsontable/handsontable/issues/5675
     let output = null;
     const dataArray = [[]];
@@ -149,14 +149,14 @@ describe('Core_populateFromArray', () => {
       },
       minSpareRows: 1
     });
-    populateFromArray(0, 0, [[['2011']]], 0, 0);
+    await populateFromArray(0, 0, [[['2011']]], 0, 0);
 
     expect(output).toEqual([[0, 0, undefined, ['2011']]]);
   });
 
   describe('should shift values down', () => {
-    it('populating from the start of the table', () => {
-      const hot = handsontable({
+    it('populating from the start of the table', async() => {
+      handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
@@ -169,9 +169,9 @@ describe('Core_populateFromArray', () => {
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
-      populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_down');
+      await populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_down');
 
       expect(getData()).toEqual([
         ['test', 'test2', 'test', 'Toyota', 'Honda', null],
@@ -197,8 +197,8 @@ describe('Core_populateFromArray', () => {
       ], 'populateFromArray');
     });
 
-    it('populating from the end of the table', () => {
-      const hot = handsontable({
+    it('populating from the end of the table', async() => {
+      handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
@@ -211,9 +211,9 @@ describe('Core_populateFromArray', () => {
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
-      populateFromArray(1, 3, [
+      await populateFromArray(1, 3, [
         ['test', 'test2', 'test3'],
         ['test4', 'test5', 'test6']
       ], null, null, null, 'shift_down');
@@ -239,8 +239,8 @@ describe('Core_populateFromArray', () => {
       ], 'populateFromArray');
     });
 
-    it('populating full data of current table', () => {
-      const hot = handsontable({
+    it('populating full data of current table', async() => {
+      handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
@@ -253,11 +253,11 @@ describe('Core_populateFromArray', () => {
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
       const data = getData();
 
-      populateFromArray(0, 0, data, null, null, null, 'shift_down');
+      await populateFromArray(0, 0, data, null, null, null, 'shift_down');
 
       expect(getData()).toEqual(data.concat(data));
 
@@ -286,8 +286,8 @@ describe('Core_populateFromArray', () => {
   });
 
   describe('should shift values right', () => {
-    it('populating from the start of the table', () => {
-      const hot = handsontable({
+    it('populating from the start of the table', async() => {
+      handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
@@ -300,9 +300,9 @@ describe('Core_populateFromArray', () => {
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
-      populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_right');
+      await populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_right');
 
       expect(getData()).toEqual([
         ['test', 'test2', 'test', '', 'Kia', 'Nissan', 'Toyota', 'Honda', null],
@@ -327,8 +327,8 @@ describe('Core_populateFromArray', () => {
       ], 'populateFromArray');
     });
 
-    it('populating from the end of the table', () => {
-      const hot = handsontable({
+    it('populating from the end of the table', async() => {
+      handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
@@ -341,9 +341,9 @@ describe('Core_populateFromArray', () => {
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
-      populateFromArray(4, 2, [['test', 'test2'], ['test3', 'test4']], null, null, null, 'shift_right');
+      await populateFromArray(4, 2, [['test', 'test2'], ['test3', 'test4']], null, null, null, 'shift_right');
 
       expect(getData()).toEqual([
         ['', 'Kia', 'Nissan', 'Toyota', 'Honda', null], // TODO: Should be ['', 'Kia', 'Nissan', 'Toyota', 'Honda', null, null, null]
@@ -367,8 +367,8 @@ describe('Core_populateFromArray', () => {
       ], 'populateFromArray');
     });
 
-    it('populating full data of current table', () => {
-      const hot = handsontable({
+    it('populating full data of current table', async() => {
+      handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
@@ -381,11 +381,11 @@ describe('Core_populateFromArray', () => {
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
       const data = getData();
 
-      populateFromArray(0, 0, data, null, null, null, 'shift_right');
+      await populateFromArray(0, 0, data, null, null, null, 'shift_right');
 
       expect(getData()).toEqual([
         ['', 'Kia', 'Nissan', 'Toyota', 'Honda', null, '', 'Kia', 'Nissan', 'Toyota', 'Honda', null],
@@ -424,16 +424,16 @@ describe('Core_populateFromArray', () => {
       ], 'populateFromArray');
     });
 
-    it('should expand the dataset properly #6929', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+    it('should expand the dataset properly #6929', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 5),
       });
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
-      hot.populateFromArray(0, 0, [
+      await populateFromArray(0, 0, [
         ['test', 'test2'],
         ['test3', 'test4']
       ], 3, 3, null, 'shift_right');
@@ -462,23 +462,23 @@ describe('Core_populateFromArray', () => {
     });
   });
 
-  it('should populate 1 row from 2 selected rows', () => {
+  it('should populate 1 row from 2 selected rows', async() => {
     handsontable({
       data: arrayOfArrays()
     });
 
-    populateFromArray(2, 0, [['A1'], ['A2']], 2, 0, 'autofill', null);
+    await populateFromArray(2, 0, [['A1'], ['A2']], 2, 0, 'autofill', null);
 
     expect(getDataAtCell(2, 0)).toEqual('A1');
     expect(getDataAtCell(3, 0)).toEqual('2010');
   });
 
-  it('should populate 1 column from 2 selected columns`', () => {
+  it('should populate 1 column from 2 selected columns`', async() => {
     handsontable({
       data: arrayOfArrays()
     });
 
-    populateFromArray(0, 2, [['A1', 'A2']], 0, 2, 'autofill', null);
+    await populateFromArray(0, 2, [['A1', 'A2']], 0, 2, 'autofill', null);
 
     expect(getDataAtCell(0, 2)).toEqual('A1');
     expect(getDataAtCell(0, 3)).toEqual('Toyota');

@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'cs-CZ',
+
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Storno',
+
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Žádné volby nejsou dostupné',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Vložit řádek nad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Vložit řádek pod',
@@ -96,7 +100,25 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Hledat',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Hodnota',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druhá hodnota'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druhá hodnota',
+
+  [C.PAGINATION_SECTION]: 'Stránkování',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Počet řádků',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] z [total]',
+  [C.PAGINATION_NAV_SECTION]: 'Stránka [currentPage] z [totalPages]',
+  [C.PAGINATION_FIRST_PAGE]: 'Přejít na první stránku',
+  [C.PAGINATION_PREV_PAGE]: 'Přejít na předchozí stránku',
+  [C.PAGINATION_NEXT_PAGE]: 'Přejít na další stránku',
+  [C.PAGINATION_LAST_PAGE]: 'Přejít na poslední stránku',
+
+  [C.LOADING_TITLE]: 'Načítání...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'Žádná data nejsou k dispozici',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Zatím není co zobrazit.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nebyly nalezeny žádné výsledky',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Vypadá to, že vaše současné filtry skrývají všechny výsledky.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetovat filtry',
 };
 
 export default dictionary;

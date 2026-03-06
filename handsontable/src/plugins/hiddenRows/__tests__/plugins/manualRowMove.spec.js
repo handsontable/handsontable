@@ -34,9 +34,9 @@ describe('HiddenRows', () => {
   });
 
   describe('manualRowMove', () => {
-    it('should properly render hidden ranges after moving action (moving not hidden rows just before the hidden one)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+    it('should properly render hidden ranges after moving action (moving not hidden rows just before the hidden one)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         hiddenRows: {
           rows: [0],
@@ -46,35 +46,35 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowMove').moveRows([2, 3, 4], 0);
-      render();
+      await render();
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A3', 'B3'],
         ['A4', 'B4'],
         ['A5', 'B5'],
         ['A1', 'B1'], // Hidden row
         ['A2', 'B2'],
       ]);
-      expect(hot.getRowHeight(3)).toBe(0);
+      expect(getRowHeight(3)).toBe(0);
       expect(getPlugin('hiddenRows').isHidden(3)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="">1</th>
             <td class="">A3</td>
             <td class="">B3</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="">2</th>
             <td class="">A4</td>
             <td class="">B4</td>
           </tr>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">3</th>
             <td class="">A5</td>
             <td class="">B5</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">5</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A2</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B2</td>
@@ -83,9 +83,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should properly render hidden ranges after moving action (moving not hidden rows just after the hidden one)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+    it('should properly render hidden ranges after moving action (moving not hidden rows just after the hidden one)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         hiddenRows: {
           rows: [4],
@@ -95,35 +95,35 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowMove').moveRows([0, 1, 2], 2);
-      render();
+      await render();
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A4', 'B4'],
         ['A5', 'B5'], // Hidden row
         ['A1', 'B1'],
         ['A2', 'B2'],
         ['A3', 'B3'],
       ]);
-      expect(hot.getRowHeight(1)).toBe(0);
+      expect(getRowHeight(1)).toBe(0);
       expect(getPlugin('hiddenRows').isHidden(1)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">1</th>
             <td class="">A4</td>
             <td class="">B4</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">3</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A1</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B1</td>
           </tr>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="">4</th>
             <td class="">A2</td>
             <td class="">B2</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="">5</th>
             <td class="">A3</td>
             <td class="">B3</td>
@@ -132,9 +132,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should properly render hidden ranges after moving action (moving only hidden row)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+    it('should properly render hidden ranges after moving action (moving only hidden row)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         hiddenRows: {
           rows: [4],
@@ -144,35 +144,35 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowMove').moveRows([4], 1);
-      render();
+      await render();
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A1', 'B1'],
         ['A5', 'B5'], // Hidden row
         ['A2', 'B2'],
         ['A3', 'B3'],
         ['A4', 'B4'],
       ]);
-      expect(hot.getRowHeight(1)).toBe(0);
+      expect(getRowHeight(1)).toBe(0);
       expect(getPlugin('hiddenRows').isHidden(1)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">1</th>
             <td class="">A1</td>
             <td class="">B1</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">3</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A2</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B2</td>
           </tr>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="">4</th>
             <td class="">A3</td>
             <td class="">B3</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="">5</th>
             <td class="">A4</td>
             <td class="">B4</td>
@@ -181,9 +181,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should properly render hidden ranges after moving action (moving range of rows containing a hidden row)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+    it('should properly render hidden ranges after moving action (moving range of rows containing a hidden row)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         hiddenRows: {
           rows: [3],
@@ -193,35 +193,35 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowMove').moveRows([2, 3, 4], 1);
-      render();
+      await render();
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A1', 'B1'],
         ['A3', 'B3'],
         ['A4', 'B4'], // Hidden row
         ['A5', 'B5'],
         ['A2', 'B2'],
       ]);
-      expect(hot.getRowHeight(2)).toBe(0);
+      expect(getRowHeight(2)).toBe(0);
       expect(getPlugin('hiddenRows').isHidden(2)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="">1</th>
             <td class="">A1</td>
             <td class="">B1</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">2</th>
             <td class="">A3</td>
             <td class="">B3</td>
           </tr>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">4</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A5</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B5</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="">5</th>
             <td class="">A2</td>
             <td class="">B2</td>
@@ -230,9 +230,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should properly render hidden ranges after moving action (shifts between hidden rows)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+    it('should properly render hidden ranges after moving action (shifts between hidden rows)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         hiddenRows: {
           rows: [1, 2, 3],
@@ -242,29 +242,29 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowMove').moveRows([3, 1, 2], 1);
-      render();
+      await render();
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A1', 'B1'],
         ['A4', 'B4'], // Hidden row
         ['A2', 'B2'], // Hidden row
         ['A3', 'B3'], // Hidden row
         ['A5', 'B5'],
       ]);
-      expect(hot.getRowHeight(1)).toBe(0);
-      expect(hot.getRowHeight(2)).toBe(0);
-      expect(hot.getRowHeight(3)).toBe(0);
+      expect(getRowHeight(1)).toBe(0);
+      expect(getRowHeight(2)).toBe(0);
+      expect(getRowHeight(3)).toBe(0);
       expect(getPlugin('hiddenRows').isHidden(1)).toBeTruthy();
       expect(getPlugin('hiddenRows').isHidden(2)).toBeTruthy();
       expect(getPlugin('hiddenRows').isHidden(3)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">1</th>
             <td class="">A1</td>
             <td class="">B1</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">5</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A5</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B5</td>
@@ -273,9 +273,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should properly render hidden ranges after moving action (moving part of hidden rows)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+    it('should properly render hidden ranges after moving action (moving part of hidden rows)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         hiddenRows: {
           rows: [1, 3, 4],
@@ -285,29 +285,29 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowMove').moveRows([3, 4], 0);
-      render();
+      await render();
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A4', 'B4'], // Hidden row
         ['A5', 'B5'], // Hidden row
         ['A1', 'B1'],
         ['A2', 'B2'], // Hidden row
         ['A3', 'B3'],
       ]);
-      expect(hot.getRowHeight(0)).toBe(0);
-      expect(hot.getRowHeight(1)).toBe(0);
-      expect(hot.getRowHeight(3)).toBe(0);
+      expect(getRowHeight(0)).toBe(0);
+      expect(getRowHeight(1)).toBe(0);
+      expect(getRowHeight(3)).toBe(0);
       expect(getPlugin('hiddenRows').isHidden(0)).toBeTruthy();
       expect(getPlugin('hiddenRows').isHidden(1)).toBeTruthy();
       expect(getPlugin('hiddenRows').isHidden(3)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW} ${CSS_CLASS_BEFORE_HIDDEN_ROW}">3</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A1</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B1</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">5</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A3</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B3</td>
@@ -318,9 +318,9 @@ describe('HiddenRows', () => {
 
     describe('selection', () => {
       it('should correctly set the selection of the unhidden row when it\'s placed as a most-top ' +
-         'table record (caused by moving first visible row under hidden one)', () => {
+         'table record (caused by moving first visible row under hidden one)', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 2),
+          data: createSpreadsheetData(5, 2),
           rowHeaders: true,
           colHeaders: true,
           contextMenu: [CONTEXTMENU_ITEM_SHOW],
@@ -331,11 +331,11 @@ describe('HiddenRows', () => {
         });
 
         getPlugin('manualRowMove').moveRow(0, 2);
-        render();
+        await render();
 
-        selectRows(1);
+        await selectRows(1);
 
-        contextMenu();
+        await contextMenu();
         getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
         expect(spec().$container.find('.ht_master tbody th').length).toBe(5);
@@ -365,9 +365,9 @@ describe('HiddenRows', () => {
 
     describe('UI', () => {
       describe('backlight', () => {
-        it('should get correct position and size while grabing the row placed after hidden rows', () => {
+        it('should get correct position and size while grabing the row placed after hidden rows', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [0, 1],
@@ -385,12 +385,16 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($headerTH.offset().top);
-          expect($backlight.height()).toBe(23);
+          expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
+            classic.toBe(26);
+            main.toBe(29);
+            horizon.toBe(37);
+          });
         });
 
-        it('should get correct position and size while grabing the multiple rows placed after hidden rows', () => {
+        it('should get correct position and size while grabing the multiple rows placed after hidden rows', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [0, 1],
@@ -416,12 +420,16 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
-          expect($backlight.height()).toBe(69); // 23 * 3
+          expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
+            classic.toBe(78); // 26 * 3
+            main.toBe(87); // 29 * 3
+            horizon.toBe(111); // 37 * 3
+          });
         });
 
-        it('should get correct position and size while grabing the row placed before hidden rows', () => {
+        it('should get correct position and size while grabing the row placed before hidden rows', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [8, 9],
@@ -439,12 +447,16 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($headerTH.offset().top);
-          expect($backlight.height()).toBe(23);
+          expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
+            classic.toBe(26);
+            main.toBe(29);
+            horizon.toBe(37);
+          });
         });
 
-        it('should get correct position and size while grabing the multiple rows placed before hidden rows', () => {
+        it('should get correct position and size while grabing the multiple rows placed before hidden rows', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [8, 9],
@@ -470,14 +482,18 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
-          expect($backlight.height()).toBe(69); // 23 * 3
+          expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
+            classic.toBe(78); // 26 * 3
+            main.toBe(87); // 29 * 3
+            horizon.toBe(111); // 37 * 3
+          });
         });
       });
 
       describe('guideline', () => {
-        it('should get correct position while grabing the row placed after hidden rows (moving down)', () => {
+        it('should get correct position while grabing the row placed after hidden rows (moving down)', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [0, 1],
@@ -504,12 +520,16 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).toBe($secondHeaderTH.offset().top - 2);
+          expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
+            classic.toBe($secondHeaderTH.offset().top - 1);
+            main.toBe($secondHeaderTH.offset().top - 1);
+            horizon.toBe($secondHeaderTH.offset().top - 1);
+          });
         });
 
-        it('should get correct position while grabing the row placed after hidden rows (moving up)', () => {
+        it('should get correct position while grabing the row placed after hidden rows (moving up)', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [0, 1],
@@ -535,12 +555,16 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+          expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
+            classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
+            main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
+            horizon.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
+          });
         });
 
-        it('should get correct position while grabing the row placed before hidden rows (moving down)', () => {
+        it('should get correct position while grabing the row placed before hidden rows (moving down)', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [8, 9],
@@ -567,12 +591,16 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).toBe($secondHeaderTH.offset().top - 2);
+          expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
+            classic.toBe($secondHeaderTH.offset().top - 1);
+            main.toBe($secondHeaderTH.offset().top - 1);
+            horizon.toBe($secondHeaderTH.offset().top - 1);
+          });
         });
 
-        it('should get correct position while grabing the row placed before hidden rows (moving up)', () => {
+        it('should get correct position while grabing the row placed before hidden rows (moving up)', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [8, 9],
@@ -598,7 +626,11 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+          expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
+            classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
+            main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
+            horizon.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
+          });
         });
       });
     });

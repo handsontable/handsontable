@@ -23,7 +23,7 @@ describe('keyboard navigation', () => {
   }
 
   describe('"ArrowUp"', () => {
-    it('should allow navigating around the date picker after opening the date editor, without closing it', () => {
+    it('should allow navigating around the date picker after opening the date editor, without closing it', async() => {
       handsontable({
         data: getDates(),
         columns: [{ type: 'date', dateFormat: 'MM/DD/YYYY' }],
@@ -31,10 +31,10 @@ describe('keyboard navigation', () => {
 
       const getSelectedButton = () => getActiveEditor().datePicker.querySelector('.is-selected button');
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
-      keyDownUp('arrowup');
+      await keyDownUp('enter');
+      await keyDownUp('arrowup');
 
       expect(getSelectedButton().getAttribute('data-pika-day')).toEqual('7');
       expect(getSelectedButton().getAttribute('data-pika-month')).toEqual('0');
@@ -42,7 +42,7 @@ describe('keyboard navigation', () => {
 
       expect(getActiveEditor().isOpened()).toBe(true);
 
-      keyDownUp('arrowup');
+      await keyDownUp('arrowup');
 
       expect(getSelectedButton().getAttribute('data-pika-day')).toEqual('31');
       expect(getSelectedButton().getAttribute('data-pika-month')).toEqual('11');
@@ -53,7 +53,7 @@ describe('keyboard navigation', () => {
   });
 
   describe('"ArrowDown"', () => {
-    it('should allow navigating around the date picker after opening the date editor, without closing it', () => {
+    it('should allow navigating around the date picker after opening the date editor, without closing it', async() => {
       handsontable({
         data: getDates(),
         columns: [{ type: 'date', dateFormat: 'MM/DD/YYYY' }],
@@ -61,11 +61,10 @@ describe('keyboard navigation', () => {
 
       const getSelectedButton = () => getActiveEditor().datePicker.querySelector('.is-selected button');
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
-
-      keyDownUp('arrowdown');
+      await keyDownUp('enter');
+      await keyDownUp('arrowdown');
 
       expect(getSelectedButton().getAttribute('data-pika-day')).toEqual('21');
       expect(getSelectedButton().getAttribute('data-pika-month')).toEqual('0');
@@ -73,7 +72,7 @@ describe('keyboard navigation', () => {
 
       expect(getActiveEditor().isOpened()).toBe(true);
 
-      keyDownUp('arrowdown');
+      await keyDownUp('arrowdown');
 
       expect(getSelectedButton().getAttribute('data-pika-day')).toEqual('28');
       expect(getSelectedButton().getAttribute('data-pika-month')).toEqual('0');
@@ -84,7 +83,7 @@ describe('keyboard navigation', () => {
   });
 
   describe('"ArrowRight"', () => {
-    it('should allow navigating around the date picker after opening the date editor, without closing it', () => {
+    it('should allow navigating around the date picker after opening the date editor, without closing it', async() => {
       handsontable({
         data: getDates(),
         columns: [{ type: 'date', dateFormat: 'MM/DD/YYYY' }],
@@ -92,10 +91,10 @@ describe('keyboard navigation', () => {
 
       const getSelectedButton = () => getActiveEditor().datePicker.querySelector('.is-selected button');
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
-      keyDownUp('arrowright');
+      await keyDownUp('enter');
+      await keyDownUp('arrowright');
 
       expect(getSelectedButton().getAttribute('data-pika-day')).toEqual('15');
       expect(getSelectedButton().getAttribute('data-pika-month')).toEqual('0');
@@ -103,7 +102,7 @@ describe('keyboard navigation', () => {
 
       expect(getActiveEditor().isOpened()).toBe(true);
 
-      keyDownUp('arrowright');
+      await keyDownUp('arrowright');
 
       expect(getSelectedButton().getAttribute('data-pika-day')).toEqual('16');
       expect(getSelectedButton().getAttribute('data-pika-month')).toEqual('0');
@@ -114,7 +113,7 @@ describe('keyboard navigation', () => {
   });
 
   describe('"ArrowLeft"', () => {
-    it('should allow navigating around the date picker after opening the date editor, without closing it', () => {
+    it('should allow navigating around the date picker after opening the date editor, without closing it', async() => {
       handsontable({
         data: getDates(),
         columns: [{ type: 'date', dateFormat: 'MM/DD/YYYY' }],
@@ -122,10 +121,10 @@ describe('keyboard navigation', () => {
 
       const getSelectedButton = () => getActiveEditor().datePicker.querySelector('.is-selected button');
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
-      keyDownUp('arrowleft');
+      await keyDownUp('enter');
+      await keyDownUp('arrowleft');
 
       expect(getSelectedButton().getAttribute('data-pika-day')).toEqual('13');
       expect(getSelectedButton().getAttribute('data-pika-month')).toEqual('0');
@@ -133,7 +132,7 @@ describe('keyboard navigation', () => {
 
       expect(getActiveEditor().isOpened()).toBe(true);
 
-      keyDownUp('arrowleft');
+      await keyDownUp('arrowleft');
 
       expect(getSelectedButton().getAttribute('data-pika-day')).toEqual('12');
       expect(getSelectedButton().getAttribute('data-pika-month')).toEqual('0');
@@ -152,10 +151,9 @@ describe('keyboard navigation', () => {
 
       const getSelectedButton = () => getActiveEditor().datePicker.querySelector('.is-selected button');
 
-      selectCell(0, 0);
-
-      keyDownUp('enter');
-      keyDownUp('arrowdown');
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('arrowdown');
 
       expect(getSelectedButton().getAttribute('data-pika-day')).toEqual('21');
       expect(getSelectedButton().getAttribute('data-pika-month')).toEqual('0');
@@ -163,8 +161,7 @@ describe('keyboard navigation', () => {
 
       expect(getActiveEditor().isOpened()).toBe(true);
 
-      keyDownUp('enter');
-
+      await keyDownUp('enter');
       await sleep(15);
 
       expect(getActiveEditor().isOpened()).toBe(false);
@@ -182,10 +179,10 @@ describe('keyboard navigation', () => {
 
       const getSelectedButton = () => getActiveEditor().datePicker.querySelector('.is-selected button');
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
-      keyDownUp('arrowdown');
+      await keyDownUp('enter');
+      await keyDownUp('arrowdown');
 
       expect(getSelectedButton().getAttribute('data-pika-day')).toEqual('21');
       expect(getSelectedButton().getAttribute('data-pika-month')).toEqual('0');
@@ -193,8 +190,7 @@ describe('keyboard navigation', () => {
 
       expect(getActiveEditor().isOpened()).toBe(true);
 
-      keyDownUp('escape');
-
+      await keyDownUp('escape');
       await sleep(15);
 
       expect(getActiveEditor().isOpened()).toBe(false);

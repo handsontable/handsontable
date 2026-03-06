@@ -1,5 +1,6 @@
 import {
   fastInnerText,
+  hasZeroHeight,
 } from '../../../../helpers/dom/element';
 import { randomString } from '../../../../helpers/string';
 import EventManager from '../../../../eventManager';
@@ -27,6 +28,14 @@ export default class CoreAbstract {
   guid = `wt_${randomString()}`;
   drawInterrupted = false;
   drawn = false;
+
+  /**
+   * The name of the overlay that currently renders the table.
+   *
+   * @public
+   * @type {string}
+   */
+  activeOverlayName = 'master';
 
   /**
    * The DOM bindings.
@@ -115,8 +124,8 @@ export default class CoreAbstract {
   draw(fastDraw = false) {
     this.drawInterrupted = false;
 
-    if (!this.wtTable.isVisible()) {
-      // draw interrupted because TABLE is not visible
+    if (!this.wtTable.isVisible() || hasZeroHeight(this.wtTable.wtRootElement.parentNode)) {
+      // draw interrupted because TABLE is not visible or has the height set to 0
       this.drawInterrupted = true;
     } else {
       this.wtTable.draw(fastDraw);
@@ -173,50 +182,43 @@ export default class CoreAbstract {
    * Scrolls the viewport to a cell (rerenders if needed).
    *
    * @param {CellCoords} coords The cell coordinates to scroll to.
-   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
-   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right of the table.
-   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom of the table.
-   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left of the table.
+   * @param {'auto' | 'start' | 'end'} [horizontalSnap='auto'] If `'start'`, viewport is scrolled to show
+   * the cell on the left of the table. If `'end'`, viewport is scrolled to show the cell on the right of
+   * the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
+   * @param {'auto' | 'top' | 'bottom'} [verticalSnap='auto'] If `'top'`, viewport is scrolled to show
+   * the cell on the top of the table. If `'bottom'`, viewport is scrolled to show the cell on the bottom of
+   * the table. When `'auto'`, the viewport is scrolled only when the row is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
-    if (coords.col < 0 || coords.row < 0) {
-      return false;
-    }
-
-    return this.wtScroll.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
+  scrollViewport(coords, horizontalSnap, verticalSnap) {
+    return this.wtScroll.scrollViewport(coords, horizontalSnap, verticalSnap);
   }
 
   /**
    * Scrolls the viewport to a column (rerenders if needed).
    *
    * @param {number} column Visual column index.
-   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right of the table.
-   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left of the table.
+   * @param {'auto' | 'start' | 'end'} [snapping='auto'] If `'start'`, viewport is scrolled to show
+   * the cell on the left of the table. If `'end'`, viewport is scrolled to show the cell on the right of
+   * the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewportHorizontally(column, snapToRight, snapToLeft) {
-    if (column < 0) {
-      return false;
-    }
-
-    return this.wtScroll.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+  scrollViewportHorizontally(column, snapping) {
+    return this.wtScroll.scrollViewportHorizontally(column, snapping);
   }
 
   /**
    * Scrolls the viewport to a row (rerenders if needed).
    *
    * @param {number} row Visual row index.
-   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
-   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom of the table.
+   * @param {'auto' | 'top' | 'bottom'} [snapping='auto'] If `'top'`, viewport is scrolled to show
+   * the cell on the top of the table. If `'bottom'`, viewport is scrolled to show the cell on
+   * the bottom of the table. When `'auto'`, the viewport is scrolled only when the row is outside of
+   * the viewport.
    * @returns {boolean}
    */
-  scrollViewportVertically(row, snapToTop, snapToBottom) {
-    if (row < 0) {
-      return false;
-    }
-
-    return this.wtScroll.scrollViewportVertically(row, snapToTop, snapToBottom);
+  scrollViewportVertically(row, snapping) {
+    return this.wtScroll.scrollViewportVertically(row, snapping);
   }
 
   /**

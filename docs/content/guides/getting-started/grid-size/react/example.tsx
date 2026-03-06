@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -17,7 +16,7 @@ const data = new Array(100) // number of rows
 
 const ExampleComponent = () => {
   const [isContainerExpanded, setIsContainerExpanded] = useState(false);
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
 
   const triggerBtnClickCallback = () => {
     setIsContainerExpanded(!isContainerExpanded);
@@ -26,20 +25,14 @@ const ExampleComponent = () => {
   useEffect(() => {
     // simulate layout change outside of React lifecycle
     // @ts-ignore
-    document.getElementById('exampleParent').style.height = isContainerExpanded
-      ? '410px'
-      : '157px';
+    document.getElementById('exampleParent').style.height = isContainerExpanded ? '410px' : '157px';
     hotRef.current?.hotInstance?.refreshDimensions();
   });
 
   return (
     <>
       <div className="controls">
-        <button
-          id="triggerBtn"
-          className="button button--primary"
-          onClick={() => triggerBtnClickCallback()}
-        >
+        <button id="triggerBtn" className="button button--primary" onClick={() => triggerBtnClickCallback()}>
           {isContainerExpanded ? 'Collapse container' : 'Expand container'}
         </button>
       </div>
@@ -50,7 +43,6 @@ const ExampleComponent = () => {
           colHeaders={true}
           width="100%"
           height="100%"
-          rowHeights={23}
           colWidths={100}
           autoWrapRow={true}
           autoWrapCol={true}

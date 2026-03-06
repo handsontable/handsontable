@@ -1,7 +1,7 @@
 export const command = {
   name: 'editorFastOpen',
   callback(hot, event) {
-    const { highlight } = hot.getSelectedRangeLast();
+    const { highlight } = hot.getSelectedRangeActive();
 
     if (highlight.isHeader()) {
       return;

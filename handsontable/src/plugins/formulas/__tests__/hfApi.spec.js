@@ -19,7 +19,7 @@ describe('Formulas general', () => {
   });
 
   describe('Sheet switching', () => {
-    it('should allow switching sheets stored in HF by modifying the `sheetName` property in `updateSettings`', () => {
+    it('should allow switching sheets stored in HF by modifying the `sheetName` property in `updateSettings`', async() => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
       hfInstance1.addSheet('Test Sheet');
@@ -35,7 +35,7 @@ describe('Formulas general', () => {
         },
       });
 
-      updateSettings({
+      await updateSettings({
         formulas: {
           sheetName: 'Test Sheet 2'
         }
@@ -48,7 +48,7 @@ describe('Formulas general', () => {
       expect(getData()).toEqual(hfInstance1.getSheetSerialized(hfInstance1.getSheetId('Test Sheet 2')));
     });
 
-    it('should allow switching sheets stored in HF using the plugin\'s `switchSheet` method', () => {
+    it('should allow switching sheets stored in HF using the plugin\'s `switchSheet` method', async() => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
       hfInstance1.addSheet('Test Sheet');
@@ -73,7 +73,7 @@ describe('Formulas general', () => {
       expect(getData()).toEqual(hfInstance1.getSheetSerialized(hfInstance1.getSheetId('Test Sheet 2')));
     });
 
-    it('should allow adding new HF sheets using the plugin\'s `addSheet` method', () => {
+    it('should allow adding new HF sheets using the plugin\'s `addSheet` method', async() => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
       hfInstance1.addSheet('Test Sheet');

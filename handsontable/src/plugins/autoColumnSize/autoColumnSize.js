@@ -1,12 +1,12 @@
 import { BasePlugin } from '../base';
 import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';
-import Hooks from '../../pluginHooks';
-import { isObject, hasOwnProperty } from '../../helpers/object';
+import { Hooks } from '../../core/hooks';
+import { isObject } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
-import { ViewportColumnsCalculator } from '../../3rdparty/walkontable/src';
+import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
@@ -110,6 +110,53 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * }
  * ```
  * :::
+ *
+ * ::: only-for angular
+ *
+ * ```ts
+ * import { AfterViewInit, Component, ViewChild } from "@angular/core";
+ * import {
+ *   GridSettings,
+ *   HotTableModule,
+ *   HotTableComponent,
+ * } from "@handsontable/angular-wrapper";
+ *
+ * `@Component`({
+ *   selector: "app-example",
+ *   standalone: true,
+ *   imports: [HotTableModule],
+ *   template: ` <div>
+ *     <hot-table [settings]="gridSettings" />
+ *   </div>`,
+ * })
+ * export class ExampleComponent implements AfterViewInit {
+ *   `@ViewChild`(HotTableComponent, { static: false })
+ *   readonly hotTable!: HotTableComponent;
+ *
+ *   readonly gridSettings = <GridSettings>{
+ *     data: this.getData(),
+ *     autoColumnSize: true,
+ *   };
+ *
+ *   ngAfterViewInit(): void {
+ *     // Access to plugin instance:
+ *     const hot = this.hotTable.hotInstance;
+ *     const plugin = hot.getPlugin("autoColumnSize");
+ *
+ *     plugin.getColumnWidth(4);
+ *
+ *     if (plugin.isEnabled()) {
+ *       // code...
+ *     }
+ *   }
+ *
+ *   private getData(): any[] {
+ *     //get some data
+ *   }
+ * }
+ * ```
+ *
+ * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export class AutoColumnSize extends BasePlugin {
@@ -123,6 +170,14 @@ export class AutoColumnSize extends BasePlugin {
 
   static get SETTING_KEYS() {
     return true;
+  }
+
+  static get DEFAULT_SETTINGS() {
+    return {
+      useHeaders: true,
+      samplingRatio: null,
+      allowSampleDuplicates: false,
+    };
   }
 
   static get CALCULATION_STEP() {
@@ -160,6 +215,10 @@ export class AutoColumnSize extends BasePlugin {
 
     if (!cellMeta.spanned) {
       cellValue = this.hot.getDataAtCell(row, column);
+
+      if (typeof cellMeta.valueFormatter === 'function') {
+        cellValue = cellMeta.valueFormatter(cellValue, cellMeta);
+      }
     }
 
     let bundleSeed = '';
@@ -189,6 +248,13 @@ export class AutoColumnSize extends BasePlugin {
    * @type {PhysicalIndexToValueMap}
    */
   columnWidthsMap = new IndexToValueMap();
+
+  /**
+   * `true` value indicates that the #onInit() function has been already called.
+   *
+   * @type {boolean}
+   */
+  #isInitialized = false;
 
   /**
    * Cached column header names. It is used to diff current column headers with previous state and detect which
@@ -232,13 +298,14 @@ export class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    const setting = this.hot.getSettings()[PLUGIN_KEY];
+    this.ghostTable.setSetting('useHeaders', this.getSetting('useHeaders'));
+    this.samplesGenerator.setAllowDuplicates(this.getSetting('allowSampleDuplicates'));
 
-    if (setting && setting.useHeaders !== null && setting.useHeaders !== undefined) {
-      this.ghostTable.setSetting('useHeaders', setting.useHeaders);
+    const samplingRatio = this.getSetting('samplingRatio');
+
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
     }
-
-    this.setSamplingOptions();
 
     this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
     this.addHook('beforeChangeRender', (...args) => this.#onBeforeChange(...args));
@@ -286,7 +353,7 @@ export class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    const overwriteCache = this.hot.renderCall;
+    const overwriteCache = this.hot.forceFullRender;
 
     this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, undefined, overwriteCache);
   }
@@ -315,21 +382,12 @@ export class AutoColumnSize extends BasePlugin {
 
       if (overwriteCache || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null &&
           !this.hot._getColWidthFromSettings(physicalColumn))) {
-        const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
-
-        samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
+        this.#fillGhostTableWithSamples(visualColumn, rowsRange);
       }
     });
 
     if (this.ghostTable.columns.length) {
-      this.hot.batchExecution(() => {
-        this.ghostTable.getWidths((visualColumn, width) => {
-          const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-          this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
-        });
-      }, true);
-
+      this.#updateColumnWidthsMapBasedOnGhostTable();
       this.measuredColumns = columnsRange.to + 1;
       this.ghostTable.clean();
     }
@@ -411,44 +469,40 @@ export class AutoColumnSize extends BasePlugin {
       }
 
       if (!this.hot._getColWidthFromSettings(physicalColumn)) {
-        const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
-
-        samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
+        this.#fillGhostTableWithSamples(visualColumn, rowsRange);
       }
     });
 
     if (this.ghostTable.columns.length) {
-      this.hot.batchExecution(() => {
-        this.ghostTable.getWidths((visualColumn, width) => {
-          const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-          this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
-        });
-      }, true);
-
+      this.#updateColumnWidthsMapBasedOnGhostTable();
       this.ghostTable.clean();
     }
   }
 
   /**
-   * Sets the sampling options.
+   * Processes a single column for width calculation.
    *
-   * @private
+   * @param {number} visualColumn Visual column index.
+   * @param {object} rowsRange Range of rows to process.
    */
-  setSamplingOptions() {
-    const setting = this.hot.getSettings()[PLUGIN_KEY];
-    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
-      setting.samplingRatio : undefined;
-    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
-      setting.allowSampleDuplicates : undefined;
+  #fillGhostTableWithSamples(visualColumn, rowsRange) {
+    const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
 
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
-    }
+    samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
+  }
 
-    if (allowSampleDuplicates) {
-      this.samplesGenerator.setAllowDuplicates(allowSampleDuplicates);
-    }
+  /**
+   * Updates the column widths map with calculated widths from the ghost table.
+   *
+   */
+  #updateColumnWidthsMapBasedOnGhostTable() {
+    this.hot.batchExecution(() => {
+      this.ghostTable.getWidths((visualColumn, width) => {
+        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+        this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
+      });
+    }, true);
   }
 
   /**
@@ -501,7 +555,7 @@ export class AutoColumnSize extends BasePlugin {
       width = this.columnWidthsMap.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
       if (keepMinimum && typeof width === 'number') {
-        width = Math.max(width, ViewportColumnsCalculator.DEFAULT_WIDTH);
+        width = Math.max(width, DEFAULT_COLUMN_WIDTH);
       }
     }
 
@@ -514,7 +568,7 @@ export class AutoColumnSize extends BasePlugin {
    * @returns {number} Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
-    return this.hot.view.getFirstRenderedVisibleColumn() ?? -1;
+    return this.hot.getFirstRenderedVisibleColumn() ?? -1;
   }
 
   /**
@@ -523,7 +577,7 @@ export class AutoColumnSize extends BasePlugin {
    * @returns {number} Returns visual column index or -1 if table is not rendered.
    */
   getLastVisibleColumn() {
-    return this.hot.view.getLastRenderedVisibleColumn() ?? -1;
+    return this.hot.getLastRenderedVisibleColumn() ?? -1;
   }
 
   /**
@@ -651,6 +705,7 @@ export class AutoColumnSize extends BasePlugin {
   #onInit() {
     this.#cachedColumnHeaders = this.hot.getColHeader();
     this.recalculateAllColumnsWidth();
+    this.#isInitialized = true;
   }
 
   /**
@@ -659,6 +714,10 @@ export class AutoColumnSize extends BasePlugin {
    * @param {Array} changes An array of modified data.
    */
   #onAfterFormulasValuesUpdate(changes) {
+    if (!this.#isInitialized) {
+      return;
+    }
+
     const changedColumns = changes.reduce((acc, change) => {
       const physicalColumn = change.address?.col;
 

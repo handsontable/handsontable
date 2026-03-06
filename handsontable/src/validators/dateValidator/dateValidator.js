@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { getEditorInstance } from '../../editors/registry';
 import { EDITOR_TYPE as DATE_EDITOR_TYPE } from '../../editors/dateEditor';
-import { getNormalizedDate } from '../../helpers/date';
+import { getNormalizedDate } from '../../helpers/dateTime';
 
 export const VALIDATOR_TYPE = 'date';
 
@@ -61,7 +61,7 @@ dateValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
 export function correctFormat(value, dateFormat) {
   const dateFromDate = moment(getNormalizedDate(value));
   const dateFromMoment = moment(value, dateFormat);
-  const isAlphanumeric = value.search(/[A-z]/g) > -1;
+  const isAlphanumeric = value.search(/[A-Za-z]/g) > -1;
   let date;
 
   if ((dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) ||

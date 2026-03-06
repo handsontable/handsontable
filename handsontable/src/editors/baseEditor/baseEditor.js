@@ -1,4 +1,5 @@
 import { stringify } from '../../helpers/mixed';
+import { throwWithCause } from '../../helpers/errors';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
@@ -8,8 +9,8 @@ import {
   hasHorizontalScrollbar,
   outerWidth,
   outerHeight,
-  getComputedStyle,
 } from '../../helpers/dom/element';
+import { getValueGetterValue } from '../../utils/valueAccessors';
 
 export const EDITOR_TYPE = 'base';
 export const EDITOR_STATE = Object.freeze({
@@ -61,6 +62,12 @@ export class BaseEditor {
    * @type {Function}
    */
   _closeCallback = null;
+  /**
+   * Flag to specify if the editor should be closed after data change.
+   *
+   * @type {boolean}
+   */
+  _closeAfterDataChange = true;
   /**
    * Currently rendered cell's TD element.
    *
@@ -128,28 +135,28 @@ export class BaseEditor {
    * Required method to get current value from editable element.
    */
   getValue() {
-    throw Error('Editor getValue() method unimplemented');
+    throwWithCause('Editor getValue() method unimplemented');
   }
 
   /**
    * Required method to set new value into editable element.
    */
   setValue() {
-    throw Error('Editor setValue() method unimplemented');
+    throwWithCause('Editor setValue() method unimplemented');
   }
 
   /**
    * Required method to open editor.
    */
   open() {
-    throw Error('Editor open() method unimplemented');
+    throwWithCause('Editor open() method unimplemented');
   }
 
   /**
    * Required method to close editor.
    */
   close() {
-    throw Error('Editor close() method unimplemented');
+    throwWithCause('Editor close() method unimplemented');
   }
 
   /**
@@ -195,18 +202,21 @@ export class BaseEditor {
 
     // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
     if (ctrlDown) {
-      const selectedLast = this.hot.getSelectedLast();
+      const activeRange = this.hot.getSelectedRangeActive();
+      const topStartCorner = activeRange.getTopStartCorner();
+      const bottomEndCorner = activeRange.getBottomEndCorner();
 
-      visualRowFrom = Math.max(Math.min(selectedLast[0], selectedLast[2]), 0); // Math.max eliminate headers coords.
-      visualColumnFrom = Math.max(Math.min(selectedLast[1], selectedLast[3]), 0); // Math.max eliminate headers coords.
-      visualRowTo = Math.max(selectedLast[0], selectedLast[2]);
-      visualColumnTo = Math.max(selectedLast[1], selectedLast[3]);
+      visualRowFrom = topStartCorner.row;
+      visualColumnFrom = topStartCorner.col;
+      visualRowTo = bottomEndCorner.row;
+      visualColumnTo = bottomEndCorner.col;
 
     } else {
       [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = [this.row, this.col, null, null];
     }
 
-    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRowFrom, visualColumnFrom);
+    const modifiedCellCoords = this.hot
+      .runHooks('modifyGetCellCoords', visualRowFrom, visualColumnFrom, false, 'meta');
 
     if (Array.isArray(modifiedCellCoords)) {
       [visualRowFrom, visualColumnFrom] = modifiedCellCoords;
@@ -233,14 +243,17 @@ export class BaseEditor {
     const renderableRowIndex = hotInstance.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumnIndex = hotInstance.columnIndexMapper.getRenderableFromVisualIndex(this.col);
 
-    hotInstance.view.scrollViewport(hotInstance._createCellCoords(renderableRowIndex, renderableColumnIndex));
+    hotInstance.view
+      .scrollViewport(hotInstance._createCellCoords(renderableRowIndex, renderableColumnIndex));
+
     this.state = EDITOR_STATE.EDITING;
 
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
     // otherwise IME (editor for Asia users) doesn't work.
     if (this.isInFullEditMode()) {
+      const originalValue = getValueGetterValue(this.originalValue, this.hot.getCellMeta(this.row, this.col));
       const stringifiedInitialValue = typeof newInitialValue === 'string' ?
-        newInitialValue : stringify(this.originalValue);
+        newInitialValue : stringify(originalValue);
 
       this.setValue(stringifiedInitialValue);
     }
@@ -251,8 +264,9 @@ export class BaseEditor {
 
     // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
     hotInstance.view.render();
-
     hotInstance.runHooks('afterBeginEditing', this.row, this.col);
+
+    this.addHook('beforeDialogShow', () => this.cancelChanges());
   }
 
   /**
@@ -263,8 +277,6 @@ export class BaseEditor {
    * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue, ctrlDown, callback) {
-    let val;
-
     if (callback) {
       const previousCloseCallback = this._closeCallback;
 
@@ -298,21 +310,18 @@ export class BaseEditor {
         return;
       }
 
-      const value = this.getValue();
+      let value = this.getValue();
 
       if (this.cellProperties.trimWhitespace) {
-        // We trim only string values
-        val = [
-          [typeof value === 'string' ? String.prototype.trim.call(value || '') : value]
-        ];
-      } else {
-        val = [
-          [value]
-        ];
+        value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
+      }
+
+      if (typeof this.cellProperties.valueParser === 'function') {
+        value = this.cellProperties.valueParser(value, this.cellProperties);
       }
 
       this.state = EDITOR_STATE.WAITING;
-      this.saveValue(val, ctrlDown);
+      this.saveValue([[value]], ctrlDown);
 
       if (this.hot.getCellValidator(this.cellProperties)) {
         this.hot.addHookOnce('postAfterValidate', (result) => {
@@ -327,7 +336,7 @@ export class BaseEditor {
   }
 
   /**
-   * Finishes editing without singout saving value.
+   * Finishes editing without saving value.
    */
   cancelChanges() {
     this.state = EDITOR_STATE.FINISHED;
@@ -354,6 +363,7 @@ export class BaseEditor {
 
     } else {
       this.close();
+
       this._opened = false;
       this._fullEditMode = false;
       this.state = EDITOR_STATE.VIRGIN;
@@ -517,7 +527,7 @@ export class BaseEditor {
       cellStartOffset += firstColumnOffset - horizontalScrollPosition;
     }
 
-    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
+    const cellComputedStyle = rootWindow.getComputedStyle(this.TD);
     const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
     const inlineStartBorderCompensation = parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
     const topBorderCompensation = parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
@@ -528,7 +538,7 @@ export class BaseEditor {
     const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) -
       actualVerticalScrollbarWidth + inlineStartBorderCompensation;
     const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) -
-      actualHorizontalScrollbarWidth + topBorderCompensation, 23);
+      actualHorizontalScrollbarWidth + topBorderCompensation, this.hot.stylesHandler.getDefaultRowHeight());
 
     return {
       top: topPos,

@@ -13,9 +13,9 @@ describe('HiddenColumns', () => {
   });
 
   describe('configuration', () => {
-    it('should hide columns if the "hiddenColumns" property is set', () => {
+    it('should hide columns if the "hiddenColumns" property is set', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenColumns: {
           columns: [1, 3],
         }
@@ -30,16 +30,16 @@ describe('HiddenColumns', () => {
       expect(countCols()).toBe(5);
     });
 
-    it('should return to default state after calling the disablePlugin method', () => {
+    it('should return to default state after calling the disablePlugin method', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenColumns: {
           columns: [1, 3],
         },
       });
 
       getPlugin('hiddenColumns').disablePlugin();
-      render();
+      await render();
 
       expect(getCell(0, 0).innerText).toBe('A1');
       expect(getCell(0, 1).innerText).toBe('B1');
@@ -49,9 +49,9 @@ describe('HiddenColumns', () => {
       expect(countCols()).toBe(5);
     });
 
-    it('should hide columns after calling the enablePlugin method', () => {
+    it('should hide columns after calling the enablePlugin method', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenColumns: {
           columns: [1, 3],
         },
@@ -60,12 +60,12 @@ describe('HiddenColumns', () => {
       const plugin = getPlugin('hiddenColumns');
 
       plugin.disablePlugin();
-      render();
+      await render();
 
       expect(countCols()).toBe(5);
 
       plugin.enablePlugin();
-      render();
+      await render();
 
       expect(countCols()).toBe(5);
       expect(getCell(0, 0).innerText).toBe('A1');
@@ -75,16 +75,16 @@ describe('HiddenColumns', () => {
       expect(getCell(0, 4).innerText).toBe('E1');
     });
 
-    it('should initialize the plugin after setting it up with the "updateSettings" method', () => {
+    it('should initialize the plugin after setting it up with the "updateSettings" method', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
       });
 
       const plugin = getPlugin('hiddenColumns');
 
       expect(plugin.enabled).toEqual(false);
 
-      updateSettings({
+      await updateSettings({
         hiddenColumns: {
           columns: [1, 3],
         },
@@ -100,9 +100,9 @@ describe('HiddenColumns', () => {
       expect(getCell(0, 4).innerText).toBe('E1');
     });
 
-    it('should update hidden columns with the "updateSettings" method', () => {
+    it('should update hidden columns with the "updateSettings" method', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenColumns: {
           columns: [1, 3],
         },
@@ -116,7 +116,7 @@ describe('HiddenColumns', () => {
       expect(getCell(0, 3)).toBe(null);
       expect(getCell(0, 4).innerText).toBe('E1');
 
-      updateSettings({
+      await updateSettings({
         hiddenColumns: {
           columns: [0, 2, 4],
         },

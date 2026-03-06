@@ -102,10 +102,45 @@ export function walkontable(options, table) {
   }
 
   options.table = table;
-
+  options.stylesHandler = createStylesHandler();
   currentSpec.wotInstance = new Walkontable.Core(options);
 
   return currentSpec.wotInstance;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function topOverlay() {
+  return wot().wtOverlays.topOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function bottomOverlay() {
+  return wot().wtOverlays.bottomOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function topInlineStartCornerOverlay() {
+  return wot().wtOverlays.topInlineStartCornerOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function inlineStartOverlay() {
+  return wot().wtOverlays.inlineStartOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function bottomInlineStartCornerOverlay() {
+  return wot().wtOverlays.bottomInlineStartCornerOverlay;
 }
 
 /**
@@ -272,34 +307,39 @@ export function createSelectionController(options = {}) {
         ...selectionOptions,
       });
     },
-    getHeader() {
+    getHeader(selectionOptions = {}) {
       return addSelectionToCollection(headerCtrl, {
         selectionType: 'header',
-        className: 'ht__highlight'
+        className: 'ht__highlight',
+        ...selectionOptions,
       });
     },
-    getActiveHeader() {
+    getActiveHeader(selectionOptions = {}) {
       return addSelectionToCollection(activeHeaderCtrl, {
         selectionType: 'active-header',
-        className: 'ht__active_highlight'
+        className: 'ht__active_highlight',
+        ...selectionOptions,
       });
     },
-    getRowHighlight() {
+    getRowHighlight(selectionOptions = {}) {
       return addSelectionToCollection(rowHighlightCtrl, {
         selectionType: 'row',
-        className: 'row'
+        className: 'row',
+        ...selectionOptions,
       });
     },
-    getColumnHighlight() {
+    getColumnHighlight(selectionOptions = {}) {
       return addSelectionToCollection(columnHighlightCtrl, {
         selectionType: 'column',
-        className: 'column'
+        className: 'column',
+        ...selectionOptions,
       });
     },
-    getCustomHighlight() {
+    getCustomHighlight(selectionOptions = {}) {
       return addSelectionToCollection(customHighlightCtrl, {
         selectionType: 'custom',
-        className: 'custom'
+        className: 'custom',
+        ...selectionOptions,
       });
     },
     [Symbol.iterator]() {
@@ -313,6 +353,31 @@ export function createSelectionController(options = {}) {
         ...columnHighlightCtrl,
         ...customHighlightCtrl,
       ][Symbol.iterator]();
+    },
+  };
+}
+
+/**
+ * Creates the stylesHandler for the Walkontable to be used in the tests.
+ *
+ * @returns {object} Styles Handler.
+ */
+export function createStylesHandler() {
+  return {
+    getDefaultRowHeight() {
+      return 23;
+    },
+    areCellsBorderBox() {
+      return false;
+    },
+    getCSSVariableValue(variableName) {
+      const cssVariables = {
+        'cell-autofill-size': 6,
+        'cell-autofill-border-width': 1,
+        'cell-autofill-border-color': '#FFF',
+      };
+
+      return cssVariables[variableName];
     },
   };
 }
@@ -494,4 +559,90 @@ export function expectWtTable(wt, callb, name) {
   }
 
   return expect(callb(wt.wtOverlays[`${name}Overlay`].clone.wtTable)).withContext(`${name}: ${callbAsString}`);
+}
+
+/**
+ * Moves the table's viewport to the specified y scroll position.
+ *
+ * @param {number} y The scroll position.
+ */
+export async function scrollViewportVertically(y) {
+  const isWindow = wot().wtOverlays.scrollableElement === window;
+  const scrollableElement = isWindow ? window : getTableMaster().find('.wtHolder')[0];
+
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      scrollableElement.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    scrollableElement.addEventListener('scroll', scrollHandler);
+
+    if (isWindow) {
+      scrollableElement.scrollTo(scrollableElement.scrollX, y);
+    } else {
+      scrollableElement.scrollTop = y;
+    }
+  });
+}
+
+/**
+ * Moves the table's viewport to the specified x scroll position.
+ *
+ * @param {number} x The scroll position.
+ */
+export async function scrollViewportHorizontally(x) {
+  const isWindow = wot().wtOverlays.scrollableElement === window;
+  const scrollableElement = isWindow ? window : getTableMaster().find('.wtHolder')[0];
+
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      scrollableElement.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    scrollableElement.addEventListener('scroll', scrollHandler);
+
+    if (isWindow) {
+      scrollableElement.scrollTo(x, scrollableElement.scrollY);
+    } else {
+      scrollableElement.scrollLeft = x;
+    }
+  });
+}
+
+/**
+ * Moves the browser's viewport to the specified x and y scroll position.
+ *
+ * @param {number} x The scroll vertical position.
+ * @param {number} y The scroll horizontal position.
+ */
+export async function scrollWindowTo(x, y) {
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      window.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    window.addEventListener('scroll', scrollHandler);
+    window.scrollTo(hot().isRtl() ? -x : x, y);
+  });
+}
+
+/**
+ * Moves the browser's viewport to the specified x and y scroll position.
+ *
+ * @param {number} x The scroll vertical position.
+ * @param {number} y The scroll horizontal position.
+ */
+export async function scrollWindowBy(x, y) {
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      window.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    window.addEventListener('scroll', scrollHandler);
+    window.scrollBy(x, y);
+  });
 }

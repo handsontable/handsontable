@@ -38,12 +38,12 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     // Matchers configuration.
     this.matchersConfig = {
       toMatchHTML: {
-        keepAttributes: ['class', 'dir', 'style']
+        keepAttributes: ['dir', 'style']
       }
     };
   });
 
-  it('should not generate any cells', () => {
+  it('should not generate any cells', async() => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 
     tableMock.rowsToRender = 5;
@@ -69,7 +69,7 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
       `);
   });
 
-  it('should generate as many cells as `columnsToRender` is set', () => {
+  it('should generate as many cells as `columnsToRender` is set', async() => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 
     const headerRenderer1 = jasmine.createSpy();
@@ -92,14 +92,14 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <th class=""></th>
-          <td class=""></td>
-          <td class=""></td>
+          <th></th>
+          <td></td>
+          <td></td>
         </tr>
         <tr>
-          <th class=""></th>
-          <td class=""></td>
-          <td class=""></td>
+          <th></th>
+          <td></td>
+          <td></td>
         </tr>
       </tbody>
       `);
@@ -110,7 +110,7 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     expect(cellRenderer).toHaveBeenCalledTimes(4);
   });
 
-  it('should clear "style" and "dir" attributes from the cell element each render cycle', () => {
+  it('should clear "style" and "dir" attributes from the cell element each render cycle', async() => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 
     tableMock.rowsToRender = 2;
@@ -132,14 +132,14 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <td class="" dir="rtl" style="width: 60px;"></td>
-          <td class="" dir="rtl" style="width: 60px;"></td>
-          <td class="" dir="rtl" style="width: 60px;"></td>
+          <td dir="rtl" style="width: 60px;"></td>
+          <td dir="rtl" style="width: 60px;"></td>
+          <td dir="rtl" style="width: 60px;"></td>
         </tr>
         <tr>
-          <td class="" dir="rtl" style="width: 60px;"></td>
-          <td class="" dir="rtl" style="width: 60px;"></td>
-          <td class="" dir="rtl" style="width: 60px;"></td>
+          <td dir="rtl" style="width: 60px;"></td>
+          <td dir="rtl" style="width: 60px;"></td>
+          <td dir="rtl" style="width: 60px;"></td>
         </tr>
       </tbody>
       `);
@@ -157,20 +157,20 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <td class=""></td>
-          <td class=""></td>
-          <td class=""></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
         <tr>
-          <td class=""></td>
-          <td class=""></td>
-          <td class=""></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
       </tbody>
       `);
   });
 
-  it('should generate cells properly after rerendering the cells from 0 to N cells', () => {
+  it('should generate cells properly after rerendering the cells from 0 to N cells', async() => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 
     const cellRenderer = jasmine.createSpy();
@@ -208,20 +208,20 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <td class=""></td>
-          <td class=""></td>
-          <td class=""></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
         <tr>
-          <td class=""></td>
-          <td class=""></td>
-          <td class=""></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
       </tbody>
       `);
   });
 
-  it('should reuse cell elements after next render call', () => {
+  it('should reuse cell elements after next render call', async() => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 
     const cellRenderer = jasmine.createSpy();
@@ -243,14 +243,14 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <td class=""></td>
-          <td class=""></td>
-          <td class=""></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
         <tr>
-          <td class=""></td>
-          <td class=""></td>
-          <td class=""></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
       </tbody>
       `);

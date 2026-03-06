@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('beforeViewRender', () => {
-    it('should be fired right after the Walkontable\'s draw method call (only on slow render path)', () => {
+    it('should be fired right after the Walkontable\'s draw method call (only on slow render path)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(100, 100),
         width: 100,

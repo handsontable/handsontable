@@ -1,5 +1,8 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
+import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
+import { deprecatedWarn } from '../console';
+import { throwWithCause } from '../../helpers/errors';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -38,7 +41,7 @@ export function getParent(element, level = 0) {
  * @param {HTMLElement} thisHotContainer The Handsontable container.
  * @returns {boolean}
  */
-export function isThisHotChild(element, thisHotContainer) {
+export function isInternalElement(element, thisHotContainer) {
   const closestHandsontableContainer = element.closest('.handsontable');
 
   return !!closestHandsontableContainer &&
@@ -141,6 +144,43 @@ export function closestDown(element, nodes, until) {
   const length = matched.length;
 
   return length ? matched[length - 1] : null;
+}
+
+/**
+ * Traverses up the DOM tree from the given element and finds parent elements that have a specified class name
+ * or match a provided class name regular expression.
+ *
+ * @param {HTMLElement} element - The element from which to start traversing.
+ * @param {string|RegExp} className - The class name or class name regular expression to check.
+ * @returns {{element: HTMLElement, classNames: string[]}} - Returns an object containing the matched parent element and an array of matched class names.
+ */
+export function findFirstParentWithClass(element, className) {
+  const matched = {
+    element: undefined,
+    classNames: []
+  };
+  let elementToCheck = element;
+
+  while (elementToCheck !== null && elementToCheck !== element.ownerDocument.documentElement && !matched.element) {
+    if (typeof className === 'string' && elementToCheck.classList.contains(className)) {
+
+      matched.element = elementToCheck;
+      matched.classNames.push(className);
+
+    } else if (className instanceof RegExp) {
+      const matchingClasses = Array.from(elementToCheck.classList).filter(cls => className.test(cls));
+
+      if (matchingClasses.length) {
+
+        matched.element = elementToCheck;
+        matched.classNames.push(...matchingClasses);
+      }
+    }
+
+    elementToCheck = elementToCheck.parentElement;
+  }
+
+  return matched;
 }
 
 /**
@@ -292,7 +332,7 @@ export function addClass(element, className) {
  * Remove class name from an element.
  *
  * @param {HTMLElement} element An element to process.
- * @param {string|Array<string|RegExp>} className Class name as string or array of strings.
+ * @param {string|RegExp|Array<string|RegExp>} className Class name as string or array of strings.
  */
 export function removeClass(element, className) {
   if (typeof className === 'string') {
@@ -415,17 +455,28 @@ export function empty(element) {
 }
 
 export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
+let dompurifyDeprecatedMessageShown = false;
 
 /**
  * Insert content into element trying to avoid innerHTML method.
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
- * @param {boolean} [sanitizeContent=true] If `true`, the content will be sanitized before writing to the element.
+ * @param {function(string): string | boolean} [sanitizer] The sanitizer to use for the content.
  */
-export function fastInnerHTML(element, content, sanitizeContent = true) {
+export function fastInnerHTML(element, content, sanitizer = sanitize) {
   if (HTML_CHARACTERS.test(content)) {
-    element.innerHTML = sanitizeContent ? sanitize(content) : content;
+    if (!dompurifyDeprecatedMessageShown && sanitizer === sanitize) {
+      dompurifyDeprecatedMessageShown = true;
+      deprecatedWarn(
+        'The HTML sanitization using DOMPurify library is deprecated and will be removed in the next major release. ' +
+        'Use the `sanitizer` option instead.\n\n' +
+        'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+        '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
+      );
+    }
+
+    element.innerHTML = typeof sanitizer === 'function' ? sanitizer(content, 'innerHTML') : content;
   } else {
     fastInnerText(element, content);
   }
@@ -459,6 +510,7 @@ export function fastInnerText(element, content) {
  */
 export function isVisible(element) {
   const documentElement = element.ownerDocument.documentElement;
+  const windowElement = element.ownerDocument.defaultView;
   let next = element;
 
   while (next !== documentElement) { // until <html> reached
@@ -475,13 +527,13 @@ export function isVisible(element) {
         } else if (next.host) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
           return isVisible(next.host);
         }
-        throw new Error('Lost in Web Components world');
+        throwWithCause('Lost in Web Components world');
 
       } else {
         return false; // this is a node detached from document in IE8
       }
 
-    } else if (getComputedStyle(next).display === 'none') {
+    } else if (windowElement.getComputedStyle(next).display === 'none') {
       return false;
     }
 
@@ -489,6 +541,31 @@ export function isVisible(element) {
   }
 
   return true;
+}
+
+/**
+ * Returns true if the element has the height set to `0` or `0px` and overflow to `hidden` (height deliberately set to be 0).
+ *
+ * @param {HTMLElement} element The element to check.
+ * @returns {boolean} `true` if the element has height set to `0` or `0px` and overflow is set to `hidden`, `false` otherwise.
+ */
+export function hasZeroHeight(element) {
+  const rootDocument = element.ownerDocument;
+  const rootWindow = rootDocument.defaultView;
+  let currentElement = element;
+
+  while (currentElement.parentNode) {
+    if (currentElement.style.height === '0px' || currentElement.style.height === '0') {
+      const computedOverflow = rootWindow.getComputedStyle(currentElement)
+        .getPropertyValue('overflow');
+
+      return computedOverflow === 'hidden' || computedOverflow === 'clip';
+    }
+
+    currentElement = currentElement.parentNode;
+  }
+
+  return false;
 }
 
 /**
@@ -676,8 +753,8 @@ export function getTrimmingContainer(base) {
       return el;
     }
 
-    const computedStyle = getComputedStyle(el, rootWindow);
-    const allowedProperties = ['scroll', 'hidden', 'auto'];
+    const computedStyle = rootWindow.getComputedStyle(el);
+    const allowedProperties = ['scroll', 'hidden', 'auto', 'clip'];
     const property = computedStyle.getPropertyValue('overflow');
     const propertyY = computedStyle.getPropertyValue('overflow-y');
     const propertyX = computedStyle.getPropertyValue('overflow-x');
@@ -724,7 +801,7 @@ export function getStyle(element, prop, rootWindow = window) {
     return styleProp;
   }
 
-  const computedStyle = getComputedStyle(element, rootWindow);
+  const computedStyle = rootWindow.getComputedStyle(element);
 
   if (computedStyle[prop] !== '' && computedStyle[prop] !== undefined) {
     return computedStyle[prop];
@@ -752,18 +829,6 @@ export function matchesCSSRules(element, rule) {
   }
 
   return result;
-}
-
-/**
- * Returns a computed style object for the provided element. (Needed if style is declared in external stylesheet).
- *
- * @param {HTMLElement} element An element to get style from.
- * @param {Window} [rootWindow] The document window owner.
- * @returns {IEElementStyle|CssStyle} Elements computed style object.
- */
-// eslint-disable-next-line no-restricted-globals
-export function getComputedStyle(element, rootWindow = window) {
-  return element.currentStyle || rootWindow.getComputedStyle(element);
 }
 
 /**
@@ -919,54 +984,98 @@ export function setCaretPosition(element, pos, endPos) {
   }
 }
 
-let cachedScrollbarWidth;
+/**
+ * Returns the fractional scaling compensation for scrollbar width calculation.
+ *
+ * @param {Document} rootDocument The onwer of the document.
+ * @returns {number} The compensation for the scrollbar width, when the device pixel ratio is not an integer.
+ */
+// eslint-disable-next-line no-restricted-globals
+export function getFractionalScalingCompensation(rootDocument = document) {
+  if (!isWindowsOS()) {
+    return 0;
+  }
+
+  // On Windows, fractional scaling makes the scrollbar wider to compensate for the anti-aliasing.
+  // This is a workaround to calculate the correct scrollbar width.
+  return Number.isInteger(rootDocument.defaultView.devicePixelRatio || 1) ? 0 : 2;
+}
 
 /**
  * Helper to calculate scrollbar width.
  * Source: https://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes.
  *
  * @private
- * @param {Document} rootDocument The onwer of the document.
+ * @param {Document} rootDocument The owner of the document.
  * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
 function walkontableCalculateScrollbarWidth(rootDocument = document) {
-  const inner = rootDocument.createElement('div');
+  const calculateScrollbarWidth = (shouldForceWebkitScrollbarStyles = false) => {
+    const inner = rootDocument.createElement('div');
 
-  inner.style.height = '200px';
-  inner.style.width = '100%';
+    inner.style.height = '200px';
+    inner.style.width = '100%';
 
-  const outer = rootDocument.createElement('div');
+    const outer = rootDocument.createElement('div');
 
-  outer.style.boxSizing = 'content-box';
-  outer.style.height = '150px';
-  outer.style.left = '0px';
-  outer.style.overflow = 'hidden';
-  outer.style.position = 'absolute';
-  outer.style.top = '0px';
-  outer.style.width = '200px';
-  outer.style.visibility = 'hidden';
-  outer.appendChild(inner);
+    outer.classList.add('htScrollbarTest');
 
-  (rootDocument.body || rootDocument.documentElement).appendChild(outer);
-  const w1 = inner.offsetWidth;
+    if (shouldForceWebkitScrollbarStyles) {
+      outer.classList.add('htScrollbarSafariTest');
+    }
 
-  outer.style.overflow = 'scroll';
-  let w2 = inner.offsetWidth;
+    outer.style.boxSizing = 'content-box';
+    outer.style.height = '150px';
+    outer.style.left = '0px';
+    outer.style.overflow = 'hidden';
+    outer.style.position = 'absolute';
+    outer.style.top = '0px';
+    outer.style.width = '200px';
+    outer.style.visibility = 'hidden';
+    outer.appendChild(inner);
 
-  if (w1 === w2) {
-    w2 = outer.clientWidth;
+    rootDocument.body.appendChild(outer);
+
+    const w1 = inner.offsetWidth;
+
+    outer.style.overflow = 'scroll';
+
+    let w2 = inner.offsetWidth;
+
+    if (w1 === w2) {
+      w2 = outer.clientWidth;
+    }
+
+    rootDocument.body.removeChild(outer);
+
+    return w1 - w2;
+  };
+
+  const defaultScrollbarWidth = calculateScrollbarWidth();
+
+  // Safari around 26.x (e.g. 26.2/26.3) changed how scrollbars are rendered: overlay scrollbars
+  // and the standard scrollbar-color/scrollbar-width properties are preferred. When those are set
+  // (e.g. on .wtHolder via theme), they override the non-standard ::-webkit-scrollbar per spec,
+  // so the real scrollbar can be 0-width. Older Safari (before 26.1) sometimes reports 0 because
+  // it needs explicit ::-webkit-scrollbar size to lay out a classic scrollbar; the fallback below
+  // forces that via htScrollbarSafariTest so we get a correct non-zero width. We must only run
+  // this fallback when isSafariBefore261(), otherwise Safari 26.1+ with overlay scrollbars would
+  // be given 9px from the probe (which has no theme) while .wtHolder actually has 0-width overlay.
+  if (defaultScrollbarWidth === 0 && isSafariBefore261() && !isMobileBrowser() && !isIpadOS()) {
+    return calculateScrollbarWidth(true);
   }
-  (rootDocument.body || rootDocument.documentElement).removeChild(outer);
 
-  return (w1 - w2);
+  return defaultScrollbarWidth;
 }
+
+let cachedScrollbarWidth;
 
 /**
  * Returns the computed width of the native browser scroll bar.
  *
  * @param {Document} [rootDocument] The owner of the document.
- * @returns {number} Width.
+ * @returns {number} The computed width of the native browser scroll bar.
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollbarWidth(rootDocument = document) {
@@ -980,20 +1089,28 @@ export function getScrollbarWidth(rootDocument = document) {
 /**
  * Checks if the provided element has a vertical scrollbar.
  *
- * @param {HTMLElement} element An element to check.
+ * @param {HTMLElement|Window} element An element to check.
  * @returns {boolean}
  */
 export function hasVerticalScrollbar(element) {
+  if (element instanceof Window) {
+    return element.document.body.scrollHeight > element.innerHeight;
+  }
+
   return element.offsetWidth !== element.clientWidth;
 }
 
 /**
  * Checks if the provided element has a vertical scrollbar.
  *
- * @param {HTMLElement} element An element to check.
+ * @param {HTMLElement|Window} element An element to check.
  * @returns {boolean}
  */
 export function hasHorizontalScrollbar(element) {
+  if (element instanceof Window) {
+    return element.document.body.scrollWidth > element.innerWidth;
+  }
+
   return element.offsetHeight !== element.clientHeight;
 }
 
@@ -1167,4 +1284,16 @@ export function runWithSelectedContendEditableElement(element, callback, invisib
   callback();
 
   removeContentEditableFromElementAndDeselect(element, invisibleSelection);
+}
+
+/**
+ * Check if the element is HTMLElement.
+ *
+ * @param {*} element Element to check.
+ * @returns {boolean} `true` if the element is HTMLElement.
+ */
+export function isHTMLElement(element) {
+  const OwnElement = element?.ownerDocument?.defaultView.Element;
+
+  return !!(OwnElement && OwnElement !== null && element instanceof OwnElement);
 }

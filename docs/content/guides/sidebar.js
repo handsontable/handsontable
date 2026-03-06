@@ -7,37 +7,17 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/configuration-options/configuration-options' },
   { path: 'guides/getting-started/grid-size/grid-size' },
   { path: 'guides/getting-started/react-methods/react-methods', onlyFor: ['react'] },
+  { path: 'guides/getting-started/angular-hot-instance/angular-hot-instance', onlyFor: ['angular'] },
   { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
   { path: 'guides/getting-started/license-key/license-key' },
   { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
 ];
 
-const integrateWithAngularItems = [
-  { path: 'guides/integrate-with-angular/angular-installation/angular-installation' },
-  { path: 'guides/integrate-with-angular/angular-simple-example/angular-simple-example' },
-  { path: 'guides/integrate-with-angular/angular-modules/angular-modules' },
-  { path: 'guides/integrate-with-angular/angular-custom-id/angular-custom-id' },
-  { path: 'guides/integrate-with-angular/angular-setting-up-a-translation/angular-setting-up-a-translation' },
-  { path: 'guides/integrate-with-angular/angular-custom-context-menu-example/angular-custom-context-menu-example' },
-  { path: 'guides/integrate-with-angular/angular-custom-editor-example/angular-custom-editor-example' },
-  { path: 'guides/integrate-with-angular/angular-custom-renderer-example/angular-custom-renderer-example' },
-  { path: 'guides/integrate-with-angular/angular-language-change-example/angular-language-change-example' },
-  { path: 'guides/integrate-with-angular/angular-hot-reference/angular-hot-reference' },
-];
-
-const integrateWithVueItems = [
-  { path: 'guides/integrate-with-vue/vue-installation/vue-installation' },
-  { path: 'guides/integrate-with-vue/vue-simple-example/vue-simple-example' },
-  { path: 'guides/integrate-with-vue/vue-modules/vue-modules' },
-  { path: 'guides/integrate-with-vue/vue-hot-column/vue-hot-column' },
-  { path: 'guides/integrate-with-vue/vue-setting-up-a-language/vue-setting-up-a-language' },
-  { path: 'guides/integrate-with-vue/vue-custom-id-class-style/vue-custom-id-class-style' },
-  { path: 'guides/integrate-with-vue/vue-custom-context-menu-example/vue-custom-context-menu-example' },
-  { path: 'guides/integrate-with-vue/vue-custom-editor-example/vue-custom-editor-example' },
-  { path: 'guides/integrate-with-vue/vue-custom-renderer-example/vue-custom-renderer-example' },
-  { path: 'guides/integrate-with-vue/vue-language-change-example/vue-language-change-example' },
-  { path: 'guides/integrate-with-vue/vue-vuex-example/vue-vuex-example' },
-  { path: 'guides/integrate-with-vue/vue-hot-reference/vue-hot-reference' },
+const stylingItems = [
+  { path: 'guides/styling/themes/themes' },
+  { path: 'guides/styling/design-system/design-system' },
+  { path: 'guides/styling/theme-customization/theme-customization' },
+  { path: 'guides/styling/legacy-style/legacy-style' },
 ];
 
 const integrateWithVue3Items = [
@@ -53,6 +33,7 @@ const integrateWithVue3Items = [
   { path: 'guides/integrate-with-vue3/vue3-language-change-example/vue3-language-change-example' },
   { path: 'guides/integrate-with-vue3/vue3-vuex-example/vue3-vuex-example' },
   { path: 'guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference' },
+  { path: 'guides/integrate-with-vue3/vue3-formulas-example/vue3-formulas-example' },
 ];
 
 const columnsItems = [
@@ -78,6 +59,7 @@ const rowsItems = [
   { path: 'guides/rows/row-height/row-height' },
   { path: 'guides/rows/row-virtualization/row-virtualization' },
   { path: 'guides/rows/rows-sorting/rows-sorting' },
+  { path: 'guides/rows/rows-pagination/rows-pagination' },
   { path: 'guides/rows/row-trimming/row-trimming' },
   { path: 'guides/rows/row-prepopulating/row-prepopulating' },
 ];
@@ -99,6 +81,7 @@ const cellFunctionsItems = [
   { path: 'guides/cell-functions/cell-renderer/cell-renderer' },
   { path: 'guides/cell-functions/cell-editor/cell-editor' },
   { path: 'guides/cell-functions/cell-validator/cell-validator' },
+  { path: 'guides/cell-functions/custom-cells/custom-cells' },
 ];
 
 const cellTypesItems = [
@@ -110,6 +93,7 @@ const cellTypesItems = [
   { path: 'guides/cell-types/select-cell-type/select-cell-type' },
   { path: 'guides/cell-types/dropdown-cell-type/dropdown-cell-type' },
   { path: 'guides/cell-types/autocomplete-cell-type/autocomplete-cell-type' },
+  { path: 'guides/cell-types/multiselect-cell-type/multiselect-cell-type' },
   { path: 'guides/cell-types/password-cell-type/password-cell-type' },
   { path: 'guides/cell-types/handsontable-cell-type/handsontable-cell-type' },
 ];
@@ -121,6 +105,7 @@ const formulasItems = [
 const navigationItems = [
   { path: 'guides/navigation/keyboard-shortcuts/keyboard-shortcuts' },
   { path: 'guides/navigation/custom-shortcuts/custom-shortcuts' },
+  { path: 'guides/navigation/focus-scopes/focus-scopes' },
   { path: 'guides/navigation/searching-values/searching-values' },
 ];
 
@@ -133,7 +118,13 @@ const accessoriesAndMenusItems = [
   { path: 'guides/accessories-and-menus/undo-redo/undo-redo' },
   { path: 'guides/accessories-and-menus/icon-pack/icon-pack' },
   { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
+  { path: 'guides/accessories-and-menus/empty-data-state/empty-data-state' },
   // TODO { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
+];
+
+const dialogItems = [
+  { path: 'guides/dialog/dialog/dialog' },
+  { path: 'guides/dialog/loading/loading' },
 ];
 
 const internationalizationItems = [
@@ -149,7 +140,6 @@ const buildingAndToolingItems = [
   { path: 'guides/tools-and-building/custom-plugins/custom-plugins' },
   { path: 'guides/tools-and-building/custom-builds/custom-builds' },
   { path: 'guides/tools-and-building/testing/testing' },
-  { path: 'guides/tools-and-building/folder-structure/folder-structure' },
 ];
 
 const optimizationItems = [
@@ -175,21 +165,25 @@ const technicalSpecificationItems = [
 const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/changelog/changelog' },
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
-  { path: 'guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0' },
-  { path: 'guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0' },
-  { path: 'guides/upgrade-and-migration/migrating-from-9.0-to-10.0/migrating-from-9.0-to-10.0' },
-  { path: 'guides/upgrade-and-migration/migrating-from-10.0-to-11.0/migrating-from-10.0-to-11.0' },
-  { path: 'guides/upgrade-and-migration/migrating-from-11.1-to-12.0/migrating-from-11.1-to-12.0' },
-  { path: 'guides/upgrade-and-migration/migrating-from-12.4-to-13.0/migrating-from-12.4-to-13.0' },
+  { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
+  { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
+  { path: 'guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1' },
+  { path: 'guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-13.1-to-14.0/migrating-from-13.1-to-14.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-12.4-to-13.0/migrating-from-12.4-to-13.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-11.1-to-12.0/migrating-from-11.1-to-12.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-10.0-to-11.0/migrating-from-10.0-to-11.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-9.0-to-10.0/migrating-from-9.0-to-10.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0' },
 ];
 
 module.exports = {
   sidebar: [
     { title: 'Getting started', children: gettingStartedItems },
-    { title: 'Integrate with Angular', children: integrateWithAngularItems },
-    { title: 'Integrate with Vue 2', children: integrateWithVueItems },
-    { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
+    { title: 'Styling', children: stylingItems },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
     { title: 'Cell features', children: cellFeaturesItems },
@@ -199,7 +193,9 @@ module.exports = {
     { title: 'Navigation', children: navigationItems },
     { title: 'Accessibility', children: accessibilityItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
+    { title: 'Dialog', children: dialogItems },
     { title: 'Internationalization', children: internationalizationItems },
+    { title: 'Integrate with Vue', children: integrateWithVue3Items },
     { title: 'Tools and building', children: buildingAndToolingItems },
     { title: 'Optimization', children: optimizationItems },
     { title: 'Security', children: securityItems },

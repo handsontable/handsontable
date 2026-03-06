@@ -8,6 +8,9 @@ canonicalUrl: /software-license
 react:
   id: ea206i3o
   metaTitle: Software license - React Data Grid | Handsontable
+angular:
+  id: fe9wliki
+  metaTitle: Software license - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Technical specification
 ---
@@ -28,7 +31,7 @@ For more details on entering the license key, see the [License key](@/guides/get
 
 | Name                                                                                                                         | Type        |
 | ---------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| [Non-Commercial License](https://handsontable.com/static/licenses/non-commercial/v2/handsontable-non-commercial-license.pdf) | Proprietary |
+| [Non-Commercial License](https://handsontable.com/static/licenses/non-commercial/v5/handsontable-non-commercial-license.pdf) | Proprietary |
 | Commercial License Agreement                                                                                                 | Proprietary |
 
 ## Non-commercial use
@@ -61,6 +64,16 @@ licenseKey: '00000-00000-00000-00000-00000',
 
 ```js
 licenseKey="00000-00000-00000-00000-00000"
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  licenseKey: "00000-00000-00000-00000-00000",
+};
 ```
 
 :::

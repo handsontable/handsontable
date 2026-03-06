@@ -29,60 +29,127 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   });
 
   it('should assign the `role=menu` attribute to the root element of the context menu', async() => {
-    const hot = handsontable({
-      contextMenu: true
-    });
-
-    contextMenu();
-
-    await sleep(50);
-
-    expect(hot.getPlugin('contextMenu').menu.container.getAttribute('role')).toEqual('menu');
-  });
-
-  it('should assign the `role=menuitem` attribute to all the options of the context menu', () => {
-    const hot = handsontable({
-      contextMenu: true
-    });
-
-    contextMenu();
-
-    const cMenu = hot.getPlugin('contextMenu').menu;
-
-    expect(filterElementsByAttribute(
-      cMenu.container,
-      'td',
-      'role',
-      'menuitem'
-    ).length).toEqual(cMenu.hotMenu.countRows());
-
-    expect(cMenu.hotMenu.getCell(0, 0).getAttribute('role')).toEqual('menuitem');
-  });
-
-  it('should assign the `aria-label` attribute to all the options of the context menu', () => {
     handsontable({
       contextMenu: true
     });
 
-    contextMenu();
+    await contextMenu();
+
+    await sleep(50);
+
+    expect(getPlugin('contextMenu').menu.container.getAttribute('role')).toEqual('menu');
+  });
+
+  it('should assign the `role=menuitem` attribute to all the options of the context menu except of the `Read only` option', async() => {
+    handsontable({
+      contextMenu: true
+    });
+
+    await contextMenu();
 
     const cMenu = getPlugin('contextMenu').menu;
 
     expect(filterElementsByAttribute(
       cMenu.container,
       'td',
-      'aria-label',
-      el => (el.innerText === '' ? '---------' : el.innerText)
-    ).length).toBe(cMenu.hotMenu.countRows());
-    expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert row above');
+      'role',
+      'menuitem'
+    ).length).toEqual(cMenu.hotMenu.countRows() - 1);
   });
 
-  it('should assign the `tabindex` attribute to all the options of the context menu', () => {
+  it('should assign the `role=menuitem` attribute to all the options of the Alignment submenu', async() => {
+    handsontable({
+      contextMenu: ['alignment']
+    });
+
+    await openContextSubmenuOption('Alignment');
+    await sleep(300);
+
+    const cMenu = getPlugin('contextMenu').menu.hotSubMenus.alignment;
+
+    expect(filterElementsByAttribute(
+      cMenu.container,
+      'td',
+      'role',
+      'menuitem'
+    ).length).toBe(8);
+  });
+
+  it('should assign the `role=menucheckboxitem` to the `Read only` option of the context menu', async() => {
     handsontable({
       contextMenu: true
     });
 
-    contextMenu();
+    await contextMenu();
+
+    const cMenu = getPlugin('contextMenu').menu;
+
+    const menuItemCheckboxes = filterElementsByAttribute(
+      cMenu.container,
+      'td',
+      'role',
+      'menuitemcheckbox'
+    );
+
+    expect(menuItemCheckboxes.length).toEqual(1);
+    expect(menuItemCheckboxes[0].ariaLabel).toBe('Read only');
+  });
+
+  it('selected and deselected `menuitemcheckboxes` change aria-label and aria-checked values accordingly', async() => {
+    handsontable({
+      contextMenu: true
+    });
+
+    await contextMenu();
+    await selectContextMenuOption('Read only');
+    await sleep(50);
+    await contextMenu();
+
+    {
+      const readOnlyElement = $(getPlugin('contextMenu').menu.container).find('td:contains(Read only)');
+
+      expect(readOnlyElement.attr('aria-checked')).toEqual('true');
+      expect(readOnlyElement.attr('aria-label')).toEqual('Read only');
+    }
+
+    await contextMenu();
+    await selectContextMenuOption('Read only');
+    await sleep(50);
+    await contextMenu();
+
+    {
+      const readOnlyElement = $(getPlugin('contextMenu').menu.container).find('td:contains(Read only)');
+
+      expect(readOnlyElement.attr('aria-checked')).toEqual('false');
+      expect(readOnlyElement.attr('aria-label')).toEqual('Read only');
+    }
+  });
+
+  it('should assign the `aria-label` attribute to all the options of the context menu', async() => {
+    handsontable({
+      contextMenu: true
+    });
+
+    await contextMenu();
+
+    const cMenu = getPlugin('contextMenu').menu;
+
+    await sleep(300);
+
+    const ariaLabelledCells = [...cMenu.container.querySelectorAll('td')]
+      .filter(el => el.ariaLabel !== undefined);
+
+    expect(ariaLabelledCells.length).toBe(cMenu.hotMenu.countRows());
+
+    expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert row above');
+  });
+
+  it('should assign the `tabindex` attribute to all the options of the context menu', async() => {
+    handsontable({
+      contextMenu: true
+    });
+
+    await contextMenu();
 
     const cMenu = getPlugin('contextMenu').menu;
 
@@ -94,14 +161,14 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     ).length).toBe(10);
   });
 
-  it('should assign the `aria-disabled` attribute to all the disabled options of the context menu', () => {
-    const hot = handsontable({
+  it('should assign the `aria-disabled` attribute to all the disabled options of the context menu', async() => {
+    handsontable({
       contextMenu: true
     });
 
-    contextMenu();
+    await contextMenu();
 
-    const cMenu = hot.getPlugin('contextMenu').menu;
+    const cMenu = getPlugin('contextMenu').menu;
 
     // Undo and Redo options
     expect(cMenu.hotMenu.getCell(9, 0).getAttribute('aria-disabled')).toEqual('true');
@@ -110,13 +177,13 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
   it('should assign the `aria-expanded` attribute to all the expandable options of the context menu and set it to' +
     ' either `true` of `false`, depending on their state (via mouse movement)', async() => {
-    const hot = handsontable({
+    handsontable({
       contextMenu: true
     });
 
-    contextMenu();
+    await contextMenu();
 
-    const cMenu = hot.getPlugin('contextMenu').menu;
+    const cMenu = getPlugin('contextMenu').menu;
 
     expect(filterElementsByAttribute(
       cMenu.container,
@@ -145,13 +212,13 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
   it('should assign the `aria-expanded` attribute to all the expandable options of the context menu and set it to' +
     ' either `true` of `false`, depending on their state (via keyboard navigation)', async() => {
-    const hot = handsontable({
+    handsontable({
       contextMenu: ['remove_row', 'alignment']
     });
 
-    contextMenu();
+    await contextMenu();
 
-    const cMenu = hot.getPlugin('contextMenu').menu;
+    const cMenu = getPlugin('contextMenu').menu;
 
     expect(filterElementsByAttribute(
       cMenu.container,
@@ -163,20 +230,20 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     const $unExpandableItem = $(cMenu.hotMenu.getCell(0, 0));
     const $expandableItem = $(cMenu.hotMenu.getCell(1, 0));
 
-    keyDownUp('arrowdown');
-    keyDownUp('arrowright');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowright');
 
     expect($unExpandableItem.get(0).hasAttribute('aria-expanded')).toBe(false);
 
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('false');
 
-    keyDownUp('arrowright');
+    await keyDownUp('arrowright');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('true');
 
-    keyDownUp('arrowleft');
+    await keyDownUp('arrowleft');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('false');
   });

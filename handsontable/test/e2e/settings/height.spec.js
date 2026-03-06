@@ -13,7 +13,7 @@ describe('settings', () => {
       }
     });
 
-    it('should update the table height', () => {
+    it('should update the table height', async() => {
       const hot = handsontable({
         startRows: 22,
         startCols: 5
@@ -21,7 +21,7 @@ describe('settings', () => {
 
       const initialHeight = $(hot.rootElement).height();
 
-      updateSettings({
+      await updateSettings({
         height: 300
       });
 
@@ -29,7 +29,7 @@ describe('settings', () => {
       expect($(hot.rootElement).height()).not.toBe(initialHeight);
     });
 
-    it('should allow height to be a number', () => {
+    it('should allow height to be a number', async() => {
       handsontable({
         startRows: 10,
         startCols: 10,
@@ -39,7 +39,7 @@ describe('settings', () => {
       expect(spec().$container.height()).toBe(107);
     });
 
-    it('should allow height to be a function', () => {
+    it('should allow height to be a function', async() => {
       handsontable({
         startRows: 10,
         startCols: 10,
@@ -51,7 +51,7 @@ describe('settings', () => {
       expect(spec().$container.height()).toBe(107);
     });
 
-    it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', () => {
+    it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', async() => {
       const hot = handsontable({
         startRows: 22,
         startCols: 5,
@@ -60,7 +60,7 @@ describe('settings', () => {
 
       const initialHeight = $(hot.rootElement).height();
 
-      updateSettings({
+      await updateSettings({
         rowHeaders: true
       });
 

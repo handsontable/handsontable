@@ -1,5 +1,8 @@
 require('jasmine-co').install();
 
+// Needs to be loaded after `jasmine-co`'s `install`, to avoid being handled by its `wrapFn` logic for globals.
+require('../helpers/it-themes-extension');
+
 let testPathRegExp = null;
 
 if (typeof __ENV_ARGS__ === 'object' && __ENV_ARGS__.testPathPattern) {

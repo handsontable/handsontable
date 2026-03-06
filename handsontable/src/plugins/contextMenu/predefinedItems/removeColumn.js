@@ -35,7 +35,7 @@ export default function removeColumnItem() {
         return true;
       }
 
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (!range) {
         return true;

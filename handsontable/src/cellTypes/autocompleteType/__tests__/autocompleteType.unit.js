@@ -23,22 +23,22 @@ describe('AutocompleteCellType', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
         getEditor('autocomplete');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
         getRenderer('autocomplete');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
         getValidator('autocomplete');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
         getCellType('autocomplete');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
     });
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, AutocompleteCellType);
@@ -59,6 +59,9 @@ describe('AutocompleteCellType', () => {
         editor: getEditor('autocomplete'),
         renderer: getRenderer('autocomplete'),
         validator: getValidator('autocomplete'),
+        valueGetter: AutocompleteCellType.valueGetter,
+        valueSetter: AutocompleteCellType.valueSetter,
+        parsePastedValue: true,
       });
     });
   });

@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 /* start:skip-in-preview */
 const products = [
@@ -253,7 +256,7 @@ const products = [
     inStock: true,
     qty: 385,
     orderId: '13-7828353',
-    country: 'French Southern Territories',
+    country: 'Switzerland',
   },
   {
     companyName: 'Reichel Group',
@@ -280,7 +283,7 @@ const products = [
     inStock: true,
     qty: 305,
     orderId: '63-2315723',
-    country: 'French Southern Territories',
+    country: 'Switzerland',
   },
   {
     companyName: 'Weber Inc',
@@ -479,17 +482,9 @@ const app = document.getElementById('example1');
 const hotOptions = {
   data: products,
   height: 464,
-  colWidths: [140, 165, 100, 100, 100, 110, 178],
+  colWidths: [160, 165, 130, 120, 100, 110, 216],
   autoRowSize: true,
-  colHeaders: [
-    'Company name',
-    'Product name',
-    'Sell date',
-    'In stock',
-    'Qty',
-    'Order ID',
-    'Country',
-  ],
+  colHeaders: ['Company name', 'Product name', 'Sell date', 'In stock', 'Qty', 'Order ID', 'Country'],
   columns: [
     { data: 'companyName', type: 'text' },
     { data: 'productName', type: 'text' },
@@ -497,14 +492,18 @@ const hotOptions = {
       data: 'sellDate',
       type: 'date',
       dateFormat: 'DD/MM/YYYY',
-      allowInvalid: false,
     },
     {
       data: 'inStock',
       type: 'checkbox',
       className: 'htCenter',
+      headerClassName: 'htCenter',
     },
-    { data: 'qty', type: 'numeric' },
+    {
+      data: 'qty',
+      type: 'numeric',
+      headerClassName: 'htRight',
+    },
     {
       data: 'orderId',
       type: 'text',
@@ -528,14 +527,14 @@ const hotOptions = {
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
+  headerClassName: 'htLeft',
   licenseKey: 'non-commercial-and-evaluation',
 };
 
 // Initialize the Handsontable instance with the specified configuration options
 let hot = new Handsontable(app, hotOptions);
 // Helper function to set up checkbox event handling
-const setupCheckbox = (element, callback) =>
-  element.addEventListener('click', () => callback(element.checked));
+const setupCheckbox = (element, callback) => element.addEventListener('click', () => callback(element.checked));
 
 // Set up event listeners for various checkboxes to update Handsontable settings.
 // This allows us to change the Handsontable settings from the UI, showcasing
@@ -546,91 +545,58 @@ setupCheckbox(document.querySelector('#enable-tab-navigation'), (checked) => {
   hot.updateSettings({
     tabNavigation: hotOptions.tabNavigation,
   });
-  console.log(
-    'Updated setting: tabNavigation to',
-    hot.getSettings().tabNavigation
-  );
+  console.log('Updated setting: tabNavigation to', hot.getSettings().tabNavigation);
 });
 // Checkbox: Enable/Disable Header Navigation
-setupCheckbox(
-  document.querySelector('#enable-header-navigation'),
-  (checked) => {
-    hotOptions.navigableHeaders = checked;
-    hot.updateSettings({
-      navigableHeaders: hotOptions.navigableHeaders,
-    });
-    console.log(
-      'Updated setting: navigableHeaders to',
-      hot.getSettings().navigableHeaders
-    );
-  }
-);
+setupCheckbox(document.querySelector('#enable-header-navigation'), (checked) => {
+  hotOptions.navigableHeaders = checked;
+  hot.updateSettings({
+    navigableHeaders: hotOptions.navigableHeaders,
+  });
+  console.log('Updated setting: navigableHeaders to', hot.getSettings().navigableHeaders);
+});
 // Checkbox: Enable/Disable Cell Virtualization
-setupCheckbox(
-  document.querySelector('#enable-cell-virtualization'),
-  (checked) => {
-    hot.destroy();
-    hot = new Handsontable(document.getElementById('example1'), {
-      ...hotOptions,
-      renderAllRows: !checked,
-      renderAllColumns: !checked,
-    });
-    console.log('Updated virtualization settings:', {
-      renderAllRows: hot.getSettings().renderAllRows,
-      renderAllColumns: hot.getSettings().renderAllColumns,
-    });
-  }
-);
+setupCheckbox(document.querySelector('#enable-cell-virtualization'), (checked) => {
+  hot.destroy();
+  hot = new Handsontable(document.getElementById('example1'), {
+    ...hotOptions,
+    renderAllRows: !checked,
+    renderAllColumns: !checked,
+  });
+  console.log('Updated virtualization settings:', {
+    renderAllRows: hot.getSettings().renderAllRows,
+    renderAllColumns: hot.getSettings().renderAllColumns,
+  });
+});
 // Checkbox: Enable/Disable Cell Enter Editing
-setupCheckbox(
-  document.querySelector('#enable-cell-enter-editing'),
-  (checked) => {
-    hotOptions.enterBeginsEditing = checked;
-    hot.updateSettings({
-      enterBeginsEditing: hotOptions.enterBeginsEditing,
-    });
-    console.log(
-      'Updated setting: enable-cell-enter-editing to',
-      hot.getSettings().enterBeginsEditing
-    );
-  }
-);
+setupCheckbox(document.querySelector('#enable-cell-enter-editing'), (checked) => {
+  hotOptions.enterBeginsEditing = checked;
+  hot.updateSettings({
+    enterBeginsEditing: hotOptions.enterBeginsEditing,
+  });
+  console.log('Updated setting: enable-cell-enter-editing to', hot.getSettings().enterBeginsEditing);
+});
 // Checkbox: Enable/Disable Arrow Navigation for First/Last Row
-setupCheckbox(
-  document.querySelector('#enable-arrow-rl-first-last-column'),
-  (checked) => {
-    hotOptions.autoWrapRow = checked;
-    hot.updateSettings({
-      autoWrapRow: hotOptions.autoWrapRow,
-    });
-    console.log(
-      'Updated setting: autoWrapRow to',
-      hot.getSettings().autoWrapRow
-    );
-  }
-);
+setupCheckbox(document.querySelector('#enable-arrow-rl-first-last-column'), (checked) => {
+  hotOptions.autoWrapRow = checked;
+  hot.updateSettings({
+    autoWrapRow: hotOptions.autoWrapRow,
+  });
+  console.log('Updated setting: autoWrapRow to', hot.getSettings().autoWrapRow);
+});
 // Checkbox: Enable/Disable Arrow Navigation for First/Last Column
-setupCheckbox(
-  document.querySelector('#enable-arrow-td-first-last-column'),
-  (checked) => {
-    hotOptions.autoWrapCol = checked;
-    hot.updateSettings({
-      autoWrapCol: hotOptions.autoWrapCol,
-    });
-    console.log(
-      'Updated setting: autoWrapCol to',
-      hot.getSettings().autoWrapCol
-    );
-  }
-);
+setupCheckbox(document.querySelector('#enable-arrow-td-first-last-column'), (checked) => {
+  hotOptions.autoWrapCol = checked;
+  hot.updateSettings({
+    autoWrapCol: hotOptions.autoWrapCol,
+  });
+  console.log('Updated setting: autoWrapCol to', hot.getSettings().autoWrapCol);
+});
 // Checkbox: Enable/Disable Enter Key Focus for Editing
-setupCheckbox(
-  document.querySelector('#enable-enter-focus-editing'),
-  (checked) => {
-    hotOptions.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
-    hot.updateSettings({
-      enterMoves: hotOptions.enterMoves,
-    });
-    console.log('Updated setting: enterMoves to', hot.getSettings().enterMoves);
-  }
-);
+setupCheckbox(document.querySelector('#enable-enter-focus-editing'), (checked) => {
+  hotOptions.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
+  hot.updateSettings({
+    enterMoves: hotOptions.enterMoves,
+  });
+  console.log('Updated setting: enterMoves to', hot.getSettings().enterMoves);
+});

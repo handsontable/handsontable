@@ -14,7 +14,7 @@ describe('tableView', () => {
     });
 
     describe('afterOnCellMouseDown', () => {
-      it('should pass correct cell coords if mousedown is called on corner', () => {
+      it('should pass correct cell coords if mousedown is called on corner', async() => {
         const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
 
         handsontable({

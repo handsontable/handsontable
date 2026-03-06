@@ -16,7 +16,7 @@ describe('CopyPaste', () => {
   });
 
   describe('`beforeCopy` hook', () => {
-    it('should be called with coords and dataset points to the cells only', () => {
+    it('should be called with coords and dataset points to the cells only', async() => {
       const beforeCopy = jasmine.createSpy('beforeCopy');
 
       handsontable({
@@ -29,7 +29,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 2, 3, 4);
+      await selectCell(1, 2, 3, 4);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -43,7 +43,7 @@ describe('CopyPaste', () => {
     });
 
     it('should be called with coords and dataset points to the cells and the first column headers ' +
-       'nearest the cells (single-line column headers configuration)', () => {
+       'nearest the cells (single-line column headers configuration)', async() => {
       const beforeCopy = jasmine.createSpy('beforeCopy');
 
       handsontable({
@@ -56,7 +56,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 2, 3, 4);
+      await selectCell(1, 2, 3, 4);
 
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -73,7 +73,7 @@ describe('CopyPaste', () => {
     });
 
     it('should be called with coords and dataset points to the cells and the first column headers ' +
-       'nearest the cells (multi-line column headers configuration)', () => {
+       'nearest the cells (multi-line column headers configuration)', async() => {
       const beforeCopy = jasmine.createSpy('beforeCopy');
 
       handsontable({
@@ -95,7 +95,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 2, 3, 4);
+      await selectCell(1, 2, 3, 4);
 
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -111,7 +111,7 @@ describe('CopyPaste', () => {
       );
     });
 
-    it('should be called with coords and dataset points to the cells and all column header layers', () => {
+    it('should be called with coords and dataset points to the cells and all column header layers', async() => {
       const beforeCopy = jasmine.createSpy('beforeCopy');
 
       handsontable({
@@ -136,7 +136,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 2, 3, 3);
+      await selectCell(1, 2, 3, 3);
 
       plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -152,7 +152,7 @@ describe('CopyPaste', () => {
       );
     });
 
-    it('should be possible to block copy operation', () => {
+    it('should be possible to block copy operation', async() => {
       const beforeCopy = jasmine.createSpy('beforeCopy');
       const afterCopy = jasmine.createSpy('afterCopy');
 
@@ -166,7 +166,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -177,7 +177,7 @@ describe('CopyPaste', () => {
       afterCopy.calls.reset();
       beforeCopy.and.returnValue(false);
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -187,7 +187,7 @@ describe('CopyPaste', () => {
       expect(afterCopy.calls.count()).toBe(0);
     });
 
-    it('should be possible to modify data during copy operation', () => {
+    it('should be possible to modify data during copy operation', async() => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         colHeaders: true,
@@ -217,7 +217,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(0, 0, 1, 0);
+      await selectCell(0, 0, 1, 0);
 
       plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event

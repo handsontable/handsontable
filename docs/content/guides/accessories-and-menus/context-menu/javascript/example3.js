@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const contextMenuSettings = {
   callback(key, selection, clickEvent) {
@@ -19,7 +22,7 @@ const contextMenuSettings = {
     // and the key has to be unique
     sp1: '---------',
     row_below: {
-      name: 'Click to add row below',
+      name: 'Click to add row below', // Set custom text for predefined option
     },
     about: {
       // Own custom option
@@ -66,13 +69,13 @@ const contextMenuSettings = {
       renderer() {
         const elem = document.createElement('marquee');
 
-        elem.style.cssText = 'background: lightgray;';
+        elem.style.cssText = 'background: lightgray; color: #222222;';
         elem.textContent = 'Brought to you by...';
 
         return elem;
       },
       disableSelection: true,
-      isCommand: false,
+      isCommand: false, // Prevent clicks from executing command and closing the menu
     },
   },
 };

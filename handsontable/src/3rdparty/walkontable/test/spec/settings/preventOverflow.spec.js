@@ -21,7 +21,7 @@ describe('preventOverflow option', () => {
     this.wotInstance.destroy();
   });
 
-  it('should set overflow to `hidden` for master table when `horizontal` value is not passed', () => {
+  it('should set overflow to `hidden` for master table when `horizontal` value is not passed', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -34,7 +34,7 @@ describe('preventOverflow option', () => {
     expect(spec().$table.parents('.ht_master').css('overflow')).toBe('visible');
   });
 
-  it('should set overflow to `hidden` for master table when `horizontal` value is passed', () => {
+  it('should set overflow to `hidden` for master table when `horizontal` value is passed', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -50,7 +50,7 @@ describe('preventOverflow option', () => {
     expect(spec().$table.parents('.ht_master').css('overflow')).toBe('hidden');
   });
 
-  it('should set overflow-x to `hidden` for top clone when `horizontal` value is passed', () => {
+  it('should set overflow-x to `hidden` for top clone when `horizontal` value is passed', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,

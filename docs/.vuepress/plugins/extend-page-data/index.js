@@ -127,7 +127,7 @@ SHA: ${getDocsRepoSHA()}
         { name: 'og:type', content: 'website' },
         { name: 'og:title', content: frontmatter.title },
         { name: 'og:description', content: frontmatter.description },
-        { name: 'og:image', content: `${hostWithBase}/img/handsontable-banner-og.png` },
+        { name: 'og:image', content: `${hostWithBase}/img/handsontable-docs-cover.png` },
       ];
     },
   };

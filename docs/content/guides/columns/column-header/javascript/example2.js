@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example2');
 
@@ -9,17 +12,7 @@ new Handsontable(container, {
     ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
     ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3'],
   ],
-  colHeaders: [
-    'ID',
-    'Full name',
-    'Position',
-    'Country',
-    'City',
-    'Address',
-    'Zip code',
-    'Mobile',
-    'E-mail',
-  ],
+  colHeaders: ['ID', 'Full name', 'Position', 'Country', 'City', 'Address', 'Zip code', 'Mobile', 'E-mail'],
   rowHeaders: true,
   height: 'auto',
   autoWrapRow: true,

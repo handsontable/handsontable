@@ -9,6 +9,9 @@ pageClass: migration-guide
 react:
   id: sney23fh
   metaTitle: Migrate from 10.0 to 11.0 - React Data Grid | Handsontable
+angular:
+  id: 1fc8toqq
+  metaTitle: Migrate from 10.0 to 11.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -17,13 +20,16 @@ category: Upgrade and migration
 
 Migrate from Handsontable 10.0 to Handsontable 11.0, released on November 17, 2021.
 
+More information about this release can be found in the [`11.0.0` release blog post](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue).<br/>
+For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_11-0-0).
+
 [[toc]]
 
 ::: only-for javascript
 
 ## Step 1: React, Angular, Vue – register your modules
 
-Starting with Handsontable 11.0.0, the [React wrapper](@/react/guides/getting-started/introduction/introduction.md), the [Angular wrapper](@/guides/integrate-with-angular/angular-installation/angular-installation.md), and the [Vue wrapper](@/guides/integrate-with-vue/vue-installation/vue-installation.md) support [modularization](@/guides/tools-and-building/modules/modules.md).
+Starting with Handsontable 11.0.0, the [React wrapper](@/react/guides/getting-started/introduction/introduction.md), the [Angular wrapper](@/angular/guides/getting-started/introduction/introduction.md), and the [Vue wrapper](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md) support [modularization](@/guides/tools-and-building/modules/modules.md).
 
 If you don't use any of the wrappers, you don't need to change anything.
 
@@ -44,8 +50,8 @@ registerAllModules();
 
 To start using individual Handsontable modules with your wrapper, see the following guides:
 - [Using modules with React](@/react/guides/tools-and-building/modules/modules.md)
-- [Using modules with Angular](@/guides/integrate-with-angular/angular-modules/angular-modules.md)
-- [Using modules with Vue](@/guides/integrate-with-vue/vue-modules/vue-modules.md)
+- [Using modules with Angular](@/angular/guides/tools-and-building/modules/modules.md)
+- [Using modules with Vue](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
 
 :::
 

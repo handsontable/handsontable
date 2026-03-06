@@ -8,8 +8,12 @@ canonicalUrl: /cell-function
 react:
   id: i2sqtwh6
   metaTitle: Cell functions - React Data Grid | Handsontable
+angular:
+  id: 377lnttu
+  metaTitle: Cell functions - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
+menuTag: updated
 ---
 
 # Cell functions
@@ -89,7 +93,6 @@ the `renderer`, `editor` or `validator` functions defined for that cell type. Fo
 
 ```js
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
@@ -160,6 +163,7 @@ const ExampleComponent = () => {
   - [`renderer`](@/api/options.md#renderer)
   - [`type`](@/api/options.md#type)
   - [`validator`](@/api/options.md#validator)
+  - [`valueFormatter`](@/api/options.md#valueformatter)
 - Core methods:
   - [`destroyEditor()`](@/api/core.md#destroyeditor)
   - [`getActiveEditor()`](@/api/core.md#getactiveeditor)

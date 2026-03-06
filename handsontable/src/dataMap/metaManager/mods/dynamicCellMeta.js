@@ -1,4 +1,4 @@
-import Hooks from '../../../pluginHooks';
+import { Hooks } from '../../../core/hooks';
 import { hasOwnProperty } from '../../../helpers/object';
 import { isFunction } from '../../../helpers/function';
 
@@ -30,7 +30,7 @@ export class DynamicCellMetaMod {
   constructor(metaManager) {
     this.metaManager = metaManager;
 
-    metaManager.addLocalHook('afterGetCellMeta', cellMeta => this.extendCellMeta(cellMeta));
+    metaManager.addLocalHook('afterGetCellMeta', (...args) => this.extendCellMeta(...args));
 
     Hooks.getSingleton().add('beforeRender', (forceFullRender) => {
       if (forceFullRender) {

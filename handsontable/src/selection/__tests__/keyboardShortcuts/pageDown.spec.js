@@ -26,7 +26,7 @@ describe('Selection navigation', () => {
   }
 
   describe('"PageDown"', () => {
-    it('should move the cell selection down by the height of the table viewport', () => {
+    it.forTheme('classic')('should move the cell selection down by the height of the table viewport', async() => {
       handsontable({
         width: 180,
         height: 100, // 100/23 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
@@ -34,10 +34,25 @@ describe('Selection navigation', () => {
         startCols: 3
       });
 
-      selectCell(1, 1);
-      keyDownUp('pagedown');
+      await selectCell(1, 1);
+      await keyDownUp('pagedown');
 
       expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,1 from: 4,1 to: 4,1']);
+
+      await keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
         |   :   :   |
         |   :   :   |
         |   :   :   |
@@ -47,12 +62,17 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
         |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 5,1 to: 5,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 7,1 from: 7,1 to: 7,1']);
 
-      keyDownUp('pagedown');
+      await keyDownUp('pagedown');
 
       expect(`
+        |   :   :   |
         |   :   :   |
         |   :   :   |
         |   :   :   |
@@ -67,11 +87,10 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
         |   :   :   |
-        |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 9,1 from: 9,1 to: 9,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 10,1 from: 10,1 to: 10,1']);
 
-      keyDownUp('pagedown');
+      await keyDownUp('pagedown');
 
       expect(`
         |   :   :   |
@@ -92,7 +111,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 13,1']);
 
-      keyDownUp('pagedown');
+      await keyDownUp('pagedown');
 
       expect(`
         |   :   :   |
@@ -114,7 +133,183 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 14,1 from: 14,1 to: 14,1']);
     });
 
-    it('should move the cell selection down to the last cell', () => {
+    it.forTheme('main')('should move the cell selection down by the height of the table viewport', async() => {
+      handsontable({
+        width: 180,
+        height: 126, // 126/29 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
+        startRows: 15,
+        startCols: 3
+      });
+
+      await selectCell(1, 1);
+      await keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 5,1 to: 5,1']);
+
+      await keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 9,1 from: 9,1 to: 9,1']);
+
+      await keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 13,1']);
+
+      await keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 14,1 from: 14,1 to: 14,1']);
+    });
+
+    it.forTheme('horizon')('should move the cell selection down by the height of the table viewport', async() => {
+      handsontable({
+        width: 180,
+        height: 161, // 161/37 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
+        startRows: 15,
+        startCols: 3
+      });
+
+      await selectCell(1, 1);
+      await keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 5,1 to: 5,1']);
+
+      await keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 9,1 from: 9,1 to: 9,1']);
+
+      await keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 13,1']);
+
+      await keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 14,1 from: 14,1 to: 14,1']);
+    });
+
+    it('should move the cell selection down to the last cell', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -122,8 +317,8 @@ describe('Selection navigation', () => {
         startCols: 5
       });
 
-      selectCell(1, 2);
-      keyDownUp('pagedown');
+      await selectCell(1, 2);
+      await keyDownUp('pagedown');
 
       expect(`
         |   ║   :   : - :   :   |
@@ -136,7 +331,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 4,2 to: 4,2']);
 
-      keyDownUp('pagedown');
+      await keyDownUp('pagedown');
 
       expect(`
         |   ║   :   : - :   :   |
@@ -150,7 +345,7 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 4,2 to: 4,2']);
     });
 
-    it('should move the cell selection down to the last cell and then to the first cell of the next column (autoWrap on)', () => {
+    it('should move the cell selection down to the last cell and then to the first cell of the next column (autoWrap on)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -160,8 +355,8 @@ describe('Selection navigation', () => {
         autoWrapRow: true,
       });
 
-      selectCell(1, 2);
-      keyDownUp('pagedown');
+      await selectCell(1, 2);
+      await keyDownUp('pagedown');
 
       expect(`
         |   ║   :   : - :   :   |
@@ -174,7 +369,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 4,2 to: 4,2']);
 
-      keyDownUp('pagedown');
+      await keyDownUp('pagedown');
 
       expect(`
         |   ║   :   :   : - :   |
@@ -188,7 +383,7 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: 0,3 to: 0,3']);
     });
 
-    it('should move the cell selection down to the last row and then to the first column header of the next column (autoWrap on, navigableHeaders on)', () => {
+    it('should move the cell selection down to the last row and then to the first column header of the next column (autoWrap on, navigableHeaders on)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -207,8 +402,8 @@ describe('Selection navigation', () => {
         },
       });
 
-      selectCell(1, 2);
-      keyDownUp('pagedown');
+      await selectCell(1, 2);
+      await keyDownUp('pagedown');
 
       expect(`
         |   :   :   ║   :   :   :   :   |
@@ -223,7 +418,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 4,2 to: 4,2']);
 
-      keyDownUp('pagedown');
+      await keyDownUp('pagedown');
 
       expect(`
         |   :   :   ║   :   :   : # :   |
@@ -237,6 +432,30 @@ describe('Selection navigation', () => {
         |   :   :   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,3 from: -3,3 to: -3,3']);
+    });
+
+    it('should move the cell selection down for oversized row', async() => {
+      handsontable({
+        width: 180,
+        height: 100,
+        rowHeights: 200,
+        navigableHeaders: false,
+        startRows: 15,
+        startCols: 3
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('pagedown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
+
+      await keyDownUp('pagedown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 2,0']);
+
+      await keyDownUp('pagedown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,0 to: 3,0']);
     });
   });
 });

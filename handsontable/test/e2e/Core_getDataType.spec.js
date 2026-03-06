@@ -21,7 +21,7 @@ describe('Core_getDataType', () => {
     ];
   };
 
-  it('should return data type at specified range (default type)', () => {
+  it('should return data type at specified range (default type)', async() => {
     handsontable({
       data: arrayOfArrays()
     });
@@ -30,7 +30,7 @@ describe('Core_getDataType', () => {
     expect(getDataType(0, 0, 1, 1)).toEqual('text');
   });
 
-  it('should iterate only for table cell range and ignore header coordinates (negative values)', () => {
+  it('should iterate only for table cell range and ignore header coordinates (negative values)', async() => {
     const hot = handsontable({
       data: arrayOfArrays()
     });
@@ -43,7 +43,7 @@ describe('Core_getDataType', () => {
     expect(hot.getCellMeta.calls.mostRecent().args).toEqual([2, 2]);
   });
 
-  it('should return data type at specified range (type defined in columns)', () => {
+  it('should return data type at specified range (type defined in columns)', async() => {
     handsontable({
       data: arrayOfArrays(),
       columns: [
@@ -63,7 +63,7 @@ describe('Core_getDataType', () => {
     expect(getDataType(3, 4, 3, 4)).toEqual('dropdown');
   });
 
-  it('should return data type at specified range (type defined in columns) when columns is a function', () => {
+  it('should return data type at specified range (type defined in columns) when columns is a function', async() => {
     handsontable({
       data: arrayOfArrays(),
       columns(column) {
@@ -100,7 +100,7 @@ describe('Core_getDataType', () => {
     expect(getDataType(3, 4, 3, 4)).toEqual('dropdown');
   });
 
-  it('should return data type at specified range (type defined in cells)', () => {
+  it('should return data type at specified range (type defined in cells)', async() => {
     handsontable({
       data: arrayOfArrays(),
       cells(row, column) {

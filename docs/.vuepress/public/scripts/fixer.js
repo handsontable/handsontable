@@ -56,6 +56,7 @@
   }
 
   window.require = function(key) {
+
     try {
       let ns = '';
 
@@ -89,20 +90,36 @@
       } else if (key === 'hyperformula') {
         ns = 'HyperFormula';
 
-      } else if (key === 'react-dom') {
+      } else if (key === 'react-dom/client') {
         ns = 'ReactDOM';
 
       } else if (key === 'react-colorful') {
+        const m = window['react-colorful'];
+
+        if (m && typeof m.HexColorPicker !== 'undefined') {
+          if (typeof m.default === 'undefined') {
+            Object.defineProperty(m, 'default', { value: m, writable: false, enumerable: false });
+          }
+          return m;
+        }
         return window.exports;
 
-      } 
-      else if (key === '@handsontable/angular') {
+      }
+      else if (key === '@handsontable/angular-wrapper') {
         ns = 'Handsontable.angular';
 
-      } else if (key === '@handsontable/react') {
+      } else if (/^@angular\/material\//.test(key)) {
+        const moduleName = key.split('/')[2];
+        ns = `ng.material-${moduleName}`;
+
+      } else if (/^@angular\/cdk\//.test(key)) {
+        const moduleName = key.split('/')[2];
+        ns = `ng.cdk-${moduleName}`;
+
+      } else if (key === '@handsontable/react-wrapper') {
         ns = 'Handsontable.react';
 
-      } else if (key === '@handsontable/vue' || key === '@handsontable/vue3') {
+      } else if (key === '@handsontable/vue3') {
         ns = 'Handsontable.vue';
 
       } else if (key === 'vuex') {
@@ -117,7 +134,34 @@
       } else if (key === 'vue-class-component') {
         ns = 'VueClassComponent';
 
-      } else if (/^handsontable\/dist\/.+\.css$/.test(key)) { // ignore CSS imports
+      } else if (/^handsontable\/styles\/ht-theme-.+\.css$/.test(key)) {
+        // Dynamically inject CSS for ht-theme-* files (e.g. theme-customization example)
+        const cssFileName = key.split('/').pop();
+        const cssId = `dynamic-css-${cssFileName.replace(/\./g, '-')}`;
+
+        if (!document.getElementById(cssId)) {
+          // Derive styles URL from the Handsontable script (docs don't load base CSS link)
+          const hotScript = document.querySelector('script[src*="handsontable"][src*="dist/"]');
+          let stylesBaseUrl = '';
+
+          if (hotScript) {
+            const scriptSrc = hotScript.getAttribute('src');
+            stylesBaseUrl = scriptSrc.replace(/\/dist\/[^/]*$/, '/') + 'styles/';
+          }
+
+          if (stylesBaseUrl) {
+            const link = document.createElement('link');
+            link.id = cssId;
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = stylesBaseUrl + cssFileName;
+            document.head.appendChild(link);
+          }
+        }
+
+        ns = '';
+
+      } else if (/^handsontable\/(dist|styles)\/.+\.css$/.test(key)) { // ignore other CSS imports
         ns = '';
 
       } else if (key === 'numbro') {
@@ -160,6 +204,69 @@
 
       } else if (/^handsontable\/i18n(\/(.+))?$/.test(key)) {
         ns = 'Handsontable.languages';
+
+      } else if (/^handsontable\/themes(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.themes';
+
+      } else if (key === 'date-fns') {
+        ns = 'dateFns';
+
+      } else if (key === '@simonwep/pickr') {
+        ns = 'Pickr';
+
+      } else if (key === '@simonwep/pickr/dist/themes/nano.min.css') {
+        const cssId = 'dynamic-css-pickr';
+
+        if (!document.getElementById(cssId)) {
+          const pickrScript = document.querySelector('script[src*="pickr"][src*="simonwep"]');
+          let href = 'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css';
+
+          if (pickrScript) {
+            const scriptSrc = pickrScript.getAttribute('src');
+            href = scriptSrc.replace(/\/pickr(\.min)?\.js$/i, '/themes/nano$1.css');
+          }
+
+          const link = document.createElement('link');
+          link.id = cssId;
+          link.rel = 'stylesheet';
+          link.type = 'text/css';
+          link.href = href;
+          document.head.appendChild(link);
+        }
+
+        ns = '';
+
+      } else if (key === 'flatpickr') {
+        ns = 'flatpickr';
+
+      } else if (key === 'flatpickr/dist/flatpickr.css') {
+        const cssId = 'dynamic-css-flatpickr';
+
+        if (!document.getElementById(cssId)) {
+          const fpScript = document.querySelector('script[src*="flatpickr"][src*="dist/"]');
+          let href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';
+
+          if (fpScript) {
+            const scriptSrc = fpScript.getAttribute('src');
+            href = scriptSrc.replace(/flatpickr(\.min)?\.js$/i, 'flatpickr$1.css');
+          }
+
+          const link = document.createElement('link');
+          link.id = cssId;
+          link.rel = 'stylesheet';
+          link.type = 'text/css';
+          link.href = href;
+          document.head.appendChild(link);
+        }
+
+        ns = '';
+
+      } else if (key === 'moment') {
+        ns = 'moment';
+
+      } else if (key === '@handsontable/pikaday') {
+        ns = 'Pikaday';
+
       }
 
       let moduleToReturn = window;
@@ -183,6 +290,30 @@
             moduleToReturn[lang.languageCode.replace('-', '')] = lang;
           });
 
+        // Covers `import { mainTheme } from 'handsontable/themes'` expressions
+        } else if (ns === 'Handsontable.themes') {
+          Handsontable.themes.getThemeNames().forEach((themeName) => {
+            const exportName = themeName + 'Theme';
+
+            // Get theme config from window global (e.g., window.mainTheme)
+            if (window[exportName]) {
+              moduleToReturn[exportName] = window[exportName];
+            }
+          });
+
+          // Wrap registerTheme to silently skip already-registered themes (since bundles auto-register)
+          const originalRegisterTheme = moduleToReturn.registerTheme;
+
+          moduleToReturn.registerTheme = (themeOrName, themeConfig) => {
+            const name = typeof themeOrName === 'string' ? themeOrName : themeOrName?.name;
+
+            if (name && Handsontable.themes.hasTheme(name)) {
+              return Handsontable.themes.getTheme(name);
+            }
+
+            return originalRegisterTheme(themeOrName, themeConfig);
+          };
+
         // Covers `import { textRenderer } from 'handsontable/renderers'` expressions
         } else if (ns === 'Handsontable.renderers') {
           moduleToReturn = Handsontable.renderers;
@@ -194,6 +325,9 @@
               moduleToReturn[camelCase] = moduleToReturn[rendererKey];
             }
           });
+
+        } else if (ns === 'HyperFormula') {
+          moduleToReturn.HyperFormula = HyperFormula;
         }
 
         // Covers default import expressions

@@ -12,9 +12,9 @@ describe('Mobile selection', () => {
     }
   });
 
-  it('should allow selecting columns by tapping on the column headers', () => {
+  it('should allow selecting columns by tapping on the column headers', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       colHeaders: true,
       rowHeaders: true,
       nestedHeaders: [
@@ -35,19 +35,19 @@ describe('Mobile selection', () => {
 
     let $colHeader = spec().$container.find('.ht_clone_top thead tr:nth-child(4) th').get(2);
 
-    simulateTouch($colHeader);
+    await simulateTouch($colHeader);
 
     expect(getSelected()).toEqual([[-1, 1, 9, 1]]);
 
     $colHeader = spec().$container.find('.ht_clone_top thead tr:nth-child(3) th').get(2);
 
-    simulateTouch($colHeader);
+    await simulateTouch($colHeader);
 
     expect(getSelected()).toEqual([[-2, 1, 9, 2]]);
 
     $colHeader = spec().$container.find('.ht_clone_top thead tr:nth-child(2) th').get(2);
 
-    simulateTouch($colHeader);
+    await simulateTouch($colHeader);
 
     expect(getSelected()).toEqual([[-3, 1, 9, 4]]);
   });

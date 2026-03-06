@@ -1,4 +1,4 @@
-import { toSingleLine } from 'handsontable/helpers/templateLiteralTag';
+import { toSingleLine, html } from 'handsontable/helpers/templateLiteralTag';
 
 describe('Helpers for template literals', () => {
   describe('toSingleLine', () => {
@@ -37,6 +37,39 @@ Hello world`;
       const text = toSingleLine`${a} ${b}`;
 
       expect(text).toEqual('Hello world');
+    });
+  });
+
+  describe('html', () => {
+    it('should generate DOM fragment ready to inject to the DOM', () => {
+      const {
+        fragment,
+        refs,
+      } = html`
+<div data-ref="container" id="_test_html_helper" class="_test_html_helper_class" style="border: 1px solid red">
+  <p>Counter: </p>
+  <span data-ref="counter">1</span>
+  <button data-ref="countUp" aria-label="click me">Click me</button>
+</div>
+`;
+
+      document.body.appendChild(fragment);
+
+      const container = document.querySelector('#_test_html_helper');
+      const builtHTML = container.outerHTML
+        .replace(/(\r\n|\n|\r)/g, '')
+        .replace(/>\s+</g, '><');
+
+      expect(builtHTML).toBe('<div id="_test_html_helper" class="_test_html_helper_class" ' +
+                             'style="border: 1px solid red"><p>Counter: </p><span>1</span>' +
+                             '<button aria-label="click me">Click me</button></div>');
+      expect(refs).toEqual({
+        container,
+        counter: container.querySelector('span'),
+        countUp: container.querySelector('button'),
+      });
+
+      container.remove();
     });
   });
 });

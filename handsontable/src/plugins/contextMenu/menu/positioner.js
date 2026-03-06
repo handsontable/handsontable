@@ -140,7 +140,14 @@ export class Positioner {
     let top = this.#offset.above + this.#cursor.top - this.#container.offsetHeight;
 
     if (this.#parentContainer) {
-      top = this.#cursor.top + this.#cursor.cellHeight - this.#container.offsetHeight + 3;
+      const rootWindow = this.#parentContainer.ownerDocument.defaultView;
+      const style = rootWindow.getComputedStyle(this.#parentContainer
+        .querySelector('.ht_master'));
+      const paddingTop = Number.parseInt(style.paddingTop, 10);
+      const borderTop = Number.parseInt(style.borderTop, 10);
+
+      top = this.#cursor.top + this.#cursor.cellHeight -
+        this.#container.scrollHeight + paddingTop + borderTop;
     }
 
     this.#container.style.top = `${top}px`;
@@ -153,7 +160,13 @@ export class Positioner {
     let top = this.#offset.below + this.#cursor.top + 1;
 
     if (this.#parentContainer) {
-      top = this.#cursor.top - 1;
+      const rootWindow = this.#parentContainer.ownerDocument.defaultView;
+      const style = rootWindow.getComputedStyle(this.#parentContainer
+        .querySelector('.ht_master'));
+      const paddingTop = Number.parseInt(style.paddingTop, 10);
+      const borderTop = Number.parseInt(style.borderTop, 10);
+
+      top = this.#cursor.top - paddingTop - borderTop;
     }
 
     this.#container.style.top = `${top}px`;
@@ -166,10 +179,11 @@ export class Positioner {
     let left = this.#cursor.left;
 
     if (this.#parentContainer) {
-      const { right: parentMenuRight } = this.#parentContainer.getBoundingClientRect();
+      const rootWindow = this.#parentContainer.ownerDocument.defaultView;
+      const borderRightWidth = Number.parseInt(rootWindow.getComputedStyle(this.#parentContainer
+        .querySelector('.htCore')).borderRightWidth, 10);
 
-      // move the sub menu by the width of the parent's border (usually by 1-2 pixels)
-      left += this.#cursor.cellWidth + parentMenuRight - (this.#cursor.left + this.#cursor.cellWidth);
+      left += this.#cursor.cellWidth + borderRightWidth;
     } else {
       left += this.#offset.right;
     }
@@ -184,10 +198,11 @@ export class Positioner {
     let left = this.#offset.left + this.#cursor.left - this.#container.offsetWidth;
 
     if (this.#parentContainer) {
-      const { left: parentMenuLeft } = this.#parentContainer.getBoundingClientRect();
+      const rootWindow = this.#parentContainer.ownerDocument.defaultView;
+      const borderLeftWidth = Number.parseInt(rootWindow.getComputedStyle(this.#parentContainer
+        .querySelector('.htCore')).borderLeftWidth, 10);
 
-      // move the sub menu by the width of the parent's border (usually by 1-2 pixels)
-      left -= this.#cursor.left - parentMenuLeft;
+      left -= borderLeftWidth;
     }
 
     this.#container.style.left = `${left}px`;

@@ -16,7 +16,7 @@ describe('baseRenderer', () => {
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
         getRenderer(RENDERER_TYPE);
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
     });
 
     it('should register renderer', () => {
@@ -87,6 +87,16 @@ describe('baseRenderer', () => {
       });
 
       expect(TD.outerHTML).toMatchHTML('<td class="placeholder"></td>', toMatchHTMLConfig);
+    });
+
+    it('should manage text-truncate class name', () => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+        textEllipsis: true,
+      });
+
+      expect(TD.outerHTML).toMatchHTML('<td class="htTextEllipsis"></td>', toMatchHTMLConfig);
     });
   });
 

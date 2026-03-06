@@ -1,17 +1,17 @@
-.theme-default-content:not(.custom) > h1, 
-.theme-default-content:not(.custom) > h2, 
-.theme-default-content:not(.custom) > h3, 
-.theme-default-content:not(.custom) > h4, 
-.theme-default-content:not(.custom) > h5, 
+.theme-default-content:not(.custom) > h1,
+.theme-default-content:not(.custom) > h2,
+.theme-default-content:not(.custom) > h3,
+.theme-default-content:not(.custom) > h4,
+.theme-default-content:not(.custom) > h5,
 .theme-default-content:not(.custom) > h6 {
     padding: 0;
     margin: 0;
 }
 
 .header-framework {display: none !important}
-.page { 
+.page {
     opacity 1
-    margin: 80px 380px 0
+    margin: 80px 390px 0
     padding: 0 0 24px 0
     position: relative
     z-index: 1
@@ -23,17 +23,17 @@
         font-weight: 400
         color: $text2Color
         letter-spacing: $letterSpacingText
-        
-        &:not(.custom) { 
+
+        &:not(.custom) {
             max-width: 720px
-            padding: 0 0 80px
+            padding: 0 0 40px
 
             @media (max-width: $medium) {
                 padding-bottom: 24px
             }
         }
 
-        .header-framework { 
+        .header-framework {
             font-size: $font-size-s
             line-height: $line-height-s
             display: block
@@ -42,7 +42,13 @@
             color: $text2Color
         }
 
-       .instalationPage h2 code:first-child  {
+        .instalationPage {
+            counter-reset: title-counter;
+        }
+
+        .instalationPage h2:not(#overview):before  {
+            counter-increment: title-counter;
+            content: ""counter(title-counter)"";
             font-size:  $font-size-s
             line-height: 32px
             display: inline-block
@@ -51,7 +57,7 @@
             text-align: center
             border-radius: $radius
             margin-right: 8px
-            border: 1px solid $text2Color
+            border: 1px solid $borderColor
             position: relative
             top: -2px
             margin-left: -48px
@@ -92,23 +98,23 @@
             }
             &:focus .header-anchor,
             &:hover .header-anchor {
-                opacity: 1        
+                opacity: 1
             }
 
-            &:before { 
+            &:before {
                 position absolute
                 top -108px
                 content: ''
                 display: block
             }
 
-            code { 
+            code {
                 font-size: inherit
                 line-height: inherit
             }
         }
 
-        h1 { 
+        h1 {
             font-size: $font-size-xl
             line-height: $line-height-xl
             font-weight: 400
@@ -127,10 +133,10 @@
                 margin-bottom: 16px
                 display: block
             }
-            
+
         }
 
-        h2 { 
+        h2 {
             padding-top: 32px
             padding-bottom: 0px
             font-size: $font-size-l
@@ -139,7 +145,7 @@
             position relative
         }
 
-        h3 { 
+        h3 {
             padding-top: 24px
             padding-bottom: 0px
             font-size: $font-size
@@ -148,7 +154,7 @@
             position: relative
         }
 
-        h4, h5 { 
+        h4, h5 {
             padding-top: 16px
             padding-bottom: 4px
             font-size: $font-size-s
@@ -161,25 +167,25 @@
             // margin-left: -40px
             position absolute
             inset: 0
-            margin: 0 
+            margin: 0
             padding: 0
             opacity 0 !important
         }
 
-        > div { 
-            padding: 16px 0 0 
+        > div {
+            padding: 16px 0 0
         }
 
-        p { 
+        p {
             font-size: $font-size-s
             line-height: $line-height-s
             font-weight: 400
-            padding: 16px 0 8px 
+            padding: 16px 0 8px
             color: $text2Color
             letter-spacing: $letterSpacingText
             display: block
 
-            a { 
+            a {
                 text-decoration-color: none
 
                 &[rel="noopener"] {
@@ -187,22 +193,22 @@
                 }
             }
 
-            &:empty { 
-                display:none 
+            &:empty {
+                display:none
             }
 
             > img {
                 margin: 16px 0
             }
-            
+
         }
-        
+
         li {
             font-size: $font-size-s
             line-height: $line-height-s
         }
 
-        > ul, > ol, .boxes-list > ul, .instalationPage > ul { 
+        > ul, > ol, .boxes-list > ul, .instalationPage > ul {
             padding: 8px 8px 16px
             word-wrap: break-word
 
@@ -210,7 +216,7 @@
                 font-size: $font-size-s
                 line-height: $line-height-s
                 font-weight: 400
-                list-style: square 
+                list-style: square
                 margin-left: 24px
                 color: $text2Color
                 padding-bottom: 8px
@@ -224,19 +230,19 @@
         > ol li {
             list-style: decimal
         }
-        
-        img { 
+
+        img {
             border-radius: $radius
         }
-        
-        a { 
+
+        a {
             color: $accentColor
-            text-decoration: none 
+            text-decoration: none
             font-weight: 400
             transition: $ts all ease-in-out
 
             @media (hover: hover) {
-                &:hover { 
+                &:hover {
                     text-decoration:none
                     color: $textColor
                 }
@@ -244,12 +250,17 @@
             svg { padding: 4px}
         }
 
-        iframe, video { 
+        iframe, video {
             margin-top: 16px
             border-radius: $radius
         }
+
+        .iframe-responsive {
+            width: 100%
+            aspect-ratio: 4/3
+        }
     }
-    
+
     .checkbox-group > div > label {
         gap: 8px
 
@@ -259,20 +270,20 @@
         }
     }
 
-    .checkbox-group { 
+    .checkbox-group {
         gap: 4px
         padding-bottom: 4px
     }
 
-    a.header-anchor { 
+    a.header-anchor {
         &:before {
             content: '#'
             font-weight: 300
         }
     }
 
-    
-    
+
+
     kbd {
         border: 1px solid $borderColor
         border-bottom: 4px solid $borderColor
@@ -285,8 +296,8 @@
         line-height: $line-height-xs
         white-space: pre
         text-shadow: 0 -1px white
-        
-        strong { 
+
+        strong {
             font-weight: 400
         }
     }
@@ -298,14 +309,24 @@
     table.htCore {
         display: table
     }
-    
-    table:not(.htCore) { 
+
+    .table-wrapper {
+        overflow-x: auto
+        margin: 32px 0
+        box-shadow: 0 0 0 1px $borderColor
+        padding: 0 !important
+        border-radius: $radius
+
+        code {
+            white-space: normal;
+        }
+    }
+
+    table:not(.htCore) {
         font-size: $font-size-s
         line-height: 28px // $line-height-s
         font-weight: 400
-        margin: 32px 0
         width: 100% //calc(100% + 32px)
-        box-shadow: 0 0 0 1px $borderColor 
         border-radius: $radius
         overflow: auto
         display: table
@@ -316,15 +337,15 @@
             max-height: 80px
             border-radius: 0
         }
-        
-        td,th { 
+
+        td,th {
             padding: 16px
         }
 
-        
-        thead { 
-            tr { 
-                th { 
+
+        thead {
+            tr {
+                th {
                     border-bottom:1px solid $lightBorderColor
                     background: $onsurfaceColor
                     font-weight: 500
@@ -342,10 +363,10 @@
 
                     ul {
                         list-style-position: inside
-                        list-style-type: square 
+                        list-style-type: square
                     }
                 }
-                &:nth-child(2n) { 
+                &:nth-child(2n) {
                     background: $sideColor
                 }
             }
@@ -353,40 +374,40 @@
     }
 
     /*
-    .form-jsfiddle-external .js-fiddle-link { 
+    .form-jsfiddle-external .js-fiddle-link {
         button {
             background: $editorColor !important
         }
     }
     */
-    
+
     button:not(.theme-code-group__nav-tab, .handsontable *) {
         padding: 8px 16px
         border:none
         cursor: pointer
         border-radius: $radius
-        background: $sideColor 
+        background: $sideColor
         border: 1px solid $lightBorderColor
         color: $textColor
 
         @media (hover: hover) {
-            &:hover { 
-                background: $borderColor 
+            &:hover {
+                background: $borderColor
                 border: 1px solid $accentColor
             }
         }
     }
 
     #hooksList {
-        padding-top: 16px 
+        padding-top: 16px
         font-size: $font-size-xs
         line-height: $line-height-xs
     }
 
     @media (max-width: $xLarge) {
-        margin: 128px 32px 24px 320px
-        
-        .theme-default-content .table-of-contents { 
+        margin: 128px 32px 24px 340px
+
+        .theme-default-content .table-of-contents {
             display:none
         }
     }
@@ -394,19 +415,9 @@
     @media (max-width: $large) {
         margin: 80px 32px 0
 
-
-        table:not(.htCore) { 
-            display: block
-            overflow-x: auto
-
-            td { 
-                font-size: 16px;
-                white-space: nowrap;
-            }
-        }
         .theme-default-content {
 
-            h1 { 
+            h1 {
                 padding: 32px 0 8px
             }
 
@@ -418,19 +429,128 @@
 
             .theme-code-group {
 
-                pre { 
-                    border-radius: 0 
+                pre {
+                    border-radius: 0
                     margin: 22px 0 0
                 }
             }
         }
     }
+
+
+    .theme-examples-controls {
+        .color-select {
+            select {
+                padding-right: 100px !important;
+            }
+        }
+
+        .color-box {
+            background: var(--color-gray-300)
+            right: 40px;
+
+            .color {
+                border: 1px solid var(--color-gray-200)
+            }
+        }
+    }
+
+    .table-small {
+        table td {
+            font-size: 14px;
+        }
+
+        span {
+            white-space: nowrap;
+        }
+    }
 }
 
-.handsontable-drawing p:last-child { 
+.handsontable-drawing p:last-child {
     display: none
 }
 
 .page .theme-default-content a.header-link {
     color: $textColor
+
+    span.tag-deprecated {
+        display: inline-block
+        vertical-align: middle
+        margin-top: -4px
+    }
+}
+
+.page .ht-wrapper.docs-height-small > .ht_master,
+.page .docs-height-small .ht-wrapper > .ht_master {
+    height: 146px;
+}
+
+.page .ht-wrapper.docs-height-large > .ht_master,
+.page .docs-height-large .ht-wrapper > .ht_master  {
+    height: 168px;
+}
+
+// Fixes for Loading page
+.ht-loading__title {
+    font-size: var(--ht-font-size) !important;
+    font-weight: var(--ht-font-weight) !important;
+    line-height: var(--ht-line-height) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.ht-loading__description {
+    color: var(--ht-foreground-secondary-color) !important;
+    font-size: var(--ht-font-size-small) !important;
+    font-weight: var(--ht-font-weight) !important;
+    line-height: var(--ht-line-height-small) !important;
+    margin: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+// Fixes for dialog (templates) page
+.ht-dialog__title {
+    font-size: var(--ht-font-size) !important;
+    font-weight: var(--ht-font-weight) !important;
+    line-height: var(--ht-line-height) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.ht-dialog__description {
+    color: var(--ht-foreground-secondary-color) !important;
+    font-size: var(--ht-font-size-small) !important;
+    font-weight: var(--ht-font-weight) !important;
+    line-height: var(--ht-line-height-small) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+// Fixes for empty data state page
+.ht-empty-data-state__title {
+    font-size: var(--ht-font-size) !important;
+    font-weight: var(--ht-font-weight) !important;
+    line-height: var(--ht-line-height) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.ht-empty-data-state__description {
+    color: var(--ht-foreground-secondary-color) !important;
+    font-size: var(--ht-font-size-small) !important;
+    font-weight: var(--ht-font-weight) !important;
+    line-height: var(--ht-line-height-small) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.variables-table {
+    &__item {
+        display: flex;
+
+        span {
+            width: 38px;
+        }
+    }
 }

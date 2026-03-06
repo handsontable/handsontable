@@ -1,9 +1,9 @@
-import Handsontable from 'handsontable';
-import {
-  DetailedSettings,
-  MenuItemConfig,
-} from 'handsontable/plugins/contextMenu';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import { DetailedSettings, MenuItemConfig } from 'handsontable/plugins/contextMenu';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const contextMenuSettings: DetailedSettings = {
   callback(key, selection, clickEvent) {
@@ -70,7 +70,7 @@ const contextMenuSettings: DetailedSettings = {
       renderer() {
         const elem = document.createElement('marquee');
 
-        elem.style.cssText = 'background: lightgray;';
+        elem.style.cssText = 'background: lightgray; color: #222222;';
         elem.textContent = 'Brought to you by...';
 
         return elem;

@@ -3,7 +3,7 @@ describe('DOM helpers', () => {
   // Handsontable.dom.offsetRelativeTo
   //
   describe('offsetRelativeTo', () => {
-    it('should return offset directly from the event object', () => {
+    it('should return offset directly from the event object', async() => {
       const eventMock = {
         offsetX: 11,
         offsetY: 22,
@@ -16,7 +16,7 @@ describe('DOM helpers', () => {
       });
     });
 
-    it('should return offset directly from the event object when the "untilElement" is the same as event target', () => {
+    it('should return offset directly from the event object when the "untilElement" is the same as event target', async() => {
       const target = document.createElement('div');
       const eventMock = {
         offsetX: 11,
@@ -30,7 +30,7 @@ describe('DOM helpers', () => {
       });
     });
 
-    it('should return offset directly from the event object when the "untilElement" is a child of the event target', () => {
+    it('should return offset directly from the event object when the "untilElement" is a child of the event target', async() => {
       const target = document.createElement('div');
       const targetChild = document.createElement('div');
 
@@ -48,7 +48,7 @@ describe('DOM helpers', () => {
       });
     });
 
-    it('should return offset calculated until hit the parent element', () => {
+    it('should return offset calculated until hit the parent element', async() => {
       const target = document.createElement('div');
       const parent = document.createElement('div');
 

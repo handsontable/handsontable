@@ -8,6 +8,7 @@ const hotMock = {
   toVisualColumn: column => column,
   columnIndexMapper: new IndexMapper(),
   getCellMeta: () => ({}),
+  addHook: () => {},
 };
 
 // Mocking that table have 5 columns.
@@ -409,7 +410,7 @@ describe('ConditionCollection', () => {
   describe('removeConditions', () => {
     it('should trigger `beforeRemove` and `afterRemove` hook on removing conditions', () => {
       const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
-      const conditionMock = {};
+      const conditionMock = { name: '', args: [] };
 
       conditionCollection.filteringStates.setValueAtIndex(3, {
         operation: OPERATION_AND,
@@ -429,7 +430,7 @@ describe('ConditionCollection', () => {
 
     it('should remove condition from collection', () => {
       const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
-      const conditionMock = {};
+      const conditionMock = { name: '', args: [] };
 
       conditionCollection.filteringStates.setValueAtIndex(3, {
         operation: OPERATION_AND,

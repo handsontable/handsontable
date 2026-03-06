@@ -27,22 +27,24 @@ const packagesInfo = {
     entryFile: 'tmp/index.mjs',
     defaultExport: true
   },
-  '@handsontable/angular': {
-    className: 'HotTableModule'
+  '@handsontable/angular-wrapper': {
+    className: 'HotTableModule',
+    entryFile: 'dist/hot-table/fesm2022/handsontable-angular-wrapper.mjs',
   },
-  '@handsontable/react': {
-    className: 'HotTable'
-  },
-  '@handsontable/vue': {
-    className: 'HotTable'
+  '@handsontable/react-wrapper': {
+    className: 'HotTable',
+    entryFile: 'dist/react-handsontable.js',
   },
   '@handsontable/vue3': {
-    className: 'HotTable'
+    className: 'HotTable',
+    entryFile: 'dist/vue-handsontable.js',
   }
 };
 const {
   default: mainPackageJson
-} = await import('../package.json', { assert: { type: 'json' } });
+} = await import('../package.json', {
+  with: { type: 'json' },
+});
 const workspacePackages = mainPackageJson.workspaces;
 const mismatchedVersions = [];
 
@@ -55,8 +57,13 @@ for (const packagesLocation of workspacePackages) {
 
   for (const subdir of subdirs) {
     const packageJsonLocation = `../${subdir}/package.json`;
-    const { default: packageJson } = await import(packageJsonLocation, { assert: { type: 'json' } });
+    const { default: packageJson } = await import(packageJsonLocation, { with: { type: 'json' } });
     const packageName = packageJson.name;
+
+    if (!packagesInfo[packageName]) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
 
     if (packagesInfo[packageName]) {
       const defaultPackage = await import(
@@ -68,9 +75,9 @@ for (const packagesLocation of workspacePackages) {
 
       if (packagesInfo[packageName].umd || packageJson.jsdelivr) {
         umdPackage = await import(
-          packagesInfo[packageName].entryFile ?
+          packagesInfo[packageName].umd ?
             `../${subdir}/${packagesInfo[packageName].umd}` :
-            `${packageName}/${packageJson.jsdelivr.replace('./', '')}`);
+            `../${subdir}/${packageJson.jsdelivr.replace('./', '')}`);
         umdPackage = umdPackage.default;
       }
 

@@ -1,34 +1,24 @@
 import { BasePlugin } from '../base';
-import staticRegister from '../../utils/staticRegister';
+import { staticRegister } from '../../utils/staticRegister';
 import { error, warn } from '../../helpers/console';
 import { isNumeric } from '../../helpers/number';
+import { isObject } from '../../helpers/object';
+import { isDefined, isUndefined } from '../../helpers/mixed';
+import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
-  isDefined,
-  isUndefined
-} from '../../helpers/mixed';
-import {
-  setupEngine,
-  setupSheet,
-  unregisterEngine,
-  getRegisteredHotInstances,
-} from './engine/register';
-import {
-  isEscapedFormulaExpression,
-  unescapeFormulaExpression,
+  getDateFromExcelDate,
+  getDateInHfFormat,
+  getDateInHotFormat,
   isDate,
   isDateValid,
-  getDateInHfFormat,
-  getDateFromExcelDate,
-  getDateInHotFormat,
   isFormula,
+  unescapeFormulaExpression,
 } from './utils';
-import {
-  getEngineSettingsWithOverrides,
-  haveEngineSettingsChanged
-} from './engine/settings';
+import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
-import Hooks from '../../pluginHooks';
+import { getValueGetterValue } from '../../utils/valueAccessors';
+import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 
 export const PLUGIN_KEY = 'formulas';
@@ -121,6 +111,12 @@ export class Formulas extends BasePlugin {
   engine = null;
 
   /**
+   * HyperFormula's sheet id.
+   *
+   * @type {number|null}
+   */
+  sheetId = null;
+  /**
    * HyperFormula's sheet name.
    *
    * @type {string|null}
@@ -144,16 +140,6 @@ export class Formulas extends BasePlugin {
    * @type {AxisSyncer|null}
    */
   columnAxisSyncer = null;
-
-  /**
-   * HyperFormula's sheet id.
-   *
-   * @type {number|null}
-   */
-  get sheetId() {
-    return this.sheetName === null ? null : this.engine.getSheetId(this.sheetName);
-  }
-
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link Formulas#enablePlugin} method is called.
@@ -184,10 +170,10 @@ export class Formulas extends BasePlugin {
 
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
     if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
-      const newSheetName = this.addSheet(this.sheetName, this.hot.getSourceDataArray());
+      const newSheetName = this.addSheet(this.sheetName, this.#getProcessedSourceDataArray());
 
       if (newSheetName !== false) {
-        this.sheetName = newSheetName;
+        this.#updateSheetNameAndSheetId(newSheetName);
       }
     }
 
@@ -346,7 +332,9 @@ export class Formulas extends BasePlugin {
         this.switchSheet(this.sheetName);
 
       } else {
-        this.sheetName = this.addSheet(sheetName ?? undefined, this.hot.getSourceDataArray());
+        const newSheetName = this.addSheet(sheetName ?? undefined, this.#getProcessedSourceDataArray());
+
+        this.#updateSheetNameAndSheetId(newSheetName);
       }
     }
 
@@ -365,6 +353,16 @@ export class Formulas extends BasePlugin {
     this.engine = null;
 
     super.destroy();
+  }
+
+  /**
+   * Update sheetName and sheetId properties.
+   *
+   * @param {string} [sheetName] The new sheet name.
+   */
+  #updateSheetNameAndSheetId(sheetName) {
+    this.sheetName = sheetName;
+    this.sheetId = this.engine.getSheetId(this.sheetName);
   }
 
   /**
@@ -419,7 +417,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    this.sheetName = sheetName;
+    this.#updateSheetNameAndSheetId(sheetName);
 
     const serialized = this.engine.getSheetSerialized(this.sheetId);
 
@@ -593,6 +591,46 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Get the value to be passed to the formula engine.
+   * If the value is an object, utilize the valueGetter for that cell, otherwise return the value as is.
+   *
+   * @param {number} row The physical row index.
+   * @param {number} column The physical column index.
+   * @param {*} value The value to be passed to the formula engine.
+   * @returns {*} The value to be displayed in the cell.
+   */
+  #getValueGetterValue(row, column, value) {
+    if (isObject(value) && value !== null) {
+      const visualRow = this.hot.toVisualRow(row);
+      const visualColumn = this.hot.toVisualColumn(column);
+
+      value = getValueGetterValue(value, this.hot.getCellMeta(visualRow, visualColumn));
+
+      return value.toString();
+    }
+
+    return value;
+  }
+
+  /**
+   * Get the source data array to be passed to the formula engine.
+   * If the value is an object, utilize the valueGetter for that cell, otherwise return the value as is.
+   *
+   * @param {number} [row] The starting visual row index.
+   * @param {number} [column] The starting visual column index.
+   * @param {number} [row2] The ending visual row index.
+   * @param {number} [column2] The ending visual column index.
+   * @returns {Array} The source data array to be passed to the formula engine.
+   */
+  #getProcessedSourceDataArray(row, column, row2, column2) {
+    return this.hot.getSourceDataArray(row, column, row2, column2).map((rowObject, rowIndex) => {
+      return rowObject.map((value, columnIndex) => {
+        return this.#getValueGetterValue(rowIndex, columnIndex, value);
+      });
+    });
+  }
+
+  /**
    * The hook allows to translate the formula value to calculated value before it goes to the
    * validator function.
    *
@@ -730,22 +768,24 @@ export class Formulas extends BasePlugin {
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
    */
   #onAfterCellMetaReset() {
-    const sourceDataArray = this.hot.getSourceDataArray();
-    let valueChanged = false;
+    if (this.#hotWasInitializedWithEmptyData) {
+      this.switchSheet(this.sheetName);
+
+      return;
+    }
+
+    const sourceDataArray = this.#getProcessedSourceDataArray();
 
     sourceDataArray.forEach((rowData, rowIndex) => {
       rowData.forEach((cellValue, columnIndex) => {
-        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
+        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex, { skipMetaExtension: true });
         const dateFormat = cellMeta.dateFormat;
 
         if (isDate(cellValue, cellMeta.type)) {
-          valueChanged = true;
-
           if (isDateValid(cellValue, dateFormat)) {
             // Rewriting date in HOT format to HF format.
             sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, dateFormat);
-
-          } else if (this.isFormulaCellType(rowIndex, columnIndex) === false) {
+          } else if (!cellValue.startsWith('=')) {
             // Escaping value from date parsing using "'" sign (HF feature).
             sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
           }
@@ -753,13 +793,12 @@ export class Formulas extends BasePlugin {
       });
     });
 
-    if (valueChanged === true) {
-      this.#internalOperationPending = true;
+    this.#internalOperationPending = true;
+    const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
 
-      this.engine.setSheetContent(this.sheetId, sourceDataArray);
-
-      this.#internalOperationPending = false;
-    }
+    this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
+    this.renderDependentSheets(dependentCells);
+    this.#internalOperationPending = false;
   }
 
   /**
@@ -774,10 +813,17 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    this.sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
+    const sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
+
+    this.#updateSheetNameAndSheetId(sheetName);
+
+    if (source === 'updateSettings') {
+      // For performance reasons, the initialization will be done in afterCellMetaReset hook
+      return;
+    }
 
     if (!this.#hotWasInitializedWithEmptyData) {
-      const sourceDataArray = this.hot.getSourceDataArray();
+      const sourceDataArray = this.#getProcessedSourceDataArray();
 
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
@@ -798,13 +844,13 @@ export class Formulas extends BasePlugin {
   /**
    * `modifyData` hook callback.
    *
-   * @param {number} physicalRow Physical row index.
+   * @param {number} visualRow Visual row index.
    * @param {number} visualColumn Visual column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
    *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
-  #onModifyData(physicalRow, visualColumn, valueHolder, ioMode) {
+  #onModifyData(visualRow, visualColumn, valueHolder, ioMode) {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
@@ -814,25 +860,16 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const visualRow = this.hot.toVisualRow(physicalRow);
-
     if (visualRow === null || visualColumn === null) {
       return;
     }
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
+    const cellType = this.getCellType(visualRow, visualColumn);
 
-    if (!isFormulaCellType) {
-      const cellType = this.getCellType(visualRow, visualColumn);
+    if (cellType === 'VALUE' || cellType === 'EMPTY') {
+      valueHolder.value = unescapeFormulaExpression(valueHolder.value);
 
-      if (cellType !== 'ARRAY') {
-        if (isEscapedFormulaExpression(valueHolder.value)) {
-          valueHolder.value = unescapeFormulaExpression(valueHolder.value);
-        }
-
-        return;
-      }
+      return;
     }
 
     const address = {
@@ -842,25 +879,14 @@ export class Formulas extends BasePlugin {
     };
     let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
 
-    // TODO: Workaround. We use HOT's `getCellsMeta` method instead of HOT's `getCellMeta` method. Getting cell meta
-    // using the second method lead to execution of the `cells` method. Using the `getDataAtCell` (which may be useful)
-    // in a callback to the `cells` method leads to triggering the `modifyData` hook. Thus, the `onModifyData` callback
-    // is executed once again and it cause creation of an infinite loop.
-    let cellMeta = this.hot.getCellsMeta().find(singleCellMeta => singleCellMeta.visualRow === visualRow &&
-      singleCellMeta.visualCol === visualColumn);
-
-    if (cellMeta === undefined) {
-      cellMeta = {};
-    }
+    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true });
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
     }
 
     // If `cellValue` is an object it is expected to be an error
-    const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
-
-    valueHolder.value = value;
+    valueHolder.value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
   }
 
   /**
@@ -889,15 +915,10 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
+    const cellType = this.getCellType(visualRow, visualColumn);
 
-    if (!isFormulaCellType) {
-      const cellType = this.getCellType(visualRow, visualColumn);
-
-      if (cellType !== 'ARRAY') {
-        return;
-      }
+    if (cellType === 'VALUE' || cellType === 'EMPTY') {
+      return;
     }
 
     const dimensions = this.engine.getSheetDimensions(this.engine.getSheetId(this.sheetName));
@@ -927,7 +948,7 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
   #onAfterSetDataAtCell(changes, source) {
-    if (isBlockedSource(source)) {
+    if (isBlockedSource(source) || changes.length === 0) {
       return;
     }
 
@@ -944,6 +965,8 @@ export class Formulas extends BasePlugin {
           col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
           sheet: this.sheetId,
         };
+
+        newValue = this.#getValueGetterValue(physicalRow, physicalColumn, newValue);
 
         if (physicalRow !== null && physicalColumn !== null) {
           this.syncChangeWithEngine(visualRow, visualColumn, newValue);
@@ -1201,7 +1224,7 @@ export class Formulas extends BasePlugin {
   #onAfterDetachChild(parent, element, finalElementRowIndex) {
     this.#internalOperationPending = true;
 
-    const rowsData = this.hot.getSourceDataArray(
+    const rowsData = this.#getProcessedSourceDataArray(
       finalElementRowIndex,
       0,
       finalElementRowIndex + (element.__children?.length || 0),
@@ -1271,8 +1294,7 @@ export class Formulas extends BasePlugin {
    * @param {string} newDisplayName The new name of the sheet.
    */
   #onEngineSheetRenamed(oldDisplayName, newDisplayName) {
-    this.sheetName = newDisplayName;
-
+    this.#updateSheetNameAndSheetId(newDisplayName);
     this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
   }
 

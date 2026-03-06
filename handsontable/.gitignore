@@ -12,10 +12,12 @@ dev*.js
 dev*.ts
 npm-debug.log
 
-!dist/README.md
-dist/hyperformula/
+dist/
+languages/
 node_modules/
 commonjs/
 es/
 coverage/
 tmp/
+/styles/
+src/styles/handsontableStyles.js

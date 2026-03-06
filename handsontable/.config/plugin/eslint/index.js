@@ -5,10 +5,15 @@ module.exports = {
       plugins: ['handsontable'],
       rules: {
         'handsontable/restricted-module-imports': 'off',
+        'handsontable/require-async-in-it': 'off',
+        'handsontable/no-native-error-throw': 'off',
       }
     }
   },
   rules: {
     'restricted-module-imports': require('./rules/restricted-module-imports'),
+    'require-async-in-it': require('./rules/require-async-in-it'),
+    'require-await': require('./rules/require-await'),
+    'no-native-error-throw': require('./rules/no-native-error-throw'),
   },
 };

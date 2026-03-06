@@ -12,70 +12,76 @@ describe('EditorManager open editor', () => {
     }
   });
 
-  it('should be possible to open an editor using a mouse', () => {
+  it('should be possible to open an editor using a mouse', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
-    selectCell(2, 2);
-    mouseDoubleClick(getCell(2, 2));
+
+    await selectCell(2, 2);
+    await mouseDoubleClick(getCell(2, 2));
 
     expect(isEditorVisible()).toBe(true);
     expect(getActiveEditor()).toBeDefined();
   });
 
-  it('should not be possible to open an editor using a mouse when more than 2 cells are selected (while holding Shift)', () => {
+  it('should not be possible to open an editor using a mouse when more than 2 cells are selected (while holding Shift)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
-    selectCell(2, 2, 2, 3);
-    keyDown('shift');
-    mouseDoubleClick(getCell(2, 3));
+
+    await selectCell(2, 2, 2, 3);
+    await keyDown('shift');
+    await mouseDoubleClick(getCell(2, 3));
 
     expect(isEditorVisible()).toBe(false);
     expect(getActiveEditor()).toBeUndefined();
   });
 
-  it('should be possible to open an editor using a mouse when 1 cell is selected (while holding Shift)', () => {
+  it('should be possible to open an editor using a mouse when 1 cell is selected (while holding Shift)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
-    selectCell(2, 2);
-    keyDown('shift');
-    mouseDoubleClick(getCell(2, 2));
+
+    await selectCell(2, 2);
+    await keyDown('shift');
+    await mouseDoubleClick(getCell(2, 2));
 
     expect(isEditorVisible()).toBe(true);
     expect(getActiveEditor()).toBeDefined();
   });
 
-  it('should not be possible to open an editor using a mouse when Ctrl/Cmd key is pressed', () => {
+  it('should not be possible to open an editor using a mouse when Ctrl/Cmd key is pressed', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
-    selectCell(2, 3);
-    keyDown('control/meta');
-    mouseDoubleClick(getCell(2, 3));
+
+    await selectCell(2, 3);
+    await keyDown('control/meta');
+    await mouseDoubleClick(getCell(2, 3));
 
     expect(isEditorVisible()).toBe(false);
     expect(getActiveEditor()).toBeUndefined();
   });
 
-  it('should be possible to open an editor using Enter key', () => {
+  it('should be possible to open an editor using Enter key', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
-    selectCell(2, 2);
-    keyDown('enter');
+
+    await selectCell(2, 2);
+    await keyDown('enter');
 
     expect(isEditorVisible()).toBe(true);
     expect(getActiveEditor()).toBeDefined();
   });
 
-  it('should not be possible to open an editor using Enter key when more than 2 cells are selected (while holding Shift)', () => {
+  it('should not be possible to open an editor using Enter key when more than 2 cells are selected (while holding Shift)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
-    selectCell(2, 2, 2, 3);
-    keyDownUp(['shift', 'enter']);
+
+    await selectCell(2, 2, 2, 3);
+    await keyDownUp(['shift', 'enter']);
 
     expect(isEditorVisible()).toBe(false);
     expect(getActiveEditor()).toBeDefined();
@@ -83,12 +89,13 @@ describe('EditorManager open editor', () => {
     expect(getActiveEditor().col).toBe(3);
   });
 
-  it('should not be possible to open an editor using Enter key when Ctrl/Cmd key is pressed', () => {
+  it('should not be possible to open an editor using Enter key when Ctrl/Cmd key is pressed', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
-    selectCells([[1, 1], [2, 3]]);
-    keyDownUp(['control/meta', 'enter']);
+
+    await selectCells([[1, 1], [2, 3]]);
+    await keyDownUp(['control/meta', 'enter']);
 
     expect(isEditorVisible()).toBe(false);
     expect(getActiveEditor()).toBeDefined();

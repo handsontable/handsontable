@@ -12,7 +12,7 @@ describe('Core.countRowHeaders', () => {
     }
   });
 
-  it('should count row headers enabled by `rowHeaders` option', () => {
+  it('should count row headers enabled by `rowHeaders` option', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       rowHeaders: true,
@@ -21,7 +21,7 @@ describe('Core.countRowHeaders', () => {
     expect(countRowHeaders()).toBe(1);
   });
 
-  it('should return 0 for disabled row headers', () => {
+  it('should return 0 for disabled row headers', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       colHeaders: true,
@@ -30,7 +30,7 @@ describe('Core.countRowHeaders', () => {
     expect(countRowHeaders()).toBe(0);
   });
 
-  it('should count custom row headers', () => {
+  it('should count custom row headers', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       rowHeaders: true,

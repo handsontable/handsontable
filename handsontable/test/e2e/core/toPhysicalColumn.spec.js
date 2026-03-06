@@ -12,72 +12,75 @@ describe('Core.toPhysicalColumn', () => {
     }
   });
 
-  it('should return valid physical column index', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+  it('should return valid physical column index', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
     });
 
-    hot.columnIndexMapper.setIndexesSequence([3, 4, 5, 6, 7]);
+    columnIndexMapper().setIndexesSequence([3, 4, 5, 6, 7]);
 
-    expect(hot.toPhysicalColumn(0)).toBe(3);
-    expect(hot.toPhysicalColumn(1)).toBe(4);
-    expect(hot.toPhysicalColumn(2)).toBe(5);
+    expect(toPhysicalColumn(0)).toBe(3);
+    expect(toPhysicalColumn(1)).toBe(4);
+    expect(toPhysicalColumn(2)).toBe(5);
   });
 
   // Predicting how user would like to change index mapper's length would be hard.
-  it('should reset physical indexes when `columns` changed data length', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+  it('should reset physical indexes when `columns` changed data length', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
     });
 
-    hot.columnIndexMapper.setIndexesSequence([3, 4, 5, 6, 7]);
-    hot.updateSettings({ columns: [{}, {}] });
+    columnIndexMapper().setIndexesSequence([3, 4, 5, 6, 7]);
+    await updateSettings({ columns: [{}, {}] });
 
-    expect(hot.toPhysicalColumn(0)).toBe(0);
-    expect(hot.toPhysicalColumn(1)).toBe(1);
-    expect(hot.toPhysicalColumn(2)).toBe(null);
+    expect(toPhysicalColumn(0)).toBe(0);
+    expect(toPhysicalColumn(1)).toBe(1);
+    expect(toPhysicalColumn(2)).toBe(null);
   });
 
   describe('should reset physical indexes when user load new data', () => {
-    it('by calling the `loadData` function', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+    it('by calling the `loadData` function', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
       });
 
-      hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-      hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+      columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
-      expect(hot.toPhysicalColumn(0)).toBe(0);
-      expect(hot.toPhysicalColumn(1)).toBe(1);
-      expect(hot.toPhysicalColumn(2)).toBe(null);
+      await loadData(createSpreadsheetData(2, 2));
+
+      expect(toPhysicalColumn(0)).toBe(0);
+      expect(toPhysicalColumn(1)).toBe(1);
+      expect(toPhysicalColumn(2)).toBe(null);
     });
   });
 
   describe('should NOT reset physical indexes when user updates data', () => {
-    it('by updating settings', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+    it('by updating settings', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
       });
 
-      hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-      updateSettings({ data: Handsontable.helper.createSpreadsheetData(2, 2) });
+      columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
-      expect(hot.toPhysicalColumn(0)).toBe(1);
-      expect(hot.toPhysicalColumn(1)).toBe(0);
-      expect(hot.toPhysicalColumn(2)).toBe(null);
+      await updateSettings({ data: createSpreadsheetData(2, 2) });
+
+      expect(toPhysicalColumn(0)).toBe(1);
+      expect(toPhysicalColumn(1)).toBe(0);
+      expect(toPhysicalColumn(2)).toBe(null);
     });
 
-    it('by calling the `updateData` function', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5)
+    it('by calling the `updateData` function', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5)
       });
 
-      hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-      hot.updateData(Handsontable.helper.createSpreadsheetData(2, 2));
+      columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
-      expect(hot.toPhysicalColumn(0)).toBe(1);
-      expect(hot.toPhysicalColumn(1)).toBe(0);
-      expect(hot.toPhysicalColumn(2)).toBe(null);
+      await updateData(createSpreadsheetData(2, 2));
+
+      expect(toPhysicalColumn(0)).toBe(1);
+      expect(toPhysicalColumn(1)).toBe(0);
+      expect(toPhysicalColumn(2)).toBe(null);
     });
   });
 });

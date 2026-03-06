@@ -1,6 +1,5 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -18,13 +17,7 @@ const ExampleComponent = () => {
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       height="auto"
-      dropdownMenu={[
-        'remove_col',
-        '---------',
-        'make_read_only',
-        '---------',
-        'alignment',
-      ]}
+      dropdownMenu={['remove_col', '---------', 'make_read_only', '---------', 'alignment']}
     />
   );
 };

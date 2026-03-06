@@ -16,13 +16,6 @@ describe('TrimRows', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-
-    // Matchers configuration.
-    this.matchersConfig = {
-      toMatchHTML: {
-        keepAttributes: ['class']
-      }
-    };
   });
 
   afterEach(function() {
@@ -37,7 +30,7 @@ describe('TrimRows', () => {
   describe('fixedColumnsStart', () => {
     it('should render left overlay with the same amount of columns than a master overlay', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         colHeaders: true,
         fixedColumnsStart: 2,
         columns: [{}, {}],
@@ -46,26 +39,26 @@ describe('TrimRows', () => {
       expect(extractDOMStructure(getInlineStartClone())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="">A</th>
-            <th class="">B</th>
+            <th>A</th>
+            <th>B</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="">A1</td>
-            <td class="">B1</td>
+            <td>A1</td>
+            <td>B1</td>
           </tr>
           <tr>
-            <td class="">A2</td>
-            <td class="">B2</td>
+            <td>A2</td>
+            <td>B2</td>
           </tr>
         </tbody>
         `);
       expect(extractDOMStructure(getTopInlineStartClone())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="">A</th>
-            <th class="">B</th>
+            <th>A</th>
+            <th>B</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -74,7 +67,7 @@ describe('TrimRows', () => {
 
     it('should shrink left overlay to a master overlay when defined overlay size is higher than total amount of columns', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         colHeaders: true,
         fixedColumnsStart: 2,
         columns: [{}],
@@ -83,22 +76,22 @@ describe('TrimRows', () => {
       expect(extractDOMStructure(getInlineStartClone())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="">A</th>
+            <th>A</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="">A1</td>
+            <td>A1</td>
           </tr>
           <tr>
-            <td class="">A2</td>
+            <td>A2</td>
           </tr>
         </tbody>
         `);
       expect(extractDOMStructure(getTopInlineStartClone())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="">A</th>
+            <th>A</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -107,7 +100,7 @@ describe('TrimRows', () => {
 
     it('should shrink top overlay to a master overlay when all rows are trimmed', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         colHeaders: true,
         fixedColumnsStart: 2,
         columns: [],

@@ -4,7 +4,6 @@ import { getPluginsNames } from '../';
 describe('built-in plugins', () => {
   it('should auto-register build-in plugins in the proper order in full build', () => {
     expect(getPluginsNames()).toEqual([
-      'PersistentState',
       'AutoColumnSize',
       'Autofill',
       'ManualRowResize',
@@ -20,6 +19,7 @@ describe('built-in plugins', () => {
       'ManualColumnResize',
       'ManualRowMove',
       'MergeCells',
+      'StretchColumns',
       'MultipleSelectionHandles',
       'MultiColumnSorting',
       'Search',
@@ -36,6 +36,10 @@ describe('built-in plugins', () => {
       'HiddenColumns',
       'HiddenRows',
       'TrimRows',
+      'Loading',
+      'Dialog',
+      'EmptyDataState',
+      'Pagination',
       'UndoRedo',
     ]);
   });

@@ -1,7 +1,6 @@
-import { HotTable, HotTableClass } from '@handsontable/react';
-import Handsontable from 'handsontable';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import { DetailedSettings } from 'handsontable/plugins/columnSummary';
 
 // register Handsontable's modules
 registerAllModules();
@@ -11,9 +10,7 @@ const ExampleComponent = () => {
   const generateData = (rows = 3, columns = 7, additionalRows = true) => {
     let counter = 0;
 
-    const array2d = [...new Array(rows)].map((_) =>
-      [...new Array(columns)].map((_) => counter++)
-    );
+    const array2d = [...new Array(rows)].map((_) => [...new Array(columns)].map((_) => counter++));
 
     // add an empty row at the bottom, to display column summaries
     if (additionalRows) {
@@ -51,7 +48,7 @@ const ExampleComponent = () => {
           });
         }
 
-        return configArray;
+        return configArray as DetailedSettings[];
       }}
     />
   );

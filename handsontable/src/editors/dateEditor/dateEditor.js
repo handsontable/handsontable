@@ -5,11 +5,14 @@ import { TextEditor } from '../textEditor';
 import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
-
-import '@handsontable/pikaday/css/pikaday.css';
+import { isMobileBrowser } from '../../helpers/browser';
+import { deprecatedWarn } from '../../helpers/console';
+import { throwWithCause } from '../../helpers/errors';
 
 export const EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
+const DEFAULT_DATE_FORMAT = 'DD/MM/YYYY';
+const deprecatedMessageShown = new WeakSet();
 
 /**
  * @private
@@ -20,11 +23,6 @@ export class DateEditor extends TextEditor {
     return EDITOR_TYPE;
   }
 
-  // TODO: Move this option to general settings
-  /**
-   * @type {string}
-   */
-  defaultDateFormat = 'DD/MM/YYYY';
   /**
    * @type {boolean}
    */
@@ -36,16 +34,24 @@ export class DateEditor extends TextEditor {
 
   init() {
     if (typeof moment !== 'function') {
-      throw new Error('You need to include moment.js to your project.');
+      throwWithCause('You need to include moment.js to your project.');
     }
 
     if (typeof Pikaday !== 'function') {
-      throw new Error('You need to include Pikaday to your project.');
+      throwWithCause('You need to include Pikaday to your project.');
     }
+
     super.init();
+
     this.hot.addHook('afterDestroy', () => {
       this.parentDestroyed = true;
       this.destroyElements();
+    });
+
+    this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+      if (!firstRun) {
+        this.close();
+      }
     });
   }
 
@@ -65,7 +71,8 @@ export class DateEditor extends TextEditor {
     this.datePicker.setAttribute('dir', this.hot.isRtl() ? 'rtl' : 'ltr');
 
     addClass(this.datePicker, 'htDatepickerHolder');
-    this.hot.rootDocument.body.appendChild(this.datePicker);
+
+    this.hot.rootPortalElement.appendChild(this.datePicker);
 
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table.
@@ -114,6 +121,16 @@ export class DateEditor extends TextEditor {
    * @param {Event} [event=null] The event object.
    */
   open(event = null) {
+    if (!deprecatedMessageShown.has(this.cellProperties.instance)) {
+      deprecatedMessageShown.add(this.cellProperties.instance);
+      deprecatedWarn(
+        'The Pikaday-based `date` editor is deprecated and will be removed in the next major release, ' +
+        'replaced by the native HTML date input.\n\n' +
+        'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+        '`date` cell type documentation: https://handsontable.com/docs/date-cell-type/'
+      );
+    }
+
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
@@ -149,8 +166,6 @@ export class DateEditor extends TextEditor {
    * Close editor.
    */
   close() {
-    this._opened = false;
-
     // If the date picker was never initialized (e.g. during autofill), there's nothing to destroy.
     if (this.$datePicker?.destroy) {
       this.$datePicker.destroy();
@@ -188,7 +203,7 @@ export class DateEditor extends TextEditor {
    * @param {Event} event The event object.
    */
   showDatepicker(event) {
-    const dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
+    const dateFormat = this.#getDateFormat();
     const isMouseDown = this.hot.view.isMouseDown();
     const isMeta = event ? isFunctionKey(event.keyCode) : false;
     let dateStr;
@@ -264,7 +279,7 @@ export class DateEditor extends TextEditor {
     options.container = this.datePicker;
     options.bound = false;
     options.keyboardInput = false;
-    options.format = options.format || this.defaultDateFormat;
+    options.format = options.format ?? this.#getDateFormat();
     options.reposition = options.reposition || false;
     // Set the RTL to `false`. Due to the https://github.com/Pikaday/Pikaday/issues/647 bug, the layout direction
     // of the date picker is controlled by juggling the "dir" attribute of the root date picker element.
@@ -274,13 +289,17 @@ export class DateEditor extends TextEditor {
       let dateStr = value;
 
       if (!isNaN(dateStr.getTime())) {
-        dateStr = moment(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
+        dateStr = moment(dateStr).format(this.#getDateFormat());
       }
 
       this.setValue(dateStr);
 
       if (origOnSelect) {
         origOnSelect();
+      }
+
+      if (isMobileBrowser()) {
+        this.hideDatepicker();
       }
     };
     options.onClose = () => {
@@ -346,5 +365,14 @@ export class DateEditor extends TextEditor {
     } else {
       this.hideDatepicker();
     }
+  }
+
+  /**
+   * Gets the current date format for this cell.
+   *
+   * @returns {string}
+   */
+  #getDateFormat() {
+    return this.cellProperties.dateFormat ?? DEFAULT_DATE_FORMAT;
   }
 }

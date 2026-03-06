@@ -28,6 +28,7 @@
         a code {
             color: $linkColor
             transition: $t all ease-in-out
+            white-space: pre-wrap;
             
 
             @media (hover: hover) {
@@ -84,7 +85,7 @@
         pre { 
             margin-top: 16px
             background: $editorColor 
-            padding: 16px 104px 16px 24px
+            padding: 16px 60px 16px 24px
             margin: 16px 0 0
             border-radius: $radius
             font-size: $font-size-s
@@ -226,7 +227,7 @@
 [class*="language-"] {
     .copycode, .report, .github { 
         position: relative 
-        transition: all $t ease-in-out !important
+        transition: all $t ease-in-out
         padding: 8px !important
         z-index: 1
         color: $textColor
@@ -306,7 +307,7 @@
     right: 0
     display: flex
     gap:10px
-    transition: all $t ease-in-out !important
+    transition: all $t ease-in-out
     z-index 1
     padding: 11px 11px 8px 0
     border-radius: $radius
@@ -328,7 +329,7 @@ pre + .codeControls {
         position absolute
         top: 0
         right: 0
-        width: 128px;
+        width: 125%;
         height: 46px
         border-radius: 0 $radius $radius 0
         background: $editorColor 
@@ -358,9 +359,7 @@ div[class*="language-"]:has(.codeControls),
     .codeControls { 
         padding: 0
         
-        &:after {
-            display: none
-        }
+       
     }
 
     @media (max-width: $small) {
@@ -393,7 +392,7 @@ div[class*="language-"]:has(.codeControls),
         min-width: 128px;
         text-align: left;
         line-height: 18px;
-        transition: all $t ease-in-out !important
+        transition: all $t ease-in-out
 
         &.active {
             & + ul {
@@ -422,7 +421,7 @@ div[class*="language-"]:has(.codeControls),
         opacity: 0
         visibility: hidden
         transition: all $t ease-in-out
-        margin: 4px 0
+        margin: 10px 0
         border-radius: $radius
         padding: 8px
         background: $borderColor
@@ -464,7 +463,6 @@ div[class*="language-"]:has(.codeControls),
 .tabs-component-panel { 
     .codeControls {
         top: -44px
-        right: -8px
     }
 }
 

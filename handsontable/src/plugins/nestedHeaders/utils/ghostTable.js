@@ -78,8 +78,15 @@ class GhostTable {
    * Build cache of the headers widths.
    */
   buildWidthsMap() {
+    const currentThemeName = this.hot.getCurrentThemeName();
+
     this.container = this.hot.rootDocument.createElement('div');
     this.container.classList.add('handsontable', 'htGhostTable', 'htAutoSize');
+
+    if (currentThemeName) {
+      this.container.classList.add(currentThemeName);
+    }
+
     this._buildGhostTable(this.container);
     this.hot.rootDocument.body.appendChild(this.container);
 
@@ -125,14 +132,20 @@ class GhostTable {
         const th = rootDocument.createElement('th');
         const headerSettings = this.nestedHeaderSettingsGetter(row, visualColumnsIndex);
 
-        if (headerSettings && (!headerSettings.isPlaceholder || headerSettings.isHidden)) {
+        if (
+          headerSettings &&
+          (
+            (!headerSettings.isPlaceholder && !headerSettings.isCollapsed) ||
+            headerSettings.isHidden
+          )
+        ) {
           let label = headerSettings.label;
 
           if (isDropdownEnabled) {
             label += '<button class="changeType"></button>';
           }
 
-          fastInnerHTML(th, label);
+          fastInnerHTML(th, label, this.hot.getSettings().sanitizer);
           th.colSpan = headerSettings.colspan;
           tr.appendChild(th);
         }

@@ -1,0 +1,22 @@
+@use "../../utils/mixins";
+
+// Handsontable Column Freeze
+
+@mixin output {
+  .handsontable {
+    .htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone {
+      &_top_inline_start_corner th:nth-child(2),
+      &_inline_start td:first-of-type {
+        border-left: 0 none;
+      }
+    }
+
+    .ht_clone_top_inline_start_corner {
+      th {
+        &.ht__active_highlight {
+          box-shadow: none;
+        }
+      }
+    }
+  }
+}

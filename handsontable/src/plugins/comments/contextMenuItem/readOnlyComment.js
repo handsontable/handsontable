@@ -18,7 +18,7 @@ export default function readOnlyCommentItem(plugin) {
       return areReadOnly ? markLabelAsSelected(label) : label;
     },
     callback() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       range.forAll((row, column) => {
         if (row >= 0 && column >= 0) {
@@ -31,7 +31,7 @@ export default function readOnlyCommentItem(plugin) {
       });
     },
     disabled() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (
         !range ||

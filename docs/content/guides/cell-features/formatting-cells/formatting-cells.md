@@ -8,6 +8,9 @@ canonicalUrl: /formatting-cells
 react:
   id: qywqgovy
   metaTitle: Formatting cells - React Data Grid | Handsontable
+angular:
+  id: 0eswjne7
+  metaTitle: Formatting cells - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
@@ -53,6 +56,17 @@ In this example, we add a custom class `custom-cell` to the cell in the top left
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/formatting-cells/angular/example1.ts)
+@[code](@/content/guides/cell-features/formatting-cells/angular/example1.html)
+
+:::
+
+:::
+
 ## Apply inline styles
 
 You can apply inline styles directly to the DOM element using its `style` property. You can use the [`renderer`](@/api/options.md#renderer) option to do that.
@@ -79,6 +93,17 @@ You can apply inline styles directly to the DOM element using its `style` proper
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/formatting-cells/angular/example2.ts)
+@[code](@/content/guides/cell-features/formatting-cells/angular/example2.html)
+
+:::
+
+:::
+
 ## Custom cell borders
 
 To enable the custom borders feature, set the [`customBorders`](@/api/options.md#customborders) option. This can either be set as `true` or initialized as an
@@ -86,6 +111,17 @@ array with a pre-defined setup. For the list of available settings and methods, 
 
 In the names of the API properties, the words `start` and `end` refer to the starting and ending edges of the
 [layout direction](@/guides/internationalization/layout-direction/layout-direction.md).
+
+You can customize the border style using the `style` property in the border configuration. The available options are:
+
+- `'solid'` (default) - A solid line border
+- `'dashed'` - A dashed line border
+- `'dotted'` - A dotted line border
+
+The `style` property can be set for any border edge (`top`, `bottom`, `start`, `end`). When not specified, it defaults to `'solid'`.
+
+The example below demonstrates different border styles applied to various cell ranges:
+
 
 ::: only-for javascript
 
@@ -98,12 +134,27 @@ In the names of the API properties, the words `start` and `end` refer to the sta
 
 :::
 
+<!-- TODO: workaround for the template parsing problem for angular docs  -->
+
 ::: only-for react
 
 ::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/formatting-cells/react/example3.jsx)
 @[code](@/content/guides/cell-features/formatting-cells/react/example3.tsx)
+
+:::
+
+:::
+
+<!-- TODO: workaround for the template parsing problem for angular docs  -->
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/formatting-cells/angular/example3.ts)
+@[code](@/content/guides/cell-features/formatting-cells/angular/example3.html)
 
 :::
 

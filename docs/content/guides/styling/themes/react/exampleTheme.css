@@ -1,0 +1,47 @@
+.theme-examples-controls .example-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.theme-examples-controls .color-select {
+  position: relative;
+  display: inline-flex;
+  gap: 10px;
+}
+
+.theme-examples-controls .color-select:after {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  right: 20px;
+}
+
+.theme-examples-controls .color-select select {
+  padding: 8px 70px 8px 16px;
+  border-radius: 8px;
+  appearance: none;
+}
+
+.theme-examples-controls .color-box {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 10px;
+  border-radius: 12px;
+  background: grey;
+  padding: 5px;
+  pointer-events: none;
+}
+
+.theme-examples-controls .color-box .color {
+  width: 10px;
+  height: 10px;
+  background-color: grey;
+  border-radius: 50%;
+  border: 1px solid grey;
+}

@@ -12,7 +12,7 @@ describe('Core.spliceCellsMeta', () => {
     }
   });
 
-  it('should splice the cell meta array analogously to the native `splice` method', () => {
+  it('should splice the cell meta array analogously to the native `splice` method', async() => {
     handsontable({
       cell: [
         { row: 0, col: 1, myId: 1 },
@@ -27,7 +27,8 @@ describe('Core.spliceCellsMeta', () => {
 
     expect(allMeta.length).toBe(25);
 
-    spliceCellsMeta(3, 1);
+    await spliceCellsMeta(3, 1);
+
     allMeta = getCellsMeta();
 
     expect(allMeta.length).toBe(25);
@@ -41,7 +42,7 @@ describe('Core.spliceCellsMeta', () => {
     expect(metaAtRow[0].myId).toBe(5);
   });
 
-  it('should remove cell meta objects from the collection', () => {
+  it('should remove cell meta objects from the collection', async() => {
     handsontable();
 
     getCellMeta(0, 1)._test = 'foo-0x1';
@@ -49,7 +50,7 @@ describe('Core.spliceCellsMeta', () => {
     getCellMeta(3, 1)._test = 'foo-3x1';
     getCellMeta(3, 10)._test = 'foo-3x10';
 
-    spliceCellsMeta(1, 2);
+    await spliceCellsMeta(1, 2);
 
     expect(getCellMeta(0, 1)._test).toBe('foo-0x1');
     expect(getCellMeta(0, 10)._test).toBe('foo-0x10');
@@ -59,7 +60,7 @@ describe('Core.spliceCellsMeta', () => {
     expect(getCellMeta(2, 10)._test).toBeUndefined();
   });
 
-  it('should add new cell meta object to the collection', () => {
+  it('should add new cell meta object to the collection', async() => {
     handsontable();
 
     getCellMeta(0, 1)._test = 'foo-0x1';
@@ -67,7 +68,7 @@ describe('Core.spliceCellsMeta', () => {
     getCellMeta(3, 1)._test = 'foo-3x1';
     getCellMeta(3, 10)._test = 'foo-3x10';
 
-    spliceCellsMeta(1, 2, [{ _test: 'a' }, { _test: 'b' }]);
+    await spliceCellsMeta(1, 2, [{ _test: 'a' }, { _test: 'b' }]);
 
     expect(getCellMeta(0, 1)._test).toBe('foo-0x1');
     expect(getCellMeta(0, 10)._test).toBe('foo-0x10');
@@ -80,7 +81,7 @@ describe('Core.spliceCellsMeta', () => {
     expect(getCellMeta(3, 10)._test).toBeUndefined();
   });
 
-  it('should add new cell meta objects to the collection', () => {
+  it('should add new cell meta objects to the collection', async() => {
     handsontable();
 
     getCellMeta(0, 1)._test = 'foo-0x1';
@@ -88,7 +89,7 @@ describe('Core.spliceCellsMeta', () => {
     getCellMeta(3, 1)._test = 'foo-3x1';
     getCellMeta(3, 10)._test = 'foo-3x10';
 
-    spliceCellsMeta(1, 2, [{ _test: 'a' }, { _test: 'b' }],
+    await spliceCellsMeta(1, 2, [{ _test: 'a' }, { _test: 'b' }],
       [{ _test: 'c' }, { _test: 'd' }], [{ _test: 'e' }, { _test: 'f' }]);
 
     expect(getCellMeta(0, 1)._test).toBe('foo-0x1');
@@ -105,7 +106,7 @@ describe('Core.spliceCellsMeta', () => {
     expect(getCellMeta(5, 10)._test).toBeUndefined();
   });
 
-  it('should throw an error when a new row meta collection is passed in an unexpected format', () => {
+  it('should throw an error when a new row meta collection is passed in an unexpected format', async() => {
     handsontable();
 
     getCellMeta(0, 1)._test = 'foo-0x1';
@@ -114,6 +115,7 @@ describe('Core.spliceCellsMeta', () => {
     getCellMeta(3, 10)._test = 'foo-3x10';
 
     expect(() => {
+      // eslint-disable-next-line handsontable/require-await
       spliceCellsMeta(1, 2, { _test: 'a' }, { _test: 'b' });
     }).toThrowError('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
 

@@ -1,8 +1,7 @@
 import { FC } from 'react';
-import { HotTable } from '@handsontable/react';
+import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
-import Handsontable from 'handsontable';
 
 interface Person {
   id: number | undefined;
@@ -42,10 +41,7 @@ function model(opts: ModelOptions): Partial<Person> {
     }
   }
 
-  _pub.attr = function (
-    attr: keyof Person | string,
-    val?: Handsontable.CellValue
-  ) {
+  _pub.attr = function (attr: keyof Person | string, val?: Handsontable.CellValue) {
     if (typeof val === 'undefined') {
       window.console && console.log('GET the', attr, 'value of', _pub);
 
@@ -62,8 +58,7 @@ function model(opts: ModelOptions): Partial<Person> {
 }
 
 function property(attr: keyof Person | string) {
-  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) =>
-    (row as Person).attr(attr, value);
+  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) => (row as Person).attr(attr, value);
 }
 
 const data: Partial<Person>[] = [
@@ -81,11 +76,7 @@ const ExampleComponent: FC = () => (
     height="auto"
     width="auto"
     colHeaders={['ID', 'Name', 'Address']}
-    columns={[
-      { data: property('id') },
-      { data: property('name') },
-      { data: property('address') },
-    ]}
+    columns={[{ data: property('id') }, { data: property('name') }, { data: property('address') }]}
     minSpareRows={1}
     autoWrapRow={true}
     autoWrapCol={true}

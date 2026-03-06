@@ -22,14 +22,14 @@ describe('plugins dependencies', () => {
 
     expect(() => {
       hot = new Handsontable(document.createElement('div'), {});
-    }).toThrowError(`The CustomPlugin plugin requires the following modules:
+    }).toThrowWithCause(`The CustomPlugin plugin requires the following modules:
  - NonExistingPlugin (plugin)
  - NonExistingCellType (cell-type)
  - NonExistingEditor (editor)
  - NonExistingRenderer (renderer)
  - NonExistingValidator (validator)
 
-You have to import and register them manually.`);
+You have to import and register them manually.`, { handsontable: true });
     expect(hot).toBeUndefined();
   });
 
@@ -48,7 +48,7 @@ You have to import and register them manually.`);
 
     expect(() => {
       hot = new Handsontable(document.createElement('div'), {});
-    }).toThrowError('Unknown plugin dependency type "unknown-key" was found.');
+    }).toThrowWithCause('Unknown plugin dependency type "unknown-key" was found.', { handsontable: true });
     expect(hot).toBeUndefined();
   });
 });

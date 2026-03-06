@@ -37,9 +37,9 @@ export function createDefaultShortcutsList(menu) {
     keys: [['ArrowUp']],
     callback: () => menu.getNavigator().toPreviousItem(),
   }, {
-    keys: [['ArrowRight']],
+    keys: [[hot.isRtl() ? 'ArrowLeft' : 'ArrowRight']],
     callback: () => {
-      const selection = hotMenu.getSelectedLast();
+      const selection = hotMenu.getSelectedActive();
 
       if (selection) {
         const subMenu = menu.openSubMenu(selection[0]);
@@ -50,9 +50,9 @@ export function createDefaultShortcutsList(menu) {
       }
     }
   }, {
-    keys: [['ArrowLeft']],
+    keys: [[hot.isRtl() ? 'ArrowRight' : 'ArrowLeft']],
     callback: () => {
-      const selection = hotMenu.getSelectedLast();
+      const selection = hotMenu.getSelectedActive();
 
       if (selection && menu.isSubMenu()) {
         menu.close();
@@ -71,7 +71,7 @@ export function createDefaultShortcutsList(menu) {
   }, {
     keys: [['Enter'], ['Space']],
     callback: (event) => {
-      const selection = hotMenu.getSelectedLast();
+      const selection = hotMenu.getSelectedActive();
 
       if (!selection) {
         return;
@@ -87,7 +87,7 @@ export function createDefaultShortcutsList(menu) {
   }, {
     keys: [['PageUp']],
     callback: () => {
-      const selection = hotMenu.getSelectedLast();
+      const selection = hotMenu.getSelectedActive();
 
       if (selection) {
         hotMenu.selection.transformStart(-hotMenu.countVisibleRows(), 0);
@@ -98,7 +98,7 @@ export function createDefaultShortcutsList(menu) {
   }, {
     keys: [['PageDown']],
     callback: () => {
-      const selection = hotMenu.getSelectedLast();
+      const selection = hotMenu.getSelectedActive();
 
       if (selection) {
         hotMenu.selection.transformStart(hotMenu.countVisibleRows(), 0);

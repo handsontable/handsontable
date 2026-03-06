@@ -1,6 +1,4 @@
 import Handsontable from "handsontable/base";
-import "handsontable/dist/handsontable.min.css";
-import "@handsontable/pikaday/css/pikaday.css";
 
 import { generateExampleData, isArabicDemoEnabled } from "./utils";
 import "./styles.css";
@@ -49,10 +47,7 @@ registerCellType(NumericCellType);
 
 registerLanguageDictionary(arAR);
 
-import {
-  alignHeaders,
-  addClassesToRows,
-} from "./hooksCallbacks";
+import { addClassesToRows } from "./hooksCallbacks";
 
 const example = document.getElementById("example");
 
@@ -83,11 +78,13 @@ new Handsontable(example, {
     {
       data: 6,
       type: "checkbox",
-      className: "htCenter"
+      className: "htCenter",
+      headerClassName: "htCenter"
     },
     {
       data: 7,
-      type: "numeric"
+      type: "numeric",
+      headerClassName: 'htRight'
     },
     { data: 5, type: "text" },
     { data: 2, type: "text" }
@@ -103,7 +100,7 @@ new Handsontable(example, {
   manualRowMove: true,
   navigableHeaders: true,
   autoWrapCol: true,
-  afterGetColHeader: alignHeaders,
+  headerClassName: 'htLeft',
   beforeRenderer: addClassesToRows,
   licenseKey: "non-commercial-and-evaluation"
 });

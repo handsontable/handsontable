@@ -12,10 +12,11 @@ import {
 } from '../../../../helpers/dom/element';
 import InlineStartOverlayTable from '../table/inlineStart';
 import { Overlay } from './_base';
-import { CORNER_DEFAULT_STYLE } from '../selection';
+import { getCornerStyle } from '../selection';
 import {
   CLONE_INLINE_START,
 } from './constants';
+import { throwWithCause } from '../../../../helpers/errors';
 
 /**
  * @class InlineStartOverlay
@@ -99,13 +100,19 @@ export class InlineStartOverlay extends Overlay {
       pos = -pos;
     }
 
-    if (this.mainTableScrollableElement === rootWindow && rootWindow.scrollX !== pos) {
-      rootWindow.scrollTo(pos, getWindowScrollTop(rootWindow));
-      result = true;
+    const scrollableElement = this.mainTableScrollableElement;
 
-    } else if (this.mainTableScrollableElement.scrollLeft !== pos) {
-      this.mainTableScrollableElement.scrollLeft = pos;
-      result = true;
+    if (scrollableElement === rootWindow && pos !== rootWindow.scrollX) {
+      const oldScrollX = rootWindow.scrollX;
+
+      rootWindow.scrollTo(pos, getWindowScrollTop(rootWindow));
+      result = oldScrollX !== rootWindow.scrollX;
+
+    } else if (pos !== scrollableElement.scrollLeft) {
+      const oldScrollLeft = scrollableElement.scrollLeft;
+
+      scrollableElement.scrollLeft = pos;
+      result = oldScrollLeft !== scrollableElement.scrollLeft;
     }
 
     return result;
@@ -131,7 +138,7 @@ export class InlineStartOverlay extends Overlay {
     let sum = 0;
 
     while (column < to) {
-      sum += this.wot.wtTable.getStretchedColumnWidth(column) || defaultColumnWidth;
+      sum += this.wot.wtTable.getColumnWidth(column) || defaultColumnWidth;
       column += 1;
     }
 
@@ -154,18 +161,17 @@ export class InlineStartOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    const { wtTable } = this.wot;
+    const { wtTable, wtViewport } = this.wot;
     const { rootDocument, rootWindow } = this.domBindings;
-    const scrollbarHeight = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer !== rootWindow || preventOverflow === 'vertical') {
-      let height = this.wot.wtViewport.getWorkspaceHeight();
+      let height = wtViewport.getWorkspaceHeight();
 
-      if (this.wot.wtOverlays.hasScrollbarBottom) {
-        height -= scrollbarHeight;
+      if (wtViewport.hasHorizontalScroll()) {
+        height -= getScrollbarWidth(rootDocument);
       }
 
       height = Math.min(height, wtTable.wtRootElement.scrollHeight);
@@ -187,8 +193,9 @@ export class InlineStartOverlay extends Overlay {
    */
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
+    const cornerStyle = getCornerStyle(this.wot);
     const selectionCornerOffset = this.wot.selectionManager
-      .getFocusSelection() ? parseInt(CORNER_DEFAULT_STYLE.width, 10) / 2 : 0;
+      .getFocusSelection() ? parseInt(cornerStyle.width, 10) / 2 : 0;
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     holder.style.height = holder.parentNode.style.height;
@@ -211,7 +218,7 @@ export class InlineStartOverlay extends Overlay {
       this.spreader.style[styleProperty] = '0';
 
     } else {
-      throw new Error('Incorrect value of the columnsRenderCalculator');
+      throwWithCause('Incorrect value of the columnsRenderCalculator');
     }
 
     if (this.isRtl()) {

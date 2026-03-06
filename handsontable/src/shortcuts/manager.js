@@ -1,4 +1,5 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
+import { throwWithCause } from '../helpers/errors';
 import { stopImmediatePropagation } from '../helpers/dom/event';
 import { createContext, isContextObject } from './context';
 import { useRecorder } from './recorder';
@@ -41,10 +42,11 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    *
    * @memberof ShortcutManager#
    * @param {string} contextName The name of the new shortcut context
+   * @param {string} [scope='table'] The scope of the shortcut: `'table'` or `'global'`
    * @returns {object}
    */
-  const addContext = (contextName) => {
-    const context = createContext(contextName);
+  const addContext = (contextName, scope = 'table') => {
+    const context = createContext(contextName, scope);
 
     CONTEXTS.addItem(contextName, context);
 
@@ -65,11 +67,23 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * Get a keyboard shortcut context by its name.
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName The name of the shortcut context
-   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts
+   * @param {string} contextName The name of the shortcut context.
+   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts.
    */
   const getContext = (contextName) => {
     return CONTEXTS.getItem(contextName);
+  };
+
+  /**
+   * Get a keyboard shortcut context by its name, or create it if it doesn't exist.
+   *
+   * @memberof ShortcutManager#
+   * @param {string} contextName The name of the shortcut context
+   * @param {string} [scope='table'] The scope of the shortcut: `'table'` or `'global'`
+   * @returns {object} A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts
+   */
+  const getOrCreateContext = (contextName, scope = 'table') => {
+    return getContext(contextName) ?? addContext(contextName, scope);
   };
 
   /**
@@ -80,7 +94,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    */
   const setActiveContextName = (contextName) => {
     if (!CONTEXTS.hasItem(contextName)) {
-      throw new Error(toSingleLine`You've tried to activate the "${contextName}" shortcut context\x20
+      throwWithCause(toSingleLine`You've tried to activate the "${contextName}" shortcut context\x20
         that does not exist. Before activation, register the context using the "addContext" method.`);
     }
 
@@ -155,13 +169,26 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
   };
 
   /**
+   * Handle the event with the scope of the active context.
+   *
+   * @param {KeyboardEvent} event The keyboard event.
+   * @returns {boolean}
+   */
+  const handleEventWithScope = (event) => {
+    const context = getActiveContextName();
+    const activeContext = isContextObject(context) ? context : getContext(context);
+
+    return handleEvent(event, activeContext.scope);
+  };
+
+  /**
    * Internal key recorder.
    *
    * @private
    */
   const keyRecorder = useRecorder(
     ownerWindow,
-    handleEvent,
+    handleEventWithScope,
     beforeKeyDown,
     afterKeyDown,
     recorderCallback,
@@ -173,6 +200,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     addContext,
     getActiveContextName,
     getContext,
+    getOrCreateContext,
     setActiveContextName,
     /**
      * Returns whether `control` or `meta` keys are pressed.

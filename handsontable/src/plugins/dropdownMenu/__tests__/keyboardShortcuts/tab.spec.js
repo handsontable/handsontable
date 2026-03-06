@@ -11,14 +11,14 @@ describe('DropdownMenu keyboard shortcut', () => {
   });
 
   describe('"Tab"', () => {
-    it('should close the menu and move the selection of the main table to the next cell', () => {
+    it('should close the menu and move the selection of the main table to the next cell', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: generateRandomDropdownMenuItems(10),
       });
 
-      dropdownMenu(1);
-      keyDownUp('tab');
+      await dropdownMenu(1);
+      await keyDownUp('tab');
 
       expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(false);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);

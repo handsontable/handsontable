@@ -1,0 +1,190 @@
+@use "../../utils/mixins";
+
+// Checkbox
+
+@mixin output {
+  .handsontable {
+    .htCheckboxRendererInput {
+      position: relative;
+      display: inline-block;
+      width: var(--ht-checkbox-size);
+      height: var(--ht-checkbox-size);
+      margin: 0;
+      vertical-align: middle;
+      cursor: pointer;
+      margin-top: -2px;
+      outline: none;
+
+      &:first-child {
+        margin-inline-end: var(--ht-gap-size);
+      }
+
+      &:last-child {
+        margin-inline-start: var(--ht-gap-size);
+      }
+
+      // Box
+      &::before {
+        content: "";
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: var(--ht-checkbox-size);
+        height: var(--ht-checkbox-size);
+        border-radius: var(--ht-checkbox-border-radius);
+        border: 1px solid var(--ht-checkbox-border-color);
+        background-color: var(--ht-checkbox-background-color);
+        box-sizing: border-box;
+        pointer-events: none;
+        transition: all var(--ht-table-transition) ease-in-out;
+      }
+
+      // Icon
+      &::after {
+        @include mixins.pseudo;
+
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: var(--ht-checkbox-icon-color);
+        pointer-events: none;
+        width: var(--ht-checkbox-size) !important;
+        height: var(--ht-checkbox-size) !important;
+      }
+
+      &:checked {
+        // Box
+        &::before {
+          border-color: var(--ht-checkbox-checked-border-color);
+          background-color: var(--ht-checkbox-checked-background-color);
+        }
+
+        // Icon
+        &::after {
+          color: var(--ht-checkbox-checked-icon-color);
+        }
+
+        &:disabled {
+          // Box
+          &::before {
+            border-color: var(--ht-checkbox-checked-disabled-border-color);
+            background-color: var(
+              --ht-checkbox-checked-disabled-background-color
+            );
+          }
+
+          // Icon
+          &::after {
+            color: var(--ht-checkbox-checked-disabled-icon-color);
+          }
+        }
+
+        &:focus {
+          // Box
+          &::before {
+            border-color: var(--ht-checkbox-checked-focus-border-color);
+            background-color: var(--ht-checkbox-checked-focus-background-color);
+          }
+
+          // Icon
+          &::after {
+            color: var(--ht-checkbox-checked-focus-icon-color);
+          }
+        }
+      }
+
+      &:focus {
+        // Box
+        &::before {
+          border-color: var(--ht-checkbox-focus-border-color);
+          background-color: var(--ht-checkbox-focus-background-color);
+          outline: 1px solid var(--ht-checkbox-focus-ring-color);
+        }
+
+        // Icon
+        &::after {
+          color: var(--ht-checkbox-focus-icon-color);
+        }
+      }
+
+      &:disabled {
+        cursor: initial;
+
+        // Box
+        &::before {
+          border-color: var(--ht-checkbox-disabled-border-color);
+          background-color: var(--ht-checkbox-disabled-background-color);
+        }
+
+        // Icon
+        &::after {
+          color: var(--ht-checkbox-disabled-icon-color);
+        }
+      }
+
+      &:indeterminate {
+        // Box
+        &::before {
+          border-color: var(--ht-checkbox-indeterminate-border-color);
+          background-color: var(--ht-checkbox-indeterminate-background-color);
+        }
+
+        // Icon
+        &::after {
+          color: var(--ht-checkbox-indeterminate-icon-color);
+        }
+
+        &:disabled {
+          // Box
+          &::before {
+            border-color: var(
+              --ht-checkbox-indeterminate-disabled-border-color
+            );
+            background-color: var(
+              --ht-checkbox-indeterminate-disabled-background-color
+            );
+          }
+
+          // Icon
+          &::after {
+            color: var(--ht-checkbox-indeterminate-disabled-icon-color);
+          }
+        }
+
+        &:focus {
+          // Box
+          &::before {
+            border-color: var(--ht-checkbox-indeterminate-focus-border-color);
+            background-color: var(
+              --ht-checkbox-indeterminate-focus-background-color
+            );
+          }
+
+          // Icon
+          &::after {
+            color: var(--ht-checkbox-indeterminate-focus-icon-color);
+          }
+        }
+      }
+
+      &.noValue {
+        opacity: 0.5;
+      }
+    }
+
+    .htCheckboxRendererLabel {
+      display: inline-block;
+      position: relative;
+      font-size: inherit;
+      line-height: inherit;
+      cursor: pointer;
+      color: inherit;
+      margin: 0;
+
+      &.fullWidth {
+        width: 100%;
+      }
+    }
+  }
+}

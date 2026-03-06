@@ -14,9 +14,10 @@ describe('ContextMenu keyboard shortcut', () => {
     ['Enter'],
     ['Space'],
   ], (keyboardShortcut) => {
-    it('should execute the selected menu action', () => {
+    it('should execute the selected menu action', async() => {
       const itemAction = jasmine.createSpy('itemAction');
-      const hot = handsontable({
+
+      handsontable({
         contextMenu: {
           items: {
             item1: {
@@ -29,23 +30,23 @@ describe('ContextMenu keyboard shortcut', () => {
         height: 100
       });
 
-      contextMenu();
+      await contextMenu();
 
-      const menuHot = hot.getPlugin('contextMenu').menu.hotMenu;
+      const menuHot = getPlugin('contextMenu').menu.hotMenu;
 
-      keyDownUp('arrowdown');
+      await keyDownUp('arrowdown');
 
       expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
       expect(itemAction).not.toHaveBeenCalled();
 
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       expect(itemAction).toHaveBeenCalled();
-      expect($(hot.getPlugin('contextMenu').menu).is(':visible')).toBe(false);
+      expect($(getPlugin('contextMenu').menu).is(':visible')).toBe(false);
     });
 
-    it('should not throw an error when any of the menu item is not selected', () => {
+    it('should not throw an error when any of the menu item is not selected', async() => {
       const spy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;
 
@@ -59,23 +60,23 @@ describe('ContextMenu keyboard shortcut', () => {
         contextMenu: true,
       });
 
-      contextMenu();
-      keyDownUp('enter');
+      await contextMenu();
+      await keyDownUp('enter');
 
       expect(spy.test.calls.count()).toBe(0);
 
       window.onerror = prevError;
     });
 
-    it('should trigger the submenu to be opened', () => {
+    it('should trigger the submenu to be opened', async() => {
       handsontable({
         contextMenu: ['alignment'],
       });
 
-      contextMenu();
+      await contextMenu();
 
-      keyDownUp('arrowdown');
-      keyDownUp(keyboardShortcut);
+      await keyDownUp('arrowdown');
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('contextMenu').menu.hotSubMenus.alignment.hotMenu.getSelected()).toEqual([
         [0, 0, 0, 0]

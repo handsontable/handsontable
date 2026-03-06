@@ -20,7 +20,7 @@ describe('htmlRenderer', () => {
       expect(getRegisteredRendererNames()).toEqual(['text']);
       expect(() => {
         getRenderer(RENDERER_TYPE);
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
     });
 
     it('should register renderer', () => {

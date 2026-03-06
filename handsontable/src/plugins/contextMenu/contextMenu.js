@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from './commandExecutor';
@@ -22,8 +22,6 @@ import {
   ALIGNMENT,
   SEPARATOR,
 } from './predefinedItems';
-
-import './contextMenu.scss';
 
 export const PLUGIN_KEY = 'contextMenu';
 export const PLUGIN_PRIORITY = 70;
@@ -144,7 +142,7 @@ export class ContextMenu extends BasePlugin {
     this.menu = new Menu(this.hot, {
       className: 'htContextMenu',
       keepInViewport: true,
-      container: settings.uiContainer || this.hot.rootDocument.body,
+      container: settings.uiContainer || this.hot.rootPortalElement,
     });
 
     this.menu.addLocalHook('beforeOpen', () => this.#onMenuBeforeOpen());
@@ -153,6 +151,7 @@ export class ContextMenu extends BasePlugin {
     this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
     this.addHook('afterOnCellContextMenu', event => this.#onAfterOnCellContextMenu(event));
+    this.addHook('beforeDialogShow', () => this.close());
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -196,7 +195,7 @@ export class ContextMenu extends BasePlugin {
       .addShortcut({
         keys: [['Control/Meta', 'Shift', 'Backslash'], ['Shift', 'F10']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeLast();
+          const { highlight } = this.hot.getSelectedRangeActive();
 
           this.hot.scrollToFocusedCell();
 
@@ -215,7 +214,7 @@ export class ContextMenu extends BasePlugin {
           this.menu.getNavigator().toFirstItem();
         },
         runOnlyIf: () => {
-          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
           return highlight && this.hot.selection.isCellVisible(highlight) && !this.menu.isOpened();
         },
@@ -257,6 +256,7 @@ export class ContextMenu extends BasePlugin {
     objectEach(offset, (value, key) => {
       this.menu.setOffset(key, value);
     });
+
     this.menu.setPosition(position);
   }
 

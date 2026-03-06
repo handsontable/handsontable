@@ -33,3 +33,12 @@ Handsontable.renderers.TimeRenderer(hot, TD, 0, 0, 'prop', 1.235, cellProperties
 Handsontable.renderers.getRenderer('foo')(hot, TD, 0, 0, 'prop', 1.235, cellProperties);
 Handsontable.renderers.registerRenderer('foo', (hot: Handsontable, TD: HTMLTableCellElement,
   row: number, col: number, prop: string | number, value: any, cellProperties: Handsontable.CellProperties) => TD);
+Handsontable.renderers.rendererFactory(({ instance, td, row, column, prop, value, cellProperties }) => {
+  const _instance: Handsontable = instance;
+  const _td: HTMLTableCellElement = td;
+  const _row: number = row;
+  const _column: number = column;
+  const _prop: string | number = prop;
+  const _value: any = value;
+  const _cellProperties: Handsontable.CellProperties = cellProperties;
+})(hot, TD, 0, 0, 'prop', 1.235, cellProperties);

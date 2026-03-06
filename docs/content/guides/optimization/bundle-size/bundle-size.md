@@ -10,6 +10,9 @@ tags:
 react:
   id: c8onyes4
   metaTitle: Bundle size - React Data Grid | Handsontable
+angular:
+  id: qdq3dmts
+  metaTitle: Bundle size - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---
@@ -45,7 +48,7 @@ new Handsontable(container, {
 
 ```js
 import Handsontable from 'handsontable/base';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerPlugin, ContextMenu } from 'handsontable/plugins';
 
 registerPlugin(ContextMenu);
@@ -57,6 +60,31 @@ const App = () => {
     />
   );
 };
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { Component } from "@angular/core";
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
+
+registerPlugin(ContextMenu);
+
+@Component({
+  selector: "app-example",
+  standalone: true,
+  imports: [HotTableModule],
+  template: ` <div>
+    <hot-table [settings]="gridSettings" />
+  </div>`,
+})
+export class ExampleComponent {
+  readonly gridSettings = <GridSettings>{
+    contextMenu: true,
+  };
+}
 ```
 
 :::
@@ -104,9 +132,10 @@ new Handsontable(container, {
 :::
 
 ::: only-for react
+
 ```js
 import Handsontable from 'handsontable/base';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerCellType, DateCellType } from 'handsontable/cellTypes';
 
 // explicitly import Moment.js
@@ -125,6 +154,39 @@ const App = () => {
     />
   );
 };
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { Component } from "@angular/core";
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
+import { registerCellType, DateCellType } from "handsontable/cellTypes";
+
+// explicitly import Moment.js
+import moment from "moment";
+// explicitly import a Moment.js locale of your choice
+import "moment/locale/ja";
+
+// register the Moment.js locale of your choice
+moment.locale("ja");
+registerCellType(DateCellType);
+
+@Component({
+  selector: "app-example",
+  standalone: true,
+  imports: [HotTableModule],
+  template: ` <div>
+    <hot-table [settings]="gridSettings" />
+  </div>`,
+})
+export class ExampleComponent {
+  readonly gridSettings = <GridSettings>{
+    type: "date",
+  };
+}
 ```
 
 :::

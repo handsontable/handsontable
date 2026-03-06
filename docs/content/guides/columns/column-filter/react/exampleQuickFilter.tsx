@@ -1,14 +1,13 @@
 // you need `useRef` to call Handsontable's instance methods
 import { useEffect, useRef } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotTableComponentRef = useRef<HotTableClass>(null);
+  const hotTableComponentRef = useRef<HotTableRef>(null);
 
   useEffect(() => {
     const handsontableInstance = hotTableComponentRef.current?.hotInstance;
@@ -20,9 +19,7 @@ const ExampleComponent = () => {
       const columnValue = (columnSelector as HTMLSelectElement).value;
 
       filtersPlugin?.removeConditions(Number(columnValue));
-      filtersPlugin?.addCondition(Number(columnValue), 'contains', [
-        (event.target as HTMLInputElement).value,
-      ]);
+      filtersPlugin?.addCondition(Number(columnValue), 'contains', [(event.target as HTMLInputElement).value]);
       filtersPlugin?.filter();
 
       handsontableInstance?.render();
@@ -107,7 +104,7 @@ const ExampleComponent = () => {
             type: 'numeric',
             data: 'price',
             numericFormat: {
-              pattern: '$ 0,0.00',
+              pattern: '$0,0.00',
               culture: 'en-US',
             },
           },

@@ -11,14 +11,14 @@ describe('DropdownMenu keyboard shortcut', () => {
   });
 
   describe('"Shift" + "Tab"', () => {
-    it('should close the menu and move the selection of the main table to the previous cell', () => {
+    it('should close the menu and move the selection of the main table to the previous cell', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: generateRandomDropdownMenuItems(10),
       });
 
-      dropdownMenu(1);
-      keyDownUp(['shift', 'tab']);
+      await dropdownMenu(1);
+      await keyDownUp(['shift', 'tab']);
 
       expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(false);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);

@@ -9,7 +9,7 @@ describe('Hook', () => {
   });
 
   describe('modifyRowHeightByOverlayName', () => {
-    it('should be possible to change the row height of the specific overlay only', () => {
+    it('should be possible to change the row height of the specific overlay only', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         width: 400,
@@ -39,19 +39,51 @@ describe('Hook', () => {
       });
 
       // master table
-      expect(getCell(0, 0).clientHeight).toBe(22);
-      expect(getCell(1, 0).clientHeight).toBe(22);
-      expect(getCell(2, 0).clientHeight).toBe(22);
-      expect(getCell(3, 0).clientHeight).toBe(22);
-      expect(getCell(4, 0).clientHeight).toBe(22);
+      expect(getCell(0, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(25);
+        main.toBe(28);
+        horizon.toBe(36);
+      });
+      expect(getCell(1, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(25);
+        main.toBe(28);
+        horizon.toBe(36);
+      });
+      expect(getCell(2, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(25);
+        main.toBe(28);
+        horizon.toBe(36);
+      });
+      expect(getCell(3, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(25);
+        main.toBe(28);
+        horizon.toBe(36);
+      });
+      expect(getCell(4, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(25);
+        main.toBe(28);
+        horizon.toBe(36);
+      });
       // top inline start corner
-      expect(getCell(0, 0, true).clientHeight).toBe(29);
+      expect(getCell(0, 0, true).clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(28);
+        main.toBe(28);
+        horizon.toBe(36);
+      });
       // top overlay
-      expect(getCell(0, 2, true).clientHeight).toBe(34);
+      expect(getCell(0, 2, true).clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(33);
+        main.toBe(33);
+        horizon.toBe(36);
+      });
       // inline start overlay
       expect(getCell(2, 0, true).clientHeight).toBe(39);
       // bottom inline start corner
-      expect(getCell(3, 0, true).clientHeight).toBe(44);
+      expect(getCell(3, 0, true).clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(43);
+        main.toBe(43);
+        horizon.toBe(43);
+      });
       // bottom overlay
       expect(getCell(4, 2, true).clientHeight).toBe(49);
     });

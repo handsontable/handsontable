@@ -34,7 +34,7 @@ describe('timeValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, '');
+    await setDataAtCell(0, 0, '');
 
     await sleep(100);
 
@@ -54,7 +54,7 @@ describe('timeValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'nd');
+    await setDataAtCell(0, 0, 'nd');
 
     await sleep(100);
 
@@ -74,7 +74,7 @@ describe('timeValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, '30:10:25');
+    await setDataAtCell(0, 0, '30:10:25');
 
     await sleep(100);
 
@@ -94,7 +94,7 @@ describe('timeValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(1, 0, '20:20:01');
+    await setDataAtCell(1, 0, '20:20:01');
 
     await sleep(100);
 
@@ -114,7 +114,7 @@ describe('timeValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(1, 0, '5:10:15 am');
+    await setDataAtCell(1, 0, '5:10:15 am');
 
     await sleep(100);
 
@@ -134,7 +134,7 @@ describe('timeValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(1, 0, '16:32:03');
+    await setDataAtCell(1, 0, '16:32:03');
 
     await sleep(100);
 
@@ -155,7 +155,7 @@ describe('timeValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '');
+      await setDataAtCell(1, 0, '');
 
       await sleep(100);
 
@@ -175,7 +175,7 @@ describe('timeValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, null);
+      await setDataAtCell(1, 0, null);
 
       await sleep(100);
 
@@ -195,7 +195,7 @@ describe('timeValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0);
+      await setDataAtCell(1, 0);
 
       await sleep(100);
 
@@ -217,7 +217,7 @@ describe('timeValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '13:00:00');
+      await setDataAtCell(1, 0, '13:00:00');
 
       await sleep(100);
 
@@ -237,7 +237,7 @@ describe('timeValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '13:00:00');
+      await setDataAtCell(1, 0, '13:00:00');
 
       await sleep(100);
 
@@ -256,7 +256,7 @@ describe('timeValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '16:35:01');
+      await setDataAtCell(1, 0, '16:35:01');
 
       await sleep(100);
 
@@ -281,7 +281,7 @@ describe('timeValidator', () => {
 
       const currentDateTime = new Date();
 
-      setDataAtCell(1, 0, currentDateTime.getTime()); // timestamp in milliseconds
+      await setDataAtCell(1, 0, currentDateTime.getTime()); // timestamp in milliseconds
 
       await sleep(100);
 
@@ -312,7 +312,7 @@ describe('timeValidator', () => {
 
       const currentDateTime = new Date();
 
-      setDataAtCell(1, 0, currentDateTime.toISOString()); // ISO-formatted datetime, sth like '2016-02-19T12:40:04.983Z'
+      await setDataAtCell(1, 0, currentDateTime.toISOString()); // ISO-formatted datetime, sth like '2016-02-19T12:40:04.983Z'
 
       await sleep(100);
 
@@ -342,7 +342,7 @@ describe('timeValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '19');
+      await setDataAtCell(1, 0, '19');
 
       await sleep(100);
 
@@ -365,7 +365,7 @@ describe('timeValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '57');
+      await setDataAtCell(1, 0, '57');
       await sleep(100);
 
       expect(onAfterValidate).toHaveBeenCalledWith(true, '57', 1, 'time');
@@ -375,7 +375,7 @@ describe('timeValidator', () => {
       expect(getDataAtCell(1, 0)).toEqual('57:00');
     });
 
-    it('should not try to correct format of non-date strings', (done) => {
+    it('should not try to correct format of non-date strings', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -388,12 +388,10 @@ describe('timeValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, 'test non-time string');
+      await setDataAtCell(1, 0, 'test non-time string');
+      await sleep(100);
 
-      setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-time string', 1, 'time');
-        done();
-      }, 100);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-time string', 1, 'time');
     });
 
     it('should populate all pasted values in the table when `correctFormat` is enabled (#dev-793)', async() => {
@@ -405,7 +403,7 @@ describe('timeValidator', () => {
         ],
       });
 
-      setDataAtCell([
+      await setDataAtCell([
         [2, 0, '1:30:22'],
         [3, 0, '2:33:10'],
         [4, 0, '03:1:22'],
@@ -444,7 +442,7 @@ describe('timeValidator', () => {
             afterValidate: onAfterValidateSpy
           });
 
-          setDataAtCell(0, 0, value);
+          await setDataAtCell(0, 0, value);
 
           await sleep(50);
 
@@ -470,7 +468,7 @@ describe('timeValidator', () => {
             afterValidate: onAfterValidateSpy
           });
 
-          setDataAtCell(0, 0, value);
+          await setDataAtCell(0, 0, value);
 
           await sleep(50);
 
@@ -508,7 +506,7 @@ describe('timeValidator', () => {
             afterValidate: onAfterValidateSpy
           });
 
-          setDataAtCell(0, 0, value);
+          await setDataAtCell(0, 0, value);
 
           await sleep(50);
 
@@ -530,7 +528,7 @@ describe('timeValidator', () => {
             afterValidate: onAfterValidateSpy
           });
 
-          setDataAtCell(0, 0, value);
+          await setDataAtCell(0, 0, value);
 
           await sleep(50);
 

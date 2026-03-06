@@ -1,24 +1,12 @@
 import { instanceToHTML, _dataToHTML, htmlToGridSettings } from '../parseTable';
 import Handsontable from '../../index';
 import { registerCellType, TextCellType } from '../../cellTypes';
-import { IntersectionObserverMock } from '../../../test/__mocks__/intersectionObserverMock';
-import { ResizeObserverMock } from '../../../test/__mocks__/resizeObserverMock';
 
 registerCellType(TextCellType);
 
 describe('instanceToHTML', () => {
-  beforeAll(() => {
-    window.IntersectionObserver = IntersectionObserverMock;
-    window.ResizeObserver = ResizeObserverMock;
-  });
-
-  afterAll(() => {
-    delete window.IntersectionObserver;
-    delete window.ResizeObserver;
-  });
-
   it('should convert clear instance into HTML table', () => {
-    const hot = new Handsontable(document.createElement('div'), {});
+    const hot = new Handsontable(document.createElement('div'));
 
     expect(instanceToHTML(hot)).toBe([
       '<table><tbody>',
@@ -183,6 +171,24 @@ describe('htmlToGridSettings', () => {
     const config = htmlToGridSettings(htmlToParse);
 
     expect(config.data.toString()).toBe('A3,B3,C3,A4,B4,C4,A5,B5,C5,A6,B6,C6');
+  });
+
+  it('should parse data from HTML table with nested Excel shape cells', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>text</td>',
+      '<td width=116><!--[if gte vml 1]><v:shape></v:shape><![endif]-->',
+      '<span><table><tr><td></td></tr></table></span></td>',
+      '<td>text2</td>',
+      '<td width=124><!--[if gte vml 1]><v:shape></v:shape><![endif]-->',
+      '<span><table><tr><td></td></tr></table></span></td>',
+      '<td>test</td>',
+      '</tr></table>'
+    ].join('');
+
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data.toString()).toBe('text,,text2,,test');
   });
 
   it('should parse an empty HTML table to an empty config object', () => {

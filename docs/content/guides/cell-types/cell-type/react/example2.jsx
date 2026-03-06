@@ -1,6 +1,5 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -15,14 +14,7 @@ const ExampleComponent = () => {
         ['empty string', '', '', '', '', ''],
         ['null', null, null, null, null, null],
         ['undefined', undefined, undefined, undefined, undefined, undefined],
-        [
-          'non-empty value',
-          'non-empty text',
-          13000,
-          true,
-          'orange',
-          'password',
-        ],
+        ['non-empty value', 'non-empty text', 13000, true, 'orange', 'password'],
       ]}
       columnSorting={{
         sortEmptyCells: true,

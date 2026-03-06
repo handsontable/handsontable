@@ -134,8 +134,7 @@ To deploy the documentation locally at a `[COMMIT_HASH]` commit:
 
 ## Documentation versioning
 
-New documentation is created automatically after the Handsontable is released. The `./scripts/release.mjs`
-takes care to create a Documentation production branch, generate API content from source code, commit, and deploy the Docs image to the production.
+New documentation is created automatically after the Handsontable is released. The `stable-publish` job in `.github/workflows/publish.yml` creates or updates the documentation production branch, generates API content from source code, commits, and pushes — which then triggers the Netlify deployment.
 
 ## Markdown links
 
@@ -267,7 +266,7 @@ The `example` Markdown container offers the following options:
 | -------------- | -------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `#exampleId`   | No       | `#example1`     | String                                                                                                                                                                                                                                                      | Container's unique ID.                                                                                |
 | `.class`       | No       | `.new-class`    | String                                                                                                                                                                                                                                                      | Container's custom class.                                                                             |
-| `:preset`      | No       | `:hot`          | `:hot` \| `:hot-lang` \| `:hot-numbro` \| `:react` \| `:react-languages` \| `:react-numbro` \| `:react-redux` \| `:react-advanced` \| `:angular` \| `:angular-languages` \| `:angular-numbro` \| `:vue` \| `:vue-numbro` \| `:vue-languages` \| `:vue-vuex` | Sets code dependencies.                                                                               |
+| `:preset`      | No       | `:hot`          | `:hot` \| `:hot-lang` \| `:hot-numbro` \| `:react` \| `:react-languages` \| `:react-numbro` \| `:react-redux` \| `:react-advanced` \| `:angular` \| `:angular-languages` \| `:angular-numbro` \| `:vue3` \| `:vue3-numbro` \| `:vue3-languages` \| `:vue3-vuex` | Sets code dependencies.                                                                               |
 | `--js <pos>`   | No       | `--js 1`        | Positive integer<br>(default `1`)                                                                                                                                                                                                                           | Sets the JS code snippet's position<br>in the markdown container.                                     |
 | `--html <pos>` | No       | `--html 2`      | Positive integer<br>(default `0`)                                                                                                                                                                                                                           | Sets the HTML code snippet's position<br>in the markdown container.<br><br>`0` disables the HTML tab. |
 | `--css <pos>`  | No       | `--css 2`       | Positive integer<br>(default `0`)                                                                                                                                                                                                                           | Sets the CSS code snippet's position<br>in the markdown container.<br><br>`0` disables the CSS tab.   |
@@ -316,10 +315,10 @@ For matters not covered here, follow the conventions of https://beta.reactjs.org
 
 - Don't gather multiple props in a single `settings={}` prop. Instead, specify individual props.
   ```jsx
-  <HotTable>
+  <HotTable
     data={data}
     height="auto"
-  <HotTable/>
+  />
   ```
 - In JSX, use double quotes (`""`). If a prop's value is a string, use double quotes without curly braces.
   ```jsx
@@ -327,12 +326,12 @@ For matters not covered here, follow the conventions of https://beta.reactjs.org
   ```
 - In JS inside of JSX, use single quotes (`''`). For example, if a React prop contains a JS object:
   ```jsx
-  <HotTable>
+  <HotTable
     licenseKey="00000-00000-00000-00000-00000"
     nestedHeaders={[
       ['A', { label: 'B', colspan: 8 }, 'C']
     ]}
-  <HotTable/>
+  />
   ```
 - Get rid of elements that are not necessary (e.g., a `<Fragment>` with a single child).
 - Use named imports:

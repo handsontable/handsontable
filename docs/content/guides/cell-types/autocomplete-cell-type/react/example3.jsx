@@ -1,6 +1,5 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -30,7 +29,7 @@ const ExampleComponent = () => {
         },
         {},
         {},
-        {},
+        {}, // Bumper color is a default text column
       ]}
     />
   );

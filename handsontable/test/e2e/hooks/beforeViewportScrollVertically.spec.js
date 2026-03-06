@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('beforeViewportScrollVertically', () => {
-    it('should be fired when the viewport is scrolled vertically', () => {
+    it('should be fired when the viewport is scrolled vertically', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -25,12 +25,14 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ row: 40 });
+      await scrollViewportTo({ row: 40 });
 
-      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(40);
+      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(40, jasmine.objectContaining({
+        value: 'auto',
+      }));
     });
 
-    it('should be fired when the viewport is tried to scroll vertically (the row is already within the viewport)', () => {
+    it('should be fired when the viewport is scrolled vertically with snapping option', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -42,12 +44,14 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ row: 3 });
+      await scrollViewportTo({ row: 3, verticalSnap: 'end' });
 
-      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(3);
+      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(3, jasmine.objectContaining({
+        value: 'end',
+      }));
     });
 
-    it('should not be fired when the viewport is scrolled horizontally', () => {
+    it('should be fired when the viewport is tried to scroll vertically (the row is already within the viewport)', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -59,12 +63,31 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ col: 3 });
+      await scrollViewportTo({ row: 3 });
+
+      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(3, jasmine.objectContaining({
+        value: 'auto',
+      }));
+    });
+
+    it('should not be fired when the viewport is scrolled horizontally', async() => {
+      const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
+
+      handsontable({
+        data: createSpreadsheetData(100, 50),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+        beforeViewportScrollVertically,
+      });
+
+      await scrollViewportTo({ col: 3 });
 
       expect(beforeViewportScrollVertically).not.toHaveBeenCalledWith();
     });
 
-    it('should not be fired when the viewport is tried to scroll horizontally (the column is already within the viewport)', () => {
+    it('should not be fired when the viewport is tried to scroll horizontally (the column is already within the viewport)', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -76,12 +99,35 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ col: 3 });
+      await scrollViewportTo({ col: 3 });
 
       expect(beforeViewportScrollVertically).not.toHaveBeenCalledWith();
     });
 
-    it('should be possible to change row to which the viewport is scrolled', () => {
+    it('should be possible to change the snapping option', async() => {
+      const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically')
+        .and
+        .callFake((row, snapping) => {
+          snapping.value = 'start';
+        });
+
+      handsontable({
+        data: createSpreadsheetData(100, 50),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+        beforeViewportScrollVertically,
+      });
+
+      await scrollViewportTo({ row: 10 });
+
+      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(10, jasmine.objectContaining({
+        value: 'start',
+      }));
+    });
+
+    it('should be possible to change row to which the viewport is scrolled', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically')
         .and
         .returnValue(40);
@@ -95,13 +141,17 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ row: 10 });
+      await scrollViewportTo({ row: 10 });
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-      expect(topOverlay().getScrollPosition()).toBe(686);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(809);
+        main.toBe(935);
+        horizon.toBe(1271);
+      });
     });
 
-    it('should be possible to change row to which the viewport is scrolled (case with hidden rows)', () => {
+    it('should be possible to change row to which the viewport is scrolled (case with hidden rows)', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -119,16 +169,22 @@ describe('Hook', () => {
       hidingMap.setValueAtIndex(1, true);
       hidingMap.setValueAtIndex(2, true);
 
-      render();
+      await render();
 
-      scrollViewportTo({ row: 20 });
+      await scrollViewportTo({ row: 20 });
 
-      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(20);
+      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(20, jasmine.objectContaining({
+        value: 'auto',
+      }));
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-      expect(topOverlay().getScrollPosition()).toBe(157);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(211);
+        main.toBe(268);
+        horizon.toBe(420);
+      });
     });
 
-    it('should be possible to block viewport scrolling after returning `false`', () => {
+    it('should be possible to block viewport scrolling after returning `false`', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically')
         .and.returnValue(false);
 
@@ -141,13 +197,13 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ row: 90 });
+      await scrollViewportTo({ row: 90 });
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
-    it('should not scroll the viewport when the returned value is not an integer', () => {
+    it('should not scroll the viewport when the returned value is not an integer', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -161,31 +217,31 @@ describe('Hook', () => {
 
       beforeViewportScrollVertically.and.returnValue('foo');
 
-      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(await scrollViewportTo({ row: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollVertically.and.returnValue(1.5);
 
-      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(await scrollViewportTo({ row: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollVertically.and.returnValue(null);
 
-      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(await scrollViewportTo({ row: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollVertically.and.returnValue(-1);
 
-      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(await scrollViewportTo({ row: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollVertically.and.returnValue(100); // out of range
 
-      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(await scrollViewportTo({ row: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
     });

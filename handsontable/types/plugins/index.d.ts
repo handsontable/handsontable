@@ -27,10 +27,14 @@ import { MultiColumnSorting } from './multiColumnSorting';
 import { MultipleSelectionHandles } from './multipleSelectionHandles';
 import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
-import { PersistentState } from './persistentState';
+import { Pagination } from './pagination';
 import { Search } from './search';
+import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
+import { Dialog } from './dialog';
+import { EmptyDataState } from './emptyDataState';
+import { Loading } from './loading';
 import { UndoRedo } from './undoRedo';
 
 export interface Plugins {
@@ -63,10 +67,14 @@ export interface Plugins {
   multipleSelectionHandles: MultipleSelectionHandles;
   nestedHeaders: NestedHeaders;
   nestedRows: NestedRows;
-  persistentState: PersistentState;
+  pagination: Pagination;
   search: Search;
+  stretchColumns: StretchColumns;
   touchScroll: TouchScroll;
   trimRows: TrimRows;
+  dialog: Dialog;
+  emptyDataState: EmptyDataState;
+  loading: Loading;
   undoRedo: UndoRedo;
 }
 
@@ -103,9 +111,13 @@ export {
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
-  PersistentState,
+  Pagination,
   Search,
+  StretchColumns,
   TouchScroll,
   TrimRows,
+  Dialog,
+  EmptyDataState,
+  Loading,
   UndoRedo
 };

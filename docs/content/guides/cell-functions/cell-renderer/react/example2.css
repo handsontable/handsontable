@@ -1,4 +1,9 @@
-.handsontable td.dark {
-  background: #000;
-  color: #fff;
+#example2 .handsontable td.dark {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+#example2 .handsontable td {
+  background: #fff !important;
+  color: #000 !important;
 }

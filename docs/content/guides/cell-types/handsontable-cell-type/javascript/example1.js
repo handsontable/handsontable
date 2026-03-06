@@ -1,17 +1,10 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 
-const colorData = [
-  ['yellow'],
-  ['red'],
-  ['orange'],
-  ['green'],
-  ['blue'],
-  ['gray'],
-  ['black'],
-  ['white'],
-];
+// Register all Handsontable's modules.
+registerAllModules();
 
+const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
 const manufacturerData = [
   { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
   { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },

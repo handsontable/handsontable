@@ -12,7 +12,7 @@ describe('HTMLRenderer', () => {
     }
   });
 
-  it('should not fill empty rows with null values', () => {
+  it('should not fill empty rows with null values', async() => {
     handsontable({
       data: [['a', 'b', 'c', 'd', 'e', 'f']],
       colHeaders: true,
@@ -54,12 +54,28 @@ describe('HTMLRenderer', () => {
       .toBe('<a href="#" target="_blank">baz</a>');
   });
 
-  it('should render the cell without messing with "dir" attribute', () => {
+  it('should render the cell without messing with "dir" attribute', async() => {
     handsontable({
       data: [['foo']],
       renderer: 'html'
     });
 
     expect(getCell(0, 0).getAttribute('dir')).toBeNull();
+  });
+
+  it('should internally call base renderer once', async() => {
+    const originalBaseRenderer = Handsontable.renderers.BaseRenderer;
+
+    spyOn(Handsontable.renderers, 'BaseRenderer');
+
+    Handsontable.renderers.registerRenderer('base', Handsontable.renderers.BaseRenderer);
+    handsontable({
+      data: [['test']],
+      renderer: 'html',
+    });
+
+    expect(Handsontable.renderers.BaseRenderer).toHaveBeenCalledTimes(1);
+
+    Handsontable.renderers.registerRenderer('base', originalBaseRenderer);
   });
 });

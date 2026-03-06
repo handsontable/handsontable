@@ -7,7 +7,7 @@
 function getPermalinkHrefMethod(uniqueSlugs) {
   return function(slug, state) {
     const slugify = state.md.slugify;
-    const openTokenContent = /(?:\n?)::: only-for (((react|javascript) ?)+)\n?/;
+    const openTokenContent = /(?:\n?)::: only-for (((react|javascript|angular) ?)+)\n?/;
     const closeTokenContent = /(?:\n?):::(?:\n?)$/;
     const markupForCustomContainer = ':::';
     const headerOpenType = 'heading_open';

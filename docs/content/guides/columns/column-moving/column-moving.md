@@ -8,6 +8,9 @@ canonicalUrl: /column-moving
 react:
   id: zhlikwwh
   metaTitle: Column moving - React Data Grid | Handsontable
+angular:
+  id: fsfvsoi3
+  metaTitle: Column moving - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
@@ -46,6 +49,17 @@ A draggable move handle appears above the selected column header. You can click 
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-moving/angular/example1.ts)
+@[code](@/content/guides/columns/column-moving/angular/example1.html)
+
+:::
+
+:::
+
 #### Move column headers
 
 When you move columns, the default column headers (A, B, C) stay in place.
@@ -67,6 +81,17 @@ When you move columns, the default column headers (A, B, C) stay in place.
 
 @[code](@/content/guides/columns/column-moving/react/example2.jsx)
 @[code](@/content/guides/columns/column-moving/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-moving/angular/example2.ts)
+@[code](@/content/guides/columns/column-moving/angular/example2.html)
 
 :::
 
@@ -96,6 +121,17 @@ But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option wit
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-moving/angular/example3.ts)
+@[code](@/content/guides/columns/column-moving/angular/example3.html)
+
+:::
+
+:::
+
 ## Drag and move actions of the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin
 
 There are significant differences between the plugin's [`dragColumns`](@/api/manualColumnMove.md#dragcolumns) and [`moveColumns`](@/api/manualColumnMove.md#movecolumns) API functions. Both of them change the order of columns, but they rely on different kinds of indexes. The differences between them are shown in the diagrams below.
@@ -104,11 +140,19 @@ Both of these methods trigger the [`beforeColumnMove`](@/api/hooks.md#beforecolu
 
 The [`dragColumns`](@/api/manualColumnMove.md#dragcolumns) method has a [`dropIndex`](@/api/manualColumnMove.md#dragcolumns) parameter, which points to where the elements are being dropped.
 
+<span class="img-invert">
+
 ![dragColumns method]({{$basePath}}/img/drag_action.svg)
+
+</span>
 
 The [`moveColumns`](@/api/manualColumnMove.md#movecolumns) method has a `finalIndex` parameter, which points to where the elements will be placed after the _moving_ action - `finalIndex` being the index of the first moved element.
 
+<span class="img-invert">
+
 ![moveColumns method]({{$basePath}}/img/move_action.svg)
+
+</span>
 
 The [`moveColumns`](@/api/manualColumnMove.md#movecolumns) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [`isMovePossible`](@/api/manualColumnMove.md#ismovepossible) API method and the `movePossible` parameters [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hooks help in determine such situations.
 

@@ -13,13 +13,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   });
 
   it('should add an `aria-invalid` attribute to every invalid cell', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [['a']],
       validator: 'numeric'
     });
 
-    hot.validateCells();
-
+    await validateCells();
     await sleep(50);
 
     expect(getCell(0, 0).getAttribute('aria-invalid')).toEqual('true');

@@ -13,14 +13,14 @@ describe('MergeCells keyboard shortcut', () => {
   });
 
   describe('"Command" + "M"', () => {
-    it('should not merge selected cells', () => {
+    it('should not merge selected cells', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         mergeCells: true,
       });
 
-      selectCells([[1, 1, 3, 3]]);
-      keyDownUp(['command', 'm']);
+      await selectCells([[1, 1, 3, 3]]);
+      await keyDownUp(['command', 'm']);
 
       const cell = getCell(1, 1);
 

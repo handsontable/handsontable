@@ -19,7 +19,7 @@ describe('Formulas public API', () => {
   });
 
   describe('isFormulaCellType()', () => {
-    it('should return `true` when under the cell is formula', () => {
+    it('should return `true` when under the cell is formula', async() => {
       handsontable({
         data: [
           ['1', '2'],
@@ -35,7 +35,7 @@ describe('Formulas public API', () => {
         }
       });
 
-      setDataAtCell(2, 0, '=TRANSPOSE(A1:B2)');
+      await setDataAtCell(2, 0, '=TRANSPOSE(A1:B2)');
 
       const formulas = getPlugin('formulas');
 
@@ -54,7 +54,7 @@ describe('Formulas public API', () => {
   });
 
   describe('getCellType()', () => {
-    it('should detect cells correctly', () => {
+    it('should detect cells correctly', async() => {
       handsontable({
         data: [
           ['1', '2'],
@@ -71,7 +71,7 @@ describe('Formulas public API', () => {
         }
       });
 
-      setDataAtCell(2, 0, '=TRANSPOSE(A1:B2)');
+      await setDataAtCell(2, 0, '=TRANSPOSE(A1:B2)');
 
       const formulas = getPlugin('formulas');
 
@@ -89,7 +89,7 @@ describe('Formulas public API', () => {
       expect(formulas.getCellType(7, 0)).toBe('VALUE');
       expect(formulas.getCellType(7, 1)).toBe('VALUE');
 
-      setDataAtCell(2, 0, '=ARRAYFORMULA(A1:A2*B1:B2)');
+      await setDataAtCell(2, 0, '=ARRAYFORMULA(A1:A2*B1:B2)');
 
       expect(formulas.getCellType(2, 0)).toBe('ARRAYFORMULA');
       expect(formulas.getCellType(3, 0)).toBe('ARRAY');

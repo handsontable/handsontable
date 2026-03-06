@@ -1,34 +1,25 @@
-import numbro from 'numbro';
 import { textRenderer } from '../textRenderer';
 import { isNumeric } from '../../helpers/number';
+import { deprecatedWarn } from '../../helpers/console';
+import { isNumbroScheme, numbroFormatter, intlFormatter } from './utils';
 
 export const RENDERER_TYPE = 'numeric';
+const deprecatedMessageShown = new WeakSet();
 
 /**
- * Get the rendered value.
+ * Formats the value using the numeric format.
  *
  * @param {*} value Value to be rendered.
  * @param {CellMeta} cellProperties Cell meta object.
- * @returns {*} Returns the rendered value.
+ * @returns {*} Returns the formatted value.
  */
-export function getRenderedValue(value, cellProperties) {
+export function valueFormatter(value, cellProperties) {
   if (isNumeric(value)) {
-    const numericFormat = cellProperties.numericFormat;
-    const cellCulture = numericFormat && numericFormat.culture || '-';
-    const cellFormatPattern = numericFormat && numericFormat.pattern;
-
-    if (typeof cellCulture !== 'undefined' && !numbro.languages()[cellCulture]) {
-      const shortTag = cellCulture.replace('-', '');
-      const langData = numbro.allLanguages ? numbro.allLanguages[cellCulture] : numbro[shortTag];
-
-      if (langData) {
-        numbro.registerLanguage(langData);
-      }
+    if (isNumbroScheme(cellProperties)) {
+      value = numbroFormatter(value, cellProperties);
+    } else {
+      value = intlFormatter(value, cellProperties);
     }
-
-    numbro.setLanguage(cellCulture);
-
-    value = numbro(value).format(cellFormatPattern || '0');
   }
 
   return value;
@@ -47,13 +38,33 @@ export function getRenderedValue(value, cellProperties) {
  * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
 export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
-  let newValue = value;
+  const isNumbroFormat = isNumbroScheme(cellProperties);
 
-  if (isNumeric(newValue)) {
-    const className = cellProperties.className || '';
-    const classArr = className.length ? className.split(' ') : [];
+  if (isNumbroFormat && !deprecatedMessageShown.has(cellProperties.instance)) {
+    deprecatedMessageShown.add(cellProperties.instance);
+    deprecatedWarn(
+      'The `numericFormat.pattern` and `numericFormat.culture` options are deprecated ' +
+      'and will be removed in the next major release. Pass `Intl.NumberFormat` options ' +
+      'directly to `numericFormat` and use the `locale` cell property instead of `culture`.\n\n' +
+      'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+      '`numericFormat` documentation: https://handsontable.com/docs/api/options/#numericformat\n' +
+      '`locale` documentation: https://handsontable.com/docs/api/options/#locale'
+    );
+  }
 
-    newValue = getRenderedValue(newValue, cellProperties);
+  if (isNumeric(hotInstance.getDataAtCell(row, col))) {
+    let classArr = [];
+
+    if (Array.isArray(cellProperties.className)) {
+      classArr = cellProperties.className;
+
+    } else {
+      const className = cellProperties.className ?? '';
+
+      if (className.length) {
+        classArr = className.split(' ');
+      }
+    }
 
     if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 &&
       classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
@@ -65,11 +76,11 @@ export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProp
     }
 
     cellProperties.className = classArr.join(' ');
-
     TD.dir = 'ltr';
   }
 
-  textRenderer(hotInstance, TD, row, col, prop, newValue, cellProperties);
+  textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
 }
 
+numericRenderer.valueFormatter = valueFormatter;
 numericRenderer.RENDERER_TYPE = RENDERER_TYPE;

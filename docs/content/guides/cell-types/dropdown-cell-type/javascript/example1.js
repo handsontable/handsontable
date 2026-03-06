@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example1');
 
@@ -16,29 +19,11 @@ new Handsontable(container, {
     { type: 'numeric' },
     {
       type: 'dropdown',
-      source: [
-        'yellow',
-        'red',
-        'orange',
-        'green',
-        'blue',
-        'gray',
-        'black',
-        'white',
-      ],
+      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
     },
     {
       type: 'dropdown',
-      source: [
-        'yellow',
-        'red',
-        'orange',
-        'green',
-        'blue',
-        'gray',
-        'black',
-        'white',
-      ],
+      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
     },
   ],
   autoWrapRow: true,

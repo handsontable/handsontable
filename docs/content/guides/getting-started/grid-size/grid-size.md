@@ -13,6 +13,9 @@ tags:
 react:
   id: cifepxzs
   metaTitle: Grid size - React Data Grid | Handsontable
+angular:
+  id: w6lvb55f
+  metaTitle: Grid size - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -59,7 +62,9 @@ or
   height: '75%',
 }
 ```
+
 or
+
 ```js
 {
   width: 100,
@@ -74,13 +79,56 @@ or
 ```jsx
   <HotTable height={100} width={100} />
 ```
+
 or
+
 ```jsx
   <HotTable height="75%" width="75%" />
 ```
+
 or
+
 ```jsx
   <HotTable height="100px" width="100px" />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  height: 100,
+  width: 100,
+};
+```
+
+or
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  height: "75%",
+  width: "75%",
+};
+```
+
+or
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  height: "100px",
+  width: "100px",
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
 ```
 
 :::
@@ -90,6 +138,75 @@ These dimensions will be set as inline styles in a container element, and `overf
 If container is a block element, then its parent has to have defined `height`. By default block element is `0px` height, so `100%` from `0px` is still `0px`.
 
 Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-render the grid with the new properties.
+
+### Troubleshooting with 100% height
+
+When the `height` option is set to 100%, there are three ways to define the container’s height. Assuming you're creating an Handsontable instance that has `100% height` and container is element with id `#example`. 
+
+```js
+const container = document.querySelector('#example');
+
+const hot = new Handsontable(container, {
+  height: '100%',
+  // ...rest of config 
+}
+```
+
+1. Set a fixed height (in pixels) directly on the `example` element where Handsontable is mounted
+
+```html
+<div class="page-wrapper">
+  <!-- Other HTML element -->
+  <div id="example" style="height: 500px">
+    <div class="ht-root-wrapper ht-theme-main">
+      <div class="ht-grid">
+        <div class="ht-wrapper">
+          <!-- Table content -->
+        </div>
+      </div>
+      <!-- Table components -->
+    </div>
+  </div>
+</div>
+```
+
+2. Set a fixed height on the parent element, and then give the `example` itself a height of 100%
+
+```html
+<div class="page-wrapper" style="height: 500px">
+  <!-- Other HTML element -->
+  <div id="example" style="height: 100%">
+    <div class="ht-root-wrapper ht-theme-main">
+      <div class="ht-grid">
+        <div class="ht-wrapper">
+          <!-- Table content -->
+        </div>
+      </div>
+      <!-- Table components -->
+    </div>
+  </div>
+</div>
+```
+
+3. Use flexbox on the wrapper element to make the `example` fill the available space
+
+```html
+<div class="page-wrapper" style="display: flex; height: 500px">
+  <!-- Other HTML element -->
+  <div id="example" style="flex: 1">
+    <div class="ht-root-wrapper ht-theme-main">
+      <div class="ht-grid">
+        <div class="ht-wrapper">
+          <!-- Table content -->
+        </div>
+      </div>
+      <!-- Table components -->
+    </div>
+  </div>
+</div>
+```
+
+When using Flexbox, the container automatically expands to fill the available space in the flex container. This is particularly useful when you want the grid to take up all the available space within its parent.
 
 ## What if the size is not set
 
@@ -121,6 +238,22 @@ You can easily overwrite this behaviour by returning `false` in the [`beforeRefr
 
 :::
 
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  beforeRefreshDimensions: () => false,
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
+```
+
+:::
+
 ## Manual resizing
 
 The Handsontable instance exposes the [`refreshDimensions()`](@/api/core.md#refreshdimensions) method, which helps you to resize grid elements properly.
@@ -133,6 +266,18 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
 
+:::
+
+:::
+
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference
+to the `HotTableComponent`, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
 :::
 
 :::
@@ -163,6 +308,17 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 @[code](@/content/guides/getting-started/grid-size/react/example.css)
 @[code](@/content/guides/getting-started/grid-size/react/example.jsx)
 @[code](@/content/guides/getting-started/grid-size/react/example.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example :angular --ts 1 --html 2
+
+@[code](@/content/guides/getting-started/grid-size/angular/example.ts)
+@[code](@/content/guides/getting-started/grid-size/angular/example.html)
 
 :::
 

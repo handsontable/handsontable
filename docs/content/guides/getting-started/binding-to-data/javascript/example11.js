@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example11');
 const data = [
@@ -12,7 +15,7 @@ const data = [
 ];
 
 new Handsontable(container, {
-  data: JSON.parse(JSON.stringify(data)),
+  data: structuredClone(data),
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,

@@ -12,6 +12,9 @@ tags:
 react:
   id: kjsl63sh
   metaTitle: Row virtualization - React Data Grid | Handsontable
+angular:
+  id: 2imqjvmp
+  metaTitle: Row virtualization - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
@@ -65,6 +68,17 @@ The example below presents a data grid displaying 1 million cells (1000 rows x 1
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-virtualization/angular/example1.ts)
+@[code](@/content/guides/rows/row-virtualization/angular/example1.html)
+
+:::
+
+:::
+
 ## Known limitations
 
 Using row virtualization has the following side effects:
@@ -77,7 +91,7 @@ Using row virtualization has the following side effects:
 
 ### Related guides
 
-- [Column virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
+- [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
 - [Performance](@/guides/optimization/performance/performance.md)
 
 ### Related API reference

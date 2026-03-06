@@ -10,6 +10,9 @@ tags:
 react:
   id: gbdbrlc8
   metaTitle: Performance - React Data Grid | Handsontable
+angular:
+  id: 34wyxzpj
+  metaTitle: Performance - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---
@@ -52,9 +55,25 @@ const hot = new Handsontable(obj, {
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  colWidths: [50, 150, 45],
+  rowHeights: [40, 40, 40, 40],
+};
+```
+
+```html
+<hot-table [settings]="settings"></hot-table>
+```
+
+:::
+
 When taking this approach, make sure that the contents of your cells fit in your row and column sizes, or let the user change [column widths](@/guides/columns/column-width/column-width.md#adjust-the-column-width-manually) and [row heights](@/guides/rows/row-height/row-height.md#adjust-row-heights-manually) manually.
 
 Read more:
+
 - [Grid size](@/guides/getting-started/grid-size/grid-size.md)
 - [Column widths](@/guides/columns/column-width/column-width.md)
 - [Row heights](@/guides/rows/row-height/row-height.md)
@@ -82,7 +101,6 @@ Changing your background, font colors, etc., shouldn't lower the performance. Ho
 By default, Handsontable will call the render after each CRUD operation. Usually, this is expected behavior, but you may find it slightly excessive in some use cases. By using one of the batching methods, you can suspend rendering and call it just once at the end. For example:
 
 ::: only-for react
-
 ::: tip
 
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
@@ -90,7 +108,16 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
 
 :::
+:::
 
+::: only-for angular
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
 :::
 
 ```js
@@ -103,11 +130,23 @@ hot.batch(() => {
   filters.addCondition(2, 'contains', ['3']);
   filters.filter();
   hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
-  // The table cache will be recalculated and table render will be called once after executing the callback
+  // The table cache will be recalculated and table render will be
+  // called once after executing the callback
 });
 ```
 
 See the [batch operations](@/guides/optimization/batch-operations/batch-operations.md) page to find more information on how to use batching.
+
+## Consider using pagination
+
+If you're struggling with performance when dealing with large datasets, consider enabling the [`pagination`](@/api/options.md#pagination) option. Instead of rendering all your data at once, pagination allows you to display only a subset of rows at a time, significantly reducing the rendering load and improving overall performance.
+
+The Pagination plugin is particularly useful when:
+- You have thousands of rows of data
+- Your users don't need to see all data simultaneously
+- You want to maintain responsive scrolling and editing performance
+
+For more information, see our [Pagination guide](@/guides/rows/rows-pagination/rows-pagination.md).
 
 ## Related articles
 
@@ -116,12 +155,14 @@ See the [batch operations](@/guides/optimization/batch-operations/batch-operatio
 - [Batch operations](@/guides/optimization/batch-operations/batch-operations.md)
 - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
+- [Pagination](@/guides/rows/rows-pagination/rows-pagination.md)
 - [Modules](@/guides/tools-and-building/modules/modules.md)
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
 
 ### Related API reference
 
 - Configuration options:
+  - [`pagination`](@/api/options.md#pagination)
   - [`autoColumnSize`](@/api/options.md#autocolumnsize)
   - [`autoRowSize`](@/api/options.md#autorowsize)
   - [`colWidths`](@/api/options.md#colwidths)

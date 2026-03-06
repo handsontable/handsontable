@@ -15,7 +15,7 @@ describe('Events', () => {
   it('should translate tap (`touchstart`) to `mousedown`', async() => {
     const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
 
-    const hot = handsontable({
+    handsontable({
       width: 400,
       height: 400,
       afterOnCellMouseDown
@@ -25,7 +25,7 @@ describe('Events', () => {
 
     expect(getSelected()).toBeUndefined();
 
-    triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchstart', cell);
 
     await sleep(100);
 
@@ -36,7 +36,7 @@ describe('Events', () => {
   it('should translate double tap to `dblclick`', async() => {
     const onCellDblClick = jasmine.createSpy('onCellDblClick');
 
-    const hot = handsontable({
+    handsontable({
       width: 400,
       height: 400,
     });
@@ -47,10 +47,10 @@ describe('Events', () => {
 
     expect(getSelected()).toBeUndefined();
 
-    triggerTouchEvent('touchstart', cell);
-    triggerTouchEvent('touchend', cell);
-    triggerTouchEvent('touchstart', cell);
-    triggerTouchEvent('touchend', cell);
+    await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
+    await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
 
     await sleep(100);
 
@@ -58,8 +58,8 @@ describe('Events', () => {
     expect(onCellDblClick).toHaveBeenCalled();
   });
 
-  it('should "preventDefault" only the second "touchend" event while double-tapping (issue #7824)', () => {
-    const hot = handsontable({
+  it('should "preventDefault" only the second "touchend" event while double-tapping (issue #7824)', async() => {
+    handsontable({
       width: 400,
       height: 400,
     });
@@ -67,16 +67,16 @@ describe('Events', () => {
     const cell = hot.getCell(1, 1);
 
     {
-      triggerTouchEvent('touchstart', cell);
+      await triggerTouchEvent('touchstart', cell);
 
-      const event = triggerTouchEvent('touchend', cell);
+      const event = await triggerTouchEvent('touchend', cell);
 
       expect(event.defaultPrevented).toBeTrue();
     }
     {
-      triggerTouchEvent('touchstart', cell);
+      await triggerTouchEvent('touchstart', cell);
 
-      const event = triggerTouchEvent('touchend', cell);
+      const event = await triggerTouchEvent('touchend', cell);
 
       // In the WebKit-based engines the second touch event is not prevent defaulted.
       // See ./handsontable/src/3rdparty/walkontable/src/event.js#L327
@@ -90,8 +90,8 @@ describe('Events', () => {
     }
   });
 
-  it('should not "preventDefault" the second "touchend" event when interactive element is clicked (PR#7980)', () => {
-    const hot = handsontable({
+  it('should not "preventDefault" the second "touchend" event when interactive element is clicked (PR#7980)', async() => {
+    handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
       width: 400,
       height: 400,
@@ -101,23 +101,23 @@ describe('Events', () => {
     const linkElement = hot.getCell(0, 0).firstChild;
 
     {
-      triggerTouchEvent('touchstart', linkElement);
+      await triggerTouchEvent('touchstart', linkElement);
 
-      const event = triggerTouchEvent('touchend', linkElement);
+      const event = await triggerTouchEvent('touchend', linkElement);
 
       expect(event.defaultPrevented).toBeTrue();
     }
     {
-      triggerTouchEvent('touchstart', linkElement);
+      await triggerTouchEvent('touchstart', linkElement);
 
-      const event = triggerTouchEvent('touchend', linkElement);
+      const event = await triggerTouchEvent('touchend', linkElement);
 
       expect(event.defaultPrevented).toBeFalse();
     }
   });
 
   it('should "preventDefault" the link element (block its default action) when the cell is not highlighted', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
       rowHeaders: true,
       colHeaders: true,
@@ -131,7 +131,7 @@ describe('Events', () => {
     location.hash = ''; // Resetting before test.
 
     // First touch
-    simulateTouch(linkElement);
+    await simulateTouch(linkElement);
 
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
@@ -139,7 +139,7 @@ describe('Events', () => {
     await sleep(600); // To prevents double-click detection (emulation)
 
     // Second touch
-    simulateTouch(linkElement);
+    await simulateTouch(linkElement);
 
     expect(location.hash).toBe('#justForTest');
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
@@ -149,7 +149,7 @@ describe('Events', () => {
     const anotherCell = getCell(1, 0);
 
     // First touch
-    simulateTouch(anotherCell);
+    await simulateTouch(anotherCell);
 
     await sleep(550); // To prevents double-click detection (emulation)
 
@@ -157,7 +157,7 @@ describe('Events', () => {
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
     // Second touch
-    simulateTouch(anotherCell);
+    await simulateTouch(anotherCell);
 
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
@@ -167,15 +167,15 @@ describe('Events', () => {
 
   it('touch on button inside header should not block default action  ' +
     '(header does not have to be selected at first)', async() => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 7),
+    handsontable({
+      data: createSpreadsheetData(3, 7),
       colHeaders: true,
       dropdownMenu: true
     });
 
     const dropDownIndicator = $(hot.getCell(-1, 2)).find('button')[0];
 
-    simulateTouch(dropDownIndicator);
+    await simulateTouch(dropDownIndicator);
 
     expect($('.htDropdownMenu').is(':visible')).toBe(true);
   });

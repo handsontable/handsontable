@@ -6,7 +6,7 @@ import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import { hasClass, setAttribute } from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import {
   COLUMN_LEFT,
   COLUMN_RIGHT,
@@ -17,7 +17,6 @@ import {
   SEPARATOR
 } from '../contextMenu/predefinedItems';
 
-import './dropdownMenu.scss';
 import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
@@ -77,6 +76,21 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  *   // enable and configure dropdown menu
  *   dropdownMenu={['remove_col', '---------', 'make_read_only', 'alignment']}
  * />
+ * ```
+ * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   data: data,
+ *   comments: true,
+ *   // enable and configure dropdown menu
+ *   dropdownMenu: ["remove_col", "---------", "make_read_only", "alignment"],
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings"></hot-table>
  * ```
  * :::
  */
@@ -176,6 +190,7 @@ export class DropdownMenu extends BasePlugin {
 
     this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
     this.addHook('beforeViewportScrollHorizontally', (...args) => this.#onBeforeViewportScrollHorizontally(...args));
+    this.addHook('beforeDialogShow', () => this.close());
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {
@@ -203,7 +218,7 @@ export class DropdownMenu extends BasePlugin {
       this.menu = new Menu(this.hot, {
         className: 'htDropdownMenu',
         keepInViewport: true,
-        container: settings.uiContainer || this.hot.rootDocument.body,
+        container: settings.uiContainer || this.hot.rootPortalElement,
       });
       this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
 
@@ -254,21 +269,24 @@ export class DropdownMenu extends BasePlugin {
   registerShortcuts() {
     const gridContext = this.hot.getShortcutManager().getContext('grid');
     const callback = () => {
-      const { highlight } = this.hot.getSelectedRangeLast();
+      const { highlight } = this.hot.getSelectedRangeActive();
 
       if ((highlight.isHeader() && highlight.row === -1 || highlight.isCell()) && highlight.col >= 0) {
         this.hot.selectColumns(highlight.col, highlight.col, -1);
 
-        const { from } = this.hot.getSelectedRangeLast();
+        const { from } = this.hot.getSelectedRangeActive();
         const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
-        const target = this.hot.getCell(-1, from.col, true);
-        const rect = target.getBoundingClientRect();
+        const target = this.hot.getCell(-1, from.col, true).querySelector(`.${BUTTON_CLASS_NAME}`);
+        const buttonRect = this.#getButtonRect(target);
 
         this.open({
-          left: rect.left + offset.left,
-          top: rect.top + target.offsetHeight + offset.top,
+          left: buttonRect.left + offset.left,
+          top: buttonRect.bottom + offset.top,
         }, {
-          left: rect.width,
+          left: buttonRect.width,
+          right: 0,
+          above: 0,
+          below: 3,
         });
         // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
         // will block the Esc key for the whole menu.
@@ -280,7 +298,7 @@ export class DropdownMenu extends BasePlugin {
       keys: [['Shift', 'Alt', 'ArrowDown'], ['Control/Meta', 'Enter']],
       callback,
       runOnlyIf: () => {
-        const highlight = this.hot.getSelectedRangeLast()?.highlight;
+        const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
         return highlight && this.hot.selection.isCellVisible(highlight) &&
           highlight.isHeader() && !this.menu.isOpened();
@@ -291,7 +309,7 @@ export class DropdownMenu extends BasePlugin {
       keys: [['Shift', 'Alt', 'ArrowDown']],
       callback,
       runOnlyIf: () => {
-        const highlight = this.hot.getSelectedRangeLast()?.highlight;
+        const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
         return highlight && this.hot.selection.isCellVisible(highlight) &&
           highlight.isCell() && !this.menu.isOpened();
@@ -422,18 +440,56 @@ export class DropdownMenu extends BasePlugin {
   #onTableClick(event) {
     if (hasClass(event.target, BUTTON_CLASS_NAME)) {
       const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
-      const rect = event.target.getBoundingClientRect();
+      const buttonRect = this.#getButtonRect(event.target);
 
       event.stopPropagation();
       this.#isButtonClicked = false;
 
       this.open({
-        left: rect.left + offset.left,
-        top: rect.top + event.target.offsetHeight + 3 + offset.top,
+        left: buttonRect.left + offset.left,
+        top: buttonRect.bottom + offset.top,
       }, {
-        left: rect.width,
+        left: buttonRect.width,
+        right: 0,
+        above: 0,
+        below: 3,
       });
     }
+  }
+
+  /**
+   * Returns the bounding rect of the button's ignoring the hit area box.
+   *
+   * @param {HTMLElement} button The change-type button element.
+   * @returns {{ top: number, left: number, right: number, bottom: number, width: number, height: number }}
+   */
+  #getButtonRect(button) {
+    const rect = button.getBoundingClientRect();
+    const beforeStyle = this.hot.rootWindow.getComputedStyle(button, '::before');
+    const iconSize = Number.parseFloat(beforeStyle.width);
+
+    if (Number.isFinite(iconSize) && rect.width >= iconSize && rect.height >= iconSize) {
+      const left = rect.left + ((rect.width - iconSize) / 2);
+      const top = rect.top + ((rect.height - iconSize) / 2);
+
+      return {
+        top,
+        left,
+        right: left + iconSize,
+        bottom: top + iconSize,
+        width: iconSize,
+        height: iconSize,
+      };
+    }
+
+    return {
+      top: rect.top,
+      left: rect.left,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+    };
   }
 
   /**

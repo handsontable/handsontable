@@ -4,6 +4,7 @@ import ColumnMeta from './metaLayers/columnMeta';
 import CellMeta from './metaLayers/cellMeta';
 import localHooks from '../../mixins/localHooks';
 import { mixin } from '../../helpers/object';
+import { throwWithCause } from '../../helpers/errors';
 
 /**
  * With the Meta Manager class, it can be possible to manage with meta objects for different layers in
@@ -133,20 +134,23 @@ export default class MetaManager {
    *
    * @param {number} physicalRow The physical row index.
    * @param {number} physicalColumn The physical column index.
-   * @param {object} options Additional options that are used to extend the cell meta object.
+   * @param {object} options Options for the `getCellMeta` method.
    * @param {number} options.visualRow The visual row index of the currently requested cell meta object.
    * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
+   * @param {boolean} [options.skipMetaExtension=false] If `true`, omits the `afterGetCellMeta` hook which calls the `extendCellMeta` method.
    * @returns {object}
    */
-  getCellMeta(physicalRow, physicalColumn, { visualRow, visualColumn }) {
+  getCellMeta(physicalRow, physicalColumn, options) {
     const cellMeta = this.cellMeta.getMeta(physicalRow, physicalColumn);
 
-    cellMeta.visualRow = visualRow;
-    cellMeta.visualCol = visualColumn;
+    cellMeta.visualRow = options.visualRow;
+    cellMeta.visualCol = options.visualColumn;
     cellMeta.row = physicalRow;
     cellMeta.col = physicalColumn;
 
-    this.runLocalHooks('afterGetCellMeta', cellMeta);
+    if (!options.skipMetaExtension) {
+      this.runLocalHooks('afterGetCellMeta', cellMeta);
+    }
 
     return cellMeta;
   }
@@ -161,7 +165,7 @@ export default class MetaManager {
    */
   getCellMetaKeyValue(physicalRow, physicalColumn, key) {
     if (typeof key !== 'string') {
-      throw new Error('The passed cell meta object key is not a string');
+      throwWithCause('The passed cell meta object key is not a string');
     }
 
     return this.cellMeta.getMeta(physicalRow, physicalColumn, key);

@@ -1,4 +1,4 @@
-import staticRegister, { collection } from '../staticRegister';
+import { staticRegister, collection } from '../staticRegister';
 
 describe('staticRegister', () => {
   describe('.register/.getItem', () => {

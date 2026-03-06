@@ -1,8 +1,7 @@
-import { HotTable } from '@handsontable/react';
-import Handsontable from 'handsontable';
+import { HotTable } from '@handsontable/react-wrapper';
+import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { registerRenderer } from 'handsontable/renderers';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -22,24 +21,8 @@ const ExampleComponent = () => {
     td.style.background = '#CEC';
   };
 
-  const negativeValueRenderer = (
-    instance,
-    td,
-    row,
-    col,
-    prop,
-    value,
-    cellProperties
-  ) => {
-    Handsontable.renderers.TextRenderer(
-      instance,
-      td,
-      row,
-      col,
-      prop,
-      value,
-      cellProperties
-    );
+  const negativeValueRenderer = (instance, td, row, col, prop, value, cellProperties) => {
+    Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
 
     // if the row contains a negative number
     if (parseInt(value, 10) < 0) {
@@ -48,7 +31,7 @@ const ExampleComponent = () => {
     }
 
     if (!value || value === '') {
-      td.style.background = '#EEE';
+      td.style.background = 'rgb(238, 238, 238, 0.4)';
     } else {
       if (instance.getDataAtCell(0, col) === 'Nissan') {
         td.style.fontStyle = 'italic';

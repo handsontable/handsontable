@@ -18,7 +18,7 @@ describe('DropdownMenu keyboard shortcut', () => {
   }
 
   describe('"Control/meta" + "Enter"', () => {
-    it('should not throw an error when triggered on selection that points on the hidden records', () => {
+    it('should not throw an error when triggered on selection that points on the hidden records', async() => {
       const spy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;
 
@@ -38,17 +38,17 @@ describe('DropdownMenu keyboard shortcut', () => {
       hidingMap.setValueAtIndex(1, true);
       hidingMap.setValueAtIndex(2, true);
 
-      render();
-      selectCell(-1, 1);
+      await render();
+      await selectCell(-1, 1);
 
-      keyDownUp(['control/meta', 'enter']);
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(spy.test.calls.count()).toBe(0);
 
       window.onerror = prevError;
     });
 
-    it('should not be possible to open the dropdown menu (navigableHeaders off)', () => {
+    it('should not be possible to open the dropdown menu (navigableHeaders off)', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -57,8 +57,8 @@ describe('DropdownMenu keyboard shortcut', () => {
         dropdownMenu: true
       });
 
-      selectCell(0, 1);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCell(0, 1);
+      await keyDownUp(['control/meta', 'enter']);
 
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
 
@@ -66,7 +66,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
     });
 
-    it('should be possible to open the dropdown menu in the correct position', () => {
+    it('should be possible to open the dropdown menu in the correct position', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -75,21 +75,26 @@ describe('DropdownMenu keyboard shortcut', () => {
         dropdownMenu: true
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCell(-1, 1);
+      await keyDownUp(['control/meta', 'enter']);
 
       const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
-      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+        horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
+      });
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
-    it('should be possible to open the dropdown menu on the left position when on the right there is no space left', () => {
+    it('should be possible to open the dropdown menu on the left position when on the right there is no space left', async() => {
       handsontable({
         data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
         colHeaders: true,
@@ -100,19 +105,24 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       const lastColumn = countCols() - 1;
 
-      selectCell(-1, lastColumn);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCell(-1, lastColumn);
+      await keyDownUp(['control/meta', 'enter']);
 
       const cell = getCell(-1, lastColumn, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const menuWidth = $dropdownMenu.outerWidth();
       const cellOffset = $(cell).offset();
-      const cellWidth = $(cell).outerWidth();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, lastColumn);
+      const buttonWidth = getDropdownMenuButtonIconWidth(-1, lastColumn);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
-      expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth + cellWidth);
+      expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+        horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
+      });
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, 0);
       expect(getSelectedRange()).toEqualCellRange([
         `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
       ]);
@@ -127,15 +137,15 @@ describe('DropdownMenu keyboard shortcut', () => {
         dropdownMenu: true
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCell(-1, 1);
+      await keyDownUp(['control/meta', 'enter']);
 
       await sleep(100);
 
       expect(getPlugin('dropdownMenu').menu.hotMenu.getSelected()).toEqual([[0, 0, 0, 0]]);
     });
 
-    it('should not be possible to close already opened the dropdown menu', () => {
+    it('should not be possible to close already opened the dropdown menu', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -144,22 +154,27 @@ describe('DropdownMenu keyboard shortcut', () => {
         dropdownMenu: true
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['control/meta', 'enter']);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCell(-1, 1);
+      await keyDownUp(['control/meta', 'enter']);
+      await keyDownUp(['control/meta', 'enter']);
 
       const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
-      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+        horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
+      });
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
-    it('should be possible to open the dropdown menu from the focused column when a range of the columns are selected', () => {
+    it('should be possible to open the dropdown menu from the focused column when a range of the columns are selected', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -168,22 +183,27 @@ describe('DropdownMenu keyboard shortcut', () => {
         dropdownMenu: true
       });
 
-      selectColumns(1, 4, -1);
-      listen();
-      keyDownUp(['control/meta', 'enter']);
+      await selectColumns(1, 4, -1);
+      await listen();
+      await keyDownUp(['control/meta', 'enter']);
 
       const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
-      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+        horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
+      });
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
-    it('should be possible to open the dropdown menu only by triggering the action only from the lowest column header', () => {
+    it('should be possible to open the dropdown menu only by triggering the action only from the lowest column header', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -196,40 +216,40 @@ describe('DropdownMenu keyboard shortcut', () => {
         },
       });
 
-      selectCell(-1, -1); // corner
-      keyDownUp(['control/meta', 'enter']);
+      await selectCell(-1, -1); // corner
+      await keyDownUp(['control/meta', 'enter']);
 
       {
         expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,-1 from: -1,-1 to: -1,-1']);
       }
 
-      selectCell(1, -1); // row header
-      keyDownUp(['control/meta', 'enter']);
+      await selectCell(1, -1); // row header
+      await keyDownUp(['control/meta', 'enter']);
 
       {
         expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
       }
 
-      selectCell(-3, 1); // the first (top) column header
-      keyDownUp(['control/meta', 'enter']);
+      await selectCell(-3, 1); // the first (top) column header
+      await keyDownUp(['control/meta', 'enter']);
 
       {
         expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -3,1 to: -3,1']);
       }
 
-      selectCell(-2, 1); // the second column header
-      keyDownUp(['control/meta', 'enter']);
+      await selectCell(-2, 1); // the second column header
+      await keyDownUp(['control/meta', 'enter']);
 
       {
         expect($(document.body).find('.htDropdownMenu:visible').length).toBe(0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: -2,1']);
       }
 
-      selectCell(-1, 1); // the third (bottom) column header
-      keyDownUp(['control/meta', 'enter']);
+      await selectCell(-1, 1); // the third (bottom) column header
+      await keyDownUp(['control/meta', 'enter']);
 
       {
         expect($(document.body).find('.htDropdownMenu:visible').length).toBe(1);
@@ -237,7 +257,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       }
     });
 
-    it('should not trigger the editor to be opened', () => {
+    it('should not trigger the editor to be opened', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -246,14 +266,14 @@ describe('DropdownMenu keyboard shortcut', () => {
         dropdownMenu: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCell(-1, 1);
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getActiveEditor()).toBeUndefined();
     });
 
     describe('cooperation with nested headers', () => {
-      it('should be possible to open the dropdown menu in the correct position when the cells in-between nested headers is selected', () => {
+      it('should be possible to open the dropdown menu in the correct position when the cells in-between nested headers are selected', async() => {
         handsontable({
           data: createSpreadsheetData(3, 8),
           colHeaders: true,
@@ -265,17 +285,22 @@ describe('DropdownMenu keyboard shortcut', () => {
           ],
         });
 
-        selectCell(-1, 2);
-        keyDownUp(['control/meta', 'enter']);
+        await selectCell(-1, 2);
+        await keyDownUp(['control/meta', 'enter']);
 
         const cell = getCell(-1, 1, true);
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
         const menuOffset = $dropdownMenu.offset();
         const cellOffset = $(cell).offset();
+        const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+        expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
+          classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
+          main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+          horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
+        });
+        expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,1 to: 2,3']);
       });
     });

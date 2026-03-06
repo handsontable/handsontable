@@ -14,14 +14,14 @@ describe('DropdownMenu keyboard shortcut', () => {
     ['Control/Meta', 'ArrowDown'],
     ['End'],
   ], (keyboardShortcut) => {
-    it('should move the menu item selection to the last item', () => {
+    it('should move the menu item selection to the last item', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: generateRandomDropdownMenuItems(200),
       });
 
-      dropdownMenu();
-      keyDownUp(keyboardShortcut);
+      await dropdownMenu();
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 200');
       // check if the viewport is scrolled to the bottom
@@ -29,7 +29,7 @@ describe('DropdownMenu keyboard shortcut', () => {
         .toBe(window.scrollY + document.documentElement.clientHeight);
     });
 
-    it('should move the menu item selection to the last active item', () => {
+    it('should move the menu item selection to the last active item', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: generateRandomDropdownMenuItems(200, (i, item) => {
@@ -41,17 +41,17 @@ describe('DropdownMenu keyboard shortcut', () => {
         }),
       });
 
-      dropdownMenu();
-      keyDownUp(keyboardShortcut);
+      await dropdownMenu();
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 103');
 
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 103');
     });
 
-    it('should not select the menu when all items are disabled', () => {
+    it('should not select the menu when all items are disabled', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: generateRandomDropdownMenuItems(200, (i, item) => {
@@ -61,8 +61,8 @@ describe('DropdownMenu keyboard shortcut', () => {
         }),
       });
 
-      dropdownMenu();
-      keyDownUp(keyboardShortcut);
+      await dropdownMenu();
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem()).toBe(null);
     });

@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 // generate an array of arrays with dummy data
 const data: string[][] = new Array(100) // number of rows
@@ -15,7 +18,10 @@ const container = document.querySelector('#example1')!;
 new Handsontable(container, {
   data,
   height: 320,
-  colWidths: 47,
+  autoColumnSize: {
+    allowSampleDuplicates: true,
+    samplingRatio: 100,
+  },
   rowHeaders: true,
   colHeaders: true,
   contextMenu: true,

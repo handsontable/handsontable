@@ -20,14 +20,14 @@ describe('TimeEditor (RTL mode)', () => {
       }
     });
 
-    it('should render an editable editor\'s element with "dir" attribute set as "ltr"', () => {
+    it('should render an editable editor\'s element with "dir" attribute set as "ltr"', async() => {
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         editor: 'time',
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       const editableElement = getActiveEditor().TEXTAREA;
 

@@ -1,0 +1,19 @@
+.placeholder-input {
+  max-width: 20rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: black;
+  border: 1px solid #e4e4e7;
+  border-radius: 6px;
+}
+
+.example-container {
+  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.example-container .debug-table td {
+  padding: 10px !important;
+}

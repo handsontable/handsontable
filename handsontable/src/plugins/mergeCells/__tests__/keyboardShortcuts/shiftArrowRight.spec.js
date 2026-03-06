@@ -13,7 +13,7 @@ describe('MergeCells keyboard shortcut', () => {
   });
 
   describe('"Shift + ArrowRight"', () => {
-    it('should expand the cells selection right keeping the internal current focus position', () => {
+    it('should expand the cells selection right keeping the internal current focus position', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -23,35 +23,35 @@ describe('MergeCells keyboard shortcut', () => {
         ],
       });
 
-      selectCell(1, 0);
-      keyDownUp(['shift', 'arrowright']);
+      await selectCell(1, 0);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 3,3']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 3,4']);
 
-      selectCell(2, 0);
-      keyDownUp(['shift', 'arrowright']);
+      await selectCell(2, 0);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 1,0 to: 3,3']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 1,0 to: 3,4']);
 
-      selectCell(3, 0);
-      keyDownUp(['shift', 'arrowright']);
+      await selectCell(3, 0);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 1,0 to: 3,3']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 1,0 to: 3,4']);
     });
 
-    it('should extend the cells selection right when focus is moved within a range', () => {
+    it('should extend the cells selection right when focus is moved within a range', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
@@ -63,23 +63,23 @@ describe('MergeCells keyboard shortcut', () => {
         ],
       });
 
-      selectCells([[1, 4, 2, 1]]);
-      keyDownUp(['shift', 'tab']); // move cell focus left
-      keyDownUp(['shift', 'tab']); // move cell focus left
-      keyDownUp(['shift', 'arrowright']);
+      await selectCells([[1, 4, 2, 1]]);
+      await keyDownUp(['shift', 'tab']); // move cell focus left
+      await keyDownUp(['shift', 'tab']); // move cell focus left
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 2,7']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 2,8']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 2,9']);
     });
 
-    it('should correctly extend the cells selection right by one cell when merged cell is selected (#11010)', () => {
+    it('should correctly extend the cells selection right by one cell when merged cell is selected (#11010)', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
@@ -89,13 +89,13 @@ describe('MergeCells keyboard shortcut', () => {
         ],
       });
 
-      selectCells([[1, 3, 3, 1]]);
-      keyDownUp(['shift', 'arrowright']);
+      await selectCells([[1, 3, 3, 1]]);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,4']);
     });
 
-    it('should expand the cells selection right keeping the internal current focus position when some columns are hidden', () => {
+    it('should expand the cells selection right keeping the internal current focus position when some columns are hidden', async() => {
       handsontable({
         data: createSpreadsheetData(5, 6),
         rowHeaders: true,
@@ -109,19 +109,19 @@ describe('MergeCells keyboard shortcut', () => {
 
       hidingMap.setValueAtIndex(1, true);
       hidingMap.setValueAtIndex(4, true);
-      render();
+      await render();
 
-      selectCell(2, 0);
-      keyDownUp(['shift', 'arrowright']);
+      await selectCell(2, 0);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 1,0 to: 3,3']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 1,0 to: 3,5']);
     });
 
-    it('should not expand the cells selection when there is only one merged cell', () => {
+    it('should not expand the cells selection when there is only one merged cell', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -131,13 +131,13 @@ describe('MergeCells keyboard shortcut', () => {
         ],
       });
 
-      selectCell(0, 0);
-      keyDownUp(['shift', 'arrowright']);
+      await selectCell(0, 0);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 4,4']);
     });
 
-    it('should expand the cells selection through multiple merged cells when hidden index is selected', () => {
+    it('should expand the cells selection through multiple merged cells when hidden index is selected', async() => {
       handsontable({
         data: createSpreadsheetData(6, 11),
         rowHeaders: true,
@@ -158,32 +158,32 @@ describe('MergeCells keyboard shortcut', () => {
       hidingMap.setValueAtIndex(3, true);
       hidingMap.setValueAtIndex(4, true);
       hidingMap.setValueAtIndex(8, true);
-      render();
+      await render();
 
-      selectCell(2, 1);
-      keyDownUp(['shift', 'arrowright']);
+      await selectCell(2, 1);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 2,5']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 2,8']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 2,9']);
 
-      selectCell(1, 4);
-      keyDownUp(['shift', 'arrowright']);
+      await selectCell(1, 4);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,5 from: 0,3 to: 2,8']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,5 from: 0,3 to: 2,9']);
     });
 
-    it('should expand the cells selection through multiple merged cells that intersect with each other', () => {
+    it('should expand the cells selection through multiple merged cells that intersect with each other', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
@@ -203,26 +203,26 @@ describe('MergeCells keyboard shortcut', () => {
 
       hidingMap.setValueAtIndex(2, true);
       hidingMap.setValueAtIndex(4, true);
-      render();
+      await render();
 
-      selectCell(5, 0);
-      keyDownUp(['shift', 'arrowright']);
+      await selectCell(5, 0);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 5,0 from: 4,0 to: 6,1']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 5,0 from: 3,0 to: 8,5']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 5,0 from: 1,0 to: 8,7']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 5,0 from: 1,0 to: 8,8']);
 
-      keyDownUp(['shift', 'arrowright']);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 5,0 from: 1,0 to: 8,9']);
     });

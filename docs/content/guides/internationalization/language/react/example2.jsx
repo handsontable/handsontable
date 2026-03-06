@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import {
   registerLanguageDictionary,
   getLanguagesDictionaries,
@@ -24,7 +24,6 @@ import {
   zhTW,
 } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

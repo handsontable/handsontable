@@ -18,8 +18,7 @@ import {
   CheckboxCellType,
   TextCellType,
 } from 'handsontable/cellTypes';
-import { IntersectionObserverMock } from '../../../test/__mocks__/intersectionObserverMock';
-import { ResizeObserverMock } from '../../../test/__mocks__/resizeObserverMock';
+import { staticRegister, resolveWithInstance } from '../../utils/staticRegister';
 
 registerCellType(CheckboxCellType);
 registerCellType(TextCellType);
@@ -39,22 +38,12 @@ registerPlugin(TrimRows);
 describe('Core', () => {
   let container;
 
-  beforeAll(() => {
-    window.IntersectionObserver = IntersectionObserverMock;
-    window.ResizeObserver = ResizeObserverMock;
-  });
-
   beforeEach(() => {
     container = document.createElement('div');
   });
 
   afterEach(() => {
     container.remove();
-  });
-
-  afterAll(() => {
-    delete window.IntersectionObserver;
-    delete window.ResizeObserver;
   });
 
   it('should reset cache only once after initialization with an Array of Arrays data source', () => {
@@ -111,5 +100,25 @@ describe('Core', () => {
 
     expect(rowCacheUpdatedCallback.calls.count()).toEqual(1);
     expect(columnCacheUpdatedCallback.calls.count()).toEqual(1);
+  });
+
+  it('should clear the DI container collection after destroy', () => {
+    const core = new Core(container, {
+      data: [['a'], ['b'], ['c']],
+    });
+
+    core.init();
+
+    const moduleRegisterer = staticRegister(core.guid);
+
+    moduleRegisterer.register('testValue', 'test');
+
+    expect(moduleRegisterer.getNames()).toEqual(['cellRangeMapper', 'testValue']);
+    expect(resolveWithInstance(core, 'testValue')).toBe('test');
+
+    core.destroy();
+
+    expect(moduleRegisterer.getNames()).toEqual([]);
+    expect(resolveWithInstance(core, 'testValue')).toBeUndefined();
   });
 });

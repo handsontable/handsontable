@@ -1,6 +1,5 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -16,7 +15,7 @@ const data = [
 
 const ExampleComponent = () => (
   <HotTable
-    data={JSON.parse(JSON.stringify(data))}
+    data={structuredClone(data)}
     height="auto"
     autoWrapRow={true}
     autoWrapCol={true}

@@ -20,6 +20,8 @@ import {
   getParentWindow,
   hasClass,
   setAttribute,
+  outerHeight,
+  removeClass,
 } from '../../../helpers/dom/element';
 import { isRightClick } from '../../../helpers/dom/event';
 import { debounce, isFunction } from '../../../helpers/function';
@@ -117,6 +119,27 @@ export class Menu {
    * @type {KeyboardShortcutsMenuController}
    */
   #shortcutsCtrl;
+  /**
+   * The border width of the table used in the menu.
+   *
+   * @type {number}
+   */
+  #tableBorderWidth;
+
+  /**
+   * Getter for the table border width.
+   * This getter retrieves the border width of the table used in the menu.
+   *
+   * @returns {number} The border width of the table in pixels.
+   */
+  get tableBorderWidth() {
+    if (this.#tableBorderWidth === undefined && this.hotMenu) {
+      this.#tableBorderWidth = parseInt(this.hotMenu.rootWindow
+        .getComputedStyle(this.hotMenu.view._wt.wtTable.TABLE).borderWidth, 10);
+    }
+
+    return this.#tableBorderWidth;
+  }
 
   /**
    * @param {Core} hotInstance Handsontable instance.
@@ -131,7 +154,7 @@ export class Menu {
       keepInViewport: true,
       standalone: false,
       minWidth: MIN_WIDTH,
-      container: this.hot.rootDocument.documentElement,
+      container: this.hot.rootPortalElement,
     };
     this.container = this.createContainer(this.options.name);
     this.positioner = new Positioner(this.options.keepInViewport);
@@ -143,6 +166,17 @@ export class Menu {
       this.addLocalHook('afterSelectionChange',
         (...args) => this.parentMenu.runLocalHooks('afterSelectionChange', ...args));
     }
+
+    this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+      if (this.options.container !== this.hot.rootPortalElement) {
+        removeClass(this.options.container, /ht-theme-.*/g);
+        addClass(this.options.container, themeName);
+      }
+
+      if (!firstRun) {
+        this.close();
+      }
+    });
   }
 
   /**
@@ -195,7 +229,7 @@ export class Menu {
    * @returns {object|null}
    */
   getSelectedItem() {
-    return this.hasSelectedItem() ? this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedLast()[0]) : null;
+    return this.hasSelectedItem() ? this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedActive()[0]) : null;
   }
 
   /**
@@ -204,7 +238,7 @@ export class Menu {
    * @returns {boolean}
    */
   hasSelectedItem() {
-    return Array.isArray(this.hotMenu.getSelectedLast());
+    return Array.isArray(this.hotMenu.getSelectedActive());
   }
 
   /**
@@ -279,8 +313,10 @@ export class Menu {
       disableVisualSelection: 'area',
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
+      themeName: this.hot.getCurrentThemeName(),
+      beforeRefreshDimensions: () => false,
       beforeOnCellMouseOver: (event, coords) => {
-        this.#navigator.setCurrentPage(coords.row);
+        this.#navigator.setPageCursorAt(coords.row);
       },
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
@@ -289,7 +325,6 @@ export class Menu {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
 
@@ -382,7 +417,7 @@ export class Menu {
 
       if (this.isSubMenu()) {
         if (this.hot.getSettings().ariaTags) {
-          const selection = this.parentMenu.hotMenu.getSelectedLast();
+          const selection = this.parentMenu.hotMenu.getSelectedActive();
 
           if (selection) {
             const cell = this.parentMenu.hotMenu.getCell(selection[0], 0);
@@ -592,6 +627,32 @@ export class Menu {
   }
 
   /**
+   * Updates the dimensions of the menu based on its content.
+   * This method calculates the real height of the menu by summing up the heights of its items,
+   * and adjusts the width and height of the menu's holder and hider elements accordingly.
+   */
+  updateMenuDimensions() {
+    const { wtTable } = this.hotMenu.view._wt;
+    const data = this.hotMenu.getSettings().data;
+    const hiderStyle = wtTable.hider.style;
+    const holderStyle = wtTable.holder.style;
+    const currentHiderWidth = parseInt(hiderStyle.width, 10);
+
+    const realHeight = arrayReduce(data,
+      (accumulator, value, index) => {
+        const itemCell = this.hotMenu.getCell(index, 0);
+        const currentRowHeight = itemCell ? outerHeight(this.hotMenu.getCell(index, 0)) : 0;
+
+        return accumulator + (value.name === SEPARATOR ? 1 : currentRowHeight);
+      }, 0);
+
+    holderStyle.width = `${currentHiderWidth}px`;
+    holderStyle.height = `${realHeight}px`;
+
+    hiderStyle.height = holderStyle.height;
+  }
+
+  /**
    * Create container/wrapper for handsontable.
    *
    * @private
@@ -615,7 +676,7 @@ export class Menu {
         }
       }
 
-      className = className.replace(/[^A-z0-9]/g, '_');
+      className = className.replace(/[^A-Za-z0-9]/g, '_');
       className = `${this.options.className}Sub_${className}`;
 
       container = doc.querySelector(`.${this.options.className}.${className}`);
@@ -624,7 +685,7 @@ export class Menu {
     if (!container) {
       container = doc.createElement('div');
 
-      addClass(container, `htMenu ${this.options.className}`);
+      addClass(container, `htMenu handsontable ${this.options.className}`);
 
       if (className) {
         addClass(container, className);
@@ -642,18 +703,7 @@ export class Menu {
    * @private
    */
   onAfterInit() {
-    const { wtTable } = this.hotMenu.view._wt;
-    const data = this.hotMenu.getSettings().data;
-    const hiderStyle = wtTable.hider.style;
-    const holderStyle = wtTable.holder.style;
-    const currentHiderWidth = parseInt(hiderStyle.width, 10);
-
-    const realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
-
-    // Additional 3px to menu's size because of additional border around its `table.htCore`.
-    holderStyle.width = `${currentHiderWidth + 3}px`;
-    holderStyle.height = `${realHeight + 3}px`;
-    hiderStyle.height = holderStyle.height;
+    this.updateMenuDimensions();
 
     // Replace the default accessibility tags with the context menu's
     if (this.hot.getSettings().ariaTags) {

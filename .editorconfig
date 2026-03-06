@@ -9,9 +9,11 @@ root = true
 # Change these settings to your own preference
 indent_style = space
 indent_size = 2
+max_line_length = 120
+rulers = [120]
 
 # We recommend you to keep these unchanged
 end_of_line = lf
 charset = utf-8
-trim_trailing_whitespace = false
+trim_trailing_whitespace = true
 insert_final_newline = true

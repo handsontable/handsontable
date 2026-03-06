@@ -32,8 +32,6 @@ autocomplete.saveValue();
 autocomplete.setValue('test');
 autocomplete.setValue();
 
-autocomplete.flipDropdown(100);
-
 const checkbox = new Handsontable.editors.CheckboxEditor(hot);
 
 checkbox.beginEditing('test');
@@ -124,9 +122,6 @@ dropdown.saveValue('test', true);
 dropdown.saveValue();
 dropdown.setValue('test');
 dropdown.setValue();
-
-dropdown.flipDropdownIfNeeded();
-dropdown.updateChoicesList([]);
 
 const hansontable = new Handsontable.editors.HandsontableEditor(hot);
 
@@ -313,3 +308,32 @@ class CustomEditor extends Handsontable.editors.getEditor('text') {
   focus() {}
 }
 Handsontable.editors.registerEditor('custom', CustomEditor);
+
+Handsontable.editors.editorFactory({
+  init(editor) {},
+  afterInit(editor) {},
+  afterOpen(editor) {},
+  afterClose(editor) {},
+  beforeOpen(editor) {},
+  getValue(editor) {},
+  setValue(editor, value) {},
+  onFocus(editor) {},
+  render(editor) {},
+  position: 'container',
+  value: 'test',
+  config: {
+    test: 'test',
+  },
+  shortcutsGroup: 'custom-shortcuts',
+  shortcuts: [
+    {
+      keys: [['Enter']],
+      callback: (editor) => {
+        return false;
+      },
+    },
+  ],
+  args: {
+    test: 'test',
+  },
+})

@@ -1,7 +1,6 @@
 import { useRef } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -20,11 +19,7 @@ const ExampleComponent = () => {
     <>
       <div className="controls">
         <label>
-          <select
-            id="selectOption"
-            onChange={(...args) => selectOptionChangeCallback(...args)}
-            defaultValue="multiple"
-          >
+          <select id="selectOption" onChange={(...args) => selectOptionChangeCallback(...args)} defaultValue="multiple">
             <option value="single">Single selection</option>
             <option value="range">Range selection</option>
             <option value="multiple">Multiple ranges selection</option>
@@ -47,7 +42,6 @@ const ExampleComponent = () => {
         width="auto"
         height="auto"
         colWidths={100}
-        rowHeights={23}
         rowHeaders={true}
         colHeaders={true}
         selectionMode="multiple" // 'single', 'range' or 'multiple',

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Implement the `headerClassName` option, which allows adding custom css classes to the column headers.",
-  "type": "added",
-  "issueOrPR": 11076,
-  "breaking": false,
-  "framework": "none"
-}

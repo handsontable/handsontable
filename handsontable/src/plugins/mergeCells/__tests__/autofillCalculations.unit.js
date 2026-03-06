@@ -10,28 +10,6 @@ function createMergedCellCoords(row, column, rowspan, colspan) {
 }
 
 describe('MergeCells-Autofill calculations', () => {
-  describe('correctSelectionAreaSize', () => {
-    it('Should correct the provided selection area, so it\'s not selecting only a part of a merged cell', () => {
-      const instance = new AutofillCalculations({
-        // mock
-        mergedCellsCollection: {
-          get: () => ({
-            row: 0,
-            col: 0,
-            rowspan: 3,
-            colspan: 3
-          })
-        }
-      });
-
-      const area = [0, 0, 0, 0];
-
-      instance.correctSelectionAreaSize(area);
-
-      expect(area).toEqual([0, 0, 2, 2]);
-    });
-  });
-
   describe('getDirection', () => {
     it('Should get the direction of the autofill process.', () => {
       const instance = new AutofillCalculations({});

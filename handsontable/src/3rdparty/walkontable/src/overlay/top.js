@@ -12,10 +12,11 @@ import {
 } from '../../../../helpers/dom/element';
 import TopOverlayTable from './../table/top';
 import { Overlay } from './_base';
-import { CORNER_DEFAULT_STYLE } from '../selection';
+import { getCornerStyle } from '../selection';
 import {
   CLONE_TOP,
 } from './constants';
+import { throwWithCause } from '../../../../helpers/errors';
 
 /**
  * @class TopOverlay
@@ -118,16 +119,21 @@ export class TopOverlay extends Overlay {
    * @returns {boolean}
    */
   setScrollPosition(pos) {
-    const rootWindow = this.domBindings.rootWindow;
+    const { rootWindow } = this.domBindings;
+    const scrollableElement = this.mainTableScrollableElement;
     let result = false;
 
-    if (this.mainTableScrollableElement === rootWindow && rootWindow.scrollY !== pos) {
-      rootWindow.scrollTo(getWindowScrollLeft(rootWindow), pos);
-      result = true;
+    if (scrollableElement === rootWindow && pos !== rootWindow.scrollY) {
+      const oldScrollX = rootWindow.scrollY;
 
-    } else if (this.mainTableScrollableElement.scrollTop !== pos) {
-      this.mainTableScrollableElement.scrollTop = pos;
-      result = true;
+      rootWindow.scrollTo(getWindowScrollLeft(rootWindow), pos);
+      result = oldScrollX !== rootWindow.scrollY;
+
+    } else if (pos !== scrollableElement.scrollTop) {
+      const oldScrollLeft = scrollableElement.scrollTop;
+
+      scrollableElement.scrollTop = pos;
+      result = oldScrollLeft !== scrollableElement.scrollTop;
     }
 
     return result;
@@ -148,7 +154,7 @@ export class TopOverlay extends Overlay {
    * @returns {number} Height sum.
    */
   sumCellSizes(from, to) {
-    const defaultRowHeight = this.wtSettings.getSetting('defaultRowHeight');
+    const defaultRowHeight = this.wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
     let row = from;
     let sum = 0;
 
@@ -178,18 +184,17 @@ export class TopOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    const { wtTable } = this.wot;
+    const { wtTable, wtViewport } = this.wot;
     const { rootDocument, rootWindow } = this.domBindings;
-    const scrollbarWidth = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
-      let width = this.wot.wtViewport.getWorkspaceWidth();
+      let width = wtViewport.getWorkspaceWidth();
 
-      if (this.wot.wtOverlays.hasScrollbarRight) {
-        width -= scrollbarWidth;
+      if (wtViewport.hasVerticalScroll()) {
+        width -= getScrollbarWidth(rootDocument);
       }
 
       width = Math.min(width, wtTable.wtRootElement.scrollWidth);
@@ -203,7 +208,7 @@ export class TopOverlay extends Overlay {
 
     let tableHeight = outerHeight(this.clone.wtTable.TABLE);
 
-    if (!this.wot.wtTable.hasDefinedSize()) {
+    if (!wtTable.hasDefinedSize()) {
       tableHeight = 0;
     }
 
@@ -215,8 +220,9 @@ export class TopOverlay extends Overlay {
    */
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
+    const cornerStyle = getCornerStyle(this.wot);
     const selectionCornerOffset = this.wot.selectionManager
-      .getFocusSelection() ? parseInt(CORNER_DEFAULT_STYLE.height, 10) / 2 : 0;
+      .getFocusSelection() ? parseInt(cornerStyle.height, 10) / 2 : 0;
 
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     holder.style.width = holder.parentNode.style.width;
@@ -239,7 +245,7 @@ export class TopOverlay extends Overlay {
       this.spreader.style.top = '0';
 
     } else {
-      throw new Error('Incorrect value of the rowsRenderCalculator');
+      throwWithCause('Incorrect value of the rowsRenderCalculator');
     }
     this.spreader.style.bottom = '';
 

@@ -12,8 +12,12 @@ tags:
 react:
   id: y66k6b2h
   metaTitle: Custom plugins - React Data Grid | Handsontable
+angular:
+  id: ompl9j5i
+  metaTitle: Custom plugins - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
+menuTag: updated
 ---
 
 # Custom plugins
@@ -32,21 +36,29 @@ You can create a custom plugin in JavaScript, and then reference it from within 
 
 :::
 
+::: only-for angular
+
+You can create a custom plugin in JavaScript, and then reference it from within your Angular app.
+
+:::
+
 ### 1. Prerequisites
 
 Import the following:
+
 - [`BasePlugin`](@/api/basePlugin.md) - a built-in interface that lets you work within Handsontable's lifecycle,
 - `registerPlugin` - a utility to register a plugin in the Handsontable plugin registry.
-
 
 ```js
 import { BasePlugin, registerPlugin } from 'handsontable/plugins';
 ```
 
 ### 2. Extend the [`BasePlugin`](@/api/basePlugin.md)
+
 The best way to start creating your own plugin is to extend the [`BasePlugin`](@/api/basePlugin.md).
 
 The [`BasePlugin`](@/api/basePlugin.md) interface takes care of:
+
 - Backward compatibility
 - Memory leak prevention
 - Properly binding your plugin's instance to Handsontable
@@ -96,7 +108,8 @@ export class CustomPlugin extends BasePlugin {
      */
     super(hotInstance);
 
-    // Initialize all your public properties in the class' constructor.
+    // Initialize all your public properties in the class'
+    // constructor.
     this.configuration = {
       enabled: false,
       msg: ''
@@ -163,11 +176,13 @@ export class CustomPlugin extends BasePlugin {
     // Get the plugin's configuration from the initialization object.
     this.configuration = this.getUnifiedConfig();
 
-    // Add all your plugin hooks here. It's a good idea to use arrow functions to keep the plugin as a context.
+    // Add all your plugin hooks here. It's a good idea to use arrow
+    // functions to keep the plugin as a context.
     this.addHook('afterChange', (changes, source) => this.onAfterChange(changes, source));
 
     // The `super` method sets the `this.enabled` property to `true`.
-    // It is a necessary step to update the plugin's settings properly.
+    // It is a necessary step to update the plugin's settings
+    // properly.
     super.enablePlugin();
   }
 
@@ -175,10 +190,12 @@ export class CustomPlugin extends BasePlugin {
    * The `disablePlugin` method disables the plugin.
    */
   disablePlugin() {
-    // Reset all of your plugin class properties to their default values here.
+    // Reset all of your plugin class properties to their default
+    // values here.
     this.configuration = null;
 
-    // The `BasePlugin.disablePlugin` method takes care of clearing the hook connections
+    // The `BasePlugin.disablePlugin` method takes care of clearing
+    // the hook connections
     // and assigning the 'false' value to the 'this.enabled' property.
     super.disablePlugin();
   }
@@ -193,14 +210,16 @@ export class CustomPlugin extends BasePlugin {
    * after updating the Handsontable instance settings.
    */
   updatePlugin() {
-    // The `updatePlugin` method needs to contain all the code needed to properly re-enable the plugin.
-    // In most cases simply disabling and enabling the plugin should do the trick.
+    // The `updatePlugin` method needs to contain all the code needed
+    // to properly re-enable the plugin.
+    // In most cases simply disabling and enabling the plugin should
+    // do the trick.
     const { enabled, msg } = this.getUnifiedConfig();
 
-    // You can decide if updating the settings triggers the the disable->enable routine or not.
+    // You can decide if updating the settings triggers the the
+    // disable->enable routine or not.
     if (enabled === false && this.enabled === true) {
       this.disablePlugin();
-
     } else if (enabled === true && this.enabled === false) {
       this.enablePlugin();
     }
@@ -240,20 +259,23 @@ export class CustomPlugin extends BasePlugin {
    * objects or index mappers created during the plugin's lifecycle.
    */
   destroy() {
-    // The `super` method cleans up the plugin's event callbacks, hook connections, and properties.
+    // The `super` method cleans up the plugin's event callbacks, hook
+    // connections, and properties.
     super.destroy();
   }
 }
 ```
 
 ### 3. Register CustomPlugin
+
 Now, register your plugin.
 
 There are two ways to register a plugin:
 
 - **Option 1**: Define a static getter named `PLUGIN_KEY` that the `registerPlugin` utility uses as the plugin's alias. Check the example in the code snippet above.
   ```js
-  // You need to register your plugin in order to use it within Handsontable.
+  // You need to register your plugin in order to use it within
+  // Handsontable.
   registerPlugin(CustomPlugin);
   ```
 - **Option 2**: Use a custom alias. Put a string in the first argument. The registerer uses that string as an alias, instead of the `PLUGIN_KEY` getter from `CustomPlugin`.
@@ -262,6 +284,7 @@ There are two ways to register a plugin:
   ```
 
 ### 4. Use your plugin in Handsontable
+
 To control the plugin's options, pass a boolean or an object at the plugin's initialization:
 
 ::: only-for javascript
@@ -277,7 +300,8 @@ const hotInstance = new Handsontable(container, {
   [CustomPlugin.PLUGIN_KEY]: {
     msg: 'user-defined message',
   },
-  // You can also initialize the plugin without enabling it at the beginning.
+  // You can also initialize the plugin without enabling it at the
+  // beginning.
   [CustomPlugin.PLUGIN_KEY]: false,
 });
 ```
@@ -297,14 +321,37 @@ import { CustomPlugin } from './customPlugin';
   customPlugin={{
     msg: 'user-defined message',
   }}
-  // You can also initialize the plugin without enabling it at the beginning.
+  // You can also initialize the plugin without enabling it at the
+  // beginning.
   customPlugin={false}
 />
 ```
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  // Pass `true` to enable the plugin with default options.
+  customPlugin: true,
+  // You can also enable the plugin by passing an object with options.
+  customPlugin: {
+    msg: "user-defined message",
+  },
+  // You can also initialize the plugin without enabling it at the beginning.
+  customPlugin: false,
+};
+```
+
+```html
+<hot-table [settings]="settings"></hot-table>
+```
+
+:::
+
 ### 5. Get a reference to the plugin's instance
+
 To use the plugin's API, call the [`getPlugin`](@/api/core.md#getplugin) method to get a reference to the plugin's instance.
 
 ::: only-for javascript
@@ -335,6 +382,47 @@ const pluginInstance = hotTableComponentRef.current.hotInstance.getPlugin(Custom
 
 :::
 
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, create a reference to the `HotTable` component, and read its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+
+```ts
+import { Component, ViewChild, AfterViewInit } from "@angular/core";
+import {
+  GridSettings,
+  HotTableComponent,
+  HotTableModule,
+} from "@handsontable/angular-wrapper";
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: ` <div>
+    <hot-table [settings]="gridSettings" />
+  </div>`,
+})
+export class ExampleComponent implements AfterViewInit {
+  @ViewChild(HotTableComponent, { static: false })
+  readonly hotTable!: HotTableComponent;
+
+  readonly gridSettings = <GridSettings>{
+    columns: [{}],
+  };
+
+  ngAfterViewInit(): void {
+    this.hotTable?.hotInstance?.getPlugin(CustomPlugin.PLUGIN_KEY);
+  }
+}
+```
+
+:::
+
 ## Related API reference
 
 - APIs:
@@ -343,3 +431,4 @@ const pluginInstance = hotTableComponentRef.current.hotInstance.getPlugin(Custom
   - [`getPlugin()`](@/api/core.md#getplugin)
 - Hooks:
   - [`afterPluginsInitialized`](@/api/hooks.md#afterpluginsinitialized)
+  

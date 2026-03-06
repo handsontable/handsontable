@@ -1,7 +1,6 @@
 import { FC } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -22,12 +21,7 @@ const ExampleComponent: FC = () => (
     colHeaders={['ID', 'First Name', 'Last Name', 'Address']}
     height="auto"
     width="auto"
-    columns={[
-      { data: 'id' },
-      { data: 'name.first' },
-      { data: 'name.last' },
-      { data: 'address' },
-    ]}
+    columns={[{ data: 'id' }, { data: 'name.first' }, { data: 'name.last' }, { data: 'address' }]}
     minSpareRows={1}
     autoWrapRow={true}
     autoWrapCol={true}

@@ -20,7 +20,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      contextMenu();
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Left');
 
@@ -35,8 +35,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(0, 0, 1, 1);
-      contextMenu();
+      await selectCell(0, 0, 1, 1);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Left');
 
@@ -53,8 +53,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(1, 1, 0, 0);
-      contextMenu();
+      await selectCell(1, 1, 0, 0);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Left');
 
@@ -71,7 +71,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      contextMenu();
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Center');
 
@@ -86,8 +86,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(0, 0, 1, 1);
-      contextMenu();
+      await selectCell(0, 0, 1, 1);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Center');
 
@@ -104,8 +104,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(1, 1, 0, 0);
-      contextMenu();
+      await selectCell(1, 1, 0, 0);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Center');
 
@@ -122,7 +122,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      contextMenu();
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Right');
 
@@ -137,8 +137,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(0, 0, 1, 1);
-      contextMenu();
+      await selectCell(0, 0, 1, 1);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Right');
 
@@ -155,8 +155,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(1, 1, 0, 0);
-      contextMenu();
+      await selectCell(1, 1, 0, 0);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Right');
 
@@ -173,7 +173,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      contextMenu();
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Justify');
 
@@ -188,8 +188,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(0, 0, 1, 1);
-      contextMenu();
+      await selectCell(0, 0, 1, 1);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Justify');
 
@@ -206,8 +206,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(1, 1, 0, 0);
-      contextMenu();
+      await selectCell(1, 1, 0, 0);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Justify');
 
@@ -224,7 +224,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      contextMenu();
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Top');
 
@@ -239,8 +239,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(0, 0, 1, 1);
-      contextMenu();
+      await selectCell(0, 0, 1, 1);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Top');
 
@@ -257,8 +257,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(1, 1, 0, 0);
-      contextMenu();
+      await selectCell(1, 1, 0, 0);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Top');
 
@@ -275,7 +275,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      contextMenu();
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Middle');
 
@@ -290,8 +290,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(0, 0, 1, 1);
-      contextMenu();
+      await selectCell(0, 0, 1, 1);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Middle');
 
@@ -308,8 +308,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(1, 1, 0, 0);
-      contextMenu();
+      await selectCell(1, 1, 0, 0);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Middle');
 
@@ -326,7 +326,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      contextMenu();
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Bottom');
 
@@ -341,8 +341,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(0, 0, 1, 1);
-      contextMenu();
+      await selectCell(0, 0, 1, 1);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Bottom');
 
@@ -359,8 +359,8 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(1, 1, 0, 0);
-      contextMenu();
+      await selectCell(1, 1, 0, 0);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Bottom');
 
@@ -381,8 +381,8 @@ describe('ContextMenu', () => {
         afterSetCellMeta: afterSetCellMetaCallback
       });
 
-      selectCell(2, 3);
-      contextMenu();
+      await selectCell(2, 3);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Right');
 
@@ -398,8 +398,8 @@ describe('ContextMenu', () => {
         beforeSetCellMeta: () => false
       });
 
-      selectCell(2, 3);
-      contextMenu();
+      await selectCell(2, 3);
+      await contextMenu();
 
       await selectContextSubmenuOption('Alignment', 'Right');
 
@@ -407,7 +407,7 @@ describe('ContextMenu', () => {
     });
 
     describe('UI', () => {
-      it('should display a disabled entry, when there\'s nothing selected', () => {
+      it('should display a disabled entry, when there\'s nothing selected', async() => {
         handsontable({
           data: createSpreadsheetData(4, 4),
           contextMenu: true,
@@ -416,7 +416,7 @@ describe('ContextMenu', () => {
           }
         });
 
-        contextMenu();
+        await contextMenu();
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Alignment';
@@ -425,29 +425,7 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
       });
 
-      it('should display a disabled entry, when the column header is selected', () => {
-        handsontable({
-          data: createSpreadsheetData(4, 4),
-          contextMenu: true,
-          rowHeaders: true,
-          colHeaders: true,
-          navigableHeaders: true,
-          beforeContextMenuShow() {
-            this.deselectCell();
-          }
-        });
-
-        selectCell(-1, 1);
-        contextMenu();
-
-        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-          return this.textContent === 'Alignment';
-        });
-
-        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
-      });
-
-      it('should display a disabled entry, when the row header is selected', () => {
+      it('should display a disabled entry, when the column header is selected', async() => {
         handsontable({
           data: createSpreadsheetData(4, 4),
           contextMenu: true,
@@ -459,8 +437,8 @@ describe('ContextMenu', () => {
           }
         });
 
-        selectCell(1, -1);
-        contextMenu();
+        await selectCell(-1, 1);
+        await contextMenu();
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Alignment';
@@ -469,7 +447,7 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
       });
 
-      it('should display a disabled entry, when the corner is selected', () => {
+      it('should display a disabled entry, when the row header is selected', async() => {
         handsontable({
           data: createSpreadsheetData(4, 4),
           contextMenu: true,
@@ -481,8 +459,8 @@ describe('ContextMenu', () => {
           }
         });
 
-        selectCell(-1, -1);
-        contextMenu();
+        await selectCell(1, -1);
+        await contextMenu();
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Alignment';
@@ -491,7 +469,29 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
       });
 
-      it('should enable the item when all rows are hidden', () => {
+      it('should display a disabled entry, when the corner is selected', async() => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          contextMenu: true,
+          rowHeaders: true,
+          colHeaders: true,
+          navigableHeaders: true,
+          beforeContextMenuShow() {
+            this.deselectCell();
+          }
+        });
+
+        await selectCell(-1, -1);
+        await contextMenu();
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Alignment';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should enable the item when all rows are hidden', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           colHeaders: true,
@@ -501,7 +501,7 @@ describe('ContextMenu', () => {
           },
         });
 
-        contextMenu(getCell(-1, 1)); // Column header "B"
+        await contextMenu(getCell(-1, 1)); // Column header "B"
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Alignment';
@@ -510,7 +510,7 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
       });
 
-      it('should enable the item when all columns are hidden', () => {
+      it('should enable the item when all columns are hidden', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -520,7 +520,7 @@ describe('ContextMenu', () => {
           },
         });
 
-        contextMenu(getCell(1, -1)); // Row header "2"
+        await contextMenu(getCell(1, -1)); // Row header "2"
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Alignment';
@@ -529,7 +529,7 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
       });
 
-      it('should disable the item when all rows are trimmed', () => {
+      it('should disable the item when all rows are trimmed', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           colHeaders: true,
@@ -537,7 +537,7 @@ describe('ContextMenu', () => {
           trimRows: [0, 1, 2, 3, 4], // The TrimmingMap should be used instead of the plugin.
         });
 
-        contextMenu(getCell(-1, 1)); // Column header "B"
+        await contextMenu(getCell(-1, 1)); // Column header "B"
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Alignment';
@@ -546,7 +546,7 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
       });
 
-      it('should disable the item when all columns are trimmed', () => {
+      it('should disable the item when all columns are trimmed', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -554,7 +554,7 @@ describe('ContextMenu', () => {
           columns: [], // The TrimmingMap should be used instead of the `columns` option.
         });
 
-        contextMenu(getCell(1, -1)); // Row header "2"
+        await contextMenu(getCell(1, -1)); // Row header "2"
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Alignment';

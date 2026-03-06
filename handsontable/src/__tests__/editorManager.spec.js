@@ -18,17 +18,38 @@ describe('editorManager', () => {
         'enter',
         'f2',
       ].forEach((key) => {
-        it(`if ${key} was pressed`, () => {
+        it(`if ${key} was pressed`, async() => {
           handsontable();
 
-          selectCell(0, 0);
+          await selectCell(1, 2);
 
           const activeEditor = getActiveEditor();
 
-          keyDownUp(key);
+          await keyDownUp(key);
 
           expect(activeEditor.isOpened()).toBe(true);
+          expect(activeEditor.row).toBe(1);
+          expect(activeEditor.col).toBe(2);
         });
+      });
+
+      it('should begin editing correct cell when focus is moved to the next selection layer', async() => {
+        handsontable();
+
+        await selectCells([
+          [0, 0, 1, 1],
+          [2, 2, 3, 3],
+        ]);
+
+        await keyDownUp(['shift', 'tab']);
+        await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+        await keyDownUp('f2');
+
+        const activeEditor = getActiveEditor();
+
+        expect(activeEditor.isOpened()).toBe(true);
+        expect(activeEditor.row).toBe(1);
+        expect(activeEditor.col).toBe(0);
       });
     });
 
@@ -80,14 +101,14 @@ describe('editorManager', () => {
         'shift',
         'tab',
       ].forEach((key) => {
-        it(`if ${key} was pressed`, () => {
+        it(`if ${key} was pressed`, async() => {
           handsontable();
 
-          selectCell(0, 0);
+          await selectCell(0, 0);
 
           const activeEditor = getActiveEditor();
 
-          keyDownUp(key);
+          await keyDownUp(key);
 
           expect(activeEditor.isOpened()).toBe(false);
         });
@@ -101,14 +122,14 @@ describe('editorManager', () => {
       ['enter'],
       ['enter', 'shift']
     ], (shortcutKey) => {
-      it('should not throw an error when pressed in case when the table is not selected', () => {
+      it('should not throw an error when pressed in case when the table is not selected', async() => {
         handsontable();
 
-        selectCell(0, 0);
-        deselectCell(0, 0);
+        await selectCell(0, 0);
+        await deselectCell(0, 0);
 
-        expect(() => {
-          keyDownUp(shortcutKey);
+        expect(async() => {
+          await keyDownUp(shortcutKey);
         }).not.toThrowError();
       });
     });

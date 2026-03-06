@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 let lastChange: (Handsontable.CellChange | null)[] | null = null;
 const container = document.querySelector('#example2')!;
@@ -38,11 +41,7 @@ hot.updateSettings({
     // ENTER
     else if (e.keyCode === 13) {
       // if last change affected a single cell and did not change it's values
-      if (
-        lastChange &&
-        lastChange.length === 1 &&
-        lastChange[0]![2] == lastChange[0]![3]
-      ) {
+      if (lastChange && lastChange.length === 1 && lastChange[0]![2] == lastChange[0]![3]) {
         e.stopImmediatePropagation();
         hot.spliceCol(selection[1], selection[0], 0, '');
         // add new cell

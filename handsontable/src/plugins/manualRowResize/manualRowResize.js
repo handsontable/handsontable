@@ -3,13 +3,11 @@ import { addClass, closest, hasClass, removeClass, outerWidth, isDetached } from
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import { ViewportRowsCalculator } from '../../3rdparty/walkontable/src';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
 export const PLUGIN_KEY = 'manualRowResize';
 export const PLUGIN_PRIORITY = 30;
-const PERSISTENT_STATE_KEY = 'manualRowHeights';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -18,8 +16,7 @@ const PERSISTENT_STATE_KEY = 'manualRowHeights';
  * @class ManualRowResize
  *
  * @description
- * This plugin allows to change rows height. To make rows height persistent the {@link Options#persistentState}
- * plugin should be enabled.
+ * This plugin allows to change rows height.
  *
  * The plugin creates additional components to make resizing possibly using user interface:
  * - handle - the draggable element that sets the desired height of the row.
@@ -171,31 +168,6 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be
-   * enabled).
-   *
-   * @fires Hooks#persistentStateSave
-   */
-  saveManualRowHeights() {
-    this.hot.runHooks('persistentStateSave', PERSISTENT_STATE_KEY, this.#rowHeightsMap.getValues());
-  }
-
-  /**
-   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option
-   * has be enabled).
-   *
-   * @returns {Array}
-   * @fires Hooks#persistentStateLoad
-   */
-  loadManualRowHeights() {
-    const storedState = {};
-
-    this.hot.runHooks('persistentStateLoad', PERSISTENT_STATE_KEY, storedState);
-
-    return storedState.value;
-  }
-
-  /**
    * Sets the new height for specified row index.
    *
    * @param {number} row Visual row index.
@@ -204,7 +176,7 @@ export class ManualRowResize extends BasePlugin {
    */
   setManualSize(row, height) {
     const physicalRow = this.hot.toPhysicalRow(row);
-    const newHeight = Math.max(height, ViewportRowsCalculator.DEFAULT_HEIGHT);
+    const newHeight = Math.max(height, this.hot.stylesHandler.getDefaultRowHeight());
 
     this.#rowHeightsMap.setValueAtIndex(physicalRow, newHeight);
 
@@ -227,6 +199,10 @@ export class ManualRowResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
+    if (this.#dblclick > 1) {
+      return;
+    }
+
     this.#currentTH = TH;
 
     const { view } = this.hot;
@@ -322,14 +298,14 @@ export class ManualRowResize extends BasePlugin {
   setupGuidePosition() {
     const handleWidth = parseInt(outerWidth(this.#handle), 10);
     const handleEndPosition = parseInt(this.#handle.style[this.inlineDir], 10) + handleWidth;
-    const maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
+    const tableWidth = this.hot.view.getTableWidth();
 
     addClass(this.#handle, 'active');
     addClass(this.#guide, 'active');
 
     this.#guide.style.top = this.#handle.style.top;
     this.#guide.style[this.inlineDir] = `${handleEndPosition}px`;
-    this.#guide.style.width = `${maximumVisibleElementWidth - handleWidth}px`;
+    this.#guide.style.width = `${tableWidth - handleWidth}px`;
     this.hot.rootElement.appendChild(this.#guide);
   }
 
@@ -449,9 +425,8 @@ export class ManualRowResize extends BasePlugin {
    */
   afterMouseDownTimeout() {
     const render = () => {
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
       this.hot.view.adjustElementsSize();
+      this.hot.render();
     };
     const resize = (row, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
@@ -536,9 +511,8 @@ export class ManualRowResize extends BasePlugin {
    */
   #onMouseUp() {
     const render = () => {
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
       this.hot.view.adjustElementsSize();
+      this.hot.render();
     };
     const runHooks = (row, forceRender) => {
       this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);
@@ -546,8 +520,6 @@ export class ManualRowResize extends BasePlugin {
       if (forceRender) {
         render();
       }
-
-      this.saveManualRowHeights();
 
       this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, false);
     };
@@ -588,7 +560,7 @@ export class ManualRowResize extends BasePlugin {
 
     // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
     // shouldn't be drawn just after removing it.
-    this.hot._registerImmediate(() => {
+    this.hot._registerMicrotask(() => {
       this.#isTriggeredByRMB = false;
     });
   }
@@ -623,7 +595,12 @@ export class ManualRowResize extends BasePlugin {
       const rowHeight = this.#rowHeightsMap.getValueAtIndex(physicalRow);
 
       if (this.hot.getSettings()[PLUGIN_KEY] && rowHeight) {
-        newHeight = rowHeight;
+        if (this.hot.getPlugin('autoRowSize')?.isEnabled()) {
+          newHeight = Math.max(rowHeight, newHeight ?? 0);
+
+        } else {
+          newHeight = rowHeight;
+        }
       }
     }
 
@@ -635,15 +612,9 @@ export class ManualRowResize extends BasePlugin {
    */
   #onMapInit() {
     const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
-    const loadedManualRowHeights = this.loadManualRowHeights();
 
     this.hot.batchExecution(() => {
-      if (typeof loadedManualRowHeights !== 'undefined') {
-        loadedManualRowHeights.forEach((height, index) => {
-          this.#rowHeightsMap.setValueAtIndex(index, height);
-        });
-
-      } else if (Array.isArray(initialSetting)) {
+      if (Array.isArray(initialSetting)) {
 
         initialSetting.forEach((height, index) => {
           this.#rowHeightsMap.setValueAtIndex(index, height);

@@ -24,52 +24,52 @@ describe('Selection', () => {
   }
 
   describe('`isSelectedByColumnHeader` method', () => {
-    it('should return `true` when the selection was performed by the `selectColumns` method only (headers off)', () => {
-      const hot = handsontable({
+    it('should return `true` when the selection was performed by the `selectColumns` method only (headers off)', async() => {
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(false);
+      expect(selection().isSelectedByColumnHeader()).toBe(false);
 
-      hot.selection.selectRows(1);
+      selection().selectRows(1);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(false);
+      expect(selection().isSelectedByColumnHeader()).toBe(false);
 
-      hot.selection.selectCells([[0, 0, 3, 0]]);
+      selection().selectCells([[0, 0, 3, 0]]);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(false);
+      expect(selection().isSelectedByColumnHeader()).toBe(false);
 
-      hot.selection.selectColumns(0);
+      selection().selectColumns(0);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(true);
+      expect(selection().isSelectedByColumnHeader()).toBe(true);
     });
 
-    it('should return `true` when the selection was performed by the `selectColumns` method only (headers on)', () => {
-      const hot = handsontable({
+    it('should return `true` when the selection was performed by the `selectColumns` method only (headers on)', async() => {
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(false);
+      expect(selection().isSelectedByColumnHeader()).toBe(false);
 
-      hot.selection.selectRows(1);
+      selection().selectRows(1);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(false);
+      expect(selection().isSelectedByColumnHeader()).toBe(false);
 
-      hot.selection.selectCells([[0, 0, 3, 0]]);
+      selection().selectCells([[0, 0, 3, 0]]);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(false);
+      expect(selection().isSelectedByColumnHeader()).toBe(false);
 
-      hot.selection.selectColumns(0);
+      selection().selectColumns(0);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(true);
+      expect(selection().isSelectedByColumnHeader()).toBe(true);
     });
 
-    it('should return `true` when the selection was performed by the `selectColumns` method only (multiple headers, navigableHeaders on)', () => {
-      const hot = handsontable({
+    it('should return `true` when the selection was performed by the `selectColumns` method only (multiple headers, navigableHeaders on)', async() => {
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: true,
         rowHeaders: true,
@@ -84,63 +84,63 @@ describe('Selection', () => {
         },
       });
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(false);
+      expect(selection().isSelectedByColumnHeader()).toBe(false);
 
-      hot.selection.selectRows(1);
+      selection().selectRows(1);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(false);
+      expect(selection().isSelectedByColumnHeader()).toBe(false);
 
-      hot.selection.selectCells([[0, 0, 3, 0]]);
+      selection().selectCells([[0, 0, 3, 0]]);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(false);
+      expect(selection().isSelectedByColumnHeader()).toBe(false);
 
-      hot.selection.selectColumns(0);
+      selection().selectColumns(0);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(true);
+      expect(selection().isSelectedByColumnHeader()).toBe(true);
     });
 
-    it('should be possible to check the columns selection for each selection layer individually', () => {
-      const hot = handsontable({
+    it('should be possible to check the columns selection for each selection layer individually', async() => {
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      listen();
-      hot.selection.selectRows(2);
-      keyDown('control/meta');
-      hot.selection.selectColumns(2);
-      keyDown('control/meta');
-      hot.selection.selectRows(0);
-      keyDown('control/meta');
-      hot.selection.selectColumns(0);
-      keyUp('control/meta');
+      await listen();
+      selection().selectRows(2);
+      await keyDown('control/meta');
+      selection().selectColumns(2);
+      await keyDown('control/meta');
+      selection().selectRows(0);
+      await keyDown('control/meta');
+      selection().selectColumns(0);
+      await keyUp('control/meta');
 
-      expect(hot.selection.isSelectedByColumnHeader(4)).toBe(false); // out of range
-      expect(hot.selection.isSelectedByColumnHeader(3)).toBe(true);
-      expect(hot.selection.isSelectedByColumnHeader(2)).toBe(false);
-      expect(hot.selection.isSelectedByColumnHeader(1)).toBe(true);
-      expect(hot.selection.isSelectedByColumnHeader(0)).toBe(false);
+      expect(selection().isSelectedByColumnHeader(4)).toBe(false); // out of range
+      expect(selection().isSelectedByColumnHeader(3)).toBe(true);
+      expect(selection().isSelectedByColumnHeader(2)).toBe(false);
+      expect(selection().isSelectedByColumnHeader(1)).toBe(true);
+      expect(selection().isSelectedByColumnHeader(0)).toBe(false);
     });
 
-    it('should return `false` when the corner is selected with column headers', () => {
-      const hot = handsontable({
+    it('should return `false` when the corner is selected with column headers', async() => {
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      hot.selection.selectAll(false, true);
+      selection().selectAll(false, true);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(true);
+      expect(selection().isSelectedByColumnHeader()).toBe(true);
 
-      hot.selection.selectAll(true, false);
+      selection().selectAll(true, false);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(false);
+      expect(selection().isSelectedByColumnHeader()).toBe(false);
 
-      hot.selection.selectAll(true, true);
+      selection().selectAll(true, true);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(false);
+      expect(selection().isSelectedByColumnHeader()).toBe(false);
     });
   });
 });

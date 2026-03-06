@@ -1,6 +1,9 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { ExportFile } from 'handsontable/plugins';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example2')!;
 

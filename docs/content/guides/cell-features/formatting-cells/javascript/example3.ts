@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example3')!;
 
@@ -33,6 +36,7 @@ new Handsontable(container, {
       top: {
         width: 2,
         color: '#5292F7',
+        style: 'dotted',
       },
       bottom: {
         width: 2,
@@ -41,6 +45,7 @@ new Handsontable(container, {
       start: {
         width: 2,
         color: 'orange',
+        style: 'dashed',
       },
       end: {
         width: 2,

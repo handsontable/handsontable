@@ -8,6 +8,9 @@ canonicalUrl: /vue3-basic-example
 react:
   id: 8nvt7139
   metaTitle: Basic example - Vue 3 Data Grid | Handsontable
+angular:
+  id: kojv7mkj
+  metaTitle: Basic example - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

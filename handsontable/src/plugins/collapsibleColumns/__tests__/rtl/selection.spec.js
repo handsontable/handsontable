@@ -19,7 +19,7 @@ describe('CollapsibleColumns (RTL mode)', () => {
   });
 
   describe('selection', () => {
-    it('should move focus to the nearest left column after collapsing (single cell selection)', () => {
+    it('should move focus to the nearest left column after collapsing (single cell selection)', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -31,7 +31,7 @@ describe('CollapsibleColumns (RTL mode)', () => {
         collapsibleColumns: true,
       });
 
-      selectCell(1, 3);
+      await selectCell(1, 3);
       $(getCell(-1, 2).querySelector('.collapsibleIndicator')) // Collapse header "C3"
         .simulate('mousedown')
         .simulate('mouseup')
@@ -65,7 +65,7 @@ describe('CollapsibleColumns (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,5 from: 1,5 to: 1,5']);
     });
 
-    it('should move focus to the nearest right column when there is no column visible on the left after collapsing', () => {
+    it('should move focus to the nearest right column when there is no column visible on the left after collapsing', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -84,9 +84,9 @@ describe('CollapsibleColumns (RTL mode)', () => {
       columnMapper.setValueAtIndex(8, true);
       columnMapper.setValueAtIndex(9, true);
 
-      render();
+      await render();
 
-      selectCell(1, 3, 2, 5);
+      await selectCell(1, 3, 2, 5);
       $(getCell(-3, 1).querySelector('.collapsibleIndicator')) // Collapse header "B1"
         .simulate('mousedown')
         .simulate('mouseup')

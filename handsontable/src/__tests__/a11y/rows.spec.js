@@ -25,9 +25,9 @@ describe('Row-related a11y config', () => {
   });
 
   describe('DOM structure', () => {
-    it('should have the `role=row` attribute set', () => {
+    it('should have the `role=row` attribute set', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 15),
+        data: createSpreadsheetData(50, 15),
         rowHeaders: true,
         colHeaders: true,
         fixedRowsTop: 2,
@@ -60,9 +60,9 @@ describe('Row-related a11y config', () => {
     });
 
     it('should have the `aria-rowindex` attribute set, taken the headers into account (headers and cells share the' +
-      ' row indexes)', () => {
+      ' row indexes)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 15),
+        data: createSpreadsheetData(50, 15),
         rowHeaders: true,
         colHeaders: true,
         fixedRowsTop: 2,

@@ -3,8 +3,10 @@
 # This script generates JS/JSX examples from TS/TSX files and formats them using ESLint.
 # Usage:
 #   ./code-examples-generator.sh path/to/file.ts - generates single example path/to/file.js
-#   ./code-examples-generator.sh --generateAll - generates all examples in the content/guides directory
-#   ./code-examples-generator.sh --formatAllTsExamples - runs the autoformatter on all TS and TSX example files in the content/guides directory
+#   ./code-examples-generator.sh --generateAll - generates js files for all example files
+#   ./code-examples-generator.sh --formatAllTsExamples - runs the autoformatter on all example files
+#
+# Note: The *all* commands go through all example files in the content/guides directory but ignore the files in the **/angular/** subdirectories.
 
 format() {
   eslint --fix --no-ignore -c eslintrc.examples.js "$1" > /dev/null
@@ -72,7 +74,7 @@ go_through_all_examples_concurrently() {
 
   echo "Running $jobs_limit jobs in parallel..."
 
-  find content/guides -type f \( -name "*.ts" -o -name "*.tsx" \) -print0 | while read -d $'\0' source_input_filename; do
+  find content/guides -type f -not -path "*/angular/*" \( -name "*.ts" -o -name "*.tsx" \) -print0 | while read -d $'\0' source_input_filename; do
     while test "$(jobs | wc -l)" -ge "$jobs_limit"; do
       sleep 1
     done

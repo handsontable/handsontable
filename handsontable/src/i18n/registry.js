@@ -1,8 +1,7 @@
 import { isObject, deepClone } from '../helpers/object';
-import { arrayEach } from './../helpers/array';
 import { isUndefined } from '../helpers/mixed';
 import { extendNotExistingKeys, normalizeLanguageCode, warnUserAboutLanguageRegistration } from './utils';
-import staticRegister from '../utils/staticRegister';
+import { staticRegister } from '../utils/staticRegister';
 import { getPhraseFormatters } from './phraseFormatters';
 import DEFAULT_DICTIONARY from './languages/en-US';
 
@@ -144,13 +143,9 @@ export function getTranslatedPhrase(languageCode, dictionaryKey, argumentsForFor
  * @returns {Array|string}
  */
 function getFormattedPhrase(phrasePropositions, argumentsForFormatters) {
-  let formattedPhrasePropositions = phrasePropositions;
-
-  arrayEach(getPhraseFormatters(), (formatter) => {
-    formattedPhrasePropositions = formatter(phrasePropositions, argumentsForFormatters);
-  });
-
-  return formattedPhrasePropositions;
+  return getPhraseFormatters().reduce((phrase, formatter) => {
+    return formatter(phrase, argumentsForFormatters);
+  }, phrasePropositions);
 }
 
 /**

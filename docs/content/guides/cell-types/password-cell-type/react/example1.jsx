@@ -1,6 +1,5 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -22,12 +21,7 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      columns={[
-        { data: 'id' },
-        { data: 'name.first' },
-        { data: 'name.last' },
-        { data: 'password', type: 'password' },
-      ]}
+      columns={[{ data: 'id' }, { data: 'name.first' }, { data: 'name.last' }, { data: 'password', type: 'password' }]}
     />
   );
 };

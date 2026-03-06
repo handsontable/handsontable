@@ -16,13 +16,13 @@ describe('CopyPaste', () => {
   });
 
   describe('enabling/disabling plugin', () => {
-    it('should copyPaste be set enabled as default', () => {
-      const hot = handsontable();
+    it('should copyPaste be set enabled as default', async() => {
+      handsontable();
 
-      expect(hot.getSettings().copyPaste).toBeTruthy();
+      expect(getSettings().copyPaste).toBeTruthy();
     });
 
-    it('should do not create textarea element if copyPaste is disabled on initialization', () => {
+    it('should do not create textarea element if copyPaste is disabled on initialization', async() => {
       handsontable({
         copyPaste: false
       });
@@ -30,7 +30,7 @@ describe('CopyPaste', () => {
       expect($('.HandsontableCopyPaste').length).toEqual(0);
     });
 
-    it('should do not create textarea element if copyPaste is disabled on initialization', () => {
+    it('should do not create textarea element if copyPaste is disabled on initialization', async() => {
       handsontable({
         copyPaste: false
       });
@@ -51,7 +51,7 @@ describe('CopyPaste', () => {
       }
     });
 
-    it('should disable copyPaste only in particular table', () => {
+    it('should disable copyPaste only in particular table', async() => {
       const hot1 = handsontable();
       const hot2 = spec().$container2.handsontable({ copyPaste: false }).handsontable('getInstance');
 
@@ -59,14 +59,14 @@ describe('CopyPaste', () => {
       expect(hot2.getPlugin('CopyPaste').isEnabled()).toBe(false);
     });
 
-    it('should not create HandsontableCopyPaste element until the table will be selected', () => {
+    it('should not create HandsontableCopyPaste element until the table will be selected', async() => {
       handsontable();
       spec().$container2.handsontable();
 
       expect($('.HandsontableCopyPaste').length).toBe(0);
     });
 
-    it('should not touch focusable element borrowed from cell editors', () => {
+    it('should not touch focusable element borrowed from cell editors', async() => {
       const hot1 = handsontable();
       const hot2 = spec().$container2.handsontable().handsontable('getInstance');
 

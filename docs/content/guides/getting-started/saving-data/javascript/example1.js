@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example1');
 const exampleConsole = document.querySelector('#output');
@@ -34,9 +37,7 @@ const hot = new Handsontable(container, {
       },
       body: JSON.stringify({ data: change }),
     }).then(() => {
-      exampleConsole.innerText = `Autosaved (${change.length} cell${
-        change.length > 1 ? 's' : ''
-      })`;
+      exampleConsole.innerText = `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`;
       console.log('The POST request is only used here for the demo purposes');
     });
   },

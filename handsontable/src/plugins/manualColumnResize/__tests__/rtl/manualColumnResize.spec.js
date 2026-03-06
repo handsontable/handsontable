@@ -18,7 +18,7 @@ describe('manualColumnResize (RTL)', () => {
 
   it('should resize (narrowing) selected columns', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 20),
+      data: createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true
     });
@@ -44,14 +44,26 @@ describe('manualColumnResize (RTL)', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).width()).toBe(21);
-    expect($columnHeaders.eq(2).width()).toBe(21);
-    expect($columnHeaders.eq(3).width()).toBe(21);
+    expect($columnHeaders.eq(1).outerWidth()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(20);
+      main.toBe(20);
+      horizon.toBe(20);
+    });
+    expect($columnHeaders.eq(2).outerWidth()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(20);
+      main.toBe(20);
+      horizon.toBe(20);
+    });
+    expect($columnHeaders.eq(3).outerWidth()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(20);
+      main.toBe(20);
+      horizon.toBe(20);
+    });
   });
 
   it('should resize (expanding) selected columns', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 20),
+      data: createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true
     });
@@ -77,9 +89,21 @@ describe('manualColumnResize (RTL)', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).width()).toBe(200);
-    expect($columnHeaders.eq(2).width()).toBe(200);
-    expect($columnHeaders.eq(3).width()).toBe(200);
+    expect($columnHeaders.eq(1).outerWidth()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(196);
+      main.toBe(196);
+      horizon.toBe(198);
+    });
+    expect($columnHeaders.eq(2).outerWidth()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(196);
+      main.toBe(196);
+      horizon.toBe(198);
+    });
+    expect($columnHeaders.eq(3).outerWidth()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(196);
+      main.toBe(196);
+      horizon.toBe(198);
+    });
   });
 
   describe('handle and guide', () => {
@@ -95,7 +119,8 @@ describe('manualColumnResize (RTL)', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it('should display the resize handle in the proper position and with a proper size', () => {
+      it.forTheme('classic')(`should display the resize handle in the proper position and with
+ a proper size`, async() => {
         handsontable({
           layoutDirection,
           data: [
@@ -116,11 +141,63 @@ describe('manualColumnResize (RTL)', () => {
         const $handle = $('.manualColumnResizer');
 
         expect($handle.offset().left)
-          .toEqual($headerTH.offset().left + 1);
+          .toEqual($headerTH.offset().left - ($handle.outerWidth() / 2) + 1);
         expect($handle.height()).toEqual($headerTH.outerHeight());
       });
 
-      it('should display the resize handle in the proper z-index and be greater than top overlay z-index', () => {
+      it.forTheme('main')(`should display the resize handle in the proper position and with
+ a proper size`, async() => {
+        handsontable({
+          layoutDirection,
+          data: [
+            { id: 1, name: 'Ted', lastName: 'Right' },
+            { id: 2, name: 'Frank', lastName: 'Honest' },
+            { id: 3, name: 'Joan', lastName: 'Well' },
+            { id: 4, name: 'Sid', lastName: 'Strong' },
+            { id: 5, name: 'Jane', lastName: 'Neat' }
+          ],
+          colHeaders: true,
+          manualColumnResize: true
+        });
+
+        const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
+
+        $headerTH.simulate('mouseover');
+
+        const $handle = $('.manualColumnResizer');
+
+        expect($handle.offset().left)
+          .toEqual($headerTH.offset().left - ($handle.outerWidth() / 2) + 1);
+        expect($handle.height()).toEqual($headerTH.outerHeight());
+      });
+
+      it.forTheme('horizon')(`should display the resize handle in the proper position and with
+ a proper size`, async() => {
+        handsontable({
+          layoutDirection,
+          data: [
+            { id: 1, name: 'Ted', lastName: 'Right' },
+            { id: 2, name: 'Frank', lastName: 'Honest' },
+            { id: 3, name: 'Joan', lastName: 'Well' },
+            { id: 4, name: 'Sid', lastName: 'Strong' },
+            { id: 5, name: 'Jane', lastName: 'Neat' }
+          ],
+          colHeaders: true,
+          manualColumnResize: true
+        });
+
+        const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
+
+        $headerTH.simulate('mouseover');
+
+        const $handle = $('.manualColumnResizer');
+
+        expect($handle.offset().left)
+          .toEqual($headerTH.offset().left - ($handle.outerWidth() / 2) + 1);
+        expect($handle.height()).toEqual($headerTH.outerHeight());
+      });
+
+      it('should display the resize handle in the proper z-index and be greater than top overlay z-index', async() => {
         handsontable({
           layoutDirection,
           data: [

@@ -1,7 +1,10 @@
 import { useState, useContext, MouseEvent, createContext } from 'react';
-import { HotTable, HotColumn } from '@handsontable/react';
-import 'handsontable/dist/handsontable.full.min.css';
-import Handsontable from 'handsontable';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 type RendererProps = {
   TD?: HTMLTableCellElement;
@@ -44,28 +47,14 @@ const ExampleComponent = () => {
         </label>
       </div>
       <HotTable
-        data={[
-          ['A1'],
-          ['A2'],
-          ['A3'],
-          ['A4'],
-          ['A5'],
-          ['A6'],
-          ['A7'],
-          ['A8'],
-          ['A9'],
-          ['A10'],
-        ]}
+        data={[['A1'], ['A2'], ['A3'], ['A4'], ['A5'], ['A6'], ['A7'], ['A8'], ['A9'], ['A10']]}
         rowHeaders={true}
         autoRowSize={false}
         autoColumnSize={false}
         height="auto"
         licenseKey={'non-commercial-and-evaluation'}
       >
-        <HotColumn>
-          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-          <CustomRenderer hot-renderer />
-        </HotColumn>
+        <HotColumn renderer={CustomRenderer} />
       </HotTable>
     </HighlightContext.Provider>
   );

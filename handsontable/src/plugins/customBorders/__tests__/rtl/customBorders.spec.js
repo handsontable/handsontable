@@ -24,7 +24,7 @@ describe('CustomBorders (RTL mode)', () => {
   });
 
   describe('enabling/disabling plugin', () => {
-    it('should throw an error while initialization if the mixed API is used ("start"/"end" and "left"/"right")', () => {
+    it('should throw an error while initialization if the mixed API is used ("start"/"end" and "left"/"right")', async() => {
       expect(() => {
         handsontable({
           customBorders: [{
@@ -35,11 +35,11 @@ describe('CustomBorders (RTL mode)', () => {
             top: GREEN_BORDER
           }]
         });
-      }).toThrowError('The "left"/"right" and "start"/"end" options should not be used together. ' +
-                      'Please use only the option "start"/"end".');
+      }).toThrowWithCause('The "left"/"right" and "start"/"end" options should not be used together. ' +
+                      'Please use only the option "start"/"end".', { handsontable: true });
     });
 
-    it('should not be possible to use backward compatible API ("left"/"right") in RTL mode (initialization)', () => {
+    it('should not be possible to use backward compatible API ("left"/"right") in RTL mode (initialization)', async() => {
       expect(() => {
         handsontable({
           customBorders: [{
@@ -48,10 +48,11 @@ describe('CustomBorders (RTL mode)', () => {
             right: RED_BORDER,
           }]
         });
-      }).toThrowError('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".');
+      }).toThrowWithCause('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".',
+        { handsontable: true });
     });
 
-    it('should not be possible to use backward compatible API ("left"/"right") in RTL mode (updateSettings call)', () => {
+    it('should not be possible to use backward compatible API ("left"/"right") in RTL mode (updateSettings call)', async() => {
       handsontable({
         customBorders: [{
           row: 2,
@@ -61,6 +62,7 @@ describe('CustomBorders (RTL mode)', () => {
       });
 
       expect(() => {
+        // eslint-disable-next-line handsontable/require-await
         updateSettings({
           customBorders: [{
             row: 2,
@@ -68,11 +70,12 @@ describe('CustomBorders (RTL mode)', () => {
             right: RED_BORDER,
           }]
         });
-      }).toThrowError('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".');
+      }).toThrowWithCause('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".',
+        { handsontable: true });
     });
   });
 
-  it('should render specific borders provided in the configuration', () => {
+  it('should render specific borders provided in the configuration', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
@@ -112,7 +115,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should throw an error when the "left"/"right" options are passed to the setBorders method', () => {
+  it('should throw an error when the "left"/"right" options are passed to the setBorders method', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: true
@@ -124,10 +127,11 @@ describe('CustomBorders (RTL mode)', () => {
       customBorders.setBorders([1, 1, 2, 2], {
         left: GREEN_BORDER,
       });
-    }).toThrowError('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".');
+    }).toThrowWithCause('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".',
+      { handsontable: true });
   });
 
-  it('should draw new borders by use setBorders method (while selected)', () => {
+  it('should draw new borders by use setBorders method (while selected)', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: true
@@ -135,12 +139,12 @@ describe('CustomBorders (RTL mode)', () => {
 
     const customBorders = getPlugin('customBorders');
 
-    selectCells([[1, 1, 2, 2]]);
+    await selectCells([[1, 1, 2, 2]]);
     customBorders.setBorders(getSelected(), {
       start: GREEN_BORDER,
       end: RED_BORDER
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(1, 1).borders.top).toEqual(EMPTY);
     expect(getCellMeta(1, 1).borders.bottom).toEqual(EMPTY);
@@ -166,7 +170,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(4 * 5); // there are 4 cells in the provided range
   });
 
-  it('should draw new borders by use setBorders method (while deselected)', () => {
+  it('should draw new borders by use setBorders method (while deselected)', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: true
@@ -203,7 +207,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(4 * 5); // there are 4 cells in the provided range
   });
 
-  it('should redraw existing borders by use setBorders method (while selected)', () => {
+  it('should redraw existing borders by use setBorders method (while selected)', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
@@ -217,12 +221,12 @@ describe('CustomBorders (RTL mode)', () => {
 
     const customBorders = getPlugin('customBorders');
 
-    selectCell(2, 2);
+    await selectCell(2, 2);
     customBorders.setBorders(getSelectedRange(), {
       start: GREEN_BORDER,
       end: RED_BORDER
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(2, 2).borders.top).toEqual(GREEN_BORDER);
     expect(getCellMeta(2, 2).borders.bottom).toEqual(GREEN_BORDER);
@@ -232,7 +236,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should redraw existing borders by use setBorders method (while deselected)', () => {
+  it('should redraw existing borders by use setBorders method (while deselected)', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
@@ -259,7 +263,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should hide only specific border by use setBorders method with {hide: true} (while selected)', () => {
+  it('should hide only specific border by use setBorders method with {hide: true} (while selected)', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
@@ -273,11 +277,11 @@ describe('CustomBorders (RTL mode)', () => {
 
     const customBorders = getPlugin('customBorders');
 
-    selectCell(2, 2);
+    await selectCell(2, 2);
     customBorders.setBorders(getSelected(), {
       end: EMPTY
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(2, 2).borders.top).toEqual(GREEN_BORDER);
     expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
@@ -287,7 +291,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should hide only specific border by use setBorders method with {hide: true} (while deselected)', () => {
+  it('should hide only specific border by use setBorders method with {hide: true} (while deselected)', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
@@ -313,7 +317,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should hide only specific border by use setBorders method with {end: false} (while selected)', () => {
+  it('should hide only specific border by use setBorders method with {end: false} (while selected)', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
@@ -327,11 +331,11 @@ describe('CustomBorders (RTL mode)', () => {
 
     const customBorders = getPlugin('customBorders');
 
-    selectCell(2, 2);
+    await selectCell(2, 2);
     customBorders.setBorders(getSelected(), {
       end: false
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(2, 2).borders.top).toEqual(GREEN_BORDER);
     expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
@@ -361,7 +365,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should hide only specific border by use setBorders method with {end: false} (while deselected)', () => {
+  it('should hide only specific border by use setBorders method with {end: false} (while deselected)', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
@@ -407,7 +411,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should return borders from the selected area by use getBorders method', () => {
+  it('should return borders from the selected area by use getBorders method', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
@@ -421,10 +425,10 @@ describe('CustomBorders (RTL mode)', () => {
 
     const customBorders = getPlugin('customBorders');
 
-    selectCells([[1, 1, 2, 2]]);
+    await selectCells([[1, 1, 2, 2]]);
     const borders = customBorders.getBorders(getSelected());
 
-    deselectCell();
+    await deselectCell();
 
     expect(borders.length).toEqual(1);
     expect(borders[0].top).toEqual(GREEN_BORDER);
@@ -435,7 +439,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should return all borders by use getBorders method without parameter', () => {
+  it('should return all borders by use getBorders method without parameter', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
@@ -472,7 +476,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(9 * 5); // there are 9 cells in the provided range
   });
 
-  it('should clear borders from area by use clearBorders method (while selected)', () => {
+  it('should clear borders from area by use clearBorders method (while selected)', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
@@ -510,9 +514,9 @@ describe('CustomBorders (RTL mode)', () => {
     0111
     */
 
-    selectCells([[0, 0, 2, 2]]);
+    await selectCells([[0, 0, 2, 2]]);
     customBorders.clearBorders(getSelectedRange());
-    deselectCell();
+    await deselectCell();
 
     /*
     Is:
@@ -539,7 +543,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(5 * 5);
   });
 
-  it('should clear borders from area by use clearBorders method (while deselected)', () => {
+  it('should clear borders from area by use clearBorders method (while deselected)', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
@@ -604,7 +608,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(5 * 5);
   });
 
-  it('should clear all borders by use clearBorders method without parameter', () => {
+  it('should clear all borders by use clearBorders method without parameter', async() => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
@@ -659,7 +663,7 @@ describe('CustomBorders (RTL mode)', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Top');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
@@ -678,7 +682,7 @@ describe('CustomBorders (RTL mode)', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Left');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
@@ -696,7 +700,7 @@ describe('CustomBorders (RTL mode)', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Right');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
@@ -714,7 +718,7 @@ describe('CustomBorders (RTL mode)', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Bottom');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(DEFAULT_BORDER);
@@ -740,7 +744,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(5);
 
     await selectContextSubmenuOption('Borders', 'Remove border');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders).toBeUndefined();
     expect(countVisibleCustomBorders()).toBe(0);

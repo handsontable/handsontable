@@ -1,0 +1,6 @@
+@charset "UTF-8";
+@use "base";
+@use "components";
+@include base.base-styles();
+@include components.core-components-styles();
+@include components.plugins-components-styles();

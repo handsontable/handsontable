@@ -1,27 +1,21 @@
 {
-  "buildCommand": "build",
+  "buildCommand": "all build -- --e examples visual-tests",
   "packages": [
-    "wrappers/angular",
     "handsontable",
-    "wrappers/react",
-    "wrappers/vue",
+    "wrappers/angular-wrapper",
+    "wrappers/react-wrapper",
     "wrappers/vue3"
   ],
   "publishDirectory": {
     "handsontable": "handsontable/tmp",
-    "@handsontable/angular": "wrappers/angular/dist/hot-table",
-    "@handsontable/react": "wrappers/react",
-    "@handsontable/vue": "wrappers/vue",
+    "@handsontable/angular-wrapper": "wrappers/angular-wrapper/dist/hot-table",
+    "@handsontable/react-wrapper": "wrappers/react-wrapper",
     "@handsontable/vue3": "wrappers/vue3"
-
   },
   "sandboxes": [
     "github/handsontable/handsontable/tree/develop/examples/prs/js/",
     "github/handsontable/handsontable/tree/develop/examples/prs/ts/",
-    "github/handsontable/handsontable/tree/develop/examples/prs/react/",
-    "github/handsontable/handsontable/tree/develop/examples/prs/vue/",
-    "github/handsontable/handsontable/tree/develop/examples/prs/vue3/",
-    "github/handsontable/handsontable/tree/develop/examples/prs/angular/"
+    "github/handsontable/handsontable/tree/develop/examples/prs/react/"
   ],
   "node": "18"
 }

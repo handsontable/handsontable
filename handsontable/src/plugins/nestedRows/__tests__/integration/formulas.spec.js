@@ -15,7 +15,7 @@ describe('NestedRows', () => {
   });
 
   describe('working with Formulas plugin', () => {
-    it('should process formula in a child row', () => {
+    it('should process formula in a child row', async() => {
       handsontable({
         data: [
           {

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Implemented the Undo/Redo logic for the ColumnSorting/ManualColumnSorting plugins and made some adjustments for it to work properly.",
-  "type": "added",
-  "issueOrPR": 11037,
-  "breaking": false,
-  "framework": "none"
-}

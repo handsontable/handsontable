@@ -17,7 +17,11 @@ const NEXT_EXAMPLES_DIR = path.join(REPO_ROOT_DIR, 'examples', 'next');
 const TMP_DIR_NAME = 'tmp';
 const TMP_DIR = path.join('examples', TMP_DIR_NAME);
 
-const HOT_WRAPPERS = ['@handsontable/react', '@handsontable/angular', '@handsontable/vue'];
+const HOT_WRAPPERS = [
+  '@handsontable/react-wrapper',
+  '@handsontable/angular-wrapper',
+  '@handsontable/vue3'
+];
 
 const [shellCommand, hotVersion] = process.argv.slice(2);
 

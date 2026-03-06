@@ -1,6 +1,5 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -66,7 +65,7 @@ const ExampleComponent = () => {
           type: 'numeric',
           data: 'price',
           numericFormat: {
-            pattern: '$ 0,0.00',
+            pattern: '$0,0.00',
             culture: 'en-US',
           },
         },
@@ -96,11 +95,7 @@ const ExampleComponent = () => {
       // enable filtering
       filters={true}
       // enable the column menu, but display only the filter menu items
-      dropdownMenu={[
-        'filter_by_condition',
-        'filter_by_value',
-        'filter_action_bar',
-      ]}
+      dropdownMenu={['filter_by_condition', 'filter_by_value', 'filter_action_bar']}
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}

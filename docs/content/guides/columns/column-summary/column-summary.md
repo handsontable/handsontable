@@ -16,6 +16,9 @@ tags:
 react:
   id: r3x4l0gp
   metaTitle: Column summary - React Data Grid | Handsontable
+angular:
+  id: 1rptt5bu
+  metaTitle: Column summary - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
@@ -31,6 +34,7 @@ Calculate sum, min, max, count, average or custom aggregates of individual colum
 The [`ColumnSummary`](@/api/columnSummary.md) plugin lets you quickly calculate and display a column summary.
 
 To customize your column summaries, you can:
+
 - Decide how a summary is calculated:
     - Either select one of the [built-in summary functions](#built-in-summary-functions)
     - Or implement a [custom summary function](#implement-a-custom-summary-function)
@@ -58,6 +62,17 @@ This example calculates and displays five different column summaries:
 
 @[code](@/content/guides/columns/column-summary/react/example1.jsx)
 @[code](@/content/guides/columns/column-summary/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example1.ts)
+@[code](@/content/guides/columns/column-summary/angular/example1.html)
 
 :::
 
@@ -93,8 +108,11 @@ To enable the [`ColumnSummary`](@/api/columnSummary.md) plugin, set the [`column
 ::: only-for javascript
 
 ```js
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const hot = new Handsontable(document.querySelector('#example'), {
   licenseKey: 'non-commercial-and-evaluation',
@@ -105,7 +123,8 @@ const hot = new Handsontable(document.querySelector('#example'), {
   ],
   colHeaders: true,
   rowHeaders: true,
-  // set the `columnSummary` configuration option to an array of objects
+  // set the `columnSummary` configuration option to an array of
+  // objects
   columnSummary: [
     {},
     {}
@@ -118,9 +137,8 @@ const hot = new Handsontable(document.querySelector('#example'), {
 ::: only-for react
 
 ```jsx
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -145,6 +163,31 @@ const ExampleComponent = () => {
     />
   );
 };
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
+
+const data = [
+  [1, 2, 3, 4, 5],
+  [6, 7, 8, 9, 10],
+  [11, 12, 13, 14, 15],
+];
+const configurationOptions: GridSettings = {
+  licenseKey: "non-commercial-and-evaluation",
+  colHeaders: true,
+  rowHeaders: true,
+  // set the `columnSummary` configuration option to an array of objects
+  columnSummary: [{}, {}],
+};
+```
+
+```html
+<hot-table [data]="data" [settings]="configurationOptions"></hot-table>
 ```
 
 :::
@@ -195,6 +238,25 @@ columnSummary={[
 
 :::
 
+::: only-for angular
+
+```js
+columnSummary: [
+  {
+    // set this column summary to summarize the first column
+    // (i.e. a column with physical index `0`)
+    sourceColumn: 0,
+  },
+  {
+    // set this column summary to summarize the second column
+    // (i.e. a column with physical index `1`)
+    sourceColumn: 1,
+  },
+];
+```
+
+:::
+
 You can also summarize individual ranges of rows (rather than a whole column). To do this, set the [`ranges`](@/api/columnSummary.md#options) option to an array of arrays, where each array represents a single row range.
 
 ::: only-for javascript
@@ -203,14 +265,16 @@ You can also summarize individual ranges of rows (rather than a whole column). T
 columnSummary: [
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-2, 4, and 6-8
+    // set this column summary to only summarize rows with physical
+    // indexes 0-2, 4, and 6-8
     ranges: [
       [0, 2], [4], [6, 8]
     ],
   },
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-5
+    // set this column summary to only summarize rows with physical
+    // indexes 0-5
     ranges: [
       [0, 5]
     ],
@@ -226,19 +290,42 @@ columnSummary: [
 columnSummary={[
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-2, 4, and 6-8
+    // set this column summary to only summarize rows with physical
+    // indexes 0-2, 4, and 6-8
     ranges: [
       [0, 2], [4], [6, 8]
     ],
   },
   {
     sourceColumn: 0,
-    // set this column summary to only summarize rows with physical indexes 0-5
+    // set this column summary to only summarize rows with physical
+    // indexes 0-5
     ranges: [
       [0, 5]
     ],
   }
 ]}
+```
+
+:::
+
+::: only-for angular
+
+```js
+columnSummary: [
+  {
+    sourceColumn: 0,
+    // set this column summary to only summarize rows with physical
+    // indexes 0-2, 4, and 6-8
+    ranges: [[0, 2], [4], [6, 8]],
+  },
+  {
+    sourceColumn: 0,
+    // set this column summary to only summarize rows with physical
+    // indexes 0-5
+    ranges: [[0, 5]],
+  },
+];
 ```
 
 :::
@@ -248,6 +335,7 @@ columnSummary={[
 Now, decide how you want to calculate your column summary.
 
 You can:
+
 - Either select one of the [built-in summary functions](#built-in-summary-functions)
 - Or implement a [custom summary function](#implement-a-custom-summary-function)
 
@@ -257,15 +345,17 @@ You can:
 columnSummary: [
   {
     sourceColumn: 0,
-    // set this column summary to return the sum all values in the summarized column
+    // set this column summary to return the sum all values in the
+    // summarized column
     type: 'sum',
   },
   {
     sourceColumn: 1,
-    // set this column summary to return the lowest value in the summarized column
+    // set this column summary to return the lowest value in the
+    // summarized column
     type: 'min',
-  }
-]
+  },
+];
 ```
 
 :::
@@ -276,15 +366,38 @@ columnSummary: [
 columnSummary={[
   {
     sourceColumn: 0,
-    // set this column summary to return the sum all values in the summarized column
+    // set this column summary to return the sum all values in the
+    // summarized column
     type: 'sum',
   },
   {
     sourceColumn: 1,
-    // set this column summary to return the lowest value in the summarized column
+    // set this column summary to return the lowest value in the
+    // summarized column
     type: 'min',
   }
 ]}
+```
+
+:::
+
+::: only-for angular
+
+```js
+columnSummary: [
+  {
+    sourceColumn: 0,
+    // set this column summary to return the sum all values in the
+    // summarized column
+    type: "sum",
+  },
+  {
+    sourceColumn: 1,
+    // set this column summary to return the lowest value in the
+    // summarized column
+    type: "min",
+  },
+];
 ```
 
 :::
@@ -304,7 +417,7 @@ columnSummary: [
     type: 'sum',
     // set this column summary to display its result in cell (4, 0)
     destinationRow: 4,
-    destinationColumn: 0
+    destinationColumn: 0,
   },
   {
     sourceColumn: 1,
@@ -341,6 +454,29 @@ columnSummary={[
 
 :::
 
+::: only-for angular
+
+```js
+columnSummary: [
+  {
+    sourceColumn: 0,
+    type: "sum",
+    // set this column summary to display its result in cell (4, 0)
+    destinationRow: 4,
+    destinationColumn: 0,
+  },
+  {
+    sourceColumn: 1,
+    type: "min",
+    // set this column summary to display its result in cell (4, 1)
+    destinationRow: 4,
+    destinationColumn: 1,
+  },
+];
+```
+
+:::
+
 ::: tip
 
 Don't change the [`className`](@/api/options.md#classname) metadata of the summary row.
@@ -354,6 +490,7 @@ If you need to style the summary row, use the class name assigned automatically 
 The [`ColumnSummary`](@/api/columnSummary.md) plugin doesn't automatically add new rows to display its summary results.
 
 So, if you always want to display your column summary result below your existing rows, you need to:
+
 1. Add an empty row to the bottom of your grid (to avoid overwriting your existing rows).
 2. Reverse row coordinates for your column summary (to always display your summary result at the bottom).
 
@@ -385,14 +522,26 @@ To reverse row coordinates for your column summary, set the [`reversedRowCoords`
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example2.ts)
+@[code](@/content/guides/columns/column-summary/angular/example2.html)
+
+:::
+
+:::
+
 ## Set up column summaries, using a function
 
 Instead of [setting up the column summary options manually](#set-up-a-column-summary), you can provide the whole column summary configuration as a function that returns a required array of objects.
 
 The example below sets up five different column summaries. To do this, it:
+
 - Defines a function named `generateData` which generates an array of arrays with dummy numeric data, and which lets you add an empty row at the bottom of the grid (to make room for displaying column summaries)
 - Sets Handsontable's [`columnSummary`](@/api/options.md#columnsummary) configuration option to a function that:
-    - Iterates over visible columns
+      - Iterates over visible columns
     - For each visible column, adds a column summary with a configuration
     - To display the column summaries in the empty row added by `generateData`, sets the [`reversedRowCoords`](@/api/columnSummary.md#options) option to `true`, and the [`destinationRow`](@/api/columnSummary.md#options) option to `0`
 
@@ -418,6 +567,17 @@ The example below sets up five different column summaries. To do this, it:
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example3.ts)
+@[code](@/content/guides/columns/column-summary/angular/example3.html)
+
+:::
+
+:::
+
 Using a function to provide a column summary configuration lets you set up all sorts of more complex column summaries. For example, you can sum subtotals for nested groups:
 
 ::: only-for javascript
@@ -437,6 +597,17 @@ Using a function to provide a column summary configuration lets you set up all s
 
 @[code](@/content/guides/columns/column-summary/react/example8.jsx)
 @[code](@/content/guides/columns/column-summary/react/example8.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example4.ts)
+@[code](@/content/guides/columns/column-summary/angular/example4.html)
 
 :::
 
@@ -481,6 +652,23 @@ columnSummary={[{
 
 :::
 
+::: only-for angular
+
+```js
+columnSummary: [
+  {
+    sourceColumn: 1,
+    // set the `type` option to `'custom'`
+    type: "custom",
+    destinationRow: 0,
+    destinationColumn: 5,
+    reversedRowCoords: true,
+  },
+];
+```
+
+:::
+
 3. In your column summary object, add your custom summary function:
 
 ::: only-for javascript
@@ -517,6 +705,25 @@ columnSummary={[{
 
 :::
 
+::: only-for angular
+
+```js
+columnSummary: [
+  {
+    type: "custom",
+    destinationRow: 0,
+    destinationColumn: 5,
+    reversedRowCoords: true,
+    // add your custom summary function
+    customFunction: function (endpoint) {
+      // implement your function here
+    },
+  },
+];
+```
+
+:::
+
 This example implements a function that counts the number of even values in a column:
 
 ::: only-for javascript
@@ -536,6 +743,17 @@ This example implements a function that counts the number of even values in a co
 
 @[code](@/content/guides/columns/column-summary/react/example9.jsx)
 @[code](@/content/guides/columns/column-summary/react/example9.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example5.ts)
+@[code](@/content/guides/columns/column-summary/angular/example5.html)
 
 :::
 
@@ -570,6 +788,17 @@ See the following example:
 
 :::
 
+::: only-for angular
+
+::: example #example6 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example6.ts)
+@[code](@/content/guides/columns/column-summary/angular/example6.html)
+
+:::
+
+:::
+
 The [`roundFloat`](@/api/columnSummary.md) option accepts the following values:
 
 | Value             | Behavior                                                |
@@ -579,8 +808,9 @@ The [`roundFloat`](@/api/columnSummary.md) option accepts the following values:
 | Integer 0-100 (n) | Round the result to n digits after the decimal point.   |
 | Integer < 0       | Round the result to 0 digits after the decimal point.   |
 | Integer > 100     | Round the result to 100 digits after the decimal point. |
+| `'auto'`          | Automatically adjust the number of digits after the decimal point so the entire number fits into 8 digits. |
 
-If you enable [`roundFloat`](@/api/columnSummary.md), the data type returned by Handsontable's data-retrieving methods 
+If you enable [`roundFloat`](@/api/columnSummary.md), the data type returned by Handsontable's data-retrieving methods
 (like [`getDataAtCell()`](@/api/core.md#getdataatcell)) changes from `number` to `string`.
 
 ## Handle non-numeric values
@@ -627,6 +857,17 @@ To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option 
 
 :::
 
+::: only-for angular
+
+::: example #example7 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example7.ts)
+@[code](@/content/guides/columns/column-summary/angular/example7.html)
+
+:::
+
+:::
+
 ### Throw data type errors
 
 You can throw a data type error whenever a non-numeric value is passed to your column summary.
@@ -635,7 +876,7 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 
 ::: only-for javascript
 
-::: example #example11 --tab code --js 1 --ts 2
+::: example #example11 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/javascript/example11.js)
 @[code](@/content/guides/columns/column-summary/javascript/example11.ts)
@@ -646,10 +887,21 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 
 ::: only-for react
 
-::: example #example11 :react --tab code --js 1 --ts 2
+::: example #example11 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/react/example11.jsx)
 @[code](@/content/guides/columns/column-summary/react/example11.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example8 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example8.ts)
+@[code](@/content/guides/columns/column-summary/angular/example8.html)
 
 :::
 

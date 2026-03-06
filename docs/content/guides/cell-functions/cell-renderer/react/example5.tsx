@@ -1,29 +1,24 @@
 import { useRef, MouseEvent } from 'react';
-import Handsontable from 'handsontable';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import Handsontable from 'handsontable/base';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
 
   let isChecked = false;
 
-  function customRenderer(
-    this: Handsontable,
-    instance: Handsontable,
-    td: HTMLTableCellElement
-  ) {
+  function customRenderer(this: Handsontable, _instance: Handsontable, td: HTMLTableCellElement) {
     textRenderer.apply(this, arguments as any);
 
     if (isChecked) {
       td.style.backgroundColor = 'yellow';
     } else {
-      td.style.backgroundColor = 'white';
+      td.style.backgroundColor = 'rgba(255,255,255,0.1)';
     }
   }
 
@@ -40,10 +35,7 @@ const ExampleComponent = () => {
   };
 
   return (
-    <div
-      id="exampleContainer5"
-      onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}
-    >
+    <div id="exampleContainer5" onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}>
       <HotTable
         ref={hotRef}
         height="auto"
@@ -54,9 +46,7 @@ const ExampleComponent = () => {
               return '<b>Bold</b> and <em>Beautiful</em>';
 
             case 1:
-              return `Some <input type="checkbox" class="checker" ${
-                isChecked ? `checked="checked"` : ''
-              }> checkbox`;
+              return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
 
             default:
               return '';

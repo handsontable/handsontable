@@ -8,6 +8,9 @@ canonicalUrl: /vue3-language-change-example
 react:
   id: sxkgoryi
   metaTitle: Language change - Vue 3 Data Grid | Handsontable
+angular:
+  id: zjy408sj
+  metaTitle: Language change - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

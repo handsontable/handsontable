@@ -9,7 +9,7 @@ describe('Hook', () => {
   });
 
   describe('modifyFocusOnTabNavigation', () => {
-    it('should be fired once the table is activated by TAB navigation (focus comes from the element above)', () => {
+    it('should be fired once the table is activated by TAB navigation (focus comes from the element above)', async() => {
       const modifyFocusOnTabNavigation = jasmine.createSpy('modifyFocusOnTabNavigation');
 
       handsontable({
@@ -17,13 +17,31 @@ describe('Hook', () => {
         modifyFocusOnTabNavigation,
       });
 
-      triggerTabNavigationFromTop();
+      await keyDownUp('tab');
 
       expect(modifyFocusOnTabNavigation).toHaveBeenCalledWith('from_above', cellCoords(0, 0));
       expect(modifyFocusOnTabNavigation).toHaveBeenCalledTimes(1);
     });
 
-    it('should be possible to change the focus selection after TAB navigation (focus comes from the element above)', () => {
+    it('should be fired and not select the cell if the hook returns false', async() => {
+      const modifyFocusOnTabNavigation = jasmine.createSpy('modifyFocusOnTabNavigation');
+
+      modifyFocusOnTabNavigation.and.returnValue(false);
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        modifyFocusOnTabNavigation,
+      });
+
+      await keyDownUp('tab');
+
+      expect(modifyFocusOnTabNavigation).toHaveBeenCalledWith('from_above', cellCoords(0, 0));
+      expect(modifyFocusOnTabNavigation).toHaveBeenCalledTimes(1);
+
+      expect(getSelectedRange()).toEqualCellRange(undefined);
+    });
+
+    it('should be possible to change the focus selection after TAB navigation (focus comes from the element above)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         modifyFocusOnTabNavigation(dir, coords) {
@@ -32,12 +50,12 @@ describe('Hook', () => {
         },
       });
 
-      triggerTabNavigationFromTop();
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,3 from: 2,3 to: 2,3']);
     });
 
-    it('should be possible to change the focus selection to headers after TAB navigation (focus comes from the element above)', () => {
+    it('should be possible to change the focus selection to headers after TAB navigation (focus comes from the element above)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -49,12 +67,12 @@ describe('Hook', () => {
         },
       });
 
-      triggerTabNavigationFromTop();
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: -1,1']);
     });
 
-    it('should be fired once the table is activated by TAB navigation (focus comes from the element below)', () => {
+    it('should be fired once the table is activated by TAB navigation (focus comes from the element below)', async() => {
       const modifyFocusOnTabNavigation = jasmine.createSpy('modifyFocusOnTabNavigation');
 
       handsontable({
@@ -62,13 +80,13 @@ describe('Hook', () => {
         modifyFocusOnTabNavigation,
       });
 
-      triggerTabNavigationFromBottom();
+      await keyDownUp(['shift', 'tab']);
 
       expect(modifyFocusOnTabNavigation).toHaveBeenCalledWith('from_below', cellCoords(4, 4));
       expect(modifyFocusOnTabNavigation).toHaveBeenCalledTimes(1);
     });
 
-    it('should be possible to change the focus selection after TAB navigation (focus comes from the element below)', () => {
+    it('should be possible to change the focus selection after TAB navigation (focus comes from the element below)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         modifyFocusOnTabNavigation(dir, coords) {
@@ -77,12 +95,12 @@ describe('Hook', () => {
         },
       });
 
-      triggerTabNavigationFromBottom();
+      await keyDownUp(['shift', 'tab']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,2 from: 3,2 to: 3,2']);
     });
 
-    it('should be possible to change the focus selection to headers after TAB navigation (focus comes from the element below)', () => {
+    it('should be possible to change the focus selection to headers after TAB navigation (focus comes from the element below)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -94,7 +112,7 @@ describe('Hook', () => {
         },
       });
 
-      triggerTabNavigationFromTop();
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
     });

@@ -9,6 +9,9 @@ pageClass: migration-guide
 react:
   id: migrating-13.1-to-14.0-react
   metaTitle: Migrate from 13.1 to 14.0 - React Data Grid | Handsontable
+angular:
+  id: rxlauyd8-13.1-to-14.0-react
+  metaTitle: Migrate from 13.1 to 14.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -16,6 +19,9 @@ category: Upgrade and migration
 # Migrate from 13.1 to 14.0
 
 Migrate from Handsontable 13.1 to Handsontable 14.0, released on November 30th, 2023.
+
+More information about this release can be found in the [`14.0.0` release blog post](https://handsontable.com/blog/whats-new-in-handsontable-14-improvements-to-accessibility).<br/>
+For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_14-0-0).
 
 [[toc]]
 

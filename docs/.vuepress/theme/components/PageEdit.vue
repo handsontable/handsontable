@@ -1,5 +1,13 @@
 <template>
   <footer class="footer">
+    <a
+        v-if="editLink"
+        class="edit-link"
+        :href="editLink"
+        target="_blank"
+        rel="noopener noreferrer"
+      >{{ editLinkText }} <i class="ico i-external"></i>
+    </a>
 
     <div class="footer-links">
       <div class="socail-links">
@@ -19,24 +27,14 @@
         <a href="https://handsontable.com/terms-of-use">Terms of use</a>
         <a href="https://handsontable.com/team">Team</a>
         <a href="https://handsontable.com/contact?category=technical_support">Contact</a>
-
         <a href="https://handsontable.com/blog/">Blog</a>
+        <a href="https://handsontable.com/pricing">Pricing</a>
         <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a>
       </div>
-
-      <a
-          v-if="editLink"
-          class="edit-link"
-          :href="editLink"
-          target="_blank"
-          rel="noopener noreferrer"
-        >{{ editLinkText }} <i class="ico i-external"></i>
-      </a>
     </div>
 
     <div class="copyright">
       <p>© 2012 - {{ new Date().getFullYear() }} Handsoncode</p>
-      <ThemeSwitcher />
     </div>
   </footer>
 </template>

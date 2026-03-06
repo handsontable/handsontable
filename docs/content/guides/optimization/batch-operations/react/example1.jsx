@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -68,18 +67,10 @@ const ExampleComponent = () => {
     <>
       <div className="example-controls-container">
         <div className="controls">
-          <button
-            id="buttonWithout"
-            className="button button--primary"
-            onClick={() => buttonWithoutClickCallback()}
-          >
+          <button id="buttonWithout" className="button button--primary" onClick={() => buttonWithoutClickCallback()}>
             Run without batch method
           </button>
-          <button
-            id="buttonWith"
-            className="button button--primary"
-            onClick={() => buttonWithClickCallback()}
-          >
+          <button id="buttonWith" className="button button--primary" onClick={() => buttonWithClickCallback()}>
             Run with batch method
           </button>
         </div>
@@ -103,14 +94,7 @@ const ExampleComponent = () => {
         ]}
         width="auto"
         height="auto"
-        colHeaders={[
-          'ID',
-          'Customer name',
-          'Product name',
-          'Size',
-          'qty',
-          'Return',
-        ]}
+        colHeaders={['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return']}
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"

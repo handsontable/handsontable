@@ -20,15 +20,10 @@ import DropdownLink from '@theme/components/DropdownLink.vue';
  */
 function setCookie(name, value) {
   const hostname = window.location.hostname;
-  const urlParts = hostname.split('.');
-  let domainWithoutSubdomain = hostname;
 
-  if (urlParts.length > 2) {
-    domainWithoutSubdomain = urlParts.slice(1).join('.');
-  }
   let str = `${name}=${value}`;
 
-  str += `; Domain=${domainWithoutSubdomain}`;
+  str += `; Domain=${hostname}`;
   str += '; Path=/docs';
   str += `; Expires=${new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString()}`; // 1 year
 
@@ -38,6 +33,7 @@ function setCookie(name, value) {
 const frameworkIdToFullName = new Map([
   ['javascript', { name: 'JavaScript' }],
   ['react', { name: 'React' }],
+  ['angular', { name: 'Angular' }],
 ]);
 
 export default {
@@ -47,7 +43,7 @@ export default {
   },
   methods: {
     onFrameworkClick(item) {
-      setCookie('docs_fw', item.id === 'react' ? 'react' : 'javascript');
+      setCookie('docs_fw', item.id);
     },
     getAlt(framework) {
       return frameworkIdToFullName.get(framework).alt;
@@ -86,6 +82,7 @@ export default {
             link: this.getLink(id),
             target: '_self',
             isHtmlLink: true,
+            icon: `i-${id}`,
           };
         }
       );

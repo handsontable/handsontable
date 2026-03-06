@@ -9,6 +9,9 @@ pageClass: migration-guide
 react:
   id: ncj9bstu
   metaTitle: Migrate from 11.1 to 12.0 - React Data Grid | Handsontable
+angular:
+  id: e9gbxrvk
+  metaTitle: Migrate from 11.1 to 12.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -16,6 +19,9 @@ category: Upgrade and migration
 # Migrate from 11.1 to 12.0
 
 Migrate from Handsontable 11.1 to Handsontable 12.0, released on April 28, 2022.
+
+More information about this release can be found in the [`12.0.0` release blog post](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api).<br/>
+For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_12-0-0).
 
 [[toc]]
 
@@ -41,12 +47,14 @@ If you need to reset your index mapper information and configuration options  al
 - Instead of passing the [`data`](@/api/options.md#data) option to the [`updateSettings()`](@/api/core.md#updatesettings) method, run [`loadData()`](@/api/core.md#loadData) and provide the new dataset as its argument:
 
 ```js
-// Handsontable 12.0: this doesn't reset your configuration options and index mapper information
+// Handsontable 12.0: this doesn't reset your configuration options
+// and index mapper information
 hotInstance.updateSettings({
   data: newDataset
 });
 
-// Handsontable 12.0: this does reset your configuration options and index mapper information
+// Handsontable 12.0: this does reset your configuration options and
+// index mapper information
 hotInstance.loadData(newDataset);
 ```
 
@@ -63,12 +71,14 @@ import { useRef } from 'react';
 
 const hotTableComponentRef = useRef(null);
 
-// Handsontable 12.0: this doesn't reset your configuration options and index mapper information
+// Handsontable 12.0: this doesn't reset your configuration options
+// and index mapper information
 hotTableComponentRef.current.hotInstance.updateSettings({
   data: newDataset
 });
 
-// Handsontable 12.0: this does reset your configuration options and index mapper information
+// Handsontable 12.0: this does reset your configuration options and
+// index mapper information
 hotTableComponentRef.current.hotInstance.loadData(newDataset);
 ```
 
@@ -84,9 +94,9 @@ Updating your [`data`](@/api/options.md#data) through a component property no lo
 To replace [`data`](@/api/options.md#data) and reset the states, call the [`loadData()`](@/api/core.md#loadData) method (the same way as above), referencing the Handsontable instance from the component.
 
 Read more on referencing the Handsontable instance:
-- [Referencing the Handsontable instance in Angular](@/guides/integrate-with-angular/angular-hot-reference/angular-hot-reference.md)
+- [Referencing the Handsontable instance in Angular](@/angular/guides/getting-started/angular-hot-instance/angular-hot-instance.md)
 - [Referencing the Handsontable instance in React](@/react/guides/getting-started/react-methods/react-methods.md)
-- [Referencing the Handsontable instance in Vue 2](@/guides/integrate-with-vue/vue-hot-reference/vue-hot-reference.md)
+- [Referencing the Handsontable instance in Vue](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md)
 - [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md)
 
 :::
@@ -134,8 +144,10 @@ When you used a keyboard to navigate an internal Handsontable instance (e.g., a 
 
 ```js
 afterDocumentKeyDown() {
-  // when you navigate the grid, the console message gets logged on every key press
-  // when you navigate the context menu, the console message also gets logged on every key press
+  // when you navigate the grid, the console message gets logged on
+  // every key press
+  // when you navigate the context menu, the console message also gets
+  // logged on every key press
   console.log('key pressed');
 }
 ```
@@ -146,8 +158,10 @@ When you use a keyboard to navigate some internal instances of Handsontable (e.g
 
 ```js
 afterDocumentKeyDown() {
-  // when you navigate the grid, the console message gets logged on every key press
-  // when you navigate the context menu, the console message doesn't get logged at all
+  // when you navigate the grid, the console message gets logged on
+  // every key press
+  // when you navigate the context menu, the console message doesn't
+  // get logged at all
   console.log('key pressed');
 }
 ```

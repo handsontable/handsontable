@@ -1,5 +1,8 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example2');
 
@@ -32,7 +35,7 @@ new Handsontable(container, {
       type: 'numeric',
       numericFormat: {
         pattern: '$0,0.00',
-        culture: 'en-US',
+        culture: 'en-US', // this is the default culture, set up for USD
       },
     },
     { type: 'checkbox' },
@@ -40,14 +43,7 @@ new Handsontable(container, {
     { type: 'password' },
   ],
   preventOverflow: 'horizontal',
-  colHeaders: [
-    'value<br>underneath',
-    'type:text',
-    'type:numeric',
-    'type:checkbox',
-    'type:dropdown',
-    'type:password',
-  ],
+  colHeaders: ['value<br>underneath', 'type:text', 'type:numeric', 'type:checkbox', 'type:dropdown', 'type:password'],
   autoWrapRow: true,
   autoWrapCol: true,
   height: 'auto',

@@ -26,14 +26,9 @@ const frameworksToTest = getFrameworkList();
 
 for (let i = 0; i < frameworksToTest.length; ++i) {
   const frameworkName = frameworksToTest[i];
-  const packageName = frameworkName === 'js' ? 'handsontable' : `@handsontable/${frameworkName}`;
 
   console.log(chalk.green(`Building "${frameworkName}" examples...`));
 
-  await execa.command(`node ./scripts/swap-package-links.mjs ${packageName}`, {
-    stdio: 'inherit',
-    cwd: dirs.monorepoRoot
-  });
   await execa.command('npm run build', {
     stdout: 'ignore',
     stderr: 'inherit',

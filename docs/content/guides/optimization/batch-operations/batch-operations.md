@@ -12,6 +12,9 @@ tags:
 react:
   id: 3xqdvk3u
   metaTitle: Batch operations - React Data Grid | Handsontable
+angular:
+  id: tnvv2pjr
+  metaTitle: Batch operations - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---
@@ -25,12 +28,12 @@ Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid
 <style>
 .handsontable .green-bg {
   color: #fff;
-  background-color: #37BC6C;
+  background-color: #37BC6C !important;
 }
 
 .handsontable .red-bg {
   color: #fff;
-  background-color: #FF5A12;
+  background-color: #FF5A12 !important;
 }
 
 #logOutput {
@@ -69,6 +72,18 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 :::
 
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+
+:::
+
 ```js
 // call the batch method on an instance
 hot.batch(() => {
@@ -76,13 +91,18 @@ hot.batch(() => {
   hot.alter('insert_row_above', 5, 45);
   hot.setDataAtCell(1, 1, 'x');
   hot.selectCell(0, 0);
-  // the render is executed right after all of the operations are completed
+  // the render is executed right after all of the operations are
+  // completed
 });
 ```
 
 Suspending the render results in better performance, which is especially noticeable when numerous operations are batched. The diagram shows a comparison where the same operations were performed with (deep blue columns) and without the batch (light blue columns). The gain in speed of execution time increases with the number of operations batched.
 
+<span class="img-invert">
+
 ![batch_operations_comparison]({{$basePath}}/img/batch_operations_comparison.png)
+
+</span>
 
 ::: tip
 
@@ -127,7 +147,8 @@ hot.batch(() => {
   filters.addCondition(2, 'contains', ['3']);
   filters.filter();
   hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
-  // The table cache will be recalculated, and table render will be called once after executing the callback
+  // The table cache will be recalculated, and table render will be
+  // called once after executing the callback
 });
 ```
 
@@ -154,7 +175,8 @@ hot.batchExecution(() => {
   filters.addCondition(2, 'contains', ['3']);
   filters.filter();
   hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
-  // The table cache will be recalculated once after executing the callback
+  // The table cache will be recalculated once after executing the
+  // callback
 });
 ```
 
@@ -209,6 +231,17 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 @[code](@/content/guides/optimization/batch-operations/react/example1.jsx)
 @[code](@/content/guides/optimization/batch-operations/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/optimization/batch-operations/angular/example1.ts)
+@[code](@/content/guides/optimization/batch-operations/angular/example1.html)
 
 :::
 

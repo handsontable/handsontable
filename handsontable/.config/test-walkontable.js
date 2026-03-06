@@ -45,11 +45,7 @@ module.exports.create = function create(envArgs) {
     plugins: [
       new JasmineHtml({
         filename: path.resolve(wotPath, 'test/SpecRunner.html'),
-        baseJasminePath: `${
-          fsExtra.pathExistsSync(
-            path.resolve(__dirname, '../node_modules/jasmine-core')
-          ) ? '../../../../' : '../../../../../'
-        }`,
+        baseJasminePath: '../../../../../',
         externalCssFiles: [
           '../dist/walkontable.css',
           '../css/walkontable.test.css',

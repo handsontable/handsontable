@@ -11,6 +11,7 @@
     overflow: hidden
     flex-direction: column
     display: flex
+    padding-bottom: 0
 
     .mobile-nav {
         display: none
@@ -42,6 +43,7 @@
         transition all $t ease-in-out
         transition-delay: $t
         max-height: 120px
+        border: 1px solid $borderColor
 
         //&.slide-fade-enter, 
         &.slide-fade-leave-to {
@@ -60,10 +62,19 @@
             transition all $t ease-in-out
         }
 
-        span { 
-            background-color: $accentColor
+        span {
+            position: relative
             border-radius: $radius-s
             padding: 11px
+
+             &:before {
+                content: ''
+                position: absolute
+                inset: 0
+                border-radius: $radius-s
+                background-color: $accentColor
+                opacity: 1
+            }
             
             i { 
                 filter:brightness(0) invert(1) 
@@ -98,7 +109,7 @@
             > a { 
                 cursor: pointer
                 display: block
-                font-size: $font-size-xxs
+                font-size: 12px
                 line-height: $line-height-xxs
                 color: $textColor
 
@@ -189,8 +200,27 @@
                 }
             }
             > .sidebar-group {
-                
-                p, a { 
+                display: grid
+                transition: grid-template-rows 0.2s ease-out;
+                grid-template-rows: min-content 0fr;
+                &.open {
+                    grid-template-rows: min-content 1fr;
+                    p, a {
+                        color: $textColor
+            
+                        i { opacity: 1}
+                        .i-arrow { 
+                            transform: rotate(180deg)
+                        }
+                    }
+                    p, a {
+                        + ul {
+                            padding-bottom: 12px
+                        }
+                    }
+                }
+                p, a {
+                    grid-template-rows: min-content 1fr;
                     display: flex
                     gap: 8px
                     align-items: center
@@ -217,20 +247,6 @@
                         opacity: .5    
                     }
 
-                    &.open { 
-                        color: $textColor
-                        i { opacity: 1}
-                        .i-arrow { 
-                            transform: rotate(180deg)
-                        }
-
-                        + ul {
-                            max-height: 2000px
-                            height: auto
-                            opacity: 1
-                            padding-bottom: 12px
-                        }
-                    }
                     @media (hover: hover) {
                         &:hover { 
                             color: $textColor
@@ -238,10 +254,7 @@
                     }
 
                     + ul { 
-                        transition: all .2s ease-in-out
-                        max-height: 0 
-                        overflow: hidden
-                        opacity 0
+                        overflow: hidden;
                     }
                 }
                 p { 
@@ -310,23 +323,6 @@
                                 bottom: 8px
                                 border-color: $accentColor
                             }
-                        }  
-                        .tag-update, .tag-new, .tag-deprecated  { 
-                            font-size: 11px
-                            line-height: $line-height-xxs
-                            display: block;
-                            border-radius: $radius-s
-                            padding: 1px 5px;
-                            background-color: #238349
-                            color: $bgColor
-                            margin:-1px 0;
-                            width:auto
-                        }
-                        .tag-new { 
-                            background-color: $accentColor
-                        }
-                        .tag-deprecated { 
-                            background-color: $depricatedColor
                         }
                     }
                 }
@@ -340,6 +336,7 @@
             flex-direction: column
 
             .nav-item {
+                
                 a, button { 
                     font-size: $font-size-xs
                     line-height: $font-size-xs
@@ -573,7 +570,24 @@
     padding-bottom: 12px
     display: block !important;
 
+    .nav-item {
+        position: relative
 
+        .tag  { 
+            pointer-events: none;
+            font-size: $font-size-xxs
+            line-height: $line-height-xxs
+            display: block;
+            border-radius: $radius-s
+            padding: 2px 8px;
+            background-color: $accentColor
+            color: $bgColor
+            position: absolute
+            right: 30px
+            top: 14px
+        }
+    }
+    
     .nav-frameworks {
         button, 
         .ico {
@@ -601,8 +615,9 @@
     }
 
     /* active item */
+    .i-angular + .nav-item .nav-dropdown .dropdown-item:nth-child(3) a,
     .i-react + .nav-item .nav-dropdown .dropdown-item:nth-child(2) a,
-    .i-javascript + .nav-item .nav-dropdown .dropdown-item:nth-child(1) a  {
+    .i-javascript + .nav-item .nav-dropdown .dropdown-item:nth-child(1) a {
         background: $borderColor
     }
 

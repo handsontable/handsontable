@@ -1,16 +1,15 @@
 import { useRef } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
-import 'handsontable/dist/handsontable.full.min.css';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { CellChange } from 'handsontable/common';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
 
   const templateValues = ['one', 'two', 'three'];
   const data = [
@@ -84,8 +83,7 @@ const ExampleComponent = () => {
             if (cellChanges[i][2] === null && cellChanges[i][3] !== null) {
               if (isEmptyRow(instance!, cellChanges[i][0])) {
                 // add this row/col combination to the cache so it will not be overwritten by the template
-                rowColumnSeen[`${cellChanges[i][0]}/${cellChanges[i][1]}`] =
-                  true;
+                rowColumnSeen[`${cellChanges[i][0]}/${cellChanges[i][1]}`] = true;
                 rowsToFill[cellChanges[i][0]] = true;
               }
             }

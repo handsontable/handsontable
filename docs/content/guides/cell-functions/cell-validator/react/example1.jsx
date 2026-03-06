@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -110,14 +109,9 @@ const ExampleComponent = () => {
               return false;
             }
             // capitalise first letter in column 1 and 2
-            else if (
-              cellChanges[i][1] === 'name.first' ||
-              cellChanges[i][1] === 'name.last'
-            ) {
+            else if (cellChanges[i][1] === 'name.first' || cellChanges[i][1] === 'name.last') {
               if (cellChanges[i][3] !== null) {
-                cellChanges[i][3] =
-                  cellChanges[i][3].charAt(0).toUpperCase() +
-                  cellChanges[i][3].slice(1);
+                cellChanges[i][3] = cellChanges[i][3].charAt(0).toUpperCase() + cellChanges[i][3].slice(1);
               }
             }
           }
@@ -137,7 +131,7 @@ const ExampleComponent = () => {
           { data: 'name.first' },
           { data: 'name.last' },
           { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
-          { data: 'email', validator: emailValidator, allowInvalid: false },
+          { data: 'email', validator: emailValidator },
         ]}
       />
     </>

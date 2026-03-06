@@ -8,6 +8,9 @@ canonicalUrl: /vue3-modules
 react:
   id: q4l7029o
   metaTitle: Modules - Vue 3 Data Grid | Handsontable
+angular:
+  id: p3omli89
+  metaTitle: Modules - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

@@ -14,7 +14,7 @@ describe('settings', () => {
     });
 
     describe('defined in constructor', () => {
-      it('should use text renderer by default', () => {
+      it('should use text renderer by default', async() => {
         const originalTextRenderer = Handsontable.cellTypes.text.renderer;
 
         spyOn(Handsontable.cellTypes.text, 'renderer');
@@ -26,7 +26,7 @@ describe('settings', () => {
         Handsontable.renderers.registerRenderer('text', originalTextRenderer);
       });
 
-      it('should use renderer from predefined string', () => {
+      it('should use renderer from predefined string', async() => {
         const originalTextRenderer = Handsontable.renderers.TextRenderer;
 
         spyOn(Handsontable.renderers, 'TextRenderer');
@@ -51,7 +51,7 @@ describe('settings', () => {
         Handsontable.renderers.registerRenderer('checkbox', originalCheckboxRenderer);
       });
 
-      it('should use renderer from predefined string when columns is a function', () => {
+      it('should use renderer from predefined string when columns is a function', async() => {
         const originalTextRenderer = Handsontable.renderers.TextRenderer;
 
         spyOn(Handsontable.renderers, 'TextRenderer');
@@ -74,7 +74,7 @@ describe('settings', () => {
         Handsontable.renderers.registerRenderer('checkbox', originalCheckboxRenderer);
       });
 
-      it('should use renderer from custom function', () => {
+      it('should use renderer from custom function', async() => {
         let called = false;
 
         function myRenderer() {
@@ -92,7 +92,7 @@ describe('settings', () => {
         expect(called).toBe(true);
       });
 
-      it('should use renderer from custom function when columns is a function', () => {
+      it('should use renderer from custom function when columns is a function', async() => {
         let called = false;
 
         function myRenderer() {
@@ -108,7 +108,7 @@ describe('settings', () => {
         expect(called).toBe(true);
       });
 
-      it('should use renderer from custom string', () => {
+      it('should use renderer from custom string', async() => {
         const myRenderer = jasmine.createSpy('myRenderer');
 
         Handsontable.renderers.registerRenderer('myRenderer', myRenderer);
@@ -124,7 +124,7 @@ describe('settings', () => {
         expect(myRenderer).toHaveBeenCalled();
       });
 
-      it('should use renderer from custom string when columns is a function', () => {
+      it('should use renderer from custom string when columns is a function', async() => {
         const myRenderer = jasmine.createSpy('myRenderer');
 
         Handsontable.renderers.registerRenderer('myRenderer', myRenderer);
@@ -139,7 +139,7 @@ describe('settings', () => {
       });
     });
 
-    it('should call renderer with cellProperties.row, cellProperties.col matching row and col arguments', () => {
+    it('should call renderer with cellProperties.row, cellProperties.col matching row and col arguments', async() => {
       const rendererSpy = jasmine.createSpy('rendererSpy').and.callThrough();
       const cellPropertiesCache = [];
 
@@ -165,7 +165,7 @@ describe('settings', () => {
       }
     });
 
-    it('should call cells function before passing cellProperties to renderer', () => {
+    it('should call cells function before passing cellProperties to renderer', async() => {
       const rendererSpy = jasmine.createSpy('rendererSpy').and.callThrough();
       const cellPropertiesCache = [];
 

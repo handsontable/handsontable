@@ -1,6 +1,7 @@
 import {
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
+  DEFAULT_COLUMN_WIDTH,
 } from './calculator';
 
 import CellCoords from './cell/coords';
@@ -20,9 +21,11 @@ import {
 } from './selection';
 import * as Renderer from './renderer';
 import { OrderView, SharedOrderView } from './utils/orderView';
+import { NodesPool } from './utils/nodesPool';
 import { getListenersCounter } from '../../../eventManager';
 
 export {
+  DEFAULT_COLUMN_WIDTH,
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 
@@ -43,6 +46,7 @@ export {
   CUSTOM_SELECTION_TYPE as HIGHLIGHT_CUSTOM_SELECTION_TYPE,
 
   Renderer,
+  NodesPool,
   OrderView,
   SharedOrderView,
 
