@@ -71,9 +71,14 @@ describe('DateEditor (RTL mode)', () => {
       const cellElement = $(getActiveEditor().TD);
       const datePickerElement = $('.pika-single');
 
-      expect(cellElement.offset().top + cellElement.outerHeight()).toBeCloseTo(datePickerElement.offset().top, 0);
-      expect(cellElement.offset().left + cellElement.outerWidth() - datePickerElement.outerWidth())
-        .toBeCloseTo(datePickerElement.offset().left, 0);
+      expect(datePickerElement.offset().top).toBe(cellElement.offset().top + cellElement.outerHeight());
+
+      if (htmlDir === 'ltr') {
+        expect(datePickerElement.offset().left).toBe(cellElement.offset().left);
+      } else {
+        expect(datePickerElement.offset().left)
+          .toBe(cellElement.offset().left - datePickerElement.outerWidth() + cellElement.outerWidth());
+      }
     });
 
     it('should move a datepicker together with the edited cell when the table is scrolled left', async() => {
