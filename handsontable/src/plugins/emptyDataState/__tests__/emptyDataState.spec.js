@@ -118,13 +118,13 @@ describe('EmptyDataState', () => {
     expect(getEmptyDataStateContainerElement().style.display).toBe('none');
   });
 
-  it('should keep the emptyDateState DOM element after ht-grid element', async() => {
+  it('should keep the emptyDateState DOM element inside ht-overlays', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       emptyDataState: true,
     });
 
-    expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
+    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootOverlaysElement);
 
     await updateSettings({
       pagination: true,
@@ -132,16 +132,16 @@ describe('EmptyDataState', () => {
 
     await sleep(10);
 
-    expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
+    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootOverlaysElement);
   });
 
-  it('should keep the emptyDateState DOM element after ht-grid element after re-enabling the plugin', async() => {
+  it('should keep the emptyDateState DOM element inside ht-overlays after re-enabling the plugin', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       emptyDataState: true,
     });
 
-    expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
+    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootOverlaysElement);
 
     await updateSettings({
       emptyDataState: false,
@@ -153,7 +153,7 @@ describe('EmptyDataState', () => {
 
     await sleep(10);
 
-    expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
+    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootOverlaysElement);
   });
 
   it('should have correct top position after initialization', async() => {
@@ -278,6 +278,21 @@ describe('EmptyDataState', () => {
       const borderBottomWidth = getComputedStyle(getEmptyDataStateContainerElement()).borderBottomWidth;
 
       expect(borderBottomWidth).toBe('1px');
+    });
+
+    it('should keep non-zero height when data is empty and height is auto', async() => {
+      handsontable({
+        data: [],
+        pagination: false,
+        emptyDataState: true,
+        height: 'auto',
+      });
+
+      await sleep(10);
+
+      const height = parseInt(getComputedStyle(getEmptyDataStateContainerElement()).height, 10);
+
+      expect(height).toBeGreaterThan(0);
     });
   });
 });

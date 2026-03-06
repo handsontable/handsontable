@@ -201,6 +201,7 @@ export class Pagination extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new PaginationUI({
         rootElement: this.hot.rootGridElement,
+        afterGridElement: this.hot.rootAfterGridElement,
         uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
         themeName: this.hot.getCurrentThemeName(),
@@ -807,17 +808,10 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Called after the rendering of the table is completed. It updates the width of
-   * the pagination container to the same size as the table.
+   * Called after the rendering of the table is completed. It refreshes the border state of the pagination container.
    */
   #onAfterRender() {
-    const { view } = this.hot;
-    const width = view.isHorizontallyScrollableByWindow()
-      ? view.getTotalTableWidth() : view.getWorkspaceWidth();
-
-    this.#ui
-      .updateWidth(width)
-      .refreshBorderState();
+    this.#ui.refreshBorderState();
   }
 
   /**

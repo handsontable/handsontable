@@ -250,6 +250,7 @@ export class EmptyDataState extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new EmptyDataStateUI({
         rootElement: this.hot.rootGridElement,
+        overlayContainer: this.hot.rootOverlaysElement,
         rootDocument: this.hot.rootDocument,
       });
 
@@ -316,16 +317,16 @@ export class EmptyDataState extends BasePlugin {
    * Registers the mutation observers for the emptyDataState plugin.
    */
   #registerObservers() {
-    // Observe the root element for changes and move the emptyDataState element to the correct position
+    // Observe the overlay container and ensure the emptyDataState element stays inside ht-overlays
     this.#observer = new MutationObserver(() => {
-      if (!this.hot) {
+      if (!this.hot?.rootOverlaysElement) {
         return;
       }
 
       const element = this.#ui.getElement();
 
-      if (this.hot.rootGridElement.nextElementSibling !== element) {
-        this.hot.rootGridElement.after(element);
+      if (!this.hot.rootOverlaysElement.contains(element)) {
+        this.hot.rootOverlaysElement.appendChild(element);
       }
     });
 

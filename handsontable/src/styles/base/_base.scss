@@ -11,6 +11,16 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+
+    &:has(> .ht-after-grid > div) {
+      .ht-wrapper {
+        .ht_master {
+          .wtHolder {
+            background-color: var(--ht-background-color);
+          }
+        }
+      }
+    }
   }
 
   .htFocusCatcher {
@@ -82,7 +92,6 @@
 
     // Wrapper
     &.ht-wrapper {
-      border-radius: var(--ht-wrapper-border-radius, 0);
       height: 100%;
       width: 100%;
 
@@ -137,18 +146,8 @@
       }
     }
 
-    &.htHasScrollX:not(.htHorizontallyScrollableByWindow):not(.htScrollbarHidden),
-    &.htHasScrollY:not(.htVerticallyScrollableByWindow):not(.htScrollbarHidden) {
-      .ht_master {
-        .wtHolder {
-          border-radius: var(--ht-wrapper-border-radius, 0);
-        }
-      }
-    }
-
     &:not(.htHorizontallyScrollableByWindow),
     &:not(.htVerticallyScrollableByWindow) {
-      &.htPagination,
       &.htHasScrollX,
       &.htHasScrollY {
         .ht_master {

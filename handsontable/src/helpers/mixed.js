@@ -189,13 +189,16 @@ export function _injectProductInfo(key, element, releaseDate) {
 
     if (message) {
       const messageNode = document.createElement('div');
+      const innerNode = document.createElement('div');
 
       messageNode.className = 'handsontable hot-display-license-info';
-      messageNode.innerHTML = domMessages[domMessageState]({
+      innerNode.className = 'hot-display-license-info_inner';
+      innerNode.innerHTML = domMessages[domMessageState]({
         keyValidityDate,
         hotVersion,
       });
 
+      messageNode.appendChild(innerNode);
       element.appendChild(messageNode);
     }
   }

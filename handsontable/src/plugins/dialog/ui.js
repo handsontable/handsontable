@@ -37,11 +37,17 @@ const CONTAINER_TEMPLATE = `
  */
 export class DialogUI {
   /**
-   * The root element where the dialog UI will be installed.
+   * The root element (used for sizing/positioning).
    *
    * @type {HTMLElement}
    */
   #rootElement;
+  /**
+   * The overlay container where the dialog UI will be installed (ht-overlays).
+   *
+   * @type {HTMLElement}
+   */
+  #overlayContainer;
   /**
    * The references to the UI elements.
    *
@@ -81,10 +87,12 @@ export class DialogUI {
 
   constructor({
     rootElement,
+    overlayContainer,
     isRtl,
     sanitizer,
   }) {
     this.#rootElement = rootElement;
+    this.#overlayContainer = overlayContainer;
     this.#isRtl = isRtl;
     this.#sanitizer = sanitizer;
 
@@ -142,8 +150,11 @@ export class DialogUI {
     dialogElement.addEventListener('transitionstart', () => this.#onTransitionStart());
     dialogElement.addEventListener('transitionend', () => this.#onTransitionEnd());
 
-    // Append to Handsontable after table grid element
-    this.#rootElement.after(elements.fragment);
+    if (this.#overlayContainer) {
+      this.#overlayContainer.appendChild(elements.fragment);
+    } else {
+      this.#rootElement.after(elements.fragment);
+    }
   }
 
   /**
@@ -345,18 +356,6 @@ export class DialogUI {
    */
   updateWidth(width) {
     this.#refs.dialogElement.style.width = `${width}px`;
-
-    return this;
-  }
-
-  /**
-   * Updates the height of the dialog container.
-   *
-   * @param {number} licenseInfoHeight - The height of the license info.
-   * @returns {DialogUI} The instance of the DialogUI.
-   */
-  updateHeight(licenseInfoHeight) {
-    this.#refs.dialogElement.style.height = `calc(100% - ${licenseInfoHeight}px)`;
 
     return this;
   }

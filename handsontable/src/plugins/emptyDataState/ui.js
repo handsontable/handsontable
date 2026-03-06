@@ -41,6 +41,12 @@ export class EmptyDataStateUI {
    */
   #rootElement;
   /**
+   * The overlay container where the emptyDataState UI will be installed (ht-overlays).
+   *
+   * @type {HTMLElement}
+   */
+  #overlayContainer;
+  /**
    * The root document where the emptyDataState UI will be installed.
    *
    * @type {Document}
@@ -61,9 +67,11 @@ export class EmptyDataStateUI {
 
   constructor({
     rootElement,
+    overlayContainer,
     rootDocument,
   }) {
     this.#rootElement = rootElement;
+    this.#overlayContainer = overlayContainer;
     this.#rootDocument = rootDocument;
 
     this.install();
@@ -90,7 +98,11 @@ export class EmptyDataStateUI {
       A11Y_TABINDEX(-1),
     ]);
 
-    this.#rootElement.after(elements.fragment);
+    if (this.#overlayContainer) {
+      this.#overlayContainer.appendChild(elements.fragment);
+    } else {
+      this.#rootElement.after(elements.fragment);
+    }
   }
 
   /**
@@ -263,6 +275,12 @@ export class EmptyDataStateUI {
     } else if (headerCols > 0 && cols === 0) {
       height = view.getWorkspaceHeight() - scrollbarSize;
     }
+
+    if (rows === 0) {
+      height = Math.max(height, MIN_HEIGHT + 1);
+    }
+
+    height = Math.max(height, 0);
 
     emptyDataStateElement.style.width = `${width}px`;
     emptyDataStateElement.style.height = `${height}px`;

@@ -212,7 +212,7 @@ describe('Mixed helper', () => {
 
       _injectProductInfo(LICENSE_TEST_KEY, element, '24/05/2011');
 
-      expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable expired on May 24, 2011, and is not valid for the installed ',
         `version ${process.env.HOT_VERSION}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> `,
         'your license key or downgrade to a version released prior to May 24, 2011. If you need any ',
@@ -238,7 +238,7 @@ describe('Mixed helper', () => {
 
       _injectProductInfo(LICENSE_TEST_KEY, element, '25/05/2011');
 
-      expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable expired on May 24, 2011, and is not valid for the installed ',
         `version ${process.env.HOT_VERSION}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> `,
         'your license key or downgrade to a version released prior to May 24, 2011. If you need any ',
@@ -264,7 +264,7 @@ describe('Mixed helper', () => {
 
       _injectProductInfo(LICENSE_TEST_KEY, element, '23/05/2012');
 
-      expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable expired on May 24, 2011, and is not valid for the installed ',
         `version ${process.env.HOT_VERSION}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> `,
         'your license key or downgrade to a version released prior to May 24, 2011. If you need any ',
@@ -290,7 +290,7 @@ describe('Mixed helper', () => {
 
       _injectProductInfo('', element, '23/05/2010');
 
-      expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
         'Alternatively, you can activate Handsontable to use for non-commercial purposes ',
         'by passing the key: \'non-commercial-and-evaluation\'. ',
@@ -319,7 +319,7 @@ describe('Mixed helper', () => {
 
       _injectProductInfo('invalidKey', element, '23/05/2010');
 
-      expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable is invalid. ',
         '<a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> ',
         'on how to install it properly or contact us at <a href="mailto:support@handsontable.com">',
@@ -344,7 +344,7 @@ describe('Mixed helper', () => {
 
       _injectProductInfo('invalidKey', element, '23/05/2010');
 
-      expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable is invalid. ',
         '<a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> ',
         'on how to install it properly or contact us at <a href="mailto:support@handsontable.com">',
@@ -363,7 +363,7 @@ describe('Mixed helper', () => {
 
       _injectProductInfo('invalidKey', element2, '23/05/2010');
 
-      expect(element2.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element2.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable is invalid. ',
         '<a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> ',
         'on how to install it properly or contact us at <a href="mailto:support@handsontable.com">',

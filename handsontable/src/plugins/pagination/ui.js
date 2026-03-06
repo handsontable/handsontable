@@ -46,6 +46,12 @@ export class PaginationUI {
    */
   #rootElement;
   /**
+   * The after grid element where the pagination UI will be installed.
+   *
+   * @type {HTMLElement}
+   */
+  #afterGridElement;
+  /**
    * The container element where the pagination UI will be installed.
    * If not provided, the pagination container will be injected after the root element.
    *
@@ -91,6 +97,7 @@ export class PaginationUI {
 
   constructor({
     rootElement,
+    afterGridElement,
     uiContainer,
     isRtl,
     themeName,
@@ -99,6 +106,7 @@ export class PaginationUI {
     a11yAnnouncer,
   }) {
     this.#rootElement = rootElement;
+    this.#afterGridElement = afterGridElement;
     this.#uiContainer = uiContainer;
     this.#isRtl = isRtl;
     this.#themeName = themeName;
@@ -161,7 +169,7 @@ export class PaginationUI {
 
       addClass(container, [this.#themeName, 'handsontable']);
     } else {
-      this.#rootElement.after(elements.fragment);
+      this.#afterGridElement.appendChild(elements.fragment);
     }
   }
 

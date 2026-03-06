@@ -256,6 +256,7 @@ export class Dialog extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new DialogUI({
         rootElement: this.hot.rootGridElement,
+        overlayContainer: this.hot.rootOverlaysElement,
         sanitizer: this.hot.getSettings().sanitizer,
         isRtl: this.hot.isRtl(),
       });
@@ -610,20 +611,11 @@ export class Dialog extends BasePlugin {
    * height of the dialog container to the same size as the table.
    */
   #onAfterViewRender() {
-    const { view, rootWrapperElement, rootWindow } = this.hot;
+    const { view } = this.hot;
     const width = view.isHorizontallyScrollableByWindow()
       ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
     this.#ui.updateWidth(width);
-
-    const dialogInfo = rootWrapperElement.querySelector('.hot-display-license-info');
-
-    if (dialogInfo) {
-      const height = dialogInfo.offsetHeight;
-      const marginTop = Number.parseFloat(rootWindow.getComputedStyle(dialogInfo).marginTop);
-
-      this.#ui.updateHeight(height + marginTop);
-    }
   }
 
   /**

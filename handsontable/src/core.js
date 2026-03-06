@@ -1,6 +1,6 @@
 import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -61,6 +61,7 @@ import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
+import { initLicenseNotification } from './utils/licenseNotification';
 import { getValueSetterValue } from './utils/valueAccessors';
 import { createThemeManager } from './themes/engine';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
@@ -219,6 +220,22 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   this.rootGridElement = undefined;
 
   /**
+   * Reference to the after-grid element (pagination, license notification).
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootAfterGridElement = undefined;
+
+  /**
+   * Reference to the overlays element (empty-data-state, dialog).
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootOverlaysElement = undefined;
+
+  /**
    * Reference to the portal element.
    *
    * @private
@@ -254,14 +271,20 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   if (isRootInstance(this)) {
     this.rootWrapperElement = this.rootDocument.createElement('div');
     this.rootGridElement = this.rootDocument.createElement('div');
+    this.rootOverlaysElement = this.rootDocument.createElement('div');
+    this.rootAfterGridElement = this.rootDocument.createElement('div');
     this.rootPortalElement = this.rootDocument.createElement('div');
 
     addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
     addClass(this.rootWrapperElement, 'ht-root-wrapper');
     addClass(this.rootGridElement, 'ht-grid');
+    addClass(this.rootOverlaysElement, 'ht-overlays');
+    addClass(this.rootAfterGridElement, 'ht-after-grid');
 
     this.rootGridElement.appendChild(this.rootElement);
     this.rootWrapperElement.appendChild(this.rootGridElement);
+    this.rootWrapperElement.appendChild(this.rootOverlaysElement);
+    this.rootWrapperElement.appendChild(this.rootAfterGridElement);
     this.rootContainer.appendChild(this.rootWrapperElement);
 
     addClass(this.rootPortalElement, 'ht-portal');
@@ -1350,7 +1373,21 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isRootInstance(this)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);
-      _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement, process.env.HOT_RELEASE_DATE);
+      initLicenseNotification(instance);
+      this.addHook('afterRender', () => {
+        const { view } = instance;
+
+        if (view) {
+          let width = view.isHorizontallyScrollableByWindow()
+            ? view.getTotalTableWidth() : view.getWorkspaceWidth();
+
+          if (width === 0 && this.rootWrapperElement) {
+            width = this.rootWrapperElement.offsetWidth;
+          }
+
+          this.rootAfterGridElement.style.width = `${width}px`;
+        }
+      });
     }
 
     instance.runHooks('init');
