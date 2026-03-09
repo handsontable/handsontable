@@ -37,13 +37,7 @@ const CONTAINER_TEMPLATE = `
  */
 export class DialogUI {
   /**
-   * The root element (used for sizing/positioning).
-   *
-   * @type {HTMLElement}
-   */
-  #rootElement;
-  /**
-   * The overlay container where the dialog UI will be installed (ht-overlays).
+   * The overlay container where the dialog UI will be installed.
    *
    * @type {HTMLElement}
    */
@@ -86,12 +80,10 @@ export class DialogUI {
   #sanitizer;
 
   constructor({
-    rootElement,
     overlayContainer,
     isRtl,
     sanitizer,
   }) {
-    this.#rootElement = rootElement;
     this.#overlayContainer = overlayContainer;
     this.#isRtl = isRtl;
     this.#sanitizer = sanitizer;
@@ -152,8 +144,6 @@ export class DialogUI {
 
     if (this.#overlayContainer) {
       this.#overlayContainer.appendChild(elements.fragment);
-    } else {
-      this.#rootElement.after(elements.fragment);
     }
   }
 

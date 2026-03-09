@@ -255,7 +255,6 @@ export class Dialog extends BasePlugin {
 
     if (!this.#ui) {
       this.#ui = new DialogUI({
-        rootElement: this.hot.rootGridElement,
         overlayContainer: this.hot.rootOverlaysElement,
         sanitizer: this.hot.getSettings().sanitizer,
         isRtl: this.hot.isRtl(),

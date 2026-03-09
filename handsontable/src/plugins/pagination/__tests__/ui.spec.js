@@ -33,6 +33,17 @@ describe('Pagination UI', () => {
     expect(getPaginationContainerElement().offsetWidth).toBe(500);
   });
 
+  it('should set rootAfterGridElement width after render when pagination is enabled', async() => {
+    handsontable({
+      data: createSpreadsheetData(15, 20),
+      width: 500,
+      height: 300,
+      pagination: true,
+    });
+
+    expect(hot().rootAfterGridElement.style.width).toBe('500px');
+  });
+
   it('should correctly calculate the width of the pagination container (table has not defined size)', async() => {
     handsontable({
       data: createSpreadsheetData(15, 10),

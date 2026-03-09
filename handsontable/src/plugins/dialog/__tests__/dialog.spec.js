@@ -57,6 +57,22 @@ describe('Dialog', () => {
     expect(dialogPlugin.isVisible()).toBe(false);
   });
 
+  it('should render dialog container inside rootOverlaysElement (ht-overlays)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: true,
+    });
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.show({
+      content: 'Test content',
+    });
+
+    expect(getDialogContainerElement()).toBeDefined();
+    expect(getDialogContainerElement().parentNode).toBe(hot().rootOverlaysElement);
+  });
+
   it('should destroy dialog elements when plugin is destroyed', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),

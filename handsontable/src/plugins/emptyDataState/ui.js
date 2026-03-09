@@ -100,8 +100,6 @@ export class EmptyDataStateUI {
 
     if (this.#overlayContainer) {
       this.#overlayContainer.appendChild(elements.fragment);
-    } else {
-      this.#rootElement.after(elements.fragment);
     }
   }
 

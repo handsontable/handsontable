@@ -1374,6 +1374,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     if (isRootInstance(this)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);
       initLicenseNotification(instance);
+
+      // Update the width of the after-grid element after the table is rendered.
       this.addHook('afterRender', () => {
         const { view } = instance;
 

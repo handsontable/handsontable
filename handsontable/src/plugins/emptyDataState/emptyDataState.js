@@ -210,13 +210,6 @@ export class EmptyDataState extends BasePlugin {
   #ui = null;
 
   /**
-   * MutationObserver instance for monitoring DOM changes.
-   *
-   * @type {MutationObserver}
-   */
-  #observer = null;
-
-  /**
    * Flag indicating if there are filter conditions.
    *
    * @type {number}
@@ -256,7 +249,6 @@ export class EmptyDataState extends BasePlugin {
 
       this.#registerFocusScope();
       this.#registerEvents();
-      this.#registerObservers();
     }
 
     this.addHook('afterInit', () => this.#onAfterInit());
@@ -289,7 +281,6 @@ export class EmptyDataState extends BasePlugin {
    */
   disablePlugin() {
     this.#unregisterFocusScope();
-    this.#disconnectObservers();
 
     this.#ui.destroy();
     this.#ui = null;
@@ -311,36 +302,6 @@ export class EmptyDataState extends BasePlugin {
    */
   #registerEvents() {
     this.eventManager.addEventListener(this.#ui.getElement(), 'wheel', event => this.#onMouseWheel(event));
-  }
-
-  /**
-   * Registers the mutation observers for the emptyDataState plugin.
-   */
-  #registerObservers() {
-    // Observe the overlay container and ensure the emptyDataState element stays inside ht-overlays
-    this.#observer = new MutationObserver(() => {
-      if (!this.hot?.rootOverlaysElement) {
-        return;
-      }
-
-      const element = this.#ui.getElement();
-
-      if (!this.hot.rootOverlaysElement.contains(element)) {
-        this.hot.rootOverlaysElement.appendChild(element);
-      }
-    });
-
-    this.#observer.observe(this.hot.rootWrapperElement, {
-      childList: true,
-    });
-  }
-
-  /**
-   * Disconnects the mutation observers for the emptyDataState plugin.
-   */
-  #disconnectObservers() {
-    this.#observer.disconnect();
-    this.#observer = null;
   }
 
   /**
@@ -559,7 +520,6 @@ export class EmptyDataState extends BasePlugin {
     this.#isVisible = false;
     this.#ui?.destroy();
     this.#ui = null;
-    this.#observer = null;
     this.#hasFilterConditions = false;
     this.#selectionState = null;
 

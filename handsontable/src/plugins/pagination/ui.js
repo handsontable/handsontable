@@ -40,7 +40,7 @@ const TEMPLATE = `
  */
 export class PaginationUI {
   /**
-   * The root element where the pagination UI will be installed.
+   * The root element.
    *
    * @type {HTMLElement}
    */
@@ -203,18 +203,6 @@ export class PaginationUI {
       next,
       last,
     ].filter(element => !element.disabled);
-  }
-
-  /**
-   * Updates the width of the pagination container.
-   *
-   * @param {number} width The new width of the pagination container.
-   * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
-   */
-  updateWidth(width) {
-    this.#refs.container.style.width = `${width}px`;
-
-    return this;
   }
 
   /**
