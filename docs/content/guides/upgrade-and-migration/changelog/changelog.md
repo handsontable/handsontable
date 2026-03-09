@@ -28,9 +28,9 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
-## 17.0.0-rc13
+## 17.0.0-rc15
 
-Released on March 4th, 2026
+Released on March 5th, 2026
 
 For more information about this release, see:
 - [Documentation (17.0)](https://handsontable.com/docs/17.0)
@@ -52,6 +52,14 @@ For more information about this release, see:
 - Added a new `parsePastedValue` option to fix issues with pasting object-based values. [#12020](https://github.com/handsontable/handsontable/pull/12020)
 - Introduced a new publishing flow for versions 17.0.0 and above. [#12028](https://github.com/handsontable/handsontable/pull/12028)
 
+#### Deprecated
+- Deprecated **numbro.js** for numeric formatting. Copy it to your project or replace it with the `Intl.NumberFormat` API. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_3-migrate-from-numbro-format-to-intl-numberformat)
+- Deprecated **Pikaday** for date picking. Switch to native date input. [Migration guide](https://handsontable.com/docs/javascript-data-grid/recipes/cell-types/pikaday)
+- Deprecated **moment.js** for date parsing and display. Replace it with the `Intl.DateTimeFormat` API. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_4-migrate-from-moment-js-format-to-intl-datetimeformat)
+- Deprecated **DOMPurify** as a built-in XSS sanitizer. Use the new `sanitizer` option or convert content to plain text. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_5-migrate-from-built-in-dompurify-to-the-sanitizer-option)
+- Deprecated **core-js** polyfills for ECMAScript features. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_6-core-js-dependency-removed)
+- Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `licenseKey: 'internal-use'`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
+
 #### Removed
 - **Breaking change**: Removed deprecated wrapper packages for Angular, React, and Vue, the `PersistentState` plugin, and the legacy undo/redo methods. [#12015](https://github.com/handsontable/handsontable/pull/12015)
 - **Breaking change**: Removed `core-js` from dependencies. [#12017](https://github.com/handsontable/handsontable/pull/12017)
@@ -70,14 +78,7 @@ For more information about this release, see:
 - Changed the element type for focus catchers. [#12032](https://github.com/handsontable/handsontable/pull/12032)
 - Fixed incorrect scrollbar width calculation for scaled environments. [#12035](https://github.com/handsontable/handsontable/pull/12035)
 - Fixed and issue with column headers styles [#12058](https://github.com/handsontable/handsontable/pull/12058)
-
-#### Deprecated
-- Deprecated **numbro.js** for numeric formatting. Copy it to your project or replace it with the `Intl.NumberFormat` API. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_3-migrate-from-numbro-format-to-intl-numberformat)
-- Deprecated **Pikaday** for date picking. Switch to native date input. [Migration guide](https://handsontable.com/docs/javascript-data-grid/recipes/cell-types/pikaday)
-- Deprecated **moment.js** for date parsing and display. Replace it with the `Intl.DateTimeFormat` API. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_4-migrate-from-moment-js-format-to-intl-datetimeformat)
-- Deprecated **DOMPurify** as a built-in XSS sanitizer. Use the new `sanitizer` option or convert content to plain text. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_5-migrate-from-built-in-dompurify-to-the-sanitizer-option)
-- Deprecated **core-js** polyfills for ECMAScript features. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_6-core-js-dependency-removed)
-- Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `licenseKey: 'internal-use'`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
+- Angular: Fixed a problem with the Angular wrapper that broke builds done with a disabled `skipLibCheck`. [#12091](https://github.com/handsontable/handsontable/pull/12091)
 
 ## 16.2.0
 
