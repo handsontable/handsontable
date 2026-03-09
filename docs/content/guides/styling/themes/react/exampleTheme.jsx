@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { HotTable } from '@handsontable/react-wrapper';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { mainTheme, horizonTheme, classicTheme, registerTheme, getTheme } from 'handsontable/themes';
 
