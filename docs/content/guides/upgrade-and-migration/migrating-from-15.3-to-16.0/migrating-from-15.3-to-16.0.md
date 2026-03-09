@@ -2,7 +2,7 @@
 id: 1k7arh9z
 title: Migrating from 15.3 to 16.0
 metaTitle: Migrating from 15.3 to 16.0 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 15.3 to Handsontable 16.0, released on [09/07/2025].
+description: Migrate from Handsontable 15.3 to Handsontable 16.0, released on July 9, 2025.
 permalink: /migration-from-15.3-to-16.0
 canonicalUrl: /migration-from-15.3-to-16.0
 pageClass: migration-guide
@@ -18,7 +18,7 @@ category: Upgrade and migration
 
 # Migrate from 15.3 to 16.0
 
-Migrate from Handsontable 15.3 to Handsontable 16.0, released on 09/07/2025.
+Migrate from Handsontable 15.3 to Handsontable 16.0, released on July 9, 2025.
 
 More information about this release can be found in the [`16.0.0` release blog post](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements).<br/>
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_16-0-0).

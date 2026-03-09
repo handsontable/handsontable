@@ -28,12 +28,14 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
-## 17.0.0-rc15
+## 17.0.0
 
-Released on March 5th, 2026
+Released on March 9th, 2026
 
 For more information about this release, see:
+- [Blog post (17.0.0)](https://handsontable.com/blog/handsontable-17.0.0-multiselect-cell-type-simpler-custom-cells-and-a-new-themes-api)
 - [Documentation (17.0)](https://handsontable.com/docs/17.0)
+- [Migration guide (16.2 → 17.0)](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md)
 
 #### Added
 - **Breaking change**: Added the Theme API. [#11950](https://github.com/handsontable/handsontable/pull/11950)
@@ -85,6 +87,7 @@ For more information about this release, see:
 Released on November 25th, 2025
 
 For more information about this release see:
+- [Blog post (16.2.0)](https://handsontable.com/blog/handsontable-16.2.0-simplified-theming-and-advanced-user-notifications)
 - [Documentation (16.2)](https://handsontable.com/docs/16.2)
 
 #### Added
@@ -140,6 +143,7 @@ For more information about this release see:
 Released on September 15, 2025
 
 For more information about this release see:
+- [Blog post (16.1.0)](https://handsontable.com/blog/handsontable-16.1-row-pagination-loading-plugin-and-long-term-support-policy)
 - [Documentation (16.1)](https://handsontable.com/docs/16.1)
 - [Migration guide (16.0 → 16.1)](@/guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1.md)
 
