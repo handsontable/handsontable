@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Added support for Intl.NumericFormat options",
+  "title": "Added a hit area for dropdown menu and collapsible buttons",
   "type": "added",
-  "issueOrPR": 11997,
+  "issueOrPR": 12070,
   "breaking": false,
   "framework": "none"
 }
