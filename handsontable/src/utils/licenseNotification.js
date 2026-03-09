@@ -50,7 +50,12 @@ export function initLicenseNotification(hotInstance) {
     ? process.env.HOT_RELEASE_DATE
     : '';
 
-  _injectProductInfo(licenseKey, container, releaseDate);
+  _injectProductInfo({
+    className: LICENSE_INFO_CLASS,
+    key: licenseKey,
+    element: container,
+    releaseDate
+  });
 
   const notificationElement = getNotificationElement(hotInstance);
 

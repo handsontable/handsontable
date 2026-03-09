@@ -114,7 +114,7 @@ const domMessages = {
   non_commercial: () => '',
 };
 
-export function _injectProductInfo(key, element, releaseDate) {
+export function _injectProductInfo({className, key, element, releaseDate}) {
   const hasValidType = !isEmpty(key);
   const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
   const hotVersion = process.env.HOT_VERSION;
@@ -191,8 +191,8 @@ export function _injectProductInfo(key, element, releaseDate) {
       const messageNode = document.createElement('div');
       const innerNode = document.createElement('div');
 
-      messageNode.className = 'handsontable hot-display-license-info';
-      innerNode.className = 'hot-display-license-info_inner';
+      messageNode.className = `handsontable ${className}`;
+      innerNode.className = `${className}_inner`;
       innerNode.innerHTML = domMessages[domMessageState]({
         keyValidityDate,
         hotVersion,
