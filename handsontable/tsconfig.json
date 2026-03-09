@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2015",
     "module": "es2015",
-    "lib": ["es2015", "es2016", "es2017", "es2022", "es2023", "dom", "dom.iterable"],
+    "lib": ["es2015", "es2016", "es2017", "es2020", "esnext", "dom", "dom.iterable"],
     "allowJs": false,
     "checkJs": false,
     "noEmit": true,

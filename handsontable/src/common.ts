@@ -780,6 +780,7 @@ export interface HotInstance {
   setDataAtCell(row: number | unknown[][], column?: number | null, value?: unknown, source?: string): void;
   setSourceDataAtCell(row: number | unknown[][], column?: number | string, value?: unknown, source?: string): void;
   loadData(data: unknown[], source?: string): void;
+  updateData(data: unknown[][] | object[], source?: string): void;
   emptySelectedCells(source?: string): void;
   populateFromArray(row: number, column: number, input: unknown[][], endRow?: number, endCol?: number, source?: string, method?: string): object | undefined;
 

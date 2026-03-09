@@ -26,7 +26,16 @@ import {
   getThemes,
   registerTheme,
 } from './themes/registry';
-import type { HotInstance } from './common';
+import type { HotInstance, GridSettings as GridSettingsType } from './common';
+import type { ColumnSettings as ColumnSettingsType, CellProperties as CellPropertiesType } from './settings';
+
+/**
+ * Hook registry interface for Handsontable.hooks (e.g. getRegistered()).
+ */
+export interface HooksRegistry {
+  getRegistered(): string[];
+  [key: string]: unknown;
+}
 
 /**
  * Core is a constructor function (not a class). This interface provides a
@@ -42,36 +51,37 @@ const CoreClass = Core as unknown as CoreConstructor;
 registerCellType(TextCellType);
 registerRenderer(baseRenderer);
 
-// export the `BaseEditor` class to the Handsontable global namespace
+/**
+ * Handsontable factory function and static namespace.
+ * Implemented as a typed const so that declaration emit produces a merge with declare namespace Handsontable.
+ */
+const Handsontable = (function Handsontable(
+  rootElement: HTMLElement,
+  userSettings: Record<string, unknown>
+): HotInstance {
+  const instance = new CoreClass(rootElement, userSettings || {}, rootInstanceSymbol);
+  instance.init();
+  return instance;
+}) as unknown as HandsontableFactory;
+
+// Static members
 Handsontable.editors = {
   BaseEditor
 };
-
-/**
- * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
- * @param {object} userSettings The user defined options.
- * @returns {Core}
- */
-function Handsontable(rootElement: HTMLElement, userSettings: Record<string, unknown>) {
-  const instance = new CoreClass(rootElement, userSettings || {}, rootInstanceSymbol);
-
-  instance.init();
-
-  return instance;
-}
-
-Handsontable.Core = function(rootElement: HTMLElement, userSettings: Record<string, unknown> = {}) {
+Handsontable.Core = function(
+  this: HotInstance,
+  rootElement: HTMLElement,
+  userSettings: Record<string, unknown> = {}
+) {
   return new CoreClass(rootElement, userSettings, rootInstanceSymbol);
-};
-
+} as unknown as HandsontableFactory['Core'];
 Handsontable.DefaultSettings = metaSchemaFactory();
-Handsontable.hooks = Hooks.getSingleton();
+Handsontable.hooks = Hooks.getSingleton() as unknown as HooksRegistry;
 Handsontable.CellCoords = CellCoords;
 Handsontable.CellRange = CellRange;
 Handsontable.packageName = 'handsontable';
 Handsontable.buildDate = process.env.HOT_BUILD_DATE;
 Handsontable.version = process.env.HOT_VERSION;
-
 Handsontable.languages = {
   dictionaryKeys,
   getLanguageDictionary,
@@ -79,7 +89,6 @@ Handsontable.languages = {
   registerLanguageDictionary,
   getTranslatedPhrase,
 };
-
 Handsontable.themes = {
   hasTheme,
   getTheme,
@@ -89,15 +98,40 @@ Handsontable.themes = {
 };
 
 /**
- * Interface describing the Handsontable factory function.
+ * Instance type: when wrappers use "Handsontable" as a type they mean the grid instance (HotInstance).
+ */
+interface Handsontable extends HotInstance {}
+
+/**
+ * Type exports on the Handsontable namespace for wrappers (React, Angular, Vue).
+ * Merges with the default export so that Handsontable.ColumnSettings, etc. resolve.
+ */
+declare namespace Handsontable {
+  /** Instance type of the grid (Core). */
+  export type Core = HotInstance;
+  /** Cell value type (e.g. for getData/getSourceData). */
+  export type CellValue = unknown;
+  export type GridSettings = GridSettingsType;
+  export type ColumnSettings = ColumnSettingsType;
+  export type CellProperties = CellPropertiesType;
+  /** @deprecated Use CellProperties */
+  export type CellMeta = CellPropertiesType;
+  export namespace editors {
+    /** Instance type of the BaseEditor class (for refs and type guards). */
+    export type BaseEditor = InstanceType<typeof BaseEditor>;
+  }
+}
+
+/**
+ * Interface describing the Handsontable factory function and static members.
  * Allows both `Handsontable(elem, opts)` and `new Handsontable(elem, opts)`.
  */
 interface HandsontableFactory {
   (rootElement: HTMLElement, userSettings?: Record<string, unknown>): HotInstance;
   new(rootElement: HTMLElement, userSettings?: Record<string, unknown>): HotInstance;
-  Core: (rootElement: HTMLElement, userSettings?: Record<string, unknown>) => HotInstance;
+  Core: new (rootElement: HTMLElement, userSettings?: Record<string, unknown>) => HotInstance;
   DefaultSettings: Record<string, unknown>;
-  hooks: unknown;
+  hooks: HooksRegistry;
   CellCoords: typeof CellCoords;
   CellRange: typeof CellRange;
   packageName: string;
@@ -109,6 +143,19 @@ interface HandsontableFactory {
     [key: string]: unknown;
   };
   themes: Record<string, unknown>;
+  renderers: {
+    registerRenderer: (name: string, renderer: unknown) => void;
+    BaseRenderer: (
+      instance: HotInstance,
+      td: HTMLTableCellElement,
+      row: number,
+      col: number,
+      prop: string | number,
+      value: unknown,
+      cellProperties: Record<string, unknown>
+    ) => void;
+    [key: string]: unknown;
+  };
   [key: string]: unknown;
 }
 
@@ -116,4 +163,4 @@ export {
   CellCoords,
   CellRange,
 };
-export default Handsontable as unknown as HandsontableFactory;
+export default Handsontable;

@@ -50,7 +50,7 @@
     "build": "npm run clean && npm run build:umd && npm run build:umd.min && npm run build:commonjs && npm run build:es && npm run build:types && npm run build:languages && npm run build:languages.es && npm run build:languages.min && npm run build:themes-umd && npm run build:themes-umd.min",
     "build:commonjs": "cross-env-shell BABEL_ENV=commonjs_dist env-cmd -f ../hot.config.js babel src --extensions '.ts,.js' --out-dir tmp",
     "build:es": "npm run build:styles && cross-env-shell BABEL_ENV=es env-cmd -f ../hot.config.js babel src --extensions '.ts,.js' --out-file-extension .mjs --out-dir tmp",
-    "build:types": "tsc -p tsconfig.build-types.json && node scripts/patch-types.mjs",
+    "build:types": "tsc -p tsconfig.build-types.json",
     "build:umd": "npm run build:all.styles && cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js webpack ./src/index.ts",
     "build:umd-from-esm": "npm run build:all.styles && cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js webpack ./tmp/index.mjs",
     "build:umd-from-cjs": "npm run build:all.styles && cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js webpack ./tmp/index.js",
@@ -203,12 +203,14 @@
       "./themes/static/variables/**/*",
       {
         ".": {
+          "types": "./index.d.ts",
           "import": "./index.mjs",
           "require": "./index.js"
         }
       },
       {
         "./base": {
+          "types": "./base.d.ts",
           "import": "./base.mjs",
           "require": "./base.js"
         }
@@ -221,12 +223,14 @@
       },
       {
         "./registry": {
+          "types": "./registry.d.ts",
           "import": "./registry.mjs",
           "require": "./registry.js"
         }
       },
       {
         "./themes": {
+          "types": "./themes/index.d.ts",
           "import": "./themes/index.mjs",
           "require": "./themes/index.js"
         }
