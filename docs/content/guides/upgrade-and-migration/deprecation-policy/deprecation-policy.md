@@ -56,6 +56,6 @@ Below is a list of current deprecations that are planned to be removed in the ne
 | **moment.js** | Parses, validates and displays dates. Needed for Excel compat. | [Migrate from 16.2 to 17.0 → Date/Time](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_4-migrate-from-moment-js-format-to-intl-datetimeformat) |
 | **DOMPurify** | An XSS sanitizer for HTML. Use the `sanitizer` option to keep a sanitizer, or convert content to plain text. | [Migrate from 16.2 to 17.0 → DOMPurify](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_5-migrate-from-built-in-dompurify-to-the-sanitizer-option) |
 | **core-js** | Polyfills for ECMAScript 5, ECMAScript 6, promises, symbols, collections. | [Migrate from 16.2 to 17.0 → core-js](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_6-core-js-dependency-removed) |
-| **Built-in HyperFormula** | The Formulas plugin engine. Will be removed from package.json in 18.0. Import HyperFormula yourself and pass it to the Formulas plugin with `licenseKey: 'internal-use'`. | [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) |
+| **Built-in HyperFormula** | The Formulas plugin engine. Will be removed from package.json in 18.0. Import HyperFormula yourself and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`. | [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) |
 
 
