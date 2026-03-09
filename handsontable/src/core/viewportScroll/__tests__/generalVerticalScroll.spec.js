@@ -34,7 +34,7 @@ describe('Vertical scroll', () => {
 
     // expect that the viewport is scrolled to the beginning of the `9` row
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(184);
+      classic.toBe(195);
       main.toBe(195);
       horizon.toBe(195);
     });

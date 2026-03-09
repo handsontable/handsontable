@@ -144,8 +144,7 @@ describe('Pagination UI', () => {
     handsontable({
       data: createSpreadsheetData(15, 10),
       width: 600,
-      height: (getDefaultRowHeight() * 10) + getPaginationContainerHeight() +
-        (spec().loadedTheme === 'classic' ? 1 : 0),
+      height: (getDefaultRowHeight() * 10) + getPaginationContainerHeight(),
       pagination: true,
     });
 
@@ -203,17 +202,16 @@ describe('Pagination UI', () => {
     });
 
     const height = (getDefaultRowHeight() * 10) + 1;
-    const borderCompensation = spec().loadedTheme === 'classic' ? 1 : 0;
 
-    expect(hot().rootElement.offsetHeight).toBe(height - borderCompensation);
+    expect(hot().rootElement.offsetHeight).toBe(height);
 
     getPlugin('pagination').setPage(2);
 
-    expect(hot().rootElement.offsetHeight).toBe(height - borderCompensation);
+    expect(hot().rootElement.offsetHeight).toBe(height);
 
     getPlugin('pagination').setPage(3);
 
-    expect(hot().rootElement.offsetHeight).toBe(height - borderCompensation);
+    expect(hot().rootElement.offsetHeight).toBe(height);
   });
 
   it('should adjust the table height to fit the pagination container in declared height (all sections are visible)', async() => {
@@ -225,7 +223,7 @@ describe('Pagination UI', () => {
     });
 
     expect(tableView().getViewportHeight()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(366);
+      classic.toBe(367);
       main.toBe(356);
       horizon.toBe(352);
     });

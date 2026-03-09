@@ -2,20 +2,16 @@
 id: yfus6qpz
 title: Legacy Style
 metaTitle: Legacy Style - JavaScript Data Grid | Handsontable
-description: Design, prototype, and customize spreadsheet-like components with the Design System for Figma.
+description: The legacy stylesheet was removed in Handsontable 17.0.0. Learn how to migrate to the Classic theme using the Theme API or CSS imports.
 permalink: /legacy-style
 canonicalUrl: /legacy-style
 tags:
   - styling
-  - figma
-  - UI kit
-  - design system
-  - grid components
-  - prototyping
+  - migration
   - themes
   - CSS variables
-  - local variables
-  - tokens
+  - classic theme
+  - legacy
 react:
   id: jn3po47i
   metaTitle: Legacy Style - React Data Grid | Handsontable
@@ -24,32 +20,147 @@ angular:
   metaTitle: Legacy Style - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
+menuTag: updated
 ---
 
 # Legacy Style
 
-Handsontable 16.1 introduced a new **Classic** theme that replaces the legacy styles. The legacy stylesheet will be removed in version 17.0.
+Starting from **version 17.0.0**, the legacy stylesheet has been removed from Handsontable. If you're upgrading from an earlier version, you must migrate to the **Classic** theme.
 
 [[toc]]
 
-## About the Legacy style
+## Legacy styles are no longer available
 
-The legacy CSS file ([`handsontable.full.min.css`](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.full.min.css)) was the default stylesheet up until **version 15** (released in December 2024). This style is now considered legacy and **will be removed in version 17.0.0**.
+The legacy CSS file (`handsontable.full.min.css`) was the default stylesheet up until **version 15** (released in December 2024). In version 16.1, Handsontable introduced a new theming system with the **Classic** theme as a replacement. As of **version 17.0.0**, the legacy stylesheet has been completely removed.
 
-![Handsontable legacy style]({{$basePath}}/img/legacy_classic_theme.png)
+If you're upgrading from a version prior to 17.0.0, you must migrate to the Classic theme to ensure your grid displays correctly.
 
-### Limitations of the Legacy Style
+## Migrate to the Classic theme
 
-The legacy style was built with hardcoded styles that couldn't be customized with CSS variables. The new Classic theme provides the same visual appearance but with the flexibility of CSS variables, making it easier to customize and maintain consistency with your application's design system.
+There are two ways to apply the Classic theme. The recommended approach is to use the Theme API with a theme object.
 
-### Benefits of Migrating
+### Option 1: Using the Theme API (recommended)
 
-- **Visual Consistency**: The new theme maintains the same visual appearance as the legacy style
-- **Future-Proof**: The new theme will continue to be supported and enhanced
-- **Console Warning**: You'll see a deprecation warning if you're still using the legacy style
+The Theme API allows you to import and register themes programmatically. This approach provides full access to theme customization features like density modes and color schemes.
 
-## Migration Guide
+::: only-for javascript
 
-If you're using the legacy style and would like to upgrade, please read the following migration guide:
+```js
+import Handsontable from 'handsontable';
+import { classicTheme } from 'handsontable/themes';
 
-- [Migrate from 16.0 to 16.1](@/guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1.md)
+const hot = new Handsontable(container, {
+  theme: classicTheme,
+  // ... other options
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import { HotTable } from '@handsontable/react-wrapper';
+import { classicTheme } from 'handsontable/themes';
+
+function App() {
+  return (
+    <HotTable
+      theme={classicTheme}
+      // ... other options
+    />
+  );
+}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { classicTheme } from 'handsontable/themes';
+
+// In your component
+@Component({
+  template: `<hot-table [settings]="hotSettings"></hot-table>`
+})
+export class AppComponent {
+  hotSettings = {
+    theme: classicTheme,
+    // ... other options
+  };
+}
+```
+
+:::
+
+### Option 2: Using CSS files with theme as string
+
+Alternatively, you can use CSS files and pass the theme name as a string to the `theme` option.
+
+#### Step 1. Update your CSS imports
+
+Replace your existing CSS import with the base styles and Classic theme:
+
+```diff
+- @import 'handsontable/dist/handsontable.full.min.css';
++ @import 'handsontable/styles/ht-theme-classic.min.css';
+```
+
+Or if you're using JavaScript imports:
+
+```diff
+- import 'handsontable/dist/handsontable.full.min.css';
++ import 'handsontable/styles/ht-theme-classic.min.css';
+```
+
+#### Step 2. Set the theme in Handsontable configuration
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  theme: 'ht-theme-classic',
+  // ... other options
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  theme="ht-theme-classic"
+  // ... other options
+/>
+```
+
+:::
+
+::: only-for angular
+
+```html
+<hot-table [settings]="{
+  theme: 'ht-theme-classic'
+}">
+</hot-table>
+```
+
+:::
+
+### Why migrate to Classic?
+
+The Classic theme provides the same visual appearance as the legacy style, but with significant improvements:
+
+- **CSS variables**: Easily customize colors, spacing, and other visual properties
+- **Better maintainability**: The theming system is designed for long-term support
+- **Consistency**: Works seamlessly with the new Design System
+
+For more detailed migration instructions, see:
+
+- [Migrate from 16.2 to 17.0](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md)
+
+For more information about the theming system, see:
+
+- [Themes](@/guides/styling/themes/themes.md)

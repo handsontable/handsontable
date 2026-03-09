@@ -44,7 +44,7 @@ class MasterTable extends Table {
       const { scrollWidth, scrollHeight } = trimmingElement;
       let width = trimmingElement.offsetWidth;
       let height = trimmingElement.offsetHeight;
-      const overflow = ['auto', 'hidden', 'scroll'];
+      const overflow = ['auto', 'hidden', 'scroll', 'clip'];
 
       if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
         const cloneNode = trimmingElement.cloneNode(false);

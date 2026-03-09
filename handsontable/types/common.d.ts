@@ -63,10 +63,12 @@ export interface LabelOptions {
   value?: string | (() => string);
 }
 
-export interface NumericFormatOptions {
+interface NumbroFormatOptions {
   pattern: string | numbro.Format;
   culture?: string;
 }
+
+export type NumericFormatOptions = NumbroFormatOptions | Intl.NumberFormatOptions;
 
 export interface ColumnDataGetterSetterFunction {
   (row: RowObject | CellValue[]): CellValue;

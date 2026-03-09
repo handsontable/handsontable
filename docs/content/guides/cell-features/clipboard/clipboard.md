@@ -57,42 +57,35 @@ When the context menu is enabled, it includes default items, including copy & cu
 You can use them in the same way as the rest of the predefined items in the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options). These operations are executed by `document.execCommand()`.
 
 ::: only-for javascript
-
 ::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example1.js)
 @[code](@/content/guides/cell-features/clipboard/javascript/example1.ts)
 
 :::
-
 :::
 
 ::: only-for react
-
 ::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/clipboard/react/example1.jsx)
 @[code](@/content/guides/cell-features/clipboard/react/example1.tsx)
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-features/clipboard/angular/example1.ts)
 @[code](@/content/guides/cell-features/clipboard/angular/example1.html)
 
 :::
-
 :::
 
 ### Trigger copy & cut programmatically
 
 ::: only-for react
-
 ::: tip
 
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
@@ -100,11 +93,9 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: tip
 
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
@@ -112,7 +103,6 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
 
 :::
-
 :::
 
 First, select a cell range to copy or cut.
@@ -129,7 +119,6 @@ Then use one of the following commands:
 The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and `cut` events. If triggered, our implementation will copy or cut the selected data to the system clipboard.
 
 ::: only-for javascript
-
 ::: example #example3 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example3.html)
@@ -137,29 +126,24 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and
 @[code](@/content/guides/cell-features/clipboard/javascript/example3.ts)
 
 :::
-
 :::
 
 ::: only-for react
-
 ::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/clipboard/react/example3.jsx)
 @[code](@/content/guides/cell-features/clipboard/react/example3.tsx)
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: example #example3 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-features/clipboard/angular/example3.ts)
 @[code](@/content/guides/cell-features/clipboard/angular/example3.html)
 
 :::
-
 :::
 
 Mind that some of Handsontable's selection-related methods don't set focus on your grid automatically. To make sure that your grid is focused, call [`isListening()`](@/api/core.md#islistening) before you copy, cut or paste data.
@@ -194,36 +178,30 @@ You can let the end user copy the contents of column headers, by enabling additi
 Right-click on a cell to try it out:
 
 ::: only-for javascript
-
 ::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example2.js)
 @[code](@/content/guides/cell-features/clipboard/javascript/example2.ts)
 
 :::
-
 :::
 
 ::: only-for react
-
 ::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/clipboard/react/example2.jsx)
 @[code](@/content/guides/cell-features/clipboard/react/example2.tsx)
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: example #example2 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-features/clipboard/angular/example2.ts)
 @[code](@/content/guides/cell-features/clipboard/angular/example2.html)
 
 :::
-
 :::
 
 To add the context menu items, configure the [`CopyPaste`](@/api/copyPaste.md) plugin with these options:
@@ -247,7 +225,6 @@ To copy column headers programmatically, call the [`copyPaste.copy()`](@/api/cop
 - [`'column-headers-only'`](@/api/copyPaste.md#copy)
 
 ::: only-for react
-
 ::: tip
 
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
@@ -255,11 +232,9 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: tip
 
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
@@ -267,7 +242,6 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
 
 :::
-
 :::
 
 ```js
@@ -280,7 +254,8 @@ hot.selectCell(1, 1);
 // copy the selected cells along with their nearest column headers
 copyPastePlugin.copy('with-column-headers');
 
-// copy the selected cells along with all their related columns headers
+// copy the selected cells along with all their related columns
+// headers
 copyPastePlugin.copy('with-all-column-headers');
 
 // copy the column headers nearest to the selected cells
@@ -291,6 +266,12 @@ copyPastePlugin.copy('column-headers-only');
 ## Paste
 
 The `Paste` action allows the importing of data from external sources, using the user's system clipboard. The [`CopyPaste`](@/api/copyPaste.md) plugin firstly looks for `text/html` in the system clipboard, followed by `text/plain`.
+
+### Extending paste behavior
+
+The [`parsePastedValue`](@/api/options.md#parsepastedvalue) option controls how pasted content is written to cells when the user pastes from the clipboard into Handsontable (e.g. from another Handsontable instance or between cells in the same table). It does not affect how other applications read or process the clipboard.
+
+By default (`parsePastedValue: false`), pasted content is written as plain strings. Non-scalar values such as objects are coerced to string (e.g. an object becomes `"[object Object]"`), which keeps the data model simple and avoids parsing clipboard text. Set `parsePastedValue: true` when you need to preserve JavaScript structures across paste: pasted text is then parsed (e.g. JSON-like content) and the resulting values are written to the data source, so you can copy and paste objects or arrays between cells or between instances. With parsing enabled, schema validation is relaxed so object-based values can be pasted into cells that would normally expect a scalar.
 
 ### End-user usage
 
@@ -339,6 +320,7 @@ Examples of how to use them are provided in their descriptions.
 - Configuration options:
   - [`copyPaste`](@/api/options.md#copypaste)
   - [`copyable`](@/api/options.md#copyable)
+  - [`parsePastedValue`](@/api/options.md#parsepastedvalue)
   - [`skipColumnOnPaste`](@/api/options.md#skipcolumnonpaste)
   - [`skipRowOnPaste`](@/api/options.md#skiprowonpaste)
 - Core methods:

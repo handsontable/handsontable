@@ -15,6 +15,7 @@ const conditionalContainer = require('./plugins/markdown-it-conditional-containe
 const tableWrapper = require('./plugins/markdown-it-table-wrapper');
 const includeCodeSnippetPlugin = require('./plugins/include-code-snippet');
 const thirdPartyScripts = require('./3rdparty-scripts');
+const rawMarkdownPlugin = require('./plugins/raw-markdown');
 
 const {
   createSymlinks,
@@ -33,7 +34,7 @@ const isProduction = buildMode === 'production';
 const environmentHead = isProduction
   ? [
     // Google Tag Manager, an extra element within the `ssr.html` file.
-    thirdPartyScripts.productionOnly,
+    ...thirdPartyScripts.productionOnly,
   ]
   : [];
 
@@ -167,6 +168,7 @@ module.exports = {
     },
   },
   plugins: [
+    rawMarkdownPlugin,
     includeCodeSnippetPlugin,
     extendPageDataPlugin,
     'tabs',

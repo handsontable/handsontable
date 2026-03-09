@@ -23,22 +23,22 @@ describe('DateCellType', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
         getEditor('date');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
         getRenderer('date');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
         getValidator('date');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
         getCellType('date');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
     });
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, DateCellType);

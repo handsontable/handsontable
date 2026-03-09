@@ -17,6 +17,7 @@ angular:
   metaTitle: Configuration options - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 
 # Configuration options
@@ -33,8 +34,6 @@ To apply configuration options, pass them as a second argument of the Handsontab
 
 ```js
 import Handsontable from "handsontable";
-import "handsontable/styles/handsontable.css";
-import "handsontable/styles/ht-theme-main.css";
 
 const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
@@ -652,8 +651,6 @@ For example:
 
 ```js
 import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
@@ -760,8 +757,6 @@ For example:
 
 ```js
 import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.querySelector('#example');
 const hot = new Handsontable(container, {

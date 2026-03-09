@@ -89,7 +89,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, without overlays)', async() => {
@@ -105,7 +105,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with left overlay)', async() => {
@@ -122,7 +122,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with left overlay)', async() => {
@@ -139,7 +139,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with top overlay)', async() => {
@@ -156,7 +156,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with top overlay)', async() => {
@@ -173,7 +173,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with all overlays)', async() => {
@@ -191,7 +191,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with all overlays)', async() => {
@@ -209,7 +209,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toBe(1);
+    expect(count).toBe(2); // 1 for rendering engine, 1 for data source validation
   });
 
   it('should call renderer twice for each cell (auto column width)', async() => {

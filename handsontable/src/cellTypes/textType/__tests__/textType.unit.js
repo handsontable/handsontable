@@ -25,22 +25,22 @@ describe('TextCellType', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
         getEditor('text');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
         getRenderer('text');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
         getValidator('text');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
         getCellType('text');
-      }).toThrowError();
+      }).toThrow();
     });
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, TextCellType);

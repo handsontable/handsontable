@@ -13,6 +13,7 @@ angular:
   metaTitle: Numeric cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 
 # Numeric cell type
@@ -30,13 +31,21 @@ type allows you to format displayed numbers nicely and sort them correctly.
 
 ## Numeric cell type demo
 
-In the following demo, columns **Year**, **Price ($)**, and **Price (€)** use the numeric cell type.
-Click on the column names to sort them.
+In the following demo, multiple columns use the numeric cell type with different formatting styles:
+- **Year**: Basic numeric formatting
+- **Price (USD)** and **Price (EUR)**: Currency formatting
+- **Distance**: Unit formatting (kilometers) with grouping
+- **Fuel**: Unit formatting (liters) with decimal precision
+- **Discount**: Percentage formatting
+- **Quantity**: Decimal formatting with thousands separators
+
+Use the locale selector above the table to see how different locales affect number formatting.
 
 ::: only-for javascript
 
-::: example #example1 :hot-numbro --js 1 --ts 2
+::: example #example1 --html 1 --js 2 --ts 3
 
+@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.html)
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.js)
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.ts)
 
@@ -46,7 +55,7 @@ Click on the column names to sort them.
 
 ::: only-for react
 
-::: example #example1 :react-numbro --js 1 --ts 2
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/numeric-cell-type/react/example1.jsx)
 @[code](@/content/guides/cell-types/numeric-cell-type/react/example1.tsx)
@@ -57,7 +66,7 @@ Click on the column names to sort them.
 
 ::: only-for angular
 
-::: example #example1 :angular-numbro --ts 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-types/numeric-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/numeric-cell-type/angular/example1.html)
@@ -159,6 +168,164 @@ bigger numbers won't be calculated precisely, due to JavaScript's limitations.
 To format the look of numeric values in [cell renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md),
 use the [`numericFormat`](@/api/options.md#numericformat) option.
 
+Since Handsontable 17.0, the `numericFormat` option supports the native [`Intl.NumberFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat) API, which provides better performance and broader browser support without external dependencies.
+
+### Using Intl.NumberFormat (recommended)
+
+The `numericFormat` option accepts all properties of [`Intl.NumberFormatOptions`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat). The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+
+::: only-for javascript
+
+```js
+columns: [
+  {
+    type: 'numeric',
+    locale: 'en-US',
+    numericFormat: {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }
+  },
+  {
+    type: 'numeric',
+    locale: 'de-DE',
+    numericFormat: {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 2
+    }
+  }
+]
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  columns={[{
+    type: 'numeric',
+    locale: 'en-US',
+    numericFormat: {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }
+  }, {
+    type: 'numeric',
+    locale: 'de-DE',
+    numericFormat: {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 2
+    }
+  }]}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      type: 'numeric',
+      locale: 'en-US',
+      numericFormat: {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+      }
+    },
+    {
+      type: 'numeric',
+      locale: 'de-DE',
+      numericFormat: {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 2
+      }
+    }
+  ]
+};
+```
+
+:::
+
+**Common formatting styles:**
+
+- **Currency**: Use `style: 'currency'` with a `currency` property (e.g., `'USD'`, `'EUR'`, `'PLN'`)
+- **Decimal**: Use `style: 'decimal'` with `useGrouping: true` for thousands separators
+- **Percent**: Use `style: 'percent'` for percentage formatting
+- **Unit**: Use `style: 'unit'` with a `unit` property (e.g., `'kilometer'`, `'liter'`)
+
+**Available options:**
+
+**Style options:**
+
+| Property          | Possible values                                           | Description                                                    |
+| ----------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+| `style`           | `'decimal'` (default), `'currency'`, `'percent'`, `'unit'`| The formatting style to use                                    |
+| `currency`        | ISO 4217 currency codes (e.g., `'USD'`, `'EUR'`, `'PLN'`) | Required when `style` is `'currency'`                          |
+| `currencyDisplay` | `'symbol'` (default), `'narrowSymbol'`, `'code'`, `'name'`| How to display the currency                                    |
+| `currencySign`    | `'standard'` (default), `'accounting'`                    | Use parentheses for negative values in accounting format       |
+| `unit`            | Unit identifiers (e.g., `'kilometer'`, `'liter'`)         | Required when `style` is `'unit'`                              |
+| `unitDisplay`     | `'short'` (default), `'narrow'`, `'long'`                 | How to display the unit                                        |
+
+**Notation options:**
+
+| Property          | Possible values                                               | Description                                              |
+| ----------------- | ------------------------------------------------------------- | -------------------------------------------------------- |
+| `notation`        | `'standard'` (default), `'scientific'`, `'engineering'`, `'compact'` | The formatting notation                           |
+| `compactDisplay`  | `'short'` (default), `'long'`                                 | Display style for compact notation (e.g., `1.5M` vs `1.5 million`) |
+
+**Sign and grouping options:**
+
+| Property          | Possible values                                                     | Description                                        |
+| ----------------- | ------------------------------------------------------------------- | -------------------------------------------------- |
+| `signDisplay`     | `'auto'` (default), `'never'`, `'always'`, `'exceptZero'`, `'negative'` | When to display the sign                       |
+| `useGrouping`     | `true`, `false` (default), `'always'`, `'auto'`, `'min2'`           | Whether to use grouping separators (e.g., `1,000`) |
+
+**Digit options:**
+
+| Property                  | Possible values | Description                                                   |
+| ------------------------- | --------------- | ------------------------------------------------------------- |
+| `minimumIntegerDigits`    | `1` to `21`     | Minimum number of integer digits (pads with zeros)            |
+| `minimumFractionDigits`   | `0` to `100`    | Minimum number of fraction digits                             |
+| `maximumFractionDigits`   | `0` to `100`    | Maximum number of fraction digits                             |
+| `minimumSignificantDigits`| `1` to `21`     | Minimum number of significant digits                          |
+| `maximumSignificantDigits`| `1` to `21`     | Maximum number of significant digits                          |
+
+**Rounding options:**
+
+| Property              | Possible values                                                                                     | Description                          |
+| --------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `roundingMode`        | `'halfExpand'` (default), `'ceil'`, `'floor'`, `'expand'`, `'trunc'`, `'halfCeil'`, `'halfFloor'`, `'halfTrunc'`, `'halfEven'` | Rounding algorithm |
+| `roundingPriority`    | `'auto'` (default), `'morePrecision'`, `'lessPrecision'`                                            | Priority between fraction and significant digits |
+| `roundingIncrement`   | `1`, `2`, `5`, `10`, `20`, `25`, `50`, `100`, `200`, `250`, `500`, `1000`, `2000`, `2500`, `5000`    | Increment for rounding (e.g., nickel rounding) |
+| `trailingZeroDisplay` | `'auto'` (default), `'stripIfInteger'`                                                              | Whether to strip trailing zeros for integers |
+
+**Locale options:**
+
+| Property          | Possible values                                           | Description                                        |
+| ----------------- | --------------------------------------------------------- | -------------------------------------------------- |
+| `localeMatcher`   | `'best fit'` (default), `'lookup'`                        | Locale matching algorithm                          |
+| `numberingSystem` | `'latn'`, `'arab'`, `'hans'`, `'deva'`, `'thai'`, etc.    | Numbering system to use                            |
+
+For a complete reference, see the [`numericFormat` API documentation](@/api/options.md#numericformat) or [MDN: Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options).
+
+### Using Numbro.js format options (deprecated)
+
+::: warning Deprecated
+The `numericFormat.pattern` and `numericFormat.culture` options (numbro.js-based formatting) are deprecated and will be removed in the next major release. Migrate to the `Intl.NumberFormat` API shown above.
+:::
+
+The following demo uses the deprecated numbro.js format options. These options are still supported but will be removed in version 18.0.
+
 In the following demo, columns **Price in Japan** and **Price in Turkey** use two different
 [`numericFormat`](@/api/options.md#numericformat) configurations.
 
@@ -195,6 +362,35 @@ In the following demo, columns **Price in Japan** and **Price in Turkey** use tw
 
 :::
 
+**Deprecated options:**
+
+| Option | Description | Replacement |
+|--------|-------------|-------------|
+| `pattern` | Numbro.js format pattern (e.g., `'0,0.00 $'`) | Use `Intl.NumberFormat` options (see above) |
+| `culture` | Numbro.js locale identifier (e.g., `'en-US'`) | Use the [`locale`](@/api/options.md#locale) option |
+
+**Migration example:**
+
+```js
+// Before (deprecated)
+numericFormat: {
+  pattern: '0,0.00 $',
+  culture: 'en-US'
+}
+
+// After (recommended)
+locale: 'en-US',
+numericFormat: {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2
+}
+```
+
+For detailed migration instructions and more examples, see the [migration guide](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#1-migrate-from-numbro-format-to-intlnumberformat).
+
+### Editor behavior
+
 Mind that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way
 numbers are presented or parsed by the [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md). When
 you edit a numeric cell:
@@ -213,12 +409,15 @@ you edit a numeric cell:
 ### Related guides
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
+- [Migrating from 16.2 to 17.0](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#1-migrate-from-numbro-format-to-intlnumberformat) - Migration guide for Intl.NumberFormat
 
 ### Related API reference
 
 - Configuration options:
   - [`numericFormat`](@/api/options.md#numericformat)
+  - [`locale`](@/api/options.md#locale)
   - [`type`](@/api/options.md#type)
+  - [`valueFormatter`](@/api/options.md#valueformatter)
 - Core methods:
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
   - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)

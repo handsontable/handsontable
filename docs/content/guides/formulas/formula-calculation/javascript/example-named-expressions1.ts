@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import { HyperFormula } from 'hyperformula';
 import { Formulas } from 'handsontable/plugins';
 import { DetailedSettings } from 'handsontable/plugins/formulas';
@@ -19,7 +17,6 @@ const data: (string | number)[][] = [
 const container = document.querySelector('#example-named-expressions1')!;
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   colHeaders: true,
   rowHeaders: true,

@@ -355,7 +355,7 @@ describe('Core.loadData', () => {
       cells: cellsSpy,
     });
 
-    expect(cellsSpy.calls.count()).toBe(12);
+    expect(cellsSpy.calls.count()).toBe(24); // 12 calls x 2 (for rendering engine and data source validation)
   });
 
   // https://github.com/handsontable/handsontable/pull/233
@@ -389,7 +389,7 @@ describe('Core.loadData', () => {
       cells: cellsSpy
     });
 
-    expect(cellsSpy.calls.count()).toBe(12);
+    expect(cellsSpy.calls.count()).toBe(24); // 12 calls x 2 (for rendering engine and data source validation)
   });
 
   it('should not invoke the cells callback multiple times with the same row/col (with overlays, separate `loadData`' +
@@ -1135,5 +1135,27 @@ describe('Core.loadData', () => {
 
     expect(tableView().getTotalTableWidth()).toBe(getDefaultColumnWidth() * 5);
     expect(tableView().getTotalTableHeight()).toBe((getDefaultRowHeight() * 7) + 1);
+  });
+
+  it('should not scroll the viewport to the focused cell after loading new data', async() => {
+    handsontable({
+      data: createSpreadsheetData(20, 20),
+      width: 200,
+      height: 200,
+    });
+
+    await selectCell(0, 0);
+    await scrollViewportTo({
+      row: 19,
+      col: 19,
+    });
+
+    const inlineStartPosition = inlineStartOverlay().getScrollPosition();
+    const topPosition = topOverlay().getScrollPosition();
+
+    await loadData(createSpreadsheetData(20, 20));
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(inlineStartPosition);
+    expect(topOverlay().getScrollPosition()).toBe(topPosition);
   });
 });

@@ -38,7 +38,7 @@ export class Example2AutocompleteCellTypeComponent {
     colHeaders: [
       'Car<br>(allowInvalid true)',
       'Year',
-      'Chassis color<br>(allowInvalid false)',
+      'Chassis color',
       'Bumper color<br>(allowInvalid true)',
     ],
     autoWrapRow: true,
@@ -54,7 +54,6 @@ export class Example2AutocompleteCellTypeComponent {
         type: 'autocomplete',
         source: colors,
         strict: true,
-        allowInvalid: false,
       },
       {
         type: 'autocomplete',
@@ -87,7 +86,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
         license: NON_COMMERCIAL_LICENSE,
       } as HotGlobalConfig
     }

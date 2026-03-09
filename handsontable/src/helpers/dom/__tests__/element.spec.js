@@ -296,5 +296,46 @@ describe('DOM helpers', () => {
 
       document.body.removeChild(parent);
     });
+
+    it('should return `true` if the element or any of its parents has the height set to `0px` or 0 and overflow is set to `clip`', async() => {
+      const element = document.createElement('div');
+
+      element.style.height = '0px';
+      element.style.overflow = 'clip';
+
+      document.body.appendChild(element);
+
+      expect(Handsontable.dom.hasZeroHeight(element)).toBe(true);
+
+      element.style.height = '0';
+
+      expect(Handsontable.dom.hasZeroHeight(element)).toBe(true);
+
+      element.style.height = '';
+      element.style.overflow = '';
+
+      expect(Handsontable.dom.hasZeroHeight(element)).toBe(false);
+
+      const parent = document.createElement('div');
+
+      parent.style.height = '0px';
+      parent.style.overflow = 'clip';
+
+      parent.appendChild(element);
+      document.body.appendChild(parent);
+
+      expect(Handsontable.dom.hasZeroHeight(element)).toBe(true);
+
+      parent.style.height = '0';
+
+      expect(Handsontable.dom.hasZeroHeight(element)).toBe(true);
+
+      parent.style.height = '';
+      parent.style.overflow = '';
+
+      expect(Handsontable.dom.hasZeroHeight(element)).toBe(false);
+
+      document.body.removeChild(parent);
+    });
   });
 });

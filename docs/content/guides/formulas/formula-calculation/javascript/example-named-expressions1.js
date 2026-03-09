@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import { HyperFormula } from 'hyperformula';
 
 // Register all Handsontable's modules.
@@ -16,7 +14,6 @@ const data = [
 
 const container = document.querySelector('#example-named-expressions1');
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   colHeaders: true,
   rowHeaders: true,

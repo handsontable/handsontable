@@ -23,23 +23,24 @@ describe('NumericCellType', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
         getEditor('numeric');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
         getRenderer('numeric');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
         getValidator('numeric');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
         getCellType('numeric');
-      }).toThrowError();
+      }).toThrowWithCause(undefined, { handsontable: true });
     });
+
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, NumericCellType);
 
@@ -59,6 +60,7 @@ describe('NumericCellType', () => {
         editor: getEditor('numeric'),
         renderer: getRenderer('numeric'),
         validator: getValidator('numeric'),
+        valueFormatter: NumericCellType.valueFormatter,
         dataType: 'number',
         valueSetter: NumericCellType.valueSetter,
       });

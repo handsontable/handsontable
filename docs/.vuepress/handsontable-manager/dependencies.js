@@ -16,18 +16,9 @@ const getPackageUrls = (packageName, version, fileSelection) => {
   const subDirs = {
     handsontable: {
       js: 'handsontable.full.min.js',
-      css: [
-        'handsontable.min.css',
-        'ht-theme-main.css',
-        'ht-theme-horizon.css',
-        'ht-theme-classic.css',
-      ],
+      css: [],
       subDir: 'dist/',
       cssSubDir: 'styles/',
-    },
-    '@handsontable/react': {
-      js: 'react-handsontable.min.js',
-      subDir: 'dist/',
     },
     '@handsontable/react-wrapper': {
       js: 'react-handsontable.min.js',
@@ -36,10 +27,6 @@ const getPackageUrls = (packageName, version, fileSelection) => {
     '@handsontable/angular-wrapper': {
       js: 'handsontable-angular-wrapper.mjs',
       subDir: 'fesm2022/'
-    },
-    '@handsontable/vue': {
-      js: 'vue-handsontable.min.js',
-      subDir: 'dist/',
     },
     '@handsontable/vue3': {
       js: 'vue-handsontable.min.js',
@@ -117,7 +104,7 @@ const getPrebuiltUmdUrl = (scriptName) => {
  *
  * @param {string} version The current selected documentation version.
  * @returns {Function} Returns a function factory with the signature
- *                     `{function(dependency: string): [string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?]`.
+ *                     `{function(dependency: string): [string,string[],string],string,boolean} [jsUrl, dependentVars[]?, cssUrl?, globalVarSharedDependency, isModule]`.
  */
 const buildDependencyGetter = (version) => {
   const fixer = getCommonScript('fixer', version);
@@ -133,32 +120,37 @@ const buildDependencyGetter = (version) => {
       'react-dom': ['https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js', ['ReactDOM']],
       'hot-react': [getPackageUrls('@handsontable/react-wrapper', version, 'js'), ['Handsontable.react']],
       'react-redux': ['https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.2.4/react-redux.min.js'],
-      'react-colorful': ['https://cdn.jsdelivr.net/npm/react-colorful@5.5.1/dist/index.min.js'],
+      'react-colorful': ['https://cdn.jsdelivr.net/npm/react-colorful@5.5.1/dist/index.umd.js', ['react-colorful']],
       'react-star-rating-component': ['https://cdn.jsdelivr.net/npm/react-star-rating-component@1.4.1/dist/react-star-rating-component.min.js'],
       numbro: ['https://cdn.jsdelivr.net/npm/numbro@2.5.0/dist/languages.min.js', ['numbro.allLanguages', 'numbro']],
       redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js', []],
       rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.min.js', [/* todo */]],
       'core-js': ['https://cdn.jsdelivr.net/npm/core-js@2/client/core.min.js', [/* todo */]],
       zone: ['https://cdn.jsdelivr.net/npm/zone.js@0.15.0/bundles/zone.umd.min.js', [/* todo */]],
-      'angular-compiler': [getPrebuiltUmdUrl('angular-compiler.umd.min.js'), [/* todo
-       */]],
+      'angular-compiler': [getPrebuiltUmdUrl('angular-compiler.umd.min.js'), [/* todo */]],
       'angular-core': [getPrebuiltUmdUrl('angular-core.umd.min.js'), [/* todo */]],
       'angular-common': [getPrebuiltUmdUrl('angular-common.umd.min.js'), [/* todo */]],
       'angular-forms': [getPrebuiltUmdUrl('angular-forms.umd.min.js'), [/* todo */]],
       'angular-platform-browser': [getPrebuiltUmdUrl('angular-platformBrowser.umd.min.js'), [/* todo */]],
       'angular-platform-browser-dynamic': [getPrebuiltUmdUrl('angular-platformBrowserDynamic.umd.min.js'), [/* todo */]],
       'angular-core-primitives-signals': [getPrebuiltUmdUrl('angular-core-primitives-signals.umd.min.js'), [/* todo */]],
+      'angular-material-checkbox': [getPrebuiltUmdUrl('angular-material-checkbox.umd.min.js'), [/* todo */]],
+      'angular-cdk-a11y': [getPrebuiltUmdUrl('angular-cdk-a11y.umd.min.js'), [/* todo */]],
+      'angular-cdk-observers': [getPrebuiltUmdUrl('angular-cdk-observers.umd.min.js'), [/* todo */]],
+      'angular-cdk-coercion': [getPrebuiltUmdUrl('angular-cdk-coercion.umd.min.js'), [/* todo */]],
       'hot-angular': [getPrebuiltUmdUrl('handsontable-angular-wrapper.umd.min.js')],
-      'hot-vue': [getPackageUrls('@handsontable/vue', version, 'js'), [/* todo */], null, 'hot-vue3'],
-      'hot-vue3': [getPackageUrls('@handsontable/vue3', version, 'js'), [/* todo */], null, 'hot-vue'],
-      vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */], null, 'vue3'],
-      vuex: ['https://cdn.jsdelivr.net/npm/vuex@3/dist/vuex.min.js', [/* todo */], null, 'vuex4'],
-      'vue-color': ['https://cdn.jsdelivr.net/npm/vue-color@2/dist/vue-color.min.js', [/* todo */]],
-      'vue-class-component': ['https://cdn.jsdelivr.net/npm/vue-class-component@7.1.0/dist/vue-class-component.min.js', [/* todo */]],
-      'vue-star-rating': ['https://cdn.jsdelivr.net/npm/vue-star-rating@1/dist/VueStarRating.umd.min.js', [/* todo */]],
-      vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue'],
-      vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
+      'hot-vue3': [getPackageUrls('@handsontable/vue3', version, 'js'), [/* todo */]],
+      vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue3'],
+      vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex4'],
       languages: [getPackageUrls('handsontable', version, 'dist/languages/all.js'), [/* todo */]],
+      'theme-main': [getPackageUrls('handsontable', version, 'dist/themes/main.min.js'), ['mainTheme']],
+      'theme-horizon': [getPackageUrls('handsontable', version, 'dist/themes/horizon.min.js'), ['horizonTheme']],
+      'theme-classic': [getPackageUrls('handsontable', version, 'dist/themes/classic.min.js'), ['classicTheme']],
+      moment: ['https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js', [/* todo */]],
+      'date-fns': ['https://cdnjs.cloudflare.com/ajax/libs/date-fns/4.1.0/cdn.min.js', [/* todo */]],
+      '@simonwep/pickr': ['https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js', ['Pickr']],
+      pikaday: ['https://cdn.jsdelivr.net/npm/@handsontable/pikaday/pikaday.js', [/* todo */]],
+      flatpickr: ['https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js', ['flatpickr']],
     };
     /* eslint-enable max-len */
 
@@ -169,6 +161,7 @@ const buildDependencyGetter = (version) => {
 
 const presetMap = {
   /* eslint-disable max-len */
+  'hot-recipe': ['hot', 'moment', 'pikaday', 'date-fns', '@simonwep/pickr', 'flatpickr', 'numbro', 'fixer'],
   hot: ['hot', 'fixer'],
   'hot-lang': ['hot', 'languages', 'fixer'],
   'hot-numbro': ['hot', 'numbro', 'fixer'],
@@ -177,29 +170,42 @@ const presetMap = {
   'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-redux': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer'],
   'react-advanced': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'react-star-rating-component', 'fixer', 'react-colorful'],
-  angular: ['hot', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
+  angular: ['hot', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'angular-cdk-a11y', 'angular-cdk-observers', 'angular-cdk-coercion', 'angular-material-checkbox', 'date-fns', 'fixer'],
   'angular-languages': ['hot', 'languages', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
   'angular-numbro': ['hot', 'numbro', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
-  vue: ['hot', 'vue', 'hot-vue', 'fixer'],
-  'vue-numbro': ['hot', 'numbro', 'vue', 'hot-vue', 'fixer'],
-  'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer'],
-  'vue-vuex': ['hot', 'vue', 'vuex', 'hot-vue', 'fixer'],
-  'vue-advanced': ['hot', 'vue', 'vuex', 'hot-vue', 'vue-color', 'vue-class-component', 'vue-star-rating', 'fixer'],
   vue3: ['hot', 'vue3', 'hot-vue3', 'fixer'],
   'vue3-numbro': ['hot', 'numbro', 'vue3', 'hot-vue3', 'fixer'],
   'vue3-languages': ['hot', 'languages', 'vue3', 'hot-vue3', 'fixer'],
   'vue3-vuex': ['hot', 'vue3', 'vuex4', 'hot-vue3', 'fixer'],
+
   /* eslint-enable max-len */
 };
 
-const getDependencies = (version, preset) => {
+const themeMap = {
+  mainTheme: 'theme-main',
+  horizonTheme: 'theme-horizon',
+  classicTheme: 'theme-classic',
+};
+
+const getDependencies = (version, preset, code = '') => {
   const getter = buildDependencyGetter(version);
 
   if (!Array.isArray(presetMap[preset])) {
     throw new Error(`The preset "${preset}" was not found.`);
   }
 
-  return presetMap[preset].map(x => getter(x));
+  const baseDependencies = presetMap[preset];
+
+  // Only add theme dependencies for themes that are actually imported
+  const requiredThemes = Object.entries(themeMap)
+    .filter(([themeName]) => code.includes(themeName))
+    .map(([, dependency]) => dependency);
+
+  const dependencies = requiredThemes.length > 0
+    ? [...baseDependencies.slice(0, 1), ...requiredThemes, ...baseDependencies.slice(1)]
+    : baseDependencies;
+
+  return dependencies.map(x => getter(x));
 };
 
 module.exports = {
@@ -207,5 +213,6 @@ module.exports = {
   getDependencies,
   buildDependencyGetter,
   presetMap,
+  themeMap,
   formatVersion
 };

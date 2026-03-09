@@ -32,14 +32,14 @@ describe('Selection extending', () => {
         |   :   :   |
         |   :   :   |
         |   :   :   |
-        |   : 0 :   |
+        |   :   :   |
         |   : 0 :   |
         |   : 0 :   |
         |   : 0 :   |
         |   : A :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 9,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 10,1']);
 
       await keyDownUp(['shift', 'pageup']);
 
@@ -49,6 +49,27 @@ describe('Selection extending', () => {
         |   :   :   |
         |   :   :   |
         |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : A :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 7,1']);
+
+      await keyDownUp(['shift', 'pageup']);
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : 0 :   |
         |   : 0 :   |
         |   : 0 :   |
         |   : 0 :   |
@@ -60,7 +81,7 @@ describe('Selection extending', () => {
         |   : A :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 5,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 4,1']);
 
       await keyDownUp(['shift', 'pageup']);
 
@@ -380,15 +401,15 @@ describe('Selection extending', () => {
 
       await keyDownUp(['shift', 'pageup']);
 
-      expect(getSelectedRangeLast().to.row).toBe(tableView().getFirstFullyVisibleRow() + 3);
+      expect(getSelectedRangeLast().to.row).toBe(tableView().getFirstFullyVisibleRow() + 2);
 
       await keyDownUp(['shift', 'pageup']);
 
-      expect(getSelectedRangeLast().to.row).toBe(tableView().getFirstFullyVisibleRow() + 3);
+      expect(getSelectedRangeLast().to.row).toBe(tableView().getFirstFullyVisibleRow() + 2);
 
       await keyDownUp(['shift', 'pageup']);
 
-      expect(getSelectedRangeLast().to.row).toBe(tableView().getFirstFullyVisibleRow() + 3);
+      expect(getSelectedRangeLast().to.row).toBe(tableView().getFirstFullyVisibleRow() + 2);
     });
 
     it.forTheme('main')('should scroll the viewport repeatedly by the same number of pixels with keeping the initial ' +

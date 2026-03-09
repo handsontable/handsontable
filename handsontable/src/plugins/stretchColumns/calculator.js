@@ -122,8 +122,6 @@ export class StretchCalculator {
     const viewportHeight = view.getViewportHeight();
     const totalRows = this.#hot.countRows();
     const defaultRowHeight = stylesHandler.getDefaultRowHeight();
-    const isLegacyTheme = stylesHandler.isClassicTheme();
-    const firstRowBorderCompensation = row => (isLegacyTheme && row === 0 ? 1 : 0);
     let totalHeight = 0;
     let hasVerticalScroll = false;
 
@@ -133,7 +131,7 @@ export class StretchCalculator {
         continue;
       }
 
-      totalHeight += (this.#hot.getRowHeight(row) ?? defaultRowHeight) + firstRowBorderCompensation(row);
+      totalHeight += (this.#hot.getRowHeight(row) ?? defaultRowHeight);
 
       if (totalHeight > viewportHeight) {
         hasVerticalScroll = true;

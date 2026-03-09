@@ -1,4 +1,5 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
+import { throwWithCause } from '../helpers/errors';
 import { stopImmediatePropagation } from '../helpers/dom/event';
 import { createContext, isContextObject } from './context';
 import { useRecorder } from './recorder';
@@ -93,7 +94,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    */
   const setActiveContextName = (contextName) => {
     if (!CONTEXTS.hasItem(contextName)) {
-      throw new Error(toSingleLine`You've tried to activate the "${contextName}" shortcut context\x20
+      throwWithCause(toSingleLine`You've tried to activate the "${contextName}" shortcut context\x20
         that does not exist. Before activation, register the context using the "addContext" method.`);
     }
 

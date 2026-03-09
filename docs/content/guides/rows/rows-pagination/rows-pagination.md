@@ -26,6 +26,7 @@ angular:
   metaTitle: Row pagination - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 
 # Rows pagination
@@ -111,7 +112,8 @@ You can configure the following options:
 ```javascript
 const configurationOptions = {
   pagination: {
-    // Set number of rows per page. If the value is `auto` then the page size is calculated
+    // Set number of rows per page. If the value is `auto` then the
+    // page size is calculated
     // based on available height.
     pageSize: 20,
     // Provide a list of selectable page sizes
@@ -124,7 +126,8 @@ const configurationOptions = {
     showCounter: true,
     // Show or hide the page navigation section
     showNavigation: true,
-    // Custom container where the pagination UI will be injected (optional)
+    // Custom container where the pagination UI will be injected
+    // (optional)
     uiContainer: null,
   }
 };
@@ -356,7 +359,7 @@ The example below demonstrates how to customize the translation of the paginatio
 
 ## Customize pagination UI
 
-You can customize the look of each pagination element by assigning new values to the CSS variables defined in our main and horizon themes, aligning them with your app's design guidelines. For a list of available variables, see the [Handsontable Design System](@/guides/styling/design-system/design-system.md) on Figma or view the [theme source files](https://github.com/handsontable/handsontable/blob/master/handsontable/src/styles/themes/main.scss) on GitHub.
+You can customize the look of each pagination element by assigning new values to the CSS variables defined in our main, horizon and classic themes, aligning them with your app's design guidelines. For a list of available variables, see the [Handsontable Design System](@/guides/styling/design-system/design-system.md) on Figma.
 
 Within the plugin the following CSS variables are available:
 
@@ -377,10 +380,6 @@ To use pagination, you need only the following modules:
 ```js
 // import the base module
 import Handsontable from 'handsontable/base';
-
-// import Handsontable's CSS
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // import the Pagination plugin
 import { registerPlugin, Pagination } from 'handsontable/plugins';

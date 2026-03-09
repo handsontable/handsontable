@@ -61,12 +61,10 @@
 Below is the installation guide for the Handsontable with Vue 3 wrapper. If you're using another framework, please refer to its dedicated wrapper for specific installation instructions.
 
 - <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="12" height="12" alt="JavaScript logo"> <a href="https://github.com/handsontable/handsontable"> JavaScript</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> React functional component</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"> React class component</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="12" height="12" alt="Angular logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular"> Angular</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="12" height="12" alt="Vue logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue"> Vue 2</a>
-
+- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> React</a>
+- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="12" height="12" alt="Angular logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular-wrapper"> Angular</a>
 ---
+
 
 ```bash
 npm install handsontable @handsontable/vue3
@@ -76,9 +74,6 @@ You can load it directly from [jsDelivr](https:jsdelivr.com/package/npm/@handson
 ```html
 <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/vue3/dist/vue-handsontable.min.js"></script>
-
-<link href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" rel="stylesheet">
 ```
 
 The component will be available as `Handsontable.vue.HotTable`.
@@ -87,17 +82,10 @@ The component will be available as `Handsontable.vue.HotTable`.
 
 Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/api/options/) can be set as `HotTable` props.
 
-**Styles**
-```css
-@import '~handsontable/styles/handsontable.min.css';
-@import '~handsontable/styles/ht-theme-main.min.css';
-```
-
 **Vue 3 Component**
 ```vue
 <template>
   <hot-table
-    theme="ht-theme-main-dark-auto"
     :data="data"
     :row-headers=true
     :col-headers=true
@@ -117,8 +105,6 @@ Use this data grid as you would any other component in your application. [Option
   import { defineComponent } from 'vue';
   import { HotTable, HotColumn } from '@handsontable/vue3';
   import { registerAllModules } from 'handsontable/registry';
-  import 'handsontable/styles/handsontable.min.css';
-  import 'handsontable/styles/ht-theme-main.min.css';
 
   // register Handsontable's modules
   registerAllModules();

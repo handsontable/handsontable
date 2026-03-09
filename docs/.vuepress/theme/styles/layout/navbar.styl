@@ -85,6 +85,8 @@
                 display: flex
 
                 .nav-item {
+                    position: relative
+
                     .open { 
                         > button { 
                             color: $textColor
@@ -157,6 +159,16 @@
 
                     .external span { 
                         display:none
+                    }
+
+                    .tag {
+                        display: inline-block
+                        position: absolute
+                        top: -4px
+                        left: 60%
+                        pointer-events: none;
+                        background-color: $accentColor
+                        color: $bgColor
                     }
                 }
             }

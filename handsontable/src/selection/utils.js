@@ -1,4 +1,5 @@
 import { CellRange } from './../3rdparty/walkontable/src';
+import { throwWithCause } from '../helpers/errors';
 import { arrayEach, arrayReduce } from './../helpers/array';
 import { isUndefined } from './../helpers/mixed';
 
@@ -31,7 +32,7 @@ const childCall = Symbol('child');
  */
 export function detectSelectionType(selectionRanges, _callSymbol = rootCall) {
   if (_callSymbol !== rootCall && _callSymbol !== childCall) {
-    throw new Error('The second argument is used internally only and cannot be overwritten.');
+    throwWithCause('The second argument is used internally only and cannot be overwritten.');
   }
 
   const isArray = Array.isArray(selectionRanges);
@@ -83,7 +84,7 @@ export function normalizeSelectionFactory(type, {
   propToCol,
 } = {}) {
   if (!SELECTION_TYPES.includes(type)) {
-    throw new Error('Unsupported selection ranges schema type was provided.');
+    throwWithCause('Unsupported selection ranges schema type was provided.');
   }
 
   return function(selection) {

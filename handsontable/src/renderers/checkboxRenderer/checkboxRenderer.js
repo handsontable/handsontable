@@ -1,4 +1,3 @@
-import { baseRenderer } from '../baseRenderer';
 import EventManager from '../../eventManager';
 import { empty, addClass, setAttribute, isHTMLElement } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
@@ -6,6 +5,7 @@ import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutConte
 import { Hooks } from '../../core/hooks';
 import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
+import { BAD_VALUE_TEXT } from '../../helpers/constants';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -54,7 +54,6 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
   const { rootDocument } = hotInstance;
   const ariaEnabled = hotInstance.getSettings().ariaTags;
 
-  baseRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
   registerEvents(hotInstance);
 
   let input = createInput(rootDocument);
@@ -146,7 +145,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
   }
 
   if (badValue) {
-    TD.appendChild(rootDocument.createTextNode('#bad-value#'));
+    TD.appendChild(rootDocument.createTextNode(BAD_VALUE_TEXT));
   }
 
   if (!isListeningKeyDownEvent.has(hotInstance)) {

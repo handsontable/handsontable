@@ -16,7 +16,7 @@ describe('NodeModifiers', () => {
     it('should throw an error when unsupported action is used', () => {
       expect(() => {
         triggerNodeModification('trim');
-      }).toThrowError('The node modifier action ("trim") does not exist.');
+      }).toThrowWithCause('The node modifier action ("trim") does not exist.', { handsontable: true });
     });
   });
 

@@ -2,12 +2,10 @@
 // This example shows how to provide different messages based on the source of empty state
 
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.getElementById('example3') as HTMLElement;
 
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data: [],
   height: 'auto',
   colHeaders: ['First Name', 'Last Name', 'Email'],

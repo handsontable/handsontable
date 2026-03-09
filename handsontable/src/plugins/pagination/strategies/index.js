@@ -1,4 +1,5 @@
 import { FixedPageSizeStrategy } from './fixedPageSize';
+import { throwWithCause } from '../../../helpers/errors';
 import { AutoPageSizeStrategy } from './autoPageSize';
 
 const strategies = new Map([
@@ -14,7 +15,7 @@ const strategies = new Map([
  */
 export function createPaginatorStrategy(strategyType) {
   if (!strategies.has(strategyType)) {
-    throw new Error(`Unknown pagination strategy type: ${strategyType}`);
+    throwWithCause(`Unknown pagination strategy type: ${strategyType}`);
   }
 
   const Strategy = strategies.get(strategyType);

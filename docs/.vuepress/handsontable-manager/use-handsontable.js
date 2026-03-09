@@ -3,6 +3,7 @@ const { themeManager } = require('./theme-manager');
 const {
   buildDependencyGetter,
   presetMap,
+  themeMap,
 } = require('./dependencies');
 
 const ATTR_VERSION = 'data-hot-version';
@@ -28,20 +29,12 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
     abortSignal?.addEventListener('abort', abortHandler);
 
     const getId = depName => `dependency-reloader_${depName}`;
-    const [jsUrl, dependentVars = [], cssUrl = undefined, globalVarSharedDependency] = getDependency(dep);
+
+    const [jsUrl, dependentVars = [], cssUrl = undefined, globalVarSharedDependency, isModule] = getDependency(dep);
     const id = getId(dep);
 
     const _document = document; // eslint-disable-line no-restricted-globals
     let script = null;
-
-    // As the documentation uses multiple versions of Vue (which reuse the same global variable - `Vue`), every
-    // time the Vue dependency is loaded, the previously used version should be removed.
-    if (globalVarSharedDependency) {
-      script = _document.getElementById(`script-${getId(globalVarSharedDependency)}`);
-
-    } else {
-      script = _document.getElementById(`script-${id}`);
-    }
 
     // clear outdated version
     if (script && (script.getAttribute(ATTR_VERSION) !== version || (globalVarSharedDependency ?? false))) {
@@ -59,10 +52,19 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
 
     // import current version
     if (!script) {
+      // react-colorful UMD expects window.react; React UMD sets window.React
+      if (dep === 'react-colorful' && typeof _document.defaultView.React !== 'undefined') {
+        _document.defaultView.react = _document.defaultView.React;
+      }
+
       script = _document.createElement('script');
       script.src = jsUrl;
       script.id = `script-${id}`;
       script.setAttribute(ATTR_VERSION, version);
+
+      if (isModule) {
+        script.setAttribute('type', 'module');
+      }
       script.addEventListener('load', () => {
         script.loaded = true;
       });
@@ -104,25 +106,42 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
   });
 
   const loadPreset = async() => {
-    const dependencies = presetMap[preset];
+    const baseDependencies = presetMap[preset];
+
+    // Only add theme dependencies for themes that are actually imported
+    const callbackCode = callback.toString();
+    const requiredThemes = Object.entries(themeMap)
+      .filter(([themeName]) => callbackCode.includes(themeName))
+      .map(([, dependency]) => dependency);
+
+    const dependencies = requiredThemes.length > 0
+      ? [...baseDependencies.slice(0, 1), ...requiredThemes, ...baseDependencies.slice(1)]
+      : baseDependencies;
 
     for (let i = 0; i < dependencies.length; i++) {
       const dep = dependencies[i];
 
       if (abortSignal?.aborted) {
-        break;
+        throw new AbortError();
       }
 
-      // Ensure that `fixer.js` is not loaded while injecting new dependencies (with an exception for `react-colorful`).
-      if (dep !== 'fixer' && dep !== 'react-colorful') {
+      const exceptions = ['fixer', 'react-colorful', 'flatpickr', '@simonwep/pickr'];
+
+      // Ensure that `fixer.js` is not loaded while injecting new dependencies (with an exception for `react-colorful` and others).
+      if (!exceptions.includes(dep)) {
         const _document = document; // eslint-disable-line no-restricted-globals
         const getId = depName => `dependency-reloader_${depName}`;
         const fixerScript = _document.getElementById(`script-${getId('fixer')}`);
 
         if (fixerScript) {
           fixerScript.remove();
-          delete window.require;
-          delete window.exports;
+          try {
+            delete window.require;
+            delete window.exports;
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Error deleting require and exports', error);
+          }
         }
       }
 
@@ -135,11 +154,21 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
   const currentPresetPromise = globalLoadingChain.then(async() => {
     try {
       await loadPreset();
-      callback();
     } catch (err) {
       if (!(err instanceof AbortError)) {
         throw err;
       }
+
+      return;
+    }
+
+    // Execute callback separately - errors from example code should not break
+    // the loading chain for other examples on the page
+    try {
+      callback();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Example callback error:', err);
     }
   });
 

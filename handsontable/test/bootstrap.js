@@ -37,7 +37,8 @@ const exportToGlobal = (helpersHolder) => {
     }
 
     if (global[key] !== undefined) {
-      throw Error(`Cannot export "${key}" helper because this name is already assigned.`);
+      // eslint-disable-next-line handsontable/no-native-error-throw
+      throw new Error(`Cannot export "${key}" helper because this name is already assigned.`);
     }
 
     global[key] = helpersHolder[key];

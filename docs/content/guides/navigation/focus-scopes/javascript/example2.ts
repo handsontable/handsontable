@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -111,7 +109,6 @@ const data = [
 
 const container = document.querySelector('#example2')!;
 const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
   data,
   pagination: true,
   dialog: {
@@ -184,15 +181,19 @@ const dialogPlugin = hot.getPlugin('dialog');
 
 dialogPlugin.show();
 
-function updateDebugInformation() {
+const debugIntervalId = setInterval(function updateDebugInformation() {
   const examplesContainer = document.getElementById('example2container');
-  const isListeningElement = examplesContainer!.querySelector('.isListening');
-  const focusScopeElement = examplesContainer!.querySelector('.focusScope');
-  const shortcutsContextElement = examplesContainer!.querySelector('.shortcutsContext');
+  if (!examplesContainer || hot.isDestroyed) {
+    clearInterval(debugIntervalId);
+    return;
+  }
+  const isListeningElement = examplesContainer.querySelector('.isListening');
+  const focusScopeElement = examplesContainer.querySelector('.focusScope');
+  const shortcutsContextElement = examplesContainer.querySelector('.shortcutsContext');
 
-  isListeningElement!.textContent = `${hot.isListening()}`;
-  focusScopeElement!.textContent = `${hot.getFocusScopeManager().getActiveScopeId()}`;
-  shortcutsContextElement!.textContent = `${hot.getShortcutManager().getActiveContextName()}`;
-}
-
-setInterval(updateDebugInformation, 200);
+  if (isListeningElement && focusScopeElement && shortcutsContextElement) {
+    isListeningElement.textContent = `${hot.isListening()}`;
+    focusScopeElement.textContent = `${hot.getFocusScopeManager().getActiveScopeId()}`;
+    shortcutsContextElement.textContent = `${hot.getShortcutManager().getActiveContextName()}`;
+  }
+}, 200);

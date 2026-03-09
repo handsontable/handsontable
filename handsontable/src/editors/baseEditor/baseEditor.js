@@ -1,4 +1,5 @@
 import { stringify } from '../../helpers/mixed';
+import { throwWithCause } from '../../helpers/errors';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
@@ -60,6 +61,12 @@ export class BaseEditor {
    * @type {Function}
    */
   _closeCallback = null;
+  /**
+   * Flag to specify if the editor should be closed after data change.
+   *
+   * @type {boolean}
+   */
+  _closeAfterDataChange = true;
   /**
    * Currently rendered cell's TD element.
    *
@@ -127,28 +134,28 @@ export class BaseEditor {
    * Required method to get current value from editable element.
    */
   getValue() {
-    throw Error('Editor getValue() method unimplemented');
+    throwWithCause('Editor getValue() method unimplemented');
   }
 
   /**
    * Required method to set new value into editable element.
    */
   setValue() {
-    throw Error('Editor setValue() method unimplemented');
+    throwWithCause('Editor setValue() method unimplemented');
   }
 
   /**
    * Required method to open editor.
    */
   open() {
-    throw Error('Editor open() method unimplemented');
+    throwWithCause('Editor open() method unimplemented');
   }
 
   /**
    * Required method to close editor.
    */
   close() {
-    throw Error('Editor close() method unimplemented');
+    throwWithCause('Editor close() method unimplemented');
   }
 
   /**
@@ -279,8 +286,6 @@ export class BaseEditor {
    * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue, ctrlDown, callback) {
-    let val;
-
     if (callback) {
       const previousCloseCallback = this._closeCallback;
 
@@ -314,21 +319,18 @@ export class BaseEditor {
         return;
       }
 
-      const value = this.getValue();
+      let value = this.getValue();
 
       if (this.cellProperties.trimWhitespace) {
-        // We trim only string values
-        val = [
-          [typeof value === 'string' ? String.prototype.trim.call(value || '') : value]
-        ];
-      } else {
-        val = [
-          [value]
-        ];
+        value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
+      }
+
+      if (typeof this.cellProperties.valueParser === 'function') {
+        value = this.cellProperties.valueParser(value, this.cellProperties);
       }
 
       this.state = EDITOR_STATE.WAITING;
-      this.saveValue(val, ctrlDown);
+      this.saveValue([[value]], ctrlDown);
 
       if (this.hot.getCellValidator(this.cellProperties)) {
         this.hot.addHookOnce('postAfterValidate', (result) => {
@@ -343,7 +345,7 @@ export class BaseEditor {
   }
 
   /**
-   * Finishes editing without singout saving value.
+   * Finishes editing without saving value.
    */
   cancelChanges() {
     this.state = EDITOR_STATE.FINISHED;
@@ -370,6 +372,7 @@ export class BaseEditor {
 
     } else {
       this.close();
+
       this._opened = false;
       this._fullEditMode = false;
       this.state = EDITOR_STATE.VIRGIN;

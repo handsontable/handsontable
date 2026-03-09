@@ -24,6 +24,7 @@ angular:
   metaTitle: Design System / UI Kit - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
+menuTag: updated
 ---
 
 # Handsontable Design System
@@ -38,17 +39,17 @@ The Handsontable Design System is a complete toolkit for building, prototyping, 
 
 ## Live preview
 
-<iframe class="iframe-responsive" src="https://embed.figma.com/design/H7qfV5G066Qs1kG6AlWkq6/Handsontable-Design-System-(Community)?node-id=4492-11857&embed-host=share&theme=system" allowfullscreen></iframe>
+<iframe class="iframe-responsive" src="https://embed.figma.com/file/1487445656371116081/hf_embed?community_viewer=true&embed_host=fastma&fuid=644302446942094315&kind=file&page-selector=0&viewer=1" allowfullscreen></iframe>
 
 [Open the Design System in Figma](https://www.figma.com/community/file/1487445656371116081)
 
 ## Use tokens to generate a theme
 
-Inside the Figma file, you’ll find local variables that define all parts of the data grid — like colors, spacing, font styles, icon sizes, and more. These variables are organized into two themes: Main and Horizon, each available in both light and dark mode.
+Inside the Figma file, you’ll find local variables that define all parts of the data grid — like colors, spacing, font styles, icon sizes, and more. These variables are organized into three themes: Main, Horizon and Classic each available in both light and dark mode.
 
 You can tweak the variables however you like to match your brand or product style. Once you’re happy with the changes, export them as JSON tokens. We recommend using the [Design Tokens](https://www.figma.com/community/plugin/888356646278934516/design-tokens) plugin from the Figma Community — it’s straightforward and does the job well.
 
-After exporting, head over to our [Theme Generator on GitHub](https://github.com/handsontable/handsontable-figma) to convert your tokens into a CSS theme file that works with Handsontable.
+After exporting, head over to our [Theme Generator on GitHub](https://github.com/handsontable/handsontable-figma) to convert your tokens into a CSS theme and JavaScript variables object that works with Handsontable.
 
 <span class="img-light">
 
@@ -69,7 +70,7 @@ The design system is our primary reference when planning new features or redesig
 
 ## Known limitations
 
-- The legacy style is not part of the design system as we advise against its use in new projects. Starting from version 16.1, you can utilize the new Classic theme.
+- The legacy style is not part of the design system. Starting from version 17.0.0, legacy styles are no longer supported and you need to migrate to the Classic theme.
 
 ## Troubleshooting
 

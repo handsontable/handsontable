@@ -14,5 +14,5 @@ export {
   _getItem as getRenderer,
   hasItem as hasRenderer,
   getNames as getRegisteredRendererNames,
-  getValues as getRegisteredRenderers
+  getValues as getRegisteredRenderers,
 };

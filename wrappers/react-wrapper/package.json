@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/react-wrapper",
-  "version": "16.2.0",
+  "version": "17.0.0",
   "description": "Best Data Grid for React with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
@@ -72,7 +72,7 @@
     "@types/react-dom": "^18.2.0",
     "@types/react-redux": "^7.1.7",
     "cross-env": "^7.0.3",
-    "handsontable": "^16.0.0",
+    "handsontable": "^17.0.0",
     "jest": "^27.5.1",
     "jest-environment-jsdom": "^27.5.1",
     "prop-types": "^15.7.2",
@@ -88,7 +88,7 @@
     "uglify-js": "^3.4.9"
   },
   "peerDependencies": {
-    "handsontable": ">=16.0.0"
+    "handsontable": "^17.0.0"
   },
   "scripts": {
     "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min && npm run prepare:types",
@@ -99,6 +99,7 @@
     "prepare:types": "mv types/src/* ./ && rimraf ./types",
     "clean": "rimraf ./es/ && rimraf ./commonjs/ && rimraf ./dist/ && rimraf ./*.d.ts",
     "publish-package": "npm publish",
+    "create-package": "npm pack",
     "test": "jest",
     "test.watch": "jest --watch",
     "watch:commonjs": "cross-env NODE_ENV=cjs rollup -c --watch --bundleConfigAsCjs",

@@ -38,7 +38,9 @@ describe('Core_init', () => {
     doc.write(`
       <!doctype html>
       <head>
-        <link type="text/css" rel="stylesheet" href="../dist/handsontable.full.min.css">
+        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
+        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
+        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
       </head>`);
     doc.close();
 
@@ -221,11 +223,10 @@ describe('Core_init', () => {
       simulateModernThemeStylesheet(spec().$container);
       spec().$container.addClass('ht-theme-sth');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
     });
 
@@ -237,7 +238,6 @@ describe('Core_init', () => {
         data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
       expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
     });

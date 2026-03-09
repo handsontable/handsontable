@@ -228,7 +228,7 @@ describe('Pagination', () => {
     await scrollViewportTo({ row: 10, col: 10 });
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(69);
+      classic.toBe(101);
       main.toBe(134);
       horizon.toBe(222);
     });

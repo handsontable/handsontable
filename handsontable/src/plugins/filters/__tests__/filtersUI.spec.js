@@ -1594,6 +1594,44 @@ describe('Filters UI', () => {
     });
   });
 
+  it('should be possible to filter data "by value" changing the condition on each filter (#dev-2962)', async() => {
+    handsontable({
+      data: [
+        ['Completed'],
+        ['Open'],
+        ['Completed'],
+        ['Open'],
+        ['Completed'],
+      ],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+    });
+
+    await dropdownMenu(0);
+    // Select only "Completed"
+    await simulateClick(byValueBoxRootElement().querySelector('[aria-rowindex="2"] input'));
+    await simulateClick(getFilterDropdownMenuOKButton());
+
+    expect(getData()).toEqual([
+      ['Completed'],
+      ['Completed'],
+      ['Completed'],
+    ]);
+
+    await dropdownMenu(0);
+
+    // Select only "Open"
+    await simulateClick(byValueBoxRootElement().querySelector('[aria-rowindex="1"] input'));
+    await simulateClick(byValueBoxRootElement().querySelector('[aria-rowindex="2"] input'));
+    await simulateClick(getFilterDropdownMenuOKButton());
+
+    expect(getData()).toEqual([
+      ['Open'],
+      ['Open'],
+    ]);
+  });
+
   it('should not inherit font family and size from body', async() => {
     handsontable({
       data: getDataForFilters(),

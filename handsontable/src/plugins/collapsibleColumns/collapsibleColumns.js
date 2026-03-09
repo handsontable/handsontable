@@ -1,4 +1,5 @@
 import { BasePlugin } from '../base';
+import { throwWithCause } from '../../helpers/errors';
 import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
@@ -437,7 +438,7 @@ export class CollapsibleColumns extends BasePlugin {
    */
   toggleCollapsibleSection(coords, action) {
     if (!actionDictionary.has(action)) {
-      throw new Error(`Unsupported action is passed (${action}).`);
+      throwWithCause(`Unsupported action is passed (${action}).`);
     }
     if (!Array.isArray(coords)) {
       return;

@@ -120,6 +120,52 @@ describe('AutocompleteEditor key/value source', () => {
 
   });
 
+  describe('Clearing values with DELETE/BACKSPACE', () => {
+    it('should clear the cell value when selecting a key-value-based cell with: ' +
+      '`strict=true`, `allowInvalid=false` and `allowEmpty=true` and pressing DELETE', async() => {
+      handsontable({
+        data: airportKVChoices.map(item => [item]),
+        columns: [{
+          type: 'autocomplete',
+          source: airportKVChoices,
+          strict: true,
+          allowInvalid: false,
+          allowEmpty: true,
+        }],
+      });
+
+      expect(getDataAtCell(0, 0)).toEqual(airportKVChoices[0].value);
+
+      await selectCell(0, 0);
+      await keyDownUp('delete');
+      await sleep(10);
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+    });
+
+    it('should clear the cell value when selecting a key-value-based cell with: ' +
+      '`strict=true`, `allowInvalid=false` and `allowEmpty=true` and pressing BACKSPACE', async() => {
+      handsontable({
+        data: airportKVChoices.map(item => [item]),
+        columns: [{
+          type: 'autocomplete',
+          source: airportKVChoices,
+          strict: true,
+          allowInvalid: false,
+          allowEmpty: true,
+        }],
+      });
+
+      expect(getDataAtCell(0, 0)).toEqual(airportKVChoices[0].value);
+
+      await selectCell(0, 0);
+      await keyDownUp('backspace');
+      await sleep(10);
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+    });
+  });
+
   describe('Saving values', () => {
     it('should save entire entries from the source object when the data is an AoO with the `key/value` props', async() => {
       handsontable({
@@ -148,6 +194,40 @@ describe('AutocompleteEditor key/value source', () => {
       await sleep(10);
 
       expect(getSourceDataAtCell(0, 0)).toEqual(airportKVChoices[1]);
+    });
+  });
+
+  describe('Autofill', () => {
+    it('should autofill on autocomplete-typed cells with key/value source and utilize the ' +
+      'source data on the empty rows', async() => {
+      handsontable({
+        data: [
+          [airportKVChoices[0]],
+          [null],
+          [null],
+        ],
+        columns: [{
+          type: 'autocomplete',
+          source: airportKVChoices,
+        }],
+        fillHandle: true,
+      });
+
+      await selectCell(0, 0, 0, 0);
+
+      spec().$container.find('.wtBorder.corner').simulate('mousedown');
+      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
+      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseup');
+
+      await sleep(10);
+
+      expect(getDataAtCell(0, 0)).toBe(airportKVChoices[0].value);
+      expect(getDataAtCell(1, 0)).toBe(airportKVChoices[0].value);
+      expect(getDataAtCell(2, 0)).toBe(airportKVChoices[0].value);
+
+      expect(getSourceDataAtCell(0, 0)).toEqual(airportKVChoices[0]);
+      expect(getSourceDataAtCell(1, 0)).toEqual(airportKVChoices[0]);
+      expect(getSourceDataAtCell(2, 0)).toEqual(airportKVChoices[0]);
     });
   });
 });

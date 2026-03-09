@@ -46,7 +46,7 @@ describe('Core.getFirstPartiallyVisibleRow', () => {
     await scrollViewportVertically(355); // row 15 (A16) is partially visible
     await render();
 
-    expect(getFirstPartiallyVisibleRow()).toBe(15);
+    expect(getFirstPartiallyVisibleRow()).toBe(13);
   });
 
   it.forTheme('main')('should return first partially visible row index (scrolled viewport)', async() => {

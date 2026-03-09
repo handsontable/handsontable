@@ -23,7 +23,7 @@
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
     "npm-run-all2": "^6.1.2",
-    "puppeteer": "14.3.0",
+    "puppeteer": "^24.2.1",
     "sass-embedded": "^1.68.0",
     "typescript": "~5.4.0",
     "vite": "^5.1.6",

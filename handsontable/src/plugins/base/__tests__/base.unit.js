@@ -249,7 +249,7 @@ describe('BasePlugin', () => {
 
       registerPlugin('Test5Plugin', Test5Plugin);
 
-      const hot = new Handsontable(document.createElement('div'), {});
+      const hot = new Handsontable(document.createElement('div'));
       const plugin = hot.getPlugin('Test5Plugin');
 
       expect(plugin.getSetting('test1')).toBe(true);
@@ -389,10 +389,10 @@ describe('BasePlugin', () => {
 
     expect(() => {
       hot = new Handsontable(document.createElement('div'), {});
-    }).toThrowError(`The BarPlugin plugin requires the following modules:
+    }).toThrowWithCause(`The BarPlugin plugin requires the following modules:
  - FooPlugin (plugin)
 
-You have to import and register them manually.`);
+You have to import and register them manually.`, { handsontable: true });
     expect(hot).toBeUndefined();
   });
 });

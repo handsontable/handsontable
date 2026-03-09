@@ -27,7 +27,7 @@ You can use Handsontable for all types of data-rich, accessible applications, em
 
 Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. This guide will walk you through the basics, from installation to creating your first data grid.
 
-<div class="boxes-list gray small col3">
+<div class="boxes-list gray">
 
 - <i class="ico i-react"></i>
 [React](@/react/guides/getting-started/installation/installation.md)
@@ -36,34 +36,31 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 - <i class="ico i-angular"></i>
 [Angular](@/angular/guides/getting-started/installation/installation.md)
 - <i class="ico i-vue"></i> 
-[Vue 2](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
-- <i class="ico i-vue"></i> 
 [Vue 3](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
 
 </div>
 
 ## Examples 
 
-<div class="boxes-list gray col3">
+<div class="boxes-list gray">
 
-
-- [Angular](https://handsontable.com/stackblitz?example-dir=angular&handsontable-version={{$currentVersion}})
-- [Vanilla JS](https://handsontable.com/stackblitz?example-dir=javascript&handsontable-version={{$currentVersion}})
-- [React TS](https://handsontable.com/stackblitz?example-dir=react&handsontable-version={{$currentVersion}})
-- [React JS](https://handsontable.com/stackblitz?example-dir=react-js&handsontable-version={{$currentVersion}})
-- [TypeScript](https://handsontable.com/stackblitz?example-dir=typescript&handsontable-version={{$currentVersion}})
-- [Vue 3](https://handsontable.com/stackblitz?example-dir=vue&handsontable-version={{$currentVersion}})
+- [Angular](https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version={{$currentVersion}})
+- [Vanilla JS](https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version={{$currentVersion}})
+- [React TS](https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version={{$currentVersion}})
+- [React JS](https://handsontable.com/codesandbox-browser?example-dir=react-js&handsontable-version={{$currentVersion}})
+- [TypeScript](https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version={{$currentVersion}})
+- [Vue 3](https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version={{$currentVersion}})
 
 </div>
 
 Examples with SSR (Server Side Rendering): 
 
-<div class="boxes-list gray col3">
+<div class="boxes-list gray">
 
-- [Next.js](https://handsontable.com/stackblitz?example-dir=next.js&handsontable-version={{$currentVersion}})
-- [Astro](https://handsontable.com/stackblitz?example-dir=astro&handsontable-version={{$currentVersion}}) 
-- [Remix](https://handsontable.com/stackblitz?example-dir=remix&handsontable-version={{$currentVersion}})
-- [Nuxt](https://handsontable.com/stackblitz?example-dir=nuxt&handsontable-version={{$currentVersion}})
+- [Next.js](https://handsontable.com/codesandbox-vm?example-dir=next.js&handsontable-version={{$currentVersion}})
+- [Astro](https://handsontable.com/codesandbox-vm?example-dir=astro&handsontable-version={{$currentVersion}}) 
+- [Remix](https://handsontable.com/codesandbox-vm?example-dir=remix&handsontable-version={{$currentVersion}})
+- [Nuxt](https://handsontable.com/codesandbox-vm?example-dir=nuxt&handsontable-version={{$currentVersion}})
 
 </div>
 

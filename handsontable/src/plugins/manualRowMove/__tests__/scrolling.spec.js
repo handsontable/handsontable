@@ -50,7 +50,7 @@ describe('manualRowMove', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
-        height: 150,
+        height: 165,
         fixedRowsBottom: 2,
         rowHeaders: true,
         colHeaders: true,
@@ -185,7 +185,7 @@ describe('manualRowMove', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
-        height: 150,
+        height: 165,
         fixedRowsBottom: 2,
         rowHeaders: true,
         colHeaders: true,
@@ -300,7 +300,7 @@ describe('manualRowMove', () => {
       const nextElement = $(document.body);
 
       expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeGreaterThan(105);
+        classic.toBeGreaterThan(130);
         main.toBeGreaterThan(185); // not sure about this value
         horizon.toBeGreaterThan(235); // not sure about this value
       });
@@ -320,7 +320,7 @@ describe('manualRowMove', () => {
         .simulate('mouseup');
 
       expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeLessThan(105);
+        classic.toBeLessThan(140);
         main.toBeLessThan(185);
         horizon.toBeLessThan(240);
       });

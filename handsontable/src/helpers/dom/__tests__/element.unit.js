@@ -3,6 +3,7 @@ import {
   closest,
   closestDown,
   getParent,
+  getScrollbarWidth,
   getFractionalScalingCompensation,
   hasClass,
   isInput,
@@ -14,6 +15,8 @@ import {
   isVisible,
   findFirstParentWithClass,
   isHTMLElement,
+  outerHeight,
+  outerWidth,
 } from 'handsontable/helpers/dom/element';
 import { setPlatformMeta } from 'handsontable/helpers/browser';
 
@@ -698,6 +701,31 @@ describe('DomElement helper', () => {
   // Handsontable.helper.fastInnerHTML
   //
   describe('fastInnerHTML', () => {
+    it('should print a deprecation warning if the default sanitizer is used', () => {
+      spyOn(console, 'warn');
+
+      fastInnerHTML({ innerHTML: '' }, '<img src onerror=alert(1)>');
+
+      // eslint-disable-next-line no-console
+      expect(console.warn).toHaveBeenCalledWith(
+        'Deprecated: The HTML sanitization using DOMPurify library is deprecated and will be removed in ' +
+        'the next major release. Use the `sanitizer` option instead.\n\n' +
+        'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+        '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
+      );
+    });
+
+    it('should not print a deprecation warning if a custom sanitizer is used', () => {
+      spyOn(console, 'warn');
+
+      fastInnerHTML({ innerHTML: '' }, '<img src onerror=alert(1)>', (content) => {
+        return content.replace('alert(1)', 'alert(2)');
+      });
+
+      // eslint-disable-next-line no-console
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
     it('should be possible to sanitize the HTML (by default the content is sanitized)', () => {
       const elementMock = {
         innerHTML: '',
@@ -753,6 +781,18 @@ describe('DomElement helper', () => {
 
       expect(elementMock.innerHTML)
         .toBe('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>');
+    });
+
+    it('should be possible to pass a custom sanitizer function', () => {
+      const elementMock = {
+        innerHTML: '',
+      };
+
+      fastInnerHTML(elementMock, '<img src onerror=alert(1)>', (content) => {
+        return content.replace('alert(1)', 'alert(2)');
+      });
+
+      expect(elementMock.innerHTML).toBe('<img src onerror=alert(2)>');
     });
   });
 
@@ -838,6 +878,40 @@ describe('DomElement helper', () => {
   });
 
   //
+  // Handsontable.helper.outerHeight
+  //
+  describe('outerHeight', () => {
+    // Make sure that the value is returned from the element's offsetHeight property,
+    // not from getBoundingClientRect().height. The second returns a value after applying
+    // the CSS transform matrix, which when passed to element.style.height for example
+    // results in a different value, hence misalignments.
+    it('should return value from offsetHeight', () => {
+      const elementMock = {
+        offsetHeight: 100,
+      };
+
+      expect(outerHeight(elementMock)).toBe(100);
+    });
+  });
+
+  //
+  // Handsontable.helper.outerWidth
+  //
+  describe('outerWidth', () => {
+    // Make sure that the value is returned from the element's offsetHeight property,
+    // not from getBoundingClientRect().height. The second returns a value after applying
+    // the CSS transform matrix, which when passed to element.style.height for example
+    // results in a different value, hence misalignments.
+    it('should return value from offsetWidth', () => {
+      const elementMock = {
+        offsetWidth: 100,
+      };
+
+      expect(outerWidth(elementMock)).toBe(100);
+    });
+  });
+
+  //
   // Handsontable.helper.getFractionalScalingCompensation
   //
   describe('getFractionalScalingCompensation', () => {
@@ -875,6 +949,19 @@ describe('DomElement helper', () => {
       setPlatformMeta({ platform: 'Win32' });
 
       expect(getFractionalScalingCompensation(mockDocument)).toBe(2);
+    });
+  });
+
+  //
+  // Handsontable.helper.getScrollbarWidth
+  //
+  describe('getScrollbarWidth', () => {
+    it('should not use the `getBoundingClientRect` method to calculate the scrollbar width', () => {
+      const spy = spyOn(Element.prototype, 'getBoundingClientRect');
+
+      getScrollbarWidth();
+
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 });

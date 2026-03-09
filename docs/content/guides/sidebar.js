@@ -20,21 +20,6 @@ const stylingItems = [
   { path: 'guides/styling/legacy-style/legacy-style' },
 ];
 
-const integrateWithVueItems = [
-  { path: 'guides/integrate-with-vue/vue-installation/vue-installation' },
-  { path: 'guides/integrate-with-vue/vue-simple-example/vue-simple-example' },
-  { path: 'guides/integrate-with-vue/vue-modules/vue-modules' },
-  { path: 'guides/integrate-with-vue/vue-hot-column/vue-hot-column' },
-  { path: 'guides/integrate-with-vue/vue-setting-up-a-language/vue-setting-up-a-language' },
-  { path: 'guides/integrate-with-vue/vue-custom-id-class-style/vue-custom-id-class-style' },
-  { path: 'guides/integrate-with-vue/vue-custom-context-menu-example/vue-custom-context-menu-example' },
-  { path: 'guides/integrate-with-vue/vue-custom-editor-example/vue-custom-editor-example' },
-  { path: 'guides/integrate-with-vue/vue-custom-renderer-example/vue-custom-renderer-example' },
-  { path: 'guides/integrate-with-vue/vue-language-change-example/vue-language-change-example' },
-  { path: 'guides/integrate-with-vue/vue-vuex-example/vue-vuex-example' },
-  { path: 'guides/integrate-with-vue/vue-hot-reference/vue-hot-reference' },
-];
-
 const integrateWithVue3Items = [
   { path: 'guides/integrate-with-vue3/vue3-installation/vue3-installation' },
   { path: 'guides/integrate-with-vue3/vue3-simple-example/vue3-simple-example' },
@@ -48,6 +33,7 @@ const integrateWithVue3Items = [
   { path: 'guides/integrate-with-vue3/vue3-language-change-example/vue3-language-change-example' },
   { path: 'guides/integrate-with-vue3/vue3-vuex-example/vue3-vuex-example' },
   { path: 'guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference' },
+  { path: 'guides/integrate-with-vue3/vue3-formulas-example/vue3-formulas-example' },
 ];
 
 const columnsItems = [
@@ -95,6 +81,7 @@ const cellFunctionsItems = [
   { path: 'guides/cell-functions/cell-renderer/cell-renderer' },
   { path: 'guides/cell-functions/cell-editor/cell-editor' },
   { path: 'guides/cell-functions/cell-validator/cell-validator' },
+  { path: 'guides/cell-functions/custom-cells/custom-cells' },
 ];
 
 const cellTypesItems = [
@@ -106,6 +93,7 @@ const cellTypesItems = [
   { path: 'guides/cell-types/select-cell-type/select-cell-type' },
   { path: 'guides/cell-types/dropdown-cell-type/dropdown-cell-type' },
   { path: 'guides/cell-types/autocomplete-cell-type/autocomplete-cell-type' },
+  { path: 'guides/cell-types/multiselect-cell-type/multiselect-cell-type' },
   { path: 'guides/cell-types/password-cell-type/password-cell-type' },
   { path: 'guides/cell-types/handsontable-cell-type/handsontable-cell-type' },
 ];
@@ -179,6 +167,7 @@ const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
   { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
+  { path: 'guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1' },
   { path: 'guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0' },
@@ -206,8 +195,7 @@ module.exports = {
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Dialog', children: dialogItems },
     { title: 'Internationalization', children: internationalizationItems },
-    { title: 'Integrate with Vue 2', children: integrateWithVueItems },
-    { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
+    { title: 'Integrate with Vue', children: integrateWithVue3Items },
     { title: 'Tools and building', children: buildingAndToolingItems },
     { title: 'Optimization', children: optimizationItems },
     { title: 'Security', children: securityItems },

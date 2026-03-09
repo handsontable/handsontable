@@ -130,28 +130,16 @@ describe('StretchColumns', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 142,
+      height: 156,
       stretchH: 'all',
     });
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(90);
-      horizon.toBe(85);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(90);
-      horizon.toBe(85);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(90);
-      horizon.toBe(85);
-    });
+    expect(getColWidth(0)).toBe(90);
+    expect(getColWidth(1)).toBe(90);
+    expect(getColWidth(2)).toBe(90);
 
     await updateSettings({
-      height: 141,
+      height: 155,
     });
 
     expect(getColWidth(0)).toBe(85);
@@ -159,24 +147,12 @@ describe('StretchColumns', () => {
     expect(getColWidth(2)).toBe(85);
 
     await updateSettings({
-      height: 142,
+      height: 156,
     });
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(90);
-      horizon.toBe(85);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(90);
-      horizon.toBe(85);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(90);
-      horizon.toBe(85);
-    });
+    expect(getColWidth(0)).toBe(90);
+    expect(getColWidth(1)).toBe(90);
+    expect(getColWidth(2)).toBe(90);
   });
 
   it.forTheme('main')(`should correctly stretch columns after vertical scroll appears
@@ -341,12 +317,12 @@ describe('StretchColumns', () => {
     });
 
     expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(404);
+      classic.toBe(412);
       main.toBe(418);
       horizon.toBe(420);
     });
     expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(96);
+      classic.toBe(88);
       main.toBe(82);
       horizon.toBe(80);
     });
@@ -395,7 +371,7 @@ describe('StretchColumns', () => {
     });
 
     expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(259);
+      classic.toBe(286);
       main.toBe(311);
       horizon.toBe(319);
     });
@@ -407,7 +383,7 @@ describe('StretchColumns', () => {
     await setDataAtCell(0, 4, 'very long text is here to make the column wider');
 
     expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(259);
+      classic.toBe(286);
       main.toBe(311);
       horizon.toBe(319);
     });
