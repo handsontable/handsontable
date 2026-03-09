@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { spawnProcess } from '../../scripts/utils/processes.mjs';
 import { displayInfoMessage, displayConfirmationMessage, displayErrorMessage } from '../../scripts/utils/console.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -53,8 +53,9 @@ fs.writeFileSync(NUSPEC_PATH, nuspecContent, 'utf8');
 // The -Version flag overrides $version$ in the nuspec.
 // -OutputDirectory places the nupkg in the repo root.
 try {
-  await spawnProcess(
-    `nuget pack ${NUSPEC_PATH} -Version ${VERSION} -OutputDirectory ${REPO_ROOT} -BasePath ${REPO_ROOT}`
+  execSync(
+    `nuget pack ${NUSPEC_PATH} -Version ${VERSION} -OutputDirectory ${REPO_ROOT} -BasePath ${REPO_ROOT}`,
+    { stdio: 'inherit' }
   );
   displayConfirmationMessage(`Package generated: ${REPO_ROOT}/Handsontable.${VERSION}.nupkg`);
 } catch (error) {

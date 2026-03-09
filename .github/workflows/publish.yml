@@ -853,7 +853,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mono-complete
-          curl -o /tmp/nuget.exe https://dist.nuget.org/win-x86-commandline/v5.11.6/nuget.exe
+          curl -o /tmp/nuget.exe https://dist.nuget.org/win-x86-commandline/v7.3.0/nuget.exe
           sudo bash -c 'echo "#!/bin/bash" > /usr/local/bin/nuget && echo "exec mono /tmp/nuget.exe \"$@\"" >> /usr/local/bin/nuget && chmod +x /usr/local/bin/nuget'
 
       - name: Generate NuGet package
