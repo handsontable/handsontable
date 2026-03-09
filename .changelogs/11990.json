@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed misalignment issues for CSS transform: scale()",
-  "type": "fixed",
-  "issueOrPR": 11990,
-  "breaking": false,
-  "framework": "none"
-}
