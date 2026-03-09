@@ -1100,12 +1100,12 @@ If you only target modern browsers and runtimes, no action is needed.
 
 The **Formulas** plugin uses [HyperFormula](https://hyperformula.handsontable.com/) as its calculation engine. Currently, HyperFormula is bundled with Handsontable. In **version 18.0**, it will be removed from `package.json`.
 
-### What to expect
+### What to Expect
 
 - **Version 17.x**: Built-in HyperFormula remains available, no change required yet.
 - **Version 18.0**: HyperFormula is removed from Handsontable dependencies. You must add it as your own dependency and configure the Formulas plugin to use your instance.
 
-### How to prepare
+### How to Prepare
 
 1. Install HyperFormula in your project (e.g. `npm install hyperformula`).
 2. Import HyperFormula and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`.
