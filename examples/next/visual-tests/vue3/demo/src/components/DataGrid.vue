@@ -101,23 +101,16 @@ export default {
 </script>
 
 <style lang="scss">
-  .handsontable {
-    font-size: 13px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
-    font-weight: 400;
-  }
-
   .handsontable td .progressBar {
-    background: #37bc6c !important;
+    background: #37bc6c;
     height: 10px;
   }
 
   .handsontable td.star {
-    color: #fcb515 !important;
+    color: #fcb515;
   }
 
   .ht-wrapper .handsontable .htCore tr.selected td {
-    background: #edf3fd !important;
+    background: #edf3fd;
   }
 </style>

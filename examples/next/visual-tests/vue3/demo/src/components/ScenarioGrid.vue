@@ -145,13 +145,6 @@ export default {
 </script>
 
 <style lang="scss">
-  .handsontable {
-    font-size: 13px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
-    font-weight: 400;
-  }
-
   .handsontable td .progressBar {
     background: #37bc6c !important;
     height: 10px;
@@ -163,23 +156,5 @@ export default {
 
   .ht-wrapper .handsontable .htCore tr.selected td {
     background: #edf3fd !important;
-  }
-
-  .ht-theme-main-dark .ht-wrapper.handsontable .htCore tr.selected td {
-    background: #081b3d !important;
-  }
-
-  .ht-theme-horizon-dark .ht-wrapper.handsontable .htCore tr.selected td {
-    background: #3a2901 !important;
-  }
-
-  .input-spacing {
-    margin: 10px;
-  }
-
-  .handsontable .ht_nestingParent,
-  .handsontable .ht_nestingParent~td {
-    background: #B5B5B5 !important;
-    color: #222 !important;
   }
 </style>
