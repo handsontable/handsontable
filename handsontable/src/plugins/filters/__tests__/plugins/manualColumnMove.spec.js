@@ -161,7 +161,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
     // Add a new row and set data
     const hot = getPlugin('filters').hot;
 
-    alter('insert_row_below', 1);
+    await alter('insert_row_below', 1);
     hot.setDataAtRowProp(2, 0, 'Product C');
     hot.setDataAtRowProp(2, 1, 'Product C Name');
     hot.setDataAtRowProp(2, 2, 'Mar 27, 2023');
