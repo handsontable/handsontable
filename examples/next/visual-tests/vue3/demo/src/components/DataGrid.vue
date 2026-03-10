@@ -106,7 +106,8 @@ export default {
     height: 10px;
   }
 
-  .handsontable .star {
+  .handsontable .star,
+  .handsontable .htDimmed.star {
     color: #fcb515 !important;
   }
 

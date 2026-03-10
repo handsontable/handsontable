@@ -3,10 +3,17 @@
   height: 10px;
 }
 
-.handsontable .star {
+.handsontable .star,
+.handsontable .htDimmed.star {
   color: #fcb515 !important;
 }
 
 .ht-wrapper .handsontable .htCore tr.selected td {
   background: #edf3fd !important;
+}
+
+.handsontable .ht_nestingParent,
+.handsontable .ht_nestingParent ~ td {
+  background: #B5B5B5 !important;
+  color: #222 !important;
 }
