@@ -143,12 +143,21 @@ export function clamp(value, minValue, maxValue) {
  * Get parsed number from numeric string.
  *
  * @param {string} numericData Float (separated by a dot or a comma) or integer.
+ * @param {object} [options={}] Parsing options.
+ * @param {'.'|','} [options.decimalSeparator] Preferred decimal separator used by the cell.
  * @returns {number|null} Number if we get data in parsable format, not changed value otherwise.
  */
-export function getParsedNumber(numericData) {
+export function getParsedNumber(numericData, options = {}) {
+  const { decimalSeparator } = options;
+  const normalizedNumericData = numericData.trim();
+
+  if (decimalSeparator === '.' && /^[+-]?\d{1,3}(,\d{3})+$/.test(normalizedNumericData)) {
+    return parseFloat(normalizedNumericData.replace(/,/g, ''));
+  }
+
   // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
   // for example from `450,65` to `450.65`.
-  const unifiedNumericData = numericData.replace(',', '.');
+  const unifiedNumericData = normalizedNumericData.replace(',', '.');
 
   if (isNaN(parseFloat(unifiedNumericData)) === false) {
     return parseFloat(unifiedNumericData);

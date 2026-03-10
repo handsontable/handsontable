@@ -16,6 +16,7 @@ import {
   getRegisteredValidatorNames,
   getValidator,
 } from '../../../validators';
+import { valueSetter } from '../accessors/valueSetter';
 
 describe('NumericCellType', () => {
   describe('registering', () => {
@@ -64,6 +65,23 @@ describe('NumericCellType', () => {
         dataType: 'number',
         valueSetter: NumericCellType.valueSetter,
       });
+    });
+  });
+
+  describe('valueSetter', () => {
+    it('should parse grouped values for dot-decimal numeric formats', () => {
+      expect(valueSetter('100,000', 0, 0, {
+        numericFormat: {
+          pattern: '0,0.00',
+          culture: 'en-US',
+        },
+      })).toBe(100000);
+    });
+
+    it('should keep comma as decimal separator for comma-decimal locales', () => {
+      expect(valueSetter('100,000', 0, 0, {
+        locale: 'de-DE',
+      })).toBe(100);
     });
   });
 });

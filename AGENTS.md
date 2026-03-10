@@ -43,3 +43,9 @@ All commands below run from the workspace root (`/workspace`).
 - Root-level `npm run lint` and `npm run test` scripts use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
 - The docs site (`docs/`) uses Node 20 (its own `.nvmrc`) and is not needed for core library development.
 - No Docker, databases, or external services are required.
+
+### Issue-specific regression checks
+
+- Issue `#11880` (`"100,000"` in numeric cells should not be parsed as `100`) is covered by:
+  - unit: `pnpm --filter handsontable run test:unit -- src/cellTypes/numericType/__tests__/numericType.unit.js`
+  - e2e: `npm_config_testPathPattern=valueSetter\.spec\.js pnpm --filter handsontable run test:e2e.dump && pnpm --filter handsontable run test:e2e.puppeteer`
