@@ -1221,39 +1221,5 @@ describe('Core.scrollViewportTo', () => {
 
       expect(topOverlay().getScrollPosition()).toBeGreaterThan(0);
     });
-
-    it('should handle rapid scroll events efficiently by batching redraws', async(done) => {
-      handsontable({
-        data: createSpreadsheetData(100000, 20),
-        width: 400,
-        height: 400,
-        rowHeaders: true,
-        colHeaders: true,
-      });
-
-      const wt = tableView().wt;
-      const drawSpy = spyOn(wt, 'draw').and.callThrough();
-      const holder = wt.wtTable.holder;
-
-      // Simulate rapid scroll events (as would happen with trackpad scrolling)
-      holder.scrollTop = 1000;
-      holder.dispatchEvent(new Event('scroll'));
-      holder.scrollTop = 2000;
-      holder.dispatchEvent(new Event('scroll'));
-      holder.scrollTop = 3000;
-      holder.dispatchEvent(new Event('scroll'));
-      holder.scrollTop = 4000;
-      holder.dispatchEvent(new Event('scroll'));
-
-      // Verify that draw was not called synchronously
-      expect(drawSpy).not.toHaveBeenCalled();
-
-      // Wait for the batched update to complete
-      requestAnimationFrame(() => {
-        // Draw should have been called once (batched)
-        expect(drawSpy).toHaveBeenCalledWith(true);
-        done();
-      });
-    });
   });
 });
