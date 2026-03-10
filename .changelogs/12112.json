@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed first keypress being dropped after scrolling to an out-of-viewport selected cell",
+  "type": "fixed",
+  "issueOrPR": 12112,
+  "breaking": false,
+  "framework": "none"
+}
