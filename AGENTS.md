@@ -35,6 +35,16 @@ All commands below run from the workspace root (`/workspace`).
 - **Vue3 tests**: `pnpm --filter @handsontable/vue3 run test`
 - **Angular tests**: `pnpm --filter @handsontable/angular-wrapper run test` (requires `--openssl-legacy-provider`; already handled via `cross-env` in `package.json` scripts)
 
+### Regression workflow (keyboard/editing bugs)
+
+- Add **both** a unit and e2e regression test:
+  - unit: `handsontable/src/**/__tests__/**/*.unit.js` (Jest),
+  - e2e: `handsontable/test/e2e/**/*.spec.js` (Puppeteer/Jasmine).
+- Include the GitHub issue id in test names, e.g. `(gh-11934)`, so e2e can be run with a focused filter.
+- Recommended focused verification commands:
+  - unit: `pnpm --filter handsontable exec env-cmd -f ../hot.config.js cross-env-shell BABEL_ENV=commonjs jest <path-to-unit-test>`
+  - e2e: `pnpm --filter handsontable run build:umd && pnpm --filter handsontable run test:e2e.dump && pnpm --filter handsontable exec node test/scripts/run-puppeteer.mjs "test/E2ERunner.html?spec=gh-<issue-id>"`
+
 ### Gotchas
 
 - The core build outputs to `handsontable/tmp/` (not `dist/` for wrappers' consumption). The UMD/minified builds go to `handsontable/dist/` and CSS to `handsontable/styles/`. Wrapper packages reference the `tmp/` build via workspace linking.
