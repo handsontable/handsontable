@@ -10,21 +10,14 @@ const specContext = {};
 beforeEach(function() {
   specContext.spec = this;
 
-  if (!process.env.JEST_WORKER_ID) {
-    this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
-    // Expose loaded theme globally for the jQuery wrapper to use
-    window.__HOT_TEST_THEME__ = this.loadedTheme;
-
-    if (!DEBUG) {
-      window.scrollTo(0, 0);
-    }
+  if (!process.env.JEST_WORKER_ID && !DEBUG) {
+    window.scrollTo(0, 0);
   }
 });
 
 afterEach(() => {
   if (!DEBUG) {
     specContext.spec = null;
-    delete window.__HOT_TEST_THEME__;
   }
 });
 
@@ -41,12 +34,12 @@ beforeAll(() => {
       if (typeof action !== 'string') {
         const userSettings = action || {};
 
-        if (!userSettings.themeName && window.__HOT_TEST_THEME__) {
+        if (!userSettings.themeName) {
           const hasThemeClass = this.is('[class*="ht-theme-"]') ||
             this.parents('[class*="ht-theme-"]').length > 0;
 
           if (!hasThemeClass) {
-            userSettings.themeName = `ht-theme-${window.__HOT_TEST_THEME__}`;
+            userSettings.themeName = `ht-theme-${getLoadedTheme()}`;
           }
         }
 
@@ -83,6 +76,15 @@ export function sleep(delay = 100) {
  */
 export function promisfy(fn) {
   return new Promise((resolve, reject) => fn(resolve, reject));
+}
+
+/**
+ * Get the loaded theme name. The default value can be changed in the webpack entry file (./handsontable/webpack.config.js).
+ *
+ * @returns {string} The loaded theme name.
+ */
+export function getLoadedTheme() {
+  return __ENV_ARGS__.HOT_THEME;
 }
 
 /**
@@ -253,14 +255,14 @@ export const validateRows = handsontableMethodFactory('validateRows');
  * @returns {number} Returns the default row height based on the current theme.
  */
 export function getDefaultRowHeight() {
-  switch (__ENV_ARGS__.HOT_THEME) {
-    case 'main':
-      return 29;
+  switch (getLoadedTheme()) {
+    case 'classic':
+      return 26;
     case 'horizon':
       return 37;
-    case 'classic':
+    case 'main':
     default:
-      return 26;
+      return 29; // default theme is 'main' when HOT_THEME is falsy
   }
 }
 
@@ -268,24 +270,20 @@ export function getDefaultRowHeight() {
  * @returns {number} Returns the default row height for the first rendered row.
  */
 export function getFirstRenderedRowDefaultHeight() {
-  if (typeof __ENV_ARGS__.HOT_THEME !== 'undefined' && __ENV_ARGS__.HOT_THEME !== '') {
-    return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
-  }
-
-  return getDefaultRowHeight();
+  return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
 }
 
 /**
  * @returns {number} Returns the default row height based on the current theme.
  */
 export function getDefaultColumnWidth() {
-  switch (__ENV_ARGS__.HOT_THEME) {
+  switch (getLoadedTheme()) {
+    case 'classic':
     case 'main':
-      return 50;
     case 'horizon':
       return 50;
     default:
-      return 50; // classic
+      return 50; // default theme is 'main' when HOT_THEME is falsy
   }
 }
 
@@ -293,13 +291,14 @@ export function getDefaultColumnWidth() {
  * @returns {number} Returns the default column header height based on the current theme.
  */
 export function getDefaultColumnHeaderHeight() {
-  switch (__ENV_ARGS__.HOT_THEME) {
-    case 'main':
-      return 28;
+  switch (getLoadedTheme()) {
+    case 'classic':
+      return 25;
     case 'horizon':
       return 36;
+    case 'main':
     default:
-      return 25; // classic
+      return 28; // default theme is 'main' when HOT_THEME is falsy
   }
 }
 
@@ -307,13 +306,14 @@ export function getDefaultColumnHeaderHeight() {
  * @returns {number} Returns the default column header height based on the current theme.
  */
 export function getDefaultRowHeaderWidth() {
-  switch (__ENV_ARGS__.HOT_THEME) {
-    case 'main':
-      return 49;
+  switch (getLoadedTheme()) {
+    case 'classic':
+      return 50;
     case 'horizon':
       return 49;
+    case 'main':
     default:
-      return 50; // classic
+      return 49; // default theme is 'main' when HOT_THEME is falsy
   }
 }
 

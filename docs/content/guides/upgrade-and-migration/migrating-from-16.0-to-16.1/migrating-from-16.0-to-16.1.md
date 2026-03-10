@@ -2,7 +2,7 @@
 id: sf7vrh9z
 title: Migrating from 16.0 to 16.1
 metaTitle: Migrating from 16.0 to 16.1 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 16.0 to Handsontable 16.1, released on [TODO].
+description: Migrate from Handsontable 16.0 to Handsontable 16.1, released on September 15, 2025.
 permalink: /migration-from-16.0-to-16.1
 canonicalUrl: /migration-from-16.0-to-16.1
 pageClass: migration-guide
