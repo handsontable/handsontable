@@ -825,15 +825,15 @@ describe('Filters', () => {
 
       // Move first column (Sold on) to third position
       manualColumnMove.moveColumn(0, 2);
-      render();
+      await render();
 
       // Add condition to the moved column (now at physical index 0, but visual index 2)
       plugin.addCondition(2, 'by_value', [['Mar 27, 2023', 'Oct 15, 2023']]);
       plugin.filter();
 
       // Add new row and set data
-      alter('insert_row_below', 1);
-      setDataAtRowProp(2, 'Sold on', 'Mar 27, 2023');
+      await alter('insert_row_below', 1);
+      await setDataAtRowProp(2, 'Sold on', 'Mar 27, 2023');
 
       await sleep(100);
 
@@ -844,7 +844,7 @@ describe('Filters', () => {
       expect(conditions[0].name).toBe('by_value');
     });
 
-    it('should use physical column index when checking and updating conditions in #onAfterChange', () => {
+    it('should use physical column index when checking and updating conditions in #onAfterChange', async() => {
       handsontable({
         data: [
           ['A1', 'B1', 'C1'],
@@ -860,7 +860,7 @@ describe('Filters', () => {
 
       // Move column 0 to position 2
       manualColumnMove.moveColumn(0, 2);
-      render();
+      await render();
 
       // Add condition to physical column 0 (which is now at visual position 2)
       // Physical column 0 corresponds to the original first column
@@ -874,13 +874,13 @@ describe('Filters', () => {
 
       // Change data using the property name (which will be converted to column index)
       // The first column in the original data has index 0
-      setDataAtCell(0, toVisualColumn(physicalColumn), 'A1-modified');
+      await setDataAtCell(0, toVisualColumn(physicalColumn), 'A1-modified');
 
       // Verify that updateValueComponentCondition was called with the physical column index
       expect(plugin.updateValueComponentCondition).toHaveBeenCalledWith(physicalColumn);
     });
 
-    it('should convert visual to physical index in updateValueComponentCondition', () => {
+    it('should convert visual to physical index in updateValueComponentCondition', async() => {
       handsontable({
         data: [
           ['A1', 'B1', 'C1'],
@@ -896,7 +896,7 @@ describe('Filters', () => {
 
       // Move column 0 to position 2
       manualColumnMove.moveColumn(0, 2);
-      render();
+      await render();
 
       const physicalColumn = 0;
       const visualColumn = toVisualColumn(physicalColumn);

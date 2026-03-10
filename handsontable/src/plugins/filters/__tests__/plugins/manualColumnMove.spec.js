@@ -148,14 +148,12 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
 
     // Filter the Model column (now at index 0) - select "Cycling Cap" and "HL Mountain Shirt"
     await dropdownMenu(0);
-    const modelCheckboxes = byValueBoxRootElement().querySelectorAll('[type=checkbox]');
 
     // All should be checked by default, keep them checked
     await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
     // Filter the Sold on column (now at index 2) - select the date values
     await dropdownMenu(2);
-    const dateCheckboxes = byValueBoxRootElement().querySelectorAll('[type=checkbox]');
 
     // Keep all checked
     await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
