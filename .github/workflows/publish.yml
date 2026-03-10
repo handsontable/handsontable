@@ -1461,12 +1461,13 @@ jobs:
           else
             DOCS_STATUS=":x: :chrome: *Docs*"
           fi
+          NL=$'\n'
           FAILURE_NOTES=""
           if [ "$NUGET_RESULT" != "success" ]; then
-            FAILURE_NOTES="${FAILURE_NOTES}• *NuGet*: publish failed. The package was not uploaded to nuget.org. Re-run the \`stable-publish-nuget\` job to retry.\n"
+            FAILURE_NOTES="${FAILURE_NOTES}• *NuGet*: publish failed. The package was not uploaded to nuget.org. Re-run the \`stable-publish-nuget\` job to retry.${NL}"
           fi
           if [ "$DOCS_RESULT" != "success" ]; then
-            FAILURE_NOTES="${FAILURE_NOTES}• *Docs*: branch update failed. Manual intervention required — check the <${RUN_URL}|Actions run> and update the docs branch manually.\n"
+            FAILURE_NOTES="${FAILURE_NOTES}• *Docs*: branch update failed. Manual intervention required — check the <${RUN_URL}|Actions run> and update the docs branch manually.${NL}"
           fi
           CHANGELOG_URL="${REPO_URL}/blob/master/CHANGELOG.md"
 
