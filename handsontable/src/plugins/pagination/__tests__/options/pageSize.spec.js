@@ -41,7 +41,7 @@ describe('Pagination `pageSize` option', () => {
 
     win.onload = () => {
       const container = $(doc.querySelector('#root'));
-      const themeName = `ht-theme-${spec().loadedTheme}`;
+      const themeName = `ht-theme-${getLoadedTheme()}`;
 
       if (themeName) {
         options.themeName = themeName;
@@ -786,7 +786,7 @@ describe('Pagination `pageSize` option', () => {
         }),
         width: 500,
         height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight() +
-          (spec().loadedTheme === 'classic' ? 20 : 0),
+          (getLoadedTheme() === 'classic' ? 20 : 0),
         autoRowSize: true,
         pagination: {
           pageSizeList: ['auto', 10, 20, 50, 100],
