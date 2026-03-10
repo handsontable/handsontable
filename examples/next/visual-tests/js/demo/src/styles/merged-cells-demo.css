@@ -1,11 +1,4 @@
 /*
-  A stylesheet customizing app (custom renderers)
-*/
-table.htCore tr.odd td {
-  background: #fafbff !important;
-}
-
-/*
   A stylesheet customizing Handsontable style
 */
 
@@ -29,14 +22,17 @@ table.htCore tr.odd td {
   padding: 20px;
   font: 1.4em sans-serif;
 }
+
 [data-color='green'] {
   background: #37bc6c !important;
   color: #222 !important;
 }
+
 [data-color='orange'] {
   background: #fcb515 !important;
   color: #222 !important;
 }
+
 .bold-text {
   font-weight: bold;
 }
@@ -44,6 +40,7 @@ table.htCore tr.odd td {
 .italic-text {
   font-style: italic;
 }
+
 .htMergedCell {
   background-color: #ffd966 !important;
   color: #000 !important;
