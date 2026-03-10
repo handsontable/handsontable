@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed an issue in the React wrapper where non-consecutive selections were reset after React state updates triggered updateSettings().",
+  "type": "fixed",
+  "issueOrPR": 11725,
+  "breaking": false,
+  "framework": "react"
+}
