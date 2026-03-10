@@ -1067,10 +1067,13 @@ describe('WalkontableOverlay', () => {
     expect(drawSpy).not.toHaveBeenCalled();
 
     // After the next animation frame, draw should have been called exactly once
+    // We need to wait for the animation frame that the scroll handler scheduled
     requestAnimationFrame(() => {
-      expect(drawSpy).toHaveBeenCalledTimes(1);
-      expect(drawSpy).toHaveBeenCalledWith(true);
-      done();
+      requestAnimationFrame(() => {
+        expect(drawSpy).toHaveBeenCalledTimes(1);
+        expect(drawSpy).toHaveBeenCalledWith(true);
+        done();
+      });
     });
   });
 
