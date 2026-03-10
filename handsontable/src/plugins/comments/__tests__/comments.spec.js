@@ -1343,7 +1343,7 @@ describe('Comments', () => {
   });
 
   describe('merge cells integration', () => {
-    it('should display the comment editor at the merged cell border', () => {
+    it('should display the comment editor at the merged cell border', async() => {
       handsontable({
         data: createSpreadsheetData(6, 6),
         comments: true,

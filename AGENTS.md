@@ -38,6 +38,8 @@ All commands below run from the workspace root (`/workspace`).
 ### Gotchas
 
 - The core build outputs to `handsontable/tmp/` (not `dist/` for wrappers' consumption). The UMD/minified builds go to `handsontable/dist/` and CSS to `handsontable/styles/`. Wrapper packages reference the `tmp/` build via workspace linking.
+- The e2e runner (`handsontable/test/E2ERunner.html`) loads `handsontable/dist/handsontable.js`; after changing `handsontable/src/**`, run `pnpm --filter handsontable run build` before running e2e to test the updated bundle.
+- For targeted e2e runs, set `npm_config_testPathPattern` as an environment variable (for example `npm_config_testPathPattern=plugins/comments/__tests__/comments.spec.js`) before `pnpm --filter handsontable run test:e2e.dump`; passing `--testPathPattern` as a CLI argument to `test:e2e.dump` is forwarded to webpack and fails.
 - The Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider`; this is already wired into the `test` script.
 - The `pnpm-workspace.yaml` has `ignoredBuiltDependencies` and `onlyBuiltDependencies` lists. If pnpm warns about ignored build scripts (e.g., `less`), this is expected.
 - Root-level `npm run lint` and `npm run test` scripts use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
