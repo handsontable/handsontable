@@ -19,6 +19,8 @@
   /* must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
   width: 0;
   height: auto;
+  /* Keep scroll virtualization shifts isolated from the rest of the page. */
+  contain: layout paint;
 }
 
 .handsontable table,

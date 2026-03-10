@@ -1017,4 +1017,41 @@ describe('Core_view', () => {
 
     expect(wtHiderWidth).toEqual(htCoreWidth);
   });
+
+  it('should not accumulate layout shift from wtSpreader while scrolling', async() => {
+    handsontable({
+      data: createSpreadsheetData(5000, 20),
+      rowHeaders: true,
+      colHeaders: true,
+      width: 900,
+      height: 500,
+    });
+
+    await sleep(100);
+
+    const holder = spec().$container.find('.ht_master .wtHolder')[0];
+    let cls = 0;
+
+    const observer = new PerformanceObserver((list) => {
+      list.getEntries().forEach((entry) => {
+        if (!entry.hadRecentInput) {
+          cls += entry.value;
+        }
+      });
+    });
+
+    observer.observe({ type: 'layout-shift' });
+
+    for (let i = 0; i < 80; i++) {
+      holder.scrollTop += 120;
+      holder.dispatchEvent(new Event('scroll', { bubbles: true }));
+
+      await sleep(16);
+    }
+
+    await sleep(100);
+    observer.disconnect();
+
+    expect(cls).toBe(0);
+  });
 });
