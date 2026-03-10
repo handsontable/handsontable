@@ -662,6 +662,47 @@ describe('Filters', () => {
     });
   });
 
+  it('should update by-value condition args using displayed values after editing key-value dropdown data #12005', async() => {
+    const source = [
+      { key: 'LAX', value: 'Los Angeles International Airport' },
+      { key: 'JFK', value: 'John F. Kennedy International Airport' },
+      { key: 'ORD', value: 'Chicago O\'Hare International Airport' },
+    ];
+    const data = [
+      { airport: { ...source[0] } },
+      { airport: { ...source[1] } },
+      { airport: { ...source[2] } },
+    ];
+
+    handsontable({
+      data,
+      columns: [
+        {
+          data: 'airport',
+          type: 'dropdown',
+          source,
+        },
+      ],
+      dropdownMenu: true,
+      filters: true,
+    });
+
+    const plugin = getPlugin('filters');
+
+    plugin.addCondition(0, 'by_value', [[source[0].value]]);
+    plugin.filter();
+
+    const updateSpy = spyOn(plugin.conditionUpdateObserver, 'updateStatesAtColumn').and.callThrough();
+
+    await setDataAtCell(0, 0, source[1].value, 'edit');
+
+    const [, selectedValues] = updateSpy.calls.mostRecent().args;
+
+    expect(selectedValues).toContain(source[1].value);
+    expect(selectedValues).not.toContain('[object Object]');
+    expect(selectedValues.every(value => typeof value === 'string')).toBe(true);
+  });
+
   it('should add minSpareRows properly when the filters plugin is enabled #3937', async() => {
     handsontable({
       minSpareRows: 1,
