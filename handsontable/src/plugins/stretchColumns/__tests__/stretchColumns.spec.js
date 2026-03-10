@@ -358,6 +358,58 @@ describe('StretchColumns', () => {
     expect(getColWidth(4)).toBe(50);
   });
 
+  it('should respect the defined width of the last column when stretchH is "last" and viewport is too narrow (#11761)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 3),
+      width: 120,
+      height: 200,
+      stretchH: 'last',
+      columns: [
+        { width: 60 },
+        { width: 60 },
+        { width: 100 }, // Last column has a defined width of 100
+      ],
+    });
+
+    // When the viewport (120px) is narrower than the sum of column widths (220px),
+    // the last column should maintain its defined width (100px), not shrink below it
+    expect(getColWidth(0)).toBe(60);
+    expect(getColWidth(1)).toBe(60);
+    expect(getColWidth(2)).toBe(100);
+  });
+
+  it('should stretch the last column when there is enough space and respect minimum width when not (#11761)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 3),
+      width: 300,
+      height: 200,
+      stretchH: 'last',
+      columns: [
+        { width: 50 },
+        { width: 50 },
+        { width: 80 },
+      ],
+    });
+
+    // With viewport of 300px and first two columns taking 100px,
+    // the last column should stretch to fill the remaining space
+    expect(getColWidth(0)).toBe(50);
+    expect(getColWidth(1)).toBe(50);
+    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(200);
+      main.toBe(200);
+      horizon.toBe(185);
+    });
+
+    // Now make the viewport narrower
+    await updateSettings({ width: 150 });
+
+    // The last column should keep its defined width of 80, not shrink below it
+    expect(getColWidth(0)).toBe(50);
+    expect(getColWidth(1)).toBe(50);
+    expect(getColWidth(2)).toBe(80);
+  });
+
   it('should correctly stretch the column after changing the cell value (#dev-1727)', async() => {
     const data = createSpreadsheetData(1, 5);
 
