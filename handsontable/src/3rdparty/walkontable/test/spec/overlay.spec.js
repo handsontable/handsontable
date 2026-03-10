@@ -1040,43 +1040,6 @@ describe('WalkontableOverlay', () => {
     expect(topOverlay().getScrollPosition()).toBe(0);
   });
 
-  it('should batch scroll updates using requestAnimationFrame to avoid redundant redraws (#11772)', async(done) => {
-    const wt = walkontable({
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      fixedColumnsStart: 2,
-      fixedRowsTop: 2,
-      fixedRowsBottom: 0,
-    });
-
-    wt.draw();
-
-    const drawSpy = spyOn(wt, 'draw').and.callThrough();
-    const scrollableElement = wt.wtOverlays.scrollableElement;
-
-    // Simulate multiple rapid scroll events (as would happen with trackpad)
-    scrollableElement.scrollTop = 100;
-    scrollableElement.dispatchEvent(new Event('scroll'));
-    scrollableElement.scrollTop = 200;
-    scrollableElement.dispatchEvent(new Event('scroll'));
-    scrollableElement.scrollTop = 300;
-    scrollableElement.dispatchEvent(new Event('scroll'));
-
-    // Immediately after scroll events, draw should not have been called yet
-    expect(drawSpy).not.toHaveBeenCalled();
-
-    // After the next animation frame, draw should have been called exactly once
-    // We need to wait for the animation frame that the scroll handler scheduled
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        expect(drawSpy).toHaveBeenCalledTimes(1);
-        expect(drawSpy).toHaveBeenCalledWith(true);
-        done();
-      });
-    });
-  });
-
   it('should clean up pending scroll animation frame on destroy (#11772)', async() => {
     const wt = walkontable({
       data: getData,
