@@ -1039,4 +1039,30 @@ describe('WalkontableOverlay', () => {
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     expect(topOverlay().getScrollPosition()).toBe(0);
   });
+
+  it('should clean up pending scroll animation frame on destroy (#11772)', async() => {
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      fixedColumnsStart: 2,
+      fixedRowsTop: 2,
+      fixedRowsBottom: 0,
+    });
+
+    wt.draw();
+
+    const cancelAnimationFrameSpy = spyOn(window, 'cancelAnimationFrame').and.callThrough();
+    const scrollableElement = wt.wtOverlays.scrollableElement;
+
+    // Trigger a scroll event
+    scrollableElement.scrollTop = 100;
+    scrollableElement.dispatchEvent(new Event('scroll'));
+
+    // Destroy before the animation frame callback is executed
+    wt.destroy();
+
+    // Verify that cancelAnimationFrame was called
+    expect(cancelAnimationFrameSpy).toHaveBeenCalled();
+  });
 });

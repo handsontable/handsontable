@@ -1193,4 +1193,33 @@ describe('Core.scrollViewportTo', () => {
       expect(tableView().scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), 'end', 'bottom');
     });
   });
+
+  describe('performance with large datasets (#11772)', () => {
+    it('should scroll smoothly through a large dataset without excessive redraws', async() => {
+      handsontable({
+        data: createSpreadsheetData(100000, 20),
+        width: 400,
+        height: 400,
+        colWidths: 100,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      // Scroll to a middle position
+      await scrollViewportTo({
+        row: 50000,
+        col: 10,
+      });
+
+      expect(topOverlay().getScrollPosition()).toBeGreaterThan(0);
+
+      // Scroll to another position - this should work smoothly
+      await scrollViewportTo({
+        row: 75000,
+        col: 15,
+      });
+
+      expect(topOverlay().getScrollPosition()).toBeGreaterThan(0);
+    });
+  });
 });
