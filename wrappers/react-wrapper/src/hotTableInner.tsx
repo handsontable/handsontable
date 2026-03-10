@@ -213,10 +213,27 @@ const HotTableInner = forwardRef<
 
     const newGlobalSettings = createNewGlobalSettings(false, prevProps.current);
 
+    // Preserve selection state before updating settings
+    let selectionState = null;
+    if (hotInstance) {
+      const selection = hotInstance.getPlugin('selection');
+      if (selection && selection.isSelected()) {
+        selectionState = selection.exportSelection();
+      }
+    }
+
     // Update prevProps with the current props
     prevProps.current = props;
 
     hotInstance?.updateSettings(newGlobalSettings, false);
+
+    // Restore selection state after updating settings
+    if (selectionState && hotInstance) {
+      const selection = hotInstance.getPlugin('selection');
+      if (selection) {
+        selection.importSelection(selectionState);
+      }
+    }
 
     displayAutoSizeWarning(hotInstance);
     displayObsoleteRenderersEditorsWarning(props.children);

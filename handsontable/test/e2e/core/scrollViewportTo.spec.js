@@ -1193,4 +1193,69 @@ describe('Core.scrollViewportTo', () => {
       expect(tableView().scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), 'end', 'bottom');
     });
   });
+
+  describe('performance with large datasets (#11772)', () => {
+    it('should scroll smoothly through a large dataset without excessive redraws', async() => {
+      handsontable({
+        data: createSpreadsheetData(100000, 20),
+        width: 400,
+        height: 400,
+        colWidths: 100,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      const holder = spec().$container.find('.wtHolder');
+
+      // Scroll to a middle position
+      await scrollViewportTo({
+        row: 50000,
+        col: 10,
+      });
+
+      expect(topOverlay().getScrollPosition()).toBeGreaterThan(0);
+
+      // Scroll to another position - this should work smoothly
+      await scrollViewportTo({
+        row: 75000,
+        col: 15,
+      });
+
+      expect(topOverlay().getScrollPosition()).toBeGreaterThan(0);
+    });
+
+    it('should handle rapid scroll events efficiently by batching redraws', (done) => {
+      handsontable({
+        data: createSpreadsheetData(100000, 20),
+        width: 400,
+        height: 400,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      const wt = tableView().wt;
+      const drawSpy = spyOn(wt, 'draw').and.callThrough();
+      const holder = wt.wtTable.holder;
+
+      // Simulate rapid scroll events (as would happen with trackpad scrolling)
+      holder.scrollTop = 1000;
+      holder.dispatchEvent(new Event('scroll'));
+      holder.scrollTop = 2000;
+      holder.dispatchEvent(new Event('scroll'));
+      holder.scrollTop = 3000;
+      holder.dispatchEvent(new Event('scroll'));
+      holder.scrollTop = 4000;
+      holder.dispatchEvent(new Event('scroll'));
+
+      // Verify that draw was not called synchronously
+      expect(drawSpy).not.toHaveBeenCalled();
+
+      // Wait for the batched update to complete
+      requestAnimationFrame(() => {
+        // Draw should have been called once (batched)
+        expect(drawSpy).toHaveBeenCalledWith(true);
+        done();
+      });
+    });
+  });
 });

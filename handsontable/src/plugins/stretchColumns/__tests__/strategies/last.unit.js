@@ -30,7 +30,7 @@ describe('StretchLastStrategy', () => {
     expect(strategy.getWidths()).toEqual([[2, 700]]);
   });
 
-  it('should return 0 when the sum of the column widths is bigger than viewport size', () => {
+  it('should not apply stretching when the sum of the column widths is bigger than viewport size (#11761)', () => {
     const strategy = createStretchStrategy();
 
     strategy.prepare({
@@ -40,6 +40,8 @@ describe('StretchLastStrategy', () => {
     strategy.setColumnBaseWidth(1, 200);
     strategy.calculate();
 
-    expect(strategy.getWidths()).toEqual([[1, 0]]);
+    // When viewport is narrower than columns, don't apply stretching (return empty array)
+    // This prevents the last column from shrinking below its defined width
+    expect(strategy.getWidths()).toEqual([]);
   });
 });

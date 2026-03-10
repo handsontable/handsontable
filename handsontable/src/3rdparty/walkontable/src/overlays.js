@@ -2,7 +2,7 @@ import {
   getScrollableElement,
   getScrollbarWidth,
 } from '../../../helpers/dom/element';
-import { requestAnimationFrame } from '../../../helpers/feature';
+import { requestAnimationFrame, cancelAnimationFrame } from '../../../helpers/feature';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { isChrome } from '../../../helpers/browser';
@@ -110,6 +110,20 @@ class Overlays {
    * @type {number}
    */
   #containerDomResizeCountTimeout = null;
+
+  /**
+   * The ID of the pending animation frame for scroll updates.
+   *
+   * @type {number|null}
+   */
+  #scrollAnimationFrameId = null;
+
+  /**
+   * Whether a scroll update is pending.
+   *
+   * @type {boolean}
+   */
+  #scrollUpdatePending = false;
 
   /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
@@ -536,47 +550,62 @@ class Overlays {
       return;
     }
 
-    const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
-    const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-
-    let scrollX = this.scrollableElement.scrollLeft;
-    let scrollY = this.scrollableElement.scrollTop;
-
-    if (
-      this.wot.wtViewport.isHorizontallyScrollableByWindow()
-      && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'horizontal')
-    ) {
-      scrollX = this.scrollableElement.scrollX;
+    // Use requestAnimationFrame to batch scroll updates and avoid redundant redraws
+    if (this.#scrollUpdatePending) {
+      return;
     }
 
-    if (
-      this.wot.wtViewport.isVerticallyScrollableByWindow()
-      && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'vertical')
-    ) {
-      scrollY = this.scrollableElement.scrollY;
-    }
+    this.#scrollUpdatePending = true;
+    this.#scrollAnimationFrameId = requestAnimationFrame(() => {
+      this.#scrollUpdatePending = false;
+      this.#scrollAnimationFrameId = null;
 
-    this.horizontalScrolling = this.lastScrollX !== scrollX;
-    this.verticalScrolling = this.lastScrollY !== scrollY;
-    this.lastScrollX = scrollX;
-    this.lastScrollY = scrollY;
-
-    if (this.horizontalScrolling) {
-      topHolder.scrollLeft = scrollX;
-
-      const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null; // todo rethink
-
-      if (bottomHolder) {
-        bottomHolder.scrollLeft = scrollX;
+      if (this.destroyed) {
+        return;
       }
-    }
 
-    if (this.verticalScrolling) {
-      leftHolder.scrollTop = scrollY;
-    }
+      const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
+      const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
+      const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
-    this.refreshAll();
+      let scrollX = this.scrollableElement.scrollLeft;
+      let scrollY = this.scrollableElement.scrollTop;
+
+      if (
+        this.wot.wtViewport.isHorizontallyScrollableByWindow()
+        && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'horizontal')
+      ) {
+        scrollX = this.scrollableElement.scrollX;
+      }
+
+      if (
+        this.wot.wtViewport.isVerticallyScrollableByWindow()
+        && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'vertical')
+      ) {
+        scrollY = this.scrollableElement.scrollY;
+      }
+
+      this.horizontalScrolling = this.lastScrollX !== scrollX;
+      this.verticalScrolling = this.lastScrollY !== scrollY;
+      this.lastScrollX = scrollX;
+      this.lastScrollY = scrollY;
+
+      if (this.horizontalScrolling) {
+        topHolder.scrollLeft = scrollX;
+
+        const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null; // todo rethink
+
+        if (bottomHolder) {
+          bottomHolder.scrollLeft = scrollX;
+        }
+      }
+
+      if (this.verticalScrolling) {
+        leftHolder.scrollTop = scrollY;
+      }
+
+      this.refreshAll();
+    });
   }
 
   /**
@@ -634,6 +663,12 @@ class Overlays {
    *
    */
   destroy() {
+    if (this.#scrollAnimationFrameId !== null) {
+      cancelAnimationFrame(this.#scrollAnimationFrameId);
+      this.#scrollAnimationFrameId = null;
+      this.#scrollUpdatePending = false;
+    }
+
     this.resizeObserver.disconnect();
     this.eventManager.destroy();
     // todo, probably all below `destroy` calls has no sense. To analyze
