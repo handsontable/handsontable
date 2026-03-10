@@ -919,5 +919,73 @@ describe('CopyPaste', () => {
       expect(getDataAtCell(1, 1)).toEqual('test2');
       expect(getCopyableSourceData(1, 1)).toEqual({ sth: 1, label: 'test2' });
     });
+
+    it('should handle pasting very large HTML tables without stack overflow (issue #11784)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        copyPaste: true,
+      });
+
+      // Create a large HTML table (50,000 rows) to test the fix
+      const rowCount = 50000;
+      let htmlTable = '<table><tbody>';
+
+      for (let i = 0; i < rowCount; i++) {
+        htmlTable += `<tr><td>Row${i}Col0</td><td>Row${i}Col1</td><td>Row${i}Col2</td></tr>`;
+      }
+      htmlTable += '</tbody></table>';
+
+      const plugin = getPlugin('CopyPaste');
+      const event = getClipboardEvent('text/html', htmlTable);
+
+      await selectCell(0, 0);
+
+      // This should not throw "Maximum call stack size exceeded"
+      expect(() => {
+        plugin.onPaste(event);
+      }).not.toThrow();
+
+      // The table should have been pasted successfully (though it may be limited by settings)
+      // Just verify the first few rows to ensure the paste worked
+      expect(getDataAtCell(0, 0)).toBe('Row0Col0');
+      expect(getDataAtCell(1, 0)).toBe('Row1Col0');
+      expect(getDataAtCell(2, 0)).toBe('Row2Col0');
+    });
+
+    it('should handle pasting HTML tables with multiple tbody sections without stack overflow', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        copyPaste: true,
+      });
+
+      // Create HTML table with multiple tbody sections (25,000 rows each)
+      const rowsPerSection = 25000;
+      let htmlTable = '<table>';
+
+      for (let section = 0; section < 2; section++) {
+        htmlTable += '<tbody>';
+        for (let i = 0; i < rowsPerSection; i++) {
+          const rowNum = section * rowsPerSection + i;
+
+          htmlTable += `<tr><td>S${section}R${rowNum}</td></tr>`;
+        }
+        htmlTable += '</tbody>';
+      }
+      htmlTable += '</table>';
+
+      const plugin = getPlugin('CopyPaste');
+      const event = getClipboardEvent('text/html', htmlTable);
+
+      await selectCell(0, 0);
+
+      // This should not throw "Maximum call stack size exceeded"
+      expect(() => {
+        plugin.onPaste(event);
+      }).not.toThrow();
+
+      // Verify the paste worked
+      expect(getDataAtCell(0, 0)).toBe('S0R0');
+      expect(getDataAtCell(1, 0)).toBe('S0R1');
+    });
   });
 });
