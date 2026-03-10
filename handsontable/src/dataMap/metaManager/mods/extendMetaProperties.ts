@@ -1,4 +1,9 @@
 import type { MetaManagerInstance } from '../../../common';
+import { deprecatedWarn } from '../../../helpers/console';
+import { throwWithCause } from '../../../helpers/errors';
+
+const correctFormatDeprecatedMessageShown = new WeakSet();
+const datePickerConfigDeprecatedMessageShown = new WeakSet();
 
 /**
  * @class ExtendMetaPropertiesMod
@@ -27,12 +32,34 @@ export class ExtendMetaPropertiesMod {
         const isRtl = this.metaManager.hot.isRtl();
 
         if (isRtl && propName === 'fixedColumnsLeft') {
-          throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
+          throwWithCause('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
         }
 
         if (this.usageTracker.has('fixedColumnsLeft') && this.usageTracker.has('fixedColumnsStart')) {
-          throw new Error('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
+          throwWithCause('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
             'Please use only the option `fixedColumnsStart`.');
+        }
+      }
+    }],
+    ['correctFormat', {
+      onChange() {
+        if (!correctFormatDeprecatedMessageShown.has(this.metaManager.hot)) {
+          correctFormatDeprecatedMessageShown.add(this.metaManager.hot);
+          deprecatedWarn(
+            'The `correctFormat` option is deprecated and will be removed in the next major release.\n\n' +
+            'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/'
+          );
+        }
+      }
+    }],
+    ['datePickerConfig', {
+      onChange() {
+        if (!datePickerConfigDeprecatedMessageShown.has(this.metaManager.hot)) {
+          datePickerConfigDeprecatedMessageShown.add(this.metaManager.hot);
+          deprecatedWarn(
+            'The `datePickerConfig` option is deprecated and will be removed in the next major release.\n\n' +
+            'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/'
+          );
         }
       }
     }],
@@ -62,7 +89,7 @@ export class ExtendMetaPropertiesMod {
    */
   #initOnlyCallback = (propName: string, value: unknown, isInitialChange: boolean) => {
     if (!isInitialChange) {
-      throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+      throwWithCause(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
     }
   }
 

@@ -282,15 +282,29 @@ export function getDifferenceOfArrays(...arrays: Array<Array<string | number>>):
 /**
  * Intersection of two or more arrays.
  *
- * @param {...Array} arrays Array of strings or array of numbers.
+ * @param {...Array<*|Function>} args Array of elements followed by a comparator function.
  * @returns {Array} Returns elements that exists in every array.
  */
-export function getIntersectionOfArrays(...arrays: Array<Array<string | number>>): (string | number)[] {
-  const [first, ...rest] = [...arrays];
+export function getIntersectionOfArrays(
+  ...args: Array<Array<string | number> | ((a: string | number, b: string | number) => boolean)>
+): (string | number)[] {
+  const lastArgument = args[args.length - 1];
+  let comparator: ((a: string | number, b: string | number) => boolean) | undefined;
+  let arrays: Array<Array<string | number>> = args as Array<Array<string | number>>;
+
+  if (typeof lastArgument === 'function') {
+    comparator = lastArgument as (a: string | number, b: string | number) => boolean;
+    arrays = arrays.slice(0, -1) as Array<Array<string | number>>;
+  }
+
+  const isMatch = comparator
+    ? (value: string | number, array: Array<string | number>) => array.some(item => comparator!(value, item))
+    : (value: string | number, array: Array<string | number>) => array.includes(value);
+  const [first, ...rest] = arrays;
   let filteredFirstArray = first;
 
-  arrayEach(rest, (array) => {
-    filteredFirstArray = filteredFirstArray.filter(value => (array as Array<string | number>).includes(value));
+  arrayEach(rest, (array: unknown) => {
+    filteredFirstArray = filteredFirstArray.filter(value => isMatch(value, array as Array<string | number>));
   });
 
   return filteredFirstArray;
@@ -326,4 +340,15 @@ export function getUnionOfArrays(...arrays: Array<Array<string | number>>): (str
  */
 export function stringToArray(value: string, delimiter: string | RegExp = ' '): string[] {
   return value.split(delimiter);
+}
+
+/**
+ * Convert an array of strings to a single string.
+ *
+ * @param {string[]} array Array of strings.
+ * @param {string} separator Separator string.
+ * @returns {string} Returns a string made by joining all array elements with a separator.
+ */
+export function arrayToString(array: string[], separator = ' ') {
+  return array.join(separator);
 }

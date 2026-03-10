@@ -148,6 +148,17 @@ export class SelectionManager {
   }
 
   /**
+   * Refreshes the multiple selector handle styles on all border instances after a theme change.
+   */
+  refreshAllBorderHandleStyles() {
+    this.#selectionBorders.forEach((bordersMap) => {
+      bordersMap.forEach((border: { updateMultipleSelectorHandlesStyles?: () => void }) => {
+        border.updateMultipleSelectorHandlesStyles?.();
+      });
+    });
+  }
+
+  /**
    * Renders all the selections (add CSS classes to cells and draw borders).
    *
    * @param {boolean} fastDraw Indicates the render cycle type (fast/slow).

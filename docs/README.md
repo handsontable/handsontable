@@ -126,14 +126,14 @@ docs                            # All documentation files
 
 Each documentation version has its own production branch from which the deployment is happening. The documentation branches are created using the following pattern `prod-docs/<MAJOR.MINOR>`. The `prod-docs/latest` branch contains all files necessary for Netlify deployment.
 
-The documentation branches are created automatically once the Handsontable release script finishes its job. Depending on the Handsontable release version, two scenarios may happen:
+The documentation branches are created and updated automatically by the `stable-publish` job in `.github/workflows/publish.yml`. Depending on the Handsontable release version, two scenarios may happen:
 1. Patch release:
-    * Checkout to the existing branch;
-    * Regenerate Docs content for the API by executing `npm run docs:api`;
+    * Check out the existing `prod-docs/<MAJOR.MINOR>` branch;
+    * Update the docs changelog and regenerate API content via `npm run docs:api`;
     * Commit and push the changes to the origin;
 2. Major or Minor release:
-    * Create a new Docs branch, e.g. `prod-docs/13.0` from the `develop` branch (after the release branch is merged to the `develop` branch);
-    * Generate Docs content for the API by executing `npm run docs:api`;
+    * Create a new Docs branch, e.g. `prod-docs/13.0`, from the version tag (after the release branch is merged to `master`);
+    * Update the docs changelog and generate API content via `npm run docs:api`;
     * Commit and push the changes to the origin;
 
 The prod-docs/latest branch is automatically recreated by the CI/CD pipeline whenever a patch or release update is applied to the latest documentation version. This branch triggers a GitHub workflow that initiates a rebuild and deploys to Netlify on each push or when a new branch `prod-docs/<MAJOR.MINOR>` is created.

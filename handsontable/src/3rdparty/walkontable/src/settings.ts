@@ -1,5 +1,6 @@
 import { fastInnerText } from '../../../helpers/dom/element';
 import { objectEach } from '../../../helpers/object';
+import { throwWithCause } from '../../../helpers/errors';
 
 /**
  * @todo Describe options.
@@ -109,7 +110,7 @@ export default class Settings {
         this.settings[key] = settings[key];
 
       } else if (value === undefined) {
-        throw new Error(`A required setting "${key}" was not provided`);
+        throwWithCause(`A required setting "${key}" was not provided`);
 
       } else {
         this.settings[key] = value;

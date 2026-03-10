@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../../common';
 import { arrayEach } from '../../../helpers/array';
+import { throwWithCause } from '../../../helpers/errors';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../../translations';
@@ -129,7 +130,7 @@ export class BaseComponent {
    * The custom logic for component state gathering (for stateful components).
    */
   getState() {
-    throw new Error('The state gathering logic is not implemented');
+    throwWithCause('The state gathering logic is not implemented');
   }
 
   /**

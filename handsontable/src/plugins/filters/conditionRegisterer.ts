@@ -1,3 +1,5 @@
+import { throwWithCause } from '../../helpers/errors';
+
 export const conditions: Record<string, { condition: Function; descriptor: Record<string, unknown> }> = {};
 
 /**
@@ -9,7 +11,7 @@ export const conditions: Record<string, { condition: Function; descriptor: Recor
  */
 export function getCondition(name: string, args: unknown[]) {
   if (!conditions[name]) {
-    throw Error(`Filter condition "${name}" does not exist.`);
+    throwWithCause(`Filter condition "${name}" does not exist.`);
   }
 
   const { condition, descriptor } = conditions[name];
@@ -32,7 +34,7 @@ export function getCondition(name: string, args: unknown[]) {
  */
 export function getConditionDescriptor(name: string) {
   if (!conditions[name]) {
-    throw Error(`Filter condition "${name}" does not exist.`);
+    throwWithCause(`Filter condition "${name}" does not exist.`);
   }
 
   return conditions[name].descriptor;

@@ -53,7 +53,7 @@ describe('UndoRedo -> MergeCells action', () => {
 
     expect(() => {
       getPlugin('undoRedo').undo();
-    }).not.toThrowError();
+    }).not.toThrowWithCause(undefined, { handsontable: true });
   });
 
   it('should not throw an error after undoing cell merging triggered when the column header was selected', async() => {
@@ -68,7 +68,7 @@ describe('UndoRedo -> MergeCells action', () => {
 
     expect(() => {
       getPlugin('undoRedo').undo();
-    }).not.toThrowError();
+    }).not.toThrowWithCause(undefined, { handsontable: true });
   });
 
   it('should not throw an error after redoing cell merging triggered when the row header was selected', async() => {
@@ -84,7 +84,7 @@ describe('UndoRedo -> MergeCells action', () => {
 
     expect(() => {
       getPlugin('undoRedo').redo();
-    }).not.toThrowError();
+    }).not.toThrowWithCause(undefined, { handsontable: true });
   });
 
   it('should not throw an error after redoing cell merging triggered when the column header was selected', async() => {
@@ -100,6 +100,6 @@ describe('UndoRedo -> MergeCells action', () => {
 
     expect(() => {
       getPlugin('undoRedo').redo();
-    }).not.toThrowError();
+    }).not.toThrowWithCause(undefined, { handsontable: true });
   });
 });

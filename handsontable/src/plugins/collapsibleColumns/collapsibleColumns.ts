@@ -12,6 +12,7 @@ import {
   setAttribute
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
+import { throwWithCause } from '../../helpers/errors';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import {
   A11Y_EXPANDED,
@@ -468,7 +469,7 @@ export class CollapsibleColumns extends BasePlugin {
    */
   toggleCollapsibleSection(coords: { row: number, col: number }[], action?: 'collapse' | 'expand'): void {
     if (!actionDictionary.has(action)) {
-      throw new Error(`Unsupported action is passed (${action}).`);
+      throwWithCause(`Unsupported action is passed (${action}).`);
     }
     if (!Array.isArray(coords)) {
       return;

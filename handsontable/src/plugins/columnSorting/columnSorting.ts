@@ -320,7 +320,6 @@ export class ColumnSorting extends BasePlugin {
     if (sortPossible) {
       this.columnStatesManager.setSortStates(destinationSortConfigs);
       this.sortByPresetSortStates(destinationSortConfigs);
-      this.saveAllSortSettings(destinationSortConfigs);
     }
 
     this.hot.runHooks('afterColumnSort',
@@ -695,13 +694,12 @@ export class ColumnSorting extends BasePlugin {
    */
   #loadOrSortBySettings() {
     const storedAllSortSettings = this.getAllSavedSortSettings();
+    const allSortSettings = this.hot.getSettings()[this.pluginKey];
 
     if (isObject(storedAllSortSettings)) {
       this.sortBySettings(storedAllSortSettings as Record<string, unknown>);
 
     } else {
-      const allSortSettings = this.hot.getSettings()[this.pluginKey];
-
       this.sortBySettings(allSortSettings as Record<string, unknown>);
     }
   }

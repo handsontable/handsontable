@@ -1,6 +1,7 @@
 import type { HotInstance } from '../common';
 import { addClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
+import { throwWithCause } from '../helpers/errors';
 
 /**
  * Structure returned by createTable().
@@ -109,7 +110,7 @@ class GhostTable {
    */
   addRow(row: number, samples: Map<string | number, SampleEntry>) {
     if (this.columns.length) {
-      throw new Error('Doesn\'t support multi-dimensional table');
+      throwWithCause('Doesn\'t support multi-dimensional table');
     }
     if (!this.rows.length) {
       this.container = this.createContainer((this.hot!.rootElement as HTMLElement).className);
@@ -163,7 +164,7 @@ class GhostTable {
    */
   addColumn(column: number, samples: Map<string | number, SampleEntry>) {
     if (this.rows.length) {
-      throw new Error('Doesn\'t support multi-dimensional table');
+      throwWithCause('Doesn\'t support multi-dimensional table');
     }
     if (!this.columns.length) {
       this.container = this.createContainer((this.hot!.rootElement as HTMLElement).className);

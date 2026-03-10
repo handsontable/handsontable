@@ -1,5 +1,6 @@
 import {
   isObjectEqual,
+  isKeyValueObject,
   duckSchema,
   mixin,
   clone,
@@ -520,6 +521,31 @@ describe('Object helper', () => {
 
       expect(result.fn).toBe(fn);
       expect(result.date).toBe(date);
+    });
+  });
+
+  //
+  // Handsontable.helper.isKeyValueObject
+  //
+  describe('isKeyValueObject', () => {
+    it('should return true if the object is a key/value object', () => {
+      expect(isKeyValueObject({ key: 'value', value: 'value' })).toBe(true);
+    });
+
+    it('should return false if the object is not a key/value object', () => {
+      expect(isKeyValueObject({ value: 'value' })).toBe(false);
+    });
+
+    it('should return false if the object is not an object', () => {
+      expect(isKeyValueObject('value')).toBe(false);
+    });
+
+    it('should return false if the object is null', () => {
+      expect(isKeyValueObject(null)).toBe(false);
+    });
+
+    it('should return false if the object is undefined', () => {
+      expect(isKeyValueObject(undefined)).toBe(false);
     });
   });
 });

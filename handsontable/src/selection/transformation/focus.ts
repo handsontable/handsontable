@@ -1,4 +1,5 @@
 import { BaseTransformation } from './_base';
+import { throwWithCause } from '../../helpers/errors';
 
 /**
  * The FocusTransformation class implements algorithms for transforming coordinates while the

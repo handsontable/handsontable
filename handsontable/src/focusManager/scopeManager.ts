@@ -1,5 +1,6 @@
 import type { HotInstance } from '../common';
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
+import { throwWithCause } from '../helpers/errors';
 import { createFocusScope } from './scope';
 import { useEventListener } from './eventListener';
 import { FOCUS_SOURCES } from './constants';
@@ -123,7 +124,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    */
   function registerScope(scopeId: string, container: HTMLElement, options: FocusScopeOptions = {}): void {
     if (SCOPES.hasItem(scopeId)) {
-      throw new Error(`Scope with id "${scopeId}" already registered`);
+      throwWithCause(`Scope with id "${scopeId}" already registered`);
     }
 
     const scope = createFocusScope(hotInstance, container, options);
@@ -141,7 +142,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    */
   function unregisterScope(scopeId: string): void {
     if (!SCOPES.hasItem(scopeId)) {
-      throw new Error(`Scope with id "${scopeId}" not found`);
+      throwWithCause(`Scope with id "${scopeId}" not found`);
     }
 
     const scope = SCOPES.getItem(scopeId);
@@ -159,7 +160,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    */
   function activateScopeById(scopeId: string): void {
     if (!SCOPES.hasItem(scopeId)) {
-      throw new Error(`Scope with id "${scopeId}" not found`);
+      throwWithCause(`Scope with id "${scopeId}" not found`);
     }
 
     activateScope(SCOPES.getItem(scopeId));
@@ -174,7 +175,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    */
   function deactivateScopeById(scopeId: string): void {
     if (!SCOPES.hasItem(scopeId)) {
-      throw new Error(`Scope with id "${scopeId}" not found`);
+      throwWithCause(`Scope with id "${scopeId}" not found`);
     }
 
     deactivateScope(SCOPES.getItem(scopeId));

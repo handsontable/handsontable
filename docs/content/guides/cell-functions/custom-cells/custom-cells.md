@@ -13,6 +13,7 @@ angular:
   metaTitle: Custom Cell Definitions - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
+menuTag: new
 ---
 
 # Simplified Custom Cell Definitions
@@ -374,8 +375,525 @@ This information is applicable in React when using the non-component editor appr
 
 :::
 
+:::
+
+::: only-for angular
+
+## Angular
+
+For Angular applications, Handsontable provides `HotCellEditorAdvancedComponent` and `HotCellRendererAdvancedComponent`, high-level Angular components that simplify creating custom editors and renderers. These components handle lifecycle management, provide type-safe properties, and integrate seamlessly with Angular's dependency injection and change detection.
+
+### What are the Advanced Components?
+
+Angular provides two base classes for creating custom cells:
+
+- **`HotCellRendererAdvancedComponent`** - Base class for custom cell renderers
+- **`HotCellEditorAdvancedComponent`** - Base class for custom cell editors
+
+Both components provide:
+
+- Automatic lifecycle management
+- Type-safe @Input and @Output properties
+- Built-in keyboard shortcut support
+- Integration with Angular's change detection
+- Support for custom configuration via `rendererProps` or `config`
+
+## Custom Renderers
+
+### `HotCellRendererAdvancedComponent`
+
+A base class for creating custom cell renderers in Angular. Extend this class to create your own renderer components. 
+
+#### Basic Structure
+
+```typescript
+import { Component } from "@angular/core";
+import { HotCellRendererAdvancedComponent } from "@handsontable/angular-wrapper";
+
+@Component({
+  selector: "my-custom-renderer",
+  template: ` <div>{{ value }}</div> `,
+  standalone: false,
+})
+export class MyCustomRenderer extends HotCellRendererAdvancedComponent<string> {
+  // Your custom logic here
+}
+```
+
+#### Input Properties
+
+The base class provides the following @Input properties automatically:
+
+- **`value: TValue`** - The cell value (typed based on generic parameter)
+- **`instance: Handsontable`** - Handsontable instance
+- **`td: HTMLTableCellElement`** - The cell's TD element
+- **`row: number`** - Row index
+- **`col: number`** - Column index
+- **`prop: string`** - Property name
+- **`cellProperties: Handsontable.CellProperties & { rendererProps?: TProps }`** - Cell configuration with optional renderer-specific properties
+
+#### The `getProps()` Method
+
+Use `getProps()` to retrieve renderer-specific properties passed via `rendererProps`:
+
+```typescript
+@Component({
+  selector: 'colored-renderer',
+  template: `
+    <div [style.color]="getProps().textColor">
+      {{ value }}
+    </div>
+  `,
+  standalone: false,
+})
+export class ColoredRenderer extends HotCellRendererAdvancedComponent<string, { textColor: string }> {
+  // getProps() automatically typed as { textColor: string }
+}
+
+// Usage in column configuration:
+{
+  data: 'name',
+  renderer: ColoredRenderer,
+  rendererProps: { textColor: 'blue' }
+}
+```
+
+#### Example: Star Rating Renderer
+
+```typescript
+import { Component, ChangeDetectionStrategy } from "@angular/core";
+import { HotCellRendererAdvancedComponent } from "@handsontable/angular-wrapper";
+
+@Component({
+  selector: "star-renderer",
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <div>
+      @for (star of stars; track $index) {
+        <span [style.opacity]="$index < value ? '1' : '0.4'">⭐</span>
+      }
+    </div>
+  `,
+  standalone: false,
+})
+export class StarRenderer extends HotCellRendererAdvancedComponent<number> {
+  readonly stars = Array(5);
+}
+
+// Usage:
+columns: [
+  {
+    data: "rating",
+    renderer: StarRenderer,
+  },
+];
+```
+
+#### When should I use [`HotCellRendererComponent`](@/guides/cell-functions/cell-renderer/cell-renderer.md) and when should I use `HotCellRendererAdvancedComponent`?
+
+The choice between `HotCellRendererComponent` and `HotCellRendererAdvancedComponent` depends on the underlying Handsontable API you intend to use.
+
+`HotCellRendererComponent`: This is the base component for creating renderers that are compatible with the `baseRenderer` API from Handsontable. It is suitable for most standard rendering use cases.
+
+`HotCellRendererAdvancedComponent`: This component is designed to work with the newer [`rendererFactory`](@/guides/cell-functions/custom-cells/custom-cells.md#rendererfactory) API from Handsontable. While both components offer similar configuration options at the Angular level, `HotCellRendererAdvancedComponent` aligns with the more modern, factory-based approach in the core Handsontable library, which can be more optimized.
+
+In short:
+- Use `HotCellRendererComponent` for renderers based on the traditional `baseRenderer`.
+- Use `HotCellRendererAdvancedComponent` when you want to align with the newer `rendererFactory` pattern for potential performance benefits and a more modern API approach.
+
+## Custom Editors
+
+### `HotCellEditorAdvancedComponent`
+
+A base class for creating custom cell editors in Angular. Extend this class to create your own editor components with full control over the editing experience.
+
+#### Basic Structure
+
+```typescript
+import { Component } from "@angular/core";
+import { HotCellEditorAdvancedComponent } from "@handsontable/angular-wrapper";
+
+@Component({
+  selector: "my-custom-editor",
+  template: ` <input [(ngModel)]="value" (blur)="finishEdit.emit()" /> `,
+  standalone: false,
+})
+export class MyCustomEditor extends HotCellEditorAdvancedComponent<string> {
+  // Your custom logic here
+}
+```
+
+#### Input Properties
+
+The base class provides the following @Input properties:
+
+- **`row: number`** - Row index of the cell being edited
+- **`column: number`** - Column index of the cell being edited
+- **`prop: string | number`** - Property name of the cell being edited
+- **`originalValue: T`** - Original value of the cell before editing
+- **`cellProperties: CellProperties`** - Cell configuration
+
+#### Output Events
+
+- **`finishEdit: EventEmitter<void>`** - Emit to save changes and close the editor
+- **`cancelEdit: EventEmitter<void>`** - Emit to cancel changes and revert to original value
+
+#### Lifecycle Methods
+
+Override these methods to customize editor behavior:
+
+1. **`onFocus(editor?: ExtendedEditor<T>): void`**
+
+   - Called when the editor receives focus
+   - Use for custom focus management
+
+2. **`afterOpen(editor: ExtendedEditor<T>, event?: Event): void`**
+
+   - Called after the editor is opened and positioned
+   - Use to open dropdowns, trigger animations, or focus elements
+
+3. **`afterClose(editor: ExtendedEditor<T>): void`**
+
+   - Called when the editor closes
+   - Use for cleanup actions
+
+4. **`afterInit(editor: ExtendedEditor<T>): void`**
+
+   - Called after the editor is initialized
+   - Use for one-time setup
+
+5. **`beforeOpen(editor, { row, col, prop, td, originalValue, cellProperties }): void`**
+   - Called before the editor opens
+   - Use for per-cell setup or reading custom properties
+
+#### Value Methods
+
+- **`getValue(): T`** - Returns the current editor value (override if needed)
+- **`setValue(value: T): void`** - Sets the editor value (override if needed)
+
+#### Configuration Properties
+
+- **`position: 'container' | 'portal'`** - Editor positioning strategy (default: 'container')
+- **`shortcuts?: KeyboardShortcutConfig[]`** - Keyboard shortcuts configuration
+- **`shortcutsGroup?: string`** - Group name for shortcuts
+- **`config?: any`** - Custom configuration object
+
+#### When should I use [`HotCellEditorComponent`](@/guides/cell-functions/cell-editor/cell-editor.md) and when should I use `HotCellEditorAdvancedComponent`?
+
+The choice between HotCellEditorComponent and HotCellEditorAdvancedComponent depends on your cell editor requirements.
+
+`HotCellEditorComponent`: This is the basic component for creating simple editors. It is based on the older [`BaseEditor`](@/api/baseEditor.md) from `Handsontable` and is ideal for simple use cases.
+
+`HotCellEditorAdvancedComponent`: This component is built on the newer [`editorFactory`](@/guides/cell-functions/custom-cells/custom-cells.md#using-editorfactory) API from `Handsontable`. It offers significantly more configuration and customization options, such as:
+
+Defining custom keyboard shortcuts.
+Choosing the editor's positioning strategy ('container' or 'portal').
+Access to additional lifecycle hooks like afterInit and beforeOpen.
+
+In short:
+- Use `HotCellEditorComponent` for simple, standard editors.
+- Use `HotCellEditorAdvancedComponent` when you need advanced control over the editor's behavior, positioning, and keyboard shortcuts.
+
+### Common Patterns
+
+#### Pattern 1: Simple Input Editor
+
+A basic text input editor:
+
+```typescript
+import { Component } from "@angular/core";
+import { HotCellEditorAdvancedComponent } from "@handsontable/angular-wrapper";
+import { FormsModule } from "@angular/forms";
+
+@Component({
+  selector: "text-editor",
+  template: `
+    <input
+      type="text"
+      [(ngModel)]="value"
+      (keydown.enter)="finishEdit.emit()"
+      (keydown.escape)="cancelEdit.emit()"
+      style="width: 100%; height: 100%; border: 2px solid blue;"
+    />
+  `,
+  standalone: true,
+  imports: [FormsModule],
+})
+export class TextEditor extends HotCellEditorAdvancedComponent<string> {}
+```
+
+#### Pattern 2: Dropdown Select Editor
+
+A dropdown editor with predefined options:
+
+```typescript
+import { Component, inject, ChangeDetectorRef } from "@angular/core";
+import { HotCellEditorAdvancedComponent, KeyboardShortcutConfig } from "@handsontable/angular-wrapper";
+import { CommonModule } from "@angular/common";
+
+@Component({
+  selector: "select-editor",
+  template: `
+    <select [(ngModel)]="value" (change)="finishEdit.emit()" style="width: 100%; height: 100%;">
+      @for (option of options; track option) {
+        <option [value]="option">{{ option }}</option>
+      }
+    </select>
+  `,
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+})
+export class SelectEditor extends HotCellEditorAdvancedComponent<string> {
+  options = ["Option 1", "Option 2", "Option 3"];
+
+  override shortcuts?: KeyboardShortcutConfig[] = [
+    {
+      keys: [["ArrowDown"]],
+      callback: (editor) => {
+        const currentIndex = this.options.indexOf(this.getValue());
+        const nextIndex = (currentIndex + 1) % this.options.length;
+        this.setValue(this.options[nextIndex]);
+        this.cdr.detectChanges();
+      },
+    },
+  ];
+
+  private readonly cdr = inject(ChangeDetectorRef);
+}
+```
+
+#### Pattern 3: Custom UI with Buttons
+
+An editor with custom button controls:
+
+```typescript
+import { Component } from "@angular/core";
+import { HotCellEditorAdvancedComponent } from "@handsontable/angular-wrapper";
+import { CommonModule } from "@angular/common";
+
+@Component({
+  selector: "button-editor",
+  template: `
+    <div style="display: flex; gap: 4px; background: #eee; padding: 4px;">
+      @for (option of options; track option) {
+        <button [style.backgroundColor]="option === value ? '#90f5e7' : '#fff'" (click)="onSelect(option)">
+          {{ option }}
+        </button>
+      }
+    </div>
+  `,
+  standalone: true,
+  imports: [CommonModule],
+})
+export class ButtonEditor extends HotCellEditorAdvancedComponent<string> {
+  options = ["Yes", "No", "Maybe"];
+
+  onSelect(option: string): void {
+    this.value = option;
+    this.finishEdit.emit();
+  }
+}
+```
+
+#### Pattern 4: Keyboard Shortcuts
+
+An editor with comprehensive keyboard navigation:
+
+```typescript
+import { Component, inject, ChangeDetectorRef } from "@angular/core";
+import { HotCellEditorAdvancedComponent, KeyboardShortcutConfig } from "@handsontable/angular-wrapper";
+import { CommonModule } from "@angular/common";
+
+@Component({
+  selector: "star-editor",
+  template: `
+    <div
+      style="background: #eee; padding: 5px 8px; cursor: pointer;"
+      (mouseover)="onMouseOver($event)"
+      (mousedown)="finishEdit.emit()"
+    >
+      @for (star of stars; track $index) {
+      <span [attr.data-value]="$index + 1" [style.opacity]="$index < getValue() ? '1' : '0.4'"> ⭐ </span>
+      }
+    </div>
+  `,
+  standalone: true,
+  imports: [CommonModule],
+})
+export class StarEditor extends HotCellEditorAdvancedComponent<number> {
+  readonly stars = Array(5);
+
+  override shortcuts?: KeyboardShortcutConfig[] = [
+    {
+      keys: [["1"], ["2"], ["3"], ["4"], ["5"]],
+      callback: (editor, event) => {
+        this.setValue(parseInt(event.key));
+        this.cdr.detectChanges();
+      },
+    },
+    {
+      keys: [["ArrowRight"]],
+      callback: (editor) => {
+        if (this.getValue() < 5) {
+          this.setValue(this.getValue() + 1);
+          this.cdr.detectChanges();
+        }
+      },
+    },
+    {
+      keys: [["ArrowLeft"]],
+      callback: (editor) => {
+        if (this.getValue() > 1) {
+          this.setValue(this.getValue() - 1);
+          this.cdr.detectChanges();
+        }
+      },
+    },
+  ];
+
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  onMouseOver(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (target instanceof HTMLSpanElement && target.dataset["value"]) {
+      this.setValue(parseInt(target.dataset["value"]));
+      this.cdr.detectChanges();
+    }
+  }
+}
+```
+
+#### Pattern 5: Third-Party Library Integration (Angular Material)
+
+Integrating external libraries like Angular Material:
+
+```typescript
+import { CommonModule } from "@angular/common";
+import { Component } from "@angular/core";
+import { HotCellEditorAdvancedComponent } from "@handsontable/angular-wrapper";
+import { MatCheckboxModule } from "@angular/material/checkbox";
+
+@Component({
+  selector: "app-boolean-editor",
+  standalone: true,
+  template: `
+    <div
+      style="background-color: white; border: 2px solid #1a42e8; display: flex; align-items: center; justify-content: center; height: 100%; width: 100%;"
+    >
+      <mat-checkbox [checked]="value" (change)="onCheckboxChange($event.checked)" color="primary"> </mat-checkbox>
+    </div>
+  `,
+  imports: [CommonModule, MatCheckboxModule],
+})
+export class BooleanEditor extends HotCellEditorAdvancedComponent<boolean> {
+  onCheckboxChange(checked: boolean): void {
+    this.value = checked;
+    this.finishEdit.emit();
+  }
+
+  override setValue(value: boolean): void {
+    this.value = value ?? false;
+  }
+
+  override getValue(): boolean {
+    return this.value ?? false;
+  }
+}
+```
+
+**Key points for third-party integration:**
+
+- Import required external modules in the `imports` array
+- Override `setValue()` and `getValue()` for custom value handling
+- Use `finishEdit.emit()` to save changes when user interacts with the external component
+
+**Usage in column configuration:**
+
+```typescript
+columns: [
+  {
+    data: "active",
+    editor: BooleanEditor,
+  },
+];
+```
+
+### TypeScript Support
+
+Both `HotCellEditorAdvancedComponent` and `HotCellRendererAdvancedComponent` are fully typed with generics:
+
+```typescript
+// Editor with typed value
+export class NumberEditor extends HotCellEditorAdvancedComponent<number> {
+  // value is automatically typed as number
+}
+
+// Renderer with typed value and props
+export class CustomRenderer extends HotCellRendererAdvancedComponent<string, { color: string; bold: boolean }> {
+  // value is typed as string
+  // getProps() returns { color: string; bold: boolean }
+}
+
+// Editor with complex type
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+}
+
+export class ProductEditor extends HotCellEditorAdvancedComponent<Product> {
+  // value is typed as Product
+  // getValue() returns Product
+  // setValue() expects Product
+}
+```
+
+### Best Practices
+
+1. **Use ChangeDetectorRef for manual updates** - Inject and call `detectChanges()` after programmatic value changes
+2. **Use standalone components when possible** - Better tree-shaking and module isolation
+3. **Handle keyboard events with shortcuts** - Define shortcuts in the `shortcuts` array for consistent behavior
+4. **Call `finishEdit.emit()` appropriately** - When user confirms changes (Enter, blur, button click)
+5. **Use `getProps()` for renderer configuration** - Pass custom properties via `rendererProps`
+6. **Override lifecycle methods as needed** - `beforeOpen`, `afterOpen`, `afterClose`, `onFocus`
+7. **Type your components with generics** - Specify value type for type safety: `HotCellEditorAdvancedComponent<YourType>`
+
+### Column Configuration
+
+Use your custom components in column settings:
+
+```typescript
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  columns: [
+    {
+      data: "name",
+      renderer: CustomRenderer,
+      rendererProps: { color: "blue", bold: true },
+    },
+    {
+      data: "rating",
+      renderer: StarRenderer,
+      editor: StarEditor,
+    },
+    {
+      data: "active",
+      editor: BooleanEditor,
+    },
+  ],
+};
+```
+
+::: tip
+
+All the sections below describe how to utilize the features available for the Handsontable factory based editors.
+This information is also applicable in Angular when you need lower-level control or want to share code between vanilla JavaScript and Angular implementations.
 
 :::
+
+:::
+
 
 ## Renderers
 
@@ -633,19 +1151,27 @@ By default, Handsontable will attempt to close a custom editor whenever the user
 
 Use this pattern for editors that display dropdowns, popovers, or similar UI elements that aren't direct children of the editor container. Without this, clicking the dropdown will be interpreted as clicking "outside," causing the editor to close unexpectedly.
 
+**Using `preventCloseElement`**
+
+Inside your `init` or `afterInit` callback, assign an **`HTMLElement`** to **`editor.preventCloseElement`** (for example, your dropdown or picker DOM node). The factory will attach a `mousedown` listener to that element that stops propagation, so clicks on it are not treated as "click-outside" and the editor stays open.
+
+Create the element in `init` or `afterInit`, assign it to `editor.preventCloseElement`, and append it to the editor container (or to the document if the dropdown is rendered outside the container).
+
 **Example:**
 ```typescript
-init(editor) {
-  editor.input = document.createElement('select') as HTMLSelectElement;
-  // ...dropdown setup, create dropdown DOM as needed
+const MyEditor = editorFactory({
+  init(editor) {
+    editor.input = document.createElement('input');
 
-  editor.hot.rootDocument.addEventListener('mousedown', (event) => {
-    // If the click occurs inside the dropdown, don't let Handsontable close the editor
-    if (editor.dropdown?.contains(event.target as Node)) {
-      event.stopPropagation(); // Prevents editor from closing
-    }
-  });
-}
+    const dropdownEl = document.createElement('div');
+    dropdownEl.className = 'my-picker-dropdown';
+
+    // Clicks on dropdownEl will not close the editor
+    editor.preventCloseElement = dropdownEl;
+  },
+  getValue(editor) { /* ... */ },
+  setValue(editor, value) { /* ... */ },
+});
 ```
 
 ### Pattern 4: Per-Cell Configuration

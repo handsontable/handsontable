@@ -3,11 +3,12 @@ import type { HotInstance } from '../../common';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { deepClone } from '../../helpers/object';
-import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { registerActions } from './actions';
 
 const SHORTCUTS_GROUP = 'undoRedo';
+const deprecationWarns = new Set<unknown>();
 
 export const PLUGIN_KEY = 'undoRedo';
 export const PLUGIN_PRIORITY = 1000;
@@ -16,8 +17,6 @@ Hooks.getSingleton().register('beforeUndo');
 Hooks.getSingleton().register('afterUndo');
 Hooks.getSingleton().register('beforeRedo');
 Hooks.getSingleton().register('afterRedo');
-
-const deprecationWarns = new Set();
 
 /**
  * @description
@@ -93,7 +92,6 @@ export class UndoRedo extends BasePlugin {
 
     this.addHook('afterChange', (...args: unknown[]) => (this.#onAfterChange as Function)(...args));
     this.registerShortcuts();
-    this.#exposeAPIToCore();
 
     super.enablePlugin();
   }
@@ -105,7 +103,6 @@ export class UndoRedo extends BasePlugin {
     super.disablePlugin();
     this.clear();
     this.unregisterShortcuts();
-    this.#removeAPIFromCore();
   }
 
   /**
@@ -180,7 +177,9 @@ export class UndoRedo extends BasePlugin {
     const newAction = wrappedAction();
     const undoneActionsCopy = this.undoneActions.slice();
 
-    this.doneActions.push(newAction);
+    if (newAction !== null) {
+      this.doneActions.push(newAction);
+    }
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);

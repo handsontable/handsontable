@@ -6,6 +6,7 @@ import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutConte
 import { Hooks } from '../../core/hooks';
 import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
+import { BAD_VALUE_TEXT } from '../../helpers/constants';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -146,7 +147,7 @@ export function checkboxRenderer(hotInstance: HotInstance, TD: HTMLTableCellElem
   }
 
   if (badValue) {
-    TD.appendChild(rootDocument.createTextNode('#bad-value#'));
+    TD.appendChild(rootDocument.createTextNode(BAD_VALUE_TEXT));
   }
 
   if (!isListeningKeyDownEvent.has(hotInstance)) {

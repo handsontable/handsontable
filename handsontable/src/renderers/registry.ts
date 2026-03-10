@@ -1,4 +1,5 @@
 import { staticRegister } from '../utils/staticRegister';
+import { throwWithCause } from '../helpers/errors';
 
 const {
   register,
@@ -19,7 +20,7 @@ function _getItem(name: string | Function): Function {
     return name;
   }
   if (!hasItem(name)) {
-    throw Error(`No registered renderer found under "${name}" name`);
+    throwWithCause(`No registered renderer found under "${name}" name`);
   }
 
   return getItem(name);

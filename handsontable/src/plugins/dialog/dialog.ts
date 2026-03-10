@@ -1,4 +1,5 @@
 import { BasePlugin } from '../base';
+import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
 import { isObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';
@@ -255,6 +256,7 @@ export class Dialog extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new DialogUI({
         rootElement: this.hot.rootGridElement,
+        sanitizer: this.hot.getSettings().sanitizer,
         isRtl: this.hot.isRtl(),
       });
     }
@@ -414,7 +416,7 @@ export class Dialog extends BasePlugin {
       templateValue !== Dialog.DEFAULT_SETTINGS.template &&
       this.getSetting('content') !== Dialog.DEFAULT_SETTINGS.content
     ) {
-      throw new Error('The `template` option cannot be used together with the `content` option.');
+      throwWithCause('The `template` option cannot be used together with the `content` option.');
     }
 
     if (templateValue) {

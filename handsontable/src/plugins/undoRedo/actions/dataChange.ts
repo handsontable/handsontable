@@ -58,10 +58,6 @@ export class DataChangeAction extends BaseAction {
         return oldValue !== newValue;
       });
 
-      if (!hasDifferences) {
-        return;
-      }
-
       const wrappedAction = () => {
         const clonedChanges = changes.map(
           (change: unknown) => [...(change as unknown[])]

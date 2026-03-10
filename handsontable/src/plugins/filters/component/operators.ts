@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../../common';
 import { addClass } from '../../../helpers/dom/element';
+import { throwWithCause } from '../../../helpers/errors';
 import { arrayEach } from '../../../helpers/array';
 import { toSingleLine } from '../../../helpers/templateLiteralTag';
 import { BaseComponent } from './_base';
@@ -88,7 +89,7 @@ export class OperatorsComponent extends BaseComponent {
    */
   setChecked(searchedIndex: number) {
     if (this.elements.length < searchedIndex) {
-      throw Error(toSingleLine`Radio button with index ${searchedIndex} doesn't exist.`);
+      throwWithCause(toSingleLine`Radio button with index ${searchedIndex} doesn't exist.`);
     }
 
     arrayEach(this.elements as RadioInputUI[], (element: RadioInputUI, index: number) => {

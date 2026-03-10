@@ -12,7 +12,7 @@ describe('BaseEditor', () => {
     }
   });
 
-  it('should exported all editors into Handsontable.editors object', async() => {
+  it('should export all editors into Handsontable.editors object', async() => {
     expect(Handsontable.editors.AutocompleteEditor).toBeDefined();
     expect(Handsontable.editors.BaseEditor).toBeDefined();
     expect(Handsontable.editors.CheckboxEditor).toBeDefined();
@@ -81,6 +81,21 @@ describe('BaseEditor', () => {
     expect(document.activeElement).not.toBe(externalInputElement);
 
     document.body.removeChild(externalInputElement);
+  });
+
+  it('should open the editor immediately after the `beginEditing` method is called (#dev-2961)', async() => {
+    handsontable({
+      data: createSpreadsheetData(100, 1),
+    });
+
+    await selectCell(99, 0);
+    await scrollViewportTo({ row: 0, col: 0 });
+
+    spyOn(getActiveEditor(), 'open').and.callThrough();
+
+    getActiveEditor().beginEditing();
+
+    expect(getActiveEditor().open).toHaveBeenCalled();
   });
 
   describe('should populate value from the currently active cell to every cell in the selected range', () => {

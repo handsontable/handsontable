@@ -1036,10 +1036,23 @@ export interface EditorManagerInstance {
   moveSelectionAfterEnter(event: Event): void;
   closeEditorAndSaveChanges(isCtrlPressed?: boolean): void;
   closeEditorAndRestoreOriginalValue(isCtrlPressed?: boolean): void;
-  getActiveEditor(): { isInFullEditMode: () => boolean; state: string; focus: () => void; [key: string]: unknown };
-  activeEditor: { focus: () => void; [key: string]: unknown };
+  getActiveEditor(): {
+    isInFullEditMode: () => boolean;
+    state: string;
+    focus: () => void;
+    refreshValue?: () => void;
+    _closeAfterDataChange?: boolean;
+    isOpened?: () => boolean;
+    isWaiting?: () => boolean;
+  } | undefined;
+  activeEditor: {
+    focus: () => void;
+    refreshValue?: () => void;
+    _closeAfterDataChange?: boolean;
+    isOpened?: () => boolean;
+    isWaiting?: () => boolean;
+  } | undefined;
   cellProperties: Record<string, unknown>;
-  [key: string]: unknown;
 }
 
 /**

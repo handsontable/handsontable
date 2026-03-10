@@ -157,7 +157,7 @@ export class SelectEditor extends BaseEditor {
 
       optionElement.value = key as string;
 
-      fastInnerHTML(optionElement, optionValue as string);
+      fastInnerHTML(optionElement, optionValue as string, this.hot.getSettings().sanitizer);
       this.select.appendChild(optionElement);
     });
   }

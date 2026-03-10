@@ -5,7 +5,8 @@ import DataMap from './dataMap';
 import { deepClone } from '../helpers/object';
 import { setAttribute } from '../helpers/dom/element';
 import { A11Y_COLCOUNT, A11Y_ROWCOUNT } from '../helpers/a11y';
-
+import { runSourceDataValidators } from './sourceDataValidator';
+import { throwWithCause } from '../helpers/errors';
 /**
  * Configuration for the replaceData function.
  */
@@ -110,7 +111,7 @@ function replaceData(data: unknown[], setDataMapFunction: Function, callbackFunc
     }
 
   } else {
-    throw new Error(`${internalSource} only accepts array of objects or array of arrays (${typeof data} given)`);
+    throwWithCause(`${internalSource} only accepts array of objects or array of arrays (${typeof data} given)`);
   }
 
   if (Array.isArray((data as unknown[])[0])) {
@@ -128,6 +129,10 @@ function replaceData(data: unknown[], setDataMapFunction: Function, callbackFunc
 
   // Run the logic for reassuring that the table structure fits the new dataset.
   callbackFunction(newDataMap);
+
+  if (!firstRun) {
+    runSourceDataValidators(hotInstance, internalSource);
+  }
 
   hotInstance.runHooks(`after${capitalizedInternalSource}`, data, firstRun, source);
 

@@ -1479,7 +1479,7 @@ class TableView {
     }
 
     if (renderedIndex > -1) {
-      fastInnerHTML(element, content(index, headerLevel));
+      fastInnerHTML(element, content(index, headerLevel), this.hot.getSettings().sanitizer);
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946
@@ -1927,7 +1927,7 @@ class TableView {
    * @returns {number} The value of the `aria-colcount` attribute.
    */
   #getAriaColcount() {
-    return parseInt(this.hot.rootElement.getAttribute(A11Y_COLCOUNT()[0]), 10);
+    return parseInt(this.hot.rootElement.getAttribute('aria-colcount'), 10);
   }
 
   /**
@@ -1973,6 +1973,12 @@ class TableView {
       addClass(rootElement, 'htHorizontallyScrollableByWindow');
     } else {
       removeClass(rootElement, 'htHorizontallyScrollableByWindow');
+    }
+
+    if (getScrollbarWidth() === 0) {
+      addClass(rootElement, 'htScrollbarHidden');
+    } else {
+      removeClass(rootElement, 'htScrollbarHidden');
     }
   }
 

@@ -91,6 +91,12 @@ export class NestedRows extends BasePlugin {
    * @type {boolean}
    */
   #skipCoreAPIModifiers = false;
+  /**
+   * State of the first render.
+   *
+   * @type {boolean}
+   */
+  #isFirstRender = true;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -468,6 +474,22 @@ export class NestedRows extends BasePlugin {
    */
   #onAfterInit() {
     this.headersUI!.updateRowHeaderWidth(undefined);
+  }
+
+  /**
+   * `afterRender` hook callback.
+   * Recalculates table dimensions after the first render. Fixes the wtHider size being too small on initial display.
+   */
+  #onAfterRender() {
+    if (this.#isFirstRender && this.hot.view) {
+      this.#isFirstRender = false;
+
+      this.hot.rootWindow.requestAnimationFrame(() => {
+        if (this.hot && this.hot.view && !this.hot.isDestroyed) {
+          this.hot.view.adjustElementsSize(true);
+        }
+      });
+    }
   }
 
   /**

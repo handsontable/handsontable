@@ -4,7 +4,7 @@ const JSFIDDLE_ENDPOINT = 'https://jsfiddle.net/api/post/library/pure/';
 const { getDependencies } = require('../../handsontable-manager');
 
 const jsfiddle = (_id, html, code, css, version, preset, lang) => {
-  const isBabelPanel = preset.includes('react') || preset.includes('vue') || preset.includes('hot');
+  const isBabelPanel = preset.includes('react') || preset.includes('hot') || preset.includes('vue');
   const isAngularPanel = preset.includes('angular');
   const themeReferenceMatches = Array.from(code.matchAll(/ht-theme-([a-zA-Z0-9-]+)/g), m => m[1]);
   const uniqueThemeReferences = [...new Set(themeReferenceMatches)];

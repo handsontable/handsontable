@@ -21,7 +21,6 @@ angular:
   metaTitle: Column summary - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
-menuTag: updated
 ---
 
 # Column summary

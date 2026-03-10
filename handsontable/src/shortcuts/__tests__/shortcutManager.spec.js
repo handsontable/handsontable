@@ -25,13 +25,13 @@ describe('shortcutManager', () => {
 
     expect(() => {
       shortcutManager.addContext('grid');
-    }).toThrowError();
+    }).toThrowWithCause(undefined, { handsontable: true });
 
     shortcutManager.addContext('name');
 
     expect(() => {
       shortcutManager.addContext('name');
-    }).toThrowError();
+    }).toThrowWithCause(undefined, { handsontable: true });
   });
 
   describe('`getOrCreateContext` method', () => {
@@ -577,7 +577,7 @@ describe('shortcutManager', () => {
     it('should forward the event to the other context within another HoT instance', async() => {
       const container2 = $('<div id="testContainer2"></div>').appendTo('body');
       const hot1 = handsontable();
-      const hot2 = new Handsontable(container2[0], { themeName: spec()?.loadedTheme || 'ht-theme-classic' });
+      const hot2 = new Handsontable(container2[0]);
       const shortcutManager1 = hot1.getShortcutManager();
       const shortcutManager2 = hot2.getShortcutManager();
       const context1 = shortcutManager1.addContext('hot1');

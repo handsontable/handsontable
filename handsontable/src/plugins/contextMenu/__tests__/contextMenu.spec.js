@@ -2104,21 +2104,58 @@ describe('ContextMenu', () => {
       expect(customItem.callback.calls.argsFor(0)[0]).toEqual('customItemKey');
     });
 
-    it('should sanitize HTML for custom item', async() => {
+    // TODO: To be changed in 18.0
+    it('should sanitize HTML for custom item by default', async() => {
       handsontable({
         contextMenu: {
           items: {
             customItemKey: {
-              name: '<img src onerror="xss()"> XSS item',
+              name: '<img src onerror="__testFunction()"> XSS item',
             }
           }
         },
       });
 
+      window.__testFunction = () => {};
+
+      spyOn(window, '__testFunction');
+
       await contextMenu();
+      await sleep(10);
 
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').html())
         .toBe('<div class="htItemWrapper"><img src=""> XSS item</div>');
+      expect(window.__testFunction).not.toHaveBeenCalled();
+
+      delete window.__testFunction;
+    });
+
+    it('should sanitize HTML for custom item when custom sanitizer is set', async() => {
+      handsontable({
+        contextMenu: {
+          items: {
+            customItemKey: {
+              name: '<img src onerror="__testFunction()"> XSS item',
+            }
+          }
+        },
+        sanitizer: (content) => {
+          return content.replace(/\s+onerror\s*=\s*("[^"]*"|'[^']*'|[^\s>]*)/gi, '');
+        },
+      });
+
+      window.__testFunction = () => {};
+
+      spyOn(window, '__testFunction');
+
+      await contextMenu();
+      await sleep(10);
+
+      expect($('.htContextMenu .ht_master .htCore').find('tbody td').html())
+        .toBe('<div class="htItemWrapper"><img src=""> XSS item</div>');
+      expect(window.__testFunction).not.toHaveBeenCalled();
+
+      delete window.__testFunction;
     });
   });
 

@@ -327,15 +327,15 @@ class CustomEditor extends (getEditor('text') as typeof BaseEditor) {
 registerEditor('custom', CustomEditor);
 
 editorFactory({
-  init(editor: Record<string, unknown>) {},
-  afterInit(editor: Record<string, unknown>) {},
-  afterOpen(editor: Record<string, unknown>) {},
-  afterClose(editor: Record<string, unknown>) {},
-  beforeOpen(editor: Record<string, unknown>) {},
-  getValue(editor: Record<string, unknown>) {},
-  setValue(editor: Record<string, unknown>, value: unknown) {},
-  onFocus(editor: Record<string, unknown>) {},
-  render(editor: Record<string, unknown>) {},
+  init(editor: BaseEditor) {},
+  afterInit(editor: BaseEditor) {},
+  afterOpen(editor: BaseEditor) {},
+  afterClose(editor: BaseEditor) {},
+  beforeOpen(editor: BaseEditor) {},
+  getValue(editor: BaseEditor) {},
+  setValue(editor: BaseEditor, value: unknown) {},
+  onFocus(editor: BaseEditor) {},
+  render(editor: BaseEditor) {},
   position: 'container',
   value: 'test',
   config: {
@@ -345,7 +345,7 @@ editorFactory({
   shortcuts: [
     {
       keys: [['Enter']],
-      callback: (editor: Record<string, unknown>) => {
+      callback: (editor: BaseEditor) => {
         return false;
       },
     },

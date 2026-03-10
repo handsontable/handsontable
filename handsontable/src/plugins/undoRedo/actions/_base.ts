@@ -1,3 +1,5 @@
+import { throwWithCause } from '../../../helpers/errors';
+
 /**
  * An abstract class that defines the structure of an undo/redo action.
  *

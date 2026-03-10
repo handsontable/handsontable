@@ -94,19 +94,32 @@
         ns = 'ReactDOM';
 
       } else if (key === 'react-colorful') {
+        const m = window['react-colorful'];
+
+        if (m && typeof m.HexColorPicker !== 'undefined') {
+          if (typeof m.default === 'undefined') {
+            Object.defineProperty(m, 'default', { value: m, writable: false, enumerable: false });
+          }
+          return m;
+        }
         return window.exports;
 
       }
       else if (key === '@handsontable/angular-wrapper') {
         ns = 'Handsontable.angular';
 
+      } else if (/^@angular\/material\//.test(key)) {
+        const moduleName = key.split('/')[2];
+        ns = `ng.material-${moduleName}`;
+
+      } else if (/^@angular\/cdk\//.test(key)) {
+        const moduleName = key.split('/')[2];
+        ns = `ng.cdk-${moduleName}`;
+
       } else if (key === '@handsontable/react-wrapper') {
         ns = 'Handsontable.react';
 
-      } else if (key === '@handsontable/react') {
-        ns = 'Handsontable.react';
-
-      } else if (key === '@handsontable/vue' || key === '@handsontable/vue3') {
+      } else if (key === '@handsontable/vue3') {
         ns = 'Handsontable.vue';
 
       } else if (key === 'vuex') {
@@ -198,20 +211,62 @@
       } else if (key === 'date-fns') {
         ns = 'dateFns';
 
-      } else if (key === '@melloware/coloris') {
-        ns = 'Coloris';
+      } else if (key === '@simonwep/pickr') {
+        ns = 'Pickr';
+
+      } else if (key === '@simonwep/pickr/dist/themes/nano.min.css') {
+        const cssId = 'dynamic-css-pickr';
+
+        if (!document.getElementById(cssId)) {
+          const pickrScript = document.querySelector('script[src*="pickr"][src*="simonwep"]');
+          let href = 'https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css';
+
+          if (pickrScript) {
+            const scriptSrc = pickrScript.getAttribute('src');
+            href = scriptSrc.replace(/\/pickr(\.min)?\.js$/i, '/themes/nano$1.css');
+          }
+
+          const link = document.createElement('link');
+          link.id = cssId;
+          link.rel = 'stylesheet';
+          link.type = 'text/css';
+          link.href = href;
+          document.head.appendChild(link);
+        }
+
+        ns = '';
 
       } else if (key === 'flatpickr') {
         ns = 'flatpickr';
 
-      } if (key === 'moment') {
+      } else if (key === 'flatpickr/dist/flatpickr.css') {
+        const cssId = 'dynamic-css-flatpickr';
+
+        if (!document.getElementById(cssId)) {
+          const fpScript = document.querySelector('script[src*="flatpickr"][src*="dist/"]');
+          let href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';
+
+          if (fpScript) {
+            const scriptSrc = fpScript.getAttribute('src');
+            href = scriptSrc.replace(/flatpickr(\.min)?\.js$/i, 'flatpickr$1.css');
+          }
+
+          const link = document.createElement('link');
+          link.id = cssId;
+          link.rel = 'stylesheet';
+          link.type = 'text/css';
+          link.href = href;
+          document.head.appendChild(link);
+        }
+
+        ns = '';
+
+      } else if (key === 'moment') {
         ns = 'moment';
 
       } else if (key === '@handsontable/pikaday') {
         ns = 'Pikaday';
 
-      } else if (key === 'multiple-select-vanilla') {
-        ns = 'multipleSelect';
       }
 
       let moduleToReturn = window;

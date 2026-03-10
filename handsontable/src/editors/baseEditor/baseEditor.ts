@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../common';
 import { stringify } from '../../helpers/mixed';
+import { throwWithCause } from '../../helpers/errors';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
@@ -10,6 +11,7 @@ import {
   outerWidth,
   outerHeight,
 } from '../../helpers/dom/element';
+import { getValueGetterValue } from '../../utils/valueAccessors';
 
 export const EDITOR_TYPE = 'base';
 export const EDITOR_STATE = Object.freeze({
@@ -61,6 +63,12 @@ export class BaseEditor {
    * @type {Function}
    */
   _closeCallback: ((result: boolean) => void) | null = null;
+  /**
+   * Flag to specify if the editor should be closed after data change.
+   *
+   * @type {boolean}
+   */
+  _closeAfterDataChange = true;
   /**
    * Currently rendered cell's TD element.
    *
@@ -134,28 +142,28 @@ export class BaseEditor {
    * Required method to get current value from editable element.
    */
   getValue(): unknown {
-    throw Error('Editor getValue() method unimplemented');
+    throwWithCause('Editor getValue() method unimplemented');
   }
 
   /**
    * Required method to set new value into editable element.
    */
   setValue(_value?: unknown): void {
-    throw Error('Editor setValue() method unimplemented');
+    throwWithCause('Editor setValue() method unimplemented');
   }
 
   /**
    * Required method to open editor.
    */
   open(_event?: Event): void {
-    throw Error('Editor open() method unimplemented');
+    throwWithCause('Editor open() method unimplemented');
   }
 
   /**
    * Required method to close editor.
    */
   close(): void {
-    throw Error('Editor close() method unimplemented');
+    throwWithCause('Editor close() method unimplemented');
   }
 
   /**
@@ -248,37 +256,28 @@ export class BaseEditor {
     const renderableRowIndex = hotInstance.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumnIndex = hotInstance.columnIndexMapper.getRenderableFromVisualIndex(this.col);
 
-    const openEditor = () => {
-      this.state = EDITOR_STATE.EDITING;
+    hotInstance.view
+      .scrollViewport(hotInstance._createCellCoords(renderableRowIndex, renderableColumnIndex));
 
-      // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
-      // otherwise IME (editor for Asia users) doesn't work.
-      if (this.isInFullEditMode()) {
-        const originalValue =
-          (this.cellProperties.valueGetter as Function | undefined) ? (this.cellProperties.valueGetter as Function)(this.originalValue) : this.originalValue;
-        const stringifiedInitialValue = typeof newInitialValue === 'string' ?
-          newInitialValue : stringify(originalValue);
+    this.state = EDITOR_STATE.EDITING;
 
-        this.setValue(stringifiedInitialValue);
-      }
+    // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
+    // otherwise IME (editor for Asia users) doesn't work.
+    if (this.isInFullEditMode()) {
+      const originalValue = getValueGetterValue(this.originalValue, this.hot.getCellMeta(this.row, this.col));
+      const stringifiedInitialValue = typeof newInitialValue === 'string' ?
+        newInitialValue : stringify(originalValue);
 
-      this.open(event);
-      this._opened = true;
-      this.focus();
-
-      // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
-      hotInstance.view.render();
-      hotInstance.runHooks('afterBeginEditing', this.row, this.col);
-    };
-
-    this.hot.addHookOnce('afterScroll', openEditor);
-
-    const wasScroll = hotInstance.view.scrollViewport(hotInstance._createCellCoords(renderableRowIndex, renderableColumnIndex));
-
-    if (!wasScroll) {
-      this.hot.removeHook('afterScroll', openEditor);
-      openEditor();
+      this.setValue(stringifiedInitialValue);
     }
+
+    this.open(event);
+    this._opened = true;
+    this.focus();
+
+    // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
+    hotInstance.view.render();
+    hotInstance.runHooks('afterBeginEditing', this.row, this.col);
 
     this.addHook('beforeDialogShow', () => this.cancelChanges());
   }
@@ -290,8 +289,8 @@ export class BaseEditor {
    * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
    * @param {Function} callback The callback function, fired after editor closing.
    */
-  finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: Function) {
-    let val;
+  finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: Function): void {
+    let val: unknown;
 
     if (callback) {
       const previousCloseCallback = this._closeCallback;
@@ -326,21 +325,18 @@ export class BaseEditor {
         return;
       }
 
-      const value = this.getValue();
+      let value = this.getValue();
 
       if (this.cellProperties.trimWhitespace) {
-        // We trim only string values
-        val = [
-          [typeof value === 'string' ? String.prototype.trim.call(value || '') : value]
-        ];
-      } else {
-        val = [
-          [value]
-        ];
+        value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
+      }
+
+      if (typeof this.cellProperties.valueParser === 'function') {
+        value = this.cellProperties.valueParser(value, this.cellProperties);
       }
 
       this.state = EDITOR_STATE.WAITING;
-      this.saveValue(val, ctrlDown);
+      this.saveValue([[value]], ctrlDown);
 
       if (this.hot.getCellValidator(this.cellProperties)) {
         this.hot.addHookOnce('postAfterValidate', (result: unknown) => {
@@ -355,7 +351,7 @@ export class BaseEditor {
   }
 
   /**
-   * Finishes editing without singout saving value.
+   * Finishes editing without saving value.
    */
   cancelChanges(): void {
     this.state = EDITOR_STATE.FINISHED;
@@ -382,6 +378,7 @@ export class BaseEditor {
 
     } else {
       this.close();
+
       this._opened = false;
       this._fullEditMode = false;
       this.state = EDITOR_STATE.VIRGIN;

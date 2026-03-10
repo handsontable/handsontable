@@ -17,6 +17,7 @@ angular:
   metaTitle: Custom plugins - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
+menuTag: updated
 ---
 
 # Custom plugins

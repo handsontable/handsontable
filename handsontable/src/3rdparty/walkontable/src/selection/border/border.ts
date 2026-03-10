@@ -314,7 +314,7 @@ class Border {
       width: `${cellMobileHandleSize}px`,
       'border-radius': `${cellMobileHandleBorderRadius}px`,
       // eslint-disable-next-line max-len
-      background: `color-mix(in srgb, ${cellMobileHandleBackgroundColor} ${cellMobileHandleBackgroundOpacity}, transparent)`,
+      background: `color-mix(in srgb, ${cellMobileHandleBackgroundColor} ${cellMobileHandleBackgroundOpacity}%, transparent)`,
       border: `${cellMobileHandleBorderWidth}px solid ${cellMobileHandleBorderColor}`
     };
 
@@ -322,11 +322,6 @@ class Border {
       (this.selectionHandles.styles.bottom as any)[key] = value;
       (this.selectionHandles.styles.top as any)[key] = value;
     });
-
-    this.main.appendChild(this.selectionHandles.top);
-    this.main.appendChild(this.selectionHandles.bottom);
-    this.main.appendChild(this.selectionHandles.topHitArea);
-    this.main.appendChild(this.selectionHandles.bottomHitArea);
   }
 
   /**

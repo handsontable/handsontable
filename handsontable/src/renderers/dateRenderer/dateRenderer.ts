@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../common';
 import { autocompleteRenderer } from '../autocompleteRenderer';
+import { deprecatedWarn } from '../../helpers/console';
 
 export const RENDERER_TYPE: 'date' = 'date';
 

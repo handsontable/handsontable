@@ -5,6 +5,7 @@ import type { HotInstance } from '../common';
 import { Hooks } from '../core/hooks';
 import { staticRegister } from '../utils/staticRegister';
 import { BaseEditor } from './baseEditor';
+import { throwWithCause } from '../helpers/errors';
 
 const registeredEditorClasses = new WeakMap();
 
@@ -60,11 +61,11 @@ export function _getEditorInstance(name: string | typeof BaseEditor | Function, 
     editor = getItem(name);
 
   } else {
-    throw Error('Only strings and functions can be passed as "editor" parameter');
+    throwWithCause('Only strings and functions can be passed as "editor" parameter');
   }
 
   if (!editor) {
-    throw Error(`No editor registered under name "${name}"`);
+    throwWithCause(`No editor registered under name "${name}"`);
   }
 
   return editor.getInstance(hotInstance);
@@ -81,7 +82,7 @@ function _getItem(name: string | typeof BaseEditor | Function): typeof BaseEdito
     return name;
   }
   if (!hasItem(name)) {
-    throw Error(`No registered editor found under "${name}" name`);
+    throwWithCause(`No registered editor found under "${name}" name`);
   }
 
   return getItem(name).getConstructor();

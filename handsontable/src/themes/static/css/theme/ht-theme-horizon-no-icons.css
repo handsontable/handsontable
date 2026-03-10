@@ -162,6 +162,7 @@
   --ht-icon-button-border-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
   --ht-icon-button-background-color: var(--ht-background-secondary-color);
   --ht-icon-button-icon-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
+  --ht-icon-button-hit-area-size: var(--ht-sizing-size-6);
   --ht-icon-button-hover-border-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
   --ht-icon-button-hover-background-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
   --ht-icon-button-hover-icon-color: light-dark(var(--ht-colors-palette-700), var(--ht-colors-palette-200));
@@ -271,9 +272,9 @@
   --ht-menu-shadow-x: var(--ht-shadow-x);
   --ht-menu-shadow-y: var(--ht-shadow-y);
   --ht-menu-shadow-blur: var(--ht-shadow-blur);
-  --ht-menu-shadow-color: var(--ht-shadow-color);
+  --ht-menu-shadow-color: light-dark(var(--ht-colors-palette-950), var(--ht-colors-white));
   --ht-menu-shadow-opacity: 6%;
-  --ht-menu-item-hover-color: var(--ht-accent-color);
+  --ht-menu-item-hover-color: light-dark(var(--ht-colors-palette-500), var(--ht-colors-palette-400));
   --ht-menu-item-hover-color-opacity: 8%;
   --ht-menu-item-active-color: var(--ht-accent-color);
   --ht-menu-item-active-color-opacity: 12%;
@@ -304,6 +305,11 @@
   --ht-dialog-content-padding-vertical: var(--ht-density-dialog-vertical);
   --ht-dialog-content-border-radius: var(--ht-sizing-size-4);
   --ht-dialog-content-background-color: var(--ht-background-color);
+  --ht-chip-background: var(--ht-background-secondary-color);
+  --ht-chip-border-radius: var(--ht-sizing-size-2);
+  --ht-chip-vertical-padding: var(--ht-sizing-size-0);
+  --ht-chip-horizontal-padding: var(--ht-sizing-size-0-5);
+  --ht-chip-gap: var(--ht-sizing-size-1);
   --ht-scrollbar-border-radius: var(--ht-sizing-size-2);
   --ht-scrollbar-track-color: var(--ht-background-secondary-color);
   --ht-scrollbar-thumb-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));

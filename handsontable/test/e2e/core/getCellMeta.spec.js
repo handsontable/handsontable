@@ -222,7 +222,7 @@ describe('Core.getCellMeta', () => {
 
     const HOT = getInstance();
 
-    expect(called).toBe(25); // default dataset is 5x5 so 25 calls
+    expect(called).toBe(50); // default dataset is 5x5 so 25 calls x 2 (for rendering engine and data source validation)
     expect(_this.row).toBe(_row);
     expect(_this.instance).toBe(HOT);
   });

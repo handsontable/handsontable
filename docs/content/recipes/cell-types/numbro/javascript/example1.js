@@ -4,14 +4,11 @@ import { rendererFactory, getRenderer } from 'handsontable/renderers';
 import { getEditor } from 'handsontable/editors';
 import { getValidator } from 'handsontable/validators';
 import { registerCellType } from 'handsontable/cellTypes';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import numbro from 'numbro';
 import languages from 'numbro/dist/languages.min.js';
 
 // Register all Handsontable's modules.
 registerAllModules();
-
 Object.values(languages).forEach((language) => numbro.registerLanguage(language));
 
 function isNumeric(value) {
@@ -19,22 +16,20 @@ function isNumeric(value) {
 
   if (type === 'number') {
     return !isNaN(value) && isFinite(value);
-
   } else if (type === 'string') {
     if (value.length === 0) {
       return false;
-
     } else if (value.length === 1) {
       return /\d/.test(value);
     }
 
     const delimiter = Array.from(new Set(['.']))
-      .map(d => `\\${d}`)
+      .map((d) => `\\${d}`)
       .join('|');
 
-    return new RegExp(`^[+-]?(((${delimiter})?\\d+((${delimiter})\\d+)?(e[+-]?\\d+)?)|(0x[a-f\\d]+))$`, 'i')
-      .test(value.trim());
-
+    return new RegExp(`^[+-]?(((${delimiter})?\\d+((${delimiter})\\d+)?(e[+-]?\\d+)?)|(0x[a-f\\d]+))$`, 'i').test(
+      value.trim()
+    );
   } else if (type === 'object') {
     return !!value && typeof value.valueOf() === 'number' && !(value instanceof Date);
   }
@@ -147,6 +142,7 @@ const data = [
     operationalStatus: 'Operational',
   },
 ];
+
 /* end:skip-in-preview */
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1');
@@ -166,7 +162,7 @@ const cellTypeDefinition = {
       }
 
       const numericFormat = cellProperties.numericFormat;
-      const cellCulture = numericFormat && numericFormat.culture || 'en-US';
+      const cellCulture = (numericFormat && numericFormat.culture) || 'en-US';
       const cellFormatPattern = numericFormat && numericFormat.pattern;
 
       // Register the language if it's not already registered
@@ -180,7 +176,6 @@ const cellTypeDefinition = {
       }
 
       numbro.setLanguage(cellCulture);
-
       value = numbro(value).format(cellFormatPattern ?? '0');
 
       if (
@@ -210,28 +205,33 @@ registerCellType('numbro', cellTypeDefinition);
 
 // Define configuration options for the Handsontable
 const hotOptions = {
-  themeName: 'ht-theme-main',
   data,
-  colHeaders: ['ID', 'Item Name', 'Item Cost'],
+  colHeaders: ['Item Name', 'Category', 'Lead Engineer', 'Quantity', 'Cost'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
+  autoWrapRow: true,
+  headerClassName: 'htLeft',
   columns: [
+    { data: 'itemName', type: 'text', width: 130 },
+    { data: 'category', type: 'text', width: 120 },
+    { data: 'leadEngineer', type: 'text', width: 150 },
     {
-      data: 'id',
+      data: 'quantity',
       type: 'numbro',
+      width: 150,
+      className: 'htRight',
       numericFormat: {
         pattern: '0,0',
         culture: 'en-US',
       },
     },
     {
-      data: 'itemName',
-      type: 'text',
-    },
-    {
       data: 'cost',
       type: 'numbro',
+      width: 120,
+      className: 'htRight',
       numericFormat: {
         pattern: '$0,0.00',
         culture: 'en-US',

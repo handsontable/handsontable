@@ -1,3 +1,5 @@
+import { throwWithCause } from '../../helpers/errors';
+
 /**
  * Depth-first pre-order strategy (https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_(NLR)).
  *
@@ -194,7 +196,7 @@ export default class TreeNode {
    */
   walkDown(callback: Function, traversalStrategy = DEFAULT_TRAVERSAL_STRATEGY) {
     if (!TRAVERSAL_STRATEGIES.has(traversalStrategy)) {
-      throw new Error(`Traversal strategy "${traversalStrategy}" does not exist`);
+      throwWithCause(`Traversal strategy "${traversalStrategy}" does not exist`);
     }
 
     TRAVERSAL_STRATEGIES.get(traversalStrategy).call(this, callback, this);

@@ -24,7 +24,6 @@ import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
-import DataSource from './dataMap/dataSource';
 import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
@@ -33,10 +32,13 @@ import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
 import {
+  DataSource,
   MetaManager,
   DynamicCellMetaMod,
   ExtendMetaPropertiesMod,
   replaceData,
+  runSourceDataValidator,
+  runSourceDataValidators,
 } from './dataMap';
 import {
   createViewportScroller,
@@ -55,6 +57,7 @@ import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { warn } from './helpers/console';
+import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
@@ -368,6 +371,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
               ' or not imported correctly. Import the correct CSS files in order to use that theme.');
           }
         }
+
+        this.view?._wt?.selectionManager?.refreshAllBorderHandleStyles();
       }
     },
     injectCoreCss: typeof userSettings?.injectCoreCss === 'boolean' ? userSettings.injectCoreCss : true,
@@ -964,7 +969,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
           }
           break;
         default:
-          throw new Error(`There is no such action "${action}"`);
+          throwWithCause(`There is no such action "${action}"`);
       }
 
       if (!keepEmptyRows) {
@@ -1247,6 +1252,12 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
                 if (!hasValueSetter && (typeof orgValue !== 'object' || orgValue === null)) {
                   pushData = false;
 
+                  // Enabling `parsePastedValue` relaxes schema validation, so object-based values can be pasted
+                  // into non-object-based cells
+                  if (cellMeta.parsePastedValue && source === 'CopyPaste.paste') {
+                    pushData = true;
+                  }
+
                 } else if (orgValue !== null) {
                   const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : ((orgValue as Record<string, unknown>)[0] || orgValue));
                   const valueSchema = duckSchema(Array.isArray(value) ? value : (((value as Record<string, unknown>)[0] || value) as object));
@@ -1376,11 +1387,11 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     editorManager = (EditorManager as unknown as { getInstance: (...args: unknown[]) => EditorManagerInstance }).getInstance(instance, tableMeta, selection);
     viewportScroller = createViewportScroller(instance);
 
-    (focusGridManager as Record<string, Function>).init();
+    ((focusGridManager as Record<string, Function>).init as () => void)();
 
     if (isRootInstance(this)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);
-      _injectProductInfo(mergedUserSettings.licenseKey as string, this.rootWrapperElement);
+      _injectProductInfo(mergedUserSettings.licenseKey as string, this.rootWrapperElement, process.env.HOT_RELEASE_DATE);
     }
 
     instance.runHooks('init');
@@ -1422,6 +1433,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       }
 
       themeObject = getTheme('main');
+    } else if (typeof theme.getThemeConfig !== 'function') {
+      themeObject = registerTheme(theme as Parameters<typeof registerTheme>[0]);
     } else {
       themeObject = theme;
     }
@@ -1478,7 +1491,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     let shouldBeCanceled = true;
 
     waitingForValidator.onQueueEmpty = () => {
-      if (activeEditor && shouldBeCanceled) {
+      if (activeEditor && shouldBeCanceled && activeEditor._closeAfterDataChange) {
         activeEditor.cancelChanges();
       }
 
@@ -1506,7 +1519,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
         instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference) {
           return function(result: boolean) {
             if (typeof result !== 'boolean') {
-              throw new Error('Validation error: result is not boolean');
+              throwWithCause('Validation error: result is not boolean');
             }
 
             if (result === false && cellPropertiesReference.allowInvalid === false) {
@@ -1587,20 +1600,31 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     }
 
     const hasChanges = changes.length > 0;
+    const activeEditor = editorManager.getActiveEditor();
+    const closeEditorAfterDataChange = activeEditor?._closeAfterDataChange;
 
     if (hasChanges) {
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
-      editorManager.closeEditor();
+
+      if (activeEditor?.isOpened() && closeEditorAfterDataChange) {
+        editorManager.closeEditor();
+      }
+
       instance.view.adjustElementsSize();
       instance.render();
-      editorManager.prepareEditor();
+
+      if (
+        (activeEditor?.isOpened() && closeEditorAfterDataChange) ||
+        !activeEditor?.isOpened()
+      ) {
+        editorManager.prepareEditor();
+      }
+
       instance.runHooks('afterChange', changes, source || 'edit');
 
-      const activeEditor = instance.getActiveEditor();
-
       if (activeEditor && isDefined(activeEditor.refreshValue)) {
-        activeEditor.refreshValue();
+        activeEditor.refreshValue?.();
       }
 
     } else {
@@ -1693,7 +1717,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
       // To provide consistent behavior, validation should be always asynchronous
-      instance._registerImmediate(() => {
+      instance._registerMicrotask(() => {
         validator.call(cellProperties, value, (valid: boolean) => {
           if (!instance) {
             return;
@@ -1710,7 +1734,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
     } else {
       // resolve callback even if validator function was not found
-      instance._registerImmediate(() => {
+      instance._registerMicrotask(() => {
         cellProperties.valid = true;
         done(cellProperties.valid, false);
       });
@@ -1794,23 +1818,24 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       const [visualRow, visualColumn, newValue] = input[i];
 
       if (typeof input[i] !== 'object') {
-        throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
+        throwWithCause('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
       }
-      if (typeof visualColumn !== 'number') {
-        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`'); // eslint-disable-line max-len
+      if (typeof input[i][1] !== 'number') {
+        // eslint-disable-next-line max-len
+        throwWithCause('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
 
       if (visualColumn >= this.countCols()) {
         prop = visualColumn;
 
       } else {
-        prop = datamap.colToProp(visualColumn);
+        prop = datamap.colToProp(visualColumn as number);
       }
 
       changes.push([
-        visualRow,
+        visualRow as number,
         prop,
-        dataSource.getAtCell(this.toPhysicalRow(visualRow), visualColumn),
+        dataSource.getAtCell(this.toPhysicalRow(visualRow as number), visualColumn as number),
         newValue,
       ]);
     }
@@ -1957,7 +1982,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this.populateFromArray = function(row: number, column: number, input: Array<Array<unknown>>, endRow: number, endCol: number, source: string, method: string) {
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
-      throw new Error('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
+      throwWithCause('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
     }
 
     const c = typeof endRow === 'number' ? instance._createCellCoords(endRow, endCol) : null;
@@ -2038,7 +2063,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * has visible focus highlight.
    *
    * @memberof Core#
-   * @function getSelectedRangeActive
+   * @function getSelectedActive
    * @since 16.1.0
    * @returns {number[]|undefined} Selected range as an array of coordinates or `undefined` if there is no selection.
    */
@@ -2781,13 +2806,13 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     let j;
 
     if (isDefined(settings.rows)) {
-      throw new Error('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
+      throwWithCause('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
     }
     if (isDefined(settings.cols)) {
-      throw new Error('The "cols" setting is no longer supported. Do you mean startCols, minCols or maxCols?');
+      throwWithCause('The "cols" setting is no longer supported. Do you mean startCols, minCols or maxCols?');
     }
     if (isDefined(settings.ganttChart)) {
-      throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
+      throwWithCause('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
@@ -2887,7 +2912,15 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
           instance.useTheme(instance.themeManager.getClassName());
 
         } else {
-          instance.themeManager.update(settings.theme);
+          let themeObject;
+
+          if (typeof (settings.theme as { getThemeConfig?: () => unknown }).getThemeConfig !== 'function') {
+            themeObject = registerTheme(settings.theme as Parameters<typeof registerTheme>[0]);
+          } else {
+            themeObject = settings.theme;
+          }
+
+          instance.themeManager.update(themeObject);
           instance.useTheme(instance.themeManager.getClassName());
         }
       }
@@ -2946,6 +2979,12 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     }
 
     instance.runHooks('afterCellMetaReset');
+
+    // for the first run, we need to run the source data warnings after cell meta initialization
+    // otherwise there is no access to `sourceDataValidator` function
+    if (firstRun) {
+      runSourceDataValidators(instance, 'init');
+    }
 
     let currentHeight = instance.rootElement.style.height;
 
@@ -3504,12 +3543,15 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     }
 
     arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+      const cellMeta = getCellProperties(changeRow, changeProp);
       const newValue = getValueSetterValue(
         changeValue,
-        getCellProperties(changeRow, changeProp)
+        cellMeta
       );
 
-      dataSource.setAtCell(changeRow, changeProp, newValue);
+      if (runSourceDataValidator(newValue, cellMeta, source ?? 'setSourceDataAtCell')) {
+        dataSource.setAtCell(changeRow, changeProp, newValue);
+      }
     });
 
     if (isThereAnySetSourceListener) {
@@ -3668,7 +3710,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this.spliceCellsMeta = function(visualIndex: number, deleteAmount = 0, ...cellMetaRows: object[]) {
     if (cellMetaRows.length > 0 && !Array.isArray(cellMetaRows[0])) {
-      throw new Error('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
+      throwWithCause('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
     }
 
     if (deleteAmount > 0) {
@@ -3953,7 +3995,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this.validateRows = function(rows: number[], callback: Function) {
     if (!Array.isArray(rows)) {
-      throw new Error('validateRows parameter `rows` must be an array');
+      throwWithCause('validateRows parameter `rows` must be an array');
     }
     this._validateCells(callback, rows);
   };
@@ -3979,7 +4021,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this.validateColumns = function(columns: number[], callback: Function) {
     if (!Array.isArray(columns)) {
-      throw new Error('validateColumns parameter `columns` must be an array');
+      throwWithCause('validateColumns parameter `columns` must be an array');
     }
     this._validateCells(callback, undefined, columns);
   };
@@ -4023,7 +4065,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
         instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), (result: boolean) => {
           if (typeof result !== 'boolean') {
-            throw new Error('Validation error: result is not boolean');
+            throwWithCause('Validation error: result is not boolean');
           }
           if (result === false) {
             waitingForValidator.valid = false;
@@ -4952,7 +4994,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this.destroy = function() {
     instance._clearTimeouts();
-    instance._clearImmediates();
+    instance._clearMicrotasks();
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();
@@ -5042,7 +5084,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   function postMortem(method: string) {
     return () => {
-      throw new Error(`The "${method}" method cannot be called because this Handsontable instance has been destroyed`);
+      throwWithCause(`The "${method}" method cannot be called because this Handsontable instance has been destroyed`);
     };
   }
 
@@ -5491,28 +5533,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     });
   };
 
-  this.immediates = [];
-
-  /**
-   * Execute function execution to the next event loop cycle. Purpose of this method is to clear all known timeouts when `destroy` method is called.
-   *
-   * @param {Function} callback Function to be delayed in execution.
-   * @private
-   */
-  this._registerImmediate = function(callback: Function) {
-    this.immediates.push(setTimeout(callback as (...args: unknown[]) => void, 0));
-  };
-
-  /**
-   * Clears all known timeouts.
-   *
-   * @private
-   */
-  this._clearImmediates = function() {
-    arrayEach(this.immediates, (handler: unknown) => {
-      clearTimeout(handler as number);
-    });
-  };
+  this.microtasks = [];
 
   /**
    * Registers a microtask callback.
@@ -5521,11 +5542,26 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @private
    */
   this._registerMicrotask = function(callback: Function) {
+    const entry = { cancelled: false };
+
+    this.microtasks.push(entry);
     this.rootWindow.queueMicrotask(() => {
-      if (!this.isDestroyed) {
+      if (!entry.cancelled) {
         callback();
       }
     });
+  };
+
+  /**
+   * Clears all known microtasks (prevents pending callbacks from running).
+   *
+   * @private
+   */
+  this._clearMicrotasks = function() {
+    arrayEach(this.microtasks, (entry: { cancelled: boolean }) => {
+      entry.cancelled = true;
+    });
+    this.microtasks.length = 0;
   };
 
   /**
@@ -5536,6 +5572,26 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this._getEditorManager = function() {
     return editorManager;
+  };
+
+  /**
+   * Gets the instance of the DataSource.
+   *
+   * @private
+   * @returns {DataSource}
+   */
+  this._getDataSource = function() {
+    return dataSource;
+  };
+
+  /**
+   * Gets the instance of the MetaManager.
+   *
+   * @private
+   * @returns {MetaManager}
+   */
+  this._getMetaManager = function() {
+    return metaManager;
   };
 
   const shortcutManager = createShortcutManager({
@@ -5613,11 +5669,23 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this.getFocusScopeManager = function() {
     if (!isRootInstance(instance)) {
-      throw new Error('The FocusScopeManager is only available for the main Handsontable instance.');
+      throwWithCause('The FocusScopeManager is only available for the main Handsontable instance.');
     }
 
     return focusScopeManager;
   };
+
+  const theme = mergedUserSettings.theme;
+  const themeName = mergedUserSettings.themeName;
+  const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
+
+  if (
+    isRootInstance(instance) &&
+    !rootContainerThemeClassName &&
+    (isObject(theme) || (!theme && !themeName))
+  ) {
+    initializeThemeManager(theme as ThemeBuilder | undefined);
+  }
 
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);

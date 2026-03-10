@@ -88,6 +88,7 @@ export type TokenKey =
   // Layout
   | 'gapSize'
   | 'iconSize'
+  | 'iconButtonHitAreaSize'
   | 'tableTransition'
   // Base colors
   | 'borderColor'
@@ -364,7 +365,13 @@ export type TokenKey =
   | 'paginationBarForegroundColor'
   | 'paginationBarBackgroundColor'
   | 'paginationBarHorizontalPadding'
-  | 'paginationBarVerticalPadding';
+  | 'paginationBarVerticalPadding'
+  // Multiselect
+  | 'chipBackground'
+  | 'chipBorderRadius'
+  | 'chipVerticalPadding'
+  | 'chipHorizontalPadding'
+  | 'chipGap';
 
 export type ThemeTokenValue = string | ThemeLightDarkValue;
 

@@ -3,6 +3,7 @@ import { IndexMap } from './indexMap';
 import { LinkedPhysicalIndexToValueMap } from './linkedPhysicalIndexToValueMap';
 import { PhysicalIndexToValueMap } from './physicalIndexToValueMap';
 import { TrimmingMap } from './trimmingMap';
+import { throwWithCause } from '../../helpers/errors';
 
 export * from './indexesSequence';
 export * from './utils/indexesSequence';
@@ -31,7 +32,7 @@ const availableIndexMapTypes = new Map<string, typeof IndexMap>([
  */
 export function createIndexMap(mapType: string, initValueOrFn: unknown = null) {
   if (!availableIndexMapTypes.has(mapType)) {
-    throw new Error(`The provided map type ("${mapType}") does not exist.`);
+    throwWithCause(`The provided map type ("${mapType}") does not exist.`);
   }
 
   return new (availableIndexMapTypes.get(mapType)!)(initValueOrFn);

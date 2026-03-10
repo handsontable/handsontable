@@ -3,6 +3,7 @@ import sizing from '../static/variables/sizing';
 import densitySizes from '../static/variables/density';
 import { validateParams, validateDensityType, validateColorScheme } from './utils/validation';
 import { warn } from '../../helpers/console';
+import { throwWithCause } from '../../helpers/errors';
 import type { ThemeConfig, ThemeParams, ThemeColorScheme, DensityType } from '../types';
 
 /**
@@ -185,7 +186,7 @@ export class ThemeBuilder {
    */
   subscribe(listener: (config: ThemeConfig) => void): () => boolean {
     if (typeof listener !== 'function') {
-      throw new Error('[ThemeBuilder] listener must be a function.');
+      throwWithCause('[ThemeBuilder] listener must be a function.');
     }
 
     this.#listeners.add(listener);

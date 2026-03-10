@@ -653,6 +653,7 @@ class Overlays {
 
     const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
     const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     let scrollX = (this.scrollableElement as HTMLElement).scrollLeft;
     let scrollY = (this.scrollableElement as HTMLElement).scrollTop;

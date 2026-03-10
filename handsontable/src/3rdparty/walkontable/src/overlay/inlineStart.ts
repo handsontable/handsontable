@@ -17,6 +17,7 @@ import { getCornerStyle } from '../selection';
 import {
   CLONE_INLINE_START,
 } from './constants';
+import { throwWithCause } from '../../../../helpers/errors';
 
 /**
  * @class InlineStartOverlay
@@ -216,7 +217,7 @@ export class InlineStartOverlay extends Overlay {
       this.spreader.style[styleProperty] = '0';
 
     } else {
-      throw new Error('Incorrect value of the columnsRenderCalculator');
+      throwWithCause('Incorrect value of the columnsRenderCalculator');
     }
 
     if (this.isRtl()) {

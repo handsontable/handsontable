@@ -26,6 +26,7 @@ import {
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
 import { A11Y_PRESENTATION, A11Y_TABINDEX } from '../../../helpers/a11y';
+import { throwWithCause } from '../../../helpers/errors';
 
 /**
  * @todo These mixes are never added to the class Table, however their members are used here.
@@ -606,13 +607,13 @@ class Table {
     const TR = this.getRow(row);
 
     if (!TR && row >= 0) {
-      throw new Error('TR was expected to be rendered but is not');
+      throwWithCause('TR was expected to be rendered but is not');
     }
 
     const TD = (TR as HTMLTableRowElement).childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
 
     if (!TD && column >= 0) {
-      throw new Error('TD or TH was expected to be rendered but is not');
+      throwWithCause('TD or TH was expected to be rendered but is not');
     }
 
     return TD;

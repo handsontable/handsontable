@@ -24,8 +24,7 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  * @class ManualColumnMove
  *
  * @description
- * This plugin allows to change columns order. To make columns order persistent the {@link Options#persistentState}
- * plugin should be enabled.
+ * This plugin allows to change columns order.
  *
  * API:
  * - `moveColumn` - move single column to the new position.
@@ -326,7 +325,7 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Loads initial settings when persistent state is saved or when plugin was initialized as an array.
+   * Loads initial settings when state was saved (e.g. via hooks) or when plugin was initialized as an array.
    *
    * @private
    */
@@ -336,12 +335,6 @@ export class ManualColumnMove extends BasePlugin {
     if (Array.isArray(pluginSettings)) {
       this.moveColumns(pluginSettings, 0);
 
-    } else if (pluginSettings !== undefined) {
-      const persistentState = this.persistentStateLoad();
-
-      if (persistentState.length) {
-        this.moveColumns(persistentState, 0);
-      }
     }
   }
 
@@ -663,7 +656,6 @@ export class ManualColumnMove extends BasePlugin {
     this.#columnsToMove.length = 0;
 
     if (movePerformed === true) {
-      this.persistentStateSave();
       this.hot.view.adjustElementsSize();
       this.hot.render();
 

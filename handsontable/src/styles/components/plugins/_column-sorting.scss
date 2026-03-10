@@ -8,10 +8,17 @@
       position: relative;
 
       &.sortAction {
-        padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);
-        padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
         min-width: calc(var(--ht-icon-size, 16px) + 8px);
-        max-width: calc(100% - calc(var(--ht-icon-size, 16px) * 2) - 5px) !important;
+
+        &.ascending, &.descending {
+          padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
+          max-width: calc(
+            100% - calc(
+              var(--ht-icon-size, 16px) +
+              var(--ht-icon-button-hit-area-size, 24px)
+            )
+          ) !important;
+        }
 
         &:hover {
           text-decoration: none;
@@ -31,19 +38,13 @@
       }
     }
 
-    .htLeft {
-      .columnSorting {
-        &.sortAction {
-          padding-inline-start: 0;
-        }
-      }
-    }
-
     .htRight {
       .columnSorting {
         &.sortAction {
-          padding-inline-start: var(--ht-icon-size, 16px);
-          padding-inline-end: var(--ht-gap-size, 4px);
+          &.ascending, &.descending {
+            padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);
+            padding-inline-end: 0;
+          }
 
           &::before {
             left: 2px;
@@ -70,8 +71,10 @@
       .htRight {
         .columnSorting {
           &.sortAction {
-            padding-inline-start: var(--ht-gap-size, 4px);
-            padding-inline-end: var(--ht-icon-size, 16px);
+            &.ascending, &.descending {
+              padding-inline-start: 0;
+              padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
+            }
           }
         }
       }
@@ -79,8 +82,10 @@
       .htLeft {
         .columnSorting {
           &.sortAction {
-            padding-inline-start: var(--ht-icon-size, 16px);
-            padding-inline-end: var(--ht-gap-size, 4px);
+            &.ascending, &.descending {
+              padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);
+              padding-inline-end: 0;
+            }
 
             &::before {
               left: auto;
@@ -102,6 +107,6 @@
 
     /* The multi-line header and header with longer text need more padding to not hide arrow,
         we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
-    padding-right: 20px;
+    padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
   }
 }

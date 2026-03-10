@@ -83,10 +83,14 @@ export function createMenuItemRenderer(mainTableHot: Record<string, unknown>) {
 
     } else if (typeof item.renderer === 'function') {
       addClass(TD, 'htCustomMenuRenderer');
-      TD.appendChild(item.renderer(menuHot, wrapper, row, col, prop, itemValue));
+      TD.appendChild(
+        ((item as { renderer: (a: unknown, b: HTMLElement, c: number, d: number, e: string, f: unknown) => HTMLElement }).renderer)(
+          menuHot, wrapper, row, col, prop, itemValue
+        )
+      );
 
     } else {
-      fastInnerHTML(wrapper, itemValue);
+      fastInnerHTML(wrapper, itemValue as string, (hot.getSettings() as { sanitizer?: (html: string) => string }).sanitizer);
     }
 
     if (isItemDisabled(item, mainTableHot)) {

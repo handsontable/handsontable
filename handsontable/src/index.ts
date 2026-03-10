@@ -10,7 +10,8 @@ import * as parseTableHelpers from './utils/parseTable';
 import * as arrayHelpers from './helpers/array';
 import * as browserHelpers from './helpers/browser';
 import * as dataHelpers from './helpers/data';
-import * as dateHelpers from './helpers/date';
+import * as dateTimeHelpers from './helpers/dateTime';
+import * as errorsHelpers from './helpers/errors';
 import * as featureHelpers from './helpers/feature';
 import * as functionHelpers from './helpers/function';
 import * as mixedHelpers from './helpers/mixed';
@@ -76,7 +77,8 @@ const HELPERS = [
   arrayHelpers,
   browserHelpers,
   dataHelpers,
-  dateHelpers,
+  dateTimeHelpers,
+  errorsHelpers,
   featureHelpers,
   functionHelpers,
   mixedHelpers,

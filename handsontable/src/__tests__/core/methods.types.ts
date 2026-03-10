@@ -26,6 +26,17 @@ const cellProperties: CellProperties = {
   prop: 'foo'
 };
 
+const container: HTMLElement = hot.container;
+const guid: string = hot.guid;
+const isDestroyed: boolean = hot.isDestroyed;
+const rootContainer: HTMLElement = hot.rootContainer;
+const rootWrapperElement: HTMLElement = hot.rootWrapperElement;
+const rootGridElement: HTMLElement = hot.rootGridElement;
+const rootPortalElement: HTMLElement = hot.rootPortalElement;
+const rootElement: HTMLElement = hot.rootElement;
+const rootDocument: Document = hot.rootDocument;
+const rootWindow: Window = hot.rootWindow;
+
 hot.addHook('afterChange', (changes: any[] | null, source: string) => {});
 hot.addHook('afterChange', [(changes: any[] | null, source: string) => {}]);
 hot.addHook('afterChange', [(changes: any[] | null, source: string) => {}], 3);
@@ -144,10 +155,8 @@ const isEmptyRow: boolean = (hot as any).isEmptyRow(123);
 const isExecutionSuspended: boolean = (hot as any).isExecutionSuspended();
 const isListening: boolean = hot.isListening();
 const isLtr: boolean = hot.isLtr();
-const isRedoAvailable: boolean = hot.isRedoAvailable();
 const isRenderSuspended: boolean = hot.isRenderSuspended();
 const isRtl: boolean = hot.isRtl();
-const isUndoAvailable: boolean = hot.isUndoAvailable();
 
 hot.listen();
 hot.loadData([[1, 2, 3], [1, 2, 3]]);
@@ -156,7 +165,6 @@ hot.populateFromArray(123, 123, [], 123, 123, 'foo', 'shift_down');
 hot.propToCol('know_prop') === 123;
 (hot.propToCol('not_known_prop') as any) === 'not_known_prop';
 hot.propToCol(123) === 123;
-hot.redo();
 hot.refreshDimensions();
 hot.removeCellMeta(123, 123, 'foo');
 hot.removeHook('afterChange', () => {});
@@ -219,7 +227,6 @@ hot.toPhysicalColumn(123) === 123;
 hot.toPhysicalRow(123) === 123;
 hot.toVisualColumn(123) === 123;
 hot.toVisualRow(123) === 123;
-hot.undo();
 hot.unlisten();
 (hot as any).updateData([[1, 2, 3], [1, 2, 3]]);
 (hot as any).updateData([{ a: 'a', b: 2, c: '' }, { a: 'a', b: 2, c: '' }]);
@@ -230,7 +237,7 @@ hot.validateCell('test', cellProperties, (valid: boolean) => {}, 'sourceString')
 (hot as any).validateColumns([1, 2, 3], (valid: boolean) => {});
 (hot as any).validateRows([1, 2, 3], (valid: boolean) => {});
 
-const isDestroyed: boolean = hot.isDestroyed;
+const isDestroyedAfter: boolean = hot.isDestroyed;
 const testToHTMLTableElement: HTMLTableElement = (hot as any).toTableElement();
 const testToHTML: string = (hot as any).toHTML();
 const currentThemeName: string|undefined = hot.getCurrentThemeName();
@@ -269,7 +276,6 @@ const multiColumnSorting: BasePlugin = hot.getPlugin('multiColumnSorting');
 const multipleSelectionHandles: BasePlugin = hot.getPlugin('multipleSelectionHandles');
 const nestedHeaders: BasePlugin = hot.getPlugin('nestedHeaders');
 const nestedRows: BasePlugin = hot.getPlugin('nestedRows');
-const persistentState: BasePlugin = hot.getPlugin('persistentState');
 const search: BasePlugin = hot.getPlugin('search');
 const touchScroll: BasePlugin = hot.getPlugin('touchScroll');
 const trimRows: BasePlugin = hot.getPlugin('trimRows');

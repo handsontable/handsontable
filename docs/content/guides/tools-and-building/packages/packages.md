@@ -7,6 +7,7 @@ permalink: /packages
 canonicalUrl: /packages
 searchCategory: Guides
 category: Tools and building
+menuTag: updated
 ---
 
 # Packages

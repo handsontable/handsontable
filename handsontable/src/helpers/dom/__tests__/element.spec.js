@@ -42,8 +42,7 @@ describe('DOM helpers', () => {
         colHeaders: true,
         rowHeaders: true,
         fixedRowsTop: 3,
-        fixedColumnsStart: 3,
-        themeName: spec()?.loadedTheme || 'ht-theme-classic',
+        fixedColumnsStart: 3
       });
       const { rootElement } = hot;
       const isInternalElement = Handsontable.dom.isInternalElement;

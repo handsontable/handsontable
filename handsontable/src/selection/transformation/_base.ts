@@ -1,6 +1,7 @@
 import type { CellCoords, CellRange, SelectionTableProps } from '../../common';
 import type SelectionRange from '../range';
 import { mixin, createObjectPropListener } from '../../helpers/object';
+import { throwWithCause } from '../../helpers/errors';
 import localHooks from '../../mixins/localHooks';
 
 /**
@@ -519,7 +520,7 @@ export class BaseTransformation {
     const { row, col } = this.tableApi.visualToRenderableCoords(visualCoords);
 
     if (row === null || col === null) {
-      throw new Error('Renderable coords are not visible.');
+      throwWithCause('Renderable coords are not visible.');
     }
 
     return this.tableApi.createCellCoords(this.#offset.y + row, this.#offset.x + col);

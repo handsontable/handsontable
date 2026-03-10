@@ -86,6 +86,7 @@ module.exports = {
       },
     ],
     'no-underscore-dangle': 'off',
+    'no-continue': 'off',
     'no-use-before-define': [
       'error',
       {
@@ -139,7 +140,6 @@ module.exports = {
     'jsdoc/no-defaults': 'off',
     'jsdoc/no-types': 'off',
     'jsdoc/no-undefined-types': 'off',
-    'jsdoc/require-description-complete-sentence': 'error',
     'jsdoc/require-description': 'off',
     'jsdoc/require-example': 'off',
     'jsdoc/require-file-overview': 'off',

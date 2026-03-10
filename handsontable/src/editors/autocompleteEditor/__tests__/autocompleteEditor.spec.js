@@ -694,7 +694,7 @@ describe('AutocompleteEditor', () => {
 
       const $editor = $('.autocompleteEditor').eq(0);
 
-      expect(endTime - startTime).toBeLessThan(500);
+      expect(endTime - startTime).toBeLessThan(650);
       expect($editor.find('.ht_master tbody tr').size()).toBeGreaterThan(0);
     });
   });

@@ -41,6 +41,7 @@ A cell that:
 - Supports per-column configuration (EU vs US date formats)
 - Handles locale-specific settings (first day of week)
 - Auto-closes and saves when a date is selected
+- Supports dark theme with dynamic stylesheet loading
 
 ## Prerequisites
 
@@ -52,10 +53,11 @@ npm install flatpickr date-fns
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps date-fns flatpickr
 
 @[code](@/content/recipes/cell-types/flatpickr/javascript/example1.js)
 @[code](@/content/recipes/cell-types/flatpickr/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/flatpickr/javascript/example1.css)
 
 :::
 
@@ -67,10 +69,11 @@ npm install flatpickr date-fns
 ```typescript
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import { format, isDate } from 'date-fns';
 import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.css';
+import { editorFactory } from 'handsontable/editors';
+import { rendererFactory } from 'handsontable/renderers';
 
 registerAllModules();
 ```
@@ -80,6 +83,11 @@ registerAllModules();
 - Better than native `toLocaleDateString()` for consistency
 - Can be replaced with other libraries (moment, dayjs, etc.)
 - We import `isDate` for validation
+
+**Why `editorFactory` and `rendererFactory`?**
+- `editorFactory` creates a custom editor with lifecycle hooks (`init`, `beforeOpen`, `afterOpen`, `afterClose`, `getValue`, `setValue`, etc.)
+- `rendererFactory` creates a custom renderer with access to cell properties
+- Both are Handsontable helpers that handle boilerplate like container creation, positioning, and lifecycle management
 
 ## Step 2: Define Date Formats
 
@@ -99,12 +107,13 @@ The renderer displays the date in a human-readable format.
 
 ```typescript
 renderer: rendererFactory(({ td, value, cellProperties }) => {
-  td.innerText = format(new Date(value), cellProperties.renderFormat);
+  td.innerText = value ? format(new Date(value), cellProperties.renderFormat) : '';
 })
 ```
 
 **What's happening:**
-- `value` is the raw date value (e.g., ISO string "2024-12-31")
+- `value` is the raw date value (e.g., ISO string "2025-03-15")
+- Empty or invalid values are shown as an empty string
 - `cellProperties.renderFormat` is a custom property we'll set per column
 - `format()` from date-fns converts to desired format
 - Display the formatted date
@@ -112,17 +121,14 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
 **Why use `cellProperties`?**
 - Allows different columns to display dates differently
 - One cell definition, multiple configurations
-- See Step 13 for usage
 
-**Error handling for production:**
+**Optional error handling for production:**
 ```typescript
 renderer: rendererFactory(({ td, value, cellProperties }) => {
   if (!value) {
     td.innerText = '';
-
     return;
   }
-
   try {
     td.innerText = format(new Date(value), cellProperties.renderFormat || 'MM/dd/yyyy');
   } catch (e) {
@@ -157,78 +163,113 @@ validator: (value, callback) => {
 
 ## Step 5: Editor - Initialize (`init`)
 
-Create the input element and initialize Flatpickr.
+Create the input element, initialize Flatpickr, and prepare the dark theme.
 
 ```typescript
 init(editor) {
-  // Create the input element on init. This is a text input that date picker will be attached to.
-  editor.input = editor.hot.rootDocument.createElement('input') as HTMLInputElement;
+  editor.input = editor.hot.rootDocument.createElement('INPUT') as HTMLInputElement;
+  editor.input.classList.add('flatpickr-editor');
 
-  // Initialize Flatpickr
   editor.flatpickr = flatpickr(editor.input, {
     dateFormat: 'Y-m-d',
-    enableTime: false,
-    onChange: () => {
+    onClose: () => {
       editor.finishEditing();
     },
   });
 
+  editor.preventCloseElement = editor.flatpickr.calendarContainer;
+
   /**
-   * Prevent recognizing clicking on datepicker as clicking outside of table.
+   * Prepare dark theme stylesheet for dynamic loading.
    */
-  editor.hot.rootDocument.addEventListener('mousedown', (event) => {
-    if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
-      event.stopPropagation();
-    }
-  });
+  editor._darkThemeLink = editor.hot.rootDocument.createElement('LINK') as HTMLLinkElement;
+  editor._darkThemeLink.rel = 'stylesheet';
+  editor._darkThemeLink.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css';
 }
 ```
 
 **What's happening:**
-1. Create an `input` element using `editor.hot.rootDocument.createElement()`
-2. Initialize Flatpickr on the input with default settings
-3. Set up `onChange` handler to finish editing when date is selected
-4. Create event manager to prevent clicks on calendar from closing editor
-5. The `editorFactory` helper handles container creation and DOM insertion
+1. Create an `input` element and add the `flatpickr-editor` CSS class for styling
+2. Initialize Flatpickr on the input with an `onClose` handler that calls `finishEditing()` when the calendar closes (e.g., after selecting a date or pressing Escape)
+3. Set `preventCloseElement` to the Flatpickr calendar container so that clicks inside the calendar are not treated as "outside" clicks — this keeps the editor open while the user selects a date
+4. Create a `<link>` element for the dark theme (loaded dynamically in `afterOpen`)
 
 **Key concepts:**
 
-### The `onChange` handler
+### The `onClose` handler
 ```typescript
-onChange: () => {
+onClose: () => {
   editor.finishEditing();
-}
+},
 ```
-- Called when user selects a date in Flatpickr
-- Automatically saves the value and closes the editor
-- Provides smooth UX - no need to press Enter
+When the user selects a date or closes the calendar (e.g., Escape), Flatpickr fires `onClose`. Calling `finishEditing()` saves the value and closes the editor.
 
-### The `Event Listener` pattern
-This is crucial! Without it:
+### The CSS class
+```typescript
+editor.input.classList.add('flatpickr-editor');
+```
+Adds a CSS class to style the input element using Handsontable's CSS custom properties (tokens). See the CSS file for details.
+
+### The `preventCloseElement` pattern
+Without it:
 1. User clicks cell to edit
 2. Flatpickr calendar opens
-3. User clicks on calendar
-4. Handsontable thinks user clicked "outside" the editor
-5. Editor closes immediately!
+3. User clicks on the calendar
+4. Handsontable treats the click as "outside" the editor and closes it
 
-**Solution:**
+**Solution:** Assign the Flatpickr calendar container to `editor.preventCloseElement`. The editor factory treats this element as part of the editor, so clicks inside it do not close the editor prematurely.
+
+## Step 6: Editor - After Close Hook (`afterClose`)
+
+Close the Flatpickr calendar when the editor is closed by non-Flatpickr means (e.g., Escape key or clicking outside).
+
 ```typescript
-editor.hot.rootDocument.addEventListener('mousedown', (event) => {
-  if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
-    event.stopPropagation(); // Tell Handsontable: "This click is part of editing!"
-  }
-});
+afterClose(editor) {
+  editor.flatpickr.close();
+}
 ```
 
+**What's happening:**
+- When the user closes the editor by pressing Escape or clicking outside the cell, Handsontable closes the editor but Flatpickr's calendar popup is not automatically closed
+- The `afterClose` hook runs when the editor is about to close; calling `editor.flatpickr.close()` ensures the calendar is hidden
+- Without this hook, the calendar would remain visible on screen after the editor has closed
 
-## Step 6: Editor - Before Open Hook (`beforeOpen`)
+## Step 7: Editor - After Open Hook (`afterOpen`)
 
-Initialize the editor with the cell's current value and update Flatpickr settings.
+Toggle the dark theme when the editor opens, then open the Flatpickr calendar.
 
 ```typescript
-beforeOpen(editor, { originalValue, cellProperties }) {
-  editor.setValue(originalValue);
+afterOpen(editor) {
+  const isDark = editor.hot.rootDocument.documentElement.getAttribute('data-theme') === 'dark';
+  const head = editor.hot.rootDocument.head;
 
+  if (isDark && !editor._darkThemeLink.parentNode) {
+    head.appendChild(editor._darkThemeLink);
+  } else if (!isDark && editor._darkThemeLink.parentNode) {
+    head.removeChild(editor._darkThemeLink);
+  }
+
+  editor.flatpickr.open();
+}
+```
+
+**What's happening:**
+1. Check the current theme by reading the `data-theme` attribute on the `<html>` element
+2. Dynamically add or remove the Flatpickr dark theme stylesheet
+3. Call `editor.flatpickr.open()` to show the calendar (the editor factory does not open Flatpickr automatically)
+
+**Why dynamic theme loading?**
+- Flatpickr themes are CSS files, not runtime APIs
+- Importing CSS directly (`import 'flatpickr/dist/themes/dark.css'`) doesn't work in all build environments
+- Dynamic `<link>` injection allows toggling the theme each time the editor opens
+- The theme stylesheet is loaded from jsDelivr CDN and cached by the browser
+
+## Step 8: Editor - Before Open Hook (`beforeOpen`)
+
+Apply per-column Flatpickr settings.
+
+```typescript
+beforeOpen(editor, { cellProperties }) {
   for (const key in cellProperties.flatpickrSettings) {
     editor.flatpickr.set(key as keyof flatpickr.Options.Options, cellProperties.flatpickrSettings[key]);
   }
@@ -236,22 +277,20 @@ beforeOpen(editor, { originalValue, cellProperties }) {
 ```
 
 **What's happening:**
-1. Set the editor's value to the cell's current value
-2. Update Flatpickr settings from `cellProperties.flatpickrSettings`
-3. This allows per-column configuration (e.g., different locales, date formats)
+1. Update Flatpickr settings from `cellProperties.flatpickrSettings` (e.g., locale, first day of week)
+2. The editor's value is set by the framework before `beforeOpen` runs
 
 **Key points:**
 - `beforeOpen` is called before the editor opens
-- `originalValue` is the cell's current date value
 - `cellProperties.flatpickrSettings` contains column-specific Flatpickr configuration
 - `flatpickr.set()` updates the existing Flatpickr instance with new settings
 
 **Why update settings in `beforeOpen`?**
-- Allows different columns to have different Flatpickr configurations
+- Allows different columns to have different Flatpickr configurations (e.g., EU vs US first day of week)
 - Settings are applied just before opening, ensuring they're fresh
 - More efficient than reinitializing Flatpickr each time
 
-## Step 7: Editor - Get Value (`getValue`)
+## Step 9: Editor - Get Value (`getValue`)
 
 Return the current date value from the input.
 
@@ -262,28 +301,82 @@ getValue(editor) {
 ```
 
 **What's happening:**
-- Flatpickr automatically updates `input.value` in ISO format (e.g., "2024-12-31")
+- Flatpickr automatically updates `input.value` in ISO format (e.g., "2025-03-15")
 - Simply return the input's current value
 - Called when Handsontable needs to save the cell value
 
-## Step 8: Editor - Set Value (`setValue`)
+## Step 10: Editor - Set Value (`setValue`)
 
 Initialize the editor with the cell's current date value.
 
 ```typescript
 setValue(editor, value) {
   editor.input.value = value;
-  editor.flatpickr.setDate(new Date(value));
+  editor.flatpickr.setDate(value ? new Date(value) : new Date());
 }
 ```
 
 **What's happening:**
 - Set the input's value to the provided date string
-- Update Flatpickr's selected date using `setDate()`
+- Update Flatpickr's selected date using `setDate()` — use the cell value if present, otherwise the current date
 - This ensures Flatpickr displays the correct date when opened
 - Called to initialize the editor with the cell's current value
 
-## Step 9: Complete Cell Definition
+## Step 11: Style the Editor with CSS
+
+The editor input needs styling to match Handsontable's cell appearance. Create a CSS file using Handsontable's CSS custom properties (tokens):
+
+```css
+.flatpickr-editor {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box !important;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
+    var(--ht-cell-editor-border-color, #1a42e8),
+    0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
+    var(--ht-cell-editor-shadow-color, transparent) !important;
+  background-color: var(--ht-cell-editor-background-color, #ffffff) !important;
+  padding: var(--ht-cell-vertical-padding, 4px)
+    var(--ht-cell-horizontal-padding, 8px) !important;
+  border: none !important;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+.flatpickr-editor:focus-visible {
+  border: none !important;
+}
+
+.flatpickr-editor.active {
+  box-shadow: none;
+  background-color: transparent;
+  border-radius: 0 !important;
+}
+```
+
+**Why use CSS custom properties?**
+- `--ht-cell-editor-border-width` and `--ht-cell-editor-border-color` match the default Handsontable editor border
+- `--ht-cell-editor-background-color` ensures the editor background matches the cell
+- `--ht-cell-vertical-padding` and `--ht-cell-horizontal-padding` align text with the cell content
+- These tokens automatically adapt when using custom Handsontable themes
+
+**The `.active` state:** When the editor is active (calendar open), the input border and background are hidden since the calendar itself provides the visual feedback.
+
+## Step 12: Complete Cell Definition
+
+**TypeScript:** Define an interface for the editor instance (optional in JavaScript):
+
+```typescript
+interface FlatpickrEditorInstance {
+  input: HTMLInputElement;
+  flatpickr: flatpickr.Instance;
+  preventCloseElement: HTMLElement;
+  _darkThemeLink: HTMLLinkElement;
+}
+```
 
 Put it all together:
 
@@ -293,35 +386,38 @@ const cellDefinition = {
     callback(isDate(new Date(value)));
   },
   renderer: rendererFactory(({ td, value, cellProperties }) => {
-    td.innerText = format(new Date(value), cellProperties.renderFormat);
+    td.innerText = value ? format(new Date(value), cellProperties.renderFormat) : '';
   }),
-  editor: editorFactory<{
-    input: HTMLInputElement,
-    flatpickr: flatpickr.Instance,
-    flatpickrSettings: flatpickr.Options.Options
-  }>({
+  editor: editorFactory<FlatpickrEditorInstance>({
     init(editor) {
-      // Create the input element on init. This is a text input that date picker will be attached to.
-      editor.input = editor.hot.rootDocument.createElement('input') as HTMLInputElement;
+      editor.input = editor.hot.rootDocument.createElement('INPUT') as HTMLInputElement;
+      editor.input.classList.add('flatpickr-editor');
       editor.flatpickr = flatpickr(editor.input, {
         dateFormat: 'Y-m-d',
-        enableTime: false,
-        onChange: () => {
+        onClose: () => {
           editor.finishEditing();
         },
       });
-      /**
-       * Prevent recognizing clicking on datepicker as clicking outside of table.
-       */
-      editor.hot.rootDocument.addEventListener('mousedown', (event) => {
-        if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
-          event.stopPropagation();
-        }
-      });
+      editor.preventCloseElement = editor.flatpickr.calendarContainer;
+      editor._darkThemeLink = editor.hot.rootDocument.createElement('LINK') as HTMLLinkElement;
+      editor._darkThemeLink.rel = 'stylesheet';
+      editor._darkThemeLink.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css';
     },
-    beforeOpen(editor, { originalValue, cellProperties }) {
-      editor.setValue(originalValue);
+    afterClose(editor) {
+      editor.flatpickr.close();
+    },
+    afterOpen(editor) {
+      const isDark = editor.hot.rootDocument.documentElement.getAttribute('data-theme') === 'dark';
+      const head = editor.hot.rootDocument.head;
+      if (isDark && !editor._darkThemeLink.parentNode) {
+        head.appendChild(editor._darkThemeLink);
+      } else if (!isDark && editor._darkThemeLink.parentNode) {
+        head.removeChild(editor._darkThemeLink);
+      }
 
+      editor.flatpickr.open();
+    },
+    beforeOpen(editor, { cellProperties }) {
       for (const key in cellProperties.flatpickrSettings) {
         editor.flatpickr.set(key as keyof flatpickr.Options.Options, cellProperties.flatpickrSettings[key]);
       }
@@ -331,7 +427,7 @@ const cellDefinition = {
     },
     setValue(editor, value) {
       editor.input.value = value;
-      editor.flatpickr.setDate(new Date(value));
+      editor.flatpickr.setDate(value ? new Date(value) : new Date());
     },
   }),
 };
@@ -339,68 +435,59 @@ const cellDefinition = {
 
 **What's happening:**
 - **validator**: Ensures date is valid using `isDate` from date-fns
-- **renderer**: Displays formatted date using `cellProperties.renderFormat`
+- **renderer**: Displays formatted date using `cellProperties.renderFormat` (empty string for missing values)
 - **editor**: Uses `editorFactory` helper with:
-  - `init`: Creates input, initializes Flatpickr, sets up event manager
-  - `beforeOpen`: Sets value and updates Flatpickr settings from column config
+  - `init`: Creates input, initializes Flatpickr with `onClose` calling `finishEditing()`, sets `preventCloseElement` so calendar clicks don't close the editor, prepares dark theme link
+  - `afterClose`: Closes the Flatpickr calendar when the editor is closed by Escape or clicking outside
+  - `afterOpen`: Toggles dark theme stylesheet and opens the Flatpickr calendar
+  - `beforeOpen`: Applies per-column Flatpickr settings from `cellProperties.flatpickrSettings`
   - `getValue`: Returns the input's current value
-  - `setValue`: Sets input value and updates Flatpickr date
+  - `setValue`: Sets input value and Flatpickr's selected date
 
 **Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
 
-## Step 10: Use in Handsontable with Different Formats
+## Step 13: Use in Handsontable with Different Formats
 
-```typescript
-const container = document.querySelector('#example1')!;
+```javascript
+const container = document.querySelector('#example1');
 
-const hotOptions: Handsontable.GridSettings = {
-  themeName: 'ht-theme-main',
-  data: [
-    { id: 1, itemName: 'Lunar Core', restockDate: '2025-08-01' },
-    { id: 2, itemName: 'Zero Thrusters', restockDate: '2025-09-15' },
-  ],
-  colHeaders: [
-    'ID',
-    'Item Name',
-    'Restock Date UE',
-    'Restock Date US',
-  ],
+const hotOptions = {
+  data,
+  colHeaders: ['Product', 'Version', 'Release (EU)', 'Release (US)', 'Status'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
+  autoWrapRow: true,
+  headerClassName: 'htLeft',
   columns: [
-    { data: 'id', type: 'numeric', width: 150 },
+    { data: 'product', type: 'text', width: 200 },
+    { data: 'version', type: 'text', width: 80 },
     {
-      data: 'itemName',
-      type: 'text',
-      width: 150,
-    },
-    // European format column
-    {
-      data: 'restockDate',
-      width: 150,
+      data: 'releaseDate',
+      width: 130,
       allowInvalid: false,
       ...cellDefinition,
-      renderFormat: DATE_FORMAT_EU, // Custom property for renderer
-      flatpickrSettings: {           // Custom property for editor
+      renderFormat: DATE_FORMAT_EU,
+      flatpickrSettings: {
         locale: {
-          firstDayOfWeek: 1          // Monday
-        }
+          firstDayOfWeek: 1,
+        },
       },
     },
-    // US format column
     {
-      data: 'restockDate',
-      width: 150,
+      data: 'releaseDate',
+      width: 130,
       allowInvalid: false,
       ...cellDefinition,
-      renderFormat: DATE_FORMAT_US, // Custom property for renderer
-      flatpickrSettings: {           // Custom property for editor
+      renderFormat: DATE_FORMAT_US,
+      flatpickrSettings: {
         locale: {
-          firstDayOfWeek: 0          // Sunday
-        }
+          firstDayOfWeek: 0,
+        },
       },
-    }
+    },
+    { data: 'status', type: 'text', width: 130 },
   ],
   licenseKey: 'non-commercial-and-evaluation',
 };
@@ -408,22 +495,25 @@ const hotOptions: Handsontable.GridSettings = {
 const hot = new Handsontable(container, hotOptions);
 ```
 
-**Amazing feature:**
-- Same data column (`restockDate`)
+**TypeScript:** Use `const container = document.querySelector('#example1')!` and type the options as `Handsontable.GridSettings`.
+
+**Key feature:**
+- Same data column (`releaseDate`)
 - Two different display formats (EU vs US)
 - Two different calendar configurations (Monday vs Sunday first day)
 - One cell definition!
 
 ## How It Works - Complete Flow
 
-1. **Initial Load**: Cell displays formatted date ("31/12/2024" EU or "12/31/2024" US)
+1. **Initial Load**: Cell displays formatted date ("15/03/2025" EU or "03/15/2025" US), or empty string when there is no value
 2. **User Double-Clicks or F2**: Editor opens, container positioned over cell
-3. **Before Open**: `beforeOpen` sets value and updates Flatpickr settings from column config
-4. **Calendar Opens**: Flatpickr displays calendar with column-specific settings (Monday/Sunday first day)
-5. **User Selects Date**: `onChange` handler fires, calls `finishEditing()`
-6. **Validation**: Validator checks date is valid using `isDate`
-7. **Save**: Value saved in ISO format ("2024-12-31")
-8. **Editor Closes**: Container hidden, cell renderer displays new formatted date
+3. **Before Open**: `beforeOpen` applies per-column Flatpickr settings (e.g., first day of week)
+4. **After Open**: `afterOpen` toggles dark theme if needed and calls `editor.flatpickr.open()` to show the calendar
+5. **Calendar Opens**: Flatpickr displays the calendar with column-specific settings
+6. **User Selects Date or Closes Calendar**: `onClose` handler fires, calls `finishEditing()`
+7. **Validation**: Validator checks date is valid using `isDate`
+8. **Save**: Value saved in ISO format ("2025-03-15")
+9. **Editor Closes**: `afterClose` runs and closes the Flatpickr calendar (important when the user closed via Escape or clicking outside). Container hidden, cell renderer displays the new formatted date
 
 ## Advanced Enhancements
 
@@ -521,4 +611,4 @@ flatpickrSettings: {
 
 ---
 
-**Congratulations!** You've created a production-ready date picker with full localization support and advanced configuration.
+**Congratulations!** You've created a production-ready date picker with full localization support, dark theme toggling, and advanced configuration.

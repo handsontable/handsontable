@@ -162,6 +162,7 @@
   --ht-icon-button-border-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-600));
   --ht-icon-button-background-color: var(--ht-background-secondary-color);
   --ht-icon-button-icon-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
+  --ht-icon-button-hit-area-size: var(--ht-sizing-size-6);
   --ht-icon-button-hover-border-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
   --ht-icon-button-hover-background-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
   --ht-icon-button-hover-icon-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
@@ -257,7 +258,7 @@
   --ht-radio-checked-disabled-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-800));
   --ht-radio-checked-disabled-icon-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-600));
   --ht-move-backlight-color: light-dark(var(--ht-colors-palette-800), var(--ht-colors-palette-300));
-  --ht-move-backlight-opacity: 25%;
+  --ht-move-backlight-opacity: 16%;
   --ht-move-indicator-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
   --ht-resize-indicator-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
   --ht-hidden-indicator-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
@@ -304,6 +305,11 @@
   --ht-dialog-content-padding-vertical: var(--ht-density-dialog-vertical);
   --ht-dialog-content-border-radius: var(--ht-sizing-size-2);
   --ht-dialog-content-background-color: var(--ht-background-secondary-color);
+  --ht-chip-background: var(--ht-background-secondary-color);
+  --ht-chip-border-radius: var(--ht-sizing-size-0-5);
+  --ht-chip-vertical-padding: var(--ht-sizing-size-0);
+  --ht-chip-horizontal-padding: var(--ht-sizing-size-1);
+  --ht-chip-gap: var(--ht-sizing-size-1);
   --ht-scrollbar-border-radius: var(--ht-sizing-size-2);
   --ht-scrollbar-track-color: var(--ht-background-secondary-color);
   --ht-scrollbar-thumb-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));

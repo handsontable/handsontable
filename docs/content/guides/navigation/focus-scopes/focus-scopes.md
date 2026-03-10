@@ -21,7 +21,7 @@ angular:
   metaTitle: Focus scopes - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
-menuTag: new
+menuTag: updated
 ---
 
 # Focus scopes

@@ -22,10 +22,13 @@ describe('`registerAllEditors`', () => {
       'date',
       'dropdown',
       'handsontable',
+      'intl-date',
+      'intl-time',
       'numeric',
       'password',
       'select',
       'time',
+      'multiselect',
     ]);
     expect(getPluginsNames()).toEqual([]);
     expect(getRegisteredRendererNames()).toEqual([

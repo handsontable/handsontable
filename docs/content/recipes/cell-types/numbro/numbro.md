@@ -34,7 +34,7 @@ This guide shows how to create a custom numbro cell type using the [Numbro](http
 
 ## Complete Example
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps numbro
 
 @[code](@/content/recipes/cell-types/numbro/javascript/example1.js)
 @[code](@/content/recipes/cell-types/numbro/javascript/example1.ts)
@@ -44,9 +44,10 @@ This guide shows how to create a custom numbro cell type using the [Numbro](http
 ## What You'll Build
 
 A cell that:
-- Displays the number value as text with a formatted value
-- Cell that accepts `numericFormat` options for cell formatting customization
-- Validates number format
+- Displays numbers with locale-aware formatting via Numbro (e.g., `$350,000.00`)
+- Accepts `numericFormat` options for per-column formatting customization
+- Validates input using Handsontable's built-in numeric validator
+- Automatically right-aligns numeric values
 
 ## Prerequisites
 
@@ -63,67 +64,63 @@ import { rendererFactory, getRenderer } from 'handsontable/renderers';
 import { getEditor } from 'handsontable/editors';
 import { getValidator } from 'handsontable/validators';
 import { registerCellType } from 'handsontable/cellTypes';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 import numbro from 'numbro';
+import languages from 'numbro/dist/languages.min.js';
 
 registerAllModules();
+
+Object.values(languages).forEach((language) => numbro.registerLanguage(language));
 ```
 
 **Why this matters:**
-- Import numbro library for number formatting functionality
+- `numbro` handles locale-aware number formatting (currencies, decimals, thousands separators)
+- `rendererFactory` creates a custom renderer that formats values with Numbro before displaying
+- Registering all Numbro languages upfront enables any `culture` to be used in `numericFormat`
 
-## Step 2: Create the Renderer
+## Step 2: Create the Numeric Helper
 
-The renderer controls how the cell looks when not being edited.
+This helper determines whether a value should be treated as a number:
+
+```typescript
+function isNumeric(value) {
+  const type = typeof value;
+
+  if (type === 'number') {
+    return !isNaN(value) && isFinite(value);
+  } else if (type === 'string') {
+    if (value.length === 0) return false;
+    if (value.length === 1) return /\d/.test(value);
+
+    const delimiter = Array.from(new Set(['.']))
+      .map(d => `\\${d}`)
+      .join('|');
+
+    return new RegExp(
+      `^[+-]?(((${delimiter})?\\d+((${delimiter})\\d+)?(e[+-]?\\d+)?)|(0x[a-f\\d]+))$`, 'i'
+    ).test(value.trim());
+  } else if (type === 'object') {
+    return !!value && typeof value.valueOf() === 'number' && !(value instanceof Date);
+  }
+
+  return false;
+}
+```
+
+## Step 3: Create the Renderer
+
+The renderer formats numeric values using Numbro and delegates to the built-in `text` renderer:
 
 ```typescript
 renderer: rendererFactory(({ hotInstance, td, row, col, prop, value, cellProperties }) => {
   if (isNumeric(value)) {
-    let classArr = [];
-
-    if (Array.isArray(cellProperties.className)) {
-      classArr = cellProperties.className;
-    } else {
-      const className = cellProperties.className ?? '';
-
-      if (className.length) {
-        classArr = className.split(' ');
-      }
-    }
-
     const numericFormat = cellProperties.numericFormat;
     const cellCulture = numericFormat && numericFormat.culture || 'en-US';
     const cellFormatPattern = numericFormat && numericFormat.pattern;
 
-    // Register the language if it's not already registered
-    if (cellCulture && !numbro.languages()[cellCulture]) {
-      const shortTag = cellCulture.replace('-', '');
-      const langData = numbro.allLanguages ? numbro.allLanguages[cellCulture] : numbro[shortTag];
-
-      if (langData) {
-        numbro.registerLanguage(langData);
-      }
-    }
-
     numbro.setLanguage(cellCulture);
-
     value = numbro(value).format(cellFormatPattern ?? '0');
 
-    if (
-      classArr.indexOf('htLeft') < 0 &&
-      classArr.indexOf('htCenter') < 0 &&
-      classArr.indexOf('htRight') < 0 &&
-      classArr.indexOf('htJustify') < 0
-    ) {
-      classArr.push('htRight');
-    }
-
-    if (classArr.indexOf('htNumeric') < 0) {
-      classArr.push('htNumeric');
-    }
-
-    cellProperties.className = classArr.join(' ');
+    // Auto-apply htRight alignment for numeric cells
     td.dir = 'ltr';
   }
 
@@ -132,141 +129,72 @@ renderer: rendererFactory(({ hotInstance, td, row, col, prop, value, cellPropert
 ```
 
 **What's happening:**
-- `isNumeric` checks if the value is a number-like value. If true, we format the value.
-- `td` is the table cell DOM element
-- `value` is the cell's current value (e.g., "1000.234")
-- We format the value using the `numbro` library
-- We set the `dir` attribute to `ltr` to ensure the value is displayed correctly in RTL languages
-- We use the `getRenderer('text')` method to render the cell as text and to make sure that other properties like `className` are applied correctly
+- Reads `numericFormat.culture` and `numericFormat.pattern` from cell properties
+- Formats the raw number using `numbro(value).format(pattern)`
+- Auto-applies `htRight` alignment unless another alignment class is set
+- Sets `td.dir = 'ltr'` for correct display in RTL layouts
+- Delegates to the `text` renderer for final DOM output
 
-## Step 3: Complete Cell Type Definition
+## Step 4: Complete Cell Type Definition
 
-Put it all together:
+Put all the pieces together and register the cell type:
 
 ```typescript
-function isNumeric(value: any): boolean {
-  const type = typeof value;
-
-  if (type === 'number') {
-    return !isNaN(value) && isFinite(value);
-
-  } else if (type === 'string') {
-    if (value.length === 0) {
-      return false;
-
-    } else if (value.length === 1) {
-      return /\d/.test(value);
-    }
-
-    const delimiter = Array.from(new Set(['.']))
-      .map(d => `\\${d}`)
-      .join('|');
-
-    return new RegExp(`^[+-]?(((${delimiter})?\\d+((${delimiter})\\d+)?(e[+-]?\\d+)?)|(0x[a-f\\d]+))$`, 'i')
-      .test(value.trim());
-
-  } else if (type === 'object') {
-    return !!value && typeof value.valueOf() === 'number' && !(value instanceof Date);
-  }
-
-  return false;
-}
-
 const cellTypeDefinition = {
   renderer: rendererFactory(({ hotInstance, td, row, col, prop, value, cellProperties }) => {
-    if (isNumeric(value)) {
-      let classArr = [];
-
-      if (Array.isArray(cellProperties.className)) {
-        classArr = cellProperties.className;
-      } else {
-        const className = cellProperties.className ?? '';
-
-        if (className.length) {
-          classArr = className.split(' ');
-        }
-      }
-
-      const numericFormat = cellProperties.numericFormat;
-      const cellCulture = numericFormat && numericFormat.culture || 'en-US';
-      const cellFormatPattern = numericFormat && numericFormat.pattern;
-
-      // Register the language if it's not already registered
-      if (cellCulture && !numbro.languages()[cellCulture]) {
-        const shortTag = cellCulture.replace('-', '');
-        const langData = numbro.allLanguages ? numbro.allLanguages[cellCulture] : numbro[shortTag];
-
-        if (langData) {
-          numbro.registerLanguage(langData);
-        }
-      }
-
-      numbro.setLanguage(cellCulture);
-
-      value = numbro(value).format(cellFormatPattern ?? '0');
-
-      if (
-        classArr.indexOf('htLeft') < 0 &&
-        classArr.indexOf('htCenter') < 0 &&
-        classArr.indexOf('htRight') < 0 &&
-        classArr.indexOf('htJustify') < 0
-      ) {
-        classArr.push('htRight');
-      }
-
-      if (classArr.indexOf('htNumeric') < 0) {
-        classArr.push('htNumeric');
-      }
-
-      cellProperties.className = classArr.join(' ');
-      td.dir = 'ltr';
-    }
-
-    getRenderer('text')(hotInstance, td, row, col, prop, value, cellProperties);
+    // ... renderer code from Step 3 (see full example above)
   }),
-  validator: getValidator('numeric'), // let's use the built-in numeric validator',
-  editor: getEditor('numeric'), // let's use the built-in numeric editor',
+  validator: getValidator('numeric'),
+  editor: getEditor('numeric'),
 };
 
 registerCellType('numbro', cellTypeDefinition);
 ```
 
 **What's happening:**
-- **renderer**: Displays the number value as text with a formatted value using the `numbro` library
-- **validator**: Uses the built-in numeric validator
-- **editor**: Uses the built-in numeric editor
-- **registerCellType**: Registers a new cell type called `numbro` ready to be used in the Handsontable grid
+- **renderer**: Formats numbers with Numbro and renders as right-aligned text
+- **validator**: Uses the built-in numeric validator to reject non-numeric input
+- **editor**: Uses the built-in numeric editor for input
+- **registerCellType**: Registers the `numbro` cell type for use in column config
 
-## Step 4: Use in Handsontable
+## Step 5: Use in Handsontable
 
 ```typescript
-const container = document.querySelector('#example1')!;
+registerCellType('numbro', cellTypeDefinition);
+
 const hotOptions: Handsontable.GridSettings = {
-  themeName: 'ht-theme-main',
-  data: [
-    { id: 1, itemName: 'Lunar Core', cost: 1000.234 },
-    { id: 2, itemName: 'Zero Thrusters', cost: 1000.234 },
-    { id: 3, itemName: 'EVA Suits', cost: 1000.234 },
-  ],
-  colHeaders: [
-    'ID',
-    'Item Name',
-    'Item Cost',
-  ],
+  data,
+  colHeaders: ['Item Name', 'Category', 'Lead Engineer', 'Quantity', 'Cost'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
+  autoWrapRow: true,
+  headerClassName: 'htLeft',
   columns: [
-    { data: 'id', type: 'numeric' },
-    { data: 'itemName', type: 'text' },
+    { data: 'itemName', type: 'text', width: 130 },
+    { data: 'category', type: 'text', width: 120 },
+    { data: 'leadEngineer', type: 'text', width: 150 },
+    {
+      data: 'quantity',
+      type: 'numbro',
+      width: 150,
+      className: 'htRight',
+      numericFormat: {
+        pattern: '0,0',
+        culture: 'en-US',
+      },
+    },
     {
       data: 'cost',
-      type: 'numbro', // a new cell type
-      numericFormat: { // numbro formatting options
+      type: 'numbro',
+      width: 120,
+      className: 'htRight',
+      numericFormat: {
         pattern: '$0,0.00',
         culture: 'en-US',
       },
-    }
+    },
   ],
   licenseKey: 'non-commercial-and-evaluation',
 };
@@ -275,16 +203,15 @@ const hot = new Handsontable(container, hotOptions);
 ```
 
 **Key configuration:**
-- `type` - sets the cell type to `numbro`
-- `numericFormat` - any options passed to the `numericFormat` property will be passed to the `numbro` library for formatting the number
+- `type: 'numbro'` - uses the custom cell type on Quantity and Cost columns
+- `numericFormat.pattern` - the Numbro format string (e.g., `'$0,0.00'` for currency, `'0,0'` for integers)
+- `numericFormat.culture` - the locale for formatting (e.g., `'en-US'`, `'de-DE'`)
+- `headerClassName: 'htLeft'` - left-aligns all column headers
 
 ## How It Works - Complete Flow
 
-1. **Initial Render**: Cell displays example value with formatted value using the `numbro` library
-2. **User enters number**: Number is validated and saved to cell
-3. **Validation**: Validator checks if the value is a number
-4. **Save**: If valid, value is saved to cell; if invalid, editor may stay open
-
----
-
-**Congratulations!** You've created a fully functional numbro cell type using the `numbro` library, providing a formatted number display experience in your data grid!
+1. **Initial Render**: Cell displays the raw number formatted by Numbro (e.g., `350000` becomes `$350,000.00`)
+2. **User clicks cell**: The built-in numeric editor opens for editing
+3. **User enters number**: Input is validated against the numeric validator
+4. **Validation**: Non-numeric values are rejected; valid numbers are accepted
+5. **Save**: The value is stored as a raw number and re-rendered with Numbro formatting

@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../common';
 import type { HookCallback } from '../../core/hooks/bucket';
 import { defineGetter, objectEach, isObject, assignObjectDefaults, getProperty } from '../../helpers/object';
+import { throwWithCause } from '../../helpers/errors';
 import { arrayEach } from '../../helpers/array';
 import { getPluginsNames, hasPlugin } from '../registry';
 import { hasCellType } from '../../cellTypes/registry';
@@ -142,7 +143,7 @@ export class BasePlugin {
         const [type, moduleName] = dependency.split(':');
 
         if (!DEPS_TYPE_CHECKERS.has(type)) {
-          throw new Error(`Unknown plugin dependency type "${type}" was found.`);
+          throwWithCause(`Unknown plugin dependency type "${type}" was found.`);
         }
 
         if (!(DEPS_TYPE_CHECKERS.get(type) as Function)(moduleName)) {
@@ -185,7 +186,7 @@ export class BasePlugin {
 
         missingDepsMsgs.length = 0;
 
-        throw new Error(errorMsg);
+        throwWithCause(errorMsg);
       }
 
       this.hot.runHooks('afterPluginsInitialized');

@@ -592,7 +592,7 @@ export class Autofill extends BasePlugin {
    * @returns {Array} The extended fill data.
    */
   #extendFillDataWithSourceData(fillData: unknown[][], selectionSourceData: unknown[][], startOfDragCoords: { row: number, col: number }, endOfDragCoords: { row: number, col: number }, _directionOfDrag?: string): unknown[][] {
-    const fullFillData = [];
+    const fullFillData: unknown[][] = [];
 
     for (
       let rowIndex = Math.min(startOfDragCoords.row, endOfDragCoords.row);
@@ -606,13 +606,23 @@ export class Autofill extends BasePlugin {
         columnIndex <= Math.max(startOfDragCoords.col, endOfDragCoords.col);
         columnIndex += 1
       ) {
-        const sourceCell = this.hot.getSourceDataAtCell(rowIndex, columnIndex);
+        const targetCellSourceData = this.hot.getSourceDataAtCell(rowIndex, columnIndex);
+        const cellSource = this.hot.getCellMeta(rowIndex, columnIndex).source;
+        const cellSourceArr = cellSource as unknown[] | undefined;
+        const isComplexDataFormatCell =
+          this.hot.getCellMeta(rowIndex, columnIndex)._complexDataFormat ||
+          isObject(cellSourceArr?.[0]) ||
+          Array.isArray(cellSourceArr?.[0]);
         const relativeRowIndex = rowIndex - Math.min(startOfDragCoords.row, endOfDragCoords.row);
         const relativeColumnIndex = columnIndex - Math.min(startOfDragCoords.col, endOfDragCoords.col);
         const modRelativeRowIndex = relativeRowIndex % selectionSourceData.length;
-        const modRelativeColumnIndex = relativeColumnIndex % selectionSourceData[0].length;
+        const modRelativeColumnIndex = relativeColumnIndex % (selectionSourceData[0] as unknown[]).length;
 
-        if (isObject(sourceCell)) {
+        if (
+          isObject(targetCellSourceData) ||
+          Array.isArray(targetCellSourceData) ||
+          isComplexDataFormatCell // TODO: Replace with extending the data schema generator capabilities.
+        ) {
           fullFillData[relativeRowIndex][relativeColumnIndex] =
             selectionSourceData[modRelativeRowIndex][modRelativeColumnIndex];
 

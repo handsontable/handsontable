@@ -110,7 +110,7 @@ Handsontable.validators;
 (Handsontable.validators as Record<string, unknown>).registerValidator;
 (Handsontable.validators as Record<string, unknown>).getValidator;
 
-Handsontable.Core(elem, {});
+new Handsontable.Core(elem, {});
 
 const defaultSettings: Record<string, unknown> = Handsontable.DefaultSettings;
 

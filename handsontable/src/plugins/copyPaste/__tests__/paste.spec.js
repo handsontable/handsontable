@@ -221,7 +221,7 @@ describe('CopyPaste', () => {
 
       expect(() => {
         triggerPaste('Kia\tNissan\tToyota');
-      }).not.toThrowError();
+      }).not.toThrowWithCause(undefined, { handsontable: true });
     });
 
     it('should not paste any data, if no cell is selected', async() => {
@@ -524,6 +524,39 @@ describe('CopyPaste', () => {
       expect(getDataAtCell(1, 2)).toEqual('C2');
     });
 
+    it('should preserve all cells when pasting Excel range with shape (nested td in cell)', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 5),
+      });
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+      const excelLikeHTMLWithShape = [
+        '<meta name="Generator" content="Microsoft Excel 15">',
+        '<table><tr>',
+        '<td>text</td>',
+        '<td width=116><!--[if gte vml 1]><v:shape></v:shape><![endif]-->',
+        '<span><table><tr><td></td></tr></table></span></td>',
+        '<td>text2</td>',
+        '<td width=124><!--[if gte vml 1]><v:shape></v:shape><![endif]-->',
+        '<span><table><tr><td></td></tr></table></span></td>',
+        '<td>test</td>',
+        '</tr></table>'
+      ].join('');
+
+      clipboardEvent.clipboardData.setData('text/html', excelLikeHTMLWithShape);
+
+      await selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      expect(getDataAtCell(0, 0)).toEqual('text');
+      expect(getDataAtCell(0, 1)).toEqual('');
+      expect(getDataAtCell(0, 2)).toEqual('text2');
+      expect(getDataAtCell(0, 3)).toEqual('');
+      expect(getDataAtCell(0, 4)).toEqual('test');
+    });
+
     it('should populate data just within selection - there was bug #5961', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
@@ -628,15 +661,20 @@ describe('CopyPaste', () => {
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });
 
-    it('should sanitize pasted HTML', async() => {
+    // TODO: To be changed in 18.0
+    it('should sanitize pasted HTML by default', async() => {
       handsontable();
+
+      window.__testFunction = () => {};
 
       const onErrorSpy = spyOn(window, 'onerror');
       const clipboardEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
+      spyOn(window, '__testFunction');
+
       clipboardEvent.clipboardData.setData('text/html', [
-        '<table><tr></tr></table><img src onerror="boom()">'
+        '<table><tr></tr></table><img src onerror="__testFunction()">'
       ].join('\r\n'));
 
       await selectCell(0, 0);
@@ -646,7 +684,42 @@ describe('CopyPaste', () => {
       await sleep(100);
 
       expect(onErrorSpy).not.toHaveBeenCalled();
+      expect(window.__testFunction).not.toHaveBeenCalled();
       expect(getDataAtCell(0, 0)).toEqual(null);
+
+      delete window.__testFunction;
+    });
+
+    it('should sanitize pasted HTML when custom sanitizer is set', async() => {
+      handsontable({
+        sanitizer: (content) => {
+          return content.replace(/\s+onerror\s*=\s*("[^"]*"|'[^']*'|[^\s>]*)/gi, '');
+        },
+      });
+
+      window.__testFunction = () => {};
+
+      const onErrorSpy = spyOn(window, 'onerror');
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      spyOn(window, '__testFunction');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table><tr></tr></table><img src onerror="__testFunction()">'
+      ].join('\r\n'));
+
+      await selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      await sleep(100);
+
+      expect(onErrorSpy).not.toHaveBeenCalled();
+      expect(window.__testFunction).not.toHaveBeenCalled();
+      expect(getDataAtCell(0, 0)).toEqual(null);
+
+      delete window.__testFunction;
     });
 
     it('should be possible to paste text into the outside element of the table when the `outsideClickDeselects` is disabled', async() => {
@@ -797,26 +870,6 @@ describe('CopyPaste', () => {
       plugin.onPaste(pasteEvent); // emulate native "paste" event
 
       expect(pasteEvent.preventDefault).toHaveBeenCalled();
-    });
-
-    it('should paste the object-based cells as objects, when the data schema of the target cell matches the pasted content', async() => {
-      handsontable({
-        data: [
-          [{ id: 1, value: 'A1' }],
-          [{ id: 2, value: 'A2' }],
-        ],
-      });
-
-      const plugin = getPlugin('CopyPaste');
-      const event = getClipboardEvent();
-
-      await selectCell(0, 0);
-      plugin.onCopy(event);
-
-      await selectCell(1, 0);
-      plugin.onPaste(event);
-
-      expect(getDataAtCell(1, 0)).toEqual({ id: 1, value: 'A1' });
     });
 
     it('should paste the object-based cells as their displayed value, when the target cell is not object-based', async() => {

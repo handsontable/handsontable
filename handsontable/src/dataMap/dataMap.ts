@@ -17,6 +17,7 @@ import { extendArray, to2dArray } from '../helpers/array';
 import { rangeEach, isUnsignedNumber } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
 import { getValueGetterValue } from '../utils/valueAccessors';
+import { throwWithCause } from '../helpers/errors';
 
 /**
  * Represents the MetaManager dependency shape used by DataMap.
@@ -157,7 +158,7 @@ class DataMap {
     const schema = this.getSchema();
 
     if (typeof schema === 'undefined') {
-      throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
+      throwWithCause('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
     }
 
     const columns = this.tableMeta.columns;
@@ -445,7 +446,8 @@ class DataMap {
    */
   createCol(index: number, amount = 1, { source, mode = 'start' }: { source?: string; mode?: string } = {}) {
     if (!this.hot.isColumnModificationAllowed()) {
-      throw new Error('Cannot create new column. When data source in an object, ' +
+      throwWithCause('Cannot create new column. When data source in an object, ' +
+        // eslint-disable-next-line max-len
         'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
         'If you want to be able to add new columns, you have to use array datasource.');
     }
@@ -587,7 +589,7 @@ class DataMap {
    */
   removeCol(index: number, amount = 1, source: string) {
     if (this.hot.dataType === 'object' || this.tableMeta.columns) {
-      throw new Error('cannot remove column with object data source or columns option specified');
+      throwWithCause('cannot remove column with object data source or columns option specified');
     }
     let columnIndex = typeof index !== 'number' ? -amount : index;
 

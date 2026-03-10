@@ -80,7 +80,7 @@ export function numericRenderer(hotInstance: HotInstance, TD: HTMLTableCellEleme
     TD.dir = 'ltr';
   }
 
-  textRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
+  textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
 }
 
 numericRenderer.valueFormatter = valueFormatter;

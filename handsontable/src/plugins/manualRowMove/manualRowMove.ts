@@ -23,8 +23,7 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * @class ManualRowMove
  *
  * @description
- * This plugin allows to change rows order. To make rows order persistent the {@link Options#persistentState}
- * plugin should be enabled.
+ * This plugin allows to change rows order.
  *
  * API:
  * - `moveRow` - move single row to the new position.
@@ -310,7 +309,7 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Loads initial settings when persistent state is saved or when plugin was initialized as an array.
+   * Loads initial settings when state was saved (e.g. via hooks) or when plugin was initialized as an array.
    *
    * @private
    */
@@ -636,7 +635,6 @@ export class ManualRowMove extends BasePlugin {
     this.#rowsToMove.length = 0;
 
     if (movePerformed === true) {
-      this.persistentStateSave();
       this.hot.view.adjustElementsSize();
       this.hot.render();
 

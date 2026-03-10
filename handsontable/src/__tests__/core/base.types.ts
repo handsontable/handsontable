@@ -24,7 +24,7 @@ Handsontable.plugins;
 Handsontable.renderers;
 Handsontable.validators;
 
-const hot: HotInstance = Handsontable.Core(elem, {});
+const hot: HotInstance = new Handsontable.Core(elem, {});
 
 hot.alter('insert_col_start', 0, 1);
 hot.addHook('afterCopy', () => {});

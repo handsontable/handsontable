@@ -28,7 +28,6 @@ import {
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
-  PersistentState,
   Search,
   TouchScroll,
   TrimRows,
@@ -71,7 +70,6 @@ registerPlugin(MultiColumnSorting);
 registerPlugin(MultipleSelectionHandles);
 registerPlugin(NestedHeaders);
 registerPlugin(NestedRows);
-registerPlugin(PersistentState);
 registerPlugin(Search);
 registerPlugin(TouchScroll);
 registerPlugin(TrimRows);
@@ -109,7 +107,6 @@ const multiColumnSorting: MultiColumnSorting = getPlugin('multiColumnSorting');
 const multipleSelectionHandles: MultipleSelectionHandles = getPlugin('multipleSelectionHandles');
 const nestedHeaders: NestedHeaders = getPlugin('nestedHeaders');
 const nestedRows: NestedRows = getPlugin('nestedRows');
-const persistentState: PersistentState = getPlugin('persistentState');
 const search: Search = getPlugin('search');
 const touchScroll: TouchScroll = getPlugin('touchScroll');
 const trimRows: TrimRows = getPlugin('trimRows');

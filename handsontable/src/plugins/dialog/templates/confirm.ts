@@ -1,4 +1,5 @@
 import { DIALOG_CLASS_NAME } from '../constants';
+import { throwWithCause } from '../../../helpers/errors';
 import { stripTags } from '../../../helpers/string';
 import { html } from '../../../helpers/templateLiteralTag';
 
@@ -67,7 +68,7 @@ export function confirmTemplate({ id = '', title = '', description = '', buttons
    */
   function focusableElements() {
     if (fragment === null) {
-      throw new Error('Compile the template first.');
+      throwWithCause('Compile the template first.');
     }
 
     const {

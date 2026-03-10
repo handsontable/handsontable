@@ -1,4 +1,5 @@
 import { isFunction } from '../../helpers/function';
+import { throwWithCause } from '../../helpers/errors';
 
 const DEFAULT_ERROR_ITEM_EXISTS = (item: unknown) => `'${item}' value is already declared in a unique set.`;
 
@@ -26,7 +27,7 @@ export function createUniqueSet({ errorItemExists }: { errorItemExists?: Functio
    */
   function addItem(item: unknown) {
     if (uniqueSet.has(item)) {
-      throw new Error(errorFn(item));
+      throwWithCause(String(errorFn(item)));
     }
 
     uniqueSet.add(item);

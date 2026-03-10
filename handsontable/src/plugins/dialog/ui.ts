@@ -1,4 +1,5 @@
 import { html, toSingleLine } from '../../helpers/templateLiteralTag';
+import { throwWithCause } from '../../helpers/errors';
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 import {
@@ -91,10 +92,15 @@ export class DialogUI {
    * @type {Array<function(MouseEvent)>}
    */
   #templateButtonCallbacks: Function[] = [];
+  /**
+   * Optional sanitizer for dialog content (from settings).
+   */
+  #sanitizer?: (html: string) => string;
 
-  constructor({ rootElement, isRtl }: { rootElement: HTMLElement, isRtl: boolean }) {
+  constructor({ rootElement, isRtl, sanitizer }: { rootElement: HTMLElement; isRtl: boolean; sanitizer?: (html: string) => string }) {
     this.#rootElement = rootElement;
     this.#isRtl = isRtl;
+    this.#sanitizer = sanitizer;
 
     this.install();
   }
@@ -111,7 +117,7 @@ export class DialogUI {
         .filter(template => template !== 'base')
         .join(', ');
 
-      throw new Error(toSingleLine`Invalid template: ${templateName}.\x20
+      throwWithCause(toSingleLine`Invalid template: ${templateName}.\x20
         Valid templates are: ${validTemplates}.`);
     }
 
@@ -268,7 +274,8 @@ export class DialogUI {
 
       // Render new dialog content
       if (typeof content === 'string') {
-        fastInnerHTML(contentElement, content);
+        fastInnerHTML(contentElement, content, this.#sanitizer);
+
       } else if (content instanceof HTMLElement || content instanceof DocumentFragment) {
         contentElement.appendChild(content);
       }

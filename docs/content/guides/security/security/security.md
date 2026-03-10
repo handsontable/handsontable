@@ -13,6 +13,7 @@ angular:
   metaTitle: Security - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Security
+menuTag: updated
 ---
 
 # Security
@@ -59,7 +60,13 @@ We use dependencies in the form of third-party software, and we take a responsib
 
 ## Content sanitizing
 
-We use [dompurify](https://www.npmjs.com/package/dompurify) to sanitize the content put into the data grid. But we strongly recommend additional server-side validation to protect your data.
+Handsontable sanitizes all HTML content before writing it to the DOM - cell values, headers, context-menu labels, dialog markup, and clipboard paste payloads. By default the grid uses [DOMPurify](https://www.npmjs.com/package/dompurify), so common XSS vectors (inline scripts, dangerous event handlers, etc.) are stripped automatically.
+
+Starting with **v17.0**, you control this via the [`sanitizer`](@/api/options.md#sanitizer) option. It accepts a function that receives the raw HTML string and returns a string (or, with Trusted Types, a `TrustedHTML`) safe to assign to the DOM. You can apply context-aware rules (e.g. stricter for paste, more permissive for trusted renderers) or use a different sanitization library.
+
+**Trusted Types and CSP:** If you enforce Trusted Types (e.g. `require-trusted-types-for 'script'`), use a [Trusted Type policy](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API) in your sanitizer and return its `createHTML` result. Add the policy name to your Content-Security-Policy `trusted-types` directive (e.g. `trusted-types default handsontable`); otherwise policy creation will be blocked.
+
+Regardless of the client-side strategy, we recommend complementing it with server-side validation for end-to-end data integrity.
 
 ## High-quality code pledge
 
@@ -77,9 +84,9 @@ The latest security audits:
 |------------|--------------|----------------------------------------------------------|
 | Seqred     | Feb 21, 2022 | [Download]({{$basePath}}/seqred-certificate.pdf)         |
 | TestArmy   | Apr 28, 2023 | [Download]({{$basePath}}/testarmy-certificate.pdf)       |
-| TestArmy   | Apr 19, 2024 | [Download]({{$basePath}}/testarmy-certificate-2024.pdf)  |          
+| TestArmy   | Apr 19, 2024 | [Download]({{$basePath}}/testarmy-certificate-2024.pdf)  |
 | TestArmy   | May 13, 2025 | [Download]({{$basePath}}/testarmy-certificate-2025.pdf)  |
-                                           
+
 
 The security audits were carried out in accordance with industry-standard methodologies, including:
 - OWASP Top 10

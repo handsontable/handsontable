@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../common';
 import { textRenderer } from '../textRenderer';
+import { deprecatedWarn } from '../../helpers/console';
 
 export const RENDERER_TYPE: 'time' = 'time';
 

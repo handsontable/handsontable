@@ -2,7 +2,7 @@
 id: e107bb0d
 title: Feedback
 metaTitle:  Feedback Cell Type - React Data Grid | Handsontable
-description: Learn how to create a custom Handsontable cell type using emoji buttons for quick feedback selection directly in your data grid.
+description: Learn how to create a custom feedback cell type in React using EditorComponent—emoji buttons (e.g. thumbs up/down/neutral) for quick selection, keyboard navigation, and per-column config.
 permalink: /recipes/cell-types/feedback-react
 canonicalUrl: /recipes/cell-types/feedback-react
 tags:
@@ -25,7 +25,7 @@ category: Cell Types
 
 ## Overview
 
-This guide shows how to create a simple feedback editor cell using emoji buttons with React's `EditorComponent`. Perfect for quick feedback selection, status indicators, or any scenario where users need to choose from a small set of visual options.
+This guide shows how to create a feedback editor cell using emoji buttons (👍, 👎, 🤷) with React's `EditorComponent`. The example uses a feature-roadmap table with a Feedback column; the editor supports quick selection, keyboard navigation (Arrow keys, Tab), and per-column configuration via external CSS.
 
 **Difficulty:** Beginner
 **Time:** ~15 minutes
@@ -34,18 +34,18 @@ This guide shows how to create a simple feedback editor cell using emoji buttons
 ## What You'll Build
 
 A cell that:
-- Displays emoji feedback buttons when editing
+- Displays emoji feedback buttons (👍, 👎, 🤷) when editing
 - Shows the selected emoji when viewing
-- Supports keyboard navigation (arrow keys and Tab)
-- Provides click-to-select functionality
-- Works with React's component-based architecture
-- Supports per-column configuration
+- Supports keyboard navigation (Arrow Left/Right and Tab to cycle options)
+- Provides click-to-select and closes the editor on choice
+- Uses React's `EditorComponent` with render prop and external CSS (e.g. `feedback-editor` class)
+- Reads per-column options from `cellProperties.config` in `onPrepare`
 
 ## Complete Example
 
 ::: only-for react
 
-::: example #example1 :react --css 1 --js 2 --ts 3
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
 
 @[code](@/content/recipes/cell-types/feedback-react/react/example1.css)
 @[code](@/content/recipes/cell-types/feedback-react/react/example1.jsx)
@@ -72,8 +72,6 @@ npm install @handsontable/react-wrapper
 import { useState, useEffect, useCallback, ComponentProps } from 'react';
 import { HotTable, HotColumn, EditorComponent } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
 
 registerAllModules();
 ```
@@ -92,7 +90,7 @@ Create a React component that uses `EditorComponent` with the render prop patter
 type EditorComponentProps = ComponentProps<typeof EditorComponent<string>>;
 
 const FeedbackEditor = () => {
-  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
+  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷']);
 
   return (
     <EditorComponent<string>>
@@ -137,7 +135,7 @@ Style the editor container and buttons using CSS or inline styles.
 
 ```tsx
 const FeedbackEditor = () => {
-  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
+  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷']);
 
   return (
     <EditorComponent<string>>
@@ -218,7 +216,7 @@ Use `onPrepare` to read per-column configuration.
 
 ```tsx
 const FeedbackEditor = () => {
-  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
+  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷']);
 
   const onPrepare: EditorComponentProps['onPrepare'] = (
     _row,
@@ -261,7 +259,7 @@ Add keyboard navigation using the `shortcuts` prop.
 
 ```tsx
 const FeedbackEditor = () => {
-  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
+  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷']);
   const [shortcuts, setShortcuts] = useState<EditorComponentProps['shortcuts']>([]);
 
   const getNextValue = useCallback((value: string) => {
@@ -322,7 +320,7 @@ Put it all together:
 type EditorComponentProps = ComponentProps<typeof EditorComponent<string>>;
 
 const FeedbackEditor = () => {
-  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
+  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷']);
   const [shortcuts, setShortcuts] = useState<EditorComponentProps['shortcuts']>([]);
 
   const onPrepare: EditorComponentProps['onPrepare'] = (
@@ -448,14 +446,13 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       licenseKey="non-commercial-and-evaluation"
       height="auto"
-      themeName="ht-theme-main"
       data={data}
       colHeaders={true}
     >
       <HotColumn
         width={250}
         editor={FeedbackEditor}
-        config={['👍', '👎', '🤷‍♂️']}
+        config={['👍', '👎', '🤷']}
         data="feedback"
         title="Feedback"
       />
@@ -473,7 +470,7 @@ const ExampleComponent = () => {
 
 **What's happening:**
 - `editor={FeedbackEditor}` - Assigns the editor component to the column
-- `config={['👍', '👎', '🤷‍♂️']}` - Column-specific options
+- `config={['👍', '👎', '🤷']}` - Column-specific options
 - Same editor component, different configurations per column
 
 **Key features:**
@@ -483,7 +480,7 @@ const ExampleComponent = () => {
 
 ## How It Works - Complete Flow
 
-1. **Initial Render**: Cell displays the emoji value (👍, 👎, or 🤷‍♂️)
+1. **Initial Render**: Cell displays the emoji value (👍, 👎, or 🤷)
 2. **User Double-Clicks or Enter**: Editor opens, `onPrepare` reads column config
 3. **Editor Opens**: `EditorComponent` positions container over cell
 4. **Button Display**: All options visible, current value highlighted
@@ -509,7 +506,7 @@ const cellDefinition = {
   renderer: rendererFactory(({ td, value }) => {
     td.innerHTML = `
       <div style="text-align: center; font-size: 1.5em; padding: 4px;">
-        ${value || '🤷‍♂️'}
+        ${value || '🤷'}
       </div>
     `;
   })
@@ -519,7 +516,7 @@ const cellDefinition = {
 <HotColumn
   editor={FeedbackEditor}
   renderer={cellDefinition.renderer}
-  config={['👍', '👎', '🤷‍♂️']}
+  config={['👍', '👎', '🤷']}
   data="feedback"
 />
 ```
@@ -536,7 +533,7 @@ Add more emoji options:
 ```tsx
 <HotColumn
   editor={FeedbackEditor}
-  config={['👍', '👎', '🤷‍♂️', '❤️', '🔥', '⭐']}
+  config={['👍', '👎', '🤷', '❤️', '🔥', '⭐']}
   data="feedback"
 />
 ```
@@ -592,7 +589,7 @@ Add tooltips to buttons:
   const tooltips: Record<string, string> = {
     '👍': 'Positive feedback',
     '👎': 'Negative feedback',
-    '🤷‍♂️': 'Neutral feedback'
+    '🤷': 'Neutral feedback'
   };
 
   return (

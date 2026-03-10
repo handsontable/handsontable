@@ -15,6 +15,7 @@ import {
 } from './constants';
 import Clone from '../core/clone';
 import { A11Y_PRESENTATION } from '../../../../helpers/a11y';
+import { throwWithCause } from '../../../../helpers/errors';
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -296,7 +297,7 @@ export class Overlay {
    */
   makeClone() {
     if (CLONE_TYPES.indexOf(this.type) === -1) {
-      throw new Error(`Clone type "${this.type}" is not supported.`);
+      throwWithCause(`Clone type "${this.type}" is not supported.`);
     }
     const {
       wtTable,

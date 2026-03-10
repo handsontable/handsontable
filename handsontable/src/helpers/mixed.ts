@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { toSingleLine } from './templateLiteralTag';
 
 /**
@@ -115,7 +114,7 @@ const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersio
   non_commercial: () => '',
 };
 
-export function _injectProductInfo(key: string, element: HTMLElement) {
+export function _injectProductInfo(key: string, element: HTMLElement, releaseDateStr?: string) {
   const hasValidType = !isEmpty(key);
   const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
   const hotVersion = process.env.HOT_VERSION;
@@ -129,11 +128,17 @@ export function _injectProductInfo(key: string, element: HTMLElement) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = moment(process.env.HOT_RELEASE_DATE, 'DD/MM/YYYY');
-      const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
+      const releaseDate = releaseDateStr ?? process.env.HOT_RELEASE_DATE ?? '';
+      const [dd, mm, yyyy] = releaseDate.split('/').map(Number);
+      const releaseDays = Math.floor(Date.UTC(yyyy, mm - 1, dd) / 8.64e7);
       const keyValidityDays = _extractTime(key);
 
-      keyValidityDate = moment((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
+      keyValidityDate = new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: '2-digit',
+        timeZone: 'UTC',
+      }).format((keyValidityDays + 1) * 8.64e7);
 
       if (releaseDays > keyValidityDays) {
         consoleMessageState = 'expired';

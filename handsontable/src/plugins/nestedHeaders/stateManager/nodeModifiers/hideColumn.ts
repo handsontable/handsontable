@@ -1,4 +1,5 @@
 import { toSingleLine } from '../../../../helpers/templateLiteralTag';
+import { throwWithCause } from '../../../../helpers/errors';
 import type TreeNode from '../../../../utils/dataStructures/tree';
 
 interface NestedHeaderNodeData {
@@ -15,11 +16,11 @@ interface NestedHeaderNodeData {
  */
 export function hideColumn(nodeToProcess: TreeNode, gridColumnIndex: number) {
   if (!Number.isInteger(gridColumnIndex)) {
-    throw new Error('The passed gridColumnIndex argument has invalid type.');
+    throwWithCause('The passed gridColumnIndex argument has invalid type.');
   }
 
   if (nodeToProcess.childs.length > 0) {
-    throw new Error(toSingleLine`The passed node is not the last node on the tree. Only for\x20
+    throwWithCause(toSingleLine`The passed node is not the last node on the tree. Only for\x20
 the last node, the hide column modification can be applied.`);
   }
 

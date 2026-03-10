@@ -1,4 +1,6 @@
 import { arrayEach } from './array';
+import { isDefined } from './mixed';
+import { throwWithCause } from '../helpers/errors';
 
 /**
  * Generate schema for passed object.
@@ -468,4 +470,14 @@ export function deepMerge(target: Record<string, any> = {}, source: Record<strin
   });
 
   return result;
+}
+
+/**
+ * Checks if the value is a key/value object.
+ *
+ * @param {*} value The value to check.
+ * @returns {boolean}
+ */
+export function isKeyValueObject(value: unknown): boolean {
+  return isObject(value) && isDefined((value as Record<string, unknown>).key) && isDefined((value as Record<string, unknown>).value);
 }

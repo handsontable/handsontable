@@ -241,11 +241,12 @@ const allSettings: Required<GridSettings> = {
     showNavigation: true,
     uiContainer: document.body,
   }),
-  persistentState: true,
+  parsePastedValue: true,
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
   preventOverflow: oneOf(true, 'vertical', 'horizontal'),
   preventWheel: true,
+  persistentState: true,
   readOnly: true,
   readOnlyCellClassName: 'foo',
   renderAllColumns: true,
@@ -258,6 +259,7 @@ const allSettings: Required<GridSettings> = {
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
+  sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
   search: true,
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectOptions: oneOf(
@@ -273,6 +275,8 @@ const allSettings: Required<GridSettings> = {
     ['A', 'B', 'C', 'D'],
     (query: string, callback: (item: string[]) => void) => callback(['A', 'B', 'C', 'D'])
   ),
+  sourceDataValidator: oneOf((value: any, cellMeta: CellProperties) => true),
+  sourceDataWarningMessage: oneOf('The source data is invalid.'),
   startCols: 123,
   startRows: 123,
   stretchH: 'none',
@@ -365,6 +369,7 @@ const allSettings: Required<GridSettings> = {
     'autocomplete', 'date', 'numeric', 'time', 'custom.validator'
   ),
   valueFormatter: (value: any, cellMeta: CellProperties) => value,
+  valueParser: (value: any, cellMeta: CellProperties) => value,
   valueGetter: (value: any, row: number, column: number, cellMeta: CellProperties) => value,
   valueSetter: (value: any, row: number, column: number, cellMeta: CellProperties) => `${value} at row ${row}, column ${column}`,
   viewportColumnRenderingOffset: oneOf(100, 'auto'),
@@ -794,7 +799,4 @@ const allSettings: Required<GridSettings> = {
     const rowDelta: number = delta.row;
     const colDelta: number = delta.row;
   },
-  persistentStateLoad: () => {},
-  persistentStateReset: () => {},
-  persistentStateSave: () => {},
 };

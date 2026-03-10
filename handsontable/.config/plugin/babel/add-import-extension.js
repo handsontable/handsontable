@@ -6,10 +6,9 @@ const { declare } = require('@babel/helper-plugin-utils');
 const VALID_EXTENSIONS = ['js', 'mjs'];
 
 const hasExtension = moduleName => VALID_EXTENSIONS.some(ext => moduleName.endsWith(`.${ext}`));
-const isCoreJSPolyfill = moduleName => moduleName.startsWith('core-js');
 const isLocalModule = moduleName => moduleName.startsWith('.');
 const isProcessableModule = (moduleName) => {
-  return !hasExtension(moduleName) && (isCoreJSPolyfill(moduleName) || isLocalModule(moduleName));
+  return !hasExtension(moduleName) && isLocalModule(moduleName);
 };
 
 const createVisitor = ({ declaration, origArgs, extension = 'js' }) => {
@@ -24,7 +23,6 @@ const createVisitor = ({ declaration, origArgs, extension = 'js' }) => {
 
     const { value: moduleName } = source;
     const absoluteFilePath = resolve(dirname(filename), moduleName);
-    const finalExtension = isCoreJSPolyfill(moduleName) ? 'js' : extension;
 
     let newModulePath;
 
@@ -45,16 +43,16 @@ const createVisitor = ({ declaration, origArgs, extension = 'js' }) => {
     //
     // the plugin will rename import declaration to point to the `plugins.js` file.
     if (existsSync(`${absoluteFilePath}.js`) || existsSync(`${absoluteFilePath}.ts`)) {
-      newModulePath = `${moduleName}.${finalExtension}`;
+      newModulePath = `${moduleName}.${extension}`;
 
     // In a case when the file doesn't exist and the module is a directory it will
     // rename to `plugins/index.js`.
     } else if (existsSync(absoluteFilePath) && lstatSync(absoluteFilePath).isDirectory()) {
-      newModulePath = `${moduleName}/index.${finalExtension}`;
+      newModulePath = `${moduleName}/index.${extension}`;
 
     // And for other cases it simply put the extension on the end of the module path
     } else {
-      newModulePath = `${moduleName}.${finalExtension}`;
+      newModulePath = `${moduleName}.${extension}`;
     }
 
     path.replaceWith(declaration(...origArgs(path), types.stringLiteral(newModulePath)));

@@ -5,6 +5,8 @@ import { Directive, EventEmitter, HostBinding, Input, Output } from '@angular/co
  */
 @Directive()
 export abstract class HotCellEditorComponent<T extends string | number | boolean> {
+  static readonly EDITOR_MARKER = Symbol('HotCellEditorComponent');
+
   /** The tabindex attribute for the editor. */
   @HostBinding('attr.tabindex') protected tabindex = -1;
 

@@ -9,7 +9,7 @@ import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 export const PLUGIN_KEY = 'manualRowResize';
 export const PLUGIN_PRIORITY = 30;
-const PERSISTENT_STATE_KEY = 'manualRowHeights';
+const PERSISTENT_STATE_KEY = PLUGIN_KEY;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -18,8 +18,7 @@ const PERSISTENT_STATE_KEY = 'manualRowHeights';
  * @class ManualRowResize
  *
  * @description
- * This plugin allows to change rows height. To make rows height persistent the {@link Options#persistentState}
- * plugin should be enabled.
+ * This plugin allows to change rows height.
  *
  * The plugin creates additional components to make resizing possibly using user interface:
  * - handle - the draggable element that sets the desired height of the row.
@@ -590,7 +589,7 @@ export class ManualRowResize extends BasePlugin {
 
     // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
     // shouldn't be drawn just after removing it.
-    this.hot._registerImmediate(() => {
+    (this.hot as Record<string, (cb: () => void) => void>)._registerMicrotask(() => {
       this.#isTriggeredByRMB = false;
     });
   }
@@ -642,15 +641,9 @@ export class ManualRowResize extends BasePlugin {
    */
   #onMapInit() {
     const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
-    const loadedManualRowHeights = this.loadManualRowHeights();
 
     this.hot.batchExecution(() => {
-      if (typeof loadedManualRowHeights !== 'undefined') {
-        loadedManualRowHeights.forEach((height, index) => {
-          this.#rowHeightsMap.setValueAtIndex(index, height);
-        });
-
-      } else if (Array.isArray(initialSetting)) {
+      if (Array.isArray(initialSetting)) {
 
         initialSetting.forEach((height, index) => {
           this.#rowHeightsMap.setValueAtIndex(index, height);

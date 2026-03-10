@@ -4,6 +4,7 @@ import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
 import { sanitize, isJSON } from '../../helpers/string';
 import { isObject, deepClone } from '../../helpers/object';
+import { deprecatedWarn } from '../../helpers/console';
 import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
@@ -41,6 +42,8 @@ const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
 ].join('');
+
+const sanitizeDeprecatedMessageShown = new WeakSet();
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -373,7 +376,9 @@ export class CopyPaste extends BasePlugin {
               this.hot.getCopyableSourceData(row, column) :
               this.hot.getCopyableData(row, column);
 
-          if (useSourceData && isObject(copyableCellData)) {
+          if (useSourceData &&
+            (isObject(copyableCellData) || Array.isArray(copyableCellData))
+          ) {
             copyableCellData = JSON.stringify(copyableCellData);
           }
 
@@ -579,6 +584,7 @@ export class CopyPaste extends BasePlugin {
         const {
           skipColumnOnPaste,
           visualCol,
+          parsePastedValue,
         } = this.hot.getCellMeta(visualRow as number, visualColumnForPopulatedData);
         const sourceDataAtTarget = this.hot.getSourceDataAtCell(visualRow as number, visualColumnForPopulatedData);
         const insertedColumn = newRow.length % populatedColumnsLength;
@@ -596,12 +602,10 @@ export class CopyPaste extends BasePlugin {
         const originalCellValue = originalPlainData?.[insertedRow]?.[insertedColumn];
         let cellValue: unknown = plainData[insertedRow][insertedColumn];
 
-        if (sourceData && isJSON(sourceCellValue) && cellValue === originalCellValue) {
+        if (parsePastedValue && sourceData && isJSON(sourceCellValue) && cellValue === originalCellValue) {
           const parsedCellValue = JSON.parse(sourceCellValue);
 
-          if (isObject(sourceDataAtTarget) || sourceDataAtTarget === null) {
-            cellValue = parsedCellValue;
-          }
+          cellValue = parsedCellValue;
         }
 
         newRow.push(cellValue);

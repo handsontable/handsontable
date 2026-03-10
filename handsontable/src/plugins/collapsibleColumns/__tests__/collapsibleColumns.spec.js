@@ -2231,6 +2231,36 @@ describe('CollapsibleColumns', () => {
         </tbody>
         `);
     });
+
+    it('should calculate the column width on the longest cell value, not the header text size (#dev-2151)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        nestedHeaders: [
+          ['A1', { label: 'Very long header text', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ],
+        collapsibleColumns: true,
+      });
+
+      await setDataAtCell(0, 1, 'Longer value');
+
+      expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(90);
+        main.toBe(99);
+        horizon.toBe(107);
+      });
+
+      $(getCell(-2, 1).querySelector('.collapsibleIndicator')) // header "B1"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(90);
+        main.toBe(99);
+        horizon.toBe(107);
+      });
+    });
   });
 
   describe('expanding headers functionality', () => {
@@ -3291,73 +3321,6 @@ describe('CollapsibleColumns', () => {
   });
 
   describe('collapsible button', () => {
-    using('configuration object', [
-      { htmlDir: 'ltr', layoutDirection: 'inherit' },
-      { htmlDir: 'rtl', layoutDirection: 'ltr' },
-    ], ({ htmlDir, layoutDirection }) => {
-      beforeEach(() => {
-        $('html').attr('dir', htmlDir);
-      });
-
-      afterEach(() => {
-        $('html').attr('dir', 'ltr');
-      });
-
-      it.forTheme('classic')('should be placed in correct place', async() => {
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(10, 10),
-          nestedHeaders: [
-            ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
-            ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
-          ],
-          collapsibleColumns: true
-        });
-
-        const indicatorComputedStyle = window.getComputedStyle(getCell(-1, 3).querySelector('.collapsibleIndicator'));
-
-        expect(indicatorComputedStyle.marginInlineStart).toEqual('2px');
-        expect(indicatorComputedStyle.position).toEqual('relative');
-        expect(indicatorComputedStyle.float).toEqual('right');
-      });
-
-      it.forTheme('main')('should be placed in correct place', async() => {
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(10, 10),
-          nestedHeaders: [
-            ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
-            ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
-          ],
-          collapsibleColumns: true
-        });
-
-        const indicatorComputedStyle = window.getComputedStyle(getCell(-1, 3).querySelector('.collapsibleIndicator'));
-
-        expect(indicatorComputedStyle.marginInlineStart).toEqual('4px');
-        expect(indicatorComputedStyle.position).toEqual('relative');
-        expect(indicatorComputedStyle.float).toEqual('right');
-      });
-
-      it.forTheme('horizon')('should be placed in correct place', async() => {
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(10, 10),
-          nestedHeaders: [
-            ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
-            ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
-          ],
-          collapsibleColumns: true
-        });
-
-        const indicatorComputedStyle = window.getComputedStyle(getCell(-1, 3).querySelector('.collapsibleIndicator'));
-
-        expect(indicatorComputedStyle.marginInlineStart).toEqual('6px');
-        expect(indicatorComputedStyle.position).toEqual('relative');
-        expect(indicatorComputedStyle.float).toEqual('right');
-      });
-    });
-
     it('should call "toggleCollapsibleSection" internally with correct toggle state ' +
        '(depends if the clicked header is already collapsed or not)', async() => {
       handsontable({

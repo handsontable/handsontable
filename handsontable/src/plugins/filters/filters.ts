@@ -6,6 +6,8 @@ import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
+import { getValueGetterValue } from '../../utils/valueAccessors';
+import { createObjectPropListener } from '../../helpers/object';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
@@ -723,10 +725,7 @@ export class Filters extends BasePlugin {
    */
   filter(): void {
     const { navigableHeaders } = this.hot.getSettings();
-    const dataFilter = this._createDataFilter();
     const needToFilter = !this.conditionCollection.isEmpty();
-    let visibleVisualRows = [];
-
     const conditions = this.exportConditions();
     const allowFiltering = this.hot.runHooks(
       'beforeFilter',
@@ -736,13 +735,13 @@ export class Filters extends BasePlugin {
 
     if (allowFiltering !== false && needToFilter) {
       const trimmedRows: number[] = [];
+      const dataFilter = this._createDataFilter();
+      const visibleVisualRows = arrayMap(dataFilter.filter(), (rowData) => (rowData as { meta: { visualRow: number } }).meta.visualRow);
+      const rowIndexesToShow = visibleVisualRows;
+      const visibleVisualRowsAssertion = createArrayAssertion(rowIndexesToShow);
 
       this.hot.batchExecution(() => {
         this.filtersRowsMap.clear();
-
-        visibleVisualRows = arrayMap(dataFilter.filter(), (rowData) => (rowData as { meta: { visualRow: number } }).meta.visualRow);
-
-        const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
 
         rangeEach(this.hot.countSourceRows() - 1, (row: number) => {
           if (!visibleVisualRowsAssertion(row)) {
@@ -755,7 +754,7 @@ export class Filters extends BasePlugin {
         });
       }, true);
 
-      if (!navigableHeaders && !visibleVisualRows.length) {
+      if (!navigableHeaders && !rowIndexesToShow.length) {
         this.hot.deselectCell();
       }
 
@@ -804,22 +803,23 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Returns handsontable source data with cell meta based on current selection.
+   * Returns the full dataset for a column with cell meta for each row. The dataset is independent of
+   * any index mapper - no matter if the data is filtered, sorted, or otherwise transformed all rows
+   * are included.
    *
-   * @param {number} [column] The physical column index. By default column index accept the value of the selected column.
-   * @returns {Array} Returns array of objects where keys as row index.
+   * @param {number} physicalColumn The physical column index.
+   * @returns {Array<{meta: CellProperties, value: any}>} Array of objects with `meta` and `value`, one per source row.
    */
   getDataMapAtColumn(column: number): Record<string, unknown>[] {
     const visualColumn = this.hot.toVisualColumn(column);
     const data: Record<string, unknown>[] = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualColumn), (value, rowIndex) => {
-      const { row, col, visualCol, visualRow, type, instance, dateFormat, locale } = this.hot.getCellMeta(rowIndex, visualColumn);
-      const dataValue = this.hot.getDataAtCell(this.hot.toVisualRow(rowIndex), visualColumn) ?? value;
+      const cellMeta = this.hot.getCellMeta(rowIndex, visualColumn);
 
       data.push({
-        meta: { row, col, visualCol, visualRow, type, instance, dateFormat, locale },
-        value: toEmptyString(dataValue),
+        meta: cellMeta,
+        value: toEmptyString(value),
       });
     });
 

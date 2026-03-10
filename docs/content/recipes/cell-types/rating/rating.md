@@ -2,7 +2,7 @@
 id: b5f02fb2
 title: Star Rating
 metaTitle:  Star Rating Cell Type - JavaScript Data Grid | Handsontable"
-description: Learn how to create a custom Handsontable cell type using star emojis for intuitive 1-5 star ratings directly in your data grid.
+description: Learn how to create a custom Handsontable cell type using SVG stars for intuitive 1-5 star ratings directly in your data grid.
 permalink: /recipes/cell-types/rating
 canonicalUrl: /recipes/cell-types/rating
 tags:
@@ -25,17 +25,18 @@ category: Cell Types
 
 ## Overview
 
-This guide shows how to create an interactive star rating cell using emoji stars. Perfect for product ratings, review scores, or any scenario where users need to provide a 1-5 star rating.
+This guide shows how to create an interactive star rating cell using inline SVG stars. Perfect for product ratings, review scores, or any scenario where users need to provide a 1-5 star rating.
 
 **Difficulty:** Beginner
 **Time:** ~15 minutes
-**Libraries:** None (pure HTML and JavaScript)
+**Libraries:** None (pure HTML, SVG and JavaScript)
 
 ## What You'll Build
 
 A cell that:
-- Displays 5 stars both when editing and viewing
-- Shows filled stars (opacity 1.0) and unfilled stars (opacity 0.4)
+- Displays 5 SVG stars both when editing and viewing
+- Shows filled stars (gold) and unfilled stars (gray)
+- Uses Handsontable CSS tokens for theme-aware editor styling
 - Supports mouse hover for preview
 - Allows keyboard input (1-5 keys, arrow keys)
 - Provides immediate visual feedback
@@ -45,10 +46,11 @@ A cell that:
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
 
 @[code](@/content/recipes/cell-types/rating/javascript/example1.js)
 @[code](@/content/recipes/cell-types/rating/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/rating/javascript/example1.css)
 
 :::
 
@@ -56,115 +58,197 @@ A cell that:
 
 ## Prerequisites
 
-None! This uses only native HTML and JavaScript features.
+None! This uses only native HTML, SVG and JavaScript features.
 
 ## Step 1: Import Dependencies
 
 ```typescript
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import { editorFactory } from 'handsontable/editors';
+import { rendererFactory } from 'handsontable/renderers';
 
 registerAllModules();
 ```
 
 **What we're NOT importing:**
-- No date libraries
+- No icon libraries
 - No UI component libraries
-- No external emoji libraries
+- No external SVG sprite sheets
 - Just Handsontable.
 
-## Step 2: Create the Renderer
+## Step 2: Define the Star SVG
 
-The renderer displays 5 stars with filled stars (opacity 1.0) and unfilled stars (opacity 0.4).
+Create an inline SVG string for the star shape. Using `fill="currentColor"` allows CSS to control the star color.
+
+```typescript
+const starSvg =
+  '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+```
+
+**What's happening:**
+- `width="1em" height="1em"` - Stars scale with the font size
+- `viewBox="0 0 24 24"` - Standard 24x24 coordinate space
+- `fill="currentColor"` - Inherits the CSS `color` property, so active/inactive states are controlled via CSS
+- The `<path>` draws a classic 5-pointed star shape
+
+**Why SVG instead of emoji?**
+- Consistent rendering across all browsers and operating systems
+- Full control over color, size, and styling via CSS
+- No platform-dependent emoji variations
+- Crisp at any resolution
+
+## Step 3: Add CSS Styling
+
+Create a separate CSS file for the rating styles. This uses Handsontable CSS custom properties (tokens) so the editor automatically adapts to custom themes and dark mode.
+
+```css
+.rating-cell {
+  display: flex;
+  align-items: center;
+  margin: 3px 0 0 -1px;
+}
+
+.rating-star {
+  color: var(--ht-background-secondary-color, #e0e0e0);
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rating-star.active {
+  color: #facc15;
+}
+
+.rating-editor {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box !important;
+  border: none;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
+    var(--ht-cell-editor-border-color, #1a42e8),
+    0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
+    var(--ht-cell-editor-shadow-color, transparent);
+  background-color: var(--ht-cell-editor-background-color, #ffffff);
+  padding: var(--ht-cell-vertical-padding, 4px)
+    var(--ht-cell-horizontal-padding, 8px);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
+
+.rating-editor .rating-star {
+  cursor: pointer;
+}
+
+.rating-editor .rating-star.current {
+  color: var(--ht-accent-color, #1a42e8);
+}
+```
+
+**Cell container:**
+- `.rating-cell` wraps the stars in the renderer with `display: flex` to match the editor layout
+- `margin: 3px 0 0 -1px` - Fine-tunes alignment between renderer and editor to prevent visual jump
+
+**Star colors:**
+- `var(--ht-background-secondary-color, #e0e0e0)` - Inactive/unfilled stars (adapts to theme)
+- `#facc15` (gold) - Active/filled stars
+- Colors are applied via the CSS `color` property, which the SVG inherits through `fill="currentColor"`
+
+**Current star indicator:**
+- `.rating-editor .rating-star.current` highlights the last active star (the one matching the rating value) using `--ht-accent-color`
+- Makes it clear which star is selected while editing — the current star turns blue (accent color) instead of gold
+
+**Handsontable tokens used:**
+- `--ht-background-secondary-color` - Inactive star color (adapts to theme)
+- `--ht-accent-color` - Current star highlight in editor (blue)
+- `--ht-cell-editor-border-color` / `--ht-cell-editor-border-width` - blue border matching native editors
+- `--ht-cell-editor-background-color` - editor background
+- `--ht-cell-editor-shadow-blur-radius` / `--ht-cell-editor-shadow-color` - editor shadow
+- `--ht-cell-vertical-padding` / `--ht-cell-horizontal-padding` - consistent cell padding matching the renderer
+
+## Step 4: Create the Renderer
+
+The renderer displays 5 SVG stars wrapped in a flex container using CSS classes for color control.
 
 ```typescript
 renderer: rendererFactory(({ td, value }) => {
-  td.innerHTML = Array.from({ length: 5 }, (_, index) =>
-    `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
-  ).join('');
+  td.innerHTML = `<div class="rating-cell">${Array.from(
+    { length: 5 },
+    (_, index) =>
+      `<span class="rating-star ${index < value ? 'active' : ''}">${starSvg}</span>`
+  ).join('')}</div>`;
 })
 ```
 
 **What's happening:**
-
-### Key concepts:
+- Stars are wrapped in a `<div class="rating-cell">` flex container to match the editor's flex layout
 - `Array.from({ length: 5 })` - Creates an array with 5 elements (indices 0-4)
-- `index < value` - Stars up to the rating value are filled (opacity 1.0)
-- `index >= value` - Stars beyond the rating are unfilled (opacity 0.4)
+- `index < value` - Stars up to the rating value get the `active` class (gold color)
+- `index >= value` - Stars beyond the rating stay gray via CSS
+- Each span contains the inline SVG star
 - `join('')` - Concatenates all star spans into a single string
 
-**Visual example:**
-- Rating 3: ⭐⭐⭐<span style="opacity:0.4">⭐⭐</span> (first 3 stars full opacity, last 2 faded)
-- Rating 5: ⭐⭐⭐⭐⭐ (all 5 stars full opacity)
-- Rating 1: ⭐<span style="opacity:0.4">⭐⭐⭐⭐</span> (first star full, rest faded)
+## Step 5: Create the Validator
 
-**Why opacity instead of showing/hiding?**
-- Creates a smooth visual feedback
-- All stars always visible (easier to understand scale)
-- Intuitive "filled vs unfilled" appearance
-
-## Step 3: Create the Validator
-
-Ensure values are within the 1-5 star range.
+Ensure values are within the valid range.
 
 ```typescript
 validator: (value, callback) => {
   value = parseInt(value);
 
-  callback(value >= 1 && value <= 5);
+  callback(value >= 0 && value <= 100);
 }
 ```
 
 **What's happening:**
 - Convert value to integer (keyboard input returns strings)
-- Check if between 1 and 5 (star rating range)
+- Validate the value is within the acceptable range
 - Call `callback(true)` for valid, `callback(false)` for invalid
 
-## Step 4: Editor - Initialize (`init`)
+## Step 6: Editor - Initialize (`init`)
 
 Create the container div for the star rating editor.
 
 ```typescript
 init(editor) {
-  // Create container div for stars
-  editor.input = editor.hot.rootDocument.createElement('div') as HTMLDivElement;
-  editor.input.style = 'background: #eee; padding: 5px 8px; border:1px solid blue; cursor: pointer; border-radius: 4px; font-size: 16px;';
+  editor.input = editor.hot.rootDocument.createElement('DIV') as HTMLDivElement;
+  editor.input.classList.add('rating-editor');
 }
 ```
 
 **What's happening:**
 1. Create a `div` container for the star buttons
-2. Style it with background, padding, border, and cursor pointer
-3. This container will hold the 5 star elements
+2. Add the `rating-editor` CSS class (all styling is in the CSS file)
+3. This container will hold the 5 SVG star elements
 
-**Key styling:**
-- `background: #eee` - Light gray background
-- `padding: 5px 8px` - Internal spacing
-- `border: 1px solid blue` - Visual border
-- `cursor: pointer` - Indicates interactivity
-- `border-radius: 4px` - Rounded corners
-- `font-size: 16px` - Star emoji size
+**Key styling (from CSS):**
+- `display: flex; align-items: center` - Stars aligned vertically
+- `box-shadow` with `--ht-cell-editor-border-color` - Blue border matching native editors
+- `padding` with cell padding tokens - Matches renderer to prevent visual jump
+- `font-family/font-size/line-height: inherit` - Consistent sizing with the cell
 
-## Step 5: Editor - After Init Hook (`afterInit`)
+## Step 7: Editor - After Init Hook (`afterInit`)
 
 Set up mouse events for hover preview and click selection.
 
 ```typescript
 afterInit(editor) {
-  // Mouseover: preview rating as user hovers
   editor.input.addEventListener('mouseover', (event) => {
-    if (event.target instanceof HTMLSpanElement && event.target.dataset.value) {
-      const hoverValue = parseInt(event.target.dataset.value);
+    const star = (event.target as HTMLElement).closest('.rating-star') as HTMLElement | null;
 
-      if (parseInt(editor.value) !== hoverValue) {
-        editor.setValue(hoverValue);
-      }
+    if (
+      star?.dataset.value &&
+      parseInt(editor.value) !== parseInt(star.dataset.value)
+    ) {
+      editor.setValue(star.dataset.value);
     }
   });
 
-  // Mousedown: select rating and finish editing
   editor.input.addEventListener('mousedown', () => {
     editor.finishEditing();
   });
@@ -174,9 +258,9 @@ afterInit(editor) {
 **What's happening:**
 
 ### Mouseover Event:
-1. User hovers over a star
-2. Check if target is a star span with `data-value` attribute
-3. Get the hover rating from `dataset.value`
+1. User hovers over a star (or its SVG child element)
+2. Use `closest('.rating-star')` to find the parent span — this is important because the hover target may be the SVG `<path>` element inside the span
+3. Get the hover rating from the span's `dataset.value`
 4. If different from current value, update it
 5. This creates a "preview" effect as user hovers
 
@@ -185,19 +269,23 @@ afterInit(editor) {
 2. Finish editing immediately
 3. Value is saved to the cell
 
-**Why mousedown instead of click?**
-- `mousedown` fires earlier than `click`
-- Feels more responsive
-- User sees immediate feedback
+**Why `closest()` instead of checking `event.target` directly?**
+- With inline SVGs, the actual hover/click target is often the `<svg>` or `<path>` element, not the parent `<span>`
+- `closest('.rating-star')` walks up the DOM tree to find the span with the `data-value` attribute
+- This ensures reliable star detection regardless of which SVG child element the user interacts with
 
-## Step 6: Editor - Render Function (`render`)
+## Step 8: Editor - Render Function (`render`)
 
 Generate the HTML for the 5 star buttons based on current rating.
 
 ```typescript
 render(editor) {
-  editor.input.innerHTML = Array.from({ length: 5 }, (_, index) =>
-    `<span data-value="${index + 1}" style="opacity: ${index < editor.value ? '1' : '0.4'}">⭐</span>`
+  editor.input.innerHTML = Array.from(
+    { length: 5 },
+    (_, index) =>
+      `<span data-value="${index + 1}" class="rating-star ${
+        index < editor.value ? 'active' : ''
+      }${index + 1 === parseInt(editor.value) ? ' current' : ''}">${starSvg}</span>`
   ).join('');
 }
 ```
@@ -205,20 +293,18 @@ render(editor) {
 **What's happening:**
 1. Create 5 star spans (indices 0-4, values 1-5)
 2. Each span has `data-value` attribute with rating (1-5)
-3. Opacity: filled stars (index < value) = 1.0, unfilled = 0.4
-4. Join all spans into a single HTML string
-
-**Key attributes:**
-- `data-value="${index + 1}"` - Stores the rating for this star (1-5)
-- Used by mouseover event to know which rating to preview
-- Enables click-to-select functionality
+3. Stars use the `rating-star` class for base styling (gray color)
+4. Active stars get the `active` class (gold color)
+5. The star matching the current value gets the `current` class (accent color) — this highlights the selected rating in the editor
+6. Each span contains the inline SVG star
+7. Join all spans into a single HTML string
 
 **Dynamic rendering:**
 - Updates whenever `editor.setValue()` is called
 - Automatically called by `editorFactory` when value changes
 - Provides live preview as user interacts
 
-## Step 7: Editor - Keyboard Shortcuts
+## Step 9: Editor - Keyboard Shortcuts
 
 Add keyboard support for rating selection.
 
@@ -267,29 +353,32 @@ shortcuts: [
 - Accessible for keyboard-only users
 - Number keys for direct selection, arrows for adjustment
 
-## Step 8: Complete Cell Definition
+## Step 10: Complete Cell Definition
 
 ```typescript
+const starSvg =
+  '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+
 const cellDefinition = {
   renderer: rendererFactory(({ td, value }) => {
-    td.innerHTML = Array.from({ length: 5 }, (_, index) =>
-      `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
-    ).join('');
+    td.innerHTML = `<div class="rating-cell">${Array.from(
+      { length: 5 },
+      (_, index) =>
+        `<span class="rating-star ${index < value ? 'active' : ''}">${starSvg}</span>`
+    ).join('')}</div>`;
   }),
-
   validator: (value, callback) => {
     value = parseInt(value);
 
-    callback(value >= 1 && value <= 5);
+    callback(value >= 0 && value <= 100);
   },
-
   editor: editorFactory<{ input: HTMLDivElement }>({
     shortcuts: [
       {
         keys: [['1'], ['2'], ['3'], ['4'], ['5']],
         callback: (editor, _event) => {
           editor.setValue((_event as KeyboardEvent).key);
-        }
+        },
       },
       {
         keys: [['ArrowRight']],
@@ -297,7 +386,7 @@ const cellDefinition = {
           if (parseInt(editor.value) < 5) {
             editor.setValue(parseInt(editor.value) + 1);
           }
-        }
+        },
       },
       {
         keys: [['ArrowLeft']],
@@ -305,21 +394,26 @@ const cellDefinition = {
           if (parseInt(editor.value) > 1) {
             editor.setValue(parseInt(editor.value) - 1);
           }
-        }
-      }
+        },
+      },
     ],
     init(editor) {
-      editor.input = editor.hot.rootDocument.createElement('div') as HTMLDivElement;
-      editor.input.style = 'background: #eee; padding: 5px 8px; border:1px solid blue; cursor: pointer; border-radius: 4px; font-size: 16px;';
+      editor.input = editor.hot.rootDocument.createElement(
+        'DIV'
+      ) as HTMLDivElement;
+      editor.input.classList.add('rating-editor');
     },
     afterInit(editor) {
       editor.input.addEventListener('mouseover', (event) => {
-        if (event.target instanceof HTMLSpanElement && event.target.dataset.value) {
-          const hoverValue = parseInt(event.target.dataset.value);
+        const star = (event.target as HTMLElement).closest(
+          '.rating-star'
+        ) as HTMLElement | null;
 
-          if (parseInt(editor.value) !== hoverValue) {
-            editor.setValue(hoverValue);
-          }
+        if (
+          star?.dataset.value &&
+          parseInt(editor.value) !== parseInt(star.dataset.value)
+        ) {
+          editor.setValue(star.dataset.value);
         }
       });
       editor.input.addEventListener('mousedown', () => {
@@ -327,8 +421,12 @@ const cellDefinition = {
       });
     },
     render(editor) {
-      editor.input.innerHTML = Array.from({ length: 5 }, (_, index) =>
-        `<span data-value="${index + 1}" style="opacity: ${index < editor.value ? '1' : '0.4'}">⭐</span>`
+      editor.input.innerHTML = Array.from(
+        { length: 5 },
+        (_, index) =>
+          `<span data-value="${index + 1}" class="rating-star ${
+            index < editor.value ? 'active' : ''
+          }${index + 1 === parseInt(editor.value) ? ' current' : ''}">${starSvg}</span>`
       ).join('');
     },
   }),
@@ -336,43 +434,35 @@ const cellDefinition = {
 ```
 
 **What's happening:**
-- **renderer**: Displays 5 stars with opacity based on rating
-- **validator**: Ensures rating is between 1-5
+- **starSvg**: Inline SVG star with `fill="currentColor"` for CSS color control
+- **renderer**: Displays 5 SVG stars wrapped in a `.rating-cell` flex container with CSS class-based coloring (gold/gray)
+- **validator**: Ensures rating is within valid range
 - **editor**: Uses `editorFactory` helper with:
   - Keyboard shortcuts for 1-5 keys and arrow keys
-  - Container initialization
-  - Mouse events for hover preview and click
-  - Render function to generate star HTML
+  - Container initialization with `rating-editor` CSS class
+  - Mouse events using `closest()` for reliable SVG hover detection
+  - Render function with `current` class to highlight the selected star using accent color
 
-## Step 9: Use in Handsontable
+## Step 11: Use in Handsontable
 
 ```typescript
 const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
-  themeName: 'ht-theme-main',
-  data: [
-    { id: 1, itemName: 'Lunar Core', stars: 4 },
-    { id: 2, itemName: 'Zero Thrusters', stars: 2 },
-    { id: 3, itemName: 'EVA Suits', stars: 5 },
-    { id: 4, itemName: 'Solar Panels', stars: 3 },
-  ],
-  colHeaders: [
-    'ID',
-    'Item Name',
-    'Rating',
-  ],
+  data,
+  colHeaders: ['Product', 'Category', 'Rating', 'Reviews', 'Price'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
+  autoWrapRow: true,
+  headerClassName: 'htLeft',
   columns: [
-    { data: 'id', type: 'numeric' },
-    { data: 'itemName', type: 'text' },
-    {
-      data: 'stars',
-      width: 100,
-      ...cellDefinition,
-    }
+    { data: 'product', type: 'text', width: 240 },
+    { data: 'category', type: 'text', width: 120 },
+    { data: 'rating', width: 150, ...cellDefinition },
+    { data: 'reviews', type: 'numeric', width: 80 },
+    { data: 'price', type: 'numeric', width: 80 },
   ],
   licenseKey: 'non-commercial-and-evaluation',
 };
@@ -380,17 +470,23 @@ const hotOptions: Handsontable.GridSettings = {
 const hot = new Handsontable(container, hotOptions);
 ```
 
+**Key configuration:**
+- `...cellDefinition` - Spreads the renderer, validator, and editor onto the Rating column
+- `headerClassName: 'htLeft'` - Left-aligns all column headers
+- `width: '100%'` - Table fills the container width
+
 ## How It Works - Complete Flow
 
-1. **Initial Render**: Cell displays 5 stars with filled stars based on rating
-2. **User Double-Clicks or F2**: Editor opens over cell showing interactive stars
-3. **Mouse Hover**: User hovers over stars → preview rating updates in real-time
-4. **Click Selection**: User clicks → rating selected and editor closes
-5. **Keyboard Input**: User presses 1-5 keys → rating set directly
-6. **Arrow Navigation**: User presses ArrowLeft/Right → rating increments/decrements
-7. **Validation**: Validator checks range (1-5)
-8. **Save**: Valid value saved to cell
-9. **Editor Closes**: Cell shows updated star rating
+1. **Initial Render**: Cell displays 5 SVG stars — gold for filled, gray for unfilled
+2. **User Double-Clicks or Enter**: Editor opens over cell showing interactive stars with Handsontable blue border
+3. **Current Star Indicator**: The last active star turns blue (accent color) to clearly show the selected rating
+4. **Mouse Hover**: User hovers over stars → preview rating updates in real-time (detected via `closest()`)
+5. **Click Selection**: User clicks → rating selected and editor closes
+6. **Keyboard Input**: User presses 1-5 keys → rating set directly
+7. **Arrow Navigation**: User presses ArrowLeft/Right → rating increments/decrements
+8. **Validation**: Validator checks the value is valid
+9. **Save**: Valid value saved to cell
+10. **Editor Closes**: Cell shows updated star rating
 
 ## Enhancements
 
@@ -401,7 +497,7 @@ Display the numeric rating alongside stars:
 ```typescript
 renderer: rendererFactory(({ td, value }) => {
   const stars = Array.from({ length: 5 }, (_, index) =>
-    `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
+    `<span class="rating-star ${index < value ? 'active' : ''}">${starSvg}</span>`
   ).join('');
 
   td.innerHTML = `
@@ -413,63 +509,16 @@ renderer: rendererFactory(({ td, value }) => {
 })
 ```
 
-### 2. Color-Coded Stars
-
-Change star color based on rating value:
-
-```typescript
-renderer: rendererFactory(({ td, value }) => {
-  let color = '#ffd700'; // Gold for high ratings
-
-  if (value <= 2) color = '#f44336'; // Red for low ratings
-  else if (value === 3) color = '#ff9800'; // Orange for medium
-
-  td.innerHTML = Array.from({ length: 5 }, (_, index) =>
-    `<span style="opacity: ${index < value ? '1' : '0.4'}; color: ${color};">⭐</span>`
-  ).join('');
-})
-```
-
-### 3. Half-Star Ratings
-
-Support half-star ratings (0.5 increments):
-
-```typescript
-renderer: rendererFactory(({ td, value }) => {
-  const fullStars = Math.floor(value);
-  const hasHalfStar = value % 1 >= 0.5;
-
-  td.innerHTML = Array.from({ length: 5 }, (_, index) => {
-    if (index < fullStars) {
-      return '<span style="opacity: 1;">⭐</span>';
-
-    } else if (index === fullStars && hasHalfStar) {
-      return '<span style="opacity: 0.5;">⭐</span>';
-    }
-
-    return '<span style="opacity: 0.4;">⭐</span>';
-  }).join('');
-})
-
-// Update validator
-validator: (value, callback) => {
-  value = parseFloat(value);
-
-  callback(value >= 0.5 && value <= 5 && value % 0.5 === 0);
-}
-```
-
-### 4. Custom Star Count
+### 2. Custom Star Count
 
 Configurable number of stars per column:
 
 ```typescript
-// Make star count configurable
 renderer: rendererFactory(({ td, value, cellProperties }) => {
   const maxStars = cellProperties.maxStars || 5;
 
   td.innerHTML = Array.from({ length: maxStars }, (_, index) =>
-    `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
+    `<span class="rating-star ${index < value ? 'active' : ''}">${starSvg}</span>`
   ).join('');
 })
 
@@ -481,7 +530,7 @@ columns: [{
 }]
 ```
 
-### 5. Text Labels
+### 3. Text Labels
 
 Add text labels like "Excellent", "Good", etc.:
 
@@ -491,7 +540,7 @@ renderer: rendererFactory(({ td, value }) => {
   const label = labels[value] || '';
 
   const stars = Array.from({ length: 5 }, (_, index) =>
-    `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
+    `<span class="rating-star ${index < value ? 'active' : ''}">${starSvg}</span>`
   ).join('');
 
   td.innerHTML = `
@@ -503,27 +552,22 @@ renderer: rendererFactory(({ td, value }) => {
 })
 ```
 
+### 4. Custom Star Colors
 
-## Accessibility
+Change colors by overriding CSS for specific columns:
 
-Add ARIA attributes for screen readers:
+```css
+/* Red/green rating */
+.custom-rating .rating-star {
+  color: #e5e7eb;
+}
 
-```typescript
-render(editor) {
-  editor.input.innerHTML = Array.from({ length: 5 }, (_, index) => {
-    const rating = index + 1;
-    const isSelected = index < editor.value;
-
-    return `<span
-      data-value="${rating}"
-      role="button"
-      aria-label="${rating} star${rating > 1 ? 's' : ''}"
-      aria-pressed="${isSelected}"
-      tabindex="${isSelected ? '0' : '-1'}"
-      style="opacity: ${isSelected ? '1' : '0.4'}">⭐</span>`;
-  }).join('');
+.custom-rating .rating-star.active {
+  color: #22c55e;
 }
 ```
+
+## Accessibility
 
 **Keyboard navigation:**
 - **Number keys (1-5)**: Direct rating selection
@@ -531,145 +575,7 @@ render(editor) {
 - **Arrow Left**: Decrease rating (min 1)
 - **Enter**: Confirm selection and finish editing
 - **Escape**: Cancel editing
-- **Tab**: Navigate to editor
-
-**ARIA attributes:**
-- `role="button"`: Identifies stars as interactive buttons
-- `aria-label`: Describes each star (e.g., "1 star", "2 stars")
-- `aria-pressed`: Indicates selected stars
-- `tabindex`: Controls keyboard focus order
-
-## Performance Considerations
-
-### Why This Is Fast
-
-1. **Simple DOM**: Just 5 span elements, minimal markup
-2. **No External Libraries**: Zero overhead
-3. **Efficient Updates**: Only re-renders when value changes
-4. **Native Events**: Browser-optimized mouse/keyboard handlers
-
-### The Render Function
-
-```typescript
-render(editor) {
-  editor.input.innerHTML = Array.from({ length: 5 }, (_, index) =>
-    `<span data-value="${index + 1}" style="opacity: ${index < editor.value ? '1' : '0.4'}">⭐</span>`
-  ).join('');
-}
-```
-
-**Is this expensive?**
-- **Fires on**: Value changes (not continuously)
-- **DOM update**: Single `innerHTML` assignment
-- **String concatenation**: Very fast in modern JS
-
-**Performance verdict**: Extremely fast!
-- Minimal DOM manipulation (5 spans)
-- No complex calculations
-- Simple string operations
-
-**Optimization (if needed):**
-For many rows, consider caching star elements:
-
-```typescript
-init(editor) {
-  // Create stars once
-  editor.stars = Array.from({ length: 5 }, (_, index) => {
-    const star = document.createElement('span');
-
-    star.setAttribute('data-value', String(index + 1));
-    star.textContent = '⭐';
-    star.style.opacity = '0.4';
-
-    return star;
-  });
-
-  editor.stars.forEach(star => editor.input.appendChild(star));
-}
-
-render(editor) {
-  // Just update opacity classes
-  editor.stars.forEach((star, index) => {
-    star.style.opacity = index < editor.value ? '1' : '0.4';
-  });
-}
-```
-
-## Styling Tips
-
-### Custom Star Appearance (CSS)
-
-```css
-/* Style the editor container */
-.htSelectEditor {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Style stars */
-.htSelectEditor span {
-  display: inline-block;
-  font-size: 1.2em;
-  margin: 0 2px;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.htSelectEditor span:hover {
-  transform: scale(1.2);
-  filter: brightness(1.2);
-}
-
-/* Style filled stars */
-.htSelectEditor span[style*="opacity: 1"] {
-  filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.5));
-}
-```
-
-### Custom Cell Renderer Styling
-
-```typescript
-renderer: rendererFactory(({ td, value }) => {
-  td.innerHTML = `
-    <div style="
-      text-align: center;
-      font-size: 1.5em;
-      padding: 8px;
-      background: linear-gradient(to right,
-        ${value >= 1 ? '#ffd700' : '#e0e0e0'} 0%,
-        ${value >= 2 ? '#ffd700' : '#e0e0e0'} 20%,
-        ${value >= 3 ? '#ffd700' : '#e0e0e0'} 40%,
-        ${value >= 4 ? '#ffd700' : '#e0e0e0'} 60%,
-        ${value >= 5 ? '#ffd700' : '#e0e0e0'} 80%,
-        #e0e0e0 100%
-      );
-      border-radius: 4px;
-    ">
-      ${Array.from({ length: 5 }, (_, index) =>
-        `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
-      ).join('')}
-    </div>
-  `;
-})
-```
-
-### Animated Star Fills
-
-Add smooth transitions when rating changes:
-
-```typescript
-renderer: rendererFactory(({ td, value }) => {
-  td.innerHTML = Array.from({ length: 5 }, (_, index) =>
-    `<span style="
-      opacity: ${index < value ? '1' : '0.4'};
-      transition: opacity 0.3s ease;
-      display: inline-block;
-    ">⭐</span>`
-  ).join('');
-})
-```
-
 
 ---
 
-**Congratulations!** You've created an interactive star rating editor with hover preview and keyboard support using only native HTML and JavaScript, perfect for intuitive 1-5 star ratings in your data grid!
+**Congratulations!** You've created a theme-aware SVG star rating editor with hover preview and keyboard support using Handsontable CSS tokens, perfect for intuitive 1-5 star ratings in your data grid!

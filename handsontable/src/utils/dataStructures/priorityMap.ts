@@ -1,5 +1,6 @@
 import { isNumeric } from '../../helpers/number';
 import { isFunction } from '../../helpers/function';
+import { throwWithCause } from '../../helpers/errors';
 
 export const ASC = 'asc';
 export const DESC = 'desc';
@@ -37,10 +38,10 @@ export function createPriorityMap({ errorPriorityExists, errorPriorityNaN }: { e
    */
   function addItem(priority: number, item: unknown) {
     if (!isNumeric(priority)) {
-      throw new Error(errorNaNFn(priority));
+      throwWithCause(String(errorNaNFn(priority)));
     }
     if (priorityMap.has(priority)) {
-      throw new Error(errorExistsFn(priority));
+      throwWithCause(String(errorExistsFn(priority)));
     }
 
     priorityMap.set(priority, item);

@@ -1,4 +1,5 @@
 import { isFunction } from '../../helpers/function';
+import { throwWithCause } from '../../helpers/errors';
 
 const DEFAULT_ERROR_ID_EXISTS = (id: unknown) => `The id '${id}' is already declared in a map.`;
 
@@ -32,7 +33,7 @@ export function createUniqueMap({ errorIdExists }: { errorIdExists?: Function } 
    */
   function addItem(id: unknown, item: unknown) {
     if (hasItem(id)) {
-      throw new Error(errorFn(id));
+      throwWithCause(String(errorFn(id)));
     }
 
     uniqueMap.set(id, item);

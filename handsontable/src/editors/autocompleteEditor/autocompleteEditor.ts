@@ -1,7 +1,7 @@
 import type { HotInstance } from '../../common';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
-import { isObject } from '../../helpers/object';
+import { isKeyValueObject, isObject } from '../../helpers/object';
 import {
   addClass,
   getCaretPosition,
@@ -552,7 +552,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const { allowHtml } = this.cellProperties;
     const processValue = (value: unknown) => stringify(allowHtml ? value : stripTags(value as string));
 
-    if (values.every(value => this.#isKeyValueObject(value))) {
+    if (values.every(value => isKeyValueObject(value))) {
       return values.map((value) => {
         const obj = value as Record<string, unknown>;
 

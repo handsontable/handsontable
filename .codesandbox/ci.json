@@ -1,10 +1,9 @@
 {
   "buildCommand": "all build -- --e examples visual-tests",
   "packages": [
-    "wrappers/angular-wrapper",
     "handsontable",
+    "wrappers/angular-wrapper",
     "wrappers/react-wrapper",
-    "wrappers/vue",
     "wrappers/vue3"
   ],
   "publishDirectory": {
@@ -12,7 +11,6 @@
     "@handsontable/angular-wrapper": "wrappers/angular-wrapper/dist/hot-table",
     "@handsontable/react-wrapper": "wrappers/react-wrapper",
     "@handsontable/vue3": "wrappers/vue3"
-
   },
   "sandboxes": [
     "github/handsontable/handsontable/tree/develop/examples/prs/js/",
