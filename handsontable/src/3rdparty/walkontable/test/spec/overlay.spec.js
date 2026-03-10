@@ -1045,23 +1045,23 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsStart: 0,
-      fixedRowsTop: 0,
+      fixedColumnsStart: 2,
+      fixedRowsTop: 2,
       fixedRowsBottom: 0,
     });
 
     wt.draw();
 
     const drawSpy = spyOn(wt, 'draw').and.callThrough();
-    const holder = wt.wtTable.holder;
+    const scrollableElement = wt.wtOverlays.scrollableElement;
 
     // Simulate multiple rapid scroll events (as would happen with trackpad)
-    holder.scrollTop = 100;
-    holder.dispatchEvent(new Event('scroll'));
-    holder.scrollTop = 200;
-    holder.dispatchEvent(new Event('scroll'));
-    holder.scrollTop = 300;
-    holder.dispatchEvent(new Event('scroll'));
+    scrollableElement.scrollTop = 100;
+    scrollableElement.dispatchEvent(new Event('scroll'));
+    scrollableElement.scrollTop = 200;
+    scrollableElement.dispatchEvent(new Event('scroll'));
+    scrollableElement.scrollTop = 300;
+    scrollableElement.dispatchEvent(new Event('scroll'));
 
     // Immediately after scroll events, draw should not have been called yet
     expect(drawSpy).not.toHaveBeenCalled();
@@ -1082,19 +1082,19 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsStart: 0,
-      fixedRowsTop: 0,
+      fixedColumnsStart: 2,
+      fixedRowsTop: 2,
       fixedRowsBottom: 0,
     });
 
     wt.draw();
 
     const cancelAnimationFrameSpy = spyOn(window, 'cancelAnimationFrame').and.callThrough();
-    const holder = wt.wtTable.holder;
+    const scrollableElement = wt.wtOverlays.scrollableElement;
 
     // Trigger a scroll event
-    holder.scrollTop = 100;
-    holder.dispatchEvent(new Event('scroll'));
+    scrollableElement.scrollTop = 100;
+    scrollableElement.dispatchEvent(new Event('scroll'));
 
     // Destroy before the animation frame callback is executed
     wt.destroy();
