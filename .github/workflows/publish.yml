@@ -865,6 +865,9 @@ jobs:
           name: nuget_pack_${{ steps.version.outputs.version }}
           path: Handsontable.*.nupkg
 
+      - name: Clean up NuGet package
+        run: rm -f Handsontable.*.nupkg
+
       - name: Update changelog release date
         run: |
           VERSION='${{ steps.version.outputs.version }}'
@@ -1040,6 +1043,9 @@ jobs:
           dotnet nuget push "$NUPKG" \
             --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json
+
+      - name: Clean up NuGet package
+        run: rm -f *.nupkg
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
