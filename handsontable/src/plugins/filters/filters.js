@@ -815,13 +815,11 @@ export class Filters extends BasePlugin {
    * @param {number} columnIndex Column index of handled ValueComponent condition.
    */
   updateValueComponentCondition(columnIndex) {
-    const physicalColumn = this.hot.toPhysicalColumn(columnIndex);
+    const dataAtCol = this.hot.getDataAtCol(columnIndex).map((value, visualRow) => {
+      const cellMeta = this.hot.getCellMeta(visualRow, columnIndex);
 
-    if (physicalColumn === null) {
-      return;
-    }
-
-    const dataAtCol = this.getDataMapAtColumn(physicalColumn).map(({ value }) => value);
+      return toEmptyString(getValueGetterValue(value, cellMeta));
+    });
     const selectedValues = unifyColumnValues(dataAtCol);
 
     this.conditionUpdateObserver.updateStatesAtColumn(columnIndex, selectedValues);
