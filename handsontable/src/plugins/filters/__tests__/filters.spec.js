@@ -804,4 +804,119 @@ describe('Filters', () => {
       });
     });
   });
+
+  describe('Visual/Physical column index conversion (issue #11832)', () => {
+    it('should correctly update filter conditions after moving columns and adding data', async() => {
+      handsontable({
+        data: [
+          ['Mar 27, 2023', 'Product A', 'Cycling Cap'],
+          ['Oct 15, 2023', 'Product B', 'HL Mountain Shirt']
+        ],
+        colHeaders: ['Sold on', 'Product', 'Model'],
+        dropdownMenu: true,
+        manualColumnMove: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+
+      const plugin = getPlugin('filters');
+      const manualColumnMove = getPlugin('manualColumnMove');
+
+      // Move first column (Sold on) to third position
+      manualColumnMove.moveColumn(0, 2);
+      render();
+
+      // Add condition to the moved column (now at physical index 0, but visual index 2)
+      plugin.addCondition(2, 'by_value', [['Mar 27, 2023', 'Oct 15, 2023']]);
+      plugin.filter();
+
+      // Add new row and set data
+      alter('insert_row_below', 1);
+      setDataAtRowProp(2, 'Sold on', 'Mar 27, 2023');
+
+      await sleep(100);
+
+      // Verify that the filter still has conditions for the correct column
+      const conditions = plugin.conditionCollection.getConditions(0); // Physical column 0
+
+      expect(conditions.length).toBeGreaterThan(0);
+      expect(conditions[0].name).toBe('by_value');
+    });
+
+    it('should use physical column index when checking and updating conditions in #onAfterChange', () => {
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2']
+        ],
+        colHeaders: true,
+        manualColumnMove: true,
+        filters: true
+      });
+
+      const plugin = getPlugin('filters');
+      const manualColumnMove = getPlugin('manualColumnMove');
+
+      // Move column 0 to position 2
+      manualColumnMove.moveColumn(0, 2);
+      render();
+
+      // Add condition to physical column 0 (which is now at visual position 2)
+      // Physical column 0 corresponds to the original first column
+      const physicalColumn = 0;
+
+      plugin.addCondition(toVisualColumn(physicalColumn), 'by_value', [['A1', 'A2']]);
+      plugin.filter();
+
+      // Spy on updateValueComponentCondition to verify it's called with physical index
+      spyOn(plugin, 'updateValueComponentCondition').and.callThrough();
+
+      // Change data using the property name (which will be converted to column index)
+      // The first column in the original data has index 0
+      setDataAtCell(0, toVisualColumn(physicalColumn), 'A1-modified');
+
+      // Verify that updateValueComponentCondition was called with the physical column index
+      expect(plugin.updateValueComponentCondition).toHaveBeenCalledWith(physicalColumn);
+    });
+
+    it('should convert visual to physical index in updateValueComponentCondition', () => {
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2']
+        ],
+        colHeaders: true,
+        manualColumnMove: true,
+        filters: true
+      });
+
+      const plugin = getPlugin('filters');
+      const manualColumnMove = getPlugin('manualColumnMove');
+
+      // Move column 0 to position 2
+      manualColumnMove.moveColumn(0, 2);
+      render();
+
+      const physicalColumn = 0;
+      const visualColumn = toVisualColumn(physicalColumn);
+
+      plugin.addCondition(visualColumn, 'by_value', [['A1', 'A2']]);
+      plugin.filter();
+
+      // Spy on hot.getDataAtCol to verify it's called with visual index
+      const hotInstance = plugin.hot;
+
+      spyOn(hotInstance, 'getDataAtCol').and.callThrough();
+      spyOn(hotInstance, 'toVisualColumn').and.callThrough();
+
+      // Call updateValueComponentCondition with physical index
+      plugin.updateValueComponentCondition(physicalColumn);
+
+      // Verify that toVisualColumn was called to convert physical to visual
+      expect(hotInstance.toVisualColumn).toHaveBeenCalledWith(physicalColumn);
+      // Verify that getDataAtCol was called with the visual index
+      expect(hotInstance.getDataAtCol).toHaveBeenCalledWith(visualColumn);
+    });
+  });
 });
