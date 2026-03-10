@@ -109,15 +109,15 @@ export default {
   }
 
   .handsontable td .progressBar {
-    background: #37bc6c;
+    background: #37bc6c !important;
     height: 10px;
   }
 
   .handsontable td.star {
-    color: #fcb515;
+    color: #fcb515 !important;
   }
 
   .ht-wrapper .handsontable .htCore tr.selected td {
-    background: #edf3fd;
+    background: #edf3fd !important;
   }
 </style>

@@ -153,24 +153,24 @@ export default {
   }
 
   .handsontable td .progressBar {
-    background: #37bc6c;
+    background: #37bc6c !important;
     height: 10px;
   }
 
   .handsontable td.star {
-    color: #fcb515;
+    color: #fcb515 !important;
   }
 
   .ht-wrapper .handsontable .htCore tr.selected td {
-    background: #edf3fd;
+    background: #edf3fd !important;
   }
 
   .ht-theme-main-dark .ht-wrapper.handsontable .htCore tr.selected td {
-    background: #081b3d;
+    background: #081b3d !important;
   }
 
   .ht-theme-horizon-dark .ht-wrapper.handsontable .htCore tr.selected td {
-    background: #3a2901;
+    background: #3a2901 !important;
   }
 
   .input-spacing {
@@ -179,7 +179,7 @@ export default {
 
   .handsontable .ht_nestingParent,
   .handsontable .ht_nestingParent~td {
-    background: #B5B5B5;
-    color: #222;
+    background: #B5B5B5 !important;
+    color: #222 !important;
   }
 </style>

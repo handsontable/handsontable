@@ -4,20 +4,20 @@
 
 table.htCore {
   tr.odd td {
-    background: #fafbff;
+    background: #fafbff !important;
   }
 
   tr.selected td {
-    background: #edf3fd;
+    background: #edf3fd !important;
   }
 
   td .progressBar {
-    background: #37bc6c;
+    background: #37bc6c !important;
     height: 10px;
   }
 
   td.star {
-    color: #fcb515;
+    color: #fcb515 !important;
   }
 }
 
@@ -37,6 +37,6 @@ table.htCore {
 }
 .handsontable .ht_nestingParent,
 .handsontable .ht_nestingParent ~ td {
-  background: #B5B5B5;
-  color: #222;
+  background: #B5B5B5 !important;
+  color: #222 !important;
 }

@@ -5,7 +5,7 @@
 }
 
 .handsontable td.star {
-  color: #fcb515;
+  color: #fcb515 !important;
 }
 
 .ht-wrapper .handsontable .htCore tr.selected td {

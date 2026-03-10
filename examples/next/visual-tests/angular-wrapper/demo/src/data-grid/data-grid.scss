@@ -5,15 +5,15 @@
   font-weight: 400;
 
   td .progressBar {
-    background: #37bc6c;
+    background: #37bc6c !important;
     height: 10px;
   }
 
   td.star {
-    color: #fcb515;
+    color: #fcb515 !important;
   }
 
   .htCore tr.selected td {
-    background: #edf3fd;
+    background: #edf3fd !important;
   }
 }
