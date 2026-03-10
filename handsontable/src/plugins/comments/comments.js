@@ -15,6 +15,7 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
+import { getEditorAnchorWidth } from './utils';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
@@ -630,6 +631,7 @@ export class Comments extends BasePlugin {
     // TODO: Probably using `hot.getCell` would be the best. However, case for showing comment editor for hidden cell
     // potentially should be removed with that change (currently a test for it is passing).
     const TD = wt.getCell({ row: renderableRow, col: renderableColumn }, true);
+    const anchorTD = this.hot.getCell(visualRow, visualColumn) ?? TD;
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
 
     if (commentStyle) {
@@ -639,7 +641,8 @@ export class Comments extends BasePlugin {
       this.#editor.resetSize();
     }
 
-    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getColumnWidth(renderableColumn);
+    const lastColWidth = isBeforeRenderedColumns ? 0 :
+      getEditorAnchorWidth(anchorTD, wtTable.getColumnWidth(renderableColumn));
     const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
 
     const {
@@ -658,7 +661,8 @@ export class Comments extends BasePlugin {
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
     const verticalScrollbarWidth = hasVerticalScrollbar(this.hot.rootWindow) ? scrollbarWidth : 0;
     const horizontalScrollbarWidth = hasHorizontalScrollbar(this.hot.rootWindow) ? scrollbarWidth : 0;
-    let x = left + rootWindow.scrollX + lastColWidth;
+    const mergedBorderCompensation = anchorTD?.colSpan > 1 ? 1 : 0;
+    let x = left + rootWindow.scrollX + lastColWidth - mergedBorderCompensation;
     let y = top + rootWindow.scrollY + lastRowHeight;
 
     if (this.hot.isRtl()) {
