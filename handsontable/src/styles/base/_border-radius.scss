@@ -286,6 +286,8 @@
   }
 
   .ht-root-wrapper {
+    border-radius: var(--ht-wrapper-border-radius);
+
     &:has(> .ht-after-grid > div) {
       .ht-wrapper,
       .ht_master .wtHolder {
