@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed `[object Object]` values shown in filters for key-value dropdown/autocomplete cells after edit",
+  "type": "fixed",
+  "issueOrPR": 12005,
+  "breaking": false,
+  "framework": "none"
+}
