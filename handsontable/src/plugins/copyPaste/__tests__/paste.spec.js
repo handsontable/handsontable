@@ -964,8 +964,9 @@ describe('CopyPaste', () => {
 
       for (let section = 0; section < 2; section++) {
         htmlTable += '<tbody>';
+
         for (let i = 0; i < rowsPerSection; i++) {
-          const rowNum = section * rowsPerSection + i;
+          const rowNum = (section * rowsPerSection) + i;
 
           htmlTable += `<tr><td>S${section}R${rowNum}</td></tr>`;
         }

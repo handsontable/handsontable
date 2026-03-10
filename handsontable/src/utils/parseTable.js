@@ -350,9 +350,9 @@ export function htmlToGridSettings(element, rootDocument = document) {
   const dataRows = [
     ...fixedRowsTop,
     ...Array.from(checkElement.tBodies).reduce((sections, section) => {
-      for (const row of section.rows) {
+      Array.from(section.rows).forEach((row) => {
         sections.push(row);
-      }
+      });
 
       return sections;
     }, []),
