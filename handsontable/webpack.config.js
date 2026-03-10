@@ -8,9 +8,12 @@ if (process.env.npm_config_testpathpattern) {
   process.env.npm_config_testPathPattern = process.env.npm_config_testpathpattern;
 }
 
+// Default theme for all webpack-based scripts (e.g. test:e2e.dump, watch).
+const DEFAULT_THEME = 'main';
+
 module.exports = function() {
   return configFactory.create({
     testPathPattern: process.env.npm_config_testPathPattern,
-    HOT_THEME: process.env.npm_config_theme,
+    HOT_THEME: process.env.npm_config_theme ?? DEFAULT_THEME,
   });
 };
