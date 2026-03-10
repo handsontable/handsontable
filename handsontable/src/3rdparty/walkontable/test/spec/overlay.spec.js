@@ -1040,7 +1040,7 @@ describe('WalkontableOverlay', () => {
     expect(topOverlay().getScrollPosition()).toBe(0);
   });
 
-  it('should batch scroll updates using requestAnimationFrame to avoid redundant redraws (#11772)', (done) => {
+  it('should batch scroll updates using requestAnimationFrame to avoid redundant redraws (#11772)', async(done) => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -1074,7 +1074,7 @@ describe('WalkontableOverlay', () => {
     });
   });
 
-  it('should clean up pending scroll animation frame on destroy (#11772)', () => {
+  it('should clean up pending scroll animation frame on destroy (#11772)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,

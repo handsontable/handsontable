@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed laggy scrolling with large datasets (100,000+ rows) by implementing scroll event batching using requestAnimationFrame.",
+  "type": "fixed",
+  "issueOrPR": 11772,
+  "breaking": false,
+  "framework": "none"
+}
