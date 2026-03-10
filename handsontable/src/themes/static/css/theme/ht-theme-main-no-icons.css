@@ -162,6 +162,7 @@
   --ht-icon-button-border-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
   --ht-icon-button-background-color: var(--ht-background-secondary-color);
   --ht-icon-button-icon-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-400));
+  --ht-icon-button-hit-area-size: var(--ht-sizing-size-6);
   --ht-icon-button-hover-border-color: light-dark(var(--ht-colors-palette-200), var(--ht-colors-palette-600));
   --ht-icon-button-hover-background-color: light-dark(var(--ht-colors-palette-200), var(--ht-colors-palette-600));
   --ht-icon-button-hover-icon-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-400));

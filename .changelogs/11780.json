@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "differentiate between Handsontable errors and other errors",
-  "type": "changed",
-  "issueOrPR": 11780,
-  "breaking": false,
-  "framework": "none"
-}

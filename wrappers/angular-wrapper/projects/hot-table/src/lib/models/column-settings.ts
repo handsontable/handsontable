@@ -2,12 +2,10 @@ import { ComponentRef, EnvironmentInjector, Type, TemplateRef } from '@angular/c
 import Handsontable from 'handsontable/base';
 import { ExtendedEditor } from 'handsontable/editors/factory';
 import { CellProperties } from 'handsontable/settings';
-import Core from 'handsontable/core';
 import { HotCellRendererComponent } from '../renderer/hot-cell-renderer.component';
 import { HotCellEditorComponent } from '../editor/hot-cell-editor.component';
 import { HotCellRendererAdvancedComponent } from '../renderer/hot-cell-renderer-advanced.component';
 import { HotCellEditorAdvancedComponent } from '../editor/hot-cell-editor-advanced.component';
-
 export type CustomValidatorFn<T> = (value: T) => boolean;
 
 export type ColumnSettings =
@@ -22,7 +20,7 @@ export type ColumnSettings =
         TemplateRef<any> |
         Handsontable.ColumnSettings['renderer'] |
         (
-          (instance: Core,
+          (instance: Handsontable,
             td: HTMLTableCellElement,
             row: number, column: number,
             prop: string | number,
