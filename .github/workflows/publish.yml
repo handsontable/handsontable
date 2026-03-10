@@ -927,6 +927,16 @@ jobs:
           # GitHub already created the tag when the release was published — no tag creation needed here.
           echo "Skipping tag creation — already created by GitHub release event"
 
+      - name: Update GitHub release description
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          CONTENT=$(node .github/scripts/extract-changelog.mjs "$VERSION")
+          printf '%s' "$CONTENT" > /tmp/release-notes.md
+          gh release edit "${VERSION}" --repo "${{ github.repository }}" --notes-file /tmp/release-notes.md
+          echo "Updated release description for ${VERSION}"
+
   stable-merge:
     name: Merge release to develop and master
     runs-on: ubuntu-latest
@@ -1373,14 +1383,20 @@ jobs:
         id: docs-result
         if: always()
         run: |
-          if [ "${{ steps.docs-deps.outcome }}" = "success" ] && \
-             [ "${{ steps.docs-branch.outcome }}" = "success" ] && \
-             [ "${{ steps.docs-api.outcome }}" = "success" ] && \
-             [ "${{ steps.docs-angular.outcome }}" = "success" ] && \
-             [ "${{ steps.docs-commit.outcome }}" = "success" ]; then
+          if [ "${{ steps.docs-deps.outcome }}" = "failure" ] || \
+             [ "${{ steps.docs-branch.outcome }}" = "failure" ] || \
+             [ "${{ steps.docs-api.outcome }}" = "failure" ] || \
+             [ "${{ steps.docs-angular.outcome }}" = "failure" ] || \
+             [ "${{ steps.docs-commit.outcome }}" = "failure" ]; then
+            echo "result=failure" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.docs-deps.outcome }}" = "success" ] && \
+               [ "${{ steps.docs-branch.outcome }}" = "success" ] && \
+               [ "${{ steps.docs-api.outcome }}" = "success" ] && \
+               [ "${{ steps.docs-angular.outcome }}" = "success" ] && \
+               [ "${{ steps.docs-commit.outcome }}" = "success" ]; then
             echo "result=success" >> $GITHUB_OUTPUT
           else
-            echo "result=failure" >> $GITHUB_OUTPUT
+            echo "result=skipped" >> $GITHUB_OUTPUT
           fi
 
   # ============================================================
@@ -1458,6 +1474,8 @@ jobs:
           if [ "$NUGET_RESULT" = "success" ]; then NUGET_STATUS=":white_check_mark: :nuget: *NuGet*"; else NUGET_STATUS=":x: :nuget: *NuGet*"; fi
           if [ "$DOCS_RESULT" = "success" ]; then
             DOCS_STATUS=":arrows_counterclockwise: :chrome: *Docs*"
+          elif [ "$DOCS_RESULT" = "skipped" ]; then
+            DOCS_STATUS=":white_circle: :chrome: *Docs*"
           else
             DOCS_STATUS=":x: :chrome: *Docs*"
           fi
@@ -1466,7 +1484,7 @@ jobs:
           if [ "$NUGET_RESULT" != "success" ]; then
             FAILURE_NOTES="${FAILURE_NOTES}• *NuGet*: publish failed. The package was not uploaded to nuget.org. Re-run the \`stable-publish-nuget\` job to retry.${NL}"
           fi
-          if [ "$DOCS_RESULT" != "success" ]; then
+          if [ "$DOCS_RESULT" = "failure" ]; then
             FAILURE_NOTES="${FAILURE_NOTES}• *Docs*: branch update failed. Manual intervention required — check the <${RUN_URL}|Actions run> and update the docs branch manually.${NL}"
           fi
           CHANGELOG_URL="${REPO_URL}/blob/master/CHANGELOG.md"
@@ -1521,13 +1539,13 @@ jobs:
                 type: "context",
                 elements: [{ type: "mrkdwn", text: ("<" + $run_url + "|🔗 View GitHub Actions run>") }]
               },
-              if $failure_notes != "" then
+              (if $failure_notes != "" then
                 { type: "divider" },
                 {
                   type: "section",
                   text: { type: "mrkdwn", text: ("⚠️ *Non-critical failures*\n" + $failure_notes) }
                 }
-              else empty end
+              else empty end)
             ]
           }' > /tmp/slack-payload.json
           echo "Slack payload:"
