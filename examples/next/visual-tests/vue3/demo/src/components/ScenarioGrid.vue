@@ -145,16 +145,22 @@ export default {
 </script>
 
 <style lang="scss">
-  .handsontable td .progressBar {
+  .handsontable .progressBar {
     background: #37bc6c !important;
     height: 10px;
   }
 
-  .handsontable td.star {
+  .handsontable .star {
     color: #fcb515 !important;
   }
 
   .ht-wrapper .handsontable .htCore tr.selected td {
     background: #edf3fd !important;
+  }
+
+  .handsontable .ht_nestingParent,
+  .handsontable .ht_nestingParent ~ td {
+    background: #B5B5B5 !important;
+    color: #222 !important;
   }
 </style>
