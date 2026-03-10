@@ -50,7 +50,7 @@ describe('StretchColumns', () => {
   });
 
   it('should not allow last column to shrink below its defined width even when viewport changes (#11761)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 3),
       width: 300,
       height: 200,
@@ -103,7 +103,7 @@ describe('StretchColumns', () => {
 
     // Manually resize the first column to be wider
     hot.getPlugin('manualColumnResize').setManualSize(0, 120);
-    render();
+    await render();
 
     // Now the sum of columns (120 + 50 + 80 = 250) is still less than viewport (300),
     // but closer. Last column should adjust accordingly
@@ -117,7 +117,7 @@ describe('StretchColumns', () => {
 
     // Manually resize the first column to be very wide
     hot.getPlugin('manualColumnResize').setManualSize(0, 200);
-    render();
+    await render();
 
     // Now the sum exceeds viewport, so no stretching should occur
     expect(getColWidth(0)).toBe(200);
