@@ -43,3 +43,9 @@ All commands below run from the workspace root (`/workspace`).
 - Root-level `npm run lint` and `npm run test` scripts use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
 - The docs site (`docs/`) uses Node 20 (its own `.nvmrc`) and is not needed for core library development.
 - No Docker, databases, or external services are required.
+
+### Regression checks for resize + CSS scale
+
+- For fixes around `manualColumnResize` and CSS `transform: scale(...)` (e.g. GH #11838), run both:
+  - `npm_config_testPathPattern=manualColumnResize/__tests__/utils.unit.js pnpm --filter handsontable run test:unit`
+  - `npm_config_testPathPattern=src/plugins/manualColumnResize/__tests__/manualColumnResize.spec.js pnpm --filter handsontable run test:e2e`
