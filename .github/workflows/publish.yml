@@ -408,7 +408,7 @@ jobs:
   rc-check:
     name: Guard RC build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/')
     outputs:
       allowed: ${{ steps.check.outputs.allowed }}
     steps:
@@ -438,7 +438,7 @@ jobs:
     name: Build RC
     runs-on: ubuntu-latest
     needs: [rc-check]
-    if: github.event_name == 'push' && needs.rc-check.outputs.allowed == 'true'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/') && needs.rc-check.outputs.allowed == 'true'
     outputs:
       rc-version: ${{ steps.rc-version.outputs.rc-version }}
       changelog-synced: ${{ steps.sync-changelog.outputs.synced }}
@@ -1087,16 +1087,16 @@ jobs:
             exit 0
           fi
 
-          # Find the latest version tag for the previous major version
+          # Find the latest non-prerelease tag for the previous major version
           git fetch --tags origin
-          LATEST_TAG=$(git tag --list "${PREV_MAJOR}.*" --sort=-version:refname | head -n 1)
+          LATEST_TAG=$(git tag --list "${PREV_MAJOR}.*" --sort=-version:refname | grep -v '-' | head -n 1)
 
           if [ -z "$LATEST_TAG" ]; then
-            echo "::error::No tags found for major version ${PREV_MAJOR}. Cannot create LTS branch."
+            echo "::error::No non-prerelease tags found for major version ${PREV_MAJOR}. Cannot create LTS branch."
             exit 1
           fi
 
-          echo "Creating LTS branch $LTS_BRANCH from tag $LATEST_TAG"
+          echo "Creating LTS branch $LTS_BRANCH from tag $LATEST_TAG (last stable of previous major)"
           git checkout -b "$LTS_BRANCH" "$LATEST_TAG"
           git push -u origin "$LTS_BRANCH"
           echo "Created LTS branch: $LTS_BRANCH"
@@ -1378,15 +1378,6 @@ jobs:
             echo "result=failure" >> $GITHUB_OUTPUT
           fi
 
-      - name: Delete release branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          RELEASE_BRANCH='${{ needs.stable-build.outputs.release-branch }}'
-          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-          git push origin --delete ${RELEASE_BRANCH}
-          echo "Deleted release branch ${RELEASE_BRANCH}"
-
   # ============================================================
   # Scenario D.2 — NuGet publish (parallel to stable-publish, isolated)
   # ============================================================
@@ -1414,6 +1405,27 @@ jobs:
           dotnet nuget push "$NUPKG" \
             --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json
+
+  # ============================================================
+  # Scenario D.2b — Delete release branch (only when all publish steps succeeded)
+  # ============================================================
+  stable-cleanup:
+    name: Delete release branch
+    runs-on: ubuntu-latest
+    needs: [stable-build, stable-publish, stable-publish-nuget]
+    if: always() && needs.stable-build.result == 'success' && needs.stable-publish.result == 'success' && needs.stable-publish-nuget.result == 'success' && needs.stable-publish.outputs.docs-result == 'success'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Delete release branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_BRANCH='${{ needs.stable-build.outputs.release-branch }}'
+          git push origin --delete "${RELEASE_BRANCH}"
+          echo "Deleted release branch ${RELEASE_BRANCH}"
 
   # ============================================================
   # Scenario D.3 — Stable release notification
