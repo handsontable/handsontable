@@ -975,6 +975,8 @@ jobs:
               fi
 
               git merge --abort 2>/dev/null || true
+            else
+              git reset --merge
             fi
 
             git checkout -
