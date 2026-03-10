@@ -143,6 +143,27 @@ class EditorManager {
   }
 
   /**
+   * Checks whether the active editor is prepared for the currently selected, rendered cell.
+   *
+   * @private
+   * @param {CellCoords} highlight The selection highlight.
+   * @returns {boolean}
+   */
+  isEditorPreparedForSelection(highlight) {
+    if (!highlight || !this.activeEditor) {
+      return false;
+    }
+
+    if (this.activeEditor.row !== highlight.row || this.activeEditor.col !== highlight.col) {
+      return false;
+    }
+
+    const currentTd = this.hot.getCell(highlight.row, highlight.col, true);
+
+    return !!currentTd && currentTd.isConnected && this.activeEditor.TD === currentTd;
+  }
+
+  /**
    * Open editor with initial value.
    *
    * @param {null|string} newInitialValue New value from which editor will start if handled property it's not the `null`.
@@ -180,8 +201,10 @@ class EditorManager {
       return;
     }
 
-    if (!this.activeEditor) {
-      this.hot.scrollToFocusedCell();
+    let didScrollToFocusedCell = false;
+
+    if (!this.isEditorPreparedForSelection(selection.highlight)) {
+      didScrollToFocusedCell = this.hot.scrollToFocusedCell();
       this.prepareEditor();
     }
 
@@ -191,6 +214,14 @@ class EditorManager {
       }
 
       this.activeEditor.beginEditing(newInitialValue, event);
+
+      if (didScrollToFocusedCell && newInitialValue === '' &&
+          typeof event?.key === 'string' && event.key.length === 1 &&
+          typeof this.activeEditor.getValue === 'function' && typeof this.activeEditor.setValue === 'function' &&
+          this.activeEditor.getValue() === '') {
+        this.activeEditor.setValue(event.key);
+        event.preventDefault?.();
+      }
     }
   }
 

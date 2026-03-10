@@ -387,6 +387,30 @@ describe('Core data modification keyboard shortcuts', () => {
     });
   });
 
+  describe('printable keys', () => {
+    it('should enter the first typed key after scrolling the viewport back to the selected cell (gh-11934)', async() => {
+      handsontable({
+        data: createSpreadsheetData(200, 10),
+        width: 220,
+        height: 160,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      await selectCell(1, 1);
+      await scrollViewportTo({
+        row: 80,
+        col: 1,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      await keyDownUp('2');
+      await keyDownUp('enter');
+
+      expect(getDataAtCell(1, 1)).toBe('2');
+    });
+  });
+
   using('key', ['Delete', 'Backspace'], (pressedKey) => {
     it('should make selected cell empty', async() => {
       handsontable({
