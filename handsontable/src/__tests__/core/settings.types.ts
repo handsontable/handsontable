@@ -711,7 +711,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   dialogFocusPreviousElement: () => {},
   init: () => {},
   modifyAutoColumnSizeSeed: (seed, cellProperties, cellValue) => '1',
-  modifyAutofillRange: (startArea, entireArea) => {},
+  modifyAutofillRange: (startArea, entireArea) => {
+    const _startArea: [number, number, number, number] = startArea;
+    const _entireArea: [number, number, number, number] = entireArea;
+
+    return _startArea[0] === _entireArea[0] ? _startArea : _entireArea;
+  },
   modifyColHeader: (column) => {},
   modifyColumnHeaderHeight: () => {},
   modifyColumnHeaderValue: (headerValue, visualColumnIndex, headerLevel) => {},
