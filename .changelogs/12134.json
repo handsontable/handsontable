@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Added the experimental `dataProvider` option for loading initial grid data from a function.",
+  "type": "added",
+  "issueOrPR": 12134,
+  "breaking": false,
+  "framework": "none"
+}
