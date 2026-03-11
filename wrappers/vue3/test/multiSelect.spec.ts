@@ -41,11 +41,11 @@ describe('MultiSelect cell type', () => {
           },
         };
       },
-      template: `<HotTable :settings="hotSettings" />`,
+      template: '<HotTable :settings="hotSettings" />',
     };
 
     const testWrapper = mount(App, {
-      attachTo: document.getElementById('app')!,
+      attachTo: document.getElementById('app'),
     });
     const { hotInstance } = testWrapper.getComponent(HotTable).vm;
 
@@ -81,11 +81,11 @@ describe('MultiSelect cell type', () => {
           },
         };
       },
-      template: `<HotTable :settings="hotSettings" />`,
+      template: '<HotTable :settings="hotSettings" />',
     };
 
     const testWrapper = mount(App, {
-      attachTo: document.getElementById('app')!,
+      attachTo: document.getElementById('app'),
     });
     const { hotInstance } = testWrapper.getComponent(HotTable).vm;
 
@@ -125,11 +125,11 @@ describe('MultiSelect cell type', () => {
           },
         };
       },
-      template: `<HotTable :settings="hotSettings" />`,
+      template: '<HotTable :settings="hotSettings" />',
     };
 
     const testWrapper = mount(App, {
-      attachTo: document.getElementById('app')!,
+      attachTo: document.getElementById('app'),
     });
 
     await nextTick();
