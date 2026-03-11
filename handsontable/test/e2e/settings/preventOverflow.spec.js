@@ -58,33 +58,44 @@ describe('settings', () => {
 
     it('should keep vertical keyboard scrolling after `updateSettings()` when `horizontal` option is used', async() => {
       const rootWindow = spec().$container[0].ownerDocument.defaultView;
+      const originalMarginTop = document.body.style.marginTop;
 
-      handsontable({
-        data: createSpreadsheetData(200, 5),
-        rowHeaders: true,
-        colHeaders: true,
-        width: 400,
-        preventOverflow: 'horizontal',
-      });
+      document.body.style.marginTop = '2000px';
+      try {
+        const hot = handsontable({
+          data: createSpreadsheetData(200, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 400,
+          preventOverflow: 'horizontal',
+        });
 
-      await selectCell(20, 0);
+        rootWindow.scrollTo(0, 100);
+        hot.selectCell(20, 0);
 
-      const topOverlay = tableView()._wt.wtOverlays.topOverlay;
-      const initialScrollY = rootWindow.scrollY;
+        const topOverlay = tableView()._wt.wtOverlays.topOverlay;
 
-      expect(topOverlay.mainTableScrollableElement).toBe(rootWindow);
+        expect(topOverlay.mainTableScrollableElement).toBe(rootWindow);
 
-      await updateSettings({
-        className: 'after-update-settings',
-      });
+        hot.updateSettings({
+          className: 'after-update-settings',
+        });
 
-      expect(topOverlay.mainTableScrollableElement).toBe(rootWindow);
+        expect(topOverlay.mainTableScrollableElement).toBe(rootWindow);
 
-      for (let i = 0; i < 10; i++) {
-        await keyDownUp('arrowdown');
+        const initialScrollY = rootWindow.scrollY;
+        const keyCode = Handsontable.helper.KEY_CODES.ARROW_DOWN;
+        const keyboardProxy = hot.rootElement.querySelector('textarea.handsontableInput');
+
+        for (let i = 0; i < 10; i++) {
+          $(keyboardProxy).simulate('keydown', { keyCode, key: 'ArrowDown' });
+          $(keyboardProxy).simulate('keyup', { keyCode, key: 'ArrowDown' });
+        }
+
+        expect(rootWindow.scrollY).toBeGreaterThan(initialScrollY);
+      } finally {
+        document.body.style.marginTop = originalMarginTop;
       }
-
-      expect(rootWindow.scrollY).toBeGreaterThan(initialScrollY);
     });
   });
 });
