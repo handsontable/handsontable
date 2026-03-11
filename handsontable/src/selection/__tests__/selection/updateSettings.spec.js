@@ -181,7 +181,7 @@ describe('Selection', () => {
       // Don't select anything
       const selectedRangesBefore = hot.getSelectedRange();
 
-      expect(selectedRangesBefore).toBeNull();
+      expect(selectedRangesBefore).toBeUndefined();
 
       // Export selection state
       const selectionState = hot.selection.exportSelection();
@@ -198,7 +198,7 @@ describe('Selection', () => {
       // Verify no selection after update
       const selectedRangesAfter = hot.getSelectedRange();
 
-      expect(selectedRangesAfter).toBeNull();
+      expect(selectedRangesAfter).toBeUndefined();
     });
 
     it('should preserve complex multi-range selection after updateSettings', async() => {
