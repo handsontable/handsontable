@@ -4,5 +4,5 @@
   "type": "added",
   "issueOrPR": 9750,
   "breaking": false,
-  "framework": "javascript"
+  "framework": "none"
 }

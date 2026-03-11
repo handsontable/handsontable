@@ -7,7 +7,6 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-
   const onExportClick = () => {
     const hot = hotRef.current?.hotInstance;
     const exportPlugin = hot?.getPlugin('exportExcel');
