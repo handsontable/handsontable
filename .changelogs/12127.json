@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Stabilized flaky E2E assertions for core selection preservation and MultiSelect editor dropdown width.",
+  "type": "fixed",
+  "issueOrPR": 12127,
+  "breaking": false,
+  "framework": "none"
+}

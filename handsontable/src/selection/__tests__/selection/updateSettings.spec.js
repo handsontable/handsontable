@@ -21,6 +21,7 @@ describe('Selection', () => {
 
       // Verify we have multiple selection ranges
       const selectedRangesBefore = hot.getSelectedRange();
+
       expect(selectedRangesBefore.length).toBe(2);
       expect(selectedRangesBefore[0].from.row).toBe(0);
       expect(selectedRangesBefore[0].from.col).toBe(0);
@@ -41,6 +42,7 @@ describe('Selection', () => {
 
       // Verify selection is preserved
       const selectedRangesAfter = hot.getSelectedRange();
+
       expect(selectedRangesAfter.length).toBe(2);
       expect(selectedRangesAfter[0].from.row).toBe(0);
       expect(selectedRangesAfter[0].from.col).toBe(0);
@@ -159,6 +161,7 @@ describe('Selection', () => {
 
       // Don't select anything
       const selectedRangesBefore = hot.getSelectedRange();
+
       expect(selectedRangesBefore).toBeUndefined();
 
       // Export selection state
@@ -175,6 +178,7 @@ describe('Selection', () => {
 
       // Verify no selection after update
       const selectedRangesAfter = hot.getSelectedRange();
+
       expect(selectedRangesAfter).toBeUndefined();
     });
 
@@ -192,6 +196,7 @@ describe('Selection', () => {
       const selectionState = hot.selection.exportSelection();
 
       const selectedRangesBefore = hot.getSelectedRange();
+
       expect(selectedRangesBefore.length).toBe(3);
 
       // Call updateSettings
@@ -206,6 +211,7 @@ describe('Selection', () => {
 
       // Verify complex selection is preserved
       const selectedRangesAfter = hot.getSelectedRange();
+
       expect(selectedRangesAfter.length).toBe(3);
       expect(selectedRangesAfter[0].from.row).toBe(0);
       expect(selectedRangesAfter[0].from.col).toBe(0);
