@@ -28,6 +28,7 @@ describe('built-in plugins', () => {
       'ColumnSummary',
       'DropdownMenu',
       'ExportFile',
+      'ExportToExcel',
       'Filters',
       'Formulas',
       'NestedHeaders',

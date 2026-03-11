@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `ExportToExcel` plugin for exporting data to `.xlsx` (OOXML) format with cell styling, merged cells, frozen panes, and data validations.",
+  "type": "added",
+  "issueOrPR": 12137,
+  "breaking": false,
+  "framework": "none"
+}
