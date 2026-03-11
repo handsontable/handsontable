@@ -90,16 +90,29 @@ class GhostTable {
     this._buildGhostTable(this.container);
     this.hot.rootDocument.body.appendChild(this.container);
 
-    const columns = this.container.querySelectorAll('tr:last-of-type th');
-    const maxColumns = columns.length;
+    const columns = this.container.querySelectorAll('th[data-colspan="1"]');
 
     this.widthsMap.clear();
 
-    for (let column = 0; column < maxColumns; column++) {
-      const visualColumnsIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(column);
+    for (let column = 0; column < columns.length; column++) {
+      const visualColumnsIndex = Number(columns[column].getAttribute('data-visual-column'));
+
+      if (Number.isInteger(visualColumnsIndex) === false) {
+        continue;
+      }
+
       const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnsIndex);
 
-      this.widthsMap.setValueAtIndex(physicalColumnIndex, columns[column].offsetWidth);
+      if (physicalColumnIndex === null) {
+        continue;
+      }
+
+      const currentColumnWidth = this.widthsMap.getValueAtIndex(physicalColumnIndex) ?? 0;
+      const nextColumnWidth = columns[column].offsetWidth;
+
+      if (nextColumnWidth > currentColumnWidth) {
+        this.widthsMap.setValueAtIndex(physicalColumnIndex, nextColumnWidth);
+      }
     }
 
     this.container.parentNode.removeChild(this.container);
@@ -147,6 +160,8 @@ class GhostTable {
 
           fastInnerHTML(th, label, this.hot.getSettings().sanitizer);
           th.colSpan = headerSettings.colspan;
+          th.setAttribute('data-colspan', headerSettings.colspan);
+          th.setAttribute('data-visual-column', visualColumnsIndex);
           tr.appendChild(th);
         }
       }

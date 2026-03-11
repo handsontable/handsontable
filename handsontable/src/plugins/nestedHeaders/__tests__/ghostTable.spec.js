@@ -41,6 +41,24 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getLength()).toBe(10);
       });
 
+      it('should map widths correctly when a header uses rowspan', async() => {
+        handsontable({
+          data: createSpreadsheetData(3, 3),
+          nestedHeaders: [
+            [{ label: 'This is a very long header title', rowspan: 2 }, 'B', 'C'],
+            ['A2', 'B2', 'C2'],
+          ],
+        });
+
+        const ghostTable = getPlugin('nestedHeaders').ghostTable;
+        const firstColumnWidth = ghostTable.widthsMap.getValueAtIndex(0);
+        const secondColumnWidth = ghostTable.widthsMap.getValueAtIndex(1);
+        const thirdColumnWidth = ghostTable.widthsMap.getValueAtIndex(2);
+
+        expect(firstColumnWidth).toBeGreaterThan(secondColumnWidth);
+        expect(thirdColumnWidth).not.toBe(null);
+      });
+
       it('should properly prepare widths cache, even if container is smaller than needed', async() => {
         handsontable({
           data: createSpreadsheetData(7, 7),
