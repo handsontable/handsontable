@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Added `rowspan` support to the NestedHeaders plugin.",
+  "type": "added",
+  "issueOrPR": 191,
+  "breaking": false,
+  "framework": "none"
+}
