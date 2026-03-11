@@ -257,7 +257,7 @@ describe('settings', () => {
       textarea.remove();
     });
 
-    xit('should allow to type in external input after opening cell editor', async() => {
+    it('should allow to type in external input after opening cell editor', async() => {
       const textarea = $('<textarea></textarea>').prependTo($('body'));
       let keyPressed;
 
@@ -337,6 +337,115 @@ describe('settings', () => {
       expect(getDataAtCell(0, 0)).toEqual('Foo');
 
       textarea.remove();
+    });
+
+    it('should stop listening when focus moves programmatically to an external input (outsideClickDeselects: false)', async() => {
+      const input = $('<input type="text">').prependTo($('body'));
+
+      handsontable({
+        outsideClickDeselects: false,
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+
+      expect(isListening()).toBe(true);
+
+      input[0].focus();
+
+      expect(isListening()).toBe(false);
+      expect(document.activeElement).toBe(input[0]);
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+      input.remove();
+    });
+
+    it('should not open the cell editor when typing in a programmatically focused external input (outsideClickDeselects: false)', async() => {
+      const input = $('<input type="text">').prependTo($('body'));
+
+      handsontable({
+        outsideClickDeselects: false,
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+
+      input[0].focus();
+
+      await keyDownUp('a');
+      await keyDownUp('b');
+
+      expect(document.activeElement).toBe(input[0]);
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+      expect(getDataAtCell(0, 0)).toBe('A1');
+
+      input.remove();
+    });
+
+    it('should not open the cell editor when typing in a programmatically focused external textarea (outsideClickDeselects: false)', async() => {
+      const textarea = $('<textarea></textarea>').prependTo($('body'));
+
+      handsontable({
+        outsideClickDeselects: false,
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+
+      textarea[0].focus();
+
+      await keyDownUp('a');
+      await keyDownUp('b');
+
+      expect(document.activeElement).toBe(textarea[0]);
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+      expect(getDataAtCell(0, 0)).toBe('A1');
+
+      textarea.remove();
+    });
+
+    it('should not open the cell editor when typing in a programmatically focused external input (outsideClickDeselects as function)', async() => {
+      const input = $('<input type="text">').prependTo($('body'));
+
+      handsontable({
+        outsideClickDeselects: () => false,
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+
+      input[0].focus();
+
+      await keyDownUp('a');
+      await keyDownUp('b');
+
+      expect(document.activeElement).toBe(input[0]);
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+      expect(getDataAtCell(0, 0)).toBe('A1');
+
+      input.remove();
+    });
+
+    it('should resume listening when focus returns to the grid after being on an external input', async() => {
+      const input = $('<input type="text">').prependTo($('body'));
+
+      handsontable({
+        outsideClickDeselects: false,
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+
+      input[0].focus();
+
+      expect(isListening()).toBe(false);
+
+      await selectCell(1, 1);
+
+      expect(isListening()).toBe(true);
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+
+      input.remove();
     });
 
     it('should not re-render all the rows when outsideClickDeselects is set as false and the user toggles the visibility' +

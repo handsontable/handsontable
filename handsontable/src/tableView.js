@@ -357,6 +357,12 @@ class TableView {
       }
     });
 
+    this.eventManager.addEventListener(documentElement, 'focusin', (event) => {
+      if (isOutsideInput(event.target)) {
+        this.hot.unlisten();
+      }
+    });
+
     this.eventManager.addEventListener(documentElement, 'contextmenu', (event) => {
       if (selection.isInProgress() && isRightClick(event)) {
         selection.finish();
