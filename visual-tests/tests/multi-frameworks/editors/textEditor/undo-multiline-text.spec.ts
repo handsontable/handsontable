@@ -17,13 +17,19 @@ test(__filename, async({ tablePage }) => {
   await cellEditor.press('Control+Enter');
   await cellEditor.press('Control+Enter');
 
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
-  await cell.press('Control+Z');
+  await tablePage.waitForTimeout(100);
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await cell.press('Control+Z');
+
+  await tablePage.waitForTimeout(100);
+
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
+
+  await cell.press('Control+Z');
+
+  await tablePage.waitForTimeout(100);
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
