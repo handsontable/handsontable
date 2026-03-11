@@ -550,11 +550,6 @@ class Overlays {
       return;
     }
 
-    // Use requestAnimationFrame to batch scroll updates and avoid redundant redraws
-    if (this.#scrollUpdatePending) {
-      return;
-    }
-
     // Read scroll positions and update flags immediately so other code can see the current state
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let scrollX = this.scrollableElement.scrollLeft;
@@ -580,6 +575,12 @@ class Overlays {
     this.lastScrollX = scrollX;
     this.lastScrollY = scrollY;
 
+    // Use requestAnimationFrame to batch scroll updates and avoid redundant redraws
+    // If already pending, the RAF callback will use the latest scroll position we just updated
+    if (this.#scrollUpdatePending) {
+      return;
+    }
+
     this.#scrollUpdatePending = true;
     this.#scrollAnimationFrameId = requestAnimationFrame(() => {
       this.#scrollUpdatePending = false;
@@ -592,18 +593,19 @@ class Overlays {
       const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
       const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
 
+      // Use the latest scroll positions stored in this.lastScrollX/Y
       if (this.horizontalScrolling) {
-        topHolder.scrollLeft = scrollX;
+        topHolder.scrollLeft = this.lastScrollX;
 
         const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null; // todo rethink
 
         if (bottomHolder) {
-          bottomHolder.scrollLeft = scrollX;
+          bottomHolder.scrollLeft = this.lastScrollX;
         }
       }
 
       if (this.verticalScrolling) {
-        leftHolder.scrollTop = scrollY;
+        leftHolder.scrollTop = this.lastScrollY;
       }
 
       this.refreshAll();
