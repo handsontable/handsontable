@@ -69,8 +69,10 @@ describe('NestedHeaders', () => {
       const row0 = thead.querySelectorAll('tr')[0];
       const row1 = thead.querySelectorAll('tr')[1];
 
-      const visibleInRow0 = Array.from(row0.querySelectorAll('th')).filter(th => !th.classList.contains('hiddenHeader'));
-      const visibleInRow1 = Array.from(row1.querySelectorAll('th')).filter(th => !th.classList.contains('hiddenHeader'));
+      const visibleInRow0 = Array.from(row0.querySelectorAll('th'))
+        .filter(th => !th.classList.contains('hiddenHeader'));
+      const visibleInRow1 = Array.from(row1.querySelectorAll('th'))
+        .filter(th => !th.classList.contains('hiddenHeader'));
 
       // A, B (colspan=2), C — the B colspan-placeholder is not counted (hidden)
       expect(visibleInRow0.length).toBe(3);

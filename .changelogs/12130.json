@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Add rowspan support to nested headers plugin",
+  "type": "added",
+  "issueOrPR": 12130,
+  "breaking": false,
+  "framework": "none"
+}

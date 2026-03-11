@@ -217,11 +217,13 @@ describe('normalizeSettings', () => {
         createColspanSourceSettings({ l: 'A', rowspan: 2 }),
         createColspanSourceSettings({ l: 'B', colspan: 2, origColspan: 2 }),
         createPlaceholder(),
+        createColspanSourceSettings({ l: 'C', rowspan: 2 }),
       ],
       [
         { ...createColspanSourceSettings({ l: 'D' }), isRowspanPlaceholder: true },
         createColspanSourceSettings({ l: 'E' }),
         createColspanSourceSettings({ l: '' }),
+        { ...createColspanSourceSettings({ l: '' }), isRowspanPlaceholder: true },
       ],
     ]);
   });

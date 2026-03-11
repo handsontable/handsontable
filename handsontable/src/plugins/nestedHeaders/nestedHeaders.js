@@ -417,10 +417,10 @@ export class NestedHeaders extends BasePlugin {
         if (correctedColspan > 1) {
           TH.setAttribute('colspan', correctedColspan);
         }
-      }
 
-      if (rowspan > 1) {
-        TH.setAttribute('rowspan', rowspan);
+        if (rowspan > 1) {
+          TH.setAttribute('rowspan', rowspan);
+        }
       }
 
       this.hot.view.appendColHeader(

@@ -135,7 +135,8 @@ class GhostTable {
         if (
           headerSettings &&
           (
-            (!headerSettings.isPlaceholder && !headerSettings.isCollapsed) ||
+            (!headerSettings.isPlaceholder && !headerSettings.isCollapsed &&
+              !headerSettings.isRowspanPlaceholder) ||
             headerSettings.isHidden
           )
         ) {
