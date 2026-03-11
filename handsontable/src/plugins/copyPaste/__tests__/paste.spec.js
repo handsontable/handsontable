@@ -936,7 +936,9 @@ describe('CopyPaste', () => {
       htmlTable += '</tbody></table>';
 
       const plugin = getPlugin('CopyPaste');
-      const event = getClipboardEvent('text/html', htmlTable);
+      const event = getClipboardEvent();
+
+      event.clipboardData.setData('text/html', htmlTable);
 
       await selectCell(0, 0);
 
@@ -975,7 +977,9 @@ describe('CopyPaste', () => {
       htmlTable += '</table>';
 
       const plugin = getPlugin('CopyPaste');
-      const event = getClipboardEvent('text/html', htmlTable);
+      const event = getClipboardEvent();
+
+      event.clipboardData.setData('text/html', htmlTable);
 
       await selectCell(0, 0);
 
