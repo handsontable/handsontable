@@ -480,7 +480,8 @@ export async function scrollWindowTo(x, y) {
   return new Promise((resolve) => {
     const scrollHandler = () => {
       window.removeEventListener('scroll', scrollHandler);
-      resolve();
+      // Wait for RAF to complete scroll batching
+      requestAnimationFrame(() => resolve());
     };
 
     window.addEventListener('scroll', scrollHandler);
