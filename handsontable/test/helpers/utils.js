@@ -48,7 +48,8 @@ export function waitOnScroll(wrappedMethod) {
       };
 
       const scrollCallback = () => {
-        resolve(result);
+        // Wait for RAF to ensure scroll batching completes
+        requestAnimationFrame(() => resolve(result));
       };
 
       hot().addHookOnce('afterScroll', scrollCallback);
@@ -60,10 +61,7 @@ export function waitOnScroll(wrappedMethod) {
         window.queueMicrotask(() => resolve(result));
       } else {
         // trigger fast render which will trigger the `afterScroll` event
-        // Wait for RAF to ensure scroll batching completes before rendering
-        requestAnimationFrame(() => {
-          hot().view.render();
-        });
+        hot().view.render();
       }
 
       wtScroll.scrollViewportHorizontally = origScrollViewportHorizontally;
