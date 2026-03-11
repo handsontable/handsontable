@@ -573,6 +573,9 @@ class Selection {
    * @param {number} [layerIndex] The layer index to set the focus on.
    */
   setRangeFocus(coords, layerIndex = this.getLayerLevel()) {
+    // #region agent log
+    console.log('[DEBUG]',JSON.stringify({location:'selection.js:575',message:'setRangeFocus START',data:{layerIndex,selectedRangeSize:this.selectedRange.size(),isEmpty:this.selectedRange.isEmpty(),coords:{row:coords.row,col:coords.col}},timestamp:Date.now(),hypothesisId:'A,D,E'}));
+    // #endregion
     if (this.selectedRange.isEmpty()) {
       return;
     }
@@ -580,11 +583,20 @@ class Selection {
     this.setActiveSelectionLayerIndex(layerIndex);
     this.#extenderTransformation.setActiveLayerIndex(layerIndex);
     this.#focusTransformation.setActiveLayerIndex(layerIndex);
+    // #region agent log
+    console.log('[DEBUG]',JSON.stringify({location:'selection.js:582',message:'After setActiveLayerIndex',data:{layerIndex,selectedRangeSize:this.selectedRange.size()},timestamp:Date.now(),hypothesisId:'D,E'}));
+    // #endregion
 
     const cellRange = this.getActiveSelectedRange();
+    // #region agent log
+    console.log('[DEBUG]',JSON.stringify({location:'selection.js:584',message:'After getActiveSelectedRange',data:{selectedRangeSize:this.selectedRange.size(),hasCellRange:!!cellRange},timestamp:Date.now(),hypothesisId:'E'}));
+    // #endregion
 
     if (!this.inProgress) {
       this.runLocalHooks('beforeSetFocus', coords);
+      // #region agent log
+      console.log('[DEBUG]',JSON.stringify({location:'selection.js:587',message:'After beforeSetFocus hook',data:{selectedRangeSize:this.selectedRange.size()},timestamp:Date.now(),hypothesisId:'A,E'}));
+      // #endregion
     }
 
     const focusHighlight = this.highlight.getFocus();
@@ -594,6 +606,9 @@ class Selection {
 
     if (!this.inProgress) {
       this.runLocalHooks('beforeHighlightSet');
+      // #region agent log
+      console.log('[DEBUG]',JSON.stringify({location:'selection.js:596',message:'After beforeHighlightSet hook',data:{selectedRangeSize:this.selectedRange.size()},timestamp:Date.now(),hypothesisId:'A,E'}));
+      // #endregion
     }
 
     if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
@@ -606,7 +621,13 @@ class Selection {
     if (!this.inProgress) {
       this.#isFocusSelectionChanged = true;
       this.runLocalHooks('afterSetFocus', cellRange.highlight);
+      // #region agent log
+      console.log('[DEBUG]',JSON.stringify({location:'selection.js:608',message:'After afterSetFocus hook',data:{selectedRangeSize:this.selectedRange.size()},timestamp:Date.now(),hypothesisId:'A,E'}));
+      // #endregion
     }
+    // #region agent log
+    console.log('[DEBUG]',JSON.stringify({location:'selection.js:610',message:'setRangeFocus END',data:{selectedRangeSize:this.selectedRange.size()},timestamp:Date.now(),hypothesisId:'A,D,E'}));
+    // #endregion
   }
 
   /**
@@ -1254,6 +1275,9 @@ class Selection {
     selectedByColumnHeader,
     disableHeadersHighlight,
   }) {
+    // #region agent log
+    console.log('[DEBUG]',JSON.stringify({location:'selection.js:1249',message:'importSelection START',data:{rangesCount:ranges.length,activeSelectionLayer,hasActiveRange:!!activeRange},timestamp:Date.now(),hypothesisId:'A,B,C,D,E'}));
+    // #endregion
     if (ranges.length === 0) {
       return;
     }
@@ -1267,16 +1291,34 @@ class Selection {
     this.selectedByColumnHeader = new Set(selectedByColumnHeader);
 
     this.setActiveSelectionLayerIndex(0);
+    // #region agent log
+    console.log('[DEBUG]',JSON.stringify({location:'selection.js:1270',message:'After clear and setup, before loop',data:{selectedRangeSize:this.selectedRange.size()},timestamp:Date.now(),hypothesisId:'C'}));
+    // #endregion
 
     ranges.forEach((cellRange, selectionLayerIndex) => {
       this.selectedRange.push(cellRange);
+      // #region agent log
+      console.log('[DEBUG]',JSON.stringify({location:'selection.js:1272',message:'After push',data:{selectionLayerIndex,selectedRangeSize:this.selectedRange.size(),rangeFrom:{row:cellRange.from.row,col:cellRange.from.col},rangeTo:{row:cellRange.to.row,col:cellRange.to.col}},timestamp:Date.now(),hypothesisId:'C'}));
+      // #endregion
       this.applyAndCommit(cellRange, selectionLayerIndex);
+      // #region agent log
+      console.log('[DEBUG]',JSON.stringify({location:'selection.js:1273',message:'After applyAndCommit',data:{selectionLayerIndex,selectedRangeSize:this.selectedRange.size()},timestamp:Date.now(),hypothesisId:'B'}));
+      // #endregion
     });
 
+    // #region agent log
+    console.log('[DEBUG]',JSON.stringify({location:'selection.js:1275',message:'Before setRangeFocus',data:{selectedRangeSize:this.selectedRange.size(),hasActiveRange:!!activeRange,activeSelectionLayer},timestamp:Date.now(),hypothesisId:'A,D'}));
+    // #endregion
     if (activeRange) {
       this.setRangeFocus(activeRange.highlight, activeSelectionLayer);
+      // #region agent log
+      console.log('[DEBUG]',JSON.stringify({location:'selection.js:1277',message:'After setRangeFocus',data:{selectedRangeSize:this.selectedRange.size(),activeSelectionLayer:this.#activeSelectionLayer},timestamp:Date.now(),hypothesisId:'A,D,E'}));
+      // #endregion
     }
 
+    // #region agent log
+    console.log('[DEBUG]',JSON.stringify({location:'selection.js:1282',message:'importSelection END',data:{selectedRangeSize:this.selectedRange.size()},timestamp:Date.now(),hypothesisId:'A,B,C,D,E'}));
+    // #endregion
     this.#disableHeadersHighlight = false;
     this.inProgress = false;
   }
