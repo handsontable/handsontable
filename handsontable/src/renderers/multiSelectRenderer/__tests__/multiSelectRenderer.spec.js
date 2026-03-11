@@ -86,6 +86,29 @@ describe('multiSelectRenderer', () => {
         expect(chipsContainer.find('.ht-multi-select-chip').eq(3).text()).toEqual('green');
       });
 
+      it('should render chips when using the "multiSelect" cell type alias', async() => {
+        handsontable({
+          data: [
+            [choices],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              width: 500,
+            },
+          ],
+        });
+
+        const sourceDataAtCell = getSourceDataAtCell(0, 0);
+
+        expect(sourceDataAtCell).toEqual(choices);
+
+        const chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+
+        expect(chipsContainer.find('.ht-multi-select-chip').length).toEqual(4);
+      });
+
       it('should display only as many chips as fit in the column width and add an overflow indicator', async() => {
         const longChoicesLongOptions = longChoices.map(choice =>
           (
