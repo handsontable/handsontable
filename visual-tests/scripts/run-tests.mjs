@@ -62,6 +62,9 @@ for (let i = 0; i < frameworksToTest.length; i++) {
     console.log(chalk.green(`Finished testing "${frameworkName}" examples.`));
 
     const themeProcesses = [];
+    // All theme runs share the same static file server on port 8082 — concurrent reads are safe.
+    // --reporter=dot overrides the html reporter in playwright.config.ts, so there are no
+    // concurrent writes to playwright-report/. Screenshots go to separate per-theme directories.
     const themeRuns = THEMES.map((themeName) => {
       console.log(chalk.green(`Testing JavaScript examples with "${themeName}" theme...`));
 
