@@ -1272,10 +1272,6 @@ class Selection {
     this.selectedByRowHeader = new Set(selectedByRowHeader);
     this.selectedByColumnHeader = new Set(selectedByColumnHeader);
 
-    if (activeRange) {
-      this.setRangeFocus(activeRange.highlight, activeSelectionLayer);
-    }
-
     this.finish();
     this.#disableHeadersHighlight = false;
   }
