@@ -14,7 +14,9 @@ test(__filename, async({ tablePage }) => {
   const cellEditor = await selectEditor();
 
   await cellEditor.press('Control+Enter');
+  await tablePage.waitForTimeout(20);
   await cellEditor.press('Control+Enter');
+  await tablePage.waitForTimeout(20);
   await cellEditor.press('Control+Enter');
 
   await tablePage.waitForTimeout(100);
