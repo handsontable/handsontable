@@ -124,6 +124,7 @@ describe('Core_view', () => {
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
 
     htCore.find('tr:eq(3) td:eq(0)').simulate('mousedown');
+    await nextFrame();
 
     expect(hot.rootElement.querySelector('.wtHolder').scrollTop).toBeGreaterThan(scrollTop);
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);

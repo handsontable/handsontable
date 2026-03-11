@@ -71,6 +71,19 @@ export function sleep(delay = 100) {
 }
 
 /**
+ * Waits for the next animation frame. Useful for waiting for scroll batching to complete.
+ *
+ * @returns {Promise}
+ */
+export function nextFrame() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      resolve();
+    });
+  });
+}
+
+/**
  * @param {Function} fn The function to convert to Promise.
  * @returns {Promise}
  */
@@ -416,7 +429,8 @@ export async function scrollViewportVertically(y) {
   return new Promise((resolve) => {
     const scrollHandler = () => {
       scrollableElement.removeEventListener('scroll', scrollHandler);
-      resolve();
+      // Wait for RAF to complete scroll batching
+      requestAnimationFrame(() => resolve());
     };
 
     scrollableElement.addEventListener('scroll', scrollHandler);
@@ -441,7 +455,8 @@ export async function scrollViewportHorizontally(x) {
   return new Promise((resolve) => {
     const scrollHandler = () => {
       scrollableElement.removeEventListener('scroll', scrollHandler);
-      resolve();
+      // Wait for RAF to complete scroll batching
+      requestAnimationFrame(() => resolve());
     };
 
     scrollableElement.addEventListener('scroll', scrollHandler);
@@ -483,7 +498,8 @@ export async function scrollWindowBy(x, y) {
   return new Promise((resolve) => {
     const scrollHandler = () => {
       window.removeEventListener('scroll', scrollHandler);
-      resolve();
+      // Wait for RAF to complete scroll batching
+      requestAnimationFrame(() => resolve());
     };
 
     window.addEventListener('scroll', scrollHandler);
