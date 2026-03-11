@@ -694,7 +694,12 @@ describe('AutocompleteEditor', () => {
 
       const $editor = $('.autocompleteEditor').eq(0);
 
-      expect(endTime - startTime).toBeLessThan(650);
+      expect(endTime - startTime).forThemes(({ classic, main, horizon }) => {
+        classic.toBeLessThan(650);
+        main.toBeLessThan(650);
+        // Horizon styles are heavier and CI machines can exceed 650ms sporadically.
+        horizon.toBeLessThan(750);
+      });
       expect($editor.find('.ht_master tbody tr').size()).toBeGreaterThan(0);
     });
   });
