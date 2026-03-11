@@ -3,6 +3,8 @@
  * @property {string} label The name/label of the column header.
  * @property {number} colspan Current calculated colspan value of the rendered column header element.
  * @property {number} origColspan Original colspan value, set once while parsing user-defined nested header settings.
+ * @property {number} rowspan Current calculated rowspan value of the rendered column header element.
+ * @property {number} origRowspan Original rowspan value, set once while parsing user-defined nested header settings.
  * @property {boolean} collapsible The flag determines whether the node is collapsible (can be collapsed/expanded).
  * @property {number[]} crossHiddenColumns The list of visual column indexes which indicates that the specified columns within
  *                                         the header settings are hidden.
@@ -28,6 +30,8 @@ export function createDefaultHeaderSettings({
   label = '',
   colspan = 1,
   origColspan = 1,
+  rowspan = 1,
+  origRowspan = 1,
   collapsible = false,
   crossHiddenColumns = [],
   isCollapsed = false,
@@ -40,6 +44,8 @@ export function createDefaultHeaderSettings({
     label,
     colspan,
     origColspan,
+    rowspan,
+    origRowspan,
     collapsible,
     isCollapsed,
     crossHiddenColumns,

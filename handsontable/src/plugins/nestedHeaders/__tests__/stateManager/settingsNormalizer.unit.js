@@ -103,6 +103,26 @@ describe('normalizeSettings', () => {
     ]);
   });
 
+  it('should preserve `rowspan` definitions in normalized settings', () => {
+    const settings = [
+      [{ label: 'A', rowspan: 2 }, { label: 'B', colspan: 2 }],
+      ['A2', 'B2', 'C2'],
+    ];
+
+    expect(normalizeSettings(settings)).toEqual([
+      [
+        createColspanSourceSettings({ l: 'A', rs: 2, ors: 2 }),
+        createColspanSourceSettings({ l: 'B', colspan: 2, origColspan: 2 }),
+        createPlaceholder(),
+      ],
+      [
+        createColspanSourceSettings({ l: 'A2' }),
+        createColspanSourceSettings({ l: 'B2' }),
+        createColspanSourceSettings({ l: 'C2' }),
+      ],
+    ]);
+  });
+
   it('should normalize user-defined settings with limited columns count with colspan structure preservation', () => {
     const settings = [
       ['A', { label: 'B', colspan: 8 }, 'C'],

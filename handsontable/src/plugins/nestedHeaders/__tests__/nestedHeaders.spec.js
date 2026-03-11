@@ -48,6 +48,26 @@ describe('NestedHeaders', () => {
       expect(getColWidth(1)).toBeGreaterThan(50);
       expect(headers[1].offsetWidth).toBeGreaterThan(100);
     });
+
+    it('should render headers with `rowspan` and hide covered cells', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'A', rowspan: 2 }, { label: 'B', colspan: 2 }],
+          ['A2', 'B2', 'C2'],
+        ],
+      });
+
+      const [firstLevel, secondLevel] = tableView()._wt.wtTable.THEAD.querySelectorAll('tr');
+      const firstLevelHeaders = firstLevel.querySelectorAll('th');
+      const secondLevelHeaders = secondLevel.querySelectorAll('th');
+
+      expect(firstLevelHeaders[0].getAttribute('rowspan')).toBe('2');
+      expect(firstLevelHeaders[1].getAttribute('colspan')).toBe('2');
+      expect(secondLevelHeaders[0].classList.contains('hiddenHeader')).toBe(true);
+      expect(secondLevel.querySelectorAll('th:not(.hiddenHeader)').length).toBe(2);
+    });
   });
 
   describe('cooperation with drop-down menu element', () => {

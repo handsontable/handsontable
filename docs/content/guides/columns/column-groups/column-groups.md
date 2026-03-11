@@ -28,10 +28,11 @@ Group your columns, using multiple levels of nested column headers, to better re
 
 ## Nested column headers
 
-The [`NestedHeaders`](@/api/nestedHeaders.md) plugin allows you to create a nested headers structure by using the `colspan` attribute.
+The [`NestedHeaders`](@/api/nestedHeaders.md) plugin allows you to create a nested headers structure by using the `colspan` and `rowspan` attributes.
 
 To create a header that spans multiple columns, its corresponding configuration array element should be provided as an object with `label` and `colspan`
 properties. The `label` property defines the header's label, while the `colspan` property defines the number of columns that the header should cover.
+To create a header that spans multiple nested header levels, use the `rowspan` property.
 
 ### Configuration
 

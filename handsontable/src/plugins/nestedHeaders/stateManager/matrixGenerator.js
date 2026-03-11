@@ -63,7 +63,61 @@ export function generateMatrix(headerRoots) {
     });
   });
 
+  applyRowspans(matrix);
+
   return matrix;
+}
+
+/**
+ * Applies vertical spans to the generated matrix. For every header that uses `rowspan`,
+ * header settings from the covered rows are replaced by placeholder settings.
+ *
+ * @param {Array[]} matrix The matrix with header settings.
+ */
+function applyRowspans(matrix) {
+  const layersCount = matrix.length;
+
+  for (let headerLevel = 0; headerLevel < layersCount; headerLevel++) {
+    const headerLayer = matrix[headerLevel];
+
+    for (let columnIndex = 0; columnIndex < headerLayer.length; columnIndex++) {
+      const headerSettings = headerLayer[columnIndex];
+
+      if (!headerSettings || headerSettings.isPlaceholder || !headerSettings.isRoot) {
+        continue;
+      }
+
+      const correctedRowspan = Math.min(headerSettings.origRowspan ?? 1, layersCount - headerLevel);
+
+      headerSettings.rowspan = correctedRowspan;
+      headerSettings.origRowspan = correctedRowspan;
+
+      if (correctedRowspan <= 1) {
+        continue;
+      }
+
+      for (let nextHeaderLevel = headerLevel + 1; nextHeaderLevel < headerLevel + correctedRowspan; nextHeaderLevel++) {
+        const nextHeaderLayer = matrix[nextHeaderLevel];
+        const endingColumnIndex = columnIndex + headerSettings.origColspan;
+
+        for (let nextColumnIndex = columnIndex; nextColumnIndex < endingColumnIndex; nextColumnIndex++) {
+          if (nextColumnIndex === columnIndex) {
+            const placeholderRootSettings = createHeaderSettings({
+              colspan: headerSettings.origColspan,
+              origColspan: headerSettings.origColspan,
+              isRoot: true,
+              isPlaceholder: true,
+            });
+            placeholderRootSettings.isRoot = true;
+            placeholderRootSettings.isPlaceholder = true;
+            nextHeaderLayer[nextColumnIndex] = placeholderRootSettings;
+          } else {
+            nextHeaderLayer[nextColumnIndex] = createPlaceholderHeaderSettings();
+          }
+        }
+      }
+    }
+  }
 }
 
 /**

@@ -171,5 +171,34 @@ describe('generateMatrix', () => {
         ]
       ]);
     });
+
+    it('should apply `rowspan` and replace covered headers with placeholders', () => {
+      const tree = createTree([
+        [{ label: 'A1', rowspan: 2 }, { label: 'B1', colspan: 2 }],
+        ['A2', 'B2', 'C2'],
+      ]);
+
+      tree.buildTree();
+
+      const matrix = generateMatrixFromTree(tree);
+
+      expect(matrix).toEqual([
+        [
+          createColspanSettings({ l: 'A1', rowspan: 2, origRowspan: 2 }),
+          createColspanSettings({ l: 'B1', colspan: 2, origColspan: 2 }),
+          createPlaceholder(),
+        ],
+        [
+          createColspanSettings({
+            colspan: 1,
+            origColspan: 1,
+            isRoot: true,
+            isPlaceholder: true,
+          }),
+          createColspanSettings({ l: 'B2' }),
+          createColspanSettings({ l: 'C2' }),
+        ],
+      ]);
+    });
   });
 });

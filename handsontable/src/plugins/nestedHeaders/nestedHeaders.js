@@ -24,11 +24,12 @@ export const PLUGIN_PRIORITY = 280;
  * @class NestedHeaders
  *
  * @description
- * The plugin allows to create a nested header structure, using the HTML's colspan attribute.
+ * The plugin allows to create a nested header structure, using the HTML's `colspan` and `rowspan` attributes.
  *
- * To make any header wider (covering multiple table columns), it's corresponding configuration array element should be
+ * To make any header wider (covering multiple table columns), its corresponding configuration array element should be
  * provided as an object with `label` and `colspan` properties. The `label` property defines the header's label,
  * while the `colspan` property defines a number of columns that the header should cover.
+ * To make any header taller (covering multiple nested header levels), provide an object with the `rowspan` property.
  * You can also set custom class names to any of the headers by providing the `headerClassName` property.
  *
  * __Note__ that the plugin supports a *nested* structure, which means, any header cannot be wider than it's "parent". In
@@ -41,7 +42,7 @@ export const PLUGIN_PRIORITY = 280;
  * const hot = new Handsontable(container, {
  *   data: getData(),
  *   nestedHeaders: [
- *     ['A', {label: 'B', colspan: 8, headerClassName: 'htRight'}, 'C'],
+ *     [{label: 'A', rowspan: 2}, {label: 'B', colspan: 8, headerClassName: 'htRight'}, 'C'],
  *     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
  *     ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
  *     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
@@ -54,7 +55,7 @@ export const PLUGIN_PRIORITY = 280;
  * <HotTable
  *   data={getData()}
  *   nestedHeaders={[
- *     ['A', {label: 'B', colspan: 8, headerClassName: 'htRight'}, 'C'],
+ *     [{label: 'A', rowspan: 2}, {label: 'B', colspan: 8, headerClassName: 'htRight'}, 'C'],
  *     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
  *     ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
  *     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
@@ -68,7 +69,7 @@ export const PLUGIN_PRIORITY = 280;
  * settings = {
  *   data: getData(),
  *   nestedHeaders: [
- *     ["A", { label: "B", colspan: 8, headerClassName: "htRight" }, "C"],
+ *     [{ label: "A", rowspan: 2 }, { label: "B", colspan: 8, headerClassName: "htRight" }, "C"],
  *     ["D", { label: "E", colspan: 4 }, { label: "F", colspan: 4 }, "G"],
  *     [
  *       "H",
@@ -341,15 +342,18 @@ export class NestedHeaders extends BasePlugin {
 
       for (let j = 0, masterNodes = masterLevel.childNodes.length; j < masterNodes; j++) {
         masterLevel.childNodes[j].removeAttribute('colspan');
+        masterLevel.childNodes[j].removeAttribute('rowspan');
         removeClass(masterLevel.childNodes[j], 'hiddenHeader');
 
         if (topLevel && topLevel.childNodes[j]) {
           topLevel.childNodes[j].removeAttribute('colspan');
+          topLevel.childNodes[j].removeAttribute('rowspan');
           removeClass(topLevel.childNodes[j], 'hiddenHeader');
         }
 
         if (topLeftCornerHeaders && topLeftCornerLevel && topLeftCornerLevel.childNodes[j]) {
           topLeftCornerLevel.childNodes[j].removeAttribute('colspan');
+          topLeftCornerLevel.childNodes[j].removeAttribute('rowspan');
           removeClass(topLeftCornerLevel.childNodes[j], 'hiddenHeader');
         }
       }
@@ -378,11 +382,13 @@ export class NestedHeaders extends BasePlugin {
       }
 
       TH.removeAttribute('colspan');
+      TH.removeAttribute('rowspan');
       removeClass(TH, 'hiddenHeader');
       removeClass(TH, 'hiddenHeaderText');
 
       const {
         colspan,
+        rowspan,
         isHidden,
         isPlaceholder,
         headerClassNames,
@@ -408,6 +414,10 @@ export class NestedHeaders extends BasePlugin {
         if (correctedColspan > 1) {
           TH.setAttribute('colspan', correctedColspan);
         }
+      }
+
+      if (rowspan > 1 && !isPlaceholder && !isHidden) {
+        TH.setAttribute('rowspan', rowspan);
       }
 
       this.hot.view.appendColHeader(

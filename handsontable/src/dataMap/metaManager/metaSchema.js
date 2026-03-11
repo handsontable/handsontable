@@ -4011,7 +4011,7 @@ export default () => {
      * | Array element | Description                                                                                  |
      * | ------------- | -------------------------------------------------------------------------------------------- |
      * | A string      | The header's label                                                                           |
-     * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
+     * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width<br>`rowspan` (integer): the header height (nested header levels) |
      *
      * Read more:
      * - [Plugins: `NestedHeaders`](@/api/nestedHeaders.md)
