@@ -231,8 +231,12 @@ const HotTableInner = forwardRef<
     if (selectionState && hotInstance) {
       const selection = (hotInstance as any).selection;
       if (selection) {
-        selection.importSelection(selectionState);
-        hotInstance.render();
+        try {
+          selection.importSelection(selectionState);
+          hotInstance.render();
+        } catch (error) {
+          console.warn('Failed to restore selection state:', error);
+        }
       }
     }
 
