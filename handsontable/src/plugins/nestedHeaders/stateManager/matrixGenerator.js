@@ -108,6 +108,7 @@ function applyRowspans(matrix) {
               isRoot: true,
               isPlaceholder: true,
             });
+
             placeholderRootSettings.isRoot = true;
             placeholderRootSettings.isPlaceholder = true;
             nextHeaderLayer[nextColumnIndex] = placeholderRootSettings;
