@@ -3,7 +3,8 @@ import { BasePlugin } from '../base';
 
 export interface DetailedSettings {
   label: string;
-  colspan: number;
+  colspan?: number;
+  rowspan?: number;
   headerClassName?: string;
 }
 
