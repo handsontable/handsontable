@@ -14,16 +14,25 @@ test(__filename, async({ tablePage }) => {
   const cellEditor = await selectEditor();
 
   await cellEditor.press('Control+Enter');
+  await tablePage.waitForTimeout(20);
   await cellEditor.press('Control+Enter');
+  await tablePage.waitForTimeout(20);
   await cellEditor.press('Control+Enter');
+  await tablePage.waitForTimeout(20);
 
   await cell.press('Control+Z');
+  await tablePage.waitForTimeout(20);
   await cell.press('Control+Z');
+  await tablePage.waitForTimeout(20);
   await cell.press('Control+Shift+Z');
+
+  await tablePage.waitForTimeout(100);
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await cell.press('Control+Shift+Z');
+
+  await tablePage.waitForTimeout(100);
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
