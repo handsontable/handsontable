@@ -22,11 +22,7 @@ describe('StretchColumns', () => {
 
     expect(getColWidth(0)).toBe(50);
     expect(getColWidth(1)).toBe(50);
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(200);
-      main.toBe(200);
-      horizon.toBe(185);
-    });
+    expect(getColWidth(2)).toBe(200);
   });
 
   it('should respect the defined width of the last column when viewport is too narrow (#11761)', async() => {
@@ -65,11 +61,7 @@ describe('StretchColumns', () => {
     // Initially, the last column should stretch to fill the viewport
     expect(getColWidth(0)).toBe(50);
     expect(getColWidth(1)).toBe(50);
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(200);
-      main.toBe(200);
-      horizon.toBe(185);
-    });
+    expect(getColWidth(2)).toBe(200);
 
     // Resize the container to be narrower than the sum of column widths
     await updateSettings({ width: 150 });
@@ -95,11 +87,7 @@ describe('StretchColumns', () => {
     });
 
     // Last column should be stretched
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(200);
-      main.toBe(200);
-      horizon.toBe(185);
-    });
+    expect(getColWidth(2)).toBe(200);
 
     // Manually resize the first column to be wider
     hot.getPlugin('manualColumnResize').setManualSize(0, 120);
@@ -109,11 +97,7 @@ describe('StretchColumns', () => {
     // but closer. Last column should adjust accordingly
     expect(getColWidth(0)).toBe(120);
     expect(getColWidth(1)).toBe(50);
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(130);
-      main.toBe(130);
-      horizon.toBe(115);
-    });
+    expect(getColWidth(2)).toBe(130);
 
     // Manually resize the first column to be very wide
     hot.getPlugin('manualColumnResize').setManualSize(0, 200);

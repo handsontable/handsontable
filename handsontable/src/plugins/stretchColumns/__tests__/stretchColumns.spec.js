@@ -395,11 +395,7 @@ describe('StretchColumns', () => {
     // the last column should stretch to fill the remaining space
     expect(getColWidth(0)).toBe(50);
     expect(getColWidth(1)).toBe(50);
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(200);
-      main.toBe(200);
-      horizon.toBe(185);
-    });
+    expect(getColWidth(2)).toBe(200);
 
     // Now make the viewport narrower
     await updateSettings({ width: 150 });
