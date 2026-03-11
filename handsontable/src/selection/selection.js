@@ -1248,8 +1248,8 @@ class Selection {
    */
   importSelection({
     ranges,
-    activeRange,
-    activeSelectionLayer,
+    activeRange, // eslint-disable-line no-unused-vars
+    activeSelectionLayer, // eslint-disable-line no-unused-vars
     selectedByRowHeader,
     selectedByColumnHeader,
     disableHeadersHighlight,
