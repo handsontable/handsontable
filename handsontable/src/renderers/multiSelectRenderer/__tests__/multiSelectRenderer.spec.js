@@ -371,3 +371,44 @@ describe('multiSelectRenderer', () => {
     });
   });
 });
+
+describe('multiSelectRenderer with camelCase type alias', () => {
+  const id = 'testContainer';
+
+  beforeEach(function() {
+    this.$container =
+      $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
+  });
+
+  afterEach(function() {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
+
+  it('should render correctly when using type: "multiSelect" (camelCase)', async() => {
+    handsontable({
+      data: [
+        [['yellow', 'red']],
+      ],
+      columns: [
+        {
+          type: 'multiSelect',
+          source: ['yellow', 'red', 'orange', 'green'],
+          width: 500,
+        },
+      ],
+    });
+
+    const sourceDataAtCell = getSourceDataAtCell(0, 0);
+
+    expect(sourceDataAtCell).toEqual(['yellow', 'red']);
+
+    const chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+
+    expect(chipsContainer.find('.ht-multi-select-chip').length).toEqual(2);
+    expect(chipsContainer.find('.ht-multi-select-chip').eq(0).text()).toEqual('yellow');
+    expect(chipsContainer.find('.ht-multi-select-chip').eq(1).text()).toEqual('red');
+  });
+});

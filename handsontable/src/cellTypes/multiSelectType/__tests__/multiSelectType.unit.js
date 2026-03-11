@@ -67,5 +67,13 @@ describe('MultiSelectCellType', () => {
         parsePastedValue: true,
       });
     });
+
+    it('should be accessible via camelCase alias "multiSelect"', () => {
+      registerCellType(CELL_TYPE, MultiSelectCellType);
+      registerCellType('multiSelect', MultiSelectCellType);
+
+      expect(getCellType('multiSelect')).toEqual(MultiSelectCellType);
+      expect(getCellType('multiSelect')).toEqual(getCellType('multiselect'));
+    });
   });
 });
