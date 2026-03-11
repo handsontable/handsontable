@@ -117,12 +117,12 @@ describe('exportExcel XLSX type', () => {
     const entries = parseZipEntries(archive);
     const sheetXml = getZipEntryAsText(entries, 'xl/worksheets/sheet1.xml');
 
-    expect(sheetXml).toContain('A1');
-    expect(sheetXml).toContain('C1');
-    expect(sheetXml).toContain('A3');
-    expect(sheetXml).toContain('C3');
-    expect(sheetXml).not.toContain('A2');
-    expect(sheetXml).not.toContain('B1');
+    expect(sheetXml).toContain('>A1<');
+    expect(sheetXml).toContain('>C1<');
+    expect(sheetXml).toContain('>A3<');
+    expect(sheetXml).toContain('>C3<');
+    expect(sheetXml).not.toContain('>A2<');
+    expect(sheetXml).not.toContain('>B1<');
   });
 
   it('should export formulas when enabled', async() => {
@@ -149,9 +149,9 @@ describe('exportExcel XLSX type', () => {
     const entries = parseZipEntries(archive);
     const sheetXml = getZipEntryAsText(entries, 'xl/worksheets/sheet1.xml');
 
-    expect(sheetXml).toContain('B2');
-    expect(sheetXml).toContain('C3');
-    expect(sheetXml).not.toContain('A1');
-    expect(sheetXml).not.toContain('E5');
+    expect(sheetXml).toContain('>B2<');
+    expect(sheetXml).toContain('>C3<');
+    expect(sheetXml).not.toContain('>A1<');
+    expect(sheetXml).not.toContain('>E5<');
   });
 });
