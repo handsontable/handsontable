@@ -1,5 +1,5 @@
 {
-  "issuesOrigin": "dev-handsontable",
+  "issuesOrigin": "private",
   "title": "Fixed vertical keyboard scrolling after updateSettings when preventOverflow is enabled.",
   "type": "fixed",
   "issueOrPR": 534,
