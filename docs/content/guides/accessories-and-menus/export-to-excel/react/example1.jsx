@@ -6,27 +6,20 @@ registerAllModules();
 
 function createExceljsDependency() {
   class WorksheetMock {
-    constructor() {
-      this.rows = [];
-    }
-
+    rows = [];
     addRow(values) {
       this.rows.push(values);
     }
   }
-
   class WorkbookMock {
-    constructor() {
-      this.worksheets = [];
-      this.xlsx = {
-        writeBuffer: async() => {
-          const textEncoder = new TextEncoder();
+    worksheets = [];
+    xlsx = {
+      writeBuffer: async () => {
+        const textEncoder = new TextEncoder();
 
-          return textEncoder.encode(JSON.stringify(this.worksheets.map(({ rows }) => rows))).buffer;
-        },
-      };
-    }
-
+        return textEncoder.encode(JSON.stringify(this.worksheets.map(({ rows }) => rows))).buffer;
+      },
+    };
     addWorksheet() {
       const worksheet = new WorksheetMock();
 
@@ -35,18 +28,15 @@ function createExceljsDependency() {
       return worksheet;
     }
   }
-
   return {
     Workbook: WorkbookMock,
   };
 }
 
 const exceljsDependency = createExceljsDependency();
-
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-
-  const buttonClickCallback = async() => {
+  const buttonClickCallback = async () => {
     const hot = hotRef.current?.hotInstance;
     const exportPlugin = hot?.getPlugin('exportExcel');
 
