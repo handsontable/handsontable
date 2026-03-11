@@ -555,6 +555,31 @@ class Overlays {
       return;
     }
 
+    // Read scroll positions and update flags immediately so other code can see the current state
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    let scrollX = this.scrollableElement.scrollLeft;
+    let scrollY = this.scrollableElement.scrollTop;
+
+    if (
+      this.wot.wtViewport.isHorizontallyScrollableByWindow()
+      && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'horizontal')
+    ) {
+      scrollX = this.scrollableElement.scrollX;
+    }
+
+    if (
+      this.wot.wtViewport.isVerticallyScrollableByWindow()
+      && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'vertical')
+    ) {
+      scrollY = this.scrollableElement.scrollY;
+    }
+
+    // Update scrolling flags immediately (before RAF) so refreshAll() can fire hooks synchronously if called
+    this.horizontalScrolling = this.lastScrollX !== scrollX;
+    this.verticalScrolling = this.lastScrollY !== scrollY;
+    this.lastScrollX = scrollX;
+    this.lastScrollY = scrollY;
+
     this.#scrollUpdatePending = true;
     this.#scrollAnimationFrameId = requestAnimationFrame(() => {
       this.#scrollUpdatePending = false;
@@ -566,29 +591,6 @@ class Overlays {
 
       const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
       const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
-      const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-
-      let scrollX = this.scrollableElement.scrollLeft;
-      let scrollY = this.scrollableElement.scrollTop;
-
-      if (
-        this.wot.wtViewport.isHorizontallyScrollableByWindow()
-        && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'horizontal')
-      ) {
-        scrollX = this.scrollableElement.scrollX;
-      }
-
-      if (
-        this.wot.wtViewport.isVerticallyScrollableByWindow()
-        && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'vertical')
-      ) {
-        scrollY = this.scrollableElement.scrollY;
-      }
-
-      this.horizontalScrolling = this.lastScrollX !== scrollX;
-      this.verticalScrolling = this.lastScrollY !== scrollY;
-      this.lastScrollX = scrollX;
-      this.lastScrollY = scrollY;
 
       if (this.horizontalScrolling) {
         topHolder.scrollLeft = scrollX;
