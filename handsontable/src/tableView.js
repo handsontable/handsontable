@@ -358,7 +358,8 @@ class TableView {
     });
 
     this.eventManager.addEventListener(documentElement, 'focusin', (event) => {
-      if (isOutsideInput(event.target)) {
+      if (isOutsideInput(event.target) &&
+          !(rootWrapperElement ?? rootElement).contains(event.target)) {
         this.hot.unlisten();
       }
     });
