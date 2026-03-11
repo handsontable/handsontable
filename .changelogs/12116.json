@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the multiSelect cell type not working when using the camelCase type name (`multiSelect`) as shown in the documentation examples.",
+  "type": "fixed",
+  "issueOrPR": 12116,
+  "breaking": false,
+  "framework": "none"
+}
