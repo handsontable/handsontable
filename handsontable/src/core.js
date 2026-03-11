@@ -2782,8 +2782,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
-      if (i === 'data' || i === 'language') {
-        // Do nothing. loadData and language change will be triggered later
+      if (i === 'data' || i === 'language' || i === 'dataProvider') {
+        // Do nothing. loadData, language change, and dataProvider will be triggered later
 
       } else if (i === 'className') {
         setClassName('className', settings.className);
@@ -2886,7 +2886,30 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     // Load data or create data map
-    if (settings.data === undefined && tableMeta.data === undefined) {
+    const hasDataProvider = settings.dataProvider !== undefined
+      ? isFunction(settings.dataProvider)
+      : isFunction(tableMeta.dataProvider);
+
+    if (hasDataProvider) {
+      const provider = settings.dataProvider ?? tableMeta.dataProvider;
+
+      if (settings.dataProvider !== undefined) {
+        globalMeta.dataProvider = settings.dataProvider;
+      }
+
+      const result = provider({ type: 'all' });
+
+      if (result !== null && result !== undefined && isFunction(result.then)) {
+        dataUpdateFunction(null, 'updateSettings');
+
+        result.then((resolvedData) => {
+          instance.loadData(resolvedData, 'dataProvider');
+        });
+      } else {
+        dataUpdateFunction(result, 'updateSettings');
+      }
+
+    } else if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null, 'updateSettings'); // data source created just now
 
     } else if (settings.data !== undefined) {

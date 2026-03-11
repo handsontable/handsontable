@@ -84,7 +84,7 @@ export type Omit<T, K extends keyof T> = Pick<T, ({ [P in keyof T]: P } & { [P i
 /**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
  */
-export interface ColumnSettings extends Omit<GridSettings, "data"> {
+export interface ColumnSettings extends Omit<GridSettings, "data" | "dataProvider"> {
   data?: string | number | ColumnDataGetterSetterFunction;
   /**
    * Column and cell meta data is extensible, developers can add any properties they want.
@@ -137,6 +137,7 @@ export interface GridSettings extends Events {
   currentRowClassName?: string;
   customBorders?: CustomBordersSettings;
   data?: CellValue[][] | RowObject[];
+  dataProvider?: (request: { type: string }) => CellValue[][] | RowObject[] | Promise<CellValue[][] | RowObject[]>;
   dataDotNotation?: boolean;
   dataSchema?: RowObject | CellValue[] | ((row: number) => RowObject | CellValue[]);
   dateFormat?: string;

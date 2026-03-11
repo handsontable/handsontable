@@ -1603,6 +1603,45 @@ export default () => {
 
     /**
      * @description
+     * The `dataProvider` option lets you load data into Handsontable from a function.
+     *
+     * Set `dataProvider` to a function that receives a request object and returns
+     * an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays),
+     * an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects),
+     * or a `Promise` that resolves to one of those types.
+     *
+     * On initialization, Handsontable calls `dataProvider` with `{ type: 'all' }`.
+     * If the function returns a `Promise`, the grid renders empty first
+     * and loads the resolved data when the `Promise` settles.
+     *
+     * When both [`data`](#data) and `dataProvider` are set, `dataProvider` takes precedence.
+     *
+     * @experimental
+     * @memberof Options#
+     * @type {Function}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // synchronous data provider
+     * dataProvider(request) {
+     *   return [
+     *     ['A1', 'B1'],
+     *     ['A2', 'B2'],
+     *   ];
+     * },
+     *
+     * // asynchronous data provider
+     * dataProvider(request) {
+     *   return fetch('/api/data').then(response => response.json());
+     * },
+     * ```
+     */
+    dataProvider: undefined,
+
+    /**
+     * @description
      * If `true`, Handsontable will interpret the dots in the columns mapping as a nested object path. If your dataset contains
      * the dots in the object keys and you don't want Handsontable to interpret them as a nested object path, set this option to `false`.
      *

@@ -117,6 +117,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   currentRowClassName: 'foo',
   customBorders: true,
   data: oneOf([{}, {}, {}], [[], [], []]),
+  dataProvider: (request: { type: string }) => oneOf([['a']], [{ id: 1 }], Promise.resolve([['a']])),
   dataDotNotation: oneOf(true),
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',

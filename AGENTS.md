@@ -516,6 +516,34 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. See `.c
 
 ---
 
+## dataProvider (experimental)
+
+The `dataProvider` option lets users supply a function that returns data instead of a static `data` array. The function receives a request object `{ type: 'all' }` and can return data synchronously (an array) or asynchronously (a `Promise` that resolves to an array).
+
+### Key rules
+
+- `dataProvider` is defined in `metaSchema.js` as a grid-level option (`undefined` by default).
+- When both `data` and `dataProvider` are set, `dataProvider` takes precedence.
+- Integration lives in `core.js` inside `updateSettings()`, in the data loading section.
+- Synchronous return values are passed directly to `loadData`/`updateData`.
+- Asynchronous return values (thenables) cause the grid to initialize empty; when the `Promise` resolves, `loadData` is called with source `'dataProvider'`.
+- The `dataProvider` key is skipped in the `updateSettings` settings loop (alongside `data` and `language`) and handled in the data loading block.
+- TypeScript type: `(request: { type: string }) => CellValue[][] | RowObject[] | Promise<CellValue[][] | RowObject[]>`.
+- `ColumnSettings` excludes `dataProvider` (grid-level only).
+
+### File locations
+
+| Area | Path |
+|---|---|
+| Option definition (JSDoc) | `handsontable/src/dataMap/metaManager/metaSchema.js` |
+| Core integration | `handsontable/src/core.js` (inside `updateSettings`) |
+| TypeScript types | `handsontable/types/settings.d.ts` |
+| Unit tests | `handsontable/src/dataMap/__tests__/dataProvider.unit.js` |
+| E2E tests | `handsontable/test/e2e/settings/dataProvider.spec.js` |
+| Type tests | `handsontable/src/dataMap/__tests__/dataProvider.types.ts` |
+
+---
+
 ## Dependency management
 
 - **Discuss with the team before adding any third-party dependency.**
