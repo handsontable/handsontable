@@ -215,6 +215,19 @@ export default {
         metaTitle: 'DropdownMenu - Angular Data Grid | Handsontable',
       },
     },
+    'ExportExcel.md': {
+      id: 'j7m4p8x2',
+      metaTitle: 'ExportExcel - JavaScript Data Grid | Handsontable',
+      description: 'Export your grid\'s data to XLSX, as a downloadable file, a blob, or an ArrayBuffer. Inject ExcelJS through settings.',
+      react: {
+        id: 'k6n3q9y4',
+        metaTitle: 'ExportExcel - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'l5o2r0z6',
+        metaTitle: 'ExportExcel - Angular Data Grid | Handsontable',
+      },
+    },
     'ExportFile.md': {
       id: '4j5eqkhw',
       metaTitle: 'DropdownMenu - JavaScript Data Grid | Handsontable',
