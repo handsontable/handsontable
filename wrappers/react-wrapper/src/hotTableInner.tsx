@@ -232,6 +232,7 @@ const HotTableInner = forwardRef<
       const selection = hotInstance.selection as any;
       if (selection) {
         selection.importSelection(selectionState);
+        hotInstance.render();
       }
     }
 
