@@ -1266,8 +1266,9 @@ class Selection {
     this.selectedByRowHeader = new Set(selectedByRowHeader);
     this.selectedByColumnHeader = new Set(selectedByColumnHeader);
 
+    this.setActiveSelectionLayerIndex(0);
+
     ranges.forEach((cellRange, selectionLayerIndex) => {
-      this.setActiveSelectionLayerIndex(selectionLayerIndex);
       this.selectedRange.push(cellRange);
       this.applyAndCommit(cellRange, selectionLayerIndex);
     });
@@ -1290,7 +1291,7 @@ class Selection {
 
     return {
       ranges: Array.from(this.selectedRange).map(range => range.clone()),
-      activeRange: activeRange ? activeRange.clone() : null,
+      activeRange: activeRange ? activeRange.clone() : undefined,
       activeSelectionLayer: this.getActiveSelectionLayerIndex(),
       selectedByRowHeader: Array.from(this.selectedByRowHeader),
       selectedByColumnHeader: Array.from(this.selectedByColumnHeader),
