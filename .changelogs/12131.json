@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where Handsontable stole focus from external inputs when `outsideClickDeselects` was set to `false` and focus moved programmatically.",
+  "type": "fixed",
+  "issueOrPR": 401,
+  "breaking": false,
+  "framework": "none"
+}
