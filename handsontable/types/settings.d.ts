@@ -24,6 +24,7 @@ import { Settings as CopyPasteSettings } from './plugins/copyPaste';
 import { Settings as CustomBordersSettings } from './plugins/customBorders';
 import { Settings as DragToScrollSettings } from './plugins/dragToScroll';
 import { Settings as DropdownMenuSettings } from './plugins/dropdownMenu';
+import { Settings as ExportExcelSettings } from './plugins/exportExcel';
 import { Settings as FiltersSettings } from './plugins/filters';
 import { Settings as FormulasSettings } from './plugins/formulas';
 import { Settings as HiddenColumnsSettings } from './plugins/hiddenColumns';
@@ -149,6 +150,7 @@ export interface GridSettings extends Events {
   editor?: EditorType | typeof BaseEditor | BaseEditor | boolean | string;
   enterBeginsEditing?: boolean;
   enterMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
+  exportExcel?: ExportExcelSettings;
   fillHandle?: AutofillSettings;
   filter?: boolean;
   filteringCaseSensitive?: boolean;

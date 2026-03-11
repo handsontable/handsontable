@@ -42,6 +42,7 @@ describe('`registerAllPlugins`', () => {
       'ColumnSummary',
       'DropdownMenu',
       'ExportFile',
+      'ExportExcel',
       'Filters',
       'Formulas',
       'NestedHeaders',

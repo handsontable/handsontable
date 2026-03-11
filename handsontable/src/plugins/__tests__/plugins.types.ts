@@ -13,6 +13,7 @@ import {
   CustomBorders,
   DragToScroll,
   DropdownMenu,
+  ExportExcel,
   ExportFile,
   Filters,
   Formulas,
@@ -55,6 +56,7 @@ registerPlugin(CopyPaste);
 registerPlugin(CustomBorders);
 registerPlugin(DragToScroll);
 registerPlugin(DropdownMenu);
+registerPlugin(ExportExcel);
 registerPlugin(ExportFile);
 registerPlugin(Filters);
 registerPlugin(Formulas);
@@ -92,6 +94,7 @@ const copyPaste: CopyPaste = getPlugin('copyPaste');
 const customBorders: CustomBorders = getPlugin('customBorders');
 const dragToScroll: DragToScroll = getPlugin('dragToScroll');
 const dropdownMenu: DropdownMenu = getPlugin('dropdownMenu');
+const exportExcel: ExportExcel = getPlugin('exportExcel');
 const exportFile: ExportFile = getPlugin('exportFile');
 const filters: Filters = getPlugin('filters');
 const formulas: Formulas = getPlugin('formulas');

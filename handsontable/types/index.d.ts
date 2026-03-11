@@ -179,6 +179,10 @@ import {
   Settings as DropdownMenuSettings,
 } from './plugins/dropdownMenu';
 import {
+  ExportExcel as _ExportExcel,
+  Settings as ExportExcelSettings,
+} from './plugins/exportExcel';
+import {
   ExportFile as _ExportFile,
   Settings as ExportFileSettings,
 } from './plugins/exportFile';
@@ -453,6 +457,7 @@ declare namespace Handsontable {
     export class CustomBorders extends _CustomBorders {}
     export class DragToScroll extends _DragToScroll {}
     export class DropdownMenu extends _DropdownMenu {}
+    export class ExportExcel extends _ExportExcel {}
     export class ExportFile extends _ExportFile {}
     export class Filters extends _Filters {}
     export class Formulas extends _Formulas {}
@@ -539,6 +544,10 @@ declare namespace Handsontable {
 
     export namespace DropdownMenu {
       export { DropdownMenuSettings as Settings };
+    }
+
+    export namespace ExportExcel {
+      export { ExportExcelSettings as Settings };
     }
 
     export namespace ExportFile {

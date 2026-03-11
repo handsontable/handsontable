@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added an `ExportExcel` plugin that exports XLSX data through injected ExcelJS dependencies.",
+  "type": "added",
+  "issueOrPR": 12110,
+  "breaking": false,
+  "framework": "none"
+}

@@ -248,6 +248,7 @@ const copyPaste: BasePlugin = hot.getPlugin('copyPaste');
 const customBorders: BasePlugin = hot.getPlugin('customBorders');
 const dragToScroll: BasePlugin = hot.getPlugin('dragToScroll');
 const dropdownMenu: BasePlugin = hot.getPlugin('dropdownMenu');
+const exportExcel: BasePlugin = hot.getPlugin('exportExcel');
 const exportFile: BasePlugin = hot.getPlugin('exportFile');
 const filters: BasePlugin = hot.getPlugin('filters');
 const formulas: BasePlugin = hot.getPlugin('formulas');
