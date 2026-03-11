@@ -61,26 +61,32 @@ for (let i = 0; i < frameworksToTest.length; i++) {
     console.log('');
     console.log(chalk.green(`Finished testing "${frameworkName}" examples.`));
 
-    for (let themeIndex = 0; themeIndex < THEMES.length; themeIndex++) {
-      const themeName = THEMES[themeIndex];
-
+    const themeProcesses = [];
+    const themeRuns = THEMES.map((themeName) => {
       console.log(chalk.green(`Testing JavaScript examples with "${themeName}" theme...`));
 
-      try {
-        await execa.command('npx playwright test --reporter=dot', {
-          env: {
-            HOT_FRAMEWORK: frameworkName,
-            HOT_THEME: themeName,
-          },
-          stdout: 'inherit'
-        });
-      } catch (ex) {
-        await killProcess(localhostProcess.pid);
-        throw new Error(ex.message);
-      }
+      const proc = execa.command('npx playwright test --reporter=dot', {
+        env: {
+          HOT_FRAMEWORK: frameworkName,
+          HOT_THEME: themeName,
+        },
+        stdout: 'inherit'
+      });
 
-      console.log('');
-      console.log(chalk.green(`Finished testing examples with "${themeName}" theme.`));
+      themeProcesses.push(proc);
+
+      return proc.then(() => {
+        console.log('');
+        console.log(chalk.green(`Finished testing examples with "${themeName}" theme.`));
+      });
+    });
+
+    try {
+      await Promise.all(themeRuns);
+    } catch (ex) {
+      await Promise.all(themeProcesses.map(p => killProcess(p.pid).catch(() => {})));
+      await killProcess(localhostProcess.pid);
+      throw new Error(ex.message);
     }
   } else {
     console.log('');
