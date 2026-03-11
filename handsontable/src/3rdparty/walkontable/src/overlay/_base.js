@@ -119,16 +119,34 @@ export class Overlay {
    * Update the main scrollable element.
    */
   updateMainScrollableElement() {
+    this.mainTableScrollableElement = this.getMainTableScrollableElement();
+  }
+
+  /**
+   * Resolve the main table scrollable element for the current overlay.
+   *
+   * @returns {HTMLElement|Window}
+   */
+  getMainTableScrollableElement() {
     const { wtTable } = this.wot;
     const { rootWindow } = this.domBindings;
-    const computedOverflow = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
-      .getPropertyValue('overflow');
+    const tableParent = wtTable.wtRootElement.parentNode;
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    const computedOverflow = rootWindow.getComputedStyle(tableParent).getPropertyValue('overflow');
+
+    if (
+      preventOverflow === true ||
+      (preventOverflow === 'horizontal' && this.type === CLONE_TOP) ||
+      (preventOverflow === 'vertical' && this.type === CLONE_INLINE_START)
+    ) {
+      return rootWindow;
+    }
 
     if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
-      this.mainTableScrollableElement = this.wot.wtTable.holder;
-    } else {
-      this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
+      return wtTable.holder;
     }
+
+    return getScrollableElement(wtTable.TABLE);
   }
 
   /**
@@ -287,7 +305,7 @@ export class Overlay {
       wtTable,
       wtSettings
     } = this.wot;
-    const { rootDocument, rootWindow } = this.domBindings;
+    const { rootDocument } = this.domBindings;
     const clone = rootDocument.createElement('div');
     const clonedTable = rootDocument.createElement('table');
     const tableParent = wtTable.wtRootElement.parentNode;
@@ -323,21 +341,7 @@ export class Overlay {
 
     tableParent.appendChild(clone);
 
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-    const computedOverflow = rootWindow.getComputedStyle(tableParent)
-      .getPropertyValue('overflow');
-
-    if (preventOverflow === true ||
-      preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
-      preventOverflow === 'vertical' && this.type === CLONE_INLINE_START) {
-      this.mainTableScrollableElement = rootWindow;
-
-    } else if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
-      this.mainTableScrollableElement = wtTable.holder;
-
-    } else {
-      this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
-    }
+    this.mainTableScrollableElement = this.getMainTableScrollableElement();
 
     // Create a new instance of the Walkontable class
     return new Clone(clonedTable, this.wtSettings, { // todo ioc factory

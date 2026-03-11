@@ -55,5 +55,36 @@ describe('settings', () => {
 
       document.body.style.marginLeft = origMarginLeft;
     });
+
+    it('should keep vertical keyboard scrolling after `updateSettings()` when `horizontal` option is used', async() => {
+      const rootWindow = spec().$container[0].ownerDocument.defaultView;
+
+      handsontable({
+        data: createSpreadsheetData(200, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 400,
+        preventOverflow: 'horizontal',
+      });
+
+      await selectCell(20, 0);
+
+      const topOverlay = tableView()._wt.wtOverlays.topOverlay;
+      const initialScrollY = rootWindow.scrollY;
+
+      expect(topOverlay.mainTableScrollableElement).toBe(rootWindow);
+
+      await updateSettings({
+        className: 'after-update-settings',
+      });
+
+      expect(topOverlay.mainTableScrollableElement).toBe(rootWindow);
+
+      for (let i = 0; i < 10; i++) {
+        await keyDownUp('arrowdown');
+      }
+
+      expect(rootWindow.scrollY).toBeGreaterThan(initialScrollY);
+    });
   });
 });
