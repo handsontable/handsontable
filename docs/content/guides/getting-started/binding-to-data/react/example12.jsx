@@ -13,7 +13,7 @@ const sourceRows = [
 
 const ExampleComponent = () => (
   <HotTable
-    dataProvider={async(queryParameters, { signal }) => {
+    dataProvider={async (queryParameters, { signal }) => {
       const { page, pageSize } = queryParameters;
       const start = (page - 1) * pageSize;
       const end = start + pageSize;
@@ -34,11 +34,7 @@ const ExampleComponent = () => (
     }}
     rowId="id"
     colHeaders={['ID', 'Name', 'City']}
-    columns={[
-      { data: 'id' },
-      { data: 'name' },
-      { data: 'city' },
-    ]}
+    columns={[{ data: 'id' }, { data: 'name' }, { data: 'city' }]}
     height="auto"
     licenseKey="non-commercial-and-evaluation"
   />
