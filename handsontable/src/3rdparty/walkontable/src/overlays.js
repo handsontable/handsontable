@@ -569,9 +569,20 @@ class Overlays {
       scrollY = this.scrollableElement.scrollY;
     }
 
-    // Update scrolling flags immediately (before RAF) so refreshAll() can fire hooks synchronously if called
-    this.horizontalScrolling = this.lastScrollX !== scrollX;
-    this.verticalScrolling = this.lastScrollY !== scrollY;
+    const hasScrolledHorizontally = this.lastScrollX !== scrollX;
+    const hasScrolledVertically = this.lastScrollY !== scrollY;
+
+    // Update scrolling flags - accumulate when batching, replace when starting new batch
+    if (this.#scrollUpdatePending) {
+      // Accumulate flags during batching to preserve all scroll directions
+      this.horizontalScrolling = this.horizontalScrolling || hasScrolledHorizontally;
+      this.verticalScrolling = this.verticalScrolling || hasScrolledVertically;
+    } else {
+      // Starting new batch - set flags directly
+      this.horizontalScrolling = hasScrolledHorizontally;
+      this.verticalScrolling = hasScrolledVertically;
+    }
+
     this.lastScrollX = scrollX;
     this.lastScrollY = scrollY;
 
