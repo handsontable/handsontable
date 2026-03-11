@@ -951,7 +951,11 @@ jobs:
     needs:
       - visual-tests-multi-framework
       - visual-tests-cross-browser
-    if: "!failure() && !cancelled()"
+    if: |
+      !failure() && !cancelled() && (
+        needs.visual-tests-multi-framework.result == 'success' ||
+        needs.visual-tests-cross-browser.result == 'success'
+      )
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
