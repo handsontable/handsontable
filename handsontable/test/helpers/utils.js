@@ -60,7 +60,10 @@ export function waitOnScroll(wrappedMethod) {
         window.queueMicrotask(() => resolve(result));
       } else {
         // trigger fast render which will trigger the `afterScroll` event
-        hot().view.render();
+        // Wait for RAF to ensure scroll batching completes before rendering
+        requestAnimationFrame(() => {
+          hot().view.render();
+        });
       }
 
       wtScroll.scrollViewportHorizontally = origScrollViewportHorizontally;
