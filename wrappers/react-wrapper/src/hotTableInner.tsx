@@ -216,7 +216,7 @@ const HotTableInner = forwardRef<
     // Preserve selection state before updating settings
     let selectionState = null;
     if (hotInstance) {
-      const selection = hotInstance.getPlugin('selection') as any;
+      const selection = hotInstance.selection as any;
       if (selection && selection.isSelected()) {
         selectionState = selection.exportSelection();
       }
@@ -229,7 +229,7 @@ const HotTableInner = forwardRef<
 
     // Restore selection state after updating settings
     if (selectionState && hotInstance) {
-      const selection = hotInstance.getPlugin('selection') as any;
+      const selection = hotInstance.selection as any;
       if (selection) {
         selection.importSelection(selectionState);
       }

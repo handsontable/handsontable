@@ -1266,14 +1266,15 @@ class Selection {
     this.selectedByRowHeader = new Set(selectedByRowHeader);
     this.selectedByColumnHeader = new Set(selectedByColumnHeader);
 
-    this.setActiveSelectionLayerIndex(0);
-
     ranges.forEach((cellRange, selectionLayerIndex) => {
+      this.setActiveSelectionLayerIndex(selectionLayerIndex);
       this.selectedRange.push(cellRange);
       this.applyAndCommit(cellRange, selectionLayerIndex);
     });
 
-    this.setRangeFocus(activeRange.highlight, activeSelectionLayer);
+    if (activeRange) {
+      this.setRangeFocus(activeRange.highlight, activeSelectionLayer);
+    }
 
     this.#disableHeadersHighlight = false;
     this.inProgress = false;
@@ -1285,9 +1286,11 @@ class Selection {
    * @returns {SelectionState}
    */
   exportSelection() {
+    const activeRange = this.getActiveSelectedRange();
+
     return {
       ranges: Array.from(this.selectedRange).map(range => range.clone()),
-      activeRange: this.getActiveSelectedRange(),
+      activeRange: activeRange ? activeRange.clone() : null,
       activeSelectionLayer: this.getActiveSelectionLayerIndex(),
       selectedByRowHeader: Array.from(this.selectedByRowHeader),
       selectedByColumnHeader: Array.from(this.selectedByColumnHeader),
