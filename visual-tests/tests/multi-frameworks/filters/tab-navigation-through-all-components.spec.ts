@@ -67,7 +67,11 @@ test(__filename, async({ tablePage }) => {
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('Enter'); // select and accept "Is equal" option
-  await expect(tablePage.getByRole('menuitem').filter({ hasText: 'Is equal to' }).getByPlaceholder('Value', { exact: true })).toBeFocused();
+  const isEqualValueInput = tablePage
+    .getByRole('menuitem').filter({ hasText: 'Is equal to' })
+    .getByPlaceholder('Value', { exact: true });
+
+  await expect(isEqualValueInput).toBeFocused();
   await tryToEscapeFromTheComponentsFocus();
 
   // take a screenshot of the focused input after selecting and accepting the condition option
