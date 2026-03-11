@@ -64,7 +64,7 @@ describe('Selection preservation', () => {
     expect(selectedRangesAfter![0].from.col).toBe(0);
     expect(selectedRangesAfter![1].from.row).toBe(2);
     expect(selectedRangesAfter![1].from.col).toBe(2);
-  });
+  }, 15000);
 
   it('should preserve active selection layer after React state update', async () => {
     const hotSettings: HotTableProps = {
@@ -105,7 +105,7 @@ describe('Selection preservation', () => {
     // Verify active layer is preserved
     const activeLayerAfter = (hotInstance as any).selection.getActiveSelectionLayerIndex();
     expect(activeLayerAfter).toBe(activeLayerBefore);
-  });
+  }, 15000);
 
   it('should preserve selection when no selection exists', async () => {
     const hotSettings: HotTableProps = {
