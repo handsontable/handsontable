@@ -319,7 +319,7 @@ describe('ExportToExcel', () => {
   });
 
   describe('context menu integration', () => {
-    it('should add "Export to Excel" item to context menu', async() => {
+    it('should not add items to context menu by default', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
         contextMenu: true,
@@ -333,17 +333,23 @@ describe('ExportToExcel', () => {
         return $(this).text() === 'Export to Excel';
       });
 
-      expect(exportItem.length).toBeGreaterThan(0);
+      expect(exportItem.length).toBe(0);
     });
 
-    it('should trigger download when context menu item is clicked', async() => {
-      let afterExportCalled = false;
+    it('should work as a custom context menu item', async() => {
+      let downloadCalled = false;
 
       handsontable({
         data: createSpreadsheetData(3, 3),
-        contextMenu: true,
-        afterExportToExcel() {
-          afterExportCalled = true;
+        contextMenu: {
+          items: {
+            exportToExcel: {
+              name: 'Export to Excel',
+              callback() {
+                downloadCalled = true;
+              },
+            },
+          },
         },
       });
 
@@ -355,9 +361,11 @@ describe('ExportToExcel', () => {
         return $(this).text() === 'Export to Excel';
       });
 
+      expect(exportItem.length).toBeGreaterThan(0);
+
       exportItem.simulate('mousedown').simulate('mouseup');
 
-      expect(afterExportCalled).toBe(true);
+      expect(downloadCalled).toBe(true);
     });
   });
 
