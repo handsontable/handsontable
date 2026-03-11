@@ -92,3 +92,18 @@ export function getDateFromExcelDate(numericDate, dateFormat) {
 
   return moment(dateForFormatting).format(dateFormat);
 }
+
+/**
+ * Converts a Handsontable cell value to a value accepted by HyperFormula.
+ * HyperFormula doesn't accept arrays as direct cell values.
+ *
+ * @param {*} value Value to normalize.
+ * @returns {*} Value normalized for HyperFormula.
+ */
+export function normalizeValueForFormulaEngine(value) {
+  if (Array.isArray(value)) {
+    return null;
+  }
+
+  return value;
+}

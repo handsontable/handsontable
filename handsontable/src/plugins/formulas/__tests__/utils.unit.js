@@ -7,6 +7,7 @@ import {
   getDateInHotFormat,
   getDateInHfFormat,
   getDateFromExcelDate,
+  normalizeValueForFormulaEngine,
 } from '../utils';
 
 describe('Formulas utils', () => {
@@ -94,6 +95,23 @@ describe('Formulas utils', () => {
       expect(getDateFromExcelDate(366, 'DD/MM/YYYY')).toEqual('31/12/1900');
       // Values are the same for GS, Excel and HF.
       expect(getDateFromExcelDate(366, 'YYYY-MM-DD')).toEqual('1900-12-31');
+    });
+  });
+
+  describe('normalizeValueForFormulaEngine', () => {
+    it('should convert array values to null', () => {
+      expect(normalizeValueForFormulaEngine([])).toBeNull();
+      expect(normalizeValueForFormulaEngine(['A', 'B'])).toBeNull();
+      expect(normalizeValueForFormulaEngine([{ key: 'a', value: 'A' }])).toBeNull();
+    });
+
+    it('should keep non-array values unchanged', () => {
+      const objectValue = { key: 'A', value: 'Alpha' };
+
+      expect(normalizeValueForFormulaEngine('A')).toBe('A');
+      expect(normalizeValueForFormulaEngine(123)).toBe(123);
+      expect(normalizeValueForFormulaEngine(null)).toBeNull();
+      expect(normalizeValueForFormulaEngine(objectValue)).toBe(objectValue);
     });
   });
 });
