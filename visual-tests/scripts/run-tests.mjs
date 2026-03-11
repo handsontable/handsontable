@@ -65,9 +65,7 @@ for (let i = 0; i < frameworksToTest.length; i++) {
     // All theme runs share the same static file server on port 8082 — concurrent reads are safe.
     // --reporter=dot overrides the html reporter in playwright.config.ts, so there are no
     // concurrent writes to playwright-report/. Screenshots go to separate per-theme directories.
-    // Staggered starts (500ms apart) prevent all processes from hitting the server simultaneously,
-    // which could cause page initialisation race conditions in interaction-heavy tests.
-    const themeRuns = THEMES.map((themeName, index) => sleep(index * 500).then(() => {
+    const themeRuns = THEMES.map((themeName) => {
       console.log(chalk.green(`Testing JavaScript examples with "${themeName}" theme...`));
 
       const proc = execa.command('npx playwright test --reporter=dot', {
@@ -84,7 +82,7 @@ for (let i = 0; i < frameworksToTest.length; i++) {
         console.log('');
         console.log(chalk.green(`Finished testing examples with "${themeName}" theme.`));
       });
-    }));
+    });
 
     try {
       await Promise.all(themeRuns);
