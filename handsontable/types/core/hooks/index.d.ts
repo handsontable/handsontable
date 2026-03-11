@@ -27,6 +27,8 @@ import {
 import {
   GridSettings,
   CellProperties,
+  DataProviderResponse,
+  QueryParameters,
 } from '../../settings';
 
 import {
@@ -105,6 +107,8 @@ export interface Events {
   afterLanguageChange?: (languageCode: string) => void;
   afterListen?: () => void;
   afterLoadData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
+  afterDataProviderResponse?: (response: DataProviderResponse, queryParameters: QueryParameters) => void;
+  afterDataProviderError?: (error: Error, queryParameters: QueryParameters) => void;
   afterMergeCells?: (cellRange: CellRange, mergeParent: MergeCellsSettings, auto: boolean) => void;
   afterModifyTransformEnd?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
   afterModifyTransformFocus?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
@@ -211,6 +215,7 @@ export interface Events {
   beforeKeyDown?: (event: KeyboardEvent) => void;
   beforeLanguageChange?: (languageCode: string) => void;
   beforeLoadData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
+  beforeDataProviderRequest?: (queryParameters: QueryParameters) => QueryParameters | false | void;
   beforeMergeCells?: (cellRange: CellRange, auto: boolean) => void;
   beforeOnCellContextMenu?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   beforeOnCellMouseDown?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;

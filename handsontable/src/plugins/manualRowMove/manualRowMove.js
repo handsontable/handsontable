@@ -3,6 +3,7 @@ import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
+import { info } from '../../helpers/console';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
@@ -78,6 +79,10 @@ export class ManualRowMove extends BasePlugin {
    * @type {number}
    */
   #cachedDropIndex;
+  /**
+   * @type {boolean}
+   */
+  #isDataProviderInfoShown = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -86,6 +91,18 @@ export class ManualRowMove extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
+    if (this.hot.getSettings().dataProvider) {
+      if (!this.#isDataProviderInfoShown) {
+        info('The `manualRowMove` plugin cannot be used with the `dataProvider` option. ' +
+          'This plugin is disabled when server-side data fetching is active.');
+        this.#isDataProviderInfoShown = true;
+      }
+
+      return false;
+    }
+
+    this.#isDataProviderInfoShown = false;
+
     return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 

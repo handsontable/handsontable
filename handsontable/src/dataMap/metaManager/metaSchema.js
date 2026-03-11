@@ -1603,6 +1603,54 @@ export default () => {
 
     /**
      * @description
+     * The `dataProvider` option sets an asynchronous function that Handsontable calls to fetch rows.
+     *
+     * When `dataProvider` is enabled, Handsontable initializes with empty data and then replaces it with the rows
+     * returned by the function.
+     *
+     * Read more:
+     * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
+     * - [`refreshData()`](@/api/core.md#refreshdata)
+     * - [`getQueryParameters()`](@/api/core.md#getqueryparameters)
+     *
+     * @memberof Options#
+     * @type {Function}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * dataProvider: async (queryParameters, { signal }) => {
+     *   const response = await fetch('/api/rows', { signal });
+     *   const payload = await response.json();
+     *
+     *   return {
+     *     rows: payload.rows,
+     *     totalRows: payload.totalRows,
+     *   };
+     * },
+     * ```
+     */
+    dataProvider: undefined,
+
+    /**
+     * @description
+     * The `rowId` option defines which row property stores a unique row identifier.
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'id'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * rowId: 'id',
+     * ```
+     */
+    rowId: 'id',
+
+    /**
+     * @description
      * If `true`, Handsontable will interpret the dots in the columns mapping as a nested object path. If your dataset contains
      * the dots in the object keys and you don't want Handsontable to interpret them as a nested object path, set this option to `false`.
      *

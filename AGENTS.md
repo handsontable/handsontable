@@ -644,3 +644,4 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. See `.c
 - The docs site (`docs/`) uses Node 20 (its own `.nvmrc`) and is not needed for core library development.
 - Walkontable (the rendering engine) lives inside `src/3rdparty/walkontable/` and has its **own test runner** — do not mix Walkontable tests with main E2E tests.
 - No Docker, databases, or external services are required.
+- `dataProvider` (server-side row model MVP) currently supports initial fetch + `refreshData()` query replay in core. Keep PR 1 scope limited: no pagination/sorting/filtering/crud wiring. Also disable `ManualRowMove` and `TrimRows` when `dataProvider` is active.

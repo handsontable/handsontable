@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { TrimmingMap } from '../../translations';
 import { arrayEach, arrayReduce } from '../../helpers/array';
+import { info } from '../../helpers/console';
 
 export const PLUGIN_KEY = 'trimRows';
 export const PLUGIN_PRIORITY = 330;
@@ -169,6 +170,10 @@ export class TrimRows extends BasePlugin {
    * @type {null|TrimmingMap}
    */
   trimmedRowsMap = null;
+  /**
+   * @type {boolean}
+   */
+  #isDataProviderInfoShown = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -177,6 +182,18 @@ export class TrimRows extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
+    if (this.hot.getSettings().dataProvider) {
+      if (!this.#isDataProviderInfoShown) {
+        info('The `trimRows` plugin cannot be used with the `dataProvider` option. ' +
+          'This plugin is disabled when server-side data fetching is active.');
+        this.#isDataProviderInfoShown = true;
+      }
+
+      return false;
+    }
+
+    this.#isDataProviderInfoShown = false;
+
     return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 

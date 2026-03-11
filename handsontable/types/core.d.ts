@@ -10,6 +10,7 @@ import {
   CellMeta,
   CellProperties,
   ColumnSettings,
+  QueryParameters,
 } from './settings';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
 import CellRange from './3rdparty/walkontable/src/cell/range';
@@ -140,6 +141,8 @@ export default class Core {
   populateFromArray(row: number, column: number, input: CellValue[][], endRow?: number,
     endColumn?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite'): void;
   propToCol<T extends number | string>(prop: string | number): T;
+  refreshData(): Promise<void>;
+  getQueryParameters(): QueryParameters;
   refreshDimensions(): void;
   removeCellMeta(row: number, column: number, key: (keyof CellMeta) | string): void;
   removeHook<K extends keyof Events>(key: K, callback: Events[K]): void;

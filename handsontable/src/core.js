@@ -37,6 +37,9 @@ import {
   DynamicCellMetaMod,
   ExtendMetaPropertiesMod,
   replaceData,
+  createDefaultQueryParameters,
+  resolveDataProviderRequestQueryParameters,
+  normalizeDataProviderResponse,
   runSourceDataValidator,
   runSourceDataValidators,
 } from './dataMap';
@@ -184,6 +187,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   let focusGridManager;
   let viewportScroller;
   let firstRun = true;
+  let dataProviderRequestController = null;
+  let dataProviderRequestId = 0;
+  const queryParameters = createDefaultQueryParameters();
 
   const mergedUserSettings = {
     ...userSettings.initialState,
@@ -1329,6 +1335,84 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     globalMeta[className] = classSettings;
+  }
+
+  /**
+   * Returns whether the `dataProvider` option is active.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  function isDataProviderEnabled() {
+    return isFunction(tableMeta.dataProvider);
+  }
+
+  /**
+   * Aborts the currently pending `dataProvider` request.
+   *
+   * @private
+   */
+  function abortDataProviderRequest() {
+    if (dataProviderRequestController) {
+      dataProviderRequestController.abort();
+      dataProviderRequestController = null;
+    }
+  }
+
+  /**
+   * Requests data from the user-defined `dataProvider`.
+   *
+   * @private
+   * @param {string} source The source of the update.
+   * @returns {Promise<void>}
+   */
+  function requestDataFromProvider(source = 'refreshData') {
+    if (!isDataProviderEnabled()) {
+      return Promise.resolve();
+    }
+
+    const requestedQueryParameters = resolveDataProviderRequestQueryParameters(
+      queryParameters,
+      instance.runHooks('beforeDataProviderRequest', instance.getQueryParameters())
+    );
+
+    if (requestedQueryParameters === false) {
+      return Promise.resolve();
+    }
+
+    abortDataProviderRequest();
+
+    const AbortControllerClass = instance.rootWindow.AbortController;
+    const abortController = AbortControllerClass ? new AbortControllerClass() : null;
+    const signal = abortController ? abortController.signal : undefined;
+
+    dataProviderRequestId += 1;
+    const requestId = dataProviderRequestId;
+
+    dataProviderRequestController = abortController;
+
+    return Promise.resolve()
+      .then(() => tableMeta.dataProvider(requestedQueryParameters, { signal }))
+      .then((response) => {
+        if (requestId !== dataProviderRequestId) {
+          return;
+        }
+
+        const normalizedResponse = normalizeDataProviderResponse(response);
+
+        tableMeta._dataProviderTotalRows = normalizedResponse.totalRows;
+        instance.loadData(normalizedResponse.rows, source);
+        instance.runHooks('afterDataProviderResponse', normalizedResponse, requestedQueryParameters);
+      })
+      .catch((error) => {
+        const isAborted = abortController && abortController.signal.aborted;
+
+        if (requestId !== dataProviderRequestId || isAborted) {
+          return;
+        }
+
+        instance.runHooks('afterDataProviderError', error, requestedQueryParameters);
+      });
   }
 
   this.init = function() {
@@ -2587,6 +2671,34 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
+   * Refetches rows using the [`dataProvider`](@/api/options.md#dataprovider) option and the current query parameters.
+   *
+   * Read more:
+   * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
+   *
+   * @memberof Core#
+   * @function refreshData
+   * @returns {Promise<void>}
+   * @fires Hooks#beforeDataProviderRequest
+   * @fires Hooks#afterDataProviderResponse
+   * @fires Hooks#afterDataProviderError
+   */
+  this.refreshData = function() {
+    return requestDataFromProvider('dataProvider');
+  };
+
+  /**
+   * Returns query parameters used by the [`dataProvider`](@/api/options.md#dataprovider) option.
+   *
+   * @memberof Core#
+   * @function getQueryParameters
+   * @returns {object}
+   */
+  this.getQueryParameters = function() {
+    return deepClone(queryParameters);
+  };
+
+  /**
    * Gets the initial column count, calculated based on the `columns` setting.
    *
    * @private
@@ -2773,6 +2885,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     if (isDefined(settings.ganttChart)) {
       throwWithCause('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
+    if (hasOwnProperty(settings, 'data') && (isFunction(settings.dataProvider) || isDataProviderEnabled())) {
+      warn('Both `data` and `dataProvider` are defined in your configuration. ' +
+        'The `dataProvider` option has priority, and the `data` option will be ignored.');
+    }
 
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
       warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
@@ -2885,8 +3001,19 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
-    // Load data or create data map
-    if (settings.data === undefined && tableMeta.data === undefined) {
+    // Load data or create data map.
+    if (isDataProviderEnabled()) {
+      const isDataOptionPassed = hasOwnProperty(settings, 'data');
+
+      if (firstRun || isDataOptionPassed) {
+        dataUpdateFunction(null, 'updateSettings');
+      }
+
+      if (init || isDataOptionPassed || hasOwnProperty(settings, 'dataProvider')) {
+        instance.refreshData();
+      }
+
+    } else if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null, 'updateSettings'); // data source created just now
 
     } else if (settings.data !== undefined) {
@@ -4951,6 +5078,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   this.destroy = function() {
     instance._clearTimeouts();
     instance._clearMicrotasks();
+    abortDataProviderRequest();
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();

@@ -117,6 +117,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   currentRowClassName: 'foo',
   customBorders: true,
   data: oneOf([{}, {}, {}], [[], [], []]),
+  dataProvider: async(queryParameters, { signal }) => {
+    const _page: number = queryParameters.page;
+    const _signal: AbortSignal | undefined = signal;
+
+    return {
+      rows: [{ id: 1 }],
+      totalRows: 1,
+    };
+  },
   dataDotNotation: oneOf(true),
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',
@@ -222,6 +231,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     (instance: Handsontable, TD: HTMLTableCellElement, row: number, col: number,
       prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
   ),
+  rowId: 'id',
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
@@ -436,6 +446,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterLanguageChange: (languageCode) => {},
   afterListen: () => {},
   afterLoadData: (sourceData, firstTime, source) => {},
+  afterDataProviderResponse: (response, queryParameters) => {
+    response.rows;
+    response.totalRows;
+    queryParameters.page;
+  },
+  afterDataProviderError: (error, queryParameters) => {
+    error.message;
+    queryParameters.pageSize.toFixed();
+  },
   afterMergeCells: (cellRange, mergeParent, auto) => {},
   beforeLoadingShow: () => {},
   afterLoadingShow: () => {},
@@ -617,6 +636,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeKeyDown: (event) => {},
   beforeLanguageChange: (languageCode) => {},
   beforeLoadData: (sourceData, firstTime, source) => {},
+  beforeDataProviderRequest: (queryParameters) => {
+    queryParameters.page += 1;
+
+    return queryParameters;
+  },
   beforeMergeCells: (cellRange, auto) => {},
   beforeOnCellContextMenu: (event, coords, TD) => {},
   beforeOnCellMouseDown: (event, coords, TD, controller) => {},

@@ -478,6 +478,26 @@ export const REGISTERED_HOOKS = [
   'afterLoadData',
 
   /**
+   * Fired after the [`dataProvider`](@/api/options.md#dataprovider) option resolves successfully.
+   *
+   * @event Hooks#afterDataProviderResponse
+   * @param {object} response The resolved data provider payload.
+   * @param {Array} response.rows The rows returned by the data provider.
+   * @param {number} response.totalRows The total row count returned by the data provider.
+   * @param {object} queryParameters Query parameters sent to the data provider.
+   */
+  'afterDataProviderResponse',
+
+  /**
+   * Fired when the [`dataProvider`](@/api/options.md#dataprovider) option rejects.
+   *
+   * @event Hooks#afterDataProviderError
+   * @param {Error} error The thrown error.
+   * @param {object} queryParameters Query parameters sent to the data provider.
+   */
+  'afterDataProviderError',
+
+  /**
    * Fired after the [`updateData()`](@/api/core.md#updatedata) method
    * modifies Handsontable's [`data`](@/api/options.md#data).
    *
@@ -1471,6 +1491,15 @@ export const REGISTERED_HOOKS = [
    * @returns {Array} The returned array will be used as Handsontable's new dataset.
    */
   'beforeLoadData',
+
+  /**
+   * Fired before calling the [`dataProvider`](@/api/options.md#dataprovider) option.
+   *
+   * @event Hooks#beforeDataProviderRequest
+   * @param {object} queryParameters Query parameters that will be sent to the data provider.
+   * @returns {object|boolean|void} Return an object to override query parameters or `false` to cancel the request.
+   */
+  'beforeDataProviderRequest',
 
   /**
    * Fired before the [`updateData()`](@/api/core.md#updatedata) method

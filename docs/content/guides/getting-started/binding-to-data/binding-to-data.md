@@ -334,6 +334,48 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 
 To change the number of rows or columns rendered by default, use the [`startRows`](@/api/options.md#startrows) and [`startCols`](@/api/options.md#startcols) options.
 
+### Async `dataProvider` function
+
+You can set the [`dataProvider`](@/api/options.md#dataprovider) option to fetch rows from an async function.
+
+Handsontable calls this function on initialization and when you call [`refreshData()`](@/api/core.md#refreshdata).
+Use [`getQueryParameters()`](@/api/core.md#getqueryparameters) to inspect the current request parameters.
+
+When you provide both [`data`](@/api/options.md#data) and [`dataProvider`](@/api/options.md#dataprovider), Handsontable uses `dataProvider`.
+
+:::: only-for javascript
+
+:::: example #example12 --js 1 --ts 2
+
+@[code](@/content/guides/getting-started/binding-to-data/javascript/example12.js)
+@[code](@/content/guides/getting-started/binding-to-data/javascript/example12.ts)
+
+::::
+
+::::
+
+:::: only-for react
+
+:::: example #example12 :react --js 1 --ts 2
+
+@[code](@/content/guides/getting-started/binding-to-data/react/example12.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example12.tsx)
+
+::::
+
+::::
+
+:::: only-for angular
+
+:::: example #example12 :angular --ts 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example12.ts)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example12.html)
+
+::::
+
+::::
+
 ## Data-manipulating API methods
 
 ### Understand binding as a reference
@@ -477,6 +519,11 @@ To replace the entire data in an already-initialized Handsontable instance, you 
     // ... other config options
   });
   ```
+- [`refreshData()`](@/api/core.md#refreshdata)<br>
+  Calls the [`dataProvider`](@/api/options.md#dataprovider) function with the current query parameters.
+  ```js
+  await hot.refreshData();
+  ```
 
 ::: only-for angular
 
@@ -615,7 +662,9 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 - Configuration options:
   - [`data`](@/api/options.md#data)
+  - [`dataProvider`](@/api/options.md#dataprovider)
   - [`dataSchema`](@/api/options.md#dataschema)
+  - [`rowId`](@/api/options.md#rowid)
 - Core methods:
   - [`alter()`](@/api/core.md#alter)
   - [`clear()`](@/api/core.md#clear)
@@ -632,7 +681,9 @@ When working with a copy of data for Handsontable, it is best practice is to clo
   - [`getSourceDataAtCol()`](@/api/core.md#getsourcedataatcol)
   - [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow)
   - [`loadData()`](@/api/core.md#loaddata)
+  - [`getQueryParameters()`](@/api/core.md#getqueryparameters)
   - [`populateFromArray()`](@/api/core.md#populatefromarray)
+  - [`refreshData()`](@/api/core.md#refreshdata)
   - [`setDataAtCell()`](@/api/core.md#setdataatcell)
   - [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)
   - [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)
@@ -641,6 +692,8 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 - Hooks:
   - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
   - [`afterChange`](@/api/hooks.md#afterchange)
+  - [`afterDataProviderError`](@/api/hooks.md#afterdataprovidererror)
+  - [`afterDataProviderResponse`](@/api/hooks.md#afterdataproviderresponse)
   - [`afterLoadData`](@/api/hooks.md#afterloaddata)
   - [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell)
   - [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
@@ -648,6 +701,7 @@ When working with a copy of data for Handsontable, it is best practice is to clo
   - [`afterUpdateData`](@/api/hooks.md#afterupdatedata)
   - [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings)
   - [`beforeLoadData`](@/api/hooks.md#beforeloaddata)
+  - [`beforeDataProviderRequest`](@/api/hooks.md#beforedataproviderrequest)
   - [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata)
   - [`modifyData`](@/api/hooks.md#modifydata)
   - [`modifyRowData`](@/api/hooks.md#modifyrowdata)

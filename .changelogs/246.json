@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added initial dataProvider fetching with refreshData(), query parameters, and data-provider lifecycle hooks.",
+  "type": "added",
+  "issueOrPR": 246,
+  "breaking": false,
+  "framework": "none"
+}

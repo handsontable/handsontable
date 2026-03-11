@@ -6,6 +6,11 @@ import { replaceData } from './replaceData';
 import { DynamicCellMetaMod } from './metaManager/mods/dynamicCellMeta';
 import { ExtendMetaPropertiesMod } from './metaManager/mods/extendMetaProperties';
 import { runSourceDataValidator, runSourceDataValidators } from './sourceDataValidator';
+import {
+  createDefaultQueryParameters,
+  resolveDataProviderRequestQueryParameters,
+  normalizeDataProviderResponse,
+} from './dataProvider';
 
 export {
   DataMap,
@@ -15,6 +20,9 @@ export {
   ExtendMetaPropertiesMod,
   metaSchemaFactory,
   replaceData,
+  createDefaultQueryParameters,
+  resolveDataProviderRequestQueryParameters,
+  normalizeDataProviderResponse,
   runSourceDataValidator,
   runSourceDataValidators
 };

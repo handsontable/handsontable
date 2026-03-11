@@ -13,6 +13,10 @@ import {
   ColumnSettings,
   CellMeta,
   CellProperties,
+  DataProvider,
+  DataProviderResponse,
+  FetchOptions,
+  QueryParameters,
 } from './settings';
 import {
   ThemeConfig,
@@ -315,6 +319,10 @@ declare namespace Handsontable {
     CellMeta,
     ColumnSettings,
     GridSettings,
+    DataProvider,
+    DataProviderResponse,
+    FetchOptions,
+    QueryParameters,
     NumericFormatOptions,
     // themes
     ThemeConfig,

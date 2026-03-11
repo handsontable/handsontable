@@ -97,6 +97,27 @@ export interface CellSettings extends CellMeta {
   col: number;
 }
 
+export interface QueryParameters {
+  page: number;
+  pageSize: number;
+  sort: object | null;
+  filters: object | null;
+}
+
+export interface FetchOptions {
+  signal?: AbortSignal;
+}
+
+export interface DataProviderResponse<TRow = RowObject | CellValue[]> {
+  rows: TRow[];
+  totalRows: number;
+}
+
+export type DataProvider<TRow = RowObject | CellValue[]> = (
+  queryParameters: QueryParameters,
+  options: FetchOptions,
+) => Promise<DataProviderResponse<TRow>>;
+
 /**
  * Base table settings that will cascade to columns and cells.
  */
@@ -137,6 +158,7 @@ export interface GridSettings extends Events {
   currentRowClassName?: string;
   customBorders?: CustomBordersSettings;
   data?: CellValue[][] | RowObject[];
+  dataProvider?: DataProvider;
   dataDotNotation?: boolean;
   dataSchema?: RowObject | CellValue[] | ((row: number) => RowObject | CellValue[]);
   dateFormat?: string;
@@ -205,6 +227,7 @@ export interface GridSettings extends Events {
   renderAllColumns?: boolean;
   renderAllRows?: boolean;
   renderer?: RendererType | string | BaseRenderer;
+  rowId?: string;
   rowHeaders?: boolean | string[] | ((index: number) => string);
   rowHeaderWidth?: number | number[];
   rowHeights?: number | string | number[] | string[] | undefined[] | Array<number | string | undefined> | ((index: number) => string | number | undefined);
