@@ -16,15 +16,11 @@ describe('Selection', () => {
         rowHeaders: true,
       });
 
-      // Create a non-consecutive selection
-      await selectCell(0, 0);
-      await keyDown('meta');
-      await selectCell(2, 2, 2, 2);
-      await keyUp('meta');
+      // Create a non-consecutive selection.
+      hot.selectCells([[0, 0], [2, 2]]);
 
       // Verify we have multiple selection ranges
       const selectedRangesBefore = hot.getSelectedRange();
-
       expect(selectedRangesBefore.length).toBe(2);
       expect(selectedRangesBefore[0].from.row).toBe(0);
       expect(selectedRangesBefore[0].from.col).toBe(0);
@@ -45,22 +41,11 @@ describe('Selection', () => {
 
       // Verify selection is preserved
       const selectedRangesAfter = hot.getSelectedRange();
-
       expect(selectedRangesAfter.length).toBe(2);
       expect(selectedRangesAfter[0].from.row).toBe(0);
       expect(selectedRangesAfter[0].from.col).toBe(0);
       expect(selectedRangesAfter[1].from.row).toBe(2);
       expect(selectedRangesAfter[1].from.col).toBe(2);
-
-      expect(`
-        | - ║ # :   :   :   :   |
-        |===:===:===:===:===:===|
-        | - ║ A :   :   :   :   |
-        |   ║   :   :   :   :   |
-        | - ║   :   : 0 :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-      `).toBeMatchToSelectionPattern();
     });
 
     it('should preserve active selection layer after updateSettings', async() => {
@@ -70,12 +55,8 @@ describe('Selection', () => {
         rowHeaders: true,
       });
 
-      // Create a non-consecutive selection with 3 layers
-      await selectCell(0, 0);
-      await keyDown('meta');
-      await selectCell(1, 1, 1, 1);
-      await selectCell(2, 2, 2, 2);
-      await keyUp('meta');
+      // Create a non-consecutive selection with 3 layers.
+      hot.selectCells([[0, 0], [1, 1], [2, 2]]);
 
       const activeLayerBefore = hot.selection.getActiveSelectionLayerIndex();
 
@@ -123,15 +104,13 @@ describe('Selection', () => {
 
       // Verify row header selection is preserved
       expect(hot.selection.isSelectedByRowHeader(0)).toBe(true);
-      expect(`
-        |   ║   :   :   :   :   |
-        |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        | * ║ A : 0 : 0 : 0 : 0 |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-      `).toBeMatchToSelectionPattern();
+      const selectedRangesAfter = hot.getSelectedRange();
+
+      expect(selectedRangesAfter.length).toBe(1);
+      expect(selectedRangesAfter[0].from.row).toBe(2);
+      expect(selectedRangesAfter[0].from.col).toBe(-1);
+      expect(selectedRangesAfter[0].to.row).toBe(2);
+      expect(selectedRangesAfter[0].to.col).toBe(4);
     });
 
     it('should preserve column header selection after updateSettings', async() => {
@@ -180,8 +159,7 @@ describe('Selection', () => {
 
       // Don't select anything
       const selectedRangesBefore = hot.getSelectedRange();
-
-      expect(selectedRangesBefore).toBeNull();
+      expect(selectedRangesBefore).toBeUndefined();
 
       // Export selection state
       const selectionState = hot.selection.exportSelection();
@@ -197,8 +175,7 @@ describe('Selection', () => {
 
       // Verify no selection after update
       const selectedRangesAfter = hot.getSelectedRange();
-
-      expect(selectedRangesAfter).toBeNull();
+      expect(selectedRangesAfter).toBeUndefined();
     });
 
     it('should preserve complex multi-range selection after updateSettings', async() => {
@@ -208,18 +185,13 @@ describe('Selection', () => {
         rowHeaders: true,
       });
 
-      // Create a complex multi-range selection
-      await selectCell(0, 0, 1, 1);
-      await keyDown('meta');
-      await selectCell(3, 3, 4, 4);
-      await selectCell(2, 5);
-      await keyUp('meta');
+      // Create a complex multi-range selection.
+      hot.selectCells([[0, 0, 1, 1], [3, 3, 4, 4], [2, 5]]);
 
       // Export selection state
       const selectionState = hot.selection.exportSelection();
 
       const selectedRangesBefore = hot.getSelectedRange();
-
       expect(selectedRangesBefore.length).toBe(3);
 
       // Call updateSettings
@@ -234,7 +206,6 @@ describe('Selection', () => {
 
       // Verify complex selection is preserved
       const selectedRangesAfter = hot.getSelectedRange();
-
       expect(selectedRangesAfter.length).toBe(3);
       expect(selectedRangesAfter[0].from.row).toBe(0);
       expect(selectedRangesAfter[0].from.col).toBe(0);

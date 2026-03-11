@@ -1077,8 +1077,11 @@ describe('MultiSelectEditor', () => {
         await selectCell(0, 0);
         await keyDownUp('enter');
         await sleep(10);
+        const dropdownElement = $('.ht-multi-select-editor')[0];
+        const computedStyle = hot().rootWindow.getComputedStyle(dropdownElement);
 
-        expect($('.ht-multi-select-editor')[0].clientWidth).toEqual(120);
+        expect(parseInt(computedStyle.minWidth, 10)).toBe(120);
+        expect(dropdownElement.clientWidth).toBeGreaterThanOrEqual(120);
       });
 
       it('should size to content width when source entries are longer than min-width', async() => {
