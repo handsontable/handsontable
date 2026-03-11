@@ -24,11 +24,14 @@ export const PLUGIN_PRIORITY = 280;
  * @class NestedHeaders
  *
  * @description
- * The plugin allows to create a nested header structure, using the HTML's colspan attribute.
+ * The plugin allows to create a nested header structure, using the HTML's colspan and rowspan attributes.
  *
- * To make any header wider (covering multiple table columns), it's corresponding configuration array element should be
+ * To make any header wider (covering multiple table columns), its corresponding configuration array element should be
  * provided as an object with `label` and `colspan` properties. The `label` property defines the header's label,
  * while the `colspan` property defines a number of columns that the header should cover.
+ *
+ * To make any header taller (covering multiple header rows), use the `rowspan` property. A header with `rowspan: N`
+ * will span N header rows. The cells in the rows below that are covered by the rowspan will be hidden automatically.
  * You can also set custom class names to any of the headers by providing the `headerClassName` property.
  *
  * __Note__ that the plugin supports a *nested* structure, which means, any header cannot be wider than it's "parent". In
@@ -341,15 +344,18 @@ export class NestedHeaders extends BasePlugin {
 
       for (let j = 0, masterNodes = masterLevel.childNodes.length; j < masterNodes; j++) {
         masterLevel.childNodes[j].removeAttribute('colspan');
+        masterLevel.childNodes[j].removeAttribute('rowspan');
         removeClass(masterLevel.childNodes[j], 'hiddenHeader');
 
         if (topLevel && topLevel.childNodes[j]) {
           topLevel.childNodes[j].removeAttribute('colspan');
+          topLevel.childNodes[j].removeAttribute('rowspan');
           removeClass(topLevel.childNodes[j], 'hiddenHeader');
         }
 
         if (topLeftCornerHeaders && topLeftCornerLevel && topLeftCornerLevel.childNodes[j]) {
           topLeftCornerLevel.childNodes[j].removeAttribute('colspan');
+          topLeftCornerLevel.childNodes[j].removeAttribute('rowspan');
           removeClass(topLeftCornerLevel.childNodes[j], 'hiddenHeader');
         }
       }
@@ -378,17 +384,20 @@ export class NestedHeaders extends BasePlugin {
       }
 
       TH.removeAttribute('colspan');
+      TH.removeAttribute('rowspan');
       removeClass(TH, 'hiddenHeader');
       removeClass(TH, 'hiddenHeaderText');
 
       const {
         colspan,
+        rowspan,
         isHidden,
         isPlaceholder,
+        isRowspanPlaceholder,
         headerClassNames,
       } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? { label: '' };
 
-      if (isPlaceholder || isHidden) {
+      if (isPlaceholder || isHidden || isRowspanPlaceholder) {
         addClass(TH, 'hiddenHeader');
 
       } else if (colspan > 1) {
@@ -410,6 +419,10 @@ export class NestedHeaders extends BasePlugin {
         }
       }
 
+      if (rowspan > 1) {
+        TH.setAttribute('rowspan', rowspan);
+      }
+
       this.hot.view.appendColHeader(
         visualColumnIndex,
         TH,
@@ -418,7 +431,7 @@ export class NestedHeaders extends BasePlugin {
       );
 
       // Replace the higher-order `headerClassName`s with the one provided in the plugin config, if it was provided.
-      if (!isPlaceholder && !isHidden) {
+      if (!isPlaceholder && !isHidden && !isRowspanPlaceholder) {
         const innerHeaderDiv = TH.querySelector('div.relative');
 
         if (innerHeaderDiv && headerClassNames && headerClassNames.length > 0) {

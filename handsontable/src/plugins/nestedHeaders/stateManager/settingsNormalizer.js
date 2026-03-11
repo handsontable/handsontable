@@ -61,7 +61,7 @@ export function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
 
       if (isObject(sourceHeaderSettings)) {
         const {
-          label, colspan, headerClassName
+          label, colspan, headerClassName, rowspan
         } = sourceHeaderSettings;
 
         headerSettings.label = stringify(label);
@@ -69,6 +69,10 @@ export function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
         if (typeof colspan === 'number' && colspan > 1) {
           headerSettings.colspan = colspan;
           headerSettings.origColspan = colspan;
+        }
+
+        if (typeof rowspan === 'number' && rowspan > 1) {
+          headerSettings.rowspan = rowspan;
         }
 
         if (typeof headerClassName === 'string') {
@@ -114,6 +118,35 @@ export function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
       headersSettings.splice(headersSettings.length, 0, ...defaultSettings);
     }
   });
+
+  // Post-process rowspan: mark cells in lower rows that are covered by rowspan as rowspan-placeholders.
+  const totalLayers = normalizedSettings.length;
+
+  for (let rowIndex = 0; rowIndex < totalLayers; rowIndex++) {
+    const row = normalizedSettings[rowIndex];
+
+    for (let colIndex = 0; colIndex < row.length; colIndex++) {
+      const headerSettings = row[colIndex];
+
+      if (headerSettings.isPlaceholder || headerSettings.isRowspanPlaceholder) {
+        continue; // eslint-disable-line no-continue
+      }
+
+      const { rowspan, origColspan } = headerSettings;
+
+      if (rowspan > 1) {
+        const rowspanEnd = Math.min(rowIndex + rowspan, totalLayers);
+
+        for (let r = rowIndex + 1; r < rowspanEnd; r++) {
+          for (let c = colIndex; c < colIndex + origColspan; c++) {
+            if (normalizedSettings[r][c] !== undefined) {
+              normalizedSettings[r][c].isRowspanPlaceholder = true;
+            }
+          }
+        }
+      }
+    }
+  }
 
   return normalizedSettings;
 }
