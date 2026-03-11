@@ -674,8 +674,10 @@ jobs:
     if: |
       !failure() && !cancelled() && (
         needs.test-handsontable-e2e-main.result == 'success' ||
+        needs.test-handsontable-e2e-horizon.result == 'success' ||
         needs.test-handsontable-e2e-classic.result == 'success' ||
         needs.test-handsontable-e2e-min-main.result == 'success' ||
+        needs.test-handsontable-e2e-min-horizon.result == 'success' ||
         needs.test-handsontable-e2e-min-classic.result == 'success' ||
         needs.test-angular-wrapper.result == 'success' ||
         needs.test-react-wrapper.result == 'success' ||
@@ -818,8 +820,10 @@ jobs:
     if: |
       !failure() && !cancelled() && (
         needs.test-handsontable-e2e-main.result == 'success' ||
+        needs.test-handsontable-e2e-horizon.result == 'success' ||
         needs.test-handsontable-e2e-classic.result == 'success' ||
         needs.test-handsontable-e2e-min-main.result == 'success' ||
+        needs.test-handsontable-e2e-min-horizon.result == 'success' ||
         needs.test-handsontable-e2e-min-classic.result == 'success' ||
         needs.test-angular-wrapper.result == 'success' ||
         needs.test-react-wrapper.result == 'success' ||
