@@ -14,6 +14,15 @@ const data = [
   [['Phone', 'Keys'], ['First aid kit', 'Snacks', 'Umbrella'], ['Nature']],
   [['Wallet', 'Phone'], [], ['Food', 'Shopping']],
   [['Passport', 'Tickets'], ['Book'], ['Art', 'History']],
+  [['Phone', 'Keys'], ['First aid kit', 'Snacks', 'Umbrella'], ['Nature']],
+  [['Wallet', 'Phone'], [], ['Food', 'Shopping']],
+  [['Passport', 'Tickets'], ['Book'], ['Art', 'History']],
+  [['Phone', 'Keys'], ['First aid kit', 'Snacks', 'Umbrella'], ['Nature']],
+  [['Wallet', 'Phone'], [], ['Food', 'Shopping']],
+  [['Passport', 'Tickets'], ['Book'], ['Art', 'History']],
+  [['Phone', 'Keys'], ['First aid kit', 'Snacks', 'Umbrella'], ['Nature']],
+  [['Wallet', 'Phone'], [], ['Food', 'Shopping']],
+  [['Passport', 'Tickets'], ['Book'], ['Art', 'History']],
 ];
 
 new Handsontable(container, {
@@ -46,6 +55,7 @@ new Handsontable(container, {
   ],
   autoWrapRow: true,
   autoWrapCol: true,
-  preventOverflow: 'horizontal',
-  colWidths: 200,
+  height: 'auto',
+  stretchH: 'last',
+  width: '100%',
 });

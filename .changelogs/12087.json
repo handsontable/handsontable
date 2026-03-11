@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed misalignment issues for CSS transform: scale()",
+  "title": "Fixed date picker positioning near viewport edges",
   "type": "fixed",
-  "issueOrPR": 11990,
+  "issueOrPR": 12087,
   "breaking": false,
   "framework": "none"
 }

@@ -7,6 +7,7 @@ import { init as initTwoTablesDemo } from './demos/twoTables';
 import { init as initCellTypeDemo } from './demos/cellTypes';
 import { init as initArabicRtlDemo } from './demos/arabicRtl';
 import { init as initCustomStyleDemo } from './demos/customStyle';
+import { init as initDateCellTypeDemo } from './demos/dateCellType';
 import { init as initMergedCellsDemo } from './demos/mergedCells';
 import { init as initNestedHeadersDemo } from './demos/nestedHeaders';
 import { init as initNestedRowsDemo } from './demos/nestedRows';
@@ -132,6 +133,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initCustomStyleDemo();
+      });
+    },
+    '/date-cell-type-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initDateCellTypeDemo();
       });
     },
     '/large-dataset-demo': function () {

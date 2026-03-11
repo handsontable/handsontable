@@ -184,7 +184,7 @@ export function getPaginationPagePageSizeSelect() {
  * @returns {number}
  */
 export function getPaginationContainerHeight() {
-  switch (spec().loadedTheme) {
+  switch (getLoadedTheme()) {
     case 'main':
       return 45;
     case 'horizon':

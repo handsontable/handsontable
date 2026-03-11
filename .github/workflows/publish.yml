@@ -332,22 +332,33 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
-          if [ "$JOB_STATUS" = "success" ]; then STATUS_FIELD=":white_check_mark: Success"; else STATUS_FIELD=":x: Failed"; fi
+          if [ "$JOB_STATUS" = "success" ]; then
+            STATUS=":white_check_mark: Success"; NPM_STATUS=":white_check_mark: :npm: *npm*"; NPM_OK="true"
+          else
+            STATUS=":x: Failed"; NPM_STATUS=":x: :npm: *npm*"; NPM_OK="false"
+          fi
           CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
 
           jq -n \
-            --arg status        "$STATUS_FIELD" \
             --arg version       "${RC_VERSION}" \
             --arg branch        "${RELEASE_BRANCH}" \
-            --arg repo_url      "${REPO_URL}" \
+            --arg status        "$STATUS" \
+            --arg npm_status    "$NPM_STATUS" \
+            --arg npm_ok        "$NPM_OK" \
             --arg changelog_url "$CHANGELOG_URL" \
+            --arg repo_url      "${REPO_URL}" \
             --arg run_url       "${RUN_URL}" \
           '{
-            text: ("🚀 Pre-release " + $version + " generated – " + $status),
+            text: (if $npm_ok == "true" then "🚀 Version " + $version + " released!" else "❌ Release of version " + $version + " failed." end),
             blocks: [
+              (if $npm_ok == "true" then
+                { type: "header", text: { type: "plain_text", text: ("🚀 Version " + $version + " released!"), emoji: true } }
+              else
+                { type: "section", text: { type: "mrkdwn", text: (":x: *Release of version " + $version + " failed.* Check the <" + $run_url + "|GitHub Actions run> for details.") } }
+              end),
               {
-                type: "header",
-                text: { type: "plain_text", text: "🚀 Pre-release Generated", emoji: true }
+                type: "section",
+                text: { type: "mrkdwn", text: "⚠️ *This is a pre-release.* Not intended for production use." }
               },
               {
                 type: "section",
@@ -361,20 +372,22 @@ jobs:
               { type: "divider" },
               {
                 type: "section",
-                text: { type: "mrkdwn", text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>") }
+                fields: [
+                  { type: "mrkdwn", text: ":white_check_mark: :github: *GitHub*" },
+                  { type: "mrkdwn", text: $npm_status }
+                ]
               },
               { type: "divider" },
               {
                 type: "section",
-                text: { type: "mrkdwn", text: ("*🎮 Demos*\n• <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|Vanilla JS>\n• <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>") }
+                text: {
+                  type: "mrkdwn",
+                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>" else "" end)
+                }
               },
-              { type: "divider" },
               {
                 type: "context",
-                elements: [
-                  { type: "mrkdwn", text: "⚠️ *This is a pre-release.* Not to be used in production." },
-                  { type: "mrkdwn", text: ("<" + $run_url + "|View run>") }
-                ]
+                elements: [{ type: "mrkdwn", text: ("<" + $run_url + "|🔗 View GitHub Actions run>") }]
               }
             ]
           }' > /tmp/slack-payload.json
@@ -392,10 +405,40 @@ jobs:
   # ============================================================
   # Scenario C — Subsequent RC (push to release/**)
   # ============================================================
+  rc-check:
+    name: Guard RC build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/')
+    outputs:
+      allowed: ${{ steps.check.outputs.allowed }}
+    steps:
+      - name: Extract version from branch name
+        id: version
+        run: |
+          REF_NAME='${{ github.ref_name }}'
+          VERSION="${REF_NAME#${RELEASE_BRANCH_PREFIX}}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Check if stable release already exists
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION='${{ steps.version.outputs.version }}'
+          STABLE_COUNT=$(gh release list --repo "${{ github.repository }}" --json tagName,isPrerelease \
+            --jq "[.[] | select(.tagName == \"${VERSION}\" and (.isPrerelease | not))] | length")
+          if [ "$STABLE_COUNT" -gt 0 ]; then
+            echo "::notice::Stable release ${VERSION} already exists — skipping RC build."
+            echo "allowed=false" >> $GITHUB_OUTPUT
+          else
+            echo "allowed=true" >> $GITHUB_OUTPUT
+          fi
+
   rc-build:
     name: Build RC
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    needs: [rc-check]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/') && needs.rc-check.outputs.allowed == 'true'
     outputs:
       rc-version: ${{ steps.rc-version.outputs.rc-version }}
       changelog-synced: ${{ steps.sync-changelog.outputs.synced }}
@@ -645,16 +688,21 @@ jobs:
         env:
           JOB_STATUS: ${{ job.status }}
           RC_VERSION: ${{ needs.rc-build.outputs.rc-version }}
-          BRANCH: ${{ github.ref_name }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
-          if [ "$JOB_STATUS" = "success" ]; then STATUS_FIELD=":white_check_mark: Success"; else STATUS_FIELD=":x: Failed"; fi
+          if [ "$JOB_STATUS" = "success" ]; then
+            STATUS=":white_check_mark: Success"; NPM_STATUS=":white_check_mark: :npm: *npm*"; NPM_OK="true"
+          else
+            STATUS=":x: Failed"; NPM_STATUS=":x: :npm: *npm*"; NPM_OK="false"
+          fi
 
           # Build commit list since previous RC tag
-          VERSION=$(echo "$RC_VERSION" | sed 's/-rc[0-9]*//')
+          BASE_VERSION=$(echo "$RC_VERSION" | sed 's/-rc[0-9]*//')
           RC_NUMBER=$(echo "$RC_VERSION" | sed -n 's/.*-rc\([0-9]*\)/\1/p')
-          PREV_TAG="${VERSION}-rc$((RC_NUMBER - 1))"
+          PREV_TAG="${BASE_VERSION}-rc$((RC_NUMBER - 1))"
+          RELEASE_BRANCH="${{ github.ref_name }}"
+          CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
 
           git fetch --unshallow 2>/dev/null || true
           git fetch --tags --quiet
@@ -680,20 +728,28 @@ jobs:
           CHANGELOG_SYNCED='${{ needs.rc-build.outputs.changelog-synced }}'
 
           jq -n \
-            --arg status            "$STATUS_FIELD" \
-            --arg version           "${RC_VERSION}" \
-            --arg branch            "${BRANCH}" \
-            --arg repo_url          "${REPO_URL}" \
-            --arg prev_tag          "${PREV_TAG}" \
-            --arg commits           "$COMMITS_TEXT" \
-            --arg run_url           "${RUN_URL}" \
-            --arg changelog_synced  "${CHANGELOG_SYNCED}" \
+            --arg version          "${RC_VERSION}" \
+            --arg branch           "${RELEASE_BRANCH}" \
+            --arg status           "$STATUS" \
+            --arg npm_status       "$NPM_STATUS" \
+            --arg npm_ok           "$NPM_OK" \
+            --arg prev_tag         "${PREV_TAG}" \
+            --arg commits          "$COMMITS_TEXT" \
+            --arg changelog_synced "${CHANGELOG_SYNCED}" \
+            --arg changelog_url    "$CHANGELOG_URL" \
+            --arg run_url          "${RUN_URL}" \
+            --arg repo_url         "${REPO_URL}" \
           '{
-            text: ("🚀 Pre-release " + $version + " generated – " + $status),
+            text: (if $npm_ok == "true" then "🚀 Version " + $version + " released!" else "❌ Release of version " + $version + " failed." end),
             blocks: [
+              (if $npm_ok == "true" then
+                { type: "header", text: { type: "plain_text", text: ("🚀 Version " + $version + " released!"), emoji: true } }
+              else
+                { type: "section", text: { type: "mrkdwn", text: (":x: *Release of version " + $version + " failed.* Check the <" + $run_url + "|GitHub Actions run> for details.") } }
+              end),
               {
-                type: "header",
-                text: { type: "plain_text", text: "🚀 Pre-release Generated", emoji: true }
+                type: "section",
+                text: { type: "mrkdwn", text: "⚠️ *This is a pre-release.* Not intended for production use." }
               },
               {
                 type: "section",
@@ -707,7 +763,15 @@ jobs:
               { type: "divider" },
               {
                 type: "section",
-                text: { type: "mrkdwn", text: ("*📋 Commits since `" + $prev_tag + "`*\n" + $commits) }
+                fields: [
+                  { type: "mrkdwn", text: ":white_check_mark: :github: *GitHub*" },
+                  { type: "mrkdwn", text: $npm_status }
+                ]
+              },
+              { type: "divider" },
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: ("*Commits since `" + $prev_tag + "`*\n" + $commits) }
               },
               if $changelog_synced == "true" then
                 {
@@ -718,15 +782,14 @@ jobs:
               { type: "divider" },
               {
                 type: "section",
-                text: { type: "mrkdwn", text: ("*🎮 Demos*\n• <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|Vanilla JS>\n• <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>") }
+                text: {
+                  type: "mrkdwn",
+                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>" else "" end)
+                }
               },
-              { type: "divider" },
               {
                 type: "context",
-                elements: [
-                  { type: "mrkdwn", text: "⚠️ *This is a pre-release.* Not to be used in production." },
-                  { type: "mrkdwn", text: ("<" + $run_url + "|View run>") }
-                ]
+                elements: [{ type: "mrkdwn", text: ("<" + $run_url + "|🔗 View GitHub Actions run>") }]
               }
             ]
           }' > /tmp/slack-payload.json
@@ -744,8 +807,8 @@ jobs:
   # ============================================================
   # Scenario D — Stable release (release event, not prerelease)
   # ============================================================
-  stable-build:
-    name: Build stable release
+  stable-prepare:
+    name: Prepare stable release
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'release' &&
@@ -828,43 +891,6 @@ jobs:
       - name: Update lockfile for version change
         run: pnpm install --lockfile-only
 
-      - name: Clean old package builds
-        run: npm run all clean -- --e examples
-
-      - name: Build all packages
-        run: npm run all build -- --e examples visual-tests
-
-      - name: Verify bundles
-        run: node ./scripts/verify-bundles.mjs
-
-      - name: Pack tarballs
-        run: mkdir _tmp_packs && npm run all create-package -- --e examples --cmdArgs pack-destination="$(pwd)/_tmp_packs/"
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
-        with:
-          name: npm_packs_${{ steps.version.outputs.version }}
-          path: _tmp_packs/
-
-      - name: Clean up tarballs
-        run: rm -rf _tmp_packs
-
-      - name: Install nuget
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mono-complete
-          curl -o /tmp/nuget.exe https://dist.nuget.org/win-x86-commandline/v7.3.0/nuget.exe
-          sudo bash -c 'echo "#!/bin/bash" > /usr/local/bin/nuget && echo "exec mono /tmp/nuget.exe \"$@\"" >> /usr/local/bin/nuget && chmod +x /usr/local/bin/nuget'
-
-      - name: Generate NuGet package
-        run: node .github/scripts/generate-nuget-package.mjs
-
-      - name: Upload NuGet package artifact
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
-        with:
-          name: nuget_pack_${{ steps.version.outputs.version }}
-          path: Handsontable.*.nupkg
-
       - name: Update changelog release date
         run: |
           VERSION='${{ steps.version.outputs.version }}'
@@ -879,6 +905,9 @@ jobs:
 
           sed -i "s/${PATTERN}/## [${VERSION}] - ${TODAY}/" CHANGELOG.md
           echo "Updated CHANGELOG.md: ## [${VERSION}] - ${TODAY}"
+
+      - name: Update docs changelog
+        run: node .github/scripts/update-docs-changelog.mjs '${{ steps.version.outputs.version }}'
 
       - name: Commit and push
         env:
@@ -898,11 +927,152 @@ jobs:
           # GitHub already created the tag when the release was published — no tag creation needed here.
           echo "Skipping tag creation — already created by GitHub release event"
 
-      - name: Create LTS branch for previous even major version
+      - name: Update GitHub release description
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION='${{ steps.version.outputs.version }}'
+          CONTENT=$(node .github/scripts/extract-changelog.mjs "$VERSION")
+          printf '%s' "$CONTENT" > /tmp/release-notes.md
+          gh release edit "${VERSION}" --repo "${{ github.repository }}" --notes-file /tmp/release-notes.md
+          echo "Updated release description for ${VERSION}"
+
+  stable-merge:
+    name: Merge release to develop and master
+    runs-on: ubuntu-latest
+    needs: [stable-prepare]
+    outputs:
+      version: ${{ needs.stable-prepare.outputs.version }}
+      release-branch: ${{ needs.stable-prepare.outputs.release-branch }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          ref: ${{ needs.stable-prepare.outputs.release-branch }}
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check merge compatibility
+        run: |
+          RELEASE_BRANCH='${{ needs.stable-prepare.outputs.release-branch }}'
+
+          git fetch origin develop master
+
+          FAILED=0
+          for TARGET in develop master; do
+            git checkout -b _dry_${TARGET} origin/${TARGET}
+
+            if ! git merge --no-commit --no-ff origin/${RELEASE_BRANCH} 2>/dev/null; then
+              CONFLICTS=$(git diff --name-only --diff-filter=U)
+              UNEXPECTED=$(echo "$CONFLICTS" | grep -v '^pnpm-lock.yaml$' || true)
+
+              if [ -n "$UNEXPECTED" ]; then
+                echo "::error::Conflicts with ${TARGET} require human attention:"
+                echo "$UNEXPECTED" | while IFS= read -r f; do echo "  - $f"; done
+                FAILED=1
+              else
+                echo "::notice::${TARGET}: pnpm-lock.yaml conflict will be auto-resolved"
+              fi
+
+              git merge --abort 2>/dev/null || true
+            else
+              git reset --merge
+            fi
+
+            git checkout -
+            git branch -D _dry_${TARGET}
+          done
+
+          if [ "$FAILED" -ne 0 ]; then
+            echo "::error::Fix the conflicts on the release branch or develop, then re-run this job."
+            exit 1
+          fi
+
+      - name: Merge to develop
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_BRANCH='${{ needs.stable-prepare.outputs.release-branch }}'
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+
+          git checkout develop
+
+          if ! git merge origin/${RELEASE_BRANCH} --no-edit; then
+            UNRESOLVED=$(git diff --name-only --diff-filter=U)
+            UNEXPECTED=$(echo "$UNRESOLVED" | grep -v '^pnpm-lock.yaml$' || true)
+
+            if [ -n "$UNEXPECTED" ]; then
+              echo "::error::Unexpected conflicts during merge to develop: $UNEXPECTED"
+              git merge --abort
+              exit 1
+            fi
+
+            git checkout --ours pnpm-lock.yaml
+            pnpm install --lockfile-only
+            git add pnpm-lock.yaml
+            git commit --no-edit
+          fi
+
+          git push origin develop
+
+      - name: Merge to master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_BRANCH='${{ needs.stable-prepare.outputs.release-branch }}'
+
+          git checkout master
+
+          if ! git merge origin/${RELEASE_BRANCH} --no-edit; then
+            UNRESOLVED=$(git diff --name-only --diff-filter=U)
+            UNEXPECTED=$(echo "$UNRESOLVED" | grep -v '^pnpm-lock.yaml$' || true)
+
+            if [ -n "$UNEXPECTED" ]; then
+              echo "::error::Unexpected conflicts during merge to master: $UNEXPECTED"
+              git merge --abort
+              exit 1
+            fi
+
+            git checkout --ours pnpm-lock.yaml
+            pnpm install --lockfile-only
+            git add pnpm-lock.yaml
+            git commit --no-edit
+          fi
+
+          git push origin master
+
+      - name: Move version tag to post-merge master commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION='${{ needs.stable-prepare.outputs.version }}'
+          NEW_SHA=$(git rev-parse HEAD) # HEAD is master after the merge step
+
+          gh api repos/${{ github.repository }}/git/refs/tags/${VERSION} \
+            -X PATCH \
+            -f sha="$NEW_SHA" \
+            -F force=true
+
+          echo "Tag ${VERSION} updated to ${NEW_SHA} (post-merge master)"
+
+      - name: Create LTS branch for previous even major version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION='${{ needs.stable-prepare.outputs.version }}'
           MAJOR=$(echo "$VERSION" | cut -d. -f1)
           MINOR=$(echo "$VERSION" | cut -d. -f2)
           PATCH=$(echo "$VERSION" | cut -d. -f3)
@@ -929,24 +1099,71 @@ jobs:
             exit 0
           fi
 
-          # Find the latest version tag for the previous major version
+          # Find the latest non-prerelease tag for the previous major version
           git fetch --tags origin
-          LATEST_TAG=$(git tag --list "${PREV_MAJOR}.*" --sort=-version:refname | head -n 1)
+          LATEST_TAG=$(git tag --list "${PREV_MAJOR}.*" --sort=-version:refname | grep -v '-' | head -n 1)
 
           if [ -z "$LATEST_TAG" ]; then
-            echo "::error::No tags found for major version ${PREV_MAJOR}. Cannot create LTS branch."
+            echo "::error::No non-prerelease tags found for major version ${PREV_MAJOR}. Cannot create LTS branch."
             exit 1
           fi
 
-          echo "Creating LTS branch $LTS_BRANCH from tag $LATEST_TAG"
+          echo "Creating LTS branch $LTS_BRANCH from tag $LATEST_TAG (last stable of previous major)"
           git checkout -b "$LTS_BRANCH" "$LATEST_TAG"
           git push -u origin "$LTS_BRANCH"
           echo "Created LTS branch: $LTS_BRANCH"
 
+  stable-build:
+    name: Build stable release
+    runs-on: ubuntu-latest
+    needs: [stable-merge]
+    outputs:
+      version: ${{ needs.stable-merge.outputs.version }}
+      release-branch: ${{ needs.stable-merge.outputs.release-branch }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          ref: ${{ needs.stable-merge.outputs.release-branch }}
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Clean old package builds
+        run: npm run all clean -- --e examples
+
+      - name: Build all packages
+        run: npm run all build -- --e examples visual-tests
+
+      - name: Verify bundles
+        run: node ./scripts/verify-bundles.mjs
+
+      - name: Pack tarballs
+        run: mkdir _tmp_packs && npm run all create-package -- --e examples --cmdArgs pack-destination="$(pwd)/_tmp_packs/"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: npm_packs_${{ needs.stable-merge.outputs.version }}
+          path: _tmp_packs/
+
+      - name: Clean up tarballs
+        run: rm -rf _tmp_packs
+
       - name: Publication summary
         run: |
-          VERSION='${{ steps.version.outputs.version }}'
-          RELEASE_BRANCH='${{ steps.version.outputs.release-branch }}'
+          VERSION='${{ needs.stable-merge.outputs.version }}'
+          RELEASE_BRANCH='${{ needs.stable-merge.outputs.release-branch }}'
           RELEASE_TAG='${{ github.event.release.tag_name }}'
           cat >> $GITHUB_STEP_SUMMARY <<EOF
           # ✅ Stable Release Publication Summary
@@ -973,11 +1190,70 @@ jobs:
           _Triggered by **${{ github.actor }}** on **${{ github.ref_name }}**_
           EOF
 
+  # ============================================================
+  # Scenario D.1 — NuGet build (parallel to stable-publish, isolated)
+  # ============================================================
+  stable-build-nuget:
+    name: Build NuGet package
+    runs-on: ubuntu-latest
+    needs: [stable-build]
+    outputs:
+      version: ${{ needs.stable-build.outputs.version }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          ref: ${{ needs.stable-build.outputs.release-branch }}
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download npm build artifacts
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: npm_packs_${{ needs.stable-build.outputs.version }}
+          path: _tmp_packs/
+
+      - name: Unpack handsontable tarball
+        run: |
+          mkdir -p handsontable/tmp
+          tar -xzf _tmp_packs/handsontable-${{ needs.stable-build.outputs.version }}.tgz \
+            -C handsontable/tmp --strip-components=1
+
+      - name: Install nuget
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mono-complete
+          curl -o /tmp/nuget.exe https://dist.nuget.org/win-x86-commandline/v7.3.0/nuget.exe
+          sudo bash -c 'echo "#!/bin/bash" > /usr/local/bin/nuget && echo "exec mono /tmp/nuget.exe \"\$@\"" >> /usr/local/bin/nuget && chmod +x /usr/local/bin/nuget'
+
+      - name: Generate NuGet package
+        run: node .github/scripts/generate-nuget-package.mjs
+
+      - name: Upload NuGet package artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: nuget_pack_${{ needs.stable-build.outputs.version }}
+          path: Handsontable.*.nupkg
+
+      - name: Clean up NuGet package
+        run: rm -f Handsontable.*.nupkg
+
   stable-publish:
     name: Publish stable release
     runs-on: ubuntu-latest
     needs: [stable-build]
     environment: approvers
+    outputs:
+      docs-result: ${{ steps.docs-result.outputs.result }}
     steps:
       - name: Checkout the release branch
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -1022,66 +1298,14 @@ jobs:
         continue-on-error: true
         run: node .github/scripts/purge-jsdelivr-cache.mjs '${{ needs.stable-build.outputs.version }}'
 
-      - name: Download NuGet package artifact
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
-        with:
-          name: nuget_pack_${{ needs.stable-build.outputs.version }}
-
-      - name: NuGet login (OIDC trusted publishing)
-        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1.0.0
-        id: nuget-login
-        with:
-          user: ${{ secrets.NUGET_USER }}
-
-      - name: Publish NuGet package
-        run: |
-          NUPKG=$(ls *.nupkg)
-          echo "Publishing: $NUPKG"
-          dotnet nuget push "$NUPKG" \
-            --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
-            --source https://api.nuget.org/v3/index.json
-
       - name: Install dependencies
+        id: docs-deps
+        continue-on-error: true
         run: pnpm install --frozen-lockfile
 
-      - name: Merge release branch to develop and master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          RELEASE_BRANCH='${{ needs.stable-build.outputs.release-branch }}'
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-
-          echo "Merging ${RELEASE_BRANCH} into develop..."
-          git checkout develop
-          git merge origin/${RELEASE_BRANCH} --no-edit
-          git push origin develop
-
-          echo "Merging ${RELEASE_BRANCH} into master..."
-          git checkout master
-          git merge origin/${RELEASE_BRANCH} --no-edit
-          git push origin master
-
-          echo "Deleting release branch ${RELEASE_BRANCH}..."
-          git push origin --delete ${RELEASE_BRANCH}
-
-      - name: Move version tag to post-merge master commit
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION='${{ needs.stable-build.outputs.version }}'
-          NEW_SHA=$(git rev-parse HEAD) # HEAD is master after the merge step
-
-          gh api repos/${{ github.repository }}/git/refs/tags/${VERSION} \
-            -X PATCH \
-            -f sha="$NEW_SHA" \
-            -F force=true
-
-          echo "Tag ${VERSION} updated to ${NEW_SHA} (post-merge master)"
-
       - name: Create or update docs production branch
+        id: docs-branch
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -1112,10 +1336,9 @@ jobs:
             fi
           fi
 
-      - name: Update docs changelog
-        run: node .github/scripts/update-docs-changelog.mjs '${{ needs.stable-build.outputs.version }}'
-
       - name: Regenerate docs API and legacy versions
+        id: docs-api
+        continue-on-error: true
         run: |
           cd docs
           npm ci
@@ -1123,6 +1346,8 @@ jobs:
           npm run docs:scripts:generate-legacy-docs-versions
 
       - name: Update @handsontable/angular-wrapper version in docs
+        id: docs-angular
+        continue-on-error: true
         run: |
           VERSION='${{ needs.stable-build.outputs.version }}'
           BEFORE=$(wc -l < docs/package.json)
@@ -1141,6 +1366,8 @@ jobs:
           fi
 
       - name: Commit and push docs branch
+        id: docs-commit
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -1152,35 +1379,140 @@ jobs:
           git commit -m "${VERSION}" || echo "No changes to commit"
           git push origin "$DOCS_BRANCH"
 
-      - name: Prepare Slack message
+      - name: Set docs result output
+        id: docs-result
         if: always()
+        run: |
+          if [ "${{ steps.docs-deps.outcome }}" = "failure" ] || \
+             [ "${{ steps.docs-branch.outcome }}" = "failure" ] || \
+             [ "${{ steps.docs-api.outcome }}" = "failure" ] || \
+             [ "${{ steps.docs-angular.outcome }}" = "failure" ] || \
+             [ "${{ steps.docs-commit.outcome }}" = "failure" ]; then
+            echo "result=failure" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.docs-deps.outcome }}" = "success" ] && \
+               [ "${{ steps.docs-branch.outcome }}" = "success" ] && \
+               [ "${{ steps.docs-api.outcome }}" = "success" ] && \
+               [ "${{ steps.docs-angular.outcome }}" = "success" ] && \
+               [ "${{ steps.docs-commit.outcome }}" = "success" ]; then
+            echo "result=success" >> $GITHUB_OUTPUT
+          else
+            echo "result=skipped" >> $GITHUB_OUTPUT
+          fi
+
+  # ============================================================
+  # Scenario D.2 — NuGet publish (parallel to stable-publish, isolated)
+  # ============================================================
+  stable-publish-nuget:
+    name: Publish NuGet package
+    runs-on: ubuntu-latest
+    needs: [stable-build-nuget]
+    environment: approvers
+    steps:
+      - name: Download NuGet package artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: nuget_pack_${{ needs.stable-build-nuget.outputs.version }}
+
+      - name: NuGet login (OIDC trusted publishing)
+        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1.0.0
+        id: nuget-login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Publish NuGet package
+        run: |
+          NUPKG=$(ls *.nupkg)
+          echo "Publishing: $NUPKG"
+          dotnet nuget push "$NUPKG" \
+            --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json
+
+  # ============================================================
+  # Scenario D.2b — Delete release branch (only when all publish steps succeeded)
+  # ============================================================
+  stable-cleanup:
+    name: Delete release branch
+    runs-on: ubuntu-latest
+    needs: [stable-build, stable-publish, stable-publish-nuget]
+    if: always() && needs.stable-build.result == 'success' && needs.stable-publish.result == 'success' && needs.stable-publish-nuget.result == 'success' && needs.stable-publish.outputs.docs-result == 'success'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Delete release branch
         env:
-          JOB_STATUS: ${{ job.status }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_BRANCH='${{ needs.stable-build.outputs.release-branch }}'
+          git push origin --delete "${RELEASE_BRANCH}"
+          echo "Deleted release branch ${RELEASE_BRANCH}"
+
+  # ============================================================
+  # Scenario D.3 — Stable release notification
+  # ============================================================
+  stable-notify:
+    name: Notify Slack — stable release
+    runs-on: ubuntu-latest
+    needs: [stable-build, stable-publish, stable-publish-nuget]
+    if: ${{ !cancelled() && needs.stable-build.result == 'success' && (needs.stable-publish.result == 'success' || needs.stable-publish.result == 'failure') }}
+    steps:
+      - name: Prepare and send Slack message
+        env:
           VERSION: ${{ needs.stable-build.outputs.version }}
+          NPM_RESULT: ${{ needs.stable-publish.result }}
+          NUGET_RESULT: ${{ needs.stable-publish-nuget.result }}
+          DOCS_RESULT: ${{ needs.stable-publish.outputs.docs-result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
-          if [ "$JOB_STATUS" = "success" ]; then STATUS_FIELD=":white_check_mark: Success"; else STATUS_FIELD=":x: Failed"; fi
+          if [ "$NPM_RESULT" = "success" ]; then
+            STATUS=":white_check_mark: Success"; NPM_STATUS=":white_check_mark: :npm: *npm*"; NPM_OK="true"
+          else
+            STATUS=":x: Failed"; NPM_STATUS=":x: :npm: *npm*"; NPM_OK="false"
+          fi
+          if [ "$NUGET_RESULT" = "success" ]; then NUGET_STATUS=":white_check_mark: :nuget: *NuGet*"; else NUGET_STATUS=":x: :nuget: *NuGet*"; fi
+          if [ "$DOCS_RESULT" = "success" ]; then
+            DOCS_STATUS=":arrows_counterclockwise: :chrome: *Docs*"
+          elif [ "$DOCS_RESULT" = "skipped" ]; then
+            DOCS_STATUS=":white_circle: :chrome: *Docs*"
+          else
+            DOCS_STATUS=":x: :chrome: *Docs*"
+          fi
+          NL=$'\n'
+          FAILURE_NOTES=""
+          if [ "$NUGET_RESULT" != "success" ]; then
+            FAILURE_NOTES="${FAILURE_NOTES}• *NuGet*: publish failed. The package was not uploaded to nuget.org. Re-run the \`stable-publish-nuget\` job to retry.${NL}"
+          fi
+          if [ "$DOCS_RESULT" = "failure" ]; then
+            FAILURE_NOTES="${FAILURE_NOTES}• *Docs*: branch update failed. Manual intervention required — check the <${RUN_URL}|Actions run> and update the docs branch manually.${NL}"
+          fi
           CHANGELOG_URL="${REPO_URL}/blob/master/CHANGELOG.md"
 
           jq -n \
-            --arg status        "$STATUS_FIELD" \
             --arg version       "${VERSION}" \
-            --arg repo_url      "${REPO_URL}" \
+            --arg status        "$STATUS" \
+            --arg npm_status    "$NPM_STATUS" \
+            --arg npm_ok        "$NPM_OK" \
+            --arg nuget_status  "$NUGET_STATUS" \
+            --arg docs_status   "$DOCS_STATUS" \
+            --arg failure_notes "$FAILURE_NOTES" \
             --arg changelog_url "$CHANGELOG_URL" \
+            --arg repo_url      "${REPO_URL}" \
             --arg run_url       "${RUN_URL}" \
           '{
-            text: ("🚀 Release " + $version + " generated – " + $status),
+            text: (if $npm_ok == "true" then "🚀 Version " + $version + " released!" else "❌ Release of version " + $version + " failed." end),
             blocks: [
-              {
-                type: "header",
-                text: { type: "plain_text", text: "🚀 Release Generated", emoji: true }
-              },
+              (if $npm_ok == "true" then
+                { type: "header", text: { type: "plain_text", text: ("🚀 Version " + $version + " released!"), emoji: true } }
+              else
+                { type: "section", text: { type: "mrkdwn", text: (":x: *Release of version " + $version + " failed.* Check the <" + $run_url + "|GitHub Actions run> for details.") } }
+              end),
               {
                 type: "section",
                 fields: [
                   { type: "mrkdwn", text: ("*Status*\n" + $status) },
-                  { type: "mrkdwn", text: "*Type*\n📦 Stable Release" },
+                  { type: "mrkdwn", text: "*Type*\n📦 Stable release" },
                   { type: "mrkdwn", text: ("*Version*\n<https://www.npmjs.com/package/handsontable/v/" + $version + "|" + $version + ">") },
                   { type: "mrkdwn", text: ("*Branch*\n<" + $repo_url + "/tree/master|master>") }
                 ]
@@ -1188,28 +1520,38 @@ jobs:
               { type: "divider" },
               {
                 type: "section",
-                text: { type: "mrkdwn", text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>") }
+                fields: [
+                  { type: "mrkdwn", text: ":white_check_mark: :github: *GitHub*" },
+                  { type: "mrkdwn", text: $npm_status },
+                  { type: "mrkdwn", text: $nuget_status },
+                  { type: "mrkdwn", text: $docs_status }
+                ]
               },
               { type: "divider" },
               {
                 type: "section",
-                text: { type: "mrkdwn", text: ("*🎮 Demos*\n• <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|Vanilla JS>\n• <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>") }
+                text: {
+                  type: "mrkdwn",
+                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>" else "" end)
+                }
               },
-              { type: "divider" },
               {
                 type: "context",
-                elements: [
-                  { type: "mrkdwn", text: "📦 *This is a stable release.* Published as `latest` on npm." },
-                  { type: "mrkdwn", text: ("<" + $run_url + "|View run>") }
-                ]
-              }
+                elements: [{ type: "mrkdwn", text: ("<" + $run_url + "|🔗 View GitHub Actions run>") }]
+              },
+              (if $failure_notes != "" then
+                { type: "divider" },
+                {
+                  type: "section",
+                  text: { type: "mrkdwn", text: ("⚠️ *Non-critical failures*\n" + $failure_notes) }
+                }
+              else empty end)
             ]
           }' > /tmp/slack-payload.json
           echo "Slack payload:"
           cat /tmp/slack-payload.json
 
       - name: Notify Slack
-        if: always()
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # https://github.com/slackapi/slack-github-action/releases/tag/v2.1.1
         with:
           webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}

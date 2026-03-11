@@ -246,10 +246,10 @@ Handsontable provides a comprehensive set of JS and CSS variables that let you c
 Example: to override the `tokens.gapSize`, use the JS Option like this:
 
 ```js
-  myTheme.params({ 
-    tokens: { 
-      gapSize: 'sizing.size_1' 
-    } 
+  myTheme.params({
+    tokens: {
+      gapSize: 'sizing.size_1'
+    }
   })
 ```
 
@@ -577,6 +577,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-hover-border-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveHoverBorderColor` </div>     | Border color of hovered active icon buttons     |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveHoverBackgroundColor` </div> | Background color of hovered active icon buttons |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-hover-icon-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveHoverIconColor` </div>       | Icon color of hovered active icon buttons       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-hit-area-size` </div><div class="variables-table__item"><span>JS:</span> `iconButtonHitAreaSize` </div>               | Hit area size of icon buttons |
 
 #### Collapse Button Variables
 

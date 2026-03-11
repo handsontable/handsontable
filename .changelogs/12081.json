@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fix unwanted layout shifts caused by the editor",
+  "title": "Fixed column header misalignment when nestedRow is enabled",
   "type": "fixed",
-  "issueOrPR": 11955,
+  "issueOrPR": 12081,
   "breaking": false,
   "framework": "none"
 }
