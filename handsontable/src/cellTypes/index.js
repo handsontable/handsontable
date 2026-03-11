@@ -27,6 +27,7 @@ export function registerAllCellTypes() {
   registerCellType(IntlDateCellType);
   registerCellType(IntlTimeCellType);
   registerCellType(MultiSelectCellType);
+  registerCellType('multiSelect', MultiSelectCellType);
   registerCellType(NumericCellType);
   registerCellType(PasswordCellType);
   registerCellType(SelectCellType);

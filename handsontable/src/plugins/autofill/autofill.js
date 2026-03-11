@@ -556,6 +556,10 @@ export class Autofill extends BasePlugin {
    * @returns {boolean}
    */
   getIfMouseWasDraggedOutside(event) {
+    if (!this.hot.table) {
+      return false;
+    }
+
     const { documentElement } = this.hot.rootDocument;
     const tableBottom = offset(this.hot.table).top - (this.hot.rootWindow.pageYOffset ||
       documentElement.scrollTop) + outerHeight(this.hot.table);
