@@ -457,9 +457,10 @@ export class NestedHeaders extends BasePlugin {
     const {
       isHidden,
       isPlaceholder,
+      isRowspanPlaceholder,
     } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? {};
 
-    if (isPlaceholder || isHidden) {
+    if (isPlaceholder || isHidden || isRowspanPlaceholder) {
       return '';
     }
 
