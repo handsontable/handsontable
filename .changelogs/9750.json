@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a new `ExportExcel` plugin that exports grid data to XLSX with support for ranges, headers, hidden rows/columns, and formulas.",
+  "type": "added",
+  "issueOrPR": 9750,
+  "breaking": false,
+  "framework": "javascript"
+}

@@ -31,6 +31,7 @@ angular:
 |[CustomBorders](@/api/customBorders.md) |Apply a custom border style around a single cell or a range of cells.|
 |[DragToScroll](@/api/dragToScroll.md) |Drag the selection outside of the viewport to enable scrolling.|
 |[DropdownMenu](@/api/dropdownMenu.md) |Add a menu to the column header to enable additional operations for the column.|
+|[ExportExcel](@/api/exportExcel.md) |Export data to an XLSX file.|
 |[ExportFile](@/api/exportFile.md) |Export the data to a CSV file (note: this plugin provides a capability to export the data to only a CSV file type, its name might cause confusion).|
 |[Filters](@/api/filters.md) |Display rows that meet your criteria and hide the rest.|
 |[Formulas](@/api/formulas.md) | Use Excel-like functions inside of cells to perform calculations.|

@@ -12,6 +12,7 @@ import { CopyPaste } from './copyPaste';
 import { CustomBorders } from './customBorders';
 import { DragToScroll } from './dragToScroll';
 import { DropdownMenu } from './dropdownMenu';
+import { ExportExcel } from './exportExcel';
 import { ExportFile } from './exportFile';
 import { Filters } from './filters';
 import { Formulas } from './formulas';
@@ -52,6 +53,7 @@ export interface Plugins {
   customBorders: CustomBorders;
   dragToScroll: DragToScroll;
   dropdownMenu: DropdownMenu;
+  exportExcel: ExportExcel;
   exportFile: ExportFile;
   filters: Filters;
   formulas: Formulas;
@@ -96,6 +98,7 @@ export {
   CustomBorders,
   DragToScroll,
   DropdownMenu,
+  ExportExcel,
   ExportFile,
   Filters,
   Formulas,

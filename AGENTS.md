@@ -638,6 +638,8 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. See `.c
 
 - The core build outputs to `handsontable/tmp/` (not `dist/` for wrappers' consumption). The UMD/minified builds go to `handsontable/dist/` and CSS to `handsontable/styles/`. Wrapper packages reference the `tmp/` build via workspace linking.
 - Two Handsontable builds exist: `handsontable.js` (base, external deps) and `handsontable.full.js` (includes HyperFormula). When testing, ensure both variants work.
+- The `exportExcel` plugin lives in `handsontable/src/plugins/exportExcel/` and currently exports a single-sheet XLSX file with data, row/column headers, hidden row/column filtering, range selection, and optional formula export (`formulas: true`).
+- `exportExcel` writes XLSX using an internal no-compression ZIP builder (`helpers/zipArchive.js`) and OOXML XML parts. Keep this dependency-free unless the team approves adding a third-party package.
 - The Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider`; this is already wired into the `test` script.
 - The `pnpm-workspace.yaml` has `ignoredBuiltDependencies` and `onlyBuiltDependencies` lists. If pnpm warns about ignored build scripts (e.g., `less`), this is expected.
 - Root-level `npm run lint` and `npm run test` scripts use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
