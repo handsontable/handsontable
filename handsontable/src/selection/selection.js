@@ -1258,21 +1258,20 @@ class Selection {
       return;
     }
 
-    this.clear();
+    this.selectedRange.clear();
+    this.highlight.clear();
     this.#disableHeadersHighlight = disableHeadersHighlight;
-    this.setExpectedLayers(ranges.length);
-
-    ranges.forEach((cellRange) => {
-      const { from, to, highlight } = cellRange;
-
-      this.setRangeStartOnly(from, true, highlight);
-      this.setRangeEnd(to);
-    });
 
     this.selectedByRowHeader = new Set(selectedByRowHeader);
     this.selectedByColumnHeader = new Set(selectedByColumnHeader);
 
-    this.finish();
+    ranges.forEach((cellRange, selectionLayerIndex) => {
+      this.selectedRange.push(cellRange);
+      this.setActiveSelectionLayerIndex(selectionLayerIndex);
+      this.highlight.useLayerLevel(selectionLayerIndex);
+      this.applyAndCommit(cellRange, selectionLayerIndex);
+    });
+
     this.#disableHeadersHighlight = false;
   }
 
