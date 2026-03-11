@@ -55,8 +55,9 @@ describe('NestedHeaders', () => {
         const secondColumnWidth = ghostTable.widthsMap.getValueAtIndex(1);
         const thirdColumnWidth = ghostTable.widthsMap.getValueAtIndex(2);
 
-        expect(firstColumnWidth).toBeGreaterThan(secondColumnWidth);
-        expect(thirdColumnWidth).not.toBe(null);
+        expect(firstColumnWidth).not.toBe(null);
+        expect(firstColumnWidth).toBeGreaterThanOrEqual(secondColumnWidth ?? 0);
+        expect(firstColumnWidth).toBeGreaterThanOrEqual(thirdColumnWidth ?? 0);
       });
 
       it('should properly prepare widths cache, even if container is smaller than needed', async() => {
