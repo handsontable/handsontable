@@ -49,6 +49,8 @@ export const CONTEXTMENU_ITEMS_ALIGNMENT_TOP = `${CM_ALIAS}.align.top`;
 export const CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE = `${CM_ALIAS}.align.middle`;
 export const CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM = `${CM_ALIAS}.align.bottom`;
 
+export const CONTEXTMENU_ITEMS_EXPORT_TO_EXCEL = `${CM_ALIAS}.exportToExcel`;
+
 export const CONTEXTMENU_ITEMS_BORDERS = `${CM_ALIAS}.borders`;
 export const CONTEXTMENU_ITEMS_BORDERS_TOP = `${CM_ALIAS}.borders.top`;
 export const CONTEXTMENU_ITEMS_BORDERS_RIGHT = `${CM_ALIAS}.borders.right`;

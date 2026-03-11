@@ -49,6 +49,8 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_REMOVE_COMMENT]: 'Delete comment',
   [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Read-only comment',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT_TO_EXCEL]: 'Export to Excel',
+
   [C.CONTEXTMENU_ITEMS_MERGE_CELLS]: 'Merge cells',
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Unmerge cells',
 

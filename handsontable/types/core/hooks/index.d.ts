@@ -105,6 +105,7 @@ export interface Events {
   afterLanguageChange?: (languageCode: string) => void;
   afterListen?: () => void;
   afterLoadData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
+  afterExportToExcel?: (blob: Blob, options: object) => void;
   afterMergeCells?: (cellRange: CellRange, mergeParent: MergeCellsSettings, auto: boolean) => void;
   afterModifyTransformEnd?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
   afterModifyTransformFocus?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
@@ -211,6 +212,7 @@ export interface Events {
   beforeKeyDown?: (event: KeyboardEvent) => void;
   beforeLanguageChange?: (languageCode: string) => void;
   beforeLoadData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
+  beforeExportToExcel?: (options: object) => void | boolean;
   beforeMergeCells?: (cellRange: CellRange, auto: boolean) => void;
   beforeOnCellContextMenu?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   beforeOnCellMouseDown?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;

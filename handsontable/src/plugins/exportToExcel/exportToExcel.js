@@ -4,6 +4,7 @@ import { XlsxGenerator } from './xlsxGenerator';
 import { Hooks } from '../../core/hooks';
 import { extend, clone } from '../../helpers/object';
 import { substitute } from '../../helpers/string';
+import exportToExcelItem from './contextMenuItem/exportToExcel';
 
 Hooks.getSingleton().register('beforeExportToExcel');
 Hooks.getSingleton().register('afterExportToExcel');
@@ -107,6 +108,18 @@ export class ExportToExcel extends BasePlugin {
    */
   isEnabled() {
     return true;
+  }
+
+  /**
+   * Enables the plugin functionality for this Handsontable instance.
+   */
+  enablePlugin() {
+    this.addHook(
+      'afterContextMenuDefaultOptions',
+      (...args) => this.#addExportToContextMenu(...args)
+    );
+
+    super.enablePlugin();
   }
 
   /**
@@ -237,5 +250,19 @@ export class ExportToExcel extends BasePlugin {
     });
 
     return merged;
+  }
+
+  /**
+   * `afterContextMenuDefaultOptions` hook callback.
+   *
+   * @param {object} defaultOptions The default context menu options.
+   */
+  #addExportToContextMenu(defaultOptions) {
+    defaultOptions.items.push(
+      {
+        name: '---------',
+      },
+      exportToExcelItem(this)
+    );
   }
 }

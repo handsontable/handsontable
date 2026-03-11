@@ -13,6 +13,7 @@ import { CustomBorders } from './customBorders';
 import { DragToScroll } from './dragToScroll';
 import { DropdownMenu } from './dropdownMenu';
 import { ExportFile } from './exportFile';
+import { ExportToExcel } from './exportToExcel';
 import { Filters } from './filters';
 import { Formulas } from './formulas';
 import { HiddenColumns } from './hiddenColumns';
@@ -53,6 +54,7 @@ export interface Plugins {
   dragToScroll: DragToScroll;
   dropdownMenu: DropdownMenu;
   exportFile: ExportFile;
+  exportToExcel: ExportToExcel;
   filters: Filters;
   formulas: Formulas;
   hiddenColumns: HiddenColumns;
@@ -97,6 +99,7 @@ export {
   DragToScroll,
   DropdownMenu,
   ExportFile,
+  ExportToExcel,
   Filters,
   Formulas,
   HiddenColumns,

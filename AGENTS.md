@@ -516,6 +516,22 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. See `.c
 
 ---
 
+## ExportToExcel plugin
+
+The `ExportToExcel` plugin exports table data to `.xlsx` (OOXML SpreadsheetML) format. Key facts:
+
+- **Plugin key**: `exportToExcel`. Always enabled (`isEnabled()` returns `true`).
+- **No external dependencies**: XLSX generation uses a built-in ZIP builder (`zipBuilder.js`) with STORE compression (no DEFLATE). No third-party ZIP or compression library is needed.
+- **Architecture**: Four internal modules – `DataCollector` (gathers HOT data and metadata), `XlsxGenerator` (builds OOXML XML), `StyleManager` (manages Excel styles), `ZipBuilder` (minimal ZIP archive builder).
+- **Hooks**: `beforeExportToExcel` (cancelable), `afterExportToExcel`.
+- **Context menu**: Adds an "Export to Excel" item via `afterContextMenuDefaultOptions`. The i18n key is `CONTEXTMENU_ITEMS_EXPORT_TO_EXCEL`.
+- **Supported features**: Cell data, column/row headers, cell formatting (bold, italic, underline, colors, alignment), merged cells, column widths, row heights, frozen panes, cell types (text, numeric, date, checkbox, dropdown/autocomplete with data validation), custom borders, hidden row/column filtering, range-based export.
+- **File location**: `handsontable/src/plugins/exportToExcel/`.
+- **TypeScript definitions**: `handsontable/types/plugins/exportToExcel/`.
+- **Unit tests**: `TextEncoder`/`TextDecoder` polyfills are needed in unit test files because jsdom does not provide them. Import from `util` at the top of test files that use the ZIP or XLSX generators.
+
+---
+
 ## Dependency management
 
 - **Discuss with the team before adding any third-party dependency.**
@@ -555,6 +571,7 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. See `.c
 | Plugin registry | `handsontable/src/plugins/registry.js` |
 | All plugins index | `handsontable/src/plugins/index.js` |
 | Column stretching strategies | `handsontable/src/plugins/stretchColumns/strategies/` |
+| ExportToExcel plugin | `handsontable/src/plugins/exportToExcel/` |
 
 ### Data and meta
 
@@ -644,3 +661,4 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. See `.c
 - The docs site (`docs/`) uses Node 20 (its own `.nvmrc`) and is not needed for core library development.
 - Walkontable (the rendering engine) lives inside `src/3rdparty/walkontable/` and has its **own test runner** — do not mix Walkontable tests with main E2E tests.
 - No Docker, databases, or external services are required.
+- The `ExportToExcel` plugin uses `TextEncoder`/`TextDecoder` for binary ZIP generation. These are available in all browsers and Node.js but **not** in jsdom (used by Jest). Unit tests for modules that depend on `TextEncoder` must polyfill it from Node's `util` module.

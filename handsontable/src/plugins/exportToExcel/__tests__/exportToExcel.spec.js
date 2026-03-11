@@ -318,6 +318,49 @@ describe('ExportToExcel', () => {
     });
   });
 
+  describe('context menu integration', () => {
+    it('should add "Export to Excel" item to context menu', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        contextMenu: true,
+      });
+
+      await selectCell(0, 0);
+      await contextMenu();
+
+      const menuItems = $('.htContextMenu .htCore td');
+      const exportItem = menuItems.filter(function() {
+        return $(this).text() === 'Export to Excel';
+      });
+
+      expect(exportItem.length).toBeGreaterThan(0);
+    });
+
+    it('should trigger download when context menu item is clicked', async() => {
+      let afterExportCalled = false;
+
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        contextMenu: true,
+        afterExportToExcel() {
+          afterExportCalled = true;
+        },
+      });
+
+      await selectCell(0, 0);
+      await contextMenu();
+
+      const menuItems = $('.htContextMenu .htCore td');
+      const exportItem = menuItems.filter(function() {
+        return $(this).text() === 'Export to Excel';
+      });
+
+      exportItem.simulate('mousedown').simulate('mouseup');
+
+      expect(afterExportCalled).toBe(true);
+    });
+  });
+
   describe('plugin lifecycle', () => {
     it('should still work after updateSettings', async() => {
       handsontable({

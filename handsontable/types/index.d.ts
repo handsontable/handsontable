@@ -183,6 +183,10 @@ import {
   Settings as ExportFileSettings,
 } from './plugins/exportFile';
 import {
+  ExportToExcel as _ExportToExcel,
+  Settings as ExportToExcelSettings,
+} from './plugins/exportToExcel';
+import {
   Filters as _Filters,
   Settings as FiltersSettings,
   ConditionId as FiltersConditionId,
@@ -454,6 +458,7 @@ declare namespace Handsontable {
     export class DragToScroll extends _DragToScroll {}
     export class DropdownMenu extends _DropdownMenu {}
     export class ExportFile extends _ExportFile {}
+    export class ExportToExcel extends _ExportToExcel {}
     export class Filters extends _Filters {}
     export class Formulas extends _Formulas {}
     export class HiddenColumns extends _HiddenColumns {}
@@ -543,6 +548,10 @@ declare namespace Handsontable {
 
     export namespace ExportFile {
       export { ExportFileSettings as Settings };
+    }
+
+    export namespace ExportToExcel {
+      export { ExportToExcelSettings as Settings };
     }
 
     export namespace Filters {

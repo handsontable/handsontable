@@ -13,6 +13,7 @@ import { CustomBorders } from './customBorders';
 import { DragToScroll } from './dragToScroll';
 import { DropdownMenu } from './dropdownMenu';
 import { ExportFile } from './exportFile';
+import { ExportToExcel } from './exportToExcel';
 import { Filters } from './filters';
 import { Formulas } from './formulas';
 import { HiddenColumns } from './hiddenColumns';
@@ -58,6 +59,7 @@ export function registerAllPlugins() {
   registerPlugin(DragToScroll);
   registerPlugin(DropdownMenu);
   registerPlugin(ExportFile);
+  registerPlugin(ExportToExcel);
   registerPlugin(Filters);
   registerPlugin(Formulas);
   registerPlugin(HiddenColumns);
@@ -99,6 +101,7 @@ export {
   DragToScroll,
   DropdownMenu,
   ExportFile,
+  ExportToExcel,
   Filters,
   Formulas,
   HiddenColumns,
