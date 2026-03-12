@@ -58,10 +58,7 @@ describe('Core.themeManager', () => {
       expect(hot.themeManager.getClassName()).toBe('ht-theme-plain-config-theme');
     });
 
-    it('should not warn for iconButtonHitAreaSize token key on initialization', async() => {
-      const expectedWarning = '[ThemeBuilder] Unknown token key: "iconButtonHitAreaSize" in themeConfig.tokens. ' +
-        'This may be a custom token or a typo.';
-
+    it('should not warn for unknown token keys on initialization', async() => {
       // eslint-disable-next-line no-console
       spyOn(console, 'warn');
 
@@ -71,7 +68,11 @@ describe('Core.themeManager', () => {
       }, true);
 
       // eslint-disable-next-line no-console
-      expect(console.warn).not.toHaveBeenCalledWith(expectedWarning);
+      const unknownTokenWarnings = console.warn.calls.allArgs()
+        .map(([message]) => message)
+        .filter(message => message.startsWith('[ThemeBuilder] Unknown token key:'));
+
+      expect(unknownTokenWarnings).toEqual([]);
     });
 
     it('should set the correct theme class when passing a plain theme config object', async() => {
