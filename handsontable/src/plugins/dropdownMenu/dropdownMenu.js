@@ -157,6 +157,13 @@ export class DropdownMenu extends BasePlugin {
    * @type {boolean}
    */
   #isButtonClicked = false;
+  /**
+   * Flag which determines if the currently opened menu was opened from the
+   * header button click.
+   *
+   * @type {boolean}
+   */
+  #isMenuOpenedByButtonClick = false;
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -444,6 +451,7 @@ export class DropdownMenu extends BasePlugin {
 
       event.stopPropagation();
       this.#isButtonClicked = false;
+      this.#isMenuOpenedByButtonClick = true;
 
       this.open({
         left: buttonRect.left + offset.left,
@@ -592,6 +600,7 @@ export class DropdownMenu extends BasePlugin {
    * @fires Hooks#afterDropdownMenuHide
    */
   #onMenuAfterClose() {
+    this.#isMenuOpenedByButtonClick = false;
     this.hot.listen();
     this.hot.runHooks('afterDropdownMenuHide', this);
   }
@@ -605,7 +614,13 @@ export class DropdownMenu extends BasePlugin {
    * @returns {number | null}
    */
   #onBeforeViewportScrollHorizontally(visualColumn) {
-    return this.#isButtonClicked ? null : visualColumn;
+    const isMenuOpened = this.menu?.isOpened() ?? false;
+
+    if (this.#isButtonClicked || (this.#isMenuOpenedByButtonClick && isMenuOpened)) {
+      return null;
+    }
+
+    return visualColumn;
   }
 
   /**
