@@ -2022,6 +2022,35 @@ describe('NestedHeaders', () => {
           </tbody>
           `);
       });
+
+      it('should reset oversized column header marker when showing a high-header hidden column (fixedRowsTop)', async() => {
+        handsontable({
+          data: createSpreadsheetData(80, 4),
+          width: 260,
+          height: 240,
+          rowHeaders: true,
+          colHeaders: true,
+          fixedRowsTop: 2,
+          colWidths: [60, 40, 60, 60],
+          nestedHeaders: [
+            ['A', 'A very very long nested header label', 'C', 'D'],
+            ['A1', 'B1', 'C1', 'D1'],
+          ],
+          hiddenColumns: {
+            columns: [1],
+          },
+          viewportRowRenderingOffset: 0,
+        });
+
+        expect(hot().view._wt.wtViewport.hasOversizedColumnHeadersMarked.master).toBe(true);
+
+        getPlugin('hiddenColumns').showColumns([1]);
+        expect(hot().view._wt.wtViewport.hasOversizedColumnHeadersMarked.master).toBeUndefined();
+
+        await render();
+        await scrollViewportVertically(350);
+        expect(hot().view._wt.wtViewport.hasOversizedColumnHeadersMarked.master).toBe(true);
+      });
     });
   });
 });

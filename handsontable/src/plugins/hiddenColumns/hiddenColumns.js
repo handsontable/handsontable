@@ -276,6 +276,7 @@ export class HiddenColumns extends BasePlugin {
     let destinationHideConfig = currentHideConfig;
     const hidingMapValues = this.#hiddenColumnsMap.getValues().slice();
     const isAnyColumnShowed = columns.length > 0;
+    const wtViewport = this.hot.view && this.hot.view._wt && this.hot.view._wt.wtViewport;
 
     if (isValidConfig && isAnyColumnShowed) {
       const physicalColumns = columns.map(visualColumn => this.hot.toPhysicalColumn(visualColumn));
@@ -304,6 +305,10 @@ export class HiddenColumns extends BasePlugin {
 
     if (isValidConfig && isAnyColumnShowed) {
       this.#hiddenColumnsMap.setValues(hidingMapValues);
+    }
+
+    if (wtViewport) {
+      wtViewport.resetHasOversizedColumnHeadersMarked();
     }
 
     // @TODO Should call once per render cycle, currently fired separately in different plugins
