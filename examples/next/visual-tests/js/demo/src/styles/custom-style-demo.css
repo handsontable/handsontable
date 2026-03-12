@@ -5,12 +5,14 @@
 .italic-text {
   font-style: italic;
 }
+
 .htMergedCell {
   background-color: #ffd966 !important;
   color: #000 !important;
   font-weight: bold;
   text-align: center;
 }
+
 /* General Handsontable container styling */
 .handsontable-container {
   border: 1px solid #ccc !important;

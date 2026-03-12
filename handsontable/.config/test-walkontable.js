@@ -5,7 +5,6 @@
  */
 const path = require('path');
 const webpack = require('webpack');
-const fsExtra = require('fs-extra');
 const JasmineHtml = require('./plugin/jasmine-html');
 const compilationDoneMarker = require('./plugin/webpack/compilation-done-marker');
 

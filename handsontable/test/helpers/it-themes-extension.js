@@ -34,7 +34,7 @@ function runOriginalFn(originalFn, description, specDefinitions) {
  * @param {Function} specDefinition - The function containing the spec definitions.
  */
 function runOriginalFnUnderConditions(originalFn, themeName, description, specDefinition) {
-  if ((__ENV_ARGS__.HOT_THEME || 'classic') === themeName) {
+  if (__ENV_ARGS__.HOT_THEME === themeName) {
     originalFn(description, specDefinition);
   }
 }

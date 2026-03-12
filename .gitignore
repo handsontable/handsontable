@@ -18,3 +18,5 @@ docs/.env
 
 # Local Netlify folder
 .netlify
+
+*.nupkg
