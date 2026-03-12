@@ -149,7 +149,6 @@ describe('Pagination integration with DataProvider', () => {
   });
 
   it('should revert to previous page when dataProvider fetch fails on setPage', async() => {
-    let callCount = 0;
     const pageSize = 10;
 
     handsontable({
