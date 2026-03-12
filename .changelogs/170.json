@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the hover color of the column menu icon in the main theme.",
+  "type": "fixed",
+  "issueOrPR": 170,
+  "breaking": false,
+  "framework": "none"
+}

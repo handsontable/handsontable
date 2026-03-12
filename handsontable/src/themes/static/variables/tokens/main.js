@@ -118,7 +118,7 @@ export default {
   iconButtonHitAreaSize: 'sizing.size_6',
   iconButtonHoverBorderColor: ['colors.palette.200', 'colors.palette.600'],
   iconButtonHoverBackgroundColor: ['colors.palette.200', 'colors.palette.600'],
-  iconButtonHoverIconColor: ['colors.palette.300', 'colors.palette.400'],
+  iconButtonHoverIconColor: ['#22222266', '#c7c7c766'],
   iconButtonActiveBorderColor: ['colors.primary.400', 'colors.primary.200'],
   iconButtonActiveBackgroundColor: 'tokens.accentColor',
   iconButtonActiveIconColor: 'colors.white',

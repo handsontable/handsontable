@@ -47,5 +47,18 @@ describe('DropdownMenu', () => {
 
       expect(hot().rootElement.querySelectorAll('.ht_master table button.changeType[type=button]').length).toBe(5);
     });
+
+    it.forTheme('main')('should render the hovered menu icon with the expected color', async() => {
+      handsontable({
+        dropdownMenu: true,
+        colHeaders: true,
+      });
+
+      const button = getCell(-1, 0).querySelector('.changeType');
+
+      await mouseOver(button);
+
+      expect(window.getComputedStyle(button, ':before').backgroundColor).toBe('rgba(34, 34, 34, 0.4)');
+    });
   });
 });

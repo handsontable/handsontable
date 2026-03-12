@@ -12,6 +12,12 @@ describe('ThemeBuilder', () => {
     ...overrides,
   });
 
+  describe('main theme tokens', () => {
+    it('should keep the dropdown menu icon hover color semitransparent', () => {
+      expect(mainTokens.iconButtonHoverIconColor).toEqual(['#22222266', '#c7c7c766']);
+    });
+  });
+
   describe('createTheme', () => {
     it('should create a ThemeBuilder instance', () => {
       const theme = createTheme(createValidConfig());
