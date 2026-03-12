@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed NestedHeaders `rowspan` behavior to preserve lower-level header labels and keep header interactions stable.",
+  "type": "fixed",
+  "issueOrPR": 12145,
+  "breaking": false,
+  "framework": "none"
+}
