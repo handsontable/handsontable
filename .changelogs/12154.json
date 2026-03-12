@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem where custom border lines could cover mobile selection handles.",
+  "type": "fixed",
+  "issueOrPR": 12154,
+  "breaking": false,
+  "framework": "none"
+}
