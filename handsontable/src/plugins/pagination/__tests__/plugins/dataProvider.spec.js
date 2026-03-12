@@ -153,8 +153,6 @@ describe('Pagination integration with DataProvider', () => {
 
     handsontable({
       dataProvider: async(params) => {
-        callCount += 1;
-
         if (params.page > 1) {
           throw new Error('Network error');
         }
