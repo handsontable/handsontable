@@ -861,6 +861,9 @@ You can run your code before or after sorting, using the following [Handsontable
 For example, you can use [`beforeColumnSort()`](@/api/hooks.md#beforecolumnsort) for server-side sorting, or use
 [`afterColumnSort()`](@/api/hooks.md#aftercolumnsort) to [exclude rows from sorting](#exclude-rows-from-sorting).
 
+If you use [`dataProvider`](@/api/options.md#dataprovider), Handsontable handles this automatically and sends the
+current sort model to your backend. See [Server-side data](@/guides/rows/server-side-data/server-side-data.md).
+
 ::: only-for javascript
 
 ```js

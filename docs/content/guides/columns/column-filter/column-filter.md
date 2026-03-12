@@ -597,6 +597,10 @@ filtering doesn't affect them.
 You can decide to use Handsontable as an intuitive filtering interface, but perform the actual
 filtering on the server.
 
+If you use [`dataProvider`](@/api/options.md#dataprovider), Handsontable sends a normalized filter
+model to your backend automatically, together with pagination and sorting query parameters. See
+[Server-side data](@/guides/rows/server-side-data/server-side-data.md).
+
 To help you with that, Handsontable's [`beforeFilter()`](@/api/hooks.md#beforefilter) hook allows
 you to:
 

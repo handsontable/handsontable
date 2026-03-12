@@ -643,4 +643,7 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. See `.c
 - Root-level `npm run lint` and `npm run test` scripts use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
 - The docs site (`docs/`) uses Node 20 (its own `.nvmrc`) and is not needed for core library development.
 - Walkontable (the rendering engine) lives inside `src/3rdparty/walkontable/` and has its **own test runner** — do not mix Walkontable tests with main E2E tests.
+- Server-side row model MVP logic lives in `handsontable/src/plugins/serverSideData/`. Use that plugin for `dataProvider` orchestration instead of adding ad-hoc fetch logic in sorting/filtering/pagination plugins.
+- In server-side mode, `Pagination` uses `setServerPaginationData()` and does not slice client data. Keep page counters in sync with `totalRows` returned by `dataProvider`.
+- In server-side mode, `Filters.filter()` intentionally skips local filtering and emits `afterFilter` so server queries can be triggered without losing filter state.
 - No Docker, databases, or external services are required.

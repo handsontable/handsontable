@@ -26,6 +26,69 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
+## 0. Optional: migrate to the new server-side data mode
+
+Version 17.0 introduces server-side mode through `dataProvider`.
+
+### Who this affects
+
+This affects teams that currently implement server-side pagination, sorting, filtering, or CRUD manually around `loadData()`.
+
+### Why migrate
+
+You can move custom state orchestration into Handsontable and keep your backend as the single source of truth.
+
+### What changed
+
+Handsontable adds:
+
+- `dataProvider`, `dataProviderParams`, and `rowId` options.
+- Server-side mutation callbacks: `onRowCreate`, `onRowUpdate`, and `onRowRemove`.
+- New Core methods: `refreshData()`, `getQueryParameters()`, `createRow()`, `updateRow()`, and `removeRow()`.
+
+### Migration steps
+
+1. Replace `data` initialization with `dataProvider`.
+2. Return `{ rows, totalRows }` from your provider.
+3. Keep `pagination`, `columnSorting`, and `filters` enabled.
+4. Add mutation callbacks if you need server-side CRUD.
+
+### Before
+
+```js
+const hot = new Handsontable(container, {
+  data: localRows,
+  pagination: true,
+  columnSorting: true,
+  filters: true,
+});
+```
+
+### After
+
+```js
+const hot = new Handsontable(container, {
+  dataProvider: async(queryParameters, { signal }) => {
+    const response = await fetch(buildUrl(queryParameters), { signal });
+    const json = await response.json();
+
+    return {
+      rows: json.rows,
+      totalRows: json.totalRows,
+    };
+  },
+  rowId: 'id',
+  pagination: { pageSize: 20 },
+  columnSorting: true,
+  filters: true,
+});
+```
+
+### Related docs
+
+- [Server-side data guide](@/guides/rows/server-side-data/server-side-data.md)
+- [Rows pagination guide](@/guides/rows/rows-pagination/rows-pagination.md)
+
 ## 1. Legacy styles have been removed
 
 Starting from **version 17.0.0**, the legacy stylesheet (`dist/handsontable.full.min.css`) has been completely removed from Handsontable. If you're upgrading from an earlier version and still using the legacy styles, you must migrate to a theme.

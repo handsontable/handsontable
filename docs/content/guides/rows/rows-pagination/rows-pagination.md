@@ -39,7 +39,12 @@ The pagination component splits the data into a range of pages, allowing users t
 
 With pagination, large data sets are divided into smaller pages, significantly improving usability and rendering performance. Users can navigate pages using built-in UI controls such as page navigation buttons, a page size selector, and a page counter, or you can manage pages programmatically via Handsontable's API.
 
-Pagination operates fully on the client side, requiring all data to be loaded into Handsontable.
+Pagination supports two modes:
+
+- Client-side mode (using `data`) – all rows are loaded in the browser.
+- Server-side mode (using `dataProvider`) – page changes trigger remote fetches.
+
+To learn server-side mode, see the [Server-side data guide](@/guides/rows/server-side-data/server-side-data.md).
 
 Whenever rows are added, removed, hidden, unhidden, filtered, or otherwise modified, pagination automatically recomputes total pages and adjusts the currently visible slice of data.
 
@@ -93,6 +98,8 @@ const configurationOptions = {
   pagination: {
     pageSize: 10,
     pageSizeList: ['auto', 5, 10, 20, 50, 100],
+    // or use pageSizeOptions (alias)
+    pageSizeOptions: ['auto', 5, 10, 20, 50, 100],
     initialPage: 1,
     showPageSize: true,
     showCounter: true,
@@ -118,6 +125,8 @@ const configurationOptions = {
     pageSize: 20,
     // Provide a list of selectable page sizes
     pageSizeList: ['auto', 10, 20, 50],
+    // Alias for pageSizeList
+    pageSizeOptions: ['auto', 10, 20, 50],
     // Set the initial page when the grid loads
     initialPage: 2,
     // Show or hide the page size section
