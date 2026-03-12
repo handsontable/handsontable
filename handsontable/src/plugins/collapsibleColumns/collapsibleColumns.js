@@ -576,7 +576,9 @@ export class CollapsibleColumns extends BasePlugin {
       if (!collapsibleElement) {
         collapsibleElement = this.hot.rootDocument.createElement('div');
 
-        addClass(collapsibleElement, COLLAPSIBLE_ELEMENT_CLASS);
+        // TEMP: test
+        // addClass(collapsibleElement, COLLAPSIBLE_ELEMENT_CLASS);
+        //
         TH.querySelector('div:first-child').appendChild(collapsibleElement);
       }
 
