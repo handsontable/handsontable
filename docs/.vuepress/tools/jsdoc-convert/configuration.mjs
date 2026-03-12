@@ -1,6 +1,6 @@
 /* eslint max-len: 0 */
 export default {
-  pathToSource: '../../../../handsontable/src',
+  pathToSource: '../../../../handsontable/tmp',
   pathToDist: '../../../content/api',
   urlPrefix: '/api/',
   seo: {
