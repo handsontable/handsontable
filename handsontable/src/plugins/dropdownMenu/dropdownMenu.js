@@ -3,7 +3,7 @@ import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
-import { hasClass, setAttribute } from '../../helpers/dom/element';
+import { hasClass, isBottomMostColumnHeader, setAttribute } from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
 import { Hooks } from '../../core/hooks';
@@ -270,13 +270,40 @@ export class DropdownMenu extends BasePlugin {
     const gridContext = this.hot.getShortcutManager().getContext('grid');
     const callback = () => {
       const { highlight } = this.hot.getSelectedRangeActive();
+      const highlightedHeaderElement = highlight.isHeader() ?
+        this.hot.getCell(highlight.row, highlight.col, true) :
+        null;
+      const isBottomMostHeaderSelected = highlight.isHeader() &&
+        highlight.col >= 0 &&
+        isBottomMostColumnHeader(highlightedHeaderElement);
 
-      if ((highlight.isHeader() && highlight.row === -1 || highlight.isCell()) && highlight.col >= 0) {
-        this.hot.selectColumns(highlight.col, highlight.col, -1);
+      if ((isBottomMostHeaderSelected || highlight.isCell()) && highlight.col >= 0) {
+        let headerRow = isBottomMostHeaderSelected ? highlight.row : -1;
+
+        this.hot.selectColumns(highlight.col, highlight.col, headerRow);
 
         const { from } = this.hot.getSelectedRangeActive();
         const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
-        const target = this.hot.getCell(-1, from.col, true).querySelector(`.${BUTTON_CLASS_NAME}`);
+        let target = this.hot.getCell(headerRow, from.col, true)?.querySelector(`.${BUTTON_CLASS_NAME}`);
+
+        if (!target) {
+          for (let row = -this.hot.view.getColumnHeadersCount(); row <= -1; row++) {
+            const candidate = this.hot.getCell(row, from.col, true)?.querySelector(`.${BUTTON_CLASS_NAME}`);
+
+            if (candidate) {
+              target = candidate;
+              headerRow = row;
+
+              this.hot.selectColumns(highlight.col, highlight.col, headerRow);
+              break;
+            }
+          }
+        }
+
+        if (!target) {
+          return;
+        }
+
         const buttonRect = this.#getButtonRect(target);
 
         this.open({
@@ -500,17 +527,7 @@ export class DropdownMenu extends BasePlugin {
    * @param {HTMLTableCellElement} TH Header's TH element.
    */
   #onAfterGetColHeader(col, TH) {
-    // Corner or a higher-level header
-    const headerRow = TH.parentNode;
-
-    if (!headerRow) {
-      return;
-    }
-
-    const headerRowList = headerRow.parentNode.childNodes;
-    const level = Array.prototype.indexOf.call(headerRowList, headerRow);
-
-    if (col < 0 || level !== headerRowList.length - 1) {
+    if (col < 0 || !isBottomMostColumnHeader(TH)) {
       return;
     }
 

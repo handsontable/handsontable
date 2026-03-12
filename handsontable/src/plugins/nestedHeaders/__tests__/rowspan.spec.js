@@ -229,5 +229,101 @@ describe('NestedHeaders', () => {
 
       expect(secondRowThs[4].textContent).toContain('C1');
     });
+
+    it('should render omitted rowspan placeholders in correct columns and keep consistent borders', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 3),
+        colHeaders: true,
+        rowHeaders: true,
+        nestedHeaders: [
+          [{ label: 'This is a very long header title', rowspan: 2 }, 'B', 'C'],
+          ['B2', 'C2'],
+        ],
+      });
+
+      expect(getCell(-1, 0).style.display).toBe('none');
+      expect(getCell(-1, 1).textContent).toContain('B2');
+      expect(getCell(-1, 2).textContent).toContain('C2');
+
+      const headerRows = getTopClone().find('thead tr');
+      const firstRowHeight = headerRows[0].getBoundingClientRect().height;
+      const secondRowHeight = headerRows[1].getBoundingClientRect().height;
+
+      expect(Math.abs(firstRowHeight - secondRowHeight)).toBeLessThan(1.5);
+
+      const cornerCell = getTopInlineStartClone().find('thead tr:last-child th:first-child')[0];
+      const cornerRadius = cornerCell ? parseFloat(getComputedStyle(cornerCell).borderBottomLeftRadius) : NaN;
+
+      expect(cornerRadius).toBe(0);
+
+      const firstRowThs = getTopClone().find('thead tr:first-child th');
+      const rowspanHeader = firstRowThs[1];
+      const adjacentHeader = firstRowThs[2];
+
+      expect(rowspanHeader).toBeDefined();
+      expect(adjacentHeader).toBeDefined();
+
+      const rightBorderWidth = parseFloat(getComputedStyle(rowspanHeader).borderRightWidth);
+      const leftBorderWidth = parseFloat(getComputedStyle(adjacentHeader).borderLeftWidth);
+
+      expect(rightBorderWidth + leftBorderWidth).toBeLessThan(1.5);
+    });
+
+    it('should navigate to a visible rowspanned header when moving up from the first data row', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 3),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [{ label: 'This is a very long header title', rowspan: 2 }, 'B', 'C'],
+          ['B2', 'C2'],
+        ],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('arrowup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,0 from: -2,0 to: -2,0']);
+    });
+
+    it('should allow sorting and filtering interactions on a rowspanned bottom-most header', async() => {
+      handsontable({
+        data: [
+          ['Tagcat', 'Classic Vest', '11/10/2020'],
+          ['Zoomzone', 'Cycling Cap', '03/05/2020'],
+          ['Meeveo', 'Full-Finger Gloves', '27/03/2020'],
+          ['Buzzdog', 'HL Mountain Frame', '29/08/2020'],
+          ['Katz', 'Half-Finger Gloves', '02/10/2020'],
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        columnSorting: true,
+        dropdownMenu: true,
+        filters: true,
+        nestedHeaders: [
+          [{ label: 'This is a very long header title', rowspan: 2 }, 'B', 'C'],
+          ['B2', 'C2'],
+        ],
+      });
+
+      const rowspanHeader = getCell(-2, 0);
+      const sortingIndicator = rowspanHeader.querySelector('.columnSorting');
+      const dropdownButton = rowspanHeader.querySelector('.changeType');
+
+      expect(sortingIndicator).not.toBeNull();
+      expect(dropdownButton).not.toBeNull();
+
+      $(sortingIndicator).simulate('mousedown');
+      $(sortingIndicator).simulate('mouseup');
+      $(sortingIndicator).simulate('click');
+
+      expect(getDataAtCell(0, 0)).toBe('Buzzdog');
+
+      getPlugin('filters').addCondition(0, 'contains', ['z']);
+      getPlugin('filters').filter();
+
+      expect(getCell(-2, 0).classList.contains('htFiltersActive')).toBe(true);
+    });
   });
 });

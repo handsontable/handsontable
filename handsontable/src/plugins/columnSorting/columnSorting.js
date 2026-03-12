@@ -1,6 +1,7 @@
 import {
   addClass,
   hasClass,
+  isBottomMostColumnHeader,
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
@@ -255,9 +256,11 @@ export class ColumnSorting extends BasePlugin {
         },
         runOnlyIf: () => {
           const highlight = this.hot.getSelectedRangeActive()?.highlight;
+          const highlightedHeaderElement = highlight ? this.hot.getCell(highlight.row, highlight.col, true) : null;
 
           return highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
-            this.hot.selection.isCellVisible(highlight) && highlight.row === -1 && highlight.col >= 0;
+            this.hot.selection.isCellVisible(highlight) && highlight.row < 0 && highlight.col >= 0 &&
+            isBottomMostColumnHeader(highlightedHeaderElement);
         },
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
         position: 'before',

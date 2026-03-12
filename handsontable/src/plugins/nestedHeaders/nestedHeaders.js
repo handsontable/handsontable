@@ -31,8 +31,8 @@ export const PLUGIN_PRIORITY = 280;
  * while the `colspan` property defines a number of columns that the header should cover.
  *
  * To make any header taller (covering multiple header rows), provide a `rowspan` property that defines the number
- * of header rows that the header should span. Cells covered by a rowspan should use an empty string `''` in the
- * corresponding positions in the lower header rows.
+ * of header rows that the header should span. Cells covered by a rowspan can use an empty string `''` in the
+ * corresponding positions in the lower header rows, but those placeholders are optional.
  *
  * You can also set custom class names to any of the headers by providing the `headerClassName` property.
  *
@@ -197,6 +197,7 @@ export class NestedHeaders extends BasePlugin {
       (...args) => this.#onAfterViewportColumnCalculatorOverride(...args)
     );
     this.addHook('modifyFocusedElement', (...args) => this.#onModifyFocusedElement(...args));
+    this.addHook('afterViewRender', () => this.#onAfterViewRender());
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
 
@@ -393,6 +394,7 @@ export class NestedHeaders extends BasePlugin {
       TH.style.display = '';
       removeClass(TH, 'hiddenHeader');
       removeClass(TH, 'hiddenHeaderText');
+      removeClass(TH, 'htRowspanHeader');
 
       const {
         colspan,
@@ -430,6 +432,7 @@ export class NestedHeaders extends BasePlugin {
         }
 
         if (rowspan > 1) {
+          addClass(TH, 'htRowspanHeader');
           TH.setAttribute('rowspan', rowspan);
         }
       }
@@ -832,8 +835,30 @@ export class NestedHeaders extends BasePlugin {
    */
   #onModifyTransformStart(delta) {
     const { highlight } = this.hot.getSelectedRangeActive();
-    const nextCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
+    const initialNextRow = highlight.row + delta.row;
+    const nextCoords = this.hot._createCellCoords(initialNextRow, highlight.col + delta.col);
     const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
+
+    if (delta.row !== 0 && nextCoords.col >= 0) {
+      const rowDirection = Math.sign(delta.row);
+      const lowestHeaderRow = -1;
+      const highestHeaderRow = -this.getLayersCount();
+      let adjustedNextRow = initialNextRow;
+
+      while (adjustedNextRow <= lowestHeaderRow && adjustedNextRow >= highestHeaderRow) {
+        const {
+          isRowspanPlaceholder,
+        } = this.#stateManager.getHeaderSettings(adjustedNextRow, nextCoords.col) ?? {};
+
+        if (!isRowspanPlaceholder) {
+          break;
+        }
+
+        adjustedNextRow += rowDirection;
+      }
+
+      delta.row = adjustedNextRow - highlight.row;
+    }
 
     if (!isNestedHeadersRange) {
       return;
@@ -1027,6 +1052,47 @@ export class NestedHeaders extends BasePlugin {
     if (!initialLoad) {
       this.updatePlugin();
     }
+  }
+
+  /**
+   * Synchronizes nested header row heights for rowspanned headers.
+   */
+  #onAfterViewRender() {
+    if (!this.hot?.view) {
+      return;
+    }
+
+    const hasAnyRowspans = this.#stateManager
+      .mapNodes(({ origRowspan }) => (origRowspan > 1 ? true : undefined))
+      .length > 0;
+    const { _wt: wt } = this.hot.view;
+    const headSections = [
+      wt.wtTable.THEAD,
+      wt.wtOverlays.topOverlay?.clone?.wtTable.THEAD,
+      wt.wtOverlays.topInlineStartCornerOverlay?.clone?.wtTable.THEAD,
+    ];
+
+    headSections.forEach((thead) => {
+      if (!thead) {
+        return;
+      }
+
+      const headerRows = Array.from(thead.querySelectorAll('tr'));
+
+      if (!hasAnyRowspans || headerRows.length < 2) {
+        headerRows.forEach((TR) => {
+          TR.style.height = '';
+        });
+
+        return;
+      }
+
+      const baselineHeight = Math.max(...headerRows.map(TR => TR.getBoundingClientRect().height));
+
+      headerRows.forEach((TR) => {
+        TR.style.height = `${baselineHeight}px`;
+      });
+    });
   }
 
   /**

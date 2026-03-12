@@ -101,6 +101,38 @@ describe('generateMatrix (rowspan)', () => {
       ]);
     });
 
+    it('should place lower headers under correct columns when rowspan placeholders are omitted', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+
+       *   | A1 | B1 | C1 |
+       *   +    +----+----+
+       *   |    | B2 | C2 |
+       *   +----+----+----+
+       */
+      const tree = createTree([
+        [{ label: 'A1', rowspan: 2 }, 'B1', 'C1'],
+        ['B2', 'C2'],
+      ]);
+
+      tree.buildTree();
+
+      const matrix = generateMatrixFromTree(tree);
+
+      expect(matrix).toEqual([
+        [
+          createColspanSettings({ l: 'A1', rowspan: 2, origRowspan: 2 }),
+          createColspanSettings({ l: 'B1' }),
+          createColspanSettings({ l: 'C1' }),
+        ],
+        [
+          createRowspanPlaceholder(),
+          createColspanSettings({ l: 'B2' }),
+          createColspanSettings({ l: 'C2' }),
+        ],
+      ]);
+    });
+
     it('multiple headers with rowspan in different positions', () => {
       /**
        * The column headers visualisation:

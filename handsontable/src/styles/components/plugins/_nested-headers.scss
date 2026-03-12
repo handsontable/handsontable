@@ -2,6 +2,14 @@
 
 @mixin output {
   .handsontable {
+    thead th.htRowspanHeader + th {
+      border-inline-start-width: 0;
+    }
+
+    &.htRowHeaders thead tr:last-child th:first-child {
+      border-end-start-radius: 0;
+    }
+
     thead th.hiddenHeader:not(:first-of-type) {
       display: none;
     }

@@ -246,6 +246,26 @@ describe('normalizeSettings', () => {
     ]);
   });
 
+  it('should normalize rowspans when lower row placeholders are omitted', () => {
+    const settings = [
+      [{ label: 'A1', rowspan: 2 }, 'B1', 'C1'],
+      ['B2', 'C2'],
+    ];
+
+    expect(normalizeSettings(settings)).toEqual([
+      [
+        createColspanSourceSettings({ l: 'A1', rowspan: 2, origRowspan: 2 }),
+        createColspanSourceSettings({ l: 'B1' }),
+        createColspanSourceSettings({ l: 'C1' }),
+      ],
+      [
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: 'B2' }),
+        createColspanSourceSettings({ l: 'C2' }),
+      ],
+    ]);
+  });
+
   it('should normalize user-defined settings even when it contains overlapping headers', () => {
     const settings = [
       ['A1', 'A2'],
