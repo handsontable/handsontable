@@ -35,22 +35,19 @@ export const siteMatchesSubdomain = (site, subdomain) => {
     return true;
   }
 
-  for (const urlCandidate of [site.ssl_url, site.url]) {
+  return [site.ssl_url, site.url].some((urlCandidate) => {
     if (!urlCandidate) {
-      continue;
+      return false;
     }
 
     try {
       const hostname = new URL(urlCandidate).hostname;
 
-      if (hostname === `${subdomain}.netlify.app`) {
-        return true;
-      }
+      return hostname === `${subdomain}.netlify.app`;
 
     } catch {
       // ignore malformed URL values from external API payloads
+      return false;
     }
-  }
-
-  return false;
+  });
 };

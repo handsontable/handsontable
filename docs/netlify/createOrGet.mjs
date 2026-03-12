@@ -1,7 +1,6 @@
 import { NetlifyAPI } from 'netlify';
-import { createSubdomainFromBranch, siteMatchesSubdomain } from './subdomainHelpers.mjs';
-
 import { writeFileSync } from 'node:fs';
+import { createSubdomainFromBranch, siteMatchesSubdomain } from './subdomainHelpers.mjs';
 
 const rawBranchName = process.env.GITHUB_HEAD_REF || process.env.BRANCH_NAME;
 const branchName = createSubdomainFromBranch(
