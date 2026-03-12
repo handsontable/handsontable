@@ -140,6 +140,10 @@ const HotTableInner = forwardRef<
       newSettings.editor = props.hotEditor || getEditor('text');
     }
 
+    // TMP: TEST
+    newSettings.colWidths = 400;
+    ///
+
     return newSettings;
   };
 
