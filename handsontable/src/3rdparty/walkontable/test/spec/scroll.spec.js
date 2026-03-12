@@ -1028,6 +1028,72 @@ describe('WalkontableScroll', () => {
       expect(scrollHorizontally.calls.count()).toBe(1);
     });
 
+    it('should not call onScrollVertically hook when only horizontal scrolling changes and vertical scroll is already set', async() => {
+      createDataArray(100, 100);
+      spec().$wrapper.width(245 + getScrollbarWidth()).height(186 + getScrollbarWidth());
+
+      const scrollHorizontally = jasmine.createSpy('scrollHorizontal');
+      const scrollVertically = jasmine.createSpy('scrollVertically');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        onScrollVertically: scrollVertically,
+        onScrollHorizontally: scrollHorizontally,
+      });
+
+      wt.draw();
+      wt.wtTable.holder.scrollTop = 400;
+      wt.draw();
+
+      await sleep(50);
+
+      scrollVertically.calls.reset();
+      scrollHorizontally.calls.reset();
+
+      wt.wtTable.holder.scrollLeft = 400;
+      wt.draw();
+
+      await sleep(50);
+
+      expect(scrollVertically.calls.count()).toBe(0);
+      expect(scrollHorizontally.calls.count()).toBe(1);
+    });
+
+    it('should not call onScrollHorizontally hook when only vertical scrolling changes and horizontal scroll is already set', async() => {
+      createDataArray(100, 100);
+      spec().$wrapper.width(245 + getScrollbarWidth()).height(186 + getScrollbarWidth());
+
+      const scrollHorizontally = jasmine.createSpy('scrollHorizontal');
+      const scrollVertically = jasmine.createSpy('scrollVertically');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        onScrollVertically: scrollVertically,
+        onScrollHorizontally: scrollHorizontally,
+      });
+
+      wt.draw();
+      wt.wtTable.holder.scrollLeft = 400;
+      wt.draw();
+
+      await sleep(50);
+
+      scrollVertically.calls.reset();
+      scrollHorizontally.calls.reset();
+
+      wt.wtTable.holder.scrollTop = 400;
+      wt.draw();
+
+      await sleep(50);
+
+      expect(scrollVertically.calls.count()).toBe(1);
+      expect(scrollHorizontally.calls.count()).toBe(0);
+    });
+
     it('should add the "innerBorderInlineStart" CSS class (compensation for 1px border bug) to the root element when ' +
        'the table is horizontally scrolled', async() => {
       spec().$wrapper.width(186 + getScrollbarWidth()).height(186 + getScrollbarWidth());
