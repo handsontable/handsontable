@@ -65,10 +65,12 @@ for (let i = 0; i < frameworksToTest.length; i++) {
     // All theme runs share the same static file server on port 8082 — concurrent reads are safe.
     // --reporter=dot overrides the html reporter in playwright.config.ts, so there are no
     // concurrent writes to playwright-report/. Screenshots go to separate per-theme directories.
+    // Each theme gets its own --output directory so failure artifacts (traces, screenshots) don't
+    // collide when the same test fails in multiple themes simultaneously.
     const themeRuns = THEMES.map((themeName) => {
       console.log(chalk.green(`Testing JavaScript examples with "${themeName}" theme...`));
 
-      const proc = execa.command('npx playwright test --reporter=dot', {
+      const proc = execa.command(`npx playwright test --reporter=dot --output=test-results/theme-${themeName}`, {
         env: {
           HOT_FRAMEWORK: frameworkName,
           HOT_THEME: themeName,
