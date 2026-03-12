@@ -494,14 +494,6 @@ export const REGISTERED_HOOKS = [
   'afterUpdateData',
 
   /**
-   * Fired before the dataProvider fetches data. Return `false` to cancel the fetch.
-   *
-   * @event Hooks#beforeDataProviderFetch
-   * @param {object} queryParameters Current query parameters: `{ page, pageSize, sort, filters }`.
-   */
-  'beforeDataProviderFetch',
-
-  /**
    * Fired after the dataProvider has fetched and loaded data.
    *
    * @event Hooks#afterDataProviderFetch

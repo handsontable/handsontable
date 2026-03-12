@@ -283,12 +283,10 @@ export class Pagination extends BasePlugin {
     }
     if (typeof pageSize === 'number') {
       this.#pageSize = pageSize;
-      this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
+      this.#calcStrategy = createPaginatorStrategy('fixed');
     }
 
-    this.#computeAndApplyState();
-    this.hot.view.adjustElementsSize();
-    this.hot.render();
+    this.#refreshUI();
 
     if (oldPage !== this.#currentPage) {
       this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
@@ -296,6 +294,45 @@ export class Pagination extends BasePlugin {
     if (oldPageSize !== this.#pageSize) {
       this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
     }
+  }
+
+  /**
+   * Recomputes pagination state, adjusts viewport elements, and re-renders the table.
+   *
+   * @private
+   */
+  #refreshUI() {
+    this.#computeAndApplyState();
+    this.hot.view.adjustElementsSize();
+    this.hot.render();
+  }
+
+  /**
+   * Reverts to the previous page when a dataProvider fetch fails. Keeps data unchanged.
+   *
+   * @private
+   * @param {number} oldPage Previous page number.
+   * @param {number} attemptedPage Page that was requested and failed.
+   */
+  #revertPageOnFetchError(oldPage, attemptedPage) {
+    this.#currentPage = oldPage;
+    this.hot.scrollViewportTo({ row: 0 });
+    this.#refreshUI();
+    this.hot.runHooks('afterPageChange', attemptedPage, oldPage);
+  }
+
+  /**
+   * Reverts to the previous page size when a dataProvider fetch fails. Keeps data unchanged.
+   *
+   * @private
+   * @param {number|string} oldPageSize Previous page size.
+   * @param {number|string} attemptedPageSize Page size that was requested and failed.
+   */
+  #revertPageSizeOnFetchError(oldPageSize, attemptedPageSize) {
+    this.#pageSize = oldPageSize;
+    this.#calcStrategy = createPaginatorStrategy('fixed');
+    this.#refreshUI();
+    this.hot.runHooks('afterPageSizeChange', attemptedPageSize, oldPageSize);
   }
 
   /**
@@ -430,7 +467,8 @@ export class Pagination extends BasePlugin {
       this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
       this.hot.view.adjustElementsSize();
       this.hot.render();
-      this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).goToPage(pageNumber);
+      this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).goToPage(pageNumber)
+        .catch(() => this.#revertPageOnFetchError(oldPage, pageNumber));
 
       return;
     }
@@ -480,7 +518,8 @@ export class Pagination extends BasePlugin {
       this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
       this.hot.view.adjustElementsSize();
       this.hot.render();
-      this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).setPageSize(pageSize);
+      this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).setPageSize(pageSize)
+        .catch(() => this.#revertPageSizeOnFetchError(oldPageSize, pageSize));
 
       return;
     }
