@@ -798,6 +798,33 @@ class TableView {
 
         return this.hot.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex);
       },
+      uniformRowHeight: () => {
+        const settings = this.hot.getSettings();
+        const rowHeights = settings.rowHeights;
+        const hasDynamicRowHeightHooks = this.hot.hasHook('modifyRowHeight');
+
+        if (hasDynamicRowHeightHooks || settings.autoRowSize || settings.manualRowResize) {
+          return undefined;
+        }
+
+        const defaultRowHeight = this.hot.stylesHandler.getDefaultRowHeight();
+
+        if (rowHeights === undefined || rowHeights === null) {
+          return defaultRowHeight;
+        }
+        if (typeof rowHeights === 'number') {
+          return Math.max(rowHeights, defaultRowHeight);
+        }
+        if (typeof rowHeights === 'string') {
+          const parsedRowHeight = Number.parseInt(rowHeights, 10);
+
+          if (!Number.isNaN(parsedRowHeight)) {
+            return Math.max(parsedRowHeight, defaultRowHeight);
+          }
+        }
+
+        return undefined;
+      },
       rowHeightByOverlayName: (renderedRowIndex, overlayType) => {
         const visualIndex = this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
         const visualRowIndex = visualIndex === null ? renderedRowIndex : visualIndex;

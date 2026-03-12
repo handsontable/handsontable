@@ -13,6 +13,7 @@ import {
 import TopOverlayTable from './../table/top';
 import { Overlay } from './_base';
 import { getCornerStyle } from '../selection';
+import { getUniformRowHeightSum } from './utils/rowHeights';
 import {
   CLONE_TOP,
 } from './constants';
@@ -154,6 +155,12 @@ export class TopOverlay extends Overlay {
    * @returns {number} Height sum.
    */
   sumCellSizes(from, to) {
+    const precomputedRowsHeight = getUniformRowHeightSum(this.wtSettings, this.wot.wtViewport, from, to);
+
+    if (precomputedRowsHeight !== null) {
+      return precomputedRowsHeight;
+    }
+
     const defaultRowHeight = this.wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
     let row = from;
     let sum = 0;

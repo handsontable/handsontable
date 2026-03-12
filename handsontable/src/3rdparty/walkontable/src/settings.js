@@ -33,6 +33,7 @@ import { throwWithCause } from '../../../helpers/errors';
  * @property {Option} rowHeaders Option `rowHeaders`.
  * @property {Option} rowHeightOption `rowHeight`.
  * @property {Option} rowHeightByOverlayName Option `rowHeightByOverlayName`.
+ * @property {Option} uniformRowHeight Option `uniformRowHeight`.
  * @property {Option} shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
  * @property {Option} shouldRenderInlineStartOverlay Option `shouldRenderInlineStartOverlay`.
  * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
@@ -190,6 +191,9 @@ export default class Settings {
       },
       rowHeightByOverlayName() {
         // return undefined means use default size for the rendered cell content
+      },
+      uniformRowHeight() {
+        // return undefined means there is no reliable, uniform row height.
       },
       defaultColumnWidth: 50,
       selections: null,

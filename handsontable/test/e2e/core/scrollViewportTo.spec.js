@@ -10,6 +10,27 @@ describe('Core.scrollViewportTo', () => {
     }
   });
 
+  it('should avoid linear row-height calls for 100k rows with default row height', async() => {
+    const totalRows = 100001;
+    const hot = handsontable({
+      data: Array.from({ length: totalRows }, (_, index) => [index]),
+      width: 300,
+      height: 300,
+    });
+
+    await render();
+
+    const defaultRowHeight = hot.stylesHandler.getDefaultRowHeight();
+
+    spyOn(hot, 'getRowHeight').and.callThrough();
+    hot.getRowHeight.calls.reset();
+
+    const rowsHeight = tableView()._wt.wtOverlays.topOverlay.sumCellSizes(0, totalRows);
+
+    expect(rowsHeight).toBe(totalRows * defaultRowHeight);
+    expect(hot.getRowHeight).not.toHaveBeenCalled();
+  });
+
   using('configuration object', [
     { htmlDir: 'rtl' },
     { htmlDir: 'ltr' },

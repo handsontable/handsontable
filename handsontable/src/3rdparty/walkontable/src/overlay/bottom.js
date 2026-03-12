@@ -9,6 +9,7 @@ import {
 } from '../../../../helpers/dom/element';
 import BottomOverlayTable from './../table/bottom';
 import { Overlay } from './_base';
+import { getUniformRowHeightSum } from './utils/rowHeights';
 import {
   CLONE_BOTTOM,
 } from './constants';
@@ -153,6 +154,12 @@ export class BottomOverlay extends Overlay {
    * @returns {number} Height sum.
    */
   sumCellSizes(from, to) {
+    const precomputedRowsHeight = getUniformRowHeightSum(this.wtSettings, this.wot.wtViewport, from, to);
+
+    if (precomputedRowsHeight !== null) {
+      return precomputedRowsHeight;
+    }
+
     const { wtTable, wtSettings } = this.wot;
     const defaultRowHeight = wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
 
