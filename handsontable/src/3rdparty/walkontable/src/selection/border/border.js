@@ -409,14 +409,11 @@ class Border {
       bottomHitAreaStyles.display = 'none';
     }
 
-    if (row === this.wot.wtSettings.getSetting('fixedRowsTop') ||
-        col === this.wot.wtSettings.getSetting('fixedColumnsStart')) {
-      topStyles.zIndex = '9999';
-      topHitAreaStyles.zIndex = '9999';
-    } else {
-      topStyles.zIndex = '';
-      topHitAreaStyles.zIndex = '';
-    }
+    // Keep handles above all border layers (including custom borders).
+    topStyles.zIndex = '9999';
+    topHitAreaStyles.zIndex = '9999';
+    bottomStyles.zIndex = '9999';
+    bottomHitAreaStyles.zIndex = '9999';
   }
 
   /**
