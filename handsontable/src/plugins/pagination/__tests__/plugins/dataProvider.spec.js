@@ -147,4 +147,77 @@ describe('Pagination integration with DataProvider', () => {
 
     expect(getRowHeader(0)).toBe(11);
   });
+
+  it('should revert to previous page when dataProvider fetch fails on setPage', async() => {
+    let callCount = 0;
+    const pageSize = 10;
+
+    handsontable({
+      dataProvider: async(params) => {
+        callCount += 1;
+
+        if (params.page > 1) {
+          throw new Error('Network error');
+        }
+
+        const start = (params.page - 1) * params.pageSize;
+        const rows = createSpreadsheetData(params.pageSize, 2).map((row, i) =>
+          [`Page1-${start + i}`, row[1]]
+        );
+
+        return { rows, totalRows: 25 };
+      },
+      columns: 2,
+      rowHeaders: true,
+      pagination: { pageSize },
+    });
+
+    await sleep(100);
+
+    const pagination = getPlugin('pagination');
+    const dataProvider = getPlugin('dataProvider');
+
+    expect(pagination.getPaginationData().currentPage).toBe(1);
+    expect(getRowHeader(0)).toBe(1);
+
+    pagination.setPage(2);
+    await sleep(100);
+
+    expect(pagination.getPaginationData().currentPage).toBe(1);
+    expect(dataProvider.getQueryParameters().page).toBe(1);
+    expect(getRowHeader(0)).toBe(1);
+    expect(getData()[0][0]).toContain('Page1-');
+  });
+
+  it('should revert to previous page size when dataProvider fetch fails on setPageSize', async() => {
+    const initialPageSize = 10;
+
+    handsontable({
+      dataProvider: async(params) => {
+        if (params.pageSize !== initialPageSize) {
+          throw new Error('Network error');
+        }
+
+        return {
+          rows: createSpreadsheetData(params.pageSize, 2),
+          totalRows: 50,
+        };
+      },
+      columns: 2,
+      pagination: { pageSize: initialPageSize },
+    });
+
+    await sleep(100);
+
+    const pagination = getPlugin('pagination');
+    const dataProvider = getPlugin('dataProvider');
+
+    expect(pagination.getPaginationData().pageSize).toBe(initialPageSize);
+
+    pagination.setPageSize(5);
+    await sleep(100);
+
+    expect(pagination.getPaginationData().pageSize).toBe(initialPageSize);
+    expect(dataProvider.getQueryParameters().pageSize).toBe(initialPageSize);
+  });
 });

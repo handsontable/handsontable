@@ -130,6 +130,7 @@ describe('DataProvider', () => {
     expect(callCount).toBe(1);
 
     const plugin = getPlugin('dataProvider');
+    const dataBeforeFail = getData().map(row => [...row]);
 
     try {
       await plugin.goToPage(2);
@@ -140,6 +141,9 @@ describe('DataProvider', () => {
 
     expect(errorSpy).toHaveBeenCalled();
     expect(errorSpy.calls.mostRecent().args[0].message).toBe('Network error');
+    expect(plugin.getQueryParameters().page).toBe(1);
+    expect(getData().length).toBe(dataBeforeFail.length);
+    expect(getData()).toEqual(dataBeforeFail);
   });
 
   it('should abort previous fetch when fetchData is called again (goToPage)', async() => {
