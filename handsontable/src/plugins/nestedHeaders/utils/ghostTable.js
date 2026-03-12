@@ -96,7 +96,7 @@ class GhostTable {
     this.widthsMap.clear();
 
     for (let column = 0; column < maxColumns; column++) {
-      const visualColumnsIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(column);
+      const visualColumnsIndex = Number.parseInt(columns[column].dataset.visualColumn, 10);
       const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnsIndex);
 
       this.widthsMap.setValueAtIndex(physicalColumnIndex, columns[column].offsetWidth);
@@ -123,10 +123,10 @@ class GhostTable {
       const tr = rootDocument.createElement('tr');
 
       for (let col = 0; col < maxRenderedCols; col++) {
-        let visualColumnsIndex = columnIndexMapper.getVisualFromRenderableIndex(col);
+        const visualColumnsIndex = columnIndexMapper.getVisualFromRenderableIndex(col);
 
         if (visualColumnsIndex === null) {
-          visualColumnsIndex = col;
+          continue; // eslint-disable-line no-continue
         }
 
         const th = rootDocument.createElement('th');
@@ -160,8 +160,15 @@ class GhostTable {
     measureRow.className = 'htGhostHeaderMeasureRow';
 
     for (let col = 0; col < maxRenderedCols; col++) {
+      const visualColumnIndex = columnIndexMapper.getVisualFromRenderableIndex(col);
+
+      if (visualColumnIndex === null || !this.#isColumnRenderedInAnyLayer(visualColumnIndex)) {
+        continue; // eslint-disable-line no-continue
+      }
+
       const th = rootDocument.createElement('th');
 
+      th.dataset.visualColumn = `${visualColumnIndex}`;
       th.textContent = '';
       measureRow.appendChild(th);
     }
@@ -178,6 +185,31 @@ class GhostTable {
   clear() {
     this.widthsMap.clear();
     this.container = null;
+  }
+
+  /**
+   * Checks whether there is at least one header node for the passed visual column index.
+   *
+   * @private
+   * @param {number} visualColumnIndex A visual column index.
+   * @returns {boolean}
+   */
+  #isColumnRenderedInAnyLayer(visualColumnIndex) {
+    for (let row = 0; row < this.layersCount; row++) {
+      const headerSettings = this.nestedHeaderSettingsGetter(row, visualColumnIndex);
+
+      if (
+        headerSettings &&
+        (
+          (!headerSettings.isPlaceholder && !headerSettings.isCollapsed) ||
+          headerSettings.isHidden
+        )
+      ) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
 

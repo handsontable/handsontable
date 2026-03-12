@@ -533,10 +533,6 @@ export class NestedHeaders extends BasePlugin {
       const columnIndex = this.#stateManager.findLeftMostColumnIndex(normalizedHighlightRow, highlight.col);
       const focusHighlight = this.hot.selection.highlight.getFocus();
 
-      if (columnIndex < 0) {
-        return;
-      }
-
       // Correct the highlight/focus selection to highlight the correct TH element
       focusHighlight.visualCellRange.highlight.row = normalizedHighlightRow;
       focusHighlight.visualCellRange.highlight.col = columnIndex;
