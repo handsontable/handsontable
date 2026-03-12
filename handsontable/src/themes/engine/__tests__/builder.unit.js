@@ -96,6 +96,24 @@ describe('ThemeBuilder', () => {
       consoleSpy.mockRestore();
     });
 
+    it('should not warn for iconButtonHitAreaSize token key in createTheme', () => {
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      createTheme(createValidConfig({
+        tokens: {
+          ...mainTokens,
+          iconButtonHitAreaSize: 'sizing.size_6',
+        },
+      }));
+
+      expect(consoleSpy).not.toHaveBeenCalledWith(
+        '[ThemeBuilder] Unknown token key: "iconButtonHitAreaSize" in themeConfig.tokens. ' +
+        'This may be a custom token or a typo.'
+      );
+
+      consoleSpy.mockRestore();
+    });
+
     it('should warn for missing icon keys in createTheme', () => {
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
