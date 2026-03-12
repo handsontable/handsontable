@@ -214,10 +214,6 @@ class DataSource {
 
     const dataRow = this.modifyRowData(row);
 
-    if (dataRow === undefined || dataRow === null) {
-      return;
-    }
-
     if (!Number.isInteger(column)) {
       // column argument is the prop name
       setProperty(dataRow, column, value);
