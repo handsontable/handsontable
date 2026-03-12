@@ -229,5 +229,83 @@ describe('NestedHeaders', () => {
 
       expect(secondRowThs[4].textContent).toContain('C1');
     });
+
+    it('should keep lower-level labels visible when rowspan covers non-empty headers', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 3),
+        colHeaders: true,
+        rowHeaders: true,
+        nestedHeaders: [
+          [{ label: 'This is a very long header title', rowspan: 2 }, 'B2', 'C2'],
+          ['A', 'B', 'C'],
+        ],
+      });
+
+      const thead = getTopClone().find('thead')[0];
+      const firstRowThs = thead.querySelectorAll('tr:first-child th');
+      const secondRowThs = thead.querySelectorAll('tr:nth-child(2) th');
+
+      expect(firstRowThs[1].getAttribute('rowspan')).toBeNull();
+      expect(firstRowThs[1].textContent).toContain('This is a very long header title');
+      expect(secondRowThs[1].style.display).not.toBe('none');
+      expect(secondRowThs[1].textContent).toContain('A');
+    });
+
+    it('should keep focus on headers while navigating a layout with rowspan', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [{ label: 'A1', rowspan: 2 }, 'B1', 'C1'],
+          ['', 'B2', 'C2'],
+        ],
+      });
+
+      await selectCell(-1, 1);
+      await keyDownUp('arrowleft');
+      await keyDownUp('arrowright');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: -1,1']);
+      expect(document.activeElement).toEqual(getCell(-1, 1));
+    });
+
+    it('should allow sorting and filtering in headers with rowspan', async() => {
+      handsontable({
+        data: [
+          ['A-1', 'x', 10],
+          ['A-2', 'y', 20],
+          ['A-3', 'x', 30],
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        columnSorting: true,
+        dropdownMenu: true,
+        filters: true,
+        nestedHeaders: [
+          [{ label: 'A1', rowspan: 2 }, 'B1', 'C1'],
+          ['', 'B2', 'C2'],
+        ],
+      });
+
+      const $headerWithSorting = spec().$container.find('.ht_master table.htCore thead th span.columnSorting').eq(1);
+
+      $headerWithSorting.simulate('mousedown');
+      $headerWithSorting.simulate('mouseup');
+      $headerWithSorting.simulate('click');
+
+      expect(getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+
+      const filtersPlugin = getPlugin('filters');
+
+      filtersPlugin.addCondition(1, 'eq', ['x']);
+      filtersPlugin.filter();
+      await render();
+
+      expect(countRows()).toBe(2);
+      expect(getDataAtCell(0, 1)).toBe('x');
+      expect(getDataAtCell(1, 1)).toBe('x');
+    });
   });
 });

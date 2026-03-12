@@ -88,6 +88,19 @@ function applyRowspanToMatrix(matrix) {
 
       const effectiveRowspan = Math.min(settings.origRowspan, matrix.length - level);
       const colspanWidth = settings.origColspan || 1;
+      const hasConflictingContent = hasNonEmptyCoveredHeaders(
+        matrix,
+        level,
+        col,
+        effectiveRowspan,
+        colspanWidth,
+      );
+
+      if (hasConflictingContent) {
+        settings.rowspan = 1;
+
+        continue; // eslint-disable-line no-continue
+      }
 
       for (let r = 1; r < effectiveRowspan; r++) {
         const targetLevel = level + r;
@@ -106,6 +119,37 @@ function applyRowspanToMatrix(matrix) {
       }
     }
   }
+}
+
+/**
+ * Checks whether any header covered by rowspan contains non-empty label.
+ *
+ * @param {Array[]} matrix The generated header matrix.
+ * @param {number} startLevel The source header level.
+ * @param {number} startColumn The source visual column index.
+ * @param {number} rowspan The rowspan value to check.
+ * @param {number} colspan The colspan value to check.
+ * @returns {boolean}
+ */
+function hasNonEmptyCoveredHeaders(matrix, startLevel, startColumn, rowspan, colspan) {
+  for (let r = 1; r < rowspan; r++) {
+    const targetLevel = startLevel + r;
+
+    if (!matrix[targetLevel]) {
+      continue; // eslint-disable-line no-continue
+    }
+
+    for (let c = startColumn; c < startColumn + colspan && c < matrix[targetLevel].length; c++) {
+      const coveredSettings = matrix[targetLevel][c];
+      const coveredLabel = coveredSettings?.label;
+
+      if (coveredLabel !== undefined && coveredLabel !== '') {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 /**

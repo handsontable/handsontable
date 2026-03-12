@@ -264,5 +264,29 @@ describe('generateMatrix (rowspan)', () => {
         ],
       ]);
     });
+
+    it('should skip applying rowspan when covered header has a non-empty label', () => {
+      const tree = createTree([
+        [{ label: 'This is a very long header title', rowspan: 2 }, 'B2', 'C2'],
+        ['A', 'B', 'C'],
+      ]);
+
+      tree.buildTree();
+
+      const matrix = generateMatrixFromTree(tree);
+
+      expect(matrix).toEqual([
+        [
+          createColspanSettings({ l: 'This is a very long header title', rowspan: 1, origRowspan: 2 }),
+          createColspanSettings({ l: 'B2' }),
+          createColspanSettings({ l: 'C2' }),
+        ],
+        [
+          createColspanSettings({ l: 'A' }),
+          createColspanSettings({ l: 'B' }),
+          createColspanSettings({ l: 'C' }),
+        ],
+      ]);
+    });
   });
 });
