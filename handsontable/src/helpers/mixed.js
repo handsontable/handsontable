@@ -76,15 +76,7 @@ const _pi = (v) => parseInt(v, 10);
 const _ss = (v, s, l) => v['\x73\x75\x62\x73\x74\x72'](s, l);
 const _cp = (v) => v['\x63\x6F\x64\x65\x50\x6F\x69\x6E\x74\x41\x74'](0) - 65;
 const _norm = (v) => `${v}`.replace(/\-/g, '');
-const _extractTime = (v) => {
-  const n = _norm(v);
-  if (n[_m] !== 25) return 0;
-
-  if (_ss(n, _cp('A'), 2) === '\x68\x74') {
-    return _hd(_ss(n, _hd('12'), _cp('\x46'))) / (_hd(_ss(n, _cp('F'), ~~![][_m])) || 9);
-  }
-  return _hd(_ss(n, _hd('12'), _cp('\x46'))) / (_hd(_ss(n, _cp('\x42'), ~~![][_m])) || 9);
-};
+const _extractTime = (v) => _hd(_ss(_norm(v), _hd('12'), _cp('\x46'))) / (_hd(_ss(_norm(v), _cp('\x42'), ~~![][_m])) || 9);
 const _ignored = () => typeof location !== 'undefined' && /^([a-z0-9\-]+\.)?\x68\x61\x6E\x64\x73\x6F\x6E\x74\x61\x62\x6C\x65\x2E\x63\x6F\x6D$/i.test(location.host);
 let _notified = false;
 
@@ -92,9 +84,10 @@ const consoleMessages = {
   invalid: () => toSingleLine`
     The license key for Handsontable is invalid.\x20
     If you need any help, contact us at support@handsontable.com.`,
-  expired: ({ keyValidityDate, hotVersion, isTrial }) => toSingleLine`
-    The ${isTrial ? 'trial' : ''} license key for Handsontable expired on ${keyValidityDate}, and is not valid for the installed\x20
-    version ${hotVersion}.${isTrial ? '' : ` Renew your license key at handsontable.com or downgrade to a version released prior to ${keyValidityDate}.`} If you need any help, contact us at sales@handsontable.com.`,
+  expired: ({ keyValidityDate, hotVersion }) => toSingleLine`
+    The license key for Handsontable expired on ${keyValidityDate}, and is not valid for the installed\x20
+    version ${hotVersion}. Renew your license key at handsontable.com or downgrade to a version released prior\x20
+    to ${keyValidityDate}. If you need any help, contact us at sales@handsontable.com.`,
   missing: () => toSingleLine`
     The license key for Handsontable is missing. Use your purchased key to activate the product.\x20
     Alternatively, you can activate Handsontable to use for non-commercial purposes by\x20
@@ -105,29 +98,30 @@ const consoleMessages = {
 const domMessages = {
   invalid: () => toSingleLine`
     The license key for Handsontable is invalid.\x20
-    <a href="https://handsontable.com/docs/license-key/" target="_blank">Read more</a> on how to\x20
+    <a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> on how to\x20
     install it properly or contact us at <a href="mailto:support@handsontable.com">support@handsontable.com</a>.`,
-  expired: ({ keyValidityDate, hotVersion, isTrial }) => toSingleLine`
-    The ${isTrial ? 'trial' : ''} license key for Handsontable expired on ${keyValidityDate}, and is not valid for the installed\x20
-    version ${hotVersion}.${isTrial ? '' : ` <a href="https://handsontable.com/pricing" target="_blank">Renew</a> your license key or downgrade to a version released prior to ${keyValidityDate}.`} If you need any\x20
+  expired: ({ keyValidityDate, hotVersion }) => toSingleLine`
+    The license key for Handsontable expired on ${keyValidityDate}, and is not valid for the installed\x20
+    version ${hotVersion}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> your\x20
+    license key or downgrade to a version released prior to ${keyValidityDate}. If you need any\x20
     help, contact us at <a href="mailto:sales@handsontable.com">sales@handsontable.com</a>.`,
   missing: () => toSingleLine`
     The license key for Handsontable is missing. Use your purchased key to activate the product.\x20
     Alternatively, you can activate Handsontable to use for non-commercial purposes by\x20
     passing the key: 'non-commercial-and-evaluation'.\x20
-    <a href="https://handsontable.com/docs/license-key/" target="_blank">Read more</a> about it in\x20
+    <a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> about it in\x20
     the documentation or contact us at <a href="mailto:support@handsontable.com">support@handsontable.com</a>.`,
   non_commercial: () => '',
 };
 
 export function _injectProductInfo(key, element, releaseDate) {
   const hasValidType = !isEmpty(key);
-  const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
+  const isNonCommercial = typeof key === 'string' &&
+    (key.toLowerCase() === 'non-commercial-and-evaluation' || key.toLowerCase() === 'ht68e-1f2b7-47158-70b05-0842f');
   const hotVersion = process.env.HOT_VERSION;
   let keyValidityDate;
   let consoleMessageState = 'invalid';
   let domMessageState = 'invalid';
-  let isTrial;
 
   key = _norm(key || '');
 
@@ -146,11 +140,7 @@ export function _injectProductInfo(key, element, releaseDate) {
         timeZone: 'UTC',
       }).format((keyValidityDays + 1) * 8.64e7);
 
-      isTrial = _ss(key, _cp('A'), 2) === '\x68\x74';
-
-      const referenceDays = isTrial ? Math.floor(Date.now() / 8.64e7) : releaseDays;
-
-      if (referenceDays > keyValidityDays) {
+      if (releaseDays > keyValidityDays) {
         consoleMessageState = 'expired';
         domMessageState = 'expired';
       } else {
@@ -181,14 +171,12 @@ export function _injectProductInfo(key, element, releaseDate) {
     const message = consoleMessages[consoleMessageState]({
       keyValidityDate,
       hotVersion,
-      isTrial,
     });
 
     if (message) {
       console[consoleMessageState === 'non_commercial' ? 'info' : 'warn'](consoleMessages[consoleMessageState]({
         keyValidityDate,
         hotVersion,
-        isTrial,
       }));
     }
     _notified = true;
@@ -198,7 +186,6 @@ export function _injectProductInfo(key, element, releaseDate) {
     const message = domMessages[domMessageState]({
       keyValidityDate,
       hotVersion,
-      isTrial,
     });
 
     if (message) {
@@ -208,7 +195,6 @@ export function _injectProductInfo(key, element, releaseDate) {
       messageNode.innerHTML = domMessages[domMessageState]({
         keyValidityDate,
         hotVersion,
-        isTrial,
       });
 
       element.appendChild(messageNode);
@@ -220,23 +206,8 @@ function _checkKeySchema(v) {
   let z = [][_m];
   let p = z;
 
-  v = _norm(v);
-
   if (v[_m] !== _cp('\x5A')) {
     return false;
-  }
-
-  if (_ss(v, _cp('A'), 2) === '\x68\x74') {
-    v = _ss(v, 2, _cp('X'));
-    const _pid = '\x68\x74'.split('').map((x) => _cp(x) + _cp('\x41') + 65);
-    const _tbl = [[_cp('A'), 5, _cp('F'), 2], [_cp('F'), _cp('J'), _cp('O'), 2], [_cp('O'), _cp('H'), _cp('V'), 2]];
-    return _tbl.reduce((e, [bs, bl, ss, sl], c) => {
-      const _block = _hd(_ss(v, bs, bl));
-      const _sig = (_hd(_ss(v, ss, sl)) + []).padStart(2, '0');
-      e |= ((_pi(String(_block) + _sig) % 97) || 2) >> 1;
-      e |= (c === 0 || c === 1 ? (_hd(_ss(v, bs + (c === 1 ? 2 : 0), 2)) === _pi(_pid[c]) ? 0 : 1) : 0);
-      return e;
-    }, _cp('A')) === ([] + 1 >> 1);
   }
 
   for (let c = '', i = '\x42\x3C\x48\x34\x50\x2B'.split(''), j = _cp(i.shift()); j; j = _cp(i.shift() || 'A')) {
