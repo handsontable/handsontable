@@ -208,7 +208,9 @@ describe('Hook', () => {
         await sleep(50);
 
         expect(beforeRefreshDimensions).toHaveBeenCalled();
+
         const call = beforeRefreshDimensions.calls.mostRecent();
+
         expect(call.args[2]).toBe(true);
         expect(call.args[0].width).toBeGreaterThanOrEqual(450);
         expect(call.args[0].width).toBeLessThanOrEqual(550);
