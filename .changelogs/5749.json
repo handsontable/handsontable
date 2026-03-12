@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a regression where `className: \"current\"` lost classes from unselected cells after selection redraws.",
+  "type": "fixed",
+  "issueOrPR": 5749,
+  "breaking": false,
+  "framework": "none"
+}

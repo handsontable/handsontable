@@ -62,5 +62,21 @@ describe('settings', () => {
       expect(getCellMeta(0, 0).className).toEqual(['class-1']);
       expect(getCellMeta(0, 1).className).toEqual(['class-1']);
     });
+
+    it('should keep className "current" on all configured cells after a selection redraw', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        className: 'current',
+      });
+
+      expect(getCell(0, 1).classList.contains('current')).toBe(true);
+      expect(getCell(1, 0).classList.contains('current')).toBe(true);
+
+      await selectCell(2, 2);
+
+      expect(getCell(0, 1).classList.contains('current')).toBe(true);
+      expect(getCell(1, 0).classList.contains('current')).toBe(true);
+      expect(getCell(2, 2).classList.contains('current')).toBe(true);
+    });
   });
 });

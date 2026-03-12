@@ -651,18 +651,20 @@ export default () => {
     checkedTemplate: undefined,
 
     /**
-     * The `className` option lets you add CSS class names to every currently-selected element.
+     * The `className` option lets you add CSS class names to table cells.
      *
      * You can set the `className` option to one of the following:
      *
-     * | Setting             | Description                                                      |
-     * | ------------------- | ---------------------------------------------------------------- |
-     * | A string            | Add a single CSS class name to every currently-selected element  |
-     * | An array of strings | Add multiple CSS class names to every currently-selected element |
+     * | Setting             | Description                                               |
+     * | ------------------- | --------------------------------------------------------- |
+     * | A string            | Add a single CSS class name to each configured cell       |
+     * | An array of strings | Add multiple CSS class names to each configured cell      |
      *
      * ::: tip
      * Don't change the `className` metadata of the [column summary](@/guides/columns/column-summary/column-summary.md) row.
      * To style the summary row, use the class name assigned automatically by the [`ColumnSummary`](@/api/columnSummary.md) plugin: `columnSummaryResult`.
+     *
+     * Handsontable uses the `current` class name internally to mark the focused cell and selection border.
      * :::
      *
      * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration).
@@ -688,11 +690,11 @@ export default () => {
      * @example
      * ```js
      * // add a `your-class-name` CSS class name
-     * // to every currently-selected element
+     * // to each configured cell
      * className: 'your-class-name',
      *
      * // add `first-class-name` and `second-class-name` CSS class names
-     * // to every currently-selected element
+     * // to each configured cell
      * className: ['first-class-name', 'second-class-name'],
      * ```
      */

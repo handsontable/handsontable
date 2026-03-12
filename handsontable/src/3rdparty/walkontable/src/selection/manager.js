@@ -35,7 +35,7 @@ export class SelectionManager {
    */
   #scanner = new SelectionScanner();
   /**
-   * The Map tracks applied CSS classes. It's used to reset the elements state to their initial state.
+   * The map tracks applied CSS classes per element. It's used to reset the elements state to their initial state.
    *
    * @type {WeakMap}
    */
@@ -69,7 +69,7 @@ export class SelectionManager {
     this.#scanner.setActiveOverlay(this.#activeOverlaysWot);
 
     if (!this.#appliedClasses.has(this.#activeOverlaysWot)) {
-      this.#appliedClasses.set(this.#activeOverlaysWot, new Set());
+      this.#appliedClasses.set(this.#activeOverlaysWot, new Map());
     }
 
     return this;
@@ -166,9 +166,14 @@ export class SelectionManager {
       return;
     }
 
+    const appliedOverlaysClasses = this.#appliedClasses.get(this.#activeOverlaysWot);
+
     if (fastDraw) {
       // there was no rerender, so we need to remove classNames by ourselves
       this.#resetCells();
+    } else {
+      // Slow draw rerenders cells and headers, so keep only classes from the current render cycle.
+      appliedOverlaysClasses.clear();
     }
 
     const selections = Array.from(this.#selections);
@@ -245,9 +250,11 @@ export class SelectionManager {
         }, (_, i) => `${className}-${i + 1}`)];
       }).flat();
 
-      classNames.forEach(className => this.#appliedClasses
-        .get(this.#activeOverlaysWot)
-        .add(className));
+      if (!appliedOverlaysClasses.has(element)) {
+        appliedOverlaysClasses.set(element, new Set());
+      }
+
+      classNames.forEach(className => appliedOverlaysClasses.get(element).add(className));
 
       addClass(element, classNames);
 
@@ -269,31 +276,32 @@ export class SelectionManager {
   #resetCells() {
     const appliedOverlaysClasses = this.#appliedClasses.get(this.#activeOverlaysWot);
     const classesToRemove = this.#activeOverlaysWot.wtSettings.getSetting('onBeforeRemoveCellClassNames');
+    let cellAttributes = [];
+
+    if (Array.isArray(this.#selections.options?.cellAttributes)) {
+      cellAttributes = this.#selections.options.cellAttributes.map(el => el[0]);
+    }
+
+    if (Array.isArray(this.#selections.options?.headerAttributes)) {
+      cellAttributes = [...cellAttributes, ...this.#selections.options.headerAttributes.map(el => el[0])];
+    }
+
+    appliedOverlaysClasses.forEach((classNames, element) => {
+      removeClass(element, Array.from(classNames));
+      removeAttribute(element, cellAttributes);
+    });
 
     if (Array.isArray(classesToRemove)) {
       for (let i = 0; i < classesToRemove.length; i++) {
-        appliedOverlaysClasses.add(classesToRemove[i]);
+        const className = classesToRemove[i];
+        const nodes = this.#activeOverlaysWot.wtTable.TABLE.querySelectorAll(`.${className}`);
+
+        for (let j = 0, len = nodes.length; j < len; j++) {
+          removeClass(nodes[j], className);
+          removeAttribute(nodes[j], cellAttributes);
+        }
       }
     }
-
-    appliedOverlaysClasses.forEach((className) => {
-      const nodes = this.#activeOverlaysWot.wtTable.TABLE.querySelectorAll(`.${className}`);
-      let cellAttributes = [];
-
-      if (Array.isArray(this.#selections.options?.cellAttributes)) {
-        cellAttributes = this.#selections.options.cellAttributes.map(el => el[0]);
-      }
-
-      if (Array.isArray(this.#selections.options?.headerAttributes)) {
-        cellAttributes = [...cellAttributes, ...this.#selections.options.headerAttributes.map(el => el[0])];
-      }
-
-      for (let i = 0, len = nodes.length; i < len; i++) {
-        removeClass(nodes[i], className);
-
-        removeAttribute(nodes[i], cellAttributes);
-      }
-    });
 
     appliedOverlaysClasses.clear();
   }
