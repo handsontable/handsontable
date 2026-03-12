@@ -101,14 +101,16 @@ export function init() {
         data: 8,
         renderer: progressBarRenderer,
         editor: false,
-        className: "htMiddle"
+        className: "htMiddle",
+        readOnly: true,
       },
       {
         data: 9,
         renderer: starRenderer,
         editor: false,
         className: "star htCenter",
-        headerClassName: "htCenter"
+        headerClassName: "htCenter",
+        readOnly: true,
       },
       { data: 5, type: "text" },
       { data: 2, type: "text" }

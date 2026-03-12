@@ -2,7 +2,7 @@
 id: 9w5zs3t2
 title: Migrating from 16.2 to 17.0
 metaTitle: Migrating from 16.2 to 17.0 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 16.2 to Handsontable 17.0, released on [TODO].
+description: Migrate from Handsontable 16.2 to Handsontable 17.0, released on released on March 09, 2025.
 permalink: /migration-from-16.2-to-17.0
 canonicalUrl: /migration-from-16.2-to-17.0
 pageClass: migration-guide
@@ -19,9 +19,9 @@ menuTag: new
 
 # Migrate from 16.2 to 17.0
 
-Migrate from Handsontable 16.2 to Handsontable 17.0, released on [TODO].
+Migrate from Handsontable 16.2 to Handsontable 17.0, released on March 09, 2025.
 
-More information about this release can be found in the [`17.0.0` release blog post](TODO).<br/>
+More information about this release can be found in the [`17.0.0` release blog post](https://handsontable.com/blog/handsontable-17.0.0-multiselect-cell-type-simpler-custom-cells-and-a-new-themes-api).<br/>
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_17-0-0).
 
 [[toc]]
@@ -1096,6 +1096,22 @@ If you only target modern browsers and runtimes, no action is needed.
 - [Browser support](@/guides/technical-specification/supported-browsers/supported-browsers.md) - Supported browsers and runtimes
 - [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md) - Dependencies and licenses
 
+## 7. Built-in HyperFormula (deprecation notice)
+
+The **Formulas** plugin uses [HyperFormula](https://hyperformula.handsontable.com/) as its calculation engine. Currently, HyperFormula is bundled with Handsontable. In **version 18.0**, it will be removed from `package.json`.
+
+### What to Expect
+
+- **Version 17.x**: Built-in HyperFormula remains available, no change required yet.
+- **Version 18.0**: HyperFormula is removed from Handsontable dependencies. You must add it as your own dependency and configure the Formulas plugin to use your instance.
+
+### How to Prepare
+
+1. Install HyperFormula in your project (e.g. `npm install hyperformula`).
+2. Import HyperFormula and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`.
+
+See the [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) guide for configuration details.
+
 ## Summary of breaking changes
 
 | Change                                            | Action Required                                                            |
@@ -1104,6 +1120,7 @@ If you only target modern browsers and runtimes, no action is needed.
 | `handsontable.full.min.css` no longer available   | Use Theme API or import a theme CSS file (e.g. `ht-theme-classic.min.css`) |
 | CSS-based themes (optional migration)             | Consider migrating to Theme API for runtime features                       |
 | `core-js` dependency removed                      | Add `core-js` or other polyfills in your app if you support older environments |
+| Built-in HyperFormula (deprecation)               | In 18.0, import HyperFormula yourself and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'` |
 
 ## Related resources
 
