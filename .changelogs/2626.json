@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed dropdown menu header misalignment after diagonal scrolling",
+  "type": "fixed",
+  "issueOrPR": 2626,
+  "breaking": false,
+  "framework": "none"
+}
