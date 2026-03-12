@@ -392,15 +392,11 @@ export class Pagination extends BasePlugin {
     let lastVisibleRowIndex = -1;
 
     if (this.#isDataProviderMode()) {
-      const dataProvider = this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY);
-      const totalRows = dataProvider.getTotalRows();
       const countRows = this.hot.countRows();
-      const state = this.#calcStrategy.getState(this.#currentPage);
 
-      if (totalRows > 0 && countRows > 0 && state) {
-        firstVisibleRowIndex = state.startIndex;
-        lastVisibleRowIndex = state.startIndex + Math.min(countRows, state.pageSize) - 1;
-        lastVisibleRowIndex = Math.min(lastVisibleRowIndex, totalRows - 1);
+      if (countRows > 0) {
+        firstVisibleRowIndex = 0;
+        lastVisibleRowIndex = countRows - 1;
       }
     } else {
       const {
@@ -778,12 +774,22 @@ export class Pagination extends BasePlugin {
 
     const paginationData = this.getPaginationData();
 
-    this.#ui.updateState({
+    const uiState = {
       ...paginationData,
       totalRenderedRows: dataProviderMode
         ? this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).getTotalRows()
         : renderableRowsLength,
-    });
+    };
+
+    if (dataProviderMode) {
+      const totalRows = this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).getTotalRows();
+      const pageSize = this.#calcStrategy.getState(this.#currentPage)?.pageSize ?? this.#pageSize;
+
+      uiState.counterStartRow = ((this.#currentPage - 1) * pageSize) + 1;
+      uiState.counterEndRow = Math.min((this.#currentPage * pageSize), totalRows);
+    }
+
+    this.#ui.updateState(uiState);
   }
 
   /**

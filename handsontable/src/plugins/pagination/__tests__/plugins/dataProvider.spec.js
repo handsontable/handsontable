@@ -120,6 +120,103 @@ describe('Pagination integration with DataProvider', () => {
     expect(getPlugin('dataProvider').getTotalRows()).toBe(totalRows);
   });
 
+  it('should return local visual row indexes in getPaginationData on page > 1', async() => {
+    const totalRows = 50;
+    const pageSize = 10;
+
+    handsontable({
+      dataProvider: async(params) => {
+        const start = (params.page - 1) * params.pageSize;
+        const rows = createSpreadsheetData(pageSize, 5).map((row, i) =>
+          row.map(cell => `${cell}-${start + i}`)
+        );
+
+        return { rows, totalRows };
+      },
+      columns: 5,
+      pagination: { pageSize },
+    });
+
+    await sleep(150);
+
+    const pagination = getPlugin('pagination');
+
+    pagination.setPage(2);
+    await sleep(150);
+
+    const paginationData = pagination.getPaginationData();
+
+    expect(paginationData.currentPage).toBe(2);
+    expect(paginationData.firstVisibleRowIndex).toBe(0);
+    expect(paginationData.lastVisibleRowIndex).toBe(9);
+  });
+
+  it('should return current page data using local row indexes on page > 1', async() => {
+    const totalRows = 50;
+    const pageSize = 10;
+
+    handsontable({
+      dataProvider: async(params) => {
+        const start = (params.page - 1) * params.pageSize;
+        const rows = createSpreadsheetData(params.pageSize, 3).map((row, i) =>
+          row.map(cell => `p${params.page}-${start + i}-${cell}`)
+        );
+
+        return { rows, totalRows };
+      },
+      columns: 3,
+      pagination: { pageSize },
+    });
+
+    await sleep(150);
+
+    const pagination = getPlugin('pagination');
+
+    expect(pagination.getCurrentPageData().length).toBe(pageSize);
+    expect(pagination.getCurrentPageData()[0][0]).toContain('p1-0-');
+
+    pagination.setPage(2);
+    await sleep(150);
+
+    const page2Data = pagination.getCurrentPageData();
+
+    expect(page2Data.length).toBe(pageSize);
+    expect(page2Data[0][0]).toContain('p2-10-');
+    expect(page2Data[9][0]).toContain('p2-19-');
+  });
+
+  it('should constrain select-all to current page rows on page > 1', async() => {
+    const totalRows = 50;
+    const pageSize = 10;
+
+    handsontable({
+      dataProvider: async(params) => {
+        const start = (params.page - 1) * params.pageSize;
+        const rows = createSpreadsheetData(params.pageSize, 3).map((row, i) =>
+          row.map(cell => `${cell}-${start + i}`)
+        );
+
+        return { rows, totalRows };
+      },
+      columns: 3,
+      pagination: { pageSize },
+    });
+
+    await sleep(150);
+
+    const pagination = getPlugin('pagination');
+
+    pagination.setPage(2);
+    await sleep(150);
+
+    await selectAll();
+
+    const selectedRange = getSelectedRangeLast();
+
+    expect(selectedRange.from.row).toBe(0);
+    expect(selectedRange.to.row).toBe(9);
+  });
+
   it('should display global row indexes in row headers on page 2', async() => {
     const pageSize = 10;
 
