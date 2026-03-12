@@ -787,7 +787,7 @@ export default {
         metaTitle: 'EmptyDataState - Angular Data Grid | Handsontable',
       },
     },
-    'itemsFactory.md': {
+    'ItemsFactory.md': {
       id: 'y3p9w2kd',
       react: {
         id: 'u8c4m1ra',
@@ -796,7 +796,7 @@ export default {
         id: 'd5f7n2sz',
       },
     },
-    'mergedCellsCollection.md': {
+    'MergedCellsCollection.md': {
       id: 'h8q4m1zr',
       react: {
         id: 'm2w9k6vb',
@@ -805,7 +805,7 @@ export default {
         id: 'g3t8p4xc',
       },
     },
-    'persistentState.md': {
+    'PersistentState.md': {
       id: 'n6t2b5xv',
       react: {
         id: 'q7y1d5ne',
