@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed nested-header overlay misalignment after showing a hidden column",
+  "type": "fixed",
+  "issueOrPR": 12155,
+  "breaking": false,
+  "framework": "none"
+}
