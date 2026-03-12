@@ -108,7 +108,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     if (changes.settings && !changes.settings.firstChange) {
-      const newOptions: typeof Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(
+      const newOptions: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(
         changes.settings.currentValue,
         this.ngZone
       );
