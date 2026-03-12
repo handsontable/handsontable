@@ -290,6 +290,9 @@ describe('WalkontableTable', () => {
 
     await sleep(50);
 
+    // Simulate scroll handler: draw(true) is what refreshAll() calls on scroll
+    wt.draw(true);
+
     expect(cellRenderer).toHaveBeenCalledTimes(5); // one row of 5 cells
     expect(wt.getCell({ row: 0, col: 3 })).not.toBe(-2);
   });

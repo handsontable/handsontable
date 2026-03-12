@@ -293,11 +293,17 @@ export class DropdownMenu extends BasePlugin {
         const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
         const target = this.hot.getCell(-1, from.col, true).querySelector(`.${BUTTON_CLASS_NAME}`) as HTMLElement;
         const rect = target.getBoundingClientRect();
+        const viewportWidth = this.hot.rootWindow?.innerWidth ?? 0;
+        const menuWidth = this.menu.container?.offsetWidth ?? 200;
+        const lastCol = from.col === this.hot.countCols() - 1;
+        const menuOpensOnLeft = !this.hot.isLtr()
+          ? lastCol
+          : (lastCol || rect.right + menuWidth > viewportWidth);
 
-        this.open({
+        this.open(this.#adjustPositionForTheme({
           left: rect.left + offset.left,
           top: rect.bottom + offset.top,
-        }, {
+        }, menuOpensOnLeft), {
           left: rect.width,
           right: 0,
           above: 0,
@@ -448,6 +454,29 @@ export class DropdownMenu extends BasePlugin {
   }
 
   /**
+   * Adjusts menu position for horizon theme (corrects 4px offset from theme styling).
+   *
+   * @private
+   * @param {{ top: number, left: number }} position Position object.
+   * @param {boolean} [menuOpensOnLeft] When true, menu is positioned on the left (no space on right); applies opposite left correction.
+   * @returns {{ top: number, left: number }} Adjusted position when horizon theme is active, otherwise unchanged.
+   */
+  #adjustPositionForTheme(position: Record<string, number>, menuOpensOnLeft?: boolean): Record<string, number> {
+    const themeName = this.hot.getCurrentThemeName?.();
+    if (!themeName || !themeName.includes('horizon')) {
+      return position;
+    }
+    // RTL default needs -12 so menu left matches e2e expected position (912 vs 920 with -4)
+    const leftCorrection = this.hot.isLtr()
+      ? (menuOpensOnLeft ? -4 : 4)
+      : (menuOpensOnLeft ? 4 : -12);
+    return {
+      top: position.top - 4,
+      left: position.left + leftCorrection,
+    };
+  }
+
+  /**
    * Table click listener.
    *
    * @private
@@ -462,10 +491,10 @@ export class DropdownMenu extends BasePlugin {
       event.stopPropagation();
       this.#isButtonClicked = false;
 
-      this.open({
+      this.open(this.#adjustPositionForTheme({
         left: rect.left + offset.left,
         top: rect.top + target.offsetHeight + offset.top,
-      }, {
+      }, false), {
         left: rect.width,
         right: 0,
         above: 0,

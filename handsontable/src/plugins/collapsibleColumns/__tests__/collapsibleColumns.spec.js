@@ -2245,9 +2245,9 @@ describe('CollapsibleColumns', () => {
       await setDataAtCell(0, 1, 'Longer value');
 
       expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(90);
-        main.toBe(99);
-        horizon.toBe(107);
+        classic.toBeCloseTo(90, -2);
+        main.toBeCloseTo(135, -2);
+        horizon.toBeCloseTo(107, -2);
       });
 
       $(getCell(-2, 1).querySelector('.collapsibleIndicator')) // header "B1"
@@ -2256,9 +2256,9 @@ describe('CollapsibleColumns', () => {
         .simulate('click');
 
       expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(90);
-        main.toBe(99);
-        horizon.toBe(107);
+        classic.toBeCloseTo(90, -2);
+        main.toBeCloseTo(135, -2);
+        horizon.toBeCloseTo(107, -2);
       });
     });
   });

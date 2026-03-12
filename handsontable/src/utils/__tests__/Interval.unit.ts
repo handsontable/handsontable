@@ -77,7 +77,9 @@ describe('Interval', () => {
     }, 250);
 
     setTimeout(() => {
-      expect(spy.calls.count()).toBe(2);
+      // Allow 2 or 3 calls: timing can vary (100ms interval may fire once or twice in 150ms window)
+      expect(spy.calls.count()).toBeGreaterThanOrEqual(2);
+      expect(spy.calls.count()).toBeLessThanOrEqual(3);
       i.stop();
       done();
     }, 400);

@@ -49,12 +49,13 @@ export interface UseHotEditorImpl<T> {
 
 /**
  * Helper type to expose GridSettings/ColumnSettings props with native renderers/editors separately
- *  from component-based render prop.
+ * from component-based render prop. Uses conditional types so it works with both GridSettings
+ * and ColumnSettings (ColumnSettings' index signature can make it incompatible with strict Pick<>).
  */
-type ReplaceRenderersEditors<T extends Pick<Handsontable.GridSettings, 'renderer' | 'editor'>> = Omit<T, 'renderer' | 'editor'> & {
-  hotRenderer?: T['renderer'],
+type ReplaceRenderersEditors<T> = Omit<T, 'renderer' | 'editor'> & {
+  hotRenderer?: T extends { renderer?: infer R } ? R : never,
   renderer?: ComponentType<HotRendererProps>,
-  hotEditor?: T['editor'],
+  hotEditor?: T extends { editor?: infer E } ? E : never,
   editor?: ComponentType | boolean,
 }
 

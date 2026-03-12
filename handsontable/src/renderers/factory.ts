@@ -1,3 +1,5 @@
+import Handsontable from "../base";
+import { CellProperties } from "../settings";
 /**
  * Factory function for creating custom Handsontable cell renderers.
  *
@@ -32,8 +34,8 @@
  * }];
  * ```
  */
-export const rendererFactory = (callback: (params: { instance: object; td: HTMLTableCellElement; row: number; column: number; prop: string | number; value: unknown; cellProperties: Record<string, unknown> }) => void) => {
-  return (instance: object, td: HTMLTableCellElement, row: number, column: number, prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void => {
+export const rendererFactory = (callback: (params: { instance: Handsontable; td: HTMLTableCellElement; row: number; column: number; prop: string | number; value: unknown; cellProperties: CellProperties }) => void) => {
+  return (instance: Handsontable, td: HTMLTableCellElement, row: number, column: number, prop: string | number, value: unknown, cellProperties: CellProperties): void => {
     return callback({ instance, td, row, column, prop, value, cellProperties });
   };
 };

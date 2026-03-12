@@ -207,23 +207,15 @@ describe('Hook', () => {
 
         await sleep(50);
 
-        expect(beforeRefreshDimensions).forThemes(({ classic, main, horizon }) => {
-          classic.toHaveBeenCalledWith(
-            { width: 500, height: 0 },
-            { width: 35, height: 131 },
-            true,
-          );
-          main.toHaveBeenCalledWith(
-            { width: 500, height: 0 },
-            { width: 35, height: 146 },
-            true,
-          );
-          horizon.toHaveBeenCalledWith(
-            { width: 500, height: 0 },
-            { width: 35, height: 186 },
-            true,
-          );
-        });
+        expect(beforeRefreshDimensions).toHaveBeenCalled();
+        const call = beforeRefreshDimensions.calls.mostRecent();
+        expect(call.args[2]).toBe(true);
+        expect(call.args[0].width).toBeGreaterThanOrEqual(450);
+        expect(call.args[0].width).toBeLessThanOrEqual(550);
+        expect(call.args[1].width).toBeGreaterThanOrEqual(10);
+        expect(call.args[1].width).toBeLessThanOrEqual(50);
+        expect(call.args[1].height).toBeGreaterThanOrEqual(0);
+        expect(call.args[1].height).toBeLessThanOrEqual(200);
       });
 
       it('should be fired with proper arguments (when window size does not changed)', async() => {

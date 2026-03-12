@@ -114,7 +114,7 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
                       col={col}
                       prop={prop}
                       value={value}
-                      cellProperties={cellProperties}/>
+                      cellProperties={cellProperties as Handsontable.CellProperties}/>
           );
 
           const {portal, portalContainer} = createPortal(rendererElement, TD.ownerDocument, portalKey, cachedPortalContainer);

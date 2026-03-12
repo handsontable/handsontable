@@ -812,13 +812,20 @@ export class Filters extends BasePlugin {
    */
   getDataMapAtColumn(column: number): Record<string, unknown>[] {
     const visualColumn = this.hot.toVisualColumn(column);
+    const sourceCol = this.hot.getSourceDataAtCol(visualColumn);
+    const sourceRowCount = sourceCol.length;
     const data: Record<string, unknown>[] = [];
 
-    arrayEach(this.hot.getSourceDataAtCol(visualColumn), (value, rowIndex) => {
-      const cellMeta = this.hot.getCellMeta(rowIndex, visualColumn);
+    rangeEach(sourceRowCount - 1, (physicalRow: number) => {
+      const visualRow = this.hot.toVisualRow(physicalRow);
+      const cellMeta = this.hot.getCellMeta(physicalRow, visualColumn) as Record<string, unknown>;
+      const value = visualRow !== null
+        ? this.hot.getDataAtCell(visualRow, visualColumn)
+        : getValueGetterValue(this.hot.getSourceDataAtCell(physicalRow, visualColumn), cellMeta);
+      const index = data.length;
 
       data.push({
-        meta: cellMeta,
+        meta: { ...cellMeta, row: index, visualRow: index },
         value: toEmptyString(value),
       });
     });

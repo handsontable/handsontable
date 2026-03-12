@@ -2,7 +2,58 @@
  * Re-exports of core settings types for external consumers.
  * Wrappers and user code can import from 'handsontable/settings'.
  */
-export type { GridSettings } from './common';
+import Handsontable from './base';
+import { CommentObject } from './plugins/comments';
+import { GridSettings } from './common';
+/**
+ * A row object, one of the two ways to supply data to the table, the alternative being an array of values.
+ * Row objects can have any data assigned to them, not just column data, and can define a `__children` array for nested rows.
+ */
+export interface RowObject {
+    [prop: string]: any;
+  }
 
-export type ColumnSettings = Record<string, unknown>;
-export type CellProperties = Record<string, unknown>;
+  /**
+ * A cell value, which can be anything to support custom cell data types, but by default is `string | number | boolean | undefined`.
+ */
+export type CellValue = any;
+
+export interface ColumnDataGetterSetterFunction {
+    (row: RowObject | CellValue[]): CellValue;
+    (row: RowObject | CellValue[], value: CellValue): void;
+  }
+
+export type { GridSettings } from './common';
+/**
+ * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
+ */
+export interface ColumnSettings extends Omit<GridSettings, "data"> {
+    data?: string | number | ColumnDataGetterSetterFunction;
+    /**
+     * Column and cell meta data is extensible, developers can add any properties they want.
+     */
+    [key: string]: any;
+  }
+  
+/**
+ * Additional cell-specific meta data.
+ */
+export interface CellMeta extends ColumnSettings {
+    valid?: boolean;
+    comment?: CommentObject;
+    isSearchResult?: boolean;
+    hidden?: boolean;
+    skipRowOnPaste?: boolean;
+  }
+  
+  /**
+   * A rendered cell object with computed properties.
+   */
+  export interface CellProperties extends CellMeta {
+    row: number;
+    col: number;
+    instance: Handsontable;
+    visualRow: number;
+    visualCol: number;
+    prop: string | number;
+  }

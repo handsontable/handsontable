@@ -783,11 +783,15 @@ export class CopyPaste extends BasePlugin {
         pastedSourceData = parsedSourceConfig.data;
       }
 
-      const textHTML = sanitize(clipboardData.getData('text/html'), {
-        ADD_TAGS: ['meta'],
-        ADD_ATTR: ['content'],
-        FORCE_BODY: true,
-      }) as unknown as string;
+      const rawTextHTML = clipboardData.getData('text/html');
+      const customSanitizer = this.hot.getSettings().sanitizer;
+      const textHTML = (typeof customSanitizer === 'function'
+        ? (customSanitizer as (html: string, context: string) => string)(rawTextHTML, 'CopyPaste.paste')
+        : sanitize(rawTextHTML, {
+          ADD_TAGS: ['meta'],
+          ADD_ATTR: ['content'],
+          FORCE_BODY: true,
+        })) as unknown as string;
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);

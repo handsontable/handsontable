@@ -30,6 +30,8 @@ interface CommentMeta {
   [META_READONLY]?: boolean;
 }
 
+export interface CommentObject extends CommentMeta { }
+
 /**
  * Represents the range object used by the Comments plugin.
  */

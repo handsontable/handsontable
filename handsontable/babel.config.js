@@ -1,5 +1,6 @@
 const allowedE2EModules = [
   'window',
+  'core-js*',
   'hyperformula*',
   'jasmine-co',
   'jest-matcher-utils',

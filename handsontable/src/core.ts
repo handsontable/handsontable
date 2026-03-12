@@ -2891,15 +2891,17 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
       // Use `theme` option if it's a string and differs from current theme (takes priority over `themeName`).
       if (themeOptionExists && typeof settings.theme === 'string' && currentThemeName !== settings.theme) {
-        instance.useTheme(settings.theme);
         instance.themeManager?.unmount();
+        instance.themeManager = null;
+        instance.useTheme(settings.theme);
 
       // Use `themeName` option if `theme` is not provided and the name differs from current theme.
       } else if (themeNameOptionExists && !themeOptionExists && currentThemeName !== settings.themeName) {
+        instance.themeManager?.unmount();
+        instance.themeManager = null;
         tableMeta.theme = settings.themeName;
         tableMeta.themeName = undefined;
         instance.useTheme(settings.themeName);
-        instance.themeManager?.unmount();
 
       // Initialize or update the themeManager when theme is an object.
       } else if (
@@ -4624,7 +4626,19 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       return false;
     }
 
-    return this.selectCells([[row, column, endRow, endColumn]], scrollToCell, changeListener);
+    const rowNum = row == null || Number.isNaN(Number(row)) ? 0 : Number(row);
+    const col = column == null || (typeof column === 'number' && Number.isNaN(column)) ? 0 : column;
+
+    const coords = [
+      [
+        rowNum,
+        col,
+        isUndefined(endRow) ? undefined : endRow,
+        isUndefined(endColumn) ? undefined : endColumn
+      ]
+    ];
+
+    return this.selectCells(coords, scrollToCell, changeListener);
   };
 
   /**

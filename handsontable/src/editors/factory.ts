@@ -1,7 +1,8 @@
 import { BaseEditor } from './baseEditor/baseEditor';
 import EventManager from '../eventManager';
 import { throwWithCause } from '../helpers/errors';
-
+import { CellProperties } from '../settings';
+import { Context } from '../shortcuts/context';
 type EditorBaseFactoryParams = Record<string, (...args: unknown[]) => unknown>;
 
 /**
@@ -21,6 +22,21 @@ type EditorWithExtendedProps = InstanceType<typeof BaseEditor> & {
   eventManager?: InstanceType<typeof EventManager>;
   refreshDimensions?: () => void;
 };
+
+
+
+type Shortcut = Parameters<Context['addShortcut']>[0];
+
+export type ExtendedEditor<T> = BaseEditor & {
+  render: (editor: ExtendedEditor<T>) => void;
+  value?: T extends {
+    value: any;
+  } ? T['value'] : any;
+  config?: T extends {
+    config: any;
+  } ? T['config'] : any;
+  container: HTMLDivElement;
+} & T;
 
 const editorBaseFactory = (params: EditorBaseFactoryParams): typeof BaseEditor => {
   const CustomBaseEditor = BaseEditor.prototype.extend() as unknown as typeof BaseEditor;
@@ -77,24 +93,37 @@ export interface EditorFactoryOptions {
 /**
  * Factory function to create a custom Handsontable editor.
  */
-export const editorFactory = (options: EditorFactoryOptions): typeof BaseEditor => {
-  const {
-    init,
-    afterOpen,
-    afterInit,
-    afterClose,
-    beforeOpen,
-    getValue,
-    setValue,
-    onFocus,
-    shortcuts,
-    value,
-    render,
-    config,
-    shortcutsGroup = 'custom-editor',
-    position = 'container',
-    ...args
-  } = options;
+export const editorFactory = <TProperties, TMethods = Record<string, any>>({ init, afterOpen, afterInit, afterClose, beforeOpen, getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, position, ...args }:{
+    value?: TProperties extends {
+        value: any;
+    } ? TProperties['value'] : any;
+    config?: TProperties extends {
+        config: any;
+    } ? TProperties['config'] : any;
+    render?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+    init: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+    afterOpen?: (editor: ExtendedEditor<TProperties & TMethods>, event?: Event) => void;
+    afterClose?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+    afterInit?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+    beforeOpen?: (editor: ExtendedEditor<TProperties & TMethods>, { row, col, prop, td, originalValue, cellProperties, }: {
+      row: number;
+      col: number;
+      prop: string | number;
+      td: HTMLTableCellElement;
+      originalValue: any;
+      cellProperties: CellProperties;
+    }) => void;
+    getValue?: (editor: ExtendedEditor<TProperties & TMethods>) => any;
+    setValue?: (editor: ExtendedEditor<TProperties & TMethods>, value: any) => void;
+    onFocus?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+    shortcutsGroup?: string;
+    shortcuts?: (Omit<Shortcut, 'callback' | 'group'> & {
+      callback: (editor: ExtendedEditor<TProperties & TMethods>, event: Event) => boolean | void;
+      group?: string;
+    })[];
+    position?: 'container' | 'portal';
+  } & TMethods & Record<string, any>): ExtendedEditor<TProperties> => {
+  type Extended = ExtendedEditor<TProperties & TMethods>;
 
   const registerShortcuts = (editor: InstanceType<typeof BaseEditor>) => {
     const shortcutManager = editor.hot.getShortcutManager();
@@ -114,6 +143,7 @@ export const editorFactory = (options: EditorFactoryOptions): typeof BaseEditor 
   return editorBaseFactory({
     init(editor: InstanceType<typeof BaseEditor>) {
       const editorExt = editor as EditorWithExtendedProps;
+      const extendedEditor = editor as unknown as Extended;
       Object.assign(editor, { value, config, render, position, ...args });
       (editor as unknown as Record<string, unknown>)._opened = false;
       editorExt.container = editor.hot.rootDocument.createElement('DIV');
@@ -125,7 +155,7 @@ export const editorFactory = (options: EditorFactoryOptions): typeof BaseEditor 
         editor.hot.rootElement.appendChild(editorExt.container);
       }
 
-      init(editor);
+      init(extendedEditor);
 
       if (!editorExt.input) {
         throwWithCause('Input is not assigned. Assign it in the init callback.');
@@ -134,7 +164,7 @@ export const editorFactory = (options: EditorFactoryOptions): typeof BaseEditor 
       editorExt.container.appendChild(editorExt.input);
 
       if (typeof afterInit === 'function') {
-        afterInit(editor);
+        afterInit(extendedEditor);
       }
 
       if (editorExt.preventCloseElement && editorExt.preventCloseElement instanceof HTMLElement) {
@@ -148,19 +178,21 @@ export const editorFactory = (options: EditorFactoryOptions): typeof BaseEditor 
       editor.addHook('afterScrollVertically', () => editorExt.refreshDimensions?.());
     },
     getValue(editor: InstanceType<typeof BaseEditor>) {
+      const extendedEditor = editor as unknown as Extended;
       if (typeof getValue === 'function') {
-        return getValue(editor);
+        return getValue(extendedEditor);
       }
       return (editor as unknown as Record<string, unknown>).value;
     },
     setValue(editor: InstanceType<typeof BaseEditor>, _value: unknown) {
+      const extendedEditor = editor as unknown as Extended;
       if (typeof setValue === 'function') {
-        setValue(editor, _value);
+        setValue(extendedEditor, _value);
       } else {
         (editor as unknown as Record<string, unknown>).value = _value;
       }
       if (typeof render === 'function') {
-        render(editor);
+        render(extendedEditor);
       }
     },
     refreshDimensions(editor: InstanceType<typeof BaseEditor>) {
@@ -192,25 +224,28 @@ export const editorFactory = (options: EditorFactoryOptions): typeof BaseEditor 
     },
     open(editor: InstanceType<typeof BaseEditor>, event?: Event) {
       const editorExt = editor as EditorWithExtendedProps;
+      const extendedEditor = editor as unknown as Extended;
       editorExt.container!.classList.add('ht_clone_master');
       (editor as unknown as Record<string, unknown>)._opened = true;
       editorExt.refreshDimensions?.();
       editor.hot.getShortcutManager().setActiveContextName('editor');
       registerShortcuts(editor);
       if (afterOpen) {
-        afterOpen(editor, event);
+        afterOpen(extendedEditor, event);
       }
     },
     focus(editor: InstanceType<typeof BaseEditor>) {
       const editorExt = editor as EditorWithExtendedProps;
+      const extendedEditor = editor as unknown as Extended;
       if (typeof onFocus === 'function') {
-        onFocus(editor);
+        onFocus(extendedEditor);
       } else {
         (editorExt.container?.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') as HTMLElement | null)?.focus();
       }
     },
     close(editor: InstanceType<typeof BaseEditor>) {
       const editorExt = editor as EditorWithExtendedProps;
+      const extendedEditor = editor as unknown as Extended;
       (editor as unknown as Record<string, unknown>)._opened = false;
       editorExt.container!.style.display = 'none';
       editorExt.container!.classList.remove('ht_clone_master');
@@ -218,15 +253,16 @@ export const editorFactory = (options: EditorFactoryOptions): typeof BaseEditor 
       const editorContext = shortcutManager.getContext('editor');
       editorContext.removeShortcutsByGroup(shortcutsGroup);
       if (typeof afterClose === 'function') {
-        afterClose(editor);
+        afterClose(extendedEditor);
       }
     },
     prepare(editor: InstanceType<typeof BaseEditor>, row: number, col: number, prop: string | number, td: HTMLTableCellElement, originalValue: unknown, cellProperties: Record<string, unknown>) {
+      const extendedEditor = editor as unknown as Extended;
       if (typeof beforeOpen === 'function') {
-        beforeOpen(editor, { row, col, prop, td, originalValue, cellProperties });
+        beforeOpen(extendedEditor, { row, col, prop, td, originalValue, cellProperties: cellProperties as CellProperties });
       } else {
         editor.setValue(originalValue);
       }
     },
-  });
+  }) as unknown as ExtendedEditor<TProperties>;
 };
