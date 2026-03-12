@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved scrolling performance for large datasets with uniform row heights.",
+  "type": "changed",
+  "issueOrPR": 12142,
+  "breaking": false,
+  "framework": "none"
+}
