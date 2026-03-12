@@ -123,4 +123,32 @@ describe('Core.setDataAtRowProp', () => {
     expect(getSourceDataAtCell(2, 'a')).toEqual(7);
     expect(getSourceDataAtCell(2, 'b')).toEqual(777);
   });
+
+  it('should keep an edited value when changing a different prop in the same row', async() => {
+    handsontable({
+      data: [
+        { a: 'A1', b: 'B1' },
+        { a: 'A2', b: 'B2' },
+      ],
+      columns: [
+        { data: 'a' },
+        { data: 'b' },
+      ]
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
+    getActiveEditor().setValue('typed value');
+
+    await setDataAtRowProp(0, 'b', 'updated by api');
+
+    expect(getActiveEditor().isOpened()).toBe(true);
+    expect(getActiveEditor().getValue()).toBe('typed value');
+
+    await keyDownUp('enter');
+
+    expect(getDataAtRowProp(0, 'a')).toBe('typed value');
+    expect(getDataAtRowProp(0, 'b')).toBe('updated by api');
+  });
 });

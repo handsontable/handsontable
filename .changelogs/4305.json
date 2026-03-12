@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed setDataAtRowProp interrupting edits in progress",
+  "type": "fixed",
+  "issueOrPR": 4305,
+  "breaking": false,
+  "framework": "none"
+}
