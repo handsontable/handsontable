@@ -39,4 +39,20 @@ describe('Filters', () => {
 
     expect(document.activeElement).toBe(input);
   });
+
+  it.forTheme('main')('should apply the correct hover background token to the column menu icon', async() => {
+    handsontable({
+      data: createSpreadsheetObjectData(3, 3),
+      filters: true,
+      colHeaders: true,
+      dropdownMenu: true,
+    });
+
+    await sleep(50);
+
+    const button = getCell(-1, 0).querySelector('.changeType');
+    const hoverBackgroundToken = getComputedStyle(button).getPropertyValue('--ht-icon-button-hover-background-color');
+
+    expect(hoverBackgroundToken.trim()).toBe('#22222266');
+  });
 });
