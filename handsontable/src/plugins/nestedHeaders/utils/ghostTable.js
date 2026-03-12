@@ -90,7 +90,7 @@ class GhostTable {
     this._buildGhostTable(this.container);
     this.hot.rootDocument.body.appendChild(this.container);
 
-    const columns = this.container.querySelectorAll('tr:last-of-type th');
+    const columns = this.container.querySelectorAll('tr.htGhostHeaderMeasureRow th');
     const maxColumns = columns.length;
 
     this.widthsMap.clear();
@@ -147,12 +147,26 @@ class GhostTable {
 
           fastInnerHTML(th, label, this.hot.getSettings().sanitizer);
           th.colSpan = headerSettings.colspan;
+          th.rowSpan = headerSettings.rowspan;
           tr.appendChild(th);
         }
       }
 
       table.appendChild(tr);
     }
+
+    const measureRow = rootDocument.createElement('tr');
+
+    measureRow.className = 'htGhostHeaderMeasureRow';
+
+    for (let col = 0; col < maxRenderedCols; col++) {
+      const th = rootDocument.createElement('th');
+
+      th.textContent = '';
+      measureRow.appendChild(th);
+    }
+
+    table.appendChild(measureRow);
 
     fragment.appendChild(table);
     container.appendChild(fragment);

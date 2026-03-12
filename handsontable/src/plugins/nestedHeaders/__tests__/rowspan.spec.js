@@ -294,6 +294,65 @@ describe('NestedHeaders', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -2,0 from: -2,0 to: -2,0']);
     });
 
+    it('should keep the header row context when navigating horizontally through a rowspanned header', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 3),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [{ label: 'This is a very long header title', rowspan: 2 }, 'B', 'C'],
+          ['B2', 'C2'],
+        ],
+      });
+
+      await selectCell(-1, 1);
+      await keyDownUp('arrowleft');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,0 from: -2,0 to: -2,0']);
+
+      await keyDownUp('arrowright');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: -1,1']);
+
+      await selectCell(-2, 1);
+      await keyDownUp('arrowleft');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,0 from: -2,0 to: -2,0']);
+
+      await keyDownUp('arrowright');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: -2,1']);
+    });
+
+    it('should not ellipsize rowspanned bottom-most header with dropdown menu and filters enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 3),
+        colHeaders: true,
+        rowHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        nestedHeaders: [
+          [{ label: 'This is a very long header title', rowspan: 2 }, 'B', 'C'],
+          ['B2', 'C2'],
+        ],
+      });
+
+      const headerLabel = getCell(-2, 0).querySelector('.colHeader');
+      const headerLabelStyles = getComputedStyle(headerLabel);
+      const textWidthProbe = document.createElement('canvas');
+      const textWidthContext = textWidthProbe.getContext('2d');
+
+      expect(headerLabel).not.toBeNull();
+
+      textWidthContext.font = `${headerLabelStyles.fontStyle} ${headerLabelStyles.fontWeight} ` +
+        `${headerLabelStyles.fontSize} ${headerLabelStyles.fontFamily}`;
+
+      const renderedTextWidth = textWidthContext.measureText(headerLabel.textContent.trim()).width;
+
+      expect(headerLabel.clientWidth).toBeGreaterThan(renderedTextWidth);
+    });
+
     it('should allow sorting and filtering interactions on a rowspanned bottom-most header', async() => {
       handsontable({
         data: [

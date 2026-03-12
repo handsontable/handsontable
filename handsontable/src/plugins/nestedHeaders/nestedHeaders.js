@@ -136,6 +136,13 @@ export class NestedHeaders extends BasePlugin {
    */
   #recentlyHighlightCoords = null;
   /**
+   * Stores the header row level used as context for horizontal navigation when entering
+   * and leaving rowspanned headers.
+   *
+   * @type {number|null}
+   */
+  #rowspanHeaderNavigationContextRow = null;
+  /**
    * Custom helper for getting widths of the nested headers.
    *
    * @private
@@ -287,6 +294,7 @@ export class NestedHeaders extends BasePlugin {
 
     this.clearColspans();
     this.#stateManager.clear();
+    this.#rowspanHeaderNavigationContextRow = null;
     this.#hidingIndexMapObserver.unsubscribe();
     this.#hidingIndexMapObserver = null;
     this.ghostTable.clear();
@@ -516,15 +524,53 @@ export class NestedHeaders extends BasePlugin {
     const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
 
     if (isNestedHeadersRange) {
-      const columnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
+      const {
+        isRowspanPlaceholder,
+      } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
+      const normalizedHighlightRow = isRowspanPlaceholder ?
+        this.#findRenderableHeaderRow(highlight.row, highlight.col) :
+        highlight.row;
+      const columnIndex = this.#stateManager.findLeftMostColumnIndex(normalizedHighlightRow, highlight.col);
       const focusHighlight = this.hot.selection.highlight.getFocus();
 
+      if (columnIndex < 0) {
+        return;
+      }
+
       // Correct the highlight/focus selection to highlight the correct TH element
+      focusHighlight.visualCellRange.highlight.row = normalizedHighlightRow;
       focusHighlight.visualCellRange.highlight.col = columnIndex;
+      focusHighlight.visualCellRange.from.row = normalizedHighlightRow;
       focusHighlight.visualCellRange.from.col = columnIndex;
+      focusHighlight.visualCellRange.to.row = normalizedHighlightRow;
       focusHighlight.visualCellRange.to.col = columnIndex;
       focusHighlight.commit();
     }
+  }
+
+  /**
+   * Finds the first visible header row for the passed coordinates. If the passed coordinates point
+   * to a rowspan placeholder, the method traverses up through header levels to find the header cell
+   * that visually represents that placeholder.
+   *
+   * @param {number} headerRow A negative row index that points to a column header level.
+   * @param {number} visualColumnIndex A visual column index.
+   * @returns {number}
+   */
+  #findRenderableHeaderRow(headerRow, visualColumnIndex) {
+    const highestHeaderRow = -this.getLayersCount();
+
+    for (let row = headerRow; row >= highestHeaderRow; row--) {
+      const {
+        isRowspanPlaceholder,
+      } = this.#stateManager.getHeaderSettings(row, visualColumnIndex) ?? {};
+
+      if (!isRowspanPlaceholder) {
+        return row;
+      }
+    }
+
+    return headerRow;
   }
 
   /**
@@ -853,20 +899,21 @@ export class NestedHeaders extends BasePlugin {
    */
   #onModifyTransformStart(delta) {
     const { highlight } = this.hot.getSelectedRangeActive();
-    const initialNextRow = highlight.row + delta.row;
-    const nextCoords = this.hot._createCellCoords(initialNextRow, highlight.col + delta.col);
-    const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
+    const initialDeltaRow = delta.row;
+    const initialDeltaColumn = delta.col;
+    const targetColumn = highlight.col + delta.col;
+    let targetRow = highlight.row + delta.row;
 
-    if (delta.row !== 0 && nextCoords.col >= 0) {
+    if (delta.row !== 0 && targetColumn >= 0) {
       const rowDirection = Math.sign(delta.row);
       const lowestHeaderRow = -1;
       const highestHeaderRow = -this.getLayersCount();
-      let adjustedNextRow = initialNextRow;
+      let adjustedNextRow = targetRow;
 
       while (adjustedNextRow <= lowestHeaderRow && adjustedNextRow >= highestHeaderRow) {
         const {
           isRowspanPlaceholder,
-        } = this.#stateManager.getHeaderSettings(adjustedNextRow, nextCoords.col) ?? {};
+        } = this.#stateManager.getHeaderSettings(adjustedNextRow, targetColumn) ?? {};
 
         if (!isRowspanPlaceholder) {
           break;
@@ -876,6 +923,43 @@ export class NestedHeaders extends BasePlugin {
       }
 
       delta.row = adjustedNextRow - highlight.row;
+      targetRow = adjustedNextRow;
+    }
+
+    if (initialDeltaRow === 0 && initialDeltaColumn !== 0 && targetColumn >= 0 && highlight.row < 0) {
+      const {
+        rowspan: currentHeaderRowspan = 1,
+      } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
+
+      if (currentHeaderRowspan > 1 && Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
+        const {
+          isPlaceholder,
+          isRowspanPlaceholder,
+          isHidden,
+        } = this.#stateManager.getHeaderSettings(this.#rowspanHeaderNavigationContextRow, targetColumn) ?? {};
+
+        if (!isPlaceholder && !isRowspanPlaceholder && !isHidden) {
+          targetRow = this.#rowspanHeaderNavigationContextRow;
+        }
+      }
+
+      targetRow = this.#findRenderableHeaderRow(targetRow, targetColumn);
+      delta.row = targetRow - highlight.row;
+
+      const {
+        rowspan: targetHeaderRowspan = 1,
+      } = this.#stateManager.getHeaderSettings(targetRow, targetColumn) ?? {};
+
+      if (targetHeaderRowspan > 1) {
+        this.#rowspanHeaderNavigationContextRow = highlight.row;
+      }
+    }
+
+    const nextCoords = this.hot._createCellCoords(targetRow, targetColumn);
+    const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
+
+    if (!isNestedHeadersRange || initialDeltaRow !== 0) {
+      this.#rowspanHeaderNavigationContextRow = null;
     }
 
     if (!isNestedHeadersRange) {
