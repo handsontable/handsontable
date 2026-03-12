@@ -393,7 +393,7 @@ describe('Mixed helper', () => {
       expect(console.warn).not.toHaveBeenCalled();
     });
 
-    it('should not print any information if non-commercial key is used', () => {
+    it('should not print any information if trial key is used', () => {
       spyOn(console, 'warn');
       spyOn(console, 'info');
       spyOn(console, 'log');
