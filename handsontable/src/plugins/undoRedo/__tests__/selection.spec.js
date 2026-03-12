@@ -95,6 +95,46 @@ describe('UndoRedo', () => {
       expect(getSelected()[1]).toEqual([1, 2, 2, 3]);
     });
 
+    it('should restore all data after undoing an overlapping non-consecutive cleared selection', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      const originalData = getData().map(row => [...row]);
+
+      await selectCells([[0, 0, 4, 4], [1, 1, 2, 2]]);
+      await emptySelectedCells();
+
+      getPlugin('undoRedo').undo();
+
+      expect(getData()).toEqual(originalData);
+    });
+
+    it('should restore all data after undoing clear from corner-selected grid with inner ctrl/cmd range', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      const originalData = getData().map(row => [...row]);
+
+      spec().$container.find('thead th:eq(0)').simulate('mousedown');
+
+      await keyDown('control/meta');
+      await mouseDown(getCell(1, 1));
+      await mouseOver(getCell(2, 2));
+      await mouseUp(getCell(2, 2));
+      await keyUp('control/meta');
+
+      expect(getSelected().length).toBe(2);
+
+      await keyDownUp('delete');
+      await keyDownUp(['control/meta', 'z']);
+
+      expect(getData()).toEqual(originalData);
+    });
+
     it('should transform the header selection down after undoing rows removal', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
