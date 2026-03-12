@@ -1602,6 +1602,69 @@ export default () => {
     data: undefined,
 
     /**
+     * The `dataProvider` option enables server-side mode by providing a function that fetches table rows.
+     *
+     * When this option is set, Handsontable calls the function with current query parameters (`page`, `pageSize`,
+     * `sort`, and `filters`) and expects a Promise resolving to `{ rows, totalRows }`.
+     *
+     * @memberof Options#
+     * @type {Function}
+     * @default undefined
+     * @category Core
+     */
+    dataProvider: undefined,
+
+    /**
+     * The `dataProviderParams` option sets initial query parameters for server-side mode.
+     *
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @category Core
+     */
+    dataProviderParams: undefined,
+
+    /**
+     * The `rowId` option defines which property in your row object is treated as its unique identifier.
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'id'
+     * @category Core
+     */
+    rowId: 'id',
+
+    /**
+     * The `onRowCreate` option defines an async callback for server-side row creation.
+     *
+     * @memberof Options#
+     * @type {Function}
+     * @default undefined
+     * @category Core
+     */
+    onRowCreate: undefined,
+
+    /**
+     * The `onRowUpdate` option defines an async callback for server-side row updates.
+     *
+     * @memberof Options#
+     * @type {Function}
+     * @default undefined
+     * @category Core
+     */
+    onRowUpdate: undefined,
+
+    /**
+     * The `onRowRemove` option defines an async callback for server-side row removal.
+     *
+     * @memberof Options#
+     * @type {Function}
+     * @default undefined
+     * @category Core
+     */
+    onRowRemove: undefined,
+
+    /**
      * @description
      * If `true`, Handsontable will interpret the dots in the columns mapping as a nested object path. If your dataset contains
      * the dots in the object keys and you don't want Handsontable to interpret them as a nested object path, set this option to `false`.

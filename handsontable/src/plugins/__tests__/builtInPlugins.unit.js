@@ -8,6 +8,7 @@ describe('built-in plugins', () => {
       'Autofill',
       'ManualRowResize',
       'AutoRowSize',
+      'ServerSideData',
       'ColumnSorting',
       'Comments',
       'ContextMenu',

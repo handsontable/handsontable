@@ -117,6 +117,24 @@ const allSettings: Required<Handsontable.GridSettings> = {
   currentRowClassName: 'foo',
   customBorders: true,
   data: oneOf([{}, {}, {}], [[], [], []]),
+  dataProvider: async(queryParameters, options) => ({
+    rows: [{ id: 1, name: 'A' }],
+    totalRows: 1,
+  }),
+  dataProviderParams: {
+    page: 1,
+    pageSize: 20,
+    sort: {
+      column: 'name',
+      direction: 'asc',
+    },
+    filters: {
+      name: {
+        operator: 'contains',
+        value: 'A',
+      },
+    },
+  },
   dataDotNotation: oneOf(true),
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',
@@ -224,6 +242,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ),
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
+  rowId: 'id',
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
   sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
   search: true,
@@ -253,6 +272,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   themeName: 'ht-theme-some-theme',
   theme: '',
   title: 'foo',
+  onRowCreate: async(row) => {},
+  onRowUpdate: async(id, changes, rowData) => {},
+  onRowRemove: async(id) => {},
   trimDropdown: true,
   trimRows: true,
   trimWhitespace: true,
@@ -487,6 +509,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterPageNavigationVisibilityChange(isVisible) {
     const _isVisible: boolean = isVisible;
   },
+  afterDataProviderResponse: (response, queryParameters) => {},
+  afterDataProviderError: (error, queryParameters) => {},
+  afterRowMutation: (type, payload) => {},
+  afterRowMutationError: (type, error, payload) => {},
   afterPaste: (data, coords) => {},
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
@@ -635,6 +661,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return true;
   },
+  beforeDataProviderRequest: (queryParameters, source) => {},
+  beforeRowMutation: (type, payload) => {},
   beforePaste: (data, coords) => { data.splice(0, 1); return false; },
   beforeRedo: (action) => {},
   beforeRedoStackChange: (undoneActions) => {},

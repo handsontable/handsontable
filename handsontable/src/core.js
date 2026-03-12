@@ -2587,6 +2587,100 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
+   * In server-side mode, forces a fresh call to `dataProvider()` with the current query parameters.
+   *
+   * @memberof Core#
+   * @function refreshData
+   * @returns {Promise<void>}
+   */
+  this.refreshData = function() {
+    const serverSideDataPlugin = this.getPlugin('serverSideData');
+
+    if (!serverSideDataPlugin?.enabled) {
+      return Promise.resolve();
+    }
+
+    return serverSideDataPlugin.refreshData();
+  };
+
+  /**
+   * In server-side mode, gets the current query parameters sent to `dataProvider()`.
+   *
+   * @memberof Core#
+   * @function getQueryParameters
+   * @returns {{page: number, pageSize: number, sort: object | null, filters: object | null}}
+   */
+  this.getQueryParameters = function() {
+    const serverSideDataPlugin = this.getPlugin('serverSideData');
+
+    if (!serverSideDataPlugin?.enabled) {
+      return {
+        page: 1,
+        pageSize: 20,
+        sort: null,
+        filters: null,
+      };
+    }
+
+    return serverSideDataPlugin.getQueryParameters();
+  };
+
+  /**
+   * In server-side mode, creates a row by calling the `onRowCreate` callback.
+   *
+   * @memberof Core#
+   * @function createRow
+   * @param {object} rowData The row payload to send to the server.
+   * @returns {Promise<void>}
+   */
+  this.createRow = function(rowData) {
+    const serverSideDataPlugin = this.getPlugin('serverSideData');
+
+    if (!serverSideDataPlugin?.enabled) {
+      throwWithCause('The `createRow()` method is available only when `dataProvider` is enabled.');
+    }
+
+    return serverSideDataPlugin.createRow(rowData);
+  };
+
+  /**
+   * In server-side mode, updates a row by calling the `onRowUpdate` callback.
+   *
+   * @memberof Core#
+   * @function updateRow
+   * @param {string|number} rowId The row identifier.
+   * @param {object} changes The row changes payload.
+   * @returns {Promise<void>}
+   */
+  this.updateRow = function(rowId, changes) {
+    const serverSideDataPlugin = this.getPlugin('serverSideData');
+
+    if (!serverSideDataPlugin?.enabled) {
+      throwWithCause('The `updateRow()` method is available only when `dataProvider` is enabled.');
+    }
+
+    return serverSideDataPlugin.updateRow(rowId, changes);
+  };
+
+  /**
+   * In server-side mode, removes a row by calling the `onRowRemove` callback.
+   *
+   * @memberof Core#
+   * @function removeRow
+   * @param {string|number} rowId The row identifier.
+   * @returns {Promise<void>}
+   */
+  this.removeRow = function(rowId) {
+    const serverSideDataPlugin = this.getPlugin('serverSideData');
+
+    if (!serverSideDataPlugin?.enabled) {
+      throwWithCause('The `removeRow()` method is available only when `dataProvider` is enabled.');
+    }
+
+    return serverSideDataPlugin.removeRow(rowId);
+  };
+
+  /**
    * Gets the initial column count, calculated based on the `columns` setting.
    *
    * @private

@@ -91,7 +91,7 @@ export class MultiColumnSorting extends ColumnSorting {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!(this.hot.getSettings()[this.pluginKey]);
+    return !!this.hot.getSettings()[this.pluginKey] && typeof this.hot.getSettings().dataProvider !== 'function';
   }
 
   /**

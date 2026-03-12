@@ -2641,6 +2641,63 @@ export const REGISTERED_HOOKS = [
   'afterPageNavigationVisibilityChange',
 
   /**
+   * Fired before calling `dataProvider()` in server-side mode.
+   *
+   * @event Hooks#beforeDataProviderRequest
+   * @param {object} queryParameters Query parameters that are about to be used for the request.
+   * @param {string} source Source of the request.
+   * @returns {object|boolean|void} Return `false` to cancel the request, or return an object to override query parameters.
+   */
+  'beforeDataProviderRequest',
+
+  /**
+   * Fired after `dataProvider()` resolves in server-side mode.
+   *
+   * @event Hooks#afterDataProviderResponse
+   * @param {object} response Response returned from `dataProvider()`.
+   * @param {object} queryParameters Query parameters used for the request.
+   */
+  'afterDataProviderResponse',
+
+  /**
+   * Fired when `dataProvider()` rejects in server-side mode.
+   *
+   * @event Hooks#afterDataProviderError
+   * @param {Error} error The error thrown by `dataProvider()`.
+   * @param {object} queryParameters Query parameters used for the request.
+   */
+  'afterDataProviderError',
+
+  /**
+   * Fired before a server-side CRUD mutation callback is called.
+   *
+   * @event Hooks#beforeRowMutation
+   * @param {'create'|'update'|'remove'} type Mutation type.
+   * @param {object} payload Mutation payload.
+   * @returns {boolean|void} Return `false` to cancel the mutation.
+   */
+  'beforeRowMutation',
+
+  /**
+   * Fired after a server-side CRUD mutation callback resolves.
+   *
+   * @event Hooks#afterRowMutation
+   * @param {'create'|'update'|'remove'} type Mutation type.
+   * @param {object} payload Mutation payload.
+   */
+  'afterRowMutation',
+
+  /**
+   * Fired when a server-side CRUD mutation callback rejects.
+   *
+   * @event Hooks#afterRowMutationError
+   * @param {'create'|'update'|'remove'} type Mutation type.
+   * @param {Error} error The error thrown by the mutation callback.
+   * @param {object} payload Mutation payload.
+   */
+  'afterRowMutationError',
+
+  /**
    * Fired by the {@link Formulas} plugin, when any cell value changes.
    *
    * Returns an array of objects that contains:

@@ -97,6 +97,49 @@ export interface CellSettings extends CellMeta {
   col: number;
 }
 
+export interface SortModel {
+  column: string;
+  direction: 'asc' | 'desc';
+}
+
+export interface FilterCondition {
+  operator: string;
+  value: unknown;
+}
+
+export interface FilterModel {
+  [column: string]: FilterCondition;
+}
+
+export interface QueryParameters {
+  page: number;
+  pageSize: number;
+  sort: SortModel | null;
+  filters: FilterModel | null;
+}
+
+export interface FetchOptions {
+  signal: AbortSignal;
+}
+
+export interface DataProviderResponse<TRow = RowObject> {
+  rows: TRow[];
+  totalRows: number;
+}
+
+export type DataProvider<TRow = RowObject> = (
+  queryParameters: QueryParameters,
+  options: FetchOptions
+) => Promise<DataProviderResponse<TRow>>;
+
+export type OnRowCreate<TRow = RowObject> = (row: Partial<TRow>) => Promise<void>;
+export type OnRowUpdate<TRow = RowObject> = (
+  id: string | number,
+  changes: Partial<TRow>,
+  rowData: TRow
+) => Promise<void>;
+export type OnRowRemove = (id: string | number) => Promise<void>;
+
 /**
  * Base table settings that will cascade to columns and cells.
  */
@@ -137,6 +180,8 @@ export interface GridSettings extends Events {
   currentRowClassName?: string;
   customBorders?: CustomBordersSettings;
   data?: CellValue[][] | RowObject[];
+  dataProvider?: DataProvider;
+  dataProviderParams?: Partial<QueryParameters>;
   dataDotNotation?: boolean;
   dataSchema?: RowObject | CellValue[] | ((row: number) => RowObject | CellValue[]);
   dateFormat?: string;
@@ -207,6 +252,7 @@ export interface GridSettings extends Events {
   renderer?: RendererType | string | BaseRenderer;
   rowHeaders?: boolean | string[] | ((index: number) => string);
   rowHeaderWidth?: number | number[];
+  rowId?: string;
   rowHeights?: number | string | number[] | string[] | undefined[] | Array<number | string | undefined> | ((index: number) => string | number | undefined);
   sanitizer?: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => string;
   search?: SearchSettings;
@@ -228,6 +274,9 @@ export interface GridSettings extends Events {
   theme?: ThemeBuilder | BaseTheme | string;
   themeName?: string;
   title?: string;
+  onRowCreate?: OnRowCreate;
+  onRowRemove?: OnRowRemove;
+  onRowUpdate?: OnRowUpdate;
   trimDropdown?: boolean;
   trimRows?: TrimRowsSettings;
   trimWhitespace?: boolean;

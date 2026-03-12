@@ -6,6 +6,7 @@ type PageSizeOption = number | 'auto';
 export interface DetailedSettings {
   pageSize?: PageSizeOption;
   pageSizeList?: Array<PageSizeOption>;
+  pageSizeOptions?: Array<PageSizeOption>;
   initialPage?: number;
   showPageSize?: boolean;
   showCounter?: boolean;
@@ -49,4 +50,5 @@ export class Pagination extends BasePlugin {
   hidePageCounterSection(): void;
   showPageNavigationSection(): void;
   hidePageNavigationSection(): void;
+  setServerPaginationData(options: { currentPage: number, pageSize: number, totalRows: number }): void;
 }

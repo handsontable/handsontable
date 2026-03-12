@@ -124,6 +124,33 @@ export interface Events {
   afterPageNavigationVisibilityChange?: (isVisible: boolean) => void;
   afterPageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void;
   afterPageSizeVisibilityChange?: (isVisible: boolean) => void;
+  afterDataProviderResponse?: (
+    response: { rows: RowObject[], totalRows: number },
+    queryParameters: {
+      page: number,
+      pageSize: number,
+      sort: { column: string, direction: 'asc' | 'desc' } | null,
+      filters: Record<string, { operator: string, value: unknown }> | null
+    }
+  ) => void;
+  afterDataProviderError?: (
+    error: Error,
+    queryParameters: {
+      page: number,
+      pageSize: number,
+      sort: { column: string, direction: 'asc' | 'desc' } | null,
+      filters: Record<string, { operator: string, value: unknown }> | null
+    }
+  ) => void;
+  afterRowMutation?: (
+    type: 'create' | 'update' | 'remove',
+    payload: object
+  ) => void;
+  afterRowMutationError?: (
+    type: 'create' | 'update' | 'remove',
+    error: Error,
+    payload: object
+  ) => void;
   afterPaste?: (data: CellValue[][], coords: RangeType[]) => void;
   afterPluginsInitialized?: () => void;
   afterRedo?: (action: UndoRedoAction) => void;
@@ -219,6 +246,19 @@ export interface Events {
   beforeOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   beforePageChange?: (oldPage: number, newPage: number) => void | boolean;
   beforePageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void | boolean;
+  beforeDataProviderRequest?: (
+    queryParameters: {
+      page: number,
+      pageSize: number,
+      sort: { column: string, direction: 'asc' | 'desc' } | null,
+      filters: Record<string, { operator: string, value: unknown }> | null
+    },
+    source: string
+  ) => object | boolean | void;
+  beforeRowMutation?: (
+    type: 'create' | 'update' | 'remove',
+    payload: object
+  ) => void | boolean;
   beforePaste?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeRedo?: (action: UndoRedoAction) => void;
   beforeRedoStackChange?: (undoneActions: UndoRedoAction[]) => void;

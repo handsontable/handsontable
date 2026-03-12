@@ -29,6 +29,7 @@ import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
 import { Pagination } from './pagination';
 import { Search } from './search';
+import { ServerSideData } from './serverSideData';
 import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
@@ -68,6 +69,7 @@ export interface Plugins {
   nestedHeaders: NestedHeaders;
   nestedRows: NestedRows;
   pagination: Pagination;
+  serverSideData: ServerSideData;
   search: Search;
   stretchColumns: StretchColumns;
   touchScroll: TouchScroll;
@@ -112,6 +114,7 @@ export {
   NestedHeaders,
   NestedRows,
   Pagination,
+  ServerSideData,
   Search,
   StretchColumns,
   TouchScroll,

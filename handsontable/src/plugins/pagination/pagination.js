@@ -102,6 +102,7 @@ export class Pagination extends BasePlugin {
     return {
       pageSize: 10,
       pageSizeList: ['auto', 5, 10, 20, 50, 100],
+      pageSizeOptions: ['auto', 5, 10, 20, 50, 100],
       initialPage: 1,
       showPageSize: true,
       showCounter: true,
@@ -144,6 +145,18 @@ export class Pagination extends BasePlugin {
    */
   #calcStrategy = null;
   /**
+   * Indicates if pagination works in server-side mode.
+   *
+   * @type {boolean}
+   */
+  #isServerSideMode = false;
+  /**
+   * The total number of rows available on the server.
+   *
+   * @type {number}
+   */
+  #serverTotalRows = 0;
+  /**
    * Flag indicating if the plugin is in the process of updating the index cache (execution operation).
    * Prevents circular calls when the index cache is updated.
    *
@@ -183,12 +196,18 @@ export class Pagination extends BasePlugin {
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
 
+    if (settings?.pageSizeOptions !== undefined && settings?.pageSizeList === undefined) {
+      settings.pageSizeList = settings.pageSizeOptions;
+    }
+
     if (settings?.initialPage !== undefined) {
       this.#currentPage = this.getSetting('initialPage');
     }
     if (settings?.pageSize !== undefined) {
       this.#pageSize = this.getSetting('pageSize');
     }
+    this.#isServerSideMode = typeof this.hot.getSettings().dataProvider === 'function';
+    this.#serverTotalRows = 0;
 
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);
 
@@ -245,6 +264,12 @@ export class Pagination extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
+
+    if (settings?.pageSizeOptions !== undefined && settings?.pageSizeList === undefined) {
+      settings.pageSizeList = settings.pageSizeOptions;
+    }
+
     this.disablePlugin();
     this.enablePlugin();
 
@@ -265,6 +290,8 @@ export class Pagination extends BasePlugin {
 
     this.#ui.destroy();
     this.#ui = null;
+    this.#isServerSideMode = false;
+    this.#serverTotalRows = 0;
 
     super.disablePlugin();
   }
@@ -301,25 +328,34 @@ export class Pagination extends BasePlugin {
       startIndex,
     } = this.#calcStrategy.getState(this.#currentPage);
 
-    const countRows = this.hot.countRows();
-    let visibleCount = 0;
+    if (this.#isServerSideMode) {
+      const countRows = this.hot.countRows();
 
-    for (let rowIndex = startIndex; visibleCount < pageSize; rowIndex++) {
-      if (rowIndex >= countRows) {
-        break;
+      if (countRows > 0) {
+        firstVisibleRowIndex = 0;
+        lastVisibleRowIndex = countRows - 1;
       }
+    } else {
+      const countRows = this.hot.countRows();
+      let visibleCount = 0;
 
-      if (this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(rowIndex))) {
-        // eslint-disable-next-line no-continue
-        continue;
+      for (let rowIndex = startIndex; visibleCount < pageSize; rowIndex++) {
+        if (rowIndex >= countRows) {
+          break;
+        }
+
+        if (this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(rowIndex))) {
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+
+        if (firstVisibleRowIndex === -1) {
+          firstVisibleRowIndex = rowIndex;
+        }
+
+        lastVisibleRowIndex = rowIndex;
+        visibleCount += 1;
       }
-
-      if (firstVisibleRowIndex === -1) {
-        firstVisibleRowIndex = rowIndex;
-      }
-
-      lastVisibleRowIndex = rowIndex;
-      visibleCount += 1;
     }
 
     return {
@@ -481,6 +517,28 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Synchronizes pagination with server-side totals and page details.
+   *
+   * @param {object} options Server-side pagination data.
+   * @param {number} options.currentPage Current page number.
+   * @param {number} options.pageSize Page size.
+   * @param {number} options.totalRows Total number of rows available on the server.
+   */
+  setServerPaginationData({ currentPage, pageSize, totalRows }) {
+    if (!this.#isServerSideMode) {
+      return;
+    }
+
+    this.#currentPage = currentPage;
+    this.#pageSize = pageSize;
+    this.#serverTotalRows = totalRows;
+
+    this.#computeAndApplyState();
+    this.hot.view.adjustElementsSize();
+    this.hot.render();
+  }
+
+  /**
    * Shows the page size section in the pagination UI.
    *
    * @fires Hooks#afterPageSizeVisibilityChange
@@ -572,11 +630,12 @@ export class Pagination extends BasePlugin {
 
     const renderableIndexes = this.hot.rowIndexMapper.getRenderableIndexes();
     const renderableRowsLength = renderableIndexes.length;
+    const totalItems = this.#isServerSideMode ? this.#serverTotalRows : renderableRowsLength;
     const { stylesHandler } = this.hot;
 
     this.#calcStrategy.calculate({
       pageSize: this.#pageSize,
-      totalItems: renderableRowsLength,
+      totalItems,
       viewportSizeProvider: () => {
         const { view } = this.hot;
 
@@ -613,19 +672,23 @@ export class Pagination extends BasePlugin {
 
     this.#currentPage = clamp(this.#currentPage, 1, totalPages);
 
-    if (renderableIndexes.length > 0) {
-      const {
-        startIndex,
-        pageSize,
-      } = this.#calcStrategy.getState(this.#currentPage);
+    if (!this.#isServerSideMode) {
+      if (renderableIndexes.length > 0) {
+        const {
+          startIndex,
+          pageSize,
+        } = this.#calcStrategy.getState(this.#currentPage);
 
-      renderableIndexes.splice(startIndex, pageSize);
-    }
+        renderableIndexes.splice(startIndex, pageSize);
+      }
 
-    if (renderableIndexes.length > 0) {
-      this.hot.batchExecution(() => {
-        renderableIndexes.forEach(index => this.#pagedRowsMap.setValueAtIndex(index, true));
-      }, true);
+      if (renderableIndexes.length > 0) {
+        this.hot.batchExecution(() => {
+          renderableIndexes.forEach(index => this.#pagedRowsMap.setValueAtIndex(index, true));
+        }, true);
+      } else {
+        this.hot.rowIndexMapper.updateCache(true);
+      }
     } else {
       this.hot.rowIndexMapper.updateCache(true);
     }
@@ -634,9 +697,27 @@ export class Pagination extends BasePlugin {
 
     const paginationData = this.getPaginationData();
 
+    let counterStartIndex = paginationData.firstVisibleRowIndex;
+    let counterEndIndex = paginationData.lastVisibleRowIndex;
+    let totalRenderedRows = renderableRowsLength;
+
+    if (this.#isServerSideMode) {
+      const {
+        startIndex,
+      } = this.#calcStrategy.getState(this.#currentPage);
+      const currentPageRowsCount = this.hot.countRows();
+
+      counterStartIndex = currentPageRowsCount > 0 ? startIndex : -1;
+      counterEndIndex = currentPageRowsCount > 0 ?
+        Math.min(startIndex + currentPageRowsCount - 1, Math.max(totalItems - 1, 0)) : -1;
+      totalRenderedRows = totalItems;
+    }
+
     this.#ui.updateState({
       ...paginationData,
-      totalRenderedRows: renderableRowsLength,
+      firstVisibleRowIndex: counterStartIndex,
+      lastVisibleRowIndex: counterEndIndex,
+      totalRenderedRows,
     });
   }
 
@@ -647,6 +728,10 @@ export class Pagination extends BasePlugin {
    * @returns {boolean} Returns `true` if the pagination UI should have a top border, `false` otherwise.
    */
   #computeNeedsBorder() {
+    if (this.#isServerSideMode) {
+      return true;
+    }
+
     if (!this.hot.view) {
       return true;
     }

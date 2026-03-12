@@ -13,6 +13,12 @@ import {
   ColumnSettings,
   CellMeta,
   CellProperties,
+  DataProvider,
+  DataProviderResponse,
+  QueryParameters,
+  OnRowCreate,
+  OnRowUpdate,
+  OnRowRemove,
 } from './settings';
 import {
   ThemeConfig,
@@ -249,6 +255,9 @@ import {
   Settings as PaginationSettings,
 } from './plugins/pagination';
 import {
+  ServerSideData as _ServerSideData,
+} from './plugins/serverSideData';
+import {
   Search as _Search,
   Settings as SearchSettings,
   SearchCallback,
@@ -316,6 +325,12 @@ declare namespace Handsontable {
     ColumnSettings,
     GridSettings,
     NumericFormatOptions,
+    DataProvider,
+    DataProviderResponse,
+    QueryParameters,
+    OnRowCreate,
+    OnRowUpdate,
+    OnRowRemove,
     // themes
     ThemeConfig,
     ThemeColorScheme,
@@ -469,6 +484,7 @@ declare namespace Handsontable {
     export class NestedHeaders extends _NestedHeaders {}
     export class NestedRows extends _NestedRows {}
     export class Pagination extends _Pagination {}
+    export class ServerSideData extends _ServerSideData {}
     export class Search extends _Search {}
     export class TouchScroll extends _TouchScroll {}
     export class TrimRows extends _TrimRows {}
@@ -609,6 +625,15 @@ declare namespace Handsontable {
 
     export namespace Pagination {
       export { PaginationSettings as Settings };
+    }
+
+    export namespace ServerSideData {
+      export { DataProvider };
+      export { DataProviderResponse };
+      export { QueryParameters };
+      export { OnRowCreate };
+      export { OnRowUpdate };
+      export { OnRowRemove };
     }
 
     export namespace Search {

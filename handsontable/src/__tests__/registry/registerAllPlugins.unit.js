@@ -22,6 +22,7 @@ describe('`registerAllPlugins`', () => {
       'Autofill',
       'ManualRowResize',
       'AutoRowSize',
+      'ServerSideData',
       'ColumnSorting',
       'Comments',
       'ContextMenu',

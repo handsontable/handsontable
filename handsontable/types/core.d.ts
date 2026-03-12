@@ -10,6 +10,7 @@ import {
   CellMeta,
   CellProperties,
   ColumnSettings,
+  QueryParameters,
 } from './settings';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
 import CellRange from './3rdparty/walkontable/src/cell/range';
@@ -82,6 +83,7 @@ export default class Core {
   getDataAtRow(row: number): CellValue[];
   getDataAtRowProp(row: number, prop: string): CellValue;
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): CellType | 'mixed';
+  getQueryParameters(): QueryParameters;
   getDirectionFactor(): 1 | -1;
   getFirstFullyVisibleColumn(): number | null;
   getFirstFullyVisibleRow(): number | null;
@@ -141,6 +143,7 @@ export default class Core {
     endColumn?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite'): void;
   propToCol<T extends number | string>(prop: string | number): T;
   refreshDimensions(): void;
+  refreshData(): Promise<void>;
   removeCellMeta(row: number, column: number, key: (keyof CellMeta) | string): void;
   removeHook<K extends keyof Events>(key: K, callback: Events[K]): void;
   render(): void;
@@ -185,6 +188,9 @@ export default class Core {
   toVisualRow(row: number): number;
   unlisten(): void;
   updateData(data: CellValue[][] | RowObject[], source?: string): void;
+  createRow(rowData: object): Promise<void>;
+  removeRow(rowId: string | number): Promise<void>;
+  updateRow(rowId: string | number, changes: object): Promise<void>;
   updateSettings(settings: GridSettings, init?: boolean): void;
   useTheme(themeName: string|boolean|undefined): void;
   validateCell(value: any, cellProperties: CellProperties, callback: (valid: boolean) => void, source: string): void;

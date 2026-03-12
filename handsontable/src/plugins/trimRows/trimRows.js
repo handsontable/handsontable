@@ -177,7 +177,7 @@ export class TrimRows extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return !!this.hot.getSettings()[PLUGIN_KEY] && typeof this.hot.getSettings().dataProvider !== 'function';
   }
 
   /**

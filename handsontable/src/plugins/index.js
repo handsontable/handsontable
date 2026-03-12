@@ -29,6 +29,7 @@ import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
 import { Pagination } from './pagination';
 import { Search } from './search';
+import { ServerSideData } from './serverSideData';
 import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
@@ -73,6 +74,7 @@ export function registerAllPlugins() {
   registerPlugin(NestedHeaders);
   registerPlugin(NestedRows);
   registerPlugin(Pagination);
+  registerPlugin(ServerSideData);
   registerPlugin(Search);
   registerPlugin(StretchColumns);
   registerPlugin(TouchScroll);
@@ -114,6 +116,7 @@ export {
   NestedHeaders,
   NestedRows,
   Pagination,
+  ServerSideData,
   Search,
   StretchColumns,
   TouchScroll,

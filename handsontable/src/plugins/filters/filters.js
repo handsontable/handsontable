@@ -669,11 +669,25 @@ export class Filters extends BasePlugin {
     const { navigableHeaders } = this.hot.getSettings();
     const needToFilter = !this.conditionCollection.isEmpty();
     const conditions = this.exportConditions();
+    const isServerSideMode = typeof this.hot.getSettings().dataProvider === 'function';
     const allowFiltering = this.hot.runHooks(
       'beforeFilter',
       conditions,
       this.#previousConditionStack
     );
+
+    if (isServerSideMode) {
+      if (allowFiltering !== false) {
+        this.#previousConditionStack = this.exportConditions();
+        this.hot.runHooks('afterFilter', conditions);
+        this.hot.view.adjustElementsSize();
+        this.hot.render();
+      } else {
+        this.importConditions(this.#previousConditionStack);
+      }
+
+      return;
+    }
 
     if (allowFiltering !== false && needToFilter) {
       const dataFilter = this._createDataFilter();
