@@ -118,6 +118,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   customBorders: true,
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataDotNotation: oneOf(true),
+  dataProvider: async () => ({ rows: [], totalRows: 0 }),
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',
   datePickerConfig: {
@@ -542,6 +543,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterUnmergeCells: (cellRange, auto) => {},
   afterUntrimRow: (rows) => {},
   afterUpdateData: (sourceData, firstTime, source) => {},
+  afterDataProviderFetch: (result) => {},
+  afterDataProviderFetchError: (error, queryParameters) => {},
   afterUpdateSettings: () => {},
   afterValidate: () => {},
   afterViewportColumnCalculatorOverride: (calc) => {},
@@ -623,6 +626,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeOnCellMouseOut: (event, coords, TD) => {},
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
   beforeOnCellMouseUp: (event, coords, TD) => {},
+  beforeDataProviderFetch: (queryParameters) => true,
   beforePageChange(oldPage, newPage) {
     const _oldPage: number = oldPage;
     const _newPage: number = newPage;

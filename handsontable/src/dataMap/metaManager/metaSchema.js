@@ -1603,6 +1603,30 @@ export default () => {
 
     /**
      * @description
+     * When set, the table loads data from an async provider (e.g. a REST API) instead of a static `data` array.
+     * The provider receives query parameters and an AbortSignal, and returns `{ rows, totalRows }`.
+     * Use with the `pagination` option for server-side paging. When `dataProvider` is set, the `data` option is ignored.
+     *
+     * @memberof Options#
+     * @type {Function}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * dataProvider: async (queryParameters, { signal }) => {
+     *   const response = await fetch(buildUrl(queryParameters), { signal });
+     *   const json = await response.json();
+     *   return { rows: json.data, totalRows: json.total };
+     * },
+     * pagination: { pageSize: 20 },
+     * columns: columns,
+     * ```
+     */
+    dataProvider: undefined,
+
+    /**
+     * @description
      * If `true`, Handsontable will interpret the dots in the columns mapping as a nested object path. If your dataset contains
      * the dots in the object keys and you don't want Handsontable to interpret them as a nested object path, set this option to `false`.
      *

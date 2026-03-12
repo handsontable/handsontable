@@ -1,9 +1,12 @@
 import { BasePlugin } from '../base';
 import { TrimmingMap } from '../../translations';
 import { arrayEach, arrayReduce } from '../../helpers/array';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { warn } from '../../helpers/console';
 
 export const PLUGIN_KEY = 'trimRows';
 export const PLUGIN_PRIORITY = 330;
+const SETTING_KEYS = ['dataProvider'];
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -162,6 +165,13 @@ export class TrimRows extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get SETTING_KEYS() {
+    return [
+      PLUGIN_KEY,
+      ...SETTING_KEYS
+    ];
+  }
+
   /**
    * Map of skipped rows by the plugin.
    *
@@ -172,12 +182,24 @@ export class TrimRows extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` then the {@link AutoRowSize#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link TrimRows#enablePlugin} method is called.
+   * Disabled when `dataProvider` is used (server-side data); a warning is emitted in that case.
    *
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    const settings = this.hot.getSettings();
+    const pluginEnabled = !!settings[PLUGIN_KEY];
+    const dataProviderEnabled = !!settings.dataProvider;
+
+    if (pluginEnabled && dataProviderEnabled) {
+      warn(toSingleLine`The \`trimRows\` plugin cannot be used with the \`dataProvider\` option.\x20
+        This combination is not supported. The plugin will remain disabled.`);
+
+      return false;
+    }
+
+    return pluginEnabled;
   }
 
   /**

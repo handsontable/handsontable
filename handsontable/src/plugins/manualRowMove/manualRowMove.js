@@ -3,6 +3,8 @@ import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { warn } from '../../helpers/console';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
@@ -11,6 +13,7 @@ Hooks.getSingleton().register('afterRowMove');
 
 export const PLUGIN_KEY = 'manualRowMove';
 export const PLUGIN_PRIORITY = 140;
+const SETTING_KEYS = ['dataProvider'];
 const CSS_PLUGIN = 'ht__manualRowMove';
 const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--rows';
@@ -50,6 +53,13 @@ export class ManualRowMove extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get SETTING_KEYS() {
+    return [
+      PLUGIN_KEY,
+      ...SETTING_KEYS
+    ];
+  }
+
   /**
    * Backlight UI object.
    *
@@ -82,11 +92,23 @@ export class ManualRowMove extends BasePlugin {
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ManualRowMove#enablePlugin} method is called.
+   * Disabled when `dataProvider` is used (server-side data); a warning is emitted in that case.
    *
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    const settings = this.hot.getSettings();
+    const pluginEnabled = !!settings[PLUGIN_KEY];
+    const dataProviderEnabled = !!settings.dataProvider;
+
+    if (pluginEnabled && dataProviderEnabled) {
+      warn(toSingleLine`The \`manualRowMove\` plugin cannot be used with the \`dataProvider\` option.\x20
+        This combination is not supported. The plugin will remain disabled.`);
+
+      return false;
+    }
+
+    return pluginEnabled;
   }
 
   /**

@@ -494,6 +494,31 @@ export const REGISTERED_HOOKS = [
   'afterUpdateData',
 
   /**
+   * Fired before the dataProvider fetches data. Return `false` to cancel the fetch.
+   *
+   * @event Hooks#beforeDataProviderFetch
+   * @param {object} queryParameters Current query parameters: `{ page, pageSize, sort, filters }`.
+   */
+  'beforeDataProviderFetch',
+
+  /**
+   * Fired after the dataProvider has fetched and loaded data.
+   *
+   * @event Hooks#afterDataProviderFetch
+   * @param {object} result Result object: `{ rows, totalRows, queryParameters }`.
+   */
+  'afterDataProviderFetch',
+
+  /**
+   * Fired when the dataProvider fetch throws an error (e.g. network error).
+   *
+   * @event Hooks#afterDataProviderFetchError
+   * @param {Error} error The thrown error.
+   * @param {object} queryParameters The query parameters that were used for the request.
+   */
+  'afterDataProviderFetchError',
+
+  /**
    * Fired after a scroll event, which is identified as a momentum scroll (e.g. on an iPad).
    *
    * @event Hooks#afterMomentumScroll
@@ -1488,6 +1513,15 @@ export const REGISTERED_HOOKS = [
    * @returns {Array} The returned array will be used as Handsontable's new dataset.
    */
   'beforeUpdateData',
+
+  /**
+   * Fired before the dataProvider fetches data. Return `false` to cancel the fetch.
+   *
+   * @event Hooks#beforeDataProviderFetch
+   * @param {object} queryParameters Current query parameters: `{ page, pageSize, sort, filters }`.
+   * @returns {boolean} Return `false` to cancel the fetch.
+   */
+  'beforeDataProviderFetch',
 
   /**
    * Hook fired before `keydown` event is handled. It can be used to stop default key bindings.

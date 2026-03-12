@@ -37,6 +37,50 @@ describe('manualRowMove', () => {
     });
   });
 
+  describe('dataProvider conflict', () => {
+    it('should be disabled with warning when both manualRowMove and dataProvider are set', async() => {
+      spyOn(console, 'warn');
+
+      handsontable({
+        data: arrayOfObjects,
+        manualRowMove: true,
+        dataProvider: async() => ({ rows: [], totalRows: 0 }),
+        columns: [{ data: 'id' }, { data: 'name' }, { data: 'lastName' }],
+      });
+
+      // eslint-disable-next-line no-console
+      expect(console.warn).toHaveBeenCalledWith(
+        'The `manualRowMove` plugin cannot be used with the `dataProvider` option. ' +
+        'This combination is not supported. The plugin will remain disabled.'
+      );
+      expect(getPlugin('manualRowMove').isEnabled()).toBe(false);
+    });
+
+    it('should disable and warn when dataProvider is added via updateSettings', async() => {
+      spyOn(console, 'warn');
+
+      handsontable({
+        data: arrayOfObjects,
+        manualRowMove: true,
+        rowHeaders: true,
+        columns: [{ data: 'id' }, { data: 'name' }, { data: 'lastName' }],
+      });
+
+      expect(getPlugin('manualRowMove').isEnabled()).toBe(true);
+
+      await updateSettings({
+        dataProvider: async() => ({ rows: [], totalRows: 0 }),
+      });
+
+      // eslint-disable-next-line no-console
+      expect(console.warn).toHaveBeenCalledWith(
+        'The `manualRowMove` plugin cannot be used with the `dataProvider` option. ' +
+        'This combination is not supported. The plugin will remain disabled.'
+      );
+      expect(getPlugin('manualRowMove').isEnabled()).toBe(false);
+    });
+  });
+
   describe('updateSettings', () => {
     it('should be enabled after specifying it in updateSettings config', async() => {
       handsontable({

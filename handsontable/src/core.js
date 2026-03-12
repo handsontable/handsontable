@@ -2886,7 +2886,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     // Load data or create data map
-    if (settings.data === undefined && tableMeta.data === undefined) {
+    if (settings.dataProvider !== undefined) {
+      // When dataProvider is set, ignore static data, the DataProvider plugin will load data instead.
+      if (settings.data) {
+        warn('The "data" setting is ignored when "dataProvider" is set. ' +
+          'The DataProvider plugin will load data instead.');
+      }
+
+      dataUpdateFunction([], 'updateSettings');
+
+    } else if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null, 'updateSettings'); // data source created just now
 
     } else if (settings.data !== undefined) {

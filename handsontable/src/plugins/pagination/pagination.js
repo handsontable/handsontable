@@ -7,6 +7,9 @@ import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
+import {
+  PLUGIN_KEY as DATA_PROVIDER_PLUGIN_KEY
+} from '../dataProvider';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
@@ -186,6 +189,7 @@ export class Pagination extends BasePlugin {
     if (settings?.initialPage !== undefined) {
       this.#currentPage = this.getSetting('initialPage');
     }
+
     if (settings?.pageSize !== undefined) {
       this.#pageSize = this.getSetting('pageSize');
     }
@@ -236,9 +240,62 @@ export class Pagination extends BasePlugin {
 
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
+    this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetchBound);
+
     this.#registerFocusScope();
 
     super.enablePlugin();
+  }
+
+  /**
+   * Returns whether the table is using a dataProvider for server-side data (pagination uses totalRows from provider).
+   *
+   * @private
+   * @returns {boolean}
+   */
+  #isDataProviderMode() {
+    const dataProviderPlugin = this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY);
+
+    return !!(
+      this.hot.getSettings()[DATA_PROVIDER_PLUGIN_KEY] &&
+      dataProviderPlugin?.enabled
+    );
+  }
+
+  /**
+   * Refreshes pagination state and UI after the dataProvider has loaded new data.
+   *
+   * @private
+   * @param {object} result Result from afterDataProviderFetch: `{ queryParameters }`.
+   * @returns {void}
+   */
+  #onAfterDataProviderFetch(result) {
+    if (!result?.queryParameters) {
+      return;
+    }
+
+    const oldPage = this.#currentPage;
+    const oldPageSize = this.#pageSize;
+    const { page, pageSize } = result.queryParameters;
+
+    if (typeof page === 'number') {
+      this.#currentPage = page;
+    }
+    if (typeof pageSize === 'number') {
+      this.#pageSize = pageSize;
+      this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
+    }
+
+    this.#computeAndApplyState();
+    this.hot.view.adjustElementsSize();
+    this.hot.render();
+
+    if (oldPage !== this.#currentPage) {
+      this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
+    }
+    if (oldPageSize !== this.#pageSize) {
+      this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
+    }
   }
 
   /**
@@ -257,6 +314,7 @@ export class Pagination extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.hot.removeHook('afterDataProviderFetch', this.#onAfterDataProviderFetchBound);
     this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
       .unregisterMap(this.pluginName);
@@ -296,36 +354,51 @@ export class Pagination extends BasePlugin {
     let firstVisibleRowIndex = -1;
     let lastVisibleRowIndex = -1;
 
-    const {
-      pageSize,
-      startIndex,
-    } = this.#calcStrategy.getState(this.#currentPage);
+    if (this.#isDataProviderMode()) {
+      const dataProvider = this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY);
+      const totalRows = dataProvider.getTotalRows();
+      const countRows = this.hot.countRows();
+      const state = this.#calcStrategy.getState(this.#currentPage);
 
-    const countRows = this.hot.countRows();
-    let visibleCount = 0;
-
-    for (let rowIndex = startIndex; visibleCount < pageSize; rowIndex++) {
-      if (rowIndex >= countRows) {
-        break;
+      if (totalRows > 0 && countRows > 0 && state) {
+        firstVisibleRowIndex = state.startIndex;
+        lastVisibleRowIndex = state.startIndex + Math.min(countRows, state.pageSize) - 1;
+        lastVisibleRowIndex = Math.min(lastVisibleRowIndex, totalRows - 1);
       }
+    } else {
+      const {
+        pageSize,
+        startIndex,
+      } = this.#calcStrategy.getState(this.#currentPage);
 
-      if (this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(rowIndex))) {
-        // eslint-disable-next-line no-continue
-        continue;
+      const countRows = this.hot.countRows();
+      let visibleCount = 0;
+
+      for (let rowIndex = startIndex; visibleCount < pageSize; rowIndex++) {
+        if (rowIndex >= countRows) {
+          break;
+        }
+
+        if (this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(rowIndex))) {
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+
+        if (firstVisibleRowIndex === -1) {
+          firstVisibleRowIndex = rowIndex;
+        }
+
+        lastVisibleRowIndex = rowIndex;
+        visibleCount += 1;
       }
-
-      if (firstVisibleRowIndex === -1) {
-        firstVisibleRowIndex = rowIndex;
-      }
-
-      lastVisibleRowIndex = rowIndex;
-      visibleCount += 1;
     }
+
+    const stateForReturn = this.#calcStrategy.getState(this.#currentPage);
 
     return {
       currentPage: this.#currentPage,
       totalPages,
-      pageSize,
+      pageSize: stateForReturn?.pageSize ?? this.#pageSize,
       pageSizeList: [...this.getSetting('pageSizeList')],
       autoPageSize: this.#pageSize === 'auto',
       numberOfRenderedRows: this.hot.rowIndexMapper.getRenderableIndexesLength(),
@@ -347,6 +420,18 @@ export class Pagination extends BasePlugin {
     const shouldProceed = this.hot.runHooks('beforePageChange', oldPage, pageNumber);
 
     if (shouldProceed === false) {
+      return;
+    }
+
+    if (this.#isDataProviderMode()) {
+      this.#currentPage = pageNumber;
+      this.#computeAndApplyState();
+      this.hot.scrollViewportTo({ row: 0 });
+      this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
+      this.hot.view.adjustElementsSize();
+      this.hot.render();
+      this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).goToPage(pageNumber);
+
       return;
     }
 
@@ -382,6 +467,21 @@ export class Pagination extends BasePlugin {
     const shouldProceed = this.hot.runHooks('beforePageSizeChange', oldPageSize, pageSize);
 
     if (shouldProceed === false) {
+      return;
+    }
+
+    if (this.#isDataProviderMode()) {
+      if (pageSize === 'auto' && !this.hot.getPlugin('autoRowSize')?.enabled) {
+        warn(AUTO_PAGE_SIZE_WARNING);
+      }
+      this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
+      this.#pageSize = pageSize;
+      this.#computeAndApplyState();
+      this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
+      this.hot.view.adjustElementsSize();
+      this.hot.render();
+      this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).setPageSize(pageSize);
+
       return;
     }
 
@@ -574,9 +674,14 @@ export class Pagination extends BasePlugin {
     const renderableRowsLength = renderableIndexes.length;
     const { stylesHandler } = this.hot;
 
+    const dataProviderMode = this.#isDataProviderMode();
+    const totalItems = dataProviderMode
+      ? this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).getTotalRows()
+      : renderableRowsLength;
+
     this.#calcStrategy.calculate({
       pageSize: this.#pageSize,
-      totalItems: renderableRowsLength,
+      totalItems,
       viewportSizeProvider: () => {
         const { view } = this.hot;
 
@@ -613,7 +718,7 @@ export class Pagination extends BasePlugin {
 
     this.#currentPage = clamp(this.#currentPage, 1, totalPages);
 
-    if (renderableIndexes.length > 0) {
+    if (!dataProviderMode && renderableIndexes.length > 0) {
       const {
         startIndex,
         pageSize,
@@ -622,11 +727,11 @@ export class Pagination extends BasePlugin {
       renderableIndexes.splice(startIndex, pageSize);
     }
 
-    if (renderableIndexes.length > 0) {
+    if (!dataProviderMode && renderableIndexes.length > 0) {
       this.hot.batchExecution(() => {
         renderableIndexes.forEach(index => this.#pagedRowsMap.setValueAtIndex(index, true));
       }, true);
-    } else {
+    } else if (!dataProviderMode) {
       this.hot.rowIndexMapper.updateCache(true);
     }
 
@@ -636,7 +741,9 @@ export class Pagination extends BasePlugin {
 
     this.#ui.updateState({
       ...paginationData,
-      totalRenderedRows: renderableRowsLength,
+      totalRenderedRows: dataProviderMode
+        ? this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).getTotalRows()
+        : renderableRowsLength,
     });
   }
 
@@ -882,6 +989,15 @@ export class Pagination extends BasePlugin {
   #onAfterSetTheme(themeName) {
     this.#ui.updateTheme(themeName);
   }
+
+  /**
+   * Bound handler for afterDataProviderFetch (so it can be removed in disablePlugin).
+   *
+   * @private
+   * @param {object} result Result from afterDataProviderFetch: `{ queryParameters }`.
+   * @returns {void}
+   */
+  #onAfterDataProviderFetchBound = result => this.#onAfterDataProviderFetch(result);
 
   /**
    * IndexMapper cache update listener. Once the cache is updated, we need to recompute

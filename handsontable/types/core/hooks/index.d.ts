@@ -25,6 +25,10 @@ import {
   Settings as MergeCellsSettings,
 } from '../../plugins/mergeCells';
 import {
+  DataProviderQueryParameters,
+  DataProviderFetchResult,
+} from '../../plugins/dataProvider';
+import {
   GridSettings,
   CellProperties,
 } from '../../settings';
@@ -166,6 +170,8 @@ export interface Events {
   afterUnmergeCells?: (cellRange: CellRange, auto: boolean) => void;
   afterUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
   afterUpdateData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
+  afterDataProviderFetch?: (result: DataProviderFetchResult) => void;
+  afterDataProviderFetchError?: (error: Error, queryParameters: DataProviderQueryParameters) => void;
   afterUpdateSettings?: (newSettings: GridSettings) => void;
   afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number, source: ChangeSource) => void | boolean;
   afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
@@ -217,6 +223,7 @@ export interface Events {
   beforeOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   beforeOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
   beforeOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  beforeDataProviderFetch?: (queryParameters: DataProviderQueryParameters) => boolean | void;
   beforePageChange?: (oldPage: number, newPage: number) => void | boolean;
   beforePageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void | boolean;
   beforePaste?: (data: CellValue[][], coords: RangeType[]) => void | boolean;

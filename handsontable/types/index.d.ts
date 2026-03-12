@@ -171,6 +171,15 @@ import {
   BorderOptions,
 } from './plugins/customBorders';
 import {
+  DataProvider as _DataProvider,
+  Settings as DataProviderSettings,
+  DEFAULT_PAGE_SIZE as DataProviderDefaultPageSize,
+  DataProviderQueryParameters,
+  DataProviderFetchResult,
+  DataProviderOptions,
+  DataProviderFunction,
+} from './plugins/dataProvider';
+import {
   DragToScroll as _DragToScroll,
   Settings as DragToScrollSettings,
 } from './plugins/dragToScroll';
@@ -451,6 +460,7 @@ declare namespace Handsontable {
     export class ContextMenu extends _ContextMenu {}
     export class CopyPaste extends _CopyPaste {}
     export class CustomBorders extends _CustomBorders {}
+    export class DataProvider extends _DataProvider {}
     export class DragToScroll extends _DragToScroll {}
     export class DropdownMenu extends _DropdownMenu {}
     export class ExportFile extends _ExportFile {}
@@ -531,6 +541,15 @@ declare namespace Handsontable {
       export { CustomBordersSettings as Settings };
       export { BorderOptions };
       export { BorderRange };
+    }
+
+    export namespace DataProvider {
+      export { DataProviderSettings as Settings };
+      export { DataProviderDefaultPageSize as DEFAULT_PAGE_SIZE };
+      export { DataProviderQueryParameters as QueryParameters };
+      export { DataProviderFetchResult as FetchResult };
+      export { DataProviderOptions as Options };
+      export { DataProviderFunction };
     }
 
     export namespace DragToScroll {
