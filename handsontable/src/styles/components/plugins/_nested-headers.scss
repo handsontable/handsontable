@@ -14,6 +14,10 @@
       border-end-start-radius: 0;
     }
 
+    .ht_clone_inline_start .htCore tbody tr:first-child th:first-child {
+      border-start-start-radius: 0;
+    }
+
     .ht_master:not(.innerBorderTop):not(.innerBorderBottom) {
       thead th.htRowspanBottomLevel,
       & ~ .handsontable thead th.htRowspanBottomLevel {

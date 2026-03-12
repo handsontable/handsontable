@@ -256,6 +256,13 @@ describe('NestedHeaders', () => {
 
       expect(cornerRadius).toBe(0);
 
+      const firstRowHeaderCell = getInlineStartClone().find('tbody tr:first-child th:first-child')[0];
+      const rowHeaderTopLeftRadius = firstRowHeaderCell ?
+        parseFloat(getComputedStyle(firstRowHeaderCell).borderTopLeftRadius) :
+        NaN;
+
+      expect(rowHeaderTopLeftRadius).toBe(0);
+
       const firstRowThs = getTopClone().find('thead tr:first-child th');
       const rowspanHeader = firstRowThs[1];
       const adjacentHeader = firstRowThs[2];
