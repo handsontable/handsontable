@@ -4,5 +4,5 @@
   "type": "added",
   "issueOrPR": 13001,
   "breaking": false,
-  "framework": "core"
+  "framework": "none"
 }
