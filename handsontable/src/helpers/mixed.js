@@ -127,7 +127,11 @@ export function _injectProductInfo(key, element, releaseDate) {
 
   const schemaValidity = _checkKeySchema(key);
 
-  if (hasValidType || isNonCommercial || schemaValidity) {
+  if (isNonCommercial) {
+    consoleMessageState = 'non_commercial';
+    domMessageState = 'valid';
+
+  } else if (hasValidType || schemaValidity) {
     if (schemaValidity) {
       const [dd, mm, yyyy] = releaseDate.split('/').map(Number);
       const releaseDays = Math.floor(Date.UTC(yyyy, mm - 1, dd) / 8.64e7);
@@ -147,10 +151,6 @@ export function _injectProductInfo(key, element, releaseDate) {
         consoleMessageState = 'valid';
         domMessageState = 'valid';
       }
-
-    } else if (isNonCommercial) {
-      consoleMessageState = 'non_commercial';
-      domMessageState = 'valid';
 
     } else {
       consoleMessageState = 'invalid';
