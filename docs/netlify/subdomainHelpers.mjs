@@ -1,4 +1,5 @@
-const MAX_SUBDOMAIN_LENGTH = 50;
+// Netlify validates site subdomains against a 37-char limit.
+const MAX_SUBDOMAIN_LENGTH = 37;
 
 /**
  * Build a Netlify-safe subdomain from branch metadata.
