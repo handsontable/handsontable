@@ -9,7 +9,9 @@
     .collapsibleIndicator,
     .ht_nestingButton {
       position: relative;
-      width: var(--ht-icon-button-hit-area-size);
+      //tmp test
+      width: calc(var(--ht-icon-button-hit-area-size) * 2);
+      //
       height: var(--ht-icon-button-hit-area-size);
       margin: calc(-1 * (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2);
       box-sizing: border-box;
