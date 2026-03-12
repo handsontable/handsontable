@@ -150,6 +150,12 @@ export class NestedHeaders extends BasePlugin {
    * @type {boolean}
    */
   detectedOverlappedHeaders = false;
+  /**
+   * Determines if the current nested headers state contains headers with `rowspan`.
+   *
+   * @type {boolean}
+   */
+  #hasRowspanHeaders = false;
 
   /**
    * Check if plugin is enabled.
@@ -188,6 +194,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeViewportScrollHorizontally', (...args) => this.#onBeforeViewportScrollHorizontally(...args));
     this.addHook('afterGetColumnHeaderRenderers', array => this.#onAfterGetColumnHeaderRenderers(array));
     this.addHook('modifyColWidth', (...args) => this.#onModifyColWidth(...args));
+    this.addHook('modifyColumnHeaderHeight', (...args) => this.#onModifyColumnHeaderHeight(...args));
     this.addHook('modifyColumnHeaderValue', (...args) => this.#onModifyColumnHeaderValue(...args));
     this.addHook('beforeHighlightingColumnHeader', (...args) => this.#onBeforeHighlightingColumnHeader(...args));
     this.addHook('beforeCopy', (...args) => this.#onBeforeCopy(...args));
@@ -197,7 +204,6 @@ export class NestedHeaders extends BasePlugin {
       (...args) => this.#onAfterViewportColumnCalculatorOverride(...args)
     );
     this.addHook('modifyFocusedElement', (...args) => this.#onModifyFocusedElement(...args));
-    this.addHook('afterViewRender', () => this.#onAfterViewRender());
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
 
@@ -223,6 +229,10 @@ export class NestedHeaders extends BasePlugin {
     if (Array.isArray(nestedHeaders)) {
       this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);
     }
+
+    this.#hasRowspanHeaders = this.#stateManager
+      .mapNodes(({ origRowspan }) => (origRowspan > 1 ? true : undefined))
+      .length > 0;
 
     if (this.detectedOverlappedHeaders) {
       warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration\x20
@@ -395,6 +405,7 @@ export class NestedHeaders extends BasePlugin {
       removeClass(TH, 'hiddenHeader');
       removeClass(TH, 'hiddenHeaderText');
       removeClass(TH, 'htRowspanHeader');
+      removeClass(TH, 'htRowspanBottomLevel');
 
       const {
         colspan,
@@ -432,7 +443,14 @@ export class NestedHeaders extends BasePlugin {
         }
 
         if (rowspan > 1) {
+          const isBottomMostRowspanHeader = headerLevel + rowspan === this.getLayersCount();
+
           addClass(TH, 'htRowspanHeader');
+
+          if (isBottomMostRowspanHeader) {
+            addClass(TH, 'htRowspanBottomLevel');
+          }
+
           TH.setAttribute('rowspan', rowspan);
         }
       }
@@ -1001,6 +1019,28 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * Equalizes all nested column header layers' heights when rowspans are used.
+   *
+   * @returns {number[]|undefined}
+   */
+  #onModifyColumnHeaderHeight() {
+    if (!this.#hasRowspanHeaders) {
+      return;
+    }
+
+    const computedStyle = this.hot.rootWindow.getComputedStyle(this.hot.rootElement);
+    const cellVerticalPadding = Number.parseFloat(computedStyle.getPropertyValue('--ht-cell-vertical-padding'));
+    const lineHeight = Number.parseFloat(computedStyle.getPropertyValue('--ht-line-height'));
+    const baseHeaderHeight = Math.round((cellVerticalPadding * 2) + lineHeight + 1);
+
+    if (!Number.isFinite(baseHeaderHeight)) {
+      return;
+    }
+
+    return new Array(this.getLayersCount()).fill(baseHeaderHeight);
+  }
+
+  /**
    * Listens the `modifyColumnHeaderValue` hook that overwrites the column headers values based on
    * the internal state and settings of the plugin.
    *
@@ -1052,47 +1092,6 @@ export class NestedHeaders extends BasePlugin {
     if (!initialLoad) {
       this.updatePlugin();
     }
-  }
-
-  /**
-   * Synchronizes nested header row heights for rowspanned headers.
-   */
-  #onAfterViewRender() {
-    if (!this.hot?.view) {
-      return;
-    }
-
-    const hasAnyRowspans = this.#stateManager
-      .mapNodes(({ origRowspan }) => (origRowspan > 1 ? true : undefined))
-      .length > 0;
-    const { _wt: wt } = this.hot.view;
-    const headSections = [
-      wt.wtTable.THEAD,
-      wt.wtOverlays.topOverlay?.clone?.wtTable.THEAD,
-      wt.wtOverlays.topInlineStartCornerOverlay?.clone?.wtTable.THEAD,
-    ];
-
-    headSections.forEach((thead) => {
-      if (!thead) {
-        return;
-      }
-
-      const headerRows = Array.from(thead.querySelectorAll('tr'));
-
-      if (!hasAnyRowspans || headerRows.length < 2) {
-        headerRows.forEach((TR) => {
-          TR.style.height = '';
-        });
-
-        return;
-      }
-
-      const baselineHeight = Math.max(...headerRows.map(TR => TR.getBoundingClientRect().height));
-
-      headerRows.forEach((TR) => {
-        TR.style.height = `${baselineHeight}px`;
-      });
-    });
   }
 
   /**

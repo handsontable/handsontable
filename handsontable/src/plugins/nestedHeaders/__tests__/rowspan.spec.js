@@ -325,5 +325,27 @@ describe('NestedHeaders', () => {
 
       expect(getCell(-2, 0).classList.contains('htFiltersActive')).toBe(true);
     });
+
+    it('should display bottom border for a rowspanned bottom header only after vertical scroll', async() => {
+      handsontable({
+        data: createSpreadsheetData(50, 3),
+        colHeaders: true,
+        rowHeaders: true,
+        height: 180,
+        nestedHeaders: [
+          [{ label: 'This is a very long header title', rowspan: 2 }, 'B', 'C'],
+          ['B2', 'C2'],
+        ],
+      });
+
+      const getRowspannedHeader = () => getTopClone().find('thead tr:first-child th:eq(1)')[0];
+      const getBottomBorderWidth = () => parseFloat(getComputedStyle(getRowspannedHeader()).borderBottomWidth);
+
+      expect(getBottomBorderWidth()).toBe(0);
+
+      await scrollViewportTo(10, 0);
+
+      expect(getBottomBorderWidth()).toBeGreaterThan(0);
+    });
   });
 });
