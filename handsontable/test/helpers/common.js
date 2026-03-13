@@ -528,7 +528,24 @@ export function handsontable(options, explicitOptions = false, container = spec(
 
   container.handsontable(options);
 
-  return container.data('handsontable');
+  const hotInstance = container.data('handsontable');
+
+  // #region agent log
+  window.agentDebugLog?.({
+    hypothesisId: 'E',
+    location: 'test/helpers/common.js:handsontable',
+    message: 'Handsontable init hook registration snapshot',
+    data: {
+      hasBeforeChangeOption: typeof options?.beforeChange === 'function',
+      beforeChangeRegisteredGlobally: Handsontable.hooks.isRegistered('beforeChange'),
+      localBeforeChangeHooksCount: hotInstance?.pluginHookBucket?.getHooks?.('beforeChange')?.length ?? null,
+      currentThemeName: hotInstance?.getCurrentThemeName?.() ?? null,
+    },
+    timestamp: Date.now(),
+  });
+  // #endregion
+
+  return hotInstance;
 }
 
 /**
