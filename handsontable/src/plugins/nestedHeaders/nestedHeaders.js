@@ -624,6 +624,50 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * Checks whether the passed header coordinates point to a visible and navigable header cell.
+   *
+   * @param {number} headerRow A negative row index that points to a column header level.
+   * @param {number} visualColumnIndex A visual column index.
+   * @returns {boolean}
+   */
+  #isNavigableHeaderCell(headerRow, visualColumnIndex) {
+    const {
+      isPlaceholder,
+      isRowspanPlaceholder,
+      isHidden,
+    } = this.#stateManager.getHeaderSettings(headerRow, visualColumnIndex) ?? {};
+
+    return !isPlaceholder && !isRowspanPlaceholder && !isHidden;
+  }
+
+  /**
+   * Finds the nearest visual column index in the given direction that can be navigated to
+   * in the provided header row.
+   *
+   * @param {number} headerRow A negative row index that points to a column header level.
+   * @param {number} visualColumnIndex A visual column index to start searching from.
+   * @param {number} direction A direction of the search (`-1` for left, `1` for right).
+   * @returns {number|null}
+   */
+  #findNearestNavigableHeaderColumn(headerRow, visualColumnIndex, direction) {
+    if (![-1, 1].includes(direction)) {
+      return null;
+    }
+
+    for (
+      let column = visualColumnIndex;
+      column >= 0 && column < this.hot.countCols();
+      column += direction
+    ) {
+      if (this.#isNavigableHeaderCell(headerRow, column)) {
+        return column;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Allows to control to which column index the viewport will be scrolled. To ensure that the viewport
    * is scrolled to the correct column for the nested header the most left and the most right visual column
    * indexes are used.
@@ -951,7 +995,7 @@ export class NestedHeaders extends BasePlugin {
     const { highlight } = this.hot.getSelectedRangeActive();
     const initialDeltaRow = delta.row;
     const initialDeltaColumn = delta.col;
-    const targetColumn = highlight.col + delta.col;
+    let targetColumn = highlight.col + delta.col;
     let targetRow = highlight.row + delta.row;
 
     // #region agent log
@@ -1029,13 +1073,14 @@ export class NestedHeaders extends BasePlugin {
       // #endregion
 
       if (currentHeaderRowspan > 1 && Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
-        const {
-          isPlaceholder,
-          isRowspanPlaceholder,
-          isHidden,
-        } = this.#stateManager.getHeaderSettings(this.#rowspanHeaderNavigationContextRow, targetColumn) ?? {};
+        const contextTargetColumn = this.#findNearestNavigableHeaderColumn(
+          this.#rowspanHeaderNavigationContextRow,
+          targetColumn,
+          Math.sign(initialDeltaColumn),
+        );
 
-        if (!isPlaceholder && !isRowspanPlaceholder && !isHidden) {
+        if (contextTargetColumn !== null) {
+          targetColumn = contextTargetColumn;
           targetRow = this.#rowspanHeaderNavigationContextRow;
         }
       }
