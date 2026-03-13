@@ -2760,6 +2760,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.updateSettings = function(settings, init = false) {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
+    const shouldUpdateSelectionClassNames =
+      hasOwnProperty(settings, 'currentHeaderClassName') ||
+      hasOwnProperty(settings, 'activeHeaderClassName') ||
+      hasOwnProperty(settings, 'currentRowClassName') ||
+      hasOwnProperty(settings, 'currentColClassName');
     let columnsAsFunc = false;
     let i;
     let j;
@@ -2808,6 +2813,19 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
         globalMeta[i] = settings[i];
       }
+    }
+
+    if (shouldUpdateSelectionClassNames) {
+      selection.updateHighlightClassNames({
+        currentHeaderClassName: hasOwnProperty(settings, 'currentHeaderClassName') ?
+          settings.currentHeaderClassName : selection.highlight.options.headerClassName,
+        activeHeaderClassName: hasOwnProperty(settings, 'activeHeaderClassName') ?
+          settings.activeHeaderClassName : selection.highlight.options.activeHeaderClassName,
+        currentRowClassName: hasOwnProperty(settings, 'currentRowClassName') ?
+          settings.currentRowClassName : selection.highlight.options.rowClassName,
+        currentColClassName: hasOwnProperty(settings, 'currentColClassName') ?
+          settings.currentColClassName : selection.highlight.options.columnClassName,
+      });
     }
 
     const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);

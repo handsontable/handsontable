@@ -35,6 +35,42 @@ describe('settings', () => {
 
       expect(spec().$container.find('td.currentRowClassName').length).toEqual(0);
     });
+
+    it('should update currentRowClassName after updateSettings', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 7),
+        currentRowClassName: 'initial-row-highlight'
+      });
+
+      await selectCell(2, 2);
+
+      expect(spec().$container.find('td.initial-row-highlight').length).toEqual(7);
+      expect(spec().$container.find('td.updated-row-highlight').length).toEqual(0);
+
+      await updateSettings({
+        currentRowClassName: 'updated-row-highlight'
+      });
+
+      expect(spec().$container.find('td.initial-row-highlight').length).toEqual(0);
+      expect(spec().$container.find('td.updated-row-highlight').length).toEqual(7);
+    });
+
+    it('should remove currentRowClassName after updateSettings sets it to undefined', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 7),
+        currentRowClassName: 'current-row-highlight'
+      });
+
+      await selectCell(2, 2);
+
+      expect(spec().$container.find('td.current-row-highlight').length).toEqual(7);
+
+      await updateSettings({
+        currentRowClassName: undefined
+      });
+
+      expect(spec().$container.find('td.current-row-highlight').length).toEqual(0);
+    });
   });
 
   describe('currentColClassName', () => {

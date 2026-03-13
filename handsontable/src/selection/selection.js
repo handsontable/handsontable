@@ -189,6 +189,52 @@ class Selection {
   }
 
   /**
+   * Updates class names used by selection highlights.
+   *
+   * @param {object} [classNames=this.settings] Class names to apply.
+   * @param {string} [classNames.currentHeaderClassName] Header class name.
+   * @param {string} [classNames.activeHeaderClassName] Active header class name.
+   * @param {string} [classNames.currentRowClassName] Row class name.
+   * @param {string} [classNames.currentColClassName] Column class name.
+   * @returns {void}
+   */
+  updateHighlightClassNames(classNames = this.settings) {
+    const {
+      currentHeaderClassName,
+      activeHeaderClassName,
+      currentRowClassName,
+      currentColClassName,
+    } = classNames;
+
+    this.highlight.options.headerClassName = currentHeaderClassName;
+    this.highlight.options.activeHeaderClassName = activeHeaderClassName;
+    this.highlight.options.rowClassName = currentRowClassName;
+    this.highlight.options.columnClassName = currentColClassName;
+
+    arrayEach(this.highlight.getRowHighlights(), (highlight) => {
+      highlight.settings.className = currentRowClassName;
+    });
+    arrayEach(this.highlight.getColumnHighlights(), (highlight) => {
+      highlight.settings.className = currentColClassName;
+    });
+    arrayEach(this.highlight.getRowHeaders(), (highlight) => {
+      highlight.settings.className = currentHeaderClassName;
+    });
+    arrayEach(this.highlight.getColumnHeaders(), (highlight) => {
+      highlight.settings.className = currentHeaderClassName;
+    });
+    arrayEach(this.highlight.getActiveRowHeaders(), (highlight) => {
+      highlight.settings.className = activeHeaderClassName;
+    });
+    arrayEach(this.highlight.getActiveColumnHeaders(), (highlight) => {
+      highlight.settings.className = activeHeaderClassName;
+    });
+    arrayEach(this.highlight.getActiveCornerHeaders(), (highlight) => {
+      highlight.settings.className = activeHeaderClassName;
+    });
+  }
+
+  /**
    * Gets all selection range layers of the selection.
    *
    * @returns {SelectionRange}
