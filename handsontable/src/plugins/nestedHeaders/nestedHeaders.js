@@ -608,6 +608,22 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * Returns the rowspan of the root header node for the passed coordinates.
+   *
+   * @param {number} headerRow A negative row index that points to a column header level.
+   * @param {number} visualColumnIndex A visual column index.
+   * @returns {number}
+   */
+  #getRootHeaderRowspan(headerRow, visualColumnIndex) {
+    const rootColumnIndex = this.#stateManager.findLeftMostColumnIndex(headerRow, visualColumnIndex);
+    const {
+      rowspan = 1,
+    } = this.#stateManager.getHeaderSettings(headerRow, rootColumnIndex) ?? {};
+
+    return rowspan;
+  }
+
+  /**
    * Allows to control to which column index the viewport will be scrolled. To ensure that the viewport
    * is scrolled to the correct column for the nested header the most left and the most right visual column
    * indexes are used.
@@ -992,9 +1008,11 @@ export class NestedHeaders extends BasePlugin {
     }
 
     if (initialDeltaRow === 0 && initialDeltaColumn !== 0 && targetColumn >= 0 && highlight.row < 0) {
-      const {
-        rowspan: currentHeaderRowspan = 1,
-      } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
+      const currentHeaderRowspan = this.#getRootHeaderRowspan(highlight.row, highlight.col);
+
+      if (currentHeaderRowspan <= 1) {
+        this.#rowspanHeaderNavigationContextRow = null;
+      }
 
       // #region agent log
       writeAgentDebugLog(this.hot.rootWindow, {
@@ -1025,11 +1043,9 @@ export class NestedHeaders extends BasePlugin {
       targetRow = this.#findRenderableHeaderRow(targetRow, targetColumn);
       delta.row = targetRow - highlight.row;
 
-      const {
-        rowspan: targetHeaderRowspan = 1,
-      } = this.#stateManager.getHeaderSettings(targetRow, targetColumn) ?? {};
+      const targetHeaderRowspan = this.#getRootHeaderRowspan(targetRow, targetColumn);
 
-      if (targetHeaderRowspan > 1) {
+      if (targetHeaderRowspan > 1 && !Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
         this.#rowspanHeaderNavigationContextRow = highlight.row;
       }
 

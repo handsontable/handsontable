@@ -325,7 +325,7 @@ describe('NestedHeaders', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: -2,1']);
     });
 
-    it('should execute horizontal wrap navigation for mixed rowspan headers (debug reproduction)', async() => {
+    it('should move through all header levels in correct order when wrapping horizontally around rowspans', async() => {
       handsontable({
         data: createSpreadsheetData(5, 10),
         colHeaders: true,
@@ -348,20 +348,55 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      await selectCell(-1, 9);
+      const assertHighlight = (row, column) => {
+        expect(getSelectedRange()).toEqualCellRange([
+          `highlight: ${row},${column} from: ${row},${column} to: ${row},${column}`
+        ]);
+      };
+      const expectedArrowLeftSequence = [
+        [-1, 9], // J2
+        [-1, 8], // I2
+        [-1, 7], // H2
+        [-1, 6], // G2
+        [-1, 5], // F2
+        [-2, 3], // D/E
+        [-1, 2], // C2
+        [-1, 1], // B2
+        [-2, 0], // This is a very long header title
+        [-1, -1], // Empty corner
+        [-2, 8], // I/J
+        [-2, 7], // H
+        [-2, 6], // G
+        [-2, 5], // F
+        [-2, 3], // D/E
+        [-2, 2], // C
+        [-2, 1], // B
+        [-2, 0], // This is a very long header title
+        [-2, -1], // Empty corner
+        [-3, 8], // I/J
+        [-3, 0], // Header title
+        [-3, -1], // Empty corner
+      ];
+      const expectedArrowRightSequence = expectedArrowLeftSequence.slice().reverse();
 
-      await [
-        'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft',
-        'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft',
-        'arrowright', 'arrowright', 'arrowright', 'arrowright', 'arrowright', 'arrowright', 'arrowright',
-        'arrowright', 'arrowright', 'arrowright', 'arrowright', 'arrowright', 'arrowright', 'arrowright',
-        'arrowright', 'arrowright',
-      ].reduce(async(prevMove, keyName) => {
-        await prevMove;
-        await keyDownUp(keyName);
-      }, Promise.resolve());
+      await selectCell(...expectedArrowLeftSequence[0]);
 
-      expect(getSelectedRange()).not.toBeNull();
+      for (let index = 0; index < expectedArrowLeftSequence.length; index++) {
+        const [row, column] = expectedArrowLeftSequence[index];
+
+        assertHighlight(row, column);
+
+        if (index < expectedArrowLeftSequence.length - 1) {
+          await keyDownUp('arrowleft');
+        }
+      }
+
+      for (let index = 1; index < expectedArrowRightSequence.length; index++) {
+        const [row, column] = expectedArrowRightSequence[index];
+
+        await keyDownUp('arrowright');
+        assertHighlight(row, column);
+      }
     });
 
     it('should not ellipsize rowspanned bottom-most header with dropdown menu and filters enabled', async() => {
