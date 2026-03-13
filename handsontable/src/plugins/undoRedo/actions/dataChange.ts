@@ -7,7 +7,7 @@ import { deepClone } from '../../../helpers/object';
  * Minimal interface for the UndoRedo plugin used by action classes.
  */
 interface UndoRedoPluginLike {
-  done(wrappedAction: () => DataChangeAction | null, source: string): void;
+  done(wrappedAction: () => DataChangeAction, source: string): void;
 }
 
 /**
@@ -53,53 +53,21 @@ export class DataChangeAction extends BaseAction {
       }
 
       const hasDifferences = changes.find((change: unknown) => {
-        if (!change) {
-          return false;
-        }
-
         const [, , oldValue, newValue] = change as unknown[];
 
         return oldValue !== newValue;
       });
-      const debugLogger = (hot as {
-        rootWindow?: { agentDebugLog?: (payload: Record<string, unknown>) => void };
-      }).rootWindow?.agentDebugLog;
-      const globalLogger = (globalThis as {
-        agentDebugLog?: (payload: Record<string, unknown>) => void;
-      }).agentDebugLog;
-      const logger = typeof globalLogger === 'function' ? globalLogger : debugLogger;
-
-      // #region agent log
-      if (typeof logger === 'function') {
-        logger({
-          hypothesisId: 'B',
-          location: 'src/plugins/undoRedo/actions/dataChange.ts:beforeChange',
-          message: 'beforeChange captured by undo-redo action',
-          data: {
-            source,
-            changesLen,
-            nullEntries: changes.filter(change => change === null).length,
-            hasDifferences: Boolean(hasDifferences),
-          },
-          timestamp: Date.now(),
-        });
-      }
-      // #endregion
 
       const wrappedAction = () => {
-        const clonedChanges = changes.filter((change: unknown): change is unknown[] => Array.isArray(change)).map(
+        const clonedChanges = changes.map(
           (change: unknown) => [...(change as unknown[])]
         );
-
-        if (clonedChanges.length === 0) {
-          return null;
-        }
 
         clonedChanges.forEach((change: unknown[]) => {
           change[1] = hot.propToCol(change[1] as string | number);
         });
 
-        const selected = clonedChanges.length > 1
+        const selected = changesLen > 1
           ? (this.getSelected() as unknown[])
           : [[clonedChanges[0][0], clonedChanges[0][1]]];
 
@@ -112,7 +80,7 @@ export class DataChangeAction extends BaseAction {
       };
 
       plugin.done(wrappedAction, source);
-    }, 1000);
+    });
   }
 
   /**

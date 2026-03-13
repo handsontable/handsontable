@@ -283,26 +283,6 @@ export class DropdownMenu extends BasePlugin {
    */
   registerShortcuts() {
     const gridContext = this.hot.getShortcutManager().getContext('grid');
-    const globalLogger = (globalThis as {
-      agentDebugLog?: (payload: Record<string, unknown>) => void;
-    }).agentDebugLog;
-    const windowLogger = (this.hot.rootWindow as {
-      agentDebugLog?: (payload: Record<string, unknown>) => void;
-    })?.agentDebugLog;
-    const logger = typeof globalLogger === 'function' ? globalLogger : windowLogger;
-
-    // #region agent log
-    logger?.({
-      hypothesisId: 'C',
-      location: 'src/plugins/dropdownMenu/dropdownMenu.ts:registerShortcuts',
-      message: 'Registering dropdown menu shortcuts',
-      data: {
-        shortcutCountShiftAltDown: gridContext.getShortcuts(['Shift', 'Alt', 'ArrowDown']).length,
-        shortcutCountCtrlEnter: gridContext.getShortcuts(['Control/Meta', 'Enter']).length,
-      },
-      timestamp: Date.now(),
-    });
-    // #endregion
     const callback = () => {
       const { highlight } = this.hot.getSelectedRangeActive();
 
@@ -332,23 +312,6 @@ export class DropdownMenu extends BasePlugin {
         // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
         // will block the Esc key for the whole menu.
         this.menu.getNavigator().toFirstItem();
-        const firstItem = this.menu.hotMenu?.getCell(0, -1);
-
-        // #region agent log
-        logger?.({
-          hypothesisId: 'C',
-          location: 'src/plugins/dropdownMenu/dropdownMenu.ts:shortcutCallback',
-          message: 'Dropdown keyboard shortcut callback executed',
-          data: {
-            highlightRow: highlight.row,
-            highlightCol: highlight.col,
-            menuOpened: this.menu.isOpened(),
-            firstItemExists: Boolean(firstItem),
-            firstItemCurrent: Boolean(firstItem?.classList.contains('current')),
-          },
-          timestamp: Date.now(),
-        });
-        // #endregion
       }
     };
 
@@ -382,9 +345,9 @@ export class DropdownMenu extends BasePlugin {
    * @private
    */
   unregisterShortcuts() {
-    const gridContext = this.hot.getShortcutManager().getContext('grid');
-
-    gridContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      .removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**

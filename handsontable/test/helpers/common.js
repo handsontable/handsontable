@@ -33,7 +33,6 @@ beforeAll(() => {
       // Only inject theme on init (when action is an object or undefined)
       if (typeof action !== 'string') {
         const userSettings = action || {};
-        const hadThemeName = Boolean(userSettings.themeName);
 
         if (!userSettings.themeName) {
           const hasThemeClass = this.is('[class*="ht-theme-"]') ||
@@ -42,21 +41,6 @@ beforeAll(() => {
           if (!hasThemeClass) {
             userSettings.themeName = `ht-theme-${getLoadedTheme()}`;
           }
-
-          // #region agent log
-          window.agentDebugLog?.({
-            hypothesisId: 'D',
-            location: 'test/helpers/common.js:beforeAll.handsontableWrapper',
-            message: 'ThemeName auto-injection decision',
-            data: {
-              hadThemeName,
-              hasThemeClass,
-              injectedThemeName: userSettings.themeName ?? null,
-              loadedTheme: getLoadedTheme(),
-            },
-            timestamp: Date.now(),
-          });
-          // #endregion
         }
 
         return originalHandsontable.call(this, userSettings);
@@ -528,24 +512,7 @@ export function handsontable(options, explicitOptions = false, container = spec(
 
   container.handsontable(options);
 
-  const hotInstance = container.data('handsontable');
-
-  // #region agent log
-  window.agentDebugLog?.({
-    hypothesisId: 'E',
-    location: 'test/helpers/common.js:handsontable',
-    message: 'Handsontable init hook registration snapshot',
-    data: {
-      hasBeforeChangeOption: typeof options?.beforeChange === 'function',
-      beforeChangeRegisteredGlobally: Handsontable.hooks.isRegistered('beforeChange'),
-      localBeforeChangeHooksCount: hotInstance?.pluginHookBucket?.getHooks?.('beforeChange')?.length ?? null,
-      currentThemeName: hotInstance?.getCurrentThemeName?.() ?? null,
-    },
-    timestamp: Date.now(),
-  });
-  // #endregion
-
-  return hotInstance;
+  return container.data('handsontable');
 }
 
 /**
