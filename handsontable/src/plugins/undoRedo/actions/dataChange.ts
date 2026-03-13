@@ -104,7 +104,7 @@ export class DataChangeAction extends BaseAction {
       };
 
       plugin.done(wrappedAction, source);
-    });
+    }, 1000);
   }
 
   /**
