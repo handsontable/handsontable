@@ -63,15 +63,11 @@ afterAll(() => {
  * @returns {Promise}
  */
 export function sleep(delay = 100) {
-  if (process.env.JEST_WORKER_ID) {
-    return Promise.resolve({
-      then(resolve) {
-        setTimeout(resolve, delay);
-      }
-    });
-  }
-
-  return waitForNameAnimationFrames(convertDelayToFrameCount(delay));
+  return Promise.resolve({
+    then(resolve) {
+      setTimeout(resolve, delay);
+    }
+  });
 }
 
 /**
@@ -107,23 +103,6 @@ export function waitForNameAnimationFrames(framesToWait = 1) {
 
     requestFrame(waitForNextFrame);
   });
-}
-
-/**
- * Convert a delay in milliseconds into the number of animation frames.
- * For short waits, one frame is enough to avoid fixed-time sleeps.
- *
- * @param {number} delay The delay in milliseconds.
- * @returns {number}
- */
-function convertDelayToFrameCount(delay) {
-  const normalizedDelay = Number.isFinite(delay) ? Math.max(0, delay) : 0;
-
-  if (normalizedDelay <= 200) {
-    return 1;
-  }
-
-  return Math.ceil(normalizedDelay / 16);
 }
 
 /**
