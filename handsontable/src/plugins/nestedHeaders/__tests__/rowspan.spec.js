@@ -403,9 +403,18 @@ describe('NestedHeaders', () => {
         data: createSpreadsheetData(5, 10),
         colHeaders: true,
         rowHeaders: true,
+        height: 'auto',
         autoWrapRow: true,
         autoWrapCol: true,
+        collapsibleColumns: true,
+        filters: true,
+        columnSorting: true,
+        dropdownMenu: true,
         navigableHeaders: true,
+        manualColumnMove: true,
+        manualRowMove: true,
+        manualColumnResize: true,
+        manualRowResize: true,
         nestedHeaders: [
           [{ label: 'Header title', colspan: 8 }, { label: 'I/J', rowspan: 2, colspan: 2 }],
           [
