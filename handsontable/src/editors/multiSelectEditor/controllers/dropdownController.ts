@@ -230,6 +230,12 @@ export class DropdownController {
       containerOffsetWidth: this.#containerElement.offsetWidth,
       listOffsetWidth: this.#dropdownListElement?.offsetWidth ?? 0,
       minWidthCss: this.#rootDocument?.defaultView?.getComputedStyle(this.#containerElement).minWidth ?? '',
+      boxSizingCss: this.#rootDocument?.defaultView?.getComputedStyle(this.#containerElement).boxSizing ?? '',
+      paddingInlineCss: this.#rootDocument?.defaultView?.getComputedStyle(this.#containerElement).paddingInline ?? '',
+      menuHorizontalPaddingVar: this.#rootDocument?.defaultView
+        ?.getComputedStyle(this.#containerElement)
+        .getPropertyValue('--ht-menu-horizontal-padding')
+        .trim() ?? '',
     });
     // #endregion
 

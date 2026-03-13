@@ -49,6 +49,20 @@ export class DataChangeAction extends BaseAction {
       const normalizedChanges = Array.isArray(changes)
         ? changes.filter((change: unknown): change is unknown[] => Array.isArray(change))
         : [];
+      const populateFromArrayDebug = source === 'populateFromArray' ? normalizedChanges.slice(0, 3).map((change: unknown[]) => {
+        const [row, prop, oldValue, newValue] = change;
+        const visualColumn = hot.propToCol(prop as string | number);
+        const isReadOnly = Number.isInteger(visualColumn) && hot.getCellMeta(row as number, visualColumn).readOnly === true;
+
+        return {
+          row,
+          prop,
+          visualColumn,
+          isReadOnly,
+          oldValue,
+          newValue,
+        };
+      }) : null;
       const actionableChanges = normalizedChanges.filter((change: unknown[]) => {
         const [row, prop, oldValue, newValue] = change;
         const visualColumn = hot.propToCol(prop as string | number);
@@ -81,6 +95,7 @@ export class DataChangeAction extends BaseAction {
           inputChangesLen: Array.isArray(changes) ? changes.length : -1,
           normalizedChangesLen: normalizedChanges.length,
           actionableChangesLen: changesLen,
+          populateFromArrayDebug,
         },
         timestamp: Date.now(),
       });

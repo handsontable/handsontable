@@ -339,6 +339,8 @@ export class DropdownMenu extends BasePlugin {
             highlightRow: highlight.row,
             highlightCol: highlight.col,
             menuOpened: this.menu.isOpened(),
+            menuRowsCount: this.menu.hotMenu?.countRows() ?? null,
+            rowHeadersSetting: this.menu.hotMenu?.getSettings().rowHeaders ?? null,
             firstItemExists: Boolean(firstItem),
             firstItemCurrent: Boolean(firstItem?.classList.contains('current')),
           },
