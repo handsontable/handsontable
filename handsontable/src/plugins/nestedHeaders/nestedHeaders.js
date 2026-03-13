@@ -1105,7 +1105,15 @@ export class NestedHeaders extends BasePlugin {
         targetRow = this.#rowspanHeaderNavigationContextRow;
       }
 
-      targetRow = this.#findRenderableHeaderRow(targetRow, targetColumn);
+      const currentHeaderStartColumn = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
+      const currentHeaderEndColumn = this.#stateManager.findRightMostColumnIndex(highlight.row, highlight.col);
+      const isTargetInsideCurrentHeader = targetRow === highlight.row &&
+        targetColumn >= currentHeaderStartColumn &&
+        targetColumn <= currentHeaderEndColumn;
+
+      if (!isTargetInsideCurrentHeader) {
+        targetRow = this.#findRenderableHeaderRow(targetRow, targetColumn);
+      }
       delta.row = targetRow - highlight.row;
 
       const targetHeaderRowspan = this.#getRootHeaderRowspan(targetRow, targetColumn);
