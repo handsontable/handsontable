@@ -1073,6 +1073,10 @@ export class NestedHeaders extends BasePlugin {
 
     if (initialDeltaRow === 0 && initialDeltaColumn !== 0 && highlight.row < 0) {
       const currentHeaderRowspan = this.#getRootHeaderRowspan(highlight.row, highlight.col);
+      const {
+        isPlaceholder: currentIsPlaceholder,
+        isRowspanPlaceholder: currentIsRowspanPlaceholder,
+      } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
 
       // #region agent log
       writeAgentDebugLog(this.hot.rootWindow, {
@@ -1081,6 +1085,8 @@ export class NestedHeaders extends BasePlugin {
         message: 'Checking horizontal navigation context reuse',
         data: {
           currentHeaderRowspan,
+          currentIsPlaceholder,
+          currentIsRowspanPlaceholder,
           contextRow: this.#rowspanHeaderNavigationContextRow,
           highlightRow: highlight.row,
           targetColumn,
