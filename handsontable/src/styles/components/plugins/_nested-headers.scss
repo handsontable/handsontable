@@ -8,6 +8,13 @@
 
     thead th.htRowspanHeader {
       height: auto;
+      vertical-align: bottom;
+
+      &.ht__active_highlight {
+        border-inline-start-width: 1px;
+        border-inline-start-color: var(--ht-header-active-border-color);
+        z-index: 1;
+      }
     }
 
     &.htRowHeaders thead tr:last-child th:first-child {

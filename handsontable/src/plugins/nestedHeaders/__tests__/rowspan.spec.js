@@ -413,5 +413,76 @@ describe('NestedHeaders', () => {
 
       expect(getBottomBorderWidth()).toBeGreaterThan(0);
     });
+
+    it('should keep consistent active border color and bottom-align labels for rowspanned headers', async() => {
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        height: 'auto',
+        autoWrapRow: true,
+        autoWrapCol: true,
+        collapsibleColumns: true,
+        nestedHeaders: [
+          [
+            { label: 'This is a very long header title', colspan: 8 },
+            { label: 'I/J', rowspan: 2, colspan: 2 },
+          ],
+          [
+            { label: 'This is a very long header title', rowspan: 2 },
+            'B',
+            'C',
+            { label: 'D/E', rowspan: 2, colspan: 2 },
+            'F',
+            'G',
+            'H',
+          ],
+          ['B2', 'C2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ],
+        filters: true,
+        columnSorting: true,
+        dropdownMenu: true,
+        navigableHeaders: true,
+        manualColumnMove: true,
+        manualRowMove: true,
+        manualColumnResize: true,
+        manualRowResize: true,
+      });
+
+      const longRowspanHeaderLabel = getCell(-2, 0).querySelector('.colHeader');
+      const deRowspanHeader = getCell(-2, 3);
+      const deRowspanHeaderLabel = deRowspanHeader.querySelector('.colHeader');
+      const b2HeaderLabel = getCell(-1, 1).querySelector('.colHeader');
+      const c2HeaderLabel = getCell(-1, 2).querySelector('.colHeader');
+
+      expect(longRowspanHeaderLabel).not.toBeNull();
+      expect(deRowspanHeaderLabel).not.toBeNull();
+      expect(b2HeaderLabel).not.toBeNull();
+      expect(c2HeaderLabel).not.toBeNull();
+
+      const longBottom = longRowspanHeaderLabel.getBoundingClientRect().bottom;
+      const deBottom = deRowspanHeaderLabel.getBoundingClientRect().bottom;
+      const b2Bottom = b2HeaderLabel.getBoundingClientRect().bottom;
+      const c2Bottom = c2HeaderLabel.getBoundingClientRect().bottom;
+
+      expect(Math.abs(longBottom - b2Bottom)).toBeLessThan(1.5);
+      expect(Math.abs(longBottom - c2Bottom)).toBeLessThan(1.5);
+      expect(Math.abs(deBottom - b2Bottom)).toBeLessThan(1.5);
+      expect(Math.abs(deBottom - c2Bottom)).toBeLessThan(1.5);
+
+      await simulateClick(deRowspanHeader);
+
+      const deStyles = getComputedStyle(deRowspanHeader);
+
+      expect(deRowspanHeader.classList.contains('ht__active_highlight')).toBe(true);
+      expect(parseFloat(deStyles.borderLeftWidth)).toBeGreaterThan(0);
+      expect(deStyles.borderLeftColor).toBe(deStyles.borderRightColor);
+    });
   });
 });
