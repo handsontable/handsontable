@@ -41,6 +41,21 @@ beforeAll(() => {
           if (!hasThemeClass) {
             userSettings.themeName = `ht-theme-${getLoadedTheme()}`;
           }
+
+          // #region agent log
+          window.agentDebugLog?.({
+            hypothesisId: 'A',
+            location: 'test/helpers/common.js:wrappedHandsontableInit',
+            message: 'Theme auto-injection decision',
+            data: {
+              hasThemeClass,
+              appliedThemeName: userSettings.themeName ?? null,
+              loadedTheme: getLoadedTheme(),
+              containerClass: this.attr('class') ?? '',
+            },
+            timestamp: Date.now(),
+          });
+          // #endregion
         }
 
         return originalHandsontable.call(this, userSettings);

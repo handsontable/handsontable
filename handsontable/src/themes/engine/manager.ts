@@ -53,6 +53,22 @@ export class ThemeManager {
    */
   themeConfig: ThemeConfig | null = null;
 
+  #debugLog(message: string, data: Record<string, unknown>) {
+    const debugLogger = (this.hot as {
+      rootWindow?: { agentDebugLog?: (payload: Record<string, unknown>) => void };
+    }).rootWindow?.agentDebugLog;
+
+    // #region agent log
+    debugLogger?.({
+      hypothesisId: 'A',
+      location: 'src/themes/engine/manager.ts',
+      message,
+      data,
+      timestamp: Date.now(),
+    });
+    // #endregion
+  }
+
   /**
    * The theme manager constructor.
    *
@@ -73,6 +89,14 @@ export class ThemeManager {
     if (!this.themeConfig || !this.hot || !this.hot.rootDocument || !this.hot.rootWrapperElement) {
       return;
     }
+
+    // #region agent log
+    this.#debugLog('Injecting theme styles', {
+      themeClassName: this.themeClassName,
+      wrapperThemeStyleCount: this.hot.rootWrapperElement.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
+      documentThemeStyleCount: this.hot.rootDocument.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
+    });
+    // #endregion
 
     const colorScheme = this.themeConfig.colorScheme === 'auto' ? 'light dark' : this.themeConfig.colorScheme;
 
@@ -179,6 +203,14 @@ export class ThemeManager {
   unmount() {
     if (this.themeStyles) {
       this.themeStyles.remove();
+
+      // #region agent log
+      this.#debugLog('Unmounted theme styles', {
+        themeClassName: this.themeClassName,
+        wrapperThemeStyleCount: this.hot.rootWrapperElement.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
+        documentThemeStyleCount: this.hot.rootDocument.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
+      });
+      // #endregion
     }
   }
 

@@ -45,23 +45,53 @@ export class DataChangeAction extends BaseAction {
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     const plugin = undoRedoPlugin as UndoRedoPluginLike;
 
-    hot.addHook('beforeChange', function(this: HotInstance, changes: unknown[], source: string) {
-      const changesLen = changes && changes.length;
+    hot.addHook('beforeChange', function(this: HotInstance, changes: unknown[] | null, source: string) {
+      const normalizedChanges = Array.isArray(changes)
+        ? changes.filter((change: unknown): change is unknown[] => Array.isArray(change))
+        : [];
+      const actionableChanges = normalizedChanges.filter((change: unknown[]) => {
+        const [row, prop, oldValue, newValue] = change;
+        const visualColumn = hot.propToCol(prop as string | number);
+        const isReadOnly = Number.isInteger(visualColumn) && hot.getCellMeta(row as number, visualColumn).readOnly === true;
 
-      if (!changesLen) {
+        if (isReadOnly) {
+          return false;
+        }
+
+        // `populateFromArray` may emit no-op changes when edits are rejected (e.g., readOnly cells).
+        // Skip those entries to avoid pushing phantom undo actions.
+        if (source === 'populateFromArray' && oldValue === newValue) {
+          return false;
+        }
+
+        return true;
+      });
+      const changesLen = actionableChanges.length;
+      const debugLogger = (hot.rootWindow as {
+        agentDebugLog?: (payload: Record<string, unknown>) => void;
+      })?.agentDebugLog;
+
+      // #region agent log
+      debugLogger?.({
+        hypothesisId: 'B',
+        location: 'src/plugins/undoRedo/actions/dataChange.ts:beforeChange',
+        message: 'UndoRedo beforeChange filtering summary',
+        data: {
+          source,
+          inputChangesLen: Array.isArray(changes) ? changes.length : -1,
+          normalizedChangesLen: normalizedChanges.length,
+          actionableChangesLen: changesLen,
+        },
+        timestamp: Date.now(),
+      });
+      // #endregion
+
+      if (changesLen === 0) {
         return;
       }
 
-      const hasDifferences = changes.find((change: unknown) => {
-        const [, , oldValue, newValue] = change as unknown[];
-
-        return oldValue !== newValue;
-      });
-
       const wrappedAction = () => {
-        const clonedChanges = changes.map(
-          (change: unknown) => [...(change as unknown[])]
-        );
+        const clonedChanges = actionableChanges.map(change => [...change]);
 
         clonedChanges.forEach((change: unknown[]) => {
           change[1] = hot.propToCol(change[1] as string | number);
@@ -80,7 +110,7 @@ export class DataChangeAction extends BaseAction {
       };
 
       plugin.done(wrappedAction, source);
-    });
+    }, 1000);
   }
 
   /**
