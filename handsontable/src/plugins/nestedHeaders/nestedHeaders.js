@@ -17,44 +17,6 @@ import GhostTable from './utils/ghostTable';
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
 
-const writeAgentDebugLog = (rootWindow, payload) => {
-  const entry = {
-    ...payload,
-    timestamp: payload.timestamp ?? Date.now(),
-  };
-  const agentDebugLogReporter =
-    rootWindow?.agentDebugLog ??
-    rootWindow?.top?.agentDebugLog ??
-    rootWindow?.parent?.agentDebugLog;
-
-  if (typeof agentDebugLogReporter === 'function') {
-    agentDebugLogReporter(entry);
-
-    return;
-  }
-
-  if (Array.isArray(rootWindow?.__agentDebugLogs)) {
-    rootWindow.__agentDebugLogs.push(entry);
-
-    return;
-  }
-
-  if (rootWindow?.__agentDebugLogs === undefined) {
-    rootWindow.__agentDebugLogs = [entry];
-
-    return;
-  }
-
-  try {
-    // eslint-disable-next-line no-eval
-    const fs = eval('require')('fs');
-
-    fs.appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify(entry)}\n`);
-  } catch {
-    // no-op
-  }
-};
-
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -277,6 +239,8 @@ export class NestedHeaders extends BasePlugin {
 
     const { nestedHeaders } = this.hot.getSettings();
 
+    this.#rowspanHeaderNavigationContextRow = null;
+    this.#expectedNextKeyboardHighlightCoords = null;
     this.#stateManager.setColumnsLimit(this.hot.countCols());
 
     if (Array.isArray(nestedHeaders)) {
@@ -286,6 +250,12 @@ export class NestedHeaders extends BasePlugin {
     this.#hasRowspanHeaders = this.#stateManager
       .mapNodes(({ origRowspan }) => (origRowspan > 1 ? true : undefined))
       .length > 0;
+
+    if (this.#hasRowspanHeaders) {
+      addClass(this.hot.rootElement, 'htHasRowspanHeaders');
+    } else {
+      removeClass(this.hot.rootElement, 'htHasRowspanHeaders');
+    }
 
     if (this.detectedOverlappedHeaders) {
       warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration\x20
@@ -342,6 +312,7 @@ export class NestedHeaders extends BasePlugin {
     this.#stateManager.clear();
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
+    removeClass(this.hot.rootElement, 'htHasRowspanHeaders');
     this.#hidingIndexMapObserver.unsubscribe();
     this.#hidingIndexMapObserver = null;
     this.ghostTable.clear();
@@ -640,11 +611,21 @@ export class NestedHeaders extends BasePlugin {
    * @returns {boolean}
    */
   #isNavigableHeaderCell(headerRow, visualColumnIndex) {
+    const headerSettings = this.#stateManager.getHeaderSettings(headerRow, visualColumnIndex);
+
+    if (!headerSettings) {
+      return false;
+    }
+
     const {
       isPlaceholder,
       isRowspanPlaceholder,
       isHidden,
-    } = this.#stateManager.getHeaderSettings(headerRow, visualColumnIndex) ?? {};
+    } = headerSettings;
+
+    if (isRowspanPlaceholder) {
+      return headerRow < -1;
+    }
 
     return !isPlaceholder && !isRowspanPlaceholder && !isHidden;
   }
@@ -843,6 +824,9 @@ export class NestedHeaders extends BasePlugin {
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   #onBeforeOnCellMouseDown(event, coords, TD, controller) {
+    this.#rowspanHeaderNavigationContextRow = null;
+    this.#expectedNextKeyboardHighlightCoords = null;
+
     const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
 
     if (headerNodeData) {
@@ -1018,21 +1002,6 @@ export class NestedHeaders extends BasePlugin {
     let targetColumn = highlight.col + delta.col;
     let targetRow = highlight.row + delta.row;
 
-    // #region agent log
-    writeAgentDebugLog(this.hot.rootWindow, {
-      hypothesisId: 'H1',
-      location: 'nestedHeaders.js:#onModifyTransformStart:entry',
-      message: 'Entered transform hook',
-      data: {
-        highlightRow: highlight.row,
-        highlightColumn: highlight.col,
-        deltaRow: delta.row,
-        deltaColumn: delta.col,
-        contextRow: this.#rowspanHeaderNavigationContextRow,
-      },
-    });
-    // #endregion
-
     if (delta.row !== 0 && targetColumn >= 0) {
       const rowDirection = Math.sign(delta.row);
       const lowestHeaderRow = -1;
@@ -1053,47 +1022,9 @@ export class NestedHeaders extends BasePlugin {
 
       delta.row = adjustedNextRow - highlight.row;
       targetRow = adjustedNextRow;
-
-      // #region agent log
-      writeAgentDebugLog(this.hot.rootWindow, {
-        hypothesisId: 'H2',
-        location: 'nestedHeaders.js:#onModifyTransformStart:vertical-adjust',
-        message: 'Adjusted vertical move around rowspan placeholders',
-        data: {
-          rowDirection,
-          highestHeaderRow,
-          lowestHeaderRow,
-          adjustedNextRow,
-          resultingDeltaRow: delta.row,
-          targetColumn,
-        },
-      });
-      // #endregion
     }
 
     if (initialDeltaRow === 0 && initialDeltaColumn !== 0 && highlight.row < 0) {
-      const currentHeaderRowspan = this.#getRootHeaderRowspan(highlight.row, highlight.col);
-      const {
-        isPlaceholder: currentIsPlaceholder,
-        isRowspanPlaceholder: currentIsRowspanPlaceholder,
-      } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
-
-      // #region agent log
-      writeAgentDebugLog(this.hot.rootWindow, {
-        hypothesisId: 'H3',
-        location: 'nestedHeaders.js:#onModifyTransformStart:horizontal-context-check',
-        message: 'Checking horizontal navigation context reuse',
-        data: {
-          currentHeaderRowspan,
-          currentIsPlaceholder,
-          currentIsRowspanPlaceholder,
-          contextRow: this.#rowspanHeaderNavigationContextRow,
-          highlightRow: highlight.row,
-          targetColumn,
-        },
-      });
-      // #endregion
-
       if (Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
         const contextTargetColumn = this.#findNearestNavigableHeaderColumn(
           this.#rowspanHeaderNavigationContextRow,
@@ -1127,21 +1058,6 @@ export class NestedHeaders extends BasePlugin {
       if (targetHeaderRowspan > 1 && !Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
         this.#rowspanHeaderNavigationContextRow = highlight.row;
       }
-
-      // #region agent log
-      writeAgentDebugLog(this.hot.rootWindow, {
-        hypothesisId: 'H4',
-        location: 'nestedHeaders.js:#onModifyTransformStart:horizontal-target',
-        message: 'Resolved horizontal target row and rowspan state',
-        data: {
-          targetRow,
-          targetColumn,
-          resultingDeltaRow: delta.row,
-          targetHeaderRowspan,
-          contextRowAfterTarget: this.#rowspanHeaderNavigationContextRow,
-        },
-      });
-      // #endregion
     }
 
     const nextCoords = this.hot._createCellCoords(targetRow, targetColumn);
@@ -1155,21 +1071,6 @@ export class NestedHeaders extends BasePlugin {
       row: highlight.row + delta.row,
       col: highlight.col + delta.col,
     };
-
-    // #region agent log
-    writeAgentDebugLog(this.hot.rootWindow, {
-      hypothesisId: 'H5',
-      location: 'nestedHeaders.js:#onModifyTransformStart:range-context-reset',
-      message: 'Evaluated nested range and context reset',
-      data: {
-        isNestedHeadersRange,
-        initialDeltaRow,
-        contextRowAfterReset: this.#rowspanHeaderNavigationContextRow,
-        nextCoordsRow: nextCoords.row,
-        nextCoordsColumn: nextCoords.col,
-      },
-    });
-    // #endregion
 
     if (!isNestedHeadersRange) {
       return;
@@ -1216,21 +1117,6 @@ export class NestedHeaders extends BasePlugin {
       }
     }
 
-    // #region agent log
-    writeAgentDebugLog(this.hot.rootWindow, {
-      hypothesisId: 'H1',
-      location: 'nestedHeaders.js:#onModifyTransformStart:exit',
-      message: 'Leaving transform hook with final delta',
-      data: {
-        finalDeltaRow: delta.row,
-        finalDeltaColumn: delta.col,
-        visualColumnIndexStart,
-        visualColumnIndexEnd,
-        nextCoordsRow: nextCoords.row,
-        nextCoordsColumn: nextCoords.col,
-      },
-    });
-    // #endregion
   }
 
   /**
@@ -1419,6 +1305,7 @@ export class NestedHeaders extends BasePlugin {
    */
   destroy() {
     this.#stateManager = null;
+    removeClass(this.hot.rootElement, 'htHasRowspanHeaders');
 
     if (this.#hidingIndexMapObserver !== null) {
       this.#hidingIndexMapObserver.unsubscribe();

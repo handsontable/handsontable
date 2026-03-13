@@ -260,7 +260,11 @@ export function overlayContainsElement(overlayType, element, root) {
  * @returns {boolean}
  */
 export function isBottomMostColumnHeader(TH) {
-  if (!TH?.parentNode?.parentNode) {
+  if (!TH || !TH.classList || !TH.parentNode || !TH.parentNode.parentNode) {
+    return false;
+  }
+
+  if (TH.classList.contains('hiddenHeader') || TH.style.display === 'none') {
     return false;
   }
 

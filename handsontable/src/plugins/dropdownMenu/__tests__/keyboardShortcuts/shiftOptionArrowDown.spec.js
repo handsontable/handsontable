@@ -454,6 +454,40 @@ describe('DropdownMenu keyboard shortcut', () => {
         expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,1 to: 2,3']);
       });
+
+      it('should anchor the dropdown menu to a visible rowspanned header when opened from a cell', async() => {
+        handsontable({
+          data: createSpreadsheetData(3, 2),
+          colHeaders: true,
+          rowHeaders: true,
+          navigableHeaders: true,
+          dropdownMenu: true,
+          nestedHeaders: [
+            [{ label: 'A', rowspan: 2 }, 'B'],
+            ['B2'],
+          ],
+        });
+
+        await selectCell(1, 0);
+        await keyDownUp(['shift', 'alt', 'arrowdown']);
+
+        const visibleHeader = getCell(-2, 0, true);
+        const hiddenPlaceholderHeader = getCell(-1, 0, true);
+        const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+        const menuOffset = $dropdownMenu.offset();
+        const visibleHeaderOffset = $(visibleHeader).offset();
+        const buttonOffset = getDropdownMenuButtonIconOffset(-2, 0);
+
+        expect(hiddenPlaceholderHeader.querySelector('.changeType')).toBe(null);
+        expect(visibleHeader.querySelector('.changeType')).not.toBe(null);
+        expect($dropdownMenu.length).toBe(1);
+        expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
+          classic.toBeCloseTo(visibleHeaderOffset.top + visibleHeader.clientHeight - 2, 0);
+          main.toBeCloseTo(visibleHeaderOffset.top + visibleHeader.clientHeight - 1, 0);
+          horizon.toBeCloseTo(visibleHeaderOffset.top + visibleHeader.clientHeight - 5, 0);
+        });
+        expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
+      });
     });
   });
 });

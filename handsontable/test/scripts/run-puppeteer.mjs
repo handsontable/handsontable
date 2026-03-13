@@ -3,7 +3,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
-import fs from 'fs';
 
 const PORT = 8086;
 const IS_CI = process.env.CI;
@@ -114,45 +113,7 @@ await page.exposeFunction('jasmineSpecDone', (result) => {
 await page.exposeFunction('jasmineDone', async() => {
   reporter.jasmineDone();
 
-  const bufferedAgentLogs = await page.evaluate(() => {
-    if (!Array.isArray(window.__agentDebugLogs)) {
-      return [];
-    }
-
-    return window.__agentDebugLogs;
-  });
-  const debugBufferSize = await page.evaluate(() => {
-    return Array.isArray(window.__agentDebugLogs) ? window.__agentDebugLogs.length : -1;
-  });
-
-  fs.appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify({
-    hypothesisId: 'H0',
-    location: 'run-puppeteer.mjs:jasmineDone',
-    message: 'Buffered browser debug log count',
-    data: { debugBufferSize },
-    timestamp: Date.now(),
-  })}\n`);
-
-  if (bufferedAgentLogs.length > 0) {
-    const serializedLogs = bufferedAgentLogs
-      .map(entry => JSON.stringify({
-        ...entry,
-        timestamp: entry?.timestamp ?? Date.now(),
-      }))
-      .join('\n');
-
-    fs.appendFileSync('/opt/cursor/logs/debug.log', `${serializedLogs}\n`);
-  }
-
   await cleanup(errorCount === 0 ? 0 : 1);
-});
-await page.exposeFunction('agentDebugLog', async(payload) => {
-  const entry = {
-    ...payload,
-    timestamp: payload?.timestamp ?? Date.now(),
-  };
-
-  fs.appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify(entry)}\n`);
 });
 
 await page.exposeFunction('getEventListeners', async(selector) => {

@@ -17,11 +17,11 @@
       }
     }
 
-    &.htRowHeaders thead tr:last-child th:first-child {
+    &.htRowHeaders.htHasRowspanHeaders thead tr:last-child th:first-child {
       border-end-start-radius: 0;
     }
 
-    .ht_clone_inline_start .htCore tbody tr:first-child th:first-child {
+    &.htHasRowspanHeaders .ht_clone_inline_start .htCore tbody tr:first-child th:first-child {
       border-start-start-radius: 0;
     }
 
