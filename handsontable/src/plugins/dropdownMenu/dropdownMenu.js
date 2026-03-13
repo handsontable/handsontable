@@ -276,9 +276,17 @@ export class DropdownMenu extends BasePlugin {
       const isBottomMostHeaderSelected = highlight.isHeader() &&
         highlight.col >= 0 &&
         isBottomMostColumnHeader(highlightedHeaderElement);
+      const isHiddenNestedPlaceholderSelected = highlight.isHeader() &&
+        highlight.col >= 0 &&
+        highlightedHeaderElement &&
+        hasClass(highlightedHeaderElement, 'hiddenHeader');
 
-      if ((isBottomMostHeaderSelected || highlight.isCell()) && highlight.col >= 0) {
-        let headerRow = isBottomMostHeaderSelected ? highlight.row : -1;
+      const isValidSelection = isBottomMostHeaderSelected ||
+        isHiddenNestedPlaceholderSelected ||
+        highlight.isCell();
+
+      if (isValidSelection && highlight.col >= 0) {
+        let headerRow = isBottomMostHeaderSelected || isHiddenNestedPlaceholderSelected ? highlight.row : -1;
 
         this.hot.selectColumns(highlight.col, highlight.col, headerRow);
 
@@ -297,6 +305,24 @@ export class DropdownMenu extends BasePlugin {
               this.hot.selectColumns(highlight.col, highlight.col, headerRow);
               break;
             }
+          }
+        }
+
+        if (!target && isHiddenNestedPlaceholderSelected) {
+          for (let column = from.col - 1; column >= 0; column--) {
+            const candidateHeader = this.hot.getCell(headerRow, column, true);
+
+            if (!candidateHeader || hasClass(candidateHeader, 'hiddenHeader')) {
+              continue; // eslint-disable-line no-continue
+            }
+
+            const candidateButton = candidateHeader?.querySelector(`.${BUTTON_CLASS_NAME}`);
+
+            if (candidateButton) {
+              target = candidateButton;
+              this.hot.selectColumns(column, column, headerRow);
+            }
+            break;
           }
         }
 
@@ -326,9 +352,17 @@ export class DropdownMenu extends BasePlugin {
       callback,
       runOnlyIf: () => {
         const highlight = this.hot.getSelectedRangeActive()?.highlight;
+        const highlightedHeaderElement = highlight?.isHeader() ?
+          this.hot.getCell(highlight.row, highlight.col, true) :
+          null;
+        const isHiddenNestedPlaceholderSelected = highlight?.isHeader() &&
+          highlight.col >= 0 &&
+          highlightedHeaderElement &&
+          hasClass(highlightedHeaderElement, 'hiddenHeader');
 
-        return highlight && this.hot.selection.isCellVisible(highlight) &&
-          highlight.isHeader() && !this.menu.isOpened();
+        return highlight && !this.menu.isOpened() &&
+          highlight.isHeader() &&
+          (this.hot.selection.isCellVisible(highlight) || isHiddenNestedPlaceholderSelected);
       },
       captureCtrl: true,
       group: SHORTCUTS_GROUP,
