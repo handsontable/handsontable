@@ -330,9 +330,18 @@ describe('NestedHeaders', () => {
         data: createSpreadsheetData(5, 10),
         colHeaders: true,
         rowHeaders: true,
+        height: 'auto',
         autoWrapRow: true,
         autoWrapCol: true,
+        collapsibleColumns: true,
         navigableHeaders: true,
+        filters: true,
+        columnSorting: true,
+        dropdownMenu: true,
+        manualColumnMove: true,
+        manualRowMove: true,
+        manualColumnResize: true,
+        manualRowResize: true,
         nestedHeaders: [
           [{ label: 'Header title', colspan: 8 }, { label: 'I/J', rowspan: 2, colspan: 2 }],
           [
@@ -578,6 +587,121 @@ describe('NestedHeaders', () => {
       expect(deRowspanHeader.classList.contains('ht__active_highlight')).toBe(true);
       expect(parseFloat(deStyles.borderLeftWidth)).toBeGreaterThan(0);
       expect(deStyles.borderLeftColor).toBe(deStyles.borderRightColor);
+    });
+
+    it('should keep header level order when navigating left and right across mixed rowspans', async() => {
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        autoWrapRow: true,
+        autoWrapCol: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [
+            { label: 'Header title', colspan: 8 },
+            { label: 'I/J', rowspan: 2, colspan: 2 },
+          ],
+          [
+            { label: 'This is a very long header title', rowspan: 2 },
+            'B',
+            'C',
+            { label: 'D/E', rowspan: 2, colspan: 2 },
+            'F',
+            'G',
+            'H',
+          ],
+          ['B2', 'C2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ],
+      });
+
+      const plugin = getPlugin('nestedHeaders');
+      const normalizeHeaderRow = (headerRow, visualColumn) => {
+        let normalizedRow = headerRow;
+
+        while (normalizedRow >= -plugin.getLayersCount()) {
+          const {
+            isRowspanPlaceholder,
+          } = plugin.getHeaderSettings(normalizedRow, visualColumn) ?? {};
+
+          if (!isRowspanPlaceholder) {
+            return normalizedRow;
+          }
+
+          normalizedRow -= 1;
+        }
+
+        return headerRow;
+      };
+      const getSelectionMarker = () => {
+        const selection = spec().getSelectedRangeLast();
+        const {
+          row: highlightRow,
+          col: highlightCol,
+        } = selection.highlight;
+
+        if (highlightCol < 0) {
+          return `corner:${highlightRow}`;
+        }
+
+        const normalizedRow = normalizeHeaderRow(highlightRow, highlightCol);
+        const headerRootColumn = plugin.getStateManager().findLeftMostColumnIndex(normalizedRow, highlightCol);
+        const headerCell = getCell(normalizedRow, headerRootColumn);
+        const headerLabel = headerCell?.querySelector('.colHeader')?.textContent?.trim();
+
+        return `${highlightRow}:${headerLabel ?? ''}`;
+      };
+      const collectMarkers = async(direction, steps) => {
+        const markers = [getSelectionMarker()];
+
+        for (let i = 0; i < steps; i++) {
+          await keyDownUp(direction);
+          markers.push(getSelectionMarker());
+        }
+
+        return markers;
+      };
+      const leftTraversalOrder = [
+        '-1:J2',
+        '-1:I2',
+        '-1:H2',
+        '-1:G2',
+        '-1:F2',
+        '-2:D/E',
+        '-1:C2',
+        '-1:B2',
+        '-2:This is a very long header title',
+        'corner:-1',
+        '-2:I/J',
+        '-2:H',
+        '-2:G',
+        '-2:F',
+        '-2:D/E',
+        '-2:C',
+        '-2:B',
+        '-2:This is a very long header title',
+        'corner:-2',
+        '-3:I/J',
+        '-3:Header title',
+        'corner:-3',
+      ];
+      const rightTraversalOrder = [...leftTraversalOrder].reverse();
+
+      await selectCell(-1, 9);
+
+      const leftMarkers = await collectMarkers('arrowleft', leftTraversalOrder.length - 1);
+
+      expect(leftMarkers).toEqual(leftTraversalOrder);
+
+      const rightMarkers = await collectMarkers('arrowright', rightTraversalOrder.length - 1);
+
+      expect(rightMarkers).toEqual(rightTraversalOrder);
     });
   });
 });
