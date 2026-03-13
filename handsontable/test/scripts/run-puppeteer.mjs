@@ -134,6 +134,12 @@ await page.exposeFunction('agentDebugLog', (payload) => {
   // #endregion
 });
 
+await page.exposeFunction('debugLog', (payload) => {
+  // #region agent log
+  appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify(payload)}\n`);
+  // #endregion
+});
+
 await page.exposeFunction('getEventListeners', async (selector) => {
   const { root } = await cdpClient.send('DOM.getDocument');
   const { nodeId } = await cdpClient.send('DOM.querySelector', {
