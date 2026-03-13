@@ -1169,15 +1169,8 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    const {
-      isPlaceholder: isNextHeaderPlaceholder,
-      isRowspanPlaceholder: isNextHeaderRowspanPlaceholder,
-    } = this.#stateManager.getHeaderSettings(nextCoords.row, nextCoords.col) ?? {};
-    const headerBoundsRow = isNextHeaderPlaceholder || isNextHeaderRowspanPlaceholder ?
-      this.#stateManager.findTopMostEntireHeaderLevel(nextCoords.row, nextCoords.col) :
-      nextCoords.row;
-    const visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(headerBoundsRow, nextCoords.col);
-    const visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(headerBoundsRow, nextCoords.col);
+    const visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
+    const visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
 
     if (delta.col < 0) {
       const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
