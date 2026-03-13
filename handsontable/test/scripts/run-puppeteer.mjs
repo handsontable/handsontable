@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
+import fs from 'fs';
 
 const PORT = 8086;
 const IS_CI = process.env.CI;
@@ -115,16 +116,24 @@ await page.exposeFunction('jasmineDone', async() => {
 
   await cleanup(errorCount === 0 ? 0 : 1);
 });
+await page.exposeFunction('agentDebugLog', async(payload) => {
+  const entry = {
+    ...payload,
+    timestamp: payload?.timestamp ?? Date.now(),
+  };
 
-await page.exposeFunction('getEventListeners', async (selector) => {
+  fs.appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify(entry)}\n`);
+});
+
+await page.exposeFunction('getEventListeners', async(selector) => {
   const { root } = await cdpClient.send('DOM.getDocument');
   const { nodeId } = await cdpClient.send('DOM.querySelector', {
-      nodeId: root.nodeId,
-      selector,
+    nodeId: root.nodeId,
+    selector,
   });
   const resolvedNode = await cdpClient.send('DOM.resolveNode', { nodeId });
 
-  return await cdpClient.send('DOMDebugger.getEventListeners', {
+  return cdpClient.send('DOMDebugger.getEventListeners', {
     objectId: resolvedNode.object.objectId
   });
 });

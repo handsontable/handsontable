@@ -17,6 +17,28 @@ import GhostTable from './utils/ghostTable';
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
 
+const writeAgentDebugLog = (rootWindow, payload) => {
+  const entry = {
+    ...payload,
+    timestamp: payload.timestamp ?? Date.now(),
+  };
+
+  if (typeof rootWindow?.agentDebugLog === 'function') {
+    rootWindow.agentDebugLog(entry);
+
+    return;
+  }
+
+  try {
+    // eslint-disable-next-line no-eval
+    const fs = eval('require')('fs');
+
+    fs.appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify(entry)}\n`);
+  } catch {
+    // no-op
+  }
+};
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -900,6 +922,21 @@ export class NestedHeaders extends BasePlugin {
     const targetColumn = highlight.col + delta.col;
     let targetRow = highlight.row + delta.row;
 
+    // #region agent log
+    writeAgentDebugLog(this.hot.rootWindow, {
+      hypothesisId: 'H1',
+      location: 'nestedHeaders.js:#onModifyTransformStart:entry',
+      message: 'Entered transform hook',
+      data: {
+        highlightRow: highlight.row,
+        highlightColumn: highlight.col,
+        deltaRow: delta.row,
+        deltaColumn: delta.col,
+        contextRow: this.#rowspanHeaderNavigationContextRow,
+      },
+    });
+    // #endregion
+
     if (delta.row !== 0 && targetColumn >= 0) {
       const rowDirection = Math.sign(delta.row);
       const lowestHeaderRow = -1;
@@ -920,12 +957,42 @@ export class NestedHeaders extends BasePlugin {
 
       delta.row = adjustedNextRow - highlight.row;
       targetRow = adjustedNextRow;
+
+      // #region agent log
+      writeAgentDebugLog(this.hot.rootWindow, {
+        hypothesisId: 'H2',
+        location: 'nestedHeaders.js:#onModifyTransformStart:vertical-adjust',
+        message: 'Adjusted vertical move around rowspan placeholders',
+        data: {
+          rowDirection,
+          highestHeaderRow,
+          lowestHeaderRow,
+          adjustedNextRow,
+          resultingDeltaRow: delta.row,
+          targetColumn,
+        },
+      });
+      // #endregion
     }
 
     if (initialDeltaRow === 0 && initialDeltaColumn !== 0 && targetColumn >= 0 && highlight.row < 0) {
       const {
         rowspan: currentHeaderRowspan = 1,
       } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
+
+      // #region agent log
+      writeAgentDebugLog(this.hot.rootWindow, {
+        hypothesisId: 'H3',
+        location: 'nestedHeaders.js:#onModifyTransformStart:horizontal-context-check',
+        message: 'Checking horizontal navigation context reuse',
+        data: {
+          currentHeaderRowspan,
+          contextRow: this.#rowspanHeaderNavigationContextRow,
+          highlightRow: highlight.row,
+          targetColumn,
+        },
+      });
+      // #endregion
 
       if (currentHeaderRowspan > 1 && Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
         const {
@@ -949,6 +1016,21 @@ export class NestedHeaders extends BasePlugin {
       if (targetHeaderRowspan > 1) {
         this.#rowspanHeaderNavigationContextRow = highlight.row;
       }
+
+      // #region agent log
+      writeAgentDebugLog(this.hot.rootWindow, {
+        hypothesisId: 'H4',
+        location: 'nestedHeaders.js:#onModifyTransformStart:horizontal-target',
+        message: 'Resolved horizontal target row and rowspan state',
+        data: {
+          targetRow,
+          targetColumn,
+          resultingDeltaRow: delta.row,
+          targetHeaderRowspan,
+          contextRowAfterTarget: this.#rowspanHeaderNavigationContextRow,
+        },
+      });
+      // #endregion
     }
 
     const nextCoords = this.hot._createCellCoords(targetRow, targetColumn);
@@ -957,6 +1039,21 @@ export class NestedHeaders extends BasePlugin {
     if (!isNestedHeadersRange || initialDeltaRow !== 0) {
       this.#rowspanHeaderNavigationContextRow = null;
     }
+
+    // #region agent log
+    writeAgentDebugLog(this.hot.rootWindow, {
+      hypothesisId: 'H5',
+      location: 'nestedHeaders.js:#onModifyTransformStart:range-context-reset',
+      message: 'Evaluated nested range and context reset',
+      data: {
+        isNestedHeadersRange,
+        initialDeltaRow,
+        contextRowAfterReset: this.#rowspanHeaderNavigationContextRow,
+        nextCoordsRow: nextCoords.row,
+        nextCoordsColumn: nextCoords.col,
+      },
+    });
+    // #endregion
 
     if (!isNestedHeadersRange) {
       return;
@@ -991,6 +1088,22 @@ export class NestedHeaders extends BasePlugin {
         delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
       }
     }
+
+    // #region agent log
+    writeAgentDebugLog(this.hot.rootWindow, {
+      hypothesisId: 'H1',
+      location: 'nestedHeaders.js:#onModifyTransformStart:exit',
+      message: 'Leaving transform hook with final delta',
+      data: {
+        finalDeltaRow: delta.row,
+        finalDeltaColumn: delta.col,
+        visualColumnIndexStart,
+        visualColumnIndexEnd,
+        nextCoordsRow: nextCoords.row,
+        nextCoordsColumn: nextCoords.col,
+      },
+    });
+    // #endregion
   }
 
   /**
