@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
@@ -84,6 +85,13 @@ const reporter = new JasmineReporter({
   includeStackTrace: true,
 });
 let errorCount = 0;
+const DEBUG_LOG_PATH = '/opt/cursor/logs/debug.log';
+
+const appendDebugLog = (entry) => {
+  const line = JSON.stringify(entry);
+
+  fs.appendFileSync(DEBUG_LOG_PATH, `${line}\n`);
+};
 
 await page.exposeFunction('jasmineStarted', (specInfo) => {
   if (specInfo.order.random) {
@@ -111,9 +119,22 @@ await page.exposeFunction('jasmineSpecDone', (result) => {
   }
 });
 await page.exposeFunction('jasmineDone', async() => {
+  const bufferedLogs = await page.evaluate(() => {
+    if (!Array.isArray(window.__agentDebugLogs)) {
+      return [];
+    }
+
+    return window.__agentDebugLogs.splice(0, window.__agentDebugLogs.length);
+  });
+
+  bufferedLogs.forEach(appendDebugLog);
   reporter.jasmineDone();
 
   await cleanup(errorCount === 0 ? 0 : 1);
+});
+
+await page.exposeFunction('agentDebugLog', (entry) => {
+  appendDebugLog(entry);
 });
 
 await page.exposeFunction('getEventListeners', async(selector) => {

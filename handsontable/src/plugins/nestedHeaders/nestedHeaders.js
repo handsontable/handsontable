@@ -15,6 +15,40 @@ import StateManager from './stateManager';
 import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
 
+/**
+ * Writes debug logs for runtime bug investigation.
+ *
+ * @param {Window} rootWindow The current root window reference.
+ * @param {object} payload The debug payload.
+ */
+function writeAgentDebugLog(rootWindow, payload) {
+  try {
+    const logWindow = rootWindow?.top || rootWindow;
+    const fullPayload = {
+      ...payload,
+      timestamp: Date.now(),
+    };
+
+    if (typeof logWindow?.agentDebugLog === 'function') {
+      logWindow.agentDebugLog(fullPayload);
+
+      return;
+    }
+
+    if (!logWindow) {
+      return;
+    }
+
+    if (!Array.isArray(logWindow.__agentDebugLogs)) {
+      logWindow.__agentDebugLogs = [];
+    }
+
+    logWindow.__agentDebugLogs.push(fullPayload);
+  } catch {
+    // silent by design
+  }
+}
+
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
 
@@ -435,6 +469,7 @@ export class NestedHeaders extends BasePlugin {
       removeClass(TH, 'htRowspanBottomLevel');
 
       const {
+        label,
         colspan,
         rowspan,
         isHidden,
@@ -480,6 +515,26 @@ export class NestedHeaders extends BasePlugin {
 
           TH.setAttribute('rowspan', rowspan);
         }
+      }
+
+      if (label === 'D/E') {
+        // #region agent log
+        writeAgentDebugLog(this.hot.rootWindow, {
+          hypothesisId: 'W2',
+          location: 'nestedHeaders.js:headerRendererFactory',
+          message: 'Rendered D/E nested header state',
+          data: {
+            headerLevel,
+            visualColumnIndex,
+            colspan,
+            rowspan,
+            isHidden,
+            isPlaceholder,
+            isRowspanPlaceholder,
+            classes: TH.className,
+          },
+        });
+        // #endregion
       }
 
       this.hot.view.appendColHeader(
@@ -1003,6 +1058,21 @@ export class NestedHeaders extends BasePlugin {
     let targetColumn = highlight.col + delta.col;
     let targetRow = highlight.row + delta.row;
 
+    // #region agent log
+    writeAgentDebugLog(this.hot.rootWindow, {
+      hypothesisId: 'N1',
+      location: 'nestedHeaders.js:#onModifyTransformStart:entry',
+      message: 'Keyboard navigation entry',
+      data: {
+        highlightRow: highlight.row,
+        highlightColumn: highlight.col,
+        deltaRow: initialDeltaRow,
+        deltaColumn: initialDeltaColumn,
+        contextRow: this.#rowspanHeaderNavigationContextRow,
+      },
+    });
+    // #endregion
+
     if (delta.row !== 0 && targetColumn >= 0) {
       const rowDirection = Math.sign(delta.row);
       const lowestHeaderRow = -1;
@@ -1045,11 +1115,18 @@ export class NestedHeaders extends BasePlugin {
 
       const currentHeaderStartColumn = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
       const currentHeaderEndColumn = this.#stateManager.findRightMostColumnIndex(highlight.row, highlight.col);
+      const {
+        isRowspanPlaceholder: isTargetRowspanPlaceholder,
+      } = this.#stateManager.getHeaderSettings(targetRow, targetColumn) ?? {};
       const isTargetInsideCurrentHeader = targetRow === highlight.row &&
         targetColumn >= currentHeaderStartColumn &&
         targetColumn <= currentHeaderEndColumn;
+      const shouldKeepLogicalRowForRowspan = targetRow === highlight.row &&
+        isTargetRowspanPlaceholder &&
+        initialDeltaColumn > 0 &&
+        highlight.row < -1;
 
-      if (!isTargetInsideCurrentHeader) {
+      if (!isTargetInsideCurrentHeader && !shouldKeepLogicalRowForRowspan) {
         targetRow = this.#findRenderableHeaderRow(targetRow, targetColumn);
       }
       delta.row = targetRow - highlight.row;
@@ -1064,6 +1141,21 @@ export class NestedHeaders extends BasePlugin {
           (headerRow, visualColumn) => this.#stateManager.getHeaderSettings(headerRow, visualColumn),
         );
       }
+
+      // #region agent log
+      writeAgentDebugLog(this.hot.rootWindow, {
+        hypothesisId: 'N2',
+        location: 'nestedHeaders.js:#onModifyTransformStart:horizontal-target',
+        message: 'Resolved horizontal target',
+        data: {
+          targetRow,
+          targetColumn,
+          resultingDeltaRow: delta.row,
+          targetHeaderRowspan,
+          contextRowAfterTarget: this.#rowspanHeaderNavigationContextRow,
+        },
+      });
+      // #endregion
     }
 
     const nextCoords = this.hot._createCellCoords(targetRow, targetColumn);
@@ -1085,10 +1177,25 @@ export class NestedHeaders extends BasePlugin {
     const {
       isRowspanPlaceholder: isCurrentHeaderRowspanPlaceholderForBounds,
     } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
+    const {
+      isRowspanPlaceholder: isNextHeaderRowspanPlaceholderForBounds,
+    } = this.#stateManager.getHeaderSettings(nextCoords.row, nextCoords.col) ?? {};
     let visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
     let visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
 
+    if (isNextHeaderRowspanPlaceholderForBounds) {
+      const renderableNextHeaderRow = this.#findRenderableHeaderRow(nextCoords.row, nextCoords.col);
+
+      visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(renderableNextHeaderRow, nextCoords.col);
+      visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(renderableNextHeaderRow, nextCoords.col);
+    }
+
     if (isCurrentHeaderRowspanPlaceholderForBounds) {
+      const renderableCurrentHeaderRow = this.#findRenderableHeaderRow(highlight.row, highlight.col);
+
+      visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(renderableCurrentHeaderRow, highlight.col);
+      visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(renderableCurrentHeaderRow, highlight.col);
+
       if (initialDeltaColumn < 0) {
         visualColumnIndexStart = Math.max(visualColumnIndexStart, Math.min(highlight.col, nextCoords.col));
       } else if (initialDeltaColumn > 0) {
@@ -1118,10 +1225,35 @@ export class NestedHeaders extends BasePlugin {
         // There are no visible columns anymore, so move the selection out of the table edge. This will
         // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
         delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
+
+        if (isCurrentHeaderRowspanPlaceholderForBounds) {
+          delta.col += 1;
+
+          if (highlight.row < -1) {
+            delta.row = 1;
+            delta.col = -(highlight.col + 1);
+          }
+        }
       } else {
         delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
       }
     }
+
+    // #region agent log
+    writeAgentDebugLog(this.hot.rootWindow, {
+      hypothesisId: 'N3',
+      location: 'nestedHeaders.js:#onModifyTransformStart:exit',
+      message: 'Computed final navigation delta',
+      data: {
+        finalDeltaRow: delta.row,
+        finalDeltaColumn: delta.col,
+        nextCoordsRow: nextCoords.row,
+        nextCoordsColumn: nextCoords.col,
+        visualColumnIndexStart,
+        visualColumnIndexEnd,
+      },
+    });
+    // #endregion
 
   }
 
@@ -1226,6 +1358,22 @@ export class NestedHeaders extends BasePlugin {
    */
   #onModifyColWidth(width, column) {
     const cachedWidth = this.ghostTable.getWidth(column);
+
+    if (column === 3 || column === 4 || column === 8 || column === 9) {
+      // #region agent log
+      writeAgentDebugLog(this.hot.rootWindow, {
+        hypothesisId: 'W1',
+        location: 'nestedHeaders.js:#onModifyColWidth',
+        message: 'Compared live and cached column widths',
+        data: {
+          column,
+          width,
+          cachedWidth,
+          returnedWidth: width > cachedWidth ? width : cachedWidth,
+        },
+      });
+      // #endregion
+    }
 
     return width > cachedWidth ? width : cachedWidth;
   }

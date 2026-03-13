@@ -102,4 +102,76 @@ describe('GhostTable', () => {
     expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeDefined();
     expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeDefined();
   });
+
+  it('should add both dropdown and collapsible controls to ghost headers when needed', () => {
+    const createHotMock = (isCollapsibleColumnsEnabled) => {
+      const widthsMapMock = {
+        data: new Map(),
+        setValueAtIndex(index, value) {
+          this.data.set(index, value);
+        },
+        getValueAtIndex(index) {
+          return this.data.get(index);
+        },
+        clear() {
+          this.data.clear();
+        },
+      };
+
+      return {
+        hot: {
+          rootDocument: document,
+          rootWindow: window,
+          getCurrentThemeName: () => '',
+          countCols: () => 1,
+          toPhysicalColumn: visualColumn => visualColumn,
+          getSettings: () => ({
+            dropdownMenu: true,
+            collapsibleColumns: isCollapsibleColumnsEnabled,
+          }),
+          view: {
+            countRenderableColumns: () => 1,
+          },
+          columnIndexMapper: {
+            createAndRegisterIndexMap: () => widthsMapMock,
+            getRenderableIndexesLength: () => 1,
+            getVisualFromRenderableIndex: renderableColumn => renderableColumn,
+            getRenderableFromVisualIndex: visualColumn => visualColumn,
+          },
+        },
+        widthsMapMock,
+      };
+    };
+    const getHeaderSettings = (row, column) => {
+      if (row === 0 && column === 0) {
+        return {
+          label: 'D/E',
+          colspan: 1,
+          origColspan: 2,
+          rowspan: 1,
+          isCollapsed: false,
+          isPlaceholder: false,
+          isHidden: false,
+        };
+      }
+
+      return undefined;
+    };
+    const { hot: hotWithoutCollapsible } = createHotMock(false);
+    const { hot: hotWithCollapsible } = createHotMock(true);
+    const ghostTableWithoutCollapsible = new GhostTable(hotWithoutCollapsible, getHeaderSettings);
+    const ghostTableWithCollapsible = new GhostTable(hotWithCollapsible, getHeaderSettings);
+    const containerWithoutCollapsible = document.createElement('div');
+    const containerWithCollapsible = document.createElement('div');
+
+    ghostTableWithoutCollapsible.setLayersCount(1);
+    ghostTableWithCollapsible.setLayersCount(1);
+    ghostTableWithoutCollapsible._buildGhostTable(containerWithoutCollapsible);
+    ghostTableWithCollapsible._buildGhostTable(containerWithCollapsible);
+
+    expect(containerWithoutCollapsible.querySelector('button.changeType')).not.toBeNull();
+    expect(containerWithoutCollapsible.querySelector('button.collapsibleIndicator')).toBeNull();
+    expect(containerWithCollapsible.querySelector('button.changeType')).not.toBeNull();
+    expect(containerWithCollapsible.querySelector('button.collapsibleIndicator')).not.toBeNull();
+  });
 });

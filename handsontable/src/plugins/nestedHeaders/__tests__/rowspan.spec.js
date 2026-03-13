@@ -398,7 +398,7 @@ describe('NestedHeaders', () => {
       }
     });
 
-    it('should move from middle-level H through I/J to a third-level header cell', async() => {
+    it('should move from middle-level H through I/J to the third-level corner cell when moving right', async() => {
       handsontable({
         data: createSpreadsheetData(5, 10),
         colHeaders: true,
@@ -426,14 +426,16 @@ describe('NestedHeaders', () => {
 
       let [{ highlight }] = getSelectedRange();
 
-      expect(getColHeader(highlight.col, highlight.row)).toBe('I/J');
+      expect(getColHeader(8, -3)).toBe('I/J');
+      expect(highlight.row).toBe(-2);
+      expect(highlight.col).toBe(8);
 
       await keyDownUp('arrowright');
 
       [{ highlight }] = getSelectedRange();
 
       expect(highlight.row).toBe(-1);
-      expect(['I2', 'J2']).toContain(getColHeader(highlight.col, highlight.row));
+      expect(highlight.col).toBe(-1);
     });
 
     it.skip('should move through all header levels in correct order when wrapping horizontally ' +
@@ -701,14 +703,23 @@ describe('NestedHeaders', () => {
       expect(deStyles.borderLeftColor).toBe(deStyles.borderRightColor);
     });
 
-    it('should keep the D/E collapse button fully visible after collapsing columns', async() => {
+    it('should keep D/E controls in one line and fully visible after collapsing columns', async() => {
       handsontable({
         data: createSpreadsheetData(5, 10),
         colHeaders: true,
         rowHeaders: true,
+        height: 'auto',
         autoWrapRow: true,
         autoWrapCol: true,
         collapsibleColumns: true,
+        dropdownMenu: true,
+        filters: true,
+        columnSorting: true,
+        navigableHeaders: true,
+        manualColumnMove: true,
+        manualRowMove: true,
+        manualColumnResize: true,
+        manualRowResize: true,
         nestedHeaders: [
           [{ label: 'Header title', colspan: 8 }, { label: 'I/J', rowspan: 2, colspan: 2 }],
           [
@@ -725,6 +736,7 @@ describe('NestedHeaders', () => {
       });
 
       const deRowspanHeader = getCell(-2, 3);
+      const getDropdownButton = () => deRowspanHeader.querySelector('.changeType');
       const getCollapseButton = () => deRowspanHeader.querySelector('.collapsibleIndicator, .ht_nestingButton');
       const isButtonVisibleAtEdge = (button) => {
         const { bottom, right } = button.getBoundingClientRect();
@@ -732,19 +744,46 @@ describe('NestedHeaders', () => {
 
         return edgeElement === button || button.contains(edgeElement);
       };
+      const isInSingleLine = (header, label, collapseButton, dropdownButton) => {
+        const headerRect = header.getBoundingClientRect();
+        const labelRect = label.getBoundingClientRect();
+        const collapseRect = collapseButton.getBoundingClientRect();
+        const dropdownRect = dropdownButton.getBoundingClientRect();
+        const maxControlsTop = Math.max(collapseRect.top, dropdownRect.top);
+        const minControlsBottom = Math.min(collapseRect.bottom, dropdownRect.bottom);
+
+        return labelRect.top >= headerRect.top &&
+          labelRect.bottom <= headerRect.bottom &&
+          maxControlsTop <= minControlsBottom &&
+          Math.abs(labelRect.top - collapseRect.top) < 8 &&
+          Math.abs(labelRect.top - dropdownRect.top) < 8;
+      };
+      const getHeaderLabel = () => deRowspanHeader.querySelector('.colHeader');
       let collapseButton = getCollapseButton();
+      let dropdownButton = getDropdownButton();
+      let headerLabel = getHeaderLabel();
 
       expect(collapseButton).not.toBeNull();
+      expect(dropdownButton).not.toBeNull();
+      expect(headerLabel).not.toBeNull();
       expect(getComputedStyle(deRowspanHeader).overflow).toBe('visible');
       expect(isButtonVisibleAtEdge(collapseButton)).toBe(true);
+      expect(isButtonVisibleAtEdge(dropdownButton)).toBe(true);
+      expect(isInSingleLine(deRowspanHeader, headerLabel, collapseButton, dropdownButton)).toBe(true);
 
       await simulateClick(collapseButton);
 
       collapseButton = getCollapseButton();
+      dropdownButton = getDropdownButton();
+      headerLabel = getHeaderLabel();
 
       expect(collapseButton).not.toBeNull();
+      expect(dropdownButton).not.toBeNull();
+      expect(headerLabel).not.toBeNull();
       expect(getComputedStyle(deRowspanHeader).overflow).toBe('visible');
       expect(isButtonVisibleAtEdge(collapseButton)).toBe(true);
+      expect(isButtonVisibleAtEdge(dropdownButton)).toBe(true);
+      expect(isInSingleLine(deRowspanHeader, headerLabel, collapseButton, dropdownButton)).toBe(true);
     });
 
     it.skip('should keep header level order when navigating left and right across mixed rowspans', async() => {
