@@ -356,6 +356,13 @@
                 max-width: calc(100% - (var(--ht-icon-size) + var(--ht-gap-size)) - 1px);
               }
             }
+
+            // compensates both controls when dropdown and collapsible buttons are present together
+            &:has(.collapsibleIndicator):has(.changeType) {
+              .colHeader {
+                max-width: calc(100% - 2 * (var(--ht-icon-size) + var(--ht-gap-size)) - 1px);
+              }
+            }
           }
         }
       }
