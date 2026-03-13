@@ -1071,7 +1071,7 @@ export class NestedHeaders extends BasePlugin {
       // #endregion
     }
 
-    if (initialDeltaRow === 0 && initialDeltaColumn !== 0 && targetColumn >= 0 && highlight.row < 0) {
+    if (initialDeltaRow === 0 && initialDeltaColumn !== 0 && highlight.row < 0) {
       const currentHeaderRowspan = this.#getRootHeaderRowspan(highlight.row, highlight.col);
 
       // #region agent log
