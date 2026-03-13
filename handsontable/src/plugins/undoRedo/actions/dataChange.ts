@@ -46,6 +46,13 @@ export class DataChangeAction extends BaseAction {
     const plugin = undoRedoPlugin as UndoRedoPluginLike;
 
     hot.addHook('beforeChange', function(this: HotInstance, changes: unknown[] | null, source: string) {
+      const isBlockedByDefault = source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
+      const isValidatorSource = typeof source === 'string' && source.endsWith('Validator');
+
+      if (isBlockedByDefault || isValidatorSource) {
+        return;
+      }
+
       const normalizedChanges = Array.isArray(changes)
         ? changes.filter((change: unknown): change is unknown[] => Array.isArray(change))
         : [];

@@ -24,6 +24,7 @@
         gap: var(--ht-gap-size);
         align-self: stretch;
         position: relative;
+        min-width: 0;
       }
 
       .ht-multi-select-editor-search-icon {
@@ -44,6 +45,7 @@
       input.ht-multi-select-editor-search-input {
         box-sizing: border-box;
         width: 100%;
+        min-width: 0;
         border-radius: var(--ht-input-border-radius);
         color: var(--ht-input-foreground-color);
         background-color: var(--ht-input-background-color);
