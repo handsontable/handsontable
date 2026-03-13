@@ -221,6 +221,108 @@ describe('DataProvider', () => {
     expect(plugin.getQueryParameters().filters).toEqual({ col: 0, value: 'x' });
   });
 
+  it('should preserve current page when setSort or setFilters is called', async() => {
+    const fetchParams = [];
+
+    handsontable({
+      dataProvider: async(params) => {
+        fetchParams.push({ ...params });
+
+        return {
+          rows: createSpreadsheetData(params.pageSize || 10, 3),
+          totalRows: 100,
+        };
+      },
+      columns: 3,
+      pagination: { pageSize: 5 },
+    });
+
+    await sleep(100);
+
+    const plugin = getPlugin('dataProvider');
+
+    await plugin.goToPage(2);
+    await sleep(50);
+    expect(plugin.getQueryParameters().page).toBe(2);
+
+    await plugin.setSort({ column: 0, sortOrder: 'asc' });
+    await sleep(50);
+
+    expect(plugin.getQueryParameters().page).toBe(2);
+    expect(plugin.getQueryParameters().sort).toEqual({ column: 0, sortOrder: 'asc' });
+    expect(fetchParams[fetchParams.length - 1].page).toBe(2);
+
+    await plugin.setFilters({ col: 1, value: 'z' });
+    await sleep(50);
+
+    expect(plugin.getQueryParameters().page).toBe(2);
+    expect(plugin.getQueryParameters().filters).toEqual({ col: 1, value: 'z' });
+    expect(fetchParams[fetchParams.length - 1].page).toBe(2);
+  });
+
+  it('should trigger dataProvider fetch with sort when columnSorting sort is used', async() => {
+    const fetchParams = [];
+
+    handsontable({
+      dataProvider: async(params) => {
+        fetchParams.push({ ...params });
+
+        return {
+          rows: createSpreadsheetData(params.pageSize || 10, 3),
+          totalRows: 50,
+        };
+      },
+      columns: 3,
+      colHeaders: true,
+      columnSorting: true,
+      pagination: true,
+    });
+
+    await sleep(100);
+
+    const columnSorting = getPlugin('columnSorting');
+    const dataProvider = getPlugin('dataProvider');
+
+    columnSorting.sort({ column: 0, sortOrder: 'asc' });
+    await sleep(100);
+
+    const lastCall = fetchParams[fetchParams.length - 1];
+
+    expect(lastCall.sort).toEqual({ column: 0, sortOrder: 'asc' });
+    expect(dataProvider.getQueryParameters().sort).toEqual({ column: 0, sortOrder: 'asc' });
+    expect(columnSorting.getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+  });
+
+  it('should sync columnSorting state after fetch completes (setSort and clearSort)', async() => {
+    handsontable({
+      dataProvider: async params => ({
+        rows: createSpreadsheetData(params.pageSize || 10, 3),
+        totalRows: 50,
+      }),
+      columns: 3,
+      colHeaders: true,
+      columnSorting: true,
+      pagination: true,
+    });
+
+    await sleep(100);
+
+    const columnSorting = getPlugin('columnSorting');
+    const dataProvider = getPlugin('dataProvider');
+
+    await dataProvider.setSort({ column: 1, sortOrder: 'desc' });
+    await sleep(50);
+
+    expect(dataProvider.getQueryParameters().sort).toEqual({ column: 1, sortOrder: 'desc' });
+    expect(columnSorting.getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
+
+    await dataProvider.setSort(null);
+    await sleep(50);
+
+    expect(dataProvider.getQueryParameters().sort).toBe(null);
+    expect(columnSorting.getSortConfig()).toEqual([]);
+  });
+
   it('should disable plugin and remove hooks on updateSettings without dataProvider', async() => {
     handsontable({
       dataProvider: async() => ({ rows: createSpreadsheetData(5, 3), totalRows: 10 }),

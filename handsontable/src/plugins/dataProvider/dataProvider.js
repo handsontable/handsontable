@@ -1,6 +1,7 @@
 import { isFunction } from '../../helpers/function';
 import { BasePlugin } from '../base';
 import { PLUGIN_KEY as PAGINATION_PLUGIN_KEY } from '../pagination';
+import { PLUGIN_KEY as COLUMN_SORTING_PLUGIN_KEY } from '../columnSorting';
 
 export const PLUGIN_KEY = 'dataProvider';
 export const PLUGIN_PRIORITY = 950;
@@ -110,8 +111,21 @@ export class DataProvider extends BasePlugin {
       }
     }
 
+    const columnSorting = this.hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY);
+
+    if (columnSorting?.enabled) {
+      const sortConfig = columnSorting.getSortConfig();
+
+      if (Array.isArray(sortConfig) && sortConfig.length > 0) {
+        this.#queryParameters.sort = sortConfig[0];
+      } else if (sortConfig && typeof sortConfig === 'object' && 'column' in sortConfig) {
+        this.#queryParameters.sort = sortConfig;
+      }
+    }
+
     this.addHook('afterInit', this.#onAfterInitBound);
     this.addHook('modifyRowHeader', this.#onModifyRowHeaderBound);
+    this.addHook('beforeColumnSort', this.#onBeforeColumnSortBound);
 
     super.enablePlugin();
   }
@@ -138,6 +152,49 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   #onAfterInitBound = () => this.#onAfterInit();
+
+  /**
+   * Bound handler for beforeColumnSort (so it can be removed in disablePlugin).
+   *
+   * @private
+   * @param {Array} currentSortConfig Previous sort config.
+   * @param {Array} destinationSortConfigs New sort config (single column for columnSorting).
+   * @param {boolean} sortPossible Whether the sort request is valid.
+   * @returns {boolean|undefined} `false` to block the default in-memory sort; otherwise undefined.
+   */
+  #onBeforeColumnSortBound = (currentSortConfig, destinationSortConfigs, sortPossible) =>
+    this.#onBeforeColumnSort(currentSortConfig, destinationSortConfigs, sortPossible);
+
+  /**
+   * When columnSorting triggers a sort, block in-memory sort and drive a dataProvider fetch with the new sort.
+   * Updates columnSorting's config so the header indicator is correct.
+   *
+   * @private
+   * @param {Array} currentSortConfig Previous sort config.
+   * @param {Array} destinationSortConfigs New sort config (single column for columnSorting).
+   * @param {boolean} sortPossible Whether the sort request is valid.
+   * @returns {boolean|undefined} `false` to block the default in-memory sort; otherwise undefined.
+   */
+  #onBeforeColumnSort(currentSortConfig, destinationSortConfigs, sortPossible) {
+    if (!this.isEnabled() || !sortPossible) {
+      return;
+    }
+
+    const columnSorting = this.hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY);
+
+    if (columnSorting?.enabled) {
+      columnSorting.setSortConfig(destinationSortConfigs);
+    }
+
+    const sortParam =
+      Array.isArray(destinationSortConfigs) && destinationSortConfigs.length > 0
+        ? destinationSortConfigs[0]
+        : null;
+
+    this.setSort(sortParam);
+
+    return false;
+  }
 
   /**
    * Hook handler: maps visual row index (0-based within current page) to global 0-based row index
@@ -218,6 +275,7 @@ export class DataProvider extends BasePlugin {
       this.#queryParameters = params;
       this.#totalRows = totalRows;
       this.hot.loadData(rows, PLUGIN_KEY);
+      this.#syncColumnSortingState();
       this.hot.runHooks('afterDataProviderFetch', { ...result, rows, totalRows, queryParameters: params });
 
       return { rows, totalRows };
@@ -265,7 +323,7 @@ export class DataProvider extends BasePlugin {
    * @returns {Promise<void>}
    */
   async setSort(sort) {
-    await this.fetchData({ sort, page: 1 });
+    await this.fetchData({ sort });
   }
 
   /**
@@ -275,7 +333,7 @@ export class DataProvider extends BasePlugin {
    * @returns {Promise<void>}
    */
   async setFilters(filters) {
-    await this.fetchData({ filters, page: 1 });
+    await this.fetchData({ filters });
   }
 
   /**
@@ -294,6 +352,24 @@ export class DataProvider extends BasePlugin {
    */
   getQueryParameters() {
     return { ...this.#queryParameters };
+  }
+
+  /**
+   * Syncs the columnSorting plugin's sort config to match the current query parameters after a successful fetch.
+   *
+   * @private
+   */
+  #syncColumnSortingState() {
+    const columnSorting = this.hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY);
+
+    if (!columnSorting?.enabled) {
+      return;
+    }
+
+    const sort = this.#queryParameters.sort;
+    const sortConfig = sort && typeof sort === 'object' && 'column' in sort ? sort : [];
+
+    columnSorting.setSortConfig(sortConfig);
   }
 
   /**
@@ -316,6 +392,7 @@ export class DataProvider extends BasePlugin {
   disablePlugin() {
     this.hot.removeHook('afterInit', this.#onAfterInitBound);
     this.hot.removeHook('modifyRowHeader', this.#onModifyRowHeaderBound);
+    this.hot.removeHook('beforeColumnSort', this.#onBeforeColumnSortBound);
 
     if (this.#abortController) {
       this.#abortController.abort();
