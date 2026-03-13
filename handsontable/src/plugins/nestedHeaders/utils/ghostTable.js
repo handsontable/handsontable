@@ -1,40 +1,6 @@
 import { fastInnerHTML } from '../../../helpers/dom/element';
 
 /**
- * Writes debug logs for runtime bug investigation.
- *
- * @param {Window} rootWindow The current root window reference.
- * @param {object} payload The debug payload.
- */
-function writeAgentDebugLog(rootWindow, payload) {
-  try {
-    const logWindow = rootWindow?.top || rootWindow;
-    const fullPayload = {
-      ...payload,
-      timestamp: Date.now(),
-    };
-
-    if (typeof logWindow?.agentDebugLog === 'function') {
-      logWindow.agentDebugLog(fullPayload);
-
-      return;
-    }
-
-    if (!logWindow) {
-      return;
-    }
-
-    if (!Array.isArray(logWindow.__agentDebugLogs)) {
-      logWindow.__agentDebugLogs = [];
-    }
-
-    logWindow.__agentDebugLogs.push(fullPayload);
-  } catch {
-    // silent by design
-  }
-}
-
-/**
  * The class generates the nested headers structure in the DOM and reads the column width for
  * each column. The hierarchy is built only for visible, non-hidden columns. Each time the
  * column is shown or hidden, the structure is rebuilt, and the width of the columns in the
@@ -186,25 +152,6 @@ class GhostTable {
             label += '<button class="collapsibleIndicator expanded"></button>';
           }
 
-          if (headerSettings.label === 'D/E') {
-            // #region agent log
-            writeAgentDebugLog(this.hot.rootWindow, {
-              hypothesisId: 'W3',
-              location: 'ghostTable.js:_buildGhostTable',
-              message: 'Built ghost header for D/E',
-              data: {
-                row,
-                visualColumnsIndex,
-                colspan: headerSettings.colspan,
-                rowspan: headerSettings.rowspan,
-                isCollapsed: headerSettings.isCollapsed,
-                isDropdownEnabled,
-                hasCollapsibleControl,
-              },
-            });
-            // #endregion
-          }
-
           fastInnerHTML(th, label, this.hot.getSettings().sanitizer);
           th.colSpan = headerSettings.colspan;
           th.rowSpan = headerSettings.rowspan;
@@ -234,20 +181,6 @@ class GhostTable {
     }
 
     table.appendChild(measureRow);
-
-    // #region agent log
-    writeAgentDebugLog(this.hot.rootWindow, {
-      hypothesisId: 'W4',
-      location: 'ghostTable.js:_buildGhostTable:summary',
-      message: 'Built ghost table controls summary',
-      data: {
-        isDropdownEnabled,
-        isCollapsibleColumnsEnabled,
-        dropdownButtons: table.querySelectorAll('button.changeType').length,
-        collapsibleButtons: table.querySelectorAll('button.collapsibleIndicator').length,
-      },
-    });
-    // #endregion
 
     fragment.appendChild(table);
     container.appendChild(fragment);
