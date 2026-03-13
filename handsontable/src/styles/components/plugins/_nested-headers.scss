@@ -9,6 +9,7 @@
     thead th.htRowspanHeader {
       height: auto;
       vertical-align: bottom;
+      overflow: visible;
 
       &.ht__active_highlight {
         border-inline-start-width: 1px;

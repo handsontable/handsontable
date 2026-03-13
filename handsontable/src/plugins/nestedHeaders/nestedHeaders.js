@@ -13,6 +13,7 @@ import {
 import { BasePlugin } from '../base';
 import StateManager from './stateManager';
 import GhostTable from './utils/ghostTable';
+import { resolveRowspanNavigationContextRow } from './utils/navigation';
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
@@ -1056,7 +1057,12 @@ export class NestedHeaders extends BasePlugin {
       const targetHeaderRowspan = this.#getRootHeaderRowspan(targetRow, targetColumn);
 
       if (targetHeaderRowspan > 1 && !Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
-        this.#rowspanHeaderNavigationContextRow = highlight.row;
+        this.#rowspanHeaderNavigationContextRow = resolveRowspanNavigationContextRow(
+          highlight.row,
+          targetColumn,
+          -this.getLayersCount(),
+          (headerRow, visualColumn) => this.#stateManager.getHeaderSettings(headerRow, visualColumn),
+        );
       }
     }
 

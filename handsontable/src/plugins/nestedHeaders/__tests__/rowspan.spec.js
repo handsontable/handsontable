@@ -398,6 +398,44 @@ describe('NestedHeaders', () => {
       }
     });
 
+    it('should move from middle-level H through I/J to a third-level header cell', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        autoWrapRow: true,
+        autoWrapCol: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Header title', colspan: 8 }, { label: 'I/J', rowspan: 2, colspan: 2 }],
+          [
+            { label: 'This is a very long header title', rowspan: 2 },
+            'B',
+            'C',
+            { label: 'D/E', rowspan: 2, colspan: 2 },
+            'F',
+            'G',
+            'H',
+          ],
+          ['B2', 'C2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ],
+      });
+
+      await selectCell(-2, 7);
+      await keyDownUp('arrowright');
+
+      let [{ highlight }] = getSelectedRange();
+
+      expect(getColHeader(highlight.col, highlight.row)).toBe('I/J');
+
+      await keyDownUp('arrowright');
+
+      [{ highlight }] = getSelectedRange();
+
+      expect(highlight.row).toBe(-1);
+      expect(['I2', 'J2']).toContain(getColHeader(highlight.col, highlight.row));
+    });
+
     it.skip('should move through all header levels in correct order when wrapping horizontally ' +
       'around rowspans', async() => {
       handsontable({
@@ -661,6 +699,52 @@ describe('NestedHeaders', () => {
       expect(deRowspanHeader.classList.contains('ht__active_highlight')).toBe(true);
       expect(parseFloat(deStyles.borderLeftWidth)).toBeGreaterThan(0);
       expect(deStyles.borderLeftColor).toBe(deStyles.borderRightColor);
+    });
+
+    it('should keep the D/E collapse button fully visible after collapsing columns', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        autoWrapRow: true,
+        autoWrapCol: true,
+        collapsibleColumns: true,
+        nestedHeaders: [
+          [{ label: 'Header title', colspan: 8 }, { label: 'I/J', rowspan: 2, colspan: 2 }],
+          [
+            { label: 'This is a very long header title', rowspan: 2 },
+            'B',
+            'C',
+            { label: 'D/E', rowspan: 2, colspan: 2 },
+            'F',
+            'G',
+            'H',
+          ],
+          ['B2', 'C2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ],
+      });
+
+      const deRowspanHeader = getCell(-2, 3);
+      const getCollapseButton = () => deRowspanHeader.querySelector('.collapsibleIndicator, .ht_nestingButton');
+      const isButtonVisibleAtEdge = (button) => {
+        const { bottom, right } = button.getBoundingClientRect();
+        const edgeElement = document.elementFromPoint(right - 2, bottom - 2);
+
+        return edgeElement === button || button.contains(edgeElement);
+      };
+      let collapseButton = getCollapseButton();
+
+      expect(collapseButton).not.toBeNull();
+      expect(getComputedStyle(deRowspanHeader).overflow).toBe('visible');
+      expect(isButtonVisibleAtEdge(collapseButton)).toBe(true);
+
+      await simulateClick(collapseButton);
+
+      collapseButton = getCollapseButton();
+
+      expect(collapseButton).not.toBeNull();
+      expect(getComputedStyle(deRowspanHeader).overflow).toBe('visible');
+      expect(isButtonVisibleAtEdge(collapseButton)).toBe(true);
     });
 
     it.skip('should keep header level order when navigating left and right across mixed rowspans', async() => {
