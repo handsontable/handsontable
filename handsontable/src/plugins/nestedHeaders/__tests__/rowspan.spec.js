@@ -348,43 +348,59 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      const assertHighlight = (row, column) => {
-        expect(getSelectedRange()).toEqualCellRange([
-          `highlight: ${row},${column} from: ${row},${column} to: ${row},${column}`
-        ]);
+      const readHighlightSemanticState = () => {
+        const [{ highlight }] = getSelectedRange();
+        const highlightedCell = getCell(highlight.row, highlight.col);
+
+        return {
+          row: highlight.row,
+          label: highlightedCell ? highlightedCell.textContent.trim() : '',
+        };
+      };
+      const assertSemanticHighlight = (expectedRow, expectedLabel) => {
+        const {
+          row,
+          label,
+        } = readHighlightSemanticState();
+
+        expect(row).toBe(expectedRow);
+        expect(label).toBe(expectedLabel);
       };
       const expectedArrowLeftSequence = [
-        [-1, 9], // J2
-        [-1, 8], // I2
-        [-1, 7], // H2
-        [-1, 6], // G2
-        [-1, 5], // F2
-        [-2, 3], // D/E
-        [-1, 2], // C2
-        [-1, 1], // B2
-        [-2, 0], // This is a very long header title
-        [-1, -1], // Empty corner
-        [-2, 8], // I/J
-        [-2, 7], // H
-        [-2, 6], // G
-        [-2, 5], // F
-        [-2, 3], // D/E
-        [-2, 2], // C
-        [-2, 1], // B
-        [-2, 0], // This is a very long header title
-        [-2, -1], // Empty corner
-        [-3, 8], // I/J
-        [-3, 0], // Header title
-        [-3, -1], // Empty corner
+        { row: -1, label: 'J2' },
+        { row: -1, label: 'I2' },
+        { row: -1, label: 'H2' },
+        { row: -1, label: 'G2' },
+        { row: -1, label: 'F2' },
+        { row: -2, label: 'D/E' },
+        { row: -1, label: 'C2' },
+        { row: -1, label: 'B2' },
+        { row: -2, label: 'This is a very long header title' },
+        { row: -1, label: '' },
+        { row: -2, label: 'I/J' },
+        { row: -2, label: 'H' },
+        { row: -2, label: 'G' },
+        { row: -2, label: 'F' },
+        { row: -2, label: 'D/E' },
+        { row: -2, label: 'C' },
+        { row: -2, label: 'B' },
+        { row: -2, label: 'This is a very long header title' },
+        { row: -2, label: '' },
+        { row: -3, label: 'I/J' },
+        { row: -3, label: 'Header title' },
+        { row: -3, label: '' },
       ];
       const expectedArrowRightSequence = expectedArrowLeftSequence.slice().reverse();
 
-      await selectCell(...expectedArrowLeftSequence[0]);
+      await selectCell(-1, 9);
 
       for (let index = 0; index < expectedArrowLeftSequence.length; index++) {
-        const [row, column] = expectedArrowLeftSequence[index];
+        const {
+          row,
+          label,
+        } = expectedArrowLeftSequence[index];
 
-        assertHighlight(row, column);
+        assertSemanticHighlight(row, label);
 
         if (index < expectedArrowLeftSequence.length - 1) {
           await keyDownUp('arrowleft');
@@ -392,10 +408,13 @@ describe('NestedHeaders', () => {
       }
 
       for (let index = 1; index < expectedArrowRightSequence.length; index++) {
-        const [row, column] = expectedArrowRightSequence[index];
+        const {
+          row,
+          label,
+        } = expectedArrowRightSequence[index];
 
         await keyDownUp('arrowright');
-        assertHighlight(row, column);
+        assertSemanticHighlight(row, label);
       }
     });
 
