@@ -236,4 +236,83 @@ describe('DataProvider', () => {
 
     expect(getPlugin('dataProvider').isEnabled()).toBe(false);
   });
+
+  it('should reset queryParameters and totalRows when plugin is disabled', async() => {
+    handsontable({
+      dataProvider: async params => ({
+        rows: createSpreadsheetData(params.pageSize || 10, 3),
+        totalRows: 100,
+      }),
+      columns: 3,
+      pagination: { pageSize: 5 },
+    });
+
+    await sleep(100);
+
+    const plugin = getPlugin('dataProvider');
+
+    await plugin.goToPage(3);
+    await sleep(50);
+
+    expect(plugin.getQueryParameters().page).toBe(3);
+    expect(plugin.getTotalRows()).toBe(100);
+
+    await updateSettings({ dataProvider: undefined });
+
+    expect(plugin.getQueryParameters().page).toBe(1);
+    expect(plugin.getQueryParameters().pageSize).toBe(10);
+    expect(plugin.getTotalRows()).toBe(0);
+  });
+
+  it('should trigger initial fetch when plugin is re-enabled with new dataProvider', async() => {
+    const firstProviderCalls = [];
+    const secondProviderCalls = [];
+
+    handsontable({
+      dataProvider: async(params) => {
+        firstProviderCalls.push({ ...params });
+
+        return {
+          rows: createSpreadsheetData(5, 3),
+          totalRows: 50,
+        };
+      },
+      columns: 3,
+      pagination: true,
+    });
+
+    await sleep(100);
+
+    const plugin = getPlugin('dataProvider');
+
+    expect(firstProviderCalls.length).toBeGreaterThanOrEqual(1);
+    expect(plugin.getQueryParameters().page).toBe(1);
+    expect(plugin.getTotalRows()).toBe(50);
+
+    await plugin.goToPage(2);
+    await sleep(50);
+    expect(plugin.getQueryParameters().page).toBe(2);
+
+    await updateSettings({ dataProvider: undefined });
+    await sleep(50);
+
+    await updateSettings({
+      dataProvider: async(params) => {
+        secondProviderCalls.push({ ...params });
+
+        return {
+          rows: createSpreadsheetData(8, 3),
+          totalRows: 200,
+        };
+      },
+    });
+
+    await sleep(100);
+
+    expect(secondProviderCalls.length).toBeGreaterThanOrEqual(1);
+    expect(secondProviderCalls[0].page).toBe(1);
+    expect(plugin.getQueryParameters().page).toBe(1);
+    expect(plugin.getTotalRows()).toBe(200);
+    expect(getData().length).toBe(8);
+  });
 });

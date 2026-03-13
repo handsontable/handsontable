@@ -9,6 +9,14 @@ export const PLUGIN_PRIORITY = 950;
 export const DEFAULT_PAGE_SIZE = 10;
 const ABORT_REASON_MESSAGE = 'DataProvider fetch superseded by a newer request';
 
+/** Initial query parameters used when the plugin is first enabled or after it is disabled. */
+const INITIAL_QUERY_PARAMETERS = {
+  page: 1,
+  pageSize: DEFAULT_PAGE_SIZE,
+  sort: null,
+  filters: null,
+};
+
 /**
  * @plugin DataProvider
  * @class DataProvider
@@ -52,12 +60,7 @@ export class DataProvider extends BasePlugin {
    *
    * @type {{ page: number, pageSize: number, sort: object|null, filters: object|null }}
    */
-  #queryParameters = {
-    page: 1,
-    pageSize: DEFAULT_PAGE_SIZE,
-    sort: null,
-    filters: null,
-  };
+  #queryParameters = { ...INITIAL_QUERY_PARAMETERS };
 
   /**
    * Total row count from the last successful response (for pagination UI).
@@ -111,6 +114,21 @@ export class DataProvider extends BasePlugin {
     this.addHook('modifyRowHeader', this.#onModifyRowHeaderBound);
 
     super.enablePlugin();
+  }
+
+  /**
+   * Updates the plugin state after settings change. Resets and re-enables the plugin, then triggers
+   * an initial fetch when re-enabled (after init has already run).
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    if (this.isEnabled() && this.hot.view) {
+      this.fetchData();
+    }
+
+    super.updatePlugin();
   }
 
   /**
@@ -293,6 +311,7 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Disables the plugin and aborts any in-flight request.
+   * Resets query parameters and total rows so re-enabling starts with a clean state.
    */
   disablePlugin() {
     this.hot.removeHook('afterInit', this.#onAfterInitBound);
@@ -302,6 +321,9 @@ export class DataProvider extends BasePlugin {
       this.#abortController.abort();
       this.#abortController = null;
     }
+
+    this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
+    this.#totalRows = 0;
 
     super.disablePlugin();
   }

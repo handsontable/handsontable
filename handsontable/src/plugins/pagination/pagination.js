@@ -279,11 +279,10 @@ export class Pagination extends BasePlugin {
     const { page, pageSize } = result.queryParameters;
 
     if (typeof page === 'number') {
-      this.#currentPage = page;
+      this.#setCurrentPage(page);
     }
     if (typeof pageSize === 'number') {
-      this.#pageSize = pageSize;
-      this.#calcStrategy = createPaginatorStrategy('fixed');
+      this.#setPageSizeValue(pageSize);
     }
 
     this.#refreshUI();
@@ -297,7 +296,29 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Sets the current page (internal state only). Use before #refreshUI when changing page.
+   *
+   * @private
+   * @param {number} page Page number (1-based).
+   */
+  #setCurrentPage(page) {
+    this.#currentPage = page;
+  }
+
+  /**
+   * Sets the page size and strategy (internal state only). Use before #refreshUI when changing page size.
+   *
+   * @private
+   * @param {number|'auto'} pageSize Page size or 'auto'.
+   */
+  #setPageSizeValue(pageSize) {
+    this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
+    this.#pageSize = pageSize;
+  }
+
+  /**
    * Recomputes pagination state, adjusts viewport elements, and re-renders the table.
+   * Use this single entry point for all UI refresh after changing currentPage or pageSize.
    *
    * @private
    */
@@ -315,7 +336,7 @@ export class Pagination extends BasePlugin {
    * @param {number} attemptedPage Page that was requested and failed.
    */
   #revertPageOnFetchError(oldPage, attemptedPage) {
-    this.#currentPage = oldPage;
+    this.#setCurrentPage(oldPage);
     this.hot.scrollViewportTo({ row: 0 });
     this.#refreshUI();
     this.hot.runHooks('afterPageChange', attemptedPage, oldPage);
@@ -329,8 +350,7 @@ export class Pagination extends BasePlugin {
    * @param {number|string} attemptedPageSize Page size that was requested and failed.
    */
   #revertPageSizeOnFetchError(oldPageSize, attemptedPageSize) {
-    this.#pageSize = oldPageSize;
-    this.#calcStrategy = createPaginatorStrategy('fixed');
+    this.#setPageSizeValue(oldPageSize);
     this.#refreshUI();
     this.hot.runHooks('afterPageSizeChange', attemptedPageSize, oldPageSize);
   }
@@ -342,7 +362,7 @@ export class Pagination extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    this.#computeAndApplyState();
+    this.#refreshUI();
 
     super.updatePlugin();
   }
@@ -457,26 +477,20 @@ export class Pagination extends BasePlugin {
     }
 
     if (this.#isDataProviderMode()) {
-      this.#currentPage = pageNumber;
-      this.#computeAndApplyState();
+      this.#setCurrentPage(pageNumber);
+      this.#refreshUI();
       this.hot.scrollViewportTo({ row: 0 });
       this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
-      this.hot.view.adjustElementsSize();
-      this.hot.render();
       this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).goToPage(pageNumber)
         .catch(() => this.#revertPageOnFetchError(oldPage, pageNumber));
 
       return;
     }
 
-    this.#currentPage = pageNumber;
-
-    this.#computeAndApplyState();
+    this.#setCurrentPage(pageNumber);
+    this.#refreshUI();
     this.hot.scrollViewportTo({ row: 0 });
-
     this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
-    this.hot.view.adjustElementsSize();
-    this.hot.render();
   }
 
   /**
@@ -508,12 +522,9 @@ export class Pagination extends BasePlugin {
       if (pageSize === 'auto' && !this.hot.getPlugin('autoRowSize')?.enabled) {
         warn(AUTO_PAGE_SIZE_WARNING);
       }
-      this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
-      this.#pageSize = pageSize;
-      this.#computeAndApplyState();
+      this.#setPageSizeValue(pageSize);
+      this.#refreshUI();
       this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
-      this.hot.view.adjustElementsSize();
-      this.hot.render();
       this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).setPageSize(pageSize)
         .catch(() => this.#revertPageSizeOnFetchError(oldPageSize, pageSize));
 
@@ -524,14 +535,9 @@ export class Pagination extends BasePlugin {
       warn(AUTO_PAGE_SIZE_WARNING);
     }
 
-    this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
-    this.#pageSize = pageSize;
-
-    this.#computeAndApplyState();
-
+    this.#setPageSizeValue(pageSize);
+    this.#refreshUI();
     this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
-    this.hot.view.adjustElementsSize();
-    this.hot.render();
   }
 
   /**
@@ -949,13 +955,8 @@ export class Pagination extends BasePlugin {
       return;
     }
 
-    this.#computeAndApplyState();
-
     this.#internalRenderCall = true;
-    // there is need to re-render the table as on the initial the engine returns incorrect
-    // values about table and column header sizes.
-    this.hot.view.adjustElementsSize();
-    this.hot.render();
+    this.#refreshUI();
   }
 
   /**
@@ -1023,7 +1024,7 @@ export class Pagination extends BasePlugin {
    * Called after the language change. It recomputes the pagination state which updates the UI.
    */
   #onAfterLanguageChange() {
-    this.#computeAndApplyState();
+    this.#refreshUI();
   }
 
   /**
