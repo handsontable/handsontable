@@ -181,6 +181,14 @@ export class NestedHeaders extends BasePlugin {
    */
   #rowspanHeaderNavigationContextRow = null;
   /**
+   * Stores the expected next highlight coordinates after keyboard navigation. If the next
+   * keyboard move starts from different coordinates, the horizontal navigation context
+   * is considered stale and should be reset.
+   *
+   * @type {{row: number, col: number}|null}
+   */
+  #expectedNextKeyboardHighlightCoords = null;
+  /**
    * Custom helper for getting widths of the nested headers.
    *
    * @private
@@ -333,6 +341,7 @@ export class NestedHeaders extends BasePlugin {
     this.clearColspans();
     this.#stateManager.clear();
     this.#rowspanHeaderNavigationContextRow = null;
+    this.#expectedNextKeyboardHighlightCoords = null;
     this.#hidingIndexMapObserver.unsubscribe();
     this.#hidingIndexMapObserver = null;
     this.ghostTable.clear();
@@ -993,6 +1002,17 @@ export class NestedHeaders extends BasePlugin {
    */
   #onModifyTransformStart(delta) {
     const { highlight } = this.hot.getSelectedRangeActive();
+    const {
+      row: expectedRow,
+      col: expectedColumn,
+    } = this.#expectedNextKeyboardHighlightCoords ?? {};
+
+    if (Number.isInteger(expectedRow) && Number.isInteger(expectedColumn)) {
+      if (highlight.row !== expectedRow || highlight.col !== expectedColumn) {
+        this.#rowspanHeaderNavigationContextRow = null;
+      }
+    }
+
     const initialDeltaRow = delta.row;
     const initialDeltaColumn = delta.col;
     let targetColumn = highlight.col + delta.col;
@@ -1112,6 +1132,11 @@ export class NestedHeaders extends BasePlugin {
     if (!isNestedHeadersRange || initialDeltaRow !== 0) {
       this.#rowspanHeaderNavigationContextRow = null;
     }
+
+    this.#expectedNextKeyboardHighlightCoords = {
+      row: highlight.row + delta.row,
+      col: highlight.col + delta.col,
+    };
 
     // #region agent log
     writeAgentDebugLog(this.hot.rootWindow, {
