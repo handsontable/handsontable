@@ -60,10 +60,14 @@ export class DataChangeAction extends BaseAction {
       const debugLogger = (hot as {
         rootWindow?: { agentDebugLog?: (payload: Record<string, unknown>) => void };
       }).rootWindow?.agentDebugLog;
+      const globalLogger = (globalThis as {
+        agentDebugLog?: (payload: Record<string, unknown>) => void;
+      }).agentDebugLog;
+      const logger = typeof globalLogger === 'function' ? globalLogger : debugLogger;
 
       // #region agent log
-      if (typeof debugLogger === 'function') {
-        debugLogger({
+      if (typeof logger === 'function') {
+        logger({
           hypothesisId: 'B',
           location: 'src/plugins/undoRedo/actions/dataChange.ts:beforeChange',
           message: 'beforeChange captured by undo-redo action',

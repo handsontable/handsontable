@@ -54,11 +54,14 @@ export class ThemeManager {
   themeConfig: ThemeConfig | null = null;
 
   #debugLog(message: string, data: Record<string, unknown>, location: string, hypothesisId: string) {
+    const globalLogger = (globalThis as { agentDebugLog?: (payload: Record<string, unknown>) => void }).agentDebugLog;
     const debugLogger = (this.hot as {
       rootWindow?: { agentDebugLog?: (payload: Record<string, unknown>) => void };
     }).rootWindow?.agentDebugLog;
 
-    if (typeof debugLogger === 'function') {
+    if (typeof globalLogger === 'function') {
+      globalLogger({ hypothesisId, location, message, data, timestamp: Date.now() });
+    } else if (typeof debugLogger === 'function') {
       debugLogger({ hypothesisId, location, message, data, timestamp: Date.now() });
     }
   }

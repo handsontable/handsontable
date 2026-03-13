@@ -283,10 +283,16 @@ export class DropdownMenu extends BasePlugin {
    */
   registerShortcuts() {
     const gridContext = this.hot.getShortcutManager().getContext('grid');
-    // #region agent log
-    (this.hot.rootWindow as {
+    const globalLogger = (globalThis as {
       agentDebugLog?: (payload: Record<string, unknown>) => void;
-    })?.agentDebugLog?.({
+    }).agentDebugLog;
+    const windowLogger = (this.hot.rootWindow as {
+      agentDebugLog?: (payload: Record<string, unknown>) => void;
+    })?.agentDebugLog;
+    const logger = typeof globalLogger === 'function' ? globalLogger : windowLogger;
+
+    // #region agent log
+    logger?.({
       hypothesisId: 'C',
       location: 'src/plugins/dropdownMenu/dropdownMenu.ts:registerShortcuts',
       message: 'Registering dropdown menu shortcuts',
@@ -329,9 +335,7 @@ export class DropdownMenu extends BasePlugin {
         const firstItem = this.menu.hotMenu?.getCell(0, -1);
 
         // #region agent log
-        (this.hot.rootWindow as {
-          agentDebugLog?: (payload: Record<string, unknown>) => void;
-        })?.agentDebugLog?.({
+        logger?.({
           hypothesisId: 'C',
           location: 'src/plugins/dropdownMenu/dropdownMenu.ts:shortcutCallback',
           message: 'Dropdown keyboard shortcut callback executed',

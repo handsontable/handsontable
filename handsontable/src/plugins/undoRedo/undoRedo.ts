@@ -182,10 +182,16 @@ export class UndoRedo extends BasePlugin {
       this.doneActions.push(newAction);
     }
 
-    // #region agent log
-    (this.hot.rootWindow as {
+    const globalLogger = (globalThis as {
       agentDebugLog?: (payload: Record<string, unknown>) => void;
-    })?.agentDebugLog?.({
+    }).agentDebugLog;
+    const windowLogger = (this.hot.rootWindow as {
+      agentDebugLog?: (payload: Record<string, unknown>) => void;
+    })?.agentDebugLog;
+    const logger = typeof globalLogger === 'function' ? globalLogger : windowLogger;
+
+    // #region agent log
+    logger?.({
       hypothesisId: 'B',
       location: 'src/plugins/undoRedo/undoRedo.ts:done',
       message: 'UndoRedo.done evaluated wrapped action',

@@ -33,6 +33,7 @@ beforeAll(() => {
       // Only inject theme on init (when action is an object or undefined)
       if (typeof action !== 'string') {
         const userSettings = action || {};
+        const hadThemeName = Boolean(userSettings.themeName);
 
         if (!userSettings.themeName) {
           const hasThemeClass = this.is('[class*="ht-theme-"]') ||
@@ -48,7 +49,7 @@ beforeAll(() => {
             location: 'test/helpers/common.js:beforeAll.handsontableWrapper',
             message: 'ThemeName auto-injection decision',
             data: {
-              hadThemeName: Boolean(action?.themeName),
+              hadThemeName,
               hasThemeClass,
               injectedThemeName: userSettings.themeName ?? null,
               loadedTheme: getLoadedTheme(),
