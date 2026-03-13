@@ -1175,8 +1175,19 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    const visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
-    const visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
+    const {
+      isRowspanPlaceholder: isCurrentHeaderRowspanPlaceholderForBounds,
+    } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
+    let visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
+    let visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
+
+    if (isCurrentHeaderRowspanPlaceholderForBounds) {
+      if (initialDeltaColumn < 0) {
+        visualColumnIndexStart = Math.max(visualColumnIndexStart, Math.min(highlight.col, nextCoords.col));
+      } else if (initialDeltaColumn > 0) {
+        visualColumnIndexEnd = Math.min(visualColumnIndexEnd, Math.max(highlight.col, nextCoords.col));
+      }
+    }
 
     if (delta.col < 0) {
       const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
