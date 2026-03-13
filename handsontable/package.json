@@ -93,6 +93,7 @@
     "numbro": "2.5.0"
   },
   "optionalDependencies": {
+    "exceljs": "^4.4.0",
     "hyperformula": "^3.0.0"
   },
   "devDependencies": {
