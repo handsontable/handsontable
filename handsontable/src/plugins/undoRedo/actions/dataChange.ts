@@ -7,7 +7,7 @@ import { deepClone } from '../../../helpers/object';
  * Minimal interface for the UndoRedo plugin used by action classes.
  */
 interface UndoRedoPluginLike {
-  done(wrappedAction: () => DataChangeAction, source: string): void;
+  done(wrappedAction: () => DataChangeAction | null, source: string): void;
 }
 
 /**
@@ -53,6 +53,10 @@ export class DataChangeAction extends BaseAction {
       }
 
       const hasDifferences = changes.find((change: unknown) => {
+        if (!change) {
+          return false;
+        }
+
         const [, , oldValue, newValue] = change as unknown[];
 
         return oldValue !== newValue;
@@ -83,15 +87,19 @@ export class DataChangeAction extends BaseAction {
       // #endregion
 
       const wrappedAction = () => {
-        const clonedChanges = changes.map(
+        const clonedChanges = changes.filter((change: unknown): change is unknown[] => Array.isArray(change)).map(
           (change: unknown) => [...(change as unknown[])]
         );
+
+        if (clonedChanges.length === 0) {
+          return null;
+        }
 
         clonedChanges.forEach((change: unknown[]) => {
           change[1] = hot.propToCol(change[1] as string | number);
         });
 
-        const selected = changesLen > 1
+        const selected = clonedChanges.length > 1
           ? (this.getSelected() as unknown[])
           : [[clonedChanges[0][0], clonedChanges[0][1]]];
 
