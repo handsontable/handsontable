@@ -1101,6 +1101,10 @@ export class NestedHeaders extends BasePlugin {
         }
       }
 
+      if (targetColumn < 0 && initialDeltaColumn < 0 && Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
+        targetRow = this.#rowspanHeaderNavigationContextRow;
+      }
+
       targetRow = this.#findRenderableHeaderRow(targetRow, targetColumn);
       delta.row = targetRow - highlight.row;
 
