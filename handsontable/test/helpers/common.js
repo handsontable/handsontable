@@ -87,7 +87,7 @@ export function waitForNameAnimationFrames(framesToWait = 1) {
     }
 
     let waitedFrames = 0;
-    const requestFrame = window.requestAnimationFrame ?? ((callback) => window.setTimeout(callback, 16));
+    const requestFrame = window.requestAnimationFrame ?? (callback => window.setTimeout(callback, 16));
 
     const waitForNextFrame = () => {
       waitedFrames += 1;
