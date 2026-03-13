@@ -1054,10 +1054,6 @@ export class NestedHeaders extends BasePlugin {
     if (initialDeltaRow === 0 && initialDeltaColumn !== 0 && targetColumn >= 0 && highlight.row < 0) {
       const currentHeaderRowspan = this.#getRootHeaderRowspan(highlight.row, highlight.col);
 
-      if (currentHeaderRowspan <= 1) {
-        this.#rowspanHeaderNavigationContextRow = null;
-      }
-
       // #region agent log
       writeAgentDebugLog(this.hot.rootWindow, {
         hypothesisId: 'H3',
@@ -1072,7 +1068,7 @@ export class NestedHeaders extends BasePlugin {
       });
       // #endregion
 
-      if (currentHeaderRowspan > 1 && Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
+      if (Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
         const contextTargetColumn = this.#findNearestNavigableHeaderColumn(
           this.#rowspanHeaderNavigationContextRow,
           targetColumn,
