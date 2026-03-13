@@ -5,12 +5,15 @@ import {
 import { registerRootComparator } from '../columnSorting/sortService';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
 import { addClass, removeClass } from '../../helpers/dom/element';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { warn } from '../../helpers/console';
 import { rootComparator } from './rootComparator';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 
 export const PLUGIN_KEY = 'multiColumnSorting';
 export const PLUGIN_PRIORITY = 170;
+const SETTING_KEYS = ['dataProvider'];
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
@@ -76,6 +79,13 @@ export class MultiColumnSorting extends ColumnSorting {
     return PLUGIN_PRIORITY;
   }
 
+  static get SETTING_KEYS() {
+    return [
+      PLUGIN_KEY,
+      ...SETTING_KEYS
+    ];
+  }
+
   /**
    * Main settings key designed for the plugin.
    *
@@ -87,11 +97,23 @@ export class MultiColumnSorting extends ColumnSorting {
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link MultiColumnSorting#enablePlugin} method is called.
+   * Disabled when `dataProvider` is used (server-side data); a warning is emitted in that case.
    *
    * @returns {boolean}
    */
   isEnabled() {
-    return !!(this.hot.getSettings()[this.pluginKey]);
+    const settings = this.hot.getSettings();
+    const pluginEnabled = !!settings[this.pluginKey];
+    const dataProviderEnabled = !!settings.dataProvider;
+
+    if (pluginEnabled && dataProviderEnabled) {
+      warn(toSingleLine`The \`multiColumnSorting\` plugin cannot be used with the \`dataProvider\` option.\x20
+        This combination is not supported. The plugin will remain disabled.`);
+
+      return false;
+    }
+
+    return pluginEnabled;
   }
 
   /**

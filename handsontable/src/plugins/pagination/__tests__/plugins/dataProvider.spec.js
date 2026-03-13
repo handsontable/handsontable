@@ -314,4 +314,84 @@ describe('Pagination integration with DataProvider', () => {
     expect(pagination.getPaginationData().pageSize).toBe(initialPageSize);
     expect(dataProvider.getQueryParameters().pageSize).toBe(initialPageSize);
   });
+
+  it('should keep columnSorting state in sync after page change when sort is active', async() => {
+    const pageSize = 10;
+
+    handsontable({
+      dataProvider: async(params) => {
+        const start = (params.page - 1) * params.pageSize;
+        const rows = createSpreadsheetData(params.pageSize, 2).map((row, i) =>
+          [`Row ${start + i + 1}`, row[1]]
+        );
+
+        return { rows, totalRows: 25 };
+      },
+      columns: 2,
+      rowHeaders: true,
+      colHeaders: true,
+      columnSorting: true,
+      pagination: { pageSize },
+    });
+
+    await sleep(100);
+
+    const pagination = getPlugin('pagination');
+    const dataProvider = getPlugin('dataProvider');
+    const columnSorting = getPlugin('columnSorting');
+
+    columnSorting.sort({ column: 0, sortOrder: 'desc' });
+    await sleep(100);
+
+    expect(dataProvider.getQueryParameters().sort).toEqual({ column: 0, sortOrder: 'desc' });
+    expect(columnSorting.getSortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+
+    pagination.setPage(2);
+    await sleep(100);
+
+    expect(dataProvider.getQueryParameters().page).toBe(2);
+    expect(dataProvider.getQueryParameters().sort).toEqual({ column: 0, sortOrder: 'desc' });
+    expect(columnSorting.getSortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+  });
+
+  it('should preserve current page when sort is applied from page 2', async() => {
+    const fetchParams = [];
+    const pageSize = 10;
+
+    handsontable({
+      dataProvider: async(params) => {
+        fetchParams.push({ page: params.page, sort: params.sort });
+        const start = (params.page - 1) * params.pageSize;
+        const rows = createSpreadsheetData(params.pageSize, 2).map((row, i) =>
+          [`Row ${start + i + 1}`, row[1]]
+        );
+
+        return { rows, totalRows: 25 };
+      },
+      columns: 2,
+      colHeaders: true,
+      columnSorting: true,
+      pagination: { pageSize },
+    });
+
+    await sleep(100);
+
+    const pagination = getPlugin('pagination');
+    const dataProvider = getPlugin('dataProvider');
+    const columnSorting = getPlugin('columnSorting');
+
+    pagination.setPage(2);
+    await sleep(100);
+
+    expect(pagination.getPaginationData().currentPage).toBe(2);
+    expect(dataProvider.getQueryParameters().page).toBe(2);
+
+    columnSorting.sort({ column: 0, sortOrder: 'asc' });
+    await sleep(100);
+
+    expect(pagination.getPaginationData().currentPage).toBe(2);
+    expect(dataProvider.getQueryParameters().page).toBe(2);
+    expect(dataProvider.getQueryParameters().sort).toEqual({ column: 0, sortOrder: 'asc' });
+    expect(fetchParams[fetchParams.length - 1].page).toBe(2);
+  });
 });
