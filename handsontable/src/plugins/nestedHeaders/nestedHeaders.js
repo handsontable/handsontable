@@ -22,9 +22,25 @@ const writeAgentDebugLog = (rootWindow, payload) => {
     ...payload,
     timestamp: payload.timestamp ?? Date.now(),
   };
+  const agentDebugLogReporter =
+    rootWindow?.agentDebugLog ??
+    rootWindow?.top?.agentDebugLog ??
+    rootWindow?.parent?.agentDebugLog;
 
-  if (typeof rootWindow?.agentDebugLog === 'function') {
-    rootWindow.agentDebugLog(entry);
+  if (typeof agentDebugLogReporter === 'function') {
+    agentDebugLogReporter(entry);
+
+    return;
+  }
+
+  if (Array.isArray(rootWindow?.__agentDebugLogs)) {
+    rootWindow.__agentDebugLogs.push(entry);
+
+    return;
+  }
+
+  if (rootWindow?.__agentDebugLogs === undefined) {
+    rootWindow.__agentDebugLogs = [entry];
 
     return;
   }

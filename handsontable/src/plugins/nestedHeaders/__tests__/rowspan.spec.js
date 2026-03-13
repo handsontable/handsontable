@@ -325,6 +325,45 @@ describe('NestedHeaders', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: -2,1']);
     });
 
+    it('should execute horizontal wrap navigation for mixed rowspan headers (debug reproduction)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        autoWrapRow: true,
+        autoWrapCol: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Header title', colspan: 8 }, { label: 'I/J', rowspan: 2, colspan: 2 }],
+          [
+            { label: 'This is a very long header title', rowspan: 2 },
+            'B',
+            'C',
+            { label: 'D/E', rowspan: 2, colspan: 2 },
+            'F',
+            'G',
+            'H',
+          ],
+          ['B2', 'C2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ],
+      });
+
+      await selectCell(-1, 9);
+
+      await [
+        'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft',
+        'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft', 'arrowleft',
+        'arrowright', 'arrowright', 'arrowright', 'arrowright', 'arrowright', 'arrowright', 'arrowright',
+        'arrowright', 'arrowright', 'arrowright', 'arrowright', 'arrowright', 'arrowright', 'arrowright',
+        'arrowright', 'arrowright',
+      ].reduce(async(prevMove, keyName) => {
+        await prevMove;
+        await keyDownUp(keyName);
+      }, Promise.resolve());
+
+      expect(getSelectedRange()).not.toBeNull();
+    });
+
     it('should not ellipsize rowspanned bottom-most header with dropdown menu and filters enabled', async() => {
       handsontable({
         data: createSpreadsheetData(5, 3),
