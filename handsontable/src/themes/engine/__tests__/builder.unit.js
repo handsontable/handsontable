@@ -96,20 +96,18 @@ describe('ThemeBuilder', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should not warn for iconButtonHitAreaSize token key in createTheme', () => {
+    it('should not warn for unknown token keys when using built-in tokens in createTheme', () => {
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
       createTheme(createValidConfig({
-        tokens: {
-          ...mainTokens,
-          iconButtonHitAreaSize: 'sizing.size_6',
-        },
+        tokens: mainTokens,
       }));
 
-      expect(consoleSpy).not.toHaveBeenCalledWith(
-        '[ThemeBuilder] Unknown token key: "iconButtonHitAreaSize" in themeConfig.tokens. ' +
-        'This may be a custom token or a typo.'
-      );
+      const unknownTokenWarnings = consoleSpy.mock.calls
+        .map(([message]) => message)
+        .filter(message => message.startsWith('[ThemeBuilder] Unknown token key:'));
+
+      expect(unknownTokenWarnings).toEqual([]);
 
       consoleSpy.mockRestore();
     });
