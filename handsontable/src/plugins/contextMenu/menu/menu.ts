@@ -296,6 +296,7 @@ export class Menu {
     const settings = {
       data: filteredItems,
       colHeaders: false,
+      rowHeaders: this.options.rowHeaders ?? false,
       autoColumnSize: true,
       autoWrapRow: false,
       modifyColWidth(width: number) {

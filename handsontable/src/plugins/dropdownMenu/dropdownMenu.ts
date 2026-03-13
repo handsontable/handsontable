@@ -165,7 +165,6 @@ export class DropdownMenu extends BasePlugin {
    * @type {boolean}
    */
   #isButtonClicked = false;
-  #selectFirstItemAfterOpen = false;
 
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
@@ -228,6 +227,7 @@ export class DropdownMenu extends BasePlugin {
       this.menu = new Menu(this.hot, {
         className: 'htDropdownMenu',
         keepInViewport: true,
+        rowHeaders: true,
         container: settingsObj.uiContainer || this.hot.rootPortalElement,
       });
       this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
@@ -324,7 +324,9 @@ export class DropdownMenu extends BasePlugin {
           above: 0,
           below: 3,
         });
-        this.#selectFirstItemAfterOpen = true;
+        // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
+        // will block the Esc key for the whole menu.
+        this.menu.getNavigator().toFirstItem();
         const firstItem = this.menu.hotMenu?.getCell(0, -1);
 
         // #region agent log
@@ -650,13 +652,6 @@ export class DropdownMenu extends BasePlugin {
    * @fires Hooks#afterDropdownMenuShow
    */
   #onMenuAfterOpen() {
-    if (this.#selectFirstItemAfterOpen) {
-      // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
-      // will block the Esc key for the whole menu.
-      this.menu?.getNavigator().toFirstItem();
-      this.#selectFirstItemAfterOpen = false;
-    }
-
     this.hot.runHooks('afterDropdownMenuShow', this);
 
     this.#addCustomShortcuts(this.menu!);
@@ -679,7 +674,6 @@ export class DropdownMenu extends BasePlugin {
    * @fires Hooks#afterDropdownMenuHide
    */
   #onMenuAfterClose() {
-    this.#selectFirstItemAfterOpen = false;
     this.hot.listen();
     this.hot.runHooks('afterDropdownMenuHide', this);
   }
