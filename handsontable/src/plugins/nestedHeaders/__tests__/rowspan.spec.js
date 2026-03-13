@@ -350,11 +350,13 @@ describe('NestedHeaders', () => {
 
       const readHighlightSemanticState = () => {
         const [{ highlight }] = getSelectedRange();
-        const highlightedCell = getCell(highlight.row, highlight.col);
+        const highlightedLabel = highlight.row < 0 && highlight.col >= 0 ?
+          getColHeader(highlight.col, highlight.row) :
+          '';
 
         return {
           row: highlight.row,
-          label: highlightedCell ? highlightedCell.textContent.trim() : '',
+          label: highlightedLabel || '',
         };
       };
       const assertSemanticHighlight = (expectedRow, expectedLabel) => {
