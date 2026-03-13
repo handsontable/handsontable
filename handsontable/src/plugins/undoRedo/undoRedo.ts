@@ -176,10 +176,31 @@ export class UndoRedo extends BasePlugin {
 
     const newAction = wrappedAction();
     const undoneActionsCopy = this.undoneActions.slice();
+    const beforeDoneLen = this.doneActions.length;
 
     if (newAction !== null) {
       this.doneActions.push(newAction);
     }
+
+    // #region agent log
+    (this.hot.rootWindow as {
+      agentDebugLog?: (payload: Record<string, unknown>) => void;
+    })?.agentDebugLog?.({
+      hypothesisId: 'B',
+      location: 'src/plugins/undoRedo/undoRedo.ts:done',
+      message: 'UndoRedo.done evaluated wrapped action',
+      data: {
+        source,
+        beforeDoneLen,
+        afterDoneLen: this.doneActions.length,
+        actionType: (newAction as { actionType?: string })?.actionType ?? null,
+        actionChangesLen: Array.isArray((newAction as { changes?: unknown[] })?.changes) ?
+          (newAction as { changes: unknown[] }).changes.length :
+          null,
+      },
+      timestamp: Date.now(),
+    });
+    // #endregion
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);

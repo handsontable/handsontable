@@ -57,6 +57,26 @@ export class DataChangeAction extends BaseAction {
 
         return oldValue !== newValue;
       });
+      const debugLogger = (hot as {
+        rootWindow?: { agentDebugLog?: (payload: Record<string, unknown>) => void };
+      }).rootWindow?.agentDebugLog;
+
+      // #region agent log
+      if (typeof debugLogger === 'function') {
+        debugLogger({
+          hypothesisId: 'B',
+          location: 'src/plugins/undoRedo/actions/dataChange.ts:beforeChange',
+          message: 'beforeChange captured by undo-redo action',
+          data: {
+            source,
+            changesLen,
+            nullEntries: changes.filter(change => change === null).length,
+            hasDifferences: Boolean(hasDifferences),
+          },
+          timestamp: Date.now(),
+        });
+      }
+      // #endregion
 
       const wrappedAction = () => {
         const clonedChanges = changes.map(
