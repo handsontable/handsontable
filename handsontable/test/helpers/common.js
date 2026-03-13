@@ -45,13 +45,13 @@ beforeAll(() => {
           // #region agent log
           window.agentDebugLog?.({
             hypothesisId: 'A',
-            location: 'test/helpers/common.js:wrappedHandsontableInit',
+            location: 'test/helpers/common.js:handsontable-wrapper',
             message: 'Theme auto-injection decision',
             data: {
               hasThemeClass,
-              appliedThemeName: userSettings.themeName ?? null,
+              injectedThemeName: userSettings.themeName ?? null,
               loadedTheme: getLoadedTheme(),
-              containerClass: this.attr('class') ?? '',
+              parentThemeClasses: this.parents('[class*="ht-theme-"]').map((_, el) => el.className).get().slice(0, 3),
             },
             timestamp: Date.now(),
           });

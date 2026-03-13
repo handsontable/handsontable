@@ -273,6 +273,24 @@ export class Menu {
     const delayedOpenSubMenu = debounce((row: number) => this.openSubMenu(row), 300);
     const minWidthOfMenu = (this.options.minWidth as number) || MIN_WIDTH;
     let noItemsDefined = false;
+    const rootStyles = this.hot.rootWindow.getComputedStyle(this.hot.rootElement);
+
+    // #region agent log
+    (this.hot.rootWindow as {
+      agentDebugLog?: (payload: Record<string, unknown>) => void;
+    })?.agentDebugLog?.({
+      hypothesisId: 'B',
+      location: 'src/plugins/contextMenu/menu/menu.ts:open',
+      message: 'Opening menu with theme-derived sizing context',
+      data: {
+        minWidthOfMenu,
+        currentThemeName: this.hot.getCurrentThemeName?.() ?? null,
+        menuItemHorizontalPadding: rootStyles.getPropertyValue('--ht-menu-item-horizontal-padding').trim(),
+        menuHorizontalPadding: rootStyles.getPropertyValue('--ht-menu-horizontal-padding').trim(),
+      },
+      timestamp: Date.now(),
+    });
+    // #endregion
 
     let filteredItems = arrayFilter(this.menuItems!, (item) => {
       if ((item as Record<string, unknown>).key === NO_ITEMS) {
@@ -296,7 +314,6 @@ export class Menu {
     const settings = {
       data: filteredItems,
       colHeaders: false,
-      rowHeaders: this.options.rowHeaders ?? false,
       autoColumnSize: true,
       autoWrapRow: false,
       modifyColWidth(width: number) {

@@ -53,20 +53,20 @@ export class ThemeManager {
    */
   themeConfig: ThemeConfig | null = null;
 
-  #debugLog(message: string, data: Record<string, unknown>) {
+  #debugLog(message: string, data: Record<string, unknown>, location: string) {
     const debugLogger = (this.hot as {
       rootWindow?: { agentDebugLog?: (payload: Record<string, unknown>) => void };
     }).rootWindow?.agentDebugLog;
 
-    // #region agent log
-    debugLogger?.({
-      hypothesisId: 'A',
-      location: 'src/themes/engine/manager.ts',
-      message,
-      data,
-      timestamp: Date.now(),
-    });
-    // #endregion
+    if (typeof debugLogger === 'function') {
+      debugLogger({
+        hypothesisId: 'A',
+        location,
+        message,
+        data,
+        timestamp: Date.now(),
+      });
+    }
   }
 
   /**
@@ -93,9 +93,10 @@ export class ThemeManager {
     // #region agent log
     this.#debugLog('Injecting theme styles', {
       themeClassName: this.themeClassName,
+      docThemeStyleCount: this.hot.rootDocument.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
       wrapperThemeStyleCount: this.hot.rootWrapperElement.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
-      documentThemeStyleCount: this.hot.rootDocument.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
-    });
+      hasThemeStyleRef: Boolean(this.themeStyles),
+    }, 'src/themes/engine/manager.ts:#injectThemeStyles');
     // #endregion
 
     const colorScheme = this.themeConfig.colorScheme === 'auto' ? 'light dark' : this.themeConfig.colorScheme;
@@ -205,11 +206,12 @@ export class ThemeManager {
       this.themeStyles.remove();
 
       // #region agent log
-      this.#debugLog('Unmounted theme styles', {
+      this.#debugLog('Unmounted theme style node', {
         themeClassName: this.themeClassName,
+        isConnectedAfterRemove: this.themeStyles.isConnected,
+        docThemeStyleCount: this.hot.rootDocument.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
         wrapperThemeStyleCount: this.hot.rootWrapperElement.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
-        documentThemeStyleCount: this.hot.rootDocument.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
-      });
+      }, 'src/themes/engine/manager.ts:unmount');
       // #endregion
     }
   }

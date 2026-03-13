@@ -70,6 +70,7 @@ export function createSearchInputElement({ root }: { root: Document }): HTMLInpu
   setAttribute(inputElement, [
     A11Y_LABEL(SEARCH_INPUT_ARIA_LABEL),
     ['type', 'text'],
+    ['size', 3],
     ['placeholder', SEARCH_INPUT_PLACEHOLDER],
     ['id', SEARCH_INPUT_CLASS],
   ]);
@@ -150,7 +151,7 @@ export function disableUncheckedCheckboxes({
   dropdownListElement,
 }: { dropdownListElement: HTMLUListElement }): void {
   dropdownListElement.querySelectorAll<HTMLInputElement>('input[type="checkbox"]:not(:checked)').forEach((checkbox) => {
-    checkbox.setAttribute('data-disabled', 'true');
+    checkbox.dataset.disabled = 'true';
   });
 }
 
@@ -161,7 +162,7 @@ export function enableAllCheckboxes({
   dropdownListElement,
 }: { dropdownListElement: HTMLUListElement }): void {
   dropdownListElement.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((checkbox) => {
-    checkbox.setAttribute('data-disabled', 'false');
+    checkbox.dataset.disabled = '';
   });
 }
 
@@ -196,7 +197,7 @@ export function createListItemElement({
   checkboxElement.type = 'checkbox';
   checkboxElement.dataset.value = itemValue;
   checkboxElement.dataset.index = String(indexWithinList);
-  checkboxElement.setAttribute('data-disabled', (disabled && !checked) ? 'true' : 'false');
+  checkboxElement.dataset.disabled = (disabled && !checked) ? 'true' : '';
 
   if (itemKey) {
     checkboxElement.dataset.key = itemKey;

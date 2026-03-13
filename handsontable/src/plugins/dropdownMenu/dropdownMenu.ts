@@ -227,7 +227,6 @@ export class DropdownMenu extends BasePlugin {
       this.menu = new Menu(this.hot, {
         className: 'htDropdownMenu',
         keepInViewport: true,
-        rowHeaders: true,
         container: settingsObj.uiContainer || this.hot.rootPortalElement,
       });
       this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
@@ -284,20 +283,6 @@ export class DropdownMenu extends BasePlugin {
    */
   registerShortcuts() {
     const gridContext = this.hot.getShortcutManager().getContext('grid');
-    // #region agent log
-    (this.hot.rootWindow as {
-      agentDebugLog?: (payload: Record<string, unknown>) => void;
-    })?.agentDebugLog?.({
-      hypothesisId: 'C',
-      location: 'src/plugins/dropdownMenu/dropdownMenu.ts:registerShortcuts',
-      message: 'Registering dropdown shortcuts',
-      data: {
-        shiftAltArrowDownCount: gridContext.getShortcuts(['Shift', 'Alt', 'ArrowDown']).length,
-        ctrlEnterCount: gridContext.getShortcuts(['Control/Meta', 'Enter']).length,
-      },
-      timestamp: Date.now(),
-    });
-    // #endregion
     const callback = () => {
       const { highlight } = this.hot.getSelectedRangeActive();
 
@@ -334,16 +319,14 @@ export class DropdownMenu extends BasePlugin {
           agentDebugLog?: (payload: Record<string, unknown>) => void;
         })?.agentDebugLog?.({
           hypothesisId: 'C',
-          location: 'src/plugins/dropdownMenu/dropdownMenu.ts:shortcutCallback',
-          message: 'Executed dropdown shortcut callback',
+          location: 'src/plugins/dropdownMenu/dropdownMenu.ts:registerShortcuts',
+          message: 'Dropdown shortcut callback post-open state',
           data: {
             highlightRow: highlight.row,
             highlightCol: highlight.col,
             menuOpened: this.menu.isOpened(),
-            menuRowsCount: this.menu.hotMenu?.countRows() ?? null,
-            rowHeadersSetting: this.menu.hotMenu?.getSettings().rowHeaders ?? null,
             firstItemExists: Boolean(firstItem),
-            firstItemCurrent: Boolean(firstItem?.classList.contains('current')),
+            firstItemIsCurrent: Boolean(firstItem?.classList.contains('current')),
           },
           timestamp: Date.now(),
         });

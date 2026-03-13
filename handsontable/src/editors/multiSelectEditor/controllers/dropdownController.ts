@@ -21,7 +21,6 @@ import {
 } from './utils';
 
 type DropdownEntry = { key?: string; value?: string } | string;
-type DebugLogger = (payload: Record<string, unknown>) => void;
 
 interface DropdownControllerCache {
   visibleRowsNumberSetting: number | null;
@@ -60,20 +59,6 @@ export class DropdownController {
     areCheckboxesDisabled: false,
     sourceSortFunction: null,
   };
-
-  #debugLog(message: string, data: Record<string, unknown>) {
-    const debugLogger = (this.#rootDocument?.defaultView as { agentDebugLog?: DebugLogger } | undefined)?.agentDebugLog;
-
-    // #region agent log
-    debugLogger?.({
-      hypothesisId: 'D',
-      location: 'src/editors/multiSelectEditor/controllers/dropdownController.ts',
-      message,
-      data,
-      timestamp: Date.now(),
-    });
-    // #endregion
-  }
 
   declare _localHooks: Record<string, Function[]>;
   declare addLocalHook: (key: string, callback: Function) => this;
@@ -221,23 +206,6 @@ export class DropdownController {
     } else {
       this.#containerElement.style.height = '';
     }
-
-    // #region agent log
-    this.#debugLog('Updated dropdown dimensions', {
-      entriesCount: this.#cache.entriesCount,
-      renderedItems: this.#cache.actualRenderedItemsCount ?? 0,
-      containerClientWidth: this.#containerElement.clientWidth,
-      containerOffsetWidth: this.#containerElement.offsetWidth,
-      listOffsetWidth: this.#dropdownListElement?.offsetWidth ?? 0,
-      minWidthCss: this.#rootDocument?.defaultView?.getComputedStyle(this.#containerElement).minWidth ?? '',
-      boxSizingCss: this.#rootDocument?.defaultView?.getComputedStyle(this.#containerElement).boxSizing ?? '',
-      paddingInlineCss: this.#rootDocument?.defaultView?.getComputedStyle(this.#containerElement).paddingInline ?? '',
-      menuHorizontalPaddingVar: this.#rootDocument?.defaultView
-        ?.getComputedStyle(this.#containerElement)
-        .getPropertyValue('--ht-menu-horizontal-padding')
-        .trim() ?? '',
-    });
-    // #endregion
 
     this.#toggleVerticalFlip(availableSpace);
 
