@@ -63,11 +63,81 @@ afterAll(() => {
  * @returns {Promise}
  */
 export function sleep(delay = 100) {
-  return Promise.resolve({
-    then(resolve) {
-      setTimeout(resolve, delay);
+  if (process.env.JEST_WORKER_ID) {
+    return Promise.resolve({
+      then(resolve) {
+        setTimeout(resolve, delay);
+      }
+    });
+  }
+
+  return waitForNameAnimationFrames(convertDelayToFrameCount(delay));
+}
+
+/**
+ * Wait for the provided number of animation frames.
+ *
+ * @param {number} [framesToWait=1] The number of animation frames to wait for.
+ * @returns {Promise<void>}
+ */
+export function waitForNameAnimationFrames(framesToWait = 1) {
+  const totalFramesToWait = normalizeFrameCount(framesToWait);
+
+  return new Promise((resolve) => {
+    if (totalFramesToWait === 0) {
+      resolve();
+
+      return;
     }
+
+    let waitedFrames = 0;
+    const requestFrame = window.requestAnimationFrame ?? ((callback) => window.setTimeout(callback, 16));
+
+    const waitForNextFrame = () => {
+      waitedFrames += 1;
+
+      if (waitedFrames >= totalFramesToWait) {
+        resolve();
+
+        return;
+      }
+
+      requestFrame(waitForNextFrame);
+    };
+
+    requestFrame(waitForNextFrame);
   });
+}
+
+/**
+ * Convert a delay in milliseconds into the number of animation frames.
+ * For short waits, one frame is enough to avoid fixed-time sleeps.
+ *
+ * @param {number} delay The delay in milliseconds.
+ * @returns {number}
+ */
+function convertDelayToFrameCount(delay) {
+  const normalizedDelay = Number.isFinite(delay) ? Math.max(0, delay) : 0;
+
+  if (normalizedDelay <= 200) {
+    return 1;
+  }
+
+  return Math.ceil(normalizedDelay / 16);
+}
+
+/**
+ * Normalize frame count input.
+ *
+ * @param {number} framesToWait The number of frames to normalize.
+ * @returns {number}
+ */
+function normalizeFrameCount(framesToWait) {
+  if (!Number.isFinite(framesToWait)) {
+    return 1;
+  }
+
+  return Math.max(0, Math.ceil(framesToWait));
 }
 
 /**
