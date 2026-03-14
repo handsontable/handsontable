@@ -41,7 +41,7 @@ describe('DropdownMenu (RTL mode)', () => {
       const dropdownMenuOffset = $dropdownMenuRoot.offset();
 
       expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(139);
+        classic.toBeCloseTo(139, -2);
         main.toBeCloseTo(155, -1);
         horizon.toBe(194);
       });

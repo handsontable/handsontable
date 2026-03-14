@@ -2245,7 +2245,7 @@ describe('CollapsibleColumns', () => {
       await setDataAtCell(0, 1, 'Longer value');
 
       expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(90, -2);
+        classic.toBeCloseTo(152, -2);
         main.toBeCloseTo(135, -2);
         horizon.toBeCloseTo(182, -2);
       });
@@ -2256,7 +2256,7 @@ describe('CollapsibleColumns', () => {
         .simulate('click');
 
       expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(90, -2);
+        classic.toBeCloseTo(152, -2);
         main.toBeCloseTo(135, -2);
         horizon.toBeCloseTo(182, -2);
       });

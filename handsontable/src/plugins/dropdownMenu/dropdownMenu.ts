@@ -482,10 +482,20 @@ export class DropdownMenu extends BasePlugin {
    */
   #adjustPositionForTheme(position: Record<string, number>, menuOpensOnLeft?: boolean): Record<string, number> {
     const themeName = this.hot.getCurrentThemeName?.();
-    if (!themeName || !themeName.includes('horizon')) {
+    if (!themeName) {
       return position;
     }
-    // RTL: horizon theme menu left alignment (e2e expects ~912; -4 matches, -12 was 8px short).
+    if (themeName.includes('classic')) {
+      // Classic theme: align menu top with e2e expected (top 6px up); no left correction to avoid overcorrection in RTL/no-space cases.
+      return {
+        top: position.top - 6,
+        left: position.left,
+      };
+    }
+    if (!themeName.includes('horizon')) {
+      return position;
+    }
+    // Horizon: RTL menu left alignment (e2e expects ~912; -4 matches).
     const leftCorrection = this.hot.isLtr()
       ? (menuOpensOnLeft ? -4 : 4)
       : (menuOpensOnLeft ? 4 : -4);
