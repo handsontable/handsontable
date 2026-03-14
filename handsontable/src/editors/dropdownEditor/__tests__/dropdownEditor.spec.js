@@ -535,7 +535,7 @@ describe('DropdownEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
+      await sleep(64);
 
       const container = getActiveEditor().htContainer;
 
@@ -565,7 +565,7 @@ describe('DropdownEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
+      await sleep(64);
 
       const container = getActiveEditor().htContainer;
 
