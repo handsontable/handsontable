@@ -690,7 +690,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await waitForNextAnimationFrames(1);
+      await waitForNextAnimationFrames(2);
 
       const $editor = $('.autocompleteEditor').eq(0);
 
