@@ -809,7 +809,7 @@ describe('AutocompleteEditor', () => {
       const editor = $('.autocompleteEditor');
 
       await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
+      await sleep(100);
 
       expect(asyncSources.calls.count()).toEqual(1);
       expect(editor.find('tbody td:eq(0)').text()).toEqual(choices[0]);
