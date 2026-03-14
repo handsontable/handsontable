@@ -868,7 +868,7 @@ describe('DropdownEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
+      await sleep(100);
 
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
@@ -902,7 +902,7 @@ describe('DropdownEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
+      await sleep(100);
 
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
