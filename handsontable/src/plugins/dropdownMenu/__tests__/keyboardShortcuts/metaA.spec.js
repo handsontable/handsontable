@@ -29,7 +29,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       await openDropdownSubmenuOption('Alignment');
 
-      await waitForNameAnimationFrames(19);
+      await sleep(300);
 
       await keyDownUp(['Control/Meta', 'A']);
 
