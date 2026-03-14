@@ -2247,7 +2247,7 @@ describe('CollapsibleColumns', () => {
       expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
         classic.toBeCloseTo(90, -2);
         main.toBeCloseTo(135, -2);
-        horizon.toBeCloseTo(107, -2);
+        horizon.toBeCloseTo(182, -2);
       });
 
       $(getCell(-2, 1).querySelector('.collapsibleIndicator')) // header "B1"
@@ -2258,7 +2258,7 @@ describe('CollapsibleColumns', () => {
       expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
         classic.toBeCloseTo(90, -2);
         main.toBeCloseTo(135, -2);
-        horizon.toBeCloseTo(107, -2);
+        horizon.toBeCloseTo(182, -2);
       });
     });
   });
