@@ -78,6 +78,7 @@ export function sleep(delay = 100) {
  */
 export function waitForNameAnimationFrames(framesToWait = 1) {
   const totalFramesToWait = normalizeFrameCount(framesToWait);
+  const minimumElapsedTime = totalFramesToWait * (1000 / 60);
 
   return new Promise((resolve) => {
     if (totalFramesToWait === 0) {
@@ -87,12 +88,22 @@ export function waitForNameAnimationFrames(framesToWait = 1) {
     }
 
     let waitedFrames = 0;
+    let firstFrameTimestamp;
     const requestFrame = window.requestAnimationFrame ?? (callback => window.setTimeout(callback, 16));
 
-    const waitForNextFrame = () => {
+    const waitForNextFrame = (timestamp) => {
       waitedFrames += 1;
+      const currentTimestamp = Number.isFinite(timestamp) ? timestamp : null;
 
-      if (waitedFrames >= totalFramesToWait) {
+      if (firstFrameTimestamp === undefined && currentTimestamp !== null) {
+        firstFrameTimestamp = currentTimestamp;
+      }
+
+      const elapsedTime = firstFrameTimestamp === undefined || currentTimestamp === null ?
+        minimumElapsedTime :
+        currentTimestamp - firstFrameTimestamp;
+
+      if (waitedFrames >= totalFramesToWait && elapsedTime >= minimumElapsedTime) {
         resolve();
 
         return;
