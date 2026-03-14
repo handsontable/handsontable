@@ -1019,7 +1019,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(2, 2, '1000.234');
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       expect(getCell(2, 2).innerText).toEqual('$1,000.23');
     });
@@ -1035,7 +1035,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(2, 2, '-1000.234');
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       expect(getCell(2, 2).innerText).toEqual('-$1,000.23');
     });

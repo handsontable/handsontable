@@ -140,7 +140,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       await selectCell(-1, 1);
       await keyDownUp(['control/meta', 'enter']);
 
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       expect(getPlugin('dropdownMenu').menu.hotMenu.getSelected()).toEqual([[0, 0, 0, 0]]);
     });

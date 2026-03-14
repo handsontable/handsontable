@@ -127,7 +127,7 @@ describe('i18n', () => {
         language: NOT_EXISTING_LANGUAGE_CODE
       });
 
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -139,7 +139,7 @@ describe('i18n', () => {
         language: DEFAULT_LANGUAGE_CODE
       });
 
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -152,7 +152,7 @@ describe('i18n', () => {
 
       await updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -164,7 +164,7 @@ describe('i18n', () => {
 
       await updateSettings({ language: DEFAULT_LANGUAGE_CODE });
 
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -416,7 +416,7 @@ describe('i18n', () => {
 
       $menu.simulate('mouseover');
 
-      await waitForNextAnimationFrames(19);
+      await waitForNextAnimationFrames(2);
 
       const $submenuItem = $('.htContextMenu').eq(1).find('tbody td:not(.htSeparator)').eq(0);
 

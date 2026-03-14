@@ -71,7 +71,7 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      await waitForNextAnimationFrames(25);
+      await waitForNextAnimationFrames(2);
 
       expect(editor.parentNode.style.display).toEqual('block');
     });
@@ -549,7 +549,7 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      await waitForNextAnimationFrames(19);
+      await waitForNextAnimationFrames(2);
 
       const editor = getPlugin('comments').getEditorInputElement();
 
@@ -579,13 +579,13 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      await waitForNextAnimationFrames(19);
+      await waitForNextAnimationFrames(2);
 
       const editorStyle = document.querySelector('.htComments').style;
 
       expect(editorStyle.display).toBe('none');
 
-      await waitForNextAnimationFrames(10);
+      await waitForNextAnimationFrames(2);
 
       expect(editorStyle.display).toBe('block');
     });
@@ -913,7 +913,7 @@ describe('Comments', () => {
 
     const editor = getPlugin('comments').getEditorInputElement();
 
-    await waitForNextAnimationFrames(25);
+    await waitForNextAnimationFrames(2);
 
     expect(editor.parentNode.style.display).toBe('block');
   });
@@ -934,7 +934,7 @@ describe('Comments', () => {
       clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
     });
 
-    await waitForNextAnimationFrames(25);
+    await waitForNextAnimationFrames(2);
 
     $(getPlugin('comments').getEditorInputElement())
       .simulate('mousedown')
@@ -942,7 +942,7 @@ describe('Comments', () => {
       .simulate('click');
     getPlugin('comments').getEditorInputElement().focus();
 
-    await waitForNextAnimationFrames(4);
+    await waitForNextAnimationFrames(2);
 
     expect(isListening()).toBe(true);
     expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
@@ -967,7 +967,7 @@ describe('Comments', () => {
       clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
     });
 
-    await waitForNextAnimationFrames(4);
+    await waitForNextAnimationFrames(2);
 
     await keyDownUp(['m']); // typing printable characters should trigger cell editor
 
@@ -993,7 +993,7 @@ describe('Comments', () => {
       clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
     });
 
-    await waitForNextAnimationFrames(4);
+    await waitForNextAnimationFrames(2);
 
     $(getPlugin('comments').getEditorInputElement())
       .simulate('mousedown')
@@ -1001,7 +1001,7 @@ describe('Comments', () => {
       .simulate('click');
     getPlugin('comments').getEditorInputElement().focus();
 
-    await waitForNextAnimationFrames(4);
+    await waitForNextAnimationFrames(2);
 
     expect(getSelected()).toEqual([[1, 1, 1, 1]]);
   });
@@ -1108,7 +1108,7 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      await waitForNextAnimationFrames(35);
+      await waitForNextAnimationFrames(2);
 
       expect(editor.readOnly).toBe(true);
     });
@@ -1192,11 +1192,11 @@ describe('Comments', () => {
       await contextMenu();
       await selectContextMenuOption('Edit comment');
 
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       $('.htCommentTextArea').width(300).height(50);
 
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(afterSetCellMeta).forThemes(({ classic, main, horizon }) => {
         classic.toHaveBeenCalledWith(1, 1, 'comment', jasmine.objectContaining({
@@ -1293,13 +1293,13 @@ describe('Comments', () => {
       textarea.focus();
       textarea.value = 'Edited comment';
 
-      await waitForNextAnimationFrames(19);
+      await waitForNextAnimationFrames(2);
 
       $('body').simulate('mousedown');
       $('body').simulate('mouseup');
       textarea.blur();
 
-      await waitForNextAnimationFrames(63);
+      await waitForNextAnimationFrames(2);
 
       expect(afterSetCellMeta).toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' });
     });
@@ -1330,13 +1330,13 @@ describe('Comments', () => {
       textarea.focus();
       textarea.value = 'Edited comment';
 
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       $('body').simulate('mousedown');
       $('body').simulate('mouseup');
       textarea.blur();
 
-      await waitForNextAnimationFrames(25);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).comment.value).toEqual('test');
     });

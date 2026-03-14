@@ -126,7 +126,7 @@ describe('MultipleSelectionHandles', () => {
 
     await keyDownUp('enter');
 
-    await waitForNextAnimationFrames(4);
+    await waitForNextAnimationFrames(2);
 
     getActiveEditor().htEditor.selectCell(0, 0);
 
@@ -154,7 +154,7 @@ describe('MultipleSelectionHandles', () => {
 
     await dropdownMenu(0);
 
-    await waitForNextAnimationFrames(4);
+    await waitForNextAnimationFrames(2);
 
     const topSelectionHandle = $('.htDropdownMenu').eq(0)
       .find('.ht_master .htBorders div:first-child .topSelectionHandle');

@@ -31,7 +31,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       await dropdownMenu();
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
       await scrollWindowTo(0, 1000);
       await keyDownUp('arrowdown');
 

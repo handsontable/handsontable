@@ -986,7 +986,7 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
       classic.toBe('27px');
@@ -1568,10 +1568,10 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
 
     await simulateClick(getCell(0, 0));
-    await waitForNextAnimationFrames(7);
+    await waitForNextAnimationFrames(2);
 
     await simulateClick(getCell(0, 0));
-    await waitForNextAnimationFrames(7);
+    await waitForNextAnimationFrames(2);
 
     const editor = getActiveEditor();
 
@@ -1587,10 +1587,10 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
 
     await simulateClick(getCell(0, 0), 'MMB');
-    await waitForNextAnimationFrames(7);
+    await waitForNextAnimationFrames(2);
 
     await simulateClick(getCell(0, 0), 'MMB');
-    await waitForNextAnimationFrames(7);
+    await waitForNextAnimationFrames(2);
 
     const editor = getActiveEditor();
 
@@ -1606,10 +1606,10 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
 
     await simulateClick(getCell(0, 0), 'RMB');
-    await waitForNextAnimationFrames(7);
+    await waitForNextAnimationFrames(2);
 
     await simulateClick(getCell(0, 0), 'RMB');
-    await waitForNextAnimationFrames(7);
+    await waitForNextAnimationFrames(2);
 
     const editor = getActiveEditor();
 
@@ -1956,7 +1956,7 @@ describe('TextEditor', () => {
     });
 
     await render();
-    await waitForNextAnimationFrames(4);
+    await waitForNextAnimationFrames(2);
 
     // corner
     await scrollWindowBy(300, 300);
@@ -2324,7 +2324,7 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
-    await waitForNextAnimationFrames(4);
+    await waitForNextAnimationFrames(2);
 
     const activeElement = getActiveEditor().TEXTAREA;
 
@@ -2336,7 +2336,7 @@ describe('TextEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -2705,7 +2705,7 @@ describe('TextEditor', () => {
       await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

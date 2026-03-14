@@ -102,7 +102,7 @@ describe('settings', () => {
           fixedRowsBottom: 2
         });
 
-        await waitForNextAnimationFrames(7);
+        await waitForNextAnimationFrames(2);
 
         await scrollViewportTo({
           row: 30,

@@ -110,7 +110,7 @@ describe('HiddenRows', () => {
       });
 
       // The AutoRowSize calculates the row heights asynchronously.
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       expect(getRowHeight(0)).toBe(0);
       expect(getRowHeight(1)).toBe(0);
@@ -138,7 +138,7 @@ describe('HiddenRows', () => {
       });
 
       // The AutoRowSize calculates the row heights asynchronously.
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       expect(getRowHeight(0)).toBe(0);
       expect(getRowHeight(1)).toBe(0);

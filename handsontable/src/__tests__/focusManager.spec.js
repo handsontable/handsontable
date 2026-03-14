@@ -124,7 +124,7 @@ describe('Focus Manager', () => {
 
       getFocusManager().focusOnHighlightedCell();
 
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(spy.test.calls.count()).toBe(0);
 
@@ -155,12 +155,12 @@ describe('Focus Manager', () => {
       getFocusManager().setRefocusDelay(50);
 
       await selectCell(0, 0);
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
 
       await selectCell(0, 1);
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
     });

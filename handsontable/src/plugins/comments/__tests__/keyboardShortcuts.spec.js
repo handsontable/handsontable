@@ -173,7 +173,7 @@ describe('Comments keyboard shortcut', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
       await keyDownUp(['control', 'alt', 'm']);
       await waitForNextAnimationFrames(1);
 
@@ -291,7 +291,7 @@ describe('Comments keyboard shortcut', () => {
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
 
       await keyDownUp(['control/meta', 'enter']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(1, 1).comment.value).toBe('Test comment');
     });
@@ -324,7 +324,7 @@ describe('Comments keyboard shortcut', () => {
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
 
       await keyDownUp(['control/meta', 'enter']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(4, 4).comment.value).toBe('Test comment');
     });
@@ -346,7 +346,7 @@ describe('Comments keyboard shortcut', () => {
 
       await deselectCell();
       await keyDownUp(['control/meta', 'enter']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(1, 1).comment.value).toBe('Test comment');
     });
@@ -367,7 +367,7 @@ describe('Comments keyboard shortcut', () => {
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
 
       await keyDownUp(['control/meta', 'enter']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(1, 1).comment).toBeUndefined();
     });
@@ -389,7 +389,7 @@ describe('Comments keyboard shortcut', () => {
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
 
       await keyDownUp(['control/meta', 'enter']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(1, 1).comment.value).toBe('Hello world!');
     });
@@ -406,7 +406,7 @@ describe('Comments keyboard shortcut', () => {
 
       await selectCell(1, 1);
       await keyDownUp(['control', 'alt', 'm']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       const plugin = getPlugin('comments');
       const commentsInput = plugin.getEditorInputElement();
@@ -416,7 +416,7 @@ describe('Comments keyboard shortcut', () => {
       commentsInput.value = 'Test comment';
 
       await keyDownUp(['TAB']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(1, 1).comment).toEqual({ value: 'Test comment' });
       expect(commentsInput.parentNode.style.display).toEqual('none');
@@ -444,7 +444,7 @@ describe('Comments keyboard shortcut', () => {
       await keyDownUp('tab');
       await keyDownUp('tab'); // select C3
       await keyDownUp(['control', 'alt', 'm']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       const plugin = getPlugin('comments');
       const commentsInput = plugin.getEditorInputElement();
@@ -454,7 +454,7 @@ describe('Comments keyboard shortcut', () => {
       commentsInput.value = 'Test comment';
 
       await keyDownUp(['tab']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(2, 2).comment).toEqual({ value: 'Test comment' });
       expect(commentsInput.parentNode.style.display).toEqual('none');
@@ -478,7 +478,7 @@ describe('Comments keyboard shortcut', () => {
 
       await selectCell(1, 1);
       await keyDownUp(['control', 'alt', 'm']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       const plugin = getPlugin('comments');
       const commentsInput = plugin.getEditorInputElement();
@@ -487,7 +487,7 @@ describe('Comments keyboard shortcut', () => {
       commentsInput.value = 'Test comment';
 
       await keyDownUp(['SHIFT', 'TAB']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(1, 1).comment).toEqual({ value: 'Test comment' });
       expect(commentsInput.parentNode.style.display).toEqual('none');
@@ -511,7 +511,7 @@ describe('Comments keyboard shortcut', () => {
       await keyDownUp(['shift', 'tab']);
       await keyDownUp(['shift', 'tab']); // select E5
       await keyDownUp(['control', 'alt', 'm']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       const plugin = getPlugin('comments');
       const commentsInput = plugin.getEditorInputElement();
@@ -521,7 +521,7 @@ describe('Comments keyboard shortcut', () => {
       commentsInput.value = 'Test comment';
 
       await keyDownUp(['shift', 'tab']);
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(4, 4).comment).toEqual({ value: 'Test comment' });
       expect(commentsInput.parentNode.style.display).toEqual('none');

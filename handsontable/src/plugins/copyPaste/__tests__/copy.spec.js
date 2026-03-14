@@ -117,7 +117,7 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
 
-      await waitForNextAnimationFrames(32);
+      await waitForNextAnimationFrames(2);
 
       await selectCell(-1, 1);
 
@@ -146,7 +146,7 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
 
-      await waitForNextAnimationFrames(32);
+      await waitForNextAnimationFrames(2);
       await selectCell(1, -1);
 
       plugin.copyCellsOnly();
@@ -174,7 +174,7 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
 
-      await waitForNextAnimationFrames(32);
+      await waitForNextAnimationFrames(2);
       await selectCell(-1, -1);
 
       plugin.copyCellsOnly();

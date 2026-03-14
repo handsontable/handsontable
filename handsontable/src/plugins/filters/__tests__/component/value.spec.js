@@ -26,7 +26,7 @@ describe('Filters UI Value component', () => {
       .toBe('Filter by value:');
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuValue .htUIMultipleSelect')).not.toBeNull();
 
-    await waitForNextAnimationFrames(19);
+    await waitForNextAnimationFrames(2);
 
     // The filter components should be intact after some time. These expectations check whether the GhostTable
     // does not steal the components' element while recalculating column width (PR #5555).
@@ -96,7 +96,7 @@ describe('Filters UI Value component', () => {
 
     await dropdownMenu(2);
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox')
       .simulate('mousedown')
@@ -109,7 +109,7 @@ describe('Filters UI Value component', () => {
     $(byValueBoxRootElement()).find('tr:nth-child(6) :checkbox').simulate('mouseover');
     $(byValueBoxRootElement()).find('tr:nth-child(7) :checkbox').simulate('mouseover');
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     expect($(byValueBoxRootElement()).find('.ht_master .wtHolder').scrollTop()).toBe(0);
   });
@@ -380,28 +380,28 @@ describe('Filters UI Value component', () => {
 
     await dropdownMenu(1);
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     // deselect "(Blank cells)"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
     await dropdownMenu(2);
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     // deselect "Alamo"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
     await dropdownMenu(1);
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     // select "(Blank cells)"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
     await dropdownMenu(2);
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('Alamo');
   });
@@ -419,7 +419,7 @@ describe('Filters UI Value component', () => {
     await dropdownMenu(1);
     byValueMultipleSelect().element.querySelector('input').focus();
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     await keyDownUp('escape');
 
@@ -439,7 +439,7 @@ describe('Filters UI Value component', () => {
 
     await dropdownMenu(1);
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     byValueMultipleSelect().focus();
     await keyDownUp('escape');

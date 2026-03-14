@@ -314,7 +314,7 @@ describe('ContextMenu', () => {
       });
 
       await validateCells();
-      await waitForNextAnimationFrames(10);
+      await waitForNextAnimationFrames(2);
 
       await selectCell(1, 1);
       await contextMenu();

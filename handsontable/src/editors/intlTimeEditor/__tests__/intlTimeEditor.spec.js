@@ -120,7 +120,7 @@ describe('IntlTimeEditor', () => {
     await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
-    await waitForNextAnimationFrames(4);
+    await waitForNextAnimationFrames(2);
 
     const activeElement = getActiveEditor().TEXTAREA;
 
@@ -132,7 +132,7 @@ describe('IntlTimeEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -240,7 +240,7 @@ describe('IntlTimeEditor', () => {
 
       await selectCell(0, 0, 0, 0, true, false);
       // The `imeFastEdit` timeout is set to 50ms.
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

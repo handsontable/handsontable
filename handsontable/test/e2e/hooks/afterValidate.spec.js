@@ -43,7 +43,7 @@ describe('Hook', () => {
 
       await setDataAtCell(2, 0, 'test');
 
-      await waitForNextAnimationFrames(7); // wait for async validation
+      await waitForNextAnimationFrames(2); // wait for async validation
 
       expect(onAfterValidate.calls.count()).toBe(1);
     });
@@ -77,7 +77,7 @@ describe('Hook', () => {
 
       await setDataAtCell(2, 0, 'test');
 
-      await waitForNextAnimationFrames(7); // wait for async validation
+      await waitForNextAnimationFrames(2); // wait for async validation
 
       expect(onAfterValidate.calls.count()).toBe(1);
     });

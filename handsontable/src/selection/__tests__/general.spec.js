@@ -173,7 +173,7 @@ describe('Selection', () => {
 
     mainHolder.scrollTop = 120;
 
-    await waitForNextAnimationFrames(7);
+    await waitForNextAnimationFrames(2);
 
     expect(errCount).toEqual(0); // expect no errors to be thrown
 
@@ -378,10 +378,10 @@ describe('Selection', () => {
     await selectCell(4, 0);
     await keyDownUp('enter');
 
-    await waitForNextAnimationFrames(6);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('enter');
 
-    await waitForNextAnimationFrames(7);
+    await waitForNextAnimationFrames(2);
     expect(countRows()).toEqual(6);
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
     expect(`
@@ -546,7 +546,7 @@ describe('Selection', () => {
 
     spec().$container.find('.ht_clone_top thead').find('th').eq(0).simulate('mousedown');
 
-    await waitForNextAnimationFrames(7);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterScrollVertically).toHaveBeenCalledTimes(0);
     expect(onAfterScrollHorizontally).toHaveBeenCalledTimes(0);
@@ -1805,7 +1805,7 @@ describe('Selection', () => {
 
       iframeHot.selectCell(1, 1);
 
-      await waitForNextAnimationFrames(7);
+      await waitForNextAnimationFrames(2);
 
       expect(spec().$iframeContainer.find('.wtBorder.current')[0].style.top).forThemes(({ classic, main, horizon }) => {
         classic.toEqual('26px');

@@ -134,7 +134,7 @@ describe('MergeCells open editor', () => {
 
       await keyDownUp('enter');
 
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(isEditorVisible()).toBe(true);
       expect($(getActiveEditor().TEXTAREA_PARENT).offset()).forThemes(({ classic, main, horizon }) => {
@@ -163,7 +163,7 @@ describe('MergeCells open editor', () => {
 
       await keyDownUp('enter');
 
-      await waitForNextAnimationFrames(4);
+      await waitForNextAnimationFrames(2);
 
       expect(isEditorVisible()).toBe(true);
       expect($(getActiveEditor().TEXTAREA_PARENT).offset()).forThemes(({ classic, main, horizon }) => {

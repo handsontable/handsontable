@@ -27,7 +27,7 @@ describe('Filters UI Conditional component', () => {
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htUISelect')).not.toBeNull();
     expect(dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput').length).toBe(2);
 
-    await waitForNextAnimationFrames(19);
+    await waitForNextAnimationFrames(2);
 
     // The filter components should be intact after some time. These expectations check whether the GhostTable
     // does not steal the components' element while recalculating column width (PR #5555).
@@ -332,7 +332,7 @@ describe('Filters UI Conditional component', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is equal to');
 
-    await waitForNextAnimationFrames(7); // Wait for autofocus of the filter input element
+    await waitForNextAnimationFrames(2); // Wait for autofocus of the filter input element
 
     document.activeElement.value = '123';
 
@@ -462,7 +462,7 @@ describe('Filters UI Conditional component', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is equal to');
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     await keyDownUp('escape');
 
@@ -498,7 +498,7 @@ describe('Filters UI Conditional component', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is empty');
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('escape');
 
     expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -531,7 +531,7 @@ describe('Filters UI Conditional component', () => {
 
     await openDropdownByConditionMenu();
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     await keyDownUp('escape');
     await keyDownUp('escape');
@@ -578,7 +578,7 @@ describe('Filters UI Conditional component', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is equal to');
 
-    await waitForNextAnimationFrames(4);
+    await waitForNextAnimationFrames(2);
 
     const inputElement = dropdownMenuRootElement().querySelector('.htUIInput input');
 
@@ -769,7 +769,7 @@ describe('Filters UI Conditional component', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is equal to');
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     // Is equal to '5'
     document.activeElement.value = '5';
@@ -790,7 +790,7 @@ describe('Filters UI Conditional component', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is between');
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     // Is equal to '5'
     document.activeElement.value = '5';
@@ -826,7 +826,7 @@ describe('Filters UI Conditional component', () => {
 
     await dropdownMenu(1);
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     expect(dropdownMenuRootElement().querySelector('.htUISelectCaption').textContent)
       .toBe('Greater than or equal to');
@@ -844,7 +844,7 @@ describe('Filters UI Conditional component', () => {
 
     await dropdownMenu(1);
 
-    await waitForNextAnimationFrames(13);
+    await waitForNextAnimationFrames(2);
 
     expect(dropdownMenuRootElement().querySelector('.htUISelectCaption').textContent).toBe('None');
 
