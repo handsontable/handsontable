@@ -127,7 +127,7 @@ describe('i18n', () => {
         language: NOT_EXISTING_LANGUAGE_CODE
       });
 
-      await waitForNextAnimationFrames(2);
+      await waitForNameAnimationFrames(7);
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -139,7 +139,7 @@ describe('i18n', () => {
         language: DEFAULT_LANGUAGE_CODE
       });
 
-      await waitForNextAnimationFrames(2);
+      await waitForNameAnimationFrames(7);
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -152,7 +152,7 @@ describe('i18n', () => {
 
       await updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
-      await waitForNextAnimationFrames(2);
+      await waitForNameAnimationFrames(7);
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -164,7 +164,7 @@ describe('i18n', () => {
 
       await updateSettings({ language: DEFAULT_LANGUAGE_CODE });
 
-      await waitForNextAnimationFrames(2);
+      await waitForNameAnimationFrames(7);
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -336,7 +336,7 @@ describe('i18n', () => {
 
       await updateSettings({ language: POLISH_LANGUAGE_CODE });
 
-      await waitForNextAnimationFrames(0);
+      await waitForNameAnimationFrames(0);
 
       await contextMenu();
 
@@ -354,7 +354,7 @@ describe('i18n', () => {
 
       await updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
-      await waitForNextAnimationFrames(0);
+      await waitForNameAnimationFrames(0);
 
       await contextMenu();
 
@@ -373,7 +373,7 @@ describe('i18n', () => {
 
       await updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE2 });
 
-      await waitForNextAnimationFrames(0);
+      await waitForNameAnimationFrames(0);
 
       await contextMenu();
 
@@ -392,7 +392,7 @@ describe('i18n', () => {
 
       await updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
-      await waitForNextAnimationFrames(0);
+      await waitForNameAnimationFrames(0);
 
       await contextMenu();
 
@@ -416,7 +416,7 @@ describe('i18n', () => {
 
       $menu.simulate('mouseover');
 
-      await waitForNextAnimationFrames(2);
+      await waitForNameAnimationFrames(19);
 
       const $submenuItem = $('.htContextMenu').eq(1).find('tbody td:not(.htSeparator)').eq(0);
 

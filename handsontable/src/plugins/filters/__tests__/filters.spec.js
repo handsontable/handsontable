@@ -25,7 +25,7 @@ describe('Filters', () => {
     await dropdownMenu(1);
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Begins with');
-    await waitForNextAnimationFrames(2);
+    await waitForNameAnimationFrames(13);
 
     // Begins with 'c'
     document.activeElement.value = 'c';

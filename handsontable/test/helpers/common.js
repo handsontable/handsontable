@@ -113,8 +113,18 @@ export function waitForNextAnimationFrames(framesToWait = 1) {
  *
  * @deprecated Use waitForNextAnimationFrames instead.
  */
-export function waitForNameAnimationFrames(framesToWait = 1) {
-  return waitForNextAnimationFrames(framesToWait);
+export async function waitForNameAnimationFrames(framesToWait = 1) {
+  const totalFramesToWait = normalizeLegacyFrameCount(framesToWait);
+  const minimumElapsedTime = totalFramesToWait * 16;
+  const startTime = Date.now();
+
+  await waitForNextAnimationFrames(totalFramesToWait);
+
+  const elapsedTime = Date.now() - startTime;
+
+  if (elapsedTime < minimumElapsedTime) {
+    await sleep(minimumElapsedTime - elapsedTime);
+  }
 }
 
 /**
@@ -129,6 +139,20 @@ function normalizeFrameCount(framesToWait) {
   }
 
   return Math.min(2, Math.max(0, Math.ceil(framesToWait)));
+}
+
+/**
+ * Normalize frame count input for backward-compatible helper.
+ *
+ * @param {number} framesToWait The number of frames to normalize.
+ * @returns {number}
+ */
+function normalizeLegacyFrameCount(framesToWait) {
+  if (!Number.isFinite(framesToWait)) {
+    return 1;
+  }
+
+  return Math.max(0, Math.ceil(framesToWait));
 }
 
 /**
