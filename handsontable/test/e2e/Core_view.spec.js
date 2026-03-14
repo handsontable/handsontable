@@ -593,11 +593,11 @@ describe('Core_view', () => {
       startCols: 10
     });
 
-    await waitForNameAnimationFrames(16);
+    await waitForNextAnimationFrames(16);
 
     const initHeight = spec().$container.height();
 
-    await waitForNameAnimationFrames(16);
+    await waitForNextAnimationFrames(16);
 
     expect(spec().$container.height()).toEqual(initHeight);
 
@@ -847,7 +847,7 @@ describe('Core_view', () => {
         spec().$container.find('.ht_clone_top_inline_start_corner .wtHolder')[0].dispatchEvent(wheelEvt);
       }
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(spy.calls.argsFor(0)[0].defaultPrevented).toBe(true);
       eventManager.destroy();
@@ -885,7 +885,7 @@ describe('Core_view', () => {
         spec().$container.find('.ht_clone_top_inline_start_corner .wtHolder')[0].dispatchEvent(wheelEvt);
       }
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
       const masterHolder = spec().$container.find('.ht_master .wtHolder')[0];
 
       expect(masterHolder.scrollLeft).toBe(800);
@@ -1007,7 +1007,7 @@ describe('Core_view', () => {
       contextMenu: true
     });
 
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(7);
 
     const $htCore = spec().$container.find('.ht_master .wtHolder .wtHider .wtSpreader .htCore');
     const $wtHider = spec().$container.find('.ht_master .wtHolder .wtHider');

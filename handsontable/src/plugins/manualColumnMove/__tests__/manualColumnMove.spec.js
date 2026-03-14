@@ -1347,7 +1347,7 @@ describe('manualColumnMove', () => {
         });
 
         await selectCell(19, 0);
-        await waitForNameAnimationFrames(4);
+        await waitForNextAnimationFrames(4);
 
         expect(tableView()._wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
 
@@ -1360,7 +1360,7 @@ describe('manualColumnMove', () => {
         $rowsHeaders.eq(8).simulate('mousemove');
         $rowsHeaders.eq(8).simulate('mouseup');
 
-        await waitForNameAnimationFrames(7);
+        await waitForNextAnimationFrames(7);
 
         expect(tableView()._wt.wtTable.getFirstVisibleRow()).toBeLessThan(8);
       });

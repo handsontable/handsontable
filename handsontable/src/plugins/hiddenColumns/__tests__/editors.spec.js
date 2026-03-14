@@ -30,7 +30,7 @@ describe('HiddenColumns', () => {
       const startScrollLeft = $mainHolder.scrollLeft();
 
       await keyDownUp('enter');
-      await waitForNameAnimationFrames(13);
+      await waitForNextAnimationFrames(13);
 
       expect($mainHolder.scrollLeft()).toBe(startScrollLeft);
     });
@@ -109,14 +109,14 @@ describe('HiddenColumns', () => {
 
       await selectCell(0, 1);
       await keyDownUp('enter'); // open the editor
-      await waitForNameAnimationFrames(13);
+      await waitForNextAnimationFrames(13);
 
       document.activeElement.value = 'aa'; // type incorect value
 
       await keyDownUp('enter'); // confirm change the value
-      await waitForNameAnimationFrames(13);
+      await waitForNextAnimationFrames(13);
       await keyDownUp('escape'); // close the editor
-      await waitForNameAnimationFrames(13);
+      await waitForNextAnimationFrames(13);
 
       expect(getDataAtCell(0, 1)).toBe(2);
       expect(getCell(0, 1).textContent).toBe('2');

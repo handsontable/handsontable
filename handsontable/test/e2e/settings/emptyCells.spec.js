@@ -50,7 +50,7 @@ describe('settings', () => {
 
       await setDataAtCell(4, 0, 'test');
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
@@ -83,7 +83,7 @@ describe('settings', () => {
 
       await setDataAtCell(5, 0, 'test');
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
@@ -114,7 +114,7 @@ describe('settings', () => {
 
       await setDataAtCell(1, 0, 'test');
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(getData()).toEqual([
         [null, null, null],
@@ -144,7 +144,7 @@ describe('settings', () => {
 
         await setDataAtCell(1, 0, 'test');
 
-        await waitForNameAnimationFrames(7);
+        await waitForNextAnimationFrames(7);
 
         expect(getData()).toEqual([
           [null, null, null, null, null],
@@ -174,7 +174,7 @@ describe('settings', () => {
 
         await setDataAtCell(1, 0, 'test');
 
-        await waitForNameAnimationFrames(7);
+        await waitForNextAnimationFrames(7);
 
         expect(getData()).toEqual([
           [null, null, null, null, null],
@@ -187,7 +187,7 @@ describe('settings', () => {
 
         await setDataAtCell(2, 0, 'test');
 
-        await waitForNameAnimationFrames(7);
+        await waitForNextAnimationFrames(7);
 
         expect(getData()).toEqual([
           [null, null, null, null, null],
@@ -249,7 +249,7 @@ describe('settings', () => {
 
       await setDataAtCell(0, 4, 'test');
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1', null, 'test', null, null, null, null],
@@ -273,7 +273,7 @@ describe('settings', () => {
 
       await setDataAtCell(0, 5, 'test');
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(getData()).toEqual([
         ['A1', 'B1', null, null, null, 'test', null, null, null, null],
@@ -296,7 +296,7 @@ describe('settings', () => {
 
       await setDataAtCell(0, 1, 'test');
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(getData()).toEqual([
         [null, 'test', null, null, null, null],
@@ -323,7 +323,7 @@ describe('settings', () => {
 
         await setDataAtCell(0, 1, 'test');
 
-        await waitForNameAnimationFrames(7);
+        await waitForNextAnimationFrames(7);
 
         expect(getData()).toEqual([
           [null, 'test', null, null, null, null],
@@ -351,7 +351,7 @@ describe('settings', () => {
 
         await setDataAtCell(0, 1, 'test');
 
-        await waitForNameAnimationFrames(7);
+        await waitForNextAnimationFrames(7);
 
         expect(getData()).toEqual([
           [null, 'test', null, null, null, null],
@@ -363,7 +363,7 @@ describe('settings', () => {
 
         await setDataAtCell(0, 2, 'test');
 
-        await waitForNameAnimationFrames(7);
+        await waitForNextAnimationFrames(7);
 
         expect(getData()).toEqual([
           [null, 'test', 'test', null, null, null, null],

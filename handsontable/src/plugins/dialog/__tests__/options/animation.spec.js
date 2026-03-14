@@ -174,11 +174,11 @@ describe('Dialog - animation option', () => {
 
     dialogPlugin.show();
 
-    await waitForNameAnimationFrames((getTableTransitionDuration() / 2) / 16);
+    await waitForNextAnimationFrames((getTableTransitionDuration() / 2) / 16);
 
     dialogPlugin.hide();
 
-    await waitForNameAnimationFrames((getTableTransitionDuration()) / 16);
+    await waitForNextAnimationFrames((getTableTransitionDuration()) / 16);
 
     expect(getDialogContainerElement()).not.toBeVisible();
   });
@@ -196,11 +196,11 @@ describe('Dialog - animation option', () => {
 
     dialogPlugin.show();
 
-    await waitForNameAnimationFrames((getTableTransitionDuration() * 2) / 16);
+    await waitForNextAnimationFrames((getTableTransitionDuration() * 2) / 16);
 
     dialogPlugin.hide();
 
-    await waitForNameAnimationFrames((getTableTransitionDuration() + 100) / 16);
+    await waitForNextAnimationFrames((getTableTransitionDuration() + 100) / 16);
 
     expect(getDialogContainerElement()).not.toBeVisible();
   });
@@ -254,11 +254,11 @@ describe('Dialog - animation option', () => {
 
     dialogPlugin.show();
 
-    await waitForNameAnimationFrames((getTableTransitionDuration() / 2) / 16);
+    await waitForNextAnimationFrames((getTableTransitionDuration() / 2) / 16);
 
     dialogPlugin.hide();
 
-    await waitForNameAnimationFrames((getTableTransitionDuration() / 2) / 16);
+    await waitForNextAnimationFrames((getTableTransitionDuration() / 2) / 16);
 
     dialogPlugin.show();
 
@@ -278,11 +278,11 @@ describe('Dialog - animation option', () => {
 
     dialogPlugin.show();
 
-    await waitForNameAnimationFrames((getTableTransitionDuration() * 2) / 16);
+    await waitForNextAnimationFrames((getTableTransitionDuration() * 2) / 16);
 
     dialogPlugin.hide();
 
-    await waitForNameAnimationFrames((getTableTransitionDuration() * 2) / 16);
+    await waitForNextAnimationFrames((getTableTransitionDuration() * 2) / 16);
 
     dialogPlugin.show();
 

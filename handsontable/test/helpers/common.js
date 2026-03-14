@@ -71,14 +71,13 @@ export function sleep(delay = 100) {
 }
 
 /**
- * Wait for the provided number of animation frames.
+ * Wait for up to the next 2 animation frames.
  *
  * @param {number} [framesToWait=1] The number of animation frames to wait for.
  * @returns {Promise<void>}
  */
-export function waitForNameAnimationFrames(framesToWait = 1) {
+export function waitForNextAnimationFrames(framesToWait = 1) {
   const totalFramesToWait = normalizeFrameCount(framesToWait);
-  const minimumElapsedTime = totalFramesToWait * (1000 / 60);
 
   return new Promise((resolve) => {
     if (totalFramesToWait === 0) {
@@ -88,22 +87,12 @@ export function waitForNameAnimationFrames(framesToWait = 1) {
     }
 
     let waitedFrames = 0;
-    let firstFrameTimestamp;
     const requestFrame = window.requestAnimationFrame ?? (callback => window.setTimeout(callback, 16));
 
-    const waitForNextFrame = (timestamp) => {
+    const waitForNextFrame = () => {
       waitedFrames += 1;
-      const currentTimestamp = Number.isFinite(timestamp) ? timestamp : null;
 
-      if (firstFrameTimestamp === undefined && currentTimestamp !== null) {
-        firstFrameTimestamp = currentTimestamp;
-      }
-
-      const elapsedTime = firstFrameTimestamp === undefined || currentTimestamp === null ?
-        minimumElapsedTime :
-        currentTimestamp - firstFrameTimestamp;
-
-      if (waitedFrames >= totalFramesToWait && elapsedTime >= minimumElapsedTime) {
+      if (waitedFrames >= totalFramesToWait) {
         resolve();
 
         return;
@@ -117,6 +106,13 @@ export function waitForNameAnimationFrames(framesToWait = 1) {
 }
 
 /**
+ * @deprecated Use waitForNextAnimationFrames instead.
+ */
+export function waitForNameAnimationFrames(framesToWait = 1) {
+  return waitForNextAnimationFrames(framesToWait);
+}
+
+/**
  * Normalize frame count input.
  *
  * @param {number} framesToWait The number of frames to normalize.
@@ -127,7 +123,7 @@ function normalizeFrameCount(framesToWait) {
     return 1;
   }
 
-  return Math.max(0, Math.ceil(framesToWait));
+  return Math.min(2, Math.max(0, Math.ceil(framesToWait)));
 }
 
 /**

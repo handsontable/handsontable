@@ -477,19 +477,19 @@ describe('Selection navigation', () => {
 
       await selectCell(13, 1);
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(10);
 
       await keyDownUp('pageup');
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(6);
 
       await keyDownUp('pageup');
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(0);
     });
@@ -517,19 +517,19 @@ describe('Selection navigation', () => {
 
       await selectCell(13, 1);
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(9);
 
       await keyDownUp('pageup');
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(5);
 
       await keyDownUp('pageup');
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(0);
     });
@@ -557,19 +557,19 @@ describe('Selection navigation', () => {
 
       await selectCell(13, 1);
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(9);
 
       await keyDownUp('pageup');
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(5);
 
       await keyDownUp('pageup');
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(0);
     });

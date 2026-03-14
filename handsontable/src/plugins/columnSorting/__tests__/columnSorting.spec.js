@@ -341,7 +341,7 @@ describe('ColumnSorting', () => {
 
     getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(htCore.find('td').length).toEqual(2);
   });
@@ -1274,9 +1274,9 @@ describe('ColumnSorting', () => {
         }
       });
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
       await setDataAtCell(0, 0, '19:55', 'edit');
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(getDataAtCell(0, 0)).toEqual('7:55:00 pm');
     });
@@ -2013,7 +2013,7 @@ describe('ColumnSorting', () => {
 
     getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
     expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('4');
@@ -3371,7 +3371,7 @@ describe('ColumnSorting', () => {
 
       await spec().sortByClickOnColumnHeader(1);
 
-      await waitForNameAnimationFrames(4);
+      await waitForNextAnimationFrames(4);
 
       expect(getDataAtCol(1)).toEqual([8, 9, 444]);
     });
@@ -3455,7 +3455,7 @@ describe('ColumnSorting', () => {
 
       await updateSettings({ columnSorting: { indicator: false } });
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       let newHeaderWidth = spec().$container.find('th').eq(0).width();
       let newWtHiderWidth = spec().$container.find('.wtHider').eq(0).width();
@@ -3467,7 +3467,7 @@ describe('ColumnSorting', () => {
 
       await updateSettings({ columnSorting: false });
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       newHeaderWidth = spec().$container.find('th').eq(0).width();
       newWtHiderWidth = spec().$container.find('.wtHider').eq(0).width();
@@ -3735,7 +3735,7 @@ describe('ColumnSorting', () => {
 
       $(window).scrollTop(3000);
 
-      await waitForNameAnimationFrames(32);
+      await waitForNextAnimationFrames(32);
 
       const wtSpreader = spec().$container.find('.ht_master .wtSpreader');
       const cssTop = parseInt(wtSpreader.css('top'), 10);

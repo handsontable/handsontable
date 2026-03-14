@@ -863,13 +863,13 @@ describe('AutoFill', () => {
 
     expect(countRows()).toBe(4);
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(6);
 
@@ -903,13 +903,13 @@ describe('AutoFill', () => {
 
     expect(countRows()).toBe(4);
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(6);
 
@@ -944,13 +944,13 @@ describe('AutoFill', () => {
 
     expect(countRows()).toBe(4);
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(6);
   });
@@ -976,13 +976,13 @@ describe('AutoFill', () => {
 
     expect(countRows()).toBe(4);
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(4);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(4);
   });
@@ -1014,14 +1014,14 @@ describe('AutoFill', () => {
 
     $(document.documentElement).simulate('mousemove', ev);
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(4);
 
     ev.clientY = $lastRow.offset().top + 150;
     $(document.documentElement).simulate('mousemove', ev);
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(4);
   });
@@ -1047,13 +1047,13 @@ describe('AutoFill', () => {
 
     expect(countRows()).toBe(4);
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     expect(countRows()).toBe(5);
   });
@@ -1084,14 +1084,14 @@ describe('AutoFill', () => {
 
     $(document.documentElement).simulate('mousemove', ev);
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(5);
 
     ev.clientY = $lastRow.offset().top + 150;
     $(document.documentElement).simulate('mousemove', ev);
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(6);
   });
@@ -1165,7 +1165,7 @@ describe('AutoFill', () => {
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:nth-child(3) td:eq(2)').simulate('mouseover');
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(4);
 
@@ -1174,7 +1174,7 @@ describe('AutoFill', () => {
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:nth-child(4) td:eq(3)').simulate('mouseover');
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     expect(countRows()).toBe(4);
 
@@ -1183,7 +1183,7 @@ describe('AutoFill', () => {
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:nth-child(4) td:eq(1)').simulate('mouseover');
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     expect(countRows()).toBe(4);
   });
@@ -1214,14 +1214,14 @@ describe('AutoFill', () => {
 
     $(document.documentElement).simulate('mousemove', ev);
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(5);
 
     ev.clientY = $lastRow.offset().top + 150;
     $(document.documentElement).simulate('mousemove', ev);
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(6);
   });
@@ -1253,7 +1253,7 @@ describe('AutoFill', () => {
 
     $(document.documentElement).simulate('mousemove', ev);
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(4);
   });
@@ -1844,7 +1844,7 @@ describe('AutoFill', () => {
       '.ht_master tbody tr:nth-child(3) td:nth-of-type(2)'
     ).simulate('mouseover').simulate('mouseup');
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     expect(errorSpy.test).not.toHaveBeenCalled();
 

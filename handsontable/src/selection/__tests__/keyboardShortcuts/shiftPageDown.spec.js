@@ -364,25 +364,25 @@ describe('Selection extending', () => {
       // select and scroll the viewport in that way the cell highlight is in the middle of the table viewport
       await selectCell(4, 1);
 
-      await waitForNameAnimationFrames(2);
+      await waitForNextAnimationFrames(2);
 
       await keyDownUp(['shift', 'pagedown']);
 
-      await waitForNameAnimationFrames(2);
+      await waitForNextAnimationFrames(2);
 
       expect(getSelectedRangeLast().to.row).toBe(tableView().getFirstFullyVisibleRow() + 4);
 
-      await waitForNameAnimationFrames(2);
+      await waitForNextAnimationFrames(2);
 
       await keyDownUp(['shift', 'pagedown']);
 
-      await waitForNameAnimationFrames(2);
+      await waitForNextAnimationFrames(2);
 
       expect(getSelectedRangeLast().to.row).toBe(tableView().getFirstFullyVisibleRow() + 4);
 
       await keyDownUp(['shift', 'pagedown']);
 
-      await waitForNameAnimationFrames(2);
+      await waitForNextAnimationFrames(2);
 
       expect(getSelectedRangeLast().to.row).toBe(tableView().getFirstFullyVisibleRow() + 4);
     });

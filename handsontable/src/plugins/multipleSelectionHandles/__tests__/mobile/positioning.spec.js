@@ -62,7 +62,7 @@ describe('MultipleSelectionHandles', () => {
 
       await selectCell(1, 1);
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       const cellFrom = $(getCell(1, 1));
       const cellTo = spec().$container.find('tbody tr:eq(1) td:eq(3)');
@@ -75,7 +75,7 @@ describe('MultipleSelectionHandles', () => {
       await triggerTouchEvent('touchmove', cellTo[0]);
       await triggerTouchEvent('touchend', cellTo[0]);
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       const topSelectionHandle = spec().$container
         .find('.ht_master .htBorders div:last-child .topSelectionHandle');
@@ -109,7 +109,7 @@ describe('MultipleSelectionHandles', () => {
 
       await selectCell(1, 1);
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       const cellFrom = $(getCell(1, 1));
       const cellTo = spec().$container.find('tbody tr:eq(3) td:eq(1)');
@@ -122,7 +122,7 @@ describe('MultipleSelectionHandles', () => {
       await triggerTouchEvent('touchmove', cellTo[0]);
       await triggerTouchEvent('touchend', cellTo[0]);
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       const topSelectionHandle = spec().$container
         .find('.ht_master .htBorders div:last-child .topSelectionHandle');

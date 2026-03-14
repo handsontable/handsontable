@@ -103,7 +103,7 @@ describe('Hook', () => {
 
       await setDataAtCell(2, 0, 123);
 
-      await waitForNameAnimationFrames(7); // wait for async validation
+      await waitForNextAnimationFrames(7); // wait for async validation
 
       expect(result).toBe(999);
     });
@@ -145,7 +145,7 @@ describe('Hook', () => {
 
       await setDataAtCell(2, 0, 123);
 
-      await waitForNameAnimationFrames(7); // wait for async validation
+      await waitForNextAnimationFrames(7); // wait for async validation
 
       expect(result).toBe(999);
     });

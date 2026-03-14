@@ -9,11 +9,11 @@ import {
   isFunction,
   fastCall,
 } from 'handsontable/helpers/function';
-import { sleep, waitForNameAnimationFrames } from '../../../test/helpers/common';
+import { sleep, waitForNextAnimationFrames } from '../../../test/helpers/common';
 
 describe('Function helper', () => {
-  describe('waitForNameAnimationFrames', () => {
-    it('should wait for the requested amount of animation frames', async() => {
+  describe('waitForNextAnimationFrames', () => {
+    it('should wait for max 2 animation frames', async() => {
       const originalRequestAnimationFrame = window.requestAnimationFrame;
       const requestAnimationFrameSpy = jasmine.createSpy('requestAnimationFrame').and.callFake((callback) => {
         callback();
@@ -24,9 +24,9 @@ describe('Function helper', () => {
       try {
         window.requestAnimationFrame = requestAnimationFrameSpy;
 
-        await waitForNameAnimationFrames(3);
+        await waitForNextAnimationFrames(3);
 
-        expect(requestAnimationFrameSpy.calls.count()).toBe(3);
+        expect(requestAnimationFrameSpy.calls.count()).toBe(2);
       } finally {
         window.requestAnimationFrame = originalRequestAnimationFrame;
       }

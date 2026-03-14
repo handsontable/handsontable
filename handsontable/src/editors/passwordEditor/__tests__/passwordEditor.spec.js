@@ -40,7 +40,7 @@ describe('PasswordEditor', () => {
     expect(editor.isOpened()).toBe(true);
 
     await selectCell(1, 0);
-    await waitForNameAnimationFrames(2);
+    await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(false);
   });
@@ -359,7 +359,7 @@ describe('PasswordEditor', () => {
     editor.value = 'wwwwwwwwwwwwwwwwww'; // "w" is wider than password dots
 
     await keyDownUp('w'); // trigger editor autoresize
-    await waitForNameAnimationFrames(1);
+    await waitForNextAnimationFrames(1);
 
     expect(editor.style.width).forThemes(({ classic, main, horizon }) => {
       classic.toBe('97px');
@@ -474,7 +474,7 @@ describe('PasswordEditor', () => {
     await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
 
     const activeElement = getActiveEditor().TEXTAREA;
 
@@ -486,7 +486,7 @@ describe('PasswordEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -545,7 +545,7 @@ describe('PasswordEditor', () => {
       await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
-      await waitForNameAnimationFrames(4);
+      await waitForNextAnimationFrames(4);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

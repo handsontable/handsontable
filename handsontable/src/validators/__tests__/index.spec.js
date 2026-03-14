@@ -34,12 +34,12 @@ describe('validators', () => {
     });
 
     await setDataAtCell(1, 0, 10);
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(7);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, 10, 1, 0);
 
     await setDataAtCell(2, 0, 2);
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(7);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, 2, 2, 0);
   });

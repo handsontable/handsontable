@@ -238,9 +238,9 @@ describe('StretchColumns', () => {
       expect(getMaster().find('.wtHider').width()).toBe(window.innerWidth);
     }
 
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
     document.body.style.overflowY = 'scroll';
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
 
     {
       const columnWidth = (window.innerWidth - 15) / 3;
@@ -271,9 +271,9 @@ describe('StretchColumns', () => {
       expect(getMaster().find('.wtHider').width()).toBe(window.innerWidth - 15);
     }
 
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
     document.body.style.overflowY = 'hidden';
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
 
     {
       const columnWidth = window.innerWidth / 3;
@@ -401,7 +401,7 @@ describe('StretchColumns', () => {
       colHeaders: true,
     });
 
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
 
     expect($('.handsontable .ht_master table').outerWidth()).toBe(680);
   });

@@ -25,37 +25,37 @@ describe('The beforeOnCellMouseOver hook', () => {
     const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(1)');
 
     $('body').simulate('mouseover');
-    await waitForNameAnimationFrames();
+    await waitForNextAnimationFrames();
 
     $colHeader.simulate('mouseover');
-    await waitForNameAnimationFrames();
+    await waitForNextAnimationFrames();
 
     $colHeader.simulate('mouseout');
-    await waitForNameAnimationFrames();
+    await waitForNextAnimationFrames();
 
     $('body').simulate('mouseover');
-    await waitForNameAnimationFrames();
+    await waitForNextAnimationFrames();
 
     $('body').simulate('mouseout');
-    await waitForNameAnimationFrames();
+    await waitForNextAnimationFrames();
 
     $colHeader.simulate('mouseover');
-    await waitForNameAnimationFrames();
+    await waitForNextAnimationFrames();
 
     $colHeader.simulate('mouseout');
-    await waitForNameAnimationFrames();
+    await waitForNextAnimationFrames();
 
     getMaster().find('tbody tr:eq(0) td:eq(1)').simulate('mouseover');
-    await waitForNameAnimationFrames();
+    await waitForNextAnimationFrames();
 
     getMaster().find('tbody tr:eq(0) td:eq(1)').simulate('mouseout');
-    await waitForNameAnimationFrames();
+    await waitForNextAnimationFrames();
 
     getMaster().find('tbody tr:eq(0) td:eq(2)').simulate('mouseover');
-    await waitForNameAnimationFrames();
+    await waitForNextAnimationFrames();
 
     getMaster().find('tbody tr:eq(0) td:eq(2)').simulate('mouseout');
-    await waitForNameAnimationFrames();
+    await waitForNextAnimationFrames();
 
     expect(spy).toHaveBeenCalledTimes(4);
   });

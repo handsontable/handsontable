@@ -64,7 +64,7 @@ describe('ContextMenu', () => {
         docInside.documentElement.scrollTop = 500;
         docInside.documentElement.scrollLeft = 500;
 
-        await waitForNameAnimationFrames(25);
+        await waitForNextAnimationFrames(25);
 
         const cell = hot.getCell(2, 2);
 

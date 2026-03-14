@@ -1192,7 +1192,7 @@ describe('MergeCells', () => {
       expect(secondCollection.style.display.indexOf('none')).toEqual(-1);
 
       await validateCells();
-      await waitForNameAnimationFrames(19);
+      await waitForNextAnimationFrames(19);
 
       expect(onAfterValidate).toHaveBeenCalled();
 

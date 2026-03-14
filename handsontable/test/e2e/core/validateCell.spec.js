@@ -22,7 +22,7 @@ describe('Core.validateCell', () => {
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
     await validateCell(getDataAtCell(1, 1), getCellMeta(1, 1), () => {});
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);

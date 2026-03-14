@@ -15,7 +15,7 @@ describe('DOM helpers', () => {
       element.style.display = 'none';
       element.style.display = 'block';
 
-      await waitForNameAnimationFrames(7);
+      await waitForNextAnimationFrames(7);
 
       expect(callbackSpy).toHaveBeenCalledTimes(1);
 

@@ -50,7 +50,7 @@ describe('NestedRows', () => {
 
       getPlugin('undoRedo').undo();
 
-      await waitForNameAnimationFrames(4);
+      await waitForNextAnimationFrames(4);
 
       expect(onErrorSpy).not.toHaveBeenCalled();
     });

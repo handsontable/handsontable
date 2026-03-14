@@ -57,7 +57,7 @@ describe('HandsontableEditor', () => {
     expect(editor.isOpened()).toBe(true);
 
     await selectCell(1, 0);
-    await waitForNameAnimationFrames(2);
+    await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(false);
   });
@@ -798,7 +798,7 @@ describe('HandsontableEditor', () => {
       await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
-      await waitForNameAnimationFrames(4);
+      await waitForNextAnimationFrames(4);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

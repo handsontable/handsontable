@@ -27,7 +27,7 @@ describe('Events', () => {
 
     await triggerTouchEvent('touchstart', cell);
 
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(7);
 
     expect(getSelected()).toBeDefined();
     expect(afterOnCellMouseDown).toHaveBeenCalled();
@@ -52,7 +52,7 @@ describe('Events', () => {
     await triggerTouchEvent('touchstart', cell);
     await triggerTouchEvent('touchend', cell);
 
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(7);
 
     expect(getSelected()).toBeDefined();
     expect(onCellDblClick).toHaveBeenCalled();
@@ -136,7 +136,7 @@ describe('Events', () => {
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
 
-    await waitForNameAnimationFrames(38); // To prevents double-click detection (emulation)
+    await waitForNextAnimationFrames(38); // To prevents double-click detection (emulation)
 
     // Second touch
     await simulateTouch(linkElement);
@@ -151,7 +151,7 @@ describe('Events', () => {
     // First touch
     await simulateTouch(anotherCell);
 
-    await waitForNameAnimationFrames(35); // To prevents double-click detection (emulation)
+    await waitForNextAnimationFrames(35); // To prevents double-click detection (emulation)
 
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);

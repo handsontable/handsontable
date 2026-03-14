@@ -1606,7 +1606,7 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
 
       await selectCell(-2, 30);
       await keyDownUp('arrowleft'); // "G"
@@ -1726,7 +1726,7 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
 
       await selectCell(-1, 20);
 

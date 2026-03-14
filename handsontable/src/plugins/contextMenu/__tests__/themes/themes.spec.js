@@ -21,7 +21,7 @@ describe('Context menu theme handling', () => {
 
     await contextMenu();
 
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
 
     expect($(getPlugin('contextMenu').menu.container).parent().hasClass('ht-theme-sth')).toBe(true);
     expect(getPlugin('contextMenu').menu.hotMenu.getCurrentThemeName()).toBe('ht-theme-sth');
@@ -38,7 +38,7 @@ describe('Context menu theme handling', () => {
 
     await contextMenu();
 
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
 
     expect($(getPlugin('contextMenu').menu.container).parent().hasClass('ht-theme-sth-else')).toBe(true);
     expect(getPlugin('contextMenu').menu.hotMenu.getCurrentThemeName()).toBe('ht-theme-sth-else');

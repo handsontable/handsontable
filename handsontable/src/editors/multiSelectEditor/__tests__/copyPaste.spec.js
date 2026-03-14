@@ -51,13 +51,13 @@ describe('MultiSelectEditor copy & paste', () => {
       copyPastePlugin.onCopy(copyEvent);
 
       await selectCell(1, 1);
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
 
       copyPastePlugin.onPaste(copyEvent);
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
 
       await keyDownUp('enter');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
 
       const $dropdown = $('.ht-multi-select-editor');
 

@@ -28,7 +28,7 @@ describe('Core.validateCells', () => {
       validateCells();
     }).not.toThrow();
 
-    await waitForNameAnimationFrames(7); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
@@ -77,7 +77,7 @@ describe('Core.validateCells', () => {
 
     await validateCells(onValidate);
 
-    await waitForNameAnimationFrames(7); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(onValidate).toHaveBeenCalledWith(true);
   });
@@ -96,7 +96,7 @@ describe('Core.validateCells', () => {
 
     await validateCells(onValidate);
 
-    await waitForNameAnimationFrames(7); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(onValidate).toHaveBeenCalledWith(false);
   });
@@ -121,7 +121,7 @@ describe('Core.validateCells', () => {
       render();
     });
 
-    await waitForNameAnimationFrames(7); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);

@@ -130,7 +130,7 @@ describe('EmptyDataState', () => {
       pagination: true,
     });
 
-    await waitForNameAnimationFrames(1);
+    await waitForNextAnimationFrames(1);
 
     expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
   });
@@ -151,7 +151,7 @@ describe('EmptyDataState', () => {
       pagination: true,
     });
 
-    await waitForNameAnimationFrames(1);
+    await waitForNextAnimationFrames(1);
 
     expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
   });
@@ -258,7 +258,7 @@ describe('EmptyDataState', () => {
         height: 'auto',
       });
 
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
 
       const borderBottomWidth = getComputedStyle(getEmptyDataStateContainerElement()).borderBottomWidth;
 
@@ -273,7 +273,7 @@ describe('EmptyDataState', () => {
         height: 'auto',
       });
 
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
 
       const borderBottomWidth = getComputedStyle(getEmptyDataStateContainerElement()).borderBottomWidth;
 

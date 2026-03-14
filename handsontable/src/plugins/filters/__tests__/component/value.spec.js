@@ -26,7 +26,7 @@ describe('Filters UI Value component', () => {
       .toBe('Filter by value:');
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuValue .htUIMultipleSelect')).not.toBeNull();
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     // The filter components should be intact after some time. These expectations check whether the GhostTable
     // does not steal the components' element while recalculating column width (PR #5555).
@@ -96,7 +96,7 @@ describe('Filters UI Value component', () => {
 
     await dropdownMenu(2);
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox')
       .simulate('mousedown')
@@ -109,7 +109,7 @@ describe('Filters UI Value component', () => {
     $(byValueBoxRootElement()).find('tr:nth-child(6) :checkbox').simulate('mouseover');
     $(byValueBoxRootElement()).find('tr:nth-child(7) :checkbox').simulate('mouseover');
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     expect($(byValueBoxRootElement()).find('.ht_master .wtHolder').scrollTop()).toBe(0);
   });
@@ -334,7 +334,7 @@ describe('Filters UI Value component', () => {
     });
 
     await dropdownMenu(0);
-    await waitForNameAnimationFrames(2);
+    await waitForNextAnimationFrames(2);
 
     // deselect "E, F"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot tr:nth-of-type(2) td input'))
@@ -343,17 +343,17 @@ describe('Filters UI Value component', () => {
 
     await selectCell(toPhysicalRow(0), 1);
     await keyDownUp('enter');
-    await waitForNameAnimationFrames(1);
+    await waitForNextAnimationFrames(1);
 
     const $dropdown = $('.ht-multi-select-editor');
     const $checkboxes = $dropdown.find('input[type="checkbox"]');
 
     $checkboxes.eq(3).simulate('click');
 
-    await waitForNameAnimationFrames(2);
+    await waitForNextAnimationFrames(2);
 
     await dropdownMenu(0);
-    await waitForNameAnimationFrames(2);
+    await waitForNextAnimationFrames(2);
 
     expect(Array.from(document.querySelectorAll('.htUIMultipleSelectHot td label')).filter(
       el => el.textContent === 'E,F'
@@ -380,28 +380,28 @@ describe('Filters UI Value component', () => {
 
     await dropdownMenu(1);
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     // deselect "(Blank cells)"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
     await dropdownMenu(2);
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     // deselect "Alamo"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
     await dropdownMenu(1);
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     // select "(Blank cells)"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
     await dropdownMenu(2);
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('Alamo');
   });
@@ -419,7 +419,7 @@ describe('Filters UI Value component', () => {
     await dropdownMenu(1);
     byValueMultipleSelect().element.querySelector('input').focus();
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     await keyDownUp('escape');
 
@@ -439,7 +439,7 @@ describe('Filters UI Value component', () => {
 
     await dropdownMenu(1);
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     byValueMultipleSelect().focus();
     await keyDownUp('escape');

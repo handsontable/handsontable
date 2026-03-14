@@ -35,7 +35,7 @@ describe('NumericRenderer with ContextMenu', () => {
 
     menu.simulate('mouseover');
 
-    await waitForNameAnimationFrames(19);
+    await waitForNextAnimationFrames(19);
 
     const contextSubMenu = $(`.htContextMenuSub_${menu.text()}`).find('tbody td').eq(0);
 

@@ -39,7 +39,7 @@ describe('TextEditor', () => {
     expect(editor.isOpened()).toBe(true);
 
     await selectCell(1, 0);
-    await waitForNameAnimationFrames(2);
+    await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(false);
   });
@@ -986,7 +986,7 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
       classic.toBe('27px');
@@ -1568,10 +1568,10 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
 
     await simulateClick(getCell(0, 0));
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(7);
 
     await simulateClick(getCell(0, 0));
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(7);
 
     const editor = getActiveEditor();
 
@@ -1587,10 +1587,10 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
 
     await simulateClick(getCell(0, 0), 'MMB');
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(7);
 
     await simulateClick(getCell(0, 0), 'MMB');
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(7);
 
     const editor = getActiveEditor();
 
@@ -1606,10 +1606,10 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
 
     await simulateClick(getCell(0, 0), 'RMB');
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(7);
 
     await simulateClick(getCell(0, 0), 'RMB');
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(7);
 
     const editor = getActiveEditor();
 
@@ -1956,7 +1956,7 @@ describe('TextEditor', () => {
     });
 
     await render();
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
 
     // corner
     await scrollWindowBy(300, 300);
@@ -2219,7 +2219,7 @@ describe('TextEditor', () => {
     });
 
     await selectCell(1, 1);
-    await waitForNameAnimationFrames(1); // for some reason the sleep is needed here
+    await waitForNextAnimationFrames(1); // for some reason the sleep is needed here
     await keyDownUp('enter');
 
     const $editorInput = $('.handsontableInput');
@@ -2324,7 +2324,7 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
 
     const activeElement = getActiveEditor().TEXTAREA;
 
@@ -2336,7 +2336,7 @@ describe('TextEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    await waitForNameAnimationFrames(13);
+    await waitForNextAnimationFrames(13);
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -2385,7 +2385,7 @@ describe('TextEditor', () => {
     destroyEditor();
     document.activeElement.value = '999';
 
-    await waitForNameAnimationFrames(1);
+    await waitForNextAnimationFrames(1);
 
     expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     expect(isEditorVisible()).toBe(true);
@@ -2705,7 +2705,7 @@ describe('TextEditor', () => {
       await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
-      await waitForNameAnimationFrames(4);
+      await waitForNextAnimationFrames(4);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

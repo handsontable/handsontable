@@ -915,7 +915,7 @@ describe('Selection using mouse interaction', () => {
 
     spec().$container.find('.ht_clone_top thead th:eq(6)').simulate('mouseover'); // Header `L`
 
-    await waitForNameAnimationFrames(2);
+    await waitForNextAnimationFrames(2);
 
     expect(getSelected()).toEqual([[12, 11, 0, 11]]);
     expect(`
@@ -964,7 +964,7 @@ describe('Selection using mouse interaction', () => {
       .simulate('mouseover')
       .simulate('mouseup');
 
-    await waitForNameAnimationFrames(2);
+    await waitForNextAnimationFrames(2);
 
     expect(getSelected()).toEqual([[12, 11, 12, 0]]);
     expect(`

@@ -34,7 +34,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(editorTextarea.getAttribute('aria-controls')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
 
     await keyDownUp('enter');
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
 
     expect(editorTextarea.getAttribute('aria-expanded')).toEqual('true');
     expect(editorTextarea.getAttribute('aria-activedescendant')).toEqual(
@@ -55,7 +55,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await selectCell(0, 0);
     await keyDownUp('enter');
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
 
     const editor = getActiveEditor();
     const editorHot = editor.htEditor;
@@ -88,7 +88,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await selectCell(0, 0);
     await keyDownUp('enter');
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
 
     const editor = getActiveEditor();
     const editorHot = editor.htEditor;
@@ -111,7 +111,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await selectCell(0, 0);
     await keyDownUp('enter');
-    await waitForNameAnimationFrames(4);
+    await waitForNextAnimationFrames(4);
 
     const editor = getActiveEditor();
     const editorHot = editor.htEditor;

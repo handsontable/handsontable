@@ -21,7 +21,7 @@ describe('AutocompleteRenderer', () => {
     });
 
     await setDataAtCell(2, 2, 'string');
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(7);
 
     const html = getCell(2, 2).innerHTML;
 

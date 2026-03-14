@@ -117,7 +117,7 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
 
-      await waitForNameAnimationFrames(32);
+      await waitForNextAnimationFrames(32);
 
       await selectCell(-1, 1);
 
@@ -146,7 +146,7 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
 
-      await waitForNameAnimationFrames(32);
+      await waitForNextAnimationFrames(32);
       await selectCell(1, -1);
 
       plugin.copyCellsOnly();
@@ -174,7 +174,7 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
 
-      await waitForNameAnimationFrames(32);
+      await waitForNextAnimationFrames(32);
       await selectCell(-1, -1);
 
       plugin.copyCellsOnly();
@@ -438,7 +438,7 @@ describe('CopyPaste', () => {
       const expectedResult = getDataAtRow(0).join('\t');
 
       await selectCells([[0, 0, 0, 49]]);
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
 
       const copyEvent = getClipboardEvent({
         target: document.activeElement,

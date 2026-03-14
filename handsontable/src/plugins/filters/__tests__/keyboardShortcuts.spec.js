@@ -149,7 +149,7 @@ describe('Filters keyboard shortcut', () => {
 
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
 
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
 
       await keyDownUp(['Control/Meta', 'A']);
 
@@ -182,25 +182,25 @@ describe('Filters keyboard shortcut', () => {
       document.querySelector('.htUIClearAll a').focus();
 
       await keyDownUp('enter');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
       await keyDownUp('enter');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(8);
 
       document.querySelector('.htUIClearAll a').focus();
 
       await keyDownUp('space');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
       await keyDownUp('space');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(8);
     });
 
@@ -225,25 +225,25 @@ describe('Filters keyboard shortcut', () => {
       document.querySelector('.htUIClearAll a').focus();
 
       await keyDownUp('enter');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
       await keyDownUp('enter');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(8);
 
       document.querySelector('.htUIClearAll a').focus();
 
       await keyDownUp('space');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
       await keyDownUp('space');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(8);
     });
 
@@ -268,25 +268,25 @@ describe('Filters keyboard shortcut', () => {
       document.querySelector('.htUIClearAll a').focus();
 
       await keyDownUp('enter');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
       await keyDownUp('enter');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(8);
 
       document.querySelector('.htUIClearAll a').focus();
 
       await keyDownUp('space');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
       await keyDownUp('space');
-      await waitForNameAnimationFrames(1);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(8);
     });
   });
