@@ -37,7 +37,7 @@ describe('ContextMenu', () => {
       contextMenu: ['remove_row']
     });
 
-    await sleep(300);
+    await waitForNameAnimationFrames(19);
     await contextMenu();
 
     items = $('.htContextMenu tbody td');
@@ -61,7 +61,7 @@ describe('ContextMenu', () => {
       }
     });
 
-    await sleep(300);
+    await waitForNameAnimationFrames(19);
     await contextMenu();
 
     items = $('.htContextMenu tbody td');
@@ -95,7 +95,7 @@ describe('ContextMenu', () => {
       const $menu = $('.htContextMenu');
 
       await contextMenu();
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
 
       expect($menu.find('.wtHider').width()).toEqual(215);
       expect($menu.width()).forThemes(({ classic, main, horizon }) => {
@@ -122,7 +122,7 @@ describe('ContextMenu', () => {
       const $menu = $('.htContextMenu');
 
       await contextMenu();
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
 
       expect($menu.find('.wtHider').width()).toBeGreaterThanOrEqual(355);
     });
@@ -147,13 +147,13 @@ describe('ContextMenu', () => {
       });
 
       await contextMenu();
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
 
       const $item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1);
 
       $item.simulate('mouseover');
 
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
 
       const $contextSubMenu = $(`.htContextMenuSub_${$item.text()}`);
 
@@ -577,7 +577,7 @@ describe('ContextMenu', () => {
 
       plugin.enablePlugin();
 
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
       await contextMenu();
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
@@ -602,7 +602,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
       await contextMenu();
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
@@ -758,7 +758,7 @@ describe('ContextMenu', () => {
 
       item.simulate('mouseover');
 
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
 
       const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
 
@@ -778,7 +778,7 @@ describe('ContextMenu', () => {
 
       item.simulate('mouseover');
 
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
 
       expect(getPlugin('contextMenu').menu.hotSubMenus.alignment.hotMenu.getSelected()).toBeUndefined();
     });
@@ -830,7 +830,7 @@ describe('ContextMenu', () => {
 
       $submenu.simulate('mouseover');
 
-      await sleep(350);
+      await waitForNameAnimationFrames(22);
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -882,19 +882,19 @@ describe('ContextMenu', () => {
 
       $submenu1.simulate('mouseover');
 
-      await sleep(350);
+      await waitForNameAnimationFrames(22);
 
       const $submenu2 = $('.htSubmenu').eq(1);
 
       $submenu2.simulate('mouseover');
 
-      await sleep(350);
+      await waitForNameAnimationFrames(22);
 
       const $submenu3 = $('.htSubmenu').eq(2);
 
       $submenu3.simulate('mouseover');
 
-      await sleep(350);
+      await waitForNameAnimationFrames(22);
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -1686,7 +1686,7 @@ describe('ContextMenu', () => {
         .simulate('mouseout');
 
       // wait for a debounced delay in the appearing sub-menu
-      await sleep(500);
+      await waitForNameAnimationFrames(32);
 
       $('.htContextMenuSub_Alignment .ht_master .htCore tbody td')
         .not('.htSeparator')
@@ -2121,7 +2121,7 @@ describe('ContextMenu', () => {
       spyOn(window, '__testFunction');
 
       await contextMenu();
-      await sleep(10);
+      await waitForNameAnimationFrames(1);
 
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').html())
         .toBe('<div class="htItemWrapper"><img src=""> XSS item</div>');
@@ -2149,7 +2149,7 @@ describe('ContextMenu', () => {
       spyOn(window, '__testFunction');
 
       await contextMenu();
-      await sleep(10);
+      await waitForNameAnimationFrames(1);
 
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').html())
         .toBe('<div class="htItemWrapper"><img src=""> XSS item</div>');
@@ -2604,7 +2604,7 @@ describe('ContextMenu', () => {
       expect(hot2.getPlugin('contextMenu').isEnabled()).toBe(false);
 
       await contextMenu();
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
@@ -2700,11 +2700,11 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(2, 2));
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       await contextMenu(getCell(2, 2));
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(getActiveEditor().isOpened()).toBe(true);
     });
@@ -2833,7 +2833,7 @@ describe('ContextMenu', () => {
       await selectCell(2, 4);
       await contextMenu();
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       const cmInstance = getPlugin('contextMenu').menu.hotMenu;
 
@@ -2865,13 +2865,13 @@ describe('ContextMenu', () => {
       await selectCell(0, 0);
       await contextMenu();
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(cb.calls.count()).toBe(1);
 
       await contextMenu();
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(cb.calls.count()).toBe(2);
     });
@@ -2895,7 +2895,7 @@ describe('ContextMenu', () => {
 
       await contextMenu();
 
-      await sleep(200);
+      await waitForNameAnimationFrames(13);
 
       const $menu = $('.htContextMenu .ht_master .htCore');
 
@@ -2922,13 +2922,13 @@ describe('ContextMenu', () => {
       await selectCell(0, 0);
       await contextMenu();
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(cb.calls.count()).toBe(1);
 
       await contextMenu();
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(cb.calls.count()).toBe(2);
     });
@@ -2950,7 +2950,7 @@ describe('ContextMenu', () => {
 
       await contextMenu();
 
-      await sleep(200);
+      await waitForNameAnimationFrames(13);
 
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
@@ -2978,7 +2978,7 @@ describe('ContextMenu', () => {
 
       await contextMenu();
 
-      await sleep(200);
+      await waitForNameAnimationFrames(13);
 
       expect(keys).toEqual(['make_read_only', 'col_left']);
 

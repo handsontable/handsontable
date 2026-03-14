@@ -136,7 +136,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      await sleep(getFocusManager().getRefocusDelay());
+      await waitForNameAnimationFrames((getFocusManager().getRefocusDelay()) / 16);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
 
@@ -148,7 +148,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      await sleep(getFocusManager().getRefocusDelay());
+      await waitForNameAnimationFrames((getFocusManager().getRefocusDelay()) / 16);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
     });
@@ -170,7 +170,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      await sleep(getFocusManager().getRefocusDelay());
+      await waitForNameAnimationFrames((getFocusManager().getRefocusDelay()) / 16);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -198,7 +198,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      await sleep(getFocusManager().getRefocusDelay());
+      await waitForNameAnimationFrames((getFocusManager().getRefocusDelay()) / 16);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -214,7 +214,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      await sleep(getFocusManager().getRefocusDelay());
+      await waitForNameAnimationFrames((getFocusManager().getRefocusDelay()) / 16);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -252,7 +252,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      await sleep(getFocusManager().getRefocusDelay());
+      await waitForNameAnimationFrames((getFocusManager().getRefocusDelay()) / 16);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA_ALTERNATIVE);
     });
@@ -277,7 +277,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      await sleep(defaultDelay);
+      await waitForNameAnimationFrames((defaultDelay) / 16);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -285,7 +285,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      await sleep(defaultDelay);
+      await waitForNameAnimationFrames((defaultDelay) / 16);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
     });

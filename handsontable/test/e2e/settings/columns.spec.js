@@ -223,7 +223,7 @@ describe('settings', () => {
           });
 
           await setDataAtCell(0, 0, '');
-          await sleep(100);
+          await waitForNameAnimationFrames(7);
 
           expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date');
         });

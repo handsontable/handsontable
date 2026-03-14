@@ -78,7 +78,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $checkboxes = $dropdown.find('input[type="checkbox"]');
@@ -102,7 +102,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $checkboxes = $dropdown.find('input[type="checkbox"]');
@@ -130,7 +130,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
 
@@ -162,7 +162,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $checkboxes = $dropdown.find('input[type="checkbox"]');
@@ -191,7 +191,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
 
@@ -230,7 +230,7 @@ describe('MultiSelectEditor', () => {
 
           await selectCell(0, 0);
           await keyDownUp('enter');
-          await sleep(10);
+          await waitForNameAnimationFrames(1);
 
           expect(getActiveEditor().dropdownController.isFlippedVertically()).toBe(false);
           expect($('.ht-multi-select-editor').offset().top)
@@ -259,7 +259,7 @@ describe('MultiSelectEditor', () => {
 
           await selectCell(10, 0);
           await keyDownUp('enter');
-          await sleep(10);
+          await waitForNameAnimationFrames(1);
 
           expect(getActiveEditor().dropdownController.isFlippedVertically()).toBe(true);
           expect($('.ht-multi-select-editor').offset().top)
@@ -280,16 +280,16 @@ describe('MultiSelectEditor', () => {
 
           await selectCell(0, 0);
           await keyDownUp('enter');
-          await sleep(10);
+          await waitForNameAnimationFrames(1);
 
           const $dropdownFirst = $('.ht-multi-select-editor');
           const itemsBeforeEsc = Array.from($dropdownFirst.find('li label')).map(label => label.textContent);
 
           await keyDownUp('escape');
-          await sleep(10);
+          await waitForNameAnimationFrames(1);
 
           await keyDownUp('enter');
-          await sleep(10);
+          await waitForNameAnimationFrames(1);
 
           const $dropdownSecond = $('.ht-multi-select-editor');
           const itemsAfterReopen = Array.from($dropdownSecond.find('li label')).map(label => label.textContent);
@@ -317,7 +317,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         let $dropdown = $('.ht-multi-select-editor');
         let $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
@@ -325,7 +325,7 @@ describe('MultiSelectEditor', () => {
         expect($checkbox.prop('checked')).toBe(false);
 
         await simulateClick($checkbox);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($checkbox.prop('checked')).toBe(true);
         expect(getSourceDataAtCell(0, 0)).toEqual([choices[0]]);
@@ -336,7 +336,7 @@ describe('MultiSelectEditor', () => {
         expect($checkbox.prop('checked')).toBe(false);
 
         await simulateClick($checkbox);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($checkbox.prop('checked')).toBe(true);
         expect(getSourceDataAtCell(0, 0)).toEqual([choices[0], choices[1]]);
@@ -360,7 +360,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
@@ -369,7 +369,7 @@ describe('MultiSelectEditor', () => {
 
         await simulateClick($yellowCheckbox);
         await simulateClick($redCheckbox);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($dropdown.find('input[type="checkbox"]:checked').length).toBe(2);
 
@@ -382,7 +382,7 @@ describe('MultiSelectEditor', () => {
         });
 
         await simulateClick($orangeCheckbox);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($orangeCheckbox.prop('checked')).toBe(false);
       });
@@ -403,7 +403,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
@@ -412,14 +412,14 @@ describe('MultiSelectEditor', () => {
 
         await simulateClick($yellowCheckbox);
         await simulateClick($redCheckbox);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         $dropdown.find('input[type="checkbox"]:not(:checked)').each(function() {
           expect($(this)[0].getAttribute('data-disabled')).toBe('true');
         });
 
         await simulateClick($yellowCheckbox);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($yellowCheckbox.prop('checked')).toBe(false);
 
@@ -428,7 +428,7 @@ describe('MultiSelectEditor', () => {
         });
 
         await simulateClick($orangeCheckbox);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($orangeCheckbox.prop('checked')).toBe(true);
         expect($dropdown.find('input[type="checkbox"]:checked').length).toBe(2);
@@ -452,7 +452,7 @@ describe('MultiSelectEditor', () => {
 
           await selectCell(0, 0);
           await keyDownUp('enter');
-          await sleep(10);
+          await waitForNameAnimationFrames(1);
 
           const editor = getActiveEditor();
           const $dropdown = $('.ht-multi-select-editor');
@@ -461,7 +461,7 @@ describe('MultiSelectEditor', () => {
 
           await simulateClick($yellowCheckbox);
           await simulateClick($redCheckbox);
-          await sleep(10);
+          await waitForNameAnimationFrames(1);
 
           expect($dropdown.find('input[type="checkbox"]:checked').length).toBe(2);
 
@@ -470,7 +470,7 @@ describe('MultiSelectEditor', () => {
           input.value = 'a';
           input.focus();
           input.dispatchEvent(new Event('input', { bubbles: true }));
-          await sleep(10);
+          await waitForNameAnimationFrames(1);
 
           const $filteredDropdown = $('.ht-multi-select-editor');
           const $visibleCheckboxes = $filteredDropdown.find('input[type="checkbox"]');
@@ -484,7 +484,7 @@ describe('MultiSelectEditor', () => {
           const $orangeCheckbox = $filteredDropdown.find('input[type="checkbox"][data-value="orange"]');
 
           await simulateClick($orangeCheckbox);
-          await sleep(10);
+          await waitForNameAnimationFrames(1);
 
           expect($orangeCheckbox.prop('checked')).toBe(false);
           expect($orangeCheckbox[0].getAttribute('data-disabled')).toBe('true');
@@ -495,13 +495,13 @@ describe('MultiSelectEditor', () => {
 
           $yellowCheckbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
           await simulateClick($yellowCheckbox);
-          await sleep(10);
+          await waitForNameAnimationFrames(1);
 
           expect($yellowCheckbox.prop('checked')).toBe(false);
           expect($yellowCheckbox[0].getAttribute('data-disabled')).toBe('false');
 
           await simulateClick($orangeCheckbox);
-          await sleep(10);
+          await waitForNameAnimationFrames(1);
 
           expect($orangeCheckbox.prop('checked')).toBe(true);
           expect($orangeCheckbox[0].getAttribute('data-disabled')).toBe('false');
@@ -529,7 +529,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const editor = getActiveEditor();
         const $htContainer = $('.ht-multi-select-editor');
@@ -541,7 +541,7 @@ describe('MultiSelectEditor', () => {
         input.value = 'Y';
         input.focus();
         input.dispatchEvent(new Event('input', { bubbles: true }));
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const items = Array.from($htContainer.find('li label')).map(label => label.textContent);
 
@@ -568,7 +568,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const editor = getActiveEditor();
         const $htContainer = $('.ht-multi-select-editor');
@@ -580,7 +580,7 @@ describe('MultiSelectEditor', () => {
         input.value = 'Y';
         input.focus();
         input.dispatchEvent(new Event('input', { bubbles: true }));
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const items = Array.from($htContainer.find('li label')).map(label => label.textContent);
 
@@ -615,7 +615,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const items = Array.from($dropdown.find('li label')).map(label => label.textContent);
@@ -652,7 +652,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const dropdown = $('.ht-multi-select-editor')[0];
         const bottomOfDropdown = dropdown.getBoundingClientRect().top + dropdown.getBoundingClientRect().height;
@@ -678,7 +678,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const dropdown = $('.ht-multi-select-editor')[0];
         const bottomOfDropdown = dropdown.getBoundingClientRect().top + dropdown.getBoundingClientRect().height;
@@ -709,7 +709,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $searchInput = $dropdown.find('.ht-multi-select-editor-search-input');
@@ -735,7 +735,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $searchInput = $dropdown.find('.ht-multi-select-editor-search-input');
@@ -758,7 +758,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('Y');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $searchInput = $dropdown.find('.ht-multi-select-editor-search-input');
@@ -787,7 +787,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('space');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $searchInput = $dropdown.find('.ht-multi-select-editor-search-input');
@@ -814,7 +814,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('#', { extend: { key: '#', keyCode: 226 } });
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $searchInput = $dropdown.find('.ht-multi-select-editor-search-input');
@@ -841,7 +841,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('Y');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const visibleItems = Array.from($dropdown.find('li label')).map(label => label.textContent);
@@ -866,7 +866,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('Y');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const visibleItems = Array.from($dropdown.find('li label')).map(label => label.textContent);
@@ -893,7 +893,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('Y');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const visibleCount = $dropdown.find('li').length;
@@ -915,7 +915,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('space');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const visibleCount = $dropdown.find('li').length;
@@ -937,7 +937,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('#', { extend: { key: '#', keyCode: 226 } });
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const visibleCount = $dropdown.find('li').length;
@@ -962,7 +962,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
@@ -971,13 +971,13 @@ describe('MultiSelectEditor', () => {
         expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
 
         await simulateClick($checkbox);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($checkbox.prop('checked')).toBe(true);
         expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(1);
 
         await simulateClick($checkbox);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($checkbox.prop('checked')).toBe(false);
         expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
@@ -1000,7 +1000,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
@@ -1010,13 +1010,13 @@ describe('MultiSelectEditor', () => {
         expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
 
         await simulateClick($label);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($checkbox.prop('checked')).toBe(true);
         expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(1);
 
         await simulateClick($label);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($checkbox.prop('checked')).toBe(false);
         expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
@@ -1037,7 +1037,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const $checkbox = $dropdown.find('input[type="checkbox"][data-value="yellow"]');
@@ -1047,13 +1047,13 @@ describe('MultiSelectEditor', () => {
         expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
 
         await simulateClick($listItem);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($checkbox.prop('checked')).toBe(true);
         expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(1);
 
         await simulateClick($listItem);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($checkbox.prop('checked')).toBe(false);
         expect($dropdown.find('li.ht-multi-select-editor-item-selected').length).toBe(0);
@@ -1076,7 +1076,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         expect($('.ht-multi-select-editor')[0].clientWidth).toEqual(120);
       });
@@ -1096,7 +1096,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const dropdownWidth = $dropdown.outerWidth();
@@ -1128,7 +1128,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         let $dropdown = $('.ht-multi-select-editor');
         let $checkedCheckboxes = $dropdown.find('input[type="checkbox"]:checked');
@@ -1145,7 +1145,7 @@ describe('MultiSelectEditor', () => {
         const removeButton = visibleChips.eq(0).find('.ht-multi-select-chip-remove');
 
         removeButton.click();
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         $dropdown = $('.ht-multi-select-editor');
         $checkedCheckboxes = $dropdown.find('input[type="checkbox"]:checked');
@@ -1180,7 +1180,7 @@ describe('MultiSelectEditor', () => {
 
         await selectCell(0, 1);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         let $dropdown = $('.ht-multi-select-editor');
         let $checkedCheckboxes = $dropdown.find('input[type="checkbox"]:checked');
@@ -1197,10 +1197,10 @@ describe('MultiSelectEditor', () => {
         const removeButton = visibleChips.eq(0).find('.ht-multi-select-chip-remove');
 
         removeButton.click();
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         getCell(0, 0).click();
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         $dropdown = $('.ht-multi-select-editor');
         $checkedCheckboxes = $dropdown.find('input[type="checkbox"]:checked');
@@ -1229,21 +1229,21 @@ describe('MultiSelectEditor', () => {
         // Open the editor on instance 1 then close it without selecting anything
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
         await keyDownUp('escape');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         // Open the editor on instance 2
         hot2.selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         // Click the label of the first checkbox in instance 2's dropdown
         const $dropdown2 = $(hot2.rootElement).find('.ht-multi-select-editor');
         const $label2 = $dropdown2.find('label').first();
 
         await simulateClick($label2);
-        await sleep(10);
+        await waitForNameAnimationFrames(1);
 
         // The value should be saved to instance 2's cell
         expect(hot2.getSourceDataAtCell(0, 0)).toEqual([choices[0]]);

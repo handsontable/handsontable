@@ -68,7 +68,7 @@ describe('AutoRowSize', () => {
 
     const oldHeight = spec().$container[0].scrollHeight;
 
-    await sleep(200);
+    await waitForNameAnimationFrames(13);
 
     const newHeight = spec().$container[0].scrollHeight;
 
@@ -92,7 +92,7 @@ describe('AutoRowSize', () => {
 
     await setDataAtCell(150, 0, 'This is very long text which will break this cell text into two lines');
 
-    await sleep(200);
+    await waitForNameAnimationFrames(13);
 
     const newHeight = spec().$container[0].scrollHeight;
 
@@ -147,7 +147,7 @@ describe('AutoRowSize', () => {
         autoRowSize: true
       });
 
-      await sleep(200);
+      await waitForNameAnimationFrames(13);
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
@@ -165,7 +165,7 @@ describe('AutoRowSize', () => {
         autoRowSize: true
       });
 
-      await sleep(200);
+      await waitForNameAnimationFrames(13);
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
@@ -183,7 +183,7 @@ describe('AutoRowSize', () => {
         autoRowSize: true
       });
 
-      await sleep(200);
+      await waitForNameAnimationFrames(13);
 
       const newHeight = spec().$container[0].scrollHeight;
 
@@ -202,7 +202,7 @@ describe('AutoRowSize', () => {
         autoRowSize: true
       });
 
-      await sleep(200);
+      await waitForNameAnimationFrames(13);
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
@@ -222,7 +222,7 @@ describe('AutoRowSize', () => {
       autoRowSize: true
     });
 
-    await sleep(200);
+    await waitForNameAnimationFrames(13);
     spec().$container.css('display', 'block');
     await render();
 
@@ -310,7 +310,7 @@ describe('AutoRowSize', () => {
 
     await selectCell(4, 0);
     await keyDownUp('enter');
-    await sleep(100);
+    await waitForNameAnimationFrames(7);
     await keyDownUp('enter');
 
     expect(getInlineStartClone().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
@@ -723,7 +723,7 @@ describe('AutoRowSize', () => {
       autoRowSize: true,
     });
 
-    await sleep(300);
+    await waitForNameAnimationFrames(19);
 
     const cloneLeft = spec().$container.find('.handsontable.ht_clone_inline_start .wtHider');
 

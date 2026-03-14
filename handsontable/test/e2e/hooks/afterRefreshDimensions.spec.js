@@ -21,7 +21,7 @@ describe('Hook', () => {
         afterRefreshDimensions,
       });
 
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
       hot.rootElement.style.width = '200px';
 
       expect(afterRefreshDimensions.calls.count()).toBe(1);
@@ -36,7 +36,7 @@ describe('Hook', () => {
       });
 
       hot.rootElement.style.width = '200px';
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
 
       expect(afterRefreshDimensions).toHaveBeenCalledWith(
         { width: 120, height: 100 },
@@ -54,7 +54,7 @@ describe('Hook', () => {
       });
 
       hot.rootElement.style.width = '120px';
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
 
       expect(afterRefreshDimensions).toHaveBeenCalledWith(
         { width: 120, height: 100 },
@@ -72,7 +72,7 @@ describe('Hook', () => {
       });
 
       hot.rootElement.style.display = 'none';
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
 
       expect(afterRefreshDimensions).not.toHaveBeenCalled();
     });
@@ -87,7 +87,7 @@ describe('Hook', () => {
       });
 
       document.body.style.display = 'none';
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
 
       expect(afterRefreshDimensions).not.toHaveBeenCalled();
 
@@ -105,7 +105,7 @@ describe('Hook', () => {
         afterRefreshDimensions,
       });
 
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
       hot.rootElement.style.width = '200px';
 
       expect(window.requestAnimationFrame).toHaveBeenCalledTimes(1);
@@ -131,7 +131,7 @@ describe('Hook', () => {
         afterRefreshDimensions,
       });
 
-      await sleep(6000);
+      await waitForNameAnimationFrames(375);
 
       expect(afterRefreshDimensions).toHaveBeenCalledTimes(300);
       // eslint-disable-next-line no-console
@@ -165,7 +165,7 @@ describe('Hook', () => {
 
         this.$iframeContainer = $('<div/>').appendTo(doc.body);
 
-        await sleep(50); // wait for iframe to load to prevent double resize events
+        await waitForNameAnimationFrames(4); // wait for iframe to load to prevent double resize events
       });
 
       afterEach(function() {
@@ -182,7 +182,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].width = '50px';
 
-        await sleep(50);
+        await waitForNameAnimationFrames(4);
 
         expect(afterRefreshDimensions.calls.count()).toBe(1);
       });
@@ -196,7 +196,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].width = '50px';
 
-        await sleep(50);
+        await waitForNameAnimationFrames(4);
 
         expect(afterRefreshDimensions).forThemes(({ classic, main, horizon }) => {
           classic.toHaveBeenCalledWith(
@@ -228,7 +228,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].width = '50px';
 
-        await sleep(50);
+        await waitForNameAnimationFrames(4);
 
         expect(afterRefreshDimensions).toHaveBeenCalledWith(
           { width: 300, height: 300 },

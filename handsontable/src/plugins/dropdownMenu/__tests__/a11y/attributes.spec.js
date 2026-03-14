@@ -36,7 +36,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await dropdownMenu(0);
 
-    await sleep(50);
+    await waitForNameAnimationFrames(4);
 
     expect(getPlugin('dropdownMenu').menu.container.getAttribute('role')).toEqual('menu');
   });
@@ -159,13 +159,13 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     $expandableItem.simulate('mouseover');
 
-    await sleep(300);
+    await waitForNameAnimationFrames(19);
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toEqual('true');
 
     $unExpandableItem.simulate('mouseover');
 
-    await sleep(50);
+    await waitForNameAnimationFrames(4);
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toEqual('false');
   });

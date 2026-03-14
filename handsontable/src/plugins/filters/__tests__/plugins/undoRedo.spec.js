@@ -94,7 +94,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Begins with');
 
-    await sleep(20);
+    await waitForNameAnimationFrames(2);
     document.activeElement.value = 'R';
     await keyUp('R');
 
@@ -112,7 +112,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Begins with');
 
-    await sleep(20);
+    await waitForNameAnimationFrames(2);
     document.activeElement.value = '';
     await keyUp('Backspace');
 

@@ -979,7 +979,7 @@ describe('ColumnSummarySpec', () => {
         ]
       });
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(resetAllEndpointsSpy).not.toHaveBeenCalled();
     });
@@ -1009,7 +1009,7 @@ describe('ColumnSummarySpec', () => {
         ]
       });
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(resetAllEndpointsSpy).not.toHaveBeenCalled();
     });
@@ -1048,7 +1048,7 @@ describe('ColumnSummarySpec', () => {
           }
         }
 
-        await sleep(300);
+        await waitForNameAnimationFrames(19);
 
         toggle(0);
 

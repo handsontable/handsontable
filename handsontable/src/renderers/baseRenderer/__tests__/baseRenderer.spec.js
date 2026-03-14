@@ -111,7 +111,7 @@ describe('CellDecorator', () => {
     });
 
     await setDataAtCell(0, 2, 'non-numeric value');
-    await sleep(100);
+    await waitForNameAnimationFrames(7);
 
     expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
   });

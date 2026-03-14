@@ -81,7 +81,7 @@ describe('Focus Manager', () => {
       });
 
       await selectCell(0, 0);
-      await sleep(10);
+      await waitForNameAnimationFrames(1);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
       expect(getActiveEditor().TEXTAREA.value).toEqual('A1');
@@ -124,7 +124,7 @@ describe('Focus Manager', () => {
 
       getFocusManager().focusOnHighlightedCell();
 
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
 
       expect(spy.test.calls.count()).toBe(0);
 
@@ -155,12 +155,12 @@ describe('Focus Manager', () => {
       getFocusManager().setRefocusDelay(50);
 
       await selectCell(0, 0);
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
 
       await selectCell(0, 1);
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
     });

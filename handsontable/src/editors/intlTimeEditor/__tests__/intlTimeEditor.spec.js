@@ -51,7 +51,7 @@ describe('IntlTimeEditor', () => {
 
     editor.finishEditing();
 
-    await sleep(30);
+    await waitForNameAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(false);
   });
@@ -120,7 +120,7 @@ describe('IntlTimeEditor', () => {
     await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
-    await sleep(55);
+    await waitForNameAnimationFrames(4);
 
     const activeElement = getActiveEditor().TEXTAREA;
 
@@ -132,7 +132,7 @@ describe('IntlTimeEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    await sleep(200);
+    await waitForNameAnimationFrames(13);
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -240,7 +240,7 @@ describe('IntlTimeEditor', () => {
 
       await selectCell(0, 0, 0, 0, true, false);
       // The `imeFastEdit` timeout is set to 50ms.
-      await sleep(55);
+      await waitForNameAnimationFrames(4);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

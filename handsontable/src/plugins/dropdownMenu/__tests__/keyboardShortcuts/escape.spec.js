@@ -35,7 +35,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       await openDropdownSubmenuOption('Alignment');
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
       await keyDownUp('arrowdown');
 
       expect($('.htDropdownMenuSub_Alignment').is(':visible')).toBe(true);

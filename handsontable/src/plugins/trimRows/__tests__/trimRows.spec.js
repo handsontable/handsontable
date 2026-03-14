@@ -295,7 +295,7 @@ describe('TrimRows', () => {
     });
 
     await loadData(createSpreadsheetData(10, 10));
-    await sleep(100);
+    await waitForNameAnimationFrames(7);
 
     expect(spec().$container.find('td').length).toEqual(100);
   });
@@ -318,7 +318,7 @@ describe('TrimRows', () => {
         ['E1', 'E2'],
       ]);
 
-      await sleep(150);
+      await waitForNameAnimationFrames(10);
       const $addedCell = $(getCell(5, 1));
 
       expect($addedCell.hasClass('htInvalid')).toEqual(true);
@@ -807,7 +807,7 @@ describe('TrimRows', () => {
         height: 300
       });
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       await alter('insert_row_above', 2, 1);
 
@@ -838,7 +838,7 @@ describe('TrimRows', () => {
         height: 300
       });
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       await alter('insert_row_above', 2, 1);
 
@@ -884,7 +884,7 @@ describe('TrimRows', () => {
         trimRows: [2, 3]
       });
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
@@ -917,7 +917,7 @@ describe('TrimRows', () => {
 
       await setDataAtCell(9, 0, 'test');
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
@@ -950,7 +950,7 @@ describe('TrimRows', () => {
 
       await setDataAtCell(0, 0, 'test');
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(getData()).toEqual([
         ['test', 'B1', 'C1'],
@@ -962,7 +962,7 @@ describe('TrimRows', () => {
 
       await setDataAtCell(4, 0, 'test');
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(getData()).toEqual([
         ['test', 'B1', 'C1'],
@@ -995,7 +995,7 @@ describe('TrimRows', () => {
 
       await setDataAtCell(3, 0, 'test');
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(getData()).toEqual([
         ['A3', 'B3', 'C3'],
@@ -1025,7 +1025,7 @@ describe('TrimRows', () => {
 
       await setDataAtCell(3, 0, 'test');
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(getData()).toEqual([
         [null, null, null],

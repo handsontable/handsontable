@@ -535,7 +535,7 @@ describe('DropdownEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       const container = getActiveEditor().htContainer;
 
@@ -565,7 +565,7 @@ describe('DropdownEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       const container = getActiveEditor().htContainer;
 
@@ -596,7 +596,7 @@ describe('DropdownEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       const container = getActiveEditor().htContainer;
 
@@ -644,17 +644,17 @@ describe('DropdownEditor', () => {
       const editor = getActiveEditor();
       const htContainer = editor.htContainer;
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
       await simulateClick(htContainer.querySelector('.wtHolder'));
 
       htContainer.querySelector('.wtHolder').scrollTo(0, 40);
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       await keyDownUp('a');
       await keyDownUp('a');
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(Handsontable.dom.getCaretPosition(getActiveEditor().TEXTAREA)).toBe(6);
     });
@@ -678,7 +678,7 @@ describe('DropdownEditor', () => {
 
       await selectCell(0, 0);
       await mouseDoubleClick(getCell(0, 0));
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
 
       const dropdown = getActiveEditor().htContainer;
 
@@ -687,7 +687,7 @@ describe('DropdownEditor', () => {
       expect($(dropdown).is(':visible')).toBe(true);
 
       await selectCell(0, 0);
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
       await mouseDoubleClick(getCell(0, 0));
 
       await scrollViewportVertically(3);
@@ -709,7 +709,7 @@ describe('DropdownEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
 
       const editor = $('.handsontableInput');
 
@@ -718,7 +718,7 @@ describe('DropdownEditor', () => {
       await keyDownUp('r');
       await keyDownUp('a');
 
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
 
       spec().$container.find('tbody tr:eq(1) td:eq(2)').simulate('mousedown');
 
@@ -743,7 +743,7 @@ describe('DropdownEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
 
       const editor = $('.handsontableInput');
 
@@ -771,7 +771,7 @@ describe('DropdownEditor', () => {
     });
 
     await populateFromArray(0, 0, [['invalid'], ['input']], null, null, 'paste');
-    await sleep(40);
+    await waitForNameAnimationFrames(3);
 
     expect(Handsontable.dom.hasClass(getCell(0, 0), 'htInvalid')).toBe(true);
     expect(Handsontable.dom.hasClass(getCell(1, 0), 'htInvalid')).toBe(true);
@@ -797,7 +797,7 @@ describe('DropdownEditor', () => {
     await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
-    await sleep(55);
+    await waitForNameAnimationFrames(4);
 
     const activeElement = getActiveEditor().TEXTAREA;
 
@@ -809,7 +809,7 @@ describe('DropdownEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    await sleep(200);
+    await waitForNameAnimationFrames(13);
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -841,7 +841,7 @@ describe('DropdownEditor', () => {
 
     await selectCell(0, 0);
     await keyDownUp('enter');
-    await sleep(10);
+    await waitForNameAnimationFrames(1);
 
     const editor = getActiveEditor();
     const activeElement = getActiveEditor().TEXTAREA;
@@ -868,7 +868,7 @@ describe('DropdownEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
 
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
@@ -902,7 +902,7 @@ describe('DropdownEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(50);
+      await waitForNameAnimationFrames(4);
 
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
@@ -969,7 +969,7 @@ describe('DropdownEditor', () => {
       await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
-      await sleep(55);
+      await waitForNameAnimationFrames(4);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

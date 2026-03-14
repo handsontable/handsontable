@@ -93,7 +93,7 @@ describe('CopyPaste', () => {
       await selectCell(3, 4); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNameAnimationFrames(4);
 
       const expected = arrayOfArrays();
 
@@ -113,7 +113,7 @@ describe('CopyPaste', () => {
       await selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNameAnimationFrames(4);
 
       expect(getData().length).toEqual(4);
       expect(getData(0, 0, 2, 4)).toEqual([
@@ -135,7 +135,7 @@ describe('CopyPaste', () => {
       await selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNameAnimationFrames(4);
 
       expect(getData().length).toEqual(6);
       expect(getData(0, 0, 2, 4)).toEqual([
@@ -157,7 +157,7 @@ describe('CopyPaste', () => {
       await selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNameAnimationFrames(4);
 
       expect(getData()[0].length).toEqual(5);
       expect(getDataAtRow(1)).toEqual(['Kia', 'Nissan', 'Toyota', '2008', 10]);
@@ -175,7 +175,7 @@ describe('CopyPaste', () => {
       await selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNameAnimationFrames(4);
       expect(getData()[0].length).toEqual(9);
       expect(getDataAtRow(1)).toEqual(['Kia', 'Nissan', 'Toyota', '2008', 10, 11, 12, 13, null]);
     });
@@ -203,7 +203,7 @@ describe('CopyPaste', () => {
         errors += 1;
       }
 
-      await sleep(60);
+      await waitForNameAnimationFrames(4);
 
       expect(errors).toEqual(0);
     });
@@ -239,16 +239,16 @@ describe('CopyPaste', () => {
 
       triggerPaste(copiedData1);
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
       await selectCell(1, 0, 2, 0);
       triggerPaste(copiedData2);
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual(copiedData2);
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual(copiedData2);
@@ -276,7 +276,7 @@ describe('CopyPaste', () => {
 
       triggerPaste(copiedData);
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
@@ -297,7 +297,7 @@ describe('CopyPaste', () => {
       await keyDownUp(['control/meta', 'v']);
       triggerPaste('Kia');
 
-      await sleep(60);
+      await waitForNameAnimationFrames(4);
 
       expect(beforePasteSpy.calls.count()).toEqual(1);
       expect(beforePasteSpy).toHaveBeenCalledWith(
@@ -323,7 +323,7 @@ describe('CopyPaste', () => {
       await keyDownUp(['control/meta', 'v']);
       triggerPaste('Kia');
 
-      await sleep(60);
+      await waitForNameAnimationFrames(4);
 
       expect(afterPasteSpy.calls.count()).toEqual(0);
     });
@@ -340,7 +340,7 @@ describe('CopyPaste', () => {
       await keyDownUp(['control/meta', 'v']);
       triggerPaste('Kia\nToyota');
 
-      await sleep(60);
+      await waitForNameAnimationFrames(4);
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('Toyota');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
@@ -681,7 +681,7 @@ describe('CopyPaste', () => {
 
       plugin.onPaste(clipboardEvent);
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(onErrorSpy).not.toHaveBeenCalled();
       expect(window.__testFunction).not.toHaveBeenCalled();
@@ -713,7 +713,7 @@ describe('CopyPaste', () => {
 
       plugin.onPaste(clipboardEvent);
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(onErrorSpy).not.toHaveBeenCalled();
       expect(window.__testFunction).not.toHaveBeenCalled();
@@ -859,7 +859,7 @@ describe('CopyPaste', () => {
       const plugin = getPlugin('CopyPaste');
 
       await selectCells([[0, 0, 0, 49]]);
-      await sleep(10);
+      await waitForNameAnimationFrames(1);
 
       const pasteEvent = getClipboardEvent({
         target: document.activeElement,

@@ -23,7 +23,7 @@ describe('IntlTimeType - allowEmpty', () => {
     expect(getCell(0, 0).innerText).toBe('');
 
     await setDataAtCell(0, 0, '');
-    await sleep(10);
+    await waitForNameAnimationFrames(1);
 
     expect(getCell(0, 0).innerText).toBe('');
   });
@@ -39,7 +39,7 @@ describe('IntlTimeType - allowEmpty', () => {
     expect(getCell(0, 0).innerText).toBe('#bad-value#');
 
     await setDataAtCell(0, 0, '');
-    await sleep(10);
+    await waitForNameAnimationFrames(1);
 
     expect(getCell(0, 0).innerText).toBe('#bad-value#');
   });

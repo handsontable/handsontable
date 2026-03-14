@@ -173,7 +173,7 @@ describe('Selection', () => {
 
     mainHolder.scrollTop = 120;
 
-    await sleep(100);
+    await waitForNameAnimationFrames(7);
 
     expect(errCount).toEqual(0); // expect no errors to be thrown
 
@@ -196,7 +196,7 @@ describe('Selection', () => {
 
     mainHolder.scrollTop = 100;
 
-    await sleep(20);
+    await waitForNameAnimationFrames(2);
     await selectCell(1, 3);
     await keyDownUp('arrowdown');
 
@@ -204,7 +204,7 @@ describe('Selection', () => {
 
     mainHolder.scrollTop = 100;
 
-    await sleep(20);
+    await waitForNameAnimationFrames(2);
     await selectCell(1, 3);
     await keyDownUp(['shift', 'arrowdown']);
 
@@ -374,14 +374,14 @@ describe('Selection', () => {
       minSpareRows: 1
     });
 
-    await sleep(10);
+    await waitForNameAnimationFrames(1);
     await selectCell(4, 0);
     await keyDownUp('enter');
 
-    await sleep(90);
+    await waitForNameAnimationFrames(6);
     await keyDownUp('enter');
 
-    await sleep(100);
+    await waitForNameAnimationFrames(7);
     expect(countRows()).toEqual(6);
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
     expect(`
@@ -546,7 +546,7 @@ describe('Selection', () => {
 
     spec().$container.find('.ht_clone_top thead').find('th').eq(0).simulate('mousedown');
 
-    await sleep(100);
+    await waitForNameAnimationFrames(7);
 
     expect(onAfterScrollVertically).toHaveBeenCalledTimes(0);
     expect(onAfterScrollHorizontally).toHaveBeenCalledTimes(0);
@@ -1805,7 +1805,7 @@ describe('Selection', () => {
 
       iframeHot.selectCell(1, 1);
 
-      await sleep(100);
+      await waitForNameAnimationFrames(7);
 
       expect(spec().$iframeContainer.find('.wtBorder.current')[0].style.top).forThemes(({ classic, main, horizon }) => {
         classic.toEqual('26px');

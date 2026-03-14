@@ -103,7 +103,7 @@ describe('settings', () => {
           fixedColumnsStart: 2
         });
 
-        await sleep(100);
+        await waitForNameAnimationFrames(7);
         await scrollViewportTo({
           row: 30,
           col: 30,
@@ -305,7 +305,7 @@ describe('settings', () => {
           fixedColumnsLeft: 2
         });
 
-        await sleep(100);
+        await waitForNameAnimationFrames(7);
         await scrollViewportTo({
           row: 30,
           col: 30,

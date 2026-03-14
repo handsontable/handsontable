@@ -205,7 +205,7 @@ describe('NestedRows', () => {
 
     await alter('remove_row', 2);
 
-    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+    await waitForNameAnimationFrames(0); // There is a timeout in the `onAfterRemoveRow` callback.
 
     expect(getData()).toEqual([
       ['Best Rock Performance', null, null, null],
@@ -214,13 +214,13 @@ describe('NestedRows', () => {
 
     await alter('remove_row', 1);
 
-    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+    await waitForNameAnimationFrames(0); // There is a timeout in the `onAfterRemoveRow` callback.
 
     expect(getData()).toEqual([['Best Rock Performance', null, null, null]]);
 
     await alter('remove_row', 0);
 
-    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+    await waitForNameAnimationFrames(0); // There is a timeout in the `onAfterRemoveRow` callback.
 
     expect(getData()).toEqual([]);
   });
@@ -404,7 +404,7 @@ describe('NestedRows', () => {
       nestedRows: true
     });
 
-    await sleep(50);
+    await waitForNameAnimationFrames(4);
 
     // The plugin is disabled after being initialized with the wrong type of dataset.
     getPlugin('nestedRows').enablePlugin();
@@ -419,7 +419,7 @@ describe('NestedRows', () => {
       nestedRows: true
     });
 
-    await sleep(50);
+    await waitForNameAnimationFrames(4);
 
     await loadData(getMoreComplexNestedData().slice(0, 1));
     expect(countRows()).toEqual(7);

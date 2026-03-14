@@ -152,19 +152,19 @@ describe('Formulas: Integration with other features', () => {
 
       expect(countRows()).toBe(4);
 
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
 
       expect(countRows()).toBe(5);
 
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
 
       expect(countRows()).toBe(6);
 
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseup');
 
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
 
       expect(getData()).toEqual([
         ['test', 2, 'TEST', 4, 5, 6],
@@ -221,7 +221,7 @@ describe('Formulas: Integration with other features', () => {
 
       const formulasPlugin = getPlugin('formulas');
 
-      await sleep(300);
+      await waitForNameAnimationFrames(19);
 
       expect(getData()).toEqual([
         [null, null, null, null, null],

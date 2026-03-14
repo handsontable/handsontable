@@ -35,7 +35,7 @@ describe('Filters', () => {
 
     window.dispatchEvent(new Event('resize'));
 
-    await sleep(100);
+    await waitForNameAnimationFrames(7);
 
     expect(document.activeElement).toBe(input);
   });
