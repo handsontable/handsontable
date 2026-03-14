@@ -106,6 +106,11 @@ export function waitForNextAnimationFrames(framesToWait = 1) {
 }
 
 /**
+ * Wait for the next animation frames.
+ *
+ * @param {number} [framesToWait=1] The number of animation frames to wait for.
+ * @returns {Promise<void>}
+ *
  * @deprecated Use waitForNextAnimationFrames instead.
  */
 export function waitForNameAnimationFrames(framesToWait = 1) {
