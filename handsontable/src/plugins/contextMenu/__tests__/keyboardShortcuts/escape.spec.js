@@ -33,7 +33,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
 
       await openContextSubmenuOption('Alignment');
-      await waitForNameAnimationFrames(19);
+      await sleep(300);
       await keyDownUp('arrowdown');
 
       expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(true);
