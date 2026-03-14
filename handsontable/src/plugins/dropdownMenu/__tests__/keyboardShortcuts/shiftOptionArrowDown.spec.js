@@ -80,7 +80,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       await sleep(50);
 
       const menu = getPlugin('dropdownMenu').menu.hotMenu;
-      const firstItem = menu.getCell(0, -1);
+      const firstItem = menu.getCell(0, 0);
 
       expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(true);
       expect(firstItem).not.toBeNull();

@@ -129,8 +129,8 @@ await page.exposeFunction('jasmineDone', async() => {
 });
 
 await page.exposeFunction('agentDebugLog', (payload) => {
-  // #region agent log
-  appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify(payload)}\n`);
+  // #region agent log (disabled)
+  //appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify(payload)}\n`);
   // #endregion
 });
 

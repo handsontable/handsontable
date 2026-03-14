@@ -1012,6 +1012,12 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // Skip engine sync when there are no changes (e.g. populateFromArray on readOnly cells).
+    // Otherwise engine.batch() would push an empty undo step and undo would revert the wrong action (#dev-2136).
+    if (!changes?.length) {
+      return;
+    }
+
     const outOfBoundsChanges: unknown[][] = [];
     const changedCells: unknown[] = [];
 

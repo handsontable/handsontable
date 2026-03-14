@@ -312,7 +312,7 @@ export class DropdownMenu extends BasePlugin {
         // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
         // will block the Esc key for the whole menu.
         this.menu.getNavigator().toFirstItem();
-        const firstItem = this.menu.hotMenu?.getCell(0, -1);
+        const firstItem = this.menu.hotMenu?.getCell(0, 0);
 
         // #region agent log
         (this.hot.rootWindow as {
@@ -485,10 +485,10 @@ export class DropdownMenu extends BasePlugin {
     if (!themeName || !themeName.includes('horizon')) {
       return position;
     }
-    // RTL default needs -12 so menu left matches e2e expected position (912 vs 920 with -4)
+    // RTL: horizon theme menu left alignment (e2e expects ~912; -4 matches, -12 was 8px short).
     const leftCorrection = this.hot.isLtr()
       ? (menuOpensOnLeft ? -4 : 4)
-      : (menuOpensOnLeft ? 4 : -12);
+      : (menuOpensOnLeft ? 4 : -4);
     return {
       top: position.top - 4,
       left: position.left + leftCorrection,

@@ -45,6 +45,7 @@ export class DataChangeAction extends BaseAction {
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     const plugin = undoRedoPlugin as UndoRedoPluginLike;
 
+    // Run after other beforeChange hooks (e.g. user's) so we see nullified entries and only record effective changes.
     hot.addHook('beforeChange', function(this: HotInstance, changes: unknown[], source: string) {
       const changesLen = changes && changes.length;
 
@@ -52,8 +53,17 @@ export class DataChangeAction extends BaseAction {
         return;
       }
 
-      const hasDifferences = changes.find((change: unknown) => {
-        const [, , oldValue, newValue] = change as unknown[];
+      // Only record changes that were not nullified by other beforeChange hooks (e.g. user setting changes[i] = null).
+      const effectiveChanges = (changes as (unknown[] | null)[]).filter(
+        (change): change is unknown[] => change != null && Array.isArray(change)
+      );
+
+      if (effectiveChanges.length === 0) {
+        return;
+      }
+
+      const hasDifferences = effectiveChanges.find((change: unknown[]) => {
+        const [, , oldValue, newValue] = change;
 
         return oldValue !== newValue;
       });
@@ -69,22 +79,24 @@ export class DataChangeAction extends BaseAction {
           source,
           changesLen,
           hasDifferences: Boolean(hasDifferences),
-          firstChange: Array.isArray(changes[0]) ? changes[0].slice(0, 4) : null,
+          firstChange: effectiveChanges[0]?.slice(0, 4) ?? null,
         },
         timestamp: Date.now(),
       });
       // #endregion
 
+      const effectiveLen = effectiveChanges.length;
+
       const wrappedAction = () => {
-        const clonedChanges = changes.map(
-          (change: unknown) => [...(change as unknown[])]
+        const clonedChanges = effectiveChanges.map(
+          (change: unknown[]) => [...change]
         );
 
         clonedChanges.forEach((change: unknown[]) => {
           change[1] = hot.propToCol(change[1] as string | number);
         });
 
-        const selected = changesLen > 1
+        const selected = effectiveLen > 1
           ? (this.getSelected() as unknown[])
           : [[clonedChanges[0][0], clonedChanges[0][1]]];
 
@@ -97,7 +109,7 @@ export class DataChangeAction extends BaseAction {
       };
 
       plugin.done(wrappedAction, source);
-    });
+    }, 1000);
   }
 
   /**
