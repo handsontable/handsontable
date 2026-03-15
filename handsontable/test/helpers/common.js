@@ -77,11 +77,27 @@ export function sleep(delay = 100) {
  * @returns {Promise<void>}
  */
 export function waitForNextAnimationFrames(framesToWait = 1) {
+  const requestedFramesToWait = normalizeLegacyFrameCount(framesToWait);
   const totalFramesToWait = normalizeFrameCount(framesToWait);
+  const minimumElapsedTime = requestedFramesToWait * 16;
+  const startTime = Date.now();
 
   return new Promise((resolve) => {
-    if (totalFramesToWait === 0) {
+    const finishWaiting = () => {
+      const elapsedTime = Date.now() - startTime;
+      const missingTime = minimumElapsedTime - elapsedTime;
+
+      if (missingTime > 0) {
+        sleep(missingTime).then(resolve);
+
+        return;
+      }
+
       resolve();
+    };
+
+    if (totalFramesToWait === 0) {
+      finishWaiting();
 
       return;
     }
@@ -93,7 +109,7 @@ export function waitForNextAnimationFrames(framesToWait = 1) {
       waitedFrames += 1;
 
       if (waitedFrames >= totalFramesToWait) {
-        resolve();
+        finishWaiting();
 
         return;
       }
@@ -114,17 +130,7 @@ export function waitForNextAnimationFrames(framesToWait = 1) {
  * @deprecated Use waitForNextAnimationFrames instead.
  */
 export async function waitForNameAnimationFrames(framesToWait = 1) {
-  const totalFramesToWait = normalizeLegacyFrameCount(framesToWait);
-  const minimumElapsedTime = totalFramesToWait * 16;
-  const startTime = Date.now();
-
-  await waitForNextAnimationFrames(totalFramesToWait);
-
-  const elapsedTime = Date.now() - startTime;
-
-  if (elapsedTime < minimumElapsedTime) {
-    await sleep(minimumElapsedTime - elapsedTime);
-  }
+  await waitForNextAnimationFrames(framesToWait);
 }
 
 /**

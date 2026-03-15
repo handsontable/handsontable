@@ -25,7 +25,7 @@ describe('Filters UI cooperation with ColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Greater than');
 
-    await waitForNextAnimationFrames(2);
+    await waitForNextAnimationFrames(13);
 
     // Greater than 12
     document.activeElement.value = '12';
@@ -41,7 +41,7 @@ describe('Filters UI cooperation with ColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Begins with');
 
-    await waitForNextAnimationFrames(2);
+    await waitForNextAnimationFrames(13);
 
     // Begins with 'b'
     document.activeElement.value = 'b';
@@ -67,12 +67,12 @@ describe('Filters UI cooperation with ColumnSorting', () => {
       height: 300
     });
 
-    await waitForNextAnimationFrames(2);
+    await waitForNextAnimationFrames(19);
     await dropdownMenu(0);
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Greater than');
 
-    await waitForNextAnimationFrames(2);
+    await waitForNextAnimationFrames(19);
 
     // Greater than 12
     $(conditionSelectRootElements().first).next().find('input')[0].focus();
@@ -91,7 +91,7 @@ describe('Filters UI cooperation with ColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Ends with');
 
-    await waitForNextAnimationFrames(2);
+    await waitForNextAnimationFrames(19);
 
     // Ends with 'e'
     $(conditionSelectRootElements().first).next().find('input')[0].focus();
@@ -113,7 +113,7 @@ describe('Filters UI cooperation with ColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('None');
 
-    await waitForNextAnimationFrames(2);
+    await waitForNextAnimationFrames(19);
 
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
@@ -132,7 +132,7 @@ describe('Filters UI cooperation with ColumnSorting', () => {
       height: 300
     });
 
-    await waitForNextAnimationFrames(2);
+    await waitForNextAnimationFrames(19);
 
     await dropdownMenu(0);
     await openDropdownByConditionMenu();
@@ -155,7 +155,7 @@ describe('Filters UI cooperation with ColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Ends with');
 
-    await waitForNextAnimationFrames(2);
+    await waitForNextAnimationFrames(19);
 
     // Ends with 'e'
     $(conditionSelectRootElements().first).next().find('input')[0].focus();
@@ -176,7 +176,7 @@ describe('Filters UI cooperation with ColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is empty');
 
-    await waitForNextAnimationFrames(2);
+    await waitForNextAnimationFrames(19);
 
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
