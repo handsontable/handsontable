@@ -451,14 +451,15 @@ export async function filterByCondition(
     const valueInput = page.getByRole('textbox', { name: 'Value', exact: true });
 
     await valueInput.click();
-    await valueInput.fill(value);
+    await valueInput.pressSequentially(value);
   }
 
   if (secondValue !== undefined) {
     const secondValueInput = page.getByRole('textbox', { name: 'Second value', exact: true });
 
+    await secondValueInput.waitFor({ state: 'visible' });
     await secondValueInput.click();
-    await secondValueInput.fill(secondValue);
+    await secondValueInput.pressSequentially(secondValue);
   }
 
   await page.getByRole('button', { name: 'OK' }).click();
