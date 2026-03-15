@@ -449,12 +449,14 @@ export async function filterByCondition(
 
   if (value !== undefined) {
     const valueInput = page.getByRole('textbox', { name: 'Value', exact: true });
+
     await valueInput.click();
     await valueInput.fill(value);
   }
 
   if (secondValue !== undefined) {
     const secondValueInput = page.getByRole('textbox', { name: 'Second value', exact: true });
+
     await secondValueInput.click();
     await secondValueInput.fill(secondValue);
   }

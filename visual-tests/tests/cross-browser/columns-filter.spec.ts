@@ -20,7 +20,7 @@ test('Test filtering', async({ tablePage }) => {
   await openHeaderDropdownMenu('Sell date');
   await filterByCondition(FilterConditions.IsBetween, '01/01/2020', '30/06/2020');
 
-  await expect.poll(async () => await rowsCount()).toBe(3);
+  await expect.poll(async() => rowsCount()).toBe(3);
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
