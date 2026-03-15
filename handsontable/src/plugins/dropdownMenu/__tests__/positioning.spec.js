@@ -42,7 +42,7 @@ describe('DropdownMenu', () => {
       const dropdownMenuOffset = $dropdownMenuRoot.offset();
 
       expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(139, -2);
+        classic.toBeCloseTo(142, -1);
         main.toBeCloseTo(155, -1);
         horizon.toBe(194);
       });

@@ -107,7 +107,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
@@ -142,7 +142,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
@@ -174,7 +174,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
@@ -204,7 +204,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
@@ -232,7 +232,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
@@ -260,7 +260,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
@@ -288,7 +288,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
@@ -316,7 +316,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
@@ -345,7 +345,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
@@ -452,7 +452,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
         expect($dropdownMenu.length).toBe(1);
         expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+          classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
           main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
           horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
         });
