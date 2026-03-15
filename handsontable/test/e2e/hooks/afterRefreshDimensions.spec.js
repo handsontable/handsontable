@@ -136,9 +136,9 @@ describe('Hook', () => {
       expect(afterRefreshDimensions.calls.count()).toBeGreaterThanOrEqual(300);
       expect(afterRefreshDimensions.calls.count()).toBeLessThanOrEqual(400);
       // Warning is emitted when Walkontable's ResizeObserver hits 300 callbacks; timing can vary by theme/env
-      if (console.warn.calls.count() > 0) {
-        // eslint-disable-next-line no-console
-        expect(console.warn).toHaveBeenCalledWith(
+
+      if (console.warn.calls.count() > 0) { // eslint-disable-line no-console
+        expect(console.warn).toHaveBeenCalledWith( // eslint-disable-line no-console
           jasmine.stringMatching(/ResizeObserver callback was fired too many times/)
         );
       }
