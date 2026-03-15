@@ -239,7 +239,7 @@ describe('IntlDateEditor', () => {
 
       await selectCell(0, 0, 0, 0, true, false);
       // The `imeFastEdit` timeout is set to 50ms.
-      await waitForNextAnimationFrames(2);
+      await sleep(100);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

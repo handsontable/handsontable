@@ -159,7 +159,7 @@ describe('Core_onKeyDown', () => {
       onAfterValidate.calls.reset();
 
       await keyDownUp('enter');
-      await waitForNextAnimationFrames(2); // wait for async validator
+      await sleep(64); // wait for async validator
 
       expect(onAfterValidate).toHaveBeenCalled();
       expect(getData()[1][1]).toEqual('Ted');
@@ -186,7 +186,7 @@ describe('Core_onKeyDown', () => {
       onAfterValidate.calls.reset();
 
       await keyDownUp('enter');
-      await waitForNextAnimationFrames(2); // wait for async validator
+      await sleep(64); // wait for async validator
 
       expect(onAfterValidate).toHaveBeenCalled();
       expect(getData()[1][1]).toEqual('Ted');
