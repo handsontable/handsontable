@@ -93,7 +93,7 @@ describe('DropdownMenu', () => {
 
       $item.simulate('mouseover');
 
-      await waitForNameAnimationFrames(19);
+      await waitForNextAnimationFrames(2);
 
       const $contextSubMenu = $(`.htDropdownMenuSub_${$item.text()}`);
 
@@ -732,7 +732,7 @@ describe('DropdownMenu', () => {
       });
 
       await dropdownMenu();
-      await waitForNameAnimationFrames(13);
+      await waitForNextAnimationFrames(2);
 
       const items = $('.htDropdownMenu tbody td');
       const actions = items.not('.htSeparator');
@@ -760,7 +760,7 @@ describe('DropdownMenu', () => {
       });
 
       await dropdownMenu();
-      await waitForNameAnimationFrames(13);
+      await waitForNextAnimationFrames(2);
 
       expect(keys).toEqual(['make_read_only', 'col_left']);
 

@@ -77,7 +77,7 @@ describe('CheckboxRenderer', () => {
     spec().$container.find(':checkbox').eq(2).simulate('mouseup');
     spec().$container.find(':checkbox').eq(2).simulate('click');
 
-    await waitForNameAnimationFrames(7);
+    await waitForNextAnimationFrames(2);
 
     expect(spy.test.calls.count()).toBe(0);
     expect(getSelected()).toEqual([[2, 0, 2, 0]]);
@@ -654,7 +654,7 @@ describe('CheckboxRenderer', () => {
 
       menu.simulate('mouseover');
 
-      await waitForNameAnimationFrames(32);
+      await waitForNextAnimationFrames(2);
 
       const contextSubMenu = $(`.htContextMenuSub_${menu.text()}`).find('tbody td').eq(2);
 

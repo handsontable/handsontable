@@ -37,7 +37,7 @@ describe('manualRowResize (RTL mode)', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    await waitForNameAnimationFrames(38);
+    await waitForNextAnimationFrames(2);
 
     $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80 });
@@ -47,7 +47,7 @@ describe('manualRowResize (RTL mode)', () => {
     expect($rowsHeaders.eq(2).height()).toBe(80);
     expect($rowsHeaders.eq(3).height()).toBe(80);
 
-    await waitForNameAnimationFrames(75);
+    await waitForNextAnimationFrames(2);
 
     $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
