@@ -41,4 +41,50 @@ describe('DropdownMenu', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).not.toBe(initialScrollPosition);
   });
+
+  it('should keep top overlay and master horizontally synchronized after diagonal wheel scroll and opening header menu', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 20),
+      width: 300,
+      height: 220,
+      colWidths: 100,
+      colHeaders: true,
+      rowHeaders: true,
+      dropdownMenu: true,
+    });
+
+    await scrollViewportTo({ row: 0, col: 8 });
+
+    const wheelEvt = new WheelEvent('wheel', {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+      deltaMode: 0,
+      deltaX: 120,
+      deltaY: 120,
+    });
+    const isChromeLowDensity = /Chrome/.test(navigator.userAgent) &&
+      /Google/.test(navigator.vendor) &&
+      !(tableView()._wt.rootWindow.devicePixelRatio && tableView()._wt.rootWindow.devicePixelRatio > 1);
+
+    if (isChromeLowDensity) {
+      getTopInlineStartClone().find('.wtHolder')[0].dispatchEvent(wheelEvt);
+    } else {
+      tableView()._wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
+    }
+
+    const partiallyVisibleHeader = getMaster().find('thead th')[7];
+    const button = partiallyVisibleHeader.querySelector('.changeType');
+
+    button.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    button.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
+    button.focus();
+    button.click();
+
+    const masterHolder = getMaster().find('.wtHolder')[0];
+    const topHolder = getTopClone().find('.wtHolder')[0];
+
+    expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(true);
+    expect(topHolder.scrollLeft).toBe(masterHolder.scrollLeft);
+  });
 });

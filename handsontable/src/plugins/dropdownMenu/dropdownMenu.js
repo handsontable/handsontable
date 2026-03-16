@@ -446,6 +446,8 @@ export class DropdownMenu extends BasePlugin {
    */
   #onTableClick(event) {
     if (hasClass(event.target, BUTTON_CLASS_NAME)) {
+      this.#syncOverlayScrollPositionsWithMaster();
+
       const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
       const buttonRect = this.#getButtonRect(event.target);
 
@@ -462,6 +464,33 @@ export class DropdownMenu extends BasePlugin {
         above: 0,
         below: 3,
       });
+    }
+  }
+
+  /**
+   * Synchronizes overlay holders with the current master holder scroll position.
+   *
+   * This prevents opening the dropdown menu while an in-flight native wheel scroll left
+   * the top overlay out of sync with the main table.
+   */
+  #syncOverlayScrollPositionsWithMaster() {
+    const wt = this.hot.view?._wt;
+
+    if (!wt) {
+      return;
+    }
+
+    const masterHolder = wt.wtTable.holder;
+    const masterScrollLeft = masterHolder.scrollLeft;
+    const masterScrollTop = masterHolder.scrollTop;
+    const topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
+    const inlineStartHolder = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
+
+    topHolder.scrollLeft = masterScrollLeft;
+    inlineStartHolder.scrollTop = masterScrollTop;
+
+    if (wt.wtOverlays.bottomOverlay.needFullRender) {
+      wt.wtOverlays.bottomOverlay.clone.wtTable.holder.scrollLeft = masterScrollLeft;
     }
   }
 
@@ -615,8 +644,9 @@ export class DropdownMenu extends BasePlugin {
    */
   #onBeforeViewportScrollHorizontally(visualColumn) {
     const isMenuOpened = this.menu?.isOpened() ?? false;
+    const shouldBlockScroll = this.#isButtonClicked || (this.#isMenuOpenedByButtonClick && isMenuOpened);
 
-    if (this.#isButtonClicked || (this.#isMenuOpenedByButtonClick && isMenuOpened)) {
+    if (shouldBlockScroll) {
       return null;
     }
 
