@@ -392,6 +392,51 @@ describe('ConditionCollection', () => {
     });
   });
 
+  describe('importAllConditions', () => {
+    beforeEach(() => {
+      conditions.eq = { condition: () => {}, descriptor: {} };
+      conditions.contains = { condition: () => {}, descriptor: {} };
+      conditions.begins_with = { condition: () => {}, descriptor: {} };
+    });
+
+    afterEach(() => {
+      delete conditions.eq;
+      delete conditions.contains;
+      delete conditions.begins_with;
+    });
+
+    it('should preserve operation type when importing conditions (e.g. disjunction)', () => {
+      const conditionCollection = new ConditionCollection(hotMock, false);
+
+      conditionCollection.importAllConditions([{
+        column: 1,
+        operation: 'disjunction',
+        conditions: [
+          { name: 'contains', args: ['a'] },
+          { name: 'begins_with', args: ['b'] },
+        ],
+      }]);
+
+      expect(conditionCollection.getOperation(1)).toBe('disjunction');
+      const exported = conditionCollection.exportAllConditions();
+
+      expect(exported.length).toBe(1);
+      expect(exported[0].operation).toBe('disjunction');
+      expect(exported[0].conditions.map(c => c.name)).toEqual(['contains', 'begins_with']);
+    });
+
+    it('should default to conjunction when operation is missing (backward compatibility)', () => {
+      const conditionCollection = new ConditionCollection(hotMock, false);
+
+      conditionCollection.importAllConditions([{
+        column: 2,
+        conditions: [{ name: 'eq', args: ['x'] }],
+      }]);
+
+      expect(conditionCollection.getOperation(2)).toBe(OPERATION_AND);
+    });
+  });
+
   describe('getConditions', () => {
     it('should return conditions at specified index otherwise should return empty array', () => {
       const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map

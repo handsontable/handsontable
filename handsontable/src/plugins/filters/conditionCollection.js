@@ -215,7 +215,9 @@ class ConditionCollection {
     this.clean();
 
     conditions.forEach((stack) => {
-      stack.conditions.forEach(condition => this.addCondition(stack.column, condition));
+      const operation = stack.operation ?? OPERATION_AND;
+
+      stack.conditions.forEach(condition => this.addCondition(stack.column, condition, operation));
     });
   }
 

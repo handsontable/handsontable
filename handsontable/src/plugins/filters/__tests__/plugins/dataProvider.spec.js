@@ -291,6 +291,7 @@ describe('Filters integration with DataProvider', () => {
 
     expect(conditionsAfterFirstFetch.length).toBe(1);
     expect(conditionsAfterFirstFetch[0].column).toBe(0);
+    expect(conditionsAfterFirstFetch[0].operation).toBe('conjunction');
     expect(conditionsAfterFirstFetch[0].conditions[0].name).toBe('contains');
     expect(conditionsAfterFirstFetch[0].conditions[0].args).toEqual(['a']);
 
@@ -301,6 +302,7 @@ describe('Filters integration with DataProvider', () => {
 
     expect(conditionsAfterPageChange.length).toBe(1);
     expect(conditionsAfterPageChange[0].column).toBe(0);
+    expect(conditionsAfterPageChange[0].operation).toBe('conjunction');
     expect(conditionsAfterPageChange[0].conditions[0].name).toBe('contains');
     expect(conditionsAfterPageChange[0].conditions[0].args).toEqual(['a']);
 
@@ -311,7 +313,50 @@ describe('Filters integration with DataProvider', () => {
 
     expect(conditionsAfterReturnToPage1.length).toBe(1);
     expect(conditionsAfterReturnToPage1[0].column).toBe(0);
+    expect(conditionsAfterReturnToPage1[0].operation).toBe('conjunction');
     expect(conditionsAfterReturnToPage1[0].conditions[0].name).toBe('contains');
     expect(conditionsAfterReturnToPage1[0].conditions[0].args).toEqual(['a']);
+  });
+
+  it('should preserve filter operation type (disjunction) after dataProvider fetch', async() => {
+    handsontable({
+      dataProvider: async(params) => {
+        return {
+          rows: createSpreadsheetData(params.pageSize || 10, 3),
+          totalRows: params.filters ? 5 : 50,
+        };
+      },
+      columns: 3,
+      dropdownMenu: true,
+      filters: true,
+      pagination: { pageSize: 10 },
+    });
+
+    await sleep(100);
+
+    const filtersPlugin = getPlugin('filters');
+    const pagination = getPlugin('pagination');
+
+    filtersPlugin.addCondition(0, 'contains', ['a'], 'disjunction');
+    filtersPlugin.addCondition(0, 'begins_with', ['b'], 'disjunction');
+    filtersPlugin.filter();
+
+    await sleep(150);
+
+    expect(filtersPlugin.exportConditions()[0].operation).toBe('disjunction');
+
+    pagination.setPage(2);
+    await sleep(150);
+
+    const conditionsAfterPageChange = filtersPlugin.exportConditions();
+
+    expect(conditionsAfterPageChange.length).toBe(1);
+    expect(conditionsAfterPageChange[0].operation).toBe('disjunction');
+    expect(conditionsAfterPageChange[0].conditions.map(c => c.name)).toEqual(['contains', 'begins_with']);
+
+    pagination.setPage(1);
+    await sleep(150);
+
+    expect(filtersPlugin.exportConditions()[0].operation).toBe('disjunction');
   });
 });

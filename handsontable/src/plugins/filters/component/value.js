@@ -204,10 +204,14 @@ export class ValueComponent extends BaseComponent {
    * @returns {boolean}
    */
   isHidden() {
+    if (super.isHidden()) {
+      return true;
+    }
+
     const dataProvider = this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY);
     const isDataProviderEnabled = dataProvider?.isEnabled?.() === true;
 
-    return super.isHidden() || isDataProviderEnabled;
+    return isDataProviderEnabled;
   }
 
   /**
