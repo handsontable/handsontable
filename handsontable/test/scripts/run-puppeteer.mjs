@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { appendFileSync } from 'node:fs';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
 
@@ -125,6 +126,12 @@ await page.exposeFunction('jasmineDone', async() => {
   reporter.jasmineDone();
 
   await cleanup(errorCount === 0 ? 0 : 1);
+});
+
+await page.exposeFunction('agentDebugLog', (payload) => {
+  // #region agent log (disabled)
+  //appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify(payload)}\n`);
+  // #endregion
 });
 
 await page.exposeFunction('getEventListeners', async (selector) => {

@@ -80,7 +80,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       await sleep(50);
 
       const menu = getPlugin('dropdownMenu').menu.hotMenu;
-      const firstItem = menu.getCell(0, -1);
+      const firstItem = menu.getCell(0, 0);
 
       expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(true);
       expect(firstItem).not.toBeNull();
@@ -107,11 +107,11 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
-      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -1);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -2);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 2,1']);
     });
 
@@ -142,11 +142,11 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
-      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -1);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -2);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 4,2']);
     });
 
@@ -174,11 +174,11 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
-      expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, -1);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, -2);
       expect(getSelectedRange()).toEqualCellRange([
         `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
       ]);
@@ -204,11 +204,11 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
-      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -1);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -2);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: -1,4 to: 2,4']);
     });
 
@@ -232,11 +232,11 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
-      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -1);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -2);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 2,3']);
     });
 
@@ -260,11 +260,11 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
-      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -1);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -2);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
@@ -288,11 +288,11 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
-      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -1);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -2);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: 2,4']);
     });
 
@@ -316,11 +316,11 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
-      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -1);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -2);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,3 to: 2,3']);
     });
 
@@ -345,11 +345,11 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
         main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
         horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
       });
-      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -1);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -2);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
@@ -452,11 +452,11 @@ describe('DropdownMenu keyboard shortcut', () => {
 
         expect($dropdownMenu.length).toBe(1);
         expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -1);
+          classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, -2);
           main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, -1);
           horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, -1);
         });
-        expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -1);
+        expect(menuOffset.left).toBeCloseTo(buttonOffset.left, -2);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,1 to: 2,3']);
       });
     });

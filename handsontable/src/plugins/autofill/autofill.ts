@@ -183,7 +183,7 @@ export class Autofill extends BasePlugin {
         const c = column as number;
         const sourceDataAtSource = useSource ? this.hot.getSourceDataAtCell(r, c) : null;
 
-        if (useSource && isObject(sourceDataAtSource)) {
+        if (useSource && (isObject(sourceDataAtSource) || Array.isArray(sourceDataAtSource))) {
           rowSet.push(this.hot.getCopyableSourceData(r, c));
 
         } else {
@@ -307,7 +307,7 @@ export class Autofill extends BasePlugin {
       }
 
       // If the source data contains objects, we need to check every target cell for the data type.
-      if (selectionSourceData.some(row => row.some((cell: unknown) => isObject(cell)))) {
+      if (selectionSourceData.some(row => row.some((cell: unknown) => (isObject(cell) || Array.isArray(cell))))) {
         const fullFillData = this.#extendFillDataWithSourceData(
           fillData,
           selectionSourceData,

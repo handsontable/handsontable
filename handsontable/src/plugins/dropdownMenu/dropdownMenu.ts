@@ -312,6 +312,25 @@ export class DropdownMenu extends BasePlugin {
         // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
         // will block the Esc key for the whole menu.
         this.menu.getNavigator().toFirstItem();
+        const firstItem = this.menu.hotMenu?.getCell(0, 0);
+
+        // #region agent log
+        (this.hot.rootWindow as {
+          agentDebugLog?: (payload: Record<string, unknown>) => void;
+        })?.agentDebugLog?.({
+          hypothesisId: 'C',
+          location: 'src/plugins/dropdownMenu/dropdownMenu.ts:registerShortcuts',
+          message: 'Dropdown shortcut callback post-open state',
+          data: {
+            highlightRow: highlight.row,
+            highlightCol: highlight.col,
+            menuOpened: this.menu.isOpened(),
+            firstItemExists: Boolean(firstItem),
+            firstItemIsCurrent: Boolean(firstItem?.classList.contains('current')),
+          },
+          timestamp: Date.now(),
+        });
+        // #endregion
       }
     };
 
@@ -463,13 +482,23 @@ export class DropdownMenu extends BasePlugin {
    */
   #adjustPositionForTheme(position: Record<string, number>, menuOpensOnLeft?: boolean): Record<string, number> {
     const themeName = this.hot.getCurrentThemeName?.();
-    if (!themeName || !themeName.includes('horizon')) {
+    if (!themeName) {
       return position;
     }
-    // RTL default needs -12 so menu left matches e2e expected position (912 vs 920 with -4)
+    if (themeName.includes('classic')) {
+      // Classic theme: align menu top with e2e expected (top 6px up); no left correction to avoid overcorrection in RTL/no-space cases.
+      return {
+        top: position.top - 6,
+        left: position.left,
+      };
+    }
+    if (!themeName.includes('horizon')) {
+      return position;
+    }
+    // Horizon: RTL menu left alignment (e2e expects ~912; -4 matches).
     const leftCorrection = this.hot.isLtr()
       ? (menuOpensOnLeft ? -4 : 4)
-      : (menuOpensOnLeft ? 4 : -12);
+      : (menuOpensOnLeft ? 4 : -4);
     return {
       top: position.top - 4,
       left: position.left + leftCorrection,

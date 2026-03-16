@@ -59,7 +59,7 @@ export class BaseEditorAdapter extends Handsontable.editors.BaseEditor {
     cellProperties: Record<string, unknown>
   ): void {
     if (!this.isOpened()) {
-      super.prepare(row, column, prop, TD, originalValue, cellProperties);
+      super.prepare(row, column, prop, TD, originalValue, cellProperties as any);
       const columnMeta: ColumnSettingsInternal = this.hot.getColumnMeta(
         column
       ) as ColumnSettingsInternal;

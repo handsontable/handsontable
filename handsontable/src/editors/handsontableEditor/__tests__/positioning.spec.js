@@ -46,7 +46,7 @@ describe('HandsontableEditor positioning', () => {
       classic: 151,
     };
 
-    const scrollPositionBase = scrollEdgePositions[spec().loadedTheme];
+    const scrollPositionBase = scrollEdgePositions[getLoadedTheme()];
 
     if (scrollPositionBase === undefined) {
       throw new Error('Missing scroll position base for the current theme');
@@ -107,7 +107,7 @@ describe('HandsontableEditor positioning', () => {
       classic: 46,
     };
 
-    const scrollPositionBase = scrollEdgePositions[spec().loadedTheme];
+    const scrollPositionBase = scrollEdgePositions[getLoadedTheme()];
 
     if (scrollPositionBase === undefined) {
       throw new Error('Missing scroll position base for the current theme', { cause: { handsontable: true } });

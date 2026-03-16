@@ -14,7 +14,7 @@ describe('Dialog - animation option', () => {
 
   function getTableTransitionDuration() {
     // the classic stylesheet has no animation duration, so we use 10ms as a fallback
-    return spec().loadedTheme !== 'classic' ?
+    return getLoadedTheme() !== 'classic' ?
       Number.parseFloat(getComputedStyle(hot().rootElement).getPropertyValue('--ht-table-transition')) * 1000 : 10;
   }
 

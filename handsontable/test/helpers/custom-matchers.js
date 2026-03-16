@@ -475,7 +475,7 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
       };
     },
     forThemes(matchersUtil) {
-      const currentTheme = currentSpec.loadedTheme;
+      const currentTheme = getLoadedTheme();
       const createThemeHelper = (theme, expectationMatchers) => {
         return new Proxy({}, {
           get(_, matcher) {

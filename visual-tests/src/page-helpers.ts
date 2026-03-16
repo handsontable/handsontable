@@ -442,24 +442,27 @@ export async function filterByCondition(
   value?: string,
   secondValue?: string
 ) {
-  await getPageInstance()
-    .getByRole('listbox')
-    .locator('.htUISelectCaption')
-    .click();
-  await getPageInstance().getByText(condition, { exact: true }).click();
+  const page = getPageInstance();
+
+  await page.getByRole('listbox').locator('.htUISelectCaption').click();
+  await page.getByText(condition, { exact: true }).click();
 
   if (value !== undefined) {
-    await getPageInstance()
-      .getByRole('textbox', { name: 'Value', exact: true })
-      .pressSequentially(value);
+    const valueInput = page.getByRole('textbox', { name: 'Value', exact: true });
+
+    await valueInput.click();
+    await valueInput.pressSequentially(value);
   }
 
   if (secondValue !== undefined) {
-    await getPageInstance()
-      .getByRole('textbox', { name: 'Second value', exact: true })
-      .pressSequentially(secondValue);
+    const secondValueInput = page.getByRole('textbox', { name: 'Second value', exact: true });
+
+    await secondValueInput.waitFor({ state: 'visible' });
+    await secondValueInput.click();
+    await secondValueInput.pressSequentially(secondValue);
   }
-  await getPageInstance().getByRole('button', { name: 'OK' }).click();
+
+  await page.getByRole('button', { name: 'OK' }).click();
 }
 
 /**
@@ -624,17 +627,17 @@ export async function resizeRow(rowIndex: number, resizeAmount: number, tableLoc
 }
 
 /**
- * Clicks the page at the specified offset relative to the viewport.
+ * Converts viewport-relative offsets to absolute viewport coordinates (CSS pixels).
+ * Positive offsets are from left/top; negative are from right/bottom.
  *
  * @param {number} offsetX The offset X. Positive values move the mouse from the left position (0), negative
  * values move the mouse from the right position (viewport width).
  * @param {number} offsetY The offset Y. Positive values move the mouse from the top position (0), negative
  * values move the mouse from the bottom position (viewport height).
- * @param {string} button The button to click.
+ * @returns {object} The x and y coordinates.
  */
-export async function clickRelativeToViewport(offsetX: number, offsetY: number, button: 'left' | 'right' = 'left') {
+function viewportOffsetToCoordinates(offsetX: number, offsetY: number): { x: number; y: number } {
   const viewportSize = getPageInstance().viewportSize();
-
   let x = offsetX;
   let y = offsetY;
 
@@ -648,7 +651,48 @@ export async function clickRelativeToViewport(offsetX: number, offsetY: number, 
   x = Math.min(x, viewportSize!.width);
   y = Math.min(y, viewportSize!.height);
 
+  return { x, y };
+}
+
+/**
+ * Clicks the page at the specified offset relative to the viewport.
+ *
+ * @param {number} offsetX The offset X. Positive values move the mouse from the left position (0), negative
+ * values move the mouse from the right position (viewport width).
+ * @param {number} offsetY The offset Y. Positive values move the mouse from the top position (0), negative
+ * values move the mouse from the bottom position (viewport height).
+ * @param {string} button The button to click.
+ */
+export async function clickRelativeToViewport(
+  offsetX: number,
+  offsetY: number,
+  button: 'left' | 'right' = 'left',
+) {
+  const { x, y } = viewportOffsetToCoordinates(offsetX, offsetY);
+
   await getPageInstance().mouse.click(x, y, {
+    button,
+  });
+}
+
+/**
+ * Double-clicks the page at the specified offset relative to the viewport.
+ * Uses Playwright's native dblclick so the browser fires a real `dblclick` DOM event (clickCount: 2).
+ *
+ * @param {number} offsetX The offset X. Positive values move the mouse from the left position (0), negative
+ * values move the mouse from the right position (viewport width).
+ * @param {number} offsetY The offset Y. Positive values move the mouse from the top position (0), negative
+ * values move the mouse from the bottom position (viewport height).
+ * @param {string} button The button to click.
+ */
+export async function doubleClickRelativeToViewport(
+  offsetX: number,
+  offsetY: number,
+  button: 'left' | 'right' = 'left',
+) {
+  const { x, y } = viewportOffsetToCoordinates(offsetX, offsetY);
+
+  await getPageInstance().mouse.dblclick(x, y, {
     button,
   });
 }

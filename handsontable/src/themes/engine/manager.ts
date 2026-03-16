@@ -20,6 +20,7 @@ interface HotInstance {
  * @type {string}
  */
 const THEME_PREFIX = 'ht-theme-';
+const THEME_STYLE_ATTRIBUTE = 'data-hot-theme-style';
 
 /**
  * ThemeManager class provides methods to manage the theme styles.
@@ -52,6 +53,22 @@ export class ThemeManager {
    */
   themeConfig: ThemeConfig | null = null;
 
+  #debugLog(message: string, data: Record<string, unknown>, location: string) {
+    const debugLogger = (this.hot as {
+      rootWindow?: { agentDebugLog?: (payload: Record<string, unknown>) => void };
+    }).rootWindow?.agentDebugLog;
+
+    if (typeof debugLogger === 'function') {
+      debugLogger({
+        hypothesisId: 'A',
+        location,
+        message,
+        data,
+        timestamp: Date.now(),
+      });
+    }
+  }
+
   /**
    * The theme manager constructor.
    *
@@ -73,12 +90,20 @@ export class ThemeManager {
       return;
     }
 
+    // #region agent log
+    this.#debugLog('Injecting theme styles', {
+      themeClassName: this.themeClassName,
+      docThemeStyleCount: this.hot.rootDocument.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
+      wrapperThemeStyleCount: this.hot.rootWrapperElement.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
+      hasThemeStyleRef: Boolean(this.themeStyles),
+    }, 'src/themes/engine/manager.ts:#injectThemeStyles');
+    // #endregion
+
     const colorScheme = this.themeConfig.colorScheme === 'auto' ? 'light dark' : this.themeConfig.colorScheme;
 
-    if (this.themeStyles) {
-      this.themeStyles.textContent = '';
-    } else {
+    if (!this.themeStyles) {
       this.themeStyles = this.hot.rootDocument.createElement('style');
+      this.themeStyles.setAttribute(THEME_STYLE_ATTRIBUTE, 'true');
     }
 
     this.themeStyles.textContent = `:where(.${this.themeClassName}) {\n`;
@@ -114,9 +139,10 @@ export class ThemeManager {
 
     this.themeStyles.textContent += '}';
 
-    if (this.hot.rootWrapperElement && this.hot.rootWrapperElement.querySelector('style')) {
-      this.hot.rootWrapperElement.querySelector('style').textContent = this.themeStyles.textContent;
-    } else {
+    // Ensure that the manager always controls its own style node.
+    // Some wrappers may contain other <style> tags and updating/removing a generic
+    // querySelector('style') can leave the theme style mounted.
+    if (this.themeStyles.parentNode !== this.hot.rootWrapperElement) {
       this.hot.rootWrapperElement.prepend(this.themeStyles);
     }
   }
@@ -178,6 +204,15 @@ export class ThemeManager {
   unmount() {
     if (this.themeStyles) {
       this.themeStyles.remove();
+
+      // #region agent log
+      this.#debugLog('Unmounted theme style node', {
+        themeClassName: this.themeClassName,
+        isConnectedAfterRemove: this.themeStyles.isConnected,
+        docThemeStyleCount: this.hot.rootDocument.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
+        wrapperThemeStyleCount: this.hot.rootWrapperElement.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
+      }, 'src/themes/engine/manager.ts:unmount');
+      // #endregion
     }
   }
 

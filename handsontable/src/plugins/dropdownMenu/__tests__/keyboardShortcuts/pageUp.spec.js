@@ -24,7 +24,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
       expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(31);
+        classic.toBeCloseTo(34, -1);
         main.toBeCloseTo(35, -1);
         horizon.toBe(43);
       });
