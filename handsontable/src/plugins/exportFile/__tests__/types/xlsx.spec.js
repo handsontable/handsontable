@@ -171,6 +171,72 @@ describe('exportFile XLSX type', () => {
       expect(ws.getRow(1).getCell(2).value).toBe(3.14);
     });
 
+    it('should apply the numericFormat pattern as an Excel numFmt', async() => {
+      handsontable({
+        data: [[142000, 3.14, 0.75]],
+        columns: [
+          { type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
+          { type: 'numeric', numericFormat: { pattern: '0,0.00' } },
+          { type: 'numeric', numericFormat: { pattern: '0.00%' } },
+        ],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+
+      expect(ws.getRow(1).getCell(1).numFmt).toBe('$#,##0.00');
+      expect(ws.getRow(1).getCell(2).numFmt).toBe('#,##0.00');
+      expect(ws.getRow(1).getCell(3).numFmt).toBe('0.00%');
+    });
+
+    it('should not set numFmt on numeric cells without a numericFormat pattern', async() => {
+      handsontable({
+        data: [[42]],
+        columns: [{ type: 'numeric' }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+
+      // ExcelJS returns undefined for cells with no explicit numFmt (default "General" format).
+      expect(ws.getRow(1).getCell(1).numFmt).toBeUndefined();
+    });
+
+    // Known issue: ExcelJS omits OOXML built-in format IDs 5–8 (the dollar-currency
+    // built-ins) from its internal format table, so any `$`-currency format code is
+    // assigned a custom numFmtId ≥ 164.  Excel for Mac shows the "Custom" category for
+    // all custom IDs; Excel for Windows analyses the format string and shows "Currency".
+    // The fix requires post-processing the generated OOXML ZIP to replace the custom ID
+    // with the correct built-in ID (e.g. 7 for `$#,##0.00`) before the file is saved.
+    // The test is disabled until the post-processing step is implemented.
+    //
+    // To reproduce manually: export any Handsontable with a `numeric`-type column using
+    // `numericFormat: { pattern: '$0,0.00' }`, open the XLSX in Excel for Mac, select a
+    // numeric cell, press ⌘1 — Category shows "Custom" instead of "Currency".
+    xit('should render currency cells in the "Currency" format category (not "Custom") in Excel', async() => {
+      // OOXML built-in format IDs that Excel maps to the "Currency" category:
+      // 5 → $#,##0_);($#,##0)    6 → $#,##0_);[Red]($#,##0)
+      // 7 → $#,##0.00_);($#,##0.00)   8 → $#,##0.00_);[Red]($#,##0.00)
+      const BUILT_IN_CURRENCY_FORMAT_CODES = new Set([
+        '$#,##0_);($#,##0)', '$#,##0_);[Red]($#,##0)',
+        '$#,##0.00_);($#,##0.00)', '$#,##0.00_);[Red]($#,##0.00)',
+      ]);
+
+      handsontable({
+        data: [[142000]],
+        columns: [{ type: 'numeric', numericFormat: { pattern: '$0,0.00' } }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+      const cell = ws.getRow(1).getCell(1);
+
+      // Until the fix is in place, ExcelJS reads back a custom format string
+      // (`$#,##0.00`) rather than one of the built-in OOXML currency strings above.
+      // Once OOXML numFmtId=7 is written, ExcelJS will report `$#,##0.00_);($#,##0.00)`.
+      expect(BUILT_IN_CURRENCY_FORMAT_CODES.has(cell.numFmt)).toBe(true);
+    });
+
     it('should export non-parseable values in numeric type cells as strings', async() => {
       handsontable({
         data: [['not-a-number']],
@@ -1035,26 +1101,42 @@ describe('exportFile XLSX type', () => {
       expect(ws.getRow(1).getCell(1).font?.color?.argb).toBe('FF808080');
     });
 
-    it('should prefer an explicit backgroundColor over the read-only default', async() => {
+    it('should prefer an explicit CSS background color over the read-only default', async() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.test-bg-gold { background-color: #FFD700 !important; }';
+      document.head.appendChild(style);
+
       handsontable({
         data: [['locked']],
-        cell: [{ row: 0, col: 0, readOnly: true, backgroundColor: '#FFD700' }],
+        cell: [{ row: 0, col: 0, readOnly: true, className: 'test-bg-gold' }],
         exportFile: { engine: ExcelJS },
       });
 
       const ws = await parseXlsx();
+
+      document.head.removeChild(style);
 
       expect(ws.getRow(1).getCell(1).fill?.fgColor?.argb).toBe('FFFFD700');
     });
 
-    it('should prefer an explicit font color over the read-only default', async() => {
+    it('should prefer an explicit CSS font color over the read-only default', async() => {
+      const style = document.createElement('style');
+
+      // Use the same selector specificity as `.handsontable td.htDimmed` so that
+      // source order (our stylesheet loaded last) decides the winner.
+      style.textContent = '.handsontable td.test-blue { color: #0000FF !important; }';
+      document.head.appendChild(style);
+
       handsontable({
         data: [['locked']],
-        cell: [{ row: 0, col: 0, readOnly: true, font: { color: '#0000FF' } }],
+        cell: [{ row: 0, col: 0, readOnly: true, className: 'test-blue' }],
         exportFile: { engine: ExcelJS },
       });
 
       const ws = await parseXlsx();
+
+      document.head.removeChild(style);
 
       expect(ws.getRow(1).getCell(1).font?.color?.argb).toBe('FF0000FF');
     });
@@ -1191,7 +1273,7 @@ describe('exportFile XLSX type', () => {
   });
 
   describe('time type cells', () => {
-    it('should export a `time` type cell as an Excel time serial with hh:mm:ss numFmt', async() => {
+    it('should export a `time` type cell as an Excel time serial with h:mm:ss numFmt', async() => {
       handsontable({
         data: [['12:30:00']],
         columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
@@ -1209,7 +1291,7 @@ describe('exportFile XLSX type', () => {
       expect(cell.value.getUTCSeconds()).toBe(0);
     });
 
-    it('should apply the hh:mm:ss numFmt to time cells', async() => {
+    it('should apply the h:mm:ss numFmt to time cells so Excel categorizes it as Time not Custom', async() => {
       handsontable({
         data: [['08:05:30']],
         columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
@@ -1218,7 +1300,7 @@ describe('exportFile XLSX type', () => {
 
       const ws = await parseXlsx();
 
-      expect(ws.getRow(1).getCell(1).numFmt).toBe('hh:mm:ss');
+      expect(ws.getRow(1).getCell(1).numFmt).toBe('h:mm:ss');
     });
 
     it('should export midnight (00:00:00) correctly', async() => {
@@ -1262,6 +1344,42 @@ describe('exportFile XLSX type', () => {
       const ws = await parseXlsx();
 
       expect(ws.getRow(1).getCell(1).value).toBe('not-a-time');
+    });
+
+    // Known issue: Excel for Mac shows time cells in the "Custom" format category
+    // instead of "Time", even though ExcelJS correctly writes the built-in OOXML
+    // numFmtId=21 (`h:mm:ss`).  All evidence points to a Mac Excel quirk — the
+    // generated OOXML is spec-compliant and Excel for Windows categorizes it correctly.
+    // The test is disabled until either:
+    //   (a) a workaround is found (e.g. a different numFmt code that Mac Excel reliably
+    //       places in the "Time" category), or
+    //   (b) we establish a programmatic way to assert Excel's UI category from OOXML.
+    // To reproduce manually: export any Handsontable with a `time`-type column, open
+    // the XLSX in Excel for Mac, select a time cell, press ⌘1 — Category shows "Custom"
+    // instead of "Time".
+    xit('should render time cells in the "Time" format category (not "Custom") in Excel', async() => {
+      // The OOXML built-in format IDs that Excel maps to the "Time" category:
+      // 18 → h:mm AM/PM   19 → h:mm:ss AM/PM   20 → h:mm   21 → h:mm:ss
+      // 45 → mm:ss        46 → [h]:mm:ss        47 → mmss.0
+      const BUILT_IN_TIME_FORMAT_CODES = new Set([
+        'h:mm AM/PM', 'h:mm:ss AM/PM', 'h:mm', 'h:mm:ss', 'mm:ss', '[h]:mm:ss', 'mmss.0',
+      ]);
+
+      handsontable({
+        data: [['09:30:00']],
+        columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+      const cell = ws.getRow(1).getCell(1);
+
+      // The numFmt read back by ExcelJS must be one of the built-in OOXML Time format
+      // codes.  If it is, the cell uses a built-in numFmtId (<164) and Excel should
+      // place it in the "Time" category.  Currently this assertion passes (ExcelJS
+      // writes numFmtId=21, `h:mm:ss`), yet Excel for Mac still shows "Custom".
+      // Replace / extend this assertion once a real fix is found.
+      expect(BUILT_IN_TIME_FORMAT_CODES.has(cell.numFmt)).toBe(true);
     });
   });
 
@@ -1359,63 +1477,99 @@ describe('exportFile XLSX type', () => {
   });
 
   describe('cell font styling', () => {
-    it('should export bold font when meta.font.bold is true', async() => {
+    it('should export bold font from a CSS class', async() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.test-bold { font-weight: bold; }';
+      document.head.appendChild(style);
+
       handsontable({
         data: [['Bold text']],
-        cell: [{ row: 0, col: 0, font: { bold: true } }],
+        cell: [{ row: 0, col: 0, className: 'test-bold' }],
         exportFile: { engine: ExcelJS },
       });
 
       const ws = await parseXlsx();
+
+      document.head.removeChild(style);
 
       expect(ws.getRow(1).getCell(1).font).toEqual(jasmine.objectContaining({ bold: true }));
     });
 
-    it('should export italic font when meta.font.italic is true', async() => {
+    it('should export italic font from a CSS class', async() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.test-italic { font-style: italic; }';
+      document.head.appendChild(style);
+
       handsontable({
         data: [['Italic text']],
-        cell: [{ row: 0, col: 0, font: { italic: true } }],
+        cell: [{ row: 0, col: 0, className: 'test-italic' }],
         exportFile: { engine: ExcelJS },
       });
 
       const ws = await parseXlsx();
+
+      document.head.removeChild(style);
 
       expect(ws.getRow(1).getCell(1).font).toEqual(jasmine.objectContaining({ italic: true }));
     });
 
-    it('should export underline when meta.font.underline is true', async() => {
+    it('should export underline from a CSS class', async() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.test-underline { text-decoration: underline; }';
+      document.head.appendChild(style);
+
       handsontable({
         data: [['Underline text']],
-        cell: [{ row: 0, col: 0, font: { underline: true } }],
+        cell: [{ row: 0, col: 0, className: 'test-underline' }],
         exportFile: { engine: ExcelJS },
       });
 
       const ws = await parseXlsx();
+
+      document.head.removeChild(style);
 
       // ExcelJS stores underline as a string ('single') or boolean after round-trip.
       expect(ws.getRow(1).getCell(1).font?.underline).toBeTruthy();
     });
 
-    it('should export font color when meta.font.color is set', async() => {
+    it('should export font color from a CSS class', async() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.test-red { color: #FF0000 !important; }';
+      document.head.appendChild(style);
+
       handsontable({
         data: [['Red text']],
-        cell: [{ row: 0, col: 0, font: { color: '#FF0000' } }],
+        cell: [{ row: 0, col: 0, className: 'test-red' }],
         exportFile: { engine: ExcelJS },
       });
 
       const ws = await parseXlsx();
+
+      document.head.removeChild(style);
 
       expect(ws.getRow(1).getCell(1).font?.color?.argb).toBe('FFFF0000');
     });
 
-    it('should export combined bold, italic, and color', async() => {
+    it('should export combined bold, italic, and color from a CSS class', async() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.test-styled { font-weight: bold; font-style: italic; color: #0000FF !important; }';
+      document.head.appendChild(style);
+
       handsontable({
         data: [['styled']],
-        cell: [{ row: 0, col: 0, font: { bold: true, italic: true, color: '#0000FF' } }],
+        cell: [{ row: 0, col: 0, className: 'test-styled' }],
         exportFile: { engine: ExcelJS },
       });
 
       const ws = await parseXlsx();
+
+      document.head.removeChild(style);
+
       const { font } = ws.getRow(1).getCell(1);
 
       expect(font.bold).toBe(true);
@@ -1423,7 +1577,7 @@ describe('exportFile XLSX type', () => {
       expect(font.color.argb).toBe('FF0000FF');
     });
 
-    it('should not set font when meta.font is absent', async() => {
+    it('should not set font when no className is set', async() => {
       handsontable({
         data: [['plain']],
         exportFile: { engine: ExcelJS },
@@ -1436,14 +1590,22 @@ describe('exportFile XLSX type', () => {
   });
 
   describe('cell background color', () => {
-    it('should export a solid fill with the correct ARGB color', async() => {
+    it('should export a solid fill from a CSS class', async() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.test-bg-yellow { background-color: #FFCC00 !important; }';
+      document.head.appendChild(style);
+
       handsontable({
         data: [['highlighted']],
-        cell: [{ row: 0, col: 0, backgroundColor: '#FFCC00' }],
+        cell: [{ row: 0, col: 0, className: 'test-bg-yellow' }],
         exportFile: { engine: ExcelJS },
       });
 
       const ws = await parseXlsx();
+
+      document.head.removeChild(style);
+
       const { fill } = ws.getRow(1).getCell(1);
 
       expect(fill.type).toBe('pattern');
@@ -1451,19 +1613,7 @@ describe('exportFile XLSX type', () => {
       expect(fill.fgColor.argb).toBe('FFFFCC00');
     });
 
-    it('should expand a 3-digit hex background color to ARGB', async() => {
-      handsontable({
-        data: [['text']],
-        cell: [{ row: 0, col: 0, backgroundColor: '#F00' }],
-        exportFile: { engine: ExcelJS },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).fill?.fgColor?.argb).toBe('FFFF0000');
-    });
-
-    it('should not set fill when meta.backgroundColor is absent', async() => {
+    it('should not set fill when no className is set', async() => {
       handsontable({
         data: [['plain']],
         exportFile: { engine: ExcelJS },
@@ -1472,6 +1622,70 @@ describe('exportFile XLSX type', () => {
       const ws = await parseXlsx();
 
       expect(ws.getRow(1).getCell(1).fill).toBeUndefined();
+    });
+
+    it('should read background color from a CSS class and export it as a fill', async() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.test-bg-red { background-color: #FF0000 !important; }';
+      document.head.appendChild(style);
+
+      handsontable({
+        data: [['colored']],
+        cell: [{ row: 0, col: 0, className: 'test-bg-red' }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+      const { fill } = ws.getRow(1).getCell(1);
+
+      document.head.removeChild(style);
+
+      expect(fill?.type).toBe('pattern');
+      expect(fill?.pattern).toBe('solid');
+      expect(fill?.fgColor?.argb).toBe('FFFF0000');
+    });
+
+    it('should not set fill when a CSS class sets only font properties (no background)', async() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.test-font-only { font-weight: bold; }';
+      document.head.appendChild(style);
+
+      handsontable({
+        data: [['bold text']],
+        cell: [{ row: 0, col: 0, className: 'test-font-only' }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+
+      document.head.removeChild(style);
+
+      // ExcelJS may return { type: 'pattern', pattern: 'none' } (its "no fill" sentinel) when
+      // other cell styles (e.g. font) are applied. Neither that nor undefined represents an
+      // explicit background color, so we assert that no fill color was written.
+      expect(ws.getRow(1).getCell(1).fill?.fgColor).toBeUndefined();
+    });
+
+    it('should not set fill when a CSS class sets only font color (no background)', async() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.test-font-color { color: #B71C1C !important; }';
+      document.head.appendChild(style);
+
+      handsontable({
+        data: [['red text']],
+        cell: [{ row: 0, col: 0, className: 'test-font-color' }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+
+      document.head.removeChild(style);
+
+      // Same reasoning as above — no explicit fill color should be present.
+      expect(ws.getRow(1).getCell(1).fill?.fgColor).toBeUndefined();
     });
   });
 

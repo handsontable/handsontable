@@ -210,6 +210,40 @@ class DataProvider {
   }
 
   /**
+   * Gets rendered DOM elements for all cells in the export range.
+   *
+   * Returns a 2D array of `HTMLElement | null` values with the same structure as
+   * {@link DataProvider#getCellsMeta}. An entry is `null` when the cell is outside
+   * the rendered viewport (virtualised grid).
+   *
+   * @returns {Array}
+   */
+  getCellElements() {
+    const { startRow, startCol, endRow, endCol } = this._getDataRange();
+    const options = this.options;
+    const elements = [];
+
+    rangeEach(startRow, endRow, (rowIndex) => {
+      if (!options.exportHiddenRows && this._isHiddenRow(rowIndex)) {
+        return;
+      }
+
+      const rowElements = [];
+
+      rangeEach(startCol, endCol, (colIndex) => {
+        if (!options.exportHiddenColumns && this._isHiddenColumn(colIndex)) {
+          return;
+        }
+        rowElements.push(this.hot.getCell(rowIndex, colIndex));
+      });
+
+      elements.push(rowElements);
+    });
+
+    return elements;
+  }
+
+  /**
    * Gets the merged cells configuration filtered to the current export range.
    *
    * Returned coordinates are 0-based and relative to the top-left corner of the
