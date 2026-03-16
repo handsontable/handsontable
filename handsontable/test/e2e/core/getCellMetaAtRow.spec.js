@@ -35,32 +35,24 @@ describe('Core.getCellMetaAtRow', () => {
     expect(rowOfMeta[4].prop).toBe(4);
   });
 
-  it('should return meta sorted by physical/visual column index regardless of creation order', async() => {
+  it('should return meta sorted by physical/visual column index regardless of internal storage order', async() => {
     handsontable({
-      data: createSpreadsheetData(100, 10),
-      fixedColumnsStart: 2,
-      hiddenColumns: {
-        columns: [7, 8, 9],
-      },
-      columns: [
-        { type: 'text' },
-        { type: 'text' },
-        { type: 'text' },
-        { type: 'dropdown', source: ['Loaded', 'Unloaded'] },
-        { type: 'dropdown', source: ['Overlay', 'Attached'] },
-        { type: 'text' },
-        { type: 'text' },
-        { type: 'text' },
-        { type: 'text' },
-        { type: 'text' },
+      data: createSpreadsheetData(5, 5),
+      cell: [
+        { row: 0, col: 1, myId: 1 },
+        { row: 1, col: 1, myId: 2 },
+        { row: 2, col: 1, myId: 3 },
+        { row: 3, col: 1, myId: 4 },
+        { row: 4, col: 1, myId: 5 },
       ],
     });
 
-    [3, 4, 0, 1, 2, 5, 6, 7, 8, 9].forEach(column => getCellMeta(50, column));
+    await spliceCellsMeta(3, 1);
 
-    const rowOfMeta = getCellMetaAtRow(50);
+    const rowOfMeta = getCellMetaAtRow(2);
 
-    expect(rowOfMeta.map(meta => meta.col)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-    expect(rowOfMeta.map(meta => meta.visualCol)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(rowOfMeta.map(meta => meta.col)).toEqual([0, 1, 2, 3, 4]);
+    expect(rowOfMeta.map(meta => meta.visualCol)).toEqual([0, 1, 2, 3, 4]);
+    expect(rowOfMeta.find(meta => meta.col === 1).myId).toBe(3);
   });
 });
