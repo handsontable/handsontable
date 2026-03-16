@@ -3,7 +3,7 @@ import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
-import { addClass, removeClass } from '../../helpers/dom/element';
+import { addClass, isBottomMostColumnHeader, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { createObjectPropListener } from '../../helpers/object';
@@ -1032,17 +1032,15 @@ export class Filters extends BasePlugin {
    *
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
-   * @param {number} headerLevel The index of header level counting from the top (positive
-   *                             values counting from 0 to N).
    *
    */
-  #onAfterGetColHeader(col, TH, headerLevel) {
+  #onAfterGetColHeader(col, TH) {
     const physicalColumn = this.hot.toPhysicalColumn(col);
 
     if (
       this.enabled
       && this.conditionCollection.hasConditions(physicalColumn)
-      && headerLevel === this.hot.view.getColumnHeadersCount() - 1
+      && isBottomMostColumnHeader(TH)
     ) {
       addClass(TH, 'htFiltersActive');
     } else {

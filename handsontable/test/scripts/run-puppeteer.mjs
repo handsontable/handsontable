@@ -116,15 +116,15 @@ await page.exposeFunction('jasmineDone', async() => {
   await cleanup(errorCount === 0 ? 0 : 1);
 });
 
-await page.exposeFunction('getEventListeners', async (selector) => {
+await page.exposeFunction('getEventListeners', async(selector) => {
   const { root } = await cdpClient.send('DOM.getDocument');
   const { nodeId } = await cdpClient.send('DOM.querySelector', {
-      nodeId: root.nodeId,
-      selector,
+    nodeId: root.nodeId,
+    selector,
   });
   const resolvedNode = await cdpClient.send('DOM.resolveNode', { nodeId });
 
-  return await cdpClient.send('DOMDebugger.getEventListeners', {
+  return cdpClient.send('DOMDebugger.getEventListeners', {
     objectId: resolvedNode.object.objectId
   });
 });
