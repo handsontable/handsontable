@@ -698,6 +698,7 @@ describe('Filters', () => {
 
     const [, selectedValues] = updateSpy.calls.mostRecent().args;
 
+    expect(typeof getSourceDataAtCell(0, 0)).toBe('object');
     expect(selectedValues).toContain(source[1].value);
     expect(selectedValues).not.toContain('[object Object]');
     expect(selectedValues.every(value => typeof value === 'string')).toBe(true);
