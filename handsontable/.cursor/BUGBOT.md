@@ -1,8 +1,15 @@
 # Handsontable core review notes
 
-Apply these checks when changed files are in `handsontable/**`.
+Apply these checks when changed files are in `/handsontable/**`.
 
-- Core source is JavaScript. Do not add TypeScript files under `handsontable/src/`.
-- For new or changed behavior, require both unit tests and E2E tests.
-- Verify new public methods include JSDoc comments.
-- Ensure new feature paths are guarded by flags when applicable.
+1. Core language boundary:
+   - Core source is JavaScript.
+   - Do not add TypeScript files under `/handsontable/src/`.
+2. Plugin registration path:
+   - New plugins must be wired through `/handsontable/src/plugins/index.js` and exported from their own `index.js`.
+3. Default safety:
+   - New experimental options should be disabled by default in `/handsontable/src/dataMap/metaManager/metaSchema.js`.
+4. API consistency:
+   - New public methods/options require JSDoc and matching type updates in `/handsontable/types/**`.
+5. Test coverage:
+   - Behavior changes should include both `.unit.js` and `.spec.js` tests in plugin or feature `__tests__` directories.

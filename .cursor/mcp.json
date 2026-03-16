@@ -7,9 +7,13 @@
         "GITHUB_TOKEN": "${GITHUB_TOKEN}"
       }
     },
-    "filesystem": {
+    "filesystem_workspace": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+    },
+    "filesystem_docs": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace/docs/content"]
     }
   }
 }
