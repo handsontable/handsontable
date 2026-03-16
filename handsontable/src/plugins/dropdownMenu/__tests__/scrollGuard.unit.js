@@ -74,5 +74,44 @@ describe('DropdownMenu', () => {
       hot.destroy();
       container.remove();
     });
+
+    it('should block wheel scrolling while menu is opened by button click', () => {
+      const container = document.createElement('div');
+
+      document.body.appendChild(container);
+
+      const hot = new Handsontable(container, {
+        data: Array.from({ length: 20 }, (_rowValue, row) =>
+          Array.from({ length: 20 }, (_colValue, col) => `${row}:${col}`)),
+        width: 300,
+        height: 220,
+        colWidths: 100,
+        colHeaders: true,
+        rowHeaders: true,
+        dropdownMenu: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const button = hot.rootElement.querySelector('.changeType');
+
+      button.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+      button.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
+      button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+
+      const wheelEvent = new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        deltaX: 120,
+        deltaY: 120,
+      });
+
+      hot.rootElement.dispatchEvent(wheelEvent);
+
+      expect(wheelEvent.defaultPrevented).toBe(true);
+
+      hot.getPlugin('dropdownMenu').close();
+
+      hot.destroy();
+      container.remove();
+    });
   });
 });

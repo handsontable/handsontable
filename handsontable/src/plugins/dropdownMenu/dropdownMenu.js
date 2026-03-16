@@ -343,6 +343,9 @@ export class DropdownMenu extends BasePlugin {
    */
   registerEvents() {
     this.eventManager.addEventListener(this.hot.rootElement, 'click', event => this.#onTableClick(event));
+    this.eventManager.addEventListener(this.hot.rootElement, 'wheel', event => this.#onTableWheel(event), {
+      passive: false,
+    });
   }
 
   /**
@@ -464,6 +467,21 @@ export class DropdownMenu extends BasePlugin {
         above: 0,
         below: 3,
       });
+    }
+  }
+
+  /**
+   * Table wheel listener.
+   *
+   * @private
+   * @param {WheelEvent} event The wheel event object.
+   */
+  #onTableWheel(event) {
+    const isMenuOpened = this.menu?.isOpened() ?? false;
+
+    if (this.#isMenuOpenedByButtonClick && isMenuOpened) {
+      this.#syncOverlayScrollPositionsWithMaster();
+      event.preventDefault();
     }
   }
 
