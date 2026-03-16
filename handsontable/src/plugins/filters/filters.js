@@ -26,6 +26,7 @@ import {
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
 import { TrimmingMap } from '../../translations';
+import { PLUGIN_KEY as DATA_PROVIDER_PLUGIN_KEY } from '../dataProvider';
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
@@ -171,6 +172,13 @@ export class Filters extends BasePlugin {
    * @type {Array}
    */
   #previousConditionStack = [];
+  /**
+   * When loadData is called by the dataProvider plugin, initIndexMappers clears the condition
+   * collection. We save conditions in beforeLoadData and restore them in afterLoadData.
+   *
+   * @type {Array|null}
+   */
+  #savedConditionsForDataProvider = null;
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -283,6 +291,8 @@ export class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuShow', () => this.#onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.#onAfterDropdownMenuHide());
     this.addHook('afterChange', changes => this.#onAfterChange(changes));
+    this.addHook('beforeLoadData', (data, firstRun, source) => this.#onBeforeLoadData(source));
+    this.addHook('afterLoadData', (data, firstRun, source) => this.#onAfterLoadData(source));
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
@@ -365,6 +375,7 @@ export class Filters extends BasePlugin {
       this.conditionCollection.destroy();
       this.conditionCollection = null;
       this.hot.rowIndexMapper.unregisterMap(this.pluginName);
+      this.#savedConditionsForDataProvider = null;
     }
 
     this.unregisterShortcuts();
@@ -675,6 +686,40 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack
     );
 
+    const dataProvider = this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY);
+    const isServerSideMode = dataProvider?.isEnabled?.() === true;
+
+    if (isServerSideMode && allowFiltering !== false) {
+      const filtersForProvider = needToFilter
+        ? conditions.map(({ column, operation, conditions: conds }) => ({
+          column: this.hot.toVisualColumn(column),
+          operation,
+          conditions: conds.map(({ name, args }) => ({ name, args: [...args] })),
+        }))
+        : null;
+
+      dataProvider.setFilters(filtersForProvider).catch(() => {});
+
+      this.#previousConditionStack = this.exportConditions();
+
+      if (!needToFilter) {
+        this.filtersRowsMap.clear();
+      }
+
+      if (this.hot.selection.isSelected()) {
+        this.hot.selectCell(
+          navigableHeaders ? -1 : 0,
+          this.hot.getSelectedRangeActive().highlight.col,
+        );
+      }
+
+      this.hot.runHooks('afterFilter', conditions);
+      this.hot.view.adjustElementsSize();
+      this.hot.render();
+
+      return;
+    }
+
     if (allowFiltering !== false && needToFilter) {
       const dataFilter = this._createDataFilter();
       const trimmedRows = [];
@@ -806,6 +851,45 @@ export class Filters extends BasePlugin {
         }
       });
     }
+  }
+
+  /**
+   * Before loadData: when the source is the dataProvider plugin, save current filter conditions
+   * so they can be restored after loadData (initIndexMappers clears the condition collection).
+   *
+   * @private
+   * @param {string} [source] The source of the loadData call.
+   */
+  #onBeforeLoadData(source) {
+    if (source !== DATA_PROVIDER_PLUGIN_KEY) {
+      return;
+    }
+
+    const dataProvider = this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY);
+
+    if (!dataProvider?.isEnabled?.()) {
+      return;
+    }
+
+    if (!this.conditionCollection.isEmpty()) {
+      this.#savedConditionsForDataProvider = this.exportConditions();
+    }
+  }
+
+  /**
+   * After loadData: when the source is the dataProvider plugin, restore filter conditions
+   * that were cleared by initIndexMappers.
+   *
+   * @private
+   * @param {string} [source] The source of the loadData call.
+   */
+  #onAfterLoadData(source) {
+    if (source !== DATA_PROVIDER_PLUGIN_KEY || this.#savedConditionsForDataProvider === null) {
+      return;
+    }
+
+    this.importConditions(this.#savedConditionsForDataProvider);
+    this.#savedConditionsForDataProvider = null;
   }
 
   /**

@@ -5,5 +5,9 @@ export {
   DataProviderFetchResult,
   DataProviderOptions,
   DataProviderFunction,
+  DataProviderFilters,
+  FilterCondition,
+  FilterConditionOperator,
+  ColumnFilterStack,
   Settings,
 } from './dataProvider';

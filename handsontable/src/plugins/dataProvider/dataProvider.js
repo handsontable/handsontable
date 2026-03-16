@@ -327,13 +327,13 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Updates filters and refetches.
+   * Updates filters and refetches. Resets to page 1 when filters change.
    *
-   * @param {object|null} filters Filter state to send to the provider.
+   * @param {object|null} filters Filter state to send to the provider (e.g. from Filters plugin export).
    * @returns {Promise<void>}
    */
   async setFilters(filters) {
-    await this.fetchData({ filters });
+    await this.fetchData({ filters, page: 1 });
   }
 
   /**

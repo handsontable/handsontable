@@ -8,6 +8,7 @@ import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
 import { CONDITION_BY_VALUE, CONDITION_NONE } from '../constants';
 import { getConditionDescriptor } from '../conditionRegisterer';
+import { PLUGIN_KEY as DATA_PROVIDER_PLUGIN_KEY } from '../../dataProvider';
 
 /**
  * @private
@@ -194,6 +195,19 @@ export class ValueComponent extends BaseComponent {
    */
   getMultipleSelectElement() {
     return this.elements.filter(element => element instanceof MultipleSelectUI)[0];
+  }
+
+  /**
+   * Check if component is hidden. The "Filter by value" section is hidden when the dataProvider plugin
+   * is enabled, because filtering is then performed server-side and the value list is not available.
+   *
+   * @returns {boolean}
+   */
+  isHidden() {
+    const dataProvider = this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY);
+    const isDataProviderEnabled = dataProvider?.isEnabled?.() === true;
+
+    return super.isHidden() || isDataProviderEnabled;
   }
 
   /**

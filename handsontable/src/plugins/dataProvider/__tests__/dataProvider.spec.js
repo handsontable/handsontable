@@ -221,7 +221,7 @@ describe('DataProvider', () => {
     expect(plugin.getQueryParameters().filters).toEqual({ col: 0, value: 'x' });
   });
 
-  it('should preserve current page when setSort or setFilters is called', async() => {
+  it('should preserve current page when setSort is called', async() => {
     const fetchParams = [];
 
     handsontable({
@@ -251,13 +251,70 @@ describe('DataProvider', () => {
     expect(plugin.getQueryParameters().page).toBe(2);
     expect(plugin.getQueryParameters().sort).toEqual({ column: 0, sortOrder: 'asc' });
     expect(fetchParams[fetchParams.length - 1].page).toBe(2);
+  });
 
-    await plugin.setFilters({ col: 1, value: 'z' });
+  it('should reset to page 1 when setFilters is called', async() => {
+    const fetchParams = [];
+
+    handsontable({
+      dataProvider: async(params) => {
+        fetchParams.push({ ...params });
+
+        return {
+          rows: createSpreadsheetData(params.pageSize || 10, 3),
+          totalRows: 100,
+        };
+      },
+      columns: 3,
+      pagination: { pageSize: 5 },
+    });
+
+    await sleep(100);
+
+    const plugin = getPlugin('dataProvider');
+
+    await plugin.goToPage(2);
+    await sleep(50);
+    expect(plugin.getQueryParameters().page).toBe(2);
+
+    await plugin.setFilters([{ column: 1, operation: 'conjunction', conditions: [{ name: 'contains', args: ['z'] }] }]);
     await sleep(50);
 
-    expect(plugin.getQueryParameters().page).toBe(2);
-    expect(plugin.getQueryParameters().filters).toEqual({ col: 1, value: 'z' });
-    expect(fetchParams[fetchParams.length - 1].page).toBe(2);
+    expect(plugin.getQueryParameters().page).toBe(1);
+    expect(plugin.getQueryParameters().filters).toBeDefined();
+    expect(fetchParams[fetchParams.length - 1].page).toBe(1);
+  });
+
+  it('should call dataProvider with filters null when setFilters(null) clears filters', async() => {
+    const fetchParams = [];
+
+    handsontable({
+      dataProvider: async(params) => {
+        fetchParams.push({ ...params });
+
+        return {
+          rows: createSpreadsheetData(params.pageSize || 10, 3),
+          totalRows: 100,
+        };
+      },
+      columns: 3,
+      pagination: true,
+    });
+
+    await sleep(100);
+
+    const plugin = getPlugin('dataProvider');
+
+    await plugin.setFilters([{ column: 0, operation: 'conjunction', conditions: [{ name: 'eq', args: ['a'] }] }]);
+    await sleep(50);
+    expect(plugin.getQueryParameters().filters).not.toBe(null);
+
+    await plugin.setFilters(null);
+    await sleep(50);
+
+    expect(plugin.getQueryParameters().filters).toBe(null);
+    expect(plugin.getQueryParameters().page).toBe(1);
+    expect(fetchParams[fetchParams.length - 1].filters).toBe(null);
   });
 
   it('should trigger dataProvider fetch with sort when columnSorting sort is used', async() => {

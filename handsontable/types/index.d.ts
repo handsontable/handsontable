@@ -178,6 +178,10 @@ import {
   DataProviderFetchResult,
   DataProviderOptions,
   DataProviderFunction,
+  DataProviderFilters,
+  FilterCondition,
+  FilterConditionOperator,
+  ColumnFilterStack,
 } from './plugins/dataProvider';
 import {
   DragToScroll as _DragToScroll,
@@ -550,6 +554,10 @@ declare namespace Handsontable {
       export { DataProviderFetchResult as FetchResult };
       export { DataProviderOptions as Options };
       export { DataProviderFunction };
+      export { DataProviderFilters as Filters };
+      export { FilterCondition };
+      export { FilterConditionOperator };
+      export { ColumnFilterStack };
     }
 
     export namespace DragToScroll {
