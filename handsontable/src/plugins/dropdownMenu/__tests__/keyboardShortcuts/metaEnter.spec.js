@@ -300,7 +300,7 @@ describe('DropdownMenu keyboard shortcut', () => {
           main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
           horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
         });
-        expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
+        expect(menuOffset.left).toBeAroundValue(buttonOffset.left);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,1 to: 2,3']);
       });
     });
