@@ -37,6 +37,13 @@ class GhostTable {
    * @type {PhysicalIndexToValueMap}
    */
   widthsMap;
+  /**
+   * Flag indicating whether the widths map needs to be rebuilt.
+   *
+   * @private
+   * @type {boolean}
+   */
+  isDirty = true;
 
   constructor({ hot, headersStateManager }) {
     this.hot = hot;
@@ -58,6 +65,17 @@ class GhostTable {
   }
 
   /**
+   * Marks the ghost table as needing rebuild.
+   *
+   * @returns {GhostTable}
+   */
+  markAsDirty() {
+    this.isDirty = true;
+
+    return this;
+  }
+
+  /**
    * Gets the column width based on the visual column index (as rendered in the main table).
    *
    * @param {number} visualColumn Visual column index.
@@ -71,6 +89,10 @@ class GhostTable {
    * Build cache of the headers widths.
    */
   buildWidthsMap() {
+    if (!this.isDirty) {
+      return;
+    }
+
     const currentThemeName = this.hot.getCurrentThemeName();
 
     this.container = this.hot.rootDocument.createElement('div');
@@ -81,9 +103,6 @@ class GhostTable {
     }
 
     this.#buildGhostTable(this.container);
-
-    // todo
-    this.hot.rootDocument.querySelectorAll('.htGhostTable').forEach(element => element.remove());
 
     this.hot.rootDocument.body.appendChild(this.container);
 
@@ -140,6 +159,7 @@ class GhostTable {
 
     this.container.remove();
     this.container = null;
+    this.isDirty = false;
   }
 
   /**

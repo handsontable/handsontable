@@ -243,6 +243,8 @@ export class NestedHeaders extends BasePlugin {
 
           this.#stateManager.triggerColumnModification(actionName, physicalColumnIndex);
         });
+
+      this.ghostTable.markAsDirty();
     }
 
     if (!this.#hidingIndexMapObserver && this.enabled) {
@@ -257,13 +259,9 @@ export class NestedHeaders extends BasePlugin {
             }
           });
 
-          this.ghostTable.buildWidthsMap();
+          this.ghostTable.markAsDirty().buildWidthsMap();
         });
     }
-
-    // this.ghostTable
-    //   .setLayersCount(this.getLayersCount())
-    //   .buildWidthsMap();
 
     super.updatePlugin();
   }
