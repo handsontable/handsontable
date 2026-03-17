@@ -1,5 +1,3 @@
-import { html } from '../../../helpers/templateLiteralTag';
-
 /**
  * The class generates the nested headers structure in the DOM and reads the column width for
  * each column. The hierarchy is built only for visible, non-hidden columns. Each time the
@@ -16,6 +14,13 @@ class GhostTable {
    * @type {Handsontable}
    */
   hot;
+  /**
+   * The state manager for the nested headers.
+   *
+   * @private
+   * @type {StateManager}
+   */
+  headersStateManager;
   /**
    * The value that holds information about the number of the nested header layers (header rows).
    *
@@ -71,6 +76,8 @@ class GhostTable {
    * Build cache of the headers widths.
    */
   buildWidthsMap() {
+    const collapsedPhysicalColumns = this.#getCollapsedPhysicalColumns();
+    const hasCollapsedGroups = collapsedPhysicalColumns.size > 0;
     const currentThemeName = this.hot.getCurrentThemeName();
 
     this.container = this.hot.rootDocument.createElement('div');
@@ -80,26 +87,18 @@ class GhostTable {
       this.container.classList.add(currentThemeName);
     }
 
-    this.#buildGhostTable(this.container);
+    this.#buildGhostTable(this.container, hasCollapsedGroups);
 
     this.hot.rootDocument.body.appendChild(this.container);
 
-    const fullTable = this.container.querySelector('[data-ghost-table="full"]');
+    const fullWidthByPhysical = hasCollapsedGroups
+      ? this.#measureFullTable()
+      : null;
+
     const renderedTable = this.container.querySelector('[data-ghost-table="rendered"]');
-    const fullColumns = fullTable.querySelectorAll('tr:last-of-type th');
     const renderedColumns = renderedTable.querySelectorAll('tr:last-of-type th');
 
     this.widthsMap.clear();
-
-    const fullWidthByPhysical = new Map();
-
-    for (let column = 0; column < fullColumns.length; column++) {
-      const visualColumnIndex = Number.parseInt(fullColumns[column].dataset.column, 10);
-      const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
-      const width = fullColumns[column].getBoundingClientRect().width;
-
-      fullWidthByPhysical.set(physicalColumnIndex, width);
-    }
 
     for (let column = 0; column < renderedColumns.length; column++) {
       const visualColumnIndex = Number.parseInt(renderedColumns[column].dataset.column, 10);
@@ -109,28 +108,19 @@ class GhostTable {
         continue;
       }
 
-      const fullWidth = fullWidthByPhysical.get(physicalColumnIndex);
+      let width;
 
-      if (fullWidth === undefined) {
-        continue;
+      if (hasCollapsedGroups && collapsedPhysicalColumns.has(physicalColumnIndex)) {
+        const fullWidth = fullWidthByPhysical.get(physicalColumnIndex);
+
+        if (fullWidth !== undefined) {
+          width = fullWidth;
+        }
       }
 
-      const renderedWidth = renderedColumns[column].getBoundingClientRect().width;
-      const treeNode = this.headersStateManager.getHeaderTreeNode(-1, visualColumnIndex);
-
-      let isAnyAncestorCollapsed = false;
-
-      if (treeNode) {
-        treeNode.walkUp((node) => {
-          if (node.data.isCollapsed === true) {
-            isAnyAncestorCollapsed = true;
-
-            return false;
-          }
-        });
+      if (width === undefined) {
+        width = renderedColumns[column].getBoundingClientRect().width;
       }
-
-      const width = isAnyAncestorCollapsed ? fullWidth : renderedWidth;
 
       this.widthsMap.setValueAtIndex(physicalColumnIndex, width);
     }
@@ -140,124 +130,156 @@ class GhostTable {
   }
 
   /**
+   * Measure widths from the full (uncollapsed) ghost table.
+   *
+   * @returns {Map<number, number>} Map of physical column index to width.
+   */
+  #measureFullTable() {
+    const fullTable = this.container.querySelector('[data-ghost-table="full"]');
+    const fullColumns = fullTable.querySelectorAll('tr:last-of-type th');
+    const fullWidthByPhysical = new Map();
+
+    for (let column = 0; column < fullColumns.length; column++) {
+      const visualColumnIndex = Number.parseInt(fullColumns[column].dataset.column, 10);
+      const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
+
+      fullWidthByPhysical.set(physicalColumnIndex, fullColumns[column].getBoundingClientRect().width);
+    }
+
+    return fullWidthByPhysical;
+  }
+
+  /**
+   * Pre-compute the set of physical column indexes that have any collapsed ancestor.
+   * This avoids repeated walkUp() calls per column during measurement.
+   *
+   * @returns {Set<number>} Set of physical column indexes under collapsed ancestors.
+   */
+  #getCollapsedPhysicalColumns() {
+    const collapsedPhysicals = new Set();
+    const maxColumnsCount = this.hot.countCols();
+
+    for (let col = 0; col < maxColumnsCount; col++) {
+      const treeNode = this.headersStateManager.getHeaderTreeNode(-1, col);
+
+      if (!treeNode) {
+        continue;
+      }
+
+      let found = false;
+
+      treeNode.walkUp((node) => {
+        if (node.data.isCollapsed === true) {
+          found = true;
+
+          return false;
+        }
+      });
+
+      if (found) {
+        collapsedPhysicals.add(this.hot.toPhysicalColumn(col));
+      }
+    }
+
+    return collapsedPhysicals;
+  }
+
+  /**
    * Build temporary tables for getting minimal columns widths. Builds two tables:
    * - Full: one TH per column (no collapse/hidden), to store width of the first column of a collapsed
-   *   group and fix jump on collapse/uncollapse.
+   *   group and fix jump on collapse/uncollapse. Only built when collapsed groups exist.
    * - Rendered: same structure as the main table (colspans, only visible roots), for width when a
    *   column has children and one is hidden (parent gets the width of the visible one).
    *
    * @param {HTMLElement} container The element where the DOM nodes are injected.
+   * @param {boolean} hasCollapsedGroups Whether any collapsed groups exist.
    */
-  #buildGhostTable(container) {
-    const { rootDocument } = this.hot;
+  #buildGhostTable(container, hasCollapsedGroups) {
     const isDropdownEnabled = !!this.hot.getSettings().dropdownMenu;
     const maxColumnsCount = this.hot.countCols();
+    const sanitizer = this.hot.getSettings().sanitizer;
 
-    container.appendChild(this.#buildFullColumnsTable(rootDocument, maxColumnsCount, isDropdownEnabled));
-    container.appendChild(this.#buildRenderedTable(rootDocument, maxColumnsCount, isDropdownEnabled));
+    if (hasCollapsedGroups) {
+      container.innerHTML = this.#buildFullColumnsTableHTML(maxColumnsCount, isDropdownEnabled, sanitizer) +
+        this.#buildRenderedTableHTML(maxColumnsCount, isDropdownEnabled, sanitizer);
+    } else {
+      container.innerHTML = this.#buildRenderedTableHTML(maxColumnsCount, isDropdownEnabled, sanitizer);
+    }
   }
 
   /**
-   * Build table with one TH per column (colspan 1), regardless of hidden/collapsed state.
-   * Used to store the width of the first column of a collapsed group.
+   * Build HTML string for a table with one TH per column (colspan = origColspan),
+   * regardless of hidden/collapsed state.
    *
-   * @param {Document} rootDocument Document to create elements in.
    * @param {number} maxColumnsCount Total column count.
    * @param {boolean} isDropdownEnabled Whether dropdown menu is enabled.
-   * @returns {HTMLTableElement}
+   * @param {Function|undefined} sanitizer The sanitizer function.
+   * @returns {string} HTML string for the full table.
    */
-  #buildFullColumnsTable(rootDocument, maxColumnsCount, isDropdownEnabled) {
-    const table = rootDocument.createElement('table');
-
-    table.dataset.ghostTable = 'full';
-
-    const thead = rootDocument.createElement('thead');
+  #buildFullColumnsTableHTML(maxColumnsCount, isDropdownEnabled, sanitizer) {
+    let rowsHTML = '';
 
     for (let row = 0; row < this.layersCount; row++) {
-      const tr = rootDocument.createElement('tr');
+      let cellsHTML = '';
 
       for (let col = 0; col < maxColumnsCount; col++) {
         const headerSettings = this.headersStateManager.getHeaderTreeNodeData(row, col);
 
-        if (
-          headerSettings && headerSettings.isRoot
-        ) {
-          const th = rootDocument.createElement('th');
-          const label = this.#buildHeaderLabel(headerSettings, isDropdownEnabled);
-
-          th.dataset.column = col;
-          th.colSpan = headerSettings.origColspan;
-
-          th.appendChild(label);
-          tr.appendChild(th);
+        if (headerSettings && headerSettings.isRoot) {
+          cellsHTML += `<th data-column="${col}" colspan="${headerSettings.origColspan}">${
+            this.#buildHeaderLabelHTML(headerSettings, isDropdownEnabled, sanitizer)
+          }</th>`;
         }
       }
 
-      thead.appendChild(tr);
+      rowsHTML += `<tr>${cellsHTML}</tr>`;
     }
 
-    table.appendChild(thead);
-
-    return table;
+    return `<table data-ghost-table="full"><thead>${rowsHTML}</thead></table>`;
   }
 
   /**
-   * Build table that mirrors the main table (colspans, only roots; placeholders/hidden not rendered).
-   * Used when a column has children and one is hidden - parent width is the width of the visible one.
+   * Build HTML string for a table that mirrors the main table (colspans, only visible roots).
    *
-   * @private
-   * @param {Document} rootDocument Document to create elements in.
    * @param {number} maxColumnsCount Total column count.
    * @param {boolean} isDropdownEnabled Whether dropdown menu is enabled.
-   * @returns {HTMLTableElement}
+   * @param {Function|undefined} sanitizer The sanitizer function.
+   * @returns {string} HTML string for the rendered table.
    */
-  #buildRenderedTable(rootDocument, maxColumnsCount, isDropdownEnabled) {
-    const table = rootDocument.createElement('table');
-
-    table.dataset.ghostTable = 'rendered';
-
-    const thead = rootDocument.createElement('thead');
+  #buildRenderedTableHTML(maxColumnsCount, isDropdownEnabled, sanitizer) {
+    let rowsHTML = '';
 
     for (let row = 0; row < this.layersCount; row++) {
-      const tr = rootDocument.createElement('tr');
+      let cellsHTML = '';
 
       for (let col = 0; col < maxColumnsCount; col++) {
         const headerSettings = this.headersStateManager.getHeaderSettings(row, col);
 
         if (
           headerSettings &&
-          (
-            !headerSettings.isPlaceholder && !headerSettings.isHidden
-          )
+          !headerSettings.isPlaceholder && !headerSettings.isHidden
         ) {
-          const th = rootDocument.createElement('th');
-          const label = this.#buildHeaderLabel(headerSettings, isDropdownEnabled);
-
-          th.colSpan = headerSettings.colspan;
-          th.dataset.column = col;
-
-          th.appendChild(label);
-          tr.appendChild(th);
+          cellsHTML += `<th data-column="${col}" colspan="${headerSettings.colspan}">${
+            this.#buildHeaderLabelHTML(headerSettings, isDropdownEnabled, sanitizer)
+          }</th>`;
         }
       }
 
-      thead.appendChild(tr);
+      rowsHTML += `<tr>${cellsHTML}</tr>`;
     }
 
-    table.appendChild(thead);
-
-    return table;
+    return `<table data-ghost-table="rendered"><thead>${rowsHTML}</thead></table>`;
   }
 
   /**
-   * Build header cell content for the ghost table as DOM nodes.
+   * Build header cell content HTML string.
    *
    * @param {object} headerSettings Header settings (label, colspan, etc).
    * @param {boolean} isDropdownEnabled Whether dropdown menu is enabled.
-   * @returns {DocumentFragment} Fragment containing the wrapper div.relative with header content.
+   * @param {Function|undefined} sanitizer The sanitizer function.
+   * @returns {string} HTML string for the header label.
    */
-  #buildHeaderLabel(headerSettings, isDropdownEnabled) {
-    const sanitizer = this.hot.getSettings().sanitizer;
+  #buildHeaderLabelHTML(headerSettings, isDropdownEnabled, sanitizer) {
     const label = typeof sanitizer === 'function'
       ? sanitizer(headerSettings.label, 'innerHTML')
       : headerSettings.label;
@@ -265,15 +287,8 @@ class GhostTable {
     const indicatorHtml = headerSettings.collapsible
       ? '<div class="collapsibleIndicator expanded">-</div>'
       : '';
-    const { fragment } = html`
-      <div class="relative">
-        <span class="colHeader">${label}</span>
-        ${dropdownHtml}
-        ${indicatorHtml}
-      </div>
-    `;
 
-    return fragment;
+    return `<div class="relative"><span class="colHeader">${label}</span>${dropdownHtml}${indicatorHtml}</div>`;
   }
 
   /**

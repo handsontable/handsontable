@@ -57,12 +57,12 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getValueAtIndex(0)).forThemes(({ classic, main, horizon }) => {
           classic.toBeAroundValue(100);
           main.toBeAroundValue(110);
-          horizon.toBeAroundValue(119);
+          horizon.toBeAroundValue(117);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main, horizon }) => {
           classic.toBeAroundValue(100);
           main.toBeAroundValue(110);
-          horizon.toBeAroundValue(119);
+          horizon.toBeAroundValue(117);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main, horizon }) => {
           classic.toBeAroundValue(99);
@@ -114,7 +114,7 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main, horizon }) => {
           classic.toBeAroundValue(24);
           main.toBeAroundValue(28);
-          horizon.toBeAroundValue(37);
+          horizon.toBeAroundValue(36);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main, horizon }) => {
           classic.toBeAroundValue(22);
@@ -142,14 +142,14 @@ describe('NestedHeaders', () => {
           horizon.toBeAroundValue(33);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(7)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(101);
+          classic.toBeAroundValue(102);
           main.toBeAroundValue(111);
           horizon.toBeAroundValue(114);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main, horizon }) => {
           classic.toBeAroundValue(98);
           main.toBeAroundValue(108);
-          horizon.toBeAroundValue(111);
+          horizon.toBeAroundValue(112);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(9)).forThemes(({ classic, main, horizon }) => {
           classic.toBeAroundValue(25);
@@ -193,7 +193,7 @@ describe('NestedHeaders', () => {
 
         expect(widthAfterUpdate).not.toBe(widthBeforeUpdate);
         expect(widthAfterUpdate).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(137);
+          classic.toBeAroundValue(135);
           main.toBeAroundValue(150);
           horizon.toBeAroundValue(158);
         });
@@ -222,7 +222,7 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main, horizon }) => {
           classic.toBeAroundValue(24);
           main.toBeAroundValue(28);
-          horizon.toBeAroundValue(37);
+          horizon.toBeAroundValue(36);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(2)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(3)).forThemes(({ classic, main, horizon }) => {
@@ -246,14 +246,14 @@ describe('NestedHeaders', () => {
           horizon.toBeAroundValue(33);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(7)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(101);
+          classic.toBeAroundValue(102);
           main.toBeAroundValue(111);
           horizon.toBeAroundValue(114);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main, horizon }) => {
           classic.toBeAroundValue(98);
           main.toBeAroundValue(108);
-          horizon.toBeAroundValue(111);
+          horizon.toBeAroundValue(112);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
@@ -348,14 +348,14 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getValueAtIndex(5)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(6)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(7)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(101);
+          classic.toBeAroundValue(102);
           main.toBeAroundValue(111);
           horizon.toBeAroundValue(114);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main, horizon }) => {
           classic.toBeAroundValue(98);
           main.toBeAroundValue(108);
-          horizon.toBeAroundValue(111);
+          horizon.toBeAroundValue(112);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
