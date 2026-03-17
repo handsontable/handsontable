@@ -125,6 +125,7 @@ describe('Mixed helper', () => {
 
   describe('_injectProductInfo', () => {
     const LICENSE_TEST_KEY = 'd0134-95841-770f2-c4f21-3751d'; // expired on 23/05/2011
+    const TRIAL_TEST_KEY = 'ht68e-1f2b7-47158-70b05-0842f'; // works as "non-commercial-and-evaluation"
     let _injectProductInfo;
 
     beforeEach(() => {
@@ -384,6 +385,23 @@ describe('Mixed helper', () => {
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
       _injectProductInfo('non-commercial-and-evaluation', element, '23/05/2010');
+
+      expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
+      expect(console.error).not.toHaveBeenCalled();
+      expect(console.info).not.toHaveBeenCalled();
+      expect(console.log).not.toHaveBeenCalled();
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
+    it('should not print any information if trial key is used', () => {
+      spyOn(console, 'warn');
+      spyOn(console, 'info');
+      spyOn(console, 'log');
+      spyOn(console, 'error');
+
+      const element = document.createElement('div').appendChild(document.createElement('div'));
+
+      _injectProductInfo(TRIAL_TEST_KEY, element, '23/05/2010');
 
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
