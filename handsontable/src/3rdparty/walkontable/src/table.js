@@ -403,6 +403,17 @@ class Table {
     }
 
     if (positionChanged) {
+      // The `innerBorderTop` / `innerBorderInlineStart` class toggle can change the effective
+      // column header height by 1px. Recalculate the oversized headers cache before refreshing overlays.
+      this.dataAccessObject.wtViewport.resetHasOversizedColumnHeadersMarked();
+      this.markOversizedColumnHeaders();
+      this.adjustColumnHeaderHeights();
+      wtOverlays.getOverlays().forEach((overlay) => {
+        if (overlay?.clone?.wtTable) {
+          overlay.clone.wtTable.adjustColumnHeaderHeights();
+        }
+      });
+
       // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
       // remove `innerBorderTop` and `innerBorderInlineStart` CSS classes to the DOM element. This happens
       // when there is a switch between rendering from 0 to N rows/columns and vice versa).
@@ -429,7 +440,6 @@ class Table {
   markIfOversizedColumnHeader(col) {
     const sourceColIndex = this.columnFilter.renderedToSource(col);
     let level = this.wtSettings.getSetting('columnHeaders').length;
-    const columnHeadersCount = level;
     const stylesHandler = this.wtSettings.getSetting('stylesHandler');
     const defaultRowHeight = stylesHandler.getDefaultRowHeight();
     let previousColHeaderHeight;
@@ -447,12 +457,7 @@ class Table {
         /* eslint-disable no-continue */
         continue;
       }
-      // The collapsed table border should be compensated only once for the whole header stack.
-      currentHeaderHeight = innerHeight(currentHeader);
-
-      if (level === columnHeadersCount - 1) {
-        currentHeaderHeight += 1;
-      }
+      currentHeaderHeight = outerHeight(currentHeader);
 
       if (!previousColHeaderHeight &&
           defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {

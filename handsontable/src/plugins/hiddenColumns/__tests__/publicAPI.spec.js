@@ -61,12 +61,21 @@ describe('HiddenColumns', () => {
         getPlugin('hiddenColumns').showColumn(0);
         await render();
 
-        const rowHeader = spec().$container.find('.ht_clone_inline_start tr:eq(1) th:eq(0)')[0];
-        const rowCell = getCell(0, 0);
-        const rowHeaderTop = rowHeader.getBoundingClientRect().top;
-        const rowCellTop = rowCell.getBoundingClientRect().top;
+        const getAlignmentDelta = () => {
+          const firstRenderedRow = hot().view._wt.wtTable.getFirstRenderedRow();
+          const rowHeader = hot().view._wt.wtOverlays.inlineStartOverlay.clone.wtTable
+            .getRowHeader(firstRenderedRow, 0);
+          const rowCell = getCell(firstRenderedRow, 0);
+          const rowHeaderTop = rowHeader.getBoundingClientRect().top;
+          const rowCellTop = rowCell.getBoundingClientRect().top;
 
-        expect(rowHeaderTop - rowCellTop).toBe(0);
+          return rowHeaderTop - rowCellTop;
+        };
+
+        expect(getAlignmentDelta()).toBe(0);
+
+        await scrollViewportVertically(350);
+        expect(getAlignmentDelta()).toBe(0);
       });
     });
 
