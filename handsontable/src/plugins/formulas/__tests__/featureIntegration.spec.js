@@ -527,7 +527,7 @@ describe('Formulas: Integration with other features', () => {
   });
 
   describe('Integration with the MultiSelect cell type', () => {
-    it('should keep array source values and ignore them in the formulas engine', async() => {
+    it('should keep array source values and pass them to the formulas engine as strings', async() => {
       const errorSpy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;
 
@@ -535,8 +535,8 @@ describe('Formulas: Integration with other features', () => {
 
       handsontable({
         data: [
-          [['A', 'B'], 2, '=SUM(B1:B2)'],
-          [['C'], 3, null],
+          [['A', 'B'], 2, '=SUM(B1:B2)', '=A1'],
+          [['C'], 3, '=A2', null],
         ],
         rowHeaders: true,
         colHeaders: true,
@@ -554,6 +554,9 @@ describe('Formulas: Integration with other features', () => {
           },
           {
             type: 'text',
+          },
+          {
+            type: 'text',
           }
         ],
       });
@@ -561,6 +564,8 @@ describe('Formulas: Integration with other features', () => {
       await render();
 
       expect(getDataAtCell(0, 2)).toEqual(5);
+      expect(getDataAtCell(0, 3)).toEqual('A, B');
+      expect(getDataAtCell(1, 2)).toEqual('C');
       expect(getSourceDataAtCell(0, 0)).toEqual(['A', 'B']);
       expect(getSourceDataAtCell(1, 0)).toEqual(['C']);
       expect(errorSpy.test).not.toHaveBeenCalled();
@@ -568,6 +573,7 @@ describe('Formulas: Integration with other features', () => {
       await setDataAtCell(1, 0, ['A', 'C']);
 
       expect(getDataAtCell(0, 2)).toEqual(5);
+      expect(getDataAtCell(1, 2)).toEqual('A, C');
       expect(getSourceDataAtCell(1, 0)).toEqual(['A', 'C']);
       expect(errorSpy.test).not.toHaveBeenCalled();
 

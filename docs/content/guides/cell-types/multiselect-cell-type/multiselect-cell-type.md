@@ -38,7 +38,7 @@ The list of selectable options (`source` property) can be provided in two format
 
 When you use the MultiSelect cell type together with the [Formulas](@/api/options.md#formulas) plugin, Handsontable keeps MultiSelect values in source data as arrays.
 
-HyperFormula doesn't accept arrays as direct cell values. Because of that, Handsontable passes empty (`null`) values from MultiSelect cells to HyperFormula. This behavior lets HyperFormula skip MultiSelect columns, while MultiSelect cells keep their array format in the source data.
+HyperFormula doesn't accept arrays as direct cell values. Because of that, Handsontable converts MultiSelect arrays to comma-separated strings before passing values to HyperFormula. This behavior keeps the original array format in source data, and allows formula cells to reference MultiSelect values as text (for example, `"Frontend, Backend"`).
 
 ## The `source` option
 

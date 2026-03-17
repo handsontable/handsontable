@@ -601,13 +601,15 @@ export class Formulas extends BasePlugin {
    * @returns {*} The value to be displayed in the cell.
    */
   #getValueGetterValue(row, column, value) {
-    if (isObject(value) && value !== null) {
-      const visualRow = this.hot.toVisualRow(row);
-      const visualColumn = this.hot.toVisualColumn(column);
+    const visualRow = this.hot.toVisualRow(row);
+    const visualColumn = this.hot.toVisualColumn(column);
 
+    if (visualRow !== null && visualColumn !== null) {
       value = getValueGetterValue(value, this.hot.getCellMeta(visualRow, visualColumn));
+    }
 
-      return normalizeValueForFormulaEngine(value.toString());
+    if (isObject(value) && value !== null) {
+      value = value.toString();
     }
 
     return normalizeValueForFormulaEngine(value);

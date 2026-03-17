@@ -99,10 +99,14 @@ describe('Formulas utils', () => {
   });
 
   describe('normalizeValueForFormulaEngine', () => {
-    it('should convert array values to null', () => {
-      expect(normalizeValueForFormulaEngine([])).toBeNull();
-      expect(normalizeValueForFormulaEngine(['A', 'B'])).toBeNull();
-      expect(normalizeValueForFormulaEngine([{ key: 'a', value: 'A' }])).toBeNull();
+    it('should convert array values to comma-separated strings', () => {
+      expect(normalizeValueForFormulaEngine([])).toBe('');
+      expect(normalizeValueForFormulaEngine(['A', 'B'])).toBe('A, B');
+      expect(normalizeValueForFormulaEngine([{ key: 'a', value: 'Alpha' }])).toBe('Alpha');
+      expect(normalizeValueForFormulaEngine([
+        { key: 'a', value: 'Alpha' },
+        { key: 'b', value: 'Beta' },
+      ])).toBe('Alpha, Beta');
     });
 
     it('should keep non-array values unchanged', () => {
