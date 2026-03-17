@@ -535,6 +535,19 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. See `.c
 
 ---
 
+## Accessibility (a11y) policy
+
+- Preserve conformance with WCAG 2.1 AA. This is the baseline for global accessibility standards used by our users.
+- Do not regress keyboard-only navigation. Keep both navigation modes working:
+  - Spreadsheet mode (default): `navigableHeaders: false`, `tabNavigation: true`.
+  - Data grid mode: `navigableHeaders: true`, `tabNavigation: false`.
+- Protect screen reader behavior (NVDA, JAWS, VoiceOver). When changing rendering, selection, headers, frozen areas, hidden rows/columns, or merged cells, verify ARIA semantics are still correct.
+- For accessibility-critical flows, prefer complete DOM rendering (`renderAllRows: true`, `renderAllColumns: true`) and document the performance tradeoff.
+- Custom plugins, renderers, and cell types must remain accessible: semantic HTML, sufficient color contrast, no flashing/blinking content, and extra ARIA attributes where required.
+- Accessibility-sensitive changes require tests. Add automated coverage and validate keyboard navigation paths.
+
+---
+
 ## File locations reference
 
 ### Core
