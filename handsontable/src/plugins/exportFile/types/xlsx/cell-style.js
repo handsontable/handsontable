@@ -1,8 +1,19 @@
 import { arrayEach } from '../../../../helpers/array';
 
 // Default ARGB colors applied to read-only cells when no explicit styling is set.
+// Values match the Handsontable design-system tokens for dimmed/disabled cell state.
 const READ_ONLY_BG_ARGB = 'FFF0F0F0';
 const READ_ONLY_TEXT_ARGB = 'FF808080';
+
+// Per-document cache for detectExplicitBackgroundColor results.
+// Keyed by document (WeakMap — avoids leaking document references) then by the
+// joined className string.  CSS rules are stable during a single export, so the
+// result for a given className is safe to reuse across all cells that share it.
+const backgroundColorByDoc = new WeakMap();
+
+// Per-document cache for getCssStyleFromProbe results (used when the real cell element
+// is not available — i.e. the cell is outside the render viewport).
+const cssStyleProbeByDoc = new WeakMap();
 
 // Handsontable alignment class names — cells that carry only these classes have no
 // custom CSS color, so reading `color` from them would yield only the inherited default.
@@ -51,13 +62,24 @@ function rgbComputedToHex(rgbStr) {
  * the DOM. The probe is removed immediately after reading.
  *
  * @private
- * @param {HTMLElement} element The rendered cell element (provides `ownerDocument`).
+ * @param {Document} doc The owner document of the rendered cell.
  * @param {string[]} metaClasses All classes from the cell's `className` meta value.
  * @param {Window} view The element's owner window.
  * @returns {string|null} CSS hex color string, or `null` when no explicit background.
  */
-function detectExplicitBackgroundColor(element, metaClasses, view) {
-  const doc = element.ownerDocument;
+function detectExplicitBackgroundColor(doc, metaClasses, view) {
+  const cacheKey = metaClasses.join(' ');
+
+  let docCache = backgroundColorByDoc.get(doc);
+
+  if (!docCache) {
+    docCache = new Map();
+    backgroundColorByDoc.set(doc, docCache);
+  }
+
+  if (docCache.has(cacheKey)) {
+    return docCache.get(cacheKey);
+  }
 
   // Off-screen probe with Handsontable CSS context so scoped rules (e.g.
   // `.handsontable td { … }`) apply to the temporary cells.
@@ -74,7 +96,7 @@ function detectExplicitBackgroundColor(element, metaClasses, view) {
   // Cell with all meta classes — the candidate background.
   const tdFull = doc.createElement('td');
 
-  tdFull.className = metaClasses.join(' ');
+  tdFull.className = cacheKey;
 
   // Baseline cell with only alignment classes — the default background.
   const tdBase = doc.createElement('td');
@@ -93,7 +115,93 @@ function detectExplicitBackgroundColor(element, metaClasses, view) {
 
   doc.body.removeChild(probe);
 
-  return bgFull !== bgBase ? rgbComputedToHex(bgFull) : null;
+  const result = bgFull !== bgBase ? rgbComputedToHex(bgFull) : null;
+
+  docCache.set(cacheKey, result);
+
+  return result;
+}
+
+/**
+ * Derives full CSS style information for a cell that has no rendered DOM element
+ * (e.g. a cell outside the virtual-scroll viewport) by mounting a temporary probe
+ * `<td>` with the same `metaClasses` inside a `.handsontable` context.
+ *
+ * Both a "full" cell (with all custom classes) and a "baseline" cell (with only
+ * alignment classes) are probed simultaneously so that inherited-default values
+ * (color, background) are not incorrectly attributed to the custom class.
+ *
+ * Results are cached per document + className so subsequent calls for the same
+ * className are free.
+ *
+ * @private
+ * @param {Document} doc The document to build the probe in.
+ * @param {Window} view The associated window (for `getComputedStyle`).
+ * @param {string[]} metaClasses All classes from the cell's `className` meta value.
+ * @returns {{ fontBold: boolean, fontItalic: boolean, fontUnderline: boolean,
+ *             fontColor: string|null, backgroundColor: string|null }}
+ */
+function getCssStyleFromProbe(doc, view, metaClasses) {
+  const cacheKey = metaClasses.join(' ');
+  let docCache = cssStyleProbeByDoc.get(doc);
+
+  if (!docCache) {
+    docCache = new Map();
+    cssStyleProbeByDoc.set(doc, docCache);
+  }
+
+  if (docCache.has(cacheKey)) {
+    return docCache.get(cacheKey);
+  }
+
+  const probe = doc.createElement('div');
+
+  probe.className = 'handsontable';
+  probe.style.cssText =
+    'position:absolute;top:-99999px;left:-99999px;visibility:hidden;pointer-events:none;';
+
+  const table = doc.createElement('table');
+  const tbody = doc.createElement('tbody');
+  const tr = doc.createElement('tr');
+
+  // Cell with all meta classes — resolves the custom styling.
+  const tdFull = doc.createElement('td');
+
+  tdFull.className = cacheKey;
+
+  // Baseline cell with only alignment classes — resolves inherited defaults.
+  const tdBase = doc.createElement('td');
+
+  tdBase.className = metaClasses.filter(c => ALIGNMENT_CLASS_NAMES.has(c)).join(' ');
+
+  tr.appendChild(tdFull);
+  tr.appendChild(tdBase);
+  tbody.appendChild(tr);
+  table.appendChild(tbody);
+  probe.appendChild(table);
+  doc.body.appendChild(probe);
+
+  const styleFull = view.getComputedStyle(tdFull);
+  const styleBase = view.getComputedStyle(tdBase);
+
+  const bgFull = styleFull.backgroundColor;
+  const bgBase = styleBase.backgroundColor;
+  const colorFull = styleFull.color;
+  const colorBase = styleBase.color;
+
+  doc.body.removeChild(probe);
+
+  const result = {
+    fontBold: parseInt(styleFull.fontWeight, 10) >= 700 || styleFull.fontWeight === 'bold',
+    fontItalic: styleFull.fontStyle === 'italic',
+    fontUnderline: (styleFull.textDecorationLine || styleFull.textDecoration || '').includes('underline'),
+    fontColor: colorFull !== colorBase ? rgbComputedToHex(colorFull) : null,
+    backgroundColor: bgFull !== bgBase ? rgbComputedToHex(bgFull) : null,
+  };
+
+  docCache.set(cacheKey, result);
+
+  return result;
 }
 
 /**
@@ -108,17 +216,33 @@ function detectExplicitBackgroundColor(element, metaClasses, view) {
  * computed background. Detection is done via a temporary off-screen probe element
  * (see `detectExplicitBackgroundColor`) — the actual table cell is never modified.
  *
- * Returns `null` when no element is provided (e.g. the cell is outside the rendered
- * viewport in a virtualised grid).
+ * When `element` is `null` (cell outside the render viewport) but `rootDocument`
+ * and `rootWindow` are provided, style information is derived via a temporary probe
+ * element (see `getCssStyleFromProbe`). Returns `null` only when no element and no
+ * document fallback are available, or when the className has no custom classes.
  *
  * @param {HTMLElement|null} element The rendered `<td>` element, or `null`.
  * @param {string|undefined} className The cell's `className` meta value.
+ * @param {Document|null} [rootDocument] Fallback document used when `element` is `null`.
+ * @param {Window|null} [rootWindow] Fallback window used when `element` is `null`.
  * @returns {{ fontBold: boolean, fontItalic: boolean, fontUnderline: boolean,
  *             fontColor: string|null, backgroundColor: string|null }|null}
  */
-export function getCssStyleFromElement(element, className) {
+export function getCssStyleFromElement(element, className, rootDocument = null, rootWindow = null) {
   if (!element) {
-    return null;
+    if (!rootDocument || !rootWindow) {
+      return null;
+    }
+
+    const metaClasses = typeof className === 'string'
+      ? className.split(' ').filter(c => c.length > 0)
+      : [];
+
+    if (!metaClasses.some(c => !ALIGNMENT_CLASS_NAMES.has(c))) {
+      return null;
+    }
+
+    return getCssStyleFromProbe(rootDocument, rootWindow, metaClasses);
   }
 
   const view = element.ownerDocument?.defaultView;
@@ -141,7 +265,7 @@ export function getCssStyleFromElement(element, className) {
     fontUnderline: (style.textDecorationLine || style.textDecoration || '').includes('underline'),
     fontColor: hasCustomClass ? rgbComputedToHex(style.color) : null,
     backgroundColor: hasCustomClass
-      ? detectExplicitBackgroundColor(element, metaClasses, view)
+      ? detectExplicitBackgroundColor(element.ownerDocument, metaClasses, view)
       : null,
   };
 }
@@ -235,7 +359,35 @@ export function getAlignmentFromMeta(meta) {
 }
 
 /**
+ * Maps a Handsontable border pixel width to the closest ExcelJS border style string.
+ *
+ * Excel does not support arbitrary pixel widths; it uses a fixed set of named styles.
+ * The mapping used here:
+ * - `1` → `'thin'`  (≈ 0.5 pt in Excel)
+ * - `2` → `'medium'` (≈ 1.5 pt in Excel)
+ * - `3+` → `'thick'` (≈ 2.25 pt in Excel)
+ *
+ * @private
+ * @param {number} width Border width in pixels.
+ * @returns {string} ExcelJS border style name.
+ */
+function borderWidthToExcelStyle(width) {
+  if (width >= 3) {
+    return 'thick';
+  }
+
+  if (width === 2) {
+    return 'medium';
+  }
+
+  return 'thin';
+}
+
+/**
  * Derives an ExcelJS `border` object from custom border data stored in cell meta.
+ *
+ * Border widths are mapped to the nearest Excel border style:
+ * `1` → `'thin'`, `2` → `'medium'`, `3+` → `'thick'`.
  *
  * @private
  * @param {object|undefined} meta Cell meta object.
@@ -252,7 +404,7 @@ export function getBorderFromMeta(meta) {
   arrayEach(['top', 'bottom', 'left', 'right'], (side) => {
     if (borders[side] && borders[side].width > 0) {
       excelBorder[side] = {
-        style: 'thin',
+        style: borderWidthToExcelStyle(borders[side].width),
         color: { argb: cssColorToArgb(borders[side].color) },
       };
     }

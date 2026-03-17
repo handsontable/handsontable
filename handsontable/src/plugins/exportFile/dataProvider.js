@@ -32,32 +32,46 @@ class DataProvider {
   }
 
   /**
-   * Get table data based on provided settings to the class constructor.
+   * Builds a 2D array by calling `getCellValue(rowIndex, colIndex)` for every visible
+   * cell in the export range, honouring hidden-row and hidden-column exclusions.
    *
-   * @returns {Array}
+   * @private
+   * @param {Function} getCellValue Called for each visible cell; its return value is
+   *   pushed into the row array.
+   * @returns {Array[]}
    */
-  getData() {
+  _extractDataMatrix(getCellValue) {
     const { startRow, startCol, endRow, endCol } = this._getDataRange();
     const options = this.options;
     const data = [];
 
     rangeEach(startRow, endRow, (rowIndex) => {
-      const row = [];
-
       if (!options.exportHiddenRows && this._isHiddenRow(rowIndex)) {
         return;
       }
+
+      const row = [];
+
       rangeEach(startCol, endCol, (colIndex) => {
         if (!options.exportHiddenColumns && this._isHiddenColumn(colIndex)) {
           return;
         }
-        row.push(this.hot.getDataAtCell(rowIndex, colIndex));
+        row.push(getCellValue(rowIndex, colIndex));
       });
 
       data.push(row);
     });
 
     return data;
+  }
+
+  /**
+   * Get table data based on provided settings to the class constructor.
+   *
+   * @returns {Array}
+   */
+  getData() {
+    return this._extractDataMatrix((row, col) => this.hot.getDataAtCell(row, col));
   }
 
   /**
@@ -135,27 +149,7 @@ class DataProvider {
    * @returns {Array}
    */
   getSourceData() {
-    const { startRow, startCol, endRow, endCol } = this._getDataRange();
-    const options = this.options;
-    const data = [];
-
-    rangeEach(startRow, endRow, (rowIndex) => {
-      const row = [];
-
-      if (!options.exportHiddenRows && this._isHiddenRow(rowIndex)) {
-        return;
-      }
-      rangeEach(startCol, endCol, (colIndex) => {
-        if (!options.exportHiddenColumns && this._isHiddenColumn(colIndex)) {
-          return;
-        }
-        row.push(this.hot.getSourceDataAtCell(rowIndex, colIndex));
-      });
-
-      data.push(row);
-    });
-
-    return data;
+    return this._extractDataMatrix((row, col) => this.hot.getSourceDataAtCell(row, col));
   }
 
   /**
@@ -185,28 +179,7 @@ class DataProvider {
    * @returns {Array}
    */
   getCellsMeta() {
-    const { startRow, startCol, endRow, endCol } = this._getDataRange();
-    const options = this.options;
-    const meta = [];
-
-    rangeEach(startRow, endRow, (rowIndex) => {
-      if (!options.exportHiddenRows && this._isHiddenRow(rowIndex)) {
-        return;
-      }
-
-      const rowMeta = [];
-
-      rangeEach(startCol, endCol, (colIndex) => {
-        if (!options.exportHiddenColumns && this._isHiddenColumn(colIndex)) {
-          return;
-        }
-        rowMeta.push(this.hot.getCellMeta(rowIndex, colIndex));
-      });
-
-      meta.push(rowMeta);
-    });
-
-    return meta;
+    return this._extractDataMatrix((row, col) => this.hot.getCellMeta(row, col));
   }
 
   /**
@@ -219,28 +192,7 @@ class DataProvider {
    * @returns {Array}
    */
   getCellElements() {
-    const { startRow, startCol, endRow, endCol } = this._getDataRange();
-    const options = this.options;
-    const elements = [];
-
-    rangeEach(startRow, endRow, (rowIndex) => {
-      if (!options.exportHiddenRows && this._isHiddenRow(rowIndex)) {
-        return;
-      }
-
-      const rowElements = [];
-
-      rangeEach(startCol, endCol, (colIndex) => {
-        if (!options.exportHiddenColumns && this._isHiddenColumn(colIndex)) {
-          return;
-        }
-        rowElements.push(this.hot.getCell(rowIndex, colIndex));
-      });
-
-      elements.push(rowElements);
-    });
-
-    return elements;
+    return this._extractDataMatrix((row, col) => this.hot.getCell(row, col));
   }
 
   /**
@@ -471,66 +423,136 @@ class DataProvider {
 
     const { startRow, startCol, endRow, endCol } = this._getDataRange();
     const allEndpoints = plugin.endpoints.getAllEndpoints();
-    const summaries = [];
+
+    // First pass: collect all destination data-row indices so we can exclude every
+    // summary destination from every formula's source range.  Without this, multiple
+    // summary rows would reference each other and create circular references in Excel
+    // (e.g. SUM at row 6 references MIN at row 7, and MIN at row 7 references SUM at row 6).
+    const allDestRows = new Set();
 
     arrayEach(allEndpoints, (endpoint) => {
       const destRow = this._physicalRowToDataIndex(endpoint.destinationRow, startRow, endRow);
-      const destCol = this._physicalColToDataIndex(endpoint.destinationColumn, startCol, endCol);
 
-      if (destRow === null || destCol === null) {
-        return;
+      if (destRow !== null) {
+        allDestRows.add(destRow);
       }
+    });
 
-      const physSourceCol = endpoint.sourceColumn ?? endpoint.destinationColumn;
-      const sourceCol = this._physicalColToDataIndex(physSourceCol, startCol, endCol);
+    // Second pass: translate each endpoint into an export-coordinate summary descriptor.
+    const summaries = [];
 
-      if (sourceCol === null) {
-        return;
+    arrayEach(allEndpoints, (endpoint) => {
+      const summary = this._transformEndpointToSummary(
+        endpoint, startRow, endRow, startCol, endCol, allDestRows
+      );
+
+      if (summary !== null) {
+        summaries.push(summary);
       }
-
-      // Convert physical row ranges to sequential data-row-index ranges,
-      // merging consecutive indices so the resulting array stays compact.
-      const physRanges = endpoint.ranges || [[0, this.hot.countRows() - 1]];
-      const sourceRanges = [];
-
-      arrayEach(physRanges, (range) => {
-        const physStart = range[0];
-        const physEnd = range[1] !== undefined ? range[1] : range[0];
-
-        for (let physRow = physStart; physRow <= physEnd; physRow++) {
-          const dataIdx = this._physicalRowToDataIndex(physRow, startRow, endRow);
-
-          if (dataIdx === null) {
-            continue;
-          }
-
-          if (sourceRanges.length > 0) {
-            const lastRange = sourceRanges[sourceRanges.length - 1];
-
-            if (lastRange[1] + 1 === dataIdx) {
-              lastRange[1] = dataIdx; // extend existing range
-              continue;
-            }
-          }
-
-          sourceRanges.push([dataIdx, dataIdx]);
-        }
-      });
-
-      if (sourceRanges.length === 0) {
-        return;
-      }
-
-      summaries.push({
-        destRow,
-        destCol,
-        type: String(endpoint.type || 'sum').toLowerCase(),
-        sourceCol,
-        sourceRanges,
-      });
     });
 
     return summaries;
+  }
+
+  /**
+   * Translates a single ColumnSummary endpoint into an export-coordinate summary descriptor.
+   *
+   * Converts physical row/column indices to 0-based data-array positions, builds the
+   * compacted source-range array (merging consecutive indices), and excludes all
+   * destination rows supplied in `allDestRows` to prevent circular Excel formula chains.
+   *
+   * Returns `null` when the endpoint falls outside the export range or produces no
+   * valid source rows after filtering.
+   *
+   * @private
+   * @param {object} endpoint ColumnSummary endpoint object from `getAllEndpoints()`.
+   * @param {number} startRow First visual row of the export range.
+   * @param {number} endRow Last visual row of the export range.
+   * @param {number} startCol First visual column of the export range.
+   * @param {number} endCol Last visual column of the export range.
+   * @param {Set<number>} allDestRows Data-array row indices of all summary destinations.
+   * @returns {object|null}
+   */
+  _transformEndpointToSummary(endpoint, startRow, endRow, startCol, endCol, allDestRows) {
+    const destRow = this._physicalRowToDataIndex(endpoint.destinationRow, startRow, endRow);
+    const destCol = this._physicalColToDataIndex(endpoint.destinationColumn, startCol, endCol);
+
+    if (destRow === null || destCol === null) {
+      return null;
+    }
+
+    const physSourceCol = endpoint.sourceColumn ?? endpoint.destinationColumn;
+    const sourceCol = this._physicalColToDataIndex(physSourceCol, startCol, endCol);
+
+    if (sourceCol === null) {
+      return null;
+    }
+
+    // Convert physical row ranges to sequential data-row-index ranges, merging
+    // consecutive indices so the resulting array stays compact.
+    const physRanges = endpoint.ranges || [[0, this.hot.countRows() - 1]];
+    const sourceRanges = [];
+
+    arrayEach(physRanges, (range) => {
+      const physStart = range[0];
+      const physEnd = range[1] !== undefined ? range[1] : range[0];
+
+      for (let physRow = physStart; physRow <= physEnd; physRow++) {
+        const dataIdx = this._physicalRowToDataIndex(physRow, startRow, endRow);
+
+        if (dataIdx === null || allDestRows.has(dataIdx)) {
+          continue;
+        }
+
+        if (sourceRanges.length > 0) {
+          const lastRange = sourceRanges[sourceRanges.length - 1];
+
+          if (lastRange[1] + 1 === dataIdx) {
+            lastRange[1] = dataIdx; // extend existing range
+            continue;
+          }
+        }
+
+        sourceRanges.push([dataIdx, dataIdx]);
+      }
+    });
+
+    if (sourceRanges.length === 0) {
+      return null;
+    }
+
+    return {
+      destRow,
+      destCol,
+      type: String(endpoint.type || 'sum').toLowerCase(),
+      sourceCol,
+      sourceRanges,
+    };
+  }
+
+  /**
+   * Counts the number of indices in `[start, end)` for which `isIncluded` returns `true`.
+   *
+   * Used by {@link DataProvider#_physicalRowToDataIndex} and
+   * {@link DataProvider#_physicalColToDataIndex} to compute the 0-based data-array
+   * position of a visual index by counting the visible indices that precede it.
+   *
+   * @private
+   * @param {number} end Exclusive upper bound (the target visual index).
+   * @param {number} start Inclusive lower bound of the export range.
+   * @param {Function} isIncluded Returns `true` for indices that appear in the exported data.
+   * @returns {number}
+   */
+  _countVisibleBefore(end, start, isIncluded) {
+    let count = 0;
+
+    for (let i = start; i < end; i++) {
+      if (isIncluded(i)) {
+        count += 1;
+      }
+    }
+
+    return count;
   }
 
   /**
@@ -556,15 +578,9 @@ class DataProvider {
       return null;
     }
 
-    let dataIndex = 0;
-
-    for (let r = startRow; r < visualRow; r++) {
-      if (this.options.exportHiddenRows || !this._isHiddenRow(r)) {
-        dataIndex += 1;
-      }
-    }
-
-    return dataIndex;
+    return this._countVisibleBefore(
+      visualRow, startRow, r => this.options.exportHiddenRows || !this._isHiddenRow(r)
+    );
   }
 
   /**
@@ -590,15 +606,9 @@ class DataProvider {
       return null;
     }
 
-    let dataIndex = 0;
-
-    for (let c = startCol; c < visualCol; c++) {
-      if (this.options.exportHiddenColumns || !this._isHiddenColumn(c)) {
-        dataIndex += 1;
-      }
-    }
-
-    return dataIndex;
+    return this._countVisibleBefore(
+      visualCol, startCol, c => this.options.exportHiddenColumns || !this._isHiddenColumn(c)
+    );
   }
 
   /**

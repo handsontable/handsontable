@@ -1,4 +1,4 @@
-import { numbroPatternToExcelNumFmt } from '../numeric-utils';
+import { numbroPatternToExcelNumFmt } from '../types/xlsx/numeric-utils';
 
 describe('numbroPatternToExcelNumFmt', () => {
   it('should convert a currency pattern with thousands grouping', () => {

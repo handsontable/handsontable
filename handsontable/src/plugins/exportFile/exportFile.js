@@ -3,9 +3,27 @@ import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
+import exportCsvItem from './contextMenuItem/exportCsv';
+import exportExcelItem from './contextMenuItem/exportExcel';
 
 export const PLUGIN_KEY = 'exportFile';
 export const PLUGIN_PRIORITY = 240;
+
+// CSS class prefix shared with the Loading plugin (defined in handsontable.css).
+// Inlined here to avoid a cross-plugin import — the token is stable and always bundled.
+const LOADING_CLASS = 'ht-loading';
+
+// Spinner SVG reused from the Loading plugin — same arc shape, same CSS class so the
+// `ht-loading__icon-svg` spin animation (defined in handsontable.css) applies automatically.
+// eslint-disable-next-line max-len
+const EXPORT_SPINNER_SVG = `<svg class="${LOADING_CLASS}__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path stroke="currentColor" stroke-width="2" d="M15 8a7 7 0 1 1-3.5-6.062"></path></svg>`;
+
+const EXPORT_DIALOG_CONTENT =
+  `<div class="${LOADING_CLASS}__content">` +
+  `<i class="${LOADING_CLASS}__icon">${EXPORT_SPINNER_SVG}</i>` +
+  `<div class="${LOADING_CLASS}__text">` +
+  `<h2 class="${LOADING_CLASS}__title">Exporting\u2026</h2>` +
+  '</div></div>';
 
 /**
  * @plugin ExportFile
@@ -111,7 +129,41 @@ export class ExportFile extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return true;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
+  }
+
+  /**
+   * Enables the plugin functionality for this Handsontable instance.
+   */
+  enablePlugin() {
+    if (this.enabled) {
+      return;
+    }
+
+    this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
+
+    super.enablePlugin();
+  }
+
+  /**
+   * Disables the plugin functionality for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
+  }
+
+  /**
+   * Add export options to the Context Menu.
+   *
+   * @private
+   * @param {object} options Contains default added options of the Context Menu.
+   */
+  #onAfterContextMenuDefaultOptions(options) {
+    options.items.push(
+      { name: '---------' },
+      exportCsvItem(this),
+      exportExcelItem(this),
+    );
   }
 
   /**
@@ -199,12 +251,12 @@ export class ExportFile extends BasePlugin {
    * @returns {void|Promise<void>}
    */
   downloadFile(format, options = {}) {
+    const dialogPlugin = this.hot.getPlugin('dialog');
+    const hasDialog = dialogPlugin?.isEnabled();
     const { rootDocument, rootWindow } = this.hot;
     const formatter = this._createTypeFormatter(format, options);
-    const blobOrPromise = this._createBlob(formatter);
     const name = `${formatter.options.filename}.${formatter.options.fileExtension}`;
     const URL = (rootWindow.URL || rootWindow.webkitURL);
-
     const triggerDownload = (blob) => {
       const a = rootDocument.createElement('a');
 
@@ -227,11 +279,47 @@ export class ExportFile extends BasePlugin {
       }
     };
 
-    if (blobOrPromise instanceof Promise) {
-      return blobOrPromise.then(blob => triggerDownload(blob));
+    const runExport = () => {
+      const blobOrPromise = this._createBlob(formatter);
+
+      if (blobOrPromise instanceof Promise) {
+        return blobOrPromise
+          .then(triggerDownload)
+          .finally(() => {
+            if (hasDialog) {
+              dialogPlugin.hide();
+            }
+          });
+      }
+
+      triggerDownload(blobOrPromise);
+
+      if (hasDialog) {
+        dialogPlugin.hide();
+      }
+    };
+
+    if (hasDialog) {
+      dialogPlugin.show({
+        content: EXPORT_DIALOG_CONTENT,
+        customClassName: LOADING_CLASS,
+        background: 'semi-transparent',
+        closable: false,
+        animation: false,
+      });
+      // rAF fires at the START of a frame, before paint. A double-rAF lets the
+      // browser complete one full paint cycle (dialog becomes visible) before
+      // the export blocks the main thread.
+
+      return new Promise((resolve) => {
+        rootWindow.requestAnimationFrame(() => {
+
+          rootWindow.requestAnimationFrame(resolve);
+        });
+      }).then(runExport);
     }
 
-    triggerDownload(blobOrPromise);
+    return runExport();
   }
 
   /**
