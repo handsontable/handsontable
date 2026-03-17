@@ -137,7 +137,10 @@ export class NestedHeaders extends BasePlugin {
    * @type {GhostTable}
    */
   // @TODO This should be changed after refactor handsontable/utils/ghostTable.
-  ghostTable = new GhostTable(this.hot, (row, column) => this.getHeaderSettings(row, column));
+  ghostTable = new GhostTable({
+    hot: this.hot,
+    headersStateManager: this.#stateManager,
+  });
   /**
    * The flag which determines that the nested header settings contains overlapping headers
    * configuration.
@@ -187,6 +190,11 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeHighlightingColumnHeader', (...args) => this.#onBeforeHighlightingColumnHeader(...args));
     this.addHook('beforeCopy', (...args) => this.#onBeforeCopy(...args));
     this.addHook('beforeSelectColumns', (...args) => this.#onBeforeSelectColumns(...args));
+    this.addHook('beforeViewRender', () => {
+      this.ghostTable
+        .setLayersCount(this.getLayersCount())
+        .buildWidthsMap();
+    });
     this.addHook(
       'afterViewportColumnCalculatorOverride',
       (...args) => this.#onAfterViewportColumnCalculatorOverride(...args)
@@ -253,9 +261,9 @@ export class NestedHeaders extends BasePlugin {
         });
     }
 
-    this.ghostTable
-      .setLayersCount(this.getLayersCount())
-      .buildWidthsMap();
+    // this.ghostTable
+    //   .setLayersCount(this.getLayersCount())
+    //   .buildWidthsMap();
 
     super.updatePlugin();
   }
