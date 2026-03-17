@@ -129,104 +129,52 @@ describe('DropdownMenu', () => {
     expect(topHolder.scrollLeft).toBe(masterHolder.scrollLeft);
   });
 
-  it('should keep header and body aligned after diagonal wheel scroll and opening first column filter menu', async() => {
+  it('should keep first column header and body aligned after small diagonal scroll and opening first column menu button', async() => {
     handsontable({
-      data: createSpreadsheetData(100, 8),
-      height: 450,
-      colWidths: [180, 220, 140, 120, 120, 120, 140],
-      colHeaders: [
-        'Company Name',
-        'Name',
-        'Sell date',
-        'In stock',
-        'Quantity',
-        'Order ID',
-        'Country',
-      ],
-      columns: [
-        {
-          data: 1,
-          type: 'text',
-          headerClassName: 'htLeft',
-        },
-        {
-          data: 3,
-          type: 'text',
-          headerClassName: 'htLeft',
-        },
-        {
-          data: 4,
-          type: 'date',
-          dateFormat: 'DD/MM/YYYY',
-          headerClassName: 'htLeft',
-        },
-        {
-          data: 6,
-          type: 'checkbox',
-          className: 'htCenter',
-          headerClassName: 'htLeft',
-        },
-        {
-          data: 7,
-          type: 'numeric',
-          headerClassName: 'htLeft',
-        },
-        {
-          data: 5,
-          type: 'text',
-          headerClassName: 'htLeft',
-        },
-        {
-          data: 2,
-          type: 'text',
-          headerClassName: 'htLeft',
-        },
-      ],
-      contextMenu: [
-        'cut',
-        'copy',
-        '---------',
-        'row_above',
-        'row_below',
-        'remove_row',
-        '---------',
-        'alignment',
-        'make_read_only',
-        'clear_column',
-      ],
+      data: createSpreadsheetData(120, 12),
+      width: 420,
+      height: 260,
+      colWidths: 120,
+      colHeaders: true,
+      rowHeaders: true,
+      themeName: 'ht-theme-horizon',
       dropdownMenu: true,
+      filters: true,
       hiddenColumns: {
+        columns: [1],
         indicators: true,
       },
       multiColumnSorting: true,
-      filters: true,
-      rowHeaders: true,
-      manualRowMove: true,
-      autoWrapRow: true,
-      autoWrapCol: true,
-      manualRowResize: true,
+      manualColumnMove: true,
       manualColumnResize: true,
-      navigableHeaders: true,
-      headerClassName: 'htLeft',
+      manualRowMove: true,
+      manualRowResize: true,
     });
 
-    const wheelEvt = new WheelEvent('wheel', {
-      bubbles: true,
-      cancelable: true,
-      view: window,
-      deltaMode: 0,
-      deltaX: 120,
-      deltaY: 120,
-    });
+    const masterHolder = getMaster().find('.wtHolder')[0];
+    const topHolder = getTopClone().find('.wtHolder')[0];
     const isChromeLowDensity = /Chrome/.test(navigator.userAgent) &&
       /Google/.test(navigator.vendor) &&
       !(tableView()._wt.rootWindow.devicePixelRatio && tableView()._wt.rootWindow.devicePixelRatio > 1);
 
-    if (isChromeLowDensity) {
-      getTopInlineStartClone().find('.wtHolder')[0].dispatchEvent(wheelEvt);
-    } else {
-      tableView()._wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
+    for (let wheelStep = 0; wheelStep < 4; wheelStep += 1) {
+      const wheelEvt = new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        deltaMode: 0,
+        deltaX: 20,
+        deltaY: 20,
+      });
+
+      if (isChromeLowDensity) {
+        getTopInlineStartClone().find('.wtHolder')[0].dispatchEvent(wheelEvt);
+      } else {
+        tableView()._wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
+      }
     }
+
+    await sleep(100);
 
     const firstColumnHeader = getTopClone().find('thead th')[1];
     const button = firstColumnHeader.querySelector('.changeType');
@@ -241,12 +189,12 @@ describe('DropdownMenu', () => {
 
     await sleep(100);
 
-    const masterHolder = getMaster().find('.wtHolder')[0];
-    const topHolder = getTopClone().find('.wtHolder')[0];
     const finalHeaderLeft = firstColumnHeader.getBoundingClientRect().left;
     const finalBodyCellLeft = getMaster().find('tbody tr:first td:first')[0].getBoundingClientRect().left;
     const finalOffset = Math.round(finalHeaderLeft - finalBodyCellLeft);
 
+    expect(masterHolder.scrollLeft).toBeGreaterThan(0);
+    expect(masterHolder.scrollTop).toBeGreaterThan(0);
     expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(true);
     expect(topHolder.scrollLeft).toBe(masterHolder.scrollLeft);
     expect(finalOffset).toBe(initialOffset);

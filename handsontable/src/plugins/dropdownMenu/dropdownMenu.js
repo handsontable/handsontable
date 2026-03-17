@@ -625,9 +625,29 @@ export class DropdownMenu extends BasePlugin {
    * @fires Hooks#afterDropdownMenuShow
    */
   #onMenuAfterOpen() {
+    const rootWindow = this.hot?.rootWindow;
+
+    if (!rootWindow) {
+      return;
+    }
     this.hot.runHooks('afterDropdownMenuShow', this);
 
     this.#addCustomShortcuts(this.menu);
+
+    if (this.#isMenuOpenedByButtonClick) {
+      const reconcileMasterWithTopOverlay = () => {
+        if (!this.#isMenuOpenedByButtonClick || !(this.menu?.isOpened() ?? false)) {
+          return;
+        }
+
+        this.#syncMasterScrollPositionWithTopOverlay();
+      };
+
+      rootWindow.requestAnimationFrame(() => {
+        reconcileMasterWithTopOverlay();
+        rootWindow.requestAnimationFrame(reconcileMasterWithTopOverlay);
+      });
+    }
   }
 
   /**
@@ -679,6 +699,35 @@ export class DropdownMenu extends BasePlugin {
   #onBeforeOnCellMouseDown(event) {
     if (hasClass(event.target, BUTTON_CLASS_NAME)) {
       this.#isButtonClicked = true;
+    }
+  }
+
+  /**
+   * Synchronizes the master holder horizontal scroll position with the top overlay holder.
+   *
+   * It handles post-open layout adjustments that can clamp the top overlay scroll position.
+   */
+  #syncMasterScrollPositionWithTopOverlay() {
+    if (!this.hot) {
+      return;
+    }
+
+    const wt = this.hot.view?._wt;
+
+    if (!wt) {
+      return;
+    }
+
+    const masterHolder = wt.wtTable.holder;
+    const topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
+    const topScrollLeft = topHolder.scrollLeft;
+
+    if (masterHolder.scrollLeft !== topScrollLeft) {
+      masterHolder.scrollLeft = topScrollLeft;
+    }
+
+    if (wt.wtOverlays.bottomOverlay.needFullRender) {
+      wt.wtOverlays.bottomOverlay.clone.wtTable.holder.scrollLeft = topScrollLeft;
     }
   }
 

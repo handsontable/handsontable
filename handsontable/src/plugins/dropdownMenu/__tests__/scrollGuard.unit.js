@@ -113,5 +113,51 @@ describe('DropdownMenu', () => {
       hot.destroy();
       container.remove();
     });
+
+    it('should synchronize master scroll with top overlay after menu-open RAF cycle', () => {
+      const container = document.createElement('div');
+
+      document.body.appendChild(container);
+
+      const hot = new Handsontable(container, {
+        data: Array.from({ length: 20 }, (_rowValue, row) =>
+          Array.from({ length: 20 }, (_colValue, col) => `${row}:${col}`)),
+        width: 300,
+        height: 220,
+        colWidths: 100,
+        colHeaders: true,
+        rowHeaders: true,
+        dropdownMenu: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const button = hot.rootElement.querySelector('.changeType');
+      const masterHolder = hot.view._wt.wtTable.holder;
+      const topHolder = hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder;
+      const rafQueue = [];
+      const originalRaf = hot.rootWindow.requestAnimationFrame;
+
+      hot.rootWindow.requestAnimationFrame = (callback) => {
+        rafQueue.push(callback);
+
+        return rafQueue.length;
+      };
+
+      button.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+      button.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
+      button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+
+      masterHolder.scrollLeft = 80;
+      topHolder.scrollLeft = 51;
+
+      while (rafQueue.length) {
+        rafQueue.shift()();
+      }
+
+      expect(masterHolder.scrollLeft).toBe(51);
+
+      hot.rootWindow.requestAnimationFrame = originalRaf;
+      hot.destroy();
+      container.remove();
+    });
   });
 });
