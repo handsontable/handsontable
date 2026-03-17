@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added AI development setup files for Cursor, Claude commands, and Bugbot review rules.",
-  "type": "added",
-  "issueOrPR": 12162,
-  "breaking": false,
-  "framework": "none"
-}

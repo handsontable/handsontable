@@ -9,11 +9,11 @@
     },
     "filesystem_workspace": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
     },
     "filesystem_docs": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace/docs/content"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./docs/content"]
     }
   }
 }
