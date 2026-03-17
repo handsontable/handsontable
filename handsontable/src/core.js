@@ -2122,9 +2122,17 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
       const topStart = cellRange.getTopStartCorner();
       const bottomEnd = cellRange.getBottomEndCorner();
+      const fromRow = Math.max(topStart.row, 0);
+      const toRow = Math.min(bottomEnd.row, this.countRows() - 1);
+      const fromColumn = Math.max(topStart.col, 0);
+      const toColumn = Math.min(bottomEnd.col, this.countCols() - 1);
 
-      rangeEach(topStart.row, bottomEnd.row, (row) => {
-        rangeEach(topStart.col, bottomEnd.col, (column) => {
+      if (fromRow > toRow || fromColumn > toColumn) {
+        return;
+      }
+
+      rangeEach(fromRow, toRow, (row) => {
+        rangeEach(fromColumn, toColumn, (column) => {
           if (!this.getCellMeta(row, column).readOnly) {
             changes.push([row, column, null]);
           }

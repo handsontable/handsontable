@@ -192,6 +192,12 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
     }, {
       keys: [['delete'], ['backspace']],
       callback: () => {
+        const hasMultipleSelectionLayers = (hotInstance.getSelectedRange()?.length ?? 0) > 1;
+
+        if (hasMultipleSelectionLayers && !areAllSelectedCheckboxCells()) {
+          return true;
+        }
+
         changeSelectedCheckboxesState(true);
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
@@ -299,6 +305,8 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
     if (changes.length > 0) {
       // TODO: This is workaround for handsontable/dev-handsontable#1747 not being a breaking change.
       // Technically, the changes don't need to be split into chunks when sent to `setDataAtCell`.
+      const changesChunks = [];
+
       changesPerSubSelection.forEach((changesCount, sectionCount) => {
         let changesChunk = changes.splice(0, changesCount);
 
@@ -309,8 +317,29 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
           ];
         }
 
-        hotInstance.setDataAtCell(changesChunk);
+        changesChunks.push(changesChunk);
       });
+
+      if (uncheckCheckbox) {
+        const allChanges = [];
+
+        changesChunks.forEach((changesChunk) => {
+          changesChunk.forEach((change) => {
+            allChanges.push(change);
+          });
+        });
+
+        if (allChanges.length > 0) {
+          hotInstance.setDataAtCell(allChanges);
+        }
+
+      } else {
+        changesChunks.forEach((changesChunk) => {
+          if (changesChunk.length > 0) {
+            hotInstance.setDataAtCell(changesChunk);
+          }
+        });
+      }
     }
   }
 
@@ -354,6 +383,52 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
     }
 
     return false;
+  }
+
+  /**
+   * Checks whether every non-readonly selected data cell is checkbox-typed.
+   *
+   * @returns {boolean}
+   * @private
+   */
+  function areAllSelectedCheckboxCells() {
+    const selRange = hotInstance.getSelectedRange();
+    let hasAtLeastOneCheckbox = false;
+
+    if (!selRange) {
+      return false;
+    }
+
+    for (let key = 0; key < selRange.length; key++) {
+      const topLeft = selRange[key].getTopStartCorner();
+      const bottomRight = selRange[key].getBottomEndCorner();
+      const fromRow = Math.max(topLeft.row, 0);
+      const toRow = Math.min(bottomRight.row, hotInstance.countRows() - 1);
+      const fromColumn = Math.max(topLeft.col, 0);
+      const toColumn = Math.min(bottomRight.col, hotInstance.countCols() - 1);
+
+      if (fromRow > toRow || fromColumn > toColumn) {
+        continue;
+      }
+
+      for (let visualRow = fromRow; visualRow <= toRow; visualRow++) {
+        for (let visualColumn = fromColumn; visualColumn <= toColumn; visualColumn++) {
+          const cellMeta = hotInstance.getCellMeta(visualRow, visualColumn);
+
+          if (cellMeta.readOnly) {
+            continue;
+          }
+
+          if (cellMeta.type !== 'checkbox') {
+            return false;
+          }
+
+          hasAtLeastOneCheckbox = true;
+        }
+      }
+    }
+
+    return hasAtLeastOneCheckbox;
   }
 }
 

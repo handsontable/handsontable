@@ -135,6 +135,58 @@ describe('UndoRedo', () => {
       expect(getData()).toEqual(originalData);
     });
 
+    it('should restore all data after undoing clear from ctrl/cmd+A with inner ctrl/cmd click range and checkbox cells', async() => {
+      handsontable({
+        data: [
+          { car: 'Nissan', year: 2016, available: false },
+          { car: 'Volvo', year: 2019, available: true },
+          { car: 'Chrysler', year: 2020, available: false },
+        ],
+        columns: [
+          { data: 'car', type: 'text' },
+          { data: 'year', type: 'numeric' },
+          { data: 'available', type: 'checkbox' },
+        ],
+        colHeaders: true,
+        autoWrapRow: true,
+        autoWrapCol: true,
+      });
+
+      const originalData = getData().map(row => [...row]);
+      const beforeChangeSummaries = [];
+
+      addHook('beforeChange', (changes, source) => {
+        beforeChangeSummaries.push({
+          source,
+          changesLength: changes.length,
+          firstChange: changes[0] ?? null,
+          selectedLength: getSelected()?.length ?? 0,
+        });
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp(['control/meta', 'a']);
+
+      await keyDown('control/meta');
+      await mouseDown(getCell(1, 1));
+      await mouseUp(getCell(1, 1));
+      await keyUp('control/meta');
+
+      expect(getSelected().length).toBe(2);
+
+      await keyDownUp('delete');
+      expect(beforeChangeSummaries.length).toBe(1);
+      expect(beforeChangeSummaries[0].source).toBe('edit');
+      expect(beforeChangeSummaries[0].changesLength).toBe(10);
+      expect(beforeChangeSummaries[0].selectedLength).toBe(2);
+      expect(getPlugin('undoRedo').doneActions.length).toBe(1);
+      expect(getPlugin('undoRedo').doneActions[0].changes.length).toBe(10);
+      expect(getPlugin('undoRedo').doneActions[0].selected.length).toBe(2);
+      await keyDownUp(['control/meta', 'z']);
+
+      expect(getData()).toEqual(originalData);
+    });
+
     it('should transform the header selection down after undoing rows removal', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
