@@ -309,6 +309,7 @@ export class HiddenColumns extends BasePlugin {
 
     if (wtViewport) {
       wtViewport.resetHasOversizedColumnHeadersMarked();
+      wtViewport.shouldSynchronizeColumnHeaders = true;
     }
 
     // @TODO Should call once per render cycle, currently fired separately in different plugins

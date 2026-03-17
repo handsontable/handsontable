@@ -402,17 +402,42 @@ class Table {
       }
     }
 
-    if (positionChanged) {
-      // The `innerBorderTop` / `innerBorderInlineStart` class toggle can change the effective
-      // column header height by 1px. Recalculate the oversized headers cache before refreshing overlays.
-      this.dataAccessObject.wtViewport.resetHasOversizedColumnHeadersMarked();
-      this.markOversizedColumnHeaders();
-      this.adjustColumnHeaderHeights();
-      wtOverlays.getOverlays().forEach((overlay) => {
-        if (overlay?.clone?.wtTable) {
-          overlay.clone.wtTable.adjustColumnHeaderHeights();
+    const shouldSynchronizeColumnHeaders = this.dataAccessObject.wtViewport.shouldSynchronizeColumnHeaders === true;
+
+    if (this.isMaster && (positionChanged || shouldSynchronizeColumnHeaders)) {
+      // Reset the one-time sync flag before triggering overlays refresh to avoid recursive redraw loops.
+      this.dataAccessObject.wtViewport.shouldSynchronizeColumnHeaders = false;
+      const inlineStartOverlayTable = wtOverlays.inlineStartOverlay?.clone?.wtTable;
+      const shouldResyncHeaderHeights = shouldSynchronizeColumnHeaders || (
+        inlineStartOverlayTable &&
+        columnHeadersCount > 0 &&
+        outerHeight(this.THEAD) !== outerHeight(inlineStartOverlayTable.THEAD)
+      );
+
+      if (shouldResyncHeaderHeights) {
+        // Recalculate and sync column header heights only when overlays are actually desynchronized.
+        this.dataAccessObject.wtViewport.resetHasOversizedColumnHeadersMarked();
+        this.markOversizedColumnHeaders();
+        this.adjustColumnHeaderHeights();
+        wtOverlays.getOverlays().forEach((overlay) => {
+          if (overlay?.clone?.wtTable) {
+            overlay.clone.wtTable.adjustColumnHeaderHeights();
+          }
+        });
+
+        if (inlineStartOverlayTable && columnHeadersCount > 0) {
+          const masterHeaderRows = this.THEAD?.childNodes ?? [];
+          const overlayHeaderRows = inlineStartOverlayTable.THEAD?.childNodes ?? [];
+
+          for (let rowIndex = 0; rowIndex < Math.min(masterHeaderRows.length, overlayHeaderRows.length); rowIndex++) {
+            const overlayHeaderInner = overlayHeaderRows[rowIndex]?.childNodes?.[0];
+
+            if (overlayHeaderInner) {
+              overlayHeaderInner.style.height = `${outerHeight(masterHeaderRows[rowIndex])}px`;
+            }
+          }
         }
-      });
+      }
 
       // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
       // remove `innerBorderTop` and `innerBorderInlineStart` CSS classes to the DOM element. This happens
@@ -440,11 +465,8 @@ class Table {
   markIfOversizedColumnHeader(col) {
     const sourceColIndex = this.columnFilter.renderedToSource(col);
     let level = this.wtSettings.getSetting('columnHeaders').length;
-    const columnHeadersCount = level;
     const stylesHandler = this.wtSettings.getSetting('stylesHandler');
     const defaultRowHeight = stylesHandler.getDefaultRowHeight();
-    const borderBoxSizing = stylesHandler.areCellsBorderBox();
-    const columnHeaderHeightFn = borderBoxSizing ? outerHeight : innerHeight;
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
@@ -460,11 +482,7 @@ class Table {
         /* eslint-disable no-continue */
         continue;
       }
-      currentHeaderHeight = columnHeaderHeightFn(currentHeader);
-
-      if (!borderBoxSizing && level === columnHeadersCount - 1) {
-        currentHeaderHeight += 1;
-      }
+      currentHeaderHeight = innerHeight(currentHeader);
 
       if (!previousColHeaderHeight &&
           defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
