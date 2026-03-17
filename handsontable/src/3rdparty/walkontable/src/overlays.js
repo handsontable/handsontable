@@ -347,7 +347,16 @@ class Overlays {
     const preventWheel = this.wtSettings.getSetting('preventWheel');
     const wheelEventOptions = { passive: isScrollOnWindow };
 
-    if (preventWheel || isHighPixelRatio || !isChrome()) {
+    const listenWheelOnRootElement = preventWheel || isHighPixelRatio || !isChrome();
+
+    this.eventManager.addEventListener(
+      this.wtTable.holder,
+      'wheel',
+      event => this.onCloneWheel(event, preventWheel),
+      wheelEventOptions
+    );
+
+    if (listenWheelOnRootElement) {
       this.eventManager.addEventListener(
         this.wtTable.wtRootElement,
         'wheel',
@@ -428,6 +437,11 @@ class Overlays {
     if (event.ctrlKey) {
       return;
     }
+    // In Chrome we can listen both on the root and the master holder. Ignore root-level
+    // events that originate from the master holder to avoid applying the wheel delta twice.
+    if (event.currentTarget === this.wtTable.wtRootElement && this.wtTable.holder.contains(event.target)) {
+      return;
+    }
 
     const { rootWindow } = this.domBindings;
 
@@ -453,9 +467,9 @@ class Overlays {
       return;
     }
 
-    const isScrollPossible = this.translateMouseWheelToScroll(event);
+    this.translateMouseWheelToScroll(event);
 
-    if (preventDefault || (this.scrollableElement !== rootWindow && isScrollPossible)) {
+    if (preventDefault || this.scrollableElement !== rootWindow) {
       event.preventDefault();
     }
   }

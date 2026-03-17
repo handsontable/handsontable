@@ -893,6 +893,46 @@ describe('Core_view', () => {
       expect(window.scrollX).toBe(0);
       expect(window.scrollY).toBe(0);
     });
+
+    it('should attach wheel listeners to the master holder', async() => {
+      spec().$container.css({
+        width: '1100px',
+        height: '582px',
+        overflow: 'hidden',
+        margin: '2000px',
+      });
+
+      handsontable({
+        data: createSpreadsheetData(100, 9),
+        width: 1100,
+        height: 582,
+        colHeaders: true,
+        rowHeaders: true,
+        nestedHeaders: [
+          [
+            { label: 'User', colspan: 4 },
+            { label: 'Account Details', colspan: 3 },
+            { label: 'Login information', colspan: 2 },
+          ],
+          ['Name', 'Age', 'Country', 'City', 'Active', 'Interest', 'Favorite Product', 'Login date', 'Login time'],
+        ],
+        contextMenu: true,
+        filters: true,
+        dropdownMenu: true,
+        comments: true,
+        multiColumnSorting: true,
+        manualColumnResize: true,
+        manualRowMove: true,
+        manualRowResize: true,
+      });
+
+      const overlays = tableView()._wt.wtOverlays;
+      const masterHolder = tableView()._wt.wtTable.holder;
+      const wheelListeners = overlays.eventManager.context.eventListeners
+        .filter(({ element, event }) => element === masterHolder && event === 'wheel');
+
+      expect(wheelListeners.length).toBeGreaterThan(0);
+    });
   });
 
   describe('fixed column row heights', () => {
