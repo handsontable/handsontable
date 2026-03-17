@@ -58,6 +58,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['فقط کپی سرستون', 'فقط کپی سرستون ها'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'بریدن',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'خروجی به CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'خروجی به Excel',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'درج زیر ردیف',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'جدا کردن از سرردیف',
 

@@ -55,6 +55,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopírovat',
   [C.CONTEXTMENU_ITEMS_CUT]: 'Vyjmout',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Exportovat do CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Exportovat do Excelu',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Vložit podřízený řádek',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Oddělit od nadřízeného',
 

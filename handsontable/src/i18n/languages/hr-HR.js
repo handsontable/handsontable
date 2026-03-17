@@ -67,6 +67,9 @@ const dictionary = {
   ],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Izreži',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Izvezi kao CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Izvezi kao Excel',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Umetni ugniježđeni redak',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Odvoji ugniježđeni redak',
 

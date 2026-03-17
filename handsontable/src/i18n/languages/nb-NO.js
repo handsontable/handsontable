@@ -54,6 +54,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopier',
   [C.CONTEXTMENU_ITEMS_CUT]: 'Klipp ut',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Eksporter til CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Eksporter til Excel',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Sett inn underrad',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Frigi fra gruppe',
 
