@@ -1,4 +1,4 @@
-import { stringify } from '../../../helpers/mixed';
+import { isDefined, stringify } from '../../../helpers/mixed';
 import { arrayEach } from '../../../helpers/array';
 import { throwWithCause } from '../../../helpers/errors';
 import DataProvider from '../dataProvider';
@@ -297,7 +297,7 @@ class Xlsx extends BaseType {
       const excelRowNumber = rowIndex + cellContext.dataRowOffset;
       const row = worksheet.getRow(excelRowNumber);
 
-      if (rowsHeights[rowIndex] !== undefined) {
+      if (isDefined(rowsHeights[rowIndex])) {
         row.height = rowsHeights[rowIndex] * PIXELS_TO_POINTS_RATIO;
       }
 

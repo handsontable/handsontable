@@ -1,3 +1,4 @@
+import { isDefined } from '../../../../helpers/mixed';
 import { arrayEach } from '../../../../helpers/array';
 
 // Default ARGB colors applied to read-only cells when no explicit styling is set.
@@ -40,7 +41,7 @@ function rgbComputedToHex(rgbStr) {
     return null;
   }
 
-  const alpha = m[4] !== undefined ? parseFloat(m[4]) : 1;
+  const alpha = isDefined(m[4]) ? parseFloat(m[4]) : 1;
 
   if (alpha === 0) {
     return null;
