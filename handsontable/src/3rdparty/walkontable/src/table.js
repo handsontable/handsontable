@@ -440,8 +440,11 @@ class Table {
   markIfOversizedColumnHeader(col) {
     const sourceColIndex = this.columnFilter.renderedToSource(col);
     let level = this.wtSettings.getSetting('columnHeaders').length;
+    const columnHeadersCount = level;
     const stylesHandler = this.wtSettings.getSetting('stylesHandler');
     const defaultRowHeight = stylesHandler.getDefaultRowHeight();
+    const borderBoxSizing = stylesHandler.areCellsBorderBox();
+    const columnHeaderHeightFn = borderBoxSizing ? outerHeight : innerHeight;
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
@@ -457,7 +460,11 @@ class Table {
         /* eslint-disable no-continue */
         continue;
       }
-      currentHeaderHeight = outerHeight(currentHeader);
+      currentHeaderHeight = columnHeaderHeightFn(currentHeader);
+
+      if (!borderBoxSizing && level === columnHeadersCount - 1) {
+        currentHeaderHeight += 1;
+      }
 
       if (!previousColHeaderHeight &&
           defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
