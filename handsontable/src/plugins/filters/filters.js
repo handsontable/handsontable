@@ -179,6 +179,13 @@ export class Filters extends BasePlugin {
    * @type {Array|null}
    */
   #savedConditionsForDataProvider = null;
+  /**
+   * Conditions in effect before the last dataProvider fetch was triggered. Restored when the
+   * fetch fails (afterDataProviderFetchError) so the user keeps the previous filter state.
+   *
+   * @type {Array|null}
+   */
+  #conditionsBeforeDataProviderFetch = null;
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -293,6 +300,8 @@ export class Filters extends BasePlugin {
     this.addHook('afterChange', changes => this.#onAfterChange(changes));
     this.addHook('beforeLoadData', (data, firstRun, source) => this.#onBeforeLoadData(source));
     this.addHook('afterLoadData', (data, firstRun, source) => this.#onAfterLoadData(source));
+    this.addHook('afterDataProviderFetch', () => this.#onAfterDataProviderFetch());
+    this.addHook('afterDataProviderFetchError', () => this.#onAfterDataProviderFetchError());
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
@@ -376,6 +385,7 @@ export class Filters extends BasePlugin {
       this.conditionCollection = null;
       this.hot.rowIndexMapper.unregisterMap(this.pluginName);
       this.#savedConditionsForDataProvider = null;
+      this.#conditionsBeforeDataProviderFetch = null;
     }
 
     this.unregisterShortcuts();
@@ -698,6 +708,9 @@ export class Filters extends BasePlugin {
         }))
         : null;
 
+      this.#conditionsBeforeDataProviderFetch = this.#previousConditionStack.length > 0
+        ? this.#previousConditionStack.slice()
+        : [];
       dataProvider.setFilters(filtersForProvider).catch(() => {});
 
       this.#previousConditionStack = this.exportConditions();
@@ -890,6 +903,33 @@ export class Filters extends BasePlugin {
 
     this.importConditions(this.#savedConditionsForDataProvider);
     this.#savedConditionsForDataProvider = null;
+  }
+
+  /**
+   * After a successful dataProvider fetch: clear the backup so we do not restore it on a later error.
+   *
+   * @private
+   */
+  #onAfterDataProviderFetch() {
+    this.#conditionsBeforeDataProviderFetch = null;
+  }
+
+  /**
+   * After a failed dataProvider fetch: restore the filter conditions that were in effect before
+   * the fetch so the user keeps the previous state.
+   *
+   * @private
+   */
+  #onAfterDataProviderFetchError() {
+    if (this.#conditionsBeforeDataProviderFetch === null) {
+      return;
+    }
+
+    this.importConditions(this.#conditionsBeforeDataProviderFetch);
+    this.#previousConditionStack = this.#conditionsBeforeDataProviderFetch.slice();
+    this.#conditionsBeforeDataProviderFetch = null;
+    this.hot.view.adjustElementsSize();
+    this.hot.render();
   }
 
   /**

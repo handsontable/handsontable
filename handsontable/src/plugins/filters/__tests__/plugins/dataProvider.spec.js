@@ -359,4 +359,53 @@ describe('Filters integration with DataProvider', () => {
 
     expect(filtersPlugin.exportConditions()[0].operation).toBe('disjunction');
   });
+
+  it('should restore previous filter state when dataProvider fetch fails', async() => {
+    let fetchCallCount = 0;
+
+    handsontable({
+      dataProvider: async(params) => {
+        fetchCallCount += 1;
+
+        if (fetchCallCount === 3) {
+          throw new Error('Network error');
+        }
+
+        return {
+          rows: createSpreadsheetData(params.pageSize || 10, 3),
+          totalRows: params.filters ? 5 : 50,
+        };
+      },
+      columns: 3,
+      dropdownMenu: true,
+      filters: true,
+      pagination: true,
+    });
+
+    await sleep(100);
+
+    const filtersPlugin = getPlugin('filters');
+
+    filtersPlugin.addCondition(0, 'contains', ['a']);
+    filtersPlugin.filter();
+    await sleep(150);
+
+    const conditionsAfterFirstFetch = filtersPlugin.exportConditions();
+
+    expect(conditionsAfterFirstFetch.length).toBe(1);
+    expect(conditionsAfterFirstFetch[0].conditions[0].name).toBe('contains');
+    expect(conditionsAfterFirstFetch[0].conditions[0].args).toEqual(['a']);
+
+    filtersPlugin.addCondition(1, 'eq', ['x']);
+    filtersPlugin.filter();
+
+    await sleep(150);
+
+    const conditionsAfterFailedFetch = filtersPlugin.exportConditions();
+
+    expect(conditionsAfterFailedFetch.length).toBe(1);
+    expect(conditionsAfterFailedFetch[0].column).toBe(0);
+    expect(conditionsAfterFailedFetch[0].conditions[0].name).toBe('contains');
+    expect(conditionsAfterFailedFetch[0].conditions[0].args).toEqual(['a']);
+  });
 });
