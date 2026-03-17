@@ -67,9 +67,9 @@ describe('HiddenColumns', () => {
       const mockedHeader = document.createElement('div');
 
       Object.defineProperty(mockedHeader, 'clientHeight', { value: 120 });
+      Object.defineProperty(mockedHeader, 'offsetHeight', { value: 121 });
 
       jest.spyOn(stylesHandler, 'getDefaultRowHeight').mockReturnValue(23);
-      jest.spyOn(stylesHandler, 'areCellsBorderBox').mockReturnValue(false);
       jest.spyOn(wtTable, 'getColumnHeader').mockReturnValue(mockedHeader);
 
       wtTable.markIfOversizedColumnHeader(0);

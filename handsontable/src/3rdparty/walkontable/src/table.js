@@ -431,7 +431,6 @@ class Table {
     let level = this.wtSettings.getSetting('columnHeaders').length;
     const stylesHandler = this.wtSettings.getSetting('stylesHandler');
     const defaultRowHeight = stylesHandler.getDefaultRowHeight();
-    const borderCompensation = stylesHandler.areCellsBorderBox() ? 0 : 1;
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
@@ -447,7 +446,7 @@ class Table {
         /* eslint-disable no-continue */
         continue;
       }
-      currentHeaderHeight = innerHeight(currentHeader) + borderCompensation;
+      currentHeaderHeight = outerHeight(currentHeader);
 
       if (!previousColHeaderHeight &&
           defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
