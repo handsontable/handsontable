@@ -429,6 +429,7 @@ class Table {
   markIfOversizedColumnHeader(col) {
     const sourceColIndex = this.columnFilter.renderedToSource(col);
     let level = this.wtSettings.getSetting('columnHeaders').length;
+    const columnHeadersCount = level;
     const stylesHandler = this.wtSettings.getSetting('stylesHandler');
     const defaultRowHeight = stylesHandler.getDefaultRowHeight();
     let previousColHeaderHeight;
@@ -446,7 +447,12 @@ class Table {
         /* eslint-disable no-continue */
         continue;
       }
-      currentHeaderHeight = outerHeight(currentHeader);
+      // The collapsed table border should be compensated only once for the whole header stack.
+      currentHeaderHeight = innerHeight(currentHeader);
+
+      if (level === columnHeadersCount - 1) {
+        currentHeaderHeight += 1;
+      }
 
       if (!previousColHeaderHeight &&
           defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {

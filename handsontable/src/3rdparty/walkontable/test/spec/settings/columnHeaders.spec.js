@@ -85,7 +85,7 @@ describe('columnHeaders option', () => {
 
     wt.draw();
 
-    expect(spec().$wrapper.find('.ht_clone_top thead tr').height()).toBe(43);
+    expect(spec().$wrapper.find('.ht_clone_top thead tr').height()).toBe(44);
     style.remove();
   });
 
