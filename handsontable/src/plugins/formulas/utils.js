@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { isKeyValueObject } from '../../helpers/object';
+import { valueGetter as multiSelectValueGetter } from '../../cellTypes/multiSelectType/accessors/valueGetter';
 
 const DEFAULT_DATE_FORMAT_HYPERFORMULA = 'DD/MM/YYYY';
 
@@ -104,9 +104,7 @@ export function getDateFromExcelDate(numericDate, dateFormat) {
  */
 export function normalizeValueForFormulaEngine(value) {
   if (Array.isArray(value)) {
-    return value.map((item) => {
-      return isKeyValueObject(item) ? item.value : item;
-    }).join(', ');
+    return multiSelectValueGetter(value);
   }
 
   return value;

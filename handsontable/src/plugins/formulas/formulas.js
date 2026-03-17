@@ -601,14 +601,11 @@ export class Formulas extends BasePlugin {
    * @returns {*} The value to be displayed in the cell.
    */
   #getValueGetterValue(row, column, value) {
-    const visualRow = this.hot.toVisualRow(row);
-    const visualColumn = this.hot.toVisualColumn(column);
-
-    if (visualRow !== null && visualColumn !== null) {
-      value = getValueGetterValue(value, this.hot.getCellMeta(visualRow, visualColumn));
-    }
-
     if (isObject(value) && value !== null) {
+      const visualRow = this.hot.toVisualRow(row);
+      const visualColumn = this.hot.toVisualColumn(column);
+
+      value = getValueGetterValue(value, this.hot.getCellMeta(visualRow, visualColumn));
       value = value.toString();
     }
 
