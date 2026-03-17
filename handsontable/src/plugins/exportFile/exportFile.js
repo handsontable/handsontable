@@ -129,7 +129,7 @@ export class ExportFile extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return true;
   }
 
   /**
@@ -140,7 +140,12 @@ export class ExportFile extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+    const contextMenuEnabled = isObject(pluginSettings) && pluginSettings.contextMenu === true;
+
+    if (contextMenuEnabled) {
+      this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
+    }
 
     super.enablePlugin();
   }
