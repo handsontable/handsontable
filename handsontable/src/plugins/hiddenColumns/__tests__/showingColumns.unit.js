@@ -43,5 +43,41 @@ describe('HiddenColumns', () => {
 
       container.remove();
     });
+
+    it('should include border compensation in oversized column header measurement', () => {
+      registerPlugin(HiddenColumns);
+
+      const container = document.createElement('div');
+
+      document.body.appendChild(container);
+
+      const hot = new Handsontable(container, {
+        data: Array.from({ length: 5 }, (__, rowIndex) => {
+          return Array.from({ length: 5 }, (___, columnIndex) => `r${rowIndex}c${columnIndex}`);
+        }),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const wtTable = hot.view._wt.wtTable;
+      const stylesHandler = wtTable.wtSettings.getSetting('stylesHandler');
+      const mockedHeader = document.createElement('div');
+
+      Object.defineProperty(mockedHeader, 'clientHeight', { value: 120 });
+
+      jest.spyOn(stylesHandler, 'getDefaultRowHeight').mockReturnValue(23);
+      jest.spyOn(stylesHandler, 'areCellsBorderBox').mockReturnValue(false);
+      jest.spyOn(wtTable, 'getColumnHeader').mockReturnValue(mockedHeader);
+
+      wtTable.markIfOversizedColumnHeader(0);
+
+      expect(hot.view._wt.wtViewport.oversizedColumnHeaders[0]).toBe(121);
+
+      hot.destroy();
+      container.remove();
+    });
   });
 });

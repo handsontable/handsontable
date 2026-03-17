@@ -45,6 +45,29 @@ describe('HiddenColumns', () => {
 
         expect(getCell(0, 1).innerText).toBe('B1');
       });
+
+      it('should keep row headers vertically aligned with row cells after showing the first hidden column', async() => {
+        handsontable({
+          data: createSpreadsheetData(200, 200),
+          height: 300,
+          hiddenColumns: {
+            columns: [0],
+          },
+          contextMenu: true,
+          rowHeaders: true,
+          colHeaders: ['A<br>BA<br>BA<br>BA<br>BA<br>BA<br>BA<br>BA<br>BA<br>BA<br>BA'],
+        });
+
+        getPlugin('hiddenColumns').showColumn(0);
+        await render();
+
+        const rowHeader = spec().$container.find('.ht_clone_inline_start tr:eq(1) th:eq(0)')[0];
+        const rowCell = getCell(0, 0);
+        const rowHeaderTop = rowHeader.getBoundingClientRect().top;
+        const rowCellTop = rowCell.getBoundingClientRect().top;
+
+        expect(rowHeaderTop - rowCellTop).toBe(0);
+      });
     });
 
     describe('showColumns', () => {
