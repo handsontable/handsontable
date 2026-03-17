@@ -82,9 +82,6 @@ class GhostTable {
 
     this.#buildGhostTable(this.container);
 
-    // todo
-    this.hot.rootDocument.querySelectorAll('.htGhostTable').forEach(element => element.remove());
-
     this.hot.rootDocument.body.appendChild(this.container);
 
     const fullTable = this.container.querySelector('[data-ghost-table="full"]');
