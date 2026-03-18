@@ -1,0 +1,305 @@
+---
+id: b4qs2km7
+title: Export to Excel
+metaTitle: Export to Excel - JavaScript Data Grid | Handsontable
+description: Export your grid data to an Excel (.xlsx) file, preserving cell types, styling, formulas, merged cells, and more. Requires ExcelJS as a peer dependency.
+permalink: /export-to-excel
+canonicalUrl: /export-to-excel
+tags:
+  - export to file
+  - save file
+  - xlsx
+  - excel
+react:
+  id: lf2p8nx3
+  metaTitle: Export to Excel - React Data Grid | Handsontable
+angular:
+  id: wm5j9ry1
+  metaTitle: Export to Excel - Angular Data Grid | Handsontable
+searchCategory: Guides
+category: Accessories and menus
+---
+
+# Export to Excel
+
+Export your grid data to an Excel (`.xlsx`) file, preserving cell types, styling, formulas, merged cells, and more.
+
+[[toc]]
+
+## Overview
+
+The `ExportFile` plugin supports XLSX export via [ExcelJS](https://github.com/exceljs/exceljs), which you must install as a peer dependency. XLSX export goes beyond CSV in several ways:
+
+- Cell types (`numeric`, `date`, `time`, `checkbox`, `dropdown`) are written as native Excel types with matching number formats.
+- Cell styling is read from the rendered DOM - font properties, background colors, alignment, and borders are all transferred to the workbook.
+- Column headers and nested headers, merged cells, frozen panes, hidden rows, and hidden columns are preserved.
+- [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells can be exported as live Excel formulas.
+- Multiple Handsontable instances can be exported into separate sheets of one workbook.
+
+## Prerequisites
+
+Install ExcelJS:
+
+```bash
+npm install exceljs
+```
+
+Pass the ExcelJS constructor to the `engine` option in the `exportFile` plugin configuration:
+
+::: only-for javascript
+
+```js
+import ExcelJS from 'exceljs';
+
+const hot = new Handsontable(container, {
+  exportFile: { engine: ExcelJS },
+  licenseKey: 'your-license-key',
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import ExcelJS from 'exceljs';
+
+<HotTable
+  exportFile={{ engine: ExcelJS }}
+  licenseKey="your-license-key"
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import ExcelJS from 'exceljs';
+
+readonly hotSettings: GridSettings = {
+  exportFile: { engine: ExcelJS },
+};
+```
+
+:::
+
+## Example
+
+The table below is a Q1 sales report that demonstrates the main XLSX export features: nested column headers, numeric and checkbox cell types, a column summary total, merged cells, a custom border, a frozen first column, and a cell comment on Alice's row.
+
+Click **Export XLSX** to download the file and open it in Microsoft Excel or any compatible spreadsheet application.
+
+::: only-for javascript
+::: example #example1 :hot-excel --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/accessories-and-menus/export-to-excel/javascript/example1.html)
+@[code](@/content/guides/accessories-and-menus/export-to-excel/javascript/example1.js)
+@[code](@/content/guides/accessories-and-menus/export-to-excel/javascript/example1.ts)
+
+:::
+:::
+
+::: only-for react
+::: example #example1 :react-excel --js 1 --ts 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-excel/react/example1.jsx)
+@[code](@/content/guides/accessories-and-menus/export-to-excel/react/example1.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example1 :angular-excel --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-excel/angular/example1.ts)
+@[code](@/content/guides/accessories-and-menus/export-to-excel/angular/example1.html)
+
+:::
+:::
+
+## Available methods
+
+::: only-for react
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+
+:::
+
+The plugin exposes the following methods to export data.
+
+- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - generates a downloadable `.xlsx` file directly in the browser. Returns a `Promise` that resolves when the download starts.
+- [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - exports the data as a JavaScript `Blob`. Returns a `Promise` that resolves with the `Blob`.
+
+Both methods take two parameters. The first, `format`, must be `'xlsx'`. The second, `options`, is an optional object that configures the exported workbook.
+
+Both methods are asynchronous. Use `await` or `.then()` to handle the result:
+
+::: only-for javascript
+
+```js
+const exportPlugin = hot.getPlugin('exportFile');
+
+// Download a file.
+await exportPlugin.downloadFile('xlsx', { filename: 'my-report' });
+
+// Get a Blob (e.g. to upload to a server).
+const blob = await exportPlugin.exportAsBlob('xlsx', { filename: 'my-report' });
+```
+
+:::
+
+::: only-for react
+
+```jsx
+const exportPlugin = hotRef.current?.hotInstance?.getPlugin('exportFile');
+
+await exportPlugin?.downloadFile('xlsx', { filename: 'my-report' });
+```
+
+:::
+
+::: only-for angular
+
+```ts
+async exportFile(): Promise<void> {
+  const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
+
+  await exportPlugin.downloadFile('xlsx', { filename: 'my-report' });
+}
+```
+
+:::
+
+## Plugin configuration
+
+Configure the plugin in Handsontable's settings under the `exportFile` key.
+
+| Option        | Type      | Default | Description |
+| ------------- | --------- | ------- | ----------- |
+| `engine`      | `Object`  | -       | **Required for XLSX.** The ExcelJS `Workbook` constructor (the default export from the `exceljs` package). |
+| `contextMenu` | `Boolean` | `false` | Add **Export to CSV** and **Export to Excel** items to every context menu. The Excel item is hidden when `engine` is not configured. |
+
+## Export options
+
+Pass these options as the second argument to `downloadFile('xlsx', options)` or `exportAsBlob('xlsx', options)`.
+
+| Option | Description |
+| --- | --- |
+| <code style="font-weight:bold">filename</code><br><br><span style="font-size:0.85em">Type: <code style="font-size:inherit">String</code><br>Default: <code style="font-size:inherit">'Handsontable [YYYY]-[MM]-[DD]'</code></span> | File name without extension. Placeholders `[YYYY]`, `[MM]`, and `[DD]` are replaced with the current date. |
+| <code style="font-weight:bold">columnHeaders</code><br><br><span style="font-size:0.85em">Type: <code style="font-size:inherit">Boolean</code><br>Default: <code style="font-size:inherit">false</code></span> | Include column headers in the exported file. Supports the [NestedHeaders](@/api/nestedHeaders.md) plugin. |
+| <code style="font-weight:bold">rowHeaders</code><br><br><span style="font-size:0.85em">Type: <code style="font-size:inherit">Boolean</code><br>Default: <code style="font-size:inherit">false</code></span> | Include row headers as a frozen first column in the exported file. |
+| <code style="font-weight:bold">exportHiddenColumns</code><br><br><span style="font-size:0.85em">Type: <code style="font-size:inherit">Boolean</code><br>Default: <code style="font-size:inherit">false</code></span> | When `true`, include hidden columns in the export. When `false` (default), hidden columns are still exported but marked as hidden in Excel, so their data is preserved but not shown. |
+| <code style="font-weight:bold">exportHiddenRows</code><br><br><span style="font-size:0.85em">Type: <code style="font-size:inherit">Boolean</code><br>Default: <code style="font-size:inherit">false</code></span> | When `true`, include hidden rows in the export. When `false` (default), hidden rows are still exported but marked as hidden in Excel. |
+| <code style="font-weight:bold">exportFormulas</code><br><br><span style="font-size:0.85em">Type: <code style="font-size:inherit">Boolean</code><br>Default: <code style="font-size:inherit">false</code></span> | Export [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) cells and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells as live Excel formulas instead of their pre-calculated values. |
+| <code style="font-weight:bold">sheets</code><br><br><span style="font-size:0.85em">Type: <code style="font-size:inherit">Array</code><br>Default: –</span> | Multi-sheet configuration. Each entry is an object with an `instance` (a Handsontable object), a `name` (the sheet tab label), and any per-sheet options such as `columnHeaders` or `rowHeaders`. When provided, the top-level `instance` is ignored and each sheet is exported separately. |
+| <code style="font-weight:bold">compression</code><br><br><span style="font-size:0.85em">Type: <code style="font-size:inherit">Boolean</code><br>Default: <code style="font-size:inherit">false</code></span> | Enable DEFLATE compression to reduce the output file size. |
+| <code style="font-weight:bold">conditionalFormatting</code><br><br><span style="font-size:0.85em">Type: <code style="font-size:inherit">Array</code><br>Default: –</span> | Array of conditional formatting descriptors. Each descriptor accepts optional `rows` and `cols` ranges (zero-based Handsontable indices) and a `rules` array of [ExcelJS conditional formatting rule objects](https://github.com/exceljs/exceljs#conditional-formatting). |
+| <code style="font-weight:bold">range</code><br><br><span style="font-size:0.85em">Type: <code style="font-size:inherit">Array</code><br>Default: –</span> | Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes). When omitted, the entire grid is exported. |
+
+### Multi-sheet export
+
+Use the `sheets` option to export multiple Handsontable instances into a single workbook. Each entry specifies the `instance` to read from and a `name` for the sheet tab.
+
+::: only-for javascript
+::: example #example2 :hot-excel --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/accessories-and-menus/export-to-excel/javascript/example2.html)
+@[code](@/content/guides/accessories-and-menus/export-to-excel/javascript/example2.js)
+@[code](@/content/guides/accessories-and-menus/export-to-excel/javascript/example2.ts)
+
+:::
+:::
+
+::: only-for react
+::: example #example2 :react-excel --js 1 --ts 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-excel/react/example2.jsx)
+@[code](@/content/guides/accessories-and-menus/export-to-excel/react/example2.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example2 :angular-excel --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-excel/angular/example2.ts)
+@[code](@/content/guides/accessories-and-menus/export-to-excel/angular/example2.html)
+
+:::
+:::
+
+## Context menu
+
+Set `contextMenu: true` in the `exportFile` configuration to add **Export to CSV** and **Export to Excel** items to the grid's context menu. The grid must also have `contextMenu: true` (or a custom context menu that includes the export items).
+
+The **Export to Excel** item is only shown when `engine` is configured. The **Export to CSV** item is always available.
+
+When you select a cell range before opening the context menu, the export covers only the selected range. When no selection is active, the entire grid is exported.
+
+::: only-for javascript
+::: example #example3 :hot-excel --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/accessories-and-menus/export-to-excel/javascript/example3.html)
+@[code](@/content/guides/accessories-and-menus/export-to-excel/javascript/example3.js)
+@[code](@/content/guides/accessories-and-menus/export-to-excel/javascript/example3.ts)
+
+:::
+:::
+
+::: only-for react
+::: example #example3 :react-excel --js 1 --ts 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-excel/react/example3.jsx)
+@[code](@/content/guides/accessories-and-menus/export-to-excel/react/example3.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example3 :angular-excel --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-excel/angular/example3.ts)
+@[code](@/content/guides/accessories-and-menus/export-to-excel/angular/example3.html)
+
+:::
+:::
+
+## Cell types and styling
+
+The following Handsontable cell types are recognized and written to the `.xlsx` file with their native Excel equivalents.
+
+| Handsontable type            | Excel behavior |
+| ---------------------------- | -------------- |
+| `numeric`                    | Number cell. The `numericFormat` option is translated to an Excel `numFmt` string using `Intl.NumberFormat`. |
+| `date`                       | Date cell with an Excel date serial number. Reads ISO 8601 strings (`YYYY-MM-DD`). |
+| `time`                       | Time cell with an Excel time serial number. Reads `HH:mm`, `HH:mm:ss`, and 12-hour (`h:mm AM/PM`) formats. |
+| `checkbox`                   | Boolean cell (`TRUE` / `FALSE`). |
+| `dropdown` / `autocomplete`  | Text cell. The validation list is not exported. |
+| All others                   | Text cell. |
+
+Cell styling is read from the rendered DOM at export time. The following properties are transferred to the workbook:
+
+- **Font**: bold, italic, underline, strikethrough, color, size, and family.
+- **Fill**: background color.
+- **Alignment**: horizontal (`htLeft`, `htCenter`, `htRight`, `htJustify`) and vertical (`htTop`, `htMiddle`, `htBottom`).
+- **Borders**: configurations set via the [`CustomBorders`](@/api/customBorders.md) plugin. Border widths map to Excel styles: 1 px → `thin`, 2 px → `medium`, 3+ px → `thick`.
+
+Read-only cells (`readOnly: true`) receive a light-gray fill and gray font color in the exported file by default. Applying CSS classes to a read-only cell overrides these defaults.
+
+## Related API reference
+
+- Plugins:
+  - [`ExportFile`](@/api/exportFile.md)
+
+---
+
+::: tip Trademark notice
+Microsoft® and Excel® are registered trademarks of Microsoft Corporation.
+:::

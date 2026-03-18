@@ -160,7 +160,6 @@ export class ExportFile extends BasePlugin {
   /**
    * Add export options to the Context Menu.
    *
-   * @private
    * @param {object} options Contains default added options of the Context Menu.
    */
   #onAfterContextMenuDefaultOptions(options) {

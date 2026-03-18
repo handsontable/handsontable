@@ -131,7 +131,6 @@ class Xlsx extends BaseType {
    *
    * Extracts the data writing logic shared between single-sheet and multi-sheet exports.
    *
-   * @private
    * @param {object} worksheet The ExcelJS worksheet to populate.
    * @param {DataProvider} dataProvider DataProvider configured for this sheet.
    * @param {object} options Merged options for this sheet.
@@ -273,7 +272,6 @@ class Xlsx extends BaseType {
    * Handles row heights, row-header cells, and per-cell content and styling.
    * Delegates per-cell writing to {@link Xlsx##writeRowCells}.
    *
-   * @private
    * @param {object} worksheet The ExcelJS worksheet.
    * @param {Array[]} data 2D data array from DataProvider.
    * @param {Array[]} cellsMeta 2D meta array from DataProvider.
@@ -330,7 +328,6 @@ class Xlsx extends BaseType {
    * Resolves each cell's value and number format, then applies styling via
    * {@link Xlsx##writeCellStyling}.
    *
-   * @private
    * @param {object} row The ExcelJS row object.
    * @param {Array} rowData Cell values for this row.
    * @param {number} rowIndex 0-based data-array row index.
@@ -376,7 +373,6 @@ class Xlsx extends BaseType {
    * Handles alignment, borders, font, fill, dropdown validation, and cell comments.
    * Protection is handled by the caller because it depends on a sheet-level flag.
    *
-   * @private
    * @param {object} cell The ExcelJS cell object.
    * @param {object|undefined} meta Cell meta object.
    * @param {{ fontBold: boolean, fontItalic: boolean, fontUnderline: boolean,
@@ -431,7 +427,6 @@ class Xlsx extends BaseType {
    * 6. Multiselect cells (comma-separated string).
    * 7. All other cells (numeric-aware or stringified).
    *
-   * @private
    * @param {*} cellValue Pre-calculated display value from `getData()`.
    * @param {object|undefined} meta Cell meta object.
    * @param {*} sourceValue Raw source value from `getSourceDataAtCell()` (may be a formula string).
@@ -495,7 +490,6 @@ class Xlsx extends BaseType {
   /**
    * Converts a raw cell value to an ExcelJS-compatible value.
    *
-   * @private
    * @param {*} value Raw cell value.
    * @param {object|undefined} meta Cell meta object.
    * @returns {null|number|string}
@@ -521,7 +515,6 @@ class Xlsx extends BaseType {
   /**
    * Returns the boolean export value for a checkbox cell.
    *
-   * @private
    * @param {*} value Raw cell value.
    * @param {object|undefined} meta Cell meta object.
    * @returns {boolean}
@@ -535,7 +528,6 @@ class Xlsx extends BaseType {
   /**
    * Converts a multiselect cell value to a comma-separated display string.
    *
-   * @private
    * @param {*} value Raw multiselect cell value (expected to be an array).
    * @returns {string|null}
    */
@@ -557,7 +549,6 @@ class Xlsx extends BaseType {
    * Returns `null` when `headerStyle` is `null` / has no `backgroundColor`, so
    * callers can skip applying a fill entirely (no default ExcelJS fill sentinel is set).
    *
-   * @private
    * @param {object|null|undefined} headerStyle The `headerStyle` option value.
    * @returns {object|null}
    */
@@ -578,7 +569,6 @@ class Xlsx extends BaseType {
    *
    * Returns `null` when `headerStyle` is `null` or has no `border` sub-option.
    *
-   * @private
    * @param {object|null|undefined} headerStyle The `headerStyle` option value.
    * @returns {object|null}
    */
@@ -600,7 +590,6 @@ class Xlsx extends BaseType {
    * setting used by ExcelJS's internal ZIP writer. `null` leaves ExcelJS to use
    * its own default (level 6).
    *
-   * @private
    * @returns {object}
    */
   #getWriteOptions() {
@@ -626,7 +615,6 @@ class Xlsx extends BaseType {
    * `getDataAtCell`). Both are optional and default to the full data range.
    * The `rules` array is passed directly to ExcelJS's `addConditionalFormatting`.
    *
-   * @private
    * @param {object} worksheet The ExcelJS worksheet.
    * @param {Array} cfRules Array of `{ rows?, cols?, rules }` descriptors.
    * @param {number} dataRowOffset 1-based Excel row where data starts.
@@ -660,7 +648,6 @@ class Xlsx extends BaseType {
    * Builds an Excel cell-range reference string (e.g. `'B2:E7'`) from 1-based
    * row and column indices.
    *
-   * @private
    * @param {number} startRow 1-based start row.
    * @param {number} startCol 1-based start column.
    * @param {number} endRow 1-based end row.
@@ -675,7 +662,6 @@ class Xlsx extends BaseType {
    * Sets column widths on the worksheet, converting pixel values to Excel
    * character-width units.
    *
-   * @private
    * @param {object} worksheet The ExcelJS worksheet.
    * @param {number[]} widths Column widths in pixels, in data-column order.
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
@@ -696,7 +682,6 @@ class Xlsx extends BaseType {
   /**
    * Configures the worksheet view, combining frozen panes and RTL direction settings.
    *
-   * @private
    * @param {object} worksheet The ExcelJS worksheet.
    * @param {number} frozenRows Number of frozen data rows.
    * @param {number} frozenColumns Number of frozen data columns.
@@ -730,7 +715,6 @@ class Xlsx extends BaseType {
    * Writes the column-header row to the worksheet, applying alignment derived from
    * each header's `className` where configured, and optional background fill and border.
    *
-   * @private
    * @param {object} worksheet The ExcelJS worksheet.
    * @param {Array} columnHeaders Header values.
    * @param {string[]} classNames Per-header className strings (same order as `columnHeaders`).
@@ -783,7 +767,6 @@ class Xlsx extends BaseType {
    * Writes multi-row nested column headers to the worksheet, applying alignment derived
    * from each header's `className` where configured, and optional background fill and border.
    *
-   * @private
    * @param {object} worksheet The ExcelJS worksheet.
    * @param {Array[]} nestedColumnHeaders Layers returned by DataProvider#getNestedColumnHeaders.
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
@@ -840,7 +823,6 @@ class Xlsx extends BaseType {
   /**
    * Merges spanning cells in nested header rows.
    *
-   * @private
    * @param {object} worksheet The ExcelJS worksheet.
    * @param {Array[]} nestedColumnHeaders Layers returned by DataProvider#getNestedColumnHeaders.
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.

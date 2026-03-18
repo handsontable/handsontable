@@ -2511,6 +2511,45 @@ export default () => {
     enterMoves: { col: 0, row: 1 },
 
     /**
+     * The `exportFile` option configures the [`ExportFile`](@/api/exportFile.md) plugin.
+     *
+     * You can set the `exportFile` option to one of the following:
+     *
+     * | Setting     | Description                                                                                |
+     * | ----------- | ------------------------------------------------------------------------------------------ |
+     * | `undefined` | Use the [`ExportFile`](@/api/exportFile.md) plugin with the default configuration          |
+     * | An object   | Enable the [`ExportFile`](@/api/exportFile.md) plugin and modify the plugin options        |
+     *
+     * If you set the `exportFile` option to an object, you can configure the following options:
+     *
+     * | Option        | Type      | Default | Description                                                                         |
+     * | ------------- | --------- | ------- | ----------------------------------------------------------------------------------- |
+     * | `engine`      | `Object`  | –       | **Required for XLSX.** Pass the ExcelJS `Workbook` constructor (default export from `exceljs`). |
+     * | `contextMenu` | `Boolean` | `false` | When `true`, add **Export to CSV** and **Export to Excel** items to the context menu. |
+     *
+     * Read more:
+     * - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
+     * - [Plugins: `ExportFile`](@/api/exportFile.md)
+     *
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @category ExportFile
+     *
+     * @example
+     * ```js
+     * import ExcelJS from 'exceljs';
+     *
+     * // enable XLSX export and add context menu items
+     * exportFile: {
+     *   engine: ExcelJS,
+     *   contextMenu: true,
+     * },
+     * ```
+     */
+    exportFile: undefined,
+
+    /**
      * The `fillHandle` option configures the [Autofill](@/api/autofill.md) plugin.
      *
      * You can set the `fillHandle` option to one the following:
