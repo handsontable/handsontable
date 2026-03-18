@@ -33,9 +33,9 @@ export default defineConfig({
 
       favicon: '/img/favicon.png',
 
-      social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/handsontable/handsontable' },
-      ],
+      social: {
+        github: 'https://github.com/handsontable/handsontable',
+      },
 
       editLink: {
         baseUrl:
@@ -80,9 +80,5 @@ export default defineConfig({
       // Converts VuePress-specific syntax to Astro/CommonMark-compatible syntax.
       vuepressPreprocessor({ framework }),
     ],
-    resolve: {
-      // Preserve symlinks so docs/src/content/docs → docs/content resolves.
-      preserveSymlinks: true,
-    },
   },
 });

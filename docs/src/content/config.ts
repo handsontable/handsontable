@@ -1,24 +1,32 @@
 /**
  * Astro content collection schema.
  *
- * Extends Starlight's docsSchema with VuePress-specific frontmatter fields so
- * that existing .md files validate without modification.
+ * Uses the Astro 5 glob loader with an absolute base path pointing directly at
+ * docs/content/, so no src/content/docs symlink is needed. The pattern is
+ * restricted to .md/.mdx files so Vite never tries to resolve the React/
+ * Handsontable imports inside the code-example .tsx/.jsx snippets.
  *
- * Fields not used by Starlight (e.g. id, permalink, react, angular) are
- * accepted and ignored by the renderer. They can be removed from individual
- * pages gradually during the migration.
+ * VuePress-specific frontmatter fields are accepted via the schema extension so
+ * existing .md files validate without modification.
  */
 import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 import { docsSchema } from '@astrojs/starlight/schema';
 
 export const collections = {
   docs: defineCollection({
+    loader: glob({
+      // Absolute URL → resolves to docs/content/ regardless of Astro srcDir.
+      base: new URL('../../content', import.meta.url),
+      // Only process markdown files — ignore the .tsx/.jsx code-example snippets.
+      pattern: ['**/[^_]*.md', '**/[^_]*.mdx'],
+    }),
     schema: docsSchema({
       extend: z.object({
-        /** VuePress unique page ID — not used by Starlight. */
-        id: z.string().optional(),
+        /** VuePress unique page ID — coerced to string (some pages use numeric IDs). */
+        id: z.coerce.string().optional(),
 
-        /** Browser <title> override — use Starlight's head injection instead. */
+        /** Browser <title> override — ignored by Starlight in Phase 1. */
         metaTitle: z.string().optional(),
 
         /** VuePress permalink — Starlight derives URLs from file paths. */
@@ -30,16 +38,13 @@ export const collections = {
         /** Algolia search category facet. */
         searchCategory: z.string().optional(),
 
-        /** Sidebar category label (used by some sidebar builders). */
+        /** Sidebar category label. */
         category: z.string().optional(),
 
         /** Marks a page as a plugin API reference. */
         hotPlugin: z.boolean().optional(),
 
-        /**
-         * Framework-specific frontmatter overrides.
-         * Consumed in Phase 3 when per-framework builds are restored.
-         */
+        /** Framework-specific frontmatter overrides (Phase 3). */
         react: z.record(z.unknown()).optional(),
         angular: z.record(z.unknown()).optional(),
         vue3: z.record(z.unknown()).optional(),

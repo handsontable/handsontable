@@ -3,7 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "description": "Handsontable documentation",
-  "type": "module",
   "engines": { "node": ">=20" },
   "scripts": {
     "dev":                          "astro dev",
