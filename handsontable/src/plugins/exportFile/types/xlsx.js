@@ -55,7 +55,7 @@ class Xlsx extends BaseType {
       fileExtension: 'xlsx',
       bom: false,
       engine: null,
-      // ZIP compression level passed to JSZip (1 = fastest, 9 = smallest). null uses the JSZip default.
+      // DEFLATE compression: true = level 6, number 1–9 = that level, falsy = no compression.
       compression: null,
       // Array of { rows?, cols?, rules } conditional formatting descriptors.
       conditionalFormatting: [],
@@ -614,23 +614,25 @@ class Xlsx extends BaseType {
   /**
    * Builds the options object passed to `workbook.xlsx.writeBuffer()`.
    *
-   * The `compression` option (1–9) maps to the JSZip `compressionOptions.level`
-   * setting used by ExcelJS's internal ZIP writer. `null` leaves ExcelJS to use
-   * its own default (level 6).
+   * The `compression` option enables DEFLATE compression: `true` uses the default
+   * level 6; a number 1–9 sets the JSZip `compressionOptions.level` (1 = fastest,
+   * 9 = smallest). Falsy or omitted leaves ExcelJS to use no compression.
    *
    * @returns {object}
    */
   #getWriteOptions() {
     const { compression } = this.options;
 
-    if (typeof compression !== 'number') {
+    const level = compression === true ? 6 : (typeof compression === 'number' && compression >= 1 && compression <= 9 ? compression : null);
+
+    if (level === null) {
       return {};
     }
 
     return {
       zip: {
         compression: 'DEFLATE',
-        compressionOptions: { level: compression },
+        compressionOptions: { level },
       },
     };
   }

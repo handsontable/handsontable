@@ -341,6 +341,19 @@ describe('exportFile XLSX type — features', () => {
       expect(ws.getRow(3).getCell(3).value).toBe('C3');
     });
 
+    it('should enable DEFLATE compression when compression is true (default level 6)', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx({ compression: true });
+
+      expect(ws.rowCount).toBe(3);
+      expect(ws.getRow(1).getCell(1).value).toBe('A1');
+      expect(ws.getRow(3).getCell(3).value).toBe('C3');
+    });
+
     it('should produce the same cell data regardless of compression level', async() => {
       handsontable({
         data: [['hello', 42, true]],

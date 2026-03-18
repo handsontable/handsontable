@@ -8,8 +8,8 @@ export interface SheetOptions {
   name: string;
   columnHeaders?: boolean;
   rowHeaders?: boolean;
-  exportHiddenColumns?: boolean;
-  exportHiddenRows?: boolean;
+  exportHiddenColumns?: boolean | 'hide';
+  exportHiddenRows?: boolean | 'hide';
   exportFormulas?: boolean;
   range?: number[];
 }
@@ -30,11 +30,14 @@ export interface ExportOptions {
   rowDelimiter?: string;
   columnHeaders?: boolean;
   rowHeaders?: boolean;
-  exportHiddenColumns?: boolean;
-  exportHiddenRows?: boolean;
+  exportHiddenColumns?: boolean | 'hide';
+  exportHiddenRows?: boolean | 'hide';
   exportFormulas?: boolean;
   sheets?: SheetOptions[];
-  compression?: boolean;
+  /**
+   * Enable DEFLATE compression: `true` uses default level 6; a number 1–9 sets the compression level (1 = fastest, 9 = smallest).
+   */
+  compression?: boolean | number;
   conditionalFormatting?: ConditionalFormattingDescriptor[];
   range?: number[];
   sanitizeValues?: boolean | RegExp | ((val: string) => string);

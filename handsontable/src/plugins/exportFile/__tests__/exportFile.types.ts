@@ -67,6 +67,9 @@ const xlsxOptions = {
   range: [0, 0, 5, 4],
 };
 
+// 'hide' is a valid value for exportHiddenColumns and exportHiddenRows.
+exportPlugin.downloadFile('xlsx', { exportHiddenColumns: 'hide', exportHiddenRows: 'hide' });
+
 const xlsxBlob: Blob | Promise<Blob> = exportPlugin.exportAsBlob('xlsx');
 const xlsxBlobWithOptions: Blob | Promise<Blob> = exportPlugin.exportAsBlob('xlsx', xlsxOptions);
 
@@ -105,6 +108,8 @@ const sheet1: SheetOptions = {
   columnHeaders: true,
   rowHeaders: true,
   exportFormulas: true,
+  exportHiddenColumns: 'hide',
+  exportHiddenRows: 'hide',
 };
 
 const sheet2: SheetOptions = {
