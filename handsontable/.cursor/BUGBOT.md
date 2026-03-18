@@ -11,6 +11,8 @@ Apply these checks when changed files are in `/handsontable/**`.
   - Prefer arrow functions over bound method fields (e.g., prefer `this.#onX = () => { ... }` over `this.#onXBound = this.#handleX.bind(this)`).
   - Extract duplicated code blocks into shared methods — do not repeat logic across the same file or plugin.
   - Silent `catch` blocks must include a comment explaining why the error is swallowed.
+- **Bundle size awareness**:
+  - Where possible, prefer JavaScript grammar that produces smaller output in compressed (minified/gzipped) bundles. For example, prefer `===` over verbose truthiness helpers, use short-circuit evaluation instead of full `if` blocks for simple assignments, and avoid unnecessary intermediate variables.
 
 ## Plugin architecture
 
@@ -34,6 +36,10 @@ Apply these checks when changed files are in `/handsontable/**`.
   - New configuration options should be designed to support Handsontable's cascading configuration model (`cell` → `column` → `global`) when applicable.
   - This is not a strict requirement — some options are intentionally designed to work only at the table level (e.g., `data`, `colHeaders`).
   - When an option supports only the table level, document this limitation explicitly in JSDoc.
+- **Naming for public API (options and hooks)**:
+  - Names for new configuration options and hooks must be as generic and self-explanatory as possible — understandable to a first-time user of the library.
+  - Avoid internal jargon, abbreviations, or implementation-specific terms in public-facing names.
+  - Both options and hooks are part of the public API. Once released, they must be maintained indefinitely (see breaking changes policy), so naming decisions carry long-term weight. Review names carefully before approving.
 
 ## Documentation and types
 
