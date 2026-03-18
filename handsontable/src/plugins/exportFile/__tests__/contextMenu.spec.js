@@ -22,7 +22,7 @@ describe('ExportFile', () => {
 
       await contextMenu(getCell(1, 1));
 
-      const items = $('.htContextMenu tbody tr td').map(function() {
+      const items = $('.htContextMenu tbody tr:not(.htHidden) td').map(function() {
         return $(this).text();
       }).get();
 
@@ -38,7 +38,7 @@ describe('ExportFile', () => {
 
       await contextMenu(getCell(1, 1));
 
-      const items = $('.htContextMenu tbody tr td').map(function() {
+      const items = $('.htContextMenu tbody tr:not(.htHidden) td').map(function() {
         return $(this).text();
       }).get();
 
@@ -55,7 +55,7 @@ describe('ExportFile', () => {
 
       await contextMenu(getCell(1, 1));
 
-      const items = $('.htContextMenu tbody tr td').map(function() {
+      const items = $('.htContextMenu tbody tr:not(.htHidden) td').map(function() {
         return $(this).text();
       }).get();
 
@@ -87,7 +87,7 @@ describe('ExportFile', () => {
 
       await contextMenu(getCell(1, 1));
 
-      const items = $('.htContextMenu tbody tr td').map(function() {
+      const items = $('.htContextMenu tbody tr:not(.htHidden) td').map(function() {
         return $(this).text();
       }).get();
 

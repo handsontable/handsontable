@@ -2534,6 +2534,7 @@ export default () => {
      * @memberof Options#
      * @type {object}
      * @default undefined
+     * @since 17.1.0
      * @category ExportFile
      *
      * @example
