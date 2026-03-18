@@ -274,7 +274,8 @@
   },
   "sideEffects": [
     "**/*.css",
-    "./languages/*"
+    "./languages/*",
+    "./plugins/filters/condition/**"
   ],
   "publishConfig": {
     "directory": "tmp",

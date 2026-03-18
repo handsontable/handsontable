@@ -1798,6 +1798,25 @@ describe('Filters UI', () => {
     expect(onErrorSpy).not.toHaveBeenCalled();
   });
 
+  it('should not throw an error while selecting "Is equal to" condition (#12165)', async() => {
+    const onErrorSpy = spyOn(window, 'onerror').and.returnValue(true);
+
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    await dropdownMenu(1);
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Is equal to');
+
+    expect(onErrorSpy).not.toHaveBeenCalled();
+  });
+
   it('should adjust the dropdown height to the currently displayed content', async() => {
     handsontable({
       data: getDataForFilters(),
