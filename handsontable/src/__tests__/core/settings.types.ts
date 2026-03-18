@@ -118,7 +118,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   customBorders: true,
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataDotNotation: oneOf(true),
-  dataProvider: async () => ({ rows: [], totalRows: 0 }),
+  dataProvider: {
+    rowId: 'id',
+    fetchRows: async () => ({ rows: [], totalRows: 0 }),
+    onRowsCreate: async () => {},
+    onRowsUpdate: async () => {},
+    onRowsRemove: async () => {},
+  },
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',
   datePickerConfig: {
@@ -488,6 +494,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterPageNavigationVisibilityChange(isVisible) {
     const _isVisible: boolean = isVisible;
   },
+  paginationExternalDataSourceActive(isActive) {
+    const _a: boolean = isActive;
+
+    return true;
+  },
+  paginationTotalItemCount(defaultTotalItemCount) {
+    const _d: number = defaultTotalItemCount;
+
+    return 1;
+  },
   afterPaste: (data, coords) => {},
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
@@ -496,6 +512,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRemoveCellMeta: (row, column, key, value) => {},
   afterRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
   afterRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
+  afterRowsMutation: (operation, payload) => {},
+  afterRowsMutationError: (operation, error, payload) => {},
+  afterRowMutation: (operation, payload) => {},
+  afterRowMutationError: (operation, error, payload) => {},
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
   afterRowMove: (movedRows, finalIndex, dropIndex, movePossible,
@@ -560,6 +580,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeCellAlignment: (stateBefore, range, type, alignmentClass) => {},
   beforeChange: (changes, source) => { if (changes?.[0] !== null) { changes[0][3] = 10; } return false; },
   beforeChangeRender: (changes, source) => {},
+  beforeAlter: (action, index, amount, source, keepEmptyRows) => true,
   beforeColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible) => {},
   beforeColumnExpand: (currentCollapsedColumn, destinationCollapsedColumns, expandPossible) => {},
   beforeColumnFreeze: (columnIndex, isFreezingPerformed) => false,
@@ -579,6 +600,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeCopy: (data, coords) => { data.splice(0, 1); return false; },
   beforeCreateCol: (index, amount, source) => {},
   beforeCreateRow: (index, amount, source) => {},
+  beforeRowsMutation: (operation, payload) => true,
+  beforeRowMutation: (operation, payload) => true,
   beforeCut: (data, coords) => { data.splice(0, 1); return false; },
   beforeDetachChild: (parent, element) => {},
   beforeDialogHide: () => {},

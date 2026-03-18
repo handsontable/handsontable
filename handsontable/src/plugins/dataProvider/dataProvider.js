@@ -1,16 +1,23 @@
 import { isFunction } from '../../helpers/function';
+import { getProperty } from '../../helpers/object';
+import { error as logError } from '../../helpers/console';
 import { BasePlugin } from '../base';
-import { PLUGIN_KEY as PAGINATION_PLUGIN_KEY } from '../pagination';
 import { PLUGIN_KEY as COLUMN_SORTING_PLUGIN_KEY } from '../columnSorting';
+import { PLUGIN_KEY as PAGINATION_PLUGIN_KEY } from '../pagination';
+import {
+  applyColumnSortingToQueryParameters,
+  applyPaginationToQueryParameters,
+  disablePluginsIncompatibleWithDataProvider,
+  normalizeExternalPaginationPageSize,
+  syncColumnSortingFromQuerySort,
+} from './utils';
 
 export const PLUGIN_KEY = 'dataProvider';
 export const PLUGIN_PRIORITY = 950;
-
-/** Default page size when dataProvider is used with pagination (no explicit pageSize). */
 export const DEFAULT_PAGE_SIZE = 10;
+
 const ABORT_REASON_MESSAGE = 'DataProvider fetch superseded by a newer request';
 
-/** Initial query parameters used when the plugin is first enabled or after it is disabled. */
 const INITIAL_QUERY_PARAMETERS = {
   page: 1,
   pageSize: DEFAULT_PAGE_SIZE,
@@ -19,29 +26,30 @@ const INITIAL_QUERY_PARAMETERS = {
 };
 
 /**
+ * Change sources that batch into one `onRowsUpdate` call. Shared with UndoRedo (skip stack for these edits).
+ *
+ * @package
+ */
+export const DATA_PROVIDER_BATCH_UPDATE_SOURCES = new Set([
+  'edit',
+  undefined,
+  'CopyPaste.paste',
+  'CopyPaste.cut',
+  'Autofill.fill',
+  /** Revert after failed `onRowsUpdate`; skipped for server enqueue and omitted from undo stack. */
+  'DataProvider.revert',
+]);
+
+/**
  * @plugin DataProvider
  * @class DataProvider
  *
  * @description
- * Loads table data from an async provider (e.g. REST API) with query parameters for pagination, sort, and filters.
- * Use with the `pagination` option for server-side paging. When `dataProvider` is set, the `data` option is ignored.
+ * Server-backed data: `dataProvider` must be an object with `rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove`.
+ * Valid edits apply to the grid immediately; if `onRowsUpdate` fails, if validation fails later, or if `beforeRowsMutation` cancels, those cells revert to their previous values.
  *
- * Query parameters passed to the provider: `{ page, pageSize, sort, filters }`.
- * The provider returns `{ rows, totalRows }`. Supports AbortSignal for request cancellation.
- *
- * @example
- * ```js
- * const hot = new Handsontable(container, {
- *   dataProvider: async (queryParameters, { signal }) => {
- *     const response = await fetch(buildUrl(queryParameters), { signal });
- *     const json = await response.json();
- *
- *     return { rows: json.data, totalRows: json.total };
- *   },
- *   columns: columns,
- *   pagination: { pageSize: 20 },
- * });
- * ```
+ * When enabled, `trimRows`, `manualRowMove`, and `multiColumnSorting` are turned off. Handsontable logs a console warning for each option you still set.
+ * Use [[Options#columnSorting]] for server-driven sort (single column).
  */
 export class DataProvider extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -57,82 +65,171 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Current query parameters sent to the data provider.
+   * Last request params passed to `fetchRows` (`page`, `pageSize`, `sort`, `filters`).
+   * Same shape as `DataProviderQueryParameters` in `types/plugins/dataProvider/dataProvider.d.ts`.
    *
    * @type {{ page: number, pageSize: number, sort: object|null, filters: object|null }}
    */
   #queryParameters = { ...INITIAL_QUERY_PARAMETERS };
-
   /**
-   * Total row count from the last successful response (for pagination UI).
+   * `totalRows` from the last successful `fetchRows` response.
    *
    * @type {number}
    */
   #totalRows = 0;
-
   /**
-   * AbortController for the current in-flight request.
+   * Aborts in-flight fetch when superseded or on disable/destroy.
    *
    * @type {AbortController|null}
    */
   #abortController = null;
+  /**
+   * Serializes create/update/remove mutations so they run one after another.
+   *
+   * @type {Promise<void>}
+   */
+  #mutationQueueTail = Promise.resolve();
+  /**
+   * Setting keys for which an incompatible-plugin warning was logged this session.
+   *
+   * @private
+   * @type {Set<string>}
+   */
+  #incompatibleSettingWarned = new Set();
 
   /**
-   * Whether the plugin is enabled (dataProvider function is configured).
+   * Raw `dataProvider` setting (config object only).
    *
-   * @returns {boolean}
+   * @private
+   * @returns {object|undefined}
    */
-  isEnabled() {
-    const provider = this.hot.getSettings()[PLUGIN_KEY];
+  #getConfig() {
+    const c = this.hot.getSettings()[PLUGIN_KEY];
 
-    return isFunction(provider);
+    return c && typeof c === 'object' ? c : undefined;
   }
 
   /**
-   * Enables the plugin and loads initial data if the table is already initialized.
+   * @private
+   * @param {object} c Config object.
+   * @returns {boolean}
+   */
+  #isCompleteConfig(c) {
+    const rid = c.rowId;
+
+    return (typeof rid === 'string' || isFunction(rid))
+      && isFunction(c.fetchRows)
+      && isFunction(c.onRowsCreate)
+      && isFunction(c.onRowsUpdate)
+      && isFunction(c.onRowsRemove);
+  }
+
+  /**
+   * `rowId` from config (string path or function).
+   *
+   * @private
+   * @returns {string|Function|undefined|null}
+   */
+  #getRowIdOption() {
+    const c = this.#getConfig();
+
+    return c ? c.rowId : undefined;
+  }
+
+  /**
+   * @private
+   * @returns {Function|undefined}
+   */
+  #getFetchFn() {
+    const c = this.#getConfig();
+
+    return c && isFunction(c.fetchRows) ? c.fetchRows : undefined;
+  }
+
+  /**
+   * @private
+   * @returns {Function|undefined}
+   */
+  #getOnRowsCreate() {
+    const c = this.#getConfig();
+
+    return c && isFunction(c.onRowsCreate) ? c.onRowsCreate : undefined;
+  }
+
+  /**
+   * @private
+   * @returns {Function|undefined}
+   */
+  #getOnRowsUpdate() {
+    const c = this.#getConfig();
+
+    return c && isFunction(c.onRowsUpdate) ? c.onRowsUpdate : undefined;
+  }
+
+  /**
+   * @private
+   * @returns {Function|undefined}
+   */
+  #getOnRowsRemove() {
+    const c = this.#getConfig();
+
+    return c && isFunction(c.onRowsRemove) ? c.onRowsRemove : undefined;
+  }
+
+  /**
+   * @returns {boolean} True when `dataProvider` is an object with all required keys.
+   */
+  isEnabled() {
+    const c = this.#getConfig();
+
+    return !!c && this.#isCompleteConfig(c);
+  }
+
+  /**
+   * Copies `pageSize` / `initialPage` from Pagination and sort from ColumnSorting into `#queryParameters`.
+   *
+   * @private
+   * @returns {void}
+   */
+  #applyPaginationAndSortFromPlugins() {
+    applyPaginationToQueryParameters(
+      this.hot.getPlugin(PAGINATION_PLUGIN_KEY),
+      this.#queryParameters
+    );
+    applyColumnSortingToQueryParameters(
+      this.hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY),
+      this.#queryParameters
+    );
+  }
+
+  /**
+   * Enables the plugin, syncs query params from pagination/sort plugins, and registers hooks.
    */
   enablePlugin() {
     if (this.enabled) {
       return;
     }
 
-    const pagination = this.hot.getPlugin(PAGINATION_PLUGIN_KEY);
+    this.#applyPaginationAndSortFromPlugins();
 
-    if (pagination?.enabled) {
-      const pageSize = pagination.getSetting('pageSize');
-      const initialPage = pagination.getSetting('initialPage');
-
-      if (typeof pageSize === 'number') {
-        this.#queryParameters.pageSize = pageSize;
-      }
-
-      if (typeof initialPage === 'number' && initialPage >= 1) {
-        this.#queryParameters.page = initialPage;
-      }
-    }
-
-    const columnSorting = this.hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY);
-
-    if (columnSorting?.enabled) {
-      const sortConfig = columnSorting.getSortConfig();
-
-      if (Array.isArray(sortConfig) && sortConfig.length > 0) {
-        this.#queryParameters.sort = sortConfig[0];
-      } else if (sortConfig && typeof sortConfig === 'object' && 'column' in sortConfig) {
-        this.#queryParameters.sort = sortConfig;
-      }
-    }
-
-    this.addHook('afterInit', this.#onAfterInitBound);
-    this.addHook('modifyRowHeader', this.#onModifyRowHeaderBound);
-    this.addHook('beforeColumnSort', this.#onBeforeColumnSortBound);
+    this.addHook('afterInit', this.#onAfterInit);
+    this.addHook('modifyRowHeader', this.#onModifyRowHeader);
+    this.addHook('beforeColumnSort', this.#onBeforeColumnSort);
+    this.addHook('afterChange', this.#onAfterChangeForServerUpdate);
+    this.addHook('beforeAlter', this.#onBeforeAlter);
+    this.addHook('afterPageChange', this.#onAfterPageChangeExternalPagination);
+    this.addHook('afterPageSizeChange', this.#onAfterPageSizeChangeExternalPagination);
+    this.addHook('paginationExternalDataSourceActive', this.#paginationExternalDataSourceActive);
+    this.addHook('paginationTotalItemCount', this.#paginationTotalItemCount);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
 
     super.enablePlugin();
+
+    this.#warnAndDisableIncompatiblePlugins();
   }
 
   /**
-   * Updates the plugin state after settings change. Resets and re-enables the plugin, then triggers
-   * an initial fetch when re-enabled (after init has already run).
+   * Re-applies settings and refetches when the instance is already initialized.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -146,99 +243,577 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Bound handler for afterInit (so it can be removed in disablePlugin).
+   * @private
+   * @returns {void}
+   */
+  #onAfterInit = () => {
+    if (this.isEnabled()) {
+      this.fetchData();
+    }
+  };
+
+  /**
+   * Re-disables plugins that conflict with DataProvider after `updateSettings()` (their `updatePlugin` may re-enable them).
    *
    * @private
    * @returns {void}
    */
-  #onAfterInitBound = () => this.#onAfterInit();
+  #onAfterUpdateSettings = () => {
+    if (this.enabled && this.isEnabled()) {
+      this.#warnAndDisableIncompatiblePlugins();
+    }
+  };
 
   /**
-   * Bound handler for beforeColumnSort (so it can be removed in disablePlugin).
-   *
    * @private
-   * @param {Array} currentSortConfig Previous sort config.
-   * @param {Array} destinationSortConfigs New sort config (single column for columnSorting).
-   * @param {boolean} sortPossible Whether the sort request is valid.
-   * @returns {boolean|undefined} `false` to block the default in-memory sort; otherwise undefined.
+   * @returns {boolean|void}
    */
-  #onBeforeColumnSortBound = (currentSortConfig, destinationSortConfigs, sortPossible) =>
-    this.#onBeforeColumnSort(currentSortConfig, destinationSortConfigs, sortPossible);
+  #paginationExternalDataSourceActive = () => {
+    if (!this.hot.getPlugin(PAGINATION_PLUGIN_KEY)?.enabled) {
+      return;
+    }
+
+    return true;
+  };
 
   /**
-   * When columnSorting triggers a sort, block in-memory sort and drive a dataProvider fetch with the new sort.
-   * Updates columnSorting's config so the header indicator is correct.
+   * @private
+   * @returns {number|void}
+   */
+  #paginationTotalItemCount = () => {
+    if (!this.hot.getPlugin(PAGINATION_PLUGIN_KEY)?.enabled) {
+      return;
+    }
+
+    return this.#totalRows;
+  };
+
+  /**
+   * Loads the requested page when Pagination runs in external paged mode.
+   * Skips when `#queryParameters` already matches (e.g. after `applyLoadedPagingState`).
    *
    * @private
-   * @param {Array} currentSortConfig Previous sort config.
-   * @param {Array} destinationSortConfigs New sort config (single column for columnSorting).
-   * @param {boolean} sortPossible Whether the sort request is valid.
-   * @returns {boolean|undefined} `false` to block the default in-memory sort; otherwise undefined.
+   * @param {number} oldPage Previous 1-based page.
+   * @param {number} newPage New 1-based page.
+   * @returns {void}
    */
-  #onBeforeColumnSort(currentSortConfig, destinationSortConfigs, sortPossible) {
-    if (!this.isEnabled() || !sortPossible) {
+  #onAfterPageChangeExternalPagination = (oldPage, newPage) => {
+    if (!this.isEnabled()
+      || this.hot.runHooks('paginationExternalDataSourceActive', false) !== true) {
+      return;
+    }
+
+    if (newPage === this.#queryParameters.page) {
+      return;
+    }
+
+    this.#goToPage(newPage).catch(() => {
+      const p = this.hot.getPlugin(PAGINATION_PLUGIN_KEY);
+
+      if (p?.enabled) {
+        p.revertPageTo(oldPage);
+      }
+    });
+  };
+
+  /**
+   * Loads page 1 with the new page size when Pagination runs in external paged mode.
+   * Skips when `#queryParameters` already match (e.g. duplicate hook from `applyLoadedPagingState`).
+   *
+   * @private
+   * @param {number | 'auto'} oldPageSize Previous page size.
+   * @param {number | 'auto'} newPageSize New page size.
+   * @returns {void}
+   */
+  #onAfterPageSizeChangeExternalPagination = (oldPageSize, newPageSize) => {
+    if (!this.isEnabled()
+      || this.hot.runHooks('paginationExternalDataSourceActive', false) !== true) {
+      return;
+    }
+
+    const ps = normalizeExternalPaginationPageSize(newPageSize, DEFAULT_PAGE_SIZE);
+
+    if (ps === this.#queryParameters.pageSize && this.#queryParameters.page === 1) {
+      return;
+    }
+
+    this.#setPageSize(ps).catch(() => {
+      const p = this.hot.getPlugin(PAGINATION_PLUGIN_KEY);
+
+      if (p?.enabled) {
+        p.revertPageSizeTo(oldPageSize);
+      }
+    });
+  };
+
+  /**
+   * @private
+   * @param {Array} currentSortConfig Current sort config.
+   * @param {Array} destinationSortConfigs Destination sort config.
+   * @param {boolean} sortPossible Whether sort is allowed.
+   * @returns {boolean|undefined}
+   */
+  #onBeforeColumnSort = (currentSortConfig, destinationSortConfigs, sortPossible) => {
+    if (!isFunction(this.#getFetchFn()) || !this.isEnabled() || !sortPossible) {
       return;
     }
 
     const columnSorting = this.hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY);
 
-    if (columnSorting?.enabled) {
-      columnSorting.setSortConfig(destinationSortConfigs);
-    }
+    columnSorting.setSortConfig(destinationSortConfigs);
 
-    const sortParam =
-      Array.isArray(destinationSortConfigs) && destinationSortConfigs.length > 0
-        ? destinationSortConfigs[0]
-        : null;
+    const sortParam = Array.isArray(destinationSortConfigs) && destinationSortConfigs.length > 0
+      ? destinationSortConfigs[0]
+      : null;
 
-    this.setSort(sortParam);
+    void this.#setSort(sortParam);
 
     return false;
-  }
+  };
 
   /**
-   * Hook handler: maps visual row index (0-based within current page) to global 0-based row index
-   * so that row headers and APIs show correct indexes on page > 1 (e.g. page 2 with pageSize 20 → 20, 21, …).
-   *
    * @private
-   * @param {number} visualRowIndex Visual row index (0-based, current page only).
-   * @returns {number} Global 0-based row index for header/API use.
+   * @param {number} visualRowIndex Visual row index.
+   * @returns {number} Global row index for headers.
    */
-  #onModifyRowHeader(visualRowIndex) {
+  #onModifyRowHeader = (visualRowIndex) => {
     const { page, pageSize } = this.#queryParameters;
-    const effectivePageSize = typeof pageSize === 'number' && pageSize >= 1
-      ? pageSize
-      : DEFAULT_PAGE_SIZE;
+    const ps = typeof pageSize === 'number' && pageSize >= 1 ? pageSize : DEFAULT_PAGE_SIZE;
 
-    return ((page - 1) * effectivePageSize) + visualRowIndex;
+    return ((page - 1) * ps) + visualRowIndex;
+  };
+
+  /**
+   * After a valid edit applies locally, queues `onRowsUpdate`. On failure, cells revert to previous values.
+   *
+   * @private
+   * @param {Array} changes `[visualRow, prop, oldVal, newVal][]`.
+   * @param {string} [source] Change source.
+   * @returns {void}
+   */
+  #onAfterChangeForServerUpdate = (changes, source) => {
+    if (!isFunction(this.#getOnRowsUpdate()) || !changes?.length) {
+      return;
+    }
+    if (source === 'DataProvider.revert') {
+      return;
+    }
+    if (!DATA_PROVIDER_BATCH_UPDATE_SOURCES.has(source)) {
+      return;
+    }
+
+    const real = changes.filter(c => c[2] !== c[3]);
+
+    if (real.length === 0) {
+      return;
+    }
+
+    const valid = real.filter((c) => {
+      const col = this.hot.propToCol(c[1]);
+
+      if (col === undefined || col < 0) {
+        return false;
+      }
+
+      return this.hot.getCellMeta(c[0], col).valid !== false;
+    });
+
+    if (valid.length === 0) {
+      return;
+    }
+
+    this.#enqueueMutation(() => this.#runUpdateFromChanges(valid));
+  };
+
+  /**
+   * @private
+   * @param {Array} changeTuples `[visualRow, prop, oldVal, newVal][]`.
+   * @returns {void}
+   */
+  #revertChangeTuples(changeTuples) {
+    if (!changeTuples?.length) {
+      return;
+    }
+    this.hot.batch(() => {
+      changeTuples.forEach(([row, prop, oldVal]) => {
+        this.hot.setDataAtRowProp(row, prop, oldVal, 'DataProvider.revert');
+      });
+    });
   }
 
   /**
-   * Bound handler for modifyRowHeader (so it can be removed in disablePlugin).
-   *
    * @private
-   * @param {number} visualRowIndex Visual row index (0-based, current page only).
-   * @returns {number} Global 0-based row index for header/API use.
+   * @param {string} action Alter action name.
+   * @param {number|Array} index Row index or index groups.
+   * @param {number} amount Row count.
+   * @returns {boolean|undefined}
    */
-  #onModifyRowHeaderBound = visualRowIndex => this.#onModifyRowHeader(visualRowIndex);
+  #onBeforeAlter = (action, index, amount) => {
+    if (action === 'insert_row_above' || action === 'insert_row_below') {
+      if (!isFunction(this.#getOnRowsCreate())) {
+        return;
+      }
+
+      const n = this.hot.countSourceRows();
+
+      if (this.hot.getSettings().maxRows === n) {
+        return;
+      }
+
+      const position = action === 'insert_row_below' ? 'below' : 'above';
+      const visualIndex = index ?? (position === 'below' ? n : 0);
+
+      this.createRows({
+        position,
+        referenceRowId: visualIndex >= 0 ? this.getRowId(visualIndex) : undefined,
+        rowsAmount: typeof amount === 'number' && amount >= 1 ? amount : 1,
+      });
+
+      return false;
+    }
+
+    if (action === 'remove_row' && isFunction(this.#getOnRowsRemove())) {
+      const rowIds = this.#rowIdsFromAlterRemove(index, amount);
+
+      if (rowIds.length > 0) {
+        this.removeRows(rowIds);
+
+        return false;
+      }
+    }
+  };
 
   /**
-   * Fetches data from the provider with optional parameter overrides.
-   * If a fetch is already in progress, its AbortController is aborted so the provider can cancel
-   * (e.g. via signal.addEventListener('abort', () => reject(signal.reason))). Only the latest
-   * fetch updates the table; aborted requests are ignored.
+   * Row id for remove, or whole row when `rowId` is not set.
    *
-   * @param {object} [overrides] Override parts of the current query parameters (e.g. `{ page: 2 }`).
-   * @returns {Promise<{ rows: Array, totalRows: number }|null>} Result or null if aborted/cancelled.
+   * @private
+   * @param {number} visualRow Visual row index.
+   * @returns {*} Row id or row reference.
+   */
+  #idOrRow(visualRow) {
+    let id = this.#getRowIdByVisualRow(visualRow);
+
+    if (id === undefined) {
+      id = this.hot.getSourceDataAtRow(this.hot.toPhysicalRow(visualRow));
+    }
+
+    return id;
+  }
+
+  /**
+   * Collects row ids (or row snapshots) for `remove_row` alter ranges, including grouped indices.
+   *
+   * @private
+   * @param {number|Array|undefined|null} index Visual start index or `[[index, amount], ...]`.
+   * @param {number} amount Row count when `index` is scalar.
+   * @returns {Array<*>}
+   */
+  #rowIdsFromAlterRemove(index, amount) {
+    const ids = [];
+    const n = () => this.hot.countRows();
+    const pushRange = (start, amt) => {
+      for (let r = 0; r < amt; r += 1) {
+        const v = start + r;
+
+        if (v >= 0 && v < n()) {
+          const id = this.#idOrRow(v);
+
+          if (id !== undefined) {
+            ids.push(id);
+          }
+        }
+      }
+    };
+
+    if (Array.isArray(index)) {
+      index.forEach(([gi, ga]) => {
+        const start = (gi === undefined || gi === null)
+          ? Math.max(0, n() - (ga ?? 1))
+          : Math.max(0, gi);
+
+        pushRange(start, ga ?? 1);
+      });
+    } else {
+      const amt = typeof amount === 'number' && amount >= 1 ? amount : 1;
+      const start = (index === undefined || index === null)
+        ? Math.max(0, n() - amt)
+        : Math.max(0, index);
+
+      pushRange(start, amt);
+    }
+
+    return ids;
+  }
+
+  /**
+   * Appends a mutation onto the queue so concurrent CRUD runs sequentially.
+   *
+   * @private
+   * @param {function(): Promise<void>} fn Async work for one mutation.
+   * @returns {Promise<void>}
+   */
+  #enqueueMutation(fn) {
+    const mutationPromise = this.#mutationQueueTail.then(fn);
+
+    this.#mutationQueueTail = mutationPromise.catch(() => {});
+
+    return mutationPromise;
+  }
+
+  /**
+   * Runs `beforeRowsMutation` then deprecated `beforeRowMutation`; either may return `false` to cancel.
+   *
+   * @private
+   * @param {string} operation Mutation kind (`create`, `update`, or `remove`).
+   * @param {object} payload Hook payload for the operation.
+   * @returns {boolean|undefined} `false` when cancelled.
+   */
+  #runBeforeRowsMutation(operation, payload) {
+    if (this.hot.runHooks('beforeRowsMutation', operation, payload) === false) {
+      return false;
+    }
+    if (this.hot.runHooks('beforeRowMutation', operation, payload) === false) {
+      return false;
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Runs `afterRowsMutation` then deprecated `afterRowMutation`.
+   *
+   * @private
+   * @param {string} operation Mutation kind (`create`, `update`, or `remove`).
+   * @param {object} payload Hook payload for the operation.
+   * @returns {void}
+   */
+  #runAfterRowsMutation(operation, payload) {
+    this.hot.runHooks('afterRowsMutation', operation, payload);
+    this.hot.runHooks('afterRowMutation', operation, payload);
+  }
+
+  /**
+   * Runs `afterRowsMutationError` then deprecated `afterRowMutationError`.
+   *
+   * @private
+   * @param {string} operation Mutation kind (`create`, `update`, or `remove`).
+   * @param {Error} err Failure from the server callback.
+   * @param {object} payload Hook payload for the operation.
+   * @returns {void}
+   */
+  #runAfterRowsMutationError(operation, err, payload) {
+    this.hot.runHooks('afterRowsMutationError', operation, err, payload);
+    this.hot.runHooks('afterRowMutationError', operation, err, payload);
+  }
+
+  /**
+   * Calls `onRowsUpdate`, success/error hooks, then re-fetches or re-renders.
+   *
+   * @private
+   * @param {object[]} rowPayloads Per-row `{ id, changes, rowData }` payloads.
+   * @param {object} [options] Optional flags.
+   * @param {function(): void} [options.revertOptimistic] Restores previous cell values when the request fails.
+   * @returns {Promise<void>}
+   */
+  async #commitRowsUpdate(rowPayloads, options = {}) {
+    const onRowsUpdate = this.#getOnRowsUpdate();
+
+    if (!isFunction(onRowsUpdate)) {
+      return;
+    }
+
+    const payload = { rows: rowPayloads };
+    const { revertOptimistic } = options;
+
+    try {
+      await onRowsUpdate(rowPayloads);
+      this.#runAfterRowsMutation('update', payload);
+      await this.fetchData();
+    } catch (err) {
+      this.#runAfterRowsMutationError('update', err, payload);
+      logError('Row update failed:', err);
+
+      if (isFunction(revertOptimistic)) {
+        revertOptimistic();
+      }
+      this.hot.render();
+    }
+  }
+
+  /**
+   * Resolves stable row id from a row object using `rowId` option.
+   *
+   * @private
+   * @param {object|Array} rowData Source row.
+   * @returns {*|undefined}
+   */
+  #getRowIdFromRowData(rowData) {
+    const opt = this.#getRowIdOption();
+
+    if (opt === undefined || opt === null) {
+      return undefined;
+    }
+    if (isFunction(opt)) {
+      return opt(rowData);
+    }
+    if (typeof opt === 'string') {
+      return getProperty(rowData, opt);
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Row id for a visual row index.
+   *
+   * @private
+   * @param {number} visualRow Visual row index.
+   * @returns {*|undefined}
+   */
+  #getRowIdByVisualRow(visualRow) {
+    return this.#getRowIdFromRowData(
+      this.hot.getSourceDataAtRow(this.hot.toPhysicalRow(visualRow))
+    );
+  }
+
+  /**
+   * Finds a visual row index for a row id.
+   *
+   * @private
+   * @param {*} rowId Row id.
+   * @returns {number} Visual row index or -1 when not found.
+   */
+  #findVisualRowById(rowId) {
+    for (let row = 0; row < this.hot.countRows(); row += 1) {
+      if (this.#getRowIdByVisualRow(row) === rowId) {
+        return row;
+      }
+    }
+
+    return -1;
+  }
+
+  /**
+   * @param {number} visualRow Visual row index.
+   * @returns {*} Row id from `rowId` option, or undefined.
+   */
+  getRowId(visualRow) {
+    return this.#getRowIdByVisualRow(visualRow);
+  }
+
+  /**
+   * Builds `changes` map and merged `rowData` for one visual row from Handsontable change tuples.
+   *
+   * @private
+   * @param {Array} rowChanges Tuples `[visualRow, prop, oldVal, newVal]` for one row.
+   * @returns {{ changesObj: object, rowData: object|Array }}
+   */
+  #buildChangesAndRowData(rowChanges) {
+    const visualRow = rowChanges[0][0];
+    const rowData = this.hot.getSourceDataAtRow(this.hot.toPhysicalRow(visualRow));
+    const isObj = rowData && typeof rowData === 'object' && !Array.isArray(rowData);
+    const changesObj = {};
+
+    rowChanges.forEach(([, prop, , nv]) => {
+      const col = typeof prop === 'number' ? prop : this.hot.propToCol(prop);
+      const key = isObj ? this.hot.colToProp(col) : col;
+
+      changesObj[key] = nv;
+    });
+
+    let rowDataWithChanges;
+
+    if (Array.isArray(rowData)) {
+      rowDataWithChanges = [...rowData];
+      rowChanges.forEach(([, prop, , nv]) => {
+        const col = typeof prop === 'number' ? prop : this.hot.propToCol(prop);
+
+        rowDataWithChanges[col] = nv;
+      });
+    } else if (isObj) {
+      rowDataWithChanges = { ...rowData, ...changesObj };
+    } else {
+      rowDataWithChanges = { ...changesObj };
+    }
+
+    return { changesObj, rowData: rowDataWithChanges };
+  }
+
+  /**
+   * Groups cell changes by row, validates, then commits a single batched `onRowsUpdate`.
+   * Values are already applied in the grid; on cancel, validation failure, or server error, reverts those cells.
+   *
+   * @private
+   * @param {Array} changes Filtered change tuples `[visualRow, prop, oldVal, newVal][]`.
+   * @returns {Promise<void>}
+   */
+  async #runUpdateFromChanges(changes) {
+    const byRow = new Map();
+
+    changes.forEach((ch) => {
+      const vr = ch[0];
+
+      if (!byRow.has(vr)) {
+        byRow.set(vr, []);
+      }
+      byRow.get(vr).push(ch);
+    });
+
+    const sortedRows = [...byRow.keys()].sort((a, b) => a - b);
+    const rowPayloads = sortedRows.map((vr) => {
+      const { changesObj, rowData } = this.#buildChangesAndRowData(byRow.get(vr));
+
+      return {
+        id: this.#getRowIdByVisualRow(vr),
+        changes: changesObj,
+        rowData,
+      };
+    });
+
+    const payload = { rows: rowPayloads };
+    const revert = () => this.#revertChangeTuples(changes);
+
+    if (this.#runBeforeRowsMutation('update', payload) === false) {
+      revert();
+
+      return;
+    }
+
+    const ok = await Promise.all(
+      sortedRows.map((vr, i) => this.#validateRowChanges(vr, rowPayloads[i].changes))
+    );
+
+    if (ok.some(v => !v)) {
+      revert();
+      this.#runAfterRowsMutationError('update', new Error('Row update validation failed'), payload);
+      logError('Row update failed: validation failed for one or more cells');
+      this.hot.render();
+
+      return;
+    }
+
+    await this.#commitRowsUpdate(rowPayloads, { revertOptimistic: revert });
+  }
+
+  /**
+   * Fetches rows from `fetchRows` with current or overridden query parameters.
+   *
+   * @param {object} [overrides] Partial query overrides (e.g. `{ page: 2 }`, `{ pageSize: 20, page: 1 }`, `{ sort }`, `{ filters }`).
+   * Numeric `page` is clamped to at least 1.
+   * @returns {Promise<{ rows: Array, totalRows: number }|null>}
    */
   async fetchData(overrides = {}) {
-    const provider = this.hot.getSettings()[PLUGIN_KEY];
+    const fetchFn = this.#getFetchFn();
 
-    if (!isFunction(provider)) {
+    if (!isFunction(fetchFn)) {
       return null;
     }
 
     const params = { ...this.#queryParameters, ...overrides };
+
+    if (typeof params.page === 'number' && !Number.isNaN(params.page)) {
+      params.page = Math.max(1, params.page);
+    }
 
     if (this.#abortController) {
       const reason = new Error(ABORT_REASON_MESSAGE);
@@ -250,18 +825,16 @@ export class DataProvider extends BasePlugin {
     const controller = new AbortController();
 
     this.#abortController = controller;
-    const signal = controller.signal;
+    const { signal } = controller;
 
-    const allowFetch = this.hot.runHooks('beforeDataProviderFetch', params);
-
-    if (allowFetch === false) {
+    if (this.hot.runHooks('beforeDataProviderFetch', params) === false) {
       this.#abortController = null;
 
       return null;
     }
 
     try {
-      const result = await provider(params, { signal });
+      const result = await fetchFn(params, { signal });
 
       if (signal.aborted) {
         return null;
@@ -276,6 +849,16 @@ export class DataProvider extends BasePlugin {
       this.#totalRows = totalRows;
       this.hot.loadData(rows, PLUGIN_KEY);
       this.#syncColumnSortingState();
+
+      const paginationPlugin = this.hot.getPlugin(PAGINATION_PLUGIN_KEY);
+
+      if (paginationPlugin?.enabled) {
+        paginationPlugin.applyLoadedPagingState({
+          page: params.page,
+          pageSize: params.pageSize,
+        });
+      }
+
       this.hot.runHooks('afterDataProviderFetch', { ...result, rows, totalRows, queryParameters: params });
 
       return { rows, totalRows };
@@ -293,120 +876,315 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Navigates to a page and fetches its data. Used by the Pagination plugin when dataProvider is active.
-   *
-   * @param {number} page Page number (1-based).
+   * @private
+   * @param {number} page 1-based page index (values below 1 are treated as 1 via `fetchData`).
    * @returns {Promise<void>}
    */
-  async goToPage(page) {
-    await this.fetchData({ page: Math.max(1, page) });
+  async #goToPage(page) {
+    await this.fetchData({ page });
   }
 
   /**
-   * Updates page size and refetches (e.g. after user changes page size in pagination UI).
-   *
+   * @private
    * @param {number} pageSize New page size.
    * @returns {Promise<void>}
    */
-  async setPageSize(pageSize) {
-    const numericPageSize = typeof pageSize === 'number' && pageSize >= 1
-      ? pageSize
-      : DEFAULT_PAGE_SIZE;
+  async #setPageSize(pageSize) {
+    const ps = typeof pageSize === 'number' && pageSize >= 1 ? pageSize : DEFAULT_PAGE_SIZE;
 
-    await this.fetchData({ pageSize: numericPageSize, page: 1 });
+    await this.fetchData({ pageSize: ps, page: 1 });
   }
 
   /**
-   * Updates sort and refetches. Call when column sort changes (e.g. from ColumnSorting plugin).
-   *
-   * @param {object|null} sort Sort descriptor, e.g. `{ column: 0, sortOrder: 'asc' }` or null to clear.
+   * @private
+   * @param {object|null} sort Sort descriptor or null.
    * @returns {Promise<void>}
    */
-  async setSort(sort) {
+  async #setSort(sort) {
     await this.fetchData({ sort });
   }
 
   /**
-   * Updates filters and refetches.
-   *
-   * @param {object|null} filters Filter state to send to the provider.
+   * @private
+   * @param {object|null} filters Filter state for the provider.
    * @returns {Promise<void>}
    */
-  async setFilters(filters) {
+  async #setFilters(filters) {
     await this.fetchData({ filters });
   }
 
   /**
-   * Returns the total row count from the last successful provider response (for pagination UI).
-   *
-   * @returns {number}
+   * @returns {number} Total rows from the last successful fetch.
    */
   getTotalRows() {
     return this.#totalRows;
   }
 
   /**
-   * Returns the current query parameters.
-   *
-   * @returns {{ page: number, pageSize: number, sort: object|null, filters: object|null }}
+   * @returns {object} Copy of current query parameters.
    */
   getQueryParameters() {
     return { ...this.#queryParameters };
   }
 
   /**
-   * Syncs the columnSorting plugin's sort config to match the current query parameters after a successful fetch.
+   * Queues create/remove (or similar) server calls with before/after mutation hooks.
    *
    * @private
+   * @param {string} operation `'create'` or `'remove'`.
+   * @param {object} payload Hook payload (`{ rowsCreate }`, `{ rows }`, or `{ rowsRemove }`).
+   * @param {function(): Promise<*>} userPromiseFn Server callback invocation.
+   * @param {function(): Promise<void>|void} onSuccess Runs after success (e.g. `fetchData`).
+   * @returns {Promise<void>}
+   */
+  #queueCrud(operation, payload, userPromiseFn, onSuccess) {
+    return this.#enqueueMutation(async() => {
+      if (this.#runBeforeRowsMutation(operation, payload) === false) {
+        return;
+      }
+
+      try {
+        await userPromiseFn();
+        this.#runAfterRowsMutation(operation, payload);
+        await onSuccess();
+      } catch (err) {
+        this.#runAfterRowsMutationError(operation, err, payload);
+        const label = operation === 'create' ? 'Row create' : 'Row remove';
+
+        logError(`${label} failed:`, err);
+      }
+    });
+  }
+
+  /**
+   * Server create via `onRowsCreate`. Use `rowsAmount` to insert more than one row in one call.
+   *
+   * @param {object} [options] `position`, `referenceRowId`, `rowsAmount`.
+   * @returns {Promise<void>}
+   */
+  async createRows(options = {}) {
+    const onRowsCreate = this.#getOnRowsCreate();
+
+    if (!isFunction(onRowsCreate)) {
+      return;
+    }
+
+    const payload = {
+      position: options.position ?? 'below',
+      referenceRowId: options.referenceRowId,
+      rowsAmount: options.rowsAmount ?? 1,
+    };
+
+    return this.#queueCrud('create', payload, () => onRowsCreate(payload), () => this.fetchData());
+  }
+
+  /**
+   * Server remove via `onRowsRemove`. Pass one row id or an array of ids.
+   *
+   * @param {*|*[]} rowIds Row id or ids.
+   * @returns {Promise<void>}
+   */
+  async removeRows(rowIds) {
+    const onRowsRemove = this.#getOnRowsRemove();
+
+    if (!isFunction(onRowsRemove)) {
+      return;
+    }
+
+    const ids = Array.isArray(rowIds) ? rowIds : [rowIds];
+    const payload = { rowsRemove: ids };
+    const currentPage = this.#queryParameters.page;
+
+    return this.#queueCrud('remove', payload, () => onRowsRemove(ids), async() => {
+      const result = await this.fetchData();
+
+      if (result?.rows.length === 0 && currentPage > 1) {
+        const pagination = this.hot.getPlugin(PAGINATION_PLUGIN_KEY);
+
+        if (pagination?.enabled) {
+          pagination.setPage(currentPage - 1);
+        } else {
+          await this.#goToPage(currentPage - 1);
+        }
+      }
+    });
+  }
+
+  /**
+   * Whether every changed cell passes validator when `allowInvalid` is false.
+   *
+   * @private
+   * @param {number} visualRow Visual row index.
+   * @param {object} changes Prop-keyed new values.
+   * @returns {Promise<boolean>}
+   */
+  #validateRowChanges(visualRow, changes) {
+    const entries = Object.entries(changes);
+
+    if (entries.length === 0) {
+      return Promise.resolve(true);
+    }
+
+    return new Promise((resolve) => {
+      let pending = entries.length;
+      let valid = true;
+
+      const done = () => {
+        pending -= 1;
+
+        if (pending === 0) {
+          resolve(valid);
+        }
+      };
+
+      entries.forEach(([prop, value]) => {
+        const col = this.hot.propToCol(prop);
+
+        if (col === undefined || col < 0) {
+          done();
+
+          return;
+        }
+
+        const cellMeta = this.hot.getCellMeta(visualRow, col);
+
+        if (!this.hot.getCellValidator(cellMeta)) {
+          done();
+
+          return;
+        }
+
+        this.hot.validateCell(value, cellMeta, (result) => {
+          if (result === false && cellMeta.allowInvalid === false) {
+            valid = false;
+          }
+          done();
+        }, 'DataProvider.updateRows');
+      });
+    });
+  }
+
+  /**
+   * Server update via `onRowsUpdate`. Pass an array of `{ id, changes, rowData? }` (same shape as `onRowsUpdate`).
+   *
+   * @param {object[]} rows Row update payloads (one or more).
+   * @returns {Promise<void>}
+   */
+  async updateRows(rows) {
+    if (!isFunction(this.#getOnRowsUpdate()) || !Array.isArray(rows) || rows.length === 0) {
+      return;
+    }
+
+    const rowPayloads = rows.map((p) => {
+      const visualRow = this.#findVisualRowById(p.id);
+
+      let rowData;
+
+      if (visualRow >= 0) {
+        rowData = this.hot.getSourceDataAtRow(this.hot.toPhysicalRow(visualRow));
+      } else if (p.rowData !== undefined) {
+        rowData = p.rowData;
+      } else {
+        rowData = {};
+      }
+
+      return {
+        id: p.id,
+        changes: p.changes,
+        rowData: rowData && typeof rowData === 'object' ? rowData : {},
+      };
+    });
+
+    const payload = { rows: rowPayloads };
+
+    return this.#enqueueMutation(async() => {
+      if (this.#runBeforeRowsMutation('update', payload) === false) {
+        return;
+      }
+
+      const validationResults = await Promise.all(rowPayloads.map(async(p) => {
+        const visualRow = this.#findVisualRowById(p.id);
+
+        if (visualRow < 0) {
+          return true;
+        }
+
+        return this.#validateRowChanges(visualRow, p.changes);
+      }));
+
+      if (validationResults.some(ok => !ok)) {
+        this.#runAfterRowsMutationError('update', new Error('Row update validation failed'), payload);
+        logError('Row update failed: validation failed for one or more cells');
+
+        return;
+      }
+
+      await this.#commitRowsUpdate(rowPayloads);
+    });
+  }
+
+  /**
+   * Aligns ColumnSorting plugin UI with `#queryParameters.sort` after `loadData`.
+   *
+   * @private
+   * @returns {void}
    */
   #syncColumnSortingState() {
-    const columnSorting = this.hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY);
-
-    if (!columnSorting?.enabled) {
-      return;
-    }
-
-    const sort = this.#queryParameters.sort;
-    const sortConfig = sort && typeof sort === 'object' && 'column' in sort ? sort : [];
-
-    columnSorting.setSortConfig(sortConfig);
+    syncColumnSortingFromQuerySort(
+      this.hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY),
+      this.#queryParameters.sort
+    );
   }
 
   /**
-   * Runs the initial fetch after the table is ready.
-   *
-   * @private
-   */
-  #onAfterInit() {
-    if (!this.isEnabled()) {
-      return;
-    }
-
-    this.fetchData();
-  }
-
-  /**
-   * Disables the plugin and aborts any in-flight request.
-   * Resets query parameters and total rows so re-enabling starts with a clean state.
+   * Disables the plugin, aborts fetch, resets query state.
    */
   disablePlugin() {
-    this.hot.removeHook('afterInit', this.#onAfterInitBound);
-    this.hot.removeHook('modifyRowHeader', this.#onModifyRowHeaderBound);
-    this.hot.removeHook('beforeColumnSort', this.#onBeforeColumnSortBound);
+    this.hot.removeHook('afterInit', this.#onAfterInit);
+    this.hot.removeHook('modifyRowHeader', this.#onModifyRowHeader);
+    this.hot.removeHook('beforeColumnSort', this.#onBeforeColumnSort);
+    this.hot.removeHook('afterChange', this.#onAfterChangeForServerUpdate);
+    this.hot.removeHook('beforeAlter', this.#onBeforeAlter);
+    this.hot.removeHook('afterPageChange', this.#onAfterPageChangeExternalPagination);
+    this.hot.removeHook('afterPageSizeChange', this.#onAfterPageSizeChangeExternalPagination);
+    this.hot.removeHook('paginationExternalDataSourceActive', this.#paginationExternalDataSourceActive);
+    this.hot.removeHook('paginationTotalItemCount', this.#paginationTotalItemCount);
+    this.hot.removeHook('afterUpdateSettings', this.#onAfterUpdateSettings);
 
-    if (this.#abortController) {
-      this.#abortController.abort();
-      this.#abortController = null;
-    }
-
+    this.#abortController?.abort();
+    this.#abortController = null;
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
     this.#totalRows = 0;
 
     super.disablePlugin();
+
+    const c = this.#getConfig();
+
+    if (!c || !this.#isCompleteConfig(c)) {
+      this.#incompatibleSettingWarned.clear();
+    }
   }
 
   /**
-   * Destroys the plugin instance.
+   * Logs a warning and disables plugins that conflict with server-backed data.
+   *
+   * @private
+   * @returns {void}
+   */
+  #warnAndDisableIncompatiblePlugins() {
+    if (!this.isEnabled()) {
+      return;
+    }
+
+    disablePluginsIncompatibleWithDataProvider(
+      this.hot,
+      this.hot.getSettings(),
+      this.#incompatibleSettingWarned
+    );
+  }
+
+  /**
+   * Destroys the plugin.
    */
   destroy() {
     this.#abortController?.abort();

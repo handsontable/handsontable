@@ -700,6 +700,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
      * @param {boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
     alter(action, index, amount = 1, source, keepEmptyRows) {
+      const skipAlter = instance.runHooks('beforeAlter', action, index, amount, source, keepEmptyRows);
+
+      if (skipAlter === false) {
+        return;
+      }
+
       const normalizeIndexesGroup = (indexes) => {
         if (indexes.length === 0) {
           return [];

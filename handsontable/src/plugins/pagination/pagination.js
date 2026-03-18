@@ -7,9 +7,6 @@ import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
-import {
-  PLUGIN_KEY as DATA_PROVIDER_PLUGIN_KEY
-} from '../dataProvider';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
@@ -240,48 +237,67 @@ export class Pagination extends BasePlugin {
 
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
-    this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetchBound);
-
     this.#registerFocusScope();
 
     super.enablePlugin();
   }
 
   /**
-   * Returns whether the table is using a dataProvider for server-side data (pagination uses totalRows from provider).
+   * Whether an external source (e.g. DataProvider) owns paged data and total counts.
    *
-   * @private
    * @returns {boolean}
    */
-  #isDataProviderMode() {
-    const dataProviderPlugin = this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY);
-
-    return !!(
-      this.hot.getSettings()[DATA_PROVIDER_PLUGIN_KEY] &&
-      dataProviderPlugin?.enabled
-    );
+  #isExternalPagedDataMode() {
+    return this.hot.runHooks('paginationExternalDataSourceActive', false) === true;
   }
 
   /**
-   * Refreshes pagination state and UI after the dataProvider has loaded new data.
+   * Sets the current page (internal state only). Use before #refreshUI when changing page.
    *
-   * @private
-   * @param {object} result Result from afterDataProviderFetch: `{ queryParameters }`.
-   * @returns {void}
+   * @param {number} page Page number (1-based).
    */
-  #onAfterDataProviderFetch(result) {
-    if (!result?.queryParameters) {
-      return;
-    }
+  #setCurrentPage(page) {
+    this.#currentPage = page;
+  }
 
+  /**
+   * Sets the page size and strategy (internal state only). Use before #refreshUI when changing page size.
+   *
+   * @param {number|'auto'} pageSize Page size or 'auto'.
+   */
+  #setPageSizeValue(pageSize) {
+    this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
+    this.#pageSize = pageSize;
+  }
+
+  /**
+   * Recomputes pagination state, adjusts viewport elements, and re-renders the table.
+   * Use this single entry point for all UI refresh after changing currentPage or pageSize.
+   *
+   */
+  #refreshUI() {
+    this.#computeAndApplyState();
+    this.hot.view.adjustElementsSize();
+    this.hot.render();
+  }
+
+  /**
+   * Updates page and page size from a successful external load (integrators e.g. DataProvider).
+   *
+   * @param {{ page?: number, pageSize?: number | 'auto' }} queryState Values aligned with server query.
+   * @category Pagination
+   */
+  applyLoadedPagingState(queryState = {}) {
     const oldPage = this.#currentPage;
     const oldPageSize = this.#pageSize;
-    const { page, pageSize } = result.queryParameters;
+    const { page, pageSize } = queryState;
 
-    if (typeof page === 'number') {
+    if (typeof page === 'number' && page >= 1) {
       this.#setCurrentPage(page);
     }
-    if (typeof pageSize === 'number') {
+    if (pageSize === 'auto') {
+      this.#setPageSizeValue('auto');
+    } else if (typeof pageSize === 'number' && pageSize >= 1) {
       this.#setPageSizeValue(pageSize);
     }
 
@@ -296,63 +312,32 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Sets the current page (internal state only). Use before #refreshUI when changing page.
+   * Restores the page after a failed external load.
    *
-   * @private
-   * @param {number} page Page number (1-based).
+   * @param {number} previousPage Page to restore (1-based).
+   * @category Pagination
    */
-  #setCurrentPage(page) {
-    this.#currentPage = page;
-  }
+  revertPageTo(previousPage) {
+    const attemptedPage = this.#currentPage;
 
-  /**
-   * Sets the page size and strategy (internal state only). Use before #refreshUI when changing page size.
-   *
-   * @private
-   * @param {number|'auto'} pageSize Page size or 'auto'.
-   */
-  #setPageSizeValue(pageSize) {
-    this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
-    this.#pageSize = pageSize;
-  }
-
-  /**
-   * Recomputes pagination state, adjusts viewport elements, and re-renders the table.
-   * Use this single entry point for all UI refresh after changing currentPage or pageSize.
-   *
-   * @private
-   */
-  #refreshUI() {
-    this.#computeAndApplyState();
-    this.hot.view.adjustElementsSize();
-    this.hot.render();
-  }
-
-  /**
-   * Reverts to the previous page when a dataProvider fetch fails. Keeps data unchanged.
-   *
-   * @private
-   * @param {number} oldPage Previous page number.
-   * @param {number} attemptedPage Page that was requested and failed.
-   */
-  #revertPageOnFetchError(oldPage, attemptedPage) {
-    this.#setCurrentPage(oldPage);
+    this.#setCurrentPage(previousPage);
     this.hot.scrollViewportTo({ row: 0 });
     this.#refreshUI();
-    this.hot.runHooks('afterPageChange', attemptedPage, oldPage);
+    this.hot.runHooks('afterPageChange', attemptedPage, previousPage);
   }
 
   /**
-   * Reverts to the previous page size when a dataProvider fetch fails. Keeps data unchanged.
+   * Restores the page size after a failed external load.
    *
-   * @private
-   * @param {number|string} oldPageSize Previous page size.
-   * @param {number|string} attemptedPageSize Page size that was requested and failed.
+   * @param {number | 'auto'} previousPageSize Previous page size.
+   * @category Pagination
    */
-  #revertPageSizeOnFetchError(oldPageSize, attemptedPageSize) {
-    this.#setPageSizeValue(oldPageSize);
+  revertPageSizeTo(previousPageSize) {
+    const attemptedPageSize = this.#pageSize;
+
+    this.#setPageSizeValue(previousPageSize);
     this.#refreshUI();
-    this.hot.runHooks('afterPageSizeChange', attemptedPageSize, oldPageSize);
+    this.hot.runHooks('afterPageSizeChange', attemptedPageSize, previousPageSize);
   }
 
   /**
@@ -371,7 +356,6 @@ export class Pagination extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.removeHook('afterDataProviderFetch', this.#onAfterDataProviderFetchBound);
     this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
       .unregisterMap(this.pluginName);
@@ -411,7 +395,7 @@ export class Pagination extends BasePlugin {
     let firstVisibleRowIndex = -1;
     let lastVisibleRowIndex = -1;
 
-    if (this.#isDataProviderMode()) {
+    if (this.#isExternalPagedDataMode()) {
       const countRows = this.hot.countRows();
 
       if (countRows > 0) {
@@ -476,17 +460,6 @@ export class Pagination extends BasePlugin {
       return;
     }
 
-    if (this.#isDataProviderMode()) {
-      this.#setCurrentPage(pageNumber);
-      this.#refreshUI();
-      this.hot.scrollViewportTo({ row: 0 });
-      this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
-      this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).goToPage(pageNumber)
-        .catch(() => this.#revertPageOnFetchError(oldPage, pageNumber));
-
-      return;
-    }
-
     this.#setCurrentPage(pageNumber);
     this.#refreshUI();
     this.hot.scrollViewportTo({ row: 0 });
@@ -515,19 +488,6 @@ export class Pagination extends BasePlugin {
     const shouldProceed = this.hot.runHooks('beforePageSizeChange', oldPageSize, pageSize);
 
     if (shouldProceed === false) {
-      return;
-    }
-
-    if (this.#isDataProviderMode()) {
-      if (pageSize === 'auto' && !this.hot.getPlugin('autoRowSize')?.enabled) {
-        warn(AUTO_PAGE_SIZE_WARNING);
-      }
-      this.#setPageSizeValue(pageSize);
-      this.#refreshUI();
-      this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
-      this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).setPageSize(pageSize)
-        .catch(() => this.#revertPageSizeOnFetchError(oldPageSize, pageSize));
-
       return;
     }
 
@@ -715,9 +675,9 @@ export class Pagination extends BasePlugin {
     const renderableRowsLength = renderableIndexes.length;
     const { stylesHandler } = this.hot;
 
-    const dataProviderMode = this.#isDataProviderMode();
-    const totalItems = dataProviderMode
-      ? this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).getTotalRows()
+    const externalPagedMode = this.#isExternalPagedDataMode();
+    const totalItems = externalPagedMode
+      ? this.hot.runHooks('paginationTotalItemCount', renderableRowsLength)
       : renderableRowsLength;
 
     this.#calcStrategy.calculate({
@@ -759,7 +719,7 @@ export class Pagination extends BasePlugin {
 
     this.#currentPage = clamp(this.#currentPage, 1, totalPages);
 
-    if (!dataProviderMode && renderableIndexes.length > 0) {
+    if (!externalPagedMode && renderableIndexes.length > 0) {
       const {
         startIndex,
         pageSize,
@@ -768,11 +728,11 @@ export class Pagination extends BasePlugin {
       renderableIndexes.splice(startIndex, pageSize);
     }
 
-    if (!dataProviderMode && renderableIndexes.length > 0) {
+    if (!externalPagedMode && renderableIndexes.length > 0) {
       this.hot.batchExecution(() => {
         renderableIndexes.forEach(index => this.#pagedRowsMap.setValueAtIndex(index, true));
       }, true);
-    } else if (!dataProviderMode) {
+    } else if (!externalPagedMode) {
       this.hot.rowIndexMapper.updateCache(true);
     }
 
@@ -782,13 +742,11 @@ export class Pagination extends BasePlugin {
 
     const uiState = {
       ...paginationData,
-      totalRenderedRows: dataProviderMode
-        ? this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).getTotalRows()
-        : renderableRowsLength,
+      totalRenderedRows: externalPagedMode ? totalItems : renderableRowsLength,
     };
 
-    if (dataProviderMode) {
-      const totalRows = this.hot.getPlugin(DATA_PROVIDER_PLUGIN_KEY).getTotalRows();
+    if (externalPagedMode) {
+      const totalRows = totalItems;
       const pageSize = this.#calcStrategy.getState(this.#currentPage)?.pageSize ?? this.#pageSize;
 
       uiState.counterStartRow = ((this.#currentPage - 1) * pageSize) + 1;
@@ -1035,15 +993,6 @@ export class Pagination extends BasePlugin {
   #onAfterSetTheme(themeName) {
     this.#ui.updateTheme(themeName);
   }
-
-  /**
-   * Bound handler for afterDataProviderFetch (so it can be removed in disablePlugin).
-   *
-   * @private
-   * @param {object} result Result from afterDataProviderFetch: `{ queryParameters }`.
-   * @returns {void}
-   */
-  #onAfterDataProviderFetchBound = result => this.#onAfterDataProviderFetch(result);
 
   /**
    * IndexMapper cache update listener. Once the cache is updated, we need to recompute
