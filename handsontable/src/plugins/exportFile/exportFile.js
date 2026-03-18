@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
+import { html } from '../../helpers/templateLiteralTag';
 import { EXPORT_FILE_DIALOG_TITLE } from '../../i18n/constants';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
@@ -14,25 +15,32 @@ export const PLUGIN_PRIORITY = 240;
 // Inlined here to avoid a cross-plugin import — the token is stable and always bundled.
 const LOADING_CLASS = 'ht-loading';
 
-// Spinner SVG reused from the Loading plugin — same arc shape, same CSS class so the
-// `ht-loading__icon-svg` spin animation (defined in handsontable.css) applies automatically.
-// eslint-disable-next-line max-len
-const EXPORT_SPINNER_SVG = `<svg class="${LOADING_CLASS}__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path stroke="currentColor" stroke-width="2" d="M15 8a7 7 0 1 1-3.5-6.062"></path></svg>`;
-
 /**
- * Builds the dialog overlay HTML for the export progress indicator.
+ * Builds the dialog overlay DOM fragment for the export progress indicator.
  *
  * The title text is resolved at call-time so it reflects the active locale.
  *
  * @param {string} title Translated title string (e.g. "Exporting…").
- * @returns {string}
+ * @returns {DocumentFragment}
  */
 function buildExportDialogContent(title) {
-  return `<div class="${LOADING_CLASS}__content">` +
-    `<i class="${LOADING_CLASS}__icon">${EXPORT_SPINNER_SVG}</i>` +
-    `<div class="${LOADING_CLASS}__text">` +
-    `<h2 class="${LOADING_CLASS}__title">${title}</h2>` +
-    '</div></div>';
+  // Spinner SVG reused from the Loading plugin — same arc shape, same CSS class so the
+  // `ht-loading__icon-svg` spin animation (defined in handsontable.css) applies automatically.
+  const { fragment } = html`
+    <div class="${LOADING_CLASS}__content">
+      <i class="${LOADING_CLASS}__icon">
+        <svg class="${LOADING_CLASS}__icon-svg"
+          xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16">
+          <path stroke="currentColor" stroke-width="2" d="M15 8a7 7 0 1 1-3.5-6.062"></path>
+        </svg>
+      </i>
+      <div class="${LOADING_CLASS}__text">
+        <h2 class="${LOADING_CLASS}__title">${title}</h2>
+      </div>
+    </div>
+  `;
+
+  return fragment;
 }
 
 /**
@@ -151,9 +159,9 @@ export class ExportFile extends BasePlugin {
     }
 
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
-    const contextMenuEnabled = isObject(pluginSettings) && pluginSettings.contextMenu === true;
 
-    if (contextMenuEnabled) {
+    if (isObject(pluginSettings) && pluginSettings.contextMenu === true &&
+        this.hot.getPlugin('contextMenu').isEnabled()) {
       this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
     }
 
@@ -206,7 +214,7 @@ export class ExportFile extends BasePlugin {
   exportAsString(format, options = {}) {
     const formatter = this._createTypeFormatter(format, options);
 
-    if (formatter.constructor.BINARY) {
+    if (formatter.binary) {
       throwWithCause(`Export format type "${format}" cannot be exported as a string (binary format).`);
     }
 
@@ -272,25 +280,19 @@ export class ExportFile extends BasePlugin {
     const name = `${formatter.options.filename}.${formatter.options.fileExtension}`;
     const URL = (rootWindow.URL || rootWindow.webkitURL);
     const triggerDownload = (blob) => {
+      const url = URL.createObjectURL(blob);
       const a = rootDocument.createElement('a');
 
-      if (a.download !== undefined) {
-        const url = URL.createObjectURL(blob);
+      a.style.display = 'none';
+      a.setAttribute('href', url);
+      a.setAttribute('download', name);
+      rootDocument.body.appendChild(a);
+      a.dispatchEvent(new MouseEvent('click'));
+      rootDocument.body.removeChild(a);
 
-        a.style.display = 'none';
-        a.setAttribute('href', url);
-        a.setAttribute('download', name);
-        rootDocument.body.appendChild(a);
-        a.dispatchEvent(new MouseEvent('click'));
-        rootDocument.body.removeChild(a);
-
-        setTimeout(() => {
-          URL.revokeObjectURL(url);
-        }, 100);
-
-      } else if (navigator.msSaveOrOpenBlob) { // IE10+
-        navigator.msSaveOrOpenBlob(blob, name);
-      }
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 100);
     };
 
     const runExport = () => {
@@ -313,7 +315,7 @@ export class ExportFile extends BasePlugin {
       }
     };
 
-    if (hasDialog) {
+    if (hasDialog && formatter.binary) {
       dialogPlugin.show({
         content: buildExportDialogContent(this.hot.getTranslatedPhrase(EXPORT_FILE_DIALOG_TITLE)),
         customClassName: LOADING_CLASS,

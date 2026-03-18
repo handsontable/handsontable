@@ -38,7 +38,7 @@ The `ExportFile` plugin supports XLSX export via [ExcelJS](https://github.com/ex
 
 ## Prerequisites
 
-Install ExcelJS:
+Install ExcelJS. The supported version range is **`^4.4.0`** (ExcelJS 4.x, version 4.4.0 or later).
 
 ```bash
 npm install exceljs
@@ -53,7 +53,6 @@ import ExcelJS from 'exceljs';
 
 const hot = new Handsontable(container, {
   exportFile: { engine: ExcelJS },
-  licenseKey: 'your-license-key',
 });
 ```
 
@@ -66,7 +65,6 @@ import ExcelJS from 'exceljs';
 
 <HotTable
   exportFile={{ engine: ExcelJS }}
-  licenseKey="your-license-key"
 />
 ```
 

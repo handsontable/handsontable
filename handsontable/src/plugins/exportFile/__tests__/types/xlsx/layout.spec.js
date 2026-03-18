@@ -388,6 +388,57 @@ describe('exportFile XLSX type — layout', () => {
       // Row-header column occupies column A, so data merge starts at column B.
       expect(ws.model.merges).toContain('B1:C1');
     });
+
+    it('should compress the merge rowspan when a hidden row inside the merge span is excluded', async() => {
+      // Row 1 (0-based) is hidden and excluded (exportHiddenRows: false, the default).
+      // The merge spans rows 0–2, so the exported data has rows 0 and 2 only.
+      // The effective rowspan in the exported file should be 2 (not 3).
+      handsontable({
+        data: createSpreadsheetData(4, 3),
+        hiddenRows: { rows: [1] },
+        mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 1 }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+
+      // Exported rows: row 0 → excel row 1, row 2 → excel row 2, row 3 → excel row 3.
+      // Merge covers rows 0–2 (export indices 0–1, excel rows 1–2).
+      expect(ws.model.merges).toContain('A1:A2');
+    });
+
+    it('should compress the merge colspan when a hidden column inside the merge span is excluded', async() => {
+      // Column 1 (0-based) is hidden and excluded.
+      // The merge spans cols 0–2, so the exported data has cols 0 and 2 only.
+      // The effective colspan in the exported file should be 2 (not 3).
+      handsontable({
+        data: createSpreadsheetData(3, 4),
+        hiddenColumns: { columns: [1] },
+        mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 3 }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+
+      // Exported cols: col 0 → excel col 1, col 2 → excel col 2, col 3 → excel col 3.
+      // Merge covers cols 0–2 (export indices 0–1, excel cols A–B).
+      expect(ws.model.merges).toContain('A1:B1');
+    });
+
+    it('should shift the merge position when a hidden row before the merge is excluded', async() => {
+      // Row 0 is hidden and excluded, so row 1 becomes the first row in the export.
+      // A merge starting at row 1 should land at data-array row 0 (excel row 1).
+      handsontable({
+        data: createSpreadsheetData(4, 3),
+        hiddenRows: { rows: [0] },
+        mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+
+      expect(ws.model.merges).toContain('A1:B2');
+    });
   });
 
   describe('RTL support', () => {

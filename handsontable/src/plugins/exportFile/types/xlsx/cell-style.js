@@ -1,5 +1,4 @@
 import { isDefined } from '../../../../helpers/mixed';
-import { arrayEach } from '../../../../helpers/array';
 
 // Default ARGB colors applied to read-only cells when no explicit styling is set.
 // Values match the Handsontable design-system tokens for dimmed/disabled cell state.
@@ -402,7 +401,7 @@ export function getBorderFromMeta(meta) {
   const { borders } = meta;
   const excelBorder = {};
 
-  arrayEach(['top', 'bottom', 'left', 'right'], (side) => {
+  ['top', 'bottom', 'left', 'right'].forEach((side) => {
     if (borders[side] && borders[side].width > 0) {
       excelBorder[side] = {
         style: borderWidthToExcelStyle(borders[side].width),

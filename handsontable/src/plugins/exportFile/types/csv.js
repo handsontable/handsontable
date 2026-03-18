@@ -1,4 +1,3 @@
-import { arrayEach, arrayMap } from '../../../helpers/array';
 import { stringify } from '../../../helpers/mixed';
 import BaseType from './_base';
 
@@ -46,8 +45,7 @@ class Csv extends BaseType {
     let result = options.bom ? String.fromCharCode(0xFEFF) : '';
 
     if (hasColumnHeaders) {
-      columnHeaders = arrayMap(
-        columnHeaders,
+      columnHeaders = columnHeaders.map(
         value => this._escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues })
       );
 
@@ -58,7 +56,7 @@ class Csv extends BaseType {
       result += options.rowDelimiter;
     }
 
-    arrayEach(data, (value, index) => {
+    data.forEach((value, index) => {
       if (index > 0) {
         result += options.rowDelimiter;
       }

@@ -1,5 +1,4 @@
 import { isDefined, stringify } from '../../../helpers/mixed';
-import { arrayEach } from '../../../helpers/array';
 import { throwWithCause } from '../../../helpers/errors';
 import DataProvider from '../dataProvider';
 import BaseType from './_base';
@@ -41,6 +40,10 @@ class Xlsx extends BaseType {
    * @returns {boolean}
    */
   static get BINARY() {
+    return true;
+  }
+
+  get binary() {
     return true;
   }
 
@@ -95,7 +98,7 @@ class Xlsx extends BaseType {
       // ── multi-sheet mode ─────────────────────────────────────────────────
       const usedSheetNames = new Set();
 
-      arrayEach(sheets, (sheetConfig) => {
+      sheets.forEach((sheetConfig) => {
         const dp = new DataProvider(sheetConfig.instance);
         const sheetOptions = { ...this.options, ...sheetConfig };
 
@@ -158,7 +161,7 @@ class Xlsx extends BaseType {
     const summaryMap = new Map();
     const columnSummaries = dataProvider.getColumnSummaries();
 
-    arrayEach(columnSummaries, (summary) => {
+    columnSummaries.forEach((summary) => {
       summaryMap.set(`${summary.destRow}:${summary.destCol}`, summary);
     });
 
@@ -263,7 +266,7 @@ class Xlsx extends BaseType {
       });
     }
 
-    arrayEach(mergeCells, (merge) => {
+    mergeCells.forEach((merge) => {
       const startRow = merge.row + dataRowOffset;
       const startCol = merge.col + dataColOffset;
       const endRow = startRow + merge.rowspan - 1;
@@ -313,7 +316,8 @@ class Xlsx extends BaseType {
   #writeDataRows(worksheet, data, cellsMeta, cellElements, rowHeaders, rowsHeights,
                  summaryMap, sourceData, cellContext, hasRowHeaders, headerFill, headerBorder,
                  hasReadOnlyCells, rootDocument, rootWindow) {
-    arrayEach(data, (rowData, rowIndex) => {
+    for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
+      const rowData = data[rowIndex];
       const excelRowNumber = rowIndex + cellContext.dataRowOffset;
       const row = worksheet.getRow(excelRowNumber);
 
@@ -341,7 +345,7 @@ class Xlsx extends BaseType {
       );
 
       row.commit();
-    });
+    }
   }
 
   /**
@@ -364,7 +368,8 @@ class Xlsx extends BaseType {
    */
   #writeRowCells(row, rowData, rowIndex, cellsMeta, cellElements,
                  summaryMap, sourceData, cellContext, hasReadOnlyCells, rootDocument, rootWindow) {
-    arrayEach(rowData, (cellValue, colIndex) => {
+    for (let colIndex = 0; colIndex < rowData.length; colIndex++) {
+      const cellValue = rowData[colIndex];
       const cell = row.getCell(colIndex + cellContext.dataColOffset);
       const meta = cellsMeta[rowIndex]?.[colIndex];
       const summary = summaryMap.get(`${rowIndex}:${colIndex}`);
@@ -386,7 +391,7 @@ class Xlsx extends BaseType {
       if (hasReadOnlyCells) {
         cell.protection = { locked: meta?.readOnly === true };
       }
-    });
+    }
   }
 
   /**
@@ -663,7 +668,7 @@ class Xlsx extends BaseType {
       return;
     }
 
-    arrayEach(cfRules, ({ rows, cols, rules }) => {
+    cfRules.forEach(({ rows, cols, rules }) => {
       if (!rules || rules.length === 0) {
         return;
       }
@@ -709,10 +714,10 @@ class Xlsx extends BaseType {
 
     const offset = hasRowHeaders ? 1 : 0;
 
-    arrayEach(widths, (pixelWidth, index) => {
+    for (let index = 0; index < widths.length; index++) {
       worksheet.getColumn(index + 1 + offset).width =
-        Math.max(pixelWidth / PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT, 1);
-    });
+        Math.max(widths[index] / PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT, 1);
+    }
   }
 
   /**
@@ -725,7 +730,7 @@ class Xlsx extends BaseType {
   #applyHiddenColumns(worksheet, hiddenColIndices, hasRowHeaders) {
     const offset = hasRowHeaders ? 1 : 0;
 
-    arrayEach(hiddenColIndices, (dataColIndex) => {
+    hiddenColIndices.forEach((dataColIndex) => {
       worksheet.getColumn(dataColIndex + 1 + offset).hidden = true;
     });
   }
@@ -738,7 +743,7 @@ class Xlsx extends BaseType {
    * @param {number} dataRowOffset 1-based Excel row number where data row 0 starts.
    */
   #applyHiddenRows(worksheet, hiddenRowIndices, dataRowOffset) {
-    arrayEach(hiddenRowIndices, (dataRowIndex) => {
+    hiddenRowIndices.forEach((dataRowIndex) => {
       worksheet.getRow(dataRowIndex + dataRowOffset).hidden = true;
     });
   }
@@ -804,10 +809,10 @@ class Xlsx extends BaseType {
       }
     }
 
-    arrayEach(columnHeaders, (header, index) => {
+    for (let index = 0; index < columnHeaders.length; index++) {
       const cell = headerRow.getCell(index + dataColOffset);
 
-      cell.value = header ?? null;
+      cell.value = columnHeaders[index] ?? null;
 
       const alignment = getAlignmentFromClassName(classNames[index]);
 
@@ -822,7 +827,7 @@ class Xlsx extends BaseType {
       if (headerBorder) {
         cell.border = headerBorder;
       }
-    });
+    }
 
     headerRow.commit();
   }
@@ -839,7 +844,8 @@ class Xlsx extends BaseType {
    * @param {object|null} headerBorder ExcelJS border object for header cells, or `null` for no border.
    */
   #writeNestedColumnHeaders(worksheet, nestedColumnHeaders, hasRowHeaders, dataColOffset, headerFill, headerBorder) {
-    arrayEach(nestedColumnHeaders, (layerHeaders, layerIndex) => {
+    for (let layerIndex = 0; layerIndex < nestedColumnHeaders.length; layerIndex++) {
+      const layerHeaders = nestedColumnHeaders[layerIndex];
       const row = worksheet.getRow(layerIndex + 1);
 
       if (hasRowHeaders && layerIndex === 0) {
@@ -858,7 +864,7 @@ class Xlsx extends BaseType {
 
       let colPos = dataColOffset;
 
-      arrayEach(layerHeaders, (header) => {
+      layerHeaders.forEach((header) => {
         const cell = row.getCell(colPos);
 
         cell.value = header.label ?? null;
@@ -881,7 +887,7 @@ class Xlsx extends BaseType {
       });
 
       row.commit();
-    });
+    }
   }
 
   /**
@@ -897,18 +903,19 @@ class Xlsx extends BaseType {
       worksheet.mergeCells(1, 1, nestedColumnHeaders.length, 1);
     }
 
-    arrayEach(nestedColumnHeaders, (layerHeaders, layerIndex) => {
+    for (let layerIndex = 0; layerIndex < nestedColumnHeaders.length; layerIndex++) {
+      const layerHeaders = nestedColumnHeaders[layerIndex];
       const excelRow = layerIndex + 1;
       let colPos = dataColOffset;
 
-      arrayEach(layerHeaders, (header) => {
+      layerHeaders.forEach((header) => {
         if (header.colspan > 1) {
           worksheet.mergeCells(excelRow, colPos, excelRow, colPos + header.colspan - 1);
         }
 
         colPos += header.colspan;
       });
-    });
+    }
   }
 }
 

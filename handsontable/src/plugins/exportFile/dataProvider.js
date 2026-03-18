@@ -1,5 +1,3 @@
-import { rangeEach } from '../../helpers/number';
-import { arrayEach } from '../../helpers/array';
 
 /**
  * @private
@@ -45,22 +43,22 @@ class DataProvider {
     const options = this.options;
     const data = [];
 
-    rangeEach(startRow, endRow, (rowIndex) => {
+    for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
       if (!options.exportHiddenRows && this._isHiddenRow(rowIndex)) {
-        return;
+        continue;
       }
 
       const row = [];
 
-      rangeEach(startCol, endCol, (colIndex) => {
+      for (let colIndex = startCol; colIndex <= endCol; colIndex++) {
         if (!options.exportHiddenColumns && this._isHiddenColumn(colIndex)) {
-          return;
+          continue;
         }
         row.push(getCellValue(rowIndex, colIndex));
-      });
+      }
 
       data.push(row);
-    });
+    }
 
     return data;
   }
@@ -86,12 +84,12 @@ class DataProvider {
       const { startRow, endRow } = this._getDataRange();
       const rowHeaders = this.hot.getRowHeader();
 
-      rangeEach(startRow, endRow, (row) => {
+      for (let row = startRow; row <= endRow; row++) {
         if (!this.options.exportHiddenRows && this._isHiddenRow(row)) {
-          return;
+          continue;
         }
         headers.push(rowHeaders[row]);
-      });
+      }
     }
 
     return headers;
@@ -109,12 +107,12 @@ class DataProvider {
       const { startCol, endCol } = this._getDataRange();
       const colHeaders = this.hot.getColHeader();
 
-      rangeEach(startCol, endCol, (column) => {
+      for (let column = startCol; column <= endCol; column++) {
         if (!this.options.exportHiddenColumns && this._isHiddenColumn(column)) {
-          return;
+          continue;
         }
         headers.push(colHeaders[column]);
-      });
+      }
     }
 
     return headers;
@@ -174,11 +172,11 @@ class DataProvider {
 
     const { startRow, endRow } = this._getDataRange();
 
-    rangeEach(startRow, endRow, (rowIndex) => {
+    for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
       if (this._isHiddenRow(rowIndex)) {
         result.add(this.hot.toPhysicalRow(rowIndex));
       }
-    });
+    }
 
     return result;
   }
@@ -205,11 +203,11 @@ class DataProvider {
 
     const { startCol, endCol } = this._getDataRange();
 
-    rangeEach(startCol, endCol, (colIndex) => {
+    for (let colIndex = startCol; colIndex <= endCol; colIndex++) {
       if (this._isHiddenColumn(colIndex)) {
         result.add(this.hot.toPhysicalColumn(colIndex));
       }
-    });
+    }
 
     return result;
   }
@@ -233,12 +231,12 @@ class DataProvider {
     const result = [];
     let dataIndex = 0;
 
-    rangeEach(startRow, endRow, (rowIndex) => {
+    for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
       if (this._isHiddenRow(rowIndex)) {
         result.push(dataIndex);
       }
       dataIndex += 1;
-    });
+    }
 
     return result;
   }
@@ -262,12 +260,12 @@ class DataProvider {
     const result = [];
     let dataIndex = 0;
 
-    rangeEach(startCol, endCol, (colIndex) => {
+    for (let colIndex = startCol; colIndex <= endCol; colIndex++) {
       if (this._isHiddenColumn(colIndex)) {
         result.push(dataIndex);
       }
       dataIndex += 1;
-    });
+    }
 
     return result;
   }
@@ -318,8 +316,13 @@ class DataProvider {
   /**
    * Gets the merged cells configuration filtered to the current export range.
    *
-   * Returned coordinates are 0-based and relative to the top-left corner of the
-   * export range. Only merges that fall fully within the range are included.
+   * Returned coordinates are 0-based data-array indices (matching the same coordinate
+   * space as {@link DataProvider#getData}). Hidden rows/columns excluded from the export
+   * are accounted for: the row/col offsets are compressed and the rowspan/colspan values
+   * are reduced to cover only the exported cells within the merge span.
+   *
+   * Merges whose top-left cell is excluded, or that collapse to a single cell after
+   * exclusion, are omitted from the result.
    *
    * @returns {Array}
    */
@@ -333,21 +336,44 @@ class DataProvider {
 
     const mergedCells = mergeCellsPlugin.mergedCellsCollection.mergedCells;
     const result = [];
+    const excludeHiddenRows = !this.options.exportHiddenRows;
+    const excludeHiddenCols = !this.options.exportHiddenColumns;
+    const rowIncluded = r => !excludeHiddenRows || !this._isHiddenRow(r);
+    const colIncluded = c => !excludeHiddenCols || !this._isHiddenColumn(c);
 
-    arrayEach(mergedCells, (merge) => {
+    mergedCells.forEach((merge) => {
       const mergeEndRow = merge.row + merge.rowspan - 1;
       const mergeEndCol = merge.col + merge.colspan - 1;
 
+      // Skip merges fully outside the export range.
       if (merge.row < startRow || mergeEndRow > endRow ||
           merge.col < startCol || mergeEndCol > endCol) {
         return;
       }
 
+      // Skip merges whose top-left cell is excluded.
+      if (!rowIncluded(merge.row) || !colIncluded(merge.col)) {
+        return;
+      }
+
+      // Data-array position of the merge's top-left cell.
+      const dataRow = this._countVisibleBefore(merge.row, startRow, rowIncluded);
+      const dataCol = this._countVisibleBefore(merge.col, startCol, colIncluded);
+
+      // Effective span after removing excluded rows/columns inside the merge.
+      const dataRowspan = this._countVisibleBefore(mergeEndRow + 1, merge.row, rowIncluded);
+      const dataColspan = this._countVisibleBefore(mergeEndCol + 1, merge.col, colIncluded);
+
+      // A 1×1 result is not a merge.
+      if (dataRowspan <= 1 && dataColspan <= 1) {
+        return;
+      }
+
       result.push({
-        row: merge.row - startRow,
-        col: merge.col - startCol,
-        rowspan: merge.rowspan,
-        colspan: merge.colspan,
+        row: dataRow,
+        col: dataCol,
+        rowspan: dataRowspan,
+        colspan: dataColspan,
       });
     });
 
@@ -366,9 +392,9 @@ class DataProvider {
     const options = this.options;
     const widths = [];
 
-    rangeEach(startCol, endCol, (colIndex) => {
+    for (let colIndex = startCol; colIndex <= endCol; colIndex++) {
       if (!options.exportHiddenColumns && this._isHiddenColumn(colIndex)) {
-        return;
+        continue;
       }
 
       // `getColWidth()` returns 0 for hidden columns (the HiddenColumns plugin
@@ -380,7 +406,7 @@ class DataProvider {
         : this.hot.getColWidth(colIndex);
 
       widths.push(width);
-    });
+    }
 
     return widths;
   }
@@ -397,9 +423,9 @@ class DataProvider {
     const options = this.options;
     const heights = [];
 
-    rangeEach(startRow, endRow, (rowIndex) => {
+    for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
       if (!options.exportHiddenRows && this._isHiddenRow(rowIndex)) {
-        return;
+        continue;
       }
 
       // `getRowHeight()` returns 0 for hidden rows (the HiddenRows plugin
@@ -411,7 +437,7 @@ class DataProvider {
         : this.hot.getRowHeight(rowIndex);
 
       heights.push(height);
-    });
+    }
 
     return heights;
   }
@@ -545,13 +571,13 @@ class DataProvider {
     const options = this.options;
     const classNames = [];
 
-    rangeEach(startCol, endCol, (col) => {
+    for (let col = startCol; col <= endCol; col++) {
       if (!options.exportHiddenColumns && this._isHiddenColumn(col)) {
-        return;
+        continue;
       }
 
       classNames.push(this.hot.getColumnMeta(col).headerClassName || '');
-    });
+    }
 
     return classNames;
   }
@@ -596,7 +622,7 @@ class DataProvider {
     // (e.g. SUM at row 6 references MIN at row 7, and MIN at row 7 references SUM at row 6).
     const allDestRows = new Set();
 
-    arrayEach(allEndpoints, (endpoint) => {
+    allEndpoints.forEach((endpoint) => {
       const destRow = this._physicalRowToDataIndex(endpoint.destinationRow, startRow, endRow);
 
       if (destRow !== null) {
@@ -607,7 +633,7 @@ class DataProvider {
     // Second pass: translate each endpoint into an export-coordinate summary descriptor.
     const summaries = [];
 
-    arrayEach(allEndpoints, (endpoint) => {
+    allEndpoints.forEach((endpoint) => {
       const summary = this._transformEndpointToSummary(
         endpoint, startRow, endRow, startCol, endCol, allDestRows
       );
@@ -659,7 +685,7 @@ class DataProvider {
     const physRanges = endpoint.ranges || [[0, this.hot.countRows() - 1]];
     const sourceRanges = [];
 
-    arrayEach(physRanges, (range) => {
+    physRanges.forEach((range) => {
       const physStart = range[0];
       const physEnd = range[1] !== undefined ? range[1] : range[0];
 
