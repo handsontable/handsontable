@@ -1,5 +1,5 @@
 {
-  "issuesOrigin": "github",
+  "issuesOrigin": "public",
   "title": "Fixed an issue where filter conditions could be tree-shaken and break Filters in Vite 8 builds.",
   "type": "fixed",
   "issueOrPR": 12165,
