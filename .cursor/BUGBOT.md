@@ -11,9 +11,11 @@ Use this policy for PR reviews in this monorepo.
 
 1. Changelog requirement:
    - If package source code changes, require a new `/.changelogs/*.json` file.
-2. Test requirement for core behavior changes:
-   - For changes under `/handsontable/src/**` that alter behavior, require both:
-     - unit tests (`*.unit.js`)
-     - e2e tests (`*.spec.js`).
-3. Public API docs + typing requirement:
-   - For new public options/methods, require JSDoc updates and matching updates in `/handsontable/types/**`.
+   - If the PR description contains `[skip changelog]`, skip this check.
+2. Breaking-change:
+   - If a PR introduces a breaking change, require the `Breaking change` label on that PR.
+   - If the change is breaking, require migration guide updates in `/docs/content/guides/upgrade-and-migration/**`.
+3. User-facing behavior docs requirement:
+   - For user-facing behavior or UX changes, require matching docs updates in `/docs/content/**`.
+4. Agent guidance maintenance:
+   - If a PR introduces new coding conventions, constraints, or gotchas for future agents, require an `AGENTS.md` update.
