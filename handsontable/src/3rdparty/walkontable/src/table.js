@@ -403,17 +403,19 @@ class Table {
     }
 
     const shouldSynchronizeColumnHeaders = this.dataAccessObject.wtViewport.shouldSynchronizeColumnHeaders === true;
+    const visibleRowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
+    const inlineStartOverlayTable = this.isMaster ? wtOverlays.inlineStartOverlay?.clone?.wtTable : null;
+    const hasHeaderHeightMismatch = this.isMaster &&
+      visibleRowHeadersCount > 0 &&
+      inlineStartOverlayTable &&
+      columnHeadersCount > 0 &&
+      outerHeight(this.THEAD) !== outerHeight(inlineStartOverlayTable.THEAD);
 
-    if (this.isMaster && (positionChanged || shouldSynchronizeColumnHeaders)) {
+    if (this.isMaster && (positionChanged || shouldSynchronizeColumnHeaders || hasHeaderHeightMismatch)) {
       // Reset the one-time sync flag before triggering overlays refresh to avoid recursive redraw loops.
       this.dataAccessObject.wtViewport.shouldSynchronizeColumnHeaders = false;
-      const inlineStartOverlayTable = wtOverlays.inlineStartOverlay?.clone?.wtTable;
-      const shouldResyncHeaderHeights = shouldSynchronizeColumnHeaders || (
-        positionChanged ||
-        inlineStartOverlayTable &&
-        columnHeadersCount > 0 &&
-        outerHeight(this.THEAD) !== outerHeight(inlineStartOverlayTable.THEAD)
-      );
+      const shouldResyncHeaderHeights = visibleRowHeadersCount > 0 &&
+        (shouldSynchronizeColumnHeaders || hasHeaderHeightMismatch);
 
       if (shouldResyncHeaderHeights) {
         // Recalculate and sync column header heights only when overlays are actually desynchronized.
@@ -483,7 +485,7 @@ class Table {
         /* eslint-disable no-continue */
         continue;
       }
-      currentHeaderHeight = outerHeight(currentHeader);
+      currentHeaderHeight = innerHeight(currentHeader);
 
       if (!previousColHeaderHeight &&
           defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {

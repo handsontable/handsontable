@@ -305,11 +305,11 @@ export class HiddenColumns extends BasePlugin {
 
     if (isValidConfig && isAnyColumnShowed) {
       this.#hiddenColumnsMap.setValues(hidingMapValues);
-    }
 
-    if (wtViewport) {
-      wtViewport.resetHasOversizedColumnHeadersMarked();
-      wtViewport.shouldSynchronizeColumnHeaders = true;
+      if (wtViewport) {
+        wtViewport.resetHasOversizedColumnHeadersMarked();
+        wtViewport.shouldSynchronizeColumnHeaders = this.hot.countRowHeaders() > 0;
+      }
     }
 
     // @TODO Should call once per render cycle, currently fired separately in different plugins
