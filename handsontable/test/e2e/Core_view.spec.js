@@ -928,10 +928,34 @@ describe('Core_view', () => {
 
       const overlays = tableView()._wt.wtOverlays;
       const masterHolder = tableView()._wt.wtTable.holder;
+      const renderedRows = spec().$container.find('.ht_master tbody tr');
+      const firstRenderedCell = spec().$container.find('.ht_master tbody tr:eq(0) td:eq(0)');
       const wheelListeners = overlays.eventManager.context.eventListeners
         .filter(({ element, event }) => element === masterHolder && event === 'wheel');
 
+      expect(countRows()).toBe(100);
+      expect(countCols()).toBe(9);
+      expect(renderedRows.length).toBeGreaterThan(0);
+      expect(firstRenderedCell.length).toBe(1);
+      expect(firstRenderedCell.text()).toBe('A1');
       expect(wheelListeners.length).toBeGreaterThan(0);
+
+      masterHolder.scrollTop = masterHolder.scrollHeight;
+      await sleep(30);
+
+      const wheelEvt = new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        deltaMode: 0,
+        deltaX: 0,
+        deltaY: 400,
+      });
+
+      masterHolder.dispatchEvent(wheelEvt);
+      await sleep(30);
+
+      expect(wheelEvt.defaultPrevented).toBe(true);
     });
   });
 
