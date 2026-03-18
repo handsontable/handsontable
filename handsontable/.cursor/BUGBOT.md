@@ -40,6 +40,7 @@ Apply these checks when changed files are in `/handsontable/**`.
   - Names for new configuration options and hooks must be as generic and self-explanatory as possible — understandable to a first-time user of the library.
   - Avoid internal jargon, abbreviations, or implementation-specific terms in public-facing names.
   - Both options and hooks are part of the public API. Once released, they must be maintained indefinitely (see breaking changes policy), so naming decisions carry long-term weight. Review names carefully before approving.
+  - Before approving a new name, check for collisions with existing public API names (options, hooks, methods, plugin keys, and CSS classes).
 
 ## Documentation and types
 
