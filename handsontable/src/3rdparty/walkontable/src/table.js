@@ -409,6 +409,7 @@ class Table {
       this.dataAccessObject.wtViewport.shouldSynchronizeColumnHeaders = false;
       const inlineStartOverlayTable = wtOverlays.inlineStartOverlay?.clone?.wtTable;
       const shouldResyncHeaderHeights = shouldSynchronizeColumnHeaders || (
+        positionChanged ||
         inlineStartOverlayTable &&
         columnHeadersCount > 0 &&
         outerHeight(this.THEAD) !== outerHeight(inlineStartOverlayTable.THEAD)
@@ -482,7 +483,7 @@ class Table {
         /* eslint-disable no-continue */
         continue;
       }
-      currentHeaderHeight = innerHeight(currentHeader);
+      currentHeaderHeight = outerHeight(currentHeader);
 
       if (!previousColHeaderHeight &&
           defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {

@@ -44,7 +44,7 @@ describe('HiddenColumns', () => {
       container.remove();
     });
 
-    it('should use inner height in oversized column header measurement', () => {
+    it('should use outer height in oversized column header measurement', () => {
       registerPlugin(HiddenColumns);
 
       const container = document.createElement('div');
@@ -74,7 +74,7 @@ describe('HiddenColumns', () => {
 
       wtTable.markIfOversizedColumnHeader(0);
 
-      expect(hot.view._wt.wtViewport.oversizedColumnHeaders[0]).toBe(120);
+      expect(hot.view._wt.wtViewport.oversizedColumnHeaders[0]).toBe(121);
 
       hot.destroy();
       container.remove();

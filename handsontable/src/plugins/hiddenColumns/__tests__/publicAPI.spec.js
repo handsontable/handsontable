@@ -61,21 +61,33 @@ describe('HiddenColumns', () => {
         getPlugin('hiddenColumns').showColumn(0);
         await render();
 
-        const getAlignmentDelta = () => {
-          const firstRenderedRow = hot().view._wt.wtTable.getFirstRenderedRow();
-          const rowHeader = hot().view._wt.wtOverlays.inlineStartOverlay.clone.wtTable
-            .getRowHeader(firstRenderedRow, 0);
-          const rowCell = getCell(firstRenderedRow, 0);
-          const rowHeaderTop = rowHeader.getBoundingClientRect().top;
-          const rowCellTop = rowCell.getBoundingClientRect().top;
+        const getVisibleFirstRowAlignmentDelta = () => {
+          const rowHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(0) th:eq(0)')[0];
+          const rowCell = spec().$container.find('.ht_master tbody tr:eq(0) td:eq(0)')[0];
 
-          return rowHeaderTop - rowCellTop;
+          return rowHeader.getBoundingClientRect().top - rowCell.getBoundingClientRect().top;
+        };
+        const getHeaderHeightDelta = () => {
+          const masterThead = spec().$container.find('.ht_master thead')[0];
+          const inlineStartThead = spec().$container.find('.ht_clone_inline_start thead')[0];
+
+          return masterThead.getBoundingClientRect().height - inlineStartThead.getBoundingClientRect().height;
         };
 
-        expect(getAlignmentDelta()).toBe(0);
+        expect(getVisibleFirstRowAlignmentDelta()).toBe(0);
+        expect(getHeaderHeightDelta()).toBe(0);
 
-        await scrollViewportVertically(350);
-        expect(getAlignmentDelta()).toBe(0);
+        await scrollViewportTo({ row: 11, col: 0, verticalSnap: 'top' });
+        expect(getVisibleFirstRowAlignmentDelta()).toBe(0);
+        expect(getHeaderHeightDelta()).toBe(0);
+
+        await scrollViewportTo({ row: 20, col: 0, verticalSnap: 'top' });
+        expect(getVisibleFirstRowAlignmentDelta()).toBe(0);
+        expect(getHeaderHeightDelta()).toBe(0);
+
+        await scrollViewportTo({ row: 120, col: 0, verticalSnap: 'top' });
+        expect(getVisibleFirstRowAlignmentDelta()).toBe(0);
+        expect(getHeaderHeightDelta()).toBe(0);
       });
     });
 
