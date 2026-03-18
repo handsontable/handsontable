@@ -58,6 +58,7 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'تصدير كـ CSV',
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'تصدير كـ Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'جارٍ التصدير…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'أدخل صفاً فرعياً',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'افصل عن الصف الأصلي',

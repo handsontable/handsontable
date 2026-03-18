@@ -127,6 +127,9 @@ export const CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;
 export const LOADING_NAMESPACE = 'Loading:';
 export const LOADING_TITLE = `${LOADING_NAMESPACE}title`;
 
+export const EXPORT_FILE_NAMESPACE = 'ExportFile:';
+export const EXPORT_FILE_DIALOG_TITLE = `${EXPORT_FILE_NAMESPACE}dialog.title`;
+
 export const EMPTY_DATA_STATE_NAMESPACE = 'EmptyDataState:';
 export const EMPTY_DATA_STATE_TITLE = `${EMPTY_DATA_STATE_NAMESPACE}title`;
 export const EMPTY_DATA_STATE_DESCRIPTION = `${EMPTY_DATA_STATE_NAMESPACE}description`;

@@ -59,6 +59,7 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Esporta in CSV',
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Esporta in Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Esportazione in corso…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Inserisci riga figlia',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Scollega da riga madre',

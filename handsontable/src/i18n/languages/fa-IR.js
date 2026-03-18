@@ -60,6 +60,7 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'خروجی به CSV',
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'خروجی به Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'در حال صدور…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'درج زیر ردیف',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'جدا کردن از سرردیف',

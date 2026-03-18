@@ -63,6 +63,7 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Eksportuj do CSV',
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Eksportuj do Excela',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Eksportowanie…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Wstaw wiersz podrzędny',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Odłącz od nadrzędnego',

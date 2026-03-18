@@ -60,6 +60,7 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Export to CSV',
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Export to Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Exporting…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Insert child row',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Detach from parent',

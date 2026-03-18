@@ -56,6 +56,7 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Экспортировать в CSV',
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Экспортировать в Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Экспорт…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Вставить дочернюю строку',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Отделить от родителя',

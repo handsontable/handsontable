@@ -62,6 +62,7 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Exporteren naar CSV',
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Exporteren naar Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Exporteren…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Geneste rij invoegen',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Geneste rij ontkoppelen',

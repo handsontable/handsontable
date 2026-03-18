@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
+import { EXPORT_FILE_DIALOG_TITLE } from '../../i18n/constants';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 import exportCsvItem from './contextMenuItem/exportCsv';
@@ -18,12 +19,21 @@ const LOADING_CLASS = 'ht-loading';
 // eslint-disable-next-line max-len
 const EXPORT_SPINNER_SVG = `<svg class="${LOADING_CLASS}__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path stroke="currentColor" stroke-width="2" d="M15 8a7 7 0 1 1-3.5-6.062"></path></svg>`;
 
-const EXPORT_DIALOG_CONTENT =
-  `<div class="${LOADING_CLASS}__content">` +
-  `<i class="${LOADING_CLASS}__icon">${EXPORT_SPINNER_SVG}</i>` +
-  `<div class="${LOADING_CLASS}__text">` +
-  `<h2 class="${LOADING_CLASS}__title">Exporting\u2026</h2>` +
-  '</div></div>';
+/**
+ * Builds the dialog overlay HTML for the export progress indicator.
+ *
+ * The title text is resolved at call-time so it reflects the active locale.
+ *
+ * @param {string} title Translated title string (e.g. "Exporting…").
+ * @returns {string}
+ */
+function buildExportDialogContent(title) {
+  return `<div class="${LOADING_CLASS}__content">` +
+    `<i class="${LOADING_CLASS}__icon">${EXPORT_SPINNER_SVG}</i>` +
+    `<div class="${LOADING_CLASS}__text">` +
+    `<h2 class="${LOADING_CLASS}__title">${title}</h2>` +
+    '</div></div>';
+}
 
 /**
  * @plugin ExportFile
@@ -305,7 +315,7 @@ export class ExportFile extends BasePlugin {
 
     if (hasDialog) {
       dialogPlugin.show({
-        content: EXPORT_DIALOG_CONTENT,
+        content: buildExportDialogContent(this.hot.getTranslatedPhrase(EXPORT_FILE_DIALOG_TITLE)),
         customClassName: LOADING_CLASS,
         background: 'semi-transparent',
         closable: false,

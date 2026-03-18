@@ -60,6 +60,7 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Eksportēt kā CSV',
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Eksportēt kā Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Eksportē…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Ievietot pakārtoto rindu',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Atdalīt no vecāka',

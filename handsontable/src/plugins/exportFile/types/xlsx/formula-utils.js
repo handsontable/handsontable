@@ -191,18 +191,28 @@ export function normalizeFormula(formulaStr, separator, rowOffset, colOffset, ex
   const hasColExclusions = excludedHiddenCols?.size > 0;
 
   if (rowOffset !== 0 || colOffset !== 0 || hasRowExclusions || hasColExclusions) {
-    formula = formula.replace(/([A-Z]{1,3})(\d{1,7})(?!\()/g, (match, colLetters, rowStr) => {
-      const hotPhysCol = colLetterToIndex(colLetters) - 1; // 0-based physical HOT column
-      const hotPhysRow = parseInt(rowStr, 10) - 1; // 0-based physical HOT row
+    // The leading alternative matches string literals (double-quoted Excel strings use "" to escape a quote;
+    // single-quoted tokens are sheet name references like 'Sheet 1'!A1). When matched, they are returned
+    // as-is so that cell-reference-like patterns inside string values are not offset.
+    formula = formula.replace(
+      /("(?:[^"]|"")*"|'[^']*')|(\$?)([A-Z]{1,3})(\$?)(\d{1,7})(?!\()/g,
+      (match, strLiteral, colAbs, colLetters, rowAbs, rowStr) => {
+        if (strLiteral !== undefined) {
+          return strLiteral;
+        }
 
-      const hiddenColsBefore = hasColExclusions ? countBelow(excludedHiddenCols, hotPhysCol) : 0;
-      const hiddenRowsBefore = hasRowExclusions ? countBelow(excludedHiddenRows, hotPhysRow) : 0;
+        const hotPhysCol = colLetterToIndex(colLetters) - 1; // 0-based physical HOT column
+        const hotPhysRow = parseInt(rowStr, 10) - 1; // 0-based physical HOT row
 
-      const newCol = colLetterToIndex(colLetters) + colOffset - hiddenColsBefore;
-      const newRow = parseInt(rowStr, 10) + rowOffset - hiddenRowsBefore;
+        const hiddenColsBefore = hasColExclusions ? countBelow(excludedHiddenCols, hotPhysCol) : 0;
+        const hiddenRowsBefore = hasRowExclusions ? countBelow(excludedHiddenRows, hotPhysRow) : 0;
 
-      return `${colIndexToLetter(newCol)}${newRow}`;
-    });
+        const newCol = colLetterToIndex(colLetters) + colOffset - hiddenColsBefore;
+        const newRow = parseInt(rowStr, 10) + rowOffset - hiddenRowsBefore;
+
+        return `${colAbs}${colIndexToLetter(newCol)}${rowAbs}${newRow}`;
+      }
+    );
   }
 
   if (separator && separator !== ',') {

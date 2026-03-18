@@ -1,4 +1,5 @@
 import { isObject } from '../../../helpers/object';
+import { error } from '../../../helpers/console';
 import { CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX } from '../../../i18n/constants';
 import { PLUGIN_KEY } from '../exportFile';
 import { getExportOptions } from './utils';
@@ -23,7 +24,9 @@ export default function exportExcelItem(exportFilePlugin) {
       return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX);
     },
     callback() {
-      exportFilePlugin.downloadFile('xlsx', getExportOptions(this));
+      exportFilePlugin.downloadFile('xlsx', getExportOptions(this)).catch((err) => {
+        error('ExportFile: XLSX export failed.', err);
+      });
     },
     hidden() {
       const settings = this.getSettings()[PLUGIN_KEY];

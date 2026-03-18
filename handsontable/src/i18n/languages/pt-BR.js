@@ -56,6 +56,7 @@ const dictionary = {
 
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Exportar para CSV',
   [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Exportar para Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Exportando…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Inserir linha filha',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Desanexar da linha pai',
