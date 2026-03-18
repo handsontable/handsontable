@@ -44,7 +44,6 @@ jobs:
       - name: Publish preview packages
         run: |
           npx pkg-pr-new publish \
-            --pnpm \
             --template ./examples/prs/js \
             --template ./examples/prs/ts \
             --template ./examples/prs/react \
