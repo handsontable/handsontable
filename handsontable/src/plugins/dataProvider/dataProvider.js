@@ -561,7 +561,7 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Runs `beforeRowsMutation` then deprecated `beforeRowMutation`; either may return `false` to cancel.
+   * Runs `beforeRowsMutation`. Return `false` from a listener to cancel.
    *
    * @private
    * @param {string} operation Mutation kind (`create`, `update`, or `remove`).
@@ -572,15 +572,12 @@ export class DataProvider extends BasePlugin {
     if (this.hot.runHooks('beforeRowsMutation', operation, payload) === false) {
       return false;
     }
-    if (this.hot.runHooks('beforeRowMutation', operation, payload) === false) {
-      return false;
-    }
 
     return undefined;
   }
 
   /**
-   * Runs `afterRowsMutation` then deprecated `afterRowMutation`.
+   * Runs `afterRowsMutation`.
    *
    * @private
    * @param {string} operation Mutation kind (`create`, `update`, or `remove`).
@@ -589,11 +586,10 @@ export class DataProvider extends BasePlugin {
    */
   #runAfterRowsMutation(operation, payload) {
     this.hot.runHooks('afterRowsMutation', operation, payload);
-    this.hot.runHooks('afterRowMutation', operation, payload);
   }
 
   /**
-   * Runs `afterRowsMutationError` then deprecated `afterRowMutationError`.
+   * Runs `afterRowsMutationError`.
    *
    * @private
    * @param {string} operation Mutation kind (`create`, `update`, or `remove`).
@@ -603,7 +599,6 @@ export class DataProvider extends BasePlugin {
    */
   #runAfterRowsMutationError(operation, err, payload) {
     this.hot.runHooks('afterRowsMutationError', operation, err, payload);
-    this.hot.runHooks('afterRowMutationError', operation, err, payload);
   }
 
   /**

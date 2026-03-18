@@ -200,18 +200,6 @@ export interface Events {
   beforeRowsMutation?: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload) => void | boolean;
   afterRowsMutation?: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload) => void;
   afterRowsMutationError?: (operation: 'create' | 'update' | 'remove', error: Error, payload: RowMutationPayload) => void;
-  /**
-   * @deprecated Use [[beforeRowsMutation]] instead.
-   */
-  beforeRowMutation?: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload) => void | boolean;
-  /**
-   * @deprecated Use [[afterRowsMutation]] instead.
-   */
-  afterRowMutation?: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload) => void;
-  /**
-   * @deprecated Use [[afterRowsMutationError]] instead.
-   */
-  afterRowMutationError?: (operation: 'create' | 'update' | 'remove', error: Error, payload: RowMutationPayload) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean) => void | boolean;
   beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
   beforeColumnFreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void | boolean;
