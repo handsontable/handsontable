@@ -178,11 +178,29 @@ class Xlsx extends BaseType {
 
     const dataRowOffset = headerRowCount + 1;
     const dataColOffset = hasRowHeaders ? 2 : 1;
-    const cellContext = { exportFormulas, formulasSeparator, dataRowOffset, dataColOffset };
+
+    const excludedHiddenRows = exportFormulas ? dataProvider.getExcludedHiddenRows() : null;
+    const excludedHiddenCols = exportFormulas ? dataProvider.getExcludedHiddenColumns() : null;
+
+    const cellContext = {
+      exportFormulas,
+      formulasSeparator,
+      dataRowOffset,
+      dataColOffset,
+      excludedHiddenRows,
+      excludedHiddenCols,
+    };
+
+    const hiddenRowIndices = dataProvider.getHiddenRowDataIndices();
+    const hiddenColIndices = dataProvider.getHiddenColumnDataIndices();
 
     const { rootDocument, rootWindow } = dataProvider.hot;
 
     this.#applyColumnWidths(worksheet, columnsWidths, hasRowHeaders);
+
+    if (hiddenColIndices.length > 0) {
+      this.#applyHiddenColumns(worksheet, hiddenColIndices, hasRowHeaders);
+    }
     this.#applyWorksheetViews(worksheet, frozenRows, frozenColumns, headerRowCount, hasRowHeaders, isRtl);
 
     const headerFill = this.#buildHeaderFill(options.headerStyle);
@@ -225,6 +243,10 @@ class Xlsx extends BaseType {
       summaryMap, sourceData, cellContext, hasRowHeaders, headerFill, headerBorder,
       hasReadOnlyCells, rootDocument, rootWindow
     );
+
+    if (hiddenRowIndices.length > 0) {
+      this.#applyHiddenRows(worksheet, hiddenRowIndices, dataRowOffset);
+    }
 
     if (hasReadOnlyCells) {
       // Protect the worksheet so that locked cells become read-only in Excel.
@@ -435,7 +457,10 @@ class Xlsx extends BaseType {
    * @returns {{ value: *, numFmt: string|null }}
    */
   #resolveCellValue(cellValue, meta, sourceValue, summary, cellContext) {
-    const { exportFormulas, formulasSeparator, dataRowOffset, dataColOffset } = cellContext;
+    const {
+      exportFormulas, formulasSeparator, dataRowOffset, dataColOffset,
+      excludedHiddenRows, excludedHiddenCols,
+    } = cellContext;
 
     if (summary && exportFormulas) {
       return {
@@ -447,7 +472,10 @@ class Xlsx extends BaseType {
     if (exportFormulas && isFormulaValue(sourceValue)) {
       return {
         value: {
-          formula: normalizeFormula(sourceValue, formulasSeparator, dataRowOffset - 1, dataColOffset - 1),
+          formula: normalizeFormula(
+            sourceValue, formulasSeparator, dataRowOffset - 1, dataColOffset - 1,
+            excludedHiddenRows, excludedHiddenCols
+          ),
         },
         numFmt: null,
       };
@@ -676,6 +704,34 @@ class Xlsx extends BaseType {
     arrayEach(widths, (pixelWidth, index) => {
       worksheet.getColumn(index + 1 + offset).width =
         Math.max(pixelWidth / PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT, 1);
+    });
+  }
+
+  /**
+   * Marks the specified Excel columns as hidden.
+   *
+   * @param {object} worksheet The ExcelJS worksheet.
+   * @param {number[]} hiddenColIndices 0-based data-column indices to hide.
+   * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
+   */
+  #applyHiddenColumns(worksheet, hiddenColIndices, hasRowHeaders) {
+    const offset = hasRowHeaders ? 1 : 0;
+
+    arrayEach(hiddenColIndices, (dataColIndex) => {
+      worksheet.getColumn(dataColIndex + 1 + offset).hidden = true;
+    });
+  }
+
+  /**
+   * Marks the specified Excel rows as hidden.
+   *
+   * @param {object} worksheet The ExcelJS worksheet.
+   * @param {number[]} hiddenRowIndices 0-based data-row indices to hide.
+   * @param {number} dataRowOffset 1-based Excel row number where data row 0 starts.
+   */
+  #applyHiddenRows(worksheet, hiddenRowIndices, dataRowOffset) {
+    arrayEach(hiddenRowIndices, (dataRowIndex) => {
+      worksheet.getRow(dataRowIndex + dataRowOffset).hidden = true;
     });
   }
 

@@ -71,6 +71,48 @@ describe('exportFile XLSX type — layout', () => {
       expect(ws.getRow(2).getCell(1).value).toBe('A2');
       expect(ws.getRow(3).getCell(1).value).toBe('A3');
     });
+
+    it('should include all rows and mark hidden rows as hidden in Excel when exportHiddenRows is "hide"', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 1),
+        hiddenRows: { rows: [1, 2] },
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx({ exportHiddenRows: 'hide' });
+
+      // All 4 rows are present.
+      expect(ws.rowCount).toBe(4);
+      expect(ws.getRow(1).getCell(1).value).toBe('A1');
+      expect(ws.getRow(2).getCell(1).value).toBe('A2');
+      expect(ws.getRow(3).getCell(1).value).toBe('A3');
+      expect(ws.getRow(4).getCell(1).value).toBe('A4');
+
+      // Hidden rows are flagged as hidden in the workbook.
+      expect(ws.getRow(2).hidden).toBe(true);
+      expect(ws.getRow(3).hidden).toBe(true);
+
+      // Visible rows are not hidden.
+      expect(ws.getRow(1).hidden).toBeFalsy();
+      expect(ws.getRow(4).hidden).toBeFalsy();
+    });
+
+    it('should preserve the configured row height for hidden rows when exportHiddenRows is "hide"', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 1),
+        rowHeights: [23, 40, 23],
+        hiddenRows: { rows: [1] },
+        autoRowSize: false,
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx({ exportHiddenRows: 'hide' });
+
+      // Row 2 is hidden in HOT but should have a valid height in Excel (not 0).
+      expect(ws.getRow(2).height).toBeGreaterThan(0);
+      // 40px × 0.75 = 30pt
+      expect(ws.getRow(2).height).toBe(30);
+    });
   });
 
   describe('hidden columns', () => {
@@ -100,6 +142,47 @@ describe('exportFile XLSX type — layout', () => {
       expect(ws.columnCount).toBe(4);
       expect(ws.getRow(1).getCell(2).value).toBe('B1');
       expect(ws.getRow(1).getCell(3).value).toBe('C1');
+    });
+
+    it('should include all columns and mark hidden columns as hidden in Excel when exportHiddenColumns is "hide"', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 4),
+        hiddenColumns: { columns: [1, 2] },
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx({ exportHiddenColumns: 'hide' });
+
+      // All 4 columns are present.
+      expect(ws.getRow(1).getCell(1).value).toBe('A1');
+      expect(ws.getRow(1).getCell(2).value).toBe('B1');
+      expect(ws.getRow(1).getCell(3).value).toBe('C1');
+      expect(ws.getRow(1).getCell(4).value).toBe('D1');
+
+      // Hidden columns are flagged as hidden in the workbook.
+      expect(ws.getColumn(2).hidden).toBe(true);
+      expect(ws.getColumn(3).hidden).toBe(true);
+
+      // Visible columns are not hidden.
+      expect(ws.getColumn(1).hidden).toBeFalsy();
+      expect(ws.getColumn(4).hidden).toBeFalsy();
+    });
+
+    it('should preserve the configured column width for hidden columns when exportHiddenColumns is "hide"', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 3),
+        colWidths: [50, 70, 50],
+        hiddenColumns: { columns: [1] },
+        autoColumnSize: false,
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx({ exportHiddenColumns: 'hide' });
+
+      // Column 2 is hidden in HOT but should have a valid width in Excel (not 0).
+      expect(ws.getColumn(2).width).toBeGreaterThan(0);
+      // 70px / 7 = 10 Excel units
+      expect(ws.getColumn(2).width).toBe(10);
     });
   });
 

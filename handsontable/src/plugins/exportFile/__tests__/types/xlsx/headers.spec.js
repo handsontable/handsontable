@@ -426,5 +426,65 @@ describe('exportFile XLSX type — headers', () => {
       expect(ws.rowCount).toBe(2);
       expect(ws.getRow(1).getCell(1).value).toBe('A1');
     });
+
+    it('should export spanning header label and colspan for a hidden column when exportHiddenColumns is "hide"', async() => {
+      // Col 1 is hidden. 'Group B' spans cols 1-2 (origColspan=2).
+      // With 'hide', both cols appear in the export and 'Group B' should
+      // still span 2 columns with the correct label.
+      handsontable({
+        data: createSpreadsheetData(1, 3),
+        nestedHeaders: [
+          ['Group A', { label: 'Group B', colspan: 2 }],
+          ['Col 1', 'Col 2', 'Col 3'],
+        ],
+        hiddenColumns: { columns: [1] },
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx({ columnHeaders: true, exportHiddenColumns: 'hide' });
+
+      // All 3 data columns are present (data starts at row 3 due to 2 header rows).
+      expect(ws.getRow(3).getCell(1).value).toBe('A1');
+      expect(ws.getRow(3).getCell(2).value).toBe('B1');
+      expect(ws.getRow(3).getCell(3).value).toBe('C1');
+
+      // First header row: 'Group A' at col 1, 'Group B' spanning cols 2-3.
+      expect(ws.getRow(1).getCell(1).value).toBe('Group A');
+      expect(ws.getRow(1).getCell(2).value).toBe('Group B');
+      expect(ws.model.merges).toContain('B1:C1');
+
+      // Second header row: leaf headers including the hidden column's label.
+      expect(ws.getRow(2).getCell(1).value).toBe('Col 1');
+      expect(ws.getRow(2).getCell(2).value).toBe('Col 2');
+      expect(ws.getRow(2).getCell(3).value).toBe('Col 3');
+    });
+
+    it('should reduce span and omit hidden leaf label when hidden column is excluded', async() => {
+      // Col 1 is hidden. With exportHiddenColumns: false (default), 'Group B'
+      // should shrink to colspan=1 and 'Col 2' should be omitted.
+      handsontable({
+        data: createSpreadsheetData(1, 3),
+        nestedHeaders: [
+          ['Group A', { label: 'Group B', colspan: 2 }],
+          ['Col 1', 'Col 2', 'Col 3'],
+        ],
+        hiddenColumns: { columns: [1] },
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx({ columnHeaders: true });
+
+      // Only 2 data columns are present (hidden column omitted).
+      expect(ws.getRow(3).getCell(1).value).toBe('A1');
+      expect(ws.getRow(3).getCell(2).value).toBe('C1');
+      expect(ws.getRow(3).getCell(3).value).toBeNull();
+
+      // 'Group B' shrinks to colspan 1 — no merge should exist for it.
+      expect(ws.getRow(1).getCell(2).value).toBe('Group B');
+      expect(ws.model.merges ?? []).not.toContain('B1:C1');
+
+      // Hidden leaf header 'Col 2' is absent.
+      expect(ws.getRow(2).getCell(2).value).toBe('Col 3');
+    });
   });
 });

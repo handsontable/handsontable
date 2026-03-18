@@ -140,29 +140,66 @@ export function replaceSeparatorOutsideStrings(str, from, to) {
 }
 
 /**
+ * Counts how many values in a `Set` are strictly less than `threshold`.
+ *
+ * @private
+ * @param {Set<number>} set Set of numbers.
+ * @param {number} threshold Upper bound (exclusive).
+ * @returns {number}
+ */
+function countBelow(set, threshold) {
+  let count = 0;
+
+  set.forEach((value) => {
+    if (value < threshold) {
+      count += 1;
+    }
+  });
+
+  return count;
+}
+
+/**
  * Normalizes a HyperFormula formula string for use in an Excel OOXML file.
  *
  * Performs three transformations:
  * 1. Strips the leading `=` character.
- * 2. Translates A1-style cell references by adding `rowOffset` to row numbers and
- *    `colOffset` to column indices (so references point to the correct Excel cell
- *    after header rows/columns are prepended).
+ * 2. Translates A1-style cell references so that each reference points to the
+ *    correct Excel cell after header rows/columns are prepended and any excluded
+ *    hidden rows/columns are removed. The base offset (`rowOffset` / `colOffset`)
+ *    accounts for the prepended headers; the optional `excludedHiddenRows` and
+ *    `excludedHiddenCols` sets fine-tune per-reference when hidden items have been
+ *    dropped from the exported data matrix.
  * 3. Replaces `separator` with `,` outside string literals (OOXML always uses `,`).
  *
  * @private
  * @param {string} formulaStr Raw formula string (starts with `=`).
  * @param {string} separator HyperFormula's `functionArgSeparator` (e.g. `','` or `';'`).
- * @param {number} rowOffset Number to add to every row number in a cell reference.
- * @param {number} colOffset Number to add to every column number in a cell reference.
+ * @param {number} rowOffset Base number to add to every row number in a cell reference.
+ * @param {number} colOffset Base number to add to every column number in a cell reference.
+ * @param {Set<number>} [excludedHiddenRows] Physical HOT row indices that are hidden and
+ *   excluded from the exported data matrix. When provided, each row reference is further
+ *   reduced by the number of excluded rows that precede it.
+ * @param {Set<number>} [excludedHiddenCols] Physical HOT column indices that are hidden
+ *   and excluded from the exported data matrix. When provided, each column reference is
+ *   further reduced by the number of excluded columns that precede it.
  * @returns {string}
  */
-export function normalizeFormula(formulaStr, separator, rowOffset, colOffset) {
+export function normalizeFormula(formulaStr, separator, rowOffset, colOffset, excludedHiddenRows, excludedHiddenCols) {
   let formula = formulaStr.startsWith('=') ? formulaStr.slice(1) : formulaStr;
+  const hasRowExclusions = excludedHiddenRows?.size > 0;
+  const hasColExclusions = excludedHiddenCols?.size > 0;
 
-  if (rowOffset !== 0 || colOffset !== 0) {
+  if (rowOffset !== 0 || colOffset !== 0 || hasRowExclusions || hasColExclusions) {
     formula = formula.replace(/([A-Z]{1,3})(\d{1,7})(?!\()/g, (match, colLetters, rowStr) => {
-      const newCol = colLetterToIndex(colLetters) + colOffset;
-      const newRow = parseInt(rowStr, 10) + rowOffset;
+      const hotPhysCol = colLetterToIndex(colLetters) - 1; // 0-based physical HOT column
+      const hotPhysRow = parseInt(rowStr, 10) - 1; // 0-based physical HOT row
+
+      const hiddenColsBefore = hasColExclusions ? countBelow(excludedHiddenCols, hotPhysCol) : 0;
+      const hiddenRowsBefore = hasRowExclusions ? countBelow(excludedHiddenRows, hotPhysRow) : 0;
+
+      const newCol = colLetterToIndex(colLetters) + colOffset - hiddenColsBefore;
+      const newRow = parseInt(rowStr, 10) + rowOffset - hiddenRowsBefore;
 
       return `${colIndexToLetter(newCol)}${newRow}`;
     });

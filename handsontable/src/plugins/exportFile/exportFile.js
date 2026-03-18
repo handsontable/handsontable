@@ -187,8 +187,8 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
    * @param {boolean} [options.columnHeaders=false] Include column headers in the exported file.
    * @param {boolean} [options.rowHeaders=false] Include row headers in the exported file.
-   * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns in the exported file.
-   * @param {boolean} [options.exportHiddenRows=false] Include hidden rows in the exported file.
+   * @param {boolean|string} [options.exportHiddenColumns=false] Controls how hidden columns are handled. `true` exports them as normal visible columns. `false` omits them entirely. `'hide'` exports them and marks them as hidden in Excel (XLSX only).
+   * @param {boolean|string} [options.exportHiddenRows=false] Controls how hidden rows are handled. `true` exports them as normal visible rows. `false` omits them entirely. `'hide'` exports them and marks them as hidden in Excel (XLSX only).
    * @param {number[]} [options.range=[]] Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes).
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (CSV only).
    * @returns {string}

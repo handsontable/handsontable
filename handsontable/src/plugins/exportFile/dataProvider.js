@@ -153,6 +153,126 @@ class DataProvider {
   }
 
   /**
+   * Returns the set of physical HOT row indices that are hidden and excluded from the
+   * exported data matrix (i.e. `exportHiddenRows` is `false` and the row is hidden).
+   *
+   * Returns an empty set when `exportHiddenRows` is `true` or `'hide'`, because in
+   * those cases all rows are included in the data matrix and no formula-offset
+   * adjustment is needed.
+   *
+   * Used by the formula normalizer to adjust per-reference row offsets when building
+   * live Excel formulas from HyperFormula formula strings.
+   *
+   * @returns {Set<number>}
+   */
+  getExcludedHiddenRows() {
+    const result = new Set();
+
+    if (this.options.exportHiddenRows) {
+      return result;
+    }
+
+    const { startRow, endRow } = this._getDataRange();
+
+    rangeEach(startRow, endRow, (rowIndex) => {
+      if (this._isHiddenRow(rowIndex)) {
+        result.add(this.hot.toPhysicalRow(rowIndex));
+      }
+    });
+
+    return result;
+  }
+
+  /**
+   * Returns the set of physical HOT column indices that are hidden and excluded from the
+   * exported data matrix (i.e. `exportHiddenColumns` is `false` and the column is hidden).
+   *
+   * Returns an empty set when `exportHiddenColumns` is `true` or `'hide'`, because in
+   * those cases all columns are included in the data matrix and no formula-offset
+   * adjustment is needed.
+   *
+   * Used by the formula normalizer to adjust per-reference column offsets when building
+   * live Excel formulas from HyperFormula formula strings.
+   *
+   * @returns {Set<number>}
+   */
+  getExcludedHiddenColumns() {
+    const result = new Set();
+
+    if (this.options.exportHiddenColumns) {
+      return result;
+    }
+
+    const { startCol, endCol } = this._getDataRange();
+
+    rangeEach(startCol, endCol, (colIndex) => {
+      if (this._isHiddenColumn(colIndex)) {
+        result.add(this.hot.toPhysicalColumn(colIndex));
+      }
+    });
+
+    return result;
+  }
+
+  /**
+   * Returns the 0-based data-array row indices for rows that are hidden in
+   * Handsontable and are included in the exported data matrix.
+   *
+   * Only returns a non-empty array when `exportHiddenRows` is `'hide'`.
+   * When `true`, all rows are visible in Excel. When `false`, hidden rows
+   * are omitted entirely and there is nothing to mark as hidden.
+   *
+   * @returns {number[]}
+   */
+  getHiddenRowDataIndices() {
+    if (this.options.exportHiddenRows !== 'hide') {
+      return [];
+    }
+
+    const { startRow, endRow } = this._getDataRange();
+    const result = [];
+    let dataIndex = 0;
+
+    rangeEach(startRow, endRow, (rowIndex) => {
+      if (this._isHiddenRow(rowIndex)) {
+        result.push(dataIndex);
+      }
+      dataIndex += 1;
+    });
+
+    return result;
+  }
+
+  /**
+   * Returns the 0-based data-array column indices for columns that are hidden in
+   * Handsontable and are included in the exported data matrix.
+   *
+   * Only returns a non-empty array when `exportHiddenColumns` is `'hide'`.
+   * When `true`, all columns are visible in Excel. When `false`, hidden columns
+   * are omitted entirely and there is nothing to mark as hidden.
+   *
+   * @returns {number[]}
+   */
+  getHiddenColumnDataIndices() {
+    if (this.options.exportHiddenColumns !== 'hide') {
+      return [];
+    }
+
+    const { startCol, endCol } = this._getDataRange();
+    const result = [];
+    let dataIndex = 0;
+
+    rangeEach(startCol, endCol, (colIndex) => {
+      if (this._isHiddenColumn(colIndex)) {
+        result.push(dataIndex);
+      }
+      dataIndex += 1;
+    });
+
+    return result;
+  }
+
+  /**
    * Gets the function argument separator used by the HyperFormula engine, if active.
    *
    * Returns `','` when the Formulas plugin is absent or disabled, since that is the
@@ -250,7 +370,16 @@ class DataProvider {
       if (!options.exportHiddenColumns && this._isHiddenColumn(colIndex)) {
         return;
       }
-      widths.push(this.hot.getColWidth(colIndex));
+
+      // `getColWidth()` returns 0 for hidden columns (the HiddenColumns plugin
+      // overrides `modifyColWidth` to zero out the rendered width). Use the
+      // configured width from column meta so the Excel column has a usable size
+      // when the user unhides it.
+      const width = this._isHiddenColumn(colIndex)
+        ? this._getNaturalColWidth(colIndex)
+        : this.hot.getColWidth(colIndex);
+
+      widths.push(width);
     });
 
     return widths;
@@ -272,7 +401,16 @@ class DataProvider {
       if (!options.exportHiddenRows && this._isHiddenRow(rowIndex)) {
         return;
       }
-      heights.push(this.hot.getRowHeight(rowIndex));
+
+      // `getRowHeight()` returns 0 for hidden rows (the HiddenRows plugin
+      // overrides `modifyRowHeight` to zero out the rendered height). Use the
+      // configured height from settings so the Excel row has a usable size
+      // when the user unhides it.
+      const height = this._isHiddenRow(rowIndex)
+        ? this._getNaturalRowHeight(rowIndex)
+        : this.hot.getRowHeight(rowIndex);
+
+      heights.push(height);
     });
 
     return heights;
@@ -317,6 +455,7 @@ class DataProvider {
     const layersCount = nestedHeadersPlugin.getLayersCount();
     const { startCol, endCol } = this._getDataRange();
     const options = this.options;
+    const includeHidden = !!options.exportHiddenColumns;
     const layers = [];
 
     for (let layer = 0; layer < layersCount; layer++) {
@@ -324,35 +463,62 @@ class DataProvider {
       let col = startCol;
 
       while (col <= endCol) {
-        if (!options.exportHiddenColumns && this._isHiddenColumn(col)) {
+        if (!includeHidden && this._isHiddenColumn(col)) {
           col += 1;
           continue;
         }
 
-        const settings = nestedHeadersPlugin.getHeaderSettings(layer, col);
+        if (includeHidden) {
+          // When including hidden columns, the NestedHeaders state matrix has been
+          // modified by the HiddenColumns plugin: hidden span roots are replaced with
+          // placeholders and their colspan is transferred to the next visible column.
+          // Use the tree node data instead, which preserves the original columnIndex
+          // and origColspan regardless of the hidden state.
+          const treeNodeData = nestedHeadersPlugin.getStateManager().getHeaderTreeNodeData(layer, col);
 
-        if (!settings || settings.isRoot) {
-          const spanColspan = settings?.colspan ?? 1;
-          let visibleColspan = 0;
+          if (!treeNodeData || treeNodeData.columnIndex === col) {
+            // This column is the root of its span (or has no tree node → single column).
+            const origColspan = treeNodeData?.origColspan ?? 1;
+            // Clamp to the export range end.
+            const effectiveColspan = Math.min(origColspan, endCol - col + 1);
+            // headerClassNames is an array of strings produced by the settings normalizer
+            // from the user-supplied `headerClassName` string.
+            const className = (treeNodeData?.headerClassNames ?? []).join(' ');
 
-          for (let spanCol = col; spanCol < col + spanColspan && spanCol <= endCol; spanCol++) {
-            if (options.exportHiddenColumns || !this._isHiddenColumn(spanCol)) {
-              visibleColspan += 1;
-            }
+            layerHeaders.push({ label: treeNodeData?.label ?? '', colspan: effectiveColspan, className });
+            col += origColspan;
+          } else {
+            // This column is inside a span whose root is before startCol. Emit a
+            // single-column placeholder to keep the column count correct.
+            layerHeaders.push({ label: '', colspan: 1, className: '' });
+            col += 1;
           }
-
-          // headerClassNames is an array of strings produced by the settings normalizer
-          // from the user-supplied `headerClassName` string.
-          const className = (settings?.headerClassNames ?? []).join(' ');
-
-          layerHeaders.push({ label: settings?.label ?? '', colspan: visibleColspan, className });
-          col += spanColspan;
         } else {
-          // Continuation cell of a span that started at an earlier column.
-          // This can only occur when startCol falls inside a span — emit a
-          // single-column placeholder so the export column count stays correct.
-          layerHeaders.push({ label: '', colspan: 1, className: '' });
-          col += 1;
+          const settings = nestedHeadersPlugin.getHeaderSettings(layer, col);
+
+          if (!settings || settings.isRoot) {
+            const spanColspan = settings?.colspan ?? 1;
+            let visibleColspan = 0;
+
+            for (let spanCol = col; spanCol < col + spanColspan && spanCol <= endCol; spanCol++) {
+              if (!this._isHiddenColumn(spanCol)) {
+                visibleColspan += 1;
+              }
+            }
+
+            // headerClassNames is an array of strings produced by the settings normalizer
+            // from the user-supplied `headerClassName` string.
+            const className = (settings?.headerClassNames ?? []).join(' ');
+
+            layerHeaders.push({ label: settings?.label ?? '', colspan: visibleColspan, className });
+            col += spanColspan;
+          } else {
+            // Continuation cell of a span that started at an earlier column.
+            // This can only occur when startCol falls inside a span — emit a
+            // single-column placeholder so the export column count stays correct.
+            layerHeaders.push({ label: '', colspan: 1, className: '' });
+            col += 1;
+          }
         }
       }
 
@@ -609,6 +775,66 @@ class DataProvider {
     return this._countVisibleBefore(
       visualCol, startCol, c => this.options.exportHiddenColumns || !this._isHiddenColumn(c)
     );
+  }
+
+  /**
+   * Returns the natural (pre-hiding) width in pixels for a hidden column.
+   *
+   * `getColWidth()` returns 0 for hidden columns because the HiddenColumns plugin
+   * overrides the `modifyColWidth` hook. This method reads the configured width
+   * from column meta or the `colWidths` setting, bypassing that hook.
+   *
+   * @private
+   * @param {number} colIndex Visual column index.
+   * @returns {number}
+   */
+  _getNaturalColWidth(colIndex) {
+    const settings = this.hot.getSettings();
+    const metaWidth = this.hot.getColumnMeta(colIndex).width;
+
+    if (metaWidth !== null && metaWidth !== undefined) {
+      return metaWidth;
+    }
+
+    const { colWidths, defaultColumnWidth } = settings;
+    const fallback = defaultColumnWidth ?? 50;
+
+    if (Array.isArray(colWidths)) {
+      return colWidths[colIndex] ?? fallback;
+    } else if (typeof colWidths === 'function') {
+      return colWidths(colIndex) ?? fallback;
+    } else if (typeof colWidths === 'number') {
+      return colWidths;
+    }
+
+    return fallback;
+  }
+
+  /**
+   * Returns the natural (pre-hiding) height in pixels for a hidden row.
+   *
+   * `getRowHeight()` returns 0 for hidden rows because the HiddenRows plugin
+   * overrides the `modifyRowHeight` hook. This method reads the configured height
+   * directly from the `rowHeights` setting, bypassing that hook.
+   *
+   * @private
+   * @param {number} rowIndex Visual row index.
+   * @returns {number}
+   */
+  _getNaturalRowHeight(rowIndex) {
+    const settings = this.hot.getSettings();
+    const { rowHeights, defaultRowHeight } = settings;
+    const fallback = defaultRowHeight ?? 23;
+
+    if (Array.isArray(rowHeights)) {
+      return rowHeights[rowIndex] ?? fallback;
+    } else if (typeof rowHeights === 'function') {
+      return rowHeights(rowIndex) ?? fallback;
+    } else if (typeof rowHeights === 'number') {
+      return rowHeights;
+    }
+
+    return fallback;
   }
 
   /**
