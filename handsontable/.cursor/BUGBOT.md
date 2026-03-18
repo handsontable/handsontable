@@ -4,6 +4,10 @@ Apply these checks when changed files are in `/handsontable/**`.
 
 ---
 
+## Browser compatibility
+
+- Generate modern code that targets our supported browsers. The list of supported browsers is defined in `/browser-targets.js` at the repository root. Do not use deprecated or legacy APIs when modern alternatives exist and are supported by all target browsers.
+
 ## Language and code style
 
 - **Core language boundary**: Core source is JavaScript. Do not add TypeScript files under `/handsontable/src/`.
@@ -13,6 +17,10 @@ Apply these checks when changed files are in `/handsontable/**`.
   - Silent `catch` blocks must include a comment explaining why the error is swallowed.
 - **Bundle size awareness**:
   - Where possible, prefer JavaScript grammar that produces smaller output in compressed (minified/gzipped) bundles. For example, prefer `===` over verbose truthiness helpers, use short-circuit evaluation instead of full `if` blocks for simple assignments, and avoid unnecessary intermediate variables.
+
+## Internationalization (i18n)
+
+- When working with user-facing strings (UI text, labels, tooltips, error messages — anything the user sees), always add a language constant in `/handsontable/src/i18n/constants.js` and update all language files in `/handsontable/src/i18n/languages/` accordingly. Do not hardcode user-visible text directly in source code.
 
 ## Plugin architecture
 
