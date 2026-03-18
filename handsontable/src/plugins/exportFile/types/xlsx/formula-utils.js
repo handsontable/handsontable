@@ -160,7 +160,7 @@ export function normalizeFormula(formulaStr, separator, rowOffset, colOffset) {
   let formula = formulaStr.startsWith('=') ? formulaStr.slice(1) : formulaStr;
 
   if (rowOffset !== 0 || colOffset !== 0) {
-    formula = formula.replace(/([A-Z]+)(\d+)(?!\()/g, (match, colLetters, rowStr) => {
+    formula = formula.replace(/([A-Z]{1,3})(\d{1,7})(?!\()/g, (match, colLetters, rowStr) => {
       const newCol = colLetterToIndex(colLetters) + colOffset;
       const newRow = parseInt(rowStr, 10) + rowOffset;
 
