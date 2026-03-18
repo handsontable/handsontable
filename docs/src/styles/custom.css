@@ -1,0 +1,100 @@
+/**
+ * Starlight custom CSS.
+ *
+ * Extends / overrides Starlight's default design tokens and adds styles for
+ * VuePress-originated HTML patterns (source-code-link, table-container, etc.).
+ *
+ * Full theme migration (porting the Stylus design system tokens) is a Phase 2
+ * task. This file covers only the minimum needed for correct rendering.
+ */
+
+/* -------------------------------------------------------------------------
+ * Handsontable brand colours (matches the Stylus theme variables)
+ * Starlight CSS custom properties:
+ * https://starlight.astro.build/guides/css-and-tailwind/#theming
+ * ------------------------------------------------------------------------- */
+:root {
+  --sl-color-accent-low: #e6f3ff;
+  --sl-color-accent: #1565c0;
+  --sl-color-accent-high: #0d47a1;
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #f5f7fa;
+  --sl-color-gray-2: #e9edf2;
+  --sl-color-gray-3: #c8d0dc;
+  --sl-color-gray-4: #8796a8;
+  --sl-color-gray-5: #4a5a6b;
+  --sl-color-gray-6: #1a2535;
+  --sl-color-black: #0d1117;
+
+  --sl-font: 'Inter', system-ui, -apple-system, sans-serif;
+  --sl-text-base: 1rem;
+  --sl-line-height: 1.7;
+}
+
+/* -------------------------------------------------------------------------
+ * Table wrapper — added by rehype-table-wrapper.mjs
+ * Enables horizontal scrolling on narrow viewports.
+ * ------------------------------------------------------------------------- */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-block: 1.5rem;
+}
+
+/* -------------------------------------------------------------------------
+ * Source code link — added by vuepress-preprocessor.mjs
+ * ------------------------------------------------------------------------- */
+.source-code-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 0.875rem;
+  color: var(--sl-color-accent);
+  text-decoration: none;
+  border: 1px solid var(--sl-color-accent);
+  border-radius: 4px;
+  padding: 0.25em 0.75em;
+  margin-block-start: 1rem;
+  transition: background-color 0.15s;
+}
+
+.source-code-link:hover {
+  background-color: var(--sl-color-accent-low);
+}
+
+/* -------------------------------------------------------------------------
+ * VuePress boxes-list pattern used in introduction and other pages
+ * ------------------------------------------------------------------------- */
+.boxes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin-block: 1.5rem;
+}
+
+.boxes-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 1em;
+  border: 1px solid var(--sl-color-gray-3);
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  color: var(--sl-color-gray-6);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.boxes-list a:hover {
+  border-color: var(--sl-color-accent);
+  background-color: var(--sl-color-accent-low);
+}
+
+/* -------------------------------------------------------------------------
+ * Code block enhancements
+ * ------------------------------------------------------------------------- */
+.sl-markdown-content pre {
+  border-radius: 6px;
+}
