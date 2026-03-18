@@ -623,7 +623,13 @@ class Xlsx extends BaseType {
   #getWriteOptions() {
     const { compression } = this.options;
 
-    const level = compression === true ? 6 : (typeof compression === 'number' && compression >= 1 && compression <= 9 ? compression : null);
+    let level = null;
+
+    if (compression === true) {
+      level = 6;
+    } else if (typeof compression === 'number' && compression >= 1 && compression <= 9) {
+      level = compression;
+    }
 
     if (level === null) {
       return {};
