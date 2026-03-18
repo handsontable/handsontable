@@ -27,6 +27,7 @@ import {
 import {
   DataProviderQueryParameters,
   DataProviderFetchResult,
+  RowMutationPayload,
 } from '../../plugins/dataProvider';
 import {
   GridSettings,
@@ -126,6 +127,8 @@ export interface Events {
   afterPageChange?: (oldPage: number, newPage: number) => void;
   afterPageCounterVisibilityChange?: (isVisible: boolean) => void;
   afterPageNavigationVisibilityChange?: (isVisible: boolean) => void;
+  paginationExternalDataSourceActive?: (isActive: boolean) => boolean | void;
+  paginationTotalItemCount?: (defaultTotalItemCount: number) => number | void;
   afterPageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void;
   afterPageSizeVisibilityChange?: (isVisible: boolean) => void;
   afterPaste?: (data: CellValue[][], coords: RangeType[]) => void;
@@ -184,6 +187,19 @@ export interface Events {
     alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
   beforeChange?: (changes: Array<CellChange | null>, source: ChangeSource) => void | boolean;
   beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
+  /**
+   * Fired before an alter action is applied. Return `false` to cancel the default behavior.
+   */
+  beforeAlter?: (
+    action: 'insert_row_above' | 'insert_row_below' | 'remove_row' | 'insert_col_start' | 'insert_col_end' | 'remove_col',
+    index: number | [number, number][],
+    amount: number,
+    source?: string,
+    keepEmptyRows?: boolean
+  ) => boolean | void;
+  beforeRowsMutation?: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload) => void | boolean;
+  afterRowsMutation?: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload) => void;
+  afterRowsMutationError?: (operation: 'create' | 'update' | 'remove', error: Error, payload: RowMutationPayload) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean) => void | boolean;
   beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
   beforeColumnFreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void | boolean;

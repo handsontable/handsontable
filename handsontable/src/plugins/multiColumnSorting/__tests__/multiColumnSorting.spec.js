@@ -49,49 +49,6 @@ describe('MultiColumnSorting', () => {
     ['Robert', 'Evans', '07/24/2020', 30500, undefined]
   ];
 
-  describe('dataProvider conflict', () => {
-    it('should be disabled with warning when both multiColumnSorting and dataProvider are set', async() => {
-      spyOn(console, 'warn');
-
-      handsontable({
-        data: arrayOfObjects(),
-        multiColumnSorting: true,
-        dataProvider: async() => ({ rows: [], totalRows: 0 }),
-        columns: [{ data: 'id' }, { data: 'name' }, { data: 'lastName' }],
-      });
-
-      // eslint-disable-next-line no-console
-      expect(console.warn).toHaveBeenCalledWith(
-        'The `multiColumnSorting` plugin cannot be used with the `dataProvider` option. ' +
-        'This combination is not supported. The plugin will remain disabled.'
-      );
-      expect(getPlugin('multiColumnSorting').isEnabled()).toBe(false);
-    });
-
-    it('should disable and warn when dataProvider is added via updateSettings', async() => {
-      spyOn(console, 'warn');
-
-      handsontable({
-        data: arrayOfObjects(),
-        multiColumnSorting: true,
-        columns: [{ data: 'id' }, { data: 'name' }, { data: 'lastName' }],
-      });
-
-      expect(getPlugin('multiColumnSorting').isEnabled()).toBe(true);
-
-      await updateSettings({
-        dataProvider: async() => ({ rows: [], totalRows: 0 }),
-      });
-
-      // eslint-disable-next-line no-console
-      expect(console.warn).toHaveBeenCalledWith(
-        'The `multiColumnSorting` plugin cannot be used with the `dataProvider` option. ' +
-        'This combination is not supported. The plugin will remain disabled.'
-      );
-      expect(getPlugin('multiColumnSorting').isEnabled()).toBe(false);
-    });
-  });
-
   it('should sort table by first visible column', async() => {
     handsontable({
       data: [

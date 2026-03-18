@@ -370,6 +370,21 @@ export const REGISTERED_HOOKS = [
   'afterCreateRow',
 
   /**
+   * Fired before an alter action is applied (e.g. `insert_row_above`, `insert_row_below`, `remove_row`).
+   * Return `false` to cancel the default alter behavior (e.g. so a plugin can handle it via server-side CRUD).
+   *
+   * @event Hooks#beforeAlter
+   * @param {string} action The alter action: `'insert_row_above'`, `'insert_row_below'`, `'remove_row'`,
+   *                        `'insert_col_start'`, `'insert_col_end'`, `'remove_col'`.
+   * @param {number|Array} index Visual row/column index, or for remove actions an array of `[[index, amount], ...]`.
+   * @param {number} amount Number of rows/columns to insert or remove (default 1).
+   * @param {string} [source] Source of the alter call (e.g. `'ContextMenu.rowAbove'`).
+   * @param {boolean} [keepEmptyRows] Whether to keep empty rows (remove_row only).
+   * @returns {*|boolean} Return `false` to cancel the alter; the table will not be modified locally.
+   */
+  'beforeAlter',
+
+  /**
    * Fired after all selected cells are deselected.
    *
    * @event Hooks#afterDeselect
@@ -497,6 +512,7 @@ export const REGISTERED_HOOKS = [
    * Fired after the dataProvider has fetched and loaded data.
    *
    * @event Hooks#afterDataProviderFetch
+   * @since 17.0.0
    * @param {object} result Result object: `{ rows, totalRows, queryParameters }`.
    */
   'afterDataProviderFetch',
@@ -505,10 +521,42 @@ export const REGISTERED_HOOKS = [
    * Fired when the dataProvider fetch throws an error (e.g. network error).
    *
    * @event Hooks#afterDataProviderFetchError
+   * @since 17.0.0
    * @param {Error} error The thrown error.
    * @param {object} queryParameters The query parameters that were used for the request.
    */
   'afterDataProviderFetchError',
+
+  /**
+   * Fired before rows mutation (create, update, remove) is sent to the server. Return `false` to cancel.
+   *
+   * @event Hooks#beforeRowsMutation
+   * @since 17.0.0
+   * @param {string} operation One of `'create'`, `'update'`, `'remove'`.
+   * @param {object} payload Operation-specific payload (`{ rowsCreate }`, `{ rows: [...] }`, or `{ rowsRemove: [...] }`).
+   */
+  'beforeRowsMutation',
+
+  /**
+   * Fired after rows mutation (create, update, remove) succeeds on the server.
+   *
+   * @event Hooks#afterRowsMutation
+   * @since 17.0.0
+   * @param {string} operation One of `'create'`, `'update'`, `'remove'`.
+   * @param {object} payload Operation-specific payload.
+   */
+  'afterRowsMutation',
+
+  /**
+   * Fired when rows mutation (create, update, remove) fails on the server.
+   *
+   * @event Hooks#afterRowsMutationError
+   * @since 17.0.0
+   * @param {string} operation One of `'create'`, `'update'`, `'remove'`.
+   * @param {Error} error The thrown error.
+   * @param {object} payload Operation-specific payload.
+   */
+  'afterRowsMutationError',
 
   /**
    * Fired after a scroll event, which is identified as a momentum scroll (e.g. on an iPad).
@@ -1510,6 +1558,7 @@ export const REGISTERED_HOOKS = [
    * Fired before the dataProvider fetches data. Return `false` to cancel the fetch.
    *
    * @event Hooks#beforeDataProviderFetch
+   * @since 17.0.0
    * @param {object} queryParameters Current query parameters: `{ page, pageSize, sort, filters }`.
    * @returns {boolean} Return `false` to cancel the fetch.
    */
@@ -2604,7 +2653,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page. This hook is fired when
-   * {@link Options#pagination} option is enabled.
+   * {@link Options#pagination} option is enabled. When an external source handles paging
+   * (see {@link Hooks#paginationExternalDataSourceActive}), load the requested page and call
+   * {@link Pagination#applyLoadedPagingState} after a successful fetch. {@link DataProvider} does this automatically.
    *
    * @since 16.1.0
    * @event Hooks#afterPageChange
@@ -2627,7 +2678,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page size. This hook is fired when
-   * {@link Options#pagination} option is enabled.
+   * {@link Options#pagination} option is enabled. When an external source handles paging
+   * (see {@link Hooks#paginationExternalDataSourceActive}), load page 1 for the new size and call
+   * {@link Pagination#applyLoadedPagingState} after a successful fetch. {@link DataProvider} does this automatically.
    *
    * @since 16.1.0
    * @event Hooks#afterPageSizeChange
@@ -2665,6 +2718,28 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} isVisible The visibility state of the page size section.
    */
   'afterPageNavigationVisibilityChange',
+
+  /**
+   * Return `true` when row paging and total row counts are supplied by an external source
+   * (not client-side row hiding). The {@link Pagination} plugin uses this to choose behavior.
+   *
+   * @since 17.1.0
+   * @event Hooks#paginationExternalDataSourceActive
+   * @param {boolean} isActive Previous value from earlier hooks.
+   * @returns {boolean|void} Return `true` when this instance uses external paged data with Pagination.
+   */
+  'paginationExternalDataSourceActive',
+
+  /**
+   * Supplies the total item count for {@link Pagination} when data is paged externally.
+   * The initial argument is the renderable row count (client-side default).
+   *
+   * @since 17.1.0
+   * @event Hooks#paginationTotalItemCount
+   * @param {number} defaultTotalItemCount Count from renderable rows.
+   * @returns {number|void} Total items for pagination, when overridden.
+   */
+  'paginationTotalItemCount',
 
   /**
    * Fired by the {@link Formulas} plugin, when any cell value changes.

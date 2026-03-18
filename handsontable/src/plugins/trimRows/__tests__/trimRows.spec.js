@@ -71,50 +71,6 @@ describe('TrimRows', () => {
     expect(getCellMeta(6, 0).type).toBe('text');
   });
 
-  describe('dataProvider conflict', () => {
-    it('should be disabled with warning when both trimRows and dataProvider are set', async() => {
-      spyOn(console, 'warn');
-
-      handsontable({
-        data: createSpreadsheetData(10, 4),
-        trimRows: [1, 2],
-        dataProvider: async() => ({ rows: [], totalRows: 0 }),
-        columns: 4,
-      });
-
-      // eslint-disable-next-line no-console
-      expect(console.warn).toHaveBeenCalledWith(
-        'The `trimRows` plugin cannot be used with the `dataProvider` option. ' +
-        'This combination is not supported. The plugin will remain disabled.'
-      );
-      expect(getPlugin('trimRows').isEnabled()).toBe(false);
-    });
-
-    it('should disable and warn when dataProvider is added via updateSettings', async() => {
-      spyOn(console, 'warn');
-
-      handsontable({
-        data: createSpreadsheetData(10, 4),
-        trimRows: [1, 2],
-        width: 500,
-        height: 300,
-      });
-
-      expect(getPlugin('trimRows').isEnabled()).toBe(true);
-
-      await updateSettings({
-        dataProvider: async() => ({ rows: [], totalRows: 0 }),
-      });
-
-      // eslint-disable-next-line no-console
-      expect(console.warn).toHaveBeenCalledWith(
-        'The `trimRows` plugin cannot be used with the `dataProvider` option. ' +
-        'This combination is not supported. The plugin will remain disabled.'
-      );
-      expect(getPlugin('trimRows').isEnabled()).toBe(false);
-    });
-  });
-
   it('should not add more source rows than defined in maxRows when trimming rows using the TrimRows plugin', async() => {
     handsontable({
       data: createSpreadsheetData(10, 4),

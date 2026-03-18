@@ -1604,23 +1604,32 @@ export default () => {
     /**
      * @description
      * When set, the table loads data from an async provider (e.g. a REST API) instead of a static `data` array.
-     * The provider receives query parameters and an AbortSignal, and returns `{ rows, totalRows }`.
-     * Use with the `pagination` option for server-side paging. When `dataProvider` is set, the `data` option is ignored.
+     * Use the **object** form with every key defined: **`rowId`**, **`fetchRows`**, **`onRowsCreate`**, **`onRowsUpdate`**,
+     * and **`onRowsRemove`**. All five are required on that object so paging, row identity, and create, update, and remove
+     * map cleanly to your backend. Pair with **`pagination`** for server-side paging.
+     * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
      * @memberof Options#
-     * @type {Function}
+     * @type {object}
      * @default undefined
      * @category Core
      *
      * @example
      * ```js
-     * dataProvider: async (queryParameters, { signal }) => {
-     *   const response = await fetch(buildUrl(queryParameters), { signal });
-     *   const json = await response.json();
-     *   return { rows: json.data, totalRows: json.total };
+     * dataProvider: {
+     *   rowId: 'id',
+     *   fetchRows: async (queryParameters, { signal }) => {
+     *     const { page, pageSize, sort, filters } = queryParameters;
+     *     const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+     *     if (sort) { params.set('sortBy', sort.column); params.set('sortDir', sort.sortOrder); }
+     *     const res = await fetch(`/api/products?${params}`, { signal });
+     *     const json = await res.json();
+     *     return { rows: json.data, totalRows: json.total };
+     *   },
+     *   onRowsCreate: async ({ position, referenceRowId, rowsAmount }) => { ... },
+     *   onRowsUpdate: async (rows) => { ... },
+     *   onRowsRemove: async (rowIds) => { ... },
      * },
-     * pagination: { pageSize: 20 },
-     * columns: columns,
      * ```
      */
     dataProvider: undefined,

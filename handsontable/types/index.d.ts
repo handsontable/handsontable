@@ -176,8 +176,15 @@ import {
   DEFAULT_PAGE_SIZE as DataProviderDefaultPageSize,
   DataProviderQueryParameters,
   DataProviderFetchResult,
+  DataProviderFetchOptions,
   DataProviderOptions,
-  DataProviderFunction,
+  DataProviderConfig,
+  RowsCreatePayload,
+  RowUpdatePayload,
+  RowMutationPayload,
+  RowMutationCreatePayload,
+  RowMutationUpdatePayload,
+  RowMutationRemovePayload,
 } from './plugins/dataProvider';
 import {
   DragToScroll as _DragToScroll,
@@ -548,8 +555,15 @@ declare namespace Handsontable {
       export { DataProviderDefaultPageSize as DEFAULT_PAGE_SIZE };
       export { DataProviderQueryParameters as QueryParameters };
       export { DataProviderFetchResult as FetchResult };
+      export { DataProviderFetchOptions as FetchOptions };
       export { DataProviderOptions as Options };
-      export { DataProviderFunction };
+      export { DataProviderConfig as Config };
+      export { RowsCreatePayload };
+      export { RowUpdatePayload };
+      export { RowMutationPayload };
+      export { RowMutationCreatePayload };
+      export { RowMutationUpdatePayload };
+      export { RowMutationRemovePayload };
     }
 
     export namespace DragToScroll {

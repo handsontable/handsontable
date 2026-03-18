@@ -1,9 +1,16 @@
 export {
   DataProvider,
   DEFAULT_PAGE_SIZE,
+  DataProviderConfig,
   DataProviderQueryParameters,
   DataProviderFetchResult,
+  DataProviderFetchOptions,
   DataProviderOptions,
-  DataProviderFunction,
+  RowMutationCreatePayload,
+  RowMutationPayload,
+  RowMutationRemovePayload,
+  RowMutationUpdatePayload,
+  RowUpdatePayload,
+  RowsCreatePayload,
   Settings,
 } from './dataProvider';

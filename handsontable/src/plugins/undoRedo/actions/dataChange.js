@@ -1,8 +1,22 @@
 import { BaseAction } from './_base';
 import { deepClone } from '../../../helpers/object';
+import { DATA_PROVIDER_BATCH_UPDATE_SOURCES } from '../../dataProvider/dataProvider';
+
+/**
+ * @param {object} settings Handsontable grid settings.
+ * @returns {boolean} True when a server row-update callback is configured.
+ */
+function hasDataProviderRowsUpdate(settings) {
+  const dp = settings.dataProvider;
+
+  return !!(dp && typeof dp === 'object' && typeof dp.onRowsUpdate === 'function');
+}
 
 /**
  * Action that tracks data changes.
+ *
+ * Omits the undo stack for edits that DataProvider sends to the server via `onRowsUpdate` (sources in
+ * `DATA_PROVIDER_BATCH_UPDATE_SOURCES` on the DataProvider module), so undo does not fight server-backed state.
  *
  * @class DataChangeAction
  * @private
@@ -38,6 +52,14 @@ export class DataChangeAction extends BaseAction {
       const changesLen = changes && changes.length;
 
       if (!changesLen) {
+        return;
+      }
+
+      const settings = hot.getSettings();
+      const skipUndoForServerUpdate = hasDataProviderRowsUpdate(settings)
+        && DATA_PROVIDER_BATCH_UPDATE_SOURCES.has(source);
+
+      if (skipUndoForServerUpdate) {
         return;
       }
 
