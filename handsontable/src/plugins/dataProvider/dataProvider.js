@@ -964,13 +964,14 @@ export class DataProvider extends BasePlugin {
       return;
     }
 
-    const payload = {
+    const rowsCreatePayload = {
       position: options.position ?? 'below',
       referenceRowId: options.referenceRowId,
       rowsAmount: options.rowsAmount ?? 1,
     };
+    const payload = { rowsCreate: rowsCreatePayload };
 
-    return this.#queueCrud('create', payload, () => onRowsCreate(payload), () => this.fetchData());
+    return this.#queueCrud('create', payload, () => onRowsCreate(rowsCreatePayload), () => this.fetchData());
   }
 
   /**
