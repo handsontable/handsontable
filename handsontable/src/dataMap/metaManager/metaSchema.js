@@ -5111,7 +5111,7 @@ export default () => {
      *
      * The `skipRowOnPaste` option determines whether you can paste data into a given row.
      *
-     * You can only apply the `skipRowOnPaste` option to an entire row, using the [`cells`](#cells) option.
+     * You can only apply the `skipRowOnPaste` option to an entire row, using the [`cells`](#cells) option. This option is not supported for the global table level settings.
      *
      * You can set the `skipRowOnPaste` option to one of the following:
      *
