@@ -131,13 +131,22 @@ export class NestedHeaders extends BasePlugin {
    */
   #recentlyHighlightCoords = null;
   /**
+   * Determines if the widths map should be updated.
+   *
+   * @type {boolean}
+   */
+  #updateWidthsMap = false;
+  /**
    * Custom helper for getting widths of the nested headers.
    *
    * @private
    * @type {GhostTable}
    */
   // @TODO This should be changed after refactor handsontable/utils/ghostTable.
-  ghostTable = new GhostTable(this.hot, (row, column) => this.getHeaderSettings(row, column));
+  ghostTable = new GhostTable({
+    hot: this.hot,
+    headersStateManager: this.#stateManager,
+  });
   /**
    * The flag which determines that the nested header settings contains overlapping headers
    * configuration.
@@ -187,6 +196,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeHighlightingColumnHeader', (...args) => this.#onBeforeHighlightingColumnHeader(...args));
     this.addHook('beforeCopy', (...args) => this.#onBeforeCopy(...args));
     this.addHook('beforeSelectColumns', (...args) => this.#onBeforeSelectColumns(...args));
+    this.addHook('beforeViewRender', () => this.#onBeforeViewRender());
     this.addHook(
       'afterViewportColumnCalculatorOverride',
       (...args) => this.#onAfterViewportColumnCalculatorOverride(...args)
@@ -253,9 +263,7 @@ export class NestedHeaders extends BasePlugin {
         });
     }
 
-    this.ghostTable
-      .setLayersCount(this.getLayersCount())
-      .buildWidthsMap();
+    this.#updateWidthsMap = true;
 
     super.updatePlugin();
   }
@@ -1002,6 +1010,18 @@ export class NestedHeaders extends BasePlugin {
   #onAfterLoadData(sourceData, initialLoad) {
     if (!initialLoad) {
       this.updatePlugin();
+    }
+  }
+
+  /**
+   * Builds the widths map before the view is rendered.
+   */
+  #onBeforeViewRender() {
+    if (this.#updateWidthsMap) {
+      this.ghostTable
+        .setLayersCount(this.getLayersCount())
+        .buildWidthsMap();
+      this.#updateWidthsMap = false;
     }
   }
 
