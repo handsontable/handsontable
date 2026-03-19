@@ -509,6 +509,32 @@ describe('exportFile XLSX type — cell styling', () => {
       // Same reasoning as above — no explicit fill color should be present.
       expect(ws.getRow(1).getCell(1).fill?.fgColor).toBeUndefined();
     });
+
+    it('should pick up a CSS background-color change between two exports of the same className', async() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.test-cache-invalidation { background-color: #FF0000 !important; }';
+      document.head.appendChild(style);
+
+      handsontable({
+        data: [['cell']],
+        cell: [{ row: 0, col: 0, className: 'test-cache-invalidation' }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws1 = await parseXlsx();
+
+      expect(ws1.getRow(1).getCell(1).fill?.fgColor?.argb).toBe('FFFF0000');
+
+      // Change the CSS rule — same className, different color.
+      style.textContent = '.test-cache-invalidation { background-color: #0000FF !important; }';
+
+      const ws2 = await parseXlsx();
+
+      document.head.removeChild(style);
+
+      expect(ws2.getRow(1).getCell(1).fill?.fgColor?.argb).toBe('FF0000FF');
+    });
   });
 
   describe('read-only cells', () => {

@@ -17,6 +17,7 @@ import {
   getFillFromMeta,
   getDropdownValidation,
   cssColorToArgb,
+  clearStyleCaches,
 } from './xlsx/cell-style';
 import {
   parseIsoStringToSerial,
@@ -90,6 +91,8 @@ class Xlsx extends BaseType {
         'in the exportFile plugin settings: `exportFile: { engine: ExcelJS }`.'
       );
     }
+
+    clearStyleCaches(this.dataProvider.hot.rootDocument);
 
     const workbook = new engine.Workbook();
     const { sheets } = this.options;

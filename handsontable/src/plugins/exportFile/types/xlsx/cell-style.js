@@ -5,15 +5,28 @@ import { isDefined } from '../../../../helpers/mixed';
 const READ_ONLY_BG_ARGB = 'FFF0F0F0';
 const READ_ONLY_TEXT_ARGB = 'FF808080';
 
-// Per-document cache for detectExplicitBackgroundColor results.
+// Per-export cache for detectExplicitBackgroundColor results.
 // Keyed by document (WeakMap — avoids leaking document references) then by the
-// joined className string.  CSS rules are stable during a single export, so the
-// result for a given className is safe to reuse across all cells that share it.
+// joined className string. Cleared at the start of each export so CSS rule
+// changes between exports are always picked up.
 const backgroundColorByDoc = new WeakMap();
 
-// Per-document cache for getCssStyleFromProbe results (used when the real cell element
+// Per-export cache for getCssStyleFromProbe results (used when the real cell element
 // is not available — i.e. the cell is outside the render viewport).
 const cssStyleProbeByDoc = new WeakMap();
+
+/**
+ * Clears the per-export CSS style caches for the given document.
+ *
+ * Call this once at the start of each export so that CSS rule changes made
+ * between exports are picked up instead of returning stale cached values.
+ *
+ * @param {Document} doc The owner document whose cache entries should be cleared.
+ */
+export function clearStyleCaches(doc) {
+  backgroundColorByDoc.delete(doc);
+  cssStyleProbeByDoc.delete(doc);
+}
 
 // Handsontable alignment class names — cells that carry only these classes have no
 // custom CSS color, so reading `color` from them would yield only the inherited default.

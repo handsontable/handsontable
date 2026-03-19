@@ -122,7 +122,14 @@ export function replaceSeparatorOutsideStrings(str, from, to) {
       result += ch;
 
       if (ch === stringChar) {
-        inString = false;
+        if (str[i + 1] === stringChar) {
+          // Escaped quote (e.g. "" inside a double-quoted string) — consume
+          // both characters and remain in string mode.
+          result += str[i + 1];
+          i += 1;
+        } else {
+          inString = false;
+        }
       }
     } else if (ch === '"' || ch === '\'') {
       inString = true;
