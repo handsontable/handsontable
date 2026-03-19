@@ -4352,7 +4352,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
-   * Returns the total number of columns in the data source.
+   * Returns the total number of columns in the data source. It will take value either from schema, columns settings or the first row from the data set.
    *
    * @memberof Core#
    * @function countSourceCols
