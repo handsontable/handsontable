@@ -9,7 +9,7 @@ const READ_ONLY_TEXT_ARGB = 'FF808080';
  * Normalises a cell `className` meta value to a flat array of non-empty class strings.
  * Accepts a space-separated string, an array of strings, or a nullish value.
  *
- * @param {string|string[]|null|undefined} className
+ * @param {string|string[]|null|undefined} className The cell's `className` meta value.
  * @returns {string[]}
  */
 function normalizeClassNames(className) {
