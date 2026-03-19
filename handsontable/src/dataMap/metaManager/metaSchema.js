@@ -1609,6 +1609,7 @@ export default () => {
      * map cleanly to your backend. Pair with **`pagination`** for server-side paging.
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
+     * @since 17.1.0
      * @memberof Options#
      * @type {object}
      * @default undefined

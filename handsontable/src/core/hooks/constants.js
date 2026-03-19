@@ -374,6 +374,7 @@ export const REGISTERED_HOOKS = [
    * Return `false` to cancel the default alter behavior (e.g. so a plugin can handle it via server-side CRUD).
    *
    * @event Hooks#beforeAlter
+   * @since 17.1.0
    * @param {string} action The alter action: `'insert_row_above'`, `'insert_row_below'`, `'remove_row'`,
    *                        `'insert_col_start'`, `'insert_col_end'`, `'remove_col'`.
    * @param {number|Array} index Visual row/column index, or for remove actions an array of `[[index, amount], ...]`.
@@ -512,7 +513,7 @@ export const REGISTERED_HOOKS = [
    * Fired after the dataProvider has fetched and loaded data.
    *
    * @event Hooks#afterDataProviderFetch
-   * @since 17.0.0
+   * @since 17.1.0
    * @param {object} result Result object: `{ rows, totalRows, queryParameters }`.
    */
   'afterDataProviderFetch',
@@ -521,7 +522,7 @@ export const REGISTERED_HOOKS = [
    * Fired when the dataProvider fetch throws an error (e.g. network error).
    *
    * @event Hooks#afterDataProviderFetchError
-   * @since 17.0.0
+   * @since 17.1.0
    * @param {Error} error The thrown error.
    * @param {object} queryParameters The query parameters that were used for the request.
    */
@@ -531,7 +532,7 @@ export const REGISTERED_HOOKS = [
    * Fired before rows mutation (create, update, remove) is sent to the server. Return `false` to cancel.
    *
    * @event Hooks#beforeRowsMutation
-   * @since 17.0.0
+   * @since 17.1.0
    * @param {string} operation One of `'create'`, `'update'`, `'remove'`.
    * @param {object} payload Operation-specific payload (`{ rowsCreate }`, `{ rows: [...] }`, or `{ rowsRemove: [...] }`).
    */
@@ -541,7 +542,7 @@ export const REGISTERED_HOOKS = [
    * Fired after rows mutation (create, update, remove) succeeds on the server.
    *
    * @event Hooks#afterRowsMutation
-   * @since 17.0.0
+   * @since 17.1.0
    * @param {string} operation One of `'create'`, `'update'`, `'remove'`.
    * @param {object} payload Operation-specific payload.
    */
@@ -551,7 +552,7 @@ export const REGISTERED_HOOKS = [
    * Fired when rows mutation (create, update, remove) fails on the server.
    *
    * @event Hooks#afterRowsMutationError
-   * @since 17.0.0
+   * @since 17.1.0
    * @param {string} operation One of `'create'`, `'update'`, `'remove'`.
    * @param {Error} error The thrown error.
    * @param {object} payload Operation-specific payload.
@@ -1558,7 +1559,7 @@ export const REGISTERED_HOOKS = [
    * Fired before the dataProvider fetches data. Return `false` to cancel the fetch.
    *
    * @event Hooks#beforeDataProviderFetch
-   * @since 17.0.0
+   * @since 17.1.0
    * @param {object} queryParameters Current query parameters: `{ page, pageSize, sort, filters }`.
    * @returns {boolean} Return `false` to cancel the fetch.
    */
