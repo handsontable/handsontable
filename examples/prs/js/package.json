@@ -5,7 +5,7 @@
     "main": "index.html",
     "private": true,
     "scripts": {
-      "start": "parcel index.html --open",
+      "start": "PARCEL_WORKERS=1 parcel index.html --open",
       "build": "parcel build index.html"
     },
     "dependencies": {

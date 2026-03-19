@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.html",
   "scripts": {
-    "start": "parcel --no-source-maps index.html --open",
+    "start": "PARCEL_WORKERS=1 parcel --no-source-maps index.html --open",
     "build": "parcel build index.html"
   },
   "dependencies": {
