@@ -15,6 +15,10 @@ Apply these checks when changed files are in `/handsontable/**`.
   - For hook/event callbacks, use arrow-function class fields (`#onAfterX = () => { ... }`) instead of `.bind(this)` references — avoids the extra bound field.
   - Extract duplicated code blocks into shared methods — do not repeat logic across the same file or plugin.
   - Silent `catch` blocks must include a comment explaining why the error is swallowed.
+- **Optional chaining (`?.`) usage**:
+  - Use optional chaining only when a value is genuinely optional by design — not as a blanket safety net for values that should always exist.
+  - If a value is guaranteed by the data contract (e.g., parallel arrays built by the same iterator, or APIs like `getCellMeta()` that always return an object), access it directly without `?.`.
+  - Unnecessary optional chaining silently swallows errors, hides broken assumptions, and misleads future contributors into thinking a value can be null when it cannot.
 - **Bundle size awareness**:
   - Where possible, prefer JavaScript grammar that produces smaller output in compressed (minified/gzipped) bundles. For example, prefer `===` over verbose truthiness helpers, use short-circuit evaluation instead of full `if` blocks for simple assignments, and avoid unnecessary intermediate variables.
 
