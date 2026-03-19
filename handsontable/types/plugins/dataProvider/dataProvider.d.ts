@@ -1,7 +1,14 @@
 import Core from '../../core';
 import { CellValue, RowObject, SourceRowData } from '../../common';
 import { BasePlugin } from '../base';
-import { Config as ColumnSortingConfig } from '../columnSorting/columnSorting';
+
+/**
+ * Sort descriptor sent to the server (column data key and order).
+ */
+export interface DataProviderSortDescriptor {
+  prop: string;
+  order: 'asc' | 'desc';
+}
 
 /**
  * Query parameters passed to `fetchRows` and DataProvider hooks.
@@ -10,9 +17,9 @@ export interface DataProviderQueryParameters {
   page: number;
   pageSize: number;
   /**
-   * Primary column descriptor from ColumnSorting, or `null`.
+   * Primary sort descriptor, or `null`.
    */
-  sort: ColumnSortingConfig | null;
+  sort: DataProviderSortDescriptor | null;
   /**
    * Opaque filter state (or `null`). Your `fetchRows` interprets it. Set via [[DataProvider#fetchData]] with `{ filters }`.
    */
@@ -91,7 +98,7 @@ export interface DataProviderConfig {
 /**
  * `dataProvider` option: full config object (all keys required for the plugin to enable).
  *
- * When active, `trimRows`, `manualRowMove`, and `multiColumnSorting` are disabled. Use `columnSorting` for server-side sort.
+ * When active, `trimRows`, `manualRowMove`, `manualColumnMove`, and `multiColumnSorting` are disabled. Use `columnSorting` for server-side sort.
  */
 export type Settings = DataProviderConfig | undefined;
 

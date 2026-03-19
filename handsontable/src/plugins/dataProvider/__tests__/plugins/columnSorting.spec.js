@@ -10,11 +10,11 @@ describe('DataProvider integration with ColumnSorting', () => {
     }
   });
 
-  it('should pass sort to fetchRows when column is sorted', async() => {
+  it('should pass sort with prop to fetchRows when column is sorted', async() => {
     const fetchRows = jasmine.createSpy('fetchRows').and.callFake((params) => {
       const sort = params.sort;
 
-      if (sort && sort.column === 1 && sort.sortOrder === 'asc') {
+      if (sort && sort.prop === 'name' && sort.order === 'asc') {
         return Promise.resolve({
           rows: [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }],
           totalRows: 2,
@@ -45,7 +45,7 @@ describe('DataProvider integration with ColumnSorting', () => {
 
     expect(fetchRows).toHaveBeenCalledWith(
       jasmine.objectContaining({
-        sort: jasmine.objectContaining({ column: 1, sortOrder: 'asc' }),
+        sort: jasmine.objectContaining({ prop: 'name', order: 'asc' }),
       }),
       jasmine.any(Object)
     );

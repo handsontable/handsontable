@@ -9,6 +9,8 @@ import {
   applyPaginationToQueryParameters,
   disablePluginsIncompatibleWithDataProvider,
   normalizeExternalPaginationPageSize,
+  normalizeSortToQueryFormat,
+  querySortToPluginSort,
   syncColumnSortingFromQuerySort,
 } from './utils';
 
@@ -49,7 +51,7 @@ export const DATA_PROVIDER_BATCH_UPDATE_SOURCES = new Set([
  * Valid edits apply to the grid immediately; if `onRowsUpdate` fails, if validation fails later, or if `beforeRowsMutation` cancels, those cells revert to their previous values.
  *
  * When enabled, `trimRows`, `manualRowMove`, and `multiColumnSorting` are turned off. Handsontable logs a console warning for each option you still set.
- * Use [[Options#columnSorting]] for server-driven sort (single column).
+ * Use [[Options#columnSorting]] for server-driven sort (single column). Query `sort` uses `prop` (column data key).
  */
 export class DataProvider extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -198,7 +200,8 @@ export class DataProvider extends BasePlugin {
     );
     applyColumnSortingToQueryParameters(
       this.hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY),
-      this.#queryParameters
+      this.#queryParameters,
+      column => this.hot.colToProp(column)
     );
   }
 
@@ -361,12 +364,9 @@ export class DataProvider extends BasePlugin {
     const columnSorting = this.hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY);
 
     columnSorting.setSortConfig(destinationSortConfigs);
+    this.#applyPaginationAndSortFromPlugins();
 
-    const sortParam = Array.isArray(destinationSortConfigs) && destinationSortConfigs.length > 0
-      ? destinationSortConfigs[0]
-      : null;
-
-    void this.#setSort(sortParam);
+    this.fetchData();
 
     return false;
   };
@@ -806,6 +806,8 @@ export class DataProvider extends BasePlugin {
 
     const params = { ...this.#queryParameters, ...overrides };
 
+    params.sort = normalizeSortToQueryFormat(params.sort, col => this.hot.colToProp(col));
+
     if (typeof params.page === 'number' && !Number.isNaN(params.page)) {
       params.page = Math.max(1, params.page);
     }
@@ -888,24 +890,6 @@ export class DataProvider extends BasePlugin {
     const ps = typeof pageSize === 'number' && pageSize >= 1 ? pageSize : DEFAULT_PAGE_SIZE;
 
     await this.fetchData({ pageSize: ps, page: 1 });
-  }
-
-  /**
-   * @private
-   * @param {object|null} sort Sort descriptor or null.
-   * @returns {Promise<void>}
-   */
-  async #setSort(sort) {
-    await this.fetchData({ sort });
-  }
-
-  /**
-   * @private
-   * @param {object|null} filters Filter state for the provider.
-   * @returns {Promise<void>}
-   */
-  async #setFilters(filters) {
-    await this.fetchData({ filters });
   }
 
   /**
@@ -1126,9 +1110,14 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   #syncColumnSortingState() {
+    const sortForPlugin = querySortToPluginSort(
+      this.#queryParameters.sort,
+      prop => this.hot.propToCol(prop)
+    );
+
     syncColumnSortingFromQuerySort(
       this.hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY),
-      this.#queryParameters.sort
+      sortForPlugin
     );
   }
 

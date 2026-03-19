@@ -4,6 +4,8 @@ import {
   DATA_PROVIDER_INCOMPATIBLE_ENTRIES,
   disablePluginsIncompatibleWithDataProvider,
   normalizeExternalPaginationPageSize,
+  normalizeSortToQueryFormat,
+  querySortToPluginSort,
   syncColumnSortingFromQuerySort,
 } from '../utils';
 
@@ -46,36 +48,123 @@ describe('dataProvider utils', () => {
   });
 
   describe('applyColumnSortingToQueryParameters', () => {
-    it('should set sort from first array entry', () => {
+    const colToProp = col => (`col_${col}`);
+
+    it('should set sort with prop from first array entry', () => {
       const query = { sort: null };
       const plugin = {
         enabled: true,
         getSortConfig: () => [{ column: 1, sortOrder: 'asc' }],
       };
 
-      applyColumnSortingToQueryParameters(plugin, query);
+      applyColumnSortingToQueryParameters(plugin, query, colToProp);
 
-      expect(query.sort).toEqual({ column: 1, sortOrder: 'asc' });
+      expect(query.sort).toEqual({ prop: 'col_1', order: 'asc' });
     });
 
-    it('should set sort from object with column key when array is empty', () => {
+    it('should set sort with prop from object when array is empty', () => {
       const query = { sort: null };
       const plugin = {
         enabled: true,
         getSortConfig: () => ({ column: 2, sortOrder: 'desc' }),
       };
 
-      applyColumnSortingToQueryParameters(plugin, query);
+      applyColumnSortingToQueryParameters(plugin, query, colToProp);
 
-      expect(query.sort).toEqual({ column: 2, sortOrder: 'desc' });
+      expect(query.sort).toEqual({ prop: 'col_2', order: 'desc' });
     });
 
-    it('should no-op when sorting disabled', () => {
+    it('should no-op when sorting disabled or colToProp missing', () => {
       const query = { sort: null };
 
-      applyColumnSortingToQueryParameters({ enabled: false, getSortConfig: () => [{ column: 0 }] }, query);
-
+      applyColumnSortingToQueryParameters({ enabled: false, getSortConfig: () => [{ column: 0 }] }, query, colToProp);
       expect(query.sort).toBeNull();
+
+      applyColumnSortingToQueryParameters(
+        { enabled: true, getSortConfig: () => [{ column: 0, sortOrder: 'asc' }] },
+        query,
+        undefined
+      );
+      expect(query.sort).toBeNull();
+    });
+  });
+
+  describe('normalizeSortToQueryFormat', () => {
+    const colToProp = col => (`col_${col}`);
+
+    it('should return null for null or non-object sort', () => {
+      expect(normalizeSortToQueryFormat(null, colToProp)).toBeNull();
+      expect(normalizeSortToQueryFormat(undefined, colToProp)).toBeNull();
+      expect(normalizeSortToQueryFormat('asc', colToProp)).toBeNull();
+    });
+
+    it('should convert plugin format (column index) to query format (prop)', () => {
+      expect(normalizeSortToQueryFormat(
+        { column: 1, sortOrder: 'asc' },
+        colToProp
+      )).toEqual({ prop: 'col_1', order: 'asc' });
+
+      expect(normalizeSortToQueryFormat(
+        { column: 0, sortOrder: 'desc' },
+        colToProp
+      )).toEqual({ prop: 'col_0', order: 'desc' });
+    });
+
+    it('should return query format unchanged when prop and order present', () => {
+      const sort = { prop: 'name', order: 'asc' };
+
+      expect(normalizeSortToQueryFormat(sort, colToProp)).toEqual({ prop: 'name', order: 'asc' });
+    });
+
+    it('should return null when colToProp missing for column-index format', () => {
+      expect(normalizeSortToQueryFormat(
+        { column: 0, sortOrder: 'asc' },
+        undefined
+      )).toBeNull();
+    });
+
+    it('should return null when sort has no valid column or prop', () => {
+      expect(normalizeSortToQueryFormat({ order: 'asc' }, colToProp)).toBeNull();
+      expect(normalizeSortToQueryFormat({ prop: 'x' }, colToProp)).toBeNull();
+    });
+  });
+
+  describe('querySortToPluginSort', () => {
+    const propToCol = prop => (prop === 'name' ? 1 : (prop === 'id' ? 0 : -1));
+
+    it('should return null for null or invalid sort', () => {
+      expect(querySortToPluginSort(null, propToCol)).toBeNull();
+      expect(querySortToPluginSort(undefined, propToCol)).toBeNull();
+      expect(querySortToPluginSort({ prop: 'name' }, propToCol)).toBeNull();
+      expect(querySortToPluginSort({ order: 'asc' }, propToCol)).toBeNull();
+    });
+
+    it('should convert query format to plugin format (column index)', () => {
+      expect(querySortToPluginSort(
+        { prop: 'name', order: 'asc' },
+        propToCol
+      )).toEqual({ column: 1, sortOrder: 'asc' });
+
+      expect(querySortToPluginSort(
+        { prop: 'id', order: 'desc' },
+        propToCol
+      )).toEqual({ column: 0, sortOrder: 'desc' });
+    });
+
+    it('should return null when propToCol missing', () => {
+      expect(querySortToPluginSort(
+        { prop: 'name', order: 'asc' },
+        undefined
+      )).toBeNull();
+    });
+
+    it('should return null when propToCol returns non-number', () => {
+      const propToCol = () => undefined;
+
+      expect(querySortToPluginSort(
+        { prop: 'unknown', order: 'asc' },
+        propToCol
+      )).toBeNull();
     });
   });
 
@@ -149,14 +238,15 @@ describe('dataProvider utils', () => {
         }),
       };
       const warned = new Set();
-      const settings = { trimRows: true, manualRowMove: true };
+      const settings = { trimRows: true, manualRowMove: true, manualColumnMove: true };
 
       disablePluginsIncompatibleWithDataProvider(hot, settings, warned);
 
-      expect(disabled).toEqual(['trimRows', 'manualRowMove']);
+      expect(disabled).toEqual(['trimRows', 'manualRowMove', 'manualColumnMove']);
       expect(warned.has('trimRows')).toBe(true);
       expect(warned.has('manualRowMove')).toBe(true);
-      expect(consoleWarn).toHaveBeenCalledTimes(2);
+      expect(warned.has('manualColumnMove')).toBe(true);
+      expect(consoleWarn).toHaveBeenCalledTimes(3);
     });
 
     it('should skip falsy option values', () => {
@@ -167,7 +257,7 @@ describe('dataProvider utils', () => {
 
       disablePluginsIncompatibleWithDataProvider(
         hot,
-        { trimRows: false, manualRowMove: null, multiColumnSorting: undefined },
+        { trimRows: false, manualRowMove: null, manualColumnMove: false, multiColumnSorting: undefined },
         warned
       );
 
@@ -176,10 +266,10 @@ describe('dataProvider utils', () => {
   });
 
   describe('DATA_PROVIDER_INCOMPATIBLE_ENTRIES', () => {
-    it('should list three known conflicts', () => {
-      expect(DATA_PROVIDER_INCOMPATIBLE_ENTRIES).toHaveLength(3);
+    it('should list four known conflicts', () => {
+      expect(DATA_PROVIDER_INCOMPATIBLE_ENTRIES).toHaveLength(4);
       expect(DATA_PROVIDER_INCOMPATIBLE_ENTRIES.map(e => e.pluginId).sort()).toEqual(
-        ['manualRowMove', 'multiColumnSorting', 'trimRows']
+        ['manualColumnMove', 'manualRowMove', 'multiColumnSorting', 'trimRows']
       );
     });
   });

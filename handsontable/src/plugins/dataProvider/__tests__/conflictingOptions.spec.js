@@ -50,6 +50,26 @@ describe('DataProvider with conflicting options', () => {
     expect(getPlugin('manualRowMove').enabled).toBe(false);
   });
 
+  it('should warn and disable manualColumnMove when dataProvider is enabled', async() => {
+    spyOn(console, 'warn');
+
+    handsontable({
+      data: [],
+      manualColumnMove: true,
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => Promise.resolve({ rows: [], totalRows: 0 }),
+      }),
+    });
+
+    await sleep(50);
+
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledWith(
+      jasmine.stringMatching(/manualColumnMove.*incompatible with.*dataProvider/i)
+    );
+    expect(getPlugin('manualColumnMove').enabled).toBe(false);
+  });
+
   it('should warn and disable multiColumnSorting when dataProvider is enabled', async() => {
     spyOn(console, 'warn');
 
