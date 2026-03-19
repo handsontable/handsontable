@@ -73,7 +73,7 @@ const exportPlugin = hot.getPlugin('exportFile');
 const button = document.querySelector('#export-file')!;
 
 button.addEventListener('click', async () => {
-  await exportPlugin.downloadFile('xlsx', {
+  await exportPlugin.downloadFileAsync('xlsx', {
     filename: 'Q1-Sales-Report',
     columnHeaders: true,
     rowHeaders: true,

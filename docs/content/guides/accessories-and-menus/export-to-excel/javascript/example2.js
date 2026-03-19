@@ -53,7 +53,7 @@ const hotQ2 = new Handsontable(document.querySelector('#example2-q2'), {
 document.querySelector('#export-sheets').addEventListener('click', async () => {
   const exportPlugin = hotQ1.getPlugin('exportFile');
 
-  await exportPlugin.downloadFile('xlsx', {
+  await exportPlugin.downloadFileAsync('xlsx', {
     filename: 'Annual-Sales-Report',
     sheets: [
       { instance: hotQ1, name: 'Q1 Sales', columnHeaders: true, rowHeaders: true },

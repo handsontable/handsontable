@@ -77,7 +77,7 @@ function buildExportDialogContent(title) {
  *
  * // XLSX — asynchronous
  * const blob = await exportPlugin.exportAsBlob('xlsx');
- * await exportPlugin.downloadFile('xlsx', { filename: 'MyFile' });
+ * await exportPlugin.downloadFileAsync('xlsx', { filename: 'MyFile' });
  *
  * // CSV with options
  * exportPlugin.exportAsString('csv', {
@@ -90,7 +90,7 @@ function buildExportDialogContent(title) {
  * });
  *
  * // XLSX with options
- * await exportPlugin.downloadFile('xlsx', {
+ * await exportPlugin.downloadFileAsync('xlsx', {
  *   filename: 'MyFile',
  *   columnHeaders: true,
  *   rowHeaders: true,
@@ -124,7 +124,7 @@ function buildExportDialogContent(title) {
  * exportPlugin.downloadFile('csv', { filename: 'MyFile' });
  *
  * // XLSX — asynchronous
- * await exportPlugin.downloadFile('xlsx', { filename: 'MyFile' });
+ * await exportPlugin.downloadFileAsync('xlsx', { filename: 'MyFile' });
  * ```
  * :::
  */
@@ -246,13 +246,52 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
-   * Exports table data as a downloadable file.
+   * Triggers a synchronous file download for text-based export formats (e.g. `'csv'`).
    *
-   * For text-based formats (e.g. `'csv'`), triggers the download synchronously.
-   * For binary formats (e.g. `'xlsx'`), returns a `Promise` that resolves once
-   * the download has been triggered.
+   * Calling this method with a binary format (e.g. `'xlsx'`) throws an error — use
+   * [[ExportFile#downloadFileAsync]] instead.
    *
-   * @param {string} format Export format type eg. `'csv'` or `'xlsx'`.
+   * @param {string} format Export format type e.g. `'csv'`.
+   * @param {object} options Export options.
+   * @param {string} [options.mimeType] MIME type. Default depends on format.
+   * @param {string} [options.fileExtension] File extension. Default depends on format.
+   * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name.
+   * @param {string} [options.encoding='utf-8'] Character encoding.
+   * @param {boolean} [options.bom] Include BOM signature. Default depends on format.
+   * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
+   * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
+   * @param {boolean} [options.columnHeaders=false] Include column headers.
+   * @param {boolean} [options.rowHeaders=false] Include row headers.
+   * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns.
+   * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
+   * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
+   * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
+   * @returns {void}
+   */
+  downloadFile(format, options = {}) {
+    const formatter = this._createTypeFormatter(format, options);
+
+    if (formatter.binary) {
+      throwWithCause(
+        `downloadFile() does not support binary formats such as "${format}". ` +
+        'Use downloadFileAsync() instead.'
+      );
+    }
+
+    const name = `${formatter.options.filename}.${formatter.options.fileExtension}`;
+
+    this.#triggerDownload(this._createBlob(formatter), name);
+  }
+
+  /**
+   * Triggers an asynchronous file download. Supports all export formats.
+   *
+   * For text-based formats (e.g. `'csv'`), the download is triggered immediately
+   * and the returned `Promise` resolves right away.
+   * For binary formats (e.g. `'xlsx'`), the export runs asynchronously. When the
+   * `dialog` plugin is enabled, a progress overlay is shown for the duration of the export.
+   *
+   * @param {string} format Export format type e.g. `'csv'` or `'xlsx'`.
    * @param {object} options Export options.
    * @param {string} [options.mimeType] MIME type. Default depends on format.
    * @param {string} [options.fileExtension] File extension. Default depends on format.
@@ -267,49 +306,19 @@ export class ExportFile extends BasePlugin {
    * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
-   * @returns {void|Promise<void>}
+   * @returns {Promise<void>}
    */
-  downloadFile(format, options = {}) {
+  async downloadFileAsync(format, options = {}) {
+    const formatter = this._createTypeFormatter(format, options);
     const dialogPlugin = this.hot.getPlugin('dialog');
     const hasDialog = dialogPlugin?.isEnabled();
-    const { rootDocument, rootWindow } = this.hot;
-    const formatter = this._createTypeFormatter(format, options);
+    const { rootWindow } = this.hot;
     const name = `${formatter.options.filename}.${formatter.options.fileExtension}`;
-    const URL = (rootWindow.URL || rootWindow.webkitURL);
-    const triggerDownload = (blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = rootDocument.createElement('a');
 
-      a.style.display = 'none';
-      a.setAttribute('href', url);
-      a.setAttribute('download', name);
-      rootDocument.body.appendChild(a);
-      a.dispatchEvent(new MouseEvent('click'));
-      rootDocument.body.removeChild(a);
+    const runExport = async() => {
+      const blob = await Promise.resolve(this._createBlob(formatter));
 
-      setTimeout(() => {
-        URL.revokeObjectURL(url);
-      }, 100);
-    };
-
-    const runExport = () => {
-      const blobOrPromise = this._createBlob(formatter);
-
-      if (blobOrPromise instanceof Promise) {
-        return blobOrPromise
-          .then(triggerDownload)
-          .finally(() => {
-            if (hasDialog) {
-              dialogPlugin.hide();
-            }
-          });
-      }
-
-      triggerDownload(blobOrPromise);
-
-      if (hasDialog) {
-        dialogPlugin.hide();
-      }
+      this.#triggerDownload(blob, name);
     };
 
     if (hasDialog && formatter.binary) {
@@ -323,16 +332,47 @@ export class ExportFile extends BasePlugin {
       // rAF fires at the START of a frame, before paint. A double-rAF lets the
       // browser complete one full paint cycle (dialog becomes visible) before
       // the export blocks the main thread.
-
-      return new Promise((resolve) => {
+      await new Promise((resolve) => {
         rootWindow.requestAnimationFrame(() => {
 
           rootWindow.requestAnimationFrame(resolve);
         });
-      }).then(runExport);
+      });
+
+      try {
+        await runExport();
+      } finally {
+        dialogPlugin.hide();
+      }
+
+      return;
     }
 
-    return runExport();
+    await runExport();
+  }
+
+  /**
+   * Triggers a browser file download for the given blob.
+   *
+   * @param {Blob} blob The blob to download.
+   * @param {string} name The filename (including extension).
+   */
+  #triggerDownload(blob, name) {
+    const { rootDocument, rootWindow } = this.hot;
+    const URL = rootWindow.URL || rootWindow.webkitURL;
+    const url = URL.createObjectURL(blob);
+    const a = rootDocument.createElement('a');
+
+    a.style.display = 'none';
+    a.setAttribute('href', url);
+    a.setAttribute('download', name);
+    rootDocument.body.appendChild(a);
+    a.dispatchEvent(new MouseEvent('click'));
+    rootDocument.body.removeChild(a);
+
+    this.hot._registerTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 100);
   }
 
   /**

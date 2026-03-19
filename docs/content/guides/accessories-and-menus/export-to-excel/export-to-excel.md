@@ -132,7 +132,7 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 The plugin exposes the following methods to export data.
 
-- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - generates a downloadable `.xlsx` file directly in the browser. Returns a `Promise` that resolves when the download starts.
+- [`downloadFileAsync(format, options)`](@/api/exportFile.md#downloadfileasync) - generates a downloadable `.xlsx` file directly in the browser. Returns a `Promise` that resolves when the download starts.
 - [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - exports the data as a JavaScript `Blob`. Returns a `Promise` that resolves with the `Blob`.
 
 Both methods take two parameters. The first, `format`, must be `'xlsx'`. The second, `options`, is an optional object that configures the exported workbook.
@@ -145,7 +145,7 @@ Both methods are asynchronous. Use `await` or `.then()` to handle the result:
 const exportPlugin = hot.getPlugin('exportFile');
 
 // Download a file.
-await exportPlugin.downloadFile('xlsx', { filename: 'my-report' });
+await exportPlugin.downloadFileAsync('xlsx', { filename: 'my-report' });
 
 // Get a Blob (e.g. to upload to a server).
 const blob = await exportPlugin.exportAsBlob('xlsx', { filename: 'my-report' });
@@ -158,7 +158,7 @@ const blob = await exportPlugin.exportAsBlob('xlsx', { filename: 'my-report' });
 ```jsx
 const exportPlugin = hotRef.current?.hotInstance?.getPlugin('exportFile');
 
-await exportPlugin?.downloadFile('xlsx', { filename: 'my-report' });
+await exportPlugin?.downloadFileAsync('xlsx', { filename: 'my-report' });
 ```
 
 :::
@@ -169,7 +169,7 @@ await exportPlugin?.downloadFile('xlsx', { filename: 'my-report' });
 async exportFile(): Promise<void> {
   const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
 
-  await exportPlugin.downloadFile('xlsx', { filename: 'my-report' });
+  await exportPlugin.downloadFileAsync('xlsx', { filename: 'my-report' });
 }
 ```
 
@@ -186,7 +186,7 @@ Configure the plugin in Handsontable's settings under the `exportFile` key.
 
 ## Export options
 
-Pass these options as the second argument to `downloadFile('xlsx', options)` or `exportAsBlob('xlsx', options)`.
+Pass these options as the second argument to `downloadFileAsync('xlsx', options)` or `exportAsBlob('xlsx', options)`.
 
 | Option | Description |
 | --- | --- |

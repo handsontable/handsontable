@@ -83,7 +83,7 @@ export class AppComponent {
   async exportFile(): Promise<void> {
     const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
 
-    await exportPlugin.downloadFile('xlsx', {
+    await exportPlugin.downloadFileAsync('xlsx', {
       filename: 'Q1-Sales-Report',
       columnHeaders: true,
       rowHeaders: true,

@@ -28,7 +28,7 @@ const ExampleComponent = () => {
     const hot = hotRef.current?.hotInstance;
     const exportPlugin = hot?.getPlugin('exportFile');
 
-    await exportPlugin?.downloadFile('xlsx', {
+    await exportPlugin?.downloadFileAsync('xlsx', {
       filename: 'Q1-Sales-Report',
       columnHeaders: true,
       rowHeaders: true,

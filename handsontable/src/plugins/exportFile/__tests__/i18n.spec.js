@@ -92,7 +92,7 @@ describe('ExportFile', () => {
           // downloadFile() calls dialogPlugin.show() synchronously before scheduling
           // the actual export via requestAnimationFrame. The dialog title can therefore
           // be read from the DOM immediately after the call, before the rAF fires.
-          const downloadPromise = getPlugin('exportFile').downloadFile('xlsx', { filename: 'test' });
+          const downloadPromise = getPlugin('exportFile').downloadFileAsync('xlsx', { filename: 'test' });
 
           const titleEl = getLoadingContainerElement()?.querySelector('.ht-loading__title');
 

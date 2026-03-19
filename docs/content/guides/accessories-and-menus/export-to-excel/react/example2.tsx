@@ -40,7 +40,7 @@ const ExampleComponent = () => {
     const hotQ1 = hotQ1Ref.current?.hotInstance;
     const exportPlugin = hotQ1?.getPlugin('exportFile');
 
-    await exportPlugin?.downloadFile('xlsx', {
+    await exportPlugin?.downloadFileAsync('xlsx', {
       filename: 'Annual-Sales-Report',
       sheets: [
         { instance: hotQ1!, name: 'Q1 Sales', columnHeaders: true, rowHeaders: true },
