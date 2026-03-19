@@ -98,6 +98,20 @@ export class DataProvider extends BasePlugin {
    * @type {Set<string>}
    */
   #incompatibleSettingWarned = new Set();
+  /**
+   * Filter conditions saved before loadData (restored after load via setFiltersConditions hook).
+   *
+   * @private
+   * @type {Array}
+   */
+  #savedConditionsForLoad = [];
+  /**
+   * Last known good filter conditions (for rollback when a fetch fails).
+   *
+   * @private
+   * @type {Array}
+   */
+  #lastKnownGoodFilterConditions = [];
 
   /**
    * Raw `dataProvider` setting (config object only).
@@ -225,6 +239,11 @@ export class DataProvider extends BasePlugin {
     this.addHook('paginationExternalDataSourceActive', this.#paginationExternalDataSourceActive);
     this.addHook('paginationTotalItemCount', this.#paginationTotalItemCount);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    this.addHook('filtersServerSideActive', this.#filtersServerSideActive);
+    this.addHook('beforeFilter', this.#onBeforeFilter);
+    this.addHook('beforeLoadData', this.#onBeforeLoadDataForFilters);
+    this.addHook('afterLoadData', this.#onAfterLoadDataForFilters);
+    this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchErrorForFilters);
 
     super.enablePlugin();
 
@@ -348,6 +367,144 @@ export class DataProvider extends BasePlugin {
       }
     });
   };
+
+  /**
+   * Returns true when DataProvider is enabled so the Filters plugin hides "Filter by value".
+   *
+   * @private
+   * @returns {boolean}
+   */
+  #filtersServerSideActive = () => this.isEnabled();
+
+  /**
+   * Intercepts filter action: applies server-side filters and refetches; returns false so Filters skip client-side trimming.
+   *
+   * @private
+   * @param {Array} conditionsStack Exported filter conditions (column = physical index).
+   * @returns {boolean} False to signal that filtering is handled server-side.
+   */
+  #onBeforeFilter = (conditionsStack) => {
+    if (!this.isEnabled() || !isFunction(this.#getFetchFn())) {
+      return;
+    }
+
+    const filtersForProvider = this.#conditionsStackToFiltersPayload(conditionsStack);
+
+    this.setFilters(filtersForProvider).catch(() => {
+      // Already handled via afterDataProviderFetchError hook.
+    });
+
+    return false;
+  };
+
+  /**
+   * beforeLoadData: when source is DataProvider, save current filter conditions for restore after load.
+   *
+   * @private
+   * @param {Array} sourceData Source data passed to loadData.
+   * @param {boolean} initialLoad Whether this is the initial load.
+   * @param {string} [source] Source identifier (e.g. 'dataProvider').
+   */
+  #onBeforeLoadDataForFilters = (sourceData, initialLoad, source) => {
+    if (source === PLUGIN_KEY) {
+      const conditions = this.hot.runHooks('getFiltersConditions');
+
+      this.#savedConditionsForLoad = Array.isArray(conditions) && conditions.length > 0
+        ? this.#cloneFilterConditionsStack(conditions)
+        : [];
+    }
+  };
+
+  /**
+   * afterLoadData: when source is DataProvider, restore filter conditions and update last-known-good.
+   *
+   * @private
+   * @param {Array} sourceData Source data passed to loadData.
+   * @param {boolean} initialLoad Whether this is the initial load.
+   * @param {string} [source] Source identifier (e.g. 'dataProvider').
+   */
+  #onAfterLoadDataForFilters = (sourceData, initialLoad, source) => {
+    if (source === PLUGIN_KEY) {
+      if (this.#savedConditionsForLoad.length > 0) {
+        this.hot.runHooks('setFiltersConditions', this.#savedConditionsForLoad);
+        this.#savedConditionsForLoad = [];
+      }
+
+      const conditions = this.hot.runHooks('getFiltersConditions');
+
+      this.#lastKnownGoodFilterConditions = Array.isArray(conditions) && conditions.length > 0
+        ? this.#cloneFilterConditionsStack(conditions)
+        : [];
+    }
+  };
+
+  /**
+   * afterDataProviderFetchError: restore filter conditions to last known good and re-render.
+   *
+   * @private
+   */
+  #onAfterDataProviderFetchErrorForFilters = () => {
+    if (this.#lastKnownGoodFilterConditions.length > 0) {
+      this.hot.runHooks('setFiltersConditions', this.#lastKnownGoodFilterConditions);
+      this.hot.view.adjustElementsSize();
+      this.hot.render();
+    }
+  };
+
+  /**
+   * Deep-clones a filter condition stack (for save/restore). Same shape as Filters exportConditions.
+   *
+   * @private
+   * @param {Array} stack Condition stack from getFiltersConditions.
+   * @returns {Array} Cloned stack.
+   */
+  #cloneFilterConditionsStack(stack) {
+    return stack.map(s => ({
+      column: s.column,
+      operation: s.operation,
+      conditions: (s.conditions || []).map(c => ({
+        name: c.name,
+        args: Array.isArray(c.args) ? [...c.args] : [],
+      })),
+    }));
+  }
+
+  /**
+   * Converts Filters plugin condition stack (physical column indexes) to query filters (prop = column data key).
+   * Expects the same shape as [[Filters#exportConditions]] returns.
+   *
+   * @private
+   * @param {Array} conditionsStack Array of { column, operation, conditions } (same shape as exportConditions).
+   * @returns {Array|null} Array of { prop, operation, conditions } or null when empty.
+   */
+  #conditionsStackToFiltersPayload(conditionsStack) {
+    if (!Array.isArray(conditionsStack) || conditionsStack.length === 0) {
+      return null;
+    }
+
+    const payload = [];
+
+    for (let i = 0; i < conditionsStack.length; i++) {
+      const stack = conditionsStack[i];
+      const visualCol = this.hot.toVisualColumn(stack.column);
+      const prop = this.hot.colToProp(visualCol);
+
+      if (prop === null || prop === undefined) {
+        continue;
+      }
+
+      payload.push({
+        prop: String(prop),
+        operation: stack.operation,
+        conditions: stack.conditions.map(c => ({
+          name: c.name,
+          args: Array.isArray(c.args) ? [...c.args] : [],
+        })),
+      });
+    }
+
+    return payload.length === 0 ? null : payload;
+  }
 
   /**
    * @private
@@ -907,6 +1064,21 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
+   * Sets filter state for server-side filtering and refetches data (resets to page 1).
+   * Pass `null` to clear filters.
+   *
+   * @param {Array<{ prop: string, operation: string, conditions: Array<{ name: string, args: Array }> }>|null} filters Filter
+   * descriptors (prop = column data key, same as sort) or null.
+   * @returns {Promise<{ rows: Array, totalRows: number }|null>} Result of the fetch, or null if fetch was skipped/aborted.
+   */
+  setFilters(filters) {
+    this.#queryParameters.filters = filters ?? null;
+    this.#queryParameters.page = 1;
+
+    return this.fetchData();
+  }
+
+  /**
    * Queues create/remove (or similar) server calls with before/after mutation hooks.
    *
    * @private
@@ -1140,6 +1312,13 @@ export class DataProvider extends BasePlugin {
     this.#abortController = null;
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
     this.#totalRows = 0;
+    this.#savedConditionsForLoad = [];
+    this.#lastKnownGoodFilterConditions = [];
+    this.hot.removeHook('filtersServerSideActive', this.#filtersServerSideActive);
+    this.hot.removeHook('beforeFilter', this.#onBeforeFilter);
+    this.hot.removeHook('beforeLoadData', this.#onBeforeLoadDataForFilters);
+    this.hot.removeHook('afterLoadData', this.#onAfterLoadDataForFilters);
+    this.hot.removeHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchErrorForFilters);
 
     super.disablePlugin();
 

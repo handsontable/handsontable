@@ -1,6 +1,7 @@
 import Core from '../../core';
 import { CellValue, RowObject, SourceRowData } from '../../common';
 import { BasePlugin } from '../base';
+import type { ConditionId, OperationType } from '../filters';
 
 /**
  * Sort descriptor sent to the server (column data key and order).
@@ -8,6 +9,17 @@ import { BasePlugin } from '../base';
 export interface DataProviderSortDescriptor {
   prop: string;
   order: 'asc' | 'desc';
+}
+
+/**
+ * Filter column for server-side filtering: column data key (`prop`), operation, and conditions.
+ * Used in query parameters and [[DataProvider#setFilters]]. Same shape as the Filters plugin's column conditions
+ * but with `prop` instead of column index (matches sort descriptor naming).
+ */
+export interface DataProviderFilterColumn {
+  prop: string;
+  operation: OperationType;
+  conditions: ConditionId[];
 }
 
 /**
@@ -21,9 +33,10 @@ export interface DataProviderQueryParameters {
    */
   sort: DataProviderSortDescriptor | null;
   /**
-   * Opaque filter state (or `null`). Your `fetchRows` interprets it. Set via [[DataProvider#fetchData]] with `{ filters }`.
+   * Filter state for server-side filtering (or `null`). Set via [[DataProvider#setFilters]] or when the Filters
+   * plugin triggers server-side filtering. Your `fetchRows` receives this in the query parameters.
    */
-  filters: object | null;
+  filters: DataProviderFilterColumn[] | null;
 }
 
 /**
@@ -140,6 +153,10 @@ export class DataProvider extends BasePlugin {
   getQueryParameters(): DataProviderQueryParameters;
   getRowId(visualRow: number): unknown;
   fetchData(overrides?: Partial<DataProviderQueryParameters>): Promise<{ rows: SourceRowData[]; totalRows: number } | null>;
+  /**
+   * Sets filter state for server-side filtering and refetches data (resets to page 1). Pass `null` to clear filters.
+   */
+  setFilters(filters: DataProviderFilterColumn[] | null): Promise<{ rows: SourceRowData[]; totalRows: number } | null>;
   /**
    * Create rows on the server via `onRowsCreate`. Set `rowsAmount` to insert more than one row.
    */

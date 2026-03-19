@@ -253,6 +253,7 @@ export class Filters extends BasePlugin {
         id: 'filter_by_value',
         name: filterValueLabel,
         searchMode,
+        hiddenWhen: () => this.hot.runHooks('filtersServerSideActive'),
       })));
     }
 
@@ -283,6 +284,8 @@ export class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuShow', () => this.#onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.#onAfterDropdownMenuHide());
     this.addHook('afterChange', changes => this.#onAfterChange(changes));
+    this.addHook('getFiltersConditions', () => this.#onGetFiltersConditions());
+    this.addHook('setFiltersConditions', conditions => this.#onSetFiltersConditions(conditions));
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
@@ -581,6 +584,10 @@ export class Filters extends BasePlugin {
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
   addCondition(column, name, args, operationId = OPERATION_AND) {
+    if (name === CONDITION_BY_VALUE && this.hot.runHooks('filtersServerSideActive')) {
+      return;
+    }
+
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.conditionCollection.addCondition(physicalColumn, { command: { key: name }, args }, operationId);
@@ -708,6 +715,8 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack = this.exportConditions();
       this.filtersRowsMap.clear();
 
+    } else if (this.hot.runHooks('filtersServerSideActive')) {
+      this.#previousConditionStack = this.exportConditions();
     } else {
       this.importConditions(this.#previousConditionStack);
     }
@@ -788,6 +797,48 @@ export class Filters extends BasePlugin {
     }
 
     return data;
+  }
+
+  /**
+   * getFiltersConditions hook: returns current conditions for external consumers (e.g. save/restore).
+   *
+   * @private
+   * @returns {Array} Current condition stack or empty array.
+   */
+  #onGetFiltersConditions() {
+    if (this.enabled && this.conditionCollection) {
+      return this.exportConditions();
+    }
+
+    return [];
+  }
+
+  /**
+   * setFiltersConditions hook: applies conditions from an external consumer and syncs component state.
+   *
+   * @private
+   * @param {Array} conditions Condition stack (same shape as exportConditions).
+   */
+  #onSetFiltersConditions(conditions) {
+    if (this.enabled && this.conditionCollection && Array.isArray(conditions)) {
+      this.importConditions(conditions);
+      this.#previousConditionStack = conditions.length > 0 ? this.#cloneConditionStack(conditions) : [];
+      this.conditionUpdateObserver.flush();
+    }
+  }
+
+  /**
+   * Deep-clones a condition stack for stash/restore.
+   *
+   * @param {Array} stack Condition stack from exportConditions() or stash.
+   * @returns {Array} Cloned stack.
+   */
+  #cloneConditionStack(stack) {
+    return stack.map(s => ({
+      column: s.column,
+      operation: s.operation,
+      conditions: s.conditions.map(c => ({ name: c.name, args: Array.isArray(c.args) ? [...c.args] : [] })),
+    }));
   }
 
   /**
@@ -958,7 +1009,7 @@ export class Filters extends BasePlugin {
         }
       }
 
-      if (byValueState.command.key !== CONDITION_NONE) {
+      if (byValueState.command.key !== CONDITION_NONE && !this.hot.runHooks('filtersServerSideActive')) {
         this.conditionCollection.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
       }
 

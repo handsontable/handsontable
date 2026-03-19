@@ -39,6 +39,20 @@ hot.addHook('afterDataProviderFetch', (result: DataProviderFetchResult) => {
 
 hot.addHook('beforeDataProviderFetch', (q: DataProviderQueryParameters) => q.page > 0);
 
+hot.addHook('afterDataProviderFetchError', (error: Error, queryParameters: DataProviderQueryParameters) => {
+  void error;
+  void queryParameters.filters;
+  if (queryParameters.filters) {
+    const col = queryParameters.filters[0];
+    void col.prop;
+    void col.operation;
+    col.conditions.forEach(c => {
+      void c.name;
+      void c.args;
+    });
+  }
+});
+
 hot.addHook('afterRowsMutation', (operation, payload) => {
   if (operation === 'create' && 'rowsCreate' in payload) {
     void payload.rowsCreate.rowsAmount;

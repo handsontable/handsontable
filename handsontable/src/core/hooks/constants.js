@@ -489,7 +489,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterLoadData
    * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
-   * @param {string} source The source of the call
+   * @param {string} [source] The source of the call
    */
   'afterLoadData',
 
@@ -1533,7 +1533,7 @@ export const REGISTERED_HOOKS = [
    * @since 8.0.0
    * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
-   * @param {string} source The source of the call
+   * @param {string} [source] The source of the call
    * @returns {Array} The returned array will be used as Handsontable's new dataset.
    */
   'beforeLoadData',
@@ -2639,6 +2639,37 @@ export const REGISTERED_HOOKS = [
    * @param {object[]} conditionsStack An array of objects with your [column filters](@/api/filters.md#addcondition).
    */
   'afterFilter',
+
+  /**
+   * Return `true` when filtering is handled by an external source (e.g. server-side).
+   * The Filters plugin uses this to hide the "Filter by value" section when the value list
+   * is not available (e.g. DataProvider with server-side filtering).
+   *
+   * @since 17.1.0
+   * @event Hooks#filtersServerSideActive
+   * @returns {boolean|void} Return `true` when server-side filtering is active.
+   */
+  'filtersServerSideActive',
+
+  /**
+   * Used to read the current filter conditions from the Filters plugin. The Filters plugin registers
+   * a handler that returns the result of [[Filters#exportConditions]]. Call with `runHooks('getFiltersConditions')`.
+   *
+   * @since 17.1.0
+   * @event Hooks#getFiltersConditions
+   * @returns {Array|undefined} Current condition stack (same shape as [[Filters#exportConditions]]) or `undefined`.
+   */
+  'getFiltersConditions',
+
+  /**
+   * Used to set filter conditions on the Filters plugin. The Filters plugin registers a handler that
+   * calls [[Filters#importConditions]] and syncs component state. Call with `runHooks('setFiltersConditions', conditions)`.
+   *
+   * @since 17.1.0
+   * @event Hooks#setFiltersConditions
+   * @param {Array} conditions Condition stack (same shape as [[Filters#exportConditions]]).
+   */
+  'setFiltersConditions',
 
   /**
    * Fired by {@link Pagination} plugin before changing the page. This hook is fired when

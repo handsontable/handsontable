@@ -130,7 +130,16 @@ describe('dataProvider utils', () => {
   });
 
   describe('querySortToPluginSort', () => {
-    const propToCol = prop => (prop === 'name' ? 1 : (prop === 'id' ? 0 : -1));
+    const propToCol = (prop) => {
+      if (prop === 'name') {
+        return 1;
+      }
+      if (prop === 'id') {
+        return 0;
+      }
+
+      return -1;
+    };
 
     it('should return null for null or invalid sort', () => {
       expect(querySortToPluginSort(null, propToCol)).toBeNull();
@@ -159,11 +168,11 @@ describe('dataProvider utils', () => {
     });
 
     it('should return null when propToCol returns non-number', () => {
-      const propToCol = () => undefined;
+      const propToColStub = () => undefined;
 
       expect(querySortToPluginSort(
         { prop: 'unknown', order: 'asc' },
-        propToCol
+        propToColStub
       )).toBeNull();
     });
   });
