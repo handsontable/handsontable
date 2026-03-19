@@ -45,6 +45,8 @@ function getCurrencySymbol(currency, locale) {
 
     return parts.find(p => p.type === 'currency')?.value ?? currency;
   } catch {
+    // Intl.NumberFormat throws for unrecognised currency codes. Fall back to
+    // the raw currency string so the export still produces a usable result.
     return currency;
   }
 }

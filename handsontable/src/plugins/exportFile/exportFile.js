@@ -155,12 +155,7 @@ export class ExportFile extends BasePlugin {
       return;
     }
 
-    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
-
-    if (isObject(pluginSettings) && pluginSettings.contextMenu === true &&
-        this.hot.getPlugin('contextMenu').isEnabled()) {
-      this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
-    }
+    this.addHook('afterContextMenuDefaultOptions', (...args) => this.#onAfterContextMenuDefaultOptions(...args));
 
     super.enablePlugin();
   }
@@ -178,6 +173,12 @@ export class ExportFile extends BasePlugin {
    * @param {object} options Contains default added options of the Context Menu.
    */
   #onAfterContextMenuDefaultOptions(options) {
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+
+    if (!isObject(pluginSettings) || pluginSettings.contextMenu !== true) {
+      return;
+    }
+
     options.items.push(
       { name: '---------' },
       exportCsvItem(this),

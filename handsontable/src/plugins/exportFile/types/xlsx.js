@@ -27,8 +27,18 @@ import {
 } from './xlsx/date-utils';
 import { intlNumFormatToExcelNumFmt } from './xlsx/numeric-utils';
 
+// Approximate number of pixels occupied by one Excel column-width unit (character width
+// of the "Normal" style font at the default font size). Used to convert pixel widths
+// from Handsontable into the unitless width values expected by ExcelJS.
 const PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT = 7;
+
+// Conversion factor from CSS pixels to typographic points (1 pt = 1/72 in; 1 px = 1/96 in,
+// so 1 px = 72/96 = 0.75 pt). Used to convert Handsontable row heights (pixels) to the
+// point-based row heights expected by ExcelJS.
 const PIXELS_TO_POINTS_RATIO = 0.75;
+
+// Default width (in Excel column-width units) assigned to the frozen row-header column
+// when row headers are exported. Chosen to comfortably fit typical row-index numbers.
 const ROW_HEADER_DEFAULT_WIDTH = 5;
 
 /**
@@ -98,7 +108,7 @@ class Xlsx extends BaseType {
     const { sheets } = this.options;
 
     if (sheets && sheets.length > 0) {
-      // ── multi-sheet mode ─────────────────────────────────────────────────
+      // multi-sheet mode
       const usedSheetNames = new Set();
 
       sheets.forEach((sheetConfig) => {
@@ -123,7 +133,7 @@ class Xlsx extends BaseType {
         this.#populateWorksheet(worksheet, dp, sheetOptions);
       });
     } else {
-      // ── single-sheet mode ────────────────────────────────────────────────
+      // single-sheet mode
       const worksheet = workbook.addWorksheet('Sheet1');
 
       this.#populateWorksheet(worksheet, this.dataProvider, this.options);
@@ -242,7 +252,7 @@ class Xlsx extends BaseType {
     // suppressed entirely whenever ColumnSummary is present.
     const hasColumnSummary = summaryMap.size > 0;
     const hasReadOnlyCells = !hasColumnSummary &&
-      cellsMeta.some(row => row?.some(meta => meta?.readOnly === true));
+      cellsMeta.some(row => row.some(meta => meta.readOnly === true));
 
     this.#writeDataRows(
       worksheet, data, cellsMeta, cellElements, rowHeaders, rowsHeights,
@@ -374,7 +384,7 @@ class Xlsx extends BaseType {
     for (let colIndex = 0; colIndex < rowData.length; colIndex++) {
       const cellValue = rowData[colIndex];
       const cell = row.getCell(colIndex + cellContext.dataColOffset);
-      const meta = cellsMeta[rowIndex]?.[colIndex];
+      const meta = cellsMeta[rowIndex][colIndex];
       const summary = summaryMap.get(`${rowIndex}:${colIndex}`);
       const sourceValue = sourceData?.[rowIndex]?.[colIndex];
       const { value, numFmt } = this.#resolveCellValue(cellValue, meta, sourceValue, summary, cellContext);
@@ -386,13 +396,13 @@ class Xlsx extends BaseType {
       }
 
       const cssStyle = getCssStyleFromElement(
-        cellElements[rowIndex]?.[colIndex], meta?.className, rootDocument, rootWindow
+        cellElements[rowIndex][colIndex], meta.className, rootDocument, rootWindow
       );
 
       this.#writeCellStyling(cell, meta, cssStyle);
 
       if (hasReadOnlyCells) {
-        cell.protection = { locked: meta?.readOnly === true };
+        cell.protection = { locked: meta.readOnly === true };
       }
     }
   }
@@ -440,7 +450,7 @@ class Xlsx extends BaseType {
       cell.dataValidation = dropdownValidation;
     }
 
-    if (meta?.comment?.value) {
+    if (meta.comment?.value) {
       cell.note = String(meta.comment.value);
     }
   }
@@ -458,7 +468,7 @@ class Xlsx extends BaseType {
    * 7. All other cells (numeric-aware or stringified).
    *
    * @param {*} cellValue Pre-calculated display value from `getData()`.
-   * @param {object|undefined} meta Cell meta object.
+   * @param {object} meta Cell meta object.
    * @param {*} sourceValue Raw source value from `getSourceDataAtCell()` (may be a formula string).
    * @param {object|undefined} summary ColumnSummary descriptor, or `undefined` for non-summary cells.
    * @param {object} cellContext Sheet-level context with formula and offset parameters.
@@ -489,7 +499,7 @@ class Xlsx extends BaseType {
       };
     }
 
-    if (meta?.type === 'date' || meta?.type === 'intl-date') {
+    if (meta.type === 'date' || meta.type === 'intl-date') {
       const serial = parseIsoStringToSerial(cellValue);
 
       if (serial !== null) {
@@ -497,7 +507,7 @@ class Xlsx extends BaseType {
       }
     }
 
-    if (meta?.type === 'time' || meta?.type === 'intl-time') {
+    if (meta.type === 'time' || meta.type === 'intl-time') {
       const serial = parseTimeStringToSerial(cellValue);
 
       if (serial !== null) {
@@ -505,18 +515,18 @@ class Xlsx extends BaseType {
       }
     }
 
-    if (meta?.type === 'checkbox') {
+    if (meta.type === 'checkbox') {
       return { value: this.#getCheckboxValue(cellValue, meta), numFmt: null };
     }
 
-    if (meta?.type === 'multiselect') {
+    if (meta.type === 'multiselect') {
       return { value: this.#getMultiSelectExportValue(cellValue), numFmt: null };
     }
 
-    if (meta?.type === 'numeric') {
+    if (meta.type === 'numeric') {
       return {
         value: this.#getCellValue(cellValue, meta),
-        numFmt: intlNumFormatToExcelNumFmt(meta?.numericFormat, meta?.locale),
+        numFmt: intlNumFormatToExcelNumFmt(meta.numericFormat, meta.locale),
       };
     }
 
@@ -527,7 +537,7 @@ class Xlsx extends BaseType {
    * Converts a raw cell value to an ExcelJS-compatible value.
    *
    * @param {*} value Raw cell value.
-   * @param {object|undefined} meta Cell meta object.
+   * @param {object} meta Cell meta object.
    * @returns {null|number|string}
    */
   #getCellValue(value, meta) {
@@ -535,7 +545,7 @@ class Xlsx extends BaseType {
       return null;
     }
 
-    if (meta?.type === 'numeric') {
+    if (meta.type === 'numeric') {
       if (typeof value === 'number') {
         return value;
       }
@@ -552,11 +562,11 @@ class Xlsx extends BaseType {
    * Returns the boolean export value for a checkbox cell.
    *
    * @param {*} value Raw cell value.
-   * @param {object|undefined} meta Cell meta object.
+   * @param {object} meta Cell meta object.
    * @returns {boolean}
    */
   #getCheckboxValue(value, meta) {
-    const checkedTemplate = meta?.checkedTemplate ?? true;
+    const checkedTemplate = meta.checkedTemplate ?? true;
 
     return value === checkedTemplate;
   }

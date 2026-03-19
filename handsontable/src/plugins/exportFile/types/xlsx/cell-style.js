@@ -5,6 +5,25 @@ import { isDefined } from '../../../../helpers/mixed';
 const READ_ONLY_BG_ARGB = 'FFF0F0F0';
 const READ_ONLY_TEXT_ARGB = 'FF808080';
 
+/**
+ * Normalises a cell `className` meta value to a flat array of non-empty class strings.
+ * Accepts a space-separated string, an array of strings, or a nullish value.
+ *
+ * @param {string|string[]|null|undefined} className
+ * @returns {string[]}
+ */
+function normalizeClassNames(className) {
+  if (Array.isArray(className)) {
+    return className.filter(c => c.length > 0);
+  }
+
+  if (typeof className === 'string') {
+    return className.split(' ').filter(c => c.length > 0);
+  }
+
+  return [];
+}
+
 // Per-export cache for detectExplicitBackgroundColor results.
 // Keyed by document (WeakMap — avoids leaking document references) then by the
 // joined className string. Cleared at the start of each export so CSS rule
@@ -235,7 +254,7 @@ function getCssStyleFromProbe(doc, view, metaClasses) {
  * document fallback are available, or when the className has no custom classes.
  *
  * @param {HTMLElement|null} element The rendered `<td>` element, or `null`.
- * @param {string|undefined} className The cell's `className` meta value.
+ * @param {string|string[]|undefined} className The cell's `className` meta value.
  * @param {Document|null} [rootDocument] Fallback document used when `element` is `null`.
  * @param {Window|null} [rootWindow] Fallback window used when `element` is `null`.
  * @returns {{ fontBold: boolean, fontItalic: boolean, fontUnderline: boolean,
@@ -247,9 +266,7 @@ export function getCssStyleFromElement(element, className, rootDocument = null, 
       return null;
     }
 
-    const metaClasses = typeof className === 'string'
-      ? className.split(' ').filter(c => c.length > 0)
-      : [];
+    const metaClasses = normalizeClassNames(className);
 
     if (!metaClasses.some(c => !ALIGNMENT_CLASS_NAMES.has(c))) {
       return null;
@@ -266,10 +283,7 @@ export function getCssStyleFromElement(element, className, rootDocument = null, 
 
   const style = view.getComputedStyle(element);
 
-  const metaClasses = typeof className === 'string'
-    ? className.split(' ').filter(c => c.length > 0)
-    : [];
-
+  const metaClasses = normalizeClassNames(className);
   const hasCustomClass = metaClasses.some(c => !ALIGNMENT_CLASS_NAMES.has(c));
 
   return {
@@ -347,7 +361,7 @@ export function getAlignmentFromMeta(meta) {
     return null;
   }
 
-  const classes = meta.className.split(' ');
+  const classes = normalizeClassNames(meta.className);
   const alignment = {};
 
   if (classes.includes('htLeft')) {
@@ -532,6 +546,6 @@ export function getDropdownValidation(meta) {
   return {
     type: 'list',
     allowBlank: true,
-    formulae: [`"${meta.source.join(',')}"`],
+    formulae: [`"${meta.source.map(v => String(v).replace(/"/g, '""')).join(',')}"`],
   };
 }
