@@ -148,6 +148,7 @@ These custom rules are enforced and will cause lint failures if violated:
 - **Method ordering**: Public methods first, then `@private` listeners.
 - **Destructors**: Remove all variables in destructors (after `hot.destroy()`).
 - **Browser compatibility**: Ensure chosen CSS and JS APIs are supported in all supported browsers (Chrome, Firefox, Safari — two latest major versions, Edge).
+- **Optional chaining (`?.`)**: Use only when a value is genuinely optional by design, not as a blanket safety net. If a value is guaranteed by the data contract (e.g., parallel arrays from the same iterator, or APIs like `getCellMeta()` that always return an object), access it directly without `?.`. Unnecessary optional chaining hides bugs and misleads contributors into assuming a value can be null when it cannot.
 
 ### Naming conventions
 
