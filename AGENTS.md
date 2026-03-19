@@ -114,6 +114,7 @@ Every code change produced by an agent **must** satisfy all of the following:
 1. **Tests are required.** Every change must include both **unit tests** (Jest, `*.unit.js`) and **E2E tests** (Jasmine/Puppeteer, `*.spec.js`). No change is considered complete without test coverage for the new or modified behavior.
 2. **Documentation must be updated.** If a change affects the public API, configuration options, hooks, behavior, or user-facing experience, the corresponding documentation (guides, API reference via JSDoc/Typedoc, migration guide) **must** be updated as part of the same change.
 3. **Update AGENTS.md.** If a change introduces new conventions, patterns, constraints, file locations, or gotchas that future agents should know about, this `AGENTS.md` file **must** be updated to reflect them.
+4. **Use red–green TDD for every bug fix and minor feature.** First, reproduce the problem or expected behavior with a test and confirm it fails (red). Only after that, implement the code change and make the same test pass (green). Do not start a fix or behavior change before you have a failing test.
 
 ---
 
