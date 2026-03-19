@@ -228,7 +228,6 @@ const VALID_TOKEN_KEYS = new Set([
   'iconButtonBorderColor',
   'iconButtonBackgroundColor',
   'iconButtonIconColor',
-  'iconButtonHitAreaSize',
   'iconButtonHoverBorderColor',
   'iconButtonHoverBackgroundColor',
   'iconButtonHoverIconColor',
