@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added a hit area for dropdown menu and collapsible buttons",
-  "type": "added",
-  "issueOrPR": 12070,
-  "breaking": false,
-  "framework": "none"
-}
