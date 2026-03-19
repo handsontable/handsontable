@@ -233,15 +233,17 @@ export class BottomOverlay extends Overlay {
   applyToDOM() {
     const total = this.wtSettings.getSetting('totalRows');
 
-    if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-      this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
+    if (this.spreader.style.position !== 'sticky') {
+      if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
+        this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
-    } else if (total === 0) {
-      // can happen if there are 0 rows
-      this.spreader.style.top = '0';
+      } else if (total === 0) {
+        // can happen if there are 0 rows
+        this.spreader.style.top = '0';
 
-    } else {
-      throwWithCause('Incorrect value of the rowsRenderCalculator');
+      } else {
+        throwWithCause('Incorrect value of the rowsRenderCalculator');
+      }
     }
 
     this.spreader.style.bottom = '';

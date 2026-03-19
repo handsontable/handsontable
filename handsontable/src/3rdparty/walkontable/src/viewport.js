@@ -16,7 +16,9 @@ import {
   RenderedRowsCalculationType,
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
+  DEFAULT_COLUMN_WIDTH,
 } from './calculator';
+import { PositionCache } from './utils/positionCache';
 
 /**
  * @class Viewport
@@ -56,6 +58,21 @@ class Viewport {
       ['fullyVisible', () => new FullyVisibleColumnsCalculationType()],
       ['partiallyVisible', () => new PartiallyVisibleColumnsCalculationType()],
     ]);
+
+    /**
+     * Cumulative row height prefix sum cache. Enables O(log n) scroll-to-row lookups
+     * when custom row heights are configured.
+     *
+     * @type {PositionCache}
+     */
+    this.rowHeightCache = new PositionCache();
+    /**
+     * Cumulative column width prefix sum cache. Enables O(log n) scroll-to-column lookups
+     * when custom column widths are configured.
+     *
+     * @type {PositionCache}
+     */
+    this.columnWidthCache = new PositionCache();
 
     this.eventManager = eventManager;
     this.eventManager.addEventListener(this.domBindings.rootWindow, 'resize', () => {
@@ -339,15 +356,25 @@ class Viewport {
       scrollbarHeight = getScrollbarWidth(this.domBindings.rootDocument);
     }
 
+    const totalRowCount = wtSettings.getSetting('totalRows');
+    const defaultRowHeight = wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
+    const rowHeightFn = sourceRow => wtTable.getRowHeight(sourceRow);
+
+    // Rebuild the prefix sum cache if it's invalidated or row count changed.
+    if (!this.rowHeightCache.isBuilt() || this.rowHeightCache.totalItems !== totalRowCount) {
+      this.rowHeightCache.build(totalRowCount, rowHeightFn, defaultRowHeight);
+    }
+
     return new ViewportRowsCalculator({
       calculationTypes: calculatorTypes.map(type => [type, this.rowsCalculatorTypes.get(type)()]),
       viewportHeight: height,
       scrollOffset: pos,
-      totalRows: wtSettings.getSetting('totalRows'),
-      defaultRowHeight: wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
-      rowHeightFn: sourceRow => wtTable.getRowHeight(sourceRow),
+      totalRows: totalRowCount,
+      defaultRowHeight,
+      rowHeightFn,
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
       horizontalScrollbarHeight: scrollbarHeight,
+      rowHeightCache: this.rowHeightCache,
     });
   }
 
@@ -380,14 +407,23 @@ class Viewport {
       width -= getScrollbarWidth(this.domBindings.rootDocument);
     }
 
+    const totalColumnCount = wtSettings.getSetting('totalColumns');
+    const columnWidthFn = sourceCol => wtTable.getColumnWidth(sourceCol);
+
+    // Rebuild the prefix sum cache if it's invalidated or column count changed.
+    if (!this.columnWidthCache.isBuilt() || this.columnWidthCache.totalItems !== totalColumnCount) {
+      this.columnWidthCache.build(totalColumnCount, columnWidthFn, DEFAULT_COLUMN_WIDTH);
+    }
+
     return new ViewportColumnsCalculator({
       calculationTypes: calculatorTypes.map(type => [type, this.columnsCalculatorTypes.get(type)()]),
       viewportWidth: width,
       scrollOffset: pos,
-      totalColumns: wtSettings.getSetting('totalColumns'),
-      columnWidthFn: sourceCol => wtTable.getColumnWidth(sourceCol),
+      totalColumns: totalColumnCount,
+      columnWidthFn,
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
-      inlineStartOffset: this.dataAccessObject.inlineStartParentOffset
+      inlineStartOffset: this.dataAccessObject.inlineStartParentOffset,
+      columnWidthCache: this.columnWidthCache,
     });
   }
 
@@ -401,8 +437,31 @@ class Viewport {
    */
   createCalculators(fastDraw = false) {
     const { wtSettings } = this;
+
+    // Invalidate size caches on non-fast draws (triggered by data changes,
+    // updateSettings, or the scroll-idle deferred draw). This ensures the caches
+    // rebuild with fresh sizes from markOversizedRows or new settings.
+    if (!fastDraw) {
+      if (this.rowHeightCache.isBuilt()) {
+        this.rowHeightCache.invalidate();
+      }
+      if (this.columnWidthCache.isBuilt()) {
+        this.columnWidthCache.invalidate();
+      }
+    }
+
     const rowsCalculator = this.createRowsCalculator();
     const columnsCalculator = this.createColumnsCalculator();
+
+    // PROFILING: log iteration counts
+    if (typeof performance !== 'undefined' && rowsCalculator._rowsIterated !== undefined) {
+      if (!this._profData) {
+        this._profData = { calls: 0, totalRowIter: 0, totalColIter: 0, fastDraws: 0, fullDraws: 0 };
+      }
+      this._profData.calls++;
+      this._profData.totalRowIter += rowsCalculator._rowsIterated;
+      this._profData.totalColIter += (columnsCalculator._colsIterated || 0);
+    }
 
     if (fastDraw && !wtSettings.getSetting('renderAllRows')) {
       const proposedFullyVisibleRowsCalculator = rowsCalculator.getResultsFor('fullyVisible');
@@ -427,6 +486,20 @@ class Viewport {
     if (!fastDraw) {
       this.rowsRenderCalculator = rowsCalculator.getResultsFor('rendered');
       this.columnsRenderCalculator = columnsCalculator.getResultsFor('rendered');
+    }
+
+    // PROFILING: track fast/full draw counts
+    if (this._profData) {
+      if (fastDraw) {
+        this._profData.fastDraws++;
+      } else {
+        this._profData.fullDraws++;
+      }
+      // Log summary every 50 calls
+      if (this._profData.calls % 50 === 0) {
+        // eslint-disable-next-line no-console
+        console.log('[WOT-PROF] createCalculators stats:', JSON.stringify(this._profData));
+      }
     }
 
     this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');

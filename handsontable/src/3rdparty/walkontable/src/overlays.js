@@ -323,6 +323,53 @@ class Overlays {
     const { mainTableScrollableElement: topOverlayScrollableElement } = this.topOverlay;
     const { mainTableScrollableElement: inlineStartOverlayScrollableElement } = this.inlineStartOverlay;
 
+    // Detect scrollbar thumb drag: mousedown in the scrollbar gutter area
+    // (beyond clientWidth/clientHeight) indicates a scrollbar grab.
+    const holder = this.wtTable.holder;
+
+    this.eventManager.addEventListener(holder, 'mousedown', (event) => {
+      const isRtl = this.wtSettings.getSetting('rtlMode');
+      const scrollbarWidth = holder.offsetWidth - holder.clientWidth;
+      const scrollbarHeight = holder.offsetHeight - holder.clientHeight;
+      const rect = holder.getBoundingClientRect();
+      const localX = event.clientX - rect.left;
+      const localY = event.clientY - rect.top;
+
+      // Check if click is in the vertical scrollbar area (right edge, or left edge for RTL)
+      const inVerticalScrollbar = isRtl
+        ? localX < scrollbarWidth
+        : localX > holder.clientWidth;
+
+      // Check if click is in the horizontal scrollbar area (bottom edge)
+      const inHorizontalScrollbar = localY > holder.clientHeight;
+
+      if (inVerticalScrollbar || inHorizontalScrollbar) {
+        this._scrollbarDragging = true;
+      }
+    });
+
+    this.eventManager.addEventListener(rootWindow, 'mouseup', () => {
+      if (this._scrollbarDragging) {
+        this._scrollbarDragging = false;
+
+        // Restore spreader positioning when scrollbar is released
+        const spreader = this.wtTable.spreader;
+        const leftSpreader = this.inlineStartOverlay.clone?.wtTable?.spreader;
+
+        if (spreader && spreader.style.position === 'sticky') {
+          spreader.style.position = 'relative';
+        }
+        if (leftSpreader && leftSpreader.style.position === 'sticky') {
+          leftSpreader.style.position = 'relative';
+        }
+
+        // Trigger a full draw to restore correct spreader positions
+        if (this.wot.drawn && this.wtTable.holder.parentNode) {
+          this.wot.draw(false);
+        }
+      }
+    });
+
     this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', event => this.onKeyDown(event));
     this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
     this.eventManager.addEventListener(rootDocument, 'visibilitychange', () => this.onKeyUp());
@@ -347,14 +394,17 @@ class Overlays {
     const preventWheel = this.wtSettings.getSetting('preventWheel');
     const wheelEventOptions = { passive: isScrollOnWindow };
 
-    if (preventWheel || isHighPixelRatio || !isChrome()) {
-      this.eventManager.addEventListener(
-        this.wtTable.wtRootElement,
-        'wheel',
-        event => this.onCloneWheel(event, preventWheel),
-        wheelEventOptions
-      );
-    }
+    // Always intercept wheel events on the master table to prevent native scroll.
+    // Native scroll causes white canvas flicker because the browser reveals empty
+    // areas before JS can render new rows. By handling wheel programmatically
+    // (translateMouseWheelToScroll → scrollTop/scrollLeft), the scroll position
+    // and content update happen in the same JS execution context, eliminating flicker.
+    this.eventManager.addEventListener(
+      this.wtTable.wtRootElement,
+      'wheel',
+      event => this.onCloneWheel(event, true),
+      { passive: false }
+    );
 
     const overlays = [
       this.topOverlay,
@@ -535,6 +585,10 @@ class Overlays {
     if (this.destroyed) {
       return;
     }
+    // PROFILING: mark scroll event start
+    if (typeof performance !== 'undefined') {
+      performance.mark('wot-scroll-start');
+    }
 
     const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
     const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
@@ -559,6 +613,19 @@ class Overlays {
 
     this.horizontalScrolling = this.lastScrollX !== scrollX;
     this.verticalScrolling = this.lastScrollY !== scrollY;
+
+    // Track scroll velocity and direction for adaptive buffer sizing.
+    const now = performance.now();
+    const dt = now - (this._lastScrollTime || now);
+
+    if (dt > 0) {
+      this._scrollVelocityY = Math.abs(scrollY - this.lastScrollY) / dt;
+      this._scrollVelocityX = Math.abs(scrollX - this.lastScrollX) / dt;
+    }
+    this._scrollDirectionY = Math.sign(scrollY - this.lastScrollY);
+    this._scrollDirectionX = Math.sign(scrollX - this.lastScrollX);
+    this._lastScrollTime = now;
+
     this.lastScrollX = scrollX;
     this.lastScrollY = scrollY;
 
@@ -576,7 +643,49 @@ class Overlays {
       leftHolder.scrollTop = scrollY;
     }
 
+    // Mark as actively scrolling. The flag is cleared after a debounce period
+    // of no scroll events, allowing deferred post-render work to run.
+    this._activelyScrolling = true;
+
+    const spreader = this.wtTable.spreader;
+
+    // Pin the master table's spreader and the inline start overlay's spreader to the
+    // viewport using position:sticky, but ONLY when the user is dragging the scrollbar
+    // thumb. During normal scrolling (wheel, keyboard, programmatic), render normally
+    // so content updates are immediate.
+    if (this._scrollbarDragging) {
+      if (spreader && spreader.style.position !== 'sticky') {
+        spreader.style.position = 'sticky';
+        spreader.style.top = '0px';
+      }
+
+      const leftSpreader = this.inlineStartOverlay.clone?.wtTable?.spreader;
+
+      if (leftSpreader && leftSpreader.style.position !== 'sticky') {
+        leftSpreader.style.position = 'sticky';
+        leftSpreader.style.top = '0px';
+      }
+    }
+
+    if (this._scrollIdleTimer) {
+      clearTimeout(this._scrollIdleTimer);
+    }
+    this._scrollIdleTimer = setTimeout(() => {
+      this._activelyScrolling = false;
+
+      // Run deferred post-render work (markOversizedRows, visible calculators, etc.)
+      if (this.wot.drawn && this.wtTable.holder.parentNode) {
+        this.wot.draw(false);
+      }
+    }, 100);
+
     this.refreshAll();
+
+    // PROFILING: mark scroll event end
+    if (typeof performance !== 'undefined') {
+      performance.mark('wot-scroll-end');
+      performance.measure('wot-scroll-total', 'wot-scroll-start', 'wot-scroll-end');
+    }
   }
 
   /**
@@ -661,21 +770,45 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
+    // PROFILING: breakdown overlay refresh
+    const _p = typeof performance !== 'undefined';
 
-    if (wasSpreaderSizeUpdated) {
-      this.adjustElementsSize();
+    if (_p) { performance.mark('wot-spreader-start'); }
+
+    // During scroll-triggered draws, skip the spreader size check entirely to avoid forced
+    // synchronous layout reflow. Reading clientWidth/clientHeight right after DOM modifications
+    // forces the browser to synchronously compute layout. During scroll, total data dimensions
+    // do not change, so the hider dimensions remain stable. The next non-scroll draw (e.g.,
+    // data change, resize) will catch up and update the spreader size.
+    const isScrollTriggered = this.verticalScrolling || this.horizontalScrolling;
+
+    if (!isScrollTriggered) {
+      const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
+
+      if (wasSpreaderSizeUpdated) {
+        this.adjustElementsSize();
+      }
     }
+    if (_p) { performance.mark('wot-spreader-end'); performance.measure('wot-spreader-size', 'wot-spreader-start', 'wot-spreader-end'); }
 
     if (this.bottomOverlay.clone) {
+      if (_p) { performance.mark('wot-ov-bottom-start'); }
       this.bottomOverlay.refresh(fastDraw);
+      if (_p) { performance.mark('wot-ov-bottom-end'); performance.measure('wot-ov-bottom', 'wot-ov-bottom-start', 'wot-ov-bottom-end'); }
     }
 
+    if (_p) { performance.mark('wot-ov-left-start'); }
     this.inlineStartOverlay.refresh(fastDraw);
+    if (_p) { performance.mark('wot-ov-left-end'); performance.measure('wot-ov-left', 'wot-ov-left-start', 'wot-ov-left-end'); }
+
+    if (_p) { performance.mark('wot-ov-top-start'); }
     this.topOverlay.refresh(fastDraw);
+    if (_p) { performance.mark('wot-ov-top-end'); performance.measure('wot-ov-top', 'wot-ov-top-start', 'wot-ov-top-end'); }
 
     if (this.topInlineStartCornerOverlay) {
+      if (_p) { performance.mark('wot-ov-corner-start'); }
       this.topInlineStartCornerOverlay.refresh(fastDraw);
+      if (_p) { performance.mark('wot-ov-corner-end'); performance.measure('wot-ov-corner', 'wot-ov-corner-start', 'wot-ov-corner-end'); }
     }
 
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {

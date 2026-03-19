@@ -9,6 +9,7 @@ import { ViewportBaseCalculator } from './viewportBase';
  * @property {Function} rowHeightFn Function that returns the height of the row at a given index (in px).
  * @property {Function} overrideFn Function that allows to adjust the `startRow` and `endRow` parameters.
  * @property {number} horizontalScrollbarHeight The scrollbar height.
+ * @property {PositionCache} [rowHeightCache] Optional prefix sum cache for O(log n) row lookups.
  */
 /**
  * Calculates indexes of rows to render OR rows that are visible OR partially visible in the viewport.
@@ -41,6 +42,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     rowHeightFn,
     overrideFn,
     horizontalScrollbarHeight,
+    rowHeightCache,
   }) {
     super(calculationTypes);
     this.defaultHeight = defaultRowHeight;
@@ -52,6 +54,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     this.overrideFn = overrideFn;
     this.horizontalScrollbarHeight = horizontalScrollbarHeight ?? 0;
     this.innerViewportHeight = this.zeroBasedScrollOffset + this.viewportHeight - this.horizontalScrollbarHeight;
+    this.rowHeightCache = rowHeightCache ?? null;
 
     this.calculate();
   }
@@ -62,12 +65,46 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
   calculate() {
     this._initialize(this);
 
-    for (let row = 0; row < this.totalRows; row++) {
+    // Use the prefix sum cache for O(log n) skip when available (handles both
+    // uniform and custom row heights). Falls back to O(1) division for uniform
+    // heights when no cache is provided.
+    let startRow = 0;
+
+    if (this.zeroBasedScrollOffset > 0 && this.totalRows > 0) {
+      if (this.rowHeightCache && this.rowHeightCache.isBuilt()) {
+        // Binary search the prefix sum to find the row at the scroll offset.
+        // Safety margin of 30 rows accounts for the buffer the overrideFn adds.
+        const cachedRow = this.rowHeightCache.findIndexAtOffset(this.zeroBasedScrollOffset);
+
+        startRow = Math.max(0, cachedRow - 30);
+        this.totalCalculatedHeight = this.rowHeightCache.getOffset(startRow);
+
+        if (startRow > 0) {
+          this.startPositions[startRow - 1] = this.rowHeightCache.getOffset(startRow - 1);
+        }
+
+      } else if (this.defaultHeight > 0) {
+        // No cache — uniform height fast path via division.
+        const estimatedRow = Math.min(
+          Math.floor(this.zeroBasedScrollOffset / this.defaultHeight),
+          this.totalRows - 1
+        );
+
+        startRow = Math.max(0, estimatedRow - 30);
+        this.totalCalculatedHeight = startRow * this.defaultHeight;
+
+        if (startRow > 0) {
+          this.startPositions[startRow - 1] = (startRow - 1) * this.defaultHeight;
+        }
+      }
+    }
+
+    for (let row = startRow; row < this.totalRows; row++) {
       this.rowHeight = this.getRowHeight(row);
 
       this._process(row, this);
 
-      this.startPositions.push(this.totalCalculatedHeight);
+      this.startPositions[row] = this.totalCalculatedHeight;
       this.totalCalculatedHeight += this.rowHeight;
 
       if (this.totalCalculatedHeight >= this.innerViewportHeight) {

@@ -11,6 +11,7 @@ export const DEFAULT_WIDTH = 50;
  * @property {Function} columnWidthFn Function that returns the width of the column at a given index (in px).
  * @property {Function} overrideFn Function that allows to adjust the `startRow` and `endRow` parameters.
  * @property {string} inlineStartOffset Inline-start offset of the parent container.
+ * @property {PositionCache} [columnWidthCache] Optional prefix sum cache for O(log n) column lookups.
  */
 /**
  * Calculates indexes of columns to render OR columns that are visible OR partially visible in the viewport.
@@ -41,6 +42,7 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
     columnWidthFn,
     overrideFn,
     inlineStartOffset,
+    columnWidthCache,
   }) {
     super(calculationTypes);
     this.viewportWidth = viewportWidth;
@@ -50,6 +52,7 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
     this.columnWidthFn = columnWidthFn;
     this.overrideFn = overrideFn;
     this.inlineStartOffset = inlineStartOffset;
+    this.columnWidthCache = columnWidthCache ?? null;
 
     this.calculate();
   }
@@ -60,12 +63,29 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
   calculate() {
     this._initialize(this);
 
-    for (let column = 0; column < this.totalColumns; column++) {
+    // Use the prefix sum cache for O(log n) skip when available.
+    // Falls back to iterating from column 0 when no cache is provided.
+    let startColumn = 0;
+
+    if (this.zeroBasedScrollOffset > 0 && this.totalColumns > 0) {
+      if (this.columnWidthCache && this.columnWidthCache.isBuilt()) {
+        const cachedCol = this.columnWidthCache.findIndexAtOffset(this.zeroBasedScrollOffset);
+
+        startColumn = Math.max(0, cachedCol - 15);
+        this.totalCalculatedWidth = this.columnWidthCache.getOffset(startColumn);
+
+        if (startColumn > 0) {
+          this.startPositions[startColumn - 1] = this.columnWidthCache.getOffset(startColumn - 1);
+        }
+      }
+    }
+
+    for (let column = startColumn; column < this.totalColumns; column++) {
       this.columnWidth = this.getColumnWidth(column);
 
       this._process(column, this);
 
-      this.startPositions.push(this.totalCalculatedWidth);
+      this.startPositions[column] = this.totalCalculatedWidth;
       this.totalCalculatedWidth += this.columnWidth;
 
       if (this.totalCalculatedWidth >= this.zeroBasedScrollOffset + this.viewportWidth) {

@@ -236,11 +236,19 @@ export class InlineStartOverlay extends Overlay {
    * Synchronize calculated top position to an element.
    */
   syncOverlayOffset() {
+    const cloneSpreader = this.clone.wtTable.spreader;
+
+    // When the spreader is in sticky mode (during scrollbar drag), skip setting
+    // style.top — the sticky positioning keeps it pinned to the viewport.
+    if (cloneSpreader.style.position === 'sticky') {
+      return;
+    }
+
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-      this.clone.wtTable.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
+      cloneSpreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
     } else {
-      this.clone.wtTable.spreader.style.top = '';
+      cloneSpreader.style.top = '';
     }
   }
 
