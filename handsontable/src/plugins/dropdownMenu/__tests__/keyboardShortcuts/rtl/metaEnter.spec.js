@@ -36,8 +36,8 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         const menuOffset = $dropdownMenu.offset();
         const menuWidth = $dropdownMenu.outerWidth();
         const cellOffset = $(cell).offset();
-        const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
-        const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
+        const buttonOffset = $(cell.querySelector('.changeType')).offset();
+        const buttonWidth = $(cell.querySelector('.changeType')).outerWidth();
 
         expect($dropdownMenu.length).toBe(1);
         expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
@@ -68,7 +68,7 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
         const menuOffset = $dropdownMenu.offset();
         const cellOffset = $(cell).offset();
-        const buttonOffset = getDropdownMenuButtonIconOffset(-1, lastColumn);
+        const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
         expect($dropdownMenu.length).toBe(1);
         expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
