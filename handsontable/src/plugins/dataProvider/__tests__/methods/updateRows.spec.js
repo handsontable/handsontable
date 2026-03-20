@@ -119,4 +119,28 @@ describe('DataProvider `updateRows` method', () => {
 
     expect(onRowsUpdate).not.toHaveBeenCalled();
   });
+
+  it('should throw when id is null or undefined', async() => {
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }],
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => Promise.resolve({ rows: [{ id: 1 }], totalRows: 1 }),
+      }),
+    });
+
+    await sleep(50);
+
+    const plugin = getPlugin('dataProvider');
+    let caught;
+
+    try {
+      await plugin.updateRows([{ id: null, changes: { x: 1 } }]);
+    } catch (e) {
+      caught = e;
+    }
+
+    expect(caught).toBeDefined();
+    expect(caught.message).toContain('updateRows');
+  });
 });

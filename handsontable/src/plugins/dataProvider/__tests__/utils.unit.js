@@ -3,6 +3,7 @@ import {
   applyPaginationToQueryParameters,
   DATA_PROVIDER_INCOMPATIBLE_ENTRIES,
   disablePluginsIncompatibleWithDataProvider,
+  isCompleteDataProviderConfig,
   normalizeExternalPaginationPageSize,
   normalizeSortToQueryFormat,
   querySortToPluginSort,
@@ -224,6 +225,29 @@ describe('dataProvider utils', () => {
       syncColumnSortingFromQuerySort(plugin, { column: 0 });
 
       expect(plugin.setSortConfig).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isCompleteDataProviderConfig', () => {
+    it('should return false for incomplete or invalid configs', () => {
+      expect(isCompleteDataProviderConfig(undefined)).toBe(false);
+      expect(isCompleteDataProviderConfig(null)).toBe(false);
+      expect(isCompleteDataProviderConfig({})).toBe(false);
+      expect(isCompleteDataProviderConfig({ rowId: 'id', fetchRows: () => {} })).toBe(false);
+    });
+
+    it('should return true when all required callbacks and rowId are present', () => {
+      const noop = () => {};
+      const c = {
+        rowId: 'id',
+        fetchRows: noop,
+        onRowsCreate: noop,
+        onRowsUpdate: noop,
+        onRowsRemove: noop,
+      };
+
+      expect(isCompleteDataProviderConfig(c)).toBe(true);
+      expect(isCompleteDataProviderConfig({ ...c, rowId: () => 'x' })).toBe(true);
     });
   });
 

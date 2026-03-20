@@ -159,4 +159,28 @@ describe('DataProvider `removeRows` method', () => {
 
     expect(countRows()).toBe(1);
   });
+
+  it('should throw when an id is null or undefined', async() => {
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }],
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => Promise.resolve({ rows: [{ id: 1 }], totalRows: 1 }),
+      }),
+    });
+
+    await sleep(50);
+
+    const plugin = getPlugin('dataProvider');
+    let caught;
+
+    try {
+      await plugin.removeRows(null);
+    } catch (e) {
+      caught = e;
+    }
+
+    expect(caught).toBeDefined();
+    expect(caught.message).toContain('removeRows');
+  });
 });

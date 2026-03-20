@@ -95,6 +95,44 @@ describe('DataProvider', () => {
     expect(onRowsUpdate).not.toHaveBeenCalled();
   });
 
+  it('should queue onRowsUpdate when Clear column is used from the column dropdown menu', async() => {
+    const onRowsUpdate = jasmine.createSpy('onRowsUpdate').and.returnValue(Promise.resolve());
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      colHeaders: true,
+      dropdownMenu: true,
+      height: 200,
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => Promise.resolve({
+          rows: [
+            { id: 1, name: 'Alice' },
+            { id: 2, name: 'Bob' },
+          ],
+          totalRows: 2,
+        }),
+        onRowsUpdate,
+      }),
+    });
+
+    await sleep(50);
+
+    await dropdownMenu(1);
+    await selectDropdownMenuOption('Clear column');
+
+    await sleep(200);
+
+    expect(onRowsUpdate).toHaveBeenCalled();
+    const rowsArg = onRowsUpdate.calls.mostRecent().args[0];
+
+    expect(rowsArg.length).toBe(2);
+    expect(rowsArg[0].id).toBe(1);
+    expect(rowsArg[0].changes).toEqual(jasmine.objectContaining({ name: null }));
+    expect(rowsArg[1].id).toBe(2);
+    expect(rowsArg[1].changes).toEqual(jasmine.objectContaining({ name: null }));
+  });
+
   it('should support rowId as function', async() => {
     const config = createDataProviderConfig({
       rowId: row => row?.uid,

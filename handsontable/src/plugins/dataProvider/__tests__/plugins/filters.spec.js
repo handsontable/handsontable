@@ -97,6 +97,40 @@ describe('DataProvider with Filters plugin', () => {
     expect(conditionsAfterPage1).toEqual(conditionsAfterFilter);
   });
 
+  it('should render every row from fetchRows after filter when several rows share the filtered value', async() => {
+    const rows = [
+      { id: 37, model: 'Carbon Handlebar', price: 60.41 },
+      { id: 76, model: 'Carbon Handlebar', price: 309.18 },
+    ];
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'model' }, { data: 'price' }],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      trimRows: [0],
+      multiColumnSorting: true,
+      columnSorting: true,
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => Promise.resolve({ rows, totalRows: 2 }),
+      }),
+    });
+
+    await sleep(50);
+
+    const filtersPlugin = getPlugin('filters');
+
+    filtersPlugin.addCondition(1, 'contains', ['carbon handlebar']);
+    filtersPlugin.filter();
+
+    await sleep(100);
+
+    expect(countRows()).toBe(2);
+    expect(getDataAtCell(0, 1)).toBe('Carbon Handlebar');
+    expect(getDataAtCell(1, 1)).toBe('Carbon Handlebar');
+  });
+
   it('should pass filters with prop (column data key) to fetchRows, same as sort', async() => {
     const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(
       Promise.resolve({ rows: [{ id: 1, name: 'A', city: 'Warsaw' }], totalRows: 1 })

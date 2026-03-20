@@ -1,6 +1,6 @@
 import { BaseAction } from './_base';
 import { deepClone } from '../../../helpers/object';
-import { DATA_PROVIDER_BATCH_UPDATE_SOURCES } from '../../dataProvider/dataProvider';
+import { DATA_PROVIDER_BATCH_UPDATE_SOURCES } from '../../dataProvider/constants';
 
 /**
  * @param {object} settings Handsontable grid settings.

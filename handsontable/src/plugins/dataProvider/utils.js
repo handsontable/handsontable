@@ -1,5 +1,26 @@
+import { isFunction } from '../../helpers/function';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
+
+/**
+ * Whether `dataProvider` settings are complete enough for the DataProvider plugin to run.
+ *
+ * @param {*} c Value of the `dataProvider` setting.
+ * @returns {boolean}
+ */
+export function isCompleteDataProviderConfig(c) {
+  if (!c || typeof c !== 'object') {
+    return false;
+  }
+
+  const rid = c.rowId;
+
+  return (typeof rid === 'string' || isFunction(rid))
+    && isFunction(c.fetchRows)
+    && isFunction(c.onRowsCreate)
+    && isFunction(c.onRowsUpdate)
+    && isFunction(c.onRowsRemove);
+}
 
 /**
  * Settings/plugins that conflict with server-backed `dataProvider` mode.

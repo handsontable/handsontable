@@ -167,10 +167,14 @@ export class DataProvider extends BasePlugin {
   }): Promise<void>;
   /**
    * Update rows on the server via `onRowsUpdate`. Pass the same array shape as `onRowsUpdate` (one or more rows).
+   *
+   * @throws Error when any payload omits `id` or `id` is null or undefined.
    */
   updateRows(rows: RowUpdatePayload[]): Promise<void>;
   /**
    * Remove rows on the server via `onRowsRemove`. Pass a single id or an array of ids.
+   *
+   * @throws Error when any id is null or undefined.
    */
   removeRows(rowIds: unknown | unknown[]): Promise<void>;
 }

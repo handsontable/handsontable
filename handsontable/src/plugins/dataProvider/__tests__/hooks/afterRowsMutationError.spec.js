@@ -38,6 +38,37 @@ describe('DataProvider `afterRowsMutationError` hook', () => {
     }));
   });
 
+  it('should be called when row has no id after a batched cell edit', async() => {
+    const afterError = jasmine.createSpy('afterRowsMutationError');
+    const onRowsUpdate = jasmine.createSpy('onRowsUpdate').and.returnValue(Promise.resolve());
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => Promise.resolve({
+          rows: [{ name: 'A' }],
+          totalRows: 1,
+        }),
+        onRowsUpdate,
+      }),
+      afterRowsMutationError: afterError,
+    });
+
+    await sleep(50);
+
+    await setDataAtRowProp(0, 'name', 'B');
+
+    await sleep(150);
+
+    expect(onRowsUpdate).not.toHaveBeenCalled();
+    expect(afterError).toHaveBeenCalledWith(
+      'update',
+      jasmine.any(Error),
+      jasmine.objectContaining({ rows: jasmine.any(Array) })
+    );
+  });
+
   it('should be called when validation fails for update', async() => {
     const afterError = jasmine.createSpy('afterRowsMutationError');
 
