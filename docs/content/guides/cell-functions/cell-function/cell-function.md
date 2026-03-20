@@ -28,9 +28,9 @@ Every Handsontable cell has three associated functions that handle distinct conc
 
 | Function | Role | Implemented as |
 | --- | --- | --- |
-| `renderer` | Controls how a cell looks: DOM structure, CSS classes, HTML content | A plain function |
-| `editor` | Controls how a cell is edited: input element, keyboard handling, open/close lifecycle | A class extending `BaseEditor` |
-| `validator` | Decides whether a cell value is acceptable | A function or `RegExp` |
+| [`renderer`](@/guides/cell-functions/cell-renderer/cell-renderer.md) | Controls how a cell looks: DOM structure, CSS classes, HTML content | A plain function |
+| [`editor`](@/guides/cell-functions/cell-editor/cell-editor.md) | Controls how a cell is edited: input element, keyboard handling, open/close lifecycle | A class extending `BaseEditor` |
+| [`validator`](@/guides/cell-functions/cell-validator/cell-validator.md) | Decides whether a cell value is acceptable | A function or `RegExp` |
 
 The three functions are **independent**. You can mix and match any combination: use the built-in numeric editor with a custom renderer, override just the validator while keeping a built-in type, or write all three from scratch.
 
