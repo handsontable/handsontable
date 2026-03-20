@@ -401,6 +401,13 @@ export default defineConfig({
     // Rollup production build. The resolveId plugin hook above handles dev
     // serving; these aliases ensure the same resolution happens during `build`.
     resolve: {
+      // Force a single copy of react/react-dom across all chunks.
+      // Without this, Rollup may resolve react for out-of-root packages like
+      // wrappers/react-wrapper/ from their own node_modules, producing two
+      // React instances and causing "Cannot read properties of null (reading
+      // 'useId')" / hook dispatcher errors at runtime.
+      dedupe: ['react', 'react-dom', 'react-dom/client'],
+
       alias: [
         // ── Handsontable sub-paths (e.g. handsontable/editors/textEditor) ──
         // Must come before the bare 'handsontable' entry.
