@@ -48,8 +48,8 @@ const csvOptions = {
 const csvText: string = exportPlugin.exportAsString('csv');
 const csvTextWithOptions: string = exportPlugin.exportAsString('csv', csvOptions);
 
-const csvBlob: Blob | Promise<Blob> = exportPlugin.exportAsBlob('csv');
-const csvBlobWithOptions: Blob | Promise<Blob> = exportPlugin.exportAsBlob('csv', csvOptions);
+const csvBlob: Blob = exportPlugin.exportAsBlob('csv');
+const csvBlobWithOptions: Blob = exportPlugin.exportAsBlob('csv', csvOptions);
 
 exportPlugin.downloadFile('csv');
 exportPlugin.downloadFile('csv', csvOptions);
@@ -68,20 +68,20 @@ const xlsxOptions = {
 };
 
 // 'hide' is a valid value for exportHiddenColumns and exportHiddenRows.
-exportPlugin.downloadFile('xlsx', { exportHiddenColumns: 'hide', exportHiddenRows: 'hide' });
+exportPlugin.downloadFileAsync('xlsx', { exportHiddenColumns: 'hide', exportHiddenRows: 'hide' });
 
-const xlsxBlob: Blob | Promise<Blob> = exportPlugin.exportAsBlob('xlsx');
-const xlsxBlobWithOptions: Blob | Promise<Blob> = exportPlugin.exportAsBlob('xlsx', xlsxOptions);
+const xlsxBlob: Promise<Blob> = exportPlugin.exportAsBlob('xlsx');
+const xlsxBlobWithOptions: Promise<Blob> = exportPlugin.exportAsBlob('xlsx', xlsxOptions);
 
-const xlsxDownload: void | Promise<void> = exportPlugin.downloadFile('xlsx');
-const xlsxDownloadWithOptions: void | Promise<void> = exportPlugin.downloadFile('xlsx', xlsxOptions);
+const csvDownload: void = exportPlugin.downloadFile('csv');
+const csvDownloadWithOptions: void = exportPlugin.downloadFile('csv', csvOptions);
 
-// XLSX export can be awaited.
+// XLSX export must be awaited via downloadFileAsync.
 async function exportAsync(): Promise<void> {
-  const blob: Blob = await (exportPlugin.exportAsBlob('xlsx') as Promise<Blob>);
+  const blob: Blob = await exportPlugin.exportAsBlob('xlsx');
   const _size: number = blob.size;
 
-  await exportPlugin.downloadFile('xlsx', { filename: 'my-report' });
+  await exportPlugin.downloadFileAsync('xlsx', { filename: 'my-report' });
 }
 
 // ─── Conditional formatting ────────────────────────────────────────────────
@@ -96,7 +96,7 @@ const cfMinimal: ConditionalFormattingDescriptor = {
   rules: [],
 };
 
-exportPlugin.downloadFile('xlsx', {
+exportPlugin.downloadFileAsync('xlsx', {
   conditionalFormatting: [cf, cfMinimal],
 });
 
@@ -117,7 +117,7 @@ const sheet2: SheetOptions = {
   name: 'Q2 Sales',
 };
 
-exportPlugin.downloadFile('xlsx', {
+exportPlugin.downloadFileAsync('xlsx', {
   filename: 'annual-report',
   sheets: [sheet1, sheet2],
 });
@@ -127,3 +127,18 @@ exportPlugin.downloadFile('xlsx', {
 exportPlugin.exportAsString('csv', { sanitizeValues: false });
 exportPlugin.exportAsString('csv', { sanitizeValues: /^[+=@-]/ });
 exportPlugin.exportAsString('csv', { sanitizeValues: (val: string) => val.replace(/^=/, '') });
+
+// ─── downloadFileAsync ────────────────────────────────────────────────────
+
+// Basic call — returns Promise<void>.
+const asyncDownload: Promise<void> = exportPlugin.downloadFileAsync('xlsx');
+const asyncCsvDownload: Promise<void> = exportPlugin.downloadFileAsync('csv');
+
+// With options.
+const asyncDownloadWithOpts: Promise<void> = exportPlugin.downloadFileAsync('xlsx', xlsxOptions);
+
+// Can be awaited in an async context.
+async function testDownloadFileAsync(): Promise<void> {
+  await exportPlugin.downloadFileAsync('xlsx', { filename: 'async-report' });
+  await exportPlugin.downloadFileAsync('csv');
+}

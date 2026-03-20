@@ -240,6 +240,10 @@ export class ExportFile extends BasePlugin {
    * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
+   * @param {boolean} [options.exportFormulas=false] Export cell formulas instead of their computed values (XLSX only).
+   * @param {boolean|number} [options.compression=false] Enable DEFLATE compression: `true` uses level 6; a number 1–9 sets the level (XLSX only).
+   * @param {ConditionalFormattingDescriptor[]} [options.conditionalFormatting=[]] Conditional formatting rules to apply to the exported file (XLSX only).
+   * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
    * @returns {Blob|Promise<Blob>}
    */
   exportAsBlob(format, options = {}) {
@@ -307,7 +311,12 @@ export class ExportFile extends BasePlugin {
    * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
+   * @param {boolean} [options.exportFormulas=false] Export cell formulas instead of their computed values (XLSX only).
+   * @param {boolean|number} [options.compression=false] Enable DEFLATE compression: `true` uses level 6; a number 1–9 sets the level (XLSX only).
+   * @param {ConditionalFormattingDescriptor[]} [options.conditionalFormatting=[]] Conditional formatting rules to apply to the exported file (XLSX only).
+   * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
    * @returns {Promise<void>}
+   * @since 17.1.0
    */
   async downloadFileAsync(format, options = {}) {
     const formatter = this._createTypeFormatter(format, options);
