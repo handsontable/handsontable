@@ -84,24 +84,71 @@ class SelectEditor extends BaseEditor {
   }
 }
 
+const PRIORITY_COLORS: Record<string, string> = {
+  Low: '#22c55e',
+  Medium: '#f59e0b',
+  High: '#ef4444',
+  Critical: '#7c3aed',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  'To Do': '#6b7280',
+  'In Progress': '#3b82f6',
+  Review: '#f59e0b',
+  Done: '#22c55e',
+};
+
+function badgeRenderer(colorMap: Record<string, string>) {
+  return (
+    hotInstance: Handsontable.Core,
+    td: HTMLTableCellElement,
+    row: number,
+    col: number,
+    prop: string | number,
+    value: any
+  ): HTMLTableCellElement => {
+    td.innerText = '';
+
+    if (value) {
+      const badge = hotInstance.rootDocument.createElement('span');
+
+      badge.className = 'htSelectBadge';
+      badge.style.background = colorMap[value] ?? '#6b7280';
+      badge.innerText = value as string;
+      td.appendChild(badge);
+    }
+
+    return td;
+  };
+}
+
 const container = document.querySelector('#example2') as HTMLElement;
 
 new Handsontable(container, {
   data: [
-    ['Tesla', 'black'],
-    ['Nissan', 'white'],
-    ['Toyota', 'red'],
-    ['Honda', 'blue'],
-    ['Ford', 'silver'],
+    ['Migrate database schema', 'High', 'In Progress'],
+    ['Update API documentation', 'Medium', 'To Do'],
+    ['Fix authentication bug', 'Critical', 'Review'],
+    ['Add dark mode support', 'Low', 'Done'],
+    ['Improve test coverage', 'Medium', 'In Progress'],
+    ['Deploy to staging server', 'High', 'To Do'],
+    ['Refactor billing module', 'Medium', 'Done'],
   ],
-  colHeaders: ['Car', 'Color'],
+  colHeaders: ['Task', 'Priority', 'Status'],
   columns: [
     { type: 'text' },
     {
       editor: SelectEditor as typeof BaseEditor,
-      selectOptions: ['black', 'white', 'red', 'blue', 'silver'],
+      renderer: badgeRenderer(PRIORITY_COLORS),
+      selectOptions: ['Low', 'Medium', 'High', 'Critical'],
+    } as any,
+    {
+      editor: SelectEditor as typeof BaseEditor,
+      renderer: badgeRenderer(STATUS_COLORS),
+      selectOptions: ['To Do', 'In Progress', 'Review', 'Done'],
     } as any,
   ],
+  colWidths: [220, 110, 130],
   rowHeaders: true,
   height: 'auto',
   autoWrapRow: true,
