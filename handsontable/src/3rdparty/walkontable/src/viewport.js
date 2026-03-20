@@ -453,16 +453,6 @@ class Viewport {
     const rowsCalculator = this.createRowsCalculator();
     const columnsCalculator = this.createColumnsCalculator();
 
-    // PROFILING: log iteration counts
-    if (typeof performance !== 'undefined' && rowsCalculator._rowsIterated !== undefined) {
-      if (!this._profData) {
-        this._profData = { calls: 0, totalRowIter: 0, totalColIter: 0, fastDraws: 0, fullDraws: 0 };
-      }
-      this._profData.calls++;
-      this._profData.totalRowIter += rowsCalculator._rowsIterated;
-      this._profData.totalColIter += (columnsCalculator._colsIterated || 0);
-    }
-
     if (fastDraw && !wtSettings.getSetting('renderAllRows')) {
       const proposedFullyVisibleRowsCalculator = rowsCalculator.getResultsFor('fullyVisible');
       const proposedPartiallyVisibleRowsCalculator = rowsCalculator.getResultsFor('partiallyVisible');
@@ -486,20 +476,6 @@ class Viewport {
     if (!fastDraw) {
       this.rowsRenderCalculator = rowsCalculator.getResultsFor('rendered');
       this.columnsRenderCalculator = columnsCalculator.getResultsFor('rendered');
-    }
-
-    // PROFILING: track fast/full draw counts
-    if (this._profData) {
-      if (fastDraw) {
-        this._profData.fastDraws++;
-      } else {
-        this._profData.fullDraws++;
-      }
-      // Log summary every 50 calls
-      if (this._profData.calls % 50 === 0) {
-        // eslint-disable-next-line no-console
-        console.log('[WOT-PROF] createCalculators stats:', JSON.stringify(this._profData));
-      }
     }
 
     this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');

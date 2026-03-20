@@ -585,11 +585,6 @@ class Overlays {
     if (this.destroyed) {
       return;
     }
-    // PROFILING: mark scroll event start
-    if (typeof performance !== 'undefined') {
-      performance.mark('wot-scroll-start');
-    }
-
     const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
     const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
@@ -680,12 +675,6 @@ class Overlays {
     }, 100);
 
     this.refreshAll();
-
-    // PROFILING: mark scroll event end
-    if (typeof performance !== 'undefined') {
-      performance.mark('wot-scroll-end');
-      performance.measure('wot-scroll-total', 'wot-scroll-start', 'wot-scroll-end');
-    }
   }
 
   /**
@@ -770,11 +759,6 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    // PROFILING: breakdown overlay refresh
-    const _p = typeof performance !== 'undefined';
-
-    if (_p) { performance.mark('wot-spreader-start'); }
-
     // During scroll-triggered draws, skip the spreader size check entirely to avoid forced
     // synchronous layout reflow. Reading clientWidth/clientHeight right after DOM modifications
     // forces the browser to synchronously compute layout. During scroll, total data dimensions
@@ -789,26 +773,16 @@ class Overlays {
         this.adjustElementsSize();
       }
     }
-    if (_p) { performance.mark('wot-spreader-end'); performance.measure('wot-spreader-size', 'wot-spreader-start', 'wot-spreader-end'); }
 
     if (this.bottomOverlay.clone) {
-      if (_p) { performance.mark('wot-ov-bottom-start'); }
       this.bottomOverlay.refresh(fastDraw);
-      if (_p) { performance.mark('wot-ov-bottom-end'); performance.measure('wot-ov-bottom', 'wot-ov-bottom-start', 'wot-ov-bottom-end'); }
     }
 
-    if (_p) { performance.mark('wot-ov-left-start'); }
     this.inlineStartOverlay.refresh(fastDraw);
-    if (_p) { performance.mark('wot-ov-left-end'); performance.measure('wot-ov-left', 'wot-ov-left-start', 'wot-ov-left-end'); }
-
-    if (_p) { performance.mark('wot-ov-top-start'); }
     this.topOverlay.refresh(fastDraw);
-    if (_p) { performance.mark('wot-ov-top-end'); performance.measure('wot-ov-top', 'wot-ov-top-start', 'wot-ov-top-end'); }
 
     if (this.topInlineStartCornerOverlay) {
-      if (_p) { performance.mark('wot-ov-corner-start'); }
       this.topInlineStartCornerOverlay.refresh(fastDraw);
-      if (_p) { performance.mark('wot-ov-corner-end'); performance.measure('wot-ov-corner', 'wot-ov-corner-start', 'wot-ov-corner-end'); }
     }
 
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {

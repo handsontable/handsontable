@@ -297,15 +297,7 @@ class Table {
     if (this.isMaster) {
       wtOverlays.beforeDraw();
       this.holderOffset = offset(this.holder);
-      // PROFILING: measure calculator time
-      if (typeof performance !== 'undefined') {
-        performance.mark('wot-calc-start');
-      }
       runFastDraw = wtViewport.createCalculators(runFastDraw);
-      if (typeof performance !== 'undefined') {
-        performance.mark('wot-calc-end');
-        performance.measure('wot-calculators', 'wot-calc-start', 'wot-calc-end');
-      }
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
         const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
@@ -324,10 +316,6 @@ class Table {
         wtOverlays.refresh(true);
       }
     } else {
-      // PROFILING: measure pre-render setup
-      if (typeof performance !== 'undefined') {
-        performance.mark('wot-prerender-start');
-      }
       if (this.isMaster) {
         this.tableOffset = offset(this.TABLE);
       } else {
@@ -350,10 +338,6 @@ class Table {
         this.wtSettings.getSetting('beforeDraw', true, skipRender);
         performRedraw = skipRender.skipRender !== true;
       }
-      if (typeof performance !== 'undefined') {
-        performance.mark('wot-prerender-end');
-        performance.measure('wot-prerender', 'wot-prerender-start', 'wot-prerender-end');
-      }
 
       if (performRedraw) {
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
@@ -366,29 +350,17 @@ class Table {
 
         this.resetOversizedRows();
 
-        // PROFILING: measure DOM render time
-        if (typeof performance !== 'undefined') {
-          performance.mark('wot-render-start');
-        }
         this.tableRenderer
           .setActiveOverlayName(this.name)
           .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
-        if (typeof performance !== 'undefined') {
-          performance.mark('wot-render-end');
-          performance.measure('wot-dom-render', 'wot-render-start', 'wot-render-end');
-        }
 
         // During active scrolling, skip expensive post-render work that forces layout reflow
         // (markOversizedRows reads row heights from DOM, adjustColumnHeaderHeights reads header
         // heights). This work is deferred until scrolling stops (via the idle timer in overlays.js).
         const isActivelyScrolling = this.isMaster && wtOverlays && wtOverlays._activelyScrolling;
 
-        // PROFILING: measure oversized rows/headers
-        if (typeof performance !== 'undefined') {
-          performance.mark('wot-oversized-start');
-        }
         if (!isActivelyScrolling) {
           if (this.isMaster) {
             this.markOversizedColumnHeaders();
@@ -400,39 +372,14 @@ class Table {
             this.markOversizedRows();
           }
         }
-        if (typeof performance !== 'undefined') {
-          performance.mark('wot-oversized-end');
-          performance.measure('wot-oversized', 'wot-oversized-start', 'wot-oversized-end');
-        }
 
         if (this.isMaster) {
           if (!isActivelyScrolling && !this.wtSettings.getSetting('externalRowCalculator')) {
-            // PROFILING: measure visible calculators
-            if (typeof performance !== 'undefined') {
-              performance.mark('wot-viscalc-start');
-            }
             wtViewport.createVisibleCalculators();
-            if (typeof performance !== 'undefined') {
-              performance.mark('wot-viscalc-end');
-              performance.measure('wot-visible-calculators', 'wot-viscalc-start', 'wot-viscalc-end');
-            }
           }
 
-          // PROFILING: measure overlay refresh vs applyToDOM separately
-          if (typeof performance !== 'undefined') {
-            performance.mark('wot-ovrefresh-start');
-          }
           wtOverlays.refresh(false);
-          if (typeof performance !== 'undefined') {
-            performance.mark('wot-ovrefresh-end');
-            performance.measure('wot-overlay-refresh', 'wot-ovrefresh-start', 'wot-ovrefresh-end');
-            performance.mark('wot-applydom-start');
-          }
           wtOverlays.applyToDOM();
-          if (typeof performance !== 'undefined') {
-            performance.mark('wot-applydom-end');
-            performance.measure('wot-applyToDOM', 'wot-applydom-start', 'wot-applydom-end');
-          }
 
           this.wtSettings.getSetting('onDraw', true);
 
@@ -442,10 +389,6 @@ class Table {
       }
     }
 
-    // PROFILING: measure resetFixedPosition
-    if (typeof performance !== 'undefined') {
-      performance.mark('wot-fixedpos-start');
-    }
     let positionChanged = false;
 
     if (this.isMaster) {
@@ -464,10 +407,6 @@ class Table {
       if (wtOverlays.bottomInlineStartCornerOverlay && wtOverlays.bottomInlineStartCornerOverlay.clone) {
         wtOverlays.bottomInlineStartCornerOverlay.resetFixedPosition();
       }
-    }
-    if (typeof performance !== 'undefined') {
-      performance.mark('wot-fixedpos-end');
-      performance.measure('wot-fixedpos', 'wot-fixedpos-start', 'wot-fixedpos-end');
     }
 
     if (positionChanged) {
