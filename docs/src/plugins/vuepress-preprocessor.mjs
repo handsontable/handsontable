@@ -63,6 +63,12 @@ function preprocessMarkdown(content, framework) {
   // 6. Fix $withBase('/path') → /path in image srcs and link hrefs
   result = result.replace(/\$withBase\s*\(\s*['"]?([^'")\s]+)['"]?\s*\)/g, '$1');
 
+  // 6b. Fix {{$basePath}} → '' (VuePress versioned-base template variable)
+  //     In Astro, public assets are resolved relative to the site root so the
+  //     base prefix is added automatically; dropping the placeholder preserves
+  //     the correct root-relative path (e.g. /img/pages/... or /cert.pdf).
+  result = result.replace(/\{\{\s*\$basePath\s*\}\}/g, '');
+
   // 7. Transform @/framework/... cross-framework alias links to absolute paths.
   //    e.g. @/react/guides/foo/foo.md → /guides/foo/foo
   result = result.replace(/@\/[a-z0-9-]+\//g, '/');
@@ -78,31 +84,47 @@ function preprocessMarkdown(content, framework) {
 function filterOnlyForBlocks(content, framework) {
   const lines = content.split('\n');
   const result = [];
-  // Stack to handle nested only-for blocks
+  // Stack of { keep: boolean, innerDepth: number } — one entry per open only-for block.
+  // innerDepth tracks how many non-only-for ::: blocks are open inside this frame.
   const stack = [];
 
   for (const line of lines) {
-    const openMatch = line.match(/^:{4,}\s+only-for\s+(.+)$/);
+    const openMatch = line.match(/^:{3,}\s+only-for\s+(.+)$/);
 
     if (openMatch) {
       const frameworks = openMatch[1].trim().split(/\s+/);
       const keep = frameworks.includes(framework);
-      stack.push(keep);
+      stack.push({ keep, innerDepth: 0 });
       // Never emit the opening marker line
       continue;
     }
 
-    if (stack.length > 0 && /^:{4,}\s*$/.test(line)) {
-      stack.pop();
-      // Never emit the closing marker line
-      continue;
-    }
-
-    // Inside an only-for block: emit only if ALL ancestor blocks say keep
     if (stack.length > 0) {
-      if (stack.every(Boolean)) {
-        result.push(line);
+      const frame = stack[stack.length - 1];
+      const emitting = stack.every(f => f.keep);
+
+      // Any ::: opener that is not an only-for block (e.g. ::: example, ::: tip)
+      if (/^:{3,}\s+\S/.test(line)) {
+        frame.innerDepth++;
+        if (emitting) result.push(line);
+        continue;
       }
+
+      // Bare ::: closer
+      if (/^:{3,}\s*$/.test(line)) {
+        if (frame.innerDepth > 0) {
+          // Closes an inner block, not the only-for frame
+          frame.innerDepth--;
+          if (emitting) result.push(line);
+        } else {
+          // Closes the only-for block itself — never emit
+          stack.pop();
+        }
+        continue;
+      }
+
+      // Regular content inside block
+      if (emitting) result.push(line);
     } else {
       result.push(line);
     }

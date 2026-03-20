@@ -1,0 +1,83 @@
+---
+/**
+ * Framework switcher extension for the Starlight SiteTitle slot.
+ *
+ * Renders the default site title followed by a framework switcher dropdown
+ * that lets users switch between JavaScript, React, and Angular docs.
+ * Switching preserves the current page path under the new framework prefix.
+ */
+import Default from '@astrojs/starlight/components/SiteTitle.astro';
+
+const pathname = Astro.url.pathname;
+
+const currentPrefix = pathname.includes('/react-data-grid/')
+  ? 'react-data-grid'
+  : pathname.includes('/angular-data-grid/')
+    ? 'angular-data-grid'
+    : 'javascript-data-grid';
+
+const frameworks = [
+  { id: 'javascript-data-grid', label: 'JavaScript' },
+  { id: 'react-data-grid', label: 'React' },
+  { id: 'angular-data-grid', label: 'Angular' },
+];
+
+function switchUrl(targetPrefix: string): string {
+  if (pathname.includes(`/${currentPrefix}/`)) {
+    return pathname.replace(`/${currentPrefix}/`, `/${targetPrefix}/`);
+  }
+
+  return `/docs/${targetPrefix}/`;
+}
+---
+<Default {...Astro.props} />
+<div class="framework-switcher">
+  <span class="framework-switcher__label">Framework:</span>
+  <div class="framework-switcher__dropdown">
+    {frameworks.map(f => (
+      <a
+        href={switchUrl(f.id)}
+        class:list={['framework-switcher__option', { 'framework-switcher__option--active': f.id === currentPrefix }]}
+      >
+        {f.label}
+      </a>
+    ))}
+  </div>
+</div>
+<style>
+  .framework-switcher {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    margin-left: 1rem;
+  }
+
+  .framework-switcher__label {
+    color: var(--sl-color-text-accent);
+    white-space: nowrap;
+  }
+
+  .framework-switcher__dropdown {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .framework-switcher__option {
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--sl-color-text);
+    border: 1px solid var(--sl-color-gray-5);
+  }
+
+  .framework-switcher__option:hover {
+    background: var(--sl-color-gray-6);
+  }
+
+  .framework-switcher__option--active {
+    background: var(--sl-color-accent);
+    color: var(--sl-color-white);
+    border-color: var(--sl-color-accent);
+  }
+</style>

@@ -1,0 +1,72 @@
+---
+/**
+ * Framework-aware Sidebar override.
+ *
+ * Starlight includes all framework sidebar groups in a single sidebar config.
+ * This component inspects the current URL path to:
+ *
+ * 1. Filter to only the active framework's entries (JavaScript / React / Angular).
+ * 2. On API pages (/api/): show only the API reference items.
+ *    On guide pages: show only the guide sections (API reference group hidden).
+ *    On recipe pages (/recipes/): show only the recipes sidebar.
+ */
+import Default from '@astrojs/starlight/components/Sidebar.astro';
+import InfoBox from './InfoBox.astro';
+
+const pathname = Astro.url.pathname;
+
+const prefix = pathname.includes('/react-data-grid/')
+  ? 'react-data-grid'
+  : pathname.includes('/angular-data-grid/')
+    ? 'angular-data-grid'
+    : 'javascript-data-grid';
+
+const GUIDE_LABELS: Record<string, string> = {
+  'javascript-data-grid': 'JavaScript',
+  'react-data-grid': 'React',
+  'angular-data-grid': 'Angular',
+};
+
+const RECIPE_LABELS: Record<string, string> = {
+  'javascript-data-grid': 'JavaScript Recipes',
+  'react-data-grid': 'React Recipes',
+  'angular-data-grid': 'Angular Recipes',
+};
+
+const isRecipePage = pathname.includes('/recipes/');
+
+const { sidebar } = Astro.locals.starlightRoute;
+
+if (isRecipePage) {
+  // On recipe pages: show only the recipes sidebar for the active framework.
+  const recipesGroup = sidebar.find(
+    (e: any) => e.type === 'group' && e.label === RECIPE_LABELS[prefix]
+  );
+
+  (Astro.locals.starlightRoute as any).sidebar = recipesGroup
+    ? (recipesGroup as any).entries
+    : [];
+} else {
+  const matchingGroup = sidebar.find(
+    (e: any) => e.type === 'group' && e.label === GUIDE_LABELS[prefix]
+  );
+
+  if (matchingGroup) {
+    const entries: any[] = (matchingGroup as any).entries;
+
+    if (pathname.includes('/api/')) {
+      // On API pages: show only the API reference items (the last group, labelled
+      // 'API reference'). The items inside it are the flat API nav list.
+      const apiGroup = entries.findLast((e: any) => e.type === 'group' && e.label === 'API reference');
+      (Astro.locals.starlightRoute as any).sidebar = apiGroup ? apiGroup.entries : entries;
+    } else {
+      // On guide pages: show guide sections only, without the API reference group.
+      (Astro.locals.starlightRoute as any).sidebar = entries.filter(
+        (e: any) => !(e.type === 'group' && e.label === 'API reference')
+      );
+    }
+  }
+}
+---
+<InfoBox prefix={prefix} />
+<Default {...Astro.props} />

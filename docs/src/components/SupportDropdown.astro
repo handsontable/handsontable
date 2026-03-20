@@ -1,0 +1,154 @@
+---
+/**
+ * Support dropdown for the site header.
+ *
+ * Shows a "Support" button that opens a menu with links to community and
+ * support channels. All links open in a new tab.
+ */
+
+const links = [
+  { label: 'Developers Forum', href: 'https://forum.handsontable.com' },
+  { label: 'GitHub Discussions', href: 'https://github.com/handsontable/handsontable/discussions' },
+  { label: 'StackOverflow', href: 'https://stackoverflow.com/tags/handsontable' },
+  { label: 'Contact support', href: 'https://handsontable.com/contact?category=technical_support' },
+];
+---
+
+<div class="support-dropdown">
+  <button
+    class="support-trigger"
+    aria-haspopup="true"
+    aria-expanded="false"
+    id="support-trigger"
+    type="button"
+  >
+    Support
+    <svg class="support-chevron" aria-hidden="true" width="10" height="6" viewBox="0 0 10 6">
+      <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <ul class="support-menu" role="menu" aria-labelledby="support-trigger" hidden>
+    {links.map(({ label, href }) => (
+      <li role="none">
+        <a
+          href={href}
+          class="support-item"
+          role="menuitem"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {label}
+          <svg aria-hidden="true" width="11" height="11" viewBox="0 0 11 11" fill="none">
+            <path d="M2 9L9 2M9 2H4M9 2v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<script>
+  const wrapper = document.querySelector('.support-dropdown') as HTMLElement | null;
+  const trigger = document.getElementById('support-trigger') as HTMLButtonElement | null;
+  const menu = document.querySelector('.support-menu') as HTMLElement | null;
+
+  if (wrapper && trigger && menu) {
+    trigger.addEventListener('click', () => {
+      const isOpen = !menu.hidden;
+      menu.hidden = isOpen;
+      trigger.setAttribute('aria-expanded', String(!isOpen));
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target as Node)) {
+        menu.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !menu.hidden) {
+        menu.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .support-dropdown {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .support-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--sl-color-text);
+    cursor: pointer;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    padding: 0.25rem 0.625rem;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+
+  .support-trigger:hover {
+    color: var(--sl-color-accent);
+    border-color: var(--sl-color-accent);
+  }
+
+  .support-chevron {
+    flex-shrink: 0;
+    margin-inline-start: 0.1rem;
+    transition: transform 0.15s;
+  }
+
+  .support-trigger[aria-expanded='true'] .support-chevron {
+    transform: rotate(180deg);
+  }
+
+  .support-menu {
+    background: var(--sl-color-bg-nav);
+    border: 1px solid var(--sl-color-hairline-light);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    inset-inline-end: 0;
+    list-style: none;
+    margin: 0;
+    min-width: 11rem;
+    padding: 0.25rem 0;
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    z-index: 100;
+  }
+
+  .support-menu[hidden] {
+    display: none;
+  }
+
+  .support-item {
+    align-items: center;
+    color: var(--sl-color-text);
+    display: flex;
+    font-size: var(--sl-text-sm);
+    gap: 0.4rem;
+    justify-content: space-between;
+    padding: 0.35rem 0.75rem;
+    text-decoration: none;
+    transition: background 0.1s, color 0.1s;
+    white-space: nowrap;
+  }
+
+  .support-item:hover {
+    background: var(--sl-color-bg-sidebar);
+    color: var(--sl-color-accent);
+  }
+</style>

@@ -93,8 +93,94 @@
 }
 
 /* -------------------------------------------------------------------------
+ * Remove Starlight's default table styles from the markdown content area.
+ * Handsontable renders its own <table> elements inside the preview containers
+ * and those rules collide with the grid rendering.
+ * ------------------------------------------------------------------------- */
+.sl-markdown-content table:not(:where(.not-content *)) {
+  display: revert;
+  overflow: revert;
+  border-spacing: revert;
+}
+
+.sl-markdown-content :is(th, td):not(:where(.not-content *)) {
+  border-bottom: revert;
+  padding: revert;
+  vertical-align: revert;
+}
+
+.sl-markdown-content :is(th:first-child, td:first-child):not(:where(.not-content *)) {
+  padding-inline-start: revert;
+}
+
+.sl-markdown-content :is(th:last-child, td:last-child):not(:where(.not-content *)) {
+  padding-inline-end: revert;
+}
+
+.sl-markdown-content th:not(:where(.not-content *)) {
+  color: revert;
+  font-weight: revert;
+}
+
+.sl-markdown-content th:not([align]):not(:where(.not-content *)) {
+  text-align: revert;
+}
+
+.sl-markdown-content .starlight-aside :is(th, td, hr, blockquote):not(:where(.not-content *)) {
+  border-color: revert;
+}
+
+/* -------------------------------------------------------------------------
  * Code block enhancements
  * ------------------------------------------------------------------------- */
 .sl-markdown-content pre {
   border-radius: 6px;
+}
+
+/* -------------------------------------------------------------------------
+ * Sidebar menu-tag badges  (menuTag: new | updated in frontmatter)
+ *
+ * Starlight renders these as .sl-badge.success / .sl-badge.caution.
+ * Override to use sans-serif (matches the VuePress tag style) and tighten
+ * the padding so they sit neatly next to the link label.
+ * ------------------------------------------------------------------------- */
+:root {
+  /* "New" — green */
+  --sl-badge-success-border: #27ae60;
+  --sl-badge-success-bg:     #eafaf1;
+  --sl-badge-success-text:   #1a7a42;
+
+  /* "Updated" — amber */
+  --sl-badge-caution-border: #e67e22;
+  --sl-badge-caution-bg:     #fef5e7;
+  --sl-badge-caution-text:   #9a5000;
+}
+
+[data-theme='dark']:root {
+  --sl-badge-success-bg:   #1a3d2b;
+  --sl-badge-success-text: #6fcf97;
+
+  --sl-badge-caution-bg:   #3d2800;
+  --sl-badge-caution-text: #f6ad55;
+}
+
+/* Compact pill style inside the sidebar */
+.sidebar-content .sl-badge {
+  font-family: var(--sl-font-system, system-ui, sans-serif);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-inline-start: 0.35rem;
+  flex-shrink: 0;
+}
+
+/* When on the active page the badge outline mirrors the link colour */
+.sidebar-content a[aria-current='page'] > .sl-badge {
+  --sl-color-bg-badge:     transparent;
+  --sl-color-border-badge: currentColor;
+  color: inherit;
 }

@@ -1,0 +1,251 @@
+---
+/**
+ * PageTitle component override.
+ *
+ * Renders:
+ *  1. A top bar with breadcrumbs on the left and a "Copy as Markdown" button
+ *     on the right.
+ *  2. The page <h1> (id="_top" preserved — required by Starlight's skip-link
+ *     and on-page TOC behaviour).
+ *
+ * Breadcrumb structure (matches the VuePress docs):
+ *   🏠 17.0.0 JavaScript Data Grid  ›  Current Page Title
+ *
+ * The "Copy as Markdown" button embeds the raw page markdown (title + body)
+ * in a <script type="application/json"> block and copies it to the clipboard
+ * on click, flashing "Copied!" for 2 s — mirroring CopyMarkdown.vue.
+ */
+
+import { createRequire } from 'module';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const require   = createRequire(import.meta.url);
+
+// ── Library version ───────────────────────────────────────────────────────────
+let hotVersion = '';
+
+try {
+  const pkg = require(join(__dirname, '../../..', 'handsontable', 'package.json'));
+
+  hotVersion = pkg.version ?? '';
+} catch {
+  // Fallback: version label omitted from the home crumb.
+}
+
+// ── Framework labels ──────────────────────────────────────────────────────────
+const FRAMEWORK_LABELS: Record<string, string> = {
+  'javascript-data-grid': 'JavaScript Data Grid',
+  'react-data-grid':      'React Data Grid',
+  'angular-data-grid':    'Angular Data Grid',
+};
+
+// ── Current page data ─────────────────────────────────────────────────────────
+const pathname   = Astro.url.pathname;
+const entry      = Astro.locals.starlightRoute.entry;
+const pageTitle  = entry.data.title;
+
+const prefix = pathname.includes('/react-data-grid/')
+  ? 'react-data-grid'
+  : pathname.includes('/angular-data-grid/')
+    ? 'angular-data-grid'
+    : 'javascript-data-grid';
+
+const frameworkLabel = FRAMEWORK_LABELS[prefix];
+const homeLabel      = hotVersion ? `${hotVersion} ${frameworkLabel}` : frameworkLabel;
+const homeHref       = `/docs/${prefix}/`;
+const pageHref       = pathname;
+
+// ── Markdown payload ──────────────────────────────────────────────────────────
+// Build a clean markdown document: frontmatter title + raw body.
+// Passed to the client script via define:vars (Astro JSON-serialises it).
+const description = (entry.data as any).description ?? '';
+const rawBody     = (entry as any).body ?? '';
+
+const markdownDoc = [
+  `# ${pageTitle}`,
+  description ? `\n${description}` : '',
+  rawBody ? `\n${rawBody}` : '',
+].join('\n').trim();
+---
+
+<div class="hot-page-header">
+  <!-- ── Breadcrumbs ──────────────────────────────────────────────────────── -->
+  <nav class="hot-breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <li>
+        <a href={homeHref} class="hot-breadcrumbs__home">
+          <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+            <path d="M9 21V12h6v9"/>
+          </svg>
+          <span>{homeLabel}</span>
+        </a>
+      </li>
+      <li aria-hidden="true" class="hot-breadcrumbs__sep">›</li>
+      <li>
+        <a href={pageHref} aria-current="page" class="hot-breadcrumbs__current">
+          <span>{pageTitle}</span>
+        </a>
+      </li>
+    </ol>
+  </nav>
+
+  <!-- ── Copy as Markdown button ─────────────────────────────────────────── -->
+  <button
+    type="button"
+    class="hot-copy-md-btn"
+    id="hot-copy-md-btn"
+    aria-label="Copy page as Markdown"
+    title="Copy page as Markdown — useful for AI chats"
+  >
+    <!-- Clipboard icon (matches CopyMarkdown.vue SVG) -->
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <g clip-path="url(#hot-copy-clip)">
+        <path d="M5.333 6.667c0-.354.14-.693.39-.943.25-.25.589-.39.943-.39H12c.354 0 .693.14.943.39.25.25.39.589.39.943V12c0 .354-.14.693-.39.943-.25.25-.589.39-.943.39H6.667c-.354 0-.693-.14-.943-.39-.25-.25-.39-.589-.39-.943V6.667z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10.667 5.333V4a1.333 1.333 0 00-1.334-1.333H4A1.333 1.333 0 002.667 4v5.333A1.333 1.333 0 004 10.667h1.333" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <defs>
+        <clipPath id="hot-copy-clip"><rect width="16" height="16" fill="white"/></clipPath>
+      </defs>
+    </svg>
+    <span class="hot-copy-md-btn__label">Copy as Markdown</span>
+  </button>
+</div>
+
+<!-- ── Page <h1> (id="_top" required by Starlight) ──────────────────────────── -->
+<h1 id="_top">{pageTitle}</h1>
+
+<!--
+  define:vars passes markdownDoc as a JSON-serialised local variable into the
+  inline script. This is the correct Astro pattern for server → client data
+  transfer; {expressions} inside <script> tags are NOT processed by Astro.
+-->
+<script define:vars={{ markdownDoc }}>
+  const btn     = document.getElementById('hot-copy-md-btn');
+  const labelEl = btn && btn.querySelector('.hot-copy-md-btn__label');
+
+  if (btn && labelEl) {
+    btn.addEventListener('click', async () => {
+      if (!markdownDoc) return;
+
+      const reset = () => {
+        labelEl.textContent = 'Copy as Markdown';
+        btn.classList.remove('is-copied');
+      };
+
+      try {
+        await navigator.clipboard.writeText(markdownDoc);
+      } catch (_) {
+        // Fallback for older browsers / insecure contexts
+        const ta = document.createElement('textarea');
+
+        ta.value = markdownDoc;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+
+      labelEl.textContent = 'Copied!';
+      btn.classList.add('is-copied');
+      setTimeout(reset, 2000);
+    });
+  }
+</script>
+
+<style>
+  /* ── Top bar (breadcrumbs + copy button) ──────────────────────────────────── */
+  .hot-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+  }
+
+  /* ── Breadcrumbs ──────────────────────────────────────────────────────────── */
+  .hot-breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .hot-breadcrumbs li {
+    display: flex;
+    align-items: center;
+  }
+
+  .hot-breadcrumbs__home {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--sl-color-text-accent);
+    font-size: var(--sl-text-sm);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .hot-breadcrumbs__home:hover {
+    color: var(--sl-color-accent);
+  }
+
+  .hot-breadcrumbs__sep {
+    color: var(--sl-color-gray-4);
+    font-size: var(--sl-text-sm);
+    user-select: none;
+  }
+
+  .hot-breadcrumbs__current {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+    text-decoration: none;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* ── Copy as Markdown button ──────────────────────────────────────────────── */
+  .hot-copy-md-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.65rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 4px;
+    background: none;
+    color: var(--sl-color-text-accent);
+    font-size: var(--sl-text-xs);
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .hot-copy-md-btn:hover {
+    color: var(--sl-color-accent);
+    border-color: var(--sl-color-accent);
+  }
+
+  .hot-copy-md-btn.is-copied {
+    color: var(--sl-color-green, #27ae60);
+    border-color: var(--sl-color-green, #27ae60);
+  }
+
+  /* ── Page <h1> ────────────────────────────────────────────────────────────── */
+  h1 {
+    margin-top: 1rem;
+    font-size: var(--sl-text-h1);
+    line-height: var(--sl-line-height-headings);
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+</style>

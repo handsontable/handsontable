@@ -1,0 +1,16 @@
+---
+/**
+ * Starlight Head component override.
+ *
+ * Imports the example runner script, which scans each page for
+ * [data-example-js] / [data-example-jsx] elements and dynamically loads
+ * the matching Handsontable example modules.
+ */
+import Default from '@astrojs/starlight/components/Head.astro';
+---
+
+<Default {...Astro.props} />
+
+<script>
+  import '../scripts/example-runner';
+</script>

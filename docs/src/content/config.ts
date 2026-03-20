@@ -1,25 +1,26 @@
 /**
  * Astro content collection schema.
  *
- * Uses the Astro 5 glob loader with an absolute base path pointing directly at
- * docs/content/, so no src/content/docs symlink is needed. The pattern is
- * restricted to .md/.mdx files so Vite never tries to resolve the React/
- * Handsontable imports inside the code-example .tsx/.jsx snippets.
+ * Uses a custom framework-loader that reads all .md files from docs/content/
+ * and creates 3 entries per file — one per framework (JavaScript, React,
+ * Angular). The loader applies per-framework only-for content filtering and
+ * all other VuePress preprocessing at load time.
+ *
+ * Entry IDs follow the pattern: {framework-prefix}/{slug}
+ * e.g. react-data-grid/guides/getting-started/introduction
  *
  * VuePress-specific frontmatter fields are accepted via the schema extension so
  * existing .md files validate without modification.
  */
 import { defineCollection, z } from 'astro:content';
-import { glob } from 'astro/loaders';
 import { docsSchema } from '@astrojs/starlight/schema';
+import { fileURLToPath } from 'url';
+import { frameworkLoader } from '../plugins/framework-loader.mjs';
 
 export const collections = {
   docs: defineCollection({
-    loader: glob({
-      // Absolute URL → resolves to docs/content/ regardless of Astro srcDir.
-      base: new URL('../../content', import.meta.url),
-      // Only process markdown files — ignore the .tsx/.jsx code-example snippets.
-      pattern: ['**/[^_]*.md', '**/[^_]*.mdx'],
+    loader: frameworkLoader({
+      contentDir: fileURLToPath(new URL('../../content', import.meta.url)),
     }),
     schema: docsSchema({
       extend: z.object({

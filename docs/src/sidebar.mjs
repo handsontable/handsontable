@@ -20,6 +20,13 @@ const CONTENT_DIR = join(__dirname, '..', 'content');
 
 const { guides } = require('../content/sidebars.js');
 const { sidebar: apiItems } = require('../content/api/sidebar.js');
+const { sidebar: recipeItems } = require('../content/recipes/sidebar.js');
+
+const FRAMEWORK_PREFIXES = {
+  javascript: 'javascript-data-grid',
+  react: 'react-data-grid',
+  angular: 'angular-data-grid',
+};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -55,12 +62,96 @@ function getTitle(path) {
 }
 
 /**
- * Converts a VuePress sidebar path to a Starlight link.
- * VuePress path: "guides/getting-started/introduction/introduction"
- * Starlight link: "/guides/getting-started/introduction/introduction/"
+ * Returns the `menuTag` frontmatter value for a content path, or null if not found.
+ * Supported values: 'new' | 'updated'
+ *
+ * @param {string} path - e.g. "guides/getting-started/installation/installation"
  */
-function toLink(path) {
-  return `/${path}/`;
+function getMenuTag(path) {
+  const mdFile = join(CONTENT_DIR, `${path}.md`);
+
+  if (existsSync(mdFile)) {
+    try {
+      const { data } = matter(readFileSync(mdFile, 'utf-8'));
+
+      if (data.menuTag) return String(data.menuTag).toLowerCase();
+    } catch {
+      // Fall through to null
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Converts a menuTag string to a Starlight badge config.
+ *
+ * @param {string|null} tag - 'new' | 'updated' | null
+ * @returns {{ text: string, variant: string }|undefined}
+ */
+function tagToBadge(tag) {
+  if (!tag) return undefined;
+
+  const MAP = {
+    new:     { text: 'New',     variant: 'success' },
+    updated: { text: 'Updated', variant: 'caution' },
+  };
+
+  return MAP[tag] ?? { text: tag.charAt(0).toUpperCase() + tag.slice(1), variant: 'default' };
+}
+
+/**
+ * Returns the `permalink` frontmatter value for a content path, or null if not found.
+ *
+ * @param {string} path - e.g. "guides/getting-started/introduction/introduction"
+ */
+function getPermalink(path) {
+  const mdFile = join(CONTENT_DIR, `${path}.md`);
+
+  if (existsSync(mdFile)) {
+    try {
+      const { data } = matter(readFileSync(mdFile, 'utf-8'));
+
+      if (data.permalink) return data.permalink;
+    } catch {
+      // Fall through to null
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Converts a VuePress sidebar path to a Starlight link using the page's
+ * permalink frontmatter. Falls back to the file-path-based URL if no
+ * permalink is found.
+ *
+ * Production URL pattern: "/{prefix}{permalink}/"
+ * e.g. "/react-data-grid/installation/"
+ *
+ * @param {string} path - e.g. "guides/getting-started/installation/installation"
+ * @param {string} prefix - e.g. "javascript-data-grid"
+ */
+function toLink(path, prefix) {
+  const permalink = getPermalink(path);
+
+  if (permalink) {
+    // permalink: '/'         → "/{prefix}/"
+    // permalink: '/foo'      → "/{prefix}/foo/"
+    // permalink: '/recipes/' → "/{prefix}/recipes/" (trailing slash stripped before append)
+    if (permalink === '/') return `/${prefix}/`;
+
+    return `/${prefix}${permalink.replace(/\/$/, '')}/`;
+  }
+
+  // Fallback: strip duplicate trailing segment from file path
+  const parts = path.split('/');
+
+  if (parts.length >= 2 && parts[parts.length - 1] === parts[parts.length - 2]) {
+    parts.pop();
+  }
+
+  return `/${prefix}/${parts.join('/')}/`;
 }
 
 /**
@@ -69,8 +160,9 @@ function toLink(path) {
  *
  * @param {Array<{ path: string, onlyFor?: string[] }>} items
  * @param {string} framework
+ * @param {string} prefix
  */
-function toStarlightItems(items, framework) {
+function toStarlightItems(items, framework, prefix) {
   return items
     .filter((item) => {
       if (!item.onlyFor) return true;
@@ -79,10 +171,17 @@ function toStarlightItems(items, framework) {
 
       return allowed.includes(framework);
     })
-    .map((item) => ({
-      label: getTitle(item.path),
-      link: toLink(item.path),
-    }));
+    .map((item) => {
+      const entry = {
+        label: getTitle(item.path),
+        link: toLink(item.path, prefix),
+      };
+      const badge = tagToBadge(getMenuTag(item.path));
+
+      if (badge) entry.badge = badge;
+
+      return entry;
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -92,25 +191,35 @@ function toStarlightItems(items, framework) {
 /**
  * Converts the VuePress API sidebar (which mixes plain strings and an object
  * with `children`) into Starlight format.
+ *
+ * @param {string} framework
+ * @param {string} prefix
  */
-function buildApiSidebar(framework) {
+function buildApiSidebar(framework, prefix) {
   const items = [];
 
   for (const entry of apiItems) {
     if (typeof entry === 'string') {
-      items.push({
-        label: getTitle(`api/${entry}`),
-        link: `/api/${entry}/`,
-      });
+      const permalink = getPermalink(`api/${entry}`);
+      // Strip a trailing slash from permalink before appending '/' to avoid double slashes.
+      const link = permalink
+        ? `/${prefix}${permalink.replace(/\/$/, '')}/`
+        : `/${prefix}/api/${entry}/`;
+
+      items.push({ label: getTitle(`api/${entry}`), link });
     } else if (entry.children) {
       // Plugin group
       items.push({
         label: entry.title ?? 'Plugins',
         collapsed: true,
-        items: entry.children.map((name) => ({
-          label: getTitle(`api/${name}`),
-          link: `/api/${name}/`,
-        })),
+        items: entry.children.map((name) => {
+          const permalink = getPermalink(`api/${name}`);
+          const link = permalink
+            ? `/${prefix}${permalink.replace(/\/$/, '')}/`
+            : `/${prefix}/api/${name}/`;
+
+          return { label: getTitle(`api/${name}`), link };
+        }),
       });
     }
   }
@@ -119,20 +228,77 @@ function buildApiSidebar(framework) {
 }
 
 // ---------------------------------------------------------------------------
-// Public export
+// Recipes sidebar
+// ---------------------------------------------------------------------------
+
+/**
+ * Builds the Starlight sidebar config for the Recipes section.
+ *
+ * Handles the mixed format of recipes/sidebar.js:
+ *   - Plain strings (e.g. 'introduction') → a flat link entry.
+ *   - Objects with `children` → a collapsed group, filtered by `onlyFor`.
+ *
+ * @param {string} framework - "javascript" | "react" | "angular"
+ * @param {string} prefix - URL prefix e.g. "javascript-data-grid"
+ */
+function buildRecipesSidebar(framework, prefix) {
+  const items = [];
+
+  for (const entry of recipeItems) {
+    if (typeof entry === 'string') {
+      const fullPath = `recipes/${entry}`;
+
+      items.push({ label: getTitle(fullPath), link: toLink(fullPath, prefix) });
+    } else if (entry.children) {
+      if (entry.onlyFor) {
+        const allowed = Array.isArray(entry.onlyFor) ? entry.onlyFor : [entry.onlyFor];
+
+        if (!allowed.includes(framework)) continue;
+      }
+
+      const children = entry.children
+        .filter((child) => {
+          if (!child.onlyFor) return true;
+
+          const allowed = Array.isArray(child.onlyFor) ? child.onlyFor : [child.onlyFor];
+
+          return allowed.includes(framework);
+        })
+        .map((child) => {
+          const fullPath = `recipes/${child.path}`;
+          const entry = { label: child.title || getTitle(fullPath), link: toLink(fullPath, prefix) };
+          const badge = tagToBadge(getMenuTag(fullPath));
+
+          if (badge) entry.badge = badge;
+
+          return entry;
+        });
+
+      if (children.length > 0) {
+        items.push({ label: entry.title, collapsed: false, items: children });
+      }
+    }
+  }
+
+  return items;
+}
+
+// ---------------------------------------------------------------------------
+// Public exports
 // ---------------------------------------------------------------------------
 
 /**
  * Builds the full Starlight sidebar config for a given framework.
  *
- * @param {string} framework - "javascript" | "react" | "angular" | "vue3"
+ * @param {string} framework - "javascript" | "react" | "angular"
+ * @param {string} prefix - URL prefix e.g. "javascript-data-grid"
  * @returns {import('@astrojs/starlight').StarlightUserConfig['sidebar']}
  */
-export function buildSidebar(framework = 'javascript') {
+export function buildSidebar(framework = 'javascript', prefix = 'javascript-data-grid') {
   const guideSections = guides.map((section) => ({
     label: section.title,
     collapsed: false,
-    items: toStarlightItems(section.children, framework),
+    items: toStarlightItems(section.children, framework, prefix),
   }));
 
   return [
@@ -140,7 +306,24 @@ export function buildSidebar(framework = 'javascript') {
     {
       label: 'API reference',
       collapsed: true,
-      items: buildApiSidebar(framework),
+      items: buildApiSidebar(framework, prefix),
     },
   ];
+}
+
+/**
+ * Builds sidebar configs for all supported frameworks, including recipes.
+ *
+ * @returns {{ javascript: Array, react: Array, angular: Array,
+ *             javascriptRecipes: Array, reactRecipes: Array, angularRecipes: Array }}
+ */
+export function buildAllSidebars() {
+  const result = {};
+
+  for (const [framework, prefix] of Object.entries(FRAMEWORK_PREFIXES)) {
+    result[framework] = buildSidebar(framework, prefix);
+    result[`${framework}Recipes`] = buildRecipesSidebar(framework, prefix);
+  }
+
+  return result;
 }

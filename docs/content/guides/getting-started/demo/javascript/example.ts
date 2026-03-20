@@ -133,16 +133,16 @@ export function addClassesToRows(
 
   // Add class to selected rows
   if (cellProperties.instance.getDataAtRowProp(row, '0')) {
-    Handsontable.dom.addClass(parentElement, SELECTED_CLASS);
+    parentElement.classList.add(SELECTED_CLASS);
   } else {
-    Handsontable.dom.removeClass(parentElement, SELECTED_CLASS);
+    parentElement.classList.remove(SELECTED_CLASS);
   }
 
   // Add class to odd TRs
   if (row % 2 === 0) {
-    Handsontable.dom.addClass(parentElement, ODD_ROW_CLASS);
+    parentElement.classList.add(ODD_ROW_CLASS);
   } else {
-    Handsontable.dom.removeClass(parentElement, ODD_ROW_CLASS);
+    parentElement.classList.remove(ODD_ROW_CLASS);
   }
 }
 
