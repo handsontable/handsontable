@@ -207,15 +207,6 @@ class Xlsx extends BaseType {
     const excludedHiddenRows = exportFormulas ? dataProvider.getExcludedHiddenRows() : null;
     const excludedHiddenCols = exportFormulas ? dataProvider.getExcludedHiddenColumns() : null;
 
-    const cellContext = {
-      exportFormulas,
-      formulasSeparator,
-      dataRowOffset,
-      dataColOffset,
-      excludedHiddenRows,
-      excludedHiddenCols,
-    };
-
     const hiddenRowIndices = dataProvider.getHiddenRowDataIndices();
     const hiddenColIndices = dataProvider.getHiddenColumnDataIndices();
 
@@ -263,11 +254,29 @@ class Xlsx extends BaseType {
     const hasReadOnlyCells = !hasColumnSummary &&
       cellsMeta.some(row => row.some(meta => meta.readOnly === true));
 
-    this.#writeDataRows(
-      worksheet, data, cellsMeta, cellElements, rowHeaders, rowsHeights,
-      summaryMap, sourceData, cellContext, hasRowHeaders, headerFill, headerBorder,
-      hasReadOnlyCells, rootDocument, rootWindow, validationMap
-    );
+    const context = {
+      exportFormulas,
+      formulasSeparator,
+      dataRowOffset,
+      dataColOffset,
+      excludedHiddenRows,
+      excludedHiddenCols,
+      summaryMap,
+      sourceData,
+      hasRowHeaders,
+      headerFill,
+      headerBorder,
+      hasReadOnlyCells,
+      rootDocument,
+      rootWindow,
+      validationMap,
+      cellsMeta,
+      cellElements,
+      rowHeaders,
+      rowsHeights,
+    };
+
+    this.#writeDataRows(worksheet, data, context);
 
     if (hiddenRowIndices.length > 0) {
       this.#applyHiddenRows(worksheet, hiddenRowIndices, dataRowOffset);
@@ -321,52 +330,33 @@ class Xlsx extends BaseType {
    *
    * @param {object} worksheet The ExcelJS worksheet.
    * @param {Array[]} data 2D data array from DataProvider.
-   * @param {Array[]} cellsMeta 2D meta array from DataProvider.
-   * @param {Array[]} cellElements 2D DOM element array from DataProvider.
-   * @param {Array} rowHeaders Row header values.
-   * @param {number[]} rowsHeights Row heights in pixels.
-   * @param {Map} summaryMap Summary descriptor map keyed by `'row:col'`.
-   * @param {Array[]|null} sourceData Raw source data for formula export, or `null`.
-   * @param {object} cellContext Sheet-level context (offsets and formula settings).
-   * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
-   * @param {object|null} headerFill ExcelJS fill for header cells, or `null`.
-   * @param {object|null} headerBorder ExcelJS border for header cells, or `null`.
-   * @param {boolean} hasReadOnlyCells Whether the sheet has any read-only cells.
-   * @param {Document} rootDocument Owner document (fallback for off-viewport cells).
-   * @param {Window} rootWindow Owner window (fallback for off-viewport cells).
-   * @param {Map<string, string>} validationMap Map from source JSON key to range reference.
+   * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    */
-  #writeDataRows(worksheet, data, cellsMeta, cellElements, rowHeaders, rowsHeights,
-                 summaryMap, sourceData, cellContext, hasRowHeaders, headerFill, headerBorder,
-                 hasReadOnlyCells, rootDocument, rootWindow, validationMap) {
+  #writeDataRows(worksheet, data, context) {
     for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
       const rowData = data[rowIndex];
-      const excelRowNumber = rowIndex + cellContext.dataRowOffset;
+      const excelRowNumber = rowIndex + context.dataRowOffset;
       const row = worksheet.getRow(excelRowNumber);
 
-      if (isDefined(rowsHeights[rowIndex])) {
-        row.height = rowsHeights[rowIndex] * PIXELS_TO_POINTS_RATIO;
+      if (isDefined(context.rowsHeights[rowIndex])) {
+        row.height = context.rowsHeights[rowIndex] * PIXELS_TO_POINTS_RATIO;
       }
 
-      if (hasRowHeaders) {
+      if (context.hasRowHeaders) {
         const rowHeaderCell = row.getCell(1);
 
-        rowHeaderCell.value = rowHeaders[rowIndex] ?? null;
+        rowHeaderCell.value = context.rowHeaders[rowIndex] ?? null;
 
-        if (headerFill) {
-          rowHeaderCell.fill = headerFill;
+        if (context.headerFill) {
+          rowHeaderCell.fill = context.headerFill;
         }
 
-        if (headerBorder) {
-          rowHeaderCell.border = headerBorder;
+        if (context.headerBorder) {
+          rowHeaderCell.border = context.headerBorder;
         }
       }
 
-      this.#writeRowCells(
-        row, rowData, rowIndex, cellsMeta, cellElements,
-        summaryMap, sourceData, cellContext, hasReadOnlyCells, rootDocument, rootWindow,
-        validationMap
-      );
+      this.#writeRowCells(row, rowData, rowIndex, context);
 
       row.commit();
     }
@@ -381,26 +371,16 @@ class Xlsx extends BaseType {
    * @param {object} row The ExcelJS row object.
    * @param {Array} rowData Cell values for this row.
    * @param {number} rowIndex 0-based data-array row index.
-   * @param {Array[]} cellsMeta 2D meta array from DataProvider.
-   * @param {Array[]} cellElements 2D DOM element array from DataProvider.
-   * @param {Map} summaryMap Summary descriptor map keyed by `'row:col'`.
-   * @param {Array[]|null} sourceData Raw source data for formula export, or `null`.
-   * @param {object} cellContext Sheet-level context (offsets and formula settings).
-   * @param {boolean} hasReadOnlyCells Whether the sheet has any read-only cells.
-   * @param {Document} rootDocument Owner document (fallback for off-viewport cells).
-   * @param {Window} rootWindow Owner window (fallback for off-viewport cells).
-   * @param {Map<string, string>} validationMap Map from source JSON key to range reference.
+   * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    */
-  #writeRowCells(row, rowData, rowIndex, cellsMeta, cellElements,
-                 summaryMap, sourceData, cellContext, hasReadOnlyCells, rootDocument, rootWindow,
-                 validationMap) {
+  #writeRowCells(row, rowData, rowIndex, context) {
     for (let colIndex = 0; colIndex < rowData.length; colIndex++) {
       const cellValue = rowData[colIndex];
-      const cell = row.getCell(colIndex + cellContext.dataColOffset);
-      const meta = cellsMeta[rowIndex][colIndex];
-      const summary = summaryMap.get(`${rowIndex}:${colIndex}`);
-      const sourceValue = sourceData?.[rowIndex][colIndex];
-      const { value, numFmt } = this.#resolveCellValue(cellValue, meta, sourceValue, summary, cellContext);
+      const cell = row.getCell(colIndex + context.dataColOffset);
+      const meta = context.cellsMeta[rowIndex][colIndex];
+      const summary = context.summaryMap.get(`${rowIndex}:${colIndex}`);
+      const sourceValue = context.sourceData?.[rowIndex][colIndex];
+      const { value, numFmt } = this.#resolveCellValue(cellValue, meta, sourceValue, summary, context);
 
       cell.value = value;
 
@@ -409,12 +389,12 @@ class Xlsx extends BaseType {
       }
 
       const cssStyle = getCssStyleFromElement(
-        cellElements[rowIndex][colIndex], meta.className, rootDocument, rootWindow
+        context.cellElements[rowIndex][colIndex], meta.className, context.rootDocument, context.rootWindow
       );
 
-      this.#writeCellStyling(cell, meta, cssStyle, validationMap);
+      this.#writeCellStyling(cell, meta, cssStyle, context);
 
-      if (hasReadOnlyCells) {
+      if (context.hasReadOnlyCells) {
         cell.protection = { locked: meta.readOnly === true };
       }
     }
@@ -431,9 +411,9 @@ class Xlsx extends BaseType {
    * @param {{ fontBold: boolean, fontItalic: boolean, fontUnderline: boolean,
    *           fontColor: string|null, backgroundColor: string|null }|null} cssStyle
    *   Computed CSS style from `getCssStyleFromElement`, or `null`.
-   * @param {Map<string, string>} validationMap Map from source JSON key to range reference.
+   * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    */
-  #writeCellStyling(cell, meta, cssStyle, validationMap) {
+  #writeCellStyling(cell, meta, cssStyle, context) {
     const alignment = getAlignmentFromMeta(meta);
 
     if (alignment) {
@@ -459,7 +439,7 @@ class Xlsx extends BaseType {
     }
 
     const rangeRef = Array.isArray(meta.source)
-      ? (validationMap.get(JSON.stringify(meta.source)) ?? null)
+      ? (context.validationMap.get(JSON.stringify(meta.source)) ?? null)
       : null;
     const dropdownValidation = getDropdownValidation(meta, rangeRef);
 
@@ -488,14 +468,14 @@ class Xlsx extends BaseType {
    * @param {object} meta Cell meta object.
    * @param {*} sourceValue Raw source value from `getSourceDataAtCell()` (may be a formula string).
    * @param {object|undefined} summary ColumnSummary descriptor, or `undefined` for non-summary cells.
-   * @param {object} cellContext Sheet-level context with formula and offset parameters.
+   * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    * @returns {{ value: *, numFmt: string|null }}
    */
-  #resolveCellValue(cellValue, meta, sourceValue, summary, cellContext) {
+  #resolveCellValue(cellValue, meta, sourceValue, summary, context) {
     const {
       exportFormulas, formulasSeparator, dataRowOffset, dataColOffset,
       excludedHiddenRows, excludedHiddenCols,
-    } = cellContext;
+    } = context;
 
     if (summary && exportFormulas) {
       return {
