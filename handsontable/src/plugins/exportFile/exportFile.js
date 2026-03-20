@@ -76,7 +76,7 @@ function buildExportDialogContent(title) {
  * exportPlugin.downloadFile('csv', { filename: 'MyFile' });
  *
  * // XLSX — asynchronous
- * const blob = await exportPlugin.exportAsBlob('xlsx');
+ * const blob = await exportPlugin.exportAsBlobAsync('xlsx');
  * await exportPlugin.downloadFileAsync('xlsx', { filename: 'MyFile' });
  *
  * // CSV with options
@@ -222,10 +222,48 @@ export class ExportFile extends BasePlugin {
   /**
    * Exports table data as a blob object.
    *
-   * For text-based formats (e.g. `'csv'`), returns a `Blob` synchronously.
-   * For binary formats (e.g. `'xlsx'`), returns a `Promise<Blob>`.
+   * This method is only supported for text-based formats such as CSV.
+   * Calling it with a binary format (e.g. `'xlsx'`) throws an error — use
+   * [[ExportFile#exportAsBlobAsync]] instead.
    *
-   * @param {string} format Export format type eq. `'csv'` or `'xlsx'`.
+   * @param {string} format Export format type e.g. `'csv'`.
+   * @param {object} options Export options.
+   * @param {string} [options.mimeType] MIME type. Default depends on format.
+   * @param {string} [options.fileExtension] File extension. Default depends on format.
+   * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name.
+   * @param {string} [options.encoding='utf-8'] Character encoding.
+   * @param {boolean} [options.bom] Include BOM signature. Default depends on format (e.g. `true` for CSV).
+   * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
+   * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
+   * @param {boolean} [options.columnHeaders=false] Include column headers.
+   * @param {boolean} [options.rowHeaders=false] Include row headers.
+   * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns.
+   * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
+   * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
+   * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
+   * @returns {Blob}
+   */
+  exportAsBlob(format, options = {}) {
+    const formatter = this._createTypeFormatter(format, options);
+
+    if (formatter.binary) {
+      throwWithCause(
+        `exportAsBlob() does not support binary formats such as "${format}". ` +
+        'Use exportAsBlobAsync() instead.'
+      );
+    }
+
+    return this._createBlob(formatter);
+  }
+
+  /**
+   * Exports table data as a blob object, asynchronously.
+   *
+   * Supports all export formats. For text-based formats (e.g. `'csv'`),
+   * the `Promise` resolves immediately. For binary formats (e.g. `'xlsx'`),
+   * the export runs asynchronously.
+   *
+   * @param {string} format Export format type e.g. `'csv'` or `'xlsx'`.
    * @param {object} options Export options.
    * @param {string} [options.mimeType] MIME type. Default depends on format.
    * @param {string} [options.fileExtension] File extension. Default depends on format.
@@ -244,10 +282,11 @@ export class ExportFile extends BasePlugin {
    * @param {boolean|number} [options.compression=false] Enable DEFLATE compression: `true` uses level 6; a number 1–9 sets the level (XLSX only).
    * @param {ConditionalFormattingDescriptor[]} [options.conditionalFormatting=[]] Conditional formatting rules to apply to the exported file (XLSX only).
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
-   * @returns {Blob|Promise<Blob>}
+   * @returns {Promise<Blob>}
+   * @since 17.1.0
    */
-  exportAsBlob(format, options = {}) {
-    return this._createBlob(this._createTypeFormatter(format, options));
+  exportAsBlobAsync(format, options = {}) {
+    return Promise.resolve(this._createBlob(this._createTypeFormatter(format, options)));
   }
 
   /**

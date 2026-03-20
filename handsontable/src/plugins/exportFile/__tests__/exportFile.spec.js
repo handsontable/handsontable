@@ -52,6 +52,7 @@ describe('exportFile', () => {
       const plugin = getPlugin('exportFile');
       const formatter = jasmine.createSpy('formatter');
 
+      formatter.binary = false;
       spyOn(plugin, '_createTypeFormatter').and.returnValue(formatter);
       spyOn(plugin, '_createBlob').and.returnValue('blob');
 
@@ -60,6 +61,75 @@ describe('exportFile', () => {
       expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', { columnHeaders: true });
       expect(plugin._createBlob).toHaveBeenCalledWith(formatter);
       expect(result).toBe('blob');
+    });
+
+    it('should return a Blob for CSV', async() => {
+      handsontable({ data: createSpreadsheetData(3, 3) });
+      const result = getPlugin('exportFile').exportAsBlob('csv');
+
+      expect(result).toEqual(jasmine.any(Blob));
+    });
+
+    it('should throw when called with a binary format', async() => {
+      handsontable();
+      const plugin = getPlugin('exportFile');
+      const formatter = { binary: true };
+
+      spyOn(plugin, '_createTypeFormatter').and.returnValue(formatter);
+
+      expect(() => {
+        plugin.exportAsBlob('xlsx');
+      }).toThrowError(/exportAsBlobAsync/);
+    });
+  });
+
+  describe('`exportAsBlobAsync` method', () => {
+    it('should return a Promise that resolves to a Blob for CSV', async() => {
+      handsontable({ data: createSpreadsheetData(3, 3) });
+      const plugin = getPlugin('exportFile');
+      const result = plugin.exportAsBlobAsync('csv');
+
+      expect(result).toEqual(jasmine.any(Promise));
+
+      const blob = await result;
+
+      expect(blob).toEqual(jasmine.any(Blob));
+      expect(blob.type).toContain('text/csv');
+    });
+
+    it('should return a Promise that resolves to a Blob for binary formats', async() => {
+      handsontable({ data: createSpreadsheetData(3, 3) });
+      const plugin = getPlugin('exportFile');
+      const xlsxMimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      const fakeBlob = new Blob(['binary'], { type: xlsxMimeType });
+      const formatter = jasmine.createSpy('formatter');
+
+      formatter.binary = true;
+      spyOn(plugin, '_createTypeFormatter').and.returnValue(formatter);
+      spyOn(plugin, '_createBlob').and.returnValue(Promise.resolve(fakeBlob));
+
+      const result = plugin.exportAsBlobAsync('xlsx');
+
+      expect(result).toEqual(jasmine.any(Promise));
+
+      const blob = await result;
+
+      expect(blob).toBe(fakeBlob);
+    });
+
+    it('should forward options to the formatter', async() => {
+      handsontable({ data: createSpreadsheetData(3, 3) });
+      const plugin = getPlugin('exportFile');
+      const formatter = jasmine.createSpyObj('formatter', ['export']);
+
+      formatter.export.and.returnValue('a,b,c');
+      formatter.binary = false;
+      formatter.options = { mimeType: 'text/csv', encoding: 'utf-8' };
+      spyOn(plugin, '_createTypeFormatter').and.returnValue(formatter);
+
+      await plugin.exportAsBlobAsync('csv', { columnHeaders: true });
+
+      expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', { columnHeaders: true });
     });
   });
 

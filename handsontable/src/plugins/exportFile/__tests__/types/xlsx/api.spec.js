@@ -81,22 +81,13 @@ describe('exportFile XLSX type — API', () => {
   });
 
   describe('`exportAsBlob` method', () => {
-    it('should return a Promise that resolves to a Blob with the correct MIME type', async() => {
+    it('should throw when called with a binary format', async() => {
       handsontable({
         data: [['A1']],
         exportFile: { engine: ExcelJS },
       });
 
-      const result = getPlugin('exportFile').exportAsBlob('xlsx');
-
-      expect(result instanceof Promise).toBe(true);
-
-      const blob = await result;
-
-      expect(blob instanceof Blob).toBe(true);
-      expect(blob.type).toBe(
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      );
+      expect(() => getPlugin('exportFile').exportAsBlob('xlsx')).toThrowError(/exportAsBlobAsync/);
     });
   });
 

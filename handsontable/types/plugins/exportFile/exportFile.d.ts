@@ -54,9 +54,8 @@ export class ExportFile extends BasePlugin {
   constructor(hotInstance: Core);
   isEnabled(): boolean;
   exportAsString(format: Formats, options?: ExportOptions): string;
-  exportAsBlob(format: 'csv', options?: ExportOptions): Blob;
-  exportAsBlob(format: 'xlsx', options?: ExportOptions): Promise<Blob>;
-  exportAsBlob(format: Formats, options?: ExportOptions): Blob | Promise<Blob>;
+  exportAsBlob(format: Formats, options?: ExportOptions): Blob;
+  exportAsBlobAsync(format: Formats, options?: ExportOptions): Promise<Blob>;
   downloadFile(format: Formats, options?: ExportOptions): void;
   downloadFileAsync(format: Formats, options?: ExportOptions): Promise<void>;
 }
