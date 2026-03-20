@@ -204,6 +204,8 @@ Renderers are called separately for every displayed cell on every table render. 
 
 Use [`getCellMeta(row, col)`](@/api/core.md#getcellmeta) to read all properties of a cell at once, or the dedicated getters for individual functions:
 
+::: only-for javascript
+
 ```js
 const cellProperties = hot.getCellMeta(0, 0);
 
@@ -212,6 +214,35 @@ cellProperties.editor;     // editor class
 cellProperties.validator;  // validator function or RegExp
 cellProperties.type;       // cell type string
 ```
+
+:::
+
+::: only-for react
+
+```jsx
+const hot = hotRef.current.hotInstance;
+const cellProperties = hot.getCellMeta(0, 0);
+
+cellProperties.renderer;   // renderer function
+cellProperties.editor;     // editor class
+cellProperties.validator;  // validator function or RegExp
+cellProperties.type;       // cell type string
+```
+
+:::
+
+::: only-for angular
+
+```ts
+const cellProperties = this.hotTable.hotInstance.getCellMeta(0, 0);
+
+const renderer = cellProperties.renderer;   // renderer function
+const editor = cellProperties.editor;       // editor class
+const validator = cellProperties.validator; // validator function or RegExp
+const type = cellProperties.type;           // cell type string
+```
+
+:::
 
 Dedicated getters:
 
