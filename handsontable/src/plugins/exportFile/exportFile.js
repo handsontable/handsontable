@@ -127,6 +127,36 @@ function buildExportDialogContent(title) {
  * await exportPlugin.downloadFileAsync('xlsx', { filename: 'MyFile' });
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * import ExcelJS from 'exceljs';
+ *
+ * @Component({
+ *   template: `<hot-table [settings]="settings"></hot-table>`,
+ * })
+ * export class AppComponent {
+ *   settings = {
+ *     data: getData(),
+ *     exportFile: { engine: ExcelJS },
+ *   };
+ *
+ *   @ViewChild(HotTableComponent) hotTableComponent!: HotTableComponent;
+ *
+ *   async exportXlsx() {
+ *     const hot = this.hotTableComponent.hotInstance;
+ *     const exportPlugin = hot.getPlugin('exportFile');
+ *
+ *     // CSV — synchronous
+ *     exportPlugin.exportAsString('csv');
+ *     exportPlugin.downloadFile('csv', { filename: 'MyFile' });
+ *
+ *     // XLSX — asynchronous
+ *     await exportPlugin.downloadFileAsync('xlsx', { filename: 'MyFile' });
+ *   }
+ * }
+ * ```
+ * :::
  */
 export class ExportFile extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -279,7 +309,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @param {boolean} [options.exportFormulas=false] Export cell formulas instead of their computed values (XLSX only).
-   * @param {boolean|number} [options.compression=false] Enable DEFLATE compression: `true` uses level 6; a number 1–9 sets the level (XLSX only).
+   * @param {boolean|number} [options.compression] Enable DEFLATE compression: `true` uses level 6; a number 1–9 sets a specific level. Omit or pass a falsy value to use no compression (XLSX only).
    * @param {ConditionalFormattingDescriptor[]} [options.conditionalFormatting=[]] Conditional formatting rules to apply to the exported file (XLSX only).
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
    * @returns {Promise<Blob>}
@@ -351,7 +381,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @param {boolean} [options.exportFormulas=false] Export cell formulas instead of their computed values (XLSX only).
-   * @param {boolean|number} [options.compression=false] Enable DEFLATE compression: `true` uses level 6; a number 1–9 sets the level (XLSX only).
+   * @param {boolean|number} [options.compression] Enable DEFLATE compression: `true` uses level 6; a number 1–9 sets a specific level. Omit or pass a falsy value to use no compression (XLSX only).
    * @param {ConditionalFormattingDescriptor[]} [options.conditionalFormatting=[]] Conditional formatting rules to apply to the exported file (XLSX only).
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
    * @returns {Promise<void>}
@@ -461,7 +491,7 @@ export class ExportFile extends BasePlugin {
    */
   _createBlob(typeFormatter) {
     if (typeof Blob === 'undefined') {
-      return null;
+      throwWithCause('Blob is not available in this environment.');
     }
 
     const exported = typeFormatter.export();

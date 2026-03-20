@@ -111,6 +111,23 @@ exportPlugin.downloadFileAsync('xlsx', {
   sheets: [sheet1, sheet2],
 });
 
+// ─── SheetOptions: name is optional ───────────────────────────────────────
+// name should be optional — implementation uses `sheetConfig.name || 'Sheet'`
+const sheetWithoutName: SheetOptions = {
+  instance: hot,
+  columnHeaders: true,
+};
+
+// ─── ExportOptions: headerStyle (XLSX) ────────────────────────────────────
+exportPlugin.downloadFileAsync('xlsx', {
+  headerStyle: { backgroundColor: '#f2f2f2', border: { style: 'thin' } },
+});
+exportPlugin.downloadFileAsync('xlsx', { headerStyle: null });
+
+// ─── ExportOptions: engine (per-call override) ────────────────────────────
+exportPlugin.downloadFileAsync('xlsx', { engine: {} });
+exportPlugin.exportAsBlobAsync('xlsx', { engine: {} });
+
 // ─── sanitizeValues variants ───────────────────────────────────────────────
 
 exportPlugin.exportAsString('csv', { sanitizeValues: false });

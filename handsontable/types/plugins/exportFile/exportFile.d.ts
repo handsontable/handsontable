@@ -5,7 +5,7 @@ export type Formats = 'csv' | 'xlsx';
 
 export interface SheetOptions {
   instance: Core;
-  name: string;
+  name?: string;
   columnHeaders?: boolean;
   rowHeaders?: boolean;
   exportHiddenColumns?: boolean | 'hide';
@@ -18,6 +18,16 @@ export interface ConditionalFormattingDescriptor {
   rows?: [number, number];
   cols?: [number, number];
   rules: object[];
+}
+
+export interface HeaderStyleBorder {
+  style?: string;
+  color?: string;
+}
+
+export interface HeaderStyle {
+  backgroundColor?: string;
+  border?: HeaderStyleBorder | null;
 }
 
 export interface ExportOptions {
@@ -35,12 +45,22 @@ export interface ExportOptions {
   exportFormulas?: boolean;
   sheets?: SheetOptions[];
   /**
-   * Enable DEFLATE compression: `true` uses default level 6; a number 1–9 sets the compression level (1 = fastest, 9 = smallest).
+   * Enable DEFLATE compression. Pass `true` for level 6 (library default), or a number 1–9 for
+   * a specific level. Omit or pass a falsy value to use no compression (XLSX only).
    */
   compression?: boolean | number;
   conditionalFormatting?: ConditionalFormattingDescriptor[];
   range?: number[];
   sanitizeValues?: boolean | RegExp | ((val: string) => string);
+  /**
+   * Style applied to column and row header cells (XLSX only).
+   * Set to `null` to export headers with no styling.
+   */
+  headerStyle?: HeaderStyle | null;
+  /**
+   * ExcelJS library instance. Can be supplied per-call to override the engine set in plugin settings (XLSX only).
+   */
+  engine?: object;
 }
 
 export interface ExportFileSettings {
