@@ -6,6 +6,18 @@ Handsontable is a JavaScript data grid monorepo (pnpm workspace). It contains th
 
 **The core package (`handsontable/`) is JavaScript, not TypeScript.** Type definitions are hand-authored `.d.ts` files in `handsontable/types/`. Do not create `.ts` files in the core package.
 
+For deeper context on specific topics, see the `.ai/` directory:
+
+| File | Topic |
+|---|---|
+| `.ai/STACK.md` | Technology stack and dependencies |
+| `.ai/ARCHITECTURE.md` | System architecture and design patterns |
+| `.ai/STRUCTURE.md` | Repository structure and file organization |
+| `.ai/CONVENTIONS.md` | Coding conventions and style guidelines |
+| `.ai/INTEGRATIONS.md` | Framework wrappers and integration details |
+| `.ai/TESTING.md` | Testing strategy and infrastructure |
+| `.ai/CONCERNS.md` | Known issues, technical debt, and constraints |
+
 ---
 
 ## Common pitfalls
