@@ -99,6 +99,8 @@ Cell functions resolve using the cascading configuration model. The most specifi
 cell[row][col]  >  column  >  global (root settings)
 ```
 
+::: only-for javascript
+
 ```js
 new Handsontable(container, {
   type: 'text',               // global fallback for all cells
@@ -111,6 +113,43 @@ new Handsontable(container, {
   ],
 });
 ```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  type="text"
+  columns={[
+    { type: 'numeric' },      // overrides global for all cells in column 0
+    { type: 'text' },         // same as global for column 1
+  ]}
+  cell={[
+    { row: 0, col: 0, type: 'checkbox' }, // overrides column setting for cell [0, 0] only
+  ]}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings: GridSettings = {
+  type: 'text',               // global fallback for all cells
+  columns: [
+    { type: 'numeric' },      // overrides global for all cells in column 0
+    { type: 'text' },         // same as global for column 1
+  ],
+  cell: [
+    { row: 0, col: 0, type: 'checkbox' }, // overrides column setting for cell [0, 0] only
+  ],
+};
+```
+
+:::
+
 
 ## Mixing renderer, editor, and validator
 
@@ -146,7 +185,7 @@ The example below shows a product inventory table. Each column uses a different 
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2 --no-jsfiddle
+::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-functions/cell-function/angular/example1.ts)
 @[code](@/content/guides/cell-functions/cell-function/angular/example1.html)
@@ -232,13 +271,31 @@ const ExampleComponent = () => {
 ::: only-for angular
 
 ```ts
-// Access the instance via ViewChild on the HotTableComponent
-const cellProperties = this.hotTableComponent.hotInstance.getCellMeta(0, 0);
+import { Component, AfterViewInit, ViewChild } from '@angular/core';
+import { HotTableComponent } from '@handsontable/angular-wrapper';
 
-cellProperties.renderer;   // numericRenderer function
-cellProperties.editor;     // NumericEditor class
-cellProperties.validator;  // numericValidator function
-cellProperties.type;       // 'numeric'
+@Component({
+  selector: 'app-example',
+  template: '<hot-table [settings]="settings"></hot-table>',
+  standalone: false,
+})
+export class AppComponent implements AfterViewInit {
+  @ViewChild(HotTableComponent) hotTable!: HotTableComponent;
+
+  settings = {
+    columns: [{ type: 'numeric' }],
+  };
+
+  ngAfterViewInit() {
+    const hot = this.hotTable.hotInstance;
+    const cellProperties = hot.getCellMeta(0, 0);
+
+    const renderer = cellProperties.renderer;   // numericRenderer function
+    const editor = cellProperties.editor;       // NumericEditor class
+    const validator = cellProperties.validator; // numericValidator function
+    const type = cellProperties.type;           // 'numeric'
+  }
+}
 ```
 
 :::
