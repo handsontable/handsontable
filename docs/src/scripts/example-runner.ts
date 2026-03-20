@@ -103,6 +103,11 @@ async function runExamples(): Promise<void> {
   if (ngEls.length > 0) {
     await ensureZone();
 
+    // @angular/compiler must be imported before platformBrowserDynamic.
+    // Vite tree-shakes it out of production bundles unless explicitly imported,
+    // causing "JIT compiler not available" errors for partially-compiled libraries.
+    await import('@angular/compiler');
+
     const { platformBrowserDynamic } = await import('@angular/platform-browser-dynamic');
 
     for (const el of ngEls) {
