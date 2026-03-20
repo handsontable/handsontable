@@ -165,13 +165,13 @@ You can let the end user copy the contents of column headers, by enabling additi
 
 <span class="img-light">
 
-![copy_with_headers_light]({{$basePath}}/img/pages/clipboard/copy-with-headers-light.png)
+![copy_with_headers_light](/img/pages/clipboard/copy-with-headers-light.png)
 
 </span>
 
 <span class="img-dark">
 
-![copy_with_headers_dark]({{$basePath}}/img/pages/clipboard/copy-with-headers-dark.png)
+![copy_with_headers_dark](/img/pages/clipboard/copy-with-headers-dark.png)
 
 </span>
 

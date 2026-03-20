@@ -53,13 +53,13 @@ After exporting, head over to our [Theme Generator on GitHub](https://github.com
 
 <span class="img-light">
 
-![design_system_light]({{$basePath}}/img/design_system_light.png)
+![design_system_light](/img/design_system_light.png)
 
 </span>
 
 <span class="img-dark">
 
-![design_system_dark]({{$basePath}}/img/design_system_dark.png)
+![design_system_dark](/img/design_system_dark.png)
 
 </span>
 

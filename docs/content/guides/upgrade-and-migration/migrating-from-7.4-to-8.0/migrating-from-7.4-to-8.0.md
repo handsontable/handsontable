@@ -601,7 +601,7 @@ The `drag*` methods come with a parameter called `dropIndex`. It directs where t
 
 <span class="img-invert">
 
-![drag_action]({{$basePath}}/img/drag_action.svg)
+![drag_action](/img/drag_action.svg)
 
 </span>
 
@@ -609,7 +609,7 @@ The `move*` methods come with a parameter called `finalIndex`. It tells where to
 
 <span class="img-invert">
 
-![move_action]({{$basePath}}/img/move_action.svg)
+![move_action](/img/move_action.svg)
 
 </span>
 
@@ -667,7 +667,7 @@ The results before:
 
 <span class="img-invert">
 
-![before_8]({{$basePath}}/img/spare_before_8.svg)
+![before_8](/img/spare_before_8.svg)
 
 </span>
 
@@ -675,7 +675,7 @@ The results after:
 
 <span class="img-invert">
 
-![after_8]({{$basePath}}/img/spare_after_8.svg)
+![after_8](/img/spare_after_8.svg)
 
 </span>
 
@@ -846,7 +846,7 @@ It used to select just one cell:
 
 <span class="img-invert">
 
-![LMB_was]({{$basePath}}/img/LMB_was.gif)
+![LMB_was](/img/LMB_was.gif)
 
 </span>
 
@@ -854,7 +854,7 @@ Now the expected behavior is to select all cells:
 
 <span class="img-invert">
 
-![LMB_is]({{$basePath}}/img/LMB_is.gif)
+![LMB_is](/img/LMB_is.gif)
 
 </span>
 

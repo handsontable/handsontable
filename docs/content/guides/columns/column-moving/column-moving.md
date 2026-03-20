@@ -142,7 +142,7 @@ The [`dragColumns`](@/api/manualColumnMove.md#dragcolumns) method has a [`dropIn
 
 <span class="img-invert">
 
-![dragColumns method]({{$basePath}}/img/drag_action.svg)
+![dragColumns method](/img/drag_action.svg)
 
 </span>
 
@@ -150,7 +150,7 @@ The [`moveColumns`](@/api/manualColumnMove.md#movecolumns) method has a `finalIn
 
 <span class="img-invert">
 
-![moveColumns method]({{$basePath}}/img/move_action.svg)
+![moveColumns method](/img/move_action.svg)
 
 </span>
 

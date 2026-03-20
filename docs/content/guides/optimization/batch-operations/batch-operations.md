@@ -100,7 +100,7 @@ Suspending the render results in better performance, which is especially noticea
 
 <span class="img-invert">
 
-![batch_operations_comparison]({{$basePath}}/img/batch_operations_comparison.png)
+![batch_operations_comparison](/img/batch_operations_comparison.png)
 
 </span>
 

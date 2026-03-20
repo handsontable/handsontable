@@ -70,7 +70,7 @@ The [`dragRows`](@/api/manualRowMove.md#dragrows) method has a `dropIndex` param
 
 <span class="img-invert">
 
-![dragRows method]({{$basePath}}/img/drag_action.svg)
+![dragRows method](/img/drag_action.svg)
 
 </span>
 
@@ -79,7 +79,7 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) method has a `finalIndex` para
 
 <span class="img-invert">
 
-![moveRows method]({{$basePath}}/img/move_action.svg)
+![moveRows method](/img/move_action.svg)
 
 </span>
 
