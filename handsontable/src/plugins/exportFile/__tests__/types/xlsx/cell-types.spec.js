@@ -556,6 +556,38 @@ describe('exportFile XLSX type — cell types', () => {
       expect(allSheets.length).toBe(1);
       expect(allSheets[0].name).toBe('Sheet1');
     });
+
+    it('should not create a validation sheet for a dropdown column with an empty source array', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'dropdown', source: [] }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const allSheets = await parseXlsxAllSheets();
+
+      expect(allSheets.length).toBe(1);
+      expect(allSheets[0].name).toBe('Sheet1');
+    });
+
+    it('should write the display value (`.value` property) of key-value object sources to the validation sheet', async() => {
+      handsontable({
+        data: [['red']],
+        columns: [{
+          type: 'dropdown',
+          source: [{ key: 'r', value: 'red' }, { key: 'g', value: 'green' }, { key: 'b', value: 'blue' }],
+        }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const allSheets = await parseXlsxAllSheets();
+      const validationSheet = allSheets.find(ws => ws.name.startsWith('_HotValidation'));
+
+      expect(validationSheet).toBeDefined();
+      expect(validationSheet.getCell(1, 1).value).toBe('red');
+      expect(validationSheet.getCell(2, 1).value).toBe('green');
+      expect(validationSheet.getCell(3, 1).value).toBe('blue');
+    });
   });
 
   describe('multiselect type cells', () => {

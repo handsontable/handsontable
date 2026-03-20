@@ -80,6 +80,25 @@ describe('exportFile XLSX type — formulas', () => {
       expect(ws.getRow(5).getCell(1).value?.formula).toBe('MIN(A1:A3)');
     });
 
+    it('should include the pre-calculated value as the `result` field on the formula cell for interoperability with non-Excel readers', async() => {
+      handsontable({
+        data: [[10], [20], [30], [null]],
+        columnSummary: [{
+          type: 'sum',
+          destinationRow: 3,
+          destinationColumn: 0,
+          ranges: [[0, 2]],
+        }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx({ exportFormulas: true });
+      const summaryCell = ws.getRow(4).getCell(1);
+
+      expect(summaryCell.value?.formula).toBe('SUM(A1:A3)');
+      expect(summaryCell.value?.result).toBe(60);
+    });
+
     it('should export the pre-calculated static value when `exportFormulas` is false (default)', async() => {
       handsontable({
         data: [[10], [20], [30], [null]],

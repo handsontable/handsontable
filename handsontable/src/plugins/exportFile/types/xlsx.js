@@ -1,4 +1,5 @@
 import { isDefined, stringify } from '../../../helpers/mixed';
+import { isKeyValueObject } from '../../../helpers/object';
 import { throwWithCause } from '../../../helpers/errors';
 import DataProvider from '../dataProvider';
 import BaseType from './_base';
@@ -478,8 +479,11 @@ class Xlsx extends BaseType {
     } = context;
 
     if (summary && exportFormulas) {
+      const formula = buildSummaryFormula(summary, dataRowOffset, dataColOffset);
+      const fallback = this.#getCellValue(cellValue, meta);
+
       return {
-        value: buildSummaryFormula(summary, dataRowOffset, dataColOffset) ?? this.#getCellValue(cellValue, meta),
+        value: formula ? { ...formula, result: cellValue } : fallback,
         numFmt: null,
       };
     }
@@ -949,7 +953,7 @@ class Xlsx extends BaseType {
         const meta = cellsMeta[rowIndex][colIndex];
         const isDropdown = meta.type === 'dropdown' || meta.type === 'autocomplete';
 
-        if (isDropdown && Array.isArray(meta.source)) {
+        if (isDropdown && Array.isArray(meta.source) && meta.source.length > 0) {
           const key = JSON.stringify(meta.source);
 
           if (!sourceMap.has(key)) {
@@ -981,7 +985,11 @@ class Xlsx extends BaseType {
 
     sourceMap.forEach((source, key) => {
       for (let rowNumber = 0; rowNumber < source.length; rowNumber++) {
-        validationSheet.getCell(rowNumber + 1, colNumber).value = String(source[rowNumber]);
+        const item = source[rowNumber];
+
+        validationSheet.getCell(rowNumber + 1, colNumber).value = isKeyValueObject(item)
+          ? String(item.value)
+          : String(item);
       }
 
       const colLetter = colIndexToLetter(colNumber);
