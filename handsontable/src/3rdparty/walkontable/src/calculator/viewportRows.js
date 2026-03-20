@@ -113,6 +113,22 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
       }
     }
 
+    // When needReverse is true (all rows fit in viewport) and we skipped rows
+    // via the cache or uniform-height fast path, the startPositions array is sparse
+    // (indices 0..startRow-1 are undefined). The finalize/reverse walk needs these
+    // positions, so backfill them.
+    if (this.needReverse && startRow > 0) {
+      if (this.rowHeightCache && this.rowHeightCache.isBuilt()) {
+        for (let i = 0; i < startRow; i++) {
+          this.startPositions[i] = this.rowHeightCache.getOffset(i);
+        }
+      } else if (this.defaultHeight > 0) {
+        for (let i = 0; i < startRow; i++) {
+          this.startPositions[i] = i * this.defaultHeight;
+        }
+      }
+    }
+
     this._finalize(this);
   }
 

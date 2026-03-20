@@ -94,6 +94,16 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
       }
     }
 
+    // When needReverse is true (all columns fit in viewport) and we skipped columns
+    // via the cache, the startPositions array is sparse (indices 0..startColumn-1 are
+    // undefined). The finalize/reverse walk needs these positions, so backfill them
+    // from the cache.
+    if (this.needReverse && startColumn > 0 && this.columnWidthCache && this.columnWidthCache.isBuilt()) {
+      for (let i = 0; i < startColumn; i++) {
+        this.startPositions[i] = this.columnWidthCache.getOffset(i);
+      }
+    }
+
     this._finalize(this);
   }
 
