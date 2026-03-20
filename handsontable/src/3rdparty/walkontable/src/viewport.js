@@ -16,9 +16,9 @@ import {
   RenderedRowsCalculationType,
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
-  DEFAULT_COLUMN_WIDTH,
 } from './calculator';
 import { PositionCache } from './utils/positionCache';
+import { DEFAULT_COLUMN_WIDTH } from './constants';
 
 /**
  * @class Viewport
@@ -360,18 +360,13 @@ class Viewport {
     const defaultRowHeight = wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
     const rowHeightFn = sourceRow => wtTable.getRowHeight(sourceRow);
 
-    // Rebuild the prefix sum cache if it's invalidated or row count changed.
-    if (!this.rowHeightCache.isBuilt() || this.rowHeightCache.totalItems !== totalRowCount) {
-      this.rowHeightCache.build(totalRowCount, rowHeightFn, defaultRowHeight);
-    }
+    this.rowHeightCache.ensureBuilt(totalRowCount, rowHeightFn, defaultRowHeight);
 
     return new ViewportRowsCalculator({
       calculationTypes: calculatorTypes.map(type => [type, this.rowsCalculatorTypes.get(type)()]),
       viewportHeight: height,
       scrollOffset: pos,
       totalRows: totalRowCount,
-      defaultRowHeight,
-      rowHeightFn,
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
       horizontalScrollbarHeight: scrollbarHeight,
       rowHeightCache: this.rowHeightCache,
@@ -410,17 +405,13 @@ class Viewport {
     const totalColumnCount = wtSettings.getSetting('totalColumns');
     const columnWidthFn = sourceCol => wtTable.getColumnWidth(sourceCol);
 
-    // Rebuild the prefix sum cache if it's invalidated or column count changed.
-    if (!this.columnWidthCache.isBuilt() || this.columnWidthCache.totalItems !== totalColumnCount) {
-      this.columnWidthCache.build(totalColumnCount, columnWidthFn, DEFAULT_COLUMN_WIDTH);
-    }
+    this.columnWidthCache.ensureBuilt(totalColumnCount, columnWidthFn, DEFAULT_COLUMN_WIDTH);
 
     return new ViewportColumnsCalculator({
       calculationTypes: calculatorTypes.map(type => [type, this.columnsCalculatorTypes.get(type)()]),
       viewportWidth: width,
       scrollOffset: pos,
       totalColumns: totalColumnCount,
-      columnWidthFn,
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
       inlineStartOffset: this.dataAccessObject.inlineStartParentOffset,
       columnWidthCache: this.columnWidthCache,

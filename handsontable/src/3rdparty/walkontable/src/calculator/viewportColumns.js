@@ -1,6 +1,13 @@
+import { calculateAxis } from './axisCalculation';
 import { ViewportBaseCalculator } from './viewportBase';
 
-export const DEFAULT_WIDTH = 50;
+/**
+ * The safety margin (in columns) subtracted from the binary-search result so
+ * the overrideFn buffer and partially-visible columns are always included.
+ *
+ * @type {number}
+ */
+const SCROLL_SKIP_MARGIN = 15;
 
 /**
  * @typedef {object} ViewportColumnsCalculatorOptions
@@ -8,10 +15,9 @@ export const DEFAULT_WIDTH = 50;
  * @property {number} viewportWidth Width of the viewport.
  * @property {number} scrollOffset Current horizontal scroll position of the viewport.
  * @property {number} totalColumns Total number of columns.
- * @property {Function} columnWidthFn Function that returns the width of the column at a given index (in px).
  * @property {Function} overrideFn Function that allows to adjust the `startRow` and `endRow` parameters.
  * @property {string} inlineStartOffset Inline-start offset of the parent container.
- * @property {PositionCache} [columnWidthCache] Optional prefix sum cache for O(log n) column lookups.
+ * @property {PositionCache} columnWidthCache A built prefix sum cache. The single source of truth for column sizes.
  */
 /**
  * Calculates indexes of columns to render OR columns that are visible OR partially visible in the viewport.
@@ -23,7 +29,6 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
   scrollOffset = 0;
   zeroBasedScrollOffset = 0;
   totalColumns = 0;
-  columnWidthFn = null;
   columnWidth = 0;
   overrideFn = null;
   inlineStartOffset = 0;
@@ -39,7 +44,6 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
     viewportWidth,
     scrollOffset,
     totalColumns,
-    columnWidthFn,
     overrideFn,
     inlineStartOffset,
     columnWidthCache,
@@ -49,10 +53,9 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
     this.scrollOffset = scrollOffset;
     this.zeroBasedScrollOffset = Math.max(scrollOffset, 0);
     this.totalColumns = totalColumns;
-    this.columnWidthFn = columnWidthFn;
     this.overrideFn = overrideFn;
     this.inlineStartOffset = inlineStartOffset;
-    this.columnWidthCache = columnWidthCache ?? null;
+    this.positionCache = columnWidthCache;
 
     this.calculate();
   }
@@ -61,50 +64,16 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
    * Calculates viewport.
    */
   calculate() {
-    this._initialize(this);
-
-    // Use the prefix sum cache for O(log n) skip when available.
-    // Falls back to iterating from column 0 when no cache is provided.
-    let startColumn = 0;
-
-    if (this.zeroBasedScrollOffset > 0 && this.totalColumns > 0) {
-      if (this.columnWidthCache && this.columnWidthCache.isBuilt()) {
-        const cachedCol = this.columnWidthCache.findIndexAtOffset(this.zeroBasedScrollOffset);
-
-        startColumn = Math.max(0, cachedCol - 15);
-        this.totalCalculatedWidth = this.columnWidthCache.getOffset(startColumn);
-
-        if (startColumn > 0) {
-          this.startPositions[startColumn - 1] = this.columnWidthCache.getOffset(startColumn - 1);
-        }
-      }
-    }
-
-    for (let column = startColumn; column < this.totalColumns; column++) {
-      this.columnWidth = this.getColumnWidth(column);
-
-      this._process(column, this);
-
-      this.startPositions[column] = this.totalCalculatedWidth;
-      this.totalCalculatedWidth += this.columnWidth;
-
-      if (this.totalCalculatedWidth >= this.zeroBasedScrollOffset + this.viewportWidth) {
-        this.needReverse = false;
-        break;
-      }
-    }
-
-    // When needReverse is true (all columns fit in viewport) and we skipped columns
-    // via the cache, the startPositions array is sparse (indices 0..startColumn-1 are
-    // undefined). The finalize/reverse walk needs these positions, so backfill them
-    // from the cache.
-    if (this.needReverse && startColumn > 0 && this.columnWidthCache && this.columnWidthCache.isBuilt()) {
-      for (let i = 0; i < startColumn; i++) {
-        this.startPositions[i] = this.columnWidthCache.getOffset(i);
-      }
-    }
-
-    this._finalize(this);
+    calculateAxis(this, {
+      totalCount: this.totalColumns,
+      zeroBasedScrollOffset: this.zeroBasedScrollOffset,
+      scrollEnd: this.zeroBasedScrollOffset + this.viewportWidth,
+      positionCache: this.positionCache,
+      skipMargin: SCROLL_SKIP_MARGIN,
+      setSizeField: (ctx, size) => { ctx.columnWidth = size; },
+      setTotalCalculated: (ctx, v) => { ctx.totalCalculatedWidth = v; },
+      getTotalCalculated: ctx => ctx.totalCalculatedWidth,
+    });
   }
 
   /**
@@ -114,12 +83,6 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
    * @returns {number}
    */
   getColumnWidth(column) {
-    const width = this.columnWidthFn(column);
-
-    if (isNaN(width)) {
-      return DEFAULT_WIDTH;
-    }
-
-    return width;
+    return this.positionCache.getSizeAt(column);
   }
 }

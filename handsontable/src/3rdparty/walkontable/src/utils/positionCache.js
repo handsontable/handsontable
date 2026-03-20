@@ -71,6 +71,7 @@ export class PositionCache {
     let hi = this.totalItems;
 
     while (lo < hi) {
+      // eslint-disable-next-line no-bitwise
       const mid = (lo + hi) >>> 1;
 
       if (this.prefixSum[mid + 1] <= offset) {
@@ -81,6 +82,34 @@ export class PositionCache {
     }
 
     return Math.min(lo, this.totalItems - 1);
+  }
+
+  /**
+   * Returns the size of a single item at the given index.
+   *
+   * @param {number} index The item index.
+   * @returns {number} The size of the item (difference between consecutive prefix sums).
+   */
+  getSizeAt(index) {
+    if (!this.prefixSum || index < 0 || index >= this.totalItems) {
+      return 0;
+    }
+
+    return this.prefixSum[index + 1] - this.prefixSum[index];
+  }
+
+  /**
+   * Builds the prefix sum only when the cache is not yet built or the item
+   * count has changed. Avoids duplicated rebuild-guard conditionals at call sites.
+   *
+   * @param {number} totalItems The total number of items (rows or columns).
+   * @param {Function} sizeFn A function that returns the size for a given index.
+   * @param {number} defaultSize The default size for items that return NaN/undefined.
+   */
+  ensureBuilt(totalItems, sizeFn, defaultSize) {
+    if (!this.isBuilt() || this.totalItems !== totalItems) {
+      this.build(totalItems, sizeFn, defaultSize);
+    }
   }
 
   /**

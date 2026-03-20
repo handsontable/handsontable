@@ -1,11 +1,26 @@
 import {
   ViewportRowsCalculator,
+  DEFAULT_ROW_HEIGHT,
   RenderedAllRowsCalculationType,
 } from '../../../src/calculator';
+import { PositionCache } from '../../../src/utils/positionCache';
 
 function createViewportRowsCalculator(options) {
+  const {
+    totalRows = 0,
+    rowHeightFn = () => NaN,
+    defaultRowHeight = DEFAULT_ROW_HEIGHT,
+    ...rest
+  } = options;
+
+  const cache = new PositionCache();
+
+  cache.build(totalRows, rowHeightFn, defaultRowHeight);
+
   return new ViewportRowsCalculator({
-    ...options,
+    ...rest,
+    totalRows,
+    rowHeightCache: cache,
     calculationTypes: [
       ['rendered', new RenderedAllRowsCalculationType()],
     ],

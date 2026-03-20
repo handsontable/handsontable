@@ -327,48 +327,48 @@ class Overlays {
     // (beyond clientWidth/clientHeight) indicates a scrollbar grab.
     const holder = this.wtTable.holder;
 
-    this.eventManager.addEventListener(holder, 'mousedown', (event) => {
-      const isRtl = this.wtSettings.getSetting('rtlMode');
-      const scrollbarWidth = holder.offsetWidth - holder.clientWidth;
-      const scrollbarHeight = holder.offsetHeight - holder.clientHeight;
-      const rect = holder.getBoundingClientRect();
-      const localX = event.clientX - rect.left;
-      const localY = event.clientY - rect.top;
+    // this.eventManager.addEventListener(holder, 'mousedown', (event) => {
+    //   const isRtl = this.wtSettings.getSetting('rtlMode');
+    //   const scrollbarWidth = holder.offsetWidth - holder.clientWidth;
+    //   const scrollbarHeight = holder.offsetHeight - holder.clientHeight;
+    //   const rect = holder.getBoundingClientRect();
+    //   const localX = event.clientX - rect.left;
+    //   const localY = event.clientY - rect.top;
 
-      // Check if click is in the vertical scrollbar area (right edge, or left edge for RTL)
-      const inVerticalScrollbar = isRtl
-        ? localX < scrollbarWidth
-        : localX > holder.clientWidth;
+    //   // Check if click is in the vertical scrollbar area (right edge, or left edge for RTL)
+    //   const inVerticalScrollbar = isRtl
+    //     ? localX < scrollbarWidth
+    //     : localX > holder.clientWidth;
 
-      // Check if click is in the horizontal scrollbar area (bottom edge)
-      const inHorizontalScrollbar = localY > holder.clientHeight;
+    //   // Check if click is in the horizontal scrollbar area (bottom edge)
+    //   const inHorizontalScrollbar = localY > holder.clientHeight;
 
-      if (inVerticalScrollbar || inHorizontalScrollbar) {
-        this._scrollbarDragging = true;
-      }
-    });
+    //   if (inVerticalScrollbar || inHorizontalScrollbar) {
+    //     this._scrollbarDragging = true;
+    //   }
+    // });
 
-    this.eventManager.addEventListener(rootWindow, 'mouseup', () => {
-      if (this._scrollbarDragging) {
-        this._scrollbarDragging = false;
+    // this.eventManager.addEventListener(rootWindow, 'mouseup', () => {
+    //   if (this._scrollbarDragging) {
+    //     this._scrollbarDragging = false;
 
-        // Restore spreader positioning when scrollbar is released
-        const spreader = this.wtTable.spreader;
-        const leftSpreader = this.inlineStartOverlay.clone?.wtTable?.spreader;
+    //     // Restore spreader positioning when scrollbar is released
+    //     const spreader = this.wtTable.spreader;
+    //     const leftSpreader = this.inlineStartOverlay.clone?.wtTable?.spreader;
 
-        if (spreader && spreader.style.position === 'sticky') {
-          spreader.style.position = 'relative';
-        }
-        if (leftSpreader && leftSpreader.style.position === 'sticky') {
-          leftSpreader.style.position = 'relative';
-        }
+    //     if (spreader && spreader.style.position === 'sticky') {
+    //       spreader.style.position = 'relative';
+    //     }
+    //     if (leftSpreader && leftSpreader.style.position === 'sticky') {
+    //       leftSpreader.style.position = 'relative';
+    //     }
 
-        // Trigger a full draw to restore correct spreader positions
-        if (this.wot.drawn && this.wtTable.holder.parentNode) {
-          this.wot.draw(false);
-        }
-      }
-    });
+    //     // Trigger a full draw to restore correct spreader positions
+    //     if (this.wot.drawn && this.wtTable.holder.parentNode) {
+    //       this.wot.draw(false);
+    //     }
+    //   }
+    // });
 
     this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', event => this.onKeyDown(event));
     this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
