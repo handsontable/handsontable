@@ -312,6 +312,43 @@ describe('exportFile XLSX type — features', () => {
       expect(sheets[0].name).toBe('Sheet');
       expect(sheets[1].name).toBe('Sheet1');
     });
+
+    it('should export correct data on the second export when cell values change between exports', async() => {
+      // Regression guard: style caches must be cleared for all sheet instances before
+      // each export so that CSS changes between exports are reflected correctly.
+      // The cross-document case (instances in separate iframes) cannot be reproduced
+      // in this test environment, but the same-document path is verified here.
+      handsontable({
+        data: [['first']],
+        exportFile: { engine: ExcelJS },
+      });
+
+      hot2Container = $('<div></div>').appendTo('body');
+      hot2 = hot2Container.handsontable({ data: [['first2']] }).handsontable('getInstance');
+
+      const sheets1 = await parseXlsxAllSheets({
+        sheets: [
+          { instance: hot(), name: 'A' },
+          { instance: hot2, name: 'B' },
+        ],
+      });
+
+      expect(sheets1[0].getRow(1).getCell(1).value).toBe('first');
+      expect(sheets1[1].getRow(1).getCell(1).value).toBe('first2');
+
+      await setDataAtCell(0, 0, 'second');
+      hot2.setDataAtCell(0, 0, 'second2');
+
+      const sheets2 = await parseXlsxAllSheets({
+        sheets: [
+          { instance: hot(), name: 'A' },
+          { instance: hot2, name: 'B' },
+        ],
+      });
+
+      expect(sheets2[0].getRow(1).getCell(1).value).toBe('second');
+      expect(sheets2[1].getRow(1).getCell(1).value).toBe('second2');
+    });
   });
 
   describe('compression option', () => {

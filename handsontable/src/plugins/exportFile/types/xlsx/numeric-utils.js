@@ -34,7 +34,16 @@ export function numbroPatternToExcelNumFmt(pattern) {
  * @param {string|undefined} locale BCP 47 locale tag (e.g. `'en-US'`).
  * @returns {string}
  */
-function getCurrencySymbol(currency, locale) {
+/**
+ * Resolves the currency symbol and its position (prefix or suffix) for a given
+ * ISO 4217 currency code and locale using the `Intl.NumberFormat` API.
+ *
+ * @private
+ * @param {string} currency ISO 4217 currency code (e.g. `'USD'`, `'EUR'`).
+ * @param {string|undefined} locale BCP 47 locale tag (e.g. `'en-US'`).
+ * @returns {{ symbol: string, isPrefix: boolean }}
+ */
+function getCurrencyInfo(currency, locale) {
   try {
     const parts = new Intl.NumberFormat(locale || 'en', {
       style: 'currency',
@@ -43,11 +52,17 @@ function getCurrencySymbol(currency, locale) {
       maximumFractionDigits: 0,
     }).formatToParts(0);
 
-    return parts.find(p => p.type === 'currency')?.value ?? currency;
+    const symbol = parts.find(p => p.type === 'currency')?.value ?? currency;
+    const currencyIndex = parts.findIndex(p => p.type === 'currency');
+    const integerIndex = parts.findIndex(p => p.type === 'integer');
+    const isPrefix = currencyIndex < integerIndex;
+
+    return { symbol, isPrefix };
   } catch {
     // Intl.NumberFormat throws for unrecognised currency codes. Fall back to
-    // the raw currency string so the export still produces a usable result.
-    return currency;
+    // the raw currency string placed as a prefix so the export still produces
+    // a usable result.
+    return { symbol: currency, isPrefix: true };
   }
 }
 
@@ -90,9 +105,12 @@ export function intlNumFormatToExcelNumFmt(numericFormat, locale) {
   }
 
   if (style === 'currency' && currency) {
-    const symbol = getCurrencySymbol(currency, locale);
+    const { symbol, isPrefix } = getCurrencyInfo(currency, locale);
 
-    return `${symbol}${intPart}${decimalPart}`;
+    // @TODO: handle locale-specific spacing between symbol and number
+    // (e.g. non-breaking space in fr-FR). Excel numFmt requires "\ " for a
+    // literal space, which varies per locale and is left for a follow-up.
+    return isPrefix ? `${symbol}${intPart}${decimalPart}` : `${intPart}${decimalPart}${symbol}`;
   }
 
   return `${intPart}${decimalPart}`;

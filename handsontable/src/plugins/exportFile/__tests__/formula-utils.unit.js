@@ -47,6 +47,22 @@ describe('normalizeFormula', () => {
     });
   });
 
+  describe('scientific notation', () => {
+    it('should not offset the exponent letter in a scientific notation literal (e.g. 1.5E3)', () => {
+      // 'E3' inside '1.5E3' looks like a cell reference but is part of a number literal.
+      expect(normalizeFormula('=1.5E3+A1', ',', 1, 1)).toBe('1.5E3+B2');
+    });
+
+    it('should not offset a single-digit exponent in scientific notation (e.g. 1E3)', () => {
+      expect(normalizeFormula('=1E3+A1', ',', 1, 1)).toBe('1E3+B2');
+    });
+
+    it('should still offset a real cell reference that looks like an exponent (e.g. +E3 after an operator)', () => {
+      // E3 here is a genuine cell reference, not preceded by a digit.
+      expect(normalizeFormula('=E3+A1', ',', 1, 1)).toBe('F4+B2');
+    });
+  });
+
   describe('separator replacement', () => {
     it('should replace a non-comma separator outside string literals', () => {
       expect(normalizeFormula('=SUM(A1;B1)', ';', 0, 0)).toBe('SUM(A1,B1)');

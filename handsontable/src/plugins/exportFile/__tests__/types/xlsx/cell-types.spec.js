@@ -87,6 +87,54 @@ describe('exportFile XLSX type — cell types', () => {
       expect(ws.getRow(1).getCell(3).numFmt).toBe('0.00%');
     });
 
+    it('should place the currency symbol before the number for prefix locales (en-US / USD)', async() => {
+      handsontable({
+        data: [[1234.56]],
+        columns: [{
+          type: 'numeric',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2 },
+          locale: 'en-US',
+        }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+
+      expect(ws.getRow(1).getCell(1).numFmt).toBe('$#,##0.00');
+    });
+
+    it('should place the currency symbol after the number for suffix locales (fr-FR / EUR)', async() => {
+      handsontable({
+        data: [[1234.56]],
+        columns: [{
+          type: 'numeric',
+          numericFormat: { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 },
+          locale: 'fr-FR',
+        }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+
+      expect(ws.getRow(1).getCell(1).numFmt).toBe('#,##0.00€');
+    });
+
+    it('should place the currency symbol after the number for suffix locales (de-DE / EUR)', async() => {
+      handsontable({
+        data: [[1234.56]],
+        columns: [{
+          type: 'numeric',
+          numericFormat: { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 },
+          locale: 'de-DE',
+        }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+
+      expect(ws.getRow(1).getCell(1).numFmt).toBe('#,##0.00€');
+    });
+
     it('should not set numFmt on numeric cells without a numericFormat pattern', async() => {
       handsontable({
         data: [[42]],

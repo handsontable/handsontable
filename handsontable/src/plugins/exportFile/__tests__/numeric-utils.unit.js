@@ -73,6 +73,27 @@ describe('intlNumFormatToExcelNumFmt', () => {
       expect(fmt).toBe('$#,##0.00');
     });
 
+    it('should place the currency symbol after the number for suffix locales (fr-FR / EUR)', () => {
+      // fr-FR formats EUR as "1 234,56 €" — symbol is a suffix.
+      const fmt = intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }, 'fr-FR');
+
+      expect(fmt).toBe('#,##0.00€');
+    });
+
+    it('should place the currency symbol after the number for suffix locales (de-DE / EUR)', () => {
+      // de-DE formats EUR as "1.234,56 €" — symbol is a suffix.
+      const fmt = intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }, 'de-DE');
+
+      expect(fmt).toBe('#,##0.00€');
+    });
+
+    it('should keep the currency symbol before the number for prefix locales (en-US / USD)', () => {
+      // Regression: ensure prefix placement is unchanged after the fix.
+      const fmt = intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'USD', minimumFractionDigits: 2 }, 'en-US');
+
+      expect(fmt).toBe('$#,##0.00');
+    });
+
     it('should fall back to the currency code when the currency is unrecognised', () => {
       const fmt = intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'XYZ', minimumFractionDigits: 0 }, 'en-US');
 

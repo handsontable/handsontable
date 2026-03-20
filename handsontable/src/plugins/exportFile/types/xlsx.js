@@ -102,10 +102,17 @@ class Xlsx extends BaseType {
       );
     }
 
-    clearStyleCaches(this.dataProvider.hot.rootDocument);
+    // Clear style caches for all documents involved in this export. In multi-sheet
+    // mode each sheet may come from a different Handsontable instance living in a
+    // different document (e.g. an iframe), so every distinct document must be cleared.
+    const { sheets } = this.options;
+    const docsToClear = sheets && sheets.length > 0
+      ? new Set(sheets.map(s => s.instance.rootDocument))
+      : new Set([this.dataProvider.hot.rootDocument]);
+
+    docsToClear.forEach(doc => clearStyleCaches(doc));
 
     const workbook = new engine.Workbook();
-    const { sheets } = this.options;
 
     if (sheets && sheets.length > 0) {
       // multi-sheet mode
@@ -386,7 +393,7 @@ class Xlsx extends BaseType {
       const cell = row.getCell(colIndex + cellContext.dataColOffset);
       const meta = cellsMeta[rowIndex][colIndex];
       const summary = summaryMap.get(`${rowIndex}:${colIndex}`);
-      const sourceValue = sourceData?.[rowIndex]?.[colIndex];
+      const sourceValue = sourceData?.[rowIndex][colIndex];
       const { value, numFmt } = this.#resolveCellValue(cellValue, meta, sourceValue, summary, cellContext);
 
       cell.value = value;

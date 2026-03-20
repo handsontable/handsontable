@@ -202,7 +202,7 @@ export function normalizeFormula(formulaStr, separator, rowOffset, colOffset, ex
     // single-quoted tokens are sheet name references like 'Sheet 1'!A1). When matched, they are returned
     // as-is so that cell-reference-like patterns inside string values are not offset.
     formula = formula.replace(
-      /("(?:[^"]|"")*"|'[^']*')|(\$?)([A-Z]{1,3})(\$?)(\d{1,7})(?!\()/g,
+      /("(?:[^"]|"")*"|'[^']*')|(?<![0-9])(\$?)([A-Z]{1,3})(\$?)(\d{1,7})(?!\()/g,
       (match, strLiteral, colAbs, colLetters, rowAbs, rowStr) => {
         if (strLiteral !== undefined) {
           return strLiteral;
