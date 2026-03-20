@@ -599,6 +599,8 @@ export default () => {
      *
      *   if (visualRowIndex === 0 && visualColIndex === 0) {
      *     cellProperties.readOnly = true;
+     *   } else {
+     *     cellProperties.readOnly = false;
      *   }
      *
      *   return cellProperties;
