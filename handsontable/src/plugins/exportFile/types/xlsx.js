@@ -137,13 +137,13 @@ class Xlsx extends BaseType {
 
         const worksheet = workbook.addWorksheet(name);
 
-        this.#populateWorksheet(worksheet, dp, sheetOptions);
+        this.#populateWorksheet(workbook, worksheet, dp, sheetOptions);
       });
     } else {
       // single-sheet mode
       const worksheet = workbook.addWorksheet('Sheet1');
 
-      this.#populateWorksheet(worksheet, this.dataProvider, this.options);
+      this.#populateWorksheet(workbook, worksheet, this.dataProvider, this.options);
     }
 
     return workbook.xlsx.writeBuffer(this.#getWriteOptions());
@@ -154,14 +154,16 @@ class Xlsx extends BaseType {
    *
    * Extracts the data writing logic shared between single-sheet and multi-sheet exports.
    *
+   * @param {object} workbook The ExcelJS workbook.
    * @param {object} worksheet The ExcelJS worksheet to populate.
    * @param {DataProvider} dataProvider DataProvider configured for this sheet.
    * @param {object} options Merged options for this sheet.
    * @returns {number} Number of data rows written.
    */
-  #populateWorksheet(worksheet, dataProvider, options) {
+  #populateWorksheet(workbook, worksheet, dataProvider, options) {
     const data = dataProvider.getData();
     const cellsMeta = dataProvider.getCellsMeta();
+    const validationMap = this.#buildValidationSheet(workbook, cellsMeta);
     const cellElements = dataProvider.getCellElements();
     const columnHeaders = dataProvider.getColumnHeaders();
     const columnHeadersClassNames = dataProvider.getColumnHeadersClassNames();
@@ -264,7 +266,7 @@ class Xlsx extends BaseType {
     this.#writeDataRows(
       worksheet, data, cellsMeta, cellElements, rowHeaders, rowsHeights,
       summaryMap, sourceData, cellContext, hasRowHeaders, headerFill, headerBorder,
-      hasReadOnlyCells, rootDocument, rootWindow
+      hasReadOnlyCells, rootDocument, rootWindow, validationMap
     );
 
     if (hiddenRowIndices.length > 0) {
@@ -332,10 +334,11 @@ class Xlsx extends BaseType {
    * @param {boolean} hasReadOnlyCells Whether the sheet has any read-only cells.
    * @param {Document} rootDocument Owner document (fallback for off-viewport cells).
    * @param {Window} rootWindow Owner window (fallback for off-viewport cells).
+   * @param {Map<string, string>} validationMap Map from source JSON key to range reference.
    */
   #writeDataRows(worksheet, data, cellsMeta, cellElements, rowHeaders, rowsHeights,
                  summaryMap, sourceData, cellContext, hasRowHeaders, headerFill, headerBorder,
-                 hasReadOnlyCells, rootDocument, rootWindow) {
+                 hasReadOnlyCells, rootDocument, rootWindow, validationMap) {
     for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
       const rowData = data[rowIndex];
       const excelRowNumber = rowIndex + cellContext.dataRowOffset;
@@ -361,7 +364,8 @@ class Xlsx extends BaseType {
 
       this.#writeRowCells(
         row, rowData, rowIndex, cellsMeta, cellElements,
-        summaryMap, sourceData, cellContext, hasReadOnlyCells, rootDocument, rootWindow
+        summaryMap, sourceData, cellContext, hasReadOnlyCells, rootDocument, rootWindow,
+        validationMap
       );
 
       row.commit();
@@ -385,9 +389,11 @@ class Xlsx extends BaseType {
    * @param {boolean} hasReadOnlyCells Whether the sheet has any read-only cells.
    * @param {Document} rootDocument Owner document (fallback for off-viewport cells).
    * @param {Window} rootWindow Owner window (fallback for off-viewport cells).
+   * @param {Map<string, string>} validationMap Map from source JSON key to range reference.
    */
   #writeRowCells(row, rowData, rowIndex, cellsMeta, cellElements,
-                 summaryMap, sourceData, cellContext, hasReadOnlyCells, rootDocument, rootWindow) {
+                 summaryMap, sourceData, cellContext, hasReadOnlyCells, rootDocument, rootWindow,
+                 validationMap) {
     for (let colIndex = 0; colIndex < rowData.length; colIndex++) {
       const cellValue = rowData[colIndex];
       const cell = row.getCell(colIndex + cellContext.dataColOffset);
@@ -406,7 +412,7 @@ class Xlsx extends BaseType {
         cellElements[rowIndex][colIndex], meta.className, rootDocument, rootWindow
       );
 
-      this.#writeCellStyling(cell, meta, cssStyle);
+      this.#writeCellStyling(cell, meta, cssStyle, validationMap);
 
       if (hasReadOnlyCells) {
         cell.protection = { locked: meta.readOnly === true };
@@ -425,8 +431,9 @@ class Xlsx extends BaseType {
    * @param {{ fontBold: boolean, fontItalic: boolean, fontUnderline: boolean,
    *           fontColor: string|null, backgroundColor: string|null }|null} cssStyle
    *   Computed CSS style from `getCssStyleFromElement`, or `null`.
+   * @param {Map<string, string>} validationMap Map from source JSON key to range reference.
    */
-  #writeCellStyling(cell, meta, cssStyle) {
+  #writeCellStyling(cell, meta, cssStyle, validationMap) {
     const alignment = getAlignmentFromMeta(meta);
 
     if (alignment) {
@@ -451,7 +458,10 @@ class Xlsx extends BaseType {
       cell.fill = fill;
     }
 
-    const dropdownValidation = getDropdownValidation(meta);
+    const rangeRef = Array.isArray(meta.source)
+      ? (validationMap.get(JSON.stringify(meta.source)) ?? null)
+      : null;
+    const dropdownValidation = getDropdownValidation(meta, rangeRef);
 
     if (dropdownValidation) {
       cell.dataValidation = dropdownValidation;
@@ -936,6 +946,73 @@ class Xlsx extends BaseType {
         colPos += header.colspan;
       });
     }
+  }
+
+  /**
+   * Creates a `veryHidden` worksheet containing all unique dropdown/autocomplete
+   * source arrays as columns. Returns a map from `JSON.stringify(source)` to an
+   * Excel range-reference string pointing at that column.
+   *
+   * If no dropdown or autocomplete cells with array sources are found, returns an
+   * empty map and does not add any worksheet to the workbook.
+   *
+   * @private
+   * @param {object} workbook The ExcelJS workbook.
+   * @param {Array[]} cellsMeta 2D meta array from DataProvider.
+   * @returns {Map<string, string>} Map from source JSON key to range reference.
+   */
+  #buildValidationSheet(workbook, cellsMeta) {
+    const sourceMap = new Map();
+
+    for (let rowIndex = 0; rowIndex < cellsMeta.length; rowIndex++) {
+      for (let colIndex = 0; colIndex < cellsMeta[rowIndex].length; colIndex++) {
+        const meta = cellsMeta[rowIndex][colIndex];
+        const isDropdown = meta.type === 'dropdown' || meta.type === 'autocomplete';
+
+        if (isDropdown && Array.isArray(meta.source)) {
+          const key = JSON.stringify(meta.source);
+
+          if (!sourceMap.has(key)) {
+            sourceMap.set(key, meta.source);
+          }
+        }
+      }
+    }
+
+    if (sourceMap.size === 0) {
+      return new Map();
+    }
+
+    const existingNames = new Set(workbook.worksheets.map(ws => ws.name));
+    let sheetName = '_HotValidation';
+    let suffix = 1;
+
+    while (existingNames.has(sheetName)) {
+      sheetName = `_HotValidation${suffix}`;
+      suffix += 1;
+    }
+
+    const validationSheet = workbook.addWorksheet(sheetName);
+
+    validationSheet.state = 'veryHidden';
+
+    const validationMap = new Map();
+    let colNumber = 1;
+
+    sourceMap.forEach((source, key) => {
+      for (let rowNumber = 0; rowNumber < source.length; rowNumber++) {
+        validationSheet.getCell(rowNumber + 1, colNumber).value = String(source[rowNumber]);
+      }
+
+      const colLetter = colIndexToLetter(colNumber);
+      const escapedName = sheetName.replace(/'/g, '\'\'');
+      const rangeRef = `'${escapedName}'!$${colLetter}$1:$${colLetter}$${source.length}`;
+
+      validationMap.set(key, rangeRef);
+      colNumber += 1;
+    });
+
+    return validationMap;
   }
 }
 

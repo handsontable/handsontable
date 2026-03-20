@@ -530,10 +530,12 @@ export function getFillFromMeta(meta, cssStyle = null) {
  *
  * @private
  * @param {object|undefined} meta Cell meta object.
+ * @param {string|null} rangeRef Excel range reference to the validation list
+ *   (e.g. `'_HotValidation'!$A$1:$A$3`). When `null` or `undefined`, returns `null`.
  * @returns {object|null}
  */
-export function getDropdownValidation(meta) {
-  if (!meta) {
+export function getDropdownValidation(meta, rangeRef) {
+  if (!meta || !rangeRef) {
     return null;
   }
 
@@ -546,6 +548,6 @@ export function getDropdownValidation(meta) {
   return {
     type: 'list',
     allowBlank: true,
-    formulae: [`"${meta.source.map(v => String(v).replace(/"/g, '""')).join(',')}"`],
+    formulae: [rangeRef],
   };
 }

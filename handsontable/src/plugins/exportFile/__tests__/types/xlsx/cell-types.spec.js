@@ -440,7 +440,7 @@ describe('exportFile XLSX type — cell types', () => {
       const validation = ws.getRow(1).getCell(1).dataValidation;
 
       expect(validation.type).toBe('list');
-      expect(validation.formulae).toEqual(['"Option A,Option B,Option C"']);
+      expect(validation.formulae[0]).toMatch(/^'/);
       expect(validation.allowBlank).toBe(true);
     });
 
@@ -455,7 +455,7 @@ describe('exportFile XLSX type — cell types', () => {
       const validation = ws.getRow(1).getCell(1).dataValidation;
 
       expect(validation.type).toBe('list');
-      expect(validation.formulae).toEqual(['"red,green,blue"']);
+      expect(validation.formulae[0]).toMatch(/^'/);
     });
 
     it('should not add data validation when source is a function', async() => {
@@ -479,6 +479,82 @@ describe('exportFile XLSX type — cell types', () => {
       const ws = await parseXlsx();
 
       expect(ws.getRow(1).getCell(1).dataValidation).toBeUndefined();
+    });
+
+    it('should handle source values containing double-quote characters', async() => {
+      handsontable({
+        data: [['say "hello"']],
+        columns: [{ type: 'dropdown', source: ['say "hello"', 'world'] }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const allSheets = await parseXlsxAllSheets();
+      const validationSheet = allSheets.find(ws => ws.name.startsWith('_HotValidation'));
+
+      expect(validationSheet).toBeDefined();
+      expect(validationSheet.getCell(1, 1).value).toBe('say "hello"');
+      expect(validationSheet.getCell(2, 1).value).toBe('world');
+    });
+
+    it('should handle source values containing comma characters', async() => {
+      handsontable({
+        data: [['A,B']],
+        columns: [{ type: 'dropdown', source: ['A,B', 'C'] }],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const allSheets = await parseXlsxAllSheets();
+      const validationSheet = allSheets.find(ws => ws.name.startsWith('_HotValidation'));
+
+      expect(validationSheet).toBeDefined();
+      expect(validationSheet.getCell(1, 1).value).toBe('A,B');
+      expect(validationSheet.getCell(2, 1).value).toBe('C');
+    });
+
+    it('should write each unique source array to a separate column and deduplicate shared sources', async() => {
+      handsontable({
+        data: [['a', 'x', 'a']],
+        columns: [
+          { type: 'dropdown', source: ['a', 'b'] },
+          { type: 'dropdown', source: ['x', 'y', 'z'] },
+          { type: 'dropdown', source: ['a', 'b'] },
+        ],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const allSheets = await parseXlsxAllSheets();
+      const validationSheet = allSheets.find(ws => ws.name.startsWith('_HotValidation'));
+
+      expect(validationSheet.columnCount).toBe(2);
+    });
+
+    it('should use the same range reference for cells with identical sources', async() => {
+      handsontable({
+        data: [['a', 'a']],
+        columns: [
+          { type: 'dropdown', source: ['a', 'b'] },
+          { type: 'dropdown', source: ['a', 'b'] },
+        ],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const ws = await parseXlsx();
+      const ref1 = ws.getRow(1).getCell(1).dataValidation.formulae[0];
+      const ref2 = ws.getRow(1).getCell(2).dataValidation.formulae[0];
+
+      expect(ref1).toBe(ref2);
+    });
+
+    it('should not create a validation sheet when there are no dropdown cells', async() => {
+      handsontable({
+        data: [['hello']],
+        exportFile: { engine: ExcelJS },
+      });
+
+      const allSheets = await parseXlsxAllSheets();
+
+      expect(allSheets.length).toBe(1);
+      expect(allSheets[0].name).toBe('Sheet1');
     });
   });
 
