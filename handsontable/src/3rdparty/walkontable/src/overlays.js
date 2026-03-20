@@ -609,18 +609,6 @@ class Overlays {
     this.horizontalScrolling = this.lastScrollX !== scrollX;
     this.verticalScrolling = this.lastScrollY !== scrollY;
 
-    // Track scroll velocity and direction for adaptive buffer sizing.
-    const now = performance.now();
-    const dt = now - (this._lastScrollTime || now);
-
-    if (dt > 0) {
-      this._scrollVelocityY = Math.abs(scrollY - this.lastScrollY) / dt;
-      this._scrollVelocityX = Math.abs(scrollX - this.lastScrollX) / dt;
-    }
-    this._scrollDirectionY = Math.sign(scrollY - this.lastScrollY);
-    this._scrollDirectionX = Math.sign(scrollX - this.lastScrollX);
-    this._lastScrollTime = now;
-
     this.lastScrollX = scrollX;
     this.lastScrollY = scrollY;
 
