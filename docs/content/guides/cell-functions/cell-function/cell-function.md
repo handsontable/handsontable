@@ -34,14 +34,42 @@ Every Handsontable cell has three associated functions that handle distinct conc
 
 The three functions are **independent**. You can mix and match any combination: use the built-in numeric editor with a custom renderer, override just the validator while keeping a built-in type, or write all three from scratch.
 
+### Function signatures
+
+```js
+// renderer — called for every visible cell on every render
+renderer(hotInstance, td, row, col, prop, value, cellProperties)
+// hotInstance  – Handsontable instance
+// td           – HTMLTableCellElement to modify
+// row, col     – visual row and column indexes
+// prop         – data property name (string) or column index (number)
+// value        – current cell value
+// cellProperties – merged cell configuration object
+
+// validator — may be synchronous or asynchronous
+validator(value, callback)
+// value    – value to validate
+// callback – call with true (valid) or false (invalid)
+// RegExp alternative: /pattern/.test(value) must return true
+
+// editor — a class; see the Cell editor guide for the full lifecycle API
+class MyEditor extends BaseEditor { ... }
+```
+
+`validator` is **optional**. If no validator is defined for a cell, the value is always considered valid.
+
+### `allowInvalid`
+
+By default, `allowInvalid: true` — invalid cells are accepted into the data source but marked with the `htInvalid` CSS class. Set `allowInvalid: false` to reject invalid values and keep the editor open until a valid value is entered.
+
 ## Cell types bundle all three
 
 A [cell type](@/guides/cell-types/cell-type/cell-type.md) is a preset that assigns a matching `renderer`, `editor`, and `validator` together under a single `type` alias. Using `type: 'numeric'` is shorthand for:
 
 ```js
 {
-  renderer: Handsontable.renderers.NumericRenderer,
-  editor:   Handsontable.editors.NumericEditor,
+  renderer:  Handsontable.renderers.NumericRenderer,
+  editor:    Handsontable.editors.NumericEditor,
   validator: Handsontable.validators.NumericValidator,
 }
 ```
@@ -56,6 +84,12 @@ columns: [{
   renderer: myRenderer, // overrides only NumericRenderer; editor and validator stay numeric
 }]
 ```
+
+**When to use a type vs individual functions:**
+
+- Use `type` when you want the standard, bundled behavior for a data kind (numbers, dates, checkboxes).
+- Override a single function from a type when one aspect needs customizing but the rest is fine as-is.
+- Set individual `renderer`/`editor`/`validator` directly when no built-in type fits or you need full control.
 
 ## Configuration priority
 
@@ -112,7 +146,7 @@ The example below shows a product inventory table. Each column uses a different 
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #example1 :angular --ts 1 --html 2 --no-jsfiddle
 
 @[code](@/content/guides/cell-functions/cell-function/angular/example1.ts)
 @[code](@/content/guides/cell-functions/cell-function/angular/example1.html)
@@ -195,6 +229,20 @@ const ExampleComponent = () => {
 
 :::
 
+::: only-for angular
+
+```ts
+// Access the instance via ViewChild on the HotTableComponent
+const cellProperties = this.hotTableComponent.hotInstance.getCellMeta(0, 0);
+
+cellProperties.renderer;   // numericRenderer function
+cellProperties.editor;     // NumericEditor class
+cellProperties.validator;  // numericValidator function
+cellProperties.type;       // 'numeric'
+```
+
+:::
+
 ## Related articles
 
 ### Related guides
@@ -215,6 +263,7 @@ const ExampleComponent = () => {
   - [`renderer`](@/api/options.md#renderer)
   - [`type`](@/api/options.md#type)
   - [`validator`](@/api/options.md#validator)
+  - [`allowInvalid`](@/api/options.md#allowinvalid)
   - [`valueFormatter`](@/api/options.md#valueformatter)
 - Core methods:
   - [`destroyEditor()`](@/api/core.md#destroyeditor)
