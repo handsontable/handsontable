@@ -27,8 +27,20 @@ npm run test                       # Full pipeline: lint + unit + types + walkon
 pnpm --filter handsontable run test:unit
 pnpm --filter handsontable run test:e2e
 
-# Run specific unit test pattern:
-npm run test:unit -- --testPathPattern=cellMeta
+# Run specific unit test pattern (must be run from handsontable/ directory):
+npm run test:unit --testPathPattern=cellMeta
+
+# Run specific E2E test pattern (must be run from handsontable/ directory):
+# The pattern is baked into the webpack bundle at dump time via __ENV_ARGS__.testPathPattern.
+# webpack.config.js copies the lowercase npm_config_testpathpattern to npm_config_testPathPattern
+# so the standard npm --key=value syntax works.
+# Step 1: rebuild the test bundle with the pattern (skips full UMD build):
+npm run test:e2e.dump --testPathPattern=filters
+# Step 2: run puppeteer against the filtered bundle:
+npm run test:e2e.puppeteer
+# Or, to do both in one command (also rebuilds UMD bundles):
+npm run test:e2e --testPathPattern=filters
+# NOTE: changing the pattern requires re-running test:e2e.dump — the pattern is compiled in.
 
 # Coverage:
 npm run test:unit -- --coverage
