@@ -187,8 +187,11 @@ function resolveMonorepoPackages() {
         return resolve(VUE3_WRAPPER_DIR, 'es/vue-handsontable.mjs');
       }
 
-      // ── Vue (from the wrapper's own node_modules) ──────────────────────
-      if (id === 'vue') return resolve(VUE3_MODULES, 'vue/index.js');
+      // ── Vue (from the wrapper's own node_modules, ESM bundler build) ──
+      // Must use vue.esm-bundler.js (not index.js which is CJS). The CJS entry
+      // cannot be natively imported as an ES module in the browser, causing
+      // "does not provide an export named 'createElementBlock'" errors.
+      if (id === 'vue') return resolve(VUE3_MODULES, 'vue/dist/vue.esm-bundler.js');
 
       // ── Angular wrapper ────────────────────────────────────────────────
       if (id === '@handsontable/angular-wrapper') {
@@ -456,8 +459,8 @@ export default defineConfig({
           replacement: resolve(VUE3_WRAPPER_DIR, 'es/vue-handsontable.mjs'),
         },
 
-        // ── Vue (from the wrapper's own node_modules) ──────────────────────
-        { find: 'vue', replacement: resolve(VUE3_MODULES, 'vue/index.js') },
+        // ── Vue (ESM bundler build — must not use index.js which is CJS) ──
+        { find: 'vue', replacement: resolve(VUE3_MODULES, 'vue/dist/vue.esm-bundler.js') },
 
         // ── Angular wrapper ────────────────────────────────────────────────
         {
