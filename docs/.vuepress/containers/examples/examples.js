@@ -203,7 +203,6 @@ module.exports = function(docsVersion, base) {
         );
         const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
         const noEdit = !!args.match(/--no-edit/)?.[0];
-        const noJsfiddle = !!args.match(/--no-jsfiddle/)?.[0];
         const depsMatch = args.match(/--deps\s+(\S+(?:\s+\S+)*)/);
         const extraDeps = (depsMatch ? depsMatch[1].trim().split(/\s+/) : []).map((spec) => {
           const at = spec.lastIndexOf('@');
@@ -251,7 +250,7 @@ module.exports = function(docsVersion, base) {
       extraDeps
     )
     : ''}
-                  ${!noEdit && !noJsfiddle
+                  ${!noEdit
     ? jsfiddle(
       id,
       htmlContent,
@@ -276,7 +275,7 @@ module.exports = function(docsVersion, base) {
       extraDeps
     )
     : ''}
-                  ${!noEdit && !isReact && !noJsfiddle
+                  ${!noEdit && !isReact
     ? jsfiddle(
       id,
       htmlContent,
