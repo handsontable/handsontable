@@ -123,6 +123,10 @@ The example below shows a product inventory table. Each column uses a different 
 
 Double-click any **Stock** cell to edit it with the numeric editor. The bar renderer updates on save. Enter a value outside 0–1000 to see the validator reject it (cell turns red when `allowInvalid: false`).
 
+## Performance
+
+Renderers are called separately for every displayed cell on every table render. A table can render many times during its lifetime — after scrolling, sorting, editing, and more. Keep `renderer` functions as simple and fast as possible to avoid performance drops, especially with large datasets.
+
 ## Getting cell functions programmatically
 
 Use [`getCellMeta(row, col)`](@/api/core.md#getcellmeta) to read all properties of a cell at once, or the dedicated getters for individual functions:
