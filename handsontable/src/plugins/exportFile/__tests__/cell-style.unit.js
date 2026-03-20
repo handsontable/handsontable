@@ -24,6 +24,13 @@ describe('getAlignmentFromMeta', () => {
   it('should return null when className array contains no recognised alignment classes', () => {
     expect(getAlignmentFromMeta({ className: ['foo', 'bar'] })).toBeNull();
   });
+
+  it('should not throw when className array contains null or undefined elements', () => {
+    expect(() => getAlignmentFromMeta({ className: [null, undefined, 'htCenter'] })).not.toThrow();
+    expect(getAlignmentFromMeta({ className: [null, undefined, 'htCenter'] })).toEqual({
+      horizontal: 'center',
+    });
+  });
 });
 
 describe('getDropdownValidation', () => {

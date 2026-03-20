@@ -113,5 +113,100 @@ describe('ExportFile', () => {
       expect(items).toContain('Export to CSV');
       expect(items).toContain('Export to Excel');
     });
+
+    it('should include columnHeaders and rowHeaders in export options when they are enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        exportFile: { contextMenu: true },
+      });
+
+      const plugin = getPlugin('exportFile');
+
+      spyOn(plugin, 'downloadFile');
+
+      await contextMenu(getCell(1, 1));
+      $('.htContextMenu tbody td').filter(function() {
+        return $(this).text() === 'Export to CSV';
+      }).simulate('mousedown').simulate('mouseup');
+
+      expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
+        columnHeaders: true,
+        rowHeaders: true,
+      }));
+    });
+
+    it('should not include columnHeaders or rowHeaders when they are not enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        exportFile: { contextMenu: true },
+      });
+
+      const plugin = getPlugin('exportFile');
+
+      spyOn(plugin, 'downloadFile');
+
+      await contextMenu(getCell(1, 1));
+      $('.htContextMenu tbody td').filter(function() {
+        return $(this).text() === 'Export to CSV';
+      }).simulate('mousedown').simulate('mouseup');
+
+      expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
+        columnHeaders: false,
+        rowHeaders: false,
+      }));
+    });
+
+    it('should include the selected range in export options when a data cell is right-clicked', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        exportFile: { contextMenu: true },
+      });
+
+      const plugin = getPlugin('exportFile');
+
+      spyOn(plugin, 'downloadFile');
+
+      await selectCell(1, 1, 3, 3);
+      await contextMenu(getCell(2, 2));
+      $('.htContextMenu tbody td').filter(function() {
+        return $(this).text() === 'Export to CSV';
+      }).simulate('mousedown').simulate('mouseup');
+
+      expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
+        range: [1, 1, 3, 3],
+      }));
+    });
+
+    it('should not include a range in export options when the corner is right-clicked', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        exportFile: { contextMenu: true },
+      });
+
+      const plugin = getPlugin('exportFile');
+
+      spyOn(plugin, 'downloadFile');
+
+      await contextMenu(getCell(-1, -1));
+      $('.htContextMenu tbody td').filter(function() {
+        return $(this).text() === 'Export to CSV';
+      }).simulate('mousedown').simulate('mouseup');
+
+      expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
+        columnHeaders: true,
+        rowHeaders: true,
+      }));
+      expect(plugin.downloadFile).not.toHaveBeenCalledWith('csv', jasmine.objectContaining({
+        range: jasmine.anything(),
+      }));
+    });
   });
 });

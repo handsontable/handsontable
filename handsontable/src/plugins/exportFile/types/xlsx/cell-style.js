@@ -14,7 +14,7 @@ const READ_ONLY_TEXT_ARGB = 'FF808080';
  */
 function normalizeClassNames(className) {
   if (Array.isArray(className)) {
-    return className.filter(c => c.length > 0);
+    return className.filter(c => typeof c === 'string' && c.length > 0);
   }
 
   if (typeof className === 'string') {
