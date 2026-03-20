@@ -118,6 +118,8 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: '未找到結果',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: '看起來您目前的過濾器隱藏了所有結果。',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: '重設過濾器',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: '正在載入資料',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: '請稍候。',
 };
 
 export default dictionary;

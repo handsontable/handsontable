@@ -178,6 +178,9 @@ export interface Events {
   afterUpdateData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
   afterDataProviderFetch?: (result: DataProviderFetchResult) => void;
   afterDataProviderFetchError?: (error: Error, queryParameters: DataProviderQueryParameters) => void;
+  afterDataProviderFetchAbort?: (queryParameters: DataProviderQueryParameters, reason?: Error) => void;
+  emptyDataStateLoadingChange?: (active: boolean) => void;
+  emptyDataStateLoadingSync?: () => void;
   afterUpdateSettings?: (newSettings: GridSettings) => void;
   afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number, source: ChangeSource) => void | boolean;
   afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;

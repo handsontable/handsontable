@@ -128,6 +128,8 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nie znaleziono wyników',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Wygląda na to, że Twoje obecne filtry ukrywają wszystkie wyniki.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetuj filtry',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Wczytywanie danych',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Proszę czekać.',
 };
 
 export default dictionary;

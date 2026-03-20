@@ -2390,6 +2390,12 @@ export default () => {
      * | `title`       | `string`        | Title to display in the empty data state overlay.       |
      * | `description` | `string`        | Description to display in the empty data state overlay. |
      * | `buttons`     | `array`         | Buttons to display in the empty data state overlay.     |
+     * | `loading`     | `boolean`       | When `true`, shows a loading spinner (used for server fetch state). |
+     *
+     * If you set the `message` option to a function, the `source` argument can be `"unknown"`, `"filters"`, or `"loading"`.
+     * Plugins fire the `emptyDataStateLoadingChange` hook when they recommend showing or hiding that loading branch.
+     * The EmptyDataState plugin listens to that hook.
+     * After Empty Data State enables, it runs `emptyDataStateLoadingSync` so listeners can push the current flag again.
      *
      * If you set the `buttons` option to an array, each item requires following properties:
      *
@@ -2436,6 +2442,11 @@ export default () => {
      *           title: 'No data available',
      *           description: 'There’s nothing to display yet.',
      *           buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+     *         };
+     *       case "loading":
+     *         return {
+     *           title: 'Loading data',
+     *           description: 'Please wait.',
      *         };
      *       default:
      *         return {

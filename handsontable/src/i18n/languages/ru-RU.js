@@ -118,6 +118,8 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Результаты не найдены',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Похоже, что ваши текущие фильтры скрывают все результаты.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Сбросить фильтры',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Загрузка данных',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Подождите.',
 };
 
 export default dictionary;

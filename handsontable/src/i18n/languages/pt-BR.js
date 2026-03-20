@@ -118,6 +118,8 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nenhum resultado encontrado',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Parece que seus filtros atuais estão ocultando todos os resultados.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Redefinir filtros',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Carregando dados',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Aguarde.',
 };
 
 export default dictionary;

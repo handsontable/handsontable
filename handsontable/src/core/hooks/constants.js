@@ -529,6 +529,36 @@ export const REGISTERED_HOOKS = [
   'afterDataProviderFetchError',
 
   /**
+   * Fired after a dataProvider `fetchRows` request ends without loading data because it was aborted
+   * (superseded by a newer fetch, `AbortSignal`, or plugin disable/destroy).
+   *
+   * @event Hooks#afterDataProviderFetchAbort
+   * @since 17.1.0
+   * @param {object} queryParameters The query parameters that were used for the aborted request.
+   * @param {Error|undefined} reason Abort reason when available (e.g. `AbortError`).
+   */
+  'afterDataProviderFetchAbort',
+
+  /**
+   * Fired when a plugin recommends showing or hiding the Empty Data State loading UI (`loading` message source).
+   * The EmptyDataState plugin listens to this hook.
+   *
+   * @event Hooks#emptyDataStateLoadingChange
+   * @since 17.1.0
+   * @param {boolean} active `true` to show loading copy/spinner, `false` to hide that state.
+   */
+  'emptyDataStateLoadingChange',
+
+  /**
+   * Fired by the EmptyDataState plugin after it enables so plugins can re-emit `emptyDataStateLoadingChange`.
+   * The DataProvider plugin listens; other integrations can listen when they need the same resync behavior.
+   *
+   * @event Hooks#emptyDataStateLoadingSync
+   * @since 17.1.0
+   */
+  'emptyDataStateLoadingSync',
+
+  /**
    * Fired before rows mutation (create, update, remove) is sent to the server. Return `false` to cancel.
    *
    * @event Hooks#beforeRowsMutation

@@ -81,6 +81,45 @@ describe('DataProvider integration with Pagination', () => {
     expect(getDataAtCell(0, 0)).toBe(6);
   });
 
+  it('should keep current pagination page when column sort triggers refetch', async() => {
+    const fetchRows = jasmine.createSpy('fetchRows').and.callFake((params) => {
+      const { page, pageSize } = params;
+      const start = (page - 1) * pageSize;
+      const rows = Array.from({ length: Math.min(pageSize, 30 - start) }, (_, i) => ({
+        id: start + i + 1,
+        name: `Item ${start + i + 1}`,
+      }));
+
+      return Promise.resolve({ rows, totalRows: 30 });
+    });
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      colHeaders: true,
+      columnSorting: true,
+      pagination: { pageSize: 5, initialPage: 1 },
+      dataProvider: createDataProviderConfig({ fetchRows }),
+    });
+
+    await sleep(100);
+
+    getPlugin('pagination').setPage(3);
+
+    await sleep(100);
+
+    fetchRows.calls.reset();
+
+    getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+    await sleep(100);
+
+    expect(fetchRows).toHaveBeenCalledWith(
+      jasmine.objectContaining({ page: 3, pageSize: 5 }),
+      jasmine.any(Object)
+    );
+  });
+
   it('should provide total count to pagination via paginationTotalItemCount hook', async() => {
     handsontable({
       data: [],

@@ -149,6 +149,19 @@ export type RowMutationPayload =
 export class DataProvider extends BasePlugin {
   constructor(hotInstance: Core);
   isEnabled(): boolean;
+  /**
+   * True while at least one `fetchRows` call from `fetchData` has not settled.
+   */
+  isFetching(): boolean;
+  /**
+   * Query parameters for the latest started in-flight `fetchRows` call, or `null` when not loading.
+   * If a request was superseded, this matches the newer request until all overlapping fetches settle.
+   */
+  getInFlightQueryParameters(): DataProviderQueryParameters | null;
+  /**
+   * Query parameters for the dataset currently in the grid (last successful DataProvider load).
+   */
+  getLastLoadedQueryParameters(): DataProviderQueryParameters;
   getTotalRows(): number;
   getQueryParameters(): DataProviderQueryParameters;
   getRowId(visualRow: number): unknown;

@@ -38,6 +38,20 @@ describe('dataProvider utils', () => {
       expect(query.page).toBe(2);
     });
 
+    it('should prefer getCurrentPage over initialPage', () => {
+      const query = { page: 1, pageSize: 10 };
+      const pagination = {
+        enabled: true,
+        getSetting: key => ({ pageSize: 5, initialPage: 1 }[key]),
+        getCurrentPage: () => 4,
+      };
+
+      applyPaginationToQueryParameters(pagination, query);
+
+      expect(query.pageSize).toBe(5);
+      expect(query.page).toBe(4);
+    });
+
     it('should no-op when plugin is missing or disabled', () => {
       const query = { page: 1, pageSize: 10 };
 

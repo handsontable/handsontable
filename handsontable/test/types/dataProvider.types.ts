@@ -53,6 +53,15 @@ hot.addHook('afterDataProviderFetchError', (error: Error, queryParameters: DataP
   }
 });
 
+hot.addHook('afterDataProviderFetchAbort', (queryParameters: DataProviderQueryParameters, reason?: Error) => {
+  void queryParameters.page;
+  void reason?.name;
+});
+
+hot.addHook('emptyDataStateLoadingChange', (active: boolean) => {
+  void active;
+});
+
 hot.addHook('afterRowsMutation', (operation, payload) => {
   if (operation === 'create' && 'rowsCreate' in payload) {
     void payload.rowsCreate.rowsAmount;
@@ -64,6 +73,14 @@ hot.addHook('afterRowsMutation', (operation, payload) => {
     void payload.rows[0].id;
   }
 });
+
+const dataProviderPlugin = hot.getPlugin('dataProvider');
+
+if (dataProviderPlugin) {
+  void dataProviderPlugin.isFetching();
+  void dataProviderPlugin.getInFlightQueryParameters();
+  void dataProviderPlugin.getLastLoadedQueryParameters();
+}
 
 void minimalConfig;
 void hot;

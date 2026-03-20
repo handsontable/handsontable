@@ -121,6 +121,8 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: '未找到结果',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: '看起来您当前的过滤器隐藏了所有结果。',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: '重置过滤器',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: '正在加载数据',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: '请稍候。',
 };
 
 export default dictionary;

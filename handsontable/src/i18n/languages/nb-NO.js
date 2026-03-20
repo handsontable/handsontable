@@ -118,6 +118,8 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Ingen resultater funnet',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Det ser ut til at dine nåværende filtre skjuler alle resultater.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Tilbakestill filtre',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Laster inn data',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Vennligst vent.',
 };
 
 export default dictionary;

@@ -445,6 +445,18 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Returns the current 1-based page index from internal pagination state.
+   *
+   * Unlike [[Pagination#getPaginationData]], this does not depend on row counts or the calculation strategy.
+   * Integrations (e.g. [[DataProvider]]) use it to build fetch queries before external paging hooks are ready.
+   *
+   * @returns {number} Current page (at least 1).
+   */
+  getCurrentPage() {
+    return this.#currentPage;
+  }
+
+  /**
    * Allows changing the page for specified page number.
    *
    * @param {number} pageNumber The page number to set (from 1 to N). If `0` is passed, it

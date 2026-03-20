@@ -45,9 +45,13 @@ function isEnabledSettingValue(value) {
 }
 
 /**
- * Copies enabled Pagination `pageSize` / `initialPage` into query parameters.
+ * Copies enabled Pagination `pageSize` and current page into query parameters.
  *
- * @param {{ enabled?: boolean, getSetting: function(string): * }|null|undefined} paginationPlugin Pagination plugin instance.
+ * Uses [[Pagination#getCurrentPage]] when present so refetches (e.g. after sort) keep the active page
+ * without calling [[Pagination#getPaginationData]] (unsafe before DataProvider registers external-pagination hooks).
+ * Falls back to `initialPage` from settings when `getCurrentPage` is missing (tests) or returns an invalid value.
+ *
+ * @param {{ enabled?: boolean, getSetting: function(string): *, getCurrentPage?: function(): number }|null|undefined} paginationPlugin Pagination plugin instance.
  * @param {{ page: number, pageSize: number }} queryParameters Target object (mutated).
  * @returns {void}
  */
@@ -58,11 +62,17 @@ export function applyPaginationToQueryParameters(paginationPlugin, queryParamete
 
   const pageSize = paginationPlugin.getSetting('pageSize');
   const initialPage = paginationPlugin.getSetting('initialPage');
+  const currentPage = typeof paginationPlugin.getCurrentPage === 'function'
+    ? paginationPlugin.getCurrentPage()
+    : undefined;
 
   if (typeof pageSize === 'number') {
     queryParameters.pageSize = pageSize;
   }
-  if (typeof initialPage === 'number' && initialPage >= 1) {
+
+  if (typeof currentPage === 'number' && currentPage >= 1) {
+    queryParameters.page = currentPage;
+  } else if (typeof initialPage === 'number' && initialPage >= 1) {
     queryParameters.page = initialPage;
   }
 }

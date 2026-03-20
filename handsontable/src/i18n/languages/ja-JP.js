@@ -124,6 +124,8 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: '結果が見つかりません',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: '現在のフィルターがすべての結果を非表示にしているようです。',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'フィルターをリセット',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'データを読み込み中',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'お待ちください。',
 };
 
 export default dictionary;

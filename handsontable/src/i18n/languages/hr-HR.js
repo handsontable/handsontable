@@ -134,6 +134,8 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nema pronađenih rezultata',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Čini se da vaši trenutni filtri skrivaju sve rezultate.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetiraj filtre',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Učitavanje podataka',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Pričekajte.',
 };
 
 export default dictionary;

@@ -1,5 +1,5 @@
 import { html } from '../../helpers/templateLiteralTag';
-import { addClass, removeClass, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
+import { addClass, removeAttribute, removeClass, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
 import { A11Y_TABINDEX } from '../../helpers/a11y';
 import { stripTags } from '../../helpers/string';
 
@@ -12,7 +12,13 @@ const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STAT
   </div>
 </div>`;
 
-const templateContent = ({ title, description, buttons }) => `
+const templateContent = ({ title, description, buttons, loading }) => {
+  const spinnerBlock = loading ?
+    `<div class="${EMPTY_DATA_STATE_CLASS_NAME}__spinner" aria-hidden="true"></div>` :
+    '';
+
+  return `
+  ${spinnerBlock}
   <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content">
     ${title ? `<h2 class="${EMPTY_DATA_STATE_CLASS_NAME}__title">${stripTags(title)}</h2>` : ''}
     ${description ? `<p class="${EMPTY_DATA_STATE_CLASS_NAME}__description">${stripTags(description)}</p>` : ''}
@@ -22,10 +28,11 @@ const templateContent = ({ title, description, buttons }) => `
     class="${EMPTY_DATA_STATE_CLASS_NAME}__buttons${buttons?.length > 0 ?
   ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
   : ''}"
-  >${buttons?.length > 0 ?
+  >${!loading && buttons?.length > 0 ?
     buttons.map(button =>
       `<button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>`).join('')
     : ''}</div>`;
+};
 
 /**
  * EmptyDataStateUI is a UI component that renders and manages empty data state elements.
@@ -149,7 +156,7 @@ export class EmptyDataStateUI {
    * @param {string | object} message - The message to update.
    */
   updateContent(message) {
-    const { emptyDataStateInner } = this.#refs;
+    const { emptyDataStateInner, emptyDataStateElement } = this.#refs;
 
     let content = '';
 
@@ -162,7 +169,18 @@ export class EmptyDataStateUI {
         title: message?.title,
         description: message?.description,
         buttons: message?.buttons,
+        loading: message?.loading === true,
       };
+    }
+
+    if (content.loading) {
+      addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--loading`);
+      setAttribute(emptyDataStateInner, [
+        ['aria-busy', 'true'],
+      ]);
+    } else {
+      removeClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--loading`);
+      removeAttribute(emptyDataStateInner, 'aria-busy');
     }
 
     const template = html`${templateContent(content)}`;
@@ -172,7 +190,7 @@ export class EmptyDataStateUI {
     emptyDataStateInner.innerHTML = '';
     emptyDataStateInner.appendChild(template.fragment);
 
-    if (content.buttons?.length > 0) {
+    if (!content.loading && content.buttons?.length > 0) {
       Array.from(this.#refs.emptyDataStateButtons.children).forEach((button, index) => {
         button.addEventListener('click', content.buttons[index].callback);
       });
@@ -210,8 +228,12 @@ export class EmptyDataStateUI {
    * Updates the size of the emptyDataState element.
    *
    * @param {View} view - The view instance.
+   * @param {object} [options] - Optional flags.
+   * @param {boolean} [options.loading] - When `true` and the grid has renderable columns, use the same
+   *   workspace sizing as when renderable rows exist (e.g. DataProvider fetch while a page is still shown).
    */
-  updateSize(view) {
+  updateSize(view, options = {}) {
+    const { loading = false } = options;
     const { emptyDataStateElement } = this.#refs;
 
     const scrollbarSize = view.hasHorizontalScroll() ? getScrollbarWidth(view.hot.rootDocument) : 0;
@@ -219,8 +241,13 @@ export class EmptyDataStateUI {
     const cols = view.countRenderableColumns();
     const headerCols = view.getColumnHeadersCount();
 
+    const extendLayoutForLoading = loading === true && cols > 0;
+    const treatAsPopulatedRowsForSizing = rows > 0 || extendLayoutForLoading;
+
     emptyDataStateElement.style.top = cols > 0 ? `${view.getColumnHeaderHeight()}px` : '0px';
-    emptyDataStateElement.style.insetInlineStart = rows > 0 ? `${view.getRowHeaderWidth()}px` : '0px';
+    emptyDataStateElement.style.insetInlineStart = treatAsPopulatedRowsForSizing ?
+      `${view.getRowHeaderWidth()}px` :
+      '0px';
 
     if (rows === 0) {
       if (!this.#placeholderElement) {
@@ -243,10 +270,10 @@ export class EmptyDataStateUI {
     if (view.isHorizontallyScrollableByWindow()) {
       if (cols > 0) {
         width = view.getTotalTableWidth();
-      } else if (rows > 0) {
+      } else if (treatAsPopulatedRowsForSizing) {
         width = view.getViewportWidth();
       }
-    } else if (rows > 0) {
+    } else if (treatAsPopulatedRowsForSizing) {
       width = view.getViewportWidth();
     } else if (view.getTableWidth() - view.getRowHeaderWidth() < view.getViewportWidth() && cols > 0) {
       width = view.getTableWidth();

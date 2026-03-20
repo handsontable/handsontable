@@ -124,6 +124,8 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Geen resultaten gevonden',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Het lijkt erop dat uw huidige filters alle resultaten verbergen.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Filters resetten',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Gegevens laden',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Even geduld.',
 };
 
 export default dictionary;
