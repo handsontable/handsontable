@@ -18,102 +18,158 @@ menuTag: updated
 
 # Cell functions
 
-Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cells, using cell types.
+Render, edit, and validate cell contents using Handsontable's three independent cell functions.
 
 [[toc]]
 
 ## Overview
 
-With every cell in the Handsontable there are 3 associated functions:
+Every Handsontable cell has three associated functions that handle distinct concerns:
 
-- [Renderer](#renderer)
-- [Editor](#editor)
-- [Validator](#validator)
+| Function | Role | Implemented as |
+| --- | --- | --- |
+| `renderer` | Controls how a cell looks: DOM structure, CSS classes, HTML content | A plain function |
+| `editor` | Controls how a cell is edited: input element, keyboard handling, open/close lifecycle | A class extending `BaseEditor` |
+| `validator` | Decides whether a cell value is acceptable | A function or `RegExp` |
 
-Each of those functions are responsible for a different cell behavior. You can define them separately or use a [cell type](#cell-type) to define all three at once.
+The three functions are **independent**. You can mix and match any combination: use the built-in numeric editor with a custom renderer, override just the validator while keeping a built-in type, or write all three from scratch.
 
-## Renderer
+## Cell types bundle all three
 
-Handsontable does not display the values stored in the data source directly. Instead, every time a value from data source needs to be displayed in a table cell, it is passed to the cell `renderer` function, together with the table cell object of type `HTMLTableCellElement` (DOM node), along with other useful information.
+A [cell type](@/guides/cell-types/cell-type/cell-type.md) is a preset that assigns a matching `renderer`, `editor`, and `validator` together under a single `type` alias. Using `type: 'numeric'` is shorthand for:
 
-`Renderer` is expected to format the passed value and place it as a content of the cell object. `Renderer` can also alter the cell class list, i.e. it can add a `htInvalid` class to let the user know, that the displayed value is invalid.
+```js
+{
+  renderer: Handsontable.renderers.NumericRenderer,
+  editor:   Handsontable.editors.NumericEditor,
+  validator: Handsontable.validators.NumericValidator,
+}
+```
 
-## Editor
+Built-in types: `text`, `numeric`, `checkbox`, `date`, `time`, `dropdown`, `autocomplete`, `password`, `handsontable`.
 
-Cell editors are the most complex cell functions. We have prepared a separate page [custom cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) explaining how cell edit works and how to write your own cell editor.
+When you set an explicit `renderer`, `editor`, or `validator` alongside a `type`, the explicit function always takes precedence over the type for that function only:
 
-## Validator
+```js
+columns: [{
+  type: 'numeric',      // sets NumericEditor + NumericValidator
+  renderer: myRenderer, // overrides only NumericRenderer; editor and validator stay numeric
+}]
+```
 
-Cell validator can be either a function or a regular expression. A cell is considered valid, when the validator function calls a `callback` (passed as one of the `validator` arguments) with `true` or the validation regex [`test()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test) method returns `true`. Because the validity of a value is determined only by the argument that is passed to `callback`, `validator` function can be synchronous or asynchronous.
+## Configuration priority
 
-Contrary to `renderer` and `editor` functions, the `validator` function doesn't have to be defined for each cell. If the `validator` function is not defined, then a cell value is always valid.
+Cell functions resolve using the cascading configuration model. The most specific level wins:
 
-## Cell type
+```
+cell[row][col]  >  column  >  global (root settings)
+```
 
-Manually defining those functions for cells or columns would be tedious, so to simplify the configuration, Handsontable introduced [cell types](@/guides/cell-types/cell-type/cell-type.md).
+```js
+new Handsontable(container, {
+  type: 'text',               // global fallback for all cells
+  columns: [
+    { type: 'numeric' },      // overrides global for all cells in column 0
+    { type: 'text' },         // same as global for column 1
+  ],
+  cell: [
+    { row: 0, col: 0, type: 'checkbox' }, // overrides column setting for cell [0, 0] only
+  ],
+});
+```
 
-## Cell functions getters
+## Mixing renderer, editor, and validator
+
+The example below shows a product inventory table. Each column uses a different function configuration:
+
+- **Product** — `type: 'text'` bundles text renderer, text editor, and no validator.
+- **Price** — `type: 'numeric'` bundles numeric renderer (formatted as currency), numeric editor, and numeric validator.
+- **Stock** — custom `renderer` (progress bar), built-in `'numeric'` editor, and a custom range `validator`. All three come from different sources.
+
+::: only-for javascript
+
+::: example #example1 --js 1 --ts 2 --css 3
+
+@[code](@/content/guides/cell-functions/cell-function/javascript/example1.js)
+@[code](@/content/guides/cell-functions/cell-function/javascript/example1.ts)
+@[code](@/content/guides/cell-functions/cell-function/javascript/example1.css)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react --css 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-functions/cell-function/react/example1.css)
+@[code](@/content/guides/cell-functions/cell-function/react/example1.jsx)
+@[code](@/content/guides/cell-functions/cell-function/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-function/angular/example1.ts)
+@[code](@/content/guides/cell-functions/cell-function/angular/example1.html)
+
+:::
+
+:::
+
+Double-click any **Stock** cell to edit it with the numeric editor. The bar renderer updates on save. Enter a value outside 0–1000 to see the validator reject it (cell turns red when `allowInvalid: false`).
+
+## Getting cell functions programmatically
+
+Use [`getCellMeta(row, col)`](@/api/core.md#getcellmeta) to read all properties of a cell at once, or the dedicated getters for individual functions:
+
+```js
+const cellProperties = hot.getCellMeta(0, 0);
+
+cellProperties.renderer;   // renderer function
+cellProperties.editor;     // editor class
+cellProperties.validator;  // validator function or RegExp
+cellProperties.type;       // cell type string
+```
+
+Dedicated getters:
+
+| Method | Returns |
+| --- | --- |
+| [`getCellRenderer(row, col)`](@/api/core.md#getcellrenderer) | The resolved renderer function for the cell |
+| [`getCellEditor(row, col)`](@/api/core.md#getcelleditor) | The resolved editor class for the cell |
+| [`getCellValidator(row, col)`](@/api/core.md#getcellvalidator) | The resolved validator function or `RegExp` for the cell |
+
+If a cell's functions are defined through a cell type, the getters return the resolved functions, not the type string:
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  columns: [{ type: 'numeric' }],
+});
+
+const cellProperties = hot.getCellMeta(0, 0);
+
+cellProperties.renderer;   // numericRenderer function
+cellProperties.editor;     // NumericEditor class
+cellProperties.validator;  // numericValidator function
+cellProperties.type;       // 'numeric'
+```
+
+:::
 
 ::: only-for react
 
 ::: tip
 
-To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
-
-For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+To call these methods, access the Handsontable instance through the `HotTable` ref's `hotInstance` property. See [Instance methods](@/guides/getting-started/react-methods/react-methods.md) for details.
 
 :::
-
-:::
-
-If, for some reason, you need to get the `renderer`, `editor` or `validator` function of a specific cell,
-you can use the standard [`getCellMeta()`](@/api/core.md#getcellmeta) method to get all properties of a cell,
-and then refer to the cell functions like this:
-
-```js
-// get cell properties for cell [0, 0]
-const cellProperties = hot.getCellMeta(0, 0);
-
-cellProperties.renderer; // get cell renderer
-cellProperties.editor; // get cell editor
-cellProperties.validator; // get cell validator
-cellProperties.type; // get cell type
-```
-
-You can also get specific cell functions by using the following getters:
-
-- [`getCellRenderer(row, col)`](@/api/core.md#getcellrenderer)
-- [`getCellEditor(row, col)`](@/api/core.md#getcelleditor)
-- [`getCellValidator(row, col)`](@/api/core.md#getcellvalidator)
-
-If a cell's functions are defined through a [cell type](#cell-type), the getters will return
-the `renderer`, `editor` or `validator` functions defined for that cell type. For example:
-
-::: only-for javascript
-
-```js
-import Handsontable from 'handsontable';
-
-const container = document.querySelector('#container');
-const hot = new Handsontable(container, {
-  columns: [{
-    // set a cell type for the entire grid
-    type: 'numeric'
-  }]
-});
-
-// get cell properties for cell [0, 0]
-const cellProperties = hot.getCellMeta(0, 0);
-
-cellProperties.renderer; // numericRenderer
-cellProperties.editor; // NumericEditor
-cellProperties.validator; // numericValidator
-cellProperties.type; // numeric
-```
-
-:::
-
-::: only-for react
 
 ```jsx
 const ExampleComponent = () => {
@@ -121,23 +177,15 @@ const ExampleComponent = () => {
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
-
-    // get cell properties for cell [0, 0]
     const cellProperties = hot.getCellMeta(0, 0);
 
-    cellProperties.renderer; // "numeric"
-    cellProperties.editor; // "numeric"
-    cellProperties.validator; // "numeric"
-    cellProperties.type; // "numeric"
+    cellProperties.renderer;   // numericRenderer function
+    cellProperties.editor;     // NumericEditor class
+    cellProperties.validator;  // numericValidator function
+    cellProperties.type;       // 'numeric'
   });
 
-  return (
-    <HotTable
-      ref={hotRef}
-      // set a cell type for the entire grid
-      type="numeric"
-    />
-  );
+  return <HotTable ref={hotRef} columns={[{ type: 'numeric' }]} />;
 };
 ```
 
