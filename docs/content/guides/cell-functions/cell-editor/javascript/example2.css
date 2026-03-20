@@ -1,0 +1,7 @@
+.htSelectEditor {
+  /* Enables dimension changes for <select> in WebKit browsers */
+  -webkit-appearance: menulist-button !important;
+  position: absolute;
+  width: auto;
+  z-index: 300;
+}
