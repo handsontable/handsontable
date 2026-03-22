@@ -73,16 +73,21 @@ document.addEventListener('DOMContentLoaded', function () {
    * Builds a StackBlitz project from the embedded example data and submits it
    * via a hidden form POST.
    *
-   * @param {{ title: string, hotVersion: string, framework: string, exampleId: string, files: Record<string,string> }} data
+   * @param {{ title: string, hotVersion: string, framework: string, exampleId: string, files: Record<string,string>, extraDeps: Record<string,string> }} data
    */
   function openOnStackBlitz(data) {
     var hotVersion  = data.hotVersion || 'latest';
     var framework   = data.framework  || 'javascript';
     var exampleId   = data.exampleId  || 'example';
     var userFiles   = data.files      || {};
+    var extraDeps   = data.extraDeps  || {};
     var title       = data.title      || 'Handsontable Example';
 
-    var projectFiles = buildProjectFiles(framework, hotVersion, exampleId, userFiles);
+    var projectFiles = buildProjectFiles(framework, hotVersion, exampleId, userFiles, extraDeps);
+
+    var sbTemplate = 'javascript';
+
+    if (framework === 'react') sbTemplate = 'node';
 
     var form = document.createElement('form');
 
@@ -102,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     addInput('project[title]',       title);
     addInput('project[description]', 'Handsontable v' + hotVersion + ' live example');
-    addInput('project[template]',    framework === 'react' ? 'create-react-app' : 'javascript');
+    addInput('project[template]',    sbTemplate);
 
     Object.keys(projectFiles).forEach(function (filename) {
       addInput('project[files][' + filename + ']', projectFiles[filename]);
@@ -116,35 +121,42 @@ document.addEventListener('DOMContentLoaded', function () {
   /**
    * Assembles the full set of project files to send to StackBlitz.
    *
-   * @param {string} framework - 'javascript' | 'react' | 'angular'
+   * @param {string} framework - 'javascript' | 'react' | 'vue' | 'angular'
    * @param {string} hotVersion
    * @param {string} exampleId
    * @param {Record<string,string>} userFiles - Raw source files from the example
+   * @param {Record<string,string>} extraDeps - Extra npm packages to include
    * @returns {Record<string,string>}
    */
-  function buildProjectFiles(framework, hotVersion, exampleId, userFiles) {
+  function buildProjectFiles(framework, hotVersion, exampleId, userFiles, extraDeps) {
     if (framework === 'react') {
-      return buildReactProject(hotVersion, exampleId, userFiles);
+      return buildReactProject(hotVersion, exampleId, userFiles, extraDeps);
+    }
+
+    if (framework === 'vue') {
+      return buildVueProject(hotVersion, exampleId, userFiles, extraDeps);
     }
 
     if (framework === 'angular') {
-      return buildAngularProject(hotVersion, exampleId, userFiles);
+      return buildAngularProject(hotVersion, exampleId, userFiles, extraDeps);
     }
 
-    return buildJsProject(hotVersion, exampleId, userFiles);
+    return buildJsProject(hotVersion, exampleId, userFiles, extraDeps);
   }
 
   // ── Vanilla JS project ────────────────────────────────────────────────────
 
-  function buildJsProject(hotVersion, exampleId, userFiles) {
+  function buildJsProject(hotVersion, exampleId, userFiles, extraDeps) {
     var jsFile = findFile(userFiles, '.js') || 'index.js';
     var jsCode = userFiles[jsFile] || '';
+
+    var deps = Object.assign({ handsontable: hotVersion }, extraDeps);
 
     var pkg = JSON.stringify({
       name: 'handsontable-example',
       version: '1.0.0',
       private: true,
-      dependencies: { handsontable: hotVersion },
+      dependencies: deps,
     }, null, 2);
 
     var html = [
@@ -160,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '</head>',
       '<body>',
       '  <div id="' + exampleId + '"></div>',
-      '  <script src="index.js"><\/script>',
+      '  <script type="module" src="index.js"><\/script>',
       '</body>',
       '</html>',
     ].join('\n');
@@ -171,7 +183,6 @@ document.addEventListener('DOMContentLoaded', function () {
       'index.js':     jsCode,
     };
 
-    // Include any CSS file the example ships with
     var cssFile = findFile(userFiles, '.css');
 
     if (cssFile) {
@@ -187,21 +198,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── React project ─────────────────────────────────────────────────────────
 
-  function buildReactProject(hotVersion, exampleId, userFiles) {
+  function buildReactProject(hotVersion, exampleId, userFiles, extraDeps) {
     var jsxFile = findFile(userFiles, '.jsx') || findFile(userFiles, '.tsx') || 'App.jsx';
     var jsxCode = userFiles[jsxFile] || '';
+
+    var deps = Object.assign(
+      {
+        handsontable:              hotVersion,
+        '@handsontable/react-wrapper': hotVersion,
+        react:                     '18.x',
+        'react-dom':               '18.x',
+      },
+      extraDeps,
+    );
 
     var pkg = JSON.stringify({
       name: 'handsontable-react-example',
       version: '1.0.0',
       private: true,
-      dependencies: {
-        handsontable: hotVersion,
-        '@handsontable/react': hotVersion,
-        react: '18.x',
-        'react-dom': '18.x',
-      },
+      dependencies: deps,
+      scripts: { start: 'vite', build: 'vite build' },
     }, null, 2);
+
+    var viteConfig = [
+      'import { defineConfig } from "vite";',
+      'import react from "@vitejs/plugin-react";',
+      '',
+      'export default defineConfig({ plugins: [react()] });',
+    ].join('\n');
 
     var index = [
       'import React from "react";',
@@ -210,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
       'import "handsontable/dist/handsontable.full.min.css";',
       '',
       'const root = createRoot(document.getElementById("' + exampleId + '"));',
-      'root.render(<App />);',
+      'root.render(React.createElement(App));',
     ].join('\n');
 
     var html = [
@@ -220,44 +244,115 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <meta charset="UTF-8" />',
       '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
       '  <title>Handsontable React Example</title>',
-      '  <style>body { padding: 1rem; font-family: sans-serif; }</style>',
       '</head>',
       '<body>',
       '  <div id="' + exampleId + '"></div>',
+      '  <script type="module" src="/src/main.jsx"><\/script>',
+      '</body>',
+      '</html>',
+    ].join('\n');
+
+    return {
+      'package.json':   pkg,
+      'vite.config.js': viteConfig,
+      'index.html':     html,
+      'src/main.jsx':   index,
+      'src/App.jsx':    jsxCode,
+    };
+  }
+
+  // ── Vue 3 project ─────────────────────────────────────────────────────────
+
+  function buildVueProject(hotVersion, exampleId, userFiles, extraDeps) {
+    var jsFile = findFile(userFiles, '.js') || 'App.js';
+    var appCode = userFiles[jsFile] || '';
+
+    var deps = Object.assign(
+      {
+        handsontable:         hotVersion,
+        '@handsontable/vue3': hotVersion,
+        vue:                  '3.x',
+      },
+      extraDeps,
+    );
+
+    var pkg = JSON.stringify({
+      name: 'handsontable-vue-example',
+      version: '1.0.0',
+      private: true,
+      dependencies: deps,
+      scripts: { start: 'vite', build: 'vite build' },
+    }, null, 2);
+
+    var viteConfig = [
+      'import { defineConfig } from "vite";',
+      'import vue from "@vitejs/plugin-vue";',
+      '',
+      'export default defineConfig({ plugins: [vue()] });',
+    ].join('\n');
+
+    var main = [
+      'import { createApp } from "vue";',
+      'import App from "./App.js";',
+      'import "handsontable/dist/handsontable.full.min.css";',
+      '',
+      'createApp(App).mount("#' + exampleId + '");',
+    ].join('\n');
+
+    var html = [
+      '<!DOCTYPE html>',
+      '<html lang="en">',
+      '<head>',
+      '  <meta charset="UTF-8" />',
+      '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+      '  <title>Handsontable Vue Example</title>',
+      '</head>',
+      '<body>',
+      '  <div id="' + exampleId + '"></div>',
+      '  <script type="module" src="/src/main.js"><\/script>',
       '</body>',
       '</html>',
     ].join('\n');
 
     return {
       'package.json': pkg,
-      'index.html':   html,
-      'index.js':     index,
-      'App.jsx':      jsxCode,
+      'vite.config.js': viteConfig,
+      'index.html':  html,
+      'src/main.js': main,
+      'src/App.js':  appCode,
     };
   }
 
   // ── Angular project ───────────────────────────────────────────────────────
 
-  function buildAngularProject(hotVersion, exampleId, userFiles) {
-    var tsFile  = findFile(userFiles, '.ts')   || 'app.component.ts';
+  function buildAngularProject(hotVersion, exampleId, userFiles, extraDeps) {
+    var tsFile   = findFile(userFiles, '.ts')   || 'app.component.ts';
     var htmlFile = findFile(userFiles, '.html') || null;
-    var tsCode  = userFiles[tsFile]   || '';
+    var tsCode   = userFiles[tsFile]   || '';
     var htmlCode = htmlFile ? (userFiles[htmlFile] || '') : '<div id="' + exampleId + '"></div>';
+
+    var deps = Object.assign(
+      {
+        handsontable:                      hotVersion,
+        '@handsontable/angular-wrapper':   hotVersion,
+        '@angular/core':                   '16.x',
+        '@angular/common':                 '16.x',
+        '@angular/compiler':               '16.x',
+        '@angular/platform-browser':       '16.x',
+        '@angular/platform-browser-dynamic': '16.x',
+        '@angular/forms':                  '16.x',
+        '@angular/animations':             '16.x',
+        rxjs:                              '7.x',
+        'zone.js':                         '0.13.x',
+      },
+      extraDeps,
+    );
 
     var pkg = JSON.stringify({
       name: 'handsontable-angular-example',
       version: '1.0.0',
       private: true,
-      dependencies: {
-        handsontable: hotVersion,
-        '@handsontable/angular-wrapper': hotVersion,
-        '@angular/core': '17.x',
-        '@angular/common': '17.x',
-        '@angular/platform-browser': '17.x',
-        '@angular/platform-browser-dynamic': '17.x',
-        'rxjs': '7.x',
-        'zone.js': '0.14.x',
-      },
+      dependencies: deps,
     }, null, 2);
 
     return {

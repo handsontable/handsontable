@@ -27,6 +27,40 @@ try {
   // Monorepo root not found — use 'latest' as fallback.
 }
 
+// Packages that are already provided by the framework project scaffolding
+// in example-tabs.js — do NOT add these to extraDeps.
+const BUILTIN_PKGS = new Set([
+  'handsontable',
+  '@handsontable/react-wrapper',
+  '@handsontable/vue3',
+  '@handsontable/angular-wrapper',
+  'vue',
+  'react',
+  'react-dom',
+  '@angular/core',
+  '@angular/common',
+  '@angular/compiler',
+  '@angular/platform-browser',
+  '@angular/platform-browser-dynamic',
+  '@angular/forms',
+  '@angular/animations',
+  '@angular/router',
+  'zone.js',
+  'rxjs',
+]);
+
+// docs/package.json dependency versions — used to pin extra deps to the same
+// version already installed in the docs dev environment.
+let DOCS_DEPS = {};
+
+try {
+  const docsPkg = _require(join(_loaderDir, '..', '..', 'package.json'));
+
+  DOCS_DEPS = { ...(docsPkg.dependencies ?? {}), ...(docsPkg.devDependencies ?? {}) };
+} catch {
+  // Ignore — fall back to 'latest' for unknown packages.
+}
+
 // ---------------------------------------------------------------------------
 // Example block processing
 // ---------------------------------------------------------------------------
@@ -150,11 +184,35 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, highlighter) {
   const githubUrl = `https://github.com/handsontable/handsontable/tree/develop/docs/content/${escapeHtml(exampleDir)}`;
 
   // ── StackBlitz data (embedded as JSON for the client-side handler) ─────────
-  const framework = jsxRef ? 'react' : tsRef ? 'angular' : 'javascript';
+
+  // Detect Vue: .js files that import from 'vue' or '@handsontable/vue3'
+  const vueImportRe = /from\s+['"](?:vue|@handsontable\/vue3)['"]/;
+  const isVue = !jsxRef && !tsRef && files.some(f => vueImportRe.test(f.code));
+
+  const framework = jsxRef ? 'react' : tsRef ? 'angular' : isVue ? 'vue' : 'javascript';
+
   const sbFiles = {};
 
   for (const f of files) {
     sbFiles[f.ref.split('/').pop()] = f.code;
+  }
+
+  // Collect extra third-party imports not covered by the base project scaffold.
+  // Only top-level package names are extracted (scoped: @scope/pkg, plain: pkg).
+  const extraDeps = {};
+
+  for (const f of files) {
+    for (const [, imp] of f.code.matchAll(/from\s+['"]([^'"]+)['"]/g)) {
+      if (imp.startsWith('.') || imp.startsWith('/')) continue;
+
+      const pkgName = imp.startsWith('@')
+        ? imp.split('/').slice(0, 2).join('/')
+        : imp.split('/')[0];
+
+      if (!BUILTIN_PKGS.has(pkgName) && !pkgName.startsWith('handsontable/')) {
+        extraDeps[pkgName] = DOCS_DEPS[pkgName] ?? 'latest';
+      }
+    }
   }
 
   // Escape </script> sequences so the JSON block can't break the page.
@@ -164,6 +222,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, highlighter) {
     framework,
     exampleId: id,
     files: sbFiles,
+    extraDeps,
   }).replace(/<\/script>/gi, '<\\/script>');
 
   // ── Tab bar ────────────────────────────────────────────────────────────────
