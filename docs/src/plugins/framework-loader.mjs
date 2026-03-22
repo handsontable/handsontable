@@ -132,10 +132,17 @@ function escapeHtml(str) {
 function buildExampleHtml(id, directive, fileRefs, contentDir, highlighter) {
   const hideTabs = directive === 'example-without-tabs';
 
+  // Detect framework from the directory path first. JS examples also ship a
+  // TypeScript variant (.ts), so extension-based detection alone would
+  // misidentify them as Angular examples.
+  const isAngularDir = fileRefs.some(r => /\/angular\//i.test(r));
+  const isReactDir   = fileRefs.some(r => /\/react\//i.test(r));
+  const isVueDir     = fileRefs.some(r => /\/vue(?:3)?\//i.test(r));
+
   // Find the primary executable file for live rendering.
-  const jsRef  = fileRefs.find((ref) => ref.endsWith('.js'));
-  const jsxRef = fileRefs.find((ref) => ref.endsWith('.jsx') || ref.endsWith('.tsx'));
-  const tsRef  = fileRefs.find((ref) => ref.endsWith('.ts'));
+  const jsRef  = (!isAngularDir && !isReactDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
+  const jsxRef = isReactDir ? fileRefs.find(r => r.endsWith('.jsx') || r.endsWith('.tsx')) : null;
+  const tsRef  = isAngularDir ? fileRefs.find(r => r.endsWith('.ts')) : null;
 
   const files = fileRefs.map((ref, idx) => {
     const absPath = join(contentDir, ref);
@@ -185,11 +192,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, highlighter) {
 
   // ── StackBlitz data (embedded as JSON for the client-side handler) ─────────
 
-  // Detect Vue: .js files that import from 'vue' or '@handsontable/vue3'
-  const vueImportRe = /from\s+['"](?:vue|@handsontable\/vue3)['"]/;
-  const isVue = !jsxRef && !tsRef && files.some(f => vueImportRe.test(f.code));
-
-  const framework = jsxRef ? 'react' : tsRef ? 'angular' : isVue ? 'vue' : 'javascript';
+  const framework = isReactDir ? 'react' : isAngularDir ? 'angular' : isVueDir ? 'vue' : 'javascript';
 
   const sbFiles = {};
 

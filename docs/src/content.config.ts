@@ -15,12 +15,12 @@
 import { defineCollection, z } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
 import { fileURLToPath } from 'url';
-import { frameworkLoader } from '../plugins/framework-loader.mjs';
+import { frameworkLoader } from './plugins/framework-loader.mjs';
 
 export const collections = {
   docs: defineCollection({
     loader: frameworkLoader({
-      contentDir: fileURLToPath(new URL('../../content', import.meta.url)),
+      contentDir: fileURLToPath(new URL('../content', import.meta.url)),
     }),
     schema: docsSchema({
       extend: z.object({
@@ -46,9 +46,9 @@ export const collections = {
         hotPlugin: z.boolean().optional(),
 
         /** Framework-specific frontmatter overrides (Phase 3). */
-        react: z.record(z.unknown()).optional(),
-        angular: z.record(z.unknown()).optional(),
-        vue3: z.record(z.unknown()).optional(),
+        react: z.record(z.string(), z.unknown()).optional(),
+        angular: z.record(z.string(), z.unknown()).optional(),
+        vue3: z.record(z.string(), z.unknown()).optional(),
 
         /** Sidebar badge label (e.g. "Updated", "New"). */
         menuTag: z.string().optional(),

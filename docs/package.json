@@ -14,15 +14,14 @@
     "docs:lint": "eslint --ext .js,.mjs,.ts,.astro src content",
     "docs:lint:fix": "eslint --ext .js,.mjs,.ts,.astro src content --fix",
     "docs:visual-test": "npx playwright test",
-    "docs:visual-test": "npx playwright test",
     "docs:visual-test:update-screenshot": "npx playwright test -u"
   },
   "license": "CC BY 4.0",
   "dependencies": {
-    "@astrojs/starlight": "^0.32.0",
+    "@astrojs/starlight": "^0.38.2",
     "@handsontable/pikaday": "^1.0.0",
     "@simonwep/pickr": "^1.9.1",
-    "astro": "^5.0.0",
+    "astro": "^6.0.8",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.5",

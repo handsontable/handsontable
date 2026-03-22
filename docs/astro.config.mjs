@@ -258,9 +258,9 @@ export default defineConfig({
 
       favicon: '/img/favicon.png',
 
-      social: {
-        github: 'https://github.com/handsontable/handsontable',
-      },
+      social: [
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/handsontable/handsontable' },
+      ],
 
       editLink: {
         baseUrl:
