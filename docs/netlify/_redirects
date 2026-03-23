@@ -4,28 +4,6 @@
 /docs/redirect pageId=:pageId /docs 301
 
 # Angular docs are available from 16.0+ only.
-/15.3/angular-data-grid/* /docs/javascript-data-grid/ 301
-/15.2/angular-data-grid/* /docs/javascript-data-grid/ 301
-/15.1/angular-data-grid/* /docs/javascript-data-grid/ 301
-/15.0/angular-data-grid/* /docs/javascript-data-grid/ 301
-/14.6/angular-data-grid/* /docs/javascript-data-grid/ 301
-/14.5/angular-data-grid/* /docs/javascript-data-grid/ 301
-/14.4/angular-data-grid/* /docs/javascript-data-grid/ 301
-/14.3/angular-data-grid/* /docs/javascript-data-grid/ 301
-/14.2/angular-data-grid/* /docs/javascript-data-grid/ 301
-/14.1/angular-data-grid/* /docs/javascript-data-grid/ 301
-/14.0/angular-data-grid/* /docs/javascript-data-grid/ 301
-/13.1/angular-data-grid/* /docs/javascript-data-grid/ 301
-/13.0/angular-data-grid/* /docs/javascript-data-grid/ 301
-/12.4/angular-data-grid/* /docs/javascript-data-grid/ 301
-/12.3/angular-data-grid/* /docs/javascript-data-grid/ 301
-/12.2/angular-data-grid/* /docs/javascript-data-grid/ 301
-/12.1/angular-data-grid/* /docs/javascript-data-grid/ 301
-/12.0/angular-data-grid/* /docs/javascript-data-grid/ 301
-/11.1/angular-data-grid/* /docs/javascript-data-grid/ 301
-/11.0/angular-data-grid/* /docs/javascript-data-grid/ 301
-/10.0/angular-data-grid/* /docs/javascript-data-grid/ 301
-/9.0/angular-data-grid/* /docs/javascript-data-grid/ 301
 /docs/15.3/angular-data-grid/* /docs/javascript-data-grid/ 301
 /docs/15.2/angular-data-grid/* /docs/javascript-data-grid/ 301
 /docs/15.1/angular-data-grid/* /docs/javascript-data-grid/ 301
