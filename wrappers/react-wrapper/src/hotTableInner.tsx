@@ -30,26 +30,6 @@ import { useHotTableContext } from './hotTableContext'
 import { HotColumnContextProvider } from './hotColumnContext'
 import { EditorContextProvider, makeEditorClass } from './hotEditor';
 
-const appendDebugLog = (
-  hypothesisId: string,
-  location: string,
-  message: string,
-  data: Record<string, unknown>
-): void => {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    require('fs').appendFileSync('/opt/cursor/logs/debug.log', JSON.stringify({
-      hypothesisId,
-      location,
-      message,
-      data,
-      timestamp: Date.now()
-    }) + '\n');
-  } catch (error) {
-    // Debug-only logging must not affect runtime when fs is unavailable.
-  }
-};
-
 const HotTableInner = forwardRef<
   HotTableRef,
   HotTableProps
@@ -135,19 +115,6 @@ const HotTableInner = forwardRef<
     const initOnlySettingKeys = !isHotInstanceDestroyed() ? // Needed for React's double-rendering.
       ((getHotInstance()?.getSettings() as any)?._initOnlySettings || []) :
       [];
-    // #region agent log
-    appendDebugLog('A', 'hotTableInner.tsx:createNewGlobalSettings:entry', 'Building settings from props', {
-      init,
-      propsKeysCount: Object.keys(props).length,
-      prevPropsKeysCount: Object.keys(prevProps).length,
-      hasDataSchemaProp: Object.prototype.hasOwnProperty.call(props, 'dataSchema'),
-      hasColumnsProp: Object.prototype.hasOwnProperty.call(props, 'columns'),
-      hasAfterChangeProp: Object.prototype.hasOwnProperty.call(props, 'afterChange'),
-      dataSchemaRefChanged: prevProps.dataSchema !== props.dataSchema,
-      columnsRefChanged: prevProps.columns !== props.columns,
-      afterChangeRefChanged: prevProps.afterChange !== props.afterChange
-    });
-    // #endregion
     const newSettings = SettingsMapper.getSettings(
       props, {
         prevProps,
@@ -173,18 +140,6 @@ const HotTableInner = forwardRef<
       newSettings.editor = props.hotEditor || getEditor('text');
     }
 
-    // #region agent log
-    appendDebugLog('B', 'hotTableInner.tsx:createNewGlobalSettings:exit', 'Built new settings payload', {
-      init,
-      settingsKeysCount: Object.keys(newSettings).length,
-      hasDataSchemaSetting: Object.prototype.hasOwnProperty.call(newSettings, 'dataSchema'),
-      hasColumnsSetting: Object.prototype.hasOwnProperty.call(newSettings, 'columns'),
-      hasValidatorInColumns: Array.isArray(newSettings.columns) ?
-        (newSettings.columns as Array<Record<string, unknown>>).some((col) => Object.prototype.hasOwnProperty.call(col, 'validator')) :
-        false,
-      hasAfterChangeSetting: Object.prototype.hasOwnProperty.call(newSettings, 'afterChange')
-    });
-    // #endregion
     return newSettings;
   };
 
@@ -210,13 +165,6 @@ const HotTableInner = forwardRef<
    */
   useEffect(() => {
     const newGlobalSettings = createNewGlobalSettings(true);
-    // #region agent log
-    appendDebugLog('D', 'hotTableInner.tsx:useEffect:init', 'Initializing Handsontable instance', {
-      settingsKeysCount: Object.keys(newGlobalSettings).length,
-      hasDataSchemaSetting: Object.prototype.hasOwnProperty.call(newGlobalSettings, 'dataSchema'),
-      hasColumnsSetting: Object.prototype.hasOwnProperty.call(newGlobalSettings, 'columns')
-    });
-    // #endregion
 
     // Update prevProps with the current props
     prevProps.current = props;
@@ -264,28 +212,11 @@ const HotTableInner = forwardRef<
     const hotInstance = getHotInstance();
 
     const newGlobalSettings = createNewGlobalSettings(false, prevProps.current);
-    // #region agent log
-    appendDebugLog('C', 'hotTableInner.tsx:useUpdateEffect:beforeUpdateSettings', 'Calling updateSettings after React rerender', {
-      hasHotInstance: !!hotInstance,
-      dataSchemaRefChanged: prevProps.current?.dataSchema !== props.dataSchema,
-      columnsRefChanged: prevProps.current?.columns !== props.columns,
-      afterChangeRefChanged: prevProps.current?.afterChange !== props.afterChange,
-      hasDataSchemaSetting: Object.prototype.hasOwnProperty.call(newGlobalSettings, 'dataSchema'),
-      hasDataSetting: Object.prototype.hasOwnProperty.call(newGlobalSettings, 'data')
-    });
-    // #endregion
 
     // Update prevProps with the current props
     prevProps.current = props;
 
     hotInstance?.updateSettings(newGlobalSettings, false);
-    // #region agent log
-    appendDebugLog('E', 'hotTableInner.tsx:useUpdateEffect:afterUpdateSettings', 'updateSettings completed', {
-      hasHotInstance: !!hotInstance,
-      firstCellValueAfterUpdate: hotInstance?.countRows() ? hotInstance?.getDataAtCell(0, 0) : null,
-      sourceDataLength: hotInstance?.getSourceData().length ?? null
-    });
-    // #endregion
 
     displayAutoSizeWarning(hotInstance);
     displayObsoleteRenderersEditorsWarning(props.children);
