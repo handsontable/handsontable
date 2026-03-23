@@ -235,7 +235,7 @@ Use the `sheets` option to export multiple Handsontable instances into a single 
 
 ## Context menu
 
-Set `contextMenu: true` in the `exportFile` configuration to add **Export to CSV** and **Export to Excel** items to the grid's context menu. The grid must also have `contextMenu: true` (or a custom context menu that includes the export items).
+When the context menu is enabled, **Export to CSV** and **Export to Excel** items are automatically added to the grid's context menu. No extra configuration in `exportFile` is needed.
 
 The **Export to Excel** item is only shown when `engine` is configured. The **Export to CSV** item is always available.
 

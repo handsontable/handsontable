@@ -9,19 +9,11 @@ import {
 new Handsontable(document.createElement('div'), {
   exportFile: {
     engine: {},
-    contextMenu: true,
-  },
-});
-
-// Minimal config — engine only (no contextMenu).
-new Handsontable(document.createElement('div'), {
-  exportFile: {
-    engine: {},
   },
 });
 
 // Settings object is assignable to ExportFileSettings.
-const settings: ExportFileSettings = { engine: {}, contextMenu: false };
+const settings: ExportFileSettings = { engine: {} };
 
 const hot = new Handsontable(document.createElement('div'), {});
 const hot2 = new Handsontable(document.createElement('div'), {});

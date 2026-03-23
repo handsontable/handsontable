@@ -65,7 +65,6 @@ export interface ExportOptions {
 
 export interface ExportFileSettings {
   engine?: object;
-  contextMenu?: boolean;
 }
 
 export type Settings = ExportFileSettings;

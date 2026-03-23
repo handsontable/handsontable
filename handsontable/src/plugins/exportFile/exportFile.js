@@ -179,12 +179,6 @@ export class ExportFile extends BasePlugin {
    * @param {object} options Contains default added options of the Context Menu.
    */
   #onAfterContextMenuDefaultOptions(options) {
-    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
-
-    if (!isObject(pluginSettings) || pluginSettings.contextMenu !== true) {
-      return;
-    }
-
     options.items.push(
       { name: '---------' },
       exportCsvItem(this),

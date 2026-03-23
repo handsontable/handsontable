@@ -37,7 +37,7 @@ export class AppComponent {
     autoWrapRow: true,
     autoWrapCol: true,
     contextMenu: true,
-    exportFile: { engine: ExcelJS, contextMenu: true },
+    exportFile: { engine: ExcelJS },
   };
 }
 /* end-file */

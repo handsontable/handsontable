@@ -2524,10 +2524,9 @@ export default () => {
      *
      * If you set the `exportFile` option to an object, you can configure the following options:
      *
-     * | Option        | Type      | Default | Description                                                                         |
-     * | ------------- | --------- | ------- | ----------------------------------------------------------------------------------- |
-     * | `engine`      | `Object`  | –       | **Required for XLSX.** Pass the ExcelJS `Workbook` constructor (default export from `exceljs`). |
-     * | `contextMenu` | `Boolean` | `false` | When `true`, add **Export to CSV** and **Export to Excel** items to the context menu. |
+     * | Option   | Type     | Default | Description                                                                         |
+     * | -------- | -------- | ------- | ----------------------------------------------------------------------------------- |
+     * | `engine` | `Object` | –       | **Required for XLSX.** Pass the ExcelJS `Workbook` constructor (default export from `exceljs`). |
      *
      * Read more:
      * - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
@@ -2543,10 +2542,9 @@ export default () => {
      * ```js
      * import ExcelJS from 'exceljs';
      *
-     * // enable XLSX export and add context menu items
+     * // enable XLSX export
      * exportFile: {
      *   engine: ExcelJS,
-     *   contextMenu: true,
      * },
      * ```
      */

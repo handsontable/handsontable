@@ -13,7 +13,7 @@ describe('ExportFile', () => {
   });
 
   describe('context menu', () => {
-    it('should not add export items to the context menu when `contextMenu` is not set in exportFile settings', async() => {
+    it('should add export items to the context menu when the ContextMenu plugin is active', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         contextMenu: true,
@@ -26,31 +26,13 @@ describe('ExportFile', () => {
         return $(this).text();
       }).get();
 
-      expect(items).not.toContain('Export to CSV');
-      expect(items).not.toContain('Export to Excel');
+      expect(items).toContain('Export to CSV');
     });
 
-    it('should not add export items to the context menu when exportFile is not configured', async() => {
+    it('should add export items even when no exportFile settings are provided', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         contextMenu: true,
-      });
-
-      await contextMenu(getCell(1, 1));
-
-      const items = $('.htContextMenu tbody tr:not(.htHidden) td').map(function() {
-        return $(this).text();
-      }).get();
-
-      expect(items).not.toContain('Export to CSV');
-      expect(items).not.toContain('Export to Excel');
-    });
-
-    it('should add an "Export to CSV" item when `contextMenu: true` is set in exportFile settings', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        contextMenu: true,
-        exportFile: { contextMenu: true },
       });
 
       await contextMenu(getCell(1, 1));
@@ -66,7 +48,7 @@ describe('ExportFile', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         contextMenu: true,
-        exportFile: { contextMenu: true },
+        exportFile: true,
       });
 
       await contextMenu(getCell(1, 1));
@@ -82,7 +64,7 @@ describe('ExportFile', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         contextMenu: true,
-        exportFile: { contextMenu: true },
+        exportFile: true,
       });
 
       await contextMenu(getCell(1, 1));
@@ -101,7 +83,7 @@ describe('ExportFile', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         contextMenu: true,
-        exportFile: { engine: mockEngine, contextMenu: true },
+        exportFile: { engine: mockEngine },
       });
 
       await contextMenu(getCell(1, 1));
@@ -120,7 +102,7 @@ describe('ExportFile', () => {
         colHeaders: true,
         rowHeaders: true,
         contextMenu: true,
-        exportFile: { contextMenu: true },
+        exportFile: true,
       });
 
       const plugin = getPlugin('exportFile');
@@ -142,7 +124,7 @@ describe('ExportFile', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         contextMenu: true,
-        exportFile: { contextMenu: true },
+        exportFile: true,
       });
 
       const plugin = getPlugin('exportFile');
@@ -164,7 +146,7 @@ describe('ExportFile', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         contextMenu: true,
-        exportFile: { contextMenu: true },
+        exportFile: true,
       });
 
       const plugin = getPlugin('exportFile');
@@ -188,7 +170,7 @@ describe('ExportFile', () => {
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
-        exportFile: { contextMenu: true },
+        exportFile: true,
       });
 
       const plugin = getPlugin('exportFile');
