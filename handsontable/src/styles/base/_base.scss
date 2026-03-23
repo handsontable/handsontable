@@ -244,12 +244,16 @@
       }
 
       &:first-child {
-        border-inline-start-width: 1px;
         border-inline-start-color: var(--ht-border-color);
 
         &.ht__active_highlight {
           border-inline-start-color: var(--ht-header-active-border-color);
         }
+      }
+
+      &:first-child,
+      &:nth-child(2) {
+        border-inline-start-width: 1px;
       }
 
       &.current {
@@ -545,6 +549,11 @@
     // Visual fixes
     // It removes double right border from first column header when row headers are disabled
     .ht_clone_top th:nth-child(2) {
+      border-inline-start-width: 0;
+      border-inline-end-width: 1px;
+    }
+
+    .ht_clone_top_inline_start_corner th:nth-child(2) {
       border-inline-start-width: 0;
       border-inline-end-width: 1px;
     }
