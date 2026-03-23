@@ -56,7 +56,7 @@ validator(value, callback)
 class MyEditor extends BaseEditor { ... }
 ```
 
-`validator` is **optional**. If no validator is defined for a cell, the value is always considered valid.
+`validator` is **optional**. If no validator is defined for a cell, the cell is skipped entirely during validation — afterValidate will not fire for it, and it will not contribute to the validation cycle.
 
 ### `allowInvalid`
 
