@@ -599,6 +599,8 @@ export default () => {
      *
      *   if (visualRowIndex === 0 && visualColIndex === 0) {
      *     cellProperties.readOnly = true;
+     *   } else {
+     *     cellProperties.readOnly = false;
      *   }
      *
      *   return cellProperties;
@@ -5122,7 +5124,7 @@ export default () => {
      * @description
      * The `skipColumnOnPaste` option determines whether you can paste data into a given column.
      *
-     * You can only apply the `skipColumnOnPaste` option to an entire column, using the [`columns`](#columns) option.
+     * You can only apply the `skipColumnOnPaste` option to an entire column, using the [`columns`](#columns) option. This option is not supported for the global table level settings.
      *
      * You can set the `skipColumnOnPaste` option to one of the following:
      *
@@ -5156,7 +5158,7 @@ export default () => {
      *
      * The `skipRowOnPaste` option determines whether you can paste data into a given row.
      *
-     * You can only apply the `skipRowOnPaste` option to an entire row, using the [`cells`](#cells) option.
+     * You can only apply the `skipRowOnPaste` option to an entire row, using the [`cells`](#cells) option. This option is not supported for the global table level settings.
      *
      * You can set the `skipRowOnPaste` option to one of the following:
      *

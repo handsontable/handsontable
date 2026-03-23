@@ -1611,7 +1611,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeOnCellMouseDown
    * @param {Event} event The `mousedown` event object.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
-   * @param {HTMLTableCellElement} TD TD element.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
@@ -1623,7 +1623,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeOnCellMouseUp
    * @param {Event} event The `mouseup` event object.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
-   * @param {HTMLTableCellElement} TD TD element.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
    */
   'beforeOnCellMouseUp',
 
@@ -1634,7 +1634,7 @@ export const REGISTERED_HOOKS = [
    * @since 4.1.0
    * @param {Event} event The `contextmenu` event object.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
-   * @param {HTMLTableCellElement} TD TD element.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
    */
   'beforeOnCellContextMenu',
 
@@ -1644,7 +1644,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeOnCellMouseOver
    * @param {Event} event The `mouseover` event object.
    * @param {CellCoords} coords CellCoords object containing the visual coordinates of the clicked cell.
-   * @param {HTMLTableCellElement} TD TD element.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
@@ -1656,7 +1656,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeOnCellMouseOut
    * @param {Event} event The `mouseout` event object.
    * @param {CellCoords} coords CellCoords object containing the visual coordinates of the leaved cell.
-   * @param {HTMLTableCellElement} TD TD element.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
    */
   'beforeOnCellMouseOut',
 

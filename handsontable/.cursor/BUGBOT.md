@@ -1,6 +1,6 @@
 # Handsontable core review notes
 
-Apply these checks when changed files are in `/handsontable/**`.
+All coding rules and conventions are in `/AGENTS.md`. Apply those rules to every review. This file adds **review-specific checks** for files under `/handsontable/**`.
 
 ---
 
@@ -12,9 +12,13 @@ Apply these checks when changed files are in `/handsontable/**`.
 
 - **Core language boundary**: Core source is JavaScript. Do not add TypeScript files under `/handsontable/src/`.
 - **Code style**:
-  - Prefer arrow functions over bound method fields (e.g., prefer `this.#onX = () => { ... }` over `this.#onXBound = this.#handleX.bind(this)`).
+  - For hook/event callbacks, use arrow-function class fields (`#onAfterX = () => { ... }`) instead of `.bind(this)` references — avoids the extra bound field.
   - Extract duplicated code blocks into shared methods — do not repeat logic across the same file or plugin.
   - Silent `catch` blocks must include a comment explaining why the error is swallowed.
+- **Optional chaining (`?.`) usage**:
+  - Use optional chaining only when a value is genuinely optional by design — not as a blanket safety net for values that should always exist.
+  - If a value is guaranteed by the data contract (e.g., parallel arrays built by the same iterator, or APIs like `getCellMeta()` that always return an object), access it directly without `?.`.
+  - Unnecessary optional chaining silently swallows errors, hides broken assumptions, and misleads future contributors into thinking a value can be null when it cannot.
 - **Bundle size awareness**:
   - Where possible, prefer JavaScript grammar that produces smaller output in compressed (minified/gzipped) bundles. For example, prefer `===` over verbose truthiness helpers, use short-circuit evaluation instead of full `if` blocks for simple assignments, and avoid unnecessary intermediate variables.
 
@@ -59,6 +63,15 @@ Apply these checks when changed files are in `/handsontable/**`.
 - **Type definitions**:
   - Do not duplicate type definitions across plugins. Import types from their source plugin (e.g., filter condition types come from Filters, not redefined in DataProvider).
   - Avoid bare `object` in `.d.ts` files — use or import specific types.
+
+## Accessibility
+
+- **WCAG conformance**: Changes to DOM rendering, selection, headers, frozen areas, hidden rows/columns, or merged cells must preserve WCAG 2.1 AA conformance.
+- **Keyboard navigation**: Do not regress keyboard-only navigation. Both navigation modes must keep working:
+  - Spreadsheet mode (default): `navigableHeaders: false`, `tabNavigation: true`.
+  - Data grid mode: `navigableHeaders: true`, `tabNavigation: false`.
+- **ARIA semantics**: Verify that ARIA attributes (`role`, `aria-label`, `aria-selected`, `aria-colspan`, etc.) remain correct after rendering or selection changes. Screen readers (NVDA, JAWS, VoiceOver) rely on these.
+- **Tag existence**: New UI elements (buttons, icons, overlays) must use semantic HTML. Verify sufficient color contrast and no flashing/blinking content.
 
 ## Testing
 
