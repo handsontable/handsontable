@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed validator state reset after first paste when using dataSchema in React wrapper",
+  "type": "fixed",
+  "issueOrPR": 14328,
+  "breaking": false,
+  "framework": "react"
+}
