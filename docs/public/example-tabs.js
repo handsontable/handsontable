@@ -85,9 +85,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var projectFiles = buildProjectFiles(framework, hotVersion, exampleId, userFiles, extraDeps);
 
-    var sbTemplate = 'javascript';
-
-    if (framework === 'react') sbTemplate = 'node';
+    // All frameworks use Vite ('node' template) so ES module imports resolve.
+    var sbTemplate = 'node';
 
     var form = document.createElement('form');
 
@@ -150,14 +149,26 @@ document.addEventListener('DOMContentLoaded', function () {
     var jsFile = findFile(userFiles, '.js') || 'index.js';
     var jsCode = userFiles[jsFile] || '';
 
-    var deps = Object.assign({ handsontable: hotVersion }, extraDeps);
+    var deps = Object.assign({ handsontable: hotVersion, vite: 'latest' }, extraDeps);
 
     var pkg = JSON.stringify({
       name: 'handsontable-example',
       version: '1.0.0',
       private: true,
       dependencies: deps,
+      scripts: { start: 'vite', build: 'vite build' },
     }, null, 2);
+
+    var cssFile = findFile(userFiles, '.css');
+
+    // Entry point imports Handsontable CSS then re-exports the example code.
+    // This lets Vite bundle the CSS via npm rather than serving node_modules
+    // as static files (which the 'javascript' StackBlitz template cannot do).
+    var mainJs = [
+      'import "handsontable/dist/handsontable.full.min.css";',
+      cssFile ? 'import "./styles.css";' : '',
+      'import "./index.js";',
+    ].filter(Boolean).join('\n');
 
     var html = [
       '<!DOCTYPE html>',
@@ -166,13 +177,11 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <meta charset="UTF-8" />',
       '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
       '  <title>Handsontable Example</title>',
-      '  <link rel="stylesheet"',
-      '    href="node_modules/handsontable/dist/handsontable.full.min.css" />',
       '  <style>body { padding: 1rem; font-family: sans-serif; }</style>',
       '</head>',
       '<body>',
       '  <div id="' + exampleId + '"></div>',
-      '  <script type="module" src="index.js"><\/script>',
+      '  <script type="module" src="/src/main.js"><\/script>',
       '</body>',
       '</html>',
     ].join('\n');
@@ -181,16 +190,11 @@ document.addEventListener('DOMContentLoaded', function () {
       'package.json': pkg,
       'index.html':   html,
       'index.js':     jsCode,
+      'src/main.js':  mainJs,
     };
-
-    var cssFile = findFile(userFiles, '.css');
 
     if (cssFile) {
       files['styles.css'] = userFiles[cssFile];
-      files['index.html'] = files['index.html'].replace(
-        '  <style>',
-        '  <link rel="stylesheet" href="styles.css" />\n  <style>',
-      );
     }
 
     return files;
