@@ -28,9 +28,9 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
-## 17.0.1-rc1
+## 17.0.1-rc2
 
-Released on March 19th, 2026
+Released on March 23rd, 2026
 
 For more information about this release, see:
 - [Documentation (17.0)](https://handsontable.com/docs/17.0)
