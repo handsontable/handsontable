@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
@@ -95,6 +96,13 @@ await page.exposeFunction('jasmineStarted', (specInfo) => {
 await page.exposeFunction('jasmineSpecStarted', () => {});
 await page.exposeFunction('jasmineSuiteStarted', suite => reporter.suiteStarted(suite));
 await page.exposeFunction('jasmineSuiteDone', () => reporter.suiteDone());
+await page.exposeFunction('__agentDebugLog', (payload) => {
+  try {
+    fs.appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify(payload)}\n`);
+  } catch (e) {
+    // Intentionally ignore logging errors in debug-only instrumentation.
+  }
+});
 await page.exposeFunction('jasmineSpecDone', (result) => {
   if (result.failedExpectations.length) {
     errorCount += result.failedExpectations.length;
@@ -116,15 +124,15 @@ await page.exposeFunction('jasmineDone', async() => {
   await cleanup(errorCount === 0 ? 0 : 1);
 });
 
-await page.exposeFunction('getEventListeners', async (selector) => {
+await page.exposeFunction('getEventListeners', async(selector) => {
   const { root } = await cdpClient.send('DOM.getDocument');
   const { nodeId } = await cdpClient.send('DOM.querySelector', {
-      nodeId: root.nodeId,
-      selector,
+    nodeId: root.nodeId,
+    selector,
   });
   const resolvedNode = await cdpClient.send('DOM.resolveNode', { nodeId });
 
-  return await cdpClient.send('DOMDebugger.getEventListeners', {
+  return cdpClient.send('DOMDebugger.getEventListeners', {
     objectId: resolvedNode.object.objectId
   });
 });

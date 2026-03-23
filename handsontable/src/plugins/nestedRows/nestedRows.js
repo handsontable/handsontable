@@ -9,6 +9,23 @@ import { TrimmingMap } from '../../translations';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import RowMoveController from './utils/rowMoveController';
 
+/**
+ * Writes debug payload through the browser-exposed logger.
+ *
+ * @param {object} payload The payload to log.
+ */
+function debugLog(payload) {
+  try {
+    const globalObject = typeof self !== 'undefined' ? self : null;
+
+    if (globalObject && typeof globalObject.__agentDebugLog === 'function') {
+      globalObject.__agentDebugLog(payload);
+    }
+  } catch (e) {
+    // Intentionally ignore logging errors in debug-only instrumentation.
+  }
+}
+
 export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
@@ -462,11 +479,72 @@ export class NestedRows extends BasePlugin {
    */
   #onAfterRender() {
     if (this.#isFirstRender && this.hot.view) {
+      // #region agent log
+      debugLog({
+        hypothesisId: 'B',
+        location: 'src/plugins/nestedRows/nestedRows.js:#onAfterRender:firstRender',
+        message: 'NestedRows first render schedules overlay size adjustment',
+        data: {
+          rowHeaderWidthCache: this.headersUI?.rowHeaderWidthCache,
+          hasView: !!this.hot.view,
+        },
+        timestamp: Date.now(),
+      });
+      // #endregion
       this.#isFirstRender = false;
 
       this.hot.rootWindow.requestAnimationFrame(() => {
         if (this.hot && this.hot.view && !this.hot.isDestroyed) {
+          const wt = this.hot.view._wt;
+
+          // #region agent log
+          debugLog({
+            hypothesisId: 'B',
+            location: 'src/plugins/nestedRows/nestedRows.js:#onAfterRender:beforeAdjustElementsSize',
+            message: 'Before first-render adjustElementsSize',
+            data: {
+              hiderStyleWidth: wt?.wtTable?.hider?.style?.width,
+              holderClientWidth: wt?.wtTable?.holder?.clientWidth,
+              holderScrollWidth: wt?.wtTable?.holder?.scrollWidth,
+            },
+            timestamp: Date.now(),
+          });
+          // #endregion
+
           this.hot.view.adjustElementsSize(true);
+
+          const wtTable = wt?.wtTable;
+          const totalColumns = this.hot.countCols();
+          const lastColumnHeader = totalColumns > 0 ? wtTable?.getColumnHeader(totalColumns - 1, 0) : null;
+
+          // #region agent log
+          debugLog({
+            hypothesisId: 'B',
+            location: 'src/plugins/nestedRows/nestedRows.js:#onAfterRender:afterAdjustElementsSize',
+            message: 'After first-render adjustElementsSize',
+            data: {
+              hiderStyleWidth: wt?.wtTable?.hider?.style?.width,
+              holderClientWidth: wt?.wtTable?.holder?.clientWidth,
+              holderScrollWidth: wt?.wtTable?.holder?.scrollWidth,
+            },
+            timestamp: Date.now(),
+          });
+          // #endregion
+
+          // #region agent log
+          debugLog({
+            hypothesisId: 'E',
+            location: 'src/plugins/nestedRows/nestedRows.js:#onAfterRender:lastHeaderMetrics',
+            message: 'Last column header metrics after first-render sizing',
+            data: {
+              totalColumns,
+              lastHeaderClientWidth: lastColumnHeader ? lastColumnHeader.clientWidth : null,
+              lastHeaderScrollWidth: lastColumnHeader ? lastColumnHeader.scrollWidth : null,
+              lastHeaderOffsetWidth: lastColumnHeader ? lastColumnHeader.offsetWidth : null,
+            },
+            timestamp: Date.now(),
+          });
+          // #endregion
         }
       });
     }
@@ -501,6 +579,20 @@ export class NestedRows extends BasePlugin {
 
     this.dataManager.setData(data);
     this.dataManager.rewriteCache();
+    this.headersUI.cacheRowHeaderWidth();
+
+    // #region agent log
+    debugLog({
+      hypothesisId: 'A',
+      location: 'src/plugins/nestedRows/nestedRows.js:#onBeforeLoadData:primeRowHeaderCache',
+      message: 'Primed nested rows row header width cache before first render',
+      data: {
+        levelCount: this.dataManager.cache.levelCount,
+        rowHeaderWidthCache: this.headersUI.rowHeaderWidthCache,
+      },
+      timestamp: Date.now(),
+    });
+    // #endregion
   }
 
   /**

@@ -19,6 +19,23 @@ import {
 } from './calculator';
 
 /**
+ * Writes debug payload through the browser-exposed logger.
+ *
+ * @param {object} payload The payload to log.
+ */
+function debugLog(payload) {
+  try {
+    const globalObject = typeof self !== 'undefined' ? self : null;
+
+    if (globalObject && typeof globalObject.__agentDebugLog === 'function') {
+      globalObject.__agentDebugLog(payload);
+    }
+  } catch (e) {
+    // Intentionally ignore logging errors in debug-only instrumentation.
+  }
+}
+
+/**
  * @class Viewport
  */
 class Viewport {
@@ -293,6 +310,20 @@ class Viewport {
 
     this.rowHeaderWidth = this.wtSettings
       .getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
+
+    // #region agent log
+    debugLog({
+      hypothesisId: 'C',
+      location: 'src/3rdparty/walkontable/src/viewport.js:getRowHeaderWidth:return',
+      message: 'Resolved row header width for viewport calculations',
+      data: {
+        rowHeadersWidthSetting,
+        rowHeadersCount: rowHeaders.length,
+        rowHeaderWidth: this.rowHeaderWidth,
+      },
+      timestamp: Date.now(),
+    });
+    // #endregion
 
     return this.rowHeaderWidth;
   }

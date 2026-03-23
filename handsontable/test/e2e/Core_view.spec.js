@@ -1019,6 +1019,17 @@ describe('Core_view', () => {
   });
 
   it.forTheme('main')('should not clip long column headers on first render when nestedRows is enabled', async() => {
+    // #region agent log
+    if (typeof globalThis.__agentDebugLog === 'function') {
+      globalThis.__agentDebugLog({
+        hypothesisId: 'F',
+        location: 'test/e2e/Core_view.spec.js:longHeaderNestedRows:entry',
+        message: 'E2E spec started for long header nestedRows clipping case',
+        data: {},
+        timestamp: Date.now(),
+      });
+    }
+    // #endregion
     const nestedData = [
       {
         id: 1,
@@ -1043,6 +1054,22 @@ describe('Core_view', () => {
     await sleep(100);
 
     const headerCell = getCell(-1, 1);
+
+    // #region agent log
+    if (typeof globalThis.__agentDebugLog === 'function') {
+      globalThis.__agentDebugLog({
+        hypothesisId: 'F',
+        location: 'test/e2e/Core_view.spec.js:longHeaderNestedRows:headerMetrics',
+        message: 'Header metrics captured in E2E test',
+        data: {
+          clientWidth: headerCell.clientWidth,
+          scrollWidth: headerCell.scrollWidth,
+          offsetWidth: headerCell.offsetWidth,
+        },
+        timestamp: Date.now(),
+      });
+    }
+    // #endregion
 
     expect(headerCell.clientWidth).toBeGreaterThanOrEqual(headerCell.scrollWidth);
   });
