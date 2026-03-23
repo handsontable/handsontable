@@ -6,6 +6,7 @@ describe('PaginationUI', () => {
 
   const createPaginationUI = (isRtl = false) => new PaginationUI({
     rootElement,
+    uiContainer: rootElement,
     isRtl,
     phraseTranslator: phrase => phrase,
     shouldHaveBorder: () => false,
