@@ -3,6 +3,7 @@ import {
   applyPaginationToQueryParameters,
   DATA_PROVIDER_INCOMPATIBLE_ENTRIES,
   disablePluginsIncompatibleWithDataProvider,
+  getDataProviderRequestErrorDescription,
   getIncompleteDataProviderWarningMessage,
   isCompleteDataProviderConfig,
   normalizeExternalPaginationPageSize,
@@ -361,6 +362,57 @@ describe('dataProvider utils', () => {
       );
 
       expect(hot.getPlugin).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getDataProviderRequestErrorDescription', () => {
+    it('should prefer response.data message over bare status in Error#message', () => {
+      const err = new Error('500');
+
+      err.response = {
+        data: {
+          error: 'Simulated 500 error after 2 request(s)',
+          message: 'Simulated 500 error after 2 request(s)',
+        },
+      };
+
+      expect(getDataProviderRequestErrorDescription(err)).toBe('Simulated 500 error after 2 request(s)');
+    });
+
+    it('should parse JSON string body on data', () => {
+      const err = new Error('500');
+
+      err.data = '{"message":"From JSON string","error":"From JSON string"}';
+
+      expect(getDataProviderRequestErrorDescription(err)).toBe('From JSON string');
+    });
+
+    it('should prefer data object over bare status when response is absent', () => {
+      const err = new Error('500');
+
+      err.data = {
+        message: 'From err.data',
+        error: 'From err.data',
+      };
+
+      expect(getDataProviderRequestErrorDescription(err)).toBe('From err.data');
+    });
+
+    it('should use plain object payload when thrown without Error', () => {
+      const err = {
+        error: 'Server said no',
+        message: 'Server said no',
+      };
+
+      expect(getDataProviderRequestErrorDescription(err)).toBe('Server said no');
+    });
+
+    it('should fall back to bare status when no richer text exists', () => {
+      expect(getDataProviderRequestErrorDescription(new Error('500'))).toBe('500');
+    });
+
+    it('should return Unknown error for null', () => {
+      expect(getDataProviderRequestErrorDescription(null)).toBe('Unknown error');
     });
   });
 

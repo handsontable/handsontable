@@ -52,6 +52,7 @@ import {
 import { computeEmptyStateLoadingActive } from './loading';
 import {
   disablePluginsIncompatibleWithDataProvider,
+  getDataProviderRequestErrorDescription,
   getIncompleteDataProviderWarningMessage,
   isCompleteDataProviderConfig,
 } from './utils';
@@ -97,6 +98,7 @@ export {
  * @description
  * Server-backed data: `dataProvider` must be an object with `rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove`.
  * Valid edits apply to the grid immediately; if `onRowsUpdate` fails, if validation fails later, or if `beforeRowsMutation` cancels, those cells revert to their previous values.
+ * When the [[Options#dialog]] plugin is enabled, failed `fetchRows`, `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` requests (including a refetch after a successful mutation) open an alert dialog with the error message.
  *
  * When enabled, `trimRows`, `manualRowMove`, and `multiColumnSorting` are turned off. Handsontable logs a console warning for each option you still set.
  * If `dataProvider` is present but not a complete configuration object, Handsontable logs one console warning per episode (until the configuration becomes valid); the plugin stays disabled.
@@ -777,6 +779,49 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
+   * Shows an alert in the [[Options#dialog]] plugin when it is enabled.
+   *
+   * @private
+   * @param {'fetch'|'create'|'update'|'remove'} kind Which request failed.
+   * @param {Error|*} err Rejection reason from the user callback or `fetchRows`.
+   * @returns {void}
+   */
+  #showDataProviderRequestErrorDialog(kind, err) {
+    const dialogPlugin = this.hot.getPlugin('dialog');
+
+    if (!dialogPlugin?.enabled) {
+      return;
+    }
+
+    const titles = {
+      fetch: 'Could not load data',
+      create: 'Could not create rows',
+      update: 'Could not update rows',
+      remove: 'Could not remove rows',
+    };
+    const title = titles[kind] ?? 'Request failed';
+    const description = getDataProviderRequestErrorDescription(err);
+
+    dialogPlugin.show({
+      template: {
+        type: 'confirm',
+        title,
+        description,
+        buttons: [
+          {
+            text: 'Close',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+            },
+          },
+        ],
+      },
+      closable: true,
+    });
+  }
+
+  /**
    * Calls `onRowsUpdate`, success/error hooks, then re-fetches or re-renders.
    *
    * @private
@@ -790,6 +835,7 @@ export class DataProvider extends BasePlugin {
       getOnRowsUpdate: () => this.#getOnRowsUpdate(),
       fetchData: () => this.fetchData(),
       logError,
+      onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorDialog(kind, err),
     }, rowPayloads, options);
   }
 
@@ -904,6 +950,7 @@ export class DataProvider extends BasePlugin {
       }
       this.hot.runHooks('afterDataProviderFetchError', err, params);
       this.#publishDataProviderLoadingChange(false);
+      this.#showDataProviderRequestErrorDialog('fetch', err);
       throw err;
     } finally {
       if (this.#abortController === controller) {
@@ -1017,6 +1064,7 @@ export class DataProvider extends BasePlugin {
         runAfterRowsMutation: (op, p) => runAfterRowsMutation(this.hot, op, p),
         runAfterRowsMutationError: (op, err, p) => runAfterRowsMutationError(this.hot, op, err, p),
         logError,
+        onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorDialog(kind, err),
       },
       operation,
       payload,

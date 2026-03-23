@@ -2,11 +2,13 @@ import {
   DATA_PROVIDER_ERROR_UPDATE_MISSING_ROW_ID,
 } from '../constants';
 import {
+  commitRowsUpdate as commitRowsUpdateImpl,
   enqueueMutation,
   filterChangesForBatchedServerUpdate,
   getRowIdFromRowData,
   handleBeforeAlterForCrud,
   isMissingRowId,
+  queueCrud,
   rowIdsFromAlterRemove,
   runManualUpdateRowsMutation,
   runUpdateFromChanges,
@@ -63,6 +65,103 @@ describe('dataProvider crud', () => {
       ];
 
       expect(filterChangesForBatchedServerUpdate(hot, changes)).toEqual([[0, 'ok', 1, 2]]);
+    });
+  });
+
+  describe('commitRowsUpdate', () => {
+    it('should call onRequestFailed with update when onRowsUpdate rejects', async() => {
+      const err = new Error('server update failed');
+      const onRequestFailed = jest.fn();
+      const hot = {
+        render: jest.fn(),
+        runHooks: jest.fn(),
+      };
+
+      await commitRowsUpdateImpl(hot, {
+        getOnRowsUpdate: () => async() => {
+          throw err;
+        },
+        fetchData: jest.fn(),
+        logError: jest.fn(),
+        onRequestFailed,
+      }, [{ id: 1, changes: {}, rowData: {} }]);
+
+      expect(onRequestFailed).toHaveBeenCalledWith('update', err);
+      expect(hot.runHooks).toHaveBeenCalledWith('afterRowsMutationError', 'update', err, expect.any(Object));
+    });
+
+    it('should call onRequestFailed with fetch when fetchData rejects after onRowsUpdate', async() => {
+      const err = new Error('refetch failed');
+      const onRequestFailed = jest.fn();
+      const hot = {
+        render: jest.fn(),
+        runHooks: jest.fn(),
+      };
+
+      await commitRowsUpdateImpl(hot, {
+        getOnRowsUpdate: () => async() => {},
+        fetchData: async() => {
+          throw err;
+        },
+        logError: jest.fn(),
+        onRequestFailed,
+      }, [{ id: 1, changes: {}, rowData: {} }]);
+
+      expect(onRequestFailed).toHaveBeenCalledWith('fetch', err);
+      expect(hot.runHooks).toHaveBeenCalledWith('afterRowsMutation', 'update', expect.any(Object));
+      expect(hot.runHooks).toHaveBeenCalledWith('afterRowsMutationError', 'update', err, expect.any(Object));
+    });
+  });
+
+  describe('queueCrud', () => {
+    it('should call onRequestFailed with create when onRowsCreate rejects', async() => {
+      const err = new Error('create failed');
+      const onRequestFailed = jest.fn();
+      const state = { tail: Promise.resolve() };
+
+      await queueCrud(
+        {
+          enqueueMutation: fn => enqueueMutation(state, fn),
+          runBeforeRowsMutation: () => undefined,
+          runAfterRowsMutation: jest.fn(),
+          runAfterRowsMutationError: jest.fn(),
+          logError: jest.fn(),
+          onRequestFailed,
+        },
+        'create',
+        {},
+        async() => {
+          throw err;
+        },
+        async() => {}
+      );
+
+      expect(onRequestFailed).toHaveBeenCalledWith('create', err);
+    });
+
+    it('should call onRequestFailed with fetch when refetch rejects after create', async() => {
+      const err = new Error('reload failed');
+      const onRequestFailed = jest.fn();
+      const state = { tail: Promise.resolve() };
+
+      await queueCrud(
+        {
+          enqueueMutation: fn => enqueueMutation(state, fn),
+          runBeforeRowsMutation: () => undefined,
+          runAfterRowsMutation: jest.fn(),
+          runAfterRowsMutationError: jest.fn(),
+          logError: jest.fn(),
+          onRequestFailed,
+        },
+        'create',
+        {},
+        async() => {},
+        async() => {
+          throw err;
+        }
+      );
+
+      expect(onRequestFailed).toHaveBeenCalledWith('fetch', err);
     });
   });
 

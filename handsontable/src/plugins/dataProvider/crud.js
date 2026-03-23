@@ -367,7 +367,7 @@ export function buildManualUpdateRowPayloads(hot, rowIdOption, rows) {
  * Calls `onRowsUpdate`, success/error hooks, then re-fetches or re-renders.
  *
  * @param {Core} hot Handsontable instance.
- * @param {{ getOnRowsUpdate: function(): *, fetchData: function(): Promise<*>, logError: function(...*): void }} callbacks Callbacks for IO and logging (`getOnRowsUpdate` returns `onRowsUpdate` or a falsy value).
+ * @param {{ getOnRowsUpdate: function(): *, fetchData: function(): Promise<*>, logError: function(...*): void, onRequestFailed?: function(string, Error): void }} callbacks Callbacks for IO and logging (`getOnRowsUpdate` returns `onRowsUpdate` or a falsy value). `onRequestFailed` receives `'update'` or `'fetch'`.
  * @param {object[]} rowPayloads Per-row `RowUpdatePayload` objects (`types/plugins/dataProvider/dataProvider.d.ts`).
  * @param {object} [options] Optional flags.
  * @param {function(): void} [options.revertOptimistic] Restores previous cell values when the request fails.
@@ -382,11 +382,10 @@ export async function commitRowsUpdate(hot, callbacks, rowPayloads, options = {}
 
   const payload = { rows: rowPayloads };
   const { revertOptimistic } = options;
+  const { onRequestFailed } = callbacks;
 
   try {
     await onRowsUpdate(rowPayloads);
-    runAfterRowsMutation(hot, 'update', payload);
-    await callbacks.fetchData();
   } catch (err) {
     runAfterRowsMutationError(hot, 'update', err, payload);
     callbacks.logError('Row update failed:', err);
@@ -395,6 +394,23 @@ export async function commitRowsUpdate(hot, callbacks, rowPayloads, options = {}
       revertOptimistic();
     }
     hot.render();
+    onRequestFailed?.('update', err);
+
+    return;
+  }
+
+  try {
+    runAfterRowsMutation(hot, 'update', payload);
+    await callbacks.fetchData();
+  } catch (err) {
+    runAfterRowsMutationError(hot, 'update', err, payload);
+    callbacks.logError('Data reload failed:', err);
+
+    if (isFunction(revertOptimistic)) {
+      revertOptimistic();
+    }
+    hot.render();
+    onRequestFailed?.('fetch', err);
   }
 }
 
@@ -520,6 +536,7 @@ export async function runUpdateFromChanges(hot, ctx, changes) {
  * @param {function(string, object): void} ctx.runAfterRowsMutation - Runs the success hook.
  * @param {function(string, Error, object): void} ctx.runAfterRowsMutationError - Runs the error hook.
  * @param {function(...*): void} ctx.logError - Logs mutation failures.
+ * @param {function(string, Error): void} [ctx.onRequestFailed] - `'create'|'remove'` for the server callback, `'fetch'` when `onSuccess` (refetch) fails.
  * @param {string} operation `'create'` or `'remove'`.
  * @param {object} payload Hook payload.
  * @param {function(): Promise<*>} userPromiseFn Server callback invocation.
@@ -533,6 +550,7 @@ export function queueCrud(ctx, operation, payload, userPromiseFn, onSuccess) {
     runAfterRowsMutation: afterMut,
     runAfterRowsMutationError: afterMutErr,
     logError: logErr,
+    onRequestFailed,
   } = ctx;
 
   return enqueue(async() => {
@@ -540,15 +558,25 @@ export function queueCrud(ctx, operation, payload, userPromiseFn, onSuccess) {
       return;
     }
 
+    const mutationLabel = operation === 'create' ? 'Row create' : 'Row remove';
+
     try {
       await userPromiseFn();
+    } catch (err) {
+      afterMutErr(operation, err, payload);
+      logErr(`${mutationLabel} failed:`, err);
+      onRequestFailed?.(operation, err);
+
+      return;
+    }
+
+    try {
       afterMut(operation, payload);
       await onSuccess();
     } catch (err) {
       afterMutErr(operation, err, payload);
-      const label = operation === 'create' ? 'Row create' : 'Row remove';
-
-      logErr(`${label} failed:`, err);
+      logErr('Data reload failed:', err);
+      onRequestFailed?.('fetch', err);
     }
   });
 }

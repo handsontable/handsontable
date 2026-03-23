@@ -61,6 +61,106 @@ export function getIncompleteDataProviderWarningMessage(c) {
 }
 
 /**
+ * @param {string} s Candidate text.
+ * @returns {boolean} True when the string is only a three-digit HTTP status (e.g. `"500"`).
+ */
+function isBareHttpStatusText(s) {
+  return typeof s === 'string' && /^\d{3}$/.test(s.trim());
+}
+
+/**
+ * @param {Array<string>} candidates Collected messages (mutated).
+ * @param {*} value String to append when non-empty after trim.
+ * @returns {void}
+ */
+function pushStringCandidate(candidates, value) {
+  if (typeof value === 'string') {
+    const t = value.trim();
+
+    if (t) {
+      candidates.push(t);
+    }
+  }
+}
+
+/**
+ * @param {object} obj Plain object payload (e.g. JSON body).
+ * @param {Array<string>} candidates Collected messages (mutated).
+ * @returns {void}
+ */
+function collectStringsFromApiPayload(obj, candidates) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+    return;
+  }
+
+  pushStringCandidate(candidates, obj.message);
+  pushStringCandidate(candidates, obj.error);
+
+  if (typeof obj.detail === 'string') {
+    pushStringCandidate(candidates, obj.detail);
+  }
+}
+
+/**
+ * Picks user-visible error text for DataProvider dialogs and logging.
+ * Prefer server JSON (`message`, `error`, `detail`) from `response.data`, `data`, or `body` over a bare status code in `Error#message`.
+ *
+ * @param {*} err Value thrown or rejected from `fetchRows` or row mutation callbacks.
+ * @returns {string} Non-empty description for UI.
+ */
+export function getDataProviderRequestErrorDescription(err) {
+  const candidates = [];
+
+  if (err === undefined || err === null) {
+    return 'Unknown error';
+  }
+
+  if (typeof err === 'string') {
+    const t = err.trim();
+
+    return t || 'Unknown error';
+  }
+
+  if (typeof err !== 'object') {
+    return String(err);
+  }
+
+  const nested = err.response?.data ?? err.data ?? err.body;
+
+  if (nested !== undefined && nested !== null) {
+    if (typeof nested === 'string') {
+      try {
+        collectStringsFromApiPayload(JSON.parse(nested), candidates);
+      } catch {
+        pushStringCandidate(candidates, nested);
+      }
+    } else {
+      collectStringsFromApiPayload(nested, candidates);
+    }
+  }
+
+  if (typeof err.error === 'string') {
+    pushStringCandidate(candidates, err.error);
+  }
+
+  if (typeof err.message === 'string') {
+    pushStringCandidate(candidates, err.message);
+  }
+
+  const preferred = candidates.find(c => !isBareHttpStatusText(c));
+
+  if (preferred) {
+    return preferred;
+  }
+
+  if (candidates.length > 0) {
+    return candidates[0];
+  }
+
+  return String(err);
+}
+
+/**
  * Settings/plugins that conflict with server-backed `dataProvider` mode.
  *
  * @type {ReadonlyArray<{ settingKey: string, pluginId: string, label: string }>}
