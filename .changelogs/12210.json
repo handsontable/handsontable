@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added regression coverage for nested rows long column headers clipping",
+  "type": "fixed",
+  "issueOrPR": 12210,
+  "breaking": false,
+  "framework": "none"
+}
