@@ -38,7 +38,6 @@ const stockRenderer = (
 
   label.className = 'htStockBarLabel';
   label.innerText = valid ? `${num}` : '—';
-
   track.appendChild(fill);
   wrapper.appendChild(track);
   wrapper.appendChild(label);
@@ -96,12 +95,12 @@ const stockValidator = (value: Handsontable.CellValue, callback: (valid: boolean
 })
 export class AppComponent implements OnInit {
   readonly hotData = [
-    ['Apple', 1.20, 820],
-    ['Banana', 0.50, 280],
-    ['Cherry', 3.00, 45],
-    ['Mango', 2.50, 960],
-    ['Pear', 0.80, 170],
-    ['Blueberry', 4.50, 15],
+    ['Apple', 1.2, 820],
+    ['Banana', 0.5, 280],
+    ['Cherry', 3.0, 45],
+    ['Mango', 2.5, 960],
+    ['Pear', 0.8, 170],
+    ['Blueberry', 4.5, 15],
   ];
 
   hotSettings!: GridSettings;
@@ -113,7 +112,7 @@ export class AppComponent implements OnInit {
         // Built-in type bundles renderer + editor + no validator
         { type: 'text' },
         // Built-in type bundles renderer + editor + validator with custom format
-        { type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
+        { type: 'numeric', locale: 'en-US', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2 } },
         // Mixed: custom renderer, built-in numeric editor, custom validator
         {
           renderer: stockRenderer,
