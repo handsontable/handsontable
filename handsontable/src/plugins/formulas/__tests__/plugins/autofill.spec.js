@@ -134,5 +134,30 @@ describe('Formulas', () => {
         [null, null, null, null, null, null, null],
       ]);
     });
+
+    it('should not overwrite extra visible columns when dragging across hidden columns with disabled copyPaste', async() => {
+      handsontable({
+        data: [
+          ['=A1', null, null, null, null, null],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        hiddenColumns: {
+          copyPasteEnabled: false,
+          columns: [1, 2],
+        },
+      });
+
+      await selectCell(0, 0);
+
+      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+      $(getCell(0, 3, true)).simulate('mouseover').simulate('mouseup');
+
+      expect(getSourceDataAtCell(0, 3)).toEqual('=D1');
+      expect(getSourceDataAtCell(0, 4)).toBe(null);
+      expect(getSourceDataAtCell(0, 5)).toBe(null);
+    });
   });
 });

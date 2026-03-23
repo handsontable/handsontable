@@ -12,6 +12,7 @@ import {
   isDate,
   isDateValid,
   isFormula,
+  omitAutofillDataForSkippedPasteCells,
   unescapeFormulaExpression,
 } from './utils';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
@@ -744,7 +745,12 @@ export class Formulas extends BasePlugin {
       }
     }
 
-    return fillRangeData;
+    return omitAutofillDataForSkippedPasteCells(
+      fillRangeData,
+      targetTopStartRow,
+      targetTopStartColumn,
+      (row, column) => this.hot.getCellMeta(row, column),
+    );
   }
 
   /**
