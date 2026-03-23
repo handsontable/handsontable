@@ -244,16 +244,12 @@
       }
 
       &:first-child {
+        border-inline-start-width: 1px;
         border-inline-start-color: var(--ht-border-color);
 
         &.ht__active_highlight {
           border-inline-start-color: var(--ht-header-active-border-color);
         }
-      }
-
-      &:first-child,
-      &:nth-child(2) {
-        border-inline-start-width: 1px;
       }
 
       &.current {
