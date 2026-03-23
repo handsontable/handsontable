@@ -19,9 +19,9 @@ export function cloneFilterConditionsStack(stack) {
  * Converts Filters plugin condition stack (physical column indexes) to query filters (prop = column data key).
  * Expects the same shape as [[Filters#exportConditions]] returns.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {Array} conditionsStack Array of { column, operation, conditions } (same shape as exportConditions).
- * @returns {Array|null} Array of { prop, operation, conditions } or null when empty.
+ * @returns {Array<{ prop: string, operation: 'conjunction'|'disjunction', conditions: Array<{ name?: string, args: Array<*> }> }>|null} Payload or null when empty.
  */
 export function conditionsStackToFiltersPayload(hot, conditionsStack) {
   if (!Array.isArray(conditionsStack) || conditionsStack.length === 0) {
@@ -55,7 +55,7 @@ export function conditionsStackToFiltersPayload(hot, conditionsStack) {
 /**
  * Snapshot of current filter conditions for persistence across loadData, or an empty array.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @returns {Array}
  */
 export function captureFilterConditionsSnapshot(hot) {
@@ -69,7 +69,7 @@ export function captureFilterConditionsSnapshot(hot) {
 /**
  * Restores filter UI from a snapshot when non-empty.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {Array} snapshot Cloned conditions from [[captureFilterConditionsSnapshot]].
  * @returns {void}
  */

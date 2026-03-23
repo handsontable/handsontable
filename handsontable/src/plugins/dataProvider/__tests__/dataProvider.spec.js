@@ -69,6 +69,46 @@ describe('DataProvider', () => {
     await updateSettings({ dataProvider: false });
 
     expect(getPlugin('dataProvider').isEnabled()).toBe(false);
+    expect(countRows()).toBe(1);
+    expect(getDataAtCell(0, 0)).toBe(1);
+  });
+
+  it('should apply static data when disabling DataProvider and passing data in the same updateSettings', async() => {
+    const config = createDataProviderConfig({
+      fetchRows: () => Promise.resolve({ rows: [{ id: 1, name: 'Server' }], totalRows: 1 }),
+    });
+    // Rows must match `columns[].data` keys; array-of-arrays rows do not expose `id` / `name` to DataMap.get().
+    const localData = [{ id: 2, name: 'Local' }];
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: config,
+    });
+
+    await sleep(50);
+
+    await updateSettings({
+      dataProvider: false,
+      data: localData,
+    });
+
+    expect(getPlugin('dataProvider').isEnabled()).toBe(false);
+    expect(countRows()).toBe(1);
+    expect(getDataAtCell(0, 0)).toBe(2);
+    expect(getDataAtCell(0, 1)).toBe('Local');
+  });
+
+  it('should not clear data when updateSettings sets an incomplete dataProvider object', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+    });
+
+    await updateSettings({ dataProvider: { rowId: 'id' } });
+
+    expect(getPlugin('dataProvider').isEnabled()).toBe(false);
+    expect(countRows()).toBe(2);
+    expect(getDataAtCell(0, 0)).toBe('A1');
   });
 
   it('should not queue onRowsUpdate for change source outside DATA_PROVIDER_BATCH_UPDATE_SOURCES', async() => {

@@ -489,7 +489,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterLoadData
    * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
-   * @param {string} [source] The source of the call
+   * @param {string} source The source of the call
    */
   'afterLoadData',
 
@@ -1563,7 +1563,7 @@ export const REGISTERED_HOOKS = [
    * @since 8.0.0
    * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
-   * @param {string} [source] The source of the call
+   * @param {string} source The source of the call
    * @returns {Array} The returned array will be used as Handsontable's new dataset.
    */
   'beforeLoadData',

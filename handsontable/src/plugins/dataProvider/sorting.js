@@ -9,8 +9,8 @@ import {
 /**
  * Copies ColumnSorting state into query `sort` when sorting is enabled.
  *
- * @param {Handsontable} hot Handsontable instance.
- * @param {{ sort: object|null }} queryParameters Target object (mutated).
+ * @param {Core} hot Handsontable instance.
+ * @param {{ sort: ({ prop: string, order: 'asc'|'desc' }|null) }} queryParameters Target object (mutated).
  * @returns {void}
  */
 export function applyColumnSortToQueryFromPlugin(hot, queryParameters) {
@@ -24,8 +24,8 @@ export function applyColumnSortToQueryFromPlugin(hot, queryParameters) {
 /**
  * Normalizes `params.sort` to query format using column props.
  *
- * @param {{ sort: object|null }} params Fetch params object (mutated).
- * @param {Handsontable} hot Handsontable instance.
+ * @param {object} params Fetch params object (mutated). May hold plugin or query `sort`; written back as query `sort`.
+ * @param {Core} hot Handsontable instance.
  * @returns {void}
  */
 export function normalizeSortInFetchParams(params, hot) {
@@ -35,8 +35,8 @@ export function normalizeSortInFetchParams(params, hot) {
 /**
  * Aligns ColumnSorting plugin UI with query-format sort after loadData / fetch.
  *
- * @param {Handsontable} hot Handsontable instance.
- * @param {object|null} querySort Query `sort` descriptor.
+ * @param {Core} hot Handsontable instance.
+ * @param {{ prop: string, order: 'asc'|'desc' }|null} querySort Query `sort` descriptor.
  * @returns {void}
  */
 export function syncColumnSortingStateFromQuerySort(hot, querySort) {
@@ -52,7 +52,7 @@ export function syncColumnSortingStateFromQuerySort(hot, querySort) {
  * Server-backed sort: apply plugin sort config, refresh query from plugins, refetch; return false to cancel default.
  *
  * @param {object} ctx Hook context.
- * @param {Handsontable} ctx.hot Handsontable instance.
+ * @param {Core} ctx.hot Handsontable instance.
  * @param {function(): boolean} ctx.isEnabled Whether DataProvider is enabled.
  * @param {function(): boolean} ctx.hasFetchFn Whether fetchRows is configured.
  * @param {function(): void} ctx.applyPaginationAndSortFromPlugins Refreshes query from Pagination + ColumnSorting.

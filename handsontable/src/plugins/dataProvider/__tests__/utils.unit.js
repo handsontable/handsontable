@@ -246,6 +246,7 @@ describe('dataProvider utils', () => {
     it('should return false for incomplete or invalid configs', () => {
       expect(isCompleteDataProviderConfig(undefined)).toBe(false);
       expect(isCompleteDataProviderConfig(null)).toBe(false);
+      expect(isCompleteDataProviderConfig(false)).toBe(false);
       expect(isCompleteDataProviderConfig({})).toBe(false);
       expect(isCompleteDataProviderConfig({ rowId: 'id', fetchRows: () => {} })).toBe(false);
     });

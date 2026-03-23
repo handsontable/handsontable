@@ -83,7 +83,7 @@ export function applyPaginationToQueryParameters(paginationPlugin, queryParamete
  *
  * @param {{ column?: number, prop?: string, sortOrder?: string, order?: string }|null} sort Sort from plugin or overrides.
  * @param {function(number): string} colToProp Maps visual column index to column data key.
- * @returns {{ prop: string, order: string }|null} Query-format sort or null.
+ * @returns {{ prop: string, order: 'asc'|'desc' }|null} Query-format sort or null.
  */
 export function normalizeSortToQueryFormat(sort, colToProp) {
   if (sort === null || sort === undefined || typeof sort !== 'object') {
@@ -112,9 +112,9 @@ export function normalizeSortToQueryFormat(sort, colToProp) {
 /**
  * Converts query-format sort `{ prop, order }` to ColumnSorting plugin format `{ column, sortOrder }`.
  *
- * @param {{ prop: string, order: string }|null} sort Query-format sort.
+ * @param {{ prop: string, order: 'asc'|'desc' }|null} sort Query-format sort.
  * @param {function(string): number} propToCol Maps column data key to visual column index.
- * @returns {{ column: number, sortOrder: string }|null} Plugin-format sort or null.
+ * @returns {{ column: number, sortOrder: 'asc'|'desc' }|null} Plugin-format sort or null.
  */
 export function querySortToPluginSort(sort, propToCol) {
   if ((sort === null || sort === undefined) || typeof sort !== 'object' || typeof sort.prop !== 'string') {
@@ -147,7 +147,7 @@ export function querySortToPluginSort(sort, propToCol) {
  * Copies ColumnSorting state into query `sort` as `{ prop, order }` when sorting is enabled.
  *
  * @param {{ enabled?: boolean, getSortConfig: function(): * }|null|undefined} columnSortingPlugin ColumnSorting plugin instance.
- * @param {{ sort: object|null }} queryParameters Target object (mutated).
+ * @param {{ sort: ({ prop: string, order: 'asc'|'desc' }|null) }} queryParameters Target object (mutated).
  * @param {function(number): string} colToProp Maps visual column index to column data key.
  * @returns {void}
  */
@@ -191,7 +191,7 @@ export function normalizeExternalPaginationPageSize(newPageSize, fallbackPageSiz
  * Aligns ColumnSorting UI with a single-column sort descriptor from the data layer.
  *
  * @param {{ enabled?: boolean, setSortConfig: function(*): void }|null|undefined} columnSortingPlugin ColumnSorting plugin instance.
- * @param {object|null} sort Sort descriptor or null.
+ * @param {{ column: number, sortOrder: 'asc'|'desc' }|Array|undefined|null} sort ColumnSorting config entry, `[]` to clear, or null/undefined.
  * @returns {void}
  */
 export function syncColumnSortingFromQuerySort(columnSortingPlugin, sort) {
@@ -207,7 +207,7 @@ export function syncColumnSortingFromQuerySort(columnSortingPlugin, sort) {
 /**
  * Logs one warning per conflicting option and disables the corresponding plugin.
  *
- * @param {{ getPlugin: function(string): { enabled?: boolean, disablePlugin?: function(): void }|undefined }} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {object} settings Current instance settings.
  * @param {Set<string>} warnedSettingKeys Keys already warned this session (mutated).
  * @returns {void}

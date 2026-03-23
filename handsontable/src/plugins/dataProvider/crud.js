@@ -11,9 +11,9 @@ import {
 /**
  * Runs `beforeRowsMutation`. Return `false` from a listener to cancel.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {string} operation Mutation kind (`create`, `update`, or `remove`).
- * @param {object} payload Hook payload for the operation.
+ * @param {object} payload Hook payload (`RowMutationPayload` in `types/plugins/dataProvider/dataProvider.d.ts`).
  * @returns {boolean|undefined} `false` when cancelled.
  */
 export function runBeforeRowsMutation(hot, operation, payload) {
@@ -27,9 +27,9 @@ export function runBeforeRowsMutation(hot, operation, payload) {
 /**
  * Runs `afterRowsMutation`.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {string} operation Mutation kind (`create`, `update`, or `remove`).
- * @param {object} payload Hook payload for the operation.
+ * @param {object} payload Hook payload (`RowMutationPayload` in `types/plugins/dataProvider/dataProvider.d.ts`).
  * @returns {void}
  */
 export function runAfterRowsMutation(hot, operation, payload) {
@@ -39,10 +39,10 @@ export function runAfterRowsMutation(hot, operation, payload) {
 /**
  * Runs `afterRowsMutationError`.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {string} operation Mutation kind (`create`, `update`, or `remove`).
  * @param {Error} err Failure from the server callback.
- * @param {object} payload Hook payload for the operation.
+ * @param {object} payload Hook payload (`RowMutationPayload` in `types/plugins/dataProvider/dataProvider.d.ts`).
  * @returns {void}
  */
 export function runAfterRowsMutationError(hot, operation, err, payload) {
@@ -88,7 +88,7 @@ export function getRowIdFromRowData(rowData, rowIdOption) {
 /**
  * Row id for a visual row index.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
  * @param {number} visualRow Visual row index.
  * @returns {*|undefined}
@@ -113,7 +113,7 @@ export function isMissingRowId(id) {
 /**
  * Finds a visual row index for a row id.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
  * @param {*} rowId Row id.
  * @returns {number} Visual row index or -1 when not found.
@@ -131,7 +131,7 @@ export function findVisualRowById(hot, rowIdOption, rowId) {
 /**
  * Collects row ids (or row snapshots) for `remove_row` alter ranges, including grouped indices.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
  * @param {number|Array|undefined|null} index Visual start index or `[[index, amount], ...]`.
  * @param {number} amount Row count when `index` is scalar.
@@ -179,7 +179,7 @@ export function rowIdsFromAlterRemove(hot, rowIdOption, index, amount) {
 /**
  * Builds `changes` map and merged `rowData` for one visual row from Handsontable change tuples.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {Array} rowChanges Tuples `[visualRow, prop, oldVal, newVal]` for one row.
  * @returns {{ changesObj: object, rowData: object|Array }}
  */
@@ -217,7 +217,7 @@ export function buildChangesAndRowData(hot, rowChanges) {
 /**
  * Reverts optimistic cell edits after a failed server update.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {Array} changeTuples `[visualRow, prop, oldVal, newVal][]`.
  * @returns {void}
  */
@@ -235,7 +235,7 @@ export function revertChangeTuples(hot, changeTuples) {
 /**
  * Whether every changed cell passes validator when `allowInvalid` is false.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {number} visualRow Visual row index.
  * @param {object} changes Prop-keyed new values.
  * @returns {Promise<boolean>}
@@ -311,7 +311,7 @@ export function shouldIgnoreAfterChangeForServerUpdate(hasOnRowsUpdate, changes,
 /**
  * Filters change tuples to those with real edits and passing cell `valid` meta.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {Array} changes `[visualRow, prop, oldVal, newVal][]`.
  * @returns {Array} Subset safe to send to the server update path.
  */
@@ -336,7 +336,7 @@ export function filterChangesForBatchedServerUpdate(hot, changes) {
 /**
  * Builds `{ id, changes, rowData }` payloads for programmatic `updateRows`.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
  * @param {object[]} rows Caller payloads `{ id, changes, rowData? }`.
  * @returns {object[]}
@@ -366,12 +366,9 @@ export function buildManualUpdateRowPayloads(hot, rowIdOption, rows) {
 /**
  * Calls `onRowsUpdate`, success/error hooks, then re-fetches or re-renders.
  *
- * @param {Handsontable} hot Handsontable instance.
- * @param {object} callbacks Callbacks for IO and logging.
- * @param {function(): Function|undefined} callbacks.getOnRowsUpdate Returns `onRowsUpdate` when configured.
- * @param {function(): Promise<*>} callbacks.fetchData Refetch after success.
- * @param {function(...*): void} callbacks.logError Console error helper.
- * @param {object[]} rowPayloads Per-row `{ id, changes, rowData }` payloads.
+ * @param {Core} hot Handsontable instance.
+ * @param {{ getOnRowsUpdate: function(): *, fetchData: function(): Promise<*>, logError: function(...*): void }} callbacks Callbacks for IO and logging (`getOnRowsUpdate` returns `onRowsUpdate` or a falsy value).
+ * @param {object[]} rowPayloads Per-row `RowUpdatePayload` objects (`types/plugins/dataProvider/dataProvider.d.ts`).
  * @param {object} [options] Optional flags.
  * @param {function(): void} [options.revertOptimistic] Restores previous cell values when the request fails.
  * @returns {Promise<void>}
@@ -404,7 +401,7 @@ export async function commitRowsUpdate(hot, callbacks, rowPayloads, options = {}
 /**
  * Runs `beforeRowsMutation`, validates each payload row, then calls `commitRowsUpdate` for programmatic `updateRows`.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {object} ctx Row resolution and commit.
  * @param {function(): string|Function|undefined|null} ctx.getRowIdOption Current `rowId` config.
  * @param {function(object[]): Promise<void>} ctx.commitRowsUpdate Commits payloads after validation.
@@ -443,7 +440,7 @@ export async function runManualUpdateRowsMutation(hot, ctx, rowPayloads) {
 /**
  * Groups cell changes by row, validates, then commits a single batched `onRowsUpdate`.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {object} ctx Row resolution and commit.
  * @param {function(): string|Function|undefined|null} ctx.getRowIdOption Current `rowId` config.
  * @param {function(object[], object): Promise<void>} ctx.commitRowsUpdate Commits payloads (e.g. server + refetch).
@@ -560,16 +557,16 @@ export function queueCrud(ctx, operation, payload, userPromiseFn, onSuccess) {
  * Handles `beforeAlter` for server-backed row insert/remove when DataProvider CRUD is configured.
  *
  * @param {object} ctx Context.
- * @param {Handsontable} ctx.hot - Handsontable instance.
- * @param {function(): Function|undefined} ctx.getOnRowsCreate - Returns configured `onRowsCreate` when present.
- * @param {function(): Function|undefined} ctx.getOnRowsRemove - Returns configured `onRowsRemove` when present.
+ * @param {Core} ctx.hot - Handsontable instance.
+ * @param {function(): *} ctx.getOnRowsCreate - Returns configured `onRowsCreate` when present.
+ * @param {function(): *} ctx.getOnRowsRemove - Returns configured `onRowsRemove` when present.
  * @param {function(): string|Function|undefined|null} ctx.getRowIdOption - Returns current `rowId` setting.
  * @param {function(number): *} ctx.getRowId - Row id for a visual index (public API).
  * @param {function(object): Promise<void>|void} ctx.createRows - Invokes server create path.
  * @param {function(*|*[]): Promise<void>|void} ctx.removeRows - Invokes server remove path.
  * @param {string} action Alter action name.
- * @param {number|Array} index Row index or index groups.
- * @param {number} amount Row count.
+ * @param {number|Array|undefined|null} index Row index, grouped `[[index, amount], ...]`, or undefined (alter default).
+ * @param {number} amount Row count when `index` is a number.
  * @returns {boolean|undefined} False when alter is handled here.
  */
 export function handleBeforeAlterForCrud(ctx, action, index, amount) {

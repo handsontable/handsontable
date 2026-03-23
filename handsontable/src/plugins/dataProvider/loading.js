@@ -6,8 +6,8 @@
 /**
  * Compare query parameters: same `page`, `pageSize`, and `filters` (`sort` ignored).
  *
- * @param {object} a Query parameters.
- * @param {object} b Query parameters.
+ * @param {{ page: number, pageSize: number, filters: *, sort: * }} a Query parameters (`sort` ignored for this comparison).
+ * @param {{ page: number, pageSize: number, filters: *, sort: * }} b Query parameters.
  * @returns {boolean} Same `page`, `pageSize`, and `filters` (`sort` ignored).
  */
 export function samePageAndFilters(a, b) {
@@ -16,8 +16,8 @@ export function samePageAndFilters(a, b) {
 }
 
 /**
- * @param {object} inFlight In-flight query parameters.
- * @param {object} lastLoaded Last successful load query parameters.
+ * @param {{ page: number, pageSize: number, filters: *, sort: * }} inFlight In-flight query parameters.
+ * @param {{ page: number, pageSize: number, filters: *, sort: * }} lastLoaded Last successful load query parameters.
  * @returns {boolean} True when only `sort` differs (server-side sort refetch).
  */
 export function isSortOnlyVersusLastLoaded(inFlight, lastLoaded) {
@@ -29,8 +29,8 @@ export function isSortOnlyVersusLastLoaded(inFlight, lastLoaded) {
 }
 
 /**
- * @param {object} inFlight In-flight query parameters.
- * @param {object} lastLoaded Last successful load query parameters.
+ * @param {{ page: number, pageSize: number, filters: *, sort: * }} inFlight In-flight query parameters.
+ * @param {{ page: number, pageSize: number, filters: *, sort: * }} lastLoaded Last successful load query parameters.
  * @returns {boolean} True when `page`, `pageSize`, or `filters` differ.
  */
 export function fetchTargetsNewDatasetVersusLastLoaded(inFlight, lastLoaded) {
@@ -40,8 +40,8 @@ export function fetchTargetsNewDatasetVersusLastLoaded(inFlight, lastLoaded) {
 /**
  * @param {object} options Computation inputs.
  * @param {number} options.fetchInFlightCount Number of in-flight `fetchData` calls.
- * @param {object|null} options.inFlightQueryParameters Latest in-flight params (same object shape as query parameters).
- * @param {object} options.lastLoadedQueryParameters Params for the dataset currently in the grid.
+ * @param {{ page: number, pageSize: number, sort: *, filters: * }|null} options.inFlightQueryParameters Latest in-flight params.
+ * @param {{ page: number, pageSize: number, sort: *, filters: * }} options.lastLoadedQueryParameters Params for the dataset currently in the grid.
  * @param {object|null|undefined} options.view Table view with `countRenderableColumns` and `countRenderableRows`, if available.
  * @returns {boolean} Whether the loading overlay should show for DataProvider fetches.
  */

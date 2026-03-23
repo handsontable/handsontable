@@ -52,14 +52,39 @@ import {
 import { computeEmptyStateLoadingActive } from './loading';
 import { disablePluginsIncompatibleWithDataProvider, isCompleteDataProviderConfig } from './utils';
 
+/**
+ * Sort descriptor in query parameters (`fetchRows` and DataProvider getters).
+ *
+ * @typedef {object} DataProviderSortDescriptor
+ * @property {string} prop Column data key.
+ * @property {'asc'|'desc'} order Sort direction.
+ */
+
+/**
+ * Server filter column (`prop` replaces physical column index). Same shape as in `types/plugins/dataProvider/dataProvider.d.ts`.
+ *
+ * @typedef {object} DataProviderFilterColumn
+ * @property {string} prop Column data key.
+ * @property {'conjunction'|'disjunction'} operation Filters stack operation.
+ * @property {Array<{ name?: string, args: Array<*> }>} conditions Filter conditions (same shape as Filters `exportConditions`).
+ */
+
+/**
+ * Query parameters passed to `fetchRows` and exposed by DataProvider.
+ *
+ * @typedef {object} DataProviderQueryParameters
+ * @property {number} page 1-based page index.
+ * @property {number} pageSize Rows per page.
+ * @property {DataProviderSortDescriptor|null} sort Primary sort or null.
+ * @property {Array<DataProviderFilterColumn>|null} filters Server-side filters or null.
+ */
+
 export {
   DATA_PROVIDER_BATCH_UPDATE_SOURCES,
   DEFAULT_PAGE_SIZE,
   PLUGIN_KEY,
   PLUGIN_PRIORITY,
 } from './constants';
-
-/** @typedef {{ tail: Promise<void> }} MutationQueueState */
 
 /**
  * @plugin DataProvider
@@ -89,7 +114,7 @@ export class DataProvider extends BasePlugin {
    * Last request params passed to `fetchRows` (`page`, `pageSize`, `sort`, `filters`).
    * Same shape as `DataProviderQueryParameters` in `types/plugins/dataProvider/dataProvider.d.ts`.
    *
-   * @type {{ page: number, pageSize: number, sort: object|null, filters: object|null }}
+   * @type {DataProviderQueryParameters}
    */
   #queryParameters = { ...INITIAL_QUERY_PARAMETERS };
   /**
@@ -97,7 +122,7 @@ export class DataProvider extends BasePlugin {
    * Differs from `#queryParameters` while a request is in flight if settings were updated before the fetch (e.g. `setFilters`).
    *
    * @private
-   * @type {{ page: number, pageSize: number, sort: object|null, filters: object|null }}
+   * @type {DataProviderQueryParameters}
    */
   #lastLoadedQueryParameters = { ...INITIAL_QUERY_PARAMETERS };
   /**
@@ -124,7 +149,7 @@ export class DataProvider extends BasePlugin {
    * Cleared only when `#fetchInFlightCount` returns to 0 so a superseded fetch does not wipe the active request.
    *
    * @private
-   * @type {object|null}
+   * @type {DataProviderQueryParameters|null}
    */
   #inFlightQueryParameters = null;
   /**
@@ -138,7 +163,7 @@ export class DataProvider extends BasePlugin {
    * Serializes create/update/remove mutations so they run one after another.
    *
    * @private
-   * @type {MutationQueueState}
+   * @type {{ tail: Promise<void> }}
    */
   #mutationQueue = { tail: Promise.resolve() };
   /**
@@ -152,14 +177,14 @@ export class DataProvider extends BasePlugin {
    * Filter conditions saved before loadData (restored after load via setFiltersConditions hook).
    *
    * @private
-   * @type {Array}
+   * @type {Array<{ column: number, operation: 'conjunction'|'disjunction', conditions: Array<{ name?: string, args: Array<*> }> }>}
    */
   #savedConditionsForLoad = [];
   /**
    * Last known good filter conditions (for rollback when a fetch fails).
    *
    * @private
-   * @type {Array}
+   * @type {Array<{ column: number, operation: 'conjunction'|'disjunction', conditions: Array<{ name?: string, args: Array<*> }> }>}
    */
   #lastKnownGoodFilterConditions = [];
 
@@ -237,8 +262,8 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * @param {object} p Query parameters object.
-   * @returns {{ page: number, pageSize: number, sort: object|null, filters: * }} Snapshot safe for comparisons.
+   * @param {DataProviderQueryParameters} p Query parameters object.
+   * @returns {DataProviderQueryParameters} Snapshot safe for comparisons (`sort` shallow-copied when non-null).
    */
   #snapshotQueryParameters(p) {
     return {
@@ -325,8 +350,8 @@ export class DataProvider extends BasePlugin {
    * Merges overrides into `#queryParameters` and normalizes sort / page for `fetchRows`.
    *
    * @private
-   * @param {object} overrides Partial query overrides.
-   * @returns {object} Query parameters object.
+   * @param {object} overrides Partial query overrides (subset of [[DataProviderQueryParameters]] keys).
+   * @returns {DataProviderQueryParameters} Query parameters object for `fetchRows`.
    */
   #mergeAndNormalizeFetchParams(overrides) {
     const params = { ...this.#queryParameters, ...overrides };
@@ -725,7 +750,7 @@ export class DataProvider extends BasePlugin {
    *
    * @param {object} [overrides] Partial query overrides (e.g. `{ page: 2 }`, `{ pageSize: 20, page: 1 }`, `{ sort }`, `{ filters }`).
    * Numeric `page` is clamped to at least 1.
-   * @returns {Promise<{ rows: Array, totalRows: number }|null>}
+   * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>}
    *
    * @fires Hooks#afterDataProviderFetch when data loads.
    * @fires Hooks#afterDataProviderFetchError when `fetchRows` throws a non-abort error.
@@ -847,7 +872,7 @@ export class DataProvider extends BasePlugin {
    * Useful to tell a refetch that will replace the grid (e.g. another page) from a refresh with the same query.
    * When a request is superseded, this reflects the newer request until every overlapping `fetchData` settles.
    *
-   * @returns {object|null} A copy of the active request parameters, or `null`.
+   * @returns {DataProviderQueryParameters|null} A copy of the active request parameters, or `null`.
    *
    * @category DataProvider
    */
@@ -862,7 +887,7 @@ export class DataProvider extends BasePlugin {
   /**
    * Returns a copy of the query parameters for the data currently in the grid (last successful DataProvider `loadData`).
    *
-   * @returns {object} Same shape as `getQueryParameters`.
+   * @returns {DataProviderQueryParameters} Same shape as `getQueryParameters`.
    *
    * @category DataProvider
    */
@@ -898,7 +923,7 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * @returns {object} Copy of current query parameters.
+   * @returns {DataProviderQueryParameters} Shallow copy of current query parameters (`sort` and `filters` are not cloned).
    */
   getQueryParameters() {
     return { ...this.#queryParameters };
@@ -908,9 +933,8 @@ export class DataProvider extends BasePlugin {
    * Sets filter state for server-side filtering and refetches data (resets to page 1).
    * Pass `null` to clear filters.
    *
-   * @param {Array<{ prop: string, operation: string, conditions: Array<{ name: string, args: Array }> }>|null} filters Filter
-   * descriptors (prop = column data key, same as sort) or null.
-   * @returns {Promise<{ rows: Array, totalRows: number }|null>} Result of the fetch, or null if fetch was skipped/aborted.
+   * @param {Array<DataProviderFilterColumn>|null} filters Filter descriptors or null to clear.
+   * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>} Result of the fetch, or null if fetch was skipped/aborted.
    */
   setFilters(filters) {
     this.#queryParameters.filters = filters ?? null;

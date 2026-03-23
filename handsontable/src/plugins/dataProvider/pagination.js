@@ -5,7 +5,7 @@ import { DEFAULT_PAGE_SIZE } from './constants';
 /**
  * Copies Pagination `pageSize` / `initialPage` into query parameters when the plugin is enabled.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {{ page: number, pageSize: number }} queryParameters Target object (mutated).
  * @returns {void}
  */
@@ -34,7 +34,7 @@ export function getPagedRowHeaderIndex(queryParameters, visualRowIndex, fallback
 /**
  * Hook: Pagination external data source is active when Pagination plugin is enabled.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @returns {boolean|void} True when external pagination applies.
  */
 export function paginationExternalDataSourceActive(hot) {
@@ -48,7 +48,7 @@ export function paginationExternalDataSourceActive(hot) {
 /**
  * Hook: total item count for Pagination when DataProvider drives totals.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {number} totalRows Total rows from the last successful fetch.
  * @returns {number|void}
  */
@@ -65,7 +65,7 @@ export function paginationTotalItemCount(hot, totalRows) {
  *
  * @param {object} ctx Context.
  * @param {function(): boolean} ctx.isEnabled DataProvider enabled check.
- * @param {Handsontable} ctx.hot Handsontable instance.
+ * @param {Core} ctx.hot Handsontable instance.
  * @param {function(): number} ctx.getQueryPage Current 1-based page from query parameters.
  * @param {function(number): Promise<void>} ctx.goToPage Fetch given page.
  * @param {number} oldPage Previous 1-based page.
@@ -102,7 +102,7 @@ export function handleAfterPageChangeExternalPagination(
  *
  * @param {object} ctx Context.
  * @param {function(): boolean} ctx.isEnabled DataProvider enabled check.
- * @param {Handsontable} ctx.hot Handsontable instance.
+ * @param {Core} ctx.hot Handsontable instance.
  * @param {function(): number} ctx.getQueryPage Current 1-based page.
  * @param {function(): number} ctx.getQueryPageSize Current page size.
  * @param {function(number): Promise<void>} ctx.setPageSize Fetch with new page size (page 1).
@@ -140,7 +140,7 @@ export function handleAfterPageSizeChangeExternalPagination(
 /**
  * Applies loaded paging state to the Pagination plugin after a successful fetch.
  *
- * @param {Handsontable} hot Handsontable instance.
+ * @param {Core} hot Handsontable instance.
  * @param {{ page: number, pageSize: number }} params Query parameters used for the fetch.
  * @returns {void}
  */

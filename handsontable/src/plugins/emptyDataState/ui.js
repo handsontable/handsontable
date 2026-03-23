@@ -245,9 +245,7 @@ export class EmptyDataStateUI {
     const treatAsPopulatedRowsForSizing = rows > 0 || extendLayoutForLoading;
 
     emptyDataStateElement.style.top = cols > 0 ? `${view.getColumnHeaderHeight()}px` : '0px';
-    emptyDataStateElement.style.insetInlineStart = treatAsPopulatedRowsForSizing ?
-      `${view.getRowHeaderWidth()}px` :
-      '0px';
+    emptyDataStateElement.style.insetInlineStart = '0px';
 
     if (rows === 0) {
       if (!this.#placeholderElement) {
@@ -273,8 +271,6 @@ export class EmptyDataStateUI {
       } else if (treatAsPopulatedRowsForSizing) {
         width = view.getViewportWidth();
       }
-    } else if (treatAsPopulatedRowsForSizing) {
-      width = view.getViewportWidth();
     } else if (view.getTableWidth() - view.getRowHeaderWidth() < view.getViewportWidth() && cols > 0) {
       width = view.getTableWidth();
     }
