@@ -339,12 +339,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── Angular project ───────────────────────────────────────────────────────
 
-  function buildAngularProject(hotVersion, exampleId, userFiles, extraDeps) {
-    var tsFile   = findFile(userFiles, '.ts')   || 'app.component.ts';
-    var htmlFile = findFile(userFiles, '.html') || null;
-    var tsCode   = userFiles[tsFile]   || '';
-    var htmlCode = htmlFile ? (userFiles[htmlFile] || '') : '<app-root></app-root>';
+  /**
+   * Splits a multi-section Angular source file into individual files.
+   * Sections are delimited by:  /* file: filename * /  ...  /* end-file * /
+   * Content inside  /* start:skip-in-compilation * /  …  /* end:skip-in-compilation * /
+   * is stripped from each extracted file.
+   *
+   * @param {string} raw - Combined source from the docs example
+   * @returns {Record<string,string>} Map of filename → cleaned source
+   */
+  function parseAngularSourceFiles(raw) {
+    var files = {};
+    var fileRe  = /\/\* file: ([^*]+?) \*\/([\s\S]*?)\/\* end-file \*\//g;
+    var skipRe  = /\/\* start:skip-in-compilation \*\/[\s\S]*?\/\* end:skip-in-compilation \*\//g;
+    var match;
 
+    while ((match = fileRe.exec(raw)) !== null) {
+      var name    = match[1].trim();
+      var content = match[2].replace(skipRe, '').trim();
+
+      files[name] = content;
+    }
+
+    // No markers — treat the whole thing as the component file.
+    if (!Object.keys(files).length) {
+      files['app.component.ts'] = raw.trim();
+    }
+
+    return files;
+  }
+
+  /** Extracts the @Component selector value, defaulting to 'app-root'. */
+  function extractAngularSelector(tsCode) {
+    var m = tsCode.match(/selector\s*:\s*['"]([^'"]+)['"]/);
+
+    return m ? m[1] : 'app-root';
+  }
+
+  function buildAngularProject(hotVersion, exampleId, userFiles, extraDeps) {
+    var tsFile = findFile(userFiles, '.ts') || 'app.component.ts';
+    var tsCode = userFiles[tsFile] || '';
+
+    // Split the combined example file into component / module sections.
+    var parsed        = parseAngularSourceFiles(tsCode);
+    var componentCode = parsed['app.component.ts'] || tsCode;
+    var moduleCode    = parsed['app.module.ts']    || null;
+
+    var selector  = extractAngularSelector(componentCode);
     var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
     var deps = Object.assign(
@@ -456,27 +497,49 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
       '</head>',
       '<body>',
-      '  <app-root></app-root>',
+      '  <' + selector + '></' + selector + '>',
       '</body>',
       '</html>',
     ].join('\n');
 
-    var mainTs = [
-      "import { bootstrapApplication } from '@angular/platform-browser';",
-      "import { AppComponent } from './app/app.component';",
-      '',
-      'bootstrapApplication(AppComponent).catch(err => console.error(err));',
-    ].join('\n');
+    // NgModule examples bootstrap via platformBrowserDynamic;
+    // standalone examples (no app.module.ts) use bootstrapApplication.
+    var mainTs;
 
-    return {
-      'package.json':               pkg,
-      'angular.json':               angularJson,
-      'tsconfig.json':              tsConfig,
-      'src/index.html':             indexHtml,
-      'src/main.ts':                mainTs,
-      'src/app/app.component.ts':   tsCode,
-      'src/app/app.component.html': htmlCode,
+    if (moduleCode) {
+      mainTs = [
+        "import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';",
+        "import { AppModule } from './app/app.module';",
+        '',
+        'platformBrowserDynamic().bootstrapModule(AppModule)',
+        '  .catch(err => console.error(err));',
+      ].join('\n');
+    } else {
+      var classMatch = componentCode.match(/export\s+class\s+(\w+)/);
+      var className  = classMatch ? classMatch[1] : 'AppComponent';
+
+      mainTs = [
+        "import { bootstrapApplication } from '@angular/platform-browser';",
+        "import { " + className + " } from './app/app.component';",
+        '',
+        'bootstrapApplication(' + className + ').catch(err => console.error(err));',
+      ].join('\n');
+    }
+
+    var files = {
+      'package.json':             pkg,
+      'angular.json':             angularJson,
+      'tsconfig.json':            tsConfig,
+      'src/index.html':           indexHtml,
+      'src/main.ts':              mainTs,
+      'src/app/app.component.ts': componentCode,
     };
+
+    if (moduleCode) {
+      files['src/app/app.module.ts'] = moduleCode;
+    }
+
+    return files;
   }
 
   // ── Utility ───────────────────────────────────────────────────────────────
