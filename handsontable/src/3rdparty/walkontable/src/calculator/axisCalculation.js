@@ -61,7 +61,7 @@ export function calculateAxis(context, {
     }
   }
 
-  if (context.needReverse && startIndex > 0 && positionCache.isBuilt()) {
+  if (startIndex > 0 && positionCache.isBuilt()) {
     for (let i = 0; i < startIndex; i++) {
       context.startPositions[i] = positionCache.getOffset(i);
     }

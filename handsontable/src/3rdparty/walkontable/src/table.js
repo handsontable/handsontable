@@ -356,25 +356,18 @@ class Table {
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
 
-        // During active scrolling, skip expensive post-render work that forces layout reflow
-        // (markOversizedRows reads row heights from DOM, adjustColumnHeaderHeights reads header
-        // heights). This work is deferred until scrolling stops (via the idle timer in overlays.js).
-        const isActivelyScrolling = this.isMaster && wtOverlays && wtOverlays._activelyScrolling;
+        if (this.isMaster) {
+          this.markOversizedColumnHeaders();
+        }
 
-        if (!isActivelyScrolling) {
-          if (this.isMaster) {
-            this.markOversizedColumnHeaders();
-          }
+        this.adjustColumnHeaderHeights();
 
-          this.adjustColumnHeaderHeights();
-
-          if (this.isMaster || this.is(CLONE_BOTTOM)) {
-            this.markOversizedRows();
-          }
+        if (this.isMaster || this.is(CLONE_BOTTOM)) {
+          this.markOversizedRows();
         }
 
         if (this.isMaster) {
-          if (!isActivelyScrolling && !this.wtSettings.getSetting('externalRowCalculator')) {
+          if (!this.wtSettings.getSetting('externalRowCalculator')) {
             wtViewport.createVisibleCalculators();
           }
 

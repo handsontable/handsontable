@@ -237,20 +237,15 @@ export class TopOverlay extends Overlay {
   applyToDOM() {
     const total = this.wtSettings.getSetting('totalRows');
 
-    // When the spreader is in sticky mode (during active scrolling), skip setting
-    // style.top — the sticky positioning keeps the spreader pinned to the viewport.
-    // Setting top during sticky mode would change the sticky offset, not the position.
-    if (this.spreader.style.position !== 'sticky') {
-      if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-        this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
+    if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
+      this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
-      } else if (total === 0) {
-        // can happen if there are 0 rows
-        this.spreader.style.top = '0';
+    } else if (total === 0) {
+      // can happen if there are 0 rows
+      this.spreader.style.top = '0';
 
-      } else {
-        throwWithCause('Incorrect value of the rowsRenderCalculator');
-      }
+    } else {
+      throwWithCause('Incorrect value of the rowsRenderCalculator');
     }
     this.spreader.style.bottom = '';
 
