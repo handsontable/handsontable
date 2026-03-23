@@ -165,8 +165,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Handsontable CSS is loaded via a CDN <link> in index.html to avoid
     // Vite 8 / rolldown strict exports-field resolution for CSS files.
     var mainJs = [
-      cssFile ? 'import "./styles.css";' : '',
-      'import "./index.js";',
+      cssFile ? 'import "../styles.css";' : '',
+      'import "../index.js";',
     ].filter(Boolean).join('\n');
 
     var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
