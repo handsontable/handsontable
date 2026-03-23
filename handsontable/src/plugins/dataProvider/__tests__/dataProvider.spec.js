@@ -21,6 +21,8 @@ describe('DataProvider', () => {
   });
 
   it('should be disabled when dataProvider is not a complete config', async() => {
+    spyOn(console, 'warn');
+
     handsontable({
       data: [],
       dataProvider: { rowId: 'id' },
@@ -29,6 +31,51 @@ describe('DataProvider', () => {
     const plugin = getPlugin('dataProvider');
 
     expect(plugin.isEnabled()).toBe(false);
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledWith(
+      jasmine.stringMatching(/dataProvider.*missing or invalid required options/i)
+    );
+  });
+
+  it('should warn when dataProvider is not a plain object', async() => {
+    spyOn(console, 'warn');
+
+    handsontable({
+      data: [],
+      dataProvider: true,
+    });
+
+    expect(getPlugin('dataProvider').isEnabled()).toBe(false);
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledWith(
+      jasmine.stringMatching(/dataProvider.*plain object/i)
+    );
+  });
+
+  it('should warn again after updateSettings fixes then breaks dataProvider', async() => {
+    spyOn(console, 'warn');
+
+    const good = createDataProviderConfig({
+      fetchRows: () => Promise.resolve({ rows: [], totalRows: 0 }),
+    });
+
+    handsontable({
+      data: [],
+      dataProvider: { rowId: 'id' },
+    });
+
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledTimes(1);
+
+    await updateSettings({ dataProvider: good });
+
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledTimes(1);
+
+    await updateSettings({ dataProvider: { rowId: 'id' } });
+
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledTimes(2);
   });
 
   it('should be enabled when dataProvider has all required keys', async() => {

@@ -3,6 +3,7 @@ import {
   applyPaginationToQueryParameters,
   DATA_PROVIDER_INCOMPATIBLE_ENTRIES,
   disablePluginsIncompatibleWithDataProvider,
+  getIncompleteDataProviderWarningMessage,
   isCompleteDataProviderConfig,
   normalizeExternalPaginationPageSize,
   normalizeSortToQueryFormat,
@@ -263,6 +264,56 @@ describe('dataProvider utils', () => {
 
       expect(isCompleteDataProviderConfig(c)).toBe(true);
       expect(isCompleteDataProviderConfig({ ...c, rowId: () => 'x' })).toBe(true);
+    });
+  });
+
+  describe('getIncompleteDataProviderWarningMessage', () => {
+    it('should return null when the option is absent or disabled', () => {
+      expect(getIncompleteDataProviderWarningMessage(undefined)).toBeNull();
+      expect(getIncompleteDataProviderWarningMessage(null)).toBeNull();
+      expect(getIncompleteDataProviderWarningMessage(false)).toBeNull();
+    });
+
+    it('should return a message for non-object values', () => {
+      expect(getIncompleteDataProviderWarningMessage(true)).toContain('plain object');
+      expect(getIncompleteDataProviderWarningMessage('x')).toContain('plain object');
+    });
+
+    it('should return a message for arrays', () => {
+      expect(getIncompleteDataProviderWarningMessage([])).toContain('plain object');
+    });
+
+    it('should list invalid or missing keys for incomplete objects', () => {
+      const msg = getIncompleteDataProviderWarningMessage({ rowId: 'id' });
+
+      expect(msg).toContain('fetchRows');
+      expect(msg).toContain('onRowsCreate');
+      expect(msg).toContain('onRowsUpdate');
+      expect(msg).toContain('onRowsRemove');
+    });
+
+    it('should mention rowId when it has the wrong type', () => {
+      const msg = getIncompleteDataProviderWarningMessage({
+        rowId: 1,
+        fetchRows: () => {},
+        onRowsCreate: () => {},
+        onRowsUpdate: () => {},
+        onRowsRemove: () => {},
+      });
+
+      expect(msg).toContain('rowId');
+    });
+
+    it('should return null for a complete config', () => {
+      const noop = () => {};
+
+      expect(getIncompleteDataProviderWarningMessage({
+        rowId: 'id',
+        fetchRows: noop,
+        onRowsCreate: noop,
+        onRowsUpdate: noop,
+        onRowsRemove: noop,
+      })).toBeNull();
     });
   });
 

@@ -112,6 +112,7 @@ export interface DataProviderConfig {
  * `dataProvider` option: full config object (all keys required for the plugin to enable).
  *
  * When active, `trimRows`, `manualRowMove`, `manualColumnMove`, and `multiColumnSorting` are disabled. Use `columnSorting` for server-side sort.
+ * An incomplete or invalid value logs a console warning; the plugin stays disabled until the configuration is valid.
  */
 export type Settings = DataProviderConfig | undefined;
 

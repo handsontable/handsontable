@@ -23,6 +23,44 @@ export function isCompleteDataProviderConfig(c) {
 }
 
 /**
+ * Builds a console warning message when `dataProvider` is set but not usable, or returns null when no warning applies.
+ *
+ * @param {*} c Value of the `dataProvider` setting (including from `updateSettings`).
+ * @returns {string|null} Warning text, or null when the option is absent, disabled, or complete.
+ */
+export function getIncompleteDataProviderWarningMessage(c) {
+  if (c === undefined || c === null || c === false) {
+    return null;
+  }
+
+  if (typeof c !== 'object' || Array.isArray(c)) {
+    return toSingleLine`Handsontable: \`dataProvider\` must be a plain object with \`rowId\`, \`fetchRows\`,\x20
+                        \`onRowsCreate\`, \`onRowsUpdate\`, and \`onRowsRemove\`. The DataProvider plugin\x20
+                        stays disabled.`;
+  }
+
+  const invalid = [];
+
+  if (!(typeof c.rowId === 'string' || isFunction(c.rowId))) {
+    invalid.push('rowId');
+  }
+
+  ['fetchRows', 'onRowsCreate', 'onRowsUpdate', 'onRowsRemove'].forEach((key) => {
+    if (!isFunction(c[key])) {
+      invalid.push(key);
+    }
+  });
+
+  if (invalid.length === 0) {
+    return null;
+  }
+
+  return toSingleLine`Handsontable: \`dataProvider\` has missing or invalid required options: ${invalid.join(', ')}.\x20
+                      \`rowId\` must be a string or a function. \`fetchRows\`, \`onRowsCreate\`, \`onRowsUpdate\`,\x20
+                      and \`onRowsRemove\` must be functions. The DataProvider plugin stays disabled.`;
+}
+
+/**
  * Settings/plugins that conflict with server-backed `dataProvider` mode.
  *
  * @type {ReadonlyArray<{ settingKey: string, pluginId: string, label: string }>}

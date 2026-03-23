@@ -1,5 +1,5 @@
 import { isFunction } from '../../helpers/function';
-import { error as logError } from '../../helpers/console';
+import { error as logError, warn } from '../../helpers/console';
 import { throwWithCause } from '../../helpers/errors';
 import { BasePlugin } from '../base';
 import { PLUGIN_KEY as PAGINATION_PLUGIN_KEY } from '../pagination';
@@ -50,7 +50,11 @@ import {
   syncColumnSortingStateFromQuerySort,
 } from './sorting';
 import { computeEmptyStateLoadingActive } from './loading';
-import { disablePluginsIncompatibleWithDataProvider, isCompleteDataProviderConfig } from './utils';
+import {
+  disablePluginsIncompatibleWithDataProvider,
+  getIncompleteDataProviderWarningMessage,
+  isCompleteDataProviderConfig,
+} from './utils';
 
 /**
  * Sort descriptor in query parameters (`fetchRows` and DataProvider getters).
@@ -95,6 +99,7 @@ export {
  * Valid edits apply to the grid immediately; if `onRowsUpdate` fails, if validation fails later, or if `beforeRowsMutation` cancels, those cells revert to their previous values.
  *
  * When enabled, `trimRows`, `manualRowMove`, and `multiColumnSorting` are turned off. Handsontable logs a console warning for each option you still set.
+ * If `dataProvider` is present but not a complete configuration object, Handsontable logs one console warning per episode (until the configuration becomes valid); the plugin stays disabled.
  * Use [[Options#columnSorting]] for server-driven sort (single column). Query `sort` uses `prop` (column data key).
  */
 export class DataProvider extends BasePlugin {
@@ -173,6 +178,13 @@ export class DataProvider extends BasePlugin {
    * @type {Set<string>}
    */
   #incompatibleSettingWarned = new Set();
+  /**
+   * Dedupes incomplete-`dataProvider` warnings until the setting is valid or removed from updates.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #incompleteDataProviderWarningIssued = false;
   /**
    * Filter conditions saved before loadData (restored after load via setFiltersConditions hook).
    *
@@ -281,6 +293,50 @@ export class DataProvider extends BasePlugin {
     const c = this.#getConfig();
 
     return !!c && this.#isCompleteConfig(c);
+  }
+
+  /**
+   * @inheritdoc
+   */
+  init() {
+    super.init();
+    this.#applyIncompleteDataProviderWarning(this.hot.getSettings()[PLUGIN_KEY]);
+  }
+
+  /**
+   * @inheritdoc
+   * @param {object} newSettings Settings passed to `updateSettings`.
+   */
+  onUpdateSettings(newSettings) {
+    if (newSettings && Object.prototype.hasOwnProperty.call(newSettings, PLUGIN_KEY)) {
+      this.#applyIncompleteDataProviderWarning(newSettings[PLUGIN_KEY]);
+    }
+
+    super.onUpdateSettings(newSettings);
+  }
+
+  /**
+   * Logs a single warning per invalid `dataProvider` stretch; resets when the value becomes valid or cleared.
+   *
+   * @private
+   * @param {*} value Raw `dataProvider` setting value.
+   * @returns {void}
+   */
+  #applyIncompleteDataProviderWarning(value) {
+    const message = getIncompleteDataProviderWarningMessage(value);
+
+    if (message === null) {
+      this.#incompleteDataProviderWarningIssued = false;
+
+      return;
+    }
+
+    if (this.#incompleteDataProviderWarningIssued) {
+      return;
+    }
+
+    warn(message);
+    this.#incompleteDataProviderWarningIssued = true;
   }
 
   /**
