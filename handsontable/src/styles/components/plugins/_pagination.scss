@@ -131,6 +131,10 @@
           }
         }
 
+        &__button--left-caret::before {
+          transform: translateX(-1px);
+        }
+
         &__label {
           white-space: nowrap;
           min-width: 100px;
