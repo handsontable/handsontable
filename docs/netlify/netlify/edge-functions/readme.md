@@ -123,6 +123,22 @@ const getFrameworkFromCookie = (cookieValue: string) => {
 - `/docs/12.1` → **Redirect** to `/docs/12.1/react-data-grid/`
 - `/docs/13.0` → **Redirect** to `/docs/13.0/javascript-data-grid/`
 
+### 7. `redirect_legacy_angular_docs_versions.mts`
+
+**Purpose:** Redirects versioned Angular docs URLs for versions below 16.0 to the JavaScript docs homepage.
+
+**Path Pattern:** `/docs/(\\d+).(\\d+)/angular-data-grid(/.*)?`
+
+**Functionality:**
+- Redirects `/docs/:major.:minor/angular-data-grid/...` requests to `/docs/javascript-data-grid/` when `major < 16`
+- Leaves versions `16.0+` unchanged
+- Acts as a fallback for legacy Angular version paths that don't have dedicated Angular docs content
+
+**Examples:**
+- `/docs/15.3/angular-data-grid/` → `/docs/javascript-data-grid/`
+- `/docs/14.6/angular-data-grid/installation/` → `/docs/javascript-data-grid/`
+- `/docs/16.0/angular-data-grid/` → no redirect
+
 ## Framework Override Rules
 
 Certain URL patterns override the user's cookie preference:
@@ -135,5 +151,6 @@ Certain URL patterns override the user's cookie preference:
 - **Versions < 12.1**: Content is served directly (rewrite behavior)
 - **Versions 12.1+**: Framework-specific redirects are applied
 - **Versions 13+**: Full framework-aware routing is enabled
+- **Angular URLs for versions < 16.0**: Redirected to `/docs/javascript-data-grid/`
 
 This system ensures backward compatibility while providing modern framework-specific documentation routing for newer versions.	
