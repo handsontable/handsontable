@@ -230,9 +230,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var projectFiles = buildProjectFiles(framework, hotVersion, exampleId, userFiles, extraDeps);
 
-    var sbTemplate = 'javascript';
-
-    if (framework === 'react') sbTemplate = 'node';
+    // All frameworks use Vite ('node' template) so ES module imports resolve.
+    var sbTemplate = 'node';
 
     var form = document.createElement('form');
 
@@ -295,14 +294,27 @@ document.addEventListener('DOMContentLoaded', function () {
     var jsFile = findFile(userFiles, '.js') || 'index.js';
     var jsCode = userFiles[jsFile] || '';
 
-    var deps = Object.assign({ handsontable: hotVersion }, extraDeps);
+    var deps = Object.assign({ handsontable: hotVersion, vite: 'latest' }, extraDeps);
 
     var pkg = JSON.stringify({
       name: 'handsontable-example',
       version: '1.0.0',
       private: true,
       dependencies: deps,
+      scripts: { start: 'vite', build: 'vite build' },
     }, null, 2);
+
+    var cssFile = findFile(userFiles, '.css');
+
+    // Entry point re-exports the example code.
+    // Handsontable CSS is loaded via a CDN <link> in index.html to avoid
+    // Vite 8 / rolldown strict exports-field resolution for CSS files.
+    var mainJs = [
+      cssFile ? 'import "../styles.css";' : '',
+      'import "../index.js";',
+    ].filter(Boolean).join('\n');
+
+    var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
     var html = [
       '<!DOCTYPE html>',
@@ -311,13 +323,12 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <meta charset="UTF-8" />',
       '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
       '  <title>Handsontable Example</title>',
-      '  <link rel="stylesheet"',
-      '    href="node_modules/handsontable/dist/handsontable.full.min.css" />',
+      '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
       '  <style>body { padding: 1rem; font-family: sans-serif; }</style>',
       '</head>',
       '<body>',
       '  <div id="' + exampleId + '"></div>',
-      '  <script type="module" src="index.js"><\/script>',
+      '  <script type="module" src="/src/main.js"><\/script>',
       '</body>',
       '</html>',
     ].join('\n');
@@ -326,16 +337,11 @@ document.addEventListener('DOMContentLoaded', function () {
       'package.json': pkg,
       'index.html':   html,
       'index.js':     jsCode,
+      'src/main.js':  mainJs,
     };
-
-    var cssFile = findFile(userFiles, '.css');
 
     if (cssFile) {
       files['styles.css'] = userFiles[cssFile];
-      files['index.html'] = files['index.html'].replace(
-        '  <style>',
-        '  <link rel="stylesheet" href="styles.css" />\n  <style>',
-      );
     }
 
     return files;
@@ -353,6 +359,8 @@ document.addEventListener('DOMContentLoaded', function () {
         '@handsontable/react-wrapper': hotVersion,
         react:                     '18.x',
         'react-dom':               '18.x',
+        vite:                      'latest',
+        '@vitejs/plugin-react':    'latest',
       },
       extraDeps,
     );
@@ -376,11 +384,12 @@ document.addEventListener('DOMContentLoaded', function () {
       'import React from "react";',
       'import { createRoot } from "react-dom/client";',
       'import App from "./App";',
-      'import "handsontable/dist/handsontable.full.min.css";',
       '',
       'const root = createRoot(document.getElementById("' + exampleId + '"));',
       'root.render(React.createElement(App));',
     ].join('\n');
+
+    var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
     var html = [
       '<!DOCTYPE html>',
@@ -389,6 +398,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <meta charset="UTF-8" />',
       '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
       '  <title>Handsontable React Example</title>',
+      '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
       '</head>',
       '<body>',
       '  <div id="' + exampleId + '"></div>',
@@ -417,6 +427,8 @@ document.addEventListener('DOMContentLoaded', function () {
         handsontable:         hotVersion,
         '@handsontable/vue3': hotVersion,
         vue:                  '3.x',
+        vite:                 'latest',
+        '@vitejs/plugin-vue': 'latest',
       },
       extraDeps,
     );
@@ -439,10 +451,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var main = [
       'import { createApp } from "vue";',
       'import App from "./App.js";',
-      'import "handsontable/dist/handsontable.full.min.css";',
       '',
       'createApp(App).mount("#' + exampleId + '");',
     ].join('\n');
+
+    var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
     var html = [
       '<!DOCTYPE html>',
@@ -451,6 +464,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <meta charset="UTF-8" />',
       '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
       '  <title>Handsontable Vue Example</title>',
+      '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
       '</head>',
       '<body>',
       '  <div id="' + exampleId + '"></div>',
@@ -470,25 +484,85 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── Angular project ───────────────────────────────────────────────────────
 
+  /**
+   * Splits a multi-section Angular source file into individual files.
+   * Sections are delimited by:  /* file: filename * /  ...  /* end-file * /
+   * Content inside  /* start:skip-in-compilation * /  …  /* end:skip-in-compilation * /
+   * is stripped from each extracted file.
+   *
+   * @param {string} raw - Combined source from the docs example
+   * @returns {Record<string,string>} Map of filename → cleaned source
+   */
+  function parseAngularSourceFiles(raw) {
+    var files = {};
+    var fileRe  = /\/\* file: ([^*]+?) \*\/([\s\S]*?)\/\* end-file \*\//g;
+    var skipRe  = /\/\* start:skip-in-compilation \*\/[\s\S]*?\/\* end:skip-in-compilation \*\//g;
+    var match;
+
+    while ((match = fileRe.exec(raw)) !== null) {
+      var name    = match[1].trim();
+      var content = match[2].replace(skipRe, '').trim();
+
+      files[name] = content;
+    }
+
+    // No markers — treat the whole thing as the component file.
+    if (!Object.keys(files).length) {
+      files['app.component.ts'] = raw.trim();
+    }
+
+    return files;
+  }
+
+  /** Extracts the @Component selector value, defaulting to 'app-root'. */
+  function extractAngularSelector(tsCode) {
+    var m = tsCode.match(/selector\s*:\s*['"]([^'"]+)['"]/);
+
+    return m ? m[1] : 'app-root';
+  }
+
   function buildAngularProject(hotVersion, exampleId, userFiles, extraDeps) {
-    var tsFile   = findFile(userFiles, '.ts')   || 'app.component.ts';
-    var htmlFile = findFile(userFiles, '.html') || null;
-    var tsCode   = userFiles[tsFile]   || '';
-    var htmlCode = htmlFile ? (userFiles[htmlFile] || '') : '<div id="' + exampleId + '"></div>';
+    var tsFile = findFile(userFiles, '.ts') || 'app.component.ts';
+    var tsCode = userFiles[tsFile] || '';
+
+    // Split the combined example file into component / module sections.
+    var parsed        = parseAngularSourceFiles(tsCode);
+    var componentCode = parsed['app.component.ts'] || tsCode;
+    var moduleCode    = parsed['app.module.ts']    || null;
+
+    var selector  = extractAngularSelector(componentCode);
+    var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
+
+    // The component import in app.module.ts was inside /* start:skip-in-compilation */
+    // so it was stripped. Re-inject it so declarations/bootstrap resolve correctly.
+    if (moduleCode) {
+      var classNameMatch = componentCode.match(/export\s+class\s+(\w+)/);
+      var compClassName  = classNameMatch ? classNameMatch[1] : null;
+
+      if (compClassName) {
+        moduleCode = "import { " + compClassName + " } from './app.component';\n" + moduleCode;
+      }
+    }
 
     var deps = Object.assign(
       {
-        handsontable:                      hotVersion,
-        '@handsontable/angular-wrapper':   hotVersion,
-        '@angular/core':                   '16.x',
-        '@angular/common':                 '16.x',
-        '@angular/compiler':               '16.x',
-        '@angular/platform-browser':       '16.x',
-        '@angular/platform-browser-dynamic': '16.x',
-        '@angular/forms':                  '16.x',
-        '@angular/animations':             '16.x',
-        rxjs:                              '7.x',
-        'zone.js':                         '0.13.x',
+        handsontable:                        hotVersion,
+        '@handsontable/angular-wrapper':     hotVersion,
+        '@angular/animations':               '21.x',
+        '@angular/common':                   '21.x',
+        '@angular/compiler':                 '21.x',
+        '@angular/core':                     '21.x',
+        '@angular/forms':                    '21.x',
+        '@angular/platform-browser':         '21.x',
+        '@angular/platform-browser-dynamic': '21.x',
+        '@angular/router':                   '21.x',
+        rxjs:                                '~7.8.0',
+        tslib:                               '^2.3.0',
+        'zone.js':                           '~0.15.0',
+        '@angular-devkit/build-angular':     '21.x',
+        '@angular/cli':                      '21.x',
+        '@angular/compiler-cli':             '21.x',
+        typescript:                          '~5.9.0',
       },
       extraDeps,
     );
@@ -497,14 +571,131 @@ document.addEventListener('DOMContentLoaded', function () {
       name: 'handsontable-angular-example',
       version: '1.0.0',
       private: true,
+      scripts: { ng: 'ng', start: 'ng serve', build: 'ng build' },
       dependencies: deps,
     }, null, 2);
 
-    return {
-      'package.json':       pkg,
-      'app.component.ts':   tsCode,
-      'app.component.html': htmlCode,
+    var angularJson = JSON.stringify({
+      $schema: './node_modules/@angular/cli/lib/config/schema.json',
+      version: 1,
+      newProjectRoot: 'projects',
+      projects: {
+        app: {
+          projectType: 'application',
+          root: '',
+          sourceRoot: 'src',
+          prefix: 'app',
+          architect: {
+            build: {
+              builder: '@angular-devkit/build-angular:application',
+              options: {
+                outputPath: 'dist/app',
+                index: 'src/index.html',
+                browser: 'src/main.ts',
+                polyfills: ['zone.js'],
+                tsConfig: 'tsconfig.json',
+                assets: [],
+                styles: [],
+                scripts: [],
+              },
+              configurations: {
+                development: { optimization: false, sourceMap: true },
+              },
+              defaultConfiguration: 'development',
+            },
+            serve: {
+              builder: '@angular-devkit/build-angular:dev-server',
+              configurations: {
+                development: { buildTarget: 'app:build:development' },
+              },
+              defaultConfiguration: 'development',
+            },
+          },
+        },
+      },
+    }, null, 2);
+
+    var tsConfig = JSON.stringify({
+      compilerOptions: {
+        outDir: './dist/out-tsc',
+        strict: true,
+        noImplicitOverride: true,
+        noPropertyAccessFromIndexSignature: true,
+        noImplicitReturns: true,
+        noFallthroughCasesInSwitch: true,
+        skipLibCheck: true,
+        esModuleInterop: true,
+        sourceMap: true,
+        declaration: false,
+        experimentalDecorators: true,
+        moduleResolution: 'bundler',
+        importHelpers: true,
+        target: 'ES2022',
+        module: 'ES2022',
+        useDefineForClassFields: false,
+        lib: ['ES2022', 'dom'],
+      },
+      angularCompilerOptions: {
+        enableI18nLegacyMessageIdFormat: false,
+        strictInjectionParameters: true,
+        strictInputAccessModifiers: true,
+        strictTemplates: true,
+      },
+    }, null, 2);
+
+    var indexHtml = [
+      '<!DOCTYPE html>',
+      '<html lang="en">',
+      '<head>',
+      '  <meta charset="utf-8">',
+      '  <title>Handsontable Angular Example</title>',
+      '  <base href="/">',
+      '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
+      '</head>',
+      '<body>',
+      '  <' + selector + '></' + selector + '>',
+      '</body>',
+      '</html>',
+    ].join('\n');
+
+    // NgModule examples bootstrap via platformBrowserDynamic;
+    // standalone examples (no app.module.ts) use bootstrapApplication.
+    var mainTs;
+
+    if (moduleCode) {
+      mainTs = [
+        "import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';",
+        "import { AppModule } from './app/app.module';",
+        '',
+        'platformBrowserDynamic().bootstrapModule(AppModule)',
+        '  .catch(err => console.error(err));',
+      ].join('\n');
+    } else {
+      var classMatch = componentCode.match(/export\s+class\s+(\w+)/);
+      var className  = classMatch ? classMatch[1] : 'AppComponent';
+
+      mainTs = [
+        "import { bootstrapApplication } from '@angular/platform-browser';",
+        "import { " + className + " } from './app/app.component';",
+        '',
+        'bootstrapApplication(' + className + ').catch(err => console.error(err));',
+      ].join('\n');
+    }
+
+    var files = {
+      'package.json':             pkg,
+      'angular.json':             angularJson,
+      'tsconfig.json':            tsConfig,
+      'src/index.html':           indexHtml,
+      'src/main.ts':              mainTs,
+      'src/app/app.component.ts': componentCode,
     };
+
+    if (moduleCode) {
+      files['src/app/app.module.ts'] = moduleCode;
+    }
+
+    return files;
   }
 
   // ── Utility ───────────────────────────────────────────────────────────────
