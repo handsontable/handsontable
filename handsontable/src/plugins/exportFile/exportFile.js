@@ -36,7 +36,7 @@ export const PLUGIN_PRIORITY = 240;
  * const hot = new Handsontable(container, {
  *   data: getData(),
  *   exportFile: {
- *     engine: ExcelJS,
+ *     engines: { xlsx: ExcelJS },
  *   },
  * });
  *
@@ -84,7 +84,7 @@ export const PLUGIN_PRIORITY = 240;
  * <HotTable
  *   ref={hotRef}
  *   data={getData()}
- *   exportFile={{ engine: ExcelJS }}
+ *   exportFile={{ engines: { xlsx: ExcelJS } }}
  * />
  *
  * const hot = hotRef.current.hotInstance;
@@ -110,7 +110,7 @@ export const PLUGIN_PRIORITY = 240;
  * export class AppComponent {
  *   settings = {
  *     data: getData(),
- *     exportFile: { engine: ExcelJS },
+ *     exportFile: { engines: { xlsx: ExcelJS } },
  *   };
  *
  *   @ViewChild(HotTableComponent) hotTableComponent!: HotTableComponent;

@@ -98,8 +98,8 @@ class Xlsx extends BaseType {
 
     if (!engine || typeof engine.Workbook !== 'function') {
       throwWithCause(
-        'Missing or invalid ExcelJS engine. Pass the ExcelJS module as `engine` ' +
-        'in the exportFile plugin settings: `exportFile: { engine: ExcelJS }`.'
+        'Missing or invalid ExcelJS engine. Pass the ExcelJS module via the `engines` option ' +
+        'in the exportFile plugin settings: `exportFile: { engines: { xlsx: ExcelJS } }`.'
       );
     }
 
