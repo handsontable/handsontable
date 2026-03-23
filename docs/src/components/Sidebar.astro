@@ -32,7 +32,19 @@ const RECIPE_LABELS: Record<string, string> = {
   'angular-data-grid': 'Angular Recipes',
 };
 
+const CHANGELOG_LABELS: Record<string, string> = {
+  'javascript-data-grid': 'JavaScript Changelog',
+  'react-data-grid': 'React Changelog',
+  'angular-data-grid': 'Angular Changelog',
+};
+
 const isRecipePage = pathname.includes('/recipes/');
+const isChangelogPage =
+  pathname.includes('/changelog/') ||
+  pathname.includes('/migration-from-') ||
+  pathname.includes('/versioning-policy/') ||
+  pathname.includes('/deprecation-policy/') ||
+  pathname.includes('/long-term-support/');
 
 const { sidebar } = Astro.locals.starlightRoute;
 
@@ -43,7 +55,16 @@ if (isRecipePage) {
   );
 
   (Astro.locals.starlightRoute as any).sidebar = recipesGroup
-    ? (recipesGroup as any).entries
+    ? (recipesGroup as any).entries.filter((e: any) => e.type === 'group')
+    : [];
+} else if (isChangelogPage) {
+  // On changelog / migration pages: show only the "Upgrade and migration" items.
+  const changelogGroup = sidebar.find(
+    (e: any) => e.type === 'group' && e.label === CHANGELOG_LABELS[prefix]
+  );
+
+  (Astro.locals.starlightRoute as any).sidebar = changelogGroup
+    ? (changelogGroup as any).entries
     : [];
 } else {
   const matchingGroup = sidebar.find(

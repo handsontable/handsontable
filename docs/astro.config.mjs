@@ -269,6 +269,10 @@ export default defineConfig({
           'https://github.com/handsontable/handsontable/edit/develop/docs/content/',
       },
 
+      expressiveCode: {
+        themes: ['night-owl', 'github-light'],
+      },
+
       customCss: [
         './src/styles/custom.css',
         './src/styles/interactive-example.css',
@@ -291,6 +295,9 @@ export default defineConfig({
         { label: 'JavaScript Recipes', collapsed: false, items: allSidebars.javascriptRecipes },
         { label: 'React Recipes', collapsed: false, items: allSidebars.reactRecipes },
         { label: 'Angular Recipes', collapsed: false, items: allSidebars.angularRecipes },
+        { label: 'JavaScript Changelog', collapsed: false, items: allSidebars.javascriptChangelog },
+        { label: 'React Changelog', collapsed: false, items: allSidebars.reactChangelog },
+        { label: 'Angular Changelog', collapsed: false, items: allSidebars.angularChangelog },
       ],
 
       components: {
@@ -325,7 +332,7 @@ export default defineConfig({
       // Mirrors the VuePress highlight.js colour scheme.
       themes: {
         light: 'github-light',
-        dark: 'github-dark',
+        dark: 'night-owl',
       },
       wrap: false,
     },

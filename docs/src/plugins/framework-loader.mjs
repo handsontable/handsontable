@@ -12,7 +12,6 @@ import { join, relative, dirname } from 'path';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
-import { createHighlighter } from 'shiki';
 
 // Read the current handsontable library version for StackBlitz package.json.
 const _require = createRequire(import.meta.url);
@@ -85,19 +84,6 @@ const EXT_TO_LABEL = {
   vue: 'Vue',
 };
 
-/** Singleton Shiki highlighter promise (initialized on first use). */
-let _highlighterPromise = null;
-
-function getHighlighter() {
-  if (!_highlighterPromise) {
-    _highlighterPromise = createHighlighter({
-      themes: ['github-light', 'github-dark'],
-      langs: ['javascript', 'typescript', 'html', 'css', 'vue'],
-    });
-  }
-  return _highlighterPromise;
-}
-
 /**
  * Escapes HTML special characters.
  *
@@ -126,10 +112,9 @@ function escapeHtml(str) {
  * @param {string} directive - 'example' or 'example-without-tabs'
  * @param {string[]} fileRefs - Paths relative to contentDir (after stripping '@/content/')
  * @param {string} contentDir - Absolute path to docs/content/
- * @param {object} highlighter - Shiki highlighter instance
- * @returns {string} HTML string
+ * @returns {string} HTML + markdown fences string
  */
-function buildExampleHtml(id, directive, fileRefs, contentDir, highlighter) {
+function buildExampleHtml(id, directive, fileRefs, contentDir) {
   const hideTabs = directive === 'example-without-tabs';
 
   // Detect framework from the directory path first. JS examples also ship a
@@ -144,12 +129,12 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, highlighter) {
   const jsxRef = isReactDir ? fileRefs.find(r => r.endsWith('.jsx') || r.endsWith('.tsx')) : null;
   const tsRef  = isAngularDir ? fileRefs.find(r => r.endsWith('.ts')) : null;
 
-  const files = fileRefs.map((ref, idx) => {
+  const files = fileRefs.map((ref) => {
     const absPath = join(contentDir, ref);
     let code = '';
 
     try {
-      code = readFileSync(absPath, 'utf-8');
+      code = readFileSync(absPath, 'utf-8').trimEnd();
     } catch {
       code = `// File not found: ${ref}`;
     }
@@ -157,12 +142,8 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, highlighter) {
     const ext = ref.split('.').pop().toLowerCase();
     const lang = EXT_TO_LANG[ext] || 'text';
     const label = EXT_TO_LABEL[ext] || ext.toUpperCase();
-    const highlighted = highlighter.codeToHtml(code, {
-      lang,
-      themes: { light: 'github-light', dark: 'github-dark' },
-    });
 
-    return { ref, ext, lang, label, highlighted, code, idx };
+    return { ref, ext, lang, label, code };
   });
 
   if (files.length === 0) {
@@ -228,21 +209,13 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, highlighter) {
     extraDeps,
   }).replace(/<\/script>/gi, '<\\/script>');
 
-  // ── Tab bar ────────────────────────────────────────────────────────────────
+  // ── Code fences (rendered by Expressive Code at build time) ────────────────
   const showTabs = !hideTabs && files.length > 1;
-  const tabBar = showTabs
-    ? `<div class="hot-example-tabbar" role="tablist" aria-label="Code tabs for example ${escapeHtml(id)}">
-${files.map((f, i) =>
-  `  <button class="hot-example-tab${i === 0 ? ' is-active' : ''}" role="tab" aria-selected="${i === 0}" aria-controls="hot-panel-${escapeHtml(id)}-${i}" data-tab="${i}">${escapeHtml(f.label)}</button>`
-).join('\n')}
-</div>`
-    : '';
+  const tabLabels = showTabs ? files.map(f => f.label).join(',') : '';
 
-  const panels = files.map((f, i) =>
-    `<div class="hot-example-panel${i === 0 ? ' is-active' : ''}" id="hot-panel-${escapeHtml(id)}-${i}" role="tabpanel" data-panel="${i}">
-${f.highlighted}
-</div>`
-  ).join('\n');
+  const fences = files.map(f =>
+    `\`\`\`\`${f.lang} title="${f.label}"\n${f.code}\n\`\`\`\``
+  ).join('\n\n');
 
   // ── SVG icons (inlined to keep no external dependencies) ──────────────────
   const iconCode = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`;
@@ -266,33 +239,34 @@ ${f.highlighted}
     ${iconCode} Source code ${iconChevron}
   </button>
   <div class="hot-example-actions">
-    <button class="hot-example-stackblitz-btn" type="button" title="Edit on StackBlitz">
-      ${iconStackBlitz} Edit on StackBlitz
+    <button class="hot-example-stackblitz-btn" type="button" title="Edit on StackBlitz" aria-label="Edit on StackBlitz">
+      ${iconStackBlitz}
     </button>
-    <a class="hot-example-github-btn" href="${githubUrl}" target="_blank" rel="noopener noreferrer" title="See example on GitHub">
-      ${iconGitHub} See on GitHub
+    <a class="hot-example-github-btn" href="${githubUrl}" target="_blank" rel="noopener noreferrer" title="See on GitHub" aria-label="See on GitHub">
+      ${iconGitHub}
     </a>
   </div>
 </div>
-<div class="hot-example-code" id="hot-code-${escapeHtml(id)}" hidden>
-${tabBar}
-${panels}
-</div>
 <script type="application/json" class="hot-example-sb-data">${sbDataJson}</script>
-</div>`;
+</div>
+
+<div class="hot-example-code-start" data-example="${escapeHtml(id)}" data-tabs="${escapeHtml(tabLabels)}"></div>
+
+${fences}
+
+<div class="hot-example-code-end"></div>`;
 }
 
 /**
  * Processes ::: example and ::: example-without-tabs blocks in the markdown body.
- * Replaces them with Shiki-highlighted HTML code tabs.
+ * Replaces them with HTML + markdown code fences (rendered by Expressive Code).
  * Must be called AFTER filterOnlyFor so only the current framework's blocks remain.
  *
  * @param {string} content - Filtered markdown body
  * @param {string} contentDir - Absolute path to docs/content/
- * @returns {Promise<string>} Modified markdown body
+ * @returns {string} Modified markdown body
  */
-async function processExampleBlocks(content, contentDir) {
-  const highlighter = await getHighlighter();
+function processExampleBlocks(content, contentDir) {
   const lines = content.split('\n');
   const result = [];
   let i = 0;
@@ -340,7 +314,7 @@ async function processExampleBlocks(content, contentDir) {
         if (m) fileRefs.push(m[1].trim());
       }
 
-      result.push(buildExampleHtml(id, directive, fileRefs, contentDir, highlighter));
+      result.push(buildExampleHtml(id, directive, fileRefs, contentDir));
       // i is already incremented past the closing ::: by the inner loop
     } else {
       result.push(line);
@@ -361,7 +335,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v9';
+const LOADER_VERSION = 'v16';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -542,6 +516,67 @@ function convertSourceCodeLinks(content) {
   return result.join('\n');
 }
 
+/**
+ * Transforms `<div class="boxes-list">` blocks with markdown lists into
+ * Starlight-styled card grid HTML.
+ *
+ * @param {string} content
+ * @returns {string}
+ */
+function convertBoxesListToCardGrid(content) {
+  return content.replace(
+    /<div\s+class="boxes-list[^"]*">\s*\n([\s\S]*?)\n\s*<\/div>/g,
+    (_, inner) => {
+      const cards = [];
+      const lines = inner.split('\n');
+      let i = 0;
+
+      while (i < lines.length) {
+        const line = lines[i].trim();
+
+        // Match a list item that contains a markdown link directly.
+        const directLink = line.match(/^-\s+(?:<[^>]+>\s*)*\[([^\]]+)\]\(([^)]+)\)/);
+
+        if (directLink) {
+          cards.push({ title: directLink[1], href: directLink[2] });
+          i++;
+          continue;
+        }
+
+        // Match a list item with icon on one line and link on the next.
+        const iconLine = line.match(/^-\s+<[^>]+>/);
+
+        if (iconLine) {
+          let j = i + 1;
+
+          while (j < lines.length && lines[j].trim() === '') j++;
+
+          if (j < lines.length) {
+            const nextLink = lines[j].trim().match(/^\[([^\]]+)\]\(([^)]+)\)/);
+
+            if (nextLink) {
+              cards.push({ title: nextLink[1], href: nextLink[2] });
+              i = j + 1;
+              continue;
+            }
+          }
+        }
+
+        i++;
+      }
+
+      if (cards.length === 0) return '';
+
+      const cardHtml = cards.map(
+        ({ title, href }) =>
+          `<div class="ht-link-card"><a href="${href}"><span class="title">${title}</span></a><span class="arrow" aria-hidden="true">\u2192</span></div>`
+      ).join('\n');
+
+      return `<div class="ht-card-grid">\n${cardHtml}\n</div>`;
+    }
+  );
+}
+
 const FRAMEWORK_PREFIX_MAP = {
   javascript: 'javascript-data-grid',
   react: 'react-data-grid',
@@ -604,6 +639,63 @@ function resolveAtLink(rawLink, prefix, contentDir) {
 }
 
 /**
+ * Converts VuePress `<code-group>/<code-block>` patterns into titled code
+ * fences wrapped with marker elements. At runtime, client-side JS finds the
+ * markers and groups the Expressive Code blocks into a tabbed interface.
+ *
+ * Output structure (in markdown):
+ *   <div class="code-group-start" data-tabs="npm,Yarn,pnpm"></div>
+ *
+ *   ```bash title="npm"
+ *   npm install handsontable
+ *   ```
+ *
+ *   ```bash title="Yarn"
+ *   yarn add handsontable
+ *   ```
+ *
+ *   <div class="code-group-end"></div>
+ *
+ * The blank line after the marker div ends the HTML block mode so the code
+ * fences are processed normally by Expressive Code.
+ *
+ * @param {string} content - Markdown body
+ * @returns {string}
+ */
+function convertCodeGroupToTabs(content) {
+  return content.replace(
+    /<code-group>\s*([\s\S]*?)\s*<\/code-group>/g,
+    (_, inner) => {
+      const blocks = [];
+      const blockRegex = /<code-block\s+title="([^"]+)"(?:\s+active)?>\s*([\s\S]*?)\s*<\/code-block>/g;
+      let match;
+
+      while ((match = blockRegex.exec(inner)) !== null) {
+        blocks.push({ title: match[1], code: match[2].trim() });
+      }
+
+      if (blocks.length === 0) return inner;
+
+      const titles = blocks.map((b) => b.title).join(',');
+      const fences = blocks.map((b) => {
+        const fenceMatch = b.code.match(/^```(\w*)\s*\n([\s\S]*?)\n\s*```$/);
+
+        if (fenceMatch) {
+          const lang = fenceMatch[1] || '';
+          const code = fenceMatch[2].trim();
+
+          return `\`\`\`${lang} title="${b.title}"\n${code}\n\`\`\``;
+        }
+
+        return b.code;
+      }).join('\n\n');
+
+      return `<div class="code-group-start" data-tabs="${escapeHtml(titles)}"></div>\n\n${fences}\n\n<div class="code-group-end"></div>`;
+    }
+  );
+}
+
+/**
  * Applies all VuePress preprocessing steps EXCEPT only-for filtering
  * (which is done per-framework before calling this).
  *
@@ -632,6 +724,9 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
     label ? `:::note[${label}]` : ':::note'
   );
 
+  // Convert <code-group>/<code-block> VuePress tabs to HTML tabs
+  result = convertCodeGroupToTabs(result);
+
   // Strip :::example / :::example-without-tabs container markers
   result = stripExampleContainers(result);
 
@@ -655,6 +750,9 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
 
   // Strip any remaining @/framework/ prefixes (non-.md links such as images)
   result = result.replace(/@\/[a-z0-9-]+\//g, '/');
+
+  // Transform <div class="boxes-list"> into Starlight-styled card grid HTML
+  result = convertBoxesListToCardGrid(result);
 
   return result;
 }

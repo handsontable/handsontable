@@ -74,20 +74,20 @@ const isGuidesPage = !isApiPage && !isRecipesPage && !isChangelogPage;
       Guides
     </a>
     <a
-      href={recipesUrl}
-      class:list={['nav-link', { 'nav-link--active': isRecipesPage }]}
-      aria-current={isRecipesPage ? 'page' : undefined}
-    >
-      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8l-4 4l4 4"/><path d="M17 8l4 4l-4 4"/><path d="M14 4l-4 16"/></svg>
-      Recipes
-    </a>
-    <a
       href={apiUrl}
       class:list={['nav-link', { 'nav-link--active': isApiPage }]}
       aria-current={isApiPage ? 'page' : undefined}
     >
-      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h5"/><path d="M12 16v-8h3a2 2 0 0 1 2 2v1a2 2 0 0 1 -2 2h-3"/><path d="M20 8v8"/><path d="M9 16v-5.5a2.5 2.5 0 0 0 -5 0v5.5"/></svg>
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8l-4 4l4 4"/><path d="M17 8l4 4l-4 4"/><path d="M14 4l-4 16"/></svg>
       API
+    </a>
+    <a
+      href={recipesUrl}
+      class:list={['nav-link', { 'nav-link--active': isRecipesPage }]}
+      aria-current={isRecipesPage ? 'page' : undefined}
+    >
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5"/><path d="M12 3v2"/><path d="M8 7h8a2 2 0 0 1 2 2v1a4 4 0 0 1-1.5 3.12"/><path d="M16 16a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-3h8z"/><path d="M12 21v-3"/></svg>
+      Recipes
     </a>
     <a
       href={changelogUrl}
@@ -133,7 +133,7 @@ const isGuidesPage = !isApiPage && !isRecipesPage && !isChangelogPage;
 
   .header-row-1 {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: 1fr 240px 1fr;
     align-items: center;
     gap: var(--sl-nav-gap);
   }

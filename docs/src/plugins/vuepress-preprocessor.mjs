@@ -11,6 +11,7 @@
  * - ::: source-code-link URL  (convert to <a> tag)
  * - $withBase('/path') → /path
  * - @/framework/path links  → /path (cross-framework alias)
+ * - <div class="boxes-list"> ... </div>  → Starlight-styled card grid HTML
  */
 
 /**
@@ -72,6 +73,9 @@ function preprocessMarkdown(content, framework) {
   // 7. Transform @/framework/... cross-framework alias links to absolute paths.
   //    e.g. @/react/guides/foo/foo.md → /guides/foo/foo
   result = result.replace(/@\/[a-z0-9-]+\//g, '/');
+
+  // 8. Transform <div class="boxes-list"> into Starlight-styled card grid HTML.
+  result = convertBoxesListToCardGrid(result);
 
   return result;
 }
@@ -163,6 +167,81 @@ function stripExampleContainers(content) {
   }
 
   return result.join('\n');
+}
+
+/**
+ * Transforms `<div class="boxes-list">` blocks with markdown lists into
+ * Starlight-styled card grid HTML.
+ *
+ * Input:
+ *   <div class="boxes-list gray">
+ *
+ *   - [Link Text](url)
+ *   - <i class="ico i-react"></i>
+ *   [React](url)
+ *
+ *   </div>
+ *
+ * Output:
+ *   <div class="ht-card-grid">
+ *   <div class="ht-link-card"><a href="url"><span class="title">Link Text</span></a><span class="arrow" aria-hidden="true">→</span></div>
+ *   </div>
+ */
+function convertBoxesListToCardGrid(content) {
+  return content.replace(
+    /<div\s+class="boxes-list[^"]*">\s*\n([\s\S]*?)\n\s*<\/div>/g,
+    (_, inner) => {
+      // Parse markdown list items: `- [text](url)` or `- <i ...></i>\n[text](url)`
+      const cards = [];
+      const lines = inner.split('\n');
+
+      let i = 0;
+
+      while (i < lines.length) {
+        const line = lines[i].trim();
+
+        // Match a list item that contains a markdown link directly.
+        const directLink = line.match(/^-\s+(?:<[^>]+>\s*)*\[([^\]]+)\]\(([^)]+)\)/);
+
+        if (directLink) {
+          cards.push({ title: directLink[1], href: directLink[2] });
+          i++;
+          continue;
+        }
+
+        // Match a list item with icon on one line and link on the next.
+        const iconLine = line.match(/^-\s+<[^>]+>/);
+
+        if (iconLine) {
+          // Check next non-empty line for the link.
+          let j = i + 1;
+
+          while (j < lines.length && lines[j].trim() === '') j++;
+
+          if (j < lines.length) {
+            const nextLink = lines[j].trim().match(/^\[([^\]]+)\]\(([^)]+)\)/);
+
+            if (nextLink) {
+              cards.push({ title: nextLink[1], href: nextLink[2] });
+              i = j + 1;
+              continue;
+            }
+          }
+        }
+
+        i++;
+      }
+
+      if (cards.length === 0) return '';
+
+      const cardHtml = cards.map(
+        ({ title, href }) =>
+          `<div class="ht-link-card"><a href="${href}"><span class="title">${title}</span></a><span class="arrow" aria-hidden="true">\u2192</span></div>`
+      ).join('\n');
+
+      return `<div class="ht-card-grid">\n${cardHtml}\n</div>`;
+    }
+  );
 }
 
 /**

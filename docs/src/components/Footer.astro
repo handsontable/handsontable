@@ -10,7 +10,6 @@
  * The status indicator color is fetched from the Statuspage API at render
  * time. If the network is unavailable it falls back to gray.
  */
-import EditLink from 'virtual:starlight/components/EditLink';
 import Pagination from 'virtual:starlight/components/Pagination';
 
 // ── Status dot ────────────────────────────────────────────────────────────────
@@ -42,9 +41,8 @@ const statusColor = STATUS_COLORS[statusIndicator];
 const year = new Date().getFullYear();
 ---
 
-<!-- Starlight built-ins: edit link + prev/next navigation -->
+<!-- Starlight built-ins: prev/next navigation -->
 <div class="sl-footer-built-ins">
-  <EditLink {...Astro.props} />
   <Pagination {...Astro.props} />
 </div>
 
@@ -160,14 +158,14 @@ const year = new Date().getFullYear();
   .hot-footer__icon-link {
     align-items: center;
     border-radius: 4px;
-    color: var(--sl-color-text-accent);
+    color: var(--sl-color-gray-2);
     display: inline-flex;
     padding: 0.15rem;
     transition: color 0.15s, transform 0.15s;
   }
 
   .hot-footer__icon-link:hover {
-    color: var(--sl-color-accent);
+    color: var(--sl-color-white);
     transform: translateY(-1px);
   }
 
@@ -189,7 +187,7 @@ const year = new Date().getFullYear();
 
   .hot-footer__nav a {
     border-radius: 4px;
-    color: var(--sl-color-text-accent);
+    color: var(--sl-color-gray-2);
     font-size: var(--sl-text-xs);
     padding: 0.2rem 0.5rem;
     text-decoration: none;
@@ -198,8 +196,8 @@ const year = new Date().getFullYear();
   }
 
   .hot-footer__nav a:hover {
-    color: var(--sl-color-accent);
-    background-color: var(--sl-color-accent-low);
+    color: var(--sl-color-white);
+    background-color: var(--sl-color-gray-5);
   }
 
   /* ── Status link & dot ───────────────────────────────────────────────────── */

@@ -157,6 +157,11 @@ const markdownDoc = [
 </script>
 
 <style>
+  /* ── Page title ─────────────────────────────────────────────────────────── */
+  h1 {
+    color: var(--sl-color-white);
+  }
+
   /* ── Top bar (breadcrumbs + copy button) ──────────────────────────────────── */
   .hot-page-header {
     display: flex;
@@ -187,14 +192,14 @@ const markdownDoc = [
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    color: var(--sl-color-text-accent);
+    color: var(--sl-color-gray-2);
     font-size: var(--sl-text-sm);
     text-decoration: none;
     transition: color 0.15s;
   }
 
   .hot-breadcrumbs__home:hover {
-    color: var(--sl-color-accent);
+    color: var(--sl-color-white);
   }
 
   .hot-breadcrumbs__sep {
@@ -220,7 +225,7 @@ const markdownDoc = [
     border: 1px solid var(--sl-color-gray-5);
     border-radius: 4px;
     background: none;
-    color: var(--sl-color-text-accent);
+    color: var(--sl-color-gray-2);
     font-size: var(--sl-text-xs);
     font-weight: 500;
     cursor: pointer;
@@ -230,8 +235,8 @@ const markdownDoc = [
   }
 
   .hot-copy-md-btn:hover {
-    color: var(--sl-color-accent);
-    border-color: var(--sl-color-accent);
+    color: var(--sl-color-white);
+    border-color: var(--sl-color-gray-3);
   }
 
   .hot-copy-md-btn.is-copied {

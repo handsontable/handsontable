@@ -284,6 +284,55 @@ function buildRecipesSidebar(framework, prefix) {
 }
 
 // ---------------------------------------------------------------------------
+// Changelog sidebar (Upgrade and migration pages)
+// ---------------------------------------------------------------------------
+
+/**
+ * Builds the Starlight sidebar config for the Changelog section, organized
+ * into three sub-groups: Changelog, Policy, and Migration guides.
+ *
+ * @param {string} framework - "javascript" | "react" | "angular"
+ * @param {string} prefix - URL prefix e.g. "javascript-data-grid"
+ */
+function buildChangelogSidebar(framework, prefix) {
+  const group = guides.find((g) => g.title === 'Upgrade and migration');
+
+  if (!group) return [];
+
+  const changelog = [];
+  const policy = [];
+  const migration = [];
+
+  const POLICY_SLUGS = ['versioning-policy', 'deprecation-policy', 'long-term-support'];
+
+  for (const item of group.children) {
+    if (item.onlyFor) {
+      const allowed = Array.isArray(item.onlyFor) ? item.onlyFor : [item.onlyFor];
+
+      if (!allowed.includes(framework)) continue;
+    }
+
+    const slug = item.path.split('/').pop();
+
+    if (slug === 'changelog') {
+      changelog.push(item);
+    } else if (POLICY_SLUGS.includes(slug)) {
+      policy.push(item);
+    } else {
+      migration.push(item);
+    }
+  }
+
+  const toItems = (items) => toStarlightItems(items, framework, prefix);
+
+  return [
+    { label: 'Changelog', collapsed: false, items: toItems(changelog) },
+    { label: 'Policy', collapsed: false, items: toItems(policy) },
+    { label: 'Migration guides', collapsed: false, items: toItems(migration) },
+  ];
+}
+
+// ---------------------------------------------------------------------------
 // Public exports
 // ---------------------------------------------------------------------------
 
@@ -323,6 +372,7 @@ export function buildAllSidebars() {
   for (const [framework, prefix] of Object.entries(FRAMEWORK_PREFIXES)) {
     result[framework] = buildSidebar(framework, prefix);
     result[`${framework}Recipes`] = buildRecipesSidebar(framework, prefix);
+    result[`${framework}Changelog`] = buildChangelogSidebar(framework, prefix);
   }
 
   return result;

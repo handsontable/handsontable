@@ -9,27 +9,92 @@
  */
 document.addEventListener('DOMContentLoaded', function () {
 
-  // ── Tab switching ─────────────────────────────────────────────────────────
-  document.querySelectorAll('.hot-example-tabbar').forEach(function (tabbar) {
-    tabbar.addEventListener('click', function (e) {
-      var button = e.target.closest('.hot-example-tab');
+  // ── Hot-example code assembly (Expressive Code blocks) ───────────────────
+  //
+  // The loader outputs marker divs + markdown code fences *after* the
+  // .hot-example HTML block. Expressive Code renders the fences at build
+  // time. This handler collects the rendered .expressive-code elements,
+  // builds a tab bar if needed, and moves everything into the .hot-example.
+  document.querySelectorAll('.hot-example-code-start').forEach(function (marker) {
+    var exampleId = marker.dataset.example;
+    var tabs = (marker.dataset.tabs || '').split(',').filter(Boolean);
+    var hotExample = document.getElementById('hot-example-' + exampleId);
 
-      if (!button) return;
+    if (!hotExample) return;
 
-      var example = tabbar.closest('.hot-example');
-      var tabIndex = button.dataset.tab;
+    // Collect .expressive-code siblings until the end marker
+    var panels = [];
+    var sibling = marker.nextElementSibling;
 
-      tabbar.querySelectorAll('.hot-example-tab').forEach(function (t) {
-        var active = t.dataset.tab === tabIndex;
+    while (sibling && !sibling.classList.contains('hot-example-code-end')) {
+      if (sibling.classList.contains('expressive-code')) {
+        panels.push(sibling);
+      }
+      sibling = sibling.nextElementSibling;
+    }
 
-        t.classList.toggle('is-active', active);
-        t.setAttribute('aria-selected', active);
+    var endMarker = sibling;
+
+    if (panels.length === 0) return;
+
+    // Create the code section wrapper (hidden by default, toggled by Source code btn)
+    var codeSection = document.createElement('div');
+    codeSection.className = 'hot-example-code';
+    codeSection.id = 'hot-code-' + exampleId;
+    codeSection.hidden = true;
+
+    // Build tab bar if multiple files
+    if (tabs.length > 1) {
+      var tabbar = document.createElement('div');
+      tabbar.className = 'hot-example-tabbar';
+      tabbar.setAttribute('role', 'tablist');
+
+      tabs.forEach(function (title, i) {
+        var btn = document.createElement('button');
+        btn.className = 'hot-example-tab' + (i === 0 ? ' is-active' : '');
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+        btn.dataset.tab = String(i);
+        btn.textContent = title;
+        tabbar.appendChild(btn);
       });
 
-      example.querySelectorAll('.hot-example-panel').forEach(function (p) {
-        p.classList.toggle('is-active', p.dataset.panel === tabIndex);
+      codeSection.appendChild(tabbar);
+
+      // Tab click handler
+      tabbar.addEventListener('click', function (e) {
+        var btn = e.target.closest('.hot-example-tab');
+        if (!btn) return;
+
+        var idx = btn.dataset.tab;
+
+        tabbar.querySelectorAll('.hot-example-tab').forEach(function (t) {
+          var active = t.dataset.tab === idx;
+          t.classList.toggle('is-active', active);
+          t.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+
+        codeSection.querySelectorAll('.expressive-code').forEach(function (p) {
+          p.style.display = p.dataset.panelIndex === idx ? '' : 'none';
+        });
       });
+    }
+
+    // Move panels into code section
+    panels.forEach(function (panel, i) {
+      if (tabs.length > 1) {
+        panel.style.display = i === 0 ? '' : 'none';
+      }
+      panel.dataset.panelIndex = String(i);
+      codeSection.appendChild(panel);
     });
+
+    // Append code section to the hot-example container
+    hotExample.appendChild(codeSection);
+
+    // Remove markers
+    if (marker.parentNode) marker.parentNode.removeChild(marker);
+    if (endMarker && endMarker.parentNode) endMarker.parentNode.removeChild(endMarker);
   });
 
   // ── Source code toggle ────────────────────────────────────────────────────
@@ -45,6 +110,86 @@ document.addEventListener('DOMContentLoaded', function () {
       codeEl.hidden = isOpen;
       btn.setAttribute('aria-expanded', String(!isOpen));
       btn.classList.toggle('is-open', !isOpen);
+    });
+  });
+
+  // ── Code group tabs (npm / Yarn / pnpm etc.) ────────────────────────────
+  document.querySelectorAll('.code-group-start').forEach(function (marker) {
+    var tabs = (marker.dataset.tabs || '').split(',');
+
+    if (tabs.length === 0) return;
+
+    // Collect all .expressive-code siblings between start and end markers
+    var panels = [];
+    var sibling = marker.nextElementSibling;
+
+    while (sibling && !sibling.classList.contains('code-group-end')) {
+      if (sibling.classList.contains('expressive-code')) {
+        panels.push(sibling);
+      }
+
+      sibling = sibling.nextElementSibling;
+    }
+
+    var endMarker = sibling;
+
+    if (panels.length === 0) return;
+
+    // Build wrapper
+    var wrapper = document.createElement('div');
+
+    wrapper.className = 'code-group';
+
+    // Build tab bar
+    var tabbar = document.createElement('div');
+
+    tabbar.className = 'code-group-tabbar';
+    tabbar.setAttribute('role', 'tablist');
+
+    tabs.forEach(function (title, i) {
+      var btn = document.createElement('button');
+
+      btn.className = 'code-group-tab' + (i === 0 ? ' is-active' : '');
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+      btn.dataset.index = String(i);
+      btn.textContent = title;
+      tabbar.appendChild(btn);
+    });
+
+    wrapper.appendChild(tabbar);
+
+    // Wrap panels inside the group container
+    marker.parentNode.insertBefore(wrapper, marker);
+
+    panels.forEach(function (panel, i) {
+      panel.style.display = i === 0 ? '' : 'none';
+      panel.dataset.groupIndex = String(i);
+      wrapper.appendChild(panel);
+    });
+
+    // Remove markers
+    if (marker.parentNode) marker.parentNode.removeChild(marker);
+    if (endMarker && endMarker.parentNode) endMarker.parentNode.removeChild(endMarker);
+
+    // Tab click handler
+    tabbar.addEventListener('click', function (e) {
+      var btn = e.target.closest('.code-group-tab');
+
+      if (!btn) return;
+
+      var idx = btn.dataset.index;
+
+      tabbar.querySelectorAll('.code-group-tab').forEach(function (t) {
+        var active = t.dataset.index === idx;
+
+        t.classList.toggle('is-active', active);
+        t.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+
+      wrapper.querySelectorAll('.expressive-code').forEach(function (p) {
+        p.style.display = p.dataset.groupIndex === idx ? '' : 'none';
+      });
     });
   });
 
