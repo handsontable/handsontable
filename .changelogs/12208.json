@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Redirect legacy Angular docs versions below 16.0 to JavaScript docs homepage",
+  "type": "fixed",
+  "issueOrPR": 12208,
+  "breaking": false,
+  "framework": "angular"
+}
