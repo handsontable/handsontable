@@ -44,7 +44,7 @@ Install ExcelJS. The supported version range is **`^4.4.0`** (ExcelJS 4.x, versi
 npm install exceljs
 ```
 
-Pass the ExcelJS constructor to the `engine` option in the `exportFile` plugin configuration:
+Pass the ExcelJS constructor as `engines: { xlsx: ExcelJS }` in the `exportFile` plugin configuration:
 
 ::: only-for javascript
 
@@ -52,7 +52,7 @@ Pass the ExcelJS constructor to the `engine` option in the `exportFile` plugin c
 import ExcelJS from 'exceljs';
 
 const hot = new Handsontable(container, {
-  exportFile: { engine: ExcelJS },
+  exportFile: { engines: { xlsx: ExcelJS } },
 });
 ```
 
@@ -64,7 +64,7 @@ const hot = new Handsontable(container, {
 import ExcelJS from 'exceljs';
 
 <HotTable
-  exportFile={{ engine: ExcelJS }}
+  exportFile={{ engines: { xlsx: ExcelJS } }}
 />
 ```
 
@@ -76,7 +76,7 @@ import ExcelJS from 'exceljs';
 import ExcelJS from 'exceljs';
 
 readonly hotSettings: GridSettings = {
-  exportFile: { engine: ExcelJS },
+  exportFile: { engines: { xlsx: ExcelJS } },
 };
 ```
 
@@ -179,10 +179,9 @@ async exportFile(): Promise<void> {
 
 Configure the plugin in Handsontable's settings under the `exportFile` key.
 
-| Option        | Type      | Default | Description |
-| ------------- | --------- | ------- | ----------- |
-| `engine`      | `Object`  | -       | **Required for XLSX.** The ExcelJS `Workbook` constructor (the default export from the `exceljs` package). |
-| `contextMenu` | `Boolean` | `false` | Add **Export to CSV** and **Export to Excel** items to every context menu. The Excel item is hidden when `engine` is not configured. |
+| Option    | Type     | Default | Description |
+| --------- | -------- | ------- | ----------- |
+| `engines` | `Object` | -       | A map of format keys to their engine constructors. Pass `{ xlsx: ExcelJS }` to enable XLSX export via [ExcelJS](https://github.com/exceljs/exceljs). |
 
 ## Export options
 
@@ -237,7 +236,7 @@ Use the `sheets` option to export multiple Handsontable instances into a single 
 
 When the context menu is enabled, **Export to CSV** and **Export to Excel** items are automatically added to the grid's context menu. No extra configuration in `exportFile` is needed.
 
-The **Export to Excel** item is only shown when `engine` is configured. The **Export to CSV** item is always available.
+The **Export to Excel** item is only shown when an ExcelJS engine is configured via `engines: { xlsx: ExcelJS }`. The **Export to CSV** item is always available.
 
 When you select a cell range before opening the context menu, the export covers only the selected range. When no selection is active, the entire grid is exported.
 

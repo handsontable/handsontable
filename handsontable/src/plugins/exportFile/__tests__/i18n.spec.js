@@ -47,7 +47,7 @@ describe('ExportFile', () => {
           handsontable({
             data: createSpreadsheetData(5, 5),
             contextMenu: true,
-            exportFile: { contextMenu: true },
+            exportFile: true,
             language: code,
           });
 
@@ -65,7 +65,7 @@ describe('ExportFile', () => {
             data: createSpreadsheetData(5, 5),
             contextMenu: true,
             loading: true,
-            exportFile: { contextMenu: true, engine: ExcelJS },
+            exportFile: { engines: { xlsx: ExcelJS } },
             language: code,
           });
 

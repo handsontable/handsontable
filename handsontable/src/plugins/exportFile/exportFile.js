@@ -429,8 +429,8 @@ export class ExportFile extends BasePlugin {
    *
    * For text-based formats such as `'csv'`, no extra setup is required and the
    * method always returns `true`.
-   * For binary formats such as `'xlsx'`, the method returns `true` only when an
-   * ExcelJS engine has been provided in the plugin settings.
+   * For binary formats such as `'xlsx'`, the method returns `true` only when the
+   * corresponding engine has been provided in the plugin's `engines` map.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}
@@ -443,7 +443,7 @@ export class ExportFile extends BasePlugin {
     if (format === 'xlsx') {
       const settings = this.hot.getSettings()[PLUGIN_KEY];
 
-      return isObject(settings) && Boolean(settings.engine);
+      return isObject(settings) && isObject(settings.engines) && Boolean(settings.engines.xlsx);
     }
 
     return true;
@@ -452,8 +452,8 @@ export class ExportFile extends BasePlugin {
   /**
    * Creates and returns a class formatter for the specified export type.
    *
-   * The `engine` option from the plugin's global settings is merged as a default
-   * so that per-call options can override it if needed.
+   * The engine for the requested format is looked up from the plugin's `engines`
+   * map and merged as a default so that per-call options can override it if needed.
    *
    * @private
    * @param {string} format Export format type eq. `'csv'` or `'xlsx'`.
@@ -466,7 +466,8 @@ export class ExportFile extends BasePlugin {
     }
 
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
-    const engineFromSettings = isObject(pluginSettings) ? pluginSettings.engine : undefined;
+    const engines = isObject(pluginSettings) && isObject(pluginSettings.engines) ? pluginSettings.engines : undefined;
+    const engineFromSettings = engines?.[format];
     const mergedOptions = engineFromSettings !== undefined
       ? { engine: engineFromSettings, ...options }
       : options;

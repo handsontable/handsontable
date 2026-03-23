@@ -85,7 +85,7 @@ const ExampleComponent = () => {
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
-        exportFile={{ engine: ExcelJS }}
+        exportFile={{ engines: { xlsx: ExcelJS } }}
         afterInit={handleAfterInit}
         licenseKey="non-commercial-and-evaluation"
       />

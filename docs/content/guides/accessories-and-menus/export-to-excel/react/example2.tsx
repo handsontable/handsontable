@@ -56,7 +56,7 @@ const ExampleComponent = () => {
     height: 'auto' as const,
     autoWrapRow: true,
     autoWrapCol: true,
-    exportFile: { engine: ExcelJS },
+    exportFile: { engines: { xlsx: ExcelJS } },
     licenseKey: 'non-commercial-and-evaluation' as const,
   };
 

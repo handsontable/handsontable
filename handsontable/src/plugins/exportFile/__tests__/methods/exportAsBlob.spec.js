@@ -50,7 +50,7 @@ describe('ExportFile `exportAsBlob` method', () => {
   it('should throw when called with a binary format (xlsx with engine)', async() => {
     handsontable({
       data: [['A1']],
-      exportFile: { engine: ExcelJS },
+      exportFile: { engines: { xlsx: ExcelJS } },
     });
 
     expect(() => getPlugin('exportFile').exportAsBlob('xlsx')).toThrowError(/exportAsBlobAsync/);

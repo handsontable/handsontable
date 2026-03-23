@@ -36,7 +36,7 @@ const sharedConfig: Handsontable.GridSettings = {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  exportFile: { engine: ExcelJS },
+  exportFile: { engines: { xlsx: ExcelJS } },
   licenseKey: 'non-commercial-and-evaluation',
 };
 

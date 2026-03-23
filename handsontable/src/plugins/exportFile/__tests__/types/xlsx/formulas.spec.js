@@ -25,7 +25,7 @@ describe('exportFile XLSX type — formulas', () => {
           destinationColumn: 0,
           ranges: [[0, 2]],
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });
@@ -48,7 +48,7 @@ describe('exportFile XLSX type — formulas', () => {
           destinationColumn: 0,
           // no ranges → defaults to [[0, 3]], which would include the destination row
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });
@@ -70,7 +70,7 @@ describe('exportFile XLSX type — formulas', () => {
           { type: 'min', destinationRow: 4, destinationColumn: 0 },
           // no ranges → both default to [[0, countRows-1]] = [[0, 4]]
         ],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });
@@ -89,7 +89,7 @@ describe('exportFile XLSX type — formulas', () => {
           destinationColumn: 0,
           ranges: [[0, 2]],
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });
@@ -108,7 +108,7 @@ describe('exportFile XLSX type — formulas', () => {
           destinationColumn: 0,
           ranges: [[0, 2]],
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -127,7 +127,7 @@ describe('exportFile XLSX type — formulas', () => {
           { type: 'average', destinationRow: 5, destinationColumn: 0, ranges: [[0, 2]] },
           { type: 'count', destinationRow: 6, destinationColumn: 0, ranges: [[0, 2]] },
         ],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });
@@ -147,7 +147,7 @@ describe('exportFile XLSX type — formulas', () => {
           destinationColumn: 0,
           customFunction() { return 99; },
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });
@@ -173,7 +173,7 @@ describe('exportFile XLSX type — formulas', () => {
             return this.calculateMinMax(endpoint, 'max') - this.calculateMinMax(endpoint, 'min');
           },
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });
@@ -193,7 +193,7 @@ describe('exportFile XLSX type — formulas', () => {
           destinationColumn: 0,
           ranges: [[0, 1]],
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       // With one header row, data row 0 maps to Excel row 2, so the
@@ -213,7 +213,7 @@ describe('exportFile XLSX type — formulas', () => {
           destinationColumn: 0,
           ranges: [[0, 1]],
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       // With a row-header column, data column 0 maps to Excel column B.
@@ -232,7 +232,7 @@ describe('exportFile XLSX type — formulas', () => {
           destinationColumn: 0,
           ranges: [[0, 1]],
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });
@@ -250,7 +250,7 @@ describe('exportFile XLSX type — formulas', () => {
           destinationColumn: 0,
           ranges: [[0, 1], [3, 3]],
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });
@@ -262,7 +262,7 @@ describe('exportFile XLSX type — formulas', () => {
     it('should export the static value when ColumnSummary plugin is not enabled', async() => {
       handsontable({
         data: [[10], [20], [30]],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -278,7 +278,7 @@ describe('exportFile XLSX type — formulas', () => {
       handsontable({
         data: [[1], [2], [3], ['=SUM(A1:A3)']],
         formulas: { engine: HyperFormula },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });
@@ -291,7 +291,7 @@ describe('exportFile XLSX type — formulas', () => {
       handsontable({
         data: [[1], [2], [3], ['=SUM(A1:A3)']],
         formulas: { engine: HyperFormula },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -307,7 +307,7 @@ describe('exportFile XLSX type — formulas', () => {
         data: [[10], [20], ['=SUM(A1:A2)']],
         colHeaders: ['Value'],
         formulas: { engine: HyperFormula },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       // With one header row, data row 0 starts at Excel row 2.
@@ -322,7 +322,7 @@ describe('exportFile XLSX type — formulas', () => {
         data: [[1, 2], [3, 4], ['=SUM(A1:A2)', '=SUM(B1:B2)']],
         rowHeaders: true,
         formulas: { engine: HyperFormula },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       // With a row-header column, data column 0 maps to Excel column B (offset +1).
@@ -336,7 +336,7 @@ describe('exportFile XLSX type — formulas', () => {
       handsontable({
         data: [['hello'], ['world'], ['SUM(A1:A2)']],
         formulas: { engine: HyperFormula },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });
@@ -353,7 +353,7 @@ describe('exportFile XLSX type — formulas', () => {
       handsontable({
         data: [[1], [2], [3], ['=SUM(A1:A3)']],
         formulas: { engine: HyperFormula, engineConfig: { functionArgSeparator: ';' } },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       // Destroy the standalone instance — it was only used to confirm the API shape.
@@ -369,7 +369,7 @@ describe('exportFile XLSX type — formulas', () => {
       handsontable({
         data: [[5], ['=IF(A1>3,"high","low")']],
         formulas: { engine: HyperFormula },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });

@@ -15,7 +15,7 @@ describe('ExportFile `downloadFile` method', () => {
   it('should throw when called with a binary format', async() => {
     handsontable({
       data: [['A1']],
-      exportFile: { engine: ExcelJS },
+      exportFile: { engines: { xlsx: ExcelJS } },
     });
 
     expect(() => getPlugin('exportFile').downloadFile('xlsx')).toThrow();

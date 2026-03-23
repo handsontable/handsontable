@@ -2524,9 +2524,9 @@ export default () => {
      *
      * If you set the `exportFile` option to an object, you can configure the following options:
      *
-     * | Option   | Type     | Default | Description                                                                         |
-     * | -------- | -------- | ------- | ----------------------------------------------------------------------------------- |
-     * | `engine` | `Object` | –       | **Required for XLSX.** Pass the ExcelJS `Workbook` constructor (default export from `exceljs`). |
+     * | Option    | Type     | Default | Description                                                                         |
+     * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
+     * | `engines` | `Object` | –       | A map of format keys to their engine constructors. Pass `{ xlsx: ExcelJS }` to enable XLSX export via [ExcelJS](https://github.com/exceljs/exceljs). |
      *
      * Read more:
      * - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
@@ -2544,7 +2544,7 @@ export default () => {
      *
      * // enable XLSX export
      * exportFile: {
-     *   engine: ExcelJS,
+     *   engines: { xlsx: ExcelJS },
      * },
      * ```
      */

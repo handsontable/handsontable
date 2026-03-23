@@ -27,6 +27,6 @@ new Handsontable(document.querySelector('#example3'), {
   autoWrapRow: true,
   autoWrapCol: true,
   contextMenu: true,
-  exportFile: { engine: ExcelJS },
+  exportFile: { engines: { xlsx: ExcelJS } },
   licenseKey: 'non-commercial-and-evaluation',
 });

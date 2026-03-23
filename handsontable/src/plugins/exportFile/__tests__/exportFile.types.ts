@@ -8,12 +8,12 @@ import {
 // Plugin configuration in GridSettings.
 new Handsontable(document.createElement('div'), {
   exportFile: {
-    engine: {},
+    engines: { xlsx: {} },
   },
 });
 
 // Settings object is assignable to ExportFileSettings.
-const settings: ExportFileSettings = { engine: {} };
+const settings: ExportFileSettings = { engines: { xlsx: {} } };
 
 const hot = new Handsontable(document.createElement('div'), {});
 const hot2 = new Handsontable(document.createElement('div'), {});

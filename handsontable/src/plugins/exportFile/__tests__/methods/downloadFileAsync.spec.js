@@ -32,7 +32,7 @@ describe('ExportFile `downloadFileAsync` method', () => {
   it('should return a Promise for an xlsx format', async() => {
     handsontable({
       data: [['A1']],
-      exportFile: { engine: ExcelJS },
+      exportFile: { engines: { xlsx: ExcelJS } },
     });
 
     stubDownload(hot());
@@ -47,7 +47,7 @@ describe('ExportFile `downloadFileAsync` method', () => {
   it('should return a Promise for a csv format', async() => {
     handsontable({
       data: [['A1']],
-      exportFile: { engine: ExcelJS },
+      exportFile: { engines: { xlsx: ExcelJS } },
     });
 
     stubDownload(hot());
@@ -62,7 +62,7 @@ describe('ExportFile `downloadFileAsync` method', () => {
   it('should trigger a download for xlsx format', async() => {
     handsontable({
       data: [['A1']],
-      exportFile: { engine: ExcelJS },
+      exportFile: { engines: { xlsx: ExcelJS } },
     });
 
     const hotInstance = hot();
@@ -77,7 +77,7 @@ describe('ExportFile `downloadFileAsync` method', () => {
   it('should trigger a download for csv format', async() => {
     handsontable({
       data: [['A1']],
-      exportFile: { engine: ExcelJS },
+      exportFile: { engines: { xlsx: ExcelJS } },
     });
 
     const hotInstance = hot();

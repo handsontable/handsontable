@@ -19,7 +19,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['text']],
         cell: [{ row: 0, col: 0, className: 'htLeft' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -33,7 +33,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['text']],
         cell: [{ row: 0, col: 0, className: 'htCenter' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -47,7 +47,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['text']],
         cell: [{ row: 0, col: 0, className: 'htRight' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -61,7 +61,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['text']],
         cell: [{ row: 0, col: 0, className: 'htJustify' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -75,7 +75,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['text']],
         cell: [{ row: 0, col: 0, className: 'htTop' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -89,7 +89,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['text']],
         cell: [{ row: 0, col: 0, className: 'htMiddle' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -103,7 +103,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['text']],
         cell: [{ row: 0, col: 0, className: 'htBottom' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -117,7 +117,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['text']],
         cell: [{ row: 0, col: 0, className: 'htRight htTop' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -131,7 +131,7 @@ describe('exportFile XLSX type — cell styling', () => {
     it('should not set alignment when no alignment className is present', async() => {
       handsontable({
         data: [['text']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -149,7 +149,7 @@ describe('exportFile XLSX type — cell styling', () => {
           col: 0,
           top: { width: 1, color: '#FF0000' },
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -172,7 +172,7 @@ describe('exportFile XLSX type — cell styling', () => {
           left: { width: 1, color: '#0000FF' },
           right: { width: 1, color: '#AABBCC' },
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -187,7 +187,7 @@ describe('exportFile XLSX type — cell styling', () => {
     it('should not set a border when no custom border is defined', async() => {
       handsontable({
         data: [['text']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -203,7 +203,7 @@ describe('exportFile XLSX type — cell styling', () => {
           col: 0,
           top: { width: 1, color: '#F0A' },
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -220,7 +220,7 @@ describe('exportFile XLSX type — cell styling', () => {
           col: 0,
           top: { width: 1, color: '#000000' },
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -236,7 +236,7 @@ describe('exportFile XLSX type — cell styling', () => {
           col: 0,
           top: { width: 2, color: '#000000' },
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -252,7 +252,7 @@ describe('exportFile XLSX type — cell styling', () => {
           col: 0,
           top: { width: 3, color: '#000000' },
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -268,7 +268,7 @@ describe('exportFile XLSX type — cell styling', () => {
           col: 0,
           top: { width: 4, color: '#000000' },
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -286,7 +286,7 @@ describe('exportFile XLSX type — cell styling', () => {
           right: { width: 2, color: '#00FF00' },
           bottom: { width: 3, color: '#0000FF' },
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -308,7 +308,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['Bold text']],
         cell: [{ row: 0, col: 0, className: 'test-bold' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -327,7 +327,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['Italic text']],
         cell: [{ row: 0, col: 0, className: 'test-italic' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -346,7 +346,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['Underline text']],
         cell: [{ row: 0, col: 0, className: 'test-underline' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -366,7 +366,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['Red text']],
         cell: [{ row: 0, col: 0, className: 'test-red' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -385,7 +385,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['styled']],
         cell: [{ row: 0, col: 0, className: 'test-styled' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -402,7 +402,7 @@ describe('exportFile XLSX type — cell styling', () => {
     it('should not set font when no className is set', async() => {
       handsontable({
         data: [['plain']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -421,7 +421,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['highlighted']],
         cell: [{ row: 0, col: 0, className: 'test-bg-yellow' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -438,7 +438,7 @@ describe('exportFile XLSX type — cell styling', () => {
     it('should not set fill when no className is set', async() => {
       handsontable({
         data: [['plain']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -455,7 +455,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['colored']],
         cell: [{ row: 0, col: 0, className: 'test-bg-red' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -477,7 +477,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['bold text']],
         cell: [{ row: 0, col: 0, className: 'test-font-only' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -499,7 +499,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['red text']],
         cell: [{ row: 0, col: 0, className: 'test-font-color' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -519,7 +519,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['cell']],
         cell: [{ row: 0, col: 0, className: 'test-cache-invalidation' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws1 = await parseXlsx();
@@ -542,7 +542,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['locked']],
         cell: [{ row: 0, col: 0, readOnly: true }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -558,7 +558,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['locked']],
         cell: [{ row: 0, col: 0, readOnly: true }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -576,7 +576,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['locked']],
         cell: [{ row: 0, col: 0, readOnly: true, className: 'test-bg-gold' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -597,7 +597,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['locked']],
         cell: [{ row: 0, col: 0, readOnly: true, className: 'test-blue' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -610,7 +610,7 @@ describe('exportFile XLSX type — cell styling', () => {
     it('should not apply read-only styling to a non-read-only cell', async() => {
       handsontable({
         data: [['editable']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -623,7 +623,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['locked', 'editable']],
         cell: [{ row: 0, col: 0, readOnly: true }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -638,7 +638,7 @@ describe('exportFile XLSX type — cell styling', () => {
     it('should not protect the worksheet when no cells are read-only', async() => {
       handsontable({
         data: [['editable']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -651,7 +651,7 @@ describe('exportFile XLSX type — cell styling', () => {
       handsontable({
         data: [['a', 'b', 'c']],
         cell: [{ row: 0, col: 1, readOnly: true }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -681,7 +681,7 @@ describe('exportFile XLSX type — cell styling', () => {
           { row: 2, col: 0, readOnly: true }, // label cell
           { row: 2, col: 1, readOnly: true }, // destination cell
         ],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -704,7 +704,7 @@ describe('exportFile XLSX type — cell styling', () => {
           { row: 2, col: 0, readOnly: true }, // label cell
           { row: 2, col: 1, readOnly: true }, // destination cell
         ],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportFormulas: true });

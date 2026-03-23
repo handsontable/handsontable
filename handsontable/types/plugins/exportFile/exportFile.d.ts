@@ -64,7 +64,7 @@ export interface ExportOptions {
 }
 
 export interface ExportFileSettings {
-  engine?: object;
+  engines?: Record<string, object>;
 }
 
 export type Settings = ExportFileSettings;

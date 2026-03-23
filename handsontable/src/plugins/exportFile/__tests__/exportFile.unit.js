@@ -8,10 +8,10 @@ describe('ExportFile#supportsExportFormat', () => {
   it('should return true for csv regardless of settings', () => {
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx(undefined), 'csv')).toBe(true);
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({}), 'csv')).toBe(true);
-    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engine: {} }), 'csv')).toBe(true);
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: {} } }), 'csv')).toBe(true);
   });
 
-  it('should return false for xlsx when no engine is configured', () => {
+  it('should return false for xlsx when no engines are configured', () => {
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx(undefined), 'xlsx')).toBe(false);
   });
 
@@ -19,16 +19,20 @@ describe('ExportFile#supportsExportFormat', () => {
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx(true), 'xlsx')).toBe(false);
   });
 
-  it('should return false for xlsx when engine is not set', () => {
+  it('should return false for xlsx when engines map is missing', () => {
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({}), 'xlsx')).toBe(false);
   });
 
-  it('should return true for xlsx when an engine is configured', () => {
-    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engine: {} }), 'xlsx')).toBe(true);
+  it('should return false for xlsx when engines map does not contain an xlsx entry', () => {
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: {} }), 'xlsx')).toBe(false);
+  });
+
+  it('should return true for xlsx when an xlsx engine is configured', () => {
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: {} } }), 'xlsx')).toBe(true);
   });
 
   it('should return false for an unknown format', () => {
-    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engine: {} }), 'pdf')).toBe(false);
+    expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({ engines: { xlsx: {} } }), 'pdf')).toBe(false);
     expect(ExportFile.prototype.supportsExportFormat.call(fakeCtx({}), '')).toBe(false);
   });
 });

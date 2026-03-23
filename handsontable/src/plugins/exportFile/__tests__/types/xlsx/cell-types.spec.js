@@ -18,7 +18,7 @@ describe('exportFile XLSX type — cell types', () => {
     it('should export string cell values', async() => {
       handsontable({
         data: [['Hello', 'World']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -30,7 +30,7 @@ describe('exportFile XLSX type — cell types', () => {
     it('should export null and undefined cells as null', async() => {
       handsontable({
         data: [[null, undefined]],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -42,7 +42,7 @@ describe('exportFile XLSX type — cell types', () => {
     it('should export a multi-row, multi-column table', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -60,7 +60,7 @@ describe('exportFile XLSX type — cell types', () => {
           { type: 'numeric' },
           { type: 'numeric' },
         ],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -77,7 +77,7 @@ describe('exportFile XLSX type — cell types', () => {
           { type: 'numeric', numericFormat: { pattern: '0,0.00' } },
           { type: 'numeric', numericFormat: { pattern: '0.00%' } },
         ],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -95,7 +95,7 @@ describe('exportFile XLSX type — cell types', () => {
           numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2 },
           locale: 'en-US',
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -111,7 +111,7 @@ describe('exportFile XLSX type — cell types', () => {
           numericFormat: { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 },
           locale: 'fr-FR',
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -127,7 +127,7 @@ describe('exportFile XLSX type — cell types', () => {
           numericFormat: { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 },
           locale: 'de-DE',
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -139,7 +139,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [[42]],
         columns: [{ type: 'numeric' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -171,7 +171,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [[142000]],
         columns: [{ type: 'numeric', numericFormat: { pattern: '$0,0.00' } }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -187,7 +187,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['not-a-number']],
         columns: [{ type: 'numeric' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -198,7 +198,7 @@ describe('exportFile XLSX type — cell types', () => {
     it('should export non-numeric type cells as strings', async() => {
       handsontable({
         data: [[123]],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -212,7 +212,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['2016-02-28']],
         columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -229,7 +229,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['2020-01-15']],
         columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -241,7 +241,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['2023-07-04']],
         columns: [{ type: 'intl-date' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -257,7 +257,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [[null]],
         columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -269,7 +269,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['not-a-date']],
         columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -283,7 +283,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['12:30:00']],
         columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -301,7 +301,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['08:05:30']],
         columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -313,7 +313,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['00:00:00']],
         columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -329,7 +329,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['3:45:00 PM']],
         columns: [{ type: 'time', timeFormat: 'h:mm:ss A' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -344,7 +344,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['not-a-time']],
         columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -374,7 +374,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['09:30:00']],
         columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -394,7 +394,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [[true]],
         columns: [{ type: 'checkbox' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -406,7 +406,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [[false]],
         columns: [{ type: 'checkbox' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -418,7 +418,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['yes'], ['no']],
         columns: [{ type: 'checkbox', checkedTemplate: 'yes', uncheckedTemplate: 'no' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -433,7 +433,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['Option A']],
         columns: [{ type: 'dropdown', source: ['Option A', 'Option B', 'Option C'] }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -448,7 +448,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['red']],
         columns: [{ type: 'autocomplete', source: ['red', 'green', 'blue'] }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -462,7 +462,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['dynamic']],
         columns: [{ type: 'dropdown', source: () => ['a', 'b'] }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -473,7 +473,7 @@ describe('exportFile XLSX type — cell types', () => {
     it('should not add data validation for a plain text cell', async() => {
       handsontable({
         data: [['plain']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -485,7 +485,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['say "hello"']],
         columns: [{ type: 'dropdown', source: ['say "hello"', 'world'] }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const allSheets = await parseXlsxAllSheets();
@@ -500,7 +500,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['A,B']],
         columns: [{ type: 'dropdown', source: ['A,B', 'C'] }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const allSheets = await parseXlsxAllSheets();
@@ -519,7 +519,7 @@ describe('exportFile XLSX type — cell types', () => {
           { type: 'dropdown', source: ['x', 'y', 'z'] },
           { type: 'dropdown', source: ['a', 'b'] },
         ],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const allSheets = await parseXlsxAllSheets();
@@ -535,7 +535,7 @@ describe('exportFile XLSX type — cell types', () => {
           { type: 'dropdown', source: ['a', 'b'] },
           { type: 'dropdown', source: ['a', 'b'] },
         ],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -548,7 +548,7 @@ describe('exportFile XLSX type — cell types', () => {
     it('should not create a validation sheet when there are no dropdown cells', async() => {
       handsontable({
         data: [['hello']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const allSheets = await parseXlsxAllSheets();
@@ -561,7 +561,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [['']],
         columns: [{ type: 'dropdown', source: [] }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const allSheets = await parseXlsxAllSheets();
@@ -577,7 +577,7 @@ describe('exportFile XLSX type — cell types', () => {
           type: 'dropdown',
           source: [{ key: 'r', value: 'red' }, { key: 'g', value: 'green' }, { key: 'b', value: 'blue' }],
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const allSheets = await parseXlsxAllSheets();
@@ -595,7 +595,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [[['red', 'green']]],
         columns: [{ type: 'multiselect', source: ['red', 'green', 'blue'] }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -612,7 +612,7 @@ describe('exportFile XLSX type — cell types', () => {
           type: 'multiselect',
           source: [{ key: 'r', value: 'red' }, { key: 'g', value: 'green' }, { key: 'b', value: 'blue' }],
         }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -624,7 +624,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [[null]],
         columns: [{ type: 'multiselect', source: ['a', 'b'] }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -639,7 +639,7 @@ describe('exportFile XLSX type — cell types', () => {
       handsontable({
         data: [[['red', 'green']]],
         columns: [{ type: 'multiselect', source: ['red', 'green', 'blue'] }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();

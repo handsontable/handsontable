@@ -24,8 +24,8 @@ describe('ExportFile `supportsExportFormat` method', () => {
     expect(getPlugin('exportFile').supportsExportFormat('xlsx')).toBe(false);
   });
 
-  it('should return true for `xlsx` when an engine is configured in settings', async() => {
-    handsontable({ exportFile: { engine: ExcelJS } });
+  it('should return true for `xlsx` when an xlsx engine is configured in settings', async() => {
+    handsontable({ exportFile: { engines: { xlsx: ExcelJS } } });
 
     expect(getPlugin('exportFile').supportsExportFormat('xlsx')).toBe(true);
   });

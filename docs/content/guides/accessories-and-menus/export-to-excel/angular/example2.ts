@@ -56,7 +56,7 @@ export class AppComponent {
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true,
-    exportFile: { engine: ExcelJS },
+    exportFile: { engines: { xlsx: ExcelJS } },
   };
 
   async exportSheets(): Promise<void> {

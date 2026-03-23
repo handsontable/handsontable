@@ -70,7 +70,7 @@ describe('exportFile XLSX type — features', () => {
     it('should write the comment value as an Excel note', async() => {
       handsontable({
         data: [['text']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       // Set the comment directly in cell meta — the same data path xlsx.js reads.
@@ -86,7 +86,7 @@ describe('exportFile XLSX type — features', () => {
     it('should not write a note when the cell has no comment', async() => {
       handsontable({
         data: [['text']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       // No comment set — meta.comment is absent.
@@ -105,7 +105,7 @@ describe('exportFile XLSX type — features', () => {
       handsontable({
         data: [[50], [150], [75]],
         columns: [{ type: 'numeric' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({
@@ -134,7 +134,7 @@ describe('exportFile XLSX type — features', () => {
     it('should restrict the CF range when `rows` and `cols` are specified', async() => {
       handsontable({
         data: [[1, 2], [3, 4], [5, 6]],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({
@@ -157,7 +157,7 @@ describe('exportFile XLSX type — features', () => {
         data: [[10], [20]],
         colHeaders: ['Value'],
         columns: [{ type: 'numeric' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       // With one column-header row, data row 0 maps to Excel row 2.
@@ -179,7 +179,7 @@ describe('exportFile XLSX type — features', () => {
         data: [[10], [20]],
         rowHeaders: true,
         columns: [{ type: 'numeric' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       // With a row-header column, data column 0 maps to Excel column B.
@@ -199,7 +199,7 @@ describe('exportFile XLSX type — features', () => {
     it('should not add conditional formatting when the option is an empty array', async() => {
       handsontable({
         data: [[1]],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ conditionalFormatting: [] });
@@ -226,7 +226,7 @@ describe('exportFile XLSX type — features', () => {
     it('should create one worksheet per entry in the `sheets` option', async() => {
       handsontable({
         data: [['Sheet1-A1']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       hot2Container = $('<div></div>').appendTo('body');
@@ -247,7 +247,7 @@ describe('exportFile XLSX type — features', () => {
     it('should write correct data to each worksheet', async() => {
       handsontable({
         data: [['Alice', 100]],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       hot2Container = $('<div></div>').appendTo('body');
@@ -270,7 +270,7 @@ describe('exportFile XLSX type — features', () => {
       handsontable({
         data: createSpreadsheetData(1, 2),
         colHeaders: ['Name', 'Score'],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       hot2Container = $('<div></div>').appendTo('body');
@@ -296,7 +296,7 @@ describe('exportFile XLSX type — features', () => {
     it('should fall back to sheet name "Sheet" when the name property is omitted', async() => {
       handsontable({
         data: [['a']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       hot2Container = $('<div></div>').appendTo('body');
@@ -320,7 +320,7 @@ describe('exportFile XLSX type — features', () => {
       // in this test environment, but the same-document path is verified here.
       handsontable({
         data: [['first']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       hot2Container = $('<div></div>').appendTo('body');
@@ -355,7 +355,7 @@ describe('exportFile XLSX type — features', () => {
     it('should produce a valid XLSX buffer with compression level 1 (fastest)', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ compression: 1 });
@@ -368,7 +368,7 @@ describe('exportFile XLSX type — features', () => {
     it('should produce a valid XLSX buffer with compression level 9 (best)', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ compression: 9 });
@@ -381,7 +381,7 @@ describe('exportFile XLSX type — features', () => {
     it('should enable DEFLATE compression when compression is true (default level 6)', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ compression: true });
@@ -395,7 +395,7 @@ describe('exportFile XLSX type — features', () => {
       handsontable({
         data: [['hello', 42, true]],
         columns: [{ type: 'text' }, { type: 'numeric' }, { type: 'checkbox' }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const [wsDefault, wsMin, wsMax] = await Promise.all([

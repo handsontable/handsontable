@@ -18,7 +18,7 @@ describe('exportFile XLSX type — layout', () => {
     it('should export only the specified cell range', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ range: [1, 1, 2, 2] });
@@ -32,7 +32,7 @@ describe('exportFile XLSX type — layout', () => {
     it('should clamp an out-of-bounds range to the table dimensions', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ range: [2, 2, 99, 99] });
@@ -48,7 +48,7 @@ describe('exportFile XLSX type — layout', () => {
       handsontable({
         data: createSpreadsheetData(4, 1),
         hiddenRows: { rows: [1, 2] },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -62,7 +62,7 @@ describe('exportFile XLSX type — layout', () => {
       handsontable({
         data: createSpreadsheetData(4, 1),
         hiddenRows: { rows: [1, 2] },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportHiddenRows: true });
@@ -76,7 +76,7 @@ describe('exportFile XLSX type — layout', () => {
       handsontable({
         data: createSpreadsheetData(4, 1),
         hiddenRows: { rows: [1, 2] },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportHiddenRows: 'hide' });
@@ -103,7 +103,7 @@ describe('exportFile XLSX type — layout', () => {
         rowHeights: [23, 40, 23],
         hiddenRows: { rows: [1] },
         autoRowSize: false,
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportHiddenRows: 'hide' });
@@ -120,7 +120,7 @@ describe('exportFile XLSX type — layout', () => {
       handsontable({
         data: createSpreadsheetData(1, 4),
         hiddenColumns: { columns: [1, 2] },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -134,7 +134,7 @@ describe('exportFile XLSX type — layout', () => {
       handsontable({
         data: createSpreadsheetData(1, 4),
         hiddenColumns: { columns: [1, 2] },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportHiddenColumns: true });
@@ -148,7 +148,7 @@ describe('exportFile XLSX type — layout', () => {
       handsontable({
         data: createSpreadsheetData(1, 4),
         hiddenColumns: { columns: [1, 2] },
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportHiddenColumns: 'hide' });
@@ -174,7 +174,7 @@ describe('exportFile XLSX type — layout', () => {
         colWidths: [50, 70, 50],
         hiddenColumns: { columns: [1] },
         autoColumnSize: false,
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ exportHiddenColumns: 'hide' });
@@ -192,7 +192,7 @@ describe('exportFile XLSX type — layout', () => {
         data: [['a', 'b']],
         colWidths: [70, 105],
         autoColumnSize: false,
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -207,7 +207,7 @@ describe('exportFile XLSX type — layout', () => {
         data: [['a']],
         colWidths: [3],
         autoColumnSize: false,
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -221,7 +221,7 @@ describe('exportFile XLSX type — layout', () => {
         data: [['a']],
         rowHeaders: true,
         autoColumnSize: false,
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ rowHeaders: true });
@@ -239,7 +239,7 @@ describe('exportFile XLSX type — layout', () => {
         data: [['a'], ['b']],
         rowHeights: [40, 60],
         autoRowSize: false,
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -255,7 +255,7 @@ describe('exportFile XLSX type — layout', () => {
       handsontable({
         data: createSpreadsheetData(5, 3),
         fixedRowsTop: 2,
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -271,7 +271,7 @@ describe('exportFile XLSX type — layout', () => {
         data: createSpreadsheetData(5, 3),
         colHeaders: true,
         fixedRowsTop: 2,
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ columnHeaders: true });
@@ -286,7 +286,7 @@ describe('exportFile XLSX type — layout', () => {
       handsontable({
         data: createSpreadsheetData(3, 5),
         fixedColumnsStart: 1,
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -302,7 +302,7 @@ describe('exportFile XLSX type — layout', () => {
         data: createSpreadsheetData(3, 5),
         rowHeaders: true,
         fixedColumnsStart: 1,
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ rowHeaders: true });
@@ -318,7 +318,7 @@ describe('exportFile XLSX type — layout', () => {
         data: createSpreadsheetData(5, 5),
         fixedRowsTop: 1,
         fixedColumnsStart: 2,
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -332,7 +332,7 @@ describe('exportFile XLSX type — layout', () => {
     it('should not produce a frozen-pane view when no rows or columns are frozen', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -348,7 +348,7 @@ describe('exportFile XLSX type — layout', () => {
       handsontable({
         data: createSpreadsheetData(3, 3),
         mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -366,7 +366,7 @@ describe('exportFile XLSX type — layout', () => {
         data: createSpreadsheetData(3, 3),
         colHeaders: true,
         mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ columnHeaders: true });
@@ -380,7 +380,7 @@ describe('exportFile XLSX type — layout', () => {
         data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx({ rowHeaders: true });
@@ -397,7 +397,7 @@ describe('exportFile XLSX type — layout', () => {
         data: createSpreadsheetData(4, 3),
         hiddenRows: { rows: [1] },
         mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 1 }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -415,7 +415,7 @@ describe('exportFile XLSX type — layout', () => {
         data: createSpreadsheetData(3, 4),
         hiddenColumns: { columns: [1] },
         mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 3 }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -432,7 +432,7 @@ describe('exportFile XLSX type — layout', () => {
         data: createSpreadsheetData(4, 3),
         hiddenRows: { rows: [0] },
         mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -446,7 +446,7 @@ describe('exportFile XLSX type — layout', () => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         layoutDirection: 'rtl',
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -458,7 +458,7 @@ describe('exportFile XLSX type — layout', () => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         layoutDirection: 'ltr',
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();
@@ -474,7 +474,7 @@ describe('exportFile XLSX type — layout', () => {
         layoutDirection: 'rtl',
         fixedRowsTop: 1,
         fixedColumnsStart: 1,
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const ws = await parseXlsx();

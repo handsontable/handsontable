@@ -16,7 +16,7 @@ describe('exportFile XLSX type — API', () => {
 
   describe('default options', () => {
     it('should have the correct default options', async() => {
-      handsontable({ exportFile: { engine: ExcelJS } });
+      handsontable({ exportFile: { engines: { xlsx: ExcelJS } } });
 
       const formatter = getPlugin('exportFile')._createTypeFormatter('xlsx');
 
@@ -34,7 +34,7 @@ describe('exportFile XLSX type — API', () => {
     });
 
     it('should mark the format as binary', async() => {
-      handsontable({ exportFile: { engine: ExcelJS } });
+      handsontable({ exportFile: { engines: { xlsx: ExcelJS } } });
 
       const formatter = getPlugin('exportFile')._createTypeFormatter('xlsx');
 
@@ -46,7 +46,7 @@ describe('exportFile XLSX type — API', () => {
     it('should return a Promise', async() => {
       handsontable({
         data: [['A1']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const result = getPlugin('exportFile')._createTypeFormatter('xlsx').export();
@@ -59,7 +59,7 @@ describe('exportFile XLSX type — API', () => {
     it('should resolve with a binary buffer', async() => {
       handsontable({
         data: [['A1']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       const buffer = await getPlugin('exportFile')._createTypeFormatter('xlsx').export();
@@ -73,7 +73,7 @@ describe('exportFile XLSX type — API', () => {
     it('should use the engine configured in the plugin-level settings', async() => {
       handsontable({
         data: [['a']],
-        exportFile: { engine: ExcelJS },
+        exportFile: { engines: { xlsx: ExcelJS } },
       });
 
       // No per-call engine option — reads from plugin settings.

@@ -83,7 +83,7 @@ describe('ExportFile', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         contextMenu: true,
-        exportFile: { engine: mockEngine },
+        exportFile: { engines: { xlsx: mockEngine } },
       });
 
       await contextMenu(getCell(1, 1));

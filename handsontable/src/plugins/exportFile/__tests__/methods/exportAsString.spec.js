@@ -30,7 +30,7 @@ describe('ExportFile `exportAsString` method', () => {
   it('should throw when called for the xlsx format', async() => {
     handsontable({
       data: [['A1']],
-      exportFile: { engine: ExcelJS },
+      exportFile: { engines: { xlsx: ExcelJS } },
     });
 
     expect(() => getPlugin('exportFile').exportAsString('xlsx')).toThrow();
