@@ -343,21 +343,29 @@ document.addEventListener('DOMContentLoaded', function () {
     var tsFile   = findFile(userFiles, '.ts')   || 'app.component.ts';
     var htmlFile = findFile(userFiles, '.html') || null;
     var tsCode   = userFiles[tsFile]   || '';
-    var htmlCode = htmlFile ? (userFiles[htmlFile] || '') : '<div id="' + exampleId + '"></div>';
+    var htmlCode = htmlFile ? (userFiles[htmlFile] || '') : '<app-root></app-root>';
+
+    var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
     var deps = Object.assign(
       {
-        handsontable:                      hotVersion,
-        '@handsontable/angular-wrapper':   hotVersion,
-        '@angular/core':                   '16.x',
-        '@angular/common':                 '16.x',
-        '@angular/compiler':               '16.x',
-        '@angular/platform-browser':       '16.x',
-        '@angular/platform-browser-dynamic': '16.x',
-        '@angular/forms':                  '16.x',
-        '@angular/animations':             '16.x',
-        rxjs:                              '7.x',
-        'zone.js':                         '0.13.x',
+        handsontable:                        hotVersion,
+        '@handsontable/angular-wrapper':     hotVersion,
+        '@angular/animations':               '21.x',
+        '@angular/common':                   '21.x',
+        '@angular/compiler':                 '21.x',
+        '@angular/core':                     '21.x',
+        '@angular/forms':                    '21.x',
+        '@angular/platform-browser':         '21.x',
+        '@angular/platform-browser-dynamic': '21.x',
+        '@angular/router':                   '21.x',
+        rxjs:                                '~7.8.0',
+        tslib:                               '^2.3.0',
+        'zone.js':                           '~0.15.0',
+        '@angular-devkit/build-angular':     '21.x',
+        '@angular/cli':                      '21.x',
+        '@angular/compiler-cli':             '21.x',
+        typescript:                          '~5.7.2',
       },
       extraDeps,
     );
@@ -366,13 +374,108 @@ document.addEventListener('DOMContentLoaded', function () {
       name: 'handsontable-angular-example',
       version: '1.0.0',
       private: true,
+      scripts: { ng: 'ng', start: 'ng serve', build: 'ng build' },
       dependencies: deps,
     }, null, 2);
 
+    var angularJson = JSON.stringify({
+      $schema: './node_modules/@angular/cli/lib/config/schema.json',
+      version: 1,
+      newProjectRoot: 'projects',
+      projects: {
+        app: {
+          projectType: 'application',
+          root: '',
+          sourceRoot: 'src',
+          prefix: 'app',
+          architect: {
+            build: {
+              builder: '@angular-devkit/build-angular:application',
+              options: {
+                outputPath: 'dist/app',
+                index: 'src/index.html',
+                browser: 'src/main.ts',
+                polyfills: ['zone.js'],
+                tsConfig: 'tsconfig.json',
+                assets: [],
+                styles: [],
+                scripts: [],
+              },
+              configurations: {
+                development: { optimization: false, sourceMap: true },
+              },
+              defaultConfiguration: 'development',
+            },
+            serve: {
+              builder: '@angular-devkit/build-angular:dev-server',
+              configurations: {
+                development: { buildTarget: 'app:build:development' },
+              },
+              defaultConfiguration: 'development',
+            },
+          },
+        },
+      },
+    }, null, 2);
+
+    var tsConfig = JSON.stringify({
+      compilerOptions: {
+        outDir: './dist/out-tsc',
+        strict: true,
+        noImplicitOverride: true,
+        noPropertyAccessFromIndexSignature: true,
+        noImplicitReturns: true,
+        noFallthroughCasesInSwitch: true,
+        skipLibCheck: true,
+        esModuleInterop: true,
+        sourceMap: true,
+        declaration: false,
+        experimentalDecorators: true,
+        moduleResolution: 'bundler',
+        importHelpers: true,
+        target: 'ES2022',
+        module: 'ES2022',
+        useDefineForClassFields: false,
+        lib: ['ES2022', 'dom'],
+      },
+      angularCompilerOptions: {
+        enableI18nLegacyMessageIdFormat: false,
+        strictInjectionParameters: true,
+        strictInputAccessModifiers: true,
+        strictTemplates: true,
+      },
+    }, null, 2);
+
+    var indexHtml = [
+      '<!DOCTYPE html>',
+      '<html lang="en">',
+      '<head>',
+      '  <meta charset="utf-8">',
+      '  <title>Handsontable Angular Example</title>',
+      '  <base href="/">',
+      '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
+      '</head>',
+      '<body>',
+      '  <app-root></app-root>',
+      '</body>',
+      '</html>',
+    ].join('\n');
+
+    var mainTs = [
+      "import { bootstrapApplication } from '@angular/platform-browser';",
+      "import { AppComponent } from './app/app.component';",
+      '',
+      'bootstrapApplication(AppComponent).catch(err => console.error(err));',
+    ].join('\n');
+
     return {
-      'package.json':       pkg,
-      'app.component.ts':   tsCode,
-      'app.component.html': htmlCode,
+      'package.json':               pkg,
+      'angular.json':               angularJson,
+      'tsconfig.json':              tsConfig,
+      'src/index.html':             indexHtml,
+      'src/main.ts':                mainTs,
+      'src/app/app.component.ts':   tsCode,
+      'src/app/app.component.html': htmlCode,
     };
   }
 
