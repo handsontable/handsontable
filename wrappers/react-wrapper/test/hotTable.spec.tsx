@@ -241,6 +241,81 @@ describe('Updating the Handsontable settings', () => {
 
     console.error = originalError;
   });
+
+  it('should keep invalid-cell validation state after the first paste when `dataSchema` triggers rerender', async () => {
+    const afterValidate = jest.fn();
+    const hotTableRef = React.createRef<HotTableRef>();
+
+    function ExampleComponent() {
+      const [, setTotalAmount] = React.useState(0);
+
+      return (
+        <HotTable
+          ref={hotTableRef}
+          dataSchema={{
+            unit: 'EA',
+            paymentDivision: '',
+            unitQuantity: 0,
+            unitPrice: 0,
+            isSPV: 'false',
+            paymentTerms: 'Immediate Payment (V000)',
+          }}
+          columns={[
+            {
+              data: 'paymentDivision',
+              type: 'autocomplete',
+              source: ['Development / Investment / Legal (D)', 'EPC (C)', 'SPV CAPEX (S)'],
+              strict: true,
+              allowInvalid: true,
+            },
+            {
+              data: 'unitQuantity',
+              type: 'numeric',
+            },
+            {
+              data: 'unitPrice',
+              type: 'numeric',
+            },
+          ]}
+          afterValidate={afterValidate}
+          afterChange={() => {
+            const hotInstance = hotTableRef.current?.hotInstance;
+            const totalAmount = hotInstance
+              ?.getSourceData()
+              .map((row: any) => row.unitPrice * row.unitQuantity)
+              .reduce((a: number, b: number) => a + b, 0) || 0;
+
+            setTotalAmount(totalAmount);
+          }}
+          licenseKey="non-commercial-and-evaluation"
+        />
+      );
+    }
+
+    mountComponent(<ExampleComponent />);
+
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    await act(async() => {
+      hotInstance.populateFromArray(0, 0, [['INVALID DIVISION', '2', '10']], undefined, undefined, 'CopyPaste.paste');
+    });
+
+    await sleep(300);
+
+    expect(afterValidate).toHaveBeenCalledWith(false, 'INVALID DIVISION', 0, 'paymentDivision', 'CopyPaste.paste');
+    expect(hotInstance.getDataAtCell(0, 0)).toBe('INVALID DIVISION');
+    expect(hotInstance.getCell(0, 0)!.className).toContain('htInvalid');
+
+    await act(async() => {
+      hotInstance.populateFromArray(0, 0, [['INVALID DIVISION SECOND TRY', '2', '10']], undefined, undefined, 'CopyPaste.paste');
+    });
+
+    await sleep(300);
+
+    expect(afterValidate).toHaveBeenCalledWith(false, 'INVALID DIVISION SECOND TRY', 0, 'paymentDivision', 'CopyPaste.paste');
+    expect(hotInstance.getDataAtCell(0, 0)).toBe('INVALID DIVISION SECOND TRY');
+    expect(hotInstance.getCell(0, 0)!.className).toContain('htInvalid');
+  });
 });
 
 describe('Renderer configuration using React components', () => {
