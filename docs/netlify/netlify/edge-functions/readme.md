@@ -127,11 +127,11 @@ const getFrameworkFromCookie = (cookieValue: string) => {
 
 **Purpose:** Redirects versioned Angular docs URLs for versions below 16.0 to the JavaScript docs homepage.
 
-**Path Pattern:** `/docs/(\\d+).(\\d+)/angular-data-grid(/.*)?`
+**Path Pattern:** `/docs/(15.3|15.2|...|9.0)/angular-data-grid(/.*)?`
 
 **Functionality:**
-- Redirects `/docs/:major.:minor/angular-data-grid/...` requests to `/docs/javascript-data-grid/` when `major < 16`
-- Leaves versions `16.0+` unchanged
+- Redirects versioned legacy Angular docs paths to `/docs/javascript-data-grid/`
+- Scoped to released pre-16 docs versions (`15.3` down to `9.0`)
 - Acts as a fallback for legacy Angular version paths that don't have dedicated Angular docs content
 
 **Examples:**
