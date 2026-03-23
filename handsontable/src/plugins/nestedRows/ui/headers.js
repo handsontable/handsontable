@@ -5,23 +5,6 @@ import BaseUI from './_base';
 import { A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
 
 /**
- * Writes debug payload through the browser-exposed logger.
- *
- * @param {object} payload The payload to log.
- */
-function debugLog(payload) {
-  try {
-    const globalObject = typeof self !== 'undefined' ? self : null;
-
-    if (globalObject && typeof globalObject.__agentDebugLog === 'function') {
-      globalObject.__agentDebugLog(payload);
-    }
-  } catch (e) {
-    // Intentionally ignore logging errors in debug-only instrumentation.
-  }
-}
-
-/**
  * Class responsible for the UI in the Nested Rows' row headers.
  *
  * @private
@@ -160,42 +143,11 @@ class HeadersUI extends BaseUI {
    * @param {number} deepestLevel Cached deepest level of nesting.
    */
   updateRowHeaderWidth(deepestLevel) {
-    // #region agent log
-    debugLog({
-      hypothesisId: 'A',
-      location: 'src/plugins/nestedRows/ui/headers.js:updateRowHeaderWidth:entry',
-      message: 'Computing nested rows row header width cache',
-      data: {
-        deepestLevelArg: deepestLevel,
-        cachedLevelCount: this.dataManager.cache.levelCount,
-        prevRowHeaderWidthCache: this.rowHeaderWidthCache,
-      },
-      timestamp: Date.now(),
-    });
-    // #endregion
     const {
-      deepestLevelIndex,
-      verticalPadding,
-      completeVerticalPadding,
       rowHeaderWidthCache,
     } = this.#calculateRowHeaderWidth(deepestLevel);
 
     this.rowHeaderWidthCache = rowHeaderWidthCache;
-
-    // #region agent log
-    debugLog({
-      hypothesisId: 'A',
-      location: 'src/plugins/nestedRows/ui/headers.js:updateRowHeaderWidth:computed',
-      message: 'Computed nested rows row header width cache',
-      data: {
-        deepestLevelIndex,
-        verticalPadding,
-        completeVerticalPadding,
-        rowHeaderWidthCache,
-      },
-      timestamp: Date.now(),
-    });
-    // #endregion
 
     this.hot.render();
   }

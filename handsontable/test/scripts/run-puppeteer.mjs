@@ -1,6 +1,5 @@
 import puppeteer from 'puppeteer';
 import path from 'path';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
@@ -96,13 +95,6 @@ await page.exposeFunction('jasmineStarted', (specInfo) => {
 await page.exposeFunction('jasmineSpecStarted', () => {});
 await page.exposeFunction('jasmineSuiteStarted', suite => reporter.suiteStarted(suite));
 await page.exposeFunction('jasmineSuiteDone', () => reporter.suiteDone());
-await page.exposeFunction('__agentDebugLog', (payload) => {
-  try {
-    fs.appendFileSync('/opt/cursor/logs/debug.log', `${JSON.stringify(payload)}\n`);
-  } catch (e) {
-    // Intentionally ignore logging errors in debug-only instrumentation.
-  }
-});
 await page.exposeFunction('jasmineSpecDone', (result) => {
   if (result.failedExpectations.length) {
     errorCount += result.failedExpectations.length;

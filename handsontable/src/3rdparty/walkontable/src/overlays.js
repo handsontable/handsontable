@@ -16,23 +16,6 @@ import {
 } from './overlay';
 
 /**
- * Writes debug payload through the browser-exposed logger.
- *
- * @param {object} payload The payload to log.
- */
-function debugLog(payload) {
-  try {
-    const globalObject = typeof self !== 'undefined' ? self : null;
-
-    if (globalObject && typeof globalObject.__agentDebugLog === 'function') {
-      globalObject.__agentDebugLog(payload);
-    }
-  } catch (e) {
-    // Intentionally ignore logging errors in debug-only instrumentation.
-  }
-}
-
-/**
  * @class Overlays
  */
 class Overlays {
@@ -753,25 +736,6 @@ class Overlays {
     };
     const columnHeaderBorderCompensation = isScrolledBeyondHiderHeight() ? 1 : 0;
     const rowHeaderBorderCompensation = isScrolledBeyondHiderWidth() ? 1 : 0;
-
-    // #region agent log
-    debugLog({
-      hypothesisId: 'D',
-      location: 'src/3rdparty/walkontable/src/overlays.js:adjustElementsSize:preApply',
-      message: 'Computed hider dimensions before applying to DOM',
-      data: {
-        headerRowSize,
-        headerColumnSize,
-        proposedHiderWidth,
-        proposedHiderHeight,
-        rowHeaderBorderCompensation,
-        columnHeaderBorderCompensation,
-        previousHiderWidth: hiderStyle.width,
-        previousHiderHeight: hiderStyle.height,
-      },
-      timestamp: Date.now(),
-    });
-    // #endregion
 
     // If the elements are being adjusted after scrolling the table from the very beginning to the very end,
     // we need to adjust the hider dimensions by the header border size. (https://github.com/handsontable/dev-handsontable/issues/1772)
