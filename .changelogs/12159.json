@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the `--ht-cell-horizontal-border-color` token value in the main theme.",
+  "type": "changed",
+  "issueOrPR": 12159,
+  "breaking": false,
+  "framework": "none"
+}
