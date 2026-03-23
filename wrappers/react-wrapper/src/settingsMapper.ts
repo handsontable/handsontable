@@ -5,25 +5,25 @@ function isObjectLike(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+function isArray(value: unknown): value is unknown[] {
+  return Array.isArray(value);
+}
+
 function areEquivalentSettingsValue(previousValue: unknown, currentValue: unknown): boolean {
   if (previousValue === currentValue) {
     return true;
   }
 
-  if (!isObjectLike(previousValue) || !isObjectLike(currentValue)) {
-    return false;
-  }
+  const previousIsArray = isArray(previousValue);
+  const currentIsArray = isArray(currentValue);
 
-  const previousIsArray = Array.isArray(previousValue);
-  const currentIsArray = Array.isArray(currentValue);
+  if (previousIsArray || currentIsArray) {
+    if (!previousIsArray || !currentIsArray) {
+      return false;
+    }
 
-  if (previousIsArray !== currentIsArray) {
-    return false;
-  }
-
-  if (previousIsArray) {
-    const previousEntries = previousValue as unknown[];
-    const currentEntries = currentValue as unknown[];
+    const previousEntries = previousValue as unknown as unknown[];
+    const currentEntries = currentValue as unknown as unknown[];
 
     if (previousEntries.length !== currentEntries.length) {
       return false;
@@ -36,6 +36,10 @@ function areEquivalentSettingsValue(previousValue: unknown, currentValue: unknow
     }
 
     return true;
+  }
+
+  if (!isObjectLike(previousValue) || !isObjectLike(currentValue)) {
+    return false;
   }
 
   const previousKeys = Object.keys(previousValue);
