@@ -18,9 +18,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row virtualization
-
 Render thousands of rows without freezing the browser, using row virtualization.
 
 [[toc]]

@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Custom editor  in Vue 3
-
 Create a custom cell editor, and use it in your Vue 3 data grid by declaring it as a class.
 
 [[toc]]

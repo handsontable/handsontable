@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Conditional formatting
-
 Format specified cells, based on dynamic conditions.
 
 [[toc]]

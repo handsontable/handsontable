@@ -18,9 +18,6 @@ angular:
 searchCategory: Guides
 category: Getting started
 ---
-
-# Saving data
-
 Save data after each change to the data set, using Handsontable's API hooks. Preserve the table's state by saving data to the local storage.
 
 [[toc]]

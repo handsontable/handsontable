@@ -24,9 +24,6 @@ angular:
 searchCategory: Guides
 category: Navigation
 ---
-
-# Keyboard shortcuts
-
 Access all Handsontable features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
 
 ## Overview

@@ -18,9 +18,6 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
-
-# Feedback Cell Type - Step-by-Step Guide (React)
-
 [[toc]]
 
 ## Overview

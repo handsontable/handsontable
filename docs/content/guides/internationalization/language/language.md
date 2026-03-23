@@ -21,9 +21,6 @@ searchCategory: Guides
 category: Internationalization
 menuTag: updated
 ---
-
-# Language
-
 Set Handsontable's UI language to one of the built-in translations, or create your own language set using our templates.
 
 [[toc]]

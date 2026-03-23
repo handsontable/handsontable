@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Language change in Vue 3
-
 Change the default language of the context menu from English to any of the built-in translations, using the `language` property.
 
 [[toc]]

@@ -19,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Getting started
 ---
-
-# Grid size
-
 Set the width and height of the grid, using either absolute values or values relative to the parent container.
 
 [[toc]]

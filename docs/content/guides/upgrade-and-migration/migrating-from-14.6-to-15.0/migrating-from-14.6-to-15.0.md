@@ -15,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 14.6 to 15.0
-
 Migrate from Handsontable 14.6 to Handsontable 15.0, released on December 16th, 2024.
 
 More information about this release can be found in the [`15.0.0` release blog post](https://handsontable.com/blog/handsontable-15.0.0-introducing-themes-and-functional-react-wrapper).<br/>

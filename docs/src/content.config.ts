@@ -12,7 +12,8 @@
  * VuePress-specific frontmatter fields are accepted via the schema extension so
  * existing .md files validate without modification.
  */
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 import { docsSchema } from '@astrojs/starlight/schema';
 import { fileURLToPath } from 'url';
 import { frameworkLoader } from './plugins/framework-loader.mjs';

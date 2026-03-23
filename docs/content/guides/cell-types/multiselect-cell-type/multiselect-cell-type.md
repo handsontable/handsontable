@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell types
 menuTag: new
 ---
-
-# MultiSelect cell type
-
 Collect user input with a list of multiple-selection choices, by using the MultiSelect cell type.
 
 [[toc]]

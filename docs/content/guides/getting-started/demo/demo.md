@@ -19,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Getting started
 ---
-
-# Demo
-
 Play around with a demo of Handsontable, in your favorite framework.
 
 [[toc]]

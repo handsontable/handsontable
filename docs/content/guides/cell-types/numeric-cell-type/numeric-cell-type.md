@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell types
 menuTag: updated
 ---
-
-# Numeric cell type
-
 Display, format, sort, and filter numbers correctly by using the numeric cell type.
 
 [[toc]]

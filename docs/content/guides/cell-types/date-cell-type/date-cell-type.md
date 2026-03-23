@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell types
 menuTag: updated
 ---
-
-# Date cell type
-
 Display, format, sort, and filter dates correctly by using the date cell type.
 
 [[toc]]

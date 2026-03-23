@@ -26,9 +26,6 @@ angular:
 searchCategory: Guides
 category: Accessibility
 ---
-
-# Accessibility
-
 Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by people with disabilities. 
 
 [[toc]]

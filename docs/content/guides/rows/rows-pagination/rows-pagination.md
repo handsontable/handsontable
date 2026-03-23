@@ -28,9 +28,6 @@ searchCategory: Guides
 category: Rows
 menuTag: updated
 ---
-
-# Rows pagination
-
 The pagination component splits the data into a range of pages, allowing users to easily navigate through large data sets.
 
 [[toc]]

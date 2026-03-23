@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Custom context menu example in Vue 3
-
 Customize the context menu of your Vue 3 data grid, by creating a custom function for each menu item.
 
 [[toc]]

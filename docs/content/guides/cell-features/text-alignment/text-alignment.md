@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Text alignment
-
 Align values within cells: horizontally (to the right, left, center, or by justifying them), and vertically (to the top, middle, or bottom of the cell).
 
 [[toc]]

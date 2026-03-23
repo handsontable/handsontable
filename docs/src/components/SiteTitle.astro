@@ -5,6 +5,8 @@
  * Renders the default site title followed by a framework switcher dropdown
  * that lets users switch between JavaScript, React, and Angular docs.
  * Switching preserves the current page path under the new framework prefix.
+ *
+ * Uses the same dropdown pattern as SupportDropdown and VersionsDropdown.
  */
 import Default from '@astrojs/starlight/components/SiteTitle.astro';
 
@@ -29,55 +31,144 @@ function switchUrl(targetPrefix: string): string {
 
   return `/docs/${targetPrefix}/`;
 }
+
+const currentLabel = frameworks.find(f => f.id === currentPrefix)!.label;
 ---
 <Default {...Astro.props} />
-<div class="framework-switcher">
-  <span class="framework-switcher__label">Framework:</span>
-  <div class="framework-switcher__dropdown">
+
+<div class="fw-dropdown">
+  <button
+    class="fw-trigger"
+    aria-haspopup="true"
+    aria-expanded="false"
+    id="fw-trigger"
+    type="button"
+  >
+    {currentLabel}
+    <svg class="fw-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+  </button>
+
+  <ul class="fw-menu" role="listbox" aria-labelledby="fw-trigger" hidden>
     {frameworks.map(f => (
-      <a
-        href={switchUrl(f.id)}
-        class:list={['framework-switcher__option', { 'framework-switcher__option--active': f.id === currentPrefix }]}
-      >
-        {f.label}
-      </a>
+      <li role="option" aria-selected={f.id === currentPrefix ? 'true' : 'false'}>
+        <a
+          href={switchUrl(f.id)}
+          class:list={['fw-item', { 'fw-item--active': f.id === currentPrefix }]}
+        >
+          {f.label}
+        </a>
+      </li>
     ))}
-  </div>
+  </ul>
 </div>
+
+<script is:inline>
+  (function() {
+    var wrapper = document.querySelector('.fw-dropdown');
+    var trigger = document.getElementById('fw-trigger');
+    var menu = document.querySelector('.fw-menu');
+
+    if (!wrapper || !trigger || !menu) return;
+
+    trigger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var isOpen = !menu.hidden;
+      menu.hidden = isOpen;
+      trigger.setAttribute('aria-expanded', String(!isOpen));
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!wrapper.contains(e.target)) {
+        menu.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !menu.hidden) {
+        menu.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.focus();
+      }
+    });
+  })();
+</script>
+
 <style>
-  .framework-switcher {
-    display: flex;
+  .fw-dropdown {
+    position: relative;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    margin-left: 1rem;
+    margin-inline-start: 1rem;
   }
 
-  .framework-switcher__label {
-    color: var(--sl-color-text-accent);
+  .fw-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: none;
+    border: none;
+    color: var(--sl-color-gray-2);
+    cursor: pointer;
+    font-size: var(--sl-text-sm);
+    font-weight: 500;
+    padding: 0.5rem 0.625rem;
+    transition: color 0.15s;
     white-space: nowrap;
   }
 
-  .framework-switcher__dropdown {
-    display: flex;
-    gap: 0.25rem;
-  }
-
-  .framework-switcher__option {
-    padding: 0.2rem 0.6rem;
-    border-radius: 4px;
-    text-decoration: none;
-    color: var(--sl-color-text);
-    border: 1px solid var(--sl-color-gray-5);
-  }
-
-  .framework-switcher__option:hover {
-    background: var(--sl-color-gray-6);
-  }
-
-  .framework-switcher__option--active {
-    background: var(--sl-color-accent);
+  .fw-trigger:hover {
     color: var(--sl-color-white);
-    border-color: var(--sl-color-accent);
+  }
+
+  .fw-chevron {
+    flex-shrink: 0;
+    margin-inline-start: 0.1rem;
+    transition: transform 0.15s;
+  }
+
+  .fw-trigger[aria-expanded='true'] .fw-chevron {
+    transform: rotate(180deg);
+  }
+
+  .fw-menu {
+    background: var(--sl-color-bg-nav);
+    border: 1px solid var(--sl-color-hairline-light);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    inset-inline-start: 0;
+    list-style: none;
+    margin: 0;
+    min-width: 9rem;
+    padding: 0.25rem 0;
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    z-index: 100;
+  }
+
+  .fw-menu[hidden] {
+    display: none;
+  }
+
+  .fw-item {
+    align-items: center;
+    color: var(--sl-color-text);
+    display: flex;
+    font-size: var(--sl-text-sm);
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    text-decoration: none;
+    transition: background 0.1s, color 0.1s;
+    white-space: nowrap;
+  }
+
+  .fw-item:hover {
+    background: var(--sl-color-bg-sidebar);
+    color: var(--sl-color-accent);
+  }
+
+  .fw-item--active {
+    color: var(--sl-color-accent);
+    font-weight: 700;
   }
 </style>

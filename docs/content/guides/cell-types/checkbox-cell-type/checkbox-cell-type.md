@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Cell types
 ---
-
-# Checkbox cell type
-
 Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
 
 [[toc]]

@@ -18,9 +18,6 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
-
-# Star Rating Cell Type - Step-by-Step Guide (React)
-
 [[toc]]
 
 ## Overview

@@ -18,9 +18,6 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Clipboard
-
 Copy data from selected cells to the system clipboard.
 
 [[toc]]

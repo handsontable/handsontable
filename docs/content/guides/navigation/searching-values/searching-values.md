@@ -18,9 +18,6 @@ angular:
 searchCategory: Guides
 category: Navigation
 ---
-
-# Searching values
-
 Search data across Handsontable, using the built-in API methods of the [`Search`](@/api/search.md) plugin, and implementing your own search UI.
 
 [[toc]]

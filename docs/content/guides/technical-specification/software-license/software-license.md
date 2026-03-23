@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Technical specification
 ---
-
-# Software license
-
 Learn about the licensing terms of the Handsontable data grid.
 
 [[toc]]

@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell functions
 menuTag: updated
 ---
-
-# Cell functions
-
 Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cells, using cell types.
 
 [[toc]]

@@ -19,9 +19,6 @@ searchCategory: Guides
 category: Tools and building
 menuTag: updated
 ---
-
-# Custom builds
-
 Handsontable's building process transforms the source files located in the code repository into dedicated packages.
 
 [[toc]]

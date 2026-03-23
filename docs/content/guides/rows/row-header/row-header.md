@@ -18,9 +18,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row headers
-
 Use default row headers (1, 2, 3), or set them to custom values provided by an array or a function.
 
 [[toc]]

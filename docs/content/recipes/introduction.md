@@ -13,9 +13,6 @@ angular:
   id: d2815b7b
   metaTitle: Recipes - Angular Data Grid | Handsontable
 ---
-
-# Handsontable Recipes
-
 **Developer recipes and step-by-step tutorials for building with Handsontable**
 
 ## About This Resource

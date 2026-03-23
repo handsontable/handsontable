@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell types
 menuTag: updated
 ---
-
-# Time cell type
-
 Display, format, sort, and filter time values correctly by using the time cell type. Edit times via the cell editor.
 
 [[toc]]

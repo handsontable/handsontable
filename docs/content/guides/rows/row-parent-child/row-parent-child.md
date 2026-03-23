@@ -23,9 +23,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row parent-child
-
 Reflect the parent-child relationship of your data, using the [`NestedRows`](@/api/nestedRows.md) plugin's interactive UI elements such as expand and collapse
 buttons or an extended context menu.
 

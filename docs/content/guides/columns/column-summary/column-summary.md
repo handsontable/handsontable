@@ -22,9 +22,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column summary
-
 Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
 
 [[toc]]

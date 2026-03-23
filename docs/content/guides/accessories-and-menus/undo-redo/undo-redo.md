@@ -22,9 +22,6 @@ angular:
 searchCategory: Guides
 category: Accessories and menus
 ---
-
-# Undo and redo
-
 Revert and restore your changes, using the undo and redo features.
 
 [[toc]]

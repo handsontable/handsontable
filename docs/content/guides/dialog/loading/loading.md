@@ -21,9 +21,6 @@ angular:
 searchCategory: Guides
 category: Dialog
 ---
-
-# Loading
-
 Display loading indicators and progress feedback in your data grid application using the Loading plugin.
 
 [[toc]]

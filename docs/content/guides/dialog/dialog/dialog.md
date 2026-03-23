@@ -21,9 +21,6 @@ angular:
 searchCategory: Guides
 category: Dialog
 ---
-
-# Dialog
-
 Display modal dialogs, alerts, loading indicators, and notifications to enhance user interaction and provide feedback in your data grid application.
 
 [[toc]]

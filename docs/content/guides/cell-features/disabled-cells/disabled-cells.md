@@ -20,9 +20,6 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Disabled cells
-
 Make specified cells read-only to protect them from unwanted changes but still allow navigation and copying of data.
 
 [[toc]]

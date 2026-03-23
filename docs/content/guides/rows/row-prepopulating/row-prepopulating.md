@@ -19,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row pre-populating
-
 Populate newly-added rows with predefined template values, using cell renderers.
 
 [[toc]]

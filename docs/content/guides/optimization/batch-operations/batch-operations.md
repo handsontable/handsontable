@@ -18,9 +18,6 @@ angular:
 searchCategory: Guides
 category: Optimization
 ---
-
-# Batch operations
-
 Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid's performance.
 
 [[toc]]

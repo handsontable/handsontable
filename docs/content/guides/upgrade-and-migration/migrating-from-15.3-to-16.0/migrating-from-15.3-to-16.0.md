@@ -15,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 15.3 to 16.0
-
 Migrate from Handsontable 15.3 to Handsontable 16.0, released on July 9, 2025.
 
 More information about this release can be found in the [`16.0.0` release blog post](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements).<br/>

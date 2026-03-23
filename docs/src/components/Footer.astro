@@ -132,8 +132,8 @@ const year = new Date().getFullYear();
   /* ── Footer bar ──────────────────────────────────────────────────────────── */
   .hot-footer {
     border-top: 1px solid var(--sl-color-hairline-light);
-    margin-block-start: 2rem;
-    padding-block: 1.5rem;
+    margin-block-start: 3rem;
+    padding-block: 2rem;
   }
 
   .hot-footer__inner {
@@ -163,11 +163,12 @@ const year = new Date().getFullYear();
     color: var(--sl-color-text-accent);
     display: inline-flex;
     padding: 0.15rem;
-    transition: color 0.15s;
+    transition: color 0.15s, transform 0.15s;
   }
 
   .hot-footer__icon-link:hover {
     color: var(--sl-color-accent);
+    transform: translateY(-1px);
   }
 
   /* Divider between social icons and text links */
@@ -189,15 +190,16 @@ const year = new Date().getFullYear();
   .hot-footer__nav a {
     border-radius: 4px;
     color: var(--sl-color-text-accent);
-    font-size: var(--sl-text-sm);
+    font-size: var(--sl-text-xs);
     padding: 0.2rem 0.5rem;
     text-decoration: none;
-    transition: color 0.15s;
+    transition: color 0.15s, background-color 0.15s;
     white-space: nowrap;
   }
 
   .hot-footer__nav a:hover {
     color: var(--sl-color-accent);
+    background-color: var(--sl-color-accent-low);
   }
 
   /* ── Status link & dot ───────────────────────────────────────────────────── */

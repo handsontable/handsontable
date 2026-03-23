@@ -19,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Cell types
 ---
-
-# Autocomplete cell type
-
 Collect user input with a list of choices, by using the autocomplete cell type.
 
 [[toc]]

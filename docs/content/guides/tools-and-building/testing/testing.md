@@ -22,9 +22,6 @@ searchCategory: Guides
 category: Tools and building
 menuTag: updated
 ---
-
-# Testing
-
 Run one or multiple tests, using Handsontable's ready-made commands for Jasmine and Puppeteer.
 
 [[toc]]

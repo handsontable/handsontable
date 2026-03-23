@@ -16,9 +16,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column hiding
-
 Hide individual columns to reduce screen clutter and improve the grid's performance.
 
 [[toc]]

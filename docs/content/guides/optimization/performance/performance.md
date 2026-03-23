@@ -16,9 +16,6 @@ angular:
 searchCategory: Guides
 category: Optimization
 ---
-
-# Performance
-
 Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 
 [[toc]]

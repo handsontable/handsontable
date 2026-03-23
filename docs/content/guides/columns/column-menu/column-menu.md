@@ -16,9 +16,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column menu
-
 Display a configurable dropdown menu, triggered by clicking on a button in a column header.
 
 [[toc]]

@@ -26,9 +26,6 @@ searchCategory: Guides
 category: Navigation
 menuTag: updated
 ---
-
-# Custom shortcuts
-
 Customize Handsontable's keyboard shortcuts.
 
 [[toc]]

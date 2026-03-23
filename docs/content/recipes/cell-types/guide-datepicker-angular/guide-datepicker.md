@@ -18,9 +18,6 @@ angular:
 searchCategory: Recipes
 category: Cells
 ---
-
-# Native Date Picker Cell - Step-by-Step Guide
-
 [[toc]]
 
 ## Overview

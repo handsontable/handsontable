@@ -20,9 +20,6 @@ searchCategory: Guides
 onlyFor: react
 category: Getting started
 ---
-
-# Instance methods
-
 Reference a Handsontable instance from within a React component, to programmatically perform actions such as selecting cells.
 
 [[toc]]

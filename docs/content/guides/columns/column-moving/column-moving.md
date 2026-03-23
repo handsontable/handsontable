@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column moving
-
 Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 
 [[toc]]

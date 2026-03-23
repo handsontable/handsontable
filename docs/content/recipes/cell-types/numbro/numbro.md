@@ -19,9 +19,6 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
-
-# Numbro Cell Type - Step-by-Step Guide
-
 [[toc]]
 
 ## Overview

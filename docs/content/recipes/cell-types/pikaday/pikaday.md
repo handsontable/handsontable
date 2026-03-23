@@ -18,9 +18,6 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
-
-# Pikaday Cell Type - Step-by-Step Guide
-
 [[toc]]
 
 ## Overview

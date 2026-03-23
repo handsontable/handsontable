@@ -22,10 +22,9 @@ const links = [
     id="support-trigger"
     type="button"
   >
+    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M15 15l3.35 3.35"/><path d="M9 15l-3.35 3.35"/><path d="M5.65 5.65l3.35 3.35"/><path d="M18.35 5.65l-3.35 3.35"/></svg>
     Support
-    <svg class="support-chevron" aria-hidden="true" width="10" height="6" viewBox="0 0 10 6">
-      <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
+    <svg class="support-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
   </button>
 
   <ul class="support-menu" role="menu" aria-labelledby="support-trigger" hidden>
@@ -39,9 +38,7 @@ const links = [
           rel="noopener noreferrer"
         >
           {label}
-          <svg aria-hidden="true" width="11" height="11" viewBox="0 0 11 11" fill="none">
-            <path d="M2 9L9 2M9 2H4M9 2v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg>
         </a>
       </li>
     ))}
@@ -87,22 +84,22 @@ const links = [
   .support-trigger {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.35rem;
     background: none;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    color: var(--sl-color-text);
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--sl-color-gray-2);
     cursor: pointer;
     font-size: var(--sl-text-sm);
-    font-weight: 600;
-    padding: 0.25rem 0.625rem;
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    padding-bottom: calc(0.5rem + 0.5rem);
     transition: color 0.15s, border-color 0.15s;
     white-space: nowrap;
   }
 
   .support-trigger:hover {
-    color: var(--sl-color-accent);
-    border-color: var(--sl-color-accent);
+    color: var(--sl-color-white);
   }
 
   .support-chevron {

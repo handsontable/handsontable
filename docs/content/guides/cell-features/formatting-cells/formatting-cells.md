@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Formatting cells
-
 Change the appearance of cells, using custom CSS classes, inline styles, or custom cell borders.
 
 [[toc]]

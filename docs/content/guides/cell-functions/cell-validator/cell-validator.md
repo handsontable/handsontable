@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Cell functions
 ---
-
-# Cell validator
-
 Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 
 [[toc]]

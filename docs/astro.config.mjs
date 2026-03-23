@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightThemeRapide from 'starlight-theme-rapide';
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { buildAllSidebars } from './src/sidebar.mjs';
@@ -252,8 +253,9 @@ export default defineConfig({
         'Handsontable is a JavaScript/TypeScript data grid component for React, Angular, and Vue 3.',
 
       logo: {
-        src: './src/assets/logo.svg',
-        replacesTitle: false,
+        light: './src/assets/logo.svg',
+        dark: './src/assets/logo-dark.svg',
+        replacesTitle: true,
       },
 
       favicon: '/img/favicon.png',
@@ -300,10 +302,11 @@ export default defineConfig({
         SiteTitle: './src/components/SiteTitle.astro',
       },
 
+      plugins: [starlightThemeRapide()],
+
       // Algolia DocSearch — install @astrojs/starlight-docsearch and add the
       // ALGOLIA_APP_ID / ALGOLIA_API_KEY / ALGOLIA_INDEX_NAME env vars.
       // https://starlight.astro.build/guides/site-search/#algolia-docsearch
-      // plugins: [starlightDocSearch({ appId: '...', apiKey: '...', indexName: '...' })],
 
       // Pagefind is used as default local search until Algolia is wired up.
     }),

@@ -18,9 +18,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column virtualization
-
 Render hundreds of columns without freezing the browser, using column virtualization.
 
 [[toc]]

@@ -11,7 +11,6 @@
  *    On recipe pages (/recipes/): show only the recipes sidebar.
  */
 import Default from '@astrojs/starlight/components/Sidebar.astro';
-import InfoBox from './InfoBox.astro';
 
 const pathname = Astro.url.pathname;
 
@@ -68,5 +67,4 @@ if (isRecipePage) {
   }
 }
 ---
-<InfoBox prefix={prefix} />
 <Default {...Astro.props} />

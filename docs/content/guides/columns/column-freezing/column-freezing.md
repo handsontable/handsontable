@@ -19,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column freezing
-
 Lock the position of specified columns, keeping them visible when scrolling.
 
 [[toc]]

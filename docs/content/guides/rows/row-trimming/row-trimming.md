@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row trimming
-
 Hide individual rows from your interface and exclude them from the rendering process and `DataMap`.
 
 [[toc]]

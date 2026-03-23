@@ -25,9 +25,6 @@ angular:
 searchCategory: Recipes
 category: Themes
 ---
-
-# Handsontable with shadcn/ui
-
 [[toc]]
 
 ## Overview

@@ -16,9 +16,6 @@ searchCategory: Guides
 category: Upgrade and migration
 menuTag: new
 ---
-
-# Migrate from 16.2 to 17.0
-
 Migrate from Handsontable 16.2 to Handsontable 17.0, released on March 09, 2025.
 
 More information about this release can be found in the [`17.0.0` release blog post](https://handsontable.com/blog/handsontable-17.0.0-multiselect-cell-type-simpler-custom-cells-and-a-new-themes-api).<br/>

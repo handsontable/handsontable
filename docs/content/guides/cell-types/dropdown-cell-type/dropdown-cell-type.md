@@ -19,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Cell types
 ---
-
-# Dropdown cell type
-
 Collect user input with a searchable list of choices, by using the dropdown cell type.
 
 [[toc]]

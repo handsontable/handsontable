@@ -18,9 +18,6 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
-
-# Flatpickr Cell Type - Step-by-Step Guide
-
 [[toc]]
 
 

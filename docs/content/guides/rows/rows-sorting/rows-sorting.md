@@ -33,9 +33,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Rows sorting
-
 Sort data alphabetically or numerically, in ascending, descending or a custom order, by one or multiple columns.
 
 [[toc]]

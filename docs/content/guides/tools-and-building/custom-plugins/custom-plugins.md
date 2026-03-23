@@ -19,9 +19,6 @@ searchCategory: Guides
 category: Tools and building
 menuTag: updated
 ---
-
-# Custom plugins
-
 Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
 
 [[toc]]

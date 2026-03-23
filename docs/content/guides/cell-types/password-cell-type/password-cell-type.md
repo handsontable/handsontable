@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Cell types
 ---
-
-# Password cell type
-
 Use the password cell type to mask confidential values by rendering entered characters as symbols.
 
 [[toc]]

@@ -103,9 +103,7 @@ const isLatest = currentMinor === latestVersion;
       )
       : buttonLabel
     }
-    <svg class="versions-chevron" aria-hidden="true" width="10" height="6" viewBox="0 0 10 6">
-      <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
+    <svg class="versions-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
   </button>
 
   <ul class="versions-menu" role="listbox" aria-labelledby="versions-trigger" hidden>
@@ -166,20 +164,18 @@ const isLatest = currentMinor === latestVersion;
     align-items: center;
     gap: 0.25rem;
     background: none;
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 4px;
-    color: var(--sl-color-text);
+    border: none;
+    color: var(--sl-color-gray-2);
     cursor: pointer;
     font-size: var(--sl-text-sm);
-    font-weight: 600;
-    padding: 0.25rem 0.5rem;
-    transition: color 0.15s, border-color 0.15s;
+    font-weight: 500;
+    padding: 0.5rem 0.625rem;
+    transition: color 0.15s;
     white-space: nowrap;
   }
 
   .versions-trigger:hover {
-    color: var(--sl-color-accent);
-    border-color: var(--sl-color-accent);
+    color: var(--sl-color-white);
   }
 
   .versions-trigger__version {
@@ -187,14 +183,17 @@ const isLatest = currentMinor === latestVersion;
   }
 
   .versions-tag {
-    background: var(--sl-color-accent);
-    border-radius: 3px;
-    color: var(--sl-color-white);
+    background: #41a167;
+    border: 1px solid #41a167;
+    border-radius: 99px;
+    color: #121316;
+    font-family: var(--sl-font-system, system-ui, sans-serif);
     font-size: 0.65rem;
-    font-weight: 700;
+    font-weight: 400;
     letter-spacing: 0.02em;
-    padding: 0.1rem 0.3rem;
-    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    text-transform: capitalize;
+    vertical-align: middle;
   }
 
   .versions-chevron {

@@ -715,8 +715,17 @@ export function frameworkLoader({ contentDir }) {
           try {
             data = await parseData({ id: 'index', data: frontmatter });
           } catch (err) {
-            logger.warn(`framework-loader: schema validation failed for index: ${err.message}`);
-            continue;
+            // Astro 6 / Zod 4 schema validation may fail during migration;
+            // fall back to raw frontmatter with Starlight-required defaults.
+            data = {
+              ...frontmatter,
+              head: frontmatter.head || [],
+              sidebar: frontmatter.sidebar || { hidden: false, attrs: {} },
+              template: frontmatter.template || 'doc',
+              editUrl: frontmatter.editUrl ?? true,
+              pagefind: frontmatter.pagefind ?? true,
+              draft: frontmatter.draft ?? false,
+            };
           }
 
           const rendered = await renderMarkdown(processedBody);
@@ -770,8 +779,17 @@ export function frameworkLoader({ contentDir }) {
           try {
             data = await parseData({ id, data: frontmatter });
           } catch (err) {
-            logger.warn(`framework-loader: schema validation failed for ${id}: ${err.message}`);
-            continue;
+            // Astro 6 / Zod 4 schema validation may fail during migration;
+            // fall back to raw frontmatter with Starlight-required defaults.
+            data = {
+              ...frontmatter,
+              head: frontmatter.head || [],
+              sidebar: frontmatter.sidebar || { hidden: false, attrs: {} },
+              template: frontmatter.template || 'doc',
+              editUrl: frontmatter.editUrl ?? true,
+              pagefind: frontmatter.pagefind ?? true,
+              draft: frontmatter.draft ?? false,
+            };
           }
 
           // Astro 5 content layer reads from entry.rendered.html, not entry.body.

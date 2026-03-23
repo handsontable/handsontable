@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row moving
-
 Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 
 [[toc]]

@@ -17,9 +17,6 @@ searchCategory: Guides
 category: Tools and building
 menuTag: updated
 ---
-
-# Modules
-
 Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
 
 [[toc]]

@@ -19,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Internationalization
 ---
-
-# Locale
-
 Configure Handsontable's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
 
 [[toc]]

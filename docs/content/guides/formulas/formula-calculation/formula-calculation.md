@@ -24,9 +24,6 @@ angular:
 searchCategory: Guides
 category: Formulas
 ---
-
-# Formula calculation
-
 Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400
 functions, custom functions, named expressions, and more.
 

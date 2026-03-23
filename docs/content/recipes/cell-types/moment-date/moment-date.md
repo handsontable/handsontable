@@ -20,9 +20,6 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
-
-# Moment.js date Cell Type - Step-by-Step Guide
-
 [[toc]]
 
 ## Overview

@@ -20,9 +20,6 @@ angular:
 searchCategory: Guides
 category: Internationalization
 ---
-
-# IME support
-
 Convert keystrokes to characters not available on the keyboard, using the Input Method Editor. This feature is always enabled and available for cell editors.
 
 [[toc]]

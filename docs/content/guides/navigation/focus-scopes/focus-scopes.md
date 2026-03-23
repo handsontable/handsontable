@@ -23,9 +23,6 @@ searchCategory: Guides
 category: Navigation
 menuTag: updated
 ---
-
-# Focus scopes
-
 Manage focus boundaries and keyboard shortcuts contexts with focus scopes.
 
 [[toc]]

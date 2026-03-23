@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Setting up a translation in Vue 3
-
 Configure your Vue 3 data grid with different number formats, depending on the specified language and culture.
 
 [[toc]]

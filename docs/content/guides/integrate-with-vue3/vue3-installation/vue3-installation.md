@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Installation in Vue 3
-
 Install Handsontable's Vue 3 wrapper via npm, import the stylesheets, and get your application up and running.
 
 [[toc]]

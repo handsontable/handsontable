@@ -35,6 +35,7 @@
     "react-redux": "^9.2.0",
     "react-star-rating-component": "^1.4.1",
     "redux": "^5.0.1",
+    "starlight-theme-rapide": "^0.5.2",
     "unist-util-visit": "^5.0.0",
     "vuex": "^4.1.0"
   },

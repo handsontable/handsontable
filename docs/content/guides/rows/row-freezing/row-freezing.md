@@ -18,9 +18,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row freezing
-
 Lock the position of specified rows, keeping them visible when scrolling.
 
 [[toc]]

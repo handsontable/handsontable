@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Security
 menuTag: updated
 ---
-
-# Security
-
 Learn about the security measures we take to make sure you can safely implement Handsontable in your client-side application.
 
 [[toc]]

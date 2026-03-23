@@ -18,9 +18,6 @@ angular:
 searchCategory: Recipes
 category: Cells
 ---
-
-# Feedback Editor Cell - Step-by-Step Guide (Angular)
-
 [[toc]]
 
 ## Overview

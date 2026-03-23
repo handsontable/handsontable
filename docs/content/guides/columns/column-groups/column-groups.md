@@ -19,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column groups
-
 Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
 
 [[toc]]

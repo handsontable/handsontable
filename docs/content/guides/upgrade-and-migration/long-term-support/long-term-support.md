@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Long Term Support (LTS)
-
 LTS (Long-Term Support) versions are Handsontable release lines that are maintained and supported for an extended period. 
 
 [[toc]]

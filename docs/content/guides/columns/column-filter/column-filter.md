@@ -28,9 +28,6 @@ searchCategory: Guides
 category: Columns
 menuTag: updated
 ---
-
-# Column filter
-
 Filter data by values or by a set of conditions, using Handsontable's intuitive user interface or
 flexible API.
 

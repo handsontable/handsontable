@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Getting started
 ---
-
-# License key
-
 Activate Handsontable, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 
 [[toc]]

@@ -9,9 +9,6 @@ searchCategory: Guides
 category: Tools and building
 menuTag: updated
 ---
-
-# Packages
-
 Instantly add Handsontable to your web app, using pre-built UMD packages of JavaScript and CSS.
 
 [[toc]]

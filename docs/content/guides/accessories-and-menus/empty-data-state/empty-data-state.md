@@ -21,9 +21,6 @@ angular:
 searchCategory: Guides
 category: Accessories and Menus
 ---
-
-# Empty Data State
-
 Display empty data state overlays and provide user feedback when your data grid has no data to display using the Empty Data State plugin.
 
 [[toc]]

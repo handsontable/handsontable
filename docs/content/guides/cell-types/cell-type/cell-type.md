@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Cell types
 ---
-
-# Cell type
-
 Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 
 [[toc]]

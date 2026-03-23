@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Cell types
 ---
-
-# Select cell type
-
 Use the select cell type to collect user input with an HTML `<select>` element that creates a multi-item dropdown list.
 
 [[toc]]

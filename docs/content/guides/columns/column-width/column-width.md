@@ -23,9 +23,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column widths
-
 Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable's interface.
 
 [[toc]]

@@ -1,11 +1,11 @@
 /**
  * Starlight custom CSS.
  *
- * Extends / overrides Starlight's default design tokens and adds styles for
+ * Extends the starlight-theme-rapide with Handsontable-specific styles for
  * VuePress-originated HTML patterns (source-code-link, table-container, etc.).
  *
- * Full theme migration (porting the Stylus design system tokens) is a Phase 2
- * task. This file covers only the minimum needed for correct rendering.
+ * Color theming is handled by starlight-theme-rapide. Only the accent hue is
+ * overridden here to match Handsontable's brand blue.
  */
 
 /* -------------------------------------------------------------------------
@@ -25,10 +25,11 @@
   --sl-color-accent-low:  #1a3a6b;
   --sl-color-accent:      #4d8ff5;
   --sl-color-accent-high: #a8c8ff;
-
   --sl-font: 'Inter', system-ui, -apple-system, sans-serif;
   --sl-text-base: 1rem;
   --sl-line-height: 1.7;
+  --sl-nav-height: 6rem;
+  --sl-content-gap-y: 1.25rem;
 }
 
 /* Light mode accent colours */
@@ -36,6 +37,57 @@
   --sl-color-accent-low:  #e6f3ff;
   --sl-color-accent:      #1565c0;
   --sl-color-accent-high: #0d47a1;
+}
+
+/* Search button: fill wrapper + lighter background to stand out */
+@media (min-width: 50rem) {
+  button[data-open-modal] {
+    max-width: 100%;
+    background-color: var(--sl-color-gray-6) !important;
+    border-color: var(--sl-color-gray-4) !important;
+  }
+}
+
+/* Constrain logo height in the header */
+.site-title img {
+  max-height: 24px;
+  width: auto;
+}
+
+/* Allow two-row header to size naturally instead of fixed height */
+header.header {
+  height: auto !important;
+  padding-block: 0.5rem;
+}
+
+/* Align sidebar and TOC tops */
+.sidebar-pane,
+starlight-toc nav {
+  padding-top: 0 !important;
+}
+
+/* Custom scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sl-color-gray-4) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--sl-color-gray-4);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--sl-color-gray-3);
 }
 
 /* -------------------------------------------------------------------------
@@ -70,15 +122,27 @@
 }
 
 /* -------------------------------------------------------------------------
- * VuePress boxes-list pattern used in introduction and other pages
+ * Card-style link grid used on introduction and other pages.
+ * Markdown inside the div generates <ul><li>, so target those too.
  * ------------------------------------------------------------------------- */
-.boxes-list {
+.boxes-list,
+.boxes-list ul {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
   list-style: none;
   padding: 0;
+  margin: 0;
+}
+
+.boxes-list {
   margin-block: 1.5rem;
+}
+
+.boxes-list li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .boxes-list a {
@@ -86,17 +150,19 @@
   align-items: center;
   gap: 0.5em;
   padding: 0.5em 1em;
-  border: 1px solid var(--sl-color-gray-3);
+  border: 1px solid var(--sl-color-hairline-light);
   border-radius: 6px;
   text-decoration: none;
   font-weight: 500;
-  color: var(--sl-color-gray-6);
-  transition: border-color 0.15s, background-color 0.15s;
+  color: var(--sl-color-text);
+  background: var(--sl-color-bg-nav);
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
 }
 
 .boxes-list a:hover {
   border-color: var(--sl-color-accent);
   background-color: var(--sl-color-accent-low);
+  color: var(--sl-color-accent);
 }
 
 /* -------------------------------------------------------------------------
@@ -138,56 +204,224 @@
 }
 
 /* -------------------------------------------------------------------------
+ * Handsontable grid demo containers — remove default content margins
+ * and prevent Starlight's content-gap leak into grid internals.
+ * ------------------------------------------------------------------------- */
+.ht-grid {
+  margin: 0;
+}
+
+.sl-markdown-content .handsontable :not(a, strong, em, del, span, input, code, br) + :not(a, strong, em, del, span, input, code, br, :where(.not-content *)) {
+  margin-top: 0;
+}
+
+/* -------------------------------------------------------------------------
  * Code block enhancements
  * ------------------------------------------------------------------------- */
 .sl-markdown-content pre {
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 /* -------------------------------------------------------------------------
  * Sidebar menu-tag badges  (menuTag: new | updated in frontmatter)
  *
  * Starlight renders these as .sl-badge.success / .sl-badge.caution.
- * Override to use sans-serif (matches the VuePress tag style) and tighten
- * the padding so they sit neatly next to the link label.
+ * Badge colours are handled by starlight-theme-rapide. Only size and
+ * layout adjustments for the sidebar context are applied here.
  * ------------------------------------------------------------------------- */
-:root {
-  /* "New" — green */
-  --sl-badge-success-border: #27ae60;
-  --sl-badge-success-bg:     #eafaf1;
-  --sl-badge-success-text:   #1a7a42;
-
-  /* "Updated" — amber */
-  --sl-badge-caution-border: #e67e22;
-  --sl-badge-caution-bg:     #fef5e7;
-  --sl-badge-caution-text:   #9a5000;
-}
-
-[data-theme='dark']:root {
-  --sl-badge-success-bg:   #1a3d2b;
-  --sl-badge-success-text: #6fcf97;
-
-  --sl-badge-caution-bg:   #3d2800;
-  --sl-badge-caution-text: #f6ad55;
-}
 
 /* Compact pill style inside the sidebar */
 .sidebar-content .sl-badge {
   font-family: var(--sl-font-system, system-ui, sans-serif);
   font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  padding: 0.1rem 0.35rem;
-  border-radius: 3px;
+  font-weight: 400;
+  text-transform: capitalize;
+  padding: 0.15rem 0.5rem;
+  border-radius: 99px;
   vertical-align: middle;
   margin-inline-start: 0.35rem;
   flex-shrink: 0;
+  border: 1px solid transparent;
 }
 
-/* When on the active page the badge outline mirrors the link colour */
+/* Green filled badge (success = "Updated" / "New") */
+.sidebar-content .sl-badge.success,
+.sidebar-content .sl-badge.caution {
+  --sl-color-bg-badge: #41a167;
+  --sl-color-border-badge: #41a167;
+  color: #121316;
+}
+
+/* When on the active page keep the green badge style */
 .sidebar-content a[aria-current='page'] > .sl-badge {
-  --sl-color-bg-badge:     transparent;
-  --sl-color-border-badge: currentColor;
-  color: inherit;
+  --sl-color-bg-badge: #41a167;
+  --sl-color-border-badge: #41a167;
+  color: #121316;
+}
+
+/* -------------------------------------------------------------------------
+ * Active sidebar link & TOC link — white text + blue accent bar
+ * ------------------------------------------------------------------------- */
+.sidebar-pane a[aria-current='page'] {
+  color: #fff !important;
+  border-color: #2856ea !important;
+}
+
+.sidebar-pane ul ul li:has(> a[aria-current='page']) {
+  border-inline-start-color: #2856ea !important;
+}
+
+/* Match TOC link color to sidebar link color (both use gray-2) */
+.right-sidebar-panel :where(a) {
+  color: var(--sl-color-gray-2);
+}
+
+starlight-toc a[aria-current='true'] {
+  color: #fff !important;
+  border-color: #2856ea !important;
+}
+
+/* -------------------------------------------------------------------------
+ * Typography & heading polish
+ * ------------------------------------------------------------------------- */
+.sl-markdown-content h1 {
+  letter-spacing: -0.02em;
+}
+
+.sl-markdown-content h2 {
+  letter-spacing: -0.01em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+}
+
+.sl-markdown-content h3 {
+  letter-spacing: -0.005em;
+}
+
+/* -------------------------------------------------------------------------
+ * Content links — clean underline on hover only
+ * ------------------------------------------------------------------------- */
+.sl-markdown-content a:not(.source-code-link):not(.boxes-list a):not(:where(.not-content *)) {
+  text-decoration: none;
+  text-underline-offset: 0.2em;
+}
+
+.sl-markdown-content a:not(.source-code-link):not(.boxes-list a):not(:where(.not-content *)):hover {
+  text-decoration: underline;
+  text-decoration-color: var(--sl-color-accent);
+}
+
+/* -------------------------------------------------------------------------
+ * Code block refinements
+ * ------------------------------------------------------------------------- */
+.sl-markdown-content pre {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.sl-markdown-content :not(pre) > code:not(:where(.not-content *)) {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 4px;
+}
+
+/* -------------------------------------------------------------------------
+ * Markdown tables — scoped re-styling
+ *
+ * Revert Starlight styles ONLY inside Handsontable grid containers so
+ * the grid renders correctly. Then apply clean table styles for
+ * documentation tables.
+ * ------------------------------------------------------------------------- */
+.table-container table,
+.sl-markdown-content > table:not(:where(.not-content *)) {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-container th:not(:where(.not-content *)),
+.sl-markdown-content > table:not(:where(.not-content *)) th {
+  text-transform: uppercase;
+  font-size: var(--sl-text-xs);
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid var(--sl-color-gray-4);
+  padding: 0.625rem 1rem;
+  text-align: start;
+}
+
+.table-container td:not(:where(.not-content *)),
+.sl-markdown-content > table:not(:where(.not-content *)) td {
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  padding: 0.625rem 1rem;
+}
+
+.table-container tr:nth-child(2n):not(:where(.not-content *)),
+.sl-markdown-content > table:not(:where(.not-content *)) tr:nth-child(2n) {
+  background-color: var(--sl-color-gray-7, var(--sl-color-gray-6));
+}
+
+/* -------------------------------------------------------------------------
+ * Sidebar group headings — small-caps labels
+ * ------------------------------------------------------------------------- */
+.sidebar-pane summary .large {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sl-color-gray-3);
+  transition: color 0.15s;
+}
+
+.sidebar-pane summary:hover .large {
+  color: var(--sl-color-white);
+}
+
+.sidebar-content {
+  scroll-behavior: smooth;
+}
+
+/* -------------------------------------------------------------------------
+ * Prev/Next pagination cards — lift on hover
+ * ------------------------------------------------------------------------- */
+.pagination-links a {
+  border-radius: 10px;
+  padding: 1.25rem;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.pagination-links a:hover {
+  border-color: var(--sl-color-gray-3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+/* -------------------------------------------------------------------------
+ * Asides / callouts — card-like feel
+ * ------------------------------------------------------------------------- */
+.starlight-aside {
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+/* -------------------------------------------------------------------------
+ * Micro-interactions & polish
+ * ------------------------------------------------------------------------- */
+::selection {
+  background-color: rgba(40, 86, 234, 0.2);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+
+.sl-markdown-content img:not(:where(.not-content *)) {
+  border-radius: 8px;
+  border: 1px solid var(--sl-color-gray-5);
 }

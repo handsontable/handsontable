@@ -25,9 +25,6 @@ angular:
 searchCategory: Guides
 category: Internationalization
 ---
-
-# Layout direction
-
 Set the layout direction for right-to-left languages. Automatically inherit your HTML file's `dir` property, or set the layout direction manually.
 
 [[toc]]

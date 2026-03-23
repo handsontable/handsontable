@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Cell types
 ---
-
-# Handsontable cell type
-
 Add a spreadsheet editor in a popup, by using the Handsontable cell type.
 
 [[toc]]

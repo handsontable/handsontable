@@ -18,9 +18,6 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
-
-# Color Picker Cell - Step-by-Step Guide
-
 [[toc]]
 
 ## Overview

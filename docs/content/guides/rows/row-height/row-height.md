@@ -25,9 +25,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row heights
-
 Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
 
 [[toc]]

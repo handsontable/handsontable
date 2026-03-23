@@ -17,9 +17,6 @@ searchCategory: Guides
 category: Getting started
 menuTag: updated
 ---
-
-# Installation
-
 ::: only-for angular
 
 Install Handsontable through your preferred package manager, and control your grid through the `HotTableComponent` props.

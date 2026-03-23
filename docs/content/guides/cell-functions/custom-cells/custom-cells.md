@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell functions
 menuTag: new
 ---
-
-# Simplified Custom Cell Definitions
-
 [[toc]]
 
 ## Overview
