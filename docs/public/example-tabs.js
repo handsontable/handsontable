@@ -161,14 +161,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var cssFile = findFile(userFiles, '.css');
 
-    // Entry point imports Handsontable CSS then re-exports the example code.
-    // This lets Vite bundle the CSS via npm rather than serving node_modules
-    // as static files (which the 'javascript' StackBlitz template cannot do).
+    // Entry point re-exports the example code.
+    // Handsontable CSS is loaded via a CDN <link> in index.html to avoid
+    // Vite 8 / rolldown strict exports-field resolution for CSS files.
     var mainJs = [
-      'import "handsontable/dist/handsontable.full.min.css";',
       cssFile ? 'import "./styles.css";' : '',
       'import "./index.js";',
     ].filter(Boolean).join('\n');
+
+    var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
     var html = [
       '<!DOCTYPE html>',
@@ -177,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <meta charset="UTF-8" />',
       '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
       '  <title>Handsontable Example</title>',
+      '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
       '  <style>body { padding: 1rem; font-family: sans-serif; }</style>',
       '</head>',
       '<body>',
@@ -235,11 +237,12 @@ document.addEventListener('DOMContentLoaded', function () {
       'import React from "react";',
       'import { createRoot } from "react-dom/client";',
       'import App from "./App";',
-      'import "handsontable/dist/handsontable.full.min.css";',
       '',
       'const root = createRoot(document.getElementById("' + exampleId + '"));',
       'root.render(React.createElement(App));',
     ].join('\n');
+
+    var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
     var html = [
       '<!DOCTYPE html>',
@@ -248,6 +251,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <meta charset="UTF-8" />',
       '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
       '  <title>Handsontable React Example</title>',
+      '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
       '</head>',
       '<body>',
       '  <div id="' + exampleId + '"></div>',
@@ -298,10 +302,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var main = [
       'import { createApp } from "vue";',
       'import App from "./App.js";',
-      'import "handsontable/dist/handsontable.full.min.css";',
       '',
       'createApp(App).mount("#' + exampleId + '");',
     ].join('\n');
+
+    var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
     var html = [
       '<!DOCTYPE html>',
@@ -310,6 +315,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <meta charset="UTF-8" />',
       '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
       '  <title>Handsontable Vue Example</title>',
+      '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
       '</head>',
       '<body>',
       '  <div id="' + exampleId + '"></div>',
