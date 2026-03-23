@@ -73,6 +73,7 @@ export type Settings = ExportFileSettings;
 export class ExportFile extends BasePlugin {
   constructor(hotInstance: Core);
   isEnabled(): boolean;
+  supportsExportFormat(format: Formats): boolean;
   exportAsString(format: Formats, options?: ExportOptions): string;
   exportAsBlob(format: Formats, options?: ExportOptions): Blob;
   exportAsBlobAsync(format: Formats, options?: ExportOptions): Promise<Blob>;

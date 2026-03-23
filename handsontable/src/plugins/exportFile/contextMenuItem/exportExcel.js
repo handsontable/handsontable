@@ -1,7 +1,5 @@
-import { isObject } from '../../../helpers/object';
 import { error } from '../../../helpers/console';
 import { CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX } from '../../../i18n/constants';
-import { PLUGIN_KEY } from '../exportFile';
 import { getExportOptions } from './utils';
 
 /**
@@ -29,9 +27,7 @@ export default function exportExcelItem(exportFilePlugin) {
       });
     },
     hidden() {
-      const settings = this.getSettings()[PLUGIN_KEY];
-
-      return !(isObject(settings) && settings.engine);
+      return !exportFilePlugin.supportsExportFormat('xlsx');
     },
   };
 }

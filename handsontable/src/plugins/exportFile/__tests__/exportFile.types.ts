@@ -149,6 +149,11 @@ async function testDownloadFileAsync(): Promise<void> {
   await exportPlugin.downloadFileAsync('csv');
 }
 
+// ─── supportsExportFormat ─────────────────────────────────────────────────
+
+const supportsXlsx: boolean = exportPlugin.supportsExportFormat('xlsx');
+const supportsCsv: boolean = exportPlugin.supportsExportFormat('csv');
+
 // ─── exportAsBlobAsync ────────────────────────────────────────────────────
 
 const asyncCsvBlob: Promise<Blob> = exportPlugin.exportAsBlobAsync('csv');

@@ -455,6 +455,31 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
+   * Returns `true` when the plugin can produce an export in the given format.
+   *
+   * For text-based formats such as `'csv'`, no extra setup is required and the
+   * method always returns `true`.
+   * For binary formats such as `'xlsx'`, the method returns `true` only when an
+   * ExcelJS engine has been provided in the plugin settings.
+   *
+   * @param {string} format Export format — `'csv'` or `'xlsx'`.
+   * @returns {boolean}
+   */
+  supportsExportFormat(format) {
+    if (!EXPORT_TYPES[format]) {
+      return false;
+    }
+
+    if (format === 'xlsx') {
+      const settings = this.hot.getSettings()[PLUGIN_KEY];
+
+      return isObject(settings) && Boolean(settings.engine);
+    }
+
+    return true;
+  }
+
+  /**
    * Creates and returns a class formatter for the specified export type.
    *
    * The `engine` option from the plugin's global settings is merged as a default

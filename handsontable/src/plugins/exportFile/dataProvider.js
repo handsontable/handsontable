@@ -44,14 +44,14 @@ class DataProvider {
     const data = [];
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
-      if (!options.exportHiddenRows && this._isHiddenRow(rowIndex)) {
+      if (options.exportHiddenRows === false && this._isHiddenRow(rowIndex)) {
         continue;
       }
 
       const row = [];
 
       for (let colIndex = startCol; colIndex <= endCol; colIndex++) {
-        if (!options.exportHiddenColumns && this._isHiddenColumn(colIndex)) {
+        if (options.exportHiddenColumns === false && this._isHiddenColumn(colIndex)) {
           continue;
         }
         row.push(getCellValue(rowIndex, colIndex));
@@ -85,7 +85,7 @@ class DataProvider {
       const rowHeaders = this.hot.getRowHeader();
 
       for (let row = startRow; row <= endRow; row++) {
-        if (!this.options.exportHiddenRows && this._isHiddenRow(row)) {
+        if (this.options.exportHiddenRows === false && this._isHiddenRow(row)) {
           continue;
         }
         headers.push(rowHeaders[row]);
@@ -108,7 +108,7 @@ class DataProvider {
       const colHeaders = this.hot.getColHeader();
 
       for (let column = startCol; column <= endCol; column++) {
-        if (!this.options.exportHiddenColumns && this._isHiddenColumn(column)) {
+        if (this.options.exportHiddenColumns === false && this._isHiddenColumn(column)) {
           continue;
         }
         headers.push(colHeaders[column]);
@@ -166,7 +166,7 @@ class DataProvider {
   getExcludedHiddenRows() {
     const result = new Set();
 
-    if (this.options.exportHiddenRows) {
+    if (this.options.exportHiddenRows !== false) {
       return result;
     }
 
@@ -197,7 +197,7 @@ class DataProvider {
   getExcludedHiddenColumns() {
     const result = new Set();
 
-    if (this.options.exportHiddenColumns) {
+    if (this.options.exportHiddenColumns !== false) {
       return result;
     }
 
@@ -336,8 +336,8 @@ class DataProvider {
 
     const mergedCells = mergeCellsPlugin.mergedCellsCollection.mergedCells;
     const result = [];
-    const excludeHiddenRows = !this.options.exportHiddenRows;
-    const excludeHiddenCols = !this.options.exportHiddenColumns;
+    const excludeHiddenRows = this.options.exportHiddenRows === false;
+    const excludeHiddenCols = this.options.exportHiddenColumns === false;
     const rowIncluded = r => !excludeHiddenRows || !this._isHiddenRow(r);
     const colIncluded = c => !excludeHiddenCols || !this._isHiddenColumn(c);
 
@@ -393,7 +393,7 @@ class DataProvider {
     const widths = [];
 
     for (let colIndex = startCol; colIndex <= endCol; colIndex++) {
-      if (!options.exportHiddenColumns && this._isHiddenColumn(colIndex)) {
+      if (options.exportHiddenColumns === false && this._isHiddenColumn(colIndex)) {
         continue;
       }
 
@@ -424,7 +424,7 @@ class DataProvider {
     const heights = [];
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
-      if (!options.exportHiddenRows && this._isHiddenRow(rowIndex)) {
+      if (options.exportHiddenRows === false && this._isHiddenRow(rowIndex)) {
         continue;
       }
 
