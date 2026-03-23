@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '@angular-devkit/build-angular':     '21.x',
         '@angular/cli':                      '21.x',
         '@angular/compiler-cli':             '21.x',
-        typescript:                          '~5.7.2',
+        typescript:                          '~5.9.0',
       },
       extraDeps,
     );
