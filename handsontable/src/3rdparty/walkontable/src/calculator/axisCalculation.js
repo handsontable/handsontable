@@ -35,7 +35,7 @@ export function calculateAxis(context, {
 
   let startIndex = 0;
 
-  if (zeroBasedScrollOffset > 0 && totalCount > 0 && positionCache.isBuilt()) {
+  if (zeroBasedScrollOffset > 0 && totalCount > 0) {
     const cachedIndex = positionCache.findIndexAtOffset(zeroBasedScrollOffset);
 
     startIndex = Math.max(0, cachedIndex - skipMargin);
@@ -61,10 +61,8 @@ export function calculateAxis(context, {
     }
   }
 
-  if (startIndex > 0 && positionCache.isBuilt()) {
-    for (let i = 0; i < startIndex; i++) {
-      context.startPositions[i] = positionCache.getOffset(i);
-    }
+  for (let i = 0; i < startIndex; i++) {
+    context.startPositions[i] = positionCache.getOffset(i);
   }
 
   context._finalize(context);

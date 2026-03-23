@@ -154,6 +154,59 @@ describe('PositionCache', () => {
     });
   });
 
+  describe('markDirty', () => {
+    it('should trigger a rebuild on the next ensureBuilt call', () => {
+      const cache = new PositionCache();
+
+      cache.ensureBuilt(3, () => 10, 10);
+
+      expect(cache.getSizeAt(0)).toBe(10);
+
+      cache.markDirty();
+
+      // Cache is still readable while dirty (stale but usable)
+      expect(cache.isBuilt()).toBe(true);
+      expect(cache.getSizeAt(0)).toBe(10);
+
+      const sizeFn = jest.fn(() => 25);
+
+      cache.ensureBuilt(3, sizeFn, 25);
+
+      // Should have rebuilt with the new sizeFn
+      expect(sizeFn).toHaveBeenCalledTimes(3);
+      expect(cache.getSizeAt(0)).toBe(25);
+    });
+
+    it('should not trigger a rebuild if markDirty was not called', () => {
+      const cache = new PositionCache();
+
+      cache.ensureBuilt(3, () => 10, 10);
+
+      const sizeFn = jest.fn(() => 25);
+
+      cache.ensureBuilt(3, sizeFn, 25);
+
+      expect(sizeFn).not.toHaveBeenCalled();
+      expect(cache.getSizeAt(0)).toBe(10);
+    });
+
+    it('should clear the dirty flag after rebuild', () => {
+      const cache = new PositionCache();
+
+      cache.ensureBuilt(3, () => 10, 10);
+      cache.markDirty();
+      cache.ensureBuilt(3, () => 20, 20);
+
+      // Second ensureBuilt should not rebuild (dirty was cleared)
+      const sizeFn = jest.fn(() => 30);
+
+      cache.ensureBuilt(3, sizeFn, 30);
+
+      expect(sizeFn).not.toHaveBeenCalled();
+      expect(cache.getSizeAt(0)).toBe(20);
+    });
+  });
+
   describe('invalidate', () => {
     it('should clear the cache', () => {
       const cache = new PositionCache();
@@ -166,6 +219,28 @@ describe('PositionCache', () => {
       expect(cache.getSizeAt(0)).toBe(0);
       expect(cache.getOffset(1)).toBe(0);
       expect(cache.getTotalSize()).toBe(0);
+    });
+
+    it('should clear the dirty flag', () => {
+      const cache = new PositionCache();
+
+      cache.ensureBuilt(3, () => 10, 10);
+      cache.markDirty();
+      cache.invalidate();
+
+      // After invalidate + ensureBuilt, the dirty flag should not cause
+      // an extra rebuild beyond the one triggered by !isBuilt()
+      const sizeFn = jest.fn(() => 20);
+
+      cache.ensureBuilt(3, sizeFn, 20);
+
+      expect(sizeFn).toHaveBeenCalledTimes(3);
+
+      const sizeFn2 = jest.fn(() => 30);
+
+      cache.ensureBuilt(3, sizeFn2, 30);
+
+      expect(sizeFn2).not.toHaveBeenCalled();
     });
   });
 });

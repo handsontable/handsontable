@@ -1,6 +1,5 @@
 import {
   ViewportRowsCalculator,
-  DEFAULT_ROW_HEIGHT,
   RenderedRowsCalculationType,
   FullyVisibleRowsCalculationType,
   PartiallyVisibleRowsCalculationType,
@@ -15,13 +14,12 @@ function createViewportRowsCalculator(options) {
   const {
     totalRows = 0,
     rowHeightFn = () => NaN,
-    defaultRowHeight = DEFAULT_ROW_HEIGHT,
     ...rest
   } = options;
 
   const cache = new PositionCache();
 
-  cache.build(totalRows, rowHeightFn, defaultRowHeight);
+  cache.build(totalRows, rowHeightFn, 0);
 
   return new ViewportRowsCalculator({
     ...rest,

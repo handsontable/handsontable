@@ -444,6 +444,23 @@ class TableView {
   }
 
   /**
+   * Registers hooks that invalidate the Walkontable viewport position caches
+   * when row heights or column widths change. This enables targeted cache
+   * invalidation instead of blanket rebuilds on every full draw.
+   */
+  #registerCacheInvalidationHooks() {
+    this.hot.addHook('afterRowResize', () => {
+      this._wt.wtViewport.invalidateRowHeightCache();
+    });
+    this.hot.addHook('afterColumnResize', () => {
+      this._wt.wtViewport.invalidateColumnWidthCache();
+    });
+    this.hot.addHook('afterUpdateSettings', () => {
+      this._wt.wtViewport.invalidateAllCaches();
+    });
+  }
+
+  /**
    * Translate renderable cell coordinates to visual coordinates.
    *
    * @param {CellCoords} coords The cell coordinates.
@@ -1244,6 +1261,8 @@ class TableView {
 
     this._wt = new Walkontable(walkontableConfig);
     this.activeWt = this._wt;
+
+    this.#registerCacheInvalidationHooks();
 
     const spreader = this._wt.wtTable.spreader;
     // We have to cache width and height after Walkontable initialization.

@@ -429,18 +429,6 @@ class Viewport {
   createCalculators(fastDraw = false) {
     const { wtSettings } = this;
 
-    // Invalidate size caches on non-fast draws (triggered by data changes,
-    // updateSettings, or the scroll-idle deferred draw). This ensures the caches
-    // rebuild with fresh sizes from markOversizedRows or new settings.
-    if (!fastDraw) {
-      if (this.rowHeightCache.isBuilt()) {
-        this.rowHeightCache.invalidate();
-      }
-      if (this.columnWidthCache.isBuilt()) {
-        this.columnWidthCache.invalidate();
-      }
-    }
-
     const rowsCalculator = this.createRowsCalculator();
     const columnsCalculator = this.createColumnsCalculator();
 
@@ -618,6 +606,30 @@ class Viewport {
     }
 
     return true;
+  }
+
+  /**
+   * Marks the row height position cache as stale. The cache will be rebuilt
+   * on the next viewport calculation.
+   */
+  invalidateRowHeightCache() {
+    this.rowHeightCache.markDirty();
+  }
+
+  /**
+   * Marks the column width position cache as stale. The cache will be rebuilt
+   * on the next viewport calculation.
+   */
+  invalidateColumnWidthCache() {
+    this.columnWidthCache.markDirty();
+  }
+
+  /**
+   * Marks both the row height and column width position caches as stale.
+   */
+  invalidateAllCaches() {
+    this.rowHeightCache.markDirty();
+    this.columnWidthCache.markDirty();
   }
 
   /**

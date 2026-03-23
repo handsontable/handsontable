@@ -297,6 +297,7 @@ class Table {
     if (this.isMaster) {
       wtOverlays.beforeDraw();
       this.holderOffset = offset(this.holder);
+
       runFastDraw = wtViewport.createCalculators(runFastDraw);
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
@@ -777,6 +778,9 @@ class Table {
       return;
     }
 
+    const { wtViewport } = this.dataAccessObject;
+    let hasChanges = false;
+
     while (rowCount) {
       rowCount -= 1;
       sourceRowIndex = this.rowFilter.renderedToSource(rowCount);
@@ -802,8 +806,13 @@ class Table {
           rowCurrentHeight += 1;
         }
 
-        this.dataAccessObject.wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;
+        wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;
+        hasChanges = true;
       }
+    }
+
+    if (hasChanges) {
+      wtViewport.rowHeightCache.markDirty();
     }
   }
 

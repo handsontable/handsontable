@@ -535,6 +535,7 @@ class Overlays {
     if (this.destroyed) {
       return;
     }
+
     const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
     const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
@@ -558,7 +559,6 @@ class Overlays {
 
     this.horizontalScrolling = this.lastScrollX !== scrollX;
     this.verticalScrolling = this.lastScrollY !== scrollY;
-
     this.lastScrollX = scrollX;
     this.lastScrollY = scrollY;
 

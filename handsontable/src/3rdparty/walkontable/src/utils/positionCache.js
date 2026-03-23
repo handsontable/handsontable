@@ -12,13 +12,25 @@
  */
 export class PositionCache {
   /**
+   * The prefix sum array. Contains the cumulative size of all items up to the index.
+   *
    * @type {Float64Array|null}
    */
   prefixSum = null;
   /**
+   * The total number of items (rows or columns).
+   *
    * @type {number}
    */
   totalItems = 0;
+  /**
+   * When `true`, the cache is stale and will be rebuilt on the next
+   * {@link PositionCache#ensureBuilt} call. Unlike {@link PositionCache#invalidate},
+   * the existing prefix sum stays available for lookups until the rebuild happens.
+   *
+   * @type {boolean}
+   */
+  #dirty = false;
 
   /**
    * Builds the prefix sum from a size function.
@@ -107,8 +119,9 @@ export class PositionCache {
    * @param {number} defaultSize The default size for items that return NaN/undefined.
    */
   ensureBuilt(totalItems, sizeFn, defaultSize) {
-    if (!this.isBuilt() || this.totalItems !== totalItems) {
+    if (!this.isBuilt() || this.totalItems !== totalItems || this.#dirty) {
       this.build(totalItems, sizeFn, defaultSize);
+      this.#dirty = false;
     }
   }
 
@@ -126,11 +139,22 @@ export class PositionCache {
   }
 
   /**
-   * Invalidates the cache.
+   * Marks the cache as stale so it will be rebuilt on the next
+   * {@link PositionCache#ensureBuilt} call. The existing prefix sum remains
+   * available for lookups until the rebuild, avoiding the cost of a full
+   * invalidation when sizes change between draws.
+   */
+  markDirty() {
+    this.#dirty = true;
+  }
+
+  /**
+   * Invalidates the cache, clearing the prefix sum immediately.
    */
   invalidate() {
     this.prefixSum = null;
     this.totalItems = 0;
+    this.#dirty = false;
   }
 
   /**

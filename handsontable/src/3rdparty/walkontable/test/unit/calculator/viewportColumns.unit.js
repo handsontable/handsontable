@@ -1,6 +1,5 @@
 import {
   ViewportColumnsCalculator,
-  DEFAULT_COLUMN_WIDTH,
   RenderedColumnsCalculationType,
   FullyVisibleColumnsCalculationType,
   PartiallyVisibleColumnsCalculationType,
@@ -20,7 +19,7 @@ function createViewportColumnsCalculator(options) {
 
   const cache = new PositionCache();
 
-  cache.build(totalColumns, columnWidthFn, DEFAULT_COLUMN_WIDTH);
+  cache.build(totalColumns, columnWidthFn, 0);
 
   return new ViewportColumnsCalculator({
     ...rest,
