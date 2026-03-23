@@ -481,11 +481,16 @@ export class NestedHeaders extends BasePlugin {
     if (isNestedHeadersRange) {
       const columnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
       const focusHighlight = this.hot.selection.highlight.getFocus();
+      const focusVisualCellRange = focusHighlight.visualCellRange;
+
+      if (focusVisualCellRange === null) {
+        return;
+      }
 
       // Correct the highlight/focus selection to highlight the correct TH element
-      focusHighlight.visualCellRange.highlight.col = columnIndex;
-      focusHighlight.visualCellRange.from.col = columnIndex;
-      focusHighlight.visualCellRange.to.col = columnIndex;
+      focusVisualCellRange.highlight.col = columnIndex;
+      focusVisualCellRange.from.col = columnIndex;
+      focusVisualCellRange.to.col = columnIndex;
       focusHighlight.commit();
     }
   }
