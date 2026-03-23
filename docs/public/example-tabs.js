@@ -388,6 +388,17 @@ document.addEventListener('DOMContentLoaded', function () {
     var selector  = extractAngularSelector(componentCode);
     var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
+    // The component import in app.module.ts was inside /* start:skip-in-compilation */
+    // so it was stripped. Re-inject it so declarations/bootstrap resolve correctly.
+    if (moduleCode) {
+      var classNameMatch = componentCode.match(/export\s+class\s+(\w+)/);
+      var compClassName  = classNameMatch ? classNameMatch[1] : null;
+
+      if (compClassName) {
+        moduleCode = "import { " + compClassName + " } from './app.component';\n" + moduleCode;
+      }
+    }
+
     var deps = Object.assign(
       {
         handsontable:                        hotVersion,
