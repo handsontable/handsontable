@@ -234,23 +234,17 @@ class Xlsx extends BaseType {
       );
     }
 
-    // Pre-scan: only touch cell.protection when the sheet actually has cells that
-    // should be locked in the exported file.
+    // Pre-scan: only write cell.protection when the sheet actually contains cells
+    // that should be locked in Excel. Two reasons to skip it entirely:
     //
-    // When a ColumnSummary plugin is present, its destination cells (and any
-    // surrounding label cells the user marks readOnly) are readOnly only to prevent
-    // in-grid editing — not to restrict editing in Excel. Locking those cells in Excel
-    // only makes sense when they are exported as live formulas (exportFormulas: true),
-    // so the lock protects the formula from accidental overwriting.
+    // 1. When ColumnSummary is active, its destination cells (and any adjacent label
+    //    cells marked readOnly) are readOnly only to prevent in-grid editing. Locking
+    //    those cells in Excel surprises users and adds no value, so protection is
+    //    suppressed whenever ColumnSummary is present.
     //
-    // Setting protection on every cell (even { locked: false }) causes ExcelJS to
-    // initialise font/fill/border to sentinel values on those cells, which would
-    // break assertions in tests and add noise to the exported file.
-    // When a ColumnSummary plugin is active, its destination cells (and any
-    // accompanying label cells the user marks readOnly) are readOnly only to prevent
-    // in-grid editing. Whether exported as static values or live formulas, locking
-    // those cells in Excel adds no value and surprises users, so protection is
-    // suppressed entirely whenever ColumnSummary is present.
+    // 2. Setting protection on every cell — even { locked: false } — causes ExcelJS to
+    //    initialise font/fill/border to sentinel values, which adds noise to the file
+    //    and breaks styling assertions in tests.
     const hasColumnSummary = summaryMap.size > 0;
     const hasReadOnlyCells = !hasColumnSummary &&
       cellsMeta.some(row => row.some(meta => meta.readOnly === true));
