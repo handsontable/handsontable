@@ -2,17 +2,11 @@
 import { Config, Context } from '@netlify/edge-functions';
 
 export default async(req: Request, context: Context) => {
-  const major = parseInt(context.params['0'], 10);
-
-  if (major >= 16) {
-    return context.next();
-  }
-
   const url = new URL('/docs/javascript-data-grid/', req.url);
 
   return Response.redirect(url, 301);
 };
 
 export const config: Config = {
-  path: '/docs/(\\d+).(\\d+)/angular-data-grid(/.*)?'
+  path: '/docs/(15\\.3|15\\.2|15\\.1|15\\.0|14\\.6|14\\.5|14\\.4|14\\.3|14\\.2|14\\.1|14\\.0|13\\.1|13\\.0|12\\.4|12\\.3|12\\.2|12\\.1|12\\.0|11\\.1|11\\.0|10\\.0|9\\.0)/angular-data-grid(/.*)?'
 };
