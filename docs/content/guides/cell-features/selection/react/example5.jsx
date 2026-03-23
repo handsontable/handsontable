@@ -7,7 +7,6 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-
   const selectCell = () => {
     // Select a single cell: row 1, col 1 (B2)
     hotRef.current?.hotInstance?.selectCell(1, 1);

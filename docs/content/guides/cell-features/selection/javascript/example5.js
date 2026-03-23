@@ -29,12 +29,10 @@ document.querySelector('#select-cell').addEventListener('click', () => {
   // Select a single cell: row 1, col 1 (B2)
   hot.selectCell(1, 1);
 });
-
 document.querySelector('#select-range').addEventListener('click', () => {
   // Select a range: row 1, col 1 to row 3, col 3 (B2:D4)
   hot.selectCell(1, 1, 3, 3);
 });
-
 document.querySelector('#deselect').addEventListener('click', () => {
   hot.deselectCell();
 });
