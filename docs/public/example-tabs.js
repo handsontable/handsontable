@@ -214,6 +214,8 @@ document.addEventListener('DOMContentLoaded', function () {
         '@handsontable/react-wrapper': hotVersion,
         react:                     '18.x',
         'react-dom':               '18.x',
+        vite:                      'latest',
+        '@vitejs/plugin-react':    'latest',
       },
       extraDeps,
     );
@@ -280,6 +282,8 @@ document.addEventListener('DOMContentLoaded', function () {
         handsontable:         hotVersion,
         '@handsontable/vue3': hotVersion,
         vue:                  '3.x',
+        vite:                 'latest',
+        '@vitejs/plugin-vue': 'latest',
       },
       extraDeps,
     );
