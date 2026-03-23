@@ -1017,4 +1017,33 @@ describe('Core_view', () => {
 
     expect(wtHiderWidth).toEqual(htCoreWidth);
   });
+
+  it.forTheme('main')('should not clip long column headers on first render when nestedRows is enabled', async() => {
+    const nestedData = [
+      {
+        id: 1,
+        name: 'father 1 231312321',
+        __children: [
+          {
+            id: 2,
+            name: 'Child 1.1',
+          },
+        ]
+      },
+    ];
+
+    handsontable({
+      data: nestedData,
+      themeName: 'ht-theme-main',
+      colHeaders: ['ID', 'Name Name Name Name'],
+      nestedRows: true,
+      rowHeaders: true
+    });
+
+    await sleep(100);
+
+    const headerCell = getCell(-1, 1);
+
+    expect(headerCell.clientWidth).toBeGreaterThanOrEqual(headerCell.scrollWidth);
+  });
 });
