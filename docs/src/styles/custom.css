@@ -43,7 +43,7 @@
 @media (min-width: 50rem) {
   button[data-open-modal] {
     max-width: 100%;
-    background-color: var(--sl-color-gray-5) !important;
+    background-color: var(--sl-color-gray-6) !important;
     border: none !important;
   }
 }
@@ -61,9 +61,18 @@ header.header {
 }
 
 /* Align sidebar and TOC tops */
-.sidebar-pane,
+.sidebar-pane {
+  padding-top: 0 !important;
+}
+
 starlight-toc nav {
   padding-top: 0 !important;
+}
+
+/* Push TOC down so "On this page" aligns with content below the breadcrumb/button row */
+starlight-toc {
+  display: block !important;
+  padding-top: 2rem !important;
 }
 
 /* Right sidebar — match header height */
@@ -247,6 +256,157 @@ starlight-toc nav {
   border: none;
 }
 
+/* Terminal code block header — remove background and border */
+.expressive-code .frame.is-terminal .header {
+  background: none;
+  border: none;
+}
+
+/* Copy button in code blocks — match the "Copy Markdown" action button style */
+.expressive-code .copy button {
+  background-color: var(--sl-color-gray-6);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+
+.expressive-code figure:hover .copy button {
+  opacity: 1;
+}
+
+.expressive-code .copy button div {
+  background: none;
+  opacity: 0;
+}
+
+.expressive-code .copy button::before {
+  border: none;
+}
+
+.expressive-code .copy button:hover {
+  border-color: var(--sl-color-gray-4);
+}
+
+/* Hide EC's "Copied!" text feedback */
+.expressive-code .copy .feedback {
+  display: none !important;
+}
+
+/* Swap copy icon → checkmark after clicking */
+.expressive-code .copy button.copied::after {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  background-color: #41a167;
+}
+
+/* Keep copied button visible even without hover */
+.expressive-code .copy button.copied {
+  opacity: 1;
+}
+
+/* -------------------------------------------------------------------------
+ * FileTree — unscoped replica of Starlight's FileTree.astro CSS.
+ * The built-in component CSS is scoped with :where(.astro-*) and won't
+ * match elements produced by our rehype plugin. Including the same rules
+ * in @layer starlight.components keeps the correct cascade order so the
+ * starlight-theme-rapide overrides still win.
+ * ------------------------------------------------------------------------- */
+@layer starlight.components {
+  starlight-file-tree {
+    --x-space: 1.5rem;
+    --y-space: 0.125rem;
+    --y-pad: 0;
+    display: block;
+    border: 1px solid var(--sl-color-gray-5);
+    padding: 1rem;
+    background-color: var(--sl-color-gray-6);
+    font-size: var(--sl-text-xs);
+    font-family: var(--__sl-font-mono);
+    overflow-x: auto;
+  }
+
+  starlight-file-tree .directory > details {
+    border: 0;
+    padding: 0;
+    padding-inline-start: var(--x-space);
+    background: transparent;
+  }
+
+  starlight-file-tree .directory > details > summary {
+    margin-inline-start: calc(-1 * var(--x-space));
+    border: 0;
+    padding: var(--y-pad) 0.625rem;
+    font-weight: normal;
+    color: var(--sl-color-white);
+    max-width: 100%;
+  }
+
+  starlight-file-tree .directory > details > summary::marker,
+  starlight-file-tree .directory > details > summary::-webkit-details-marker {
+    color: var(--sl-color-gray-3);
+  }
+
+  starlight-file-tree .directory > details > summary:hover,
+  starlight-file-tree .directory > details > summary:hover .tree-icon {
+    cursor: pointer;
+    color: var(--sl-color-text-accent);
+    fill: currentColor;
+  }
+
+  starlight-file-tree .directory > details > summary:hover ~ ul {
+    border-color: var(--sl-color-gray-4);
+  }
+
+  starlight-file-tree ul {
+    margin-inline-start: 0.5rem;
+    border-inline-start: 1px solid var(--sl-color-gray-5);
+    padding: 0;
+    padding-inline-start: 0.125rem;
+    list-style: none;
+  }
+
+  starlight-file-tree > ul {
+    margin: 0;
+    border: 0;
+    padding: 0;
+  }
+
+  starlight-file-tree li {
+    margin: var(--y-space) 0;
+    padding: var(--y-pad) 0;
+  }
+
+  starlight-file-tree .file {
+    margin-inline-start: calc(var(--x-space) - 0.125rem);
+    color: var(--sl-color-white);
+  }
+
+  starlight-file-tree .tree-entry {
+    display: inline-flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    max-width: calc(100% - 1rem);
+  }
+
+  @media (min-width: 30em) {
+    starlight-file-tree .tree-entry {
+      flex-wrap: nowrap;
+    }
+  }
+
+  starlight-file-tree .tree-entry > :first-child {
+    flex-shrink: 0;
+  }
+
+  starlight-file-tree .comment {
+    color: var(--sl-color-gray-3);
+    padding-inline-start: 1.625rem;
+    max-width: 24rem;
+    min-width: 12rem;
+  }
+}
+
 /* -------------------------------------------------------------------------
  * Code group tabs (npm / Yarn / pnpm)
  *
@@ -363,6 +523,12 @@ starlight-toc nav {
 .sidebar-pane a[aria-current='page'] {
   color: #fff !important;
   border-color: #2856ea !important;
+  font-weight: 400 !important;
+}
+
+/* Main nav active link — no bold */
+nav[aria-label="Main navigation"] a[aria-current='page'] {
+  font-weight: 500 !important;
 }
 
 .sidebar-pane ul ul li:has(> a[aria-current='page']) {
@@ -377,6 +543,7 @@ starlight-toc nav {
 /* Match TOC link color to sidebar link color (both use gray-2) */
 .right-sidebar-panel :where(a) {
   color: var(--sl-color-gray-2);
+  line-height: 1.5;
 }
 
 starlight-toc a[aria-current='true'] {
@@ -535,7 +702,6 @@ html {
 
 .sl-markdown-content img:not(:where(.not-content *)) {
   border-radius: 8px;
-  border: 1px solid var(--sl-color-gray-5);
 }
 
 /* Theme-aware images: show light variant in light mode, dark in dark mode */

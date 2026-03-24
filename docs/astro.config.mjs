@@ -4,6 +4,7 @@ import starlightThemeRapide from 'starlight-theme-rapide';
 import starlightPageActions from 'starlight-page-actions';
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
+import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { buildAllSidebars } from './src/sidebar.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -432,6 +433,8 @@ export default defineConfig({
     rehypePlugins: [
       // Wraps <table> in a scrollable div (mirrors markdown-it-table-wrapper).
       rehypeTableWrapper,
+      // Styles numbered h2 headings (e.g., "1. Title") as step indicators.
+      rehypeMigrationSteps,
     ],
     shikiConfig: {
       // Mirrors the VuePress highlight.js colour scheme.

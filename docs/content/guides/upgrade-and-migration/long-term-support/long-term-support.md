@@ -30,7 +30,7 @@ Major releases occur once every 6 months. Even-numbered releases (`16.0.0`, `18.
 
 Each LTS release line begins as the **Current** release for the first 6 months to allow for stabilization. After 6 months, when the next major version ships, it transitions to **Active LTS** status. This ensures thoroughly tested code enters long-term support, providing enterprise users with maximum stability.
 
-::: tip
+::: note
 
 Dates below are offered as general guidance and are subject to change.
 
@@ -38,13 +38,13 @@ Dates below are offered as general guidance and are subject to change.
 
 <span class="img-light">
 
-![design_system_light](/docs/img/lts-light.svg)
+![LTS release schedule](/img/lts-light.svg)
 
 </span>
 
 <span class="img-dark">
 
-![design_system_dark](/docs/img/lts-dark.svg)
+![LTS release schedule](/img/lts-dark.svg)
 
 </span>
 

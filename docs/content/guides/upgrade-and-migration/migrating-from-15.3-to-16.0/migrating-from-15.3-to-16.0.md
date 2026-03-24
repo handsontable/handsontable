@@ -30,32 +30,48 @@ Here's a side-by-side comparison of the old and new DOM structures:
 
 Old DOM structure:
 
-```
-body
-├── #example.ht-wrapper.handsontable // Root Container/Element
-│   ├── .htFocusCatcher // Focus Catcher (top)
-│   ├── Data grid content
-│   └── .htFocusCatcher // Focus Catcher (down)
-├── .hot-display-license-info // License key notification bar
-└── Context menus, dropdowns, pop-ups, sidebars
-    (absolutely positioned elements)
-```
+<div class="dom-tree not-content">
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>body</span></span></summary>
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>#example.ht-wrapper.handsontable</span> <span class="comment">Root Container/Element</span></span></summary>
+<ul>
+<li class="file"><span class="tree-entry"><span>.htFocusCatcher</span> <span class="comment">Focus Catcher (top)</span></span></li>
+<li class="file"><span class="tree-entry"><span>Data grid content</span></span></li>
+<li class="file"><span class="tree-entry"><span>.htFocusCatcher</span> <span class="comment">Focus Catcher (down)</span></span></li>
+</ul></details></li>
+<li class="file"><span class="tree-entry"><span>.hot-display-license-info</span> <span class="comment">License key notification bar</span></span></li>
+<li class="file"><span class="tree-entry"><span>Context menus, dropdowns, pop-ups, sidebars</span> <span class="comment">absolutely positioned elements</span></span></li>
+</ul></details></li>
+</ul>
+</div>
 
 New DOM structure:
 
-```
-body
-├── #example // Root Wrapper
-│    └── .ht-root-wrapper // Root Element
-│        ├── .htFocusCatcher // Focus Catcher (top)
-│        ├── .ht-wrapper.handsontable // Root Container
-│        │   └── Data grid content
-│        ├── .htFocusCatcher // Focus Catcher (down)
-│        └── .hot-display-license-info // License key notification bar
-└── .ht-portal // Portal Element
-    └── Context menus, dropdowns, pop-ups, sidebars
-        (absolutely positioned elements)
-```
+<div class="dom-tree not-content">
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>body</span></span></summary>
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>#example</span> <span class="comment">Root Wrapper</span></span></summary>
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>.ht-root-wrapper</span> <span class="comment">Root Element</span></span></summary>
+<ul>
+<li class="file"><span class="tree-entry"><span>.htFocusCatcher</span> <span class="comment">Focus Catcher (top)</span></span></li>
+<li class="directory"><details open><summary><span class="tree-entry"><span>.ht-wrapper.handsontable</span> <span class="comment">Root Container</span></span></summary>
+<ul>
+<li class="file"><span class="tree-entry"><span>Data grid content</span></span></li>
+</ul></details></li>
+<li class="file"><span class="tree-entry"><span>.htFocusCatcher</span> <span class="comment">Focus Catcher (down)</span></span></li>
+<li class="file"><span class="tree-entry"><span>.hot-display-license-info</span> <span class="comment">License key notification bar</span></span></li>
+</ul></details></li>
+</ul></details></li>
+<li class="directory"><details open><summary><span class="tree-entry"><span>.ht-portal</span> <span class="comment">Portal Element</span></span></summary>
+<ul>
+<li class="file"><span class="tree-entry"><span>Context menus, dropdowns, pop-ups, sidebars</span> <span class="comment">absolutely positioned elements</span></span></li>
+</ul></details></li>
+</ul></details></li>
+</ul>
+</div>
 
 ### Key changes
 - Root Wrapper: User-provided div is now used as a container for the new DOM structure

@@ -517,9 +517,69 @@ function convertSourceCodeLinks(content) {
 }
 
 /**
+ * Replaces emoji check/cross characters with inline SVG icons in rendered HTML.
+ * Mutates the `rendered` object returned by `renderMarkdown()`.
+ *
+ * @param {{ html: string }} rendered
+ */
+function postProcessRenderedHtml(rendered) {
+  if (!rendered?.html) return;
+
+  const checkSvg = '<svg style="display:inline;vertical-align:middle" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#1565c0"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const crossSvg = '<svg style="display:inline;vertical-align:middle" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#9ca3af"/><path d="M7 7l6 6M13 7l-6 6" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>';
+
+  rendered.html = rendered.html
+    .replace(/\u2705/g, checkSvg)   // ✅
+    .replace(/\u274C/g, crossSvg);  // ❌
+}
+
+/**
  * Transforms `<div class="boxes-list">` blocks with markdown lists into
  * Starlight-styled card grid HTML.
  *
+ * @param {string} content
+ * @returns {string}
+ */
+function convertAsideBlocks(content) {
+  const typeMap = { tip: 'tip', warning: 'caution', danger: 'danger', note: 'note' };
+  const defaultTitles = { tip: 'Tip', caution: 'Caution', danger: 'Danger', note: 'Note' };
+
+  const lines = content.split('\n');
+  const result = [];
+  let asideType = null;
+  let asideTitle = null;
+  let asideBody = [];
+
+  for (const line of lines) {
+    if (!asideType) {
+      const m = line.match(/^:::\s+(tip|warning|danger|note)(?:\s+(.+))?$/);
+
+      if (m) {
+        asideType = typeMap[m[1]];
+        asideTitle = m[2] || defaultTitles[asideType];
+        asideBody = [];
+        continue;
+      }
+      result.push(line);
+    } else if (/^:::\s*$/.test(line)) {
+      const body = asideBody.join('\n').trim();
+
+      result.push(`<aside class="starlight-aside starlight-aside--${asideType}" aria-label="${asideTitle}">`);
+      result.push(`<p class="starlight-aside__title" aria-hidden="true">${asideTitle}</p>`);
+      result.push(`<div class="starlight-aside__content"><p>${body}</p></div>`);
+      result.push('</aside>');
+      asideType = null;
+      asideTitle = null;
+      asideBody = [];
+    } else {
+      asideBody.push(line);
+    }
+  }
+
+  return result.join('\n');
+}
+
+/**
  * @param {string} content
  * @returns {string}
  */
@@ -715,19 +775,10 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
   // Remove [[toc]] (Starlight renders ToC automatically)
   result = result.replace(/^\s*\[\[\s*toc\s*\]\]\s*$/gm, '');
 
-  // Convert VuePress tip/warning/danger/note containers to Starlight aside syntax
-  result = result.replace(/^::: tip(?:\s+(.+))?$/gm, (_, label) =>
-    label ? `:::tip[${label}]` : ':::tip'
-  );
-  result = result.replace(/^::: warning(?:\s+(.+))?$/gm, (_, label) =>
-    label ? `:::caution[${label}]` : ':::caution'
-  );
-  result = result.replace(/^::: danger(?:\s+(.+))?$/gm, (_, label) =>
-    label ? `:::danger[${label}]` : ':::danger'
-  );
-  result = result.replace(/^::: note(?:\s+(.+))?$/gm, (_, label) =>
-    label ? `:::note[${label}]` : ':::note'
-  );
+  // Convert VuePress tip/warning/danger/note containers to HTML asides.
+  // renderMarkdown() lacks Starlight's remark-directive plugin, so we emit
+  // raw HTML that matches the Starlight aside structure.
+  result = convertAsideBlocks(result);
 
   // Convert <code-group>/<code-block> VuePress tabs to HTML tabs
   result = convertCodeGroupToTabs(result);
@@ -758,6 +809,13 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
 
   // Transform <div class="boxes-list"> into Starlight-styled card grid HTML
   result = convertBoxesListToCardGrid(result);
+
+  // Prepend /docs base path to markdown image srcs starting with /img/
+  // (renderMarkdown does not apply Astro's base-path rewriting)
+  result = result.replace(/!\[([^\]]*)\]\((\/img\/)/g, '![$1](/docs$2');
+
+  // Also fix raw HTML <img src="/img/..."> inside markdown
+  result = result.replace(/(<img\s[^>]*src=["'])(\/img\/)/g, '$1/docs$2');
 
   return result;
 }
@@ -832,6 +890,7 @@ export function frameworkLoader({ contentDir }) {
           }
 
           const rendered = await renderMarkdown(processedBody);
+          postProcessRenderedHtml(rendered);
 
           store.set({
             id: 'index',
@@ -899,6 +958,7 @@ export function frameworkLoader({ contentDir }) {
           // Pre-render the processed markdown here so Starlight's page template
           // gets actual HTML content.
           const rendered = await renderMarkdown(processedBody);
+          postProcessRenderedHtml(rendered);
 
           store.set({
             id,

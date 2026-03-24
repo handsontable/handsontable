@@ -11,6 +11,19 @@ import Default from '@astrojs/starlight/components/Head.astro';
 
 <Default {...Astro.props} />
 
+<link rel="icon" media="(prefers-color-scheme: light)" href="/docs/img/favicon.png" />
+<link rel="icon" media="(prefers-color-scheme: dark)" href="/docs/img/favicon-dark.png" />
+
 <script>
   import '../scripts/example-runner';
+</script>
+
+<script>
+  // Code block copy button: swap icon to checkmark after copying (matches Copy Markdown UX).
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.expressive-code .copy button');
+    if (!btn) return;
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 3000);
+  });
 </script>
