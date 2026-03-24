@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed compatibility for the MultiSelect cell type name by supporting both `multiselect` and `multiSelect`.",
+  "type": "fixed",
+  "issueOrPR": 12116,
+  "breaking": false,
+  "framework": "none"
+}
