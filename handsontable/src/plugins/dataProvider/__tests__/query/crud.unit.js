@@ -1,6 +1,6 @@
 import {
   DATA_PROVIDER_ERROR_UPDATE_MISSING_ROW_ID,
-} from '../constants';
+} from '../../constants';
 import {
   commitRowsUpdate as commitRowsUpdateImpl,
   enqueueMutation,
@@ -13,7 +13,7 @@ import {
   runManualUpdateRowsMutation,
   runUpdateFromChanges,
   shouldIgnoreAfterChangeForServerUpdate,
-} from '../crud';
+} from '../../query/crud';
 
 describe('dataProvider crud', () => {
   describe('getRowIdFromRowData', () => {

@@ -10,71 +10,14 @@ describe('DataProvider with conflicting options', () => {
     }
   });
 
-  it('should warn and disable trimRows when dataProvider is enabled', async() => {
+  it('should keep incompatible plugins disabled when dataProvider is enabled', async() => {
     spyOn(console, 'warn');
 
     handsontable({
       data: [],
       trimRows: true,
-      dataProvider: createDataProviderConfig({
-        fetchRows: () => Promise.resolve({ rows: [], totalRows: 0 }),
-      }),
-    });
-
-    await sleep(50);
-
-    // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/trimRows.*incompatible with.*dataProvider/i)
-    );
-    expect(getPlugin('trimRows').enabled).toBe(false);
-  });
-
-  it('should warn and disable manualRowMove when dataProvider is enabled', async() => {
-    spyOn(console, 'warn');
-
-    handsontable({
-      data: [],
       manualRowMove: true,
-      dataProvider: createDataProviderConfig({
-        fetchRows: () => Promise.resolve({ rows: [], totalRows: 0 }),
-      }),
-    });
-
-    await sleep(50);
-
-    // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/manualRowMove.*incompatible with.*dataProvider/i)
-    );
-    expect(getPlugin('manualRowMove').enabled).toBe(false);
-  });
-
-  it('should warn and disable manualColumnMove when dataProvider is enabled', async() => {
-    spyOn(console, 'warn');
-
-    handsontable({
-      data: [],
       manualColumnMove: true,
-      dataProvider: createDataProviderConfig({
-        fetchRows: () => Promise.resolve({ rows: [], totalRows: 0 }),
-      }),
-    });
-
-    await sleep(50);
-
-    // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/manualColumnMove.*incompatible with.*dataProvider/i)
-    );
-    expect(getPlugin('manualColumnMove').enabled).toBe(false);
-  });
-
-  it('should warn and disable multiColumnSorting when dataProvider is enabled', async() => {
-    spyOn(console, 'warn');
-
-    handsontable({
-      data: [],
       multiColumnSorting: true,
       dataProvider: createDataProviderConfig({
         fetchRows: () => Promise.resolve({ rows: [], totalRows: 0 }),
@@ -83,14 +26,31 @@ describe('DataProvider with conflicting options', () => {
 
     await sleep(50);
 
+    expect(getPlugin('dataProvider').enabled).toBe(true);
+    expect(getPlugin('trimRows').enabled).toBe(false);
+    expect(getPlugin('manualRowMove').enabled).toBe(false);
+    expect(getPlugin('manualColumnMove').enabled).toBe(false);
+    expect(getPlugin('multiColumnSorting').enabled).toBe(false);
+
     // eslint-disable-next-line no-console
     expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/multiColumnSorting.*incompatible with.*dataProvider/i)
+      jasmine.stringMatching(/trimRows.*not compatible.*dataProvider/i)
     );
-    expect(getPlugin('multiColumnSorting').enabled).toBe(false);
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledWith(
+      jasmine.stringMatching(/manualRowMove.*not compatible.*dataProvider/i)
+    );
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledWith(
+      jasmine.stringMatching(/manualColumnMove.*not compatible.*dataProvider/i)
+    );
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledWith(
+      jasmine.stringMatching(/multiColumnSorting.*not compatible.*dataProvider/i)
+    );
   });
 
-  it('should re-disable incompatible plugins after updateSettings enables them', async() => {
+  it('should keep incompatible plugins disabled when updateSettings turns them on with dataProvider', async() => {
     spyOn(console, 'warn');
 
     handsontable({
@@ -102,15 +62,27 @@ describe('DataProvider with conflicting options', () => {
 
     await sleep(50);
 
-    getPlugin('trimRows').enablePlugin();
-    await render();
+    expect(getPlugin('dataProvider').enabled).toBe(true);
+    expect(getPlugin('trimRows').enabled).toBe(false);
+    expect(getPlugin('manualRowMove').enabled).toBe(false);
 
-    expect(getPlugin('trimRows').enabled).toBe(true);
-
-    await updateSettings({ trimRows: true });
+    await updateSettings({
+      trimRows: true,
+      manualRowMove: true,
+    });
 
     await sleep(50);
 
     expect(getPlugin('trimRows').enabled).toBe(false);
+    expect(getPlugin('manualRowMove').enabled).toBe(false);
+
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledWith(
+      jasmine.stringMatching(/trimRows.*not compatible.*dataProvider/i)
+    );
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledWith(
+      jasmine.stringMatching(/manualRowMove.*not compatible.*dataProvider/i)
+    );
   });
 });

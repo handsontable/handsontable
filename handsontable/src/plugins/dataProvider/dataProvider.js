@@ -6,7 +6,6 @@ import {
   ABORT_REASON_MESSAGE,
   DATA_PROVIDER_ERROR_REMOVE_ROWS_MISSING_ID,
   DATA_PROVIDER_ERROR_UPDATE_ROWS_MISSING_ID,
-  DATA_PROVIDER_AFTER_UPDATE_SETTINGS_ORDER,
   DEFAULT_PAGE_SIZE,
   INITIAL_QUERY_PARAMETERS,
   PLUGIN_KEY,
@@ -27,13 +26,12 @@ import {
   runManualUpdateRowsMutation,
   runUpdateFromChanges,
   shouldIgnoreAfterChangeForServerUpdate,
-} from './crud';
+} from './query/crud';
 import {
-  captureFilterConditionsSnapshot,
+  applyFiltersFromFiltersPluginToQueryParameters,
   cloneDataProviderFiltersPayload,
   conditionsStackToFiltersPayload,
-  restoreFilterConditionsFromSnapshot,
-} from './filtering';
+} from './query/filtering';
 import {
   applyLoadedPaginationStateFromFetch,
   applyPaginationToQueryFromPlugin,
@@ -42,15 +40,14 @@ import {
   handleAfterPageSizeChangeExternalPagination,
   paginationExternalDataSourceActive,
   paginationTotalItemCount,
-} from './pagination';
+} from './query/pagination';
 import {
   applyColumnSortToQueryFromPlugin,
   handleBeforeColumnSortForServer,
   normalizeSortInFetchParams,
   syncColumnSortingStateFromQuerySort,
-} from './sorting';
+} from './query/sorting';
 import {
-  disablePluginsIncompatibleWithDataProvider,
   getDataProviderRequestErrorDescription,
   getIncompleteDataProviderWarningMessage,
   isCompleteDataProviderConfig,
@@ -99,7 +96,7 @@ export {
  * Valid edits apply to the grid immediately; if `onRowsUpdate` fails, if validation fails later, or if `beforeRowsMutation` cancels, those cells revert to their previous values.
  * When the [[Options#dialog]] plugin is enabled, failed `fetchRows`, `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` requests (including a refetch after a successful mutation) open an alert dialog with the error message.
  *
- * When enabled, `trimRows`, `manualRowMove`, and `multiColumnSorting` are turned off. Handsontable logs a console warning for each option you still set.
+ * With a complete `dataProvider` configuration, `trimRows`, `manualRowMove`, `manualColumnMove`, and `multiColumnSorting` do not enable. Handsontable logs a console warning for each of those options you still set.
  * If `dataProvider` is present but not a complete configuration object, Handsontable logs one console warning per episode (until the configuration becomes valid); the plugin stays disabled.
  * Use [[Options#columnSorting]] for server-driven sort (single column). Query `sort` uses `prop` (column data key).
  */
@@ -141,30 +138,13 @@ export class DataProvider extends BasePlugin {
    * @type {{ tail: Promise<void> }}
    */
   #mutationQueue = { tail: Promise.resolve() };
-  /**
-   * Setting keys for which an incompatible-plugin warning was logged this session.
-   *
-   * @type {Set<string>}
-   */
-  #incompatibleSettingWarned = new Set();
+
   /**
    * Dedupes incomplete-`dataProvider` warnings until the setting is valid or removed from updates.
    *
    * @type {boolean}
    */
   #incompleteDataProviderWarningIssued = false;
-  /**
-   * Filter conditions saved before loadData (restored after load via setFiltersConditions hook).
-   *
-   * @type {Array<{ column: number, operation: 'conjunction'|'disjunction', conditions: Array<{ name?: string, args: Array<*> }> }>}
-   */
-  #savedConditionsForLoad = [];
-  /**
-   * Last known good filter conditions (for rollback when a fetch fails).
-   *
-   * @type {Array<{ column: number, operation: 'conjunction'|'disjunction', conditions: Array<{ name?: string, args: Array<*> }> }>}
-   */
-  #lastKnownGoodFilterConditions = [];
 
   /**
    * Raw `dataProvider` setting (config object only).
@@ -294,34 +274,24 @@ export class DataProvider extends BasePlugin {
     }
 
     warn(message);
+
     this.#incompleteDataProviderWarningIssued = true;
   }
 
   /**
-   * Copies `pageSize` / `initialPage` from Pagination and sort from ColumnSorting into `#queryParameters`.
+   * Fills `#queryParameters` from Pagination, ColumnSorting, and (when `fetchRows` exists) Filters so `fetchRows`
+   * matches plugin UI state after enable or before a server-driven refetch.
    *
    * @returns {void}
    */
-  #applyPaginationAndSortFromPlugins() {
+  #applyQueryParametersFromPlugins() {
     applyPaginationToQueryFromPlugin(this.hot, this.#queryParameters);
     applyColumnSortToQueryFromPlugin(this.hot, this.#queryParameters);
-  }
-
-  /**
-   * Rebuilds `#queryParameters.filters` from the Filters plugin UI (e.g. after `updateSettings({ dataProvider })` reset query state).
-   *
-   * @returns {void}
-   */
-  #syncQueryFiltersFromFiltersPlugin() {
-    const stack = this.hot.runHooks('getFiltersConditions');
-
-    if (!Array.isArray(stack) || stack.length === 0) {
-      this.#queryParameters.filters = null;
-
-      return;
-    }
-
-    this.#queryParameters.filters = conditionsStackToFiltersPayload(this.hot, stack);
+    applyFiltersFromFiltersPluginToQueryParameters(
+      this.hot,
+      this.#queryParameters,
+      () => this.#getFetchFn()
+    );
   }
 
   /**
@@ -340,12 +310,7 @@ export class DataProvider extends BasePlugin {
       ['afterPageSizeChange', this.#onAfterPageSizeChangeExternalPagination],
       ['paginationExternalDataSourceActive', this.#paginationExternalDataSourceActive],
       ['paginationTotalItemCount', this.#paginationTotalItemCount],
-      ['afterUpdateSettings', this.#onAfterUpdateSettings, DATA_PROVIDER_AFTER_UPDATE_SETTINGS_ORDER],
-      ['filtersServerSideActive', this.#filtersServerSideActive],
       ['beforeFilter', this.#onBeforeFilter],
-      ['beforeLoadData', this.#onBeforeLoadDataForFilters],
-      ['afterLoadData', this.#onAfterLoadDataForFilters],
-      ['afterDataProviderFetchError', this.#onAfterDataProviderFetchErrorForFilters],
     ];
 
     specs.forEach((spec) => {
@@ -430,19 +395,17 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Enables the plugin, syncs query params from pagination/sort plugins, and registers hooks.
+   * Enables the plugin, syncs query parameters from Pagination, ColumnSorting, and Filters, and registers hooks.
    */
   enablePlugin() {
     if (this.enabled) {
       return;
     }
 
-    this.#applyPaginationAndSortFromPlugins();
+    this.#applyQueryParametersFromPlugins();
     this.#registerHooks();
 
     super.enablePlugin();
-
-    this.#warnAndDisableIncompatiblePlugins();
   }
 
   /**
@@ -453,7 +416,6 @@ export class DataProvider extends BasePlugin {
     this.enablePlugin();
 
     if (this.isEnabled() && this.hot.view) {
-      this.#syncQueryFiltersFromFiltersPlugin();
       this.fetchData();
     }
 
@@ -466,18 +428,6 @@ export class DataProvider extends BasePlugin {
   #onAfterInit = () => {
     if (this.isEnabled()) {
       this.fetchData();
-    }
-  };
-
-  /**
-   * Re-disables plugins that conflict with DataProvider after `updateSettings()` (their `updatePlugin` may re-enable them).
-   * Registered with a late `afterUpdateSettings` order index so this runs after other plugins' listeners.
-   *
-   * @returns {void}
-   */
-  #onAfterUpdateSettings = () => {
-    if (this.enabled && this.isEnabled()) {
-      this.#warnAndDisableIncompatiblePlugins();
     }
   };
 
@@ -535,13 +485,6 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
-   * Returns true when DataProvider is enabled so the Filters plugin hides "Filter by value".
-   *
-   * @returns {boolean}
-   */
-  #filtersServerSideActive = () => this.isEnabled();
-
-  /**
    * Intercepts filter action: applies server-side filters and refetches; returns false so Filters skip client-side trimming.
    *
    * @param {Array} conditionsStack Exported filter conditions (column = physical index).
@@ -558,53 +501,12 @@ export class DataProvider extends BasePlugin {
 
     const filtersForProvider = conditionsStackToFiltersPayload(this.hot, conditionsStack);
 
-    this.#setFilters(filtersForProvider).catch(() => {
-      // Already handled via afterDataProviderFetchError hook.
-    });
+    this.#queryParameters.filters = filtersForProvider ?? null;
+    this.#queryParameters.page = 1;
+
+    this.fetchData();
 
     return false;
-  };
-
-  /**
-   * beforeLoadData: when source is DataProvider, save current filter conditions for restore after load.
-   *
-   * @param {Array} sourceData Source data passed to loadData.
-   * @param {boolean} initialLoad Whether this is the initial load.
-   * @param {string} [source] Source identifier (e.g. 'dataProvider').
-   */
-  #onBeforeLoadDataForFilters = (sourceData, initialLoad, source) => {
-    if (source === PLUGIN_KEY) {
-      this.#savedConditionsForLoad = captureFilterConditionsSnapshot(this.hot);
-    }
-  };
-
-  /**
-   * afterLoadData: when source is DataProvider, restore filter conditions and update last-known-good.
-   * Always re-disables plugins incompatible with DataProvider (e.g. `trimRows`) so they cannot persist across `loadData`.
-   *
-   * @param {Array} sourceData Source data passed to loadData.
-   * @param {boolean} initialLoad Whether this is the initial load.
-   * @param {string} [source] Source identifier (e.g. 'dataProvider').
-   */
-  #onAfterLoadDataForFilters = (sourceData, initialLoad, source) => {
-    if (source === PLUGIN_KEY) {
-      restoreFilterConditionsFromSnapshot(this.hot, this.#savedConditionsForLoad);
-      this.#savedConditionsForLoad = [];
-      this.#lastKnownGoodFilterConditions = captureFilterConditionsSnapshot(this.hot);
-    }
-    this.#warnAndDisableIncompatiblePlugins();
-  };
-
-  /**
-   * afterDataProviderFetchError: restore filter conditions to last known good and re-render.
-   *
-   */
-  #onAfterDataProviderFetchErrorForFilters = () => {
-    if (this.#lastKnownGoodFilterConditions.length > 0) {
-      restoreFilterConditionsFromSnapshot(this.hot, this.#lastKnownGoodFilterConditions);
-      this.hot.view.adjustElementsSize();
-      this.hot.render();
-    }
   };
 
   /**
@@ -618,7 +520,7 @@ export class DataProvider extends BasePlugin {
       hot: this.hot,
       isEnabled: () => this.isEnabled(),
       hasFetchFn: () => isFunction(this.#getFetchFn()),
-      applyPaginationAndSortFromPlugins: () => this.#applyPaginationAndSortFromPlugins(),
+      applyQueryParametersFromPlugins: () => this.#applyQueryParametersFromPlugins(),
       fetchData: overrides => this.fetchData(overrides),
     },
     currentSortConfig,
@@ -817,6 +719,8 @@ export class DataProvider extends BasePlugin {
         { ...result, rows, totalRows, queryParameters: persistedParams }
       );
 
+      this.hot.render();
+
       return { rows, totalRows };
     } catch (err) {
       if (signal.aborted || err?.name === 'AbortError') {
@@ -866,20 +770,6 @@ export class DataProvider extends BasePlugin {
    */
   getQueryParameters() {
     return this.#snapshotQueryParameters(this.#queryParameters);
-  }
-
-  /**
-   * Sets filter state for server-side filtering and refetches data (resets to page 1). Pass `null` to clear filters.
-   * External code should use [[DataProvider#fetchData]] with `filters` (and `page: 1` when changing filters).
-   *
-   * @param {Array<DataProviderFilterColumn>|null} filters Filter descriptors or null to clear.
-   * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>} Result of the fetch, or null if fetch was skipped/aborted.
-   */
-  #setFilters(filters) {
-    this.#queryParameters.filters = filters ?? null;
-    this.#queryParameters.page = 1;
-
-    return this.fetchData();
   }
 
   /**
@@ -1005,35 +895,10 @@ export class DataProvider extends BasePlugin {
     this.#resetAbortController();
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
     this.#totalRows = 0;
-    this.#savedConditionsForLoad = [];
-    this.#lastKnownGoodFilterConditions = [];
 
     super.disablePlugin();
 
-    const c = this.#getConfig();
-
-    if (!c || !this.#isCompleteConfig(c)) {
-      this.#incompatibleSettingWarned.clear();
-    }
-
     this.hot.render();
-  }
-
-  /**
-   * Logs a warning and disables plugins that conflict with server-backed data.
-   *
-   * @returns {void}
-   */
-  #warnAndDisableIncompatiblePlugins() {
-    if (!this.isEnabled()) {
-      return;
-    }
-
-    disablePluginsIncompatibleWithDataProvider(
-      this.hot,
-      this.hot.getSettings(),
-      this.#incompatibleSettingWarned
-    );
   }
 
   /**

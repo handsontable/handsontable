@@ -1,10 +1,11 @@
-import { PLUGIN_KEY as COLUMN_SORTING_PLUGIN_KEY } from '../columnSorting';
 import {
   applyColumnSortingToQueryParameters,
   normalizeSortToQueryFormat,
   querySortToPluginSort,
   syncColumnSortingFromQuerySort,
-} from './utils';
+} from '../utils';
+
+const COLUMN_SORTING_PLUGIN_KEY = 'columnSorting';
 
 /**
  * Copies ColumnSorting state into query `sort` when sorting is enabled.
@@ -55,7 +56,7 @@ export function syncColumnSortingStateFromQuerySort(hot, querySort) {
  * @param {Core} ctx.hot Handsontable instance.
  * @param {function(): boolean} ctx.isEnabled Whether DataProvider is enabled.
  * @param {function(): boolean} ctx.hasFetchFn Whether fetchRows is configured.
- * @param {function(): void} ctx.applyPaginationAndSortFromPlugins Refreshes query from Pagination + ColumnSorting.
+ * @param {function(): void} ctx.applyQueryParametersFromPlugins Refreshes query from Pagination, ColumnSorting, and Filters.
  * @param {function(object=): Promise<*>} ctx.fetchData Triggers refetch (optional overrides, e.g. `{ skipLoading: true }`).
  * @param {Array} _currentSortConfig Current sort config (hook arity).
  * @param {Array} destinationSortConfigs Destination sort config from the hook.
@@ -68,7 +69,7 @@ export function handleBeforeColumnSortForServer(
   destinationSortConfigs,
   sortPossible
 ) {
-  const { hot, isEnabled, hasFetchFn, applyPaginationAndSortFromPlugins, fetchData } = ctx;
+  const { hot, isEnabled, hasFetchFn, applyQueryParametersFromPlugins, fetchData } = ctx;
 
   if (!hasFetchFn() || !isEnabled() || !sortPossible) {
     return;
@@ -77,7 +78,7 @@ export function handleBeforeColumnSortForServer(
   const columnSorting = hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY);
 
   columnSorting.setSortConfig(destinationSortConfigs);
-  applyPaginationAndSortFromPlugins();
+  applyQueryParametersFromPlugins();
   fetchData({ skipLoading: true });
 
   return false;

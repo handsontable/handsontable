@@ -99,9 +99,6 @@ export interface Events {
   afterDropdownMenuHide?: (instance: DropdownMenu) => void;
   afterDropdownMenuShow?: (instance: DropdownMenu) => void;
   afterFilter?: (conditionsStack: FiltersColumnConditions[]) => void;
-  filtersServerSideActive?: () => boolean | void;
-  getFiltersConditions?: () => FiltersColumnConditions[] | undefined;
-  setFiltersConditions?: (conditions: FiltersColumnConditions[]) => void;
   afterFormulasValuesUpdate?: (changes: ExportedChange[]) => void;
   afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => void;

@@ -1,8 +1,6 @@
 import {
   applyColumnSortingToQueryParameters,
   applyPaginationToQueryParameters,
-  DATA_PROVIDER_INCOMPATIBLE_ENTRIES,
-  disablePluginsIncompatibleWithDataProvider,
   getDataProviderRequestErrorDescription,
   getIncompleteDataProviderWarningMessage,
   isCompleteDataProviderConfig,
@@ -131,6 +129,13 @@ describe('dataProvider utils', () => {
       const sort = { prop: 'name', order: 'asc' };
 
       expect(normalizeSortToQueryFormat(sort, colToProp)).toEqual({ prop: 'name', order: 'asc' });
+    });
+
+    it('should accept sortOrder as alias for order when prop is set', () => {
+      expect(normalizeSortToQueryFormat(
+        { prop: 'name', sortOrder: 'desc' },
+        colToProp
+      )).toEqual({ prop: 'name', order: 'desc' });
     });
 
     it('should return null when colToProp missing for column-index format', () => {
@@ -318,53 +323,6 @@ describe('dataProvider utils', () => {
     });
   });
 
-  describe('disablePluginsIncompatibleWithDataProvider', () => {
-    let consoleWarn;
-
-    beforeEach(() => {
-      consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    });
-
-    afterEach(() => {
-      consoleWarn.mockRestore();
-    });
-
-    it('should warn once and disable plugins for conflicting settings', () => {
-      const disabled = [];
-      const hot = {
-        getPlugin: id => ({
-          enabled: true,
-          disablePlugin: () => disabled.push(id),
-        }),
-      };
-      const warned = new Set();
-      const settings = { trimRows: true, manualRowMove: true, manualColumnMove: true };
-
-      disablePluginsIncompatibleWithDataProvider(hot, settings, warned);
-
-      expect(disabled).toEqual(['trimRows', 'manualRowMove', 'manualColumnMove']);
-      expect(warned.has('trimRows')).toBe(true);
-      expect(warned.has('manualRowMove')).toBe(true);
-      expect(warned.has('manualColumnMove')).toBe(true);
-      expect(consoleWarn).toHaveBeenCalledTimes(3);
-    });
-
-    it('should skip falsy option values', () => {
-      const hot = {
-        getPlugin: jest.fn(),
-      };
-      const warned = new Set();
-
-      disablePluginsIncompatibleWithDataProvider(
-        hot,
-        { trimRows: false, manualRowMove: null, manualColumnMove: false, multiColumnSorting: undefined },
-        warned
-      );
-
-      expect(hot.getPlugin).not.toHaveBeenCalled();
-    });
-  });
-
   describe('getDataProviderRequestErrorDescription', () => {
     it('should prefer response.data message over bare status in Error#message', () => {
       const err = new Error('500');
@@ -413,15 +371,6 @@ describe('dataProvider utils', () => {
 
     it('should return Unknown error for null', () => {
       expect(getDataProviderRequestErrorDescription(null)).toBe('Unknown error');
-    });
-  });
-
-  describe('DATA_PROVIDER_INCOMPATIBLE_ENTRIES', () => {
-    it('should list four known conflicts', () => {
-      expect(DATA_PROVIDER_INCOMPATIBLE_ENTRIES).toHaveLength(4);
-      expect(DATA_PROVIDER_INCOMPATIBLE_ENTRIES.map(e => e.pluginId).sort()).toEqual(
-        ['manualColumnMove', 'manualRowMove', 'multiColumnSorting', 'trimRows']
-      );
     });
   });
 });

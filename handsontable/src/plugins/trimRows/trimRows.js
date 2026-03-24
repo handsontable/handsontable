@@ -1,6 +1,8 @@
 import { BasePlugin } from '../base';
 import { TrimmingMap } from '../../translations';
 import { arrayEach, arrayReduce } from '../../helpers/array';
+import { isCompleteDataProviderConfig } from '../dataProvider/utils';
+import { warn } from '../../helpers/console';
 
 export const PLUGIN_KEY = 'trimRows';
 export const PLUGIN_PRIORITY = 330;
@@ -190,6 +192,12 @@ export class TrimRows extends BasePlugin {
    */
   enablePlugin() {
     if (this.enabled) {
+      return;
+    }
+
+    if (isCompleteDataProviderConfig(this.hot.getSettings().dataProvider)) {
+      warn('trimRows is not compatible with dataProvider');
+
       return;
     }
 

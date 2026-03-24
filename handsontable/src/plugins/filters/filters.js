@@ -6,7 +6,7 @@ import { rangeEach } from '../../helpers/number';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
-import { createObjectPropListener } from '../../helpers/object';
+import { createObjectPropListener, deepClone } from '../../helpers/object';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
@@ -26,6 +26,8 @@ import {
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
 import { TrimmingMap } from '../../translations';
+import { isCompleteDataProviderConfig } from '../dataProvider/utils';
+import { filtersPayloadToConditionsStack } from '../dataProvider/query/filtering';
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
@@ -172,6 +174,21 @@ export class Filters extends BasePlugin {
    */
   #previousConditionStack = [];
 
+  /**
+   * Snapshot of [[#previousConditionStack]] at the start of [[filter]] when the DataProvider plugin is active.
+   * Used to restore filter UI after `fetchRows` fails (the fetch request used the in-collection state; this holds the last committed stack).
+   *
+   * @type {Array}
+   */
+  #dataProviderFilterRollbackStack = [];
+
+  /**
+   * Indicates if the DataProvider plugin is active.
+   *
+   * @type {boolean}
+   */
+  #isDataProviderActive = false;
+
   constructor(hotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
@@ -196,6 +213,8 @@ export class Filters extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
+    this.#isDataProviderActive = isCompleteDataProviderConfig(this.hot.getSettings().dataProvider);
 
     this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
@@ -253,7 +272,7 @@ export class Filters extends BasePlugin {
         id: 'filter_by_value',
         name: filterValueLabel,
         searchMode,
-        hiddenWhen: () => this.hot.runHooks('filtersServerSideActive'),
+        hiddenWhen: () => this.#isDataProviderActive,
       })));
     }
 
@@ -284,8 +303,8 @@ export class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuShow', () => this.#onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.#onAfterDropdownMenuHide());
     this.addHook('afterChange', changes => this.#onAfterChange(changes));
-    this.addHook('getFiltersConditions', () => this.#onGetFiltersConditions());
-    this.addHook('setFiltersConditions', conditions => this.#onSetFiltersConditions(conditions));
+    this.addHook('afterDataProviderFetch', result => this.#onAfterDataProviderFetch(result));
+    this.addHook('afterDataProviderFetchError', () => this.#onAfterDataProviderFetchError());
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
@@ -782,7 +801,7 @@ export class Filters extends BasePlugin {
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
   addCondition(column, name, args, operationId = OPERATION_AND) {
-    if (name === CONDITION_BY_VALUE && this.hot.runHooks('filtersServerSideActive')) {
+    if (name === CONDITION_BY_VALUE && this.#isDataProviderActive) {
       return;
     }
 
@@ -874,6 +893,11 @@ export class Filters extends BasePlugin {
     const { navigableHeaders } = this.hot.getSettings();
     const needToFilter = !this.conditionCollection.isEmpty();
     const conditions = this.exportConditions();
+
+    if (this.#isDataProviderActive) {
+      this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack);
+    }
+
     const allowFiltering = this.hot.runHooks(
       'beforeFilter',
       conditions,
@@ -913,8 +937,9 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack = this.exportConditions();
       this.filtersRowsMap.clear();
 
-    } else if (this.hot.runHooks('filtersServerSideActive')) {
+    } else if (this.#isDataProviderActive) {
       this.#previousConditionStack = this.exportConditions();
+
     } else {
       this.importConditions(this.#previousConditionStack);
     }
@@ -998,48 +1023,6 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * getFiltersConditions hook: returns current conditions for external consumers (e.g. save/restore).
-   *
-   * @private
-   * @returns {Array} Current condition stack or empty array.
-   */
-  #onGetFiltersConditions() {
-    if (this.enabled && this.conditionCollection) {
-      return this.exportConditions();
-    }
-
-    return [];
-  }
-
-  /**
-   * setFiltersConditions hook: applies conditions from an external consumer and syncs component state.
-   *
-   * @private
-   * @param {Array} conditions Condition stack (same shape as exportConditions).
-   */
-  #onSetFiltersConditions(conditions) {
-    if (this.enabled && this.conditionCollection && Array.isArray(conditions)) {
-      this.importConditions(conditions);
-      this.#previousConditionStack = conditions.length > 0 ? this.#cloneConditionStack(conditions) : [];
-      this.conditionUpdateObserver.flush();
-    }
-  }
-
-  /**
-   * Deep-clones a condition stack for stash/restore.
-   *
-   * @param {Array} stack Condition stack from exportConditions() or stash.
-   * @returns {Array} Cloned stack.
-   */
-  #cloneConditionStack(stack) {
-    return stack.map(s => ({
-      column: s.column,
-      operation: s.operation,
-      conditions: s.conditions.map(c => ({ name: c.name, args: Array.isArray(c.args) ? [...c.args] : [] })),
-    }));
-  }
-
-  /**
    * `afterChange` listener.
    *
    * @param {Array} changes Array of changes.
@@ -1088,6 +1071,27 @@ export class Filters extends BasePlugin {
     });
 
     this.updateDependentComponentsVisibility();
+  }
+
+  /**
+   * After dataProvider fetch listener.
+   *
+   * @param {{ queryParameters?: { filters: * } }} [result] Fetch result (filters match the request that just completed).
+   */
+  #onAfterDataProviderFetch(result) {
+    const stack = filtersPayloadToConditionsStack(
+      this.hot,
+      result?.queryParameters?.filters ?? null
+    );
+
+    this.importConditions(stack);
+  }
+
+  /**
+   * After dataProvider fetch error listener.
+   */
+  #onAfterDataProviderFetchError() {
+    this.importConditions(this.#dataProviderFilterRollbackStack);
   }
 
   /**
@@ -1207,7 +1211,7 @@ export class Filters extends BasePlugin {
         }
       }
 
-      if (byValueState.command.key !== CONDITION_NONE && !this.hot.runHooks('filtersServerSideActive')) {
+      if (byValueState.command.key !== CONDITION_NONE && !this.#isDataProviderActive) {
         this.conditionCollection.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
       }
 

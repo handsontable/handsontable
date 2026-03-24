@@ -2653,37 +2653,6 @@ export const REGISTERED_HOOKS = [
   'afterFilter',
 
   /**
-   * Return `true` when filtering is handled by an external source (e.g. server-side).
-   * The Filters plugin uses this to hide the "Filter by value" section when the value list
-   * is not available (e.g. DataProvider with server-side filtering).
-   *
-   * @since 17.1.0
-   * @event Hooks#filtersServerSideActive
-   * @returns {boolean|void} Return `true` when server-side filtering is active.
-   */
-  'filtersServerSideActive',
-
-  /**
-   * Used to read the current filter conditions from the Filters plugin. The Filters plugin registers
-   * a handler that returns the result of [[Filters#exportConditions]]. Call with `runHooks('getFiltersConditions')`.
-   *
-   * @since 17.1.0
-   * @event Hooks#getFiltersConditions
-   * @returns {Array|undefined} Current condition stack (same shape as [[Filters#exportConditions]]) or `undefined`.
-   */
-  'getFiltersConditions',
-
-  /**
-   * Used to set filter conditions on the Filters plugin. The Filters plugin registers a handler that
-   * calls [[Filters#importConditions]] and syncs component state. Call with `runHooks('setFiltersConditions', conditions)`.
-   *
-   * @since 17.1.0
-   * @event Hooks#setFiltersConditions
-   * @param {Array} conditions Condition stack (same shape as [[Filters#exportConditions]]).
-   */
-  'setFiltersConditions',
-
-  /**
    * Fired by {@link Pagination} plugin before changing the page. This hook is fired when
    * {@link Options#pagination} option is enabled.
    *

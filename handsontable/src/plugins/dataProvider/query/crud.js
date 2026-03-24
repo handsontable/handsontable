@@ -1,12 +1,12 @@
-import { isFunction } from '../../helpers/function';
-import { getProperty } from '../../helpers/object';
-import { error as logError } from '../../helpers/console';
-import { throwWithCause } from '../../helpers/errors';
+import { isFunction } from '../../../helpers/function';
+import { getProperty } from '../../../helpers/object';
+import { error as logError } from '../../../helpers/console';
+import { throwWithCause } from '../../../helpers/errors';
 import {
   DATA_PROVIDER_BATCH_UPDATE_SOURCES,
   DATA_PROVIDER_ERROR_UPDATE_MISSING_ROW_ID,
   dataProviderErrorRemoveMissingRowId,
-} from './constants';
+} from '../constants';
 
 /**
  * Runs `beforeRowsMutation`. Return `false` from a listener to cancel.

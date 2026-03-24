@@ -103,28 +103,37 @@ describe('DataProvider with Filters plugin', () => {
       { id: 76, model: 'Carbon Handlebar', price: 309.18 },
     ];
 
+    const beforeDataProviderFetch = jasmine.createSpy('beforeDataProviderFetch');
+    const afterDataProviderFetch = jasmine.createSpy('afterDataProviderFetch');
+
     handsontable({
       data: [],
       columns: [{ data: 'id' }, { data: 'model' }, { data: 'price' }],
       colHeaders: true,
       dropdownMenu: true,
       filters: true,
-      trimRows: [0],
-      multiColumnSorting: true,
-      columnSorting: true,
       dataProvider: createDataProviderConfig({
         fetchRows: () => Promise.resolve({ rows, totalRows: 2 }),
       }),
+      beforeDataProviderFetch,
+      afterDataProviderFetch,
     });
 
     await sleep(50);
+
+    expect(beforeDataProviderFetch).toHaveBeenCalledTimes(1);
+    expect(afterDataProviderFetch).toHaveBeenCalledTimes(1);
 
     const filtersPlugin = getPlugin('filters');
 
     filtersPlugin.addCondition(1, 'contains', ['carbon handlebar']);
     filtersPlugin.filter();
 
-    await sleep(100);
+    await sleep(50);
+
+    expect(beforeDataProviderFetch).toHaveBeenCalledTimes(2);
+    expect(afterDataProviderFetch).toHaveBeenCalledTimes(2);
+    expect(afterDataProviderFetch.calls.mostRecent().args[0].queryParameters.filters).not.toBeNull();
 
     expect(countRows()).toBe(2);
     expect(getDataAtCell(0, 1)).toBe('Carbon Handlebar');
@@ -232,5 +241,180 @@ describe('DataProvider with Filters plugin', () => {
 
     expect(conditions.length).toBe(0);
     expect(conditions.filter(c => c.conditions.some(cond => cond.name === 'by_value')).length).toBe(0);
+  });
+
+  it('should roll Filters conditions back to the last good state when fetchRows rejects after a new filter', async() => {
+    const allRows = [
+      { id: 1, name: 'Alice', city: 'Warsaw' },
+      { id: 2, name: 'Bob', city: 'Berlin' },
+      { id: 3, name: 'Carol', city: 'Warsaw' },
+    ];
+    const warsawRows = allRows.filter(r => r.city === 'Warsaw');
+    let fetchCall = 0;
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }, { data: 'city' }],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => {
+          fetchCall += 1;
+
+          if (fetchCall === 1) {
+            return Promise.resolve({ rows: allRows, totalRows: allRows.length });
+          }
+
+          if (fetchCall === 2) {
+            return Promise.resolve({ rows: warsawRows, totalRows: warsawRows.length });
+          }
+
+          return Promise.reject(new Error('fetchRows failed'));
+        },
+      }),
+    });
+
+    await sleep(50);
+
+    const filtersPlugin = getPlugin('filters');
+
+    filtersPlugin.addCondition(2, 'eq', ['warsaw']);
+    filtersPlugin.filter();
+
+    await sleep(100);
+
+    const conditionsAfterWarsawFetch = filtersPlugin.exportConditions();
+
+    expect(conditionsAfterWarsawFetch.length).toBeGreaterThan(0);
+
+    filtersPlugin.clearConditions();
+    filtersPlugin.addCondition(2, 'eq', ['berlin']);
+    filtersPlugin.filter();
+
+    await sleep(150);
+
+    expect(filtersPlugin.exportConditions()).toEqual(conditionsAfterWarsawFetch);
+  });
+
+  it('should pass null (not an empty array) for filters in fetch params when no column filters apply', async() => {
+    const filtersSnapshots = [];
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }, { data: 'city' }],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => Promise.resolve({
+          rows: [
+            { id: 1, name: 'A', city: 'Warsaw' },
+          ],
+          totalRows: 1,
+        }),
+      }),
+      beforeDataProviderFetch: (params) => {
+        filtersSnapshots.push(params.filters);
+      },
+    });
+
+    await sleep(50);
+
+    expect(filtersSnapshots[0]).toBeNull();
+
+    const filtersPlugin = getPlugin('filters');
+
+    filtersPlugin.addCondition(2, 'eq', ['warsaw']);
+    filtersPlugin.filter();
+
+    await sleep(100);
+
+    expect(filtersSnapshots.length).toBeGreaterThanOrEqual(2);
+    expect(filtersSnapshots[filtersSnapshots.length - 1]).not.toBeNull();
+    expect(Array.isArray(filtersSnapshots[filtersSnapshots.length - 1])).toBe(true);
+
+    filtersPlugin.clearConditions();
+    filtersPlugin.filter();
+
+    await sleep(100);
+
+    expect(filtersSnapshots[filtersSnapshots.length - 1]).toBeNull();
+  });
+
+  it('should map fetchRows filters by column data prop when columns are reordered (no manualColumnMove with dataProvider)', async() => {
+    const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(
+      Promise.resolve({
+        rows: [{ id: 1, name: 'A', city: 'Warsaw' }],
+        totalRows: 1,
+      })
+    );
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'city' }, { data: 'name' }, { data: 'id' }],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      dataProvider: createDataProviderConfig({ fetchRows }),
+    });
+
+    await sleep(50);
+
+    const filtersPlugin = getPlugin('filters');
+
+    filtersPlugin.addCondition(0, 'eq', ['warsaw']);
+    filtersPlugin.filter();
+
+    await sleep(100);
+
+    expect(fetchRows).toHaveBeenCalled();
+    const [params] = fetchRows.calls.mostRecent().args;
+
+    expect(params.filters[0]).toEqual(jasmine.objectContaining({
+      prop: 'city',
+      operation: 'conjunction',
+      conditions: [{ name: 'eq', args: ['warsaw'] }],
+    }));
+  });
+
+  it('should map fetchRows filters by column data prop when the first physical column is hidden', async() => {
+    const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(
+      Promise.resolve({
+        rows: [{ id: 1, name: 'A', city: 'Warsaw' }],
+        totalRows: 1,
+      })
+    );
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }, { data: 'city' }],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      hiddenColumns: {
+        columns: [0],
+        indicators: true,
+      },
+      dataProvider: createDataProviderConfig({ fetchRows }),
+    });
+
+    await sleep(50);
+
+    const filtersPlugin = getPlugin('filters');
+
+    filtersPlugin.addCondition(1, 'eq', ['warsaw']);
+    filtersPlugin.filter();
+
+    await sleep(100);
+
+    expect(fetchRows).toHaveBeenCalled();
+    const [params] = fetchRows.calls.mostRecent().args;
+
+    expect(params.filters[0]).toEqual(jasmine.objectContaining({
+      prop: 'city',
+      operation: 'conjunction',
+      conditions: [{ name: 'eq', args: ['warsaw'] }],
+    }));
   });
 });

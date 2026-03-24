@@ -1,6 +1,7 @@
-import { PLUGIN_KEY as PAGINATION_PLUGIN_KEY } from '../pagination';
-import { applyPaginationToQueryParameters, normalizeExternalPaginationPageSize } from './utils';
-import { DEFAULT_PAGE_SIZE } from './constants';
+import { applyPaginationToQueryParameters, normalizeExternalPaginationPageSize } from '../utils';
+import { DEFAULT_PAGE_SIZE } from '../constants';
+
+const PAGINATION_PLUGIN_KEY = 'pagination';
 
 /**
  * Copies Pagination `pageSize` / `initialPage` into query parameters when the plugin is enabled.

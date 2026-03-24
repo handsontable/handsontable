@@ -1,6 +1,5 @@
 import { isFunction } from '../../helpers/function';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
-import { warn } from '../../helpers/console';
 
 /**
  * Whether `dataProvider` settings are complete enough for the DataProvider plugin to run.
@@ -161,28 +160,6 @@ export function getDataProviderRequestErrorDescription(err) {
 }
 
 /**
- * Settings/plugins that conflict with server-backed `dataProvider` mode.
- *
- * @type {ReadonlyArray<{ settingKey: string, pluginId: string, label: string }>}
- */
-export const DATA_PROVIDER_INCOMPATIBLE_ENTRIES = [
-  { settingKey: 'trimRows', pluginId: 'trimRows', label: 'Trim rows' },
-  { settingKey: 'manualRowMove', pluginId: 'manualRowMove', label: 'Manual row move' },
-  { settingKey: 'manualColumnMove', pluginId: 'manualColumnMove', label: 'Manual column move' },
-  { settingKey: 'multiColumnSorting', pluginId: 'multiColumnSorting', label: 'Multi-column sorting' },
-];
-
-/**
- * Whether a setting value means "enabled" for conflict checks.
- *
- * @param {*} value Plugin setting value.
- * @returns {boolean}
- */
-function isEnabledSettingValue(value) {
-  return value !== undefined && value !== false && value !== null;
-}
-
-/**
  * Copies enabled Pagination `pageSize` and current page into query parameters.
  *
  * Uses [[Pagination#getCurrentPage]] when present so refetches (e.g. after sort) keep the active page
@@ -340,34 +317,4 @@ export function syncColumnSortingFromQuerySort(columnSortingPlugin, sort) {
   const sortConfig = sort && typeof sort === 'object' && 'column' in sort ? sort : [];
 
   columnSortingPlugin.setSortConfig(sortConfig);
-}
-
-/**
- * Logs one warning per conflicting option and disables the corresponding plugin.
- *
- * @param {Core} hot Handsontable instance.
- * @param {object} settings Current instance settings.
- * @param {Set<string>} warnedSettingKeys Keys already warned this session (mutated).
- * @returns {void}
- */
-export function disablePluginsIncompatibleWithDataProvider(hot, settings, warnedSettingKeys) {
-  DATA_PROVIDER_INCOMPATIBLE_ENTRIES.forEach(({ settingKey, pluginId, label }) => {
-    const value = settings[settingKey];
-
-    if (!isEnabledSettingValue(value)) {
-      return;
-    }
-
-    if (!warnedSettingKeys.has(settingKey)) {
-      warn(toSingleLine`Handsontable: "${settingKey}" (${label}) is incompatible with \`dataProvider\`\x20
-                        and has been disabled.`);
-      warnedSettingKeys.add(settingKey);
-    }
-
-    const plugin = hot.getPlugin(pluginId);
-
-    if (plugin?.enabled) {
-      plugin.disablePlugin();
-    }
-  });
 }

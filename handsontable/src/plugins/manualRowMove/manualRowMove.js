@@ -1,6 +1,8 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
+import { isCompleteDataProviderConfig } from '../dataProvider/utils';
+import { warn } from '../../helpers/console';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
@@ -99,6 +101,12 @@ export class ManualRowMove extends BasePlugin {
    */
   enablePlugin() {
     if (this.enabled) {
+      return;
+    }
+
+    if (isCompleteDataProviderConfig(this.hot.getSettings().dataProvider)) {
+      warn('manualRowMove is not compatible with dataProvider');
+
       return;
     }
 

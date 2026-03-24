@@ -1,6 +1,8 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
+import { isCompleteDataProviderConfig } from '../dataProvider/utils';
+import { warn } from '../../helpers/console';
 import { addClass, removeClass, offset, hasClass, outerWidth } from '../../helpers/dom/element';
 import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
@@ -116,6 +118,12 @@ export class ManualColumnMove extends BasePlugin {
    */
   enablePlugin() {
     if (this.enabled) {
+      return;
+    }
+
+    if (isCompleteDataProviderConfig(this.hot.getSettings().dataProvider)) {
+      warn('manualColumnMove is not compatible with dataProvider');
+
       return;
     }
 
