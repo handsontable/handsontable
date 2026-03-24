@@ -39,8 +39,6 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     tableMock.columnsToRender = 0;
     tableMock.rowHeadersCount = 0;
 
-
-
     rowsRenderer.render();
     rowHeadersRenderer.render();
     cellsRenderer.render();
@@ -68,8 +66,6 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     tableMock.rowHeadersCount = 1;
     tableMock.rowHeaderFunctions = [headerRenderer1, headerRenderer2];
     tableMock.cellRenderer = cellRenderer;
-
-
 
     rowsRenderer.render();
     rowHeadersRenderer.render();
@@ -105,8 +101,6 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     tableMock.rowHeaderFunctions = [];
     tableMock.cellRenderer = cellRenderer;
 
-
-
     rowsRenderer.render();
     rowHeadersRenderer.render();
     cellsRenderer.render();
@@ -123,8 +117,6 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     tableMock.columnsToRender = 2;
     tableMock.rowHeadersCount = 1;
     tableMock.rowHeaderFunctions = [headerRenderer1];
-
-
 
     rowsRenderer.render();
     rowHeadersRenderer.render();
@@ -160,8 +152,6 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     tableMock.cellRenderer = cellRenderer;
     tableMock.rowHeaderFunctions = [headerRenderer1, headerRenderer2];
 
-
-
     rowsRenderer.render();
     rowHeadersRenderer.render();
     cellsRenderer.render();
@@ -184,8 +174,6 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     const TR1 = rowsRenderer.getRenderedNode(0);
     const TR2 = rowsRenderer.getRenderedNode(1);
 
-
-
     rowsRenderer.render();
     rowHeadersRenderer.render();
     cellsRenderer.render();
@@ -206,8 +194,6 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     tableMock.rowHeadersCount = 2;
     tableMock.rowHeaderFunctions = [headerRenderer1, headerRenderer2];
     tableMock.cellRenderer = cellRenderer;
-
-
 
     rowsRenderer.render();
     rowHeadersRenderer.render();

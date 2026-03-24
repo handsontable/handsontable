@@ -27,7 +27,6 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 5;
 
-
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -42,7 +41,6 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 3;
 
-
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -55,7 +53,6 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 0;
 
-
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -63,7 +60,6 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
       `);
 
     tableMock.rowsToRender = 1;
-
 
     renderer.render();
 
@@ -85,7 +81,6 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 5;
 
-
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -104,7 +99,6 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 3;
 
-
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -119,7 +113,6 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 5;
 
-
     renderer.render();
 
     expect(rootNode.children[0]).toBe(prevChildren[0]);
@@ -131,7 +124,6 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     tableMock.rowsToRender = 3;
-
 
     renderer.render();
 
@@ -149,7 +141,6 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
       return index + 10;
     });
 
-
     renderer.render();
 
     expect(rootNode.children[0]).toBe(prevChildren[0]);
@@ -161,7 +152,6 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     tableMock.rowsToRender = 3;
-
 
     renderer.render();
 

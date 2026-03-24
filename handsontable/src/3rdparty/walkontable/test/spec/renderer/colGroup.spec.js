@@ -49,7 +49,6 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 5;
     tableMock.rowHeadersCount = 1;
 
-
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -66,7 +65,6 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 3;
     tableMock.rowHeadersCount = 1;
 
-
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -81,7 +79,6 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 3;
     tableMock.rowHeadersCount = 0;
 
-
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -94,7 +91,6 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
 
     tableMock.columnsToRender = 0;
     tableMock.rowHeadersCount = 0;
-
 
     renderer.render();
 
@@ -104,7 +100,6 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
 
     tableMock.columnsToRender = 0;
     tableMock.rowHeadersCount = 1;
-
 
     renderer.render();
 
@@ -121,7 +116,6 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 5;
     tableMock.rowHeadersCount = 1;
 
-
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -140,7 +134,6 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 2;
     tableMock.rowHeadersCount = 1;
 
-
     renderer.render();
 
     expect(rootNode.children[0]).toBe(prevChildren[0]);
@@ -153,7 +146,6 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
 
     tableMock.columnsToRender = 2;
     tableMock.rowHeadersCount = 1;
-
 
     renderer.render();
 
@@ -170,7 +162,6 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     spyOn(tableMock, 'renderedColumnToSource').and.callFake((index) => {
       return index + 10;
     });
-
 
     renderer.render();
 
@@ -191,7 +182,6 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
 
     tableMock.columnsToRender = 2;
     tableMock.rowHeadersCount = 2;
-
 
     renderer.render();
 
@@ -220,7 +210,6 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
 
     tableMock.columnsToRender = 2;
     tableMock.rowHeadersCount = 2;
-
 
     renderer.render();
 
