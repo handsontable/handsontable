@@ -4352,7 +4352,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
-   * Returns the total number of columns in the data source.
+   * Returns the total number of columns in the data source. It will take value either from schema, columns settings or the first row from the data set. Unlike [countCols()](@/api/core.md#countcols), this value is not affected by the columns configuration option.
    *
    * @memberof Core#
    * @function countSourceCols
@@ -4374,7 +4374,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
-   * Returns the total number of visible columns in the table.
+   * Returns the total number of rendered columns. If the columns option is defined, it returns the number of columns set in that configuration, not the number of columns in the data source.
    *
    * @memberof Core#
    * @function countCols

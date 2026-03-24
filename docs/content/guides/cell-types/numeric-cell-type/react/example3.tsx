@@ -1,26 +1,11 @@
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import numbro from 'numbro';
-import jaJP from 'numbro/languages/ja-JP';
-import trTR from 'numbro/languages/tr-TR';
 
 // register Handsontable's modules
 registerAllModules();
 
-// register the languages you need
-numbro.registerLanguage(jaJP);
-numbro.registerLanguage(trTR);
-
-// define formats
-const formatJP = {
-  pattern: '0,0.00 $',
-  culture: 'ja-JP',
-};
-
-const formatTR = {
-  pattern: '0,0.00 $',
-  culture: 'tr-TR',
-};
+const formatJP = { style: 'decimal', useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 };
+const formatTR = { style: 'decimal', useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
 const ExampleComponent = () => {
   return (
@@ -52,8 +37,8 @@ const ExampleComponent = () => {
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="productName" type="text" width="150" />
-      <HotColumn data="JP_price" type="numeric" numericFormat={formatJP} width="150" />
-      <HotColumn data="TR_price" type="numeric" numericFormat={formatTR} width="150" />
+      <HotColumn data="JP_price" type="numeric" locale="ja-JP" numericFormat={formatJP} width="150" />
+      <HotColumn data="TR_price" type="numeric" locale="tr-TR" numericFormat={formatTR} width="150" />
     </HotTable>
   );
 };
