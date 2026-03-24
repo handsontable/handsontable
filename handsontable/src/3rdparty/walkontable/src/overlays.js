@@ -3,6 +3,7 @@ import {
   getScrollbarWidth,
 } from '../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../helpers/feature';
+import { debounce } from '../../../helpers/function';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { warn } from '../../../helpers/console';
@@ -109,6 +110,14 @@ class Overlays {
    * @type {number}
    */
   #containerDomResizeCountTimeout = null;
+
+  /**
+   * Debounced `updateLastSpreaderSize` / `adjustElementsSize` used during scroll so rapid
+   * `refresh` calls do not repeat layout work every frame.
+   *
+   * @type {Function}
+   */
+  #postponedAdjustElementsSize = debounce(this.#adjustElementsSizeIfNeeded.bind(this), 200);
 
   /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
@@ -659,12 +668,10 @@ class Overlays {
   refresh(fastDraw = false) {
     const isScrollTriggered = this.verticalScrolling || this.horizontalScrolling;
 
-    if (!isScrollTriggered) {
-      const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
-
-      if (wasSpreaderSizeUpdated) {
-        this.adjustElementsSize();
-      }
+    if (isScrollTriggered) {
+      this.#postponedAdjustElementsSize();
+    } else {
+      this.#adjustElementsSizeIfNeeded();
     }
 
     if (this.bottomOverlay.clone) {
@@ -840,6 +847,21 @@ class Overlays {
 
       elem.clone.wtTable.TABLE.className = masterTable.className; // todo demeter
     });
+  }
+
+  /**
+   * Adjust the elements size if needed.
+   */
+  #adjustElementsSizeIfNeeded() {
+    if (this.destroyed) {
+      return;
+    }
+
+    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
+
+    if (wasSpreaderSizeUpdated) {
+      this.adjustElementsSize();
+    }
   }
 }
 

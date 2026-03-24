@@ -449,15 +449,30 @@ class TableView {
    * invalidation instead of blanket rebuilds on every full draw.
    */
   #registerCacheInvalidationHooks() {
-    this.hot.addHook('afterRowResize', () => {
-      this._wt.wtViewport.invalidateRowHeightCache();
+    const invalidateAllCaches = () => {
+      this.invalidateIndexSizesCache();
+    };
+    const specs = [
+      ['beforeRowResize', () => {
+        this._wt.wtViewport.invalidateRowHeightCache();
+      }],
+      ['beforeColumnResize', () => {
+        this._wt.wtViewport.invalidateColumnWidthCache();
+      }],
+      ['afterUpdateSettings', invalidateAllCaches],
+    ];
+
+    specs.forEach(([hookName, listener]) => {
+      this.hot.addHook(hookName, listener);
     });
-    this.hot.addHook('afterColumnResize', () => {
-      this._wt.wtViewport.invalidateColumnWidthCache();
-    });
-    this.hot.addHook('afterUpdateSettings', () => {
-      this._wt.wtViewport.invalidateAllCaches();
-    });
+  }
+
+  /**
+   * Invalidates Walkontable viewport caches for row heights and column widths (per-index axis sizes).
+   */
+  invalidateIndexSizesCache() {
+    this._wt.wtViewport.invalidateRowHeightCache();
+    this._wt.wtViewport.invalidateColumnWidthCache();
   }
 
   /**
