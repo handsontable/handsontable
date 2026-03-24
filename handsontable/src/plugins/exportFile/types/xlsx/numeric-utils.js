@@ -26,15 +26,6 @@ export function numbroPatternToExcelNumFmt(pattern) {
 }
 
 /**
- * Returns the currency symbol for a given ISO 4217 currency code and locale
- * using the `Intl.NumberFormat` API.
- *
- * @private
- * @param {string} currency ISO 4217 currency code (e.g. `'USD'`, `'EUR'`).
- * @param {string|undefined} locale BCP 47 locale tag (e.g. `'en-US'`).
- * @returns {string}
- */
-/**
  * Resolves the currency symbol and its position (prefix or suffix) for a given
  * ISO 4217 currency code and locale using the `Intl.NumberFormat` API.
  *

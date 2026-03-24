@@ -111,8 +111,7 @@ You can define the items in the menu by passing the [`contextMenu`](@/api/option
 | [`filter_operators`](@/api/contextMenu.md)               | Select a filter parameter. Requires: [`Filters`](@/api/filters.md)                                                                                                   |
 | [`filter_by_value`](@/api/contextMenu.md)                | Add a filter value. Requires: [`Filters`](@/api/filters.md)                                                                                                          |
 | [`filter_action_bar`](@/api/contextMenu.md)              | Apply the configured filter. Requires: [`Filters`](@/api/filters.md)                                                                                                 |
-| [`export_file_csv`](@/api/contextMenu.md)                | Export the table data to a CSV file. Requires: [`ExportFile`](@/api/exportFile.md)                                                                                  |
-| [`export_file_xlsx`](@/api/contextMenu.md)               | Export the table data to an Excel (XLSX) file. Requires: [`ExportFile`](@/api/exportFile.md) with an ExcelJS engine configured                                      |
+| [`export_file`](@/api/contextMenu.md)                    | Open the Export submenu with "To CSV" and "To Excel" items. Requires: [`ExportFile`](@/api/exportFile.md). The Excel item is hidden when no XLSX engine is configured. |
 
 To see the context menu, right-click on a cell:
 
