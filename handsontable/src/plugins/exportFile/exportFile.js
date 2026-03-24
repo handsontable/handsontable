@@ -283,8 +283,8 @@ export class ExportFile extends BasePlugin {
    * @returns {Promise<Blob>}
    * @since 17.1.0
    */
-  exportAsBlobAsync(format, options = {}) {
-    return Promise.resolve(this._createBlob(this._createTypeFormatter(format, options)));
+  async exportAsBlobAsync(format, options = {}) {
+    return this._createBlob(this._createTypeFormatter(format, options));
   }
 
   /**
