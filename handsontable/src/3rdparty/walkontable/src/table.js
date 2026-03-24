@@ -298,6 +298,9 @@ class Table {
       wtOverlays.beforeDraw();
       this.holderOffset = offset(this.holder);
 
+      wtViewport.rowHeightCache.ensureBuilt();
+      wtViewport.columnWidthCache.ensureBuilt();
+
       runFastDraw = wtViewport.createCalculators(runFastDraw);
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
@@ -369,6 +372,8 @@ class Table {
 
         if (this.isMaster) {
           if (!this.wtSettings.getSetting('externalRowCalculator')) {
+            wtViewport.rowHeightCache.ensureBuilt();
+            wtViewport.columnWidthCache.ensureBuilt();
             wtViewport.createVisibleCalculators();
           }
 
@@ -812,7 +817,7 @@ class Table {
     }
 
     if (hasChanges) {
-      wtViewport.rowHeightCache.markDirty();
+      wtViewport.rowHeightCache.invalidate();
     }
   }
 

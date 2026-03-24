@@ -24,22 +24,46 @@ export class PositionCache {
    */
   totalItems = 0;
   /**
-   * When `true`, the cache is stale and will be rebuilt on the next
-   * {@link PositionCache#ensureBuilt} call. Unlike {@link PositionCache#invalidate},
-   * the existing prefix sum stays available for lookups until the rebuild happens.
+   * A function that returns the total number of items (rows or columns).
    *
-   * @type {boolean}
+   * @type {Function}
    */
-  #dirty = false;
+  #totalItemsFn;
+  /**
+   * A function that returns the size for a given index.
+   *
+   * @type {Function}
+   */
+  #sizeFn;
+  /**
+   * A function that returns the default size for items that return NaN/undefined.
+   *
+   * @type {Function}
+   */
+  #defaultSizeFn;
 
   /**
-   * Builds the prefix sum from a size function.
-   *
-   * @param {number} totalItems The total number of items (rows or columns).
-   * @param {Function} sizeFn A function that returns the size for a given index.
-   * @param {number} defaultSize The default size for items that return NaN/undefined.
+   * @param {object} config The configuration object.
+   * @param {Function} config.totalItemsFn A function that returns the total number of items (rows or columns).
+   * @param {Function} config.sizeFn A function that returns the size for a given index.
+   * @param {Function} config.defaultSizeFn A function that returns the default size for items
+   *   that return NaN/undefined.
    */
-  build(totalItems, sizeFn, defaultSize) {
+  constructor({ totalItemsFn, sizeFn, defaultSizeFn }) {
+    this.#totalItemsFn = totalItemsFn;
+    this.#sizeFn = sizeFn;
+    this.#defaultSizeFn = defaultSizeFn;
+  }
+
+  /**
+   * Builds the prefix sum by reading the current total items, size function,
+   * and default size from the configured providers.
+   */
+  build() {
+    const totalItems = this.#totalItemsFn();
+    const sizeFn = this.#sizeFn;
+    const defaultSize = this.#defaultSizeFn();
+
     this.totalItems = totalItems;
     this.prefixSum = new Float64Array(totalItems + 1);
     this.prefixSum[0] = 0;
@@ -112,16 +136,11 @@ export class PositionCache {
 
   /**
    * Builds the prefix sum only when the cache is not yet built or the item
-   * count has changed. Avoids duplicated rebuild-guard conditionals at call sites.
-   *
-   * @param {number} totalItems The total number of items (rows or columns).
-   * @param {Function} sizeFn A function that returns the size for a given index.
-   * @param {number} defaultSize The default size for items that return NaN/undefined.
+   * count has changed.
    */
-  ensureBuilt(totalItems, sizeFn, defaultSize) {
-    if (!this.isBuilt() || this.totalItems !== totalItems || this.#dirty) {
-      this.build(totalItems, sizeFn, defaultSize);
-      this.#dirty = false;
+  ensureBuilt() {
+    if (!this.isBuilt() || this.totalItems !== this.#totalItemsFn()) {
+      this.build();
     }
   }
 
@@ -139,22 +158,12 @@ export class PositionCache {
   }
 
   /**
-   * Marks the cache as stale so it will be rebuilt on the next
-   * {@link PositionCache#ensureBuilt} call. The existing prefix sum remains
-   * available for lookups until the rebuild, avoiding the cost of a full
-   * invalidation when sizes change between draws.
-   */
-  markDirty() {
-    this.#dirty = true;
-  }
-
-  /**
-   * Invalidates the cache, clearing the prefix sum immediately.
+   * Invalidates the cache so it will be rebuilt on the next
+   * {@link PositionCache#ensureBuilt} call.
    */
   invalidate() {
     this.prefixSum = null;
     this.totalItems = 0;
-    this.#dirty = false;
   }
 
   /**

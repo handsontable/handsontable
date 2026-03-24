@@ -5,7 +5,6 @@ import {
 import { requestAnimationFrame } from '../../../helpers/feature';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
-import { isChrome } from '../../../helpers/browser';
 import { warn } from '../../../helpers/console';
 import {
   InlineStartOverlay,
@@ -342,19 +341,16 @@ class Overlays {
       );
     }
 
-    const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
     const isScrollOnWindow = this.scrollableElement === rootWindow;
     const preventWheel = this.wtSettings.getSetting('preventWheel');
     const wheelEventOptions = { passive: isScrollOnWindow };
 
-    if (preventWheel || isHighPixelRatio || !isChrome()) {
-      this.eventManager.addEventListener(
-        this.wtTable.wtRootElement,
-        'wheel',
-        event => this.onCloneWheel(event, preventWheel),
-        wheelEventOptions
-      );
-    }
+    this.eventManager.addEventListener(
+      this.wtTable.wtRootElement,
+      'wheel',
+      event => this.onCloneWheel(event, preventWheel),
+      wheelEventOptions
+    );
 
     const overlays = [
       this.topOverlay,
@@ -661,10 +657,14 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
+    const isScrollTriggered = this.verticalScrolling || this.horizontalScrolling;
 
-    if (wasSpreaderSizeUpdated) {
-      this.adjustElementsSize();
+    if (!isScrollTriggered) {
+      const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
+
+      if (wasSpreaderSizeUpdated) {
+        this.adjustElementsSize();
+      }
     }
 
     if (this.bottomOverlay.clone) {

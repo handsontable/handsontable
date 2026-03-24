@@ -1,11 +1,38 @@
 import { PositionCache } from '../../../src/utils/positionCache';
 
+/**
+ * Helper to create a PositionCache with mutable config functions.
+ *
+ * @param {number} totalItems The total number of items.
+ * @param {Function} sizeFn A function that returns the size for a given index.
+ * @param {number} defaultSize The default size.
+ * @returns {object} An object with `cache` and setters to swap config at runtime.
+ */
+function createCache(totalItems, sizeFn, defaultSize) {
+  let _totalItems = totalItems;
+  let _sizeFn = sizeFn;
+  let _defaultSize = defaultSize;
+
+  const cache = new PositionCache({
+    totalItemsFn: () => _totalItems,
+    sizeFn: i => _sizeFn(i),
+    defaultSizeFn: () => _defaultSize,
+  });
+
+  return {
+    cache,
+    setTotalItems(n) { _totalItems = n; },
+    setSizeFn(fn) { _sizeFn = fn; },
+    setDefaultSize(v) { _defaultSize = v; },
+  };
+}
+
 describe('PositionCache', () => {
   describe('build', () => {
     it('should create a prefix sum array from the size function', () => {
-      const cache = new PositionCache();
+      const { cache } = createCache(4, i => (i + 1) * 10, 0);
 
-      cache.build(4, i => (i + 1) * 10, 0);
+      cache.build();
 
       expect(cache.isBuilt()).toBe(true);
       expect(cache.totalItems).toBe(4);
@@ -17,9 +44,9 @@ describe('PositionCache', () => {
     });
 
     it('should fall back to defaultSize when sizeFn returns NaN', () => {
-      const cache = new PositionCache();
+      const { cache } = createCache(3, () => NaN, 25);
 
-      cache.build(3, () => NaN, 25);
+      cache.build();
 
       expect(cache.getSizeAt(0)).toBe(25);
       expect(cache.getSizeAt(1)).toBe(25);
@@ -30,10 +57,10 @@ describe('PositionCache', () => {
 
   describe('getSizeAt', () => {
     it('should return the individual item size from prefix sum differences', () => {
-      const cache = new PositionCache();
       const sizes = [10, 20, 30, 40, 50];
+      const { cache } = createCache(5, i => sizes[i], 0);
 
-      cache.build(5, i => sizes[i], 0);
+      cache.build();
 
       expect(cache.getSizeAt(0)).toBe(10);
       expect(cache.getSizeAt(1)).toBe(20);
@@ -43,9 +70,9 @@ describe('PositionCache', () => {
     });
 
     it('should return 0 for out-of-bounds indices', () => {
-      const cache = new PositionCache();
+      const { cache } = createCache(3, () => 10, 10);
 
-      cache.build(3, () => 10, 10);
+      cache.build();
 
       expect(cache.getSizeAt(-1)).toBe(0);
       expect(cache.getSizeAt(3)).toBe(0);
@@ -53,15 +80,15 @@ describe('PositionCache', () => {
     });
 
     it('should return 0 when cache is not built', () => {
-      const cache = new PositionCache();
+      const { cache } = createCache(3, () => 10, 10);
 
       expect(cache.getSizeAt(0)).toBe(0);
     });
 
     it('should handle mixed valid and NaN sizes', () => {
-      const cache = new PositionCache();
+      const { cache } = createCache(4, i => (i % 2 === 0 ? 15 : NaN), 20);
 
-      cache.build(4, i => (i % 2 === 0 ? 15 : NaN), 20);
+      cache.build();
 
       expect(cache.getSizeAt(0)).toBe(15);
       expect(cache.getSizeAt(1)).toBe(20);
@@ -72,10 +99,10 @@ describe('PositionCache', () => {
 
   describe('ensureBuilt', () => {
     it('should build the cache when not yet built', () => {
-      const cache = new PositionCache();
       const sizeFn = jest.fn(() => 10);
+      const { cache } = createCache(5, sizeFn, 10);
 
-      cache.ensureBuilt(5, sizeFn, 10);
+      cache.ensureBuilt();
 
       expect(cache.isBuilt()).toBe(true);
       expect(cache.totalItems).toBe(5);
@@ -83,43 +110,52 @@ describe('PositionCache', () => {
     });
 
     it('should not rebuild when already built with the same item count', () => {
-      const cache = new PositionCache();
       const sizeFn = jest.fn(() => 10);
+      const { cache, setSizeFn } = createCache(5, sizeFn, 10);
 
-      cache.ensureBuilt(5, sizeFn, 10);
+      cache.ensureBuilt();
 
       expect(sizeFn).toHaveBeenCalledTimes(5);
 
       const sizeFn2 = jest.fn(() => 20);
 
-      cache.ensureBuilt(5, sizeFn2, 20);
+      setSizeFn(sizeFn2);
+
+      cache.ensureBuilt();
 
       expect(sizeFn2).not.toHaveBeenCalled();
       expect(cache.getSizeAt(0)).toBe(10);
     });
 
     it('should rebuild when item count changes', () => {
-      const cache = new PositionCache();
+      const { cache, setTotalItems, setSizeFn, setDefaultSize } = createCache(3, () => 10, 10);
 
-      cache.ensureBuilt(3, () => 10, 10);
+      cache.ensureBuilt();
 
       expect(cache.totalItems).toBe(3);
 
-      cache.ensureBuilt(5, () => 20, 20);
+      setTotalItems(5);
+      setSizeFn(() => 20);
+      setDefaultSize(20);
+
+      cache.ensureBuilt();
 
       expect(cache.totalItems).toBe(5);
       expect(cache.getSizeAt(0)).toBe(20);
     });
 
     it('should rebuild after invalidation', () => {
-      const cache = new PositionCache();
+      const { cache, setSizeFn, setDefaultSize } = createCache(3, () => 10, 10);
 
-      cache.ensureBuilt(3, () => 10, 10);
+      cache.ensureBuilt();
       cache.invalidate();
 
       expect(cache.isBuilt()).toBe(false);
 
-      cache.ensureBuilt(3, () => 15, 15);
+      setSizeFn(() => 15);
+      setDefaultSize(15);
+
+      cache.ensureBuilt();
 
       expect(cache.isBuilt()).toBe(true);
       expect(cache.getSizeAt(0)).toBe(15);
@@ -128,9 +164,9 @@ describe('PositionCache', () => {
 
   describe('findIndexAtOffset', () => {
     it('should binary-search to the correct index', () => {
-      const cache = new PositionCache();
+      const { cache } = createCache(5, () => 20, 20);
 
-      cache.build(5, () => 20, 20);
+      cache.build();
 
       expect(cache.findIndexAtOffset(0)).toBe(0);
       expect(cache.findIndexAtOffset(19)).toBe(0);
@@ -142,10 +178,10 @@ describe('PositionCache', () => {
     });
 
     it('should handle variable sizes', () => {
-      const cache = new PositionCache();
       const sizes = [10, 30, 20];
+      const { cache } = createCache(3, i => sizes[i], 0);
 
-      cache.build(3, i => sizes[i], 0);
+      cache.build();
 
       expect(cache.findIndexAtOffset(5)).toBe(0);
       expect(cache.findIndexAtOffset(10)).toBe(1);
@@ -154,64 +190,11 @@ describe('PositionCache', () => {
     });
   });
 
-  describe('markDirty', () => {
-    it('should trigger a rebuild on the next ensureBuilt call', () => {
-      const cache = new PositionCache();
-
-      cache.ensureBuilt(3, () => 10, 10);
-
-      expect(cache.getSizeAt(0)).toBe(10);
-
-      cache.markDirty();
-
-      // Cache is still readable while dirty (stale but usable)
-      expect(cache.isBuilt()).toBe(true);
-      expect(cache.getSizeAt(0)).toBe(10);
-
-      const sizeFn = jest.fn(() => 25);
-
-      cache.ensureBuilt(3, sizeFn, 25);
-
-      // Should have rebuilt with the new sizeFn
-      expect(sizeFn).toHaveBeenCalledTimes(3);
-      expect(cache.getSizeAt(0)).toBe(25);
-    });
-
-    it('should not trigger a rebuild if markDirty was not called', () => {
-      const cache = new PositionCache();
-
-      cache.ensureBuilt(3, () => 10, 10);
-
-      const sizeFn = jest.fn(() => 25);
-
-      cache.ensureBuilt(3, sizeFn, 25);
-
-      expect(sizeFn).not.toHaveBeenCalled();
-      expect(cache.getSizeAt(0)).toBe(10);
-    });
-
-    it('should clear the dirty flag after rebuild', () => {
-      const cache = new PositionCache();
-
-      cache.ensureBuilt(3, () => 10, 10);
-      cache.markDirty();
-      cache.ensureBuilt(3, () => 20, 20);
-
-      // Second ensureBuilt should not rebuild (dirty was cleared)
-      const sizeFn = jest.fn(() => 30);
-
-      cache.ensureBuilt(3, sizeFn, 30);
-
-      expect(sizeFn).not.toHaveBeenCalled();
-      expect(cache.getSizeAt(0)).toBe(20);
-    });
-  });
-
   describe('invalidate', () => {
     it('should clear the cache', () => {
-      const cache = new PositionCache();
+      const { cache } = createCache(3, () => 10, 10);
 
-      cache.build(3, () => 10, 10);
+      cache.build();
       cache.invalidate();
 
       expect(cache.isBuilt()).toBe(false);
@@ -221,26 +204,40 @@ describe('PositionCache', () => {
       expect(cache.getTotalSize()).toBe(0);
     });
 
-    it('should clear the dirty flag', () => {
-      const cache = new PositionCache();
+    it('should trigger a rebuild on the next ensureBuilt call', () => {
+      const { cache, setSizeFn, setDefaultSize } = createCache(3, () => 10, 10);
 
-      cache.ensureBuilt(3, () => 10, 10);
-      cache.markDirty();
+      cache.ensureBuilt();
+
+      expect(cache.getSizeAt(0)).toBe(10);
+
       cache.invalidate();
 
-      // After invalidate + ensureBuilt, the dirty flag should not cause
-      // an extra rebuild beyond the one triggered by !isBuilt()
-      const sizeFn = jest.fn(() => 20);
+      const sizeFn = jest.fn(() => 25);
 
-      cache.ensureBuilt(3, sizeFn, 20);
+      setSizeFn(sizeFn);
+      setDefaultSize(25);
+
+      cache.ensureBuilt();
 
       expect(sizeFn).toHaveBeenCalledTimes(3);
+      expect(cache.getSizeAt(0)).toBe(25);
+    });
 
-      const sizeFn2 = jest.fn(() => 30);
+    it('should not trigger a rebuild if invalidate was not called', () => {
+      const { cache, setSizeFn, setDefaultSize } = createCache(3, () => 10, 10);
 
-      cache.ensureBuilt(3, sizeFn2, 30);
+      cache.ensureBuilt();
 
-      expect(sizeFn2).not.toHaveBeenCalled();
+      const sizeFn = jest.fn(() => 25);
+
+      setSizeFn(sizeFn);
+      setDefaultSize(25);
+
+      cache.ensureBuilt();
+
+      expect(sizeFn).not.toHaveBeenCalled();
+      expect(cache.getSizeAt(0)).toBe(10);
     });
   });
 });

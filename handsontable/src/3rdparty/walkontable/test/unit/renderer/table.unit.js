@@ -15,6 +15,7 @@ describe('TableRenderer', () => {
     expect(renderer.rootNode).toBe(rootNode);
     expect(renderer.rootDocument).toBe(rootNode.ownerDocument);
     expect(renderer.rowHeaders).toBe(null);
+    expect(renderer.columnHeaderRows).toBe(null);
     expect(renderer.columnHeaders).toBe(null);
     expect(renderer.colGroup).toBe(null);
     expect(renderer.rows).toBe(null);
@@ -84,12 +85,14 @@ describe('TableRenderer', () => {
     const { renderer } = createRenderer();
 
     const rowHeadersRenderer = new (class RowHeadersRenderer { setTable() {} })();
+    const columnHeaderRowsRenderer = new (class ColumnHeaderRowsRenderer { setTable() {} })();
     const columnHeadersRenderer = new (class ColumnHeadersRenderer { setTable() {} })();
     const colGroupRenderer = new (class ColGroupRenderer { setTable() {} })();
     const rowsRenderer = new (class RowsRenderer { setTable() {} })();
     const cellsRenderer = new (class CellsRenderer { setTable() {} })();
 
     spyOn(rowHeadersRenderer, 'setTable');
+    spyOn(columnHeaderRowsRenderer, 'setTable');
     spyOn(columnHeadersRenderer, 'setTable');
     spyOn(colGroupRenderer, 'setTable');
     spyOn(rowsRenderer, 'setTable');
@@ -97,6 +100,7 @@ describe('TableRenderer', () => {
 
     renderer.setRenderers({
       rowHeaders: rowHeadersRenderer,
+      columnHeaderRows: columnHeaderRowsRenderer,
       columnHeaders: columnHeadersRenderer,
       colGroup: colGroupRenderer,
       rows: rowsRenderer,
@@ -104,11 +108,13 @@ describe('TableRenderer', () => {
     });
 
     expect(renderer.rowHeaders).toBe(rowHeadersRenderer);
+    expect(renderer.columnHeaderRows).toBe(columnHeaderRowsRenderer);
     expect(renderer.columnHeaders).toBe(columnHeadersRenderer);
     expect(renderer.colGroup).toBe(colGroupRenderer);
     expect(renderer.rows).toBe(rowsRenderer);
     expect(renderer.cells).toBe(cellsRenderer);
     expect(rowHeadersRenderer.setTable).toHaveBeenCalledWith(renderer);
+    expect(columnHeaderRowsRenderer.setTable).toHaveBeenCalledWith(renderer);
     expect(columnHeadersRenderer.setTable).toHaveBeenCalledWith(renderer);
     expect(colGroupRenderer.setTable).toHaveBeenCalledWith(renderer);
     expect(rowsRenderer.setTable).toHaveBeenCalledWith(renderer);
@@ -154,6 +160,10 @@ describe('TableRenderer', () => {
       adjust() {}
       render() {}
     })();
+    const columnHeaderRowsRenderer = new (class ColumnHeaderRowsRenderer {
+      adjust() {}
+      render() {}
+    })();
     const columnHeadersRenderer = new (class ColumnHeadersRenderer {
       adjust() {}
       render() {}
@@ -176,6 +186,8 @@ describe('TableRenderer', () => {
 
     spyOn(rowHeadersRenderer, 'adjust');
     spyOn(rowHeadersRenderer, 'render');
+    spyOn(columnHeaderRowsRenderer, 'adjust');
+    spyOn(columnHeaderRowsRenderer, 'render');
     spyOn(columnHeadersRenderer, 'adjust');
     spyOn(columnHeadersRenderer, 'render');
     spyOn(colGroupRenderer, 'adjust');
@@ -187,6 +199,7 @@ describe('TableRenderer', () => {
     spyOn(columnUtils, 'calculateWidths');
 
     renderer.rowHeaders = rowHeadersRenderer;
+    renderer.columnHeaderRows = columnHeaderRowsRenderer;
     renderer.columnHeaders = columnHeadersRenderer;
     renderer.colGroup = colGroupRenderer;
     renderer.rows = rowsRenderer;
@@ -195,11 +208,13 @@ describe('TableRenderer', () => {
     renderer.render();
 
     expect(rowHeadersRenderer.adjust).toHaveBeenCalledTimes(1);
+    expect(columnHeaderRowsRenderer.adjust).toHaveBeenCalledTimes(1);
     expect(columnHeadersRenderer.adjust).toHaveBeenCalledTimes(1);
     expect(colGroupRenderer.adjust).toHaveBeenCalledTimes(1);
     expect(rowsRenderer.adjust).toHaveBeenCalledTimes(1);
 
     expect(rowHeadersRenderer.render).toHaveBeenCalledTimes(1);
+    expect(columnHeaderRowsRenderer.render).toHaveBeenCalledTimes(1);
     expect(columnHeadersRenderer.render).toHaveBeenCalledTimes(1);
     expect(colGroupRenderer.render).toHaveBeenCalledTimes(1);
     expect(rowsRenderer.render).toHaveBeenCalledTimes(1);

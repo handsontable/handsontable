@@ -17,9 +17,13 @@ function createViewportColumnsCalculator(options) {
     ...rest
   } = options;
 
-  const cache = new PositionCache();
+  const cache = new PositionCache({
+    totalItemsFn: () => totalColumns,
+    sizeFn: columnWidthFn,
+    defaultSizeFn: () => 0,
+  });
 
-  cache.build(totalColumns, columnWidthFn, 0);
+  cache.build();
 
   return new ViewportColumnsCalculator({
     ...rest,

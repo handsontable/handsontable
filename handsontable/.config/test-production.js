@@ -24,18 +24,23 @@ module.exports.create = function create(envArgs) {
         baseJasminePath: '../../',
         externalCssFiles: [
           'lib/normalize.css',
-          `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
           'helpers/common-themes.css',
           `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
+        ],
+        hotCssFiles: [
+          `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
         ],
         externalJsFiles: [
           'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          '../dist/handsontable.full.min.js',
           `${getClosest('../node_modules/numbro', true)}/dist/languages.min.js`,
+        ],
+        hotJsFiles: [
+          '../dist/handsontable.full.min.js',
           '../dist/languages/all.min.js',
         ],
+        hotTheme: envArgs.HOT_THEME,
       })
     );
   });
