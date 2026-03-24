@@ -27,7 +27,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 5;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -42,7 +42,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 3;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -55,7 +55,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 0;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -64,7 +64,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 1;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -85,7 +85,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 5;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -104,7 +104,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 3;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -119,7 +119,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 5;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.children[0]).toBe(prevChildren[0]);
@@ -132,7 +132,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 3;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -149,7 +149,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
       return index + 10;
     });
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.children[0]).toBe(prevChildren[0]);
@@ -162,7 +162,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     tableMock.rowsToRender = 3;
 
-    renderer.adjust();
+
     renderer.render();
 
     const children = rootNode.children;

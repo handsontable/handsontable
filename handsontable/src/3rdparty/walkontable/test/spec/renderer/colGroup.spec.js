@@ -49,7 +49,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 5;
     tableMock.rowHeadersCount = 1;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -66,7 +66,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 3;
     tableMock.rowHeadersCount = 1;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -81,7 +81,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 3;
     tableMock.rowHeadersCount = 0;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -95,7 +95,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 0;
     tableMock.rowHeadersCount = 0;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -105,7 +105,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 0;
     tableMock.rowHeadersCount = 1;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -121,7 +121,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 5;
     tableMock.rowHeadersCount = 1;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -140,7 +140,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 2;
     tableMock.rowHeadersCount = 1;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.children[0]).toBe(prevChildren[0]);
@@ -154,7 +154,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 2;
     tableMock.rowHeadersCount = 1;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -171,7 +171,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
       return index + 10;
     });
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.children[0]).toBe(prevChildren[0]);
@@ -192,7 +192,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 2;
     tableMock.rowHeadersCount = 2;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`
@@ -221,7 +221,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     tableMock.columnsToRender = 2;
     tableMock.rowHeadersCount = 2;
 
-    renderer.adjust();
+
     renderer.render();
 
     expect(rootNode.outerHTML).toMatchHTML(`

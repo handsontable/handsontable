@@ -83,13 +83,6 @@ class Renderer {
   }
 
   /**
-   * Adjusts the table (preparing for render).
-   */
-  adjust() {
-    this.renderer.adjust();
-  }
-
-  /**
    * Renders the table.
    */
   render() {

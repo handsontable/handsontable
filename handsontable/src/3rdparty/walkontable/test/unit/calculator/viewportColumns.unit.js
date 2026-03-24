@@ -14,13 +14,14 @@ function createViewportColumnsCalculator(options) {
   const {
     totalColumns = 0,
     columnWidthFn = () => NaN,
+    defaultColumnWidth = 50,
     ...rest
   } = options;
 
   const cache = new PositionCache({
     totalItemsFn: () => totalColumns,
     sizeFn: columnWidthFn,
-    defaultSizeFn: () => 0,
+    defaultSizeFn: () => defaultColumnWidth,
   });
 
   cache.build();

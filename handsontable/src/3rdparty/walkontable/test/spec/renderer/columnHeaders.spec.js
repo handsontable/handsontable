@@ -27,8 +27,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
   }
 
   function renderAll({ columnHeaderRowsRenderer, columnHeadersRenderer }) {
-    columnHeaderRowsRenderer.adjust();
-    columnHeadersRenderer.adjust();
+
     columnHeaderRowsRenderer.render();
     columnHeadersRenderer.render();
   }

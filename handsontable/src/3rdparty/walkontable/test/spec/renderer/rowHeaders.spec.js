@@ -39,9 +39,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     tableMock.columnsToRender = 0;
     tableMock.rowHeadersCount = 0;
 
-    rowsRenderer.adjust();
-    rowHeadersRenderer.adjust();
-    cellsRenderer.adjust();
+
 
     rowsRenderer.render();
     rowHeadersRenderer.render();
@@ -71,9 +69,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     tableMock.rowHeaderFunctions = [headerRenderer1, headerRenderer2];
     tableMock.cellRenderer = cellRenderer;
 
-    rowsRenderer.adjust();
-    rowHeadersRenderer.adjust();
-    cellsRenderer.adjust();
+
 
     rowsRenderer.render();
     rowHeadersRenderer.render();
@@ -109,9 +105,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     tableMock.rowHeaderFunctions = [];
     tableMock.cellRenderer = cellRenderer;
 
-    rowsRenderer.adjust();
-    rowHeadersRenderer.adjust();
-    cellsRenderer.adjust();
+
 
     rowsRenderer.render();
     rowHeadersRenderer.render();
@@ -130,9 +124,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     tableMock.rowHeadersCount = 1;
     tableMock.rowHeaderFunctions = [headerRenderer1];
 
-    rowsRenderer.adjust();
-    rowHeadersRenderer.adjust();
-    cellsRenderer.adjust();
+
 
     rowsRenderer.render();
     rowHeadersRenderer.render();
@@ -168,9 +160,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     tableMock.cellRenderer = cellRenderer;
     tableMock.rowHeaderFunctions = [headerRenderer1, headerRenderer2];
 
-    rowsRenderer.adjust();
-    rowHeadersRenderer.adjust();
-    cellsRenderer.adjust();
+
 
     rowsRenderer.render();
     rowHeadersRenderer.render();
@@ -194,9 +184,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     const TR1 = rowsRenderer.getRenderedNode(0);
     const TR2 = rowsRenderer.getRenderedNode(1);
 
-    rowsRenderer.adjust();
-    rowHeadersRenderer.adjust();
-    cellsRenderer.adjust();
+
 
     rowsRenderer.render();
     rowHeadersRenderer.render();
@@ -219,9 +207,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     tableMock.rowHeaderFunctions = [headerRenderer1, headerRenderer2];
     tableMock.cellRenderer = cellRenderer;
 
-    rowsRenderer.adjust();
-    rowHeadersRenderer.adjust();
-    cellsRenderer.adjust();
+
 
     rowsRenderer.render();
     rowHeadersRenderer.render();

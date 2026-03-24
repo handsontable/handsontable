@@ -14,13 +14,14 @@ function createViewportRowsCalculator(options) {
   const {
     totalRows = 0,
     rowHeightFn = () => NaN,
+    defaultRowHeight = 0,
     ...rest
   } = options;
 
   const cache = new PositionCache({
     totalItemsFn: () => totalRows,
     sizeFn: rowHeightFn,
-    defaultSizeFn: () => 0,
+    defaultSizeFn: () => defaultRowHeight,
   });
 
   cache.build();

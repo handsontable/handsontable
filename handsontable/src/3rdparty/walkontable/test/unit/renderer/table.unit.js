@@ -153,48 +153,36 @@ describe('TableRenderer', () => {
     expect(rowFilter.renderedToSource).not.toHaveBeenCalled();
   });
 
-  it('should call `adjust` and `render` methods for all renderers', () => {
+  it('should call `render` methods for all renderers', () => {
     const { renderer } = createRenderer();
 
     const rowHeadersRenderer = new (class RowHeadersRenderer {
-      adjust() {}
       render() {}
     })();
     const columnHeaderRowsRenderer = new (class ColumnHeaderRowsRenderer {
-      adjust() {}
       render() {}
     })();
     const columnHeadersRenderer = new (class ColumnHeadersRenderer {
-      adjust() {}
       render() {}
     })();
     const colGroupRenderer = new (class ColGroupRenderer {
-      adjust() {}
       render() {}
     })();
     const rowsRenderer = new (class RowsRenderer {
-      adjust() {}
       render() {}
     })();
     const cellsRenderer = new (class CellsRenderer {
-      adjust() {}
       render() {}
     })();
     const columnUtils = new (class ColumnUtils {
       calculateWidths() {}
     })();
 
-    spyOn(rowHeadersRenderer, 'adjust');
     spyOn(rowHeadersRenderer, 'render');
-    spyOn(columnHeaderRowsRenderer, 'adjust');
     spyOn(columnHeaderRowsRenderer, 'render');
-    spyOn(columnHeadersRenderer, 'adjust');
     spyOn(columnHeadersRenderer, 'render');
-    spyOn(colGroupRenderer, 'adjust');
     spyOn(colGroupRenderer, 'render');
-    spyOn(rowsRenderer, 'adjust');
     spyOn(rowsRenderer, 'render');
-    spyOn(cellsRenderer, 'adjust');
     spyOn(cellsRenderer, 'render');
     spyOn(columnUtils, 'calculateWidths');
 
@@ -206,12 +194,6 @@ describe('TableRenderer', () => {
     renderer.cells = cellsRenderer;
     renderer.columnUtils = columnUtils;
     renderer.render();
-
-    expect(rowHeadersRenderer.adjust).toHaveBeenCalledTimes(1);
-    expect(columnHeaderRowsRenderer.adjust).toHaveBeenCalledTimes(1);
-    expect(columnHeadersRenderer.adjust).toHaveBeenCalledTimes(1);
-    expect(colGroupRenderer.adjust).toHaveBeenCalledTimes(1);
-    expect(rowsRenderer.adjust).toHaveBeenCalledTimes(1);
 
     expect(rowHeadersRenderer.render).toHaveBeenCalledTimes(1);
     expect(columnHeaderRowsRenderer.render).toHaveBeenCalledTimes(1);
