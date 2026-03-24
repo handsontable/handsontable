@@ -34,10 +34,10 @@ module.exports.create = function create(envArgs) {
           'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          `${getClosest('../node_modules/numbro', true)}/dist/languages.min.js`,
         ],
         hotJsFiles: [
           '../dist/handsontable.full.min.js',
+          `${getClosest('../node_modules/numbro', true)}/dist/languages.min.js`,
           '../dist/languages/all.min.js',
         ],
         hotTheme: envArgs.HOT_THEME,
