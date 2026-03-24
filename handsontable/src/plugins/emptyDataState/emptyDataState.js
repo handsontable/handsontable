@@ -22,9 +22,8 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *
  * In order to enable the empty data state mechanism, {@link Options#emptyDataState} option must be set to `true`.
  *
- * Plugins that load data asynchronously can drive the loading overlay by firing [[Hooks#emptyDataStateLoadingChange]]
- * with `true` or `false`. After Empty Data State enables, it runs [[Hooks#emptyDataStateLoadingSync]] so listeners can
- * push the current flag again. The DataProvider plugin uses these hooks.
+ * When [[Options#dataProvider]] is enabled, the loading overlay is toggled from DataProvider fetch hooks
+ * ([[Hooks#beforeDataProviderFetch]], [[Hooks#afterDataProviderFetch]], [[Hooks#afterDataProviderFetchError]]).
  *
  * The plugin provides several configuration options to customize the empty data state behavior and appearance:
  * - `message`: Message to display in the empty data state overlay.
@@ -204,7 +203,6 @@ export class EmptyDataState extends BasePlugin {
         isObject(value) &&
         (typeof value?.title === 'undefined' || typeof value?.title === 'string') &&
         (typeof value?.description === 'undefined' || typeof value?.description === 'string') &&
-        (typeof value?.loading === 'undefined' || typeof value?.loading === 'boolean') &&
         (typeof value?.buttons === 'undefined' || Array.isArray(value?.buttons) && value?.buttons.every(item =>
           typeof item === 'object' &&
           typeof item.text === 'string' &&
@@ -251,11 +249,12 @@ export class EmptyDataState extends BasePlugin {
   #selectionState = null;
 
   /**
-   * Latest value from [[Hooks#emptyDataStateLoadingChange]] (`false` until the hook runs).
+   * Whether the DataProvider-driven loading branch of the overlay is active.
    *
    * @type {boolean}
    */
   #loadingActive = false;
+
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
@@ -286,14 +285,28 @@ export class EmptyDataState extends BasePlugin {
 
     this.addHook('afterInit', () => this.#onAfterInit());
     this.addHook('afterRender', () => this.#onAfterRender());
-    this.addHook('afterRowSequenceCacheUpdate', () => this.#toggleEmptyDataState());
-    this.addHook('afterColumnSequenceCacheUpdate', () => this.#toggleEmptyDataState());
+    this.addHook('afterRowSequenceCacheUpdate', () => {
+      if (!this.#loadingActive) {
+        this.#toggleEmptyDataState();
+      }
+    });
+    this.addHook('afterColumnSequenceCacheUpdate', () => {
+      if (!this.#loadingActive) {
+        this.#toggleEmptyDataState();
+      }
+    });
     this.addHook('beforeFilter', conditions => this.#onBeforeFilter(conditions));
-    this.addHook('emptyDataStateLoadingChange', active => this.#onLoadingChange(active));
+    this.addHook('beforeDataProviderFetch', (queryParameters) => {
+      if (!queryParameters.skipLoading) {
+        this.#setLoadingActive();
+      }
+    });
+    this.addHook('afterDataProviderFetch', () => this.#clearLoadingActive());
+    this.addHook('afterDataProviderFetchError', () => this.#clearLoadingActive());
 
     super.enablePlugin();
 
-    this.hot.runHooks('emptyDataStateLoadingSync');
+    this.#toggleEmptyDataState();
   }
 
   /**
@@ -362,6 +375,32 @@ export class EmptyDataState extends BasePlugin {
     this.#observer.observe(this.hot.rootWrapperElement, {
       childList: true,
     });
+  }
+
+  /**
+   * Sets the loading active flag and toggles the emptyDataState.
+   */
+  #setLoadingActive() {
+    if (this.#loadingActive) {
+      return;
+    }
+
+    this.#loadingActive = true;
+    this.#toggleEmptyDataState();
+  }
+
+  /**
+   * Clears the loading active flag and hides the emptyDataState.
+   */
+  #clearLoadingActive() {
+    if (!this.#loadingActive) {
+      return;
+    }
+
+    this.#loadingActive = false;
+    this.#hide();
+    this.#toggleEmptyDataState();
+    this.hot.render();
   }
 
   /**
@@ -446,56 +485,20 @@ export class EmptyDataState extends BasePlugin {
       } else if (source === SOURCE.LOADING) {
         message.title = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_TITLE_LOADING);
         message.description = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_DESCRIPTION_LOADING);
-        message.loading = true;
       } else {
         message.title = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_TITLE);
         message.description = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_DESCRIPTION);
       }
     }
 
-    if (source === SOURCE.LOADING) {
-      message = { ...message, loading: true };
-    }
-
     return message;
-  }
-
-  /**
-   * @param {boolean} active From [[Hooks#emptyDataStateLoadingChange]].
-   * @returns {void}
-   */
-  #onLoadingChange(active) {
-    const wasLoading = this.#loadingActive;
-
-    this.#loadingActive = active === true;
-    this.#toggleEmptyDataState();
-
-    if (wasLoading && !this.#loadingActive) {
-      this.#update();
-    }
-
-    if (this.#isVisible && this.hot.view) {
-      this.#syncOverlayLayout();
-    }
-  }
-
-  /**
-   * Updates overlay size and border modifiers when content changes while the overlay stays open.
-   *
-   * @private
-   */
-  #syncOverlayLayout() {
-    if (this.#ui?.getElement() && this.isVisible() && this.hot.view) {
-      this.#ui.updateSize(this.hot.view, { loading: this.#loadingActive });
-      this.#ui.updateClassNames(this.hot.view);
-    }
   }
 
   /**
    * Toggle visibility and content of the emptyDataState.
    *
    * Shows emptyDataState when table has no data or when all data is hidden by filters.
-   * When [[Hooks#emptyDataStateLoadingChange]] is active, the overlay can show over non-empty data.
+   * When DataProvider loading is active, the overlay can show over non-empty data.
    */
   #toggleEmptyDataState() {
     if (!this.hot.view) {
@@ -548,11 +551,11 @@ export class EmptyDataState extends BasePlugin {
    */
   #update() {
     if (this.#loadingActive) {
-      this.#ui.updateContent(this.#getMessage(SOURCE.LOADING));
+      this.#ui.updateContent(this.#getMessage(SOURCE.LOADING), true);
     } else if (this.#hasFilterConditions) {
-      this.#ui.updateContent(this.#getMessage(SOURCE.FILTERS));
+      this.#ui.updateContent(this.#getMessage(SOURCE.FILTERS), false);
     } else {
-      this.#ui.updateContent(this.#getMessage(SOURCE.UNKNOWN));
+      this.#ui.updateContent(this.#getMessage(SOURCE.UNKNOWN), false);
     }
   }
 
@@ -612,7 +615,10 @@ export class EmptyDataState extends BasePlugin {
    * It updates the height and class names of the emptyDataState element.
    */
   #onAfterRender() {
-    this.#syncOverlayLayout();
+    if (this.#ui?.getElement() && this.isVisible() && this.hot.view) {
+      this.#ui.updateSize(this.hot.view, this.#loadingActive);
+      this.#ui.updateClassNames(this.hot.view);
+    }
   }
 
   /**

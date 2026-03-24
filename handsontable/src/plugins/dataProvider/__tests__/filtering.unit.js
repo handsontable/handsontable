@@ -1,5 +1,6 @@
 import {
   captureFilterConditionsSnapshot,
+  cloneDataProviderFiltersPayload,
   cloneFilterConditionsStack,
   conditionsStackToFiltersPayload,
   restoreFilterConditionsFromSnapshot,
@@ -18,6 +19,25 @@ describe('dataProvider filtering', () => {
       expect(clone).toEqual(stack);
       clone[0].conditions[0].args[0] = 99;
       expect(stack[0].conditions[0].args[0]).toBe(1);
+    });
+  });
+
+  describe('cloneDataProviderFiltersPayload', () => {
+    it('should return null for null', () => {
+      expect(cloneDataProviderFiltersPayload(null)).toBeNull();
+    });
+
+    it('should deep-clone filter columns and condition args', () => {
+      const filters = [{
+        prop: 'city',
+        operation: 'conjunction',
+        conditions: [{ name: 'eq', args: ['warsaw'] }],
+      }];
+      const clone = cloneDataProviderFiltersPayload(filters);
+
+      expect(clone).toEqual(filters);
+      clone[0].conditions[0].args[0] = 'berlin';
+      expect(filters[0].conditions[0].args[0]).toBe('warsaw');
     });
   });
 

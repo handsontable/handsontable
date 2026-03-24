@@ -40,6 +40,24 @@ export interface DataProviderQueryParameters {
 }
 
 /**
+ * Query parameters passed to [[Hooks#beforeDataProviderFetch]]. Includes optional client-only flags not sent to `fetchRows`.
+ */
+export interface DataProviderBeforeFetchParameters extends DataProviderQueryParameters {
+  /**
+   * When `true`, the fetch was triggered internally (for example after column sort or a CRUD mutation). Listeners may
+   * skip full-table loading UI. Not passed to `fetchRows`.
+   */
+  skipLoading?: boolean;
+}
+
+/**
+ * Optional overrides for [[DataProvider#fetchData]] (query fields plus client-only flags).
+ */
+export type DataProviderFetchDataOverrides = Partial<DataProviderQueryParameters> & {
+  skipLoading?: boolean;
+};
+
+/**
  * Result object passed to the `afterDataProviderFetch` hook.
  */
 export interface DataProviderFetchResult {
@@ -150,23 +168,13 @@ export type RowMutationPayload =
 export class DataProvider extends BasePlugin {
   constructor(hotInstance: Core);
   isEnabled(): boolean;
-  /**
-   * True while at least one `fetchRows` call from `fetchData` has not settled.
-   */
-  isFetching(): boolean;
-  /**
-   * Query parameters for the latest started in-flight `fetchRows` call, or `null` when not loading.
-   * If a request was superseded, this matches the newer request until all overlapping fetches settle.
-   */
-  getInFlightQueryParameters(): DataProviderQueryParameters | null;
-  /**
-   * Query parameters for the dataset currently in the grid (last successful DataProvider load).
-   */
-  getLastLoadedQueryParameters(): DataProviderQueryParameters;
   getTotalRows(): number;
+  /**
+   * Copy of current query parameters. `sort` and `filters` are cloned when non-null so callers cannot mutate internal state.
+   */
   getQueryParameters(): DataProviderQueryParameters;
   getRowId(visualRow: number): unknown;
-  fetchData(overrides?: Partial<DataProviderQueryParameters>): Promise<{ rows: SourceRowData[]; totalRows: number } | null>;
+  fetchData(overrides?: DataProviderFetchDataOverrides): Promise<{ rows: SourceRowData[]; totalRows: number } | null>;
   /**
    * Sets filter state for server-side filtering and refetches data (resets to page 1). Pass `null` to clear filters.
    */

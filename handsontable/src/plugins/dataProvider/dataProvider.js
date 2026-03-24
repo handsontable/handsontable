@@ -2,7 +2,6 @@ import { isFunction } from '../../helpers/function';
 import { error as logError, warn } from '../../helpers/console';
 import { throwWithCause } from '../../helpers/errors';
 import { BasePlugin } from '../base';
-import { PLUGIN_KEY as PAGINATION_PLUGIN_KEY } from '../pagination';
 import {
   ABORT_REASON_MESSAGE,
   DATA_PROVIDER_ERROR_REMOVE_ROWS_MISSING_ID,
@@ -31,6 +30,7 @@ import {
 } from './crud';
 import {
   captureFilterConditionsSnapshot,
+  cloneDataProviderFiltersPayload,
   conditionsStackToFiltersPayload,
   restoreFilterConditionsFromSnapshot,
 } from './filtering';
@@ -49,7 +49,6 @@ import {
   normalizeSortInFetchParams,
   syncColumnSortingStateFromQuerySort,
 } from './sorting';
-import { computeEmptyStateLoadingActive } from './loading';
 import {
   disablePluginsIncompatibleWithDataProvider,
   getDataProviderRequestErrorDescription,
@@ -125,14 +124,6 @@ export class DataProvider extends BasePlugin {
    */
   #queryParameters = { ...INITIAL_QUERY_PARAMETERS };
   /**
-   * Query parameters for the dataset currently shown after the last successful `loadData` from this plugin.
-   * Differs from `#queryParameters` while a request is in flight if settings were updated before the fetch (e.g. `setFilters`).
-   *
-   * @private
-   * @type {DataProviderQueryParameters}
-   */
-  #lastLoadedQueryParameters = { ...INITIAL_QUERY_PARAMETERS };
-  /**
    * `totalRows` from the last successful `fetchRows` response.
    *
    * @type {number}
@@ -144,28 +135,6 @@ export class DataProvider extends BasePlugin {
    * @type {AbortController|null}
    */
   #abortController = null;
-  /**
-   * Number of `fetchData` calls currently in progress (after `beforeDataProviderFetch` passes).
-   *
-   * @private
-   * @type {number}
-   */
-  #fetchInFlightCount = 0;
-  /**
-   * Query parameters for the latest `fetchRows` call that has not released its in-flight slot.
-   * Cleared only when `#fetchInFlightCount` returns to 0 so a superseded fetch does not wipe the active request.
-   *
-   * @private
-   * @type {DataProviderQueryParameters|null}
-   */
-  #inFlightQueryParameters = null;
-  /**
-   * Last value passed to `emptyDataStateLoadingChange` (dedupes hook noise).
-   *
-   * @private
-   * @type {boolean}
-   */
-  #lastEmittedDataProviderLoading = false;
   /**
    * Serializes create/update/remove mutations so they run one after another.
    *
@@ -277,14 +246,14 @@ export class DataProvider extends BasePlugin {
 
   /**
    * @param {DataProviderQueryParameters} p Query parameters object.
-   * @returns {DataProviderQueryParameters} Snapshot safe for comparisons (`sort` shallow-copied when non-null).
+   * @returns {DataProviderQueryParameters} Snapshot safe for comparisons and external use (`sort` and `filters` cloned when non-null).
    */
   #snapshotQueryParameters(p) {
     return {
       page: p.page,
       pageSize: p.pageSize,
       sort: p.sort === null ? null : { ...p.sort },
-      filters: p.filters === null ? null : p.filters,
+      filters: cloneDataProviderFiltersPayload(p.filters),
     };
   }
 
@@ -353,6 +322,24 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
+   * Rebuilds `#queryParameters.filters` from the Filters plugin UI (e.g. after `updateSettings({ dataProvider })` reset query state).
+   *
+   * @private
+   * @returns {void}
+   */
+  #syncQueryFiltersFromFiltersPlugin() {
+    const stack = this.hot.runHooks('getFiltersConditions');
+
+    if (!Array.isArray(stack) || stack.length === 0) {
+      this.#queryParameters.filters = null;
+
+      return;
+    }
+
+    this.#queryParameters.filters = conditionsStackToFiltersPayload(this.hot, stack);
+  }
+
+  /**
    * Registers DataProvider hooks (removed on disable via `BasePlugin.clearHooks`).
    *
    * @private
@@ -375,9 +362,6 @@ export class DataProvider extends BasePlugin {
       ['beforeLoadData', this.#onBeforeLoadDataForFilters],
       ['afterLoadData', this.#onAfterLoadDataForFilters],
       ['afterDataProviderFetchError', this.#onAfterDataProviderFetchErrorForFilters],
-      ['afterRowSequenceCacheUpdate', this.#onAfterViewSequenceForDataProviderLoading],
-      ['afterColumnSequenceCacheUpdate', this.#onAfterViewSequenceForDataProviderLoading],
-      ['emptyDataStateLoadingSync', this.#onRequestDataProviderLoadingSync],
     ];
 
     specs.forEach((spec) => {
@@ -446,11 +430,24 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   #runAfterDataProviderFetchAbort(params, reason) {
+    const queryParameters = this.#snapshotQueryParameters(params);
+
     if (typeof reason === 'undefined') {
-      this.hot.runHooks('afterDataProviderFetchAbort', params);
+      this.hot.runHooks('afterDataProviderFetchAbort', queryParameters);
     } else {
-      this.hot.runHooks('afterDataProviderFetchAbort', params, reason);
+      this.hot.runHooks('afterDataProviderFetchAbort', queryParameters, reason);
     }
+  }
+
+  /**
+   * Aborts any pending `fetchRows` and clears the controller.
+   *
+   * @private
+   * @returns {void}
+   */
+  #resetAbortController() {
+    this.#abortController?.abort();
+    this.#abortController = null;
   }
 
   /**
@@ -477,6 +474,7 @@ export class DataProvider extends BasePlugin {
     this.enablePlugin();
 
     if (this.isEnabled() && this.hot.view) {
+      this.#syncQueryFiltersFromFiltersPlugin();
       this.fetchData();
     }
 
@@ -579,13 +577,17 @@ export class DataProvider extends BasePlugin {
    * @returns {boolean} False to signal that filtering is handled server-side.
    */
   #onBeforeFilter = (conditionsStack) => {
-    if (!this.isEnabled() || !isFunction(this.#getFetchFn())) {
+    if (!this.isEnabled()) {
       return;
+    }
+
+    if (!isFunction(this.#getFetchFn())) {
+      return false;
     }
 
     const filtersForProvider = conditionsStackToFiltersPayload(this.hot, conditionsStack);
 
-    this.setFilters(filtersForProvider).catch(() => {
+    this.#setFilters(filtersForProvider).catch(() => {
       // Already handled via afterDataProviderFetchError hook.
     });
 
@@ -638,62 +640,6 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
-   * Renderable row/column counts can change while a fetch is in flight. Re-evaluate the EmptyDataState loading signal.
-   *
-   * @private
-   */
-  #onAfterViewSequenceForDataProviderLoading = () => {
-    if (this.enabled && this.isEnabled()) {
-      this.#publishDataProviderLoadingChange(false);
-    }
-  };
-
-  /**
-   * EmptyDataState runs this hook after it enables so loading state is pushed again if a fetch is still in flight.
-   *
-   * @private
-   */
-  #onRequestDataProviderLoadingSync = () => {
-    if (this.enabled && this.isEnabled()) {
-      this.#publishDataProviderLoadingChange(true);
-    }
-  };
-
-  /**
-   * Runs [[Hooks#emptyDataStateLoadingChange]] when the loading overlay flag changes, or always when `forceRepublish` is `true`.
-   *
-   * @private
-   * @param {boolean} forceRepublish When `true`, always run the hook (used after EmptyDataState re-enables).
-   * @returns {void}
-   */
-  #publishDataProviderLoadingChange(forceRepublish) {
-    if (!this.hot) {
-      return;
-    }
-
-    if (!this.enabled || !this.isEnabled()) {
-      if (this.#lastEmittedDataProviderLoading) {
-        this.#lastEmittedDataProviderLoading = false;
-        this.hot.runHooks('emptyDataStateLoadingChange', false);
-      }
-
-      return;
-    }
-
-    const next = computeEmptyStateLoadingActive({
-      fetchInFlightCount: this.#fetchInFlightCount,
-      inFlightQueryParameters: this.#inFlightQueryParameters,
-      lastLoadedQueryParameters: this.#lastLoadedQueryParameters,
-      view: this.hot.view,
-    });
-
-    if (forceRepublish || next !== this.#lastEmittedDataProviderLoading) {
-      this.#lastEmittedDataProviderLoading = next;
-      this.hot.runHooks('emptyDataStateLoadingChange', next);
-    }
-  }
-
-  /**
    * @private
    * @param {Array} currentSortConfig Current sort config.
    * @param {Array} destinationSortConfigs Destination sort config.
@@ -706,7 +652,7 @@ export class DataProvider extends BasePlugin {
       isEnabled: () => this.isEnabled(),
       hasFetchFn: () => isFunction(this.#getFetchFn()),
       applyPaginationAndSortFromPlugins: () => this.#applyPaginationAndSortFromPlugins(),
-      fetchData: () => this.fetchData(),
+      fetchData: overrides => this.fetchData(overrides),
     },
     currentSortConfig,
     destinationSortConfigs,
@@ -833,7 +779,7 @@ export class DataProvider extends BasePlugin {
   #commitRowsUpdate(rowPayloads, options = {}) {
     return commitRowsUpdateCrud(this.hot, {
       getOnRowsUpdate: () => this.#getOnRowsUpdate(),
-      fetchData: () => this.fetchData(),
+      fetchData: () => this.fetchData({ skipLoading: true }),
       logError,
       onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorDialog(kind, err),
     }, rowPayloads, options);
@@ -851,19 +797,19 @@ export class DataProvider extends BasePlugin {
    * Fetches rows from `fetchRows` with current or overridden query parameters.
    *
    * @param {object} [overrides] Partial query overrides (e.g. `{ page: 2 }`, `{ pageSize: 20, page: 1 }`, `{ sort }`, `{ filters }`).
+   * Pass `{ skipLoading: true }` to mark internal refetches (for example sort or CRUD); [[Hooks#beforeDataProviderFetch]] receives it, and it is not passed to `fetchRows`.
    * Numeric `page` is clamped to at least 1.
    * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>}
    *
    * @fires Hooks#afterDataProviderFetch when data loads.
    * @fires Hooks#afterDataProviderFetchError when `fetchRows` throws a non-abort error.
    * @fires Hooks#afterDataProviderFetchAbort when the request is superseded, aborted, or ends with `AbortError`.
-   * @fires Hooks#emptyDataStateLoadingChange when the Empty Data State loading overlay flag should change.
    */
   async fetchData(overrides = {}) {
     const fetchFn = this.#getFetchFn();
 
     if (!isFunction(fetchFn)) {
-      this.#publishDataProviderLoadingChange(false);
+      this.hot.render();
 
       return null;
     }
@@ -872,46 +818,20 @@ export class DataProvider extends BasePlugin {
     const controller = this.#createFetchAbortController();
     const { signal } = controller;
 
-    // Register in-flight state before `beforeDataProviderFetch` so synchronous renders or sequence hooks
-    // (e.g. from Pagination `refreshUI`) still see the active request in `#publishDataProviderLoadingChange`.
-    this.#fetchInFlightCount += 1;
-    this.#inFlightQueryParameters = params;
-
     if (this.hot.runHooks('beforeDataProviderFetch', params) === false) {
-      this.#fetchInFlightCount -= 1;
-
-      if (this.#fetchInFlightCount === 0) {
-        this.#inFlightQueryParameters = null;
-      }
-
       this.#abortController = null;
-      this.#publishDataProviderLoadingChange(false);
+      this.hot.render();
 
       return null;
     }
 
-    let fetchReleased = false;
-
-    const releaseFetchInFlight = () => {
-      if (!fetchReleased) {
-        fetchReleased = true;
-        this.#fetchInFlightCount -= 1;
-
-        if (this.#fetchInFlightCount === 0) {
-          this.#inFlightQueryParameters = null;
-        }
-      }
-    };
-
-    this.#publishDataProviderLoadingChange(false);
+    const fetchRowsParams = this.#snapshotQueryParameters(params);
 
     try {
-      const result = await fetchFn(params, { signal });
+      const result = await fetchFn(fetchRowsParams, { signal });
 
       if (signal.aborted) {
-        releaseFetchInFlight();
         this.#runAfterDataProviderFetchAbort(params, undefined);
-        this.#publishDataProviderLoadingChange(false);
 
         return null;
       }
@@ -921,81 +841,38 @@ export class DataProvider extends BasePlugin {
         ? result.totalRows
         : rows.length;
 
-      this.#queryParameters = params;
+      const persistedParams = this.#snapshotQueryParameters(params);
+
+      this.#queryParameters = persistedParams;
       this.#totalRows = totalRows;
-      this.#lastLoadedQueryParameters = this.#snapshotQueryParameters(params);
 
-      try {
-        this.hot.loadData(rows, PLUGIN_KEY);
-        syncColumnSortingStateFromQuerySort(this.hot, this.#queryParameters.sort);
-        applyLoadedPaginationStateFromFetch(this.hot, params);
+      this.hot.loadData(rows, PLUGIN_KEY);
 
-        this.hot.runHooks('afterDataProviderFetch', { ...result, rows, totalRows, queryParameters: params });
-      } finally {
-        // Keep `#fetchInFlightCount` > 0 until the grid and pagination state match this response so
-        // `afterRowSequenceCacheUpdate` does not publish `emptyDataStateLoadingChange` false while rows still reflect the previous page.
-        releaseFetchInFlight();
-        this.#publishDataProviderLoadingChange(false);
-      }
+      syncColumnSortingStateFromQuerySort(this.hot, this.#queryParameters.sort);
+      applyLoadedPaginationStateFromFetch(this.hot, persistedParams);
+
+      this.hot.runHooks(
+        'afterDataProviderFetch',
+        { ...result, rows, totalRows, queryParameters: persistedParams }
+      );
 
       return { rows, totalRows };
     } catch (err) {
-      releaseFetchInFlight();
-
       if (signal.aborted || err?.name === 'AbortError') {
         this.#runAfterDataProviderFetchAbort(params, err);
-        this.#publishDataProviderLoadingChange(false);
 
         return null;
       }
-      this.hot.runHooks('afterDataProviderFetchError', err, params);
-      this.#publishDataProviderLoadingChange(false);
+
+      this.hot.runHooks('afterDataProviderFetchError', err, this.#snapshotQueryParameters(params));
       this.#showDataProviderRequestErrorDialog('fetch', err);
+
       throw err;
     } finally {
       if (this.#abortController === controller) {
         this.#abortController = null;
       }
     }
-  }
-
-  /**
-   * Returns whether `fetchData` is currently waiting on `fetchRows` (after `beforeDataProviderFetch` allowed the request).
-   *
-   * @returns {boolean} `true` while at least one `fetchRows` from `fetchData` has not settled.
-   *
-   * @category DataProvider
-   */
-  isFetching() {
-    return this.#fetchInFlightCount > 0;
-  }
-
-  /**
-   * Returns query parameters for the latest started in-flight `fetchRows` call, or `null` when nothing is loading.
-   * Useful to tell a refetch that will replace the grid (e.g. another page) from a refresh with the same query.
-   * When a request is superseded, this reflects the newer request until every overlapping `fetchData` settles.
-   *
-   * @returns {DataProviderQueryParameters|null} A copy of the active request parameters, or `null`.
-   *
-   * @category DataProvider
-   */
-  getInFlightQueryParameters() {
-    if (!this.#inFlightQueryParameters) {
-      return null;
-    }
-
-    return this.#snapshotQueryParameters(this.#inFlightQueryParameters);
-  }
-
-  /**
-   * Returns a copy of the query parameters for the data currently in the grid (last successful DataProvider `loadData`).
-   *
-   * @returns {DataProviderQueryParameters} Same shape as `getQueryParameters`.
-   *
-   * @category DataProvider
-   */
-  getLastLoadedQueryParameters() {
-    return this.#snapshotQueryParameters(this.#lastLoadedQueryParameters);
   }
 
   /**
@@ -1026,10 +903,10 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * @returns {DataProviderQueryParameters} Shallow copy of current query parameters (`sort` and `filters` are not cloned).
+   * @returns {DataProviderQueryParameters} Copy of current query parameters (`sort` and `filters` are cloned when non-null).
    */
   getQueryParameters() {
-    return { ...this.#queryParameters };
+    return this.#snapshotQueryParameters(this.#queryParameters);
   }
 
   /**
@@ -1039,7 +916,7 @@ export class DataProvider extends BasePlugin {
    * @param {Array<DataProviderFilterColumn>|null} filters Filter descriptors or null to clear.
    * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>} Result of the fetch, or null if fetch was skipped/aborted.
    */
-  setFilters(filters) {
+  #setFilters(filters) {
     this.#queryParameters.filters = filters ?? null;
     this.#queryParameters.page = 1;
 
@@ -1083,7 +960,7 @@ export class DataProvider extends BasePlugin {
     const onRowsCreate = this.#getOnRowsCreate();
 
     if (!isFunction(onRowsCreate)) {
-      return;
+      return Promise.resolve();
     }
 
     const rowsCreatePayload = {
@@ -1097,7 +974,7 @@ export class DataProvider extends BasePlugin {
       'create',
       payload,
       () => onRowsCreate(rowsCreatePayload),
-      () => this.fetchData()
+      () => this.fetchData({ skipLoading: true })
     );
   }
 
@@ -1112,7 +989,7 @@ export class DataProvider extends BasePlugin {
     const onRowsRemove = this.#getOnRowsRemove();
 
     if (!isFunction(onRowsRemove)) {
-      return;
+      return Promise.resolve();
     }
 
     const ids = Array.isArray(rowIds) ? rowIds : [rowIds];
@@ -1126,16 +1003,12 @@ export class DataProvider extends BasePlugin {
     const currentPage = this.#queryParameters.page;
 
     return this.#queueCrud('remove', payload, () => onRowsRemove(ids), async() => {
-      const result = await this.fetchData();
+      const result = await this.fetchData({ skipLoading: true });
 
       if (result?.rows.length === 0 && currentPage > 1) {
-        const pagination = this.hot.getPlugin(PAGINATION_PLUGIN_KEY);
-
-        if (pagination?.enabled) {
-          pagination.setPage(currentPage - 1);
-        } else {
-          await this.#goToPage(currentPage - 1);
-        }
+        // Avoid Pagination `setPage` here: it would fire `afterPageChange` and start another fetch path. One extra
+        // `fetchData` is enough; `applyLoadedPaginationStateFromFetch` syncs the Pagination plugin from the result.
+        await this.fetchData({ page: currentPage - 1, skipLoading: true });
       }
     });
   }
@@ -1171,12 +1044,8 @@ export class DataProvider extends BasePlugin {
    * Hook listeners registered with `addHook` are removed by `super.disablePlugin()` via `clearHooks()`.
    */
   disablePlugin() {
-    this.#abortController?.abort();
-    this.#abortController = null;
-    this.#fetchInFlightCount = 0;
-    this.#inFlightQueryParameters = null;
+    this.#resetAbortController();
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
-    this.#lastLoadedQueryParameters = { ...INITIAL_QUERY_PARAMETERS };
     this.#totalRows = 0;
     this.#savedConditionsForLoad = [];
     this.#lastKnownGoodFilterConditions = [];
@@ -1189,7 +1058,7 @@ export class DataProvider extends BasePlugin {
       this.#incompatibleSettingWarned.clear();
     }
 
-    this.#publishDataProviderLoadingChange(false);
+    this.hot.render();
   }
 
   /**
@@ -1214,12 +1083,7 @@ export class DataProvider extends BasePlugin {
    * Destroys the plugin.
    */
   destroy() {
-    this.#abortController?.abort();
-    this.#abortController = null;
-    this.#fetchInFlightCount = 0;
-    this.#inFlightQueryParameters = null;
-    this.#lastLoadedQueryParameters = { ...INITIAL_QUERY_PARAMETERS };
-    this.#publishDataProviderLoadingChange(false);
+    this.#resetAbortController();
 
     super.destroy();
   }

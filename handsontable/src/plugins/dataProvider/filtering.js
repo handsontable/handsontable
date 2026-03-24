@@ -16,6 +16,27 @@ export function cloneFilterConditionsStack(stack) {
 }
 
 /**
+ * Deep-clones DataProvider server filter payload for safe return from getters (mutations do not affect plugin state).
+ *
+ * @param {Array<{ prop: string, operation: string, conditions: Array<{ name?: string, args: Array<*> }> }>|null} filters Server filter columns from query parameters, or `null`.
+ * @returns {Array<{ prop: string, operation: string, conditions: Array<{ name?: string, args: Array<*> }> }>|null}
+ */
+export function cloneDataProviderFiltersPayload(filters) {
+  if (filters === null) {
+    return null;
+  }
+
+  return filters.map(col => ({
+    prop: col.prop,
+    operation: col.operation,
+    conditions: (col.conditions || []).map(c => ({
+      name: c.name,
+      args: Array.isArray(c.args) ? [...c.args] : [],
+    })),
+  }));
+}
+
+/**
  * Converts Filters plugin condition stack (physical column indexes) to query filters (prop = column data key).
  * Expects the same shape as [[Filters#exportConditions]] returns.
  *

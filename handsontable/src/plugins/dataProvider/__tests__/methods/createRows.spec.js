@@ -91,9 +91,9 @@ describe('DataProvider `createRows` method', () => {
     config.onRowsCreate = undefined;
 
     const plugin = getPlugin('dataProvider');
+    const out = await plugin.createRows({ rowsAmount: 1 });
 
-    await plugin.createRows({ rowsAmount: 1 });
-
+    expect(out).toBeUndefined();
     expect(countRows()).toBe(1);
   });
 });

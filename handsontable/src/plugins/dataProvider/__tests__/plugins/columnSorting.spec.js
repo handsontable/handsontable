@@ -11,6 +11,7 @@ describe('DataProvider integration with ColumnSorting', () => {
   });
 
   it('should pass sort with prop to fetchRows when column is sorted', async() => {
+    const beforeFetch = jasmine.createSpy('beforeDataProviderFetch');
     const fetchRows = jasmine.createSpy('fetchRows').and.callFake((params) => {
       const sort = params.sort;
 
@@ -33,6 +34,7 @@ describe('DataProvider integration with ColumnSorting', () => {
       colHeaders: true,
       columnSorting: true,
       dataProvider: createDataProviderConfig({ fetchRows }),
+      beforeDataProviderFetch: beforeFetch,
     });
 
     await sleep(100);
@@ -49,5 +51,10 @@ describe('DataProvider integration with ColumnSorting', () => {
       }),
       jasmine.any(Object)
     );
+
+    const sortFetchBeforeArgs = beforeFetch.calls.all().map(c => c.args[0]).filter(p => p.sort?.prop === 'name');
+
+    expect(sortFetchBeforeArgs.length).toBeGreaterThan(0);
+    expect(sortFetchBeforeArgs.some(p => p.skipLoading === true)).toBe(true);
   });
 });

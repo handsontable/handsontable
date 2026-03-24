@@ -140,6 +140,37 @@ describe('DataProvider `fetchData` method', () => {
     expect(fetchRows.calls.mostRecent().args[0].page).toBe(1);
   });
 
+  it('should pass skipLoading to beforeDataProviderFetch and omit it from fetchRows', async() => {
+    const beforeFetch = jasmine.createSpy('beforeDataProviderFetch');
+    const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(
+      Promise.resolve({ rows: [], totalRows: 0 })
+    );
+
+    handsontable({
+      data: [],
+      dataProvider: createDataProviderConfig({ fetchRows }),
+      beforeDataProviderFetch: beforeFetch,
+    });
+
+    await sleep(50);
+
+    beforeFetch.calls.reset();
+    fetchRows.calls.reset();
+
+    const plugin = getPlugin('dataProvider');
+
+    await plugin.fetchData({ skipLoading: true });
+
+    expect(beforeFetch).toHaveBeenCalled();
+    const [hookParams] = beforeFetch.calls.mostRecent().args;
+
+    expect(hookParams.skipLoading).toBe(true);
+
+    const [rowsParams] = fetchRows.calls.mostRecent().args;
+
+    expect(rowsParams.skipLoading).toBeUndefined();
+  });
+
   it('should return null when beforeDataProviderFetch returns false', async() => {
     const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(
       Promise.resolve({ rows: [], totalRows: 0 })
@@ -230,33 +261,7 @@ describe('DataProvider `fetchData` method', () => {
     expect(result).toBeNull();
   });
 
-  it('should report `isFetching` true while fetchRows is pending and false after it resolves', async() => {
-    let resolveFetch;
-
-    const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(new Promise((resolve) => {
-      resolveFetch = resolve;
-    }));
-
-    handsontable({
-      data: [],
-      columns: [{ data: 'id' }],
-      dataProvider: createDataProviderConfig({ fetchRows }),
-    });
-
-    const plugin = getPlugin('dataProvider');
-
-    await sleep(0);
-
-    expect(plugin.isFetching()).toBe(true);
-
-    resolveFetch({ rows: [], totalRows: 0 });
-
-    await sleep(0);
-
-    expect(plugin.isFetching()).toBe(false);
-  });
-
-  it('should report `isFetching` false when beforeDataProviderFetch returns false', async() => {
+  it('should not call fetchRows when beforeDataProviderFetch returns false', async() => {
     const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(Promise.resolve({ rows: [], totalRows: 0 }));
 
     handsontable({
@@ -268,96 +273,10 @@ describe('DataProvider `fetchData` method', () => {
 
     await sleep(0);
 
-    const plugin = getPlugin('dataProvider');
-
-    expect(plugin.isFetching()).toBe(false);
     expect(fetchRows).not.toHaveBeenCalled();
   });
 
-  it('should expose in-flight query via getInFlightQueryParameters until fetch settles', async() => {
-    let resolveFetch;
-
-    const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(new Promise((resolve) => {
-      resolveFetch = resolve;
-    }));
-
-    handsontable({
-      data: [],
-      columns: [{ data: 'id' }],
-      dataProvider: createDataProviderConfig({ fetchRows }),
-    });
-
-    const plugin = getPlugin('dataProvider');
-
-    await sleep(0);
-
-    expect(plugin.getInFlightQueryParameters()).toEqual(jasmine.objectContaining({ page: 1 }));
-
-    resolveFetch({ rows: [], totalRows: 0 });
-
-    await sleep(0);
-
-    expect(plugin.getInFlightQueryParameters()).toBe(null);
-  });
-
-  it('should keep getInFlightQueryParameters for the newer fetch when an older fetch aborts', async() => {
-    let resolveFirst;
-
-    const firstFetchPromise = new Promise((resolve) => {
-      resolveFirst = resolve;
-    });
-
-    let resolveSecond;
-
-    const secondFetchPromise = new Promise((resolve) => {
-      resolveSecond = resolve;
-    });
-
-    const fetchRows = jasmine.createSpy('fetchRows').and.callFake(() => {
-      if (fetchRows.calls.count() === 1) {
-        return firstFetchPromise;
-      }
-
-      return secondFetchPromise;
-    });
-
-    handsontable({
-      data: [],
-      columns: [{ data: 'id' }],
-      dataProvider: createDataProviderConfig({ fetchRows }),
-    });
-
-    await sleep(0);
-
-    const plugin = getPlugin('dataProvider');
-
-    plugin.fetchData();
-
-    const secondFetch = plugin.fetchData({ page: 2 });
-
-    await sleep(0);
-
-    expect(plugin.isFetching()).toBe(true);
-    expect(plugin.getInFlightQueryParameters()).toEqual(jasmine.objectContaining({ page: 2 }));
-
-    resolveFirst({ rows: [], totalRows: 0 });
-
-    await sleep(0);
-
-    expect(plugin.isFetching()).toBe(true);
-    expect(plugin.getInFlightQueryParameters()).toEqual(jasmine.objectContaining({ page: 2 }));
-
-    resolveSecond({ rows: [], totalRows: 0 });
-
-    await secondFetch;
-
-    await sleep(0);
-
-    expect(plugin.isFetching()).toBe(false);
-    expect(plugin.getInFlightQueryParameters()).toBe(null);
-  });
-
-  it('should update getLastLoadedQueryParameters only after a successful fetch', async() => {
+  it('should update getQueryParameters after a successful fetch', async() => {
     handsontable({
       data: [],
       columns: [{ data: 'id' }],
@@ -373,10 +292,10 @@ describe('DataProvider `fetchData` method', () => {
 
     await sleep(0);
 
-    expect(plugin.getLastLoadedQueryParameters().page).toBe(1);
+    expect(plugin.getQueryParameters().page).toBe(1);
 
     await plugin.fetchData({ page: 3 });
 
-    expect(plugin.getLastLoadedQueryParameters().page).toBe(3);
+    expect(plugin.getQueryParameters().page).toBe(3);
   });
 });

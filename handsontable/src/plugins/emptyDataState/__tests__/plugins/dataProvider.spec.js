@@ -135,7 +135,7 @@ describe('EmptyDataState with DataProvider plugin', () => {
 
     await sleep(50);
 
-    expect(root.classList.contains('ht-empty-data-state--loading')).toBe(false);
+    expect(root.style.display).toBe('none');
     expect(getDataAtCell(0, 0)).toBe(2);
   });
 
@@ -196,7 +196,7 @@ describe('EmptyDataState with DataProvider plugin', () => {
 
     await sleep(50);
 
-    expect(root.classList.contains('ht-empty-data-state--loading')).toBe(false);
+    expect(root.style.display).toBe('none');
 
     resolvePage2({ rows: [], totalRows: 0 });
   });
@@ -204,6 +204,7 @@ describe('EmptyDataState with DataProvider plugin', () => {
   it('should not show loading overlay for server-side column sort refetch', async() => {
     let resolveSortFetch;
     let fetchCount = 0;
+    const beforeDataProviderFetch = jasmine.createSpy('beforeDataProviderFetch');
 
     const fetchRows = jasmine.createSpy('fetchRows').and.callFake(() => {
       fetchCount += 1;
@@ -227,11 +228,13 @@ describe('EmptyDataState with DataProvider plugin', () => {
       columnSorting: true,
       emptyDataState: true,
       dataProvider: createDataProviderConfig({ fetchRows }),
+      beforeDataProviderFetch,
     });
 
     await sleep(100);
 
     fetchRows.calls.reset();
+    beforeDataProviderFetch.calls.reset();
 
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
@@ -241,8 +244,13 @@ describe('EmptyDataState with DataProvider plugin', () => {
 
     await sleep(50);
 
-    expect(root.classList.contains('ht-empty-data-state--loading')).toBe(false);
-    expect(root.querySelector('.ht-empty-data-state__spinner')).toBe(null);
+    const sortRefetchHookParams = beforeDataProviderFetch.calls.all()
+      .map(c => c.args[0])
+      .filter(p => p && typeof p === 'object' && p.sort?.prop === 'name');
+
+    expect(sortRefetchHookParams.length).toBeGreaterThan(0);
+    expect(sortRefetchHookParams.some(p => p.skipLoading === true)).toBe(true);
+    expect(root.style.display).toBe('none');
 
     resolveSortFetch({
       rows: [{ id: 1, name: 'A' }, { id: 2, name: 'B' }],
@@ -250,5 +258,79 @@ describe('EmptyDataState with DataProvider plugin', () => {
     });
 
     await sleep(50);
+  });
+
+  it('should use filters message source after load when filters hide all rows', async() => {
+    const messageSpy = jasmine.createSpy('message').and.callFake((source) => {
+      switch (source) {
+        case 'filters':
+          return {
+            title: 'Filtered empty',
+            description: 'All rows hidden by filters',
+          };
+        case 'loading':
+          return {
+            title: 'Loading',
+            description: 'Please wait',
+          };
+        default:
+          return {
+            title: 'No data',
+            description: 'Empty',
+          };
+      }
+    });
+
+    const rows = [
+      { id: 1, name: 'Alice' },
+      { id: 2, name: 'Bob' },
+    ];
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      colHeaders: true,
+      filters: true,
+      emptyDataState: {
+        message: messageSpy,
+      },
+      dataProvider: createDataProviderConfig({
+        fetchRows: (params) => {
+          const idFilter = params?.filters?.find(f => f.prop === 'id');
+          const eqNonexistent = idFilter?.conditions?.some(
+            c => c.name === 'eq' && Array.isArray(c.args) && c.args.includes('nonexistent')
+          );
+
+          if (eqNonexistent) {
+            return Promise.resolve({ rows: [], totalRows: 0 });
+          }
+
+          return Promise.resolve({ rows, totalRows: rows.length });
+        },
+      }),
+    });
+
+    await sleep(50);
+
+    expect(getPlugin('emptyDataState').isVisible()).toBe(false);
+    expect(countRows()).toBe(2);
+
+    messageSpy.calls.reset();
+
+    const filtersPlugin = getPlugin('filters');
+
+    filtersPlugin.addCondition(0, 'eq', ['nonexistent']);
+    filtersPlugin.filter();
+
+    await sleep(100);
+
+    const root = getEmptyDataStateContainerElement();
+
+    expect(getPlugin('emptyDataState').isVisible()).toBe(true);
+    expect(countRows()).toBe(0);
+    expect(root.querySelector('.ht-empty-data-state__title').textContent).toBe('Filtered empty');
+    expect(root.querySelector('.ht-empty-data-state__description').textContent)
+      .toBe('All rows hidden by filters');
+    expect(messageSpy).toHaveBeenCalledWith('filters');
   });
 });

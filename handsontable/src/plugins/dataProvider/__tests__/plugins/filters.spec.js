@@ -131,6 +131,48 @@ describe('DataProvider with Filters plugin', () => {
     expect(getDataAtCell(1, 1)).toBe('Carbon Handlebar');
   });
 
+  it('should pass Filters UI conditions to fetchRows after updateSettings changes dataProvider', async() => {
+    const fetchRows1 = jasmine.createSpy('fetchRows1').and.returnValue(
+      Promise.resolve({ rows: [{ id: 1, name: 'A', city: 'Warsaw' }], totalRows: 1 })
+    );
+    const fetchRows2 = jasmine.createSpy('fetchRows2').and.returnValue(
+      Promise.resolve({ rows: [{ id: 1, name: 'A', city: 'Warsaw' }], totalRows: 1 })
+    );
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }, { data: 'city' }],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      dataProvider: createDataProviderConfig({ fetchRows: fetchRows1 }),
+    });
+
+    await sleep(50);
+
+    const filtersPlugin = getPlugin('filters');
+
+    filtersPlugin.addCondition(2, 'eq', ['Warsaw']);
+    filtersPlugin.filter();
+
+    await sleep(100);
+
+    await updateSettings({
+      dataProvider: createDataProviderConfig({ fetchRows: fetchRows2 }),
+    });
+
+    await sleep(100);
+
+    expect(fetchRows2).toHaveBeenCalled();
+    const [params] = fetchRows2.calls.mostRecent().args;
+
+    expect(params.filters).not.toBeNull();
+    expect(params.filters[0]).toEqual(jasmine.objectContaining({
+      prop: 'city',
+      operation: 'conjunction',
+    }));
+  });
+
   it('should pass filters with prop (column data key) to fetchRows, same as sort', async() => {
     const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(
       Promise.resolve({ rows: [{ id: 1, name: 'A', city: 'Warsaw' }], totalRows: 1 })

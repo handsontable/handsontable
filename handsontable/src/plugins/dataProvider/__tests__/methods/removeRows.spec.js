@@ -154,9 +154,9 @@ describe('DataProvider `removeRows` method', () => {
     config.onRowsRemove = undefined;
 
     const plugin = getPlugin('dataProvider');
+    const out = await plugin.removeRows(1);
 
-    await plugin.removeRows(1);
-
+    expect(out).toBeUndefined();
     expect(countRows()).toBe(1);
   });
 

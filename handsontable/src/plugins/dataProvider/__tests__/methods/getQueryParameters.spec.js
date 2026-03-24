@@ -74,4 +74,39 @@ describe('DataProvider `getQueryParameters` method', () => {
     expect(plugin.getQueryParameters().page).toBe(1);
     expect(plugin.getQueryParameters().pageSize).toBe(10);
   });
+
+  it('should return detached sort and filters so mutating them does not affect internal state', async() => {
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'city' }],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => Promise.resolve({ rows: [{ id: 1, city: 'Warsaw' }], totalRows: 1 }),
+      }),
+    });
+
+    await sleep(50);
+
+    const filtersPlugin = getPlugin('filters');
+
+    filtersPlugin.addCondition(1, 'eq', ['Warsaw']);
+    filtersPlugin.filter();
+
+    await sleep(100);
+
+    const plugin = getPlugin('dataProvider');
+    const params = plugin.getQueryParameters();
+
+    expect(params.sort).toBeNull();
+    expect(params.filters).not.toBeNull();
+    params.filters[0].conditions[0].args[0] = 'mutated';
+    params.sort = { prop: 'id', order: 'asc' };
+
+    const again = plugin.getQueryParameters();
+
+    expect(again.sort).toBeNull();
+    expect(again.filters[0].conditions[0].args[0]).not.toBe('mutated');
+  });
 });

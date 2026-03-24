@@ -1,6 +1,6 @@
 import { html } from '../../helpers/templateLiteralTag';
-import { addClass, removeAttribute, removeClass, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
-import { A11Y_TABINDEX } from '../../helpers/a11y';
+import { addClass, removeClass, removeAttribute, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
+import { A11Y_TABINDEX, A11Y_BUSY } from '../../helpers/a11y';
 import { stripTags } from '../../helpers/string';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
@@ -12,8 +12,8 @@ const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STAT
   </div>
 </div>`;
 
-const templateContent = ({ title, description, buttons, loading }) => {
-  const spinnerBlock = loading ?
+const templateContent = ({ title, description, buttons }, isLoading = false) => {
+  const spinnerBlock = isLoading ?
     `<div class="${EMPTY_DATA_STATE_CLASS_NAME}__spinner" aria-hidden="true"></div>` :
     '';
 
@@ -28,7 +28,7 @@ const templateContent = ({ title, description, buttons, loading }) => {
     class="${EMPTY_DATA_STATE_CLASS_NAME}__buttons${buttons?.length > 0 ?
   ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
   : ''}"
-  >${!loading && buttons?.length > 0 ?
+  >${!isLoading && buttons?.length > 0 ?
     buttons.map(button =>
       `<button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>`).join('')
     : ''}</div>`;
@@ -154,9 +154,11 @@ export class EmptyDataStateUI {
    * Updates the content of the emptyDataState element.
    *
    * @param {string | object} message - The message to update.
+   * @param {boolean} isLoading - When `true`, shows a loading spinner.
+   * @returns {void}
    */
-  updateContent(message) {
-    const { emptyDataStateInner, emptyDataStateElement } = this.#refs;
+  updateContent(message, isLoading = false) {
+    const { emptyDataStateElement, emptyDataStateInner } = this.#refs;
 
     let content = '';
 
@@ -169,28 +171,27 @@ export class EmptyDataStateUI {
         title: message?.title,
         description: message?.description,
         buttons: message?.buttons,
-        loading: message?.loading === true,
       };
     }
 
-    if (content.loading) {
+    const template = html`${templateContent(content, isLoading)}`;
+
+    if (isLoading) {
       addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--loading`);
       setAttribute(emptyDataStateInner, [
-        ['aria-busy', 'true'],
+        A11Y_BUSY(),
       ]);
     } else {
       removeClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--loading`);
-      removeAttribute(emptyDataStateInner, 'aria-busy');
+      removeAttribute(emptyDataStateInner, A11Y_BUSY()[0]);
     }
-
-    const template = html`${templateContent(content)}`;
 
     this.#refs = { ...this.#refs, ...template.refs };
 
     emptyDataStateInner.innerHTML = '';
     emptyDataStateInner.appendChild(template.fragment);
 
-    if (!content.loading && content.buttons?.length > 0) {
+    if (!isLoading && content.buttons?.length > 0) {
       Array.from(this.#refs.emptyDataStateButtons.children).forEach((button, index) => {
         button.addEventListener('click', content.buttons[index].callback);
       });
@@ -228,12 +229,10 @@ export class EmptyDataStateUI {
    * Updates the size of the emptyDataState element.
    *
    * @param {View} view - The view instance.
-   * @param {object} [options] - Optional flags.
-   * @param {boolean} [options.loading] - When `true` and the grid has renderable columns, use the same
+   * @param {boolean} [isLoading] - When `true` and the grid has renderable columns, use the same
    *   workspace sizing as when renderable rows exist (e.g. DataProvider fetch while a page is still shown).
    */
-  updateSize(view, options = {}) {
-    const { loading = false } = options;
+  updateSize(view, isLoading = false) {
     const { emptyDataStateElement } = this.#refs;
 
     const scrollbarSize = view.hasHorizontalScroll() ? getScrollbarWidth(view.hot.rootDocument) : 0;
@@ -241,7 +240,7 @@ export class EmptyDataStateUI {
     const cols = view.countRenderableColumns();
     const headerCols = view.getColumnHeadersCount();
 
-    const extendLayoutForLoading = loading === true && cols > 0;
+    const extendLayoutForLoading = isLoading === true && cols > 0;
     const treatAsPopulatedRowsForSizing = rows > 0 || extendLayoutForLoading;
 
     emptyDataStateElement.style.top = cols > 0 ? `${view.getColumnHeaderHeight()}px` : '0px';

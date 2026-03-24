@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import type {
+  DataProviderBeforeFetchParameters,
   DataProviderConfig,
   DataProviderFetchOptions,
   DataProviderFetchResult,
@@ -37,7 +38,11 @@ hot.addHook('afterDataProviderFetch', (result: DataProviderFetchResult) => {
   void result.queryParameters.page;
 });
 
-hot.addHook('beforeDataProviderFetch', (q: DataProviderQueryParameters) => q.page > 0);
+hot.addHook('beforeDataProviderFetch', (q: DataProviderBeforeFetchParameters) => {
+  void q.skipLoading;
+
+  return q.page > 0;
+});
 
 hot.addHook('afterDataProviderFetchError', (error: Error, queryParameters: DataProviderQueryParameters) => {
   void error;
@@ -58,10 +63,6 @@ hot.addHook('afterDataProviderFetchAbort', (queryParameters: DataProviderQueryPa
   void reason?.name;
 });
 
-hot.addHook('emptyDataStateLoadingChange', (active: boolean) => {
-  void active;
-});
-
 hot.addHook('afterRowsMutation', (operation, payload) => {
   if (operation === 'create' && 'rowsCreate' in payload) {
     void payload.rowsCreate.rowsAmount;
@@ -77,9 +78,9 @@ hot.addHook('afterRowsMutation', (operation, payload) => {
 const dataProviderPlugin = hot.getPlugin('dataProvider');
 
 if (dataProviderPlugin) {
-  void dataProviderPlugin.isFetching();
-  void dataProviderPlugin.getInFlightQueryParameters();
-  void dataProviderPlugin.getLastLoadedQueryParameters();
+  void dataProviderPlugin.getQueryParameters();
+  void dataProviderPlugin.getTotalRows();
+  void dataProviderPlugin.fetchData({ skipLoading: true });
 }
 
 void minimalConfig;

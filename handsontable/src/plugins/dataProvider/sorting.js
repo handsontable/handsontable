@@ -56,7 +56,7 @@ export function syncColumnSortingStateFromQuerySort(hot, querySort) {
  * @param {function(): boolean} ctx.isEnabled Whether DataProvider is enabled.
  * @param {function(): boolean} ctx.hasFetchFn Whether fetchRows is configured.
  * @param {function(): void} ctx.applyPaginationAndSortFromPlugins Refreshes query from Pagination + ColumnSorting.
- * @param {function(): Promise<*>} ctx.fetchData Triggers refetch.
+ * @param {function(object=): Promise<*>} ctx.fetchData Triggers refetch (optional overrides, e.g. `{ skipLoading: true }`).
  * @param {Array} _currentSortConfig Current sort config (hook arity).
  * @param {Array} destinationSortConfigs Destination sort config from the hook.
  * @param {boolean} sortPossible Whether sort is allowed.
@@ -78,7 +78,7 @@ export function handleBeforeColumnSortForServer(
 
   columnSorting.setSortConfig(destinationSortConfigs);
   applyPaginationAndSortFromPlugins();
-  fetchData();
+  fetchData({ skipLoading: true });
 
   return false;
 }
