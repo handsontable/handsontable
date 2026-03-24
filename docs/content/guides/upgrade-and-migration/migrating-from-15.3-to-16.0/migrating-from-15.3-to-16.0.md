@@ -30,7 +30,7 @@ Here's a side-by-side comparison of the old and new DOM structures:
 
 Old DOM structure:
 
-<div class="dom-tree not-content">
+<starlight-file-tree class="not-content">
 <ul>
 <li class="directory"><details open><summary><span class="tree-entry"><span>body</span></span></summary>
 <ul>
@@ -44,11 +44,11 @@ Old DOM structure:
 <li class="file"><span class="tree-entry"><span>Context menus, dropdowns, pop-ups, sidebars</span> <span class="comment">absolutely positioned elements</span></span></li>
 </ul></details></li>
 </ul>
-</div>
+</starlight-file-tree>
 
 New DOM structure:
 
-<div class="dom-tree not-content">
+<starlight-file-tree class="not-content">
 <ul>
 <li class="directory"><details open><summary><span class="tree-entry"><span>body</span></span></summary>
 <ul>
@@ -71,7 +71,7 @@ New DOM structure:
 </ul></details></li>
 </ul></details></li>
 </ul>
-</div>
+</starlight-file-tree>
 
 ### Key changes
 - Root Wrapper: User-provided div is now used as a container for the new DOM structure

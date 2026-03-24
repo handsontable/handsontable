@@ -20,7 +20,7 @@
  * Only set accent colours (with separate dark/light values) and typography.
  * ------------------------------------------------------------------------- */
 
-/* Dark mode accent colours */
+/* Dark mode accent colours + pure neutral gray palette */
 :root {
   --sl-color-accent-low:  #1a3a6b;
   --sl-color-accent:      #4d8ff5;
@@ -30,13 +30,55 @@
   --sl-line-height: 1.7;
   --sl-nav-height: 6.5rem;
   --sl-content-gap-y: 1.25rem;
+
+  /* Pure gray palette — zero chroma removes the warm tint from rapide's hue-base */
+  --sl-color-white: oklch(90% 0 0);
+  --sl-color-gray-1: oklch(80% 0 0);
+  --sl-color-gray-2: oklch(80% 0 0);
+  --sl-color-gray-3: oklch(65% 0 0);
+  --sl-color-gray-4: oklch(48% 0 0);
+  --sl-color-gray-5: oklch(29% 0 0);
+  --sl-color-gray-6: oklch(23% 0 0);
+  --sl-color-gray-7: oklch(20.5% 0 0);
+  --sl-color-black: oklch(18% 0 0);
+
+  /* Override text color to gray-3 for softer body text */
+  --sl-color-text: var(--sl-color-gray-3);
+
+  /* Inline code: darker bg (gray-7) + white text */
+  --sl-color-bg-inline-code: var(--sl-color-gray-7);
+
+  /* Rapide UI variables — neutralize hue-base tint */
+  --sl-color-backdrop-overlay: oklch(24% 0 0 / 0.7);
+  --sl-rapide-ui-header-bg-color: oklch(18% 0 0 / 0.8);
+  --sl-rapide-ui-border-color: oklch(28% 0 0);
+  --sl-rapide-ec-marker-bg-color: oklch(27% 0 0);
+  --sl-rapide-ec-marker-border-color: oklch(47% 0 0);
 }
 
-/* Light mode accent colours */
+/* Light mode accent colours + pure neutral gray palette */
 :root[data-theme='light'] {
   --sl-color-accent-low:  #e6f3ff;
   --sl-color-accent:      #1565c0;
   --sl-color-accent-high: #0d47a1;
+
+  /* Pure gray palette for light mode */
+  --sl-color-white: oklch(30% 0 0);
+  --sl-color-gray-1: oklch(36% 0 0);
+  --sl-color-gray-2: oklch(36% 0 0);
+  --sl-color-gray-3: oklch(44% 0 0);
+  --sl-color-gray-4: oklch(66% 0 0);
+  --sl-color-gray-5: oklch(88% 0 0);
+  --sl-color-gray-6: oklch(90% 0 0);
+  --sl-color-gray-7: oklch(96% 0 0);
+  --sl-color-black: oklch(98% 0 0);
+
+  /* Rapide UI variables — neutralize hue-base tint */
+  --sl-color-backdrop-overlay: oklch(84% 0 0 / 0.7);
+  --sl-rapide-ui-header-bg-color: oklch(98% 0 0 / 0.7);
+  --sl-rapide-ui-border-color: oklch(88% 0 0);
+  --sl-rapide-ec-marker-bg-color: oklch(93% 0 0);
+  --sl-rapide-ec-marker-border-color: oklch(62% 0 0);
 }
 
 /* Search button: fill wrapper, no border */
@@ -65,14 +107,22 @@ header.header {
   padding-top: 0 !important;
 }
 
+.sidebar-pane ul {
+  padding: 8px 0;
+}
+
 starlight-toc nav {
   padding-top: 0 !important;
+}
+
+starlight-toc ul {
+  padding: 0;
 }
 
 /* Push TOC down so "On this page" aligns with content below the breadcrumb/button row */
 starlight-toc {
   display: block !important;
-  padding-top: 2rem !important;
+  padding-top: 1rem !important;
 }
 
 /* Right sidebar — match header height */
@@ -80,9 +130,46 @@ starlight-toc {
   padding-top: var(--sl-nav-height) !important;
 }
 
+.right-sidebar-panel {
+  padding-left: 4rem;
+}
+
+/* Main frame — extra breathing room below fixed header */
+.main-frame {
+  padding-top: 8rem !important;
+}
+
 /* Push main content down so breadcrumbs align with the "On this page" heading */
 .content-panel:first-child {
   padding-top: 2.8rem;
+}
+
+.content-panel {
+  padding: 0 !important;
+}
+
+/* Page title — extra top margin */
+main h1 {
+  margin-top: 2rem !important;
+}
+
+/* Paragraph right after h2/h3 — no extra gap */
+h2 + p,
+h3 + p {
+  margin-top: 0.5rem;
+}
+
+/* Sync Handsontable theme with docs theme toggle (override browser default) */
+[data-theme="dark"] .ht-theme-main {
+  color-scheme: dark;
+}
+[data-theme="light"] .ht-theme-main {
+  color-scheme: light;
+}
+
+/* Header row 2 — negative left margin */
+.header-row-2 {
+  margin-left: -0.75rem;
 }
 
 /* Custom scrollbar styling — subtle */
@@ -167,7 +254,8 @@ starlight-toc {
 
 .ht-link-card a {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
   text-decoration: none;
   line-height: var(--sl-line-height-headings);
 }
@@ -179,16 +267,39 @@ starlight-toc {
   inset: 0;
 }
 
+/* Framework icons inside link cards */
+.ht-link-card .ico {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  background-color: currentColor;
+  display: inline-block;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.ht-link-card .i-javascript { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M20 4l-2 14.5l-6 2l-6 -2l-2 -14.5l16 0'/%3E%3Cpath d='M7.5 8h3v8l-2 -1'/%3E%3Cpath d='M16.5 8h-2.5a.5 .5 0 0 0 -.5 .5v3a.5 .5 0 0 0 .5 .5h1.423a.5 .5 0 0 1 .495 .57l-.418 2.93l-2 .5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M20 4l-2 14.5l-6 2l-6 -2l-2 -14.5l16 0'/%3E%3Cpath d='M7.5 8h3v8l-2 -1'/%3E%3Cpath d='M16.5 8h-2.5a.5 .5 0 0 0 -.5 .5v3a.5 .5 0 0 0 .5 .5h1.423a.5 .5 0 0 1 .495 .57l-.418 2.93l-2 .5'/%3E%3C/svg%3E"); color: var(--sl-color-white); }
+
+.ht-link-card .i-react { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M6.306 8.711c-2.602 .723 -4.306 1.926 -4.306 3.289c0 2.21 4.477 4 10 4c.773 0 1.526 -.035 2.248 -.102'/%3E%3Cpath d='M17.692 15.289c2.603 -.722 4.308 -1.926 4.308 -3.289c0 -2.21 -4.477 -4 -10 -4c-.773 0 -1.526 .035 -2.25 .102'/%3E%3Cpath d='M6.305 15.287c-.676 2.615 -.485 4.693 .695 5.373c1.913 1.105 5.703 -1.877 8.464 -6.66c.387 -.67 .733 -1.339 1.036 -2'/%3E%3Cpath d='M17.694 8.716c.677 -2.616 .487 -4.696 -.694 -5.376c-1.913 -1.105 -5.703 1.877 -8.464 6.66c-.387 .67 -.733 1.34 -1.037 2'/%3E%3Cpath d='M12 5.424c-1.925 -1.892 -3.82 -2.766 -5 -2.084c-1.913 1.104 -1.226 5.877 1.536 10.66c.386 .67 .793 1.304 1.212 1.896'/%3E%3Cpath d='M12 18.574c1.926 1.893 3.821 2.768 5 2.086c1.913 -1.104 1.226 -5.877 -1.536 -10.66c-.375 -.65 -.78 -1.283 -1.212 -1.897'/%3E%3Cpath d='M11.5 12.866a1 1 0 1 0 1 -1.732a1 1 0 0 0 -1 1.732'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M6.306 8.711c-2.602 .723 -4.306 1.926 -4.306 3.289c0 2.21 4.477 4 10 4c.773 0 1.526 -.035 2.248 -.102'/%3E%3Cpath d='M17.692 15.289c2.603 -.722 4.308 -1.926 4.308 -3.289c0 -2.21 -4.477 -4 -10 -4c-.773 0 -1.526 .035 -2.25 .102'/%3E%3Cpath d='M6.305 15.287c-.676 2.615 -.485 4.693 .695 5.373c1.913 1.105 5.703 -1.877 8.464 -6.66c.387 -.67 .733 -1.339 1.036 -2'/%3E%3Cpath d='M17.694 8.716c.677 -2.616 .487 -4.696 -.694 -5.376c-1.913 -1.105 -5.703 1.877 -8.464 6.66c-.387 .67 -.733 1.34 -1.037 2'/%3E%3Cpath d='M12 5.424c-1.925 -1.892 -3.82 -2.766 -5 -2.084c-1.913 1.104 -1.226 5.877 1.536 10.66c.386 .67 .793 1.304 1.212 1.896'/%3E%3Cpath d='M12 18.574c1.926 1.893 3.821 2.768 5 2.086c1.913 -1.104 1.226 -5.877 -1.536 -10.66c-.375 -.65 -.78 -1.283 -1.212 -1.897'/%3E%3Cpath d='M11.5 12.866a1 1 0 1 0 1 -1.732a1 1 0 0 0 -1 1.732'/%3E%3C/svg%3E"); color: var(--sl-color-white); }
+
+.ht-link-card .i-angular { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M5.428 17.245l6.076 3.471a1 1 0 0 0 .992 0l6.076 -3.471a1 1 0 0 0 .495 -.734l1.323 -9.704a1 1 0 0 0 -.658 -1.078l-7.4 -2.612a1 1 0 0 0 -.665 0l-7.399 2.613a1 1 0 0 0 -.658 1.078l1.323 9.704a1 1 0 0 0 .495 .734l0 -.001'/%3E%3Cpath d='M9 15l3 -8l3 8'/%3E%3Cpath d='M10 13h4'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M5.428 17.245l6.076 3.471a1 1 0 0 0 .992 0l6.076 -3.471a1 1 0 0 0 .495 -.734l1.323 -9.704a1 1 0 0 0 -.658 -1.078l-7.4 -2.612a1 1 0 0 0 -.665 0l-7.399 2.613a1 1 0 0 0 -.658 1.078l1.323 9.704a1 1 0 0 0 .495 .734l0 -.001'/%3E%3Cpath d='M9 15l3 -8l3 8'/%3E%3Cpath d='M10 13h4'/%3E%3C/svg%3E"); color: var(--sl-color-white); }
+
+.ht-link-card .i-vue { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M16.5 4l-4.5 8l-4.5 -8'/%3E%3Cpath d='M3 4l9 16l9 -16'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M16.5 4l-4.5 8l-4.5 -8'/%3E%3Cpath d='M3 4l9 16l9 -16'/%3E%3C/svg%3E"); color: var(--sl-color-white); }
+
 .ht-link-card .title {
   color: var(--sl-color-white);
   font-weight: 600;
   font-size: 1rem;
+  line-height: 1.25rem;
 }
 
 .ht-link-card .subtitle {
   color: var(--sl-color-gray-3);
   font-size: 0.8rem;
   font-weight: 400;
+  line-height: 1.5rem;
 }
 
 .ht-link-card .arrow {
@@ -303,6 +414,12 @@ starlight-toc {
 /* Keep copied button visible even without hover */
 .expressive-code .copy button.copied {
   opacity: 1;
+}
+
+/* Expressive Code ins (inserted) line highlight — subtle green from badge color */
+.expressive-code .ec-line.ins {
+  background-color: rgba(65, 161, 103, 0.15) !important;
+  border-inline-start-color: #41a167 !important;
 }
 
 /* -------------------------------------------------------------------------
@@ -540,9 +657,13 @@ nav[aria-label="Main navigation"] a[aria-current='page'] {
   border-inline-start-color: var(--sl-color-gray-4) !important;
 }
 
-/* Match TOC link color to sidebar link color (both use gray-2) */
+/* Sidebar & TOC link color — use gray-3 for softer text */
+.sidebar-pane :where(a) {
+  color: var(--sl-color-gray-3);
+}
+
 .right-sidebar-panel :where(a) {
-  color: var(--sl-color-gray-2);
+  color: var(--sl-color-gray-3);
   line-height: 1.5;
 }
 
@@ -588,6 +709,7 @@ starlight-toc a:not([aria-current='true']):hover {
 }
 
 .sl-markdown-content :not(pre) > code:not(:where(.not-content *)) {
+  color: var(--sl-color-white);
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 4px;
 }
@@ -678,6 +800,11 @@ starlight-toc a:not([aria-current='true']):hover {
   padding: 1.25rem;
 }
 
+.starlight-aside--tip {
+  border-color: #2856ea;
+  --sl-color-asides-text-accent: #adaeaf;
+}
+
 /* -------------------------------------------------------------------------
  * Micro-interactions & polish
  * ------------------------------------------------------------------------- */
@@ -711,4 +838,102 @@ html {
 
 :root[data-theme='light'] .img-dark {
   display: none;
+}
+
+/* ── Hooks example: event log ────────────────────────────────────────── */
+
+#example1_events {
+  height: 166px;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  overflow-y: auto;
+  font-size: 13px;
+  font-family: var(--sl-font-mono, ui-monospace, monospace);
+  line-height: 1.6;
+  color: var(--sl-color-gray-2);
+  background: var(--sl-color-gray-7);
+  border: 0;
+  border-radius: 0.5rem;
+  box-sizing: border-box;
+}
+
+#example1_events div {
+  padding: 2px 0.5rem;
+  border-radius: 0.25rem;
+  margin-top: 0;
+}
+
+#example1_events div:nth-child(odd) {
+  background-color: var(--sl-color-gray-6);
+}
+
+/* ── Hooks example: checkbox list ────────────────────────────────────── */
+
+.example-container > strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sl-color-white);
+  margin: 1.25rem 0 0.5rem;
+}
+
+#hooksList {
+  padding: 0.75rem;
+  height: 280px;
+  overflow: auto;
+  background: var(--sl-color-gray-7);
+  border: 0;
+  border-radius: 0.5rem;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+
+#hooksList li {
+  list-style: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--sl-color-gray-2);
+  transition: background-color 0.15s;
+  min-width: 0;
+}
+
+#hooksList li:hover {
+  background-color: var(--sl-color-gray-6);
+}
+
+#hooksList li label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin-bottom: 0;
+}
+
+#hooksList li input[type="checkbox"] {
+  accent-color: var(--sl-color-accent);
+  flex-shrink: 0;
+}
+
+/* "Select all" row — full width across columns */
+#hooksList li:first-child {
+  grid-column: 1 / -1;
+  font-weight: 600;
+  color: var(--sl-color-white);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
+  border-radius: 0;
+}
+
+/* Aside inside hooks example */
+.example-container .starlight-aside {
+  margin: 1rem 0 0;
 }

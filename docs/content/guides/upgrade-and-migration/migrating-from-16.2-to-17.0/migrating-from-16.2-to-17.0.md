@@ -45,13 +45,13 @@ If you were using the legacy styles, migrate to the Classic theme using one of t
 
 The Theme API allows you to register and configure themes programmatically with runtime features like density modes and color schemes.
 
-**Step 1: Update your CSS imports**
+##### Step 1: Update your CSS imports
 
 ```diff
 - import 'handsontable/dist/handsontable.full.min.css';
 ```
 
-**Step 2: Import and register the Classic theme**
+##### Step 2: Import and register the Classic theme
 
 ::: only-for javascript
 
@@ -107,7 +107,7 @@ export class AppComponent {
 
 Alternatively, you can use CSS files and pass the theme name as a string to the `theme` option.
 
-**Step 1: Update your CSS imports**
+##### Step 1: Update your CSS imports
 
 ```diff
 - @import 'handsontable/dist/handsontable.full.min.css';
@@ -138,7 +138,7 @@ Or in `angular.json`:
 
 :::
 
-**Step 2: Set the theme in Handsontable configuration**
+##### Step 2: Set the theme in Handsontable configuration
 
 ::: only-for javascript
 

@@ -83,7 +83,16 @@ function wrapSteps(children, stepTag, nestedTag) {
       }
 
       // Recursively handle nested steps inside this step's content.
-      const processed = nestedTag ? wrapSteps(liChildren, nestedTag, null) : liChildren;
+      // Chain: h2 → h3 → h4 (three levels of nesting).
+      // First pass: look for step headings at the nested level (e.g., h3).
+      // Second pass: also look one level deeper (e.g., h4) to catch step
+      // headings that sit among non-step headings at the nested level.
+      const nextNested = nestedTag === 'h3' ? 'h4' : null;
+      let processed = nestedTag ? wrapSteps(liChildren, nestedTag, nextNested) : liChildren;
+
+      if (nextNested) {
+        processed = wrapSteps(processed, nextNested, null);
+      }
 
       stepLis.push({
         type: 'element',

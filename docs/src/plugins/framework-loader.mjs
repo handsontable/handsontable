@@ -166,6 +166,20 @@ function buildExampleHtml(id, directive, fileRefs, contentDir) {
     }
   }
 
+  // ── HTML preview content for JS examples ───────────────────────────────────
+  // Some JS examples ship an .html file with extra DOM elements the script
+  // depends on (event log panels, checkbox lists, etc.).  When present, inject
+  // its content into the preview area instead of a bare <div id="…"></div>.
+  let htmlPreviewContent = '';
+
+  if (jsRef) {
+    const htmlFile = files.find(f => f.ext === 'html');
+
+    if (htmlFile) {
+      htmlPreviewContent = htmlFile.code;
+    }
+  }
+
   // ── GitHub link ────────────────────────────────────────────────────────────
   const primaryRef = jsRef || jsxRef || tsRef || fileRefs[0];
   const exampleDir = primaryRef ? primaryRef.split('/').slice(0, -1).join('/') : '';
@@ -232,7 +246,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir) {
     <div class="hot-example-loader__row"></div>
     <div class="hot-example-loader__row"></div>
   </div>
-  <div id="${escapeHtml(id)}"></div>
+  ${htmlPreviewContent || `<div id="${escapeHtml(id)}"></div>`}
 </div>
 <div class="hot-example-toolbar">
   <button class="hot-example-source-btn" type="button" aria-expanded="false" aria-controls="hot-code-${escapeHtml(id)}">
@@ -562,7 +576,10 @@ function convertAsideBlocks(content) {
       }
       result.push(line);
     } else if (/^:::\s*$/.test(line)) {
-      const body = asideBody.join('\n').trim();
+      // Convert markdown links [text](url) to <a> tags since the body is
+      // injected as raw HTML and won't be processed by remark.
+      const body = asideBody.join('\n').trim()
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
       result.push(`<aside class="starlight-aside starlight-aside--${asideType}" aria-label="${asideTitle}">`);
       result.push(`<p class="starlight-aside__title" aria-hidden="true">${asideTitle}</p>`);
@@ -594,17 +611,17 @@ function convertBoxesListToCardGrid(content) {
       while (i < lines.length) {
         const line = lines[i].trim();
 
-        // Match a list item that contains a markdown link directly.
-        const directLink = line.match(/^-\s+(?:<[^>]+>\s*)*\[([^\]]+)\]\(([^)]+)\)/);
+        // Match a list item that contains a markdown link (optionally preceded by an icon tag).
+        const directLink = line.match(/^-\s+(?:<i\s+class="([^"]*)">\s*<\/i>\s*)?(?:<[^>]+>\s*)*\[([^\]]+)\]\(([^)]+)\)/);
 
         if (directLink) {
-          cards.push({ title: directLink[1], href: directLink[2] });
+          cards.push({ icon: directLink[1] || null, title: directLink[2], href: directLink[3] });
           i++;
           continue;
         }
 
         // Match a list item with icon on one line and link on the next.
-        const iconLine = line.match(/^-\s+<[^>]+>/);
+        const iconLine = line.match(/^-\s+<i\s+class="([^"]*)">\s*<\/i>/);
 
         if (iconLine) {
           let j = i + 1;
@@ -615,7 +632,26 @@ function convertBoxesListToCardGrid(content) {
             const nextLink = lines[j].trim().match(/^\[([^\]]+)\]\(([^)]+)\)/);
 
             if (nextLink) {
-              cards.push({ title: nextLink[1], href: nextLink[2] });
+              cards.push({ icon: iconLine[1], title: nextLink[1], href: nextLink[2] });
+              i = j + 1;
+              continue;
+            }
+          }
+        }
+
+        // List item without icon
+        const plainLink = line.match(/^-\s+<[^>]+>/);
+
+        if (plainLink) {
+          let j = i + 1;
+
+          while (j < lines.length && lines[j].trim() === '') j++;
+
+          if (j < lines.length) {
+            const nextLink = lines[j].trim().match(/^\[([^\]]+)\]\(([^)]+)\)/);
+
+            if (nextLink) {
+              cards.push({ icon: null, title: nextLink[1], href: nextLink[2] });
               i = j + 1;
               continue;
             }
@@ -627,14 +663,18 @@ function convertBoxesListToCardGrid(content) {
 
       if (cards.length === 0) return '';
 
-      const cardHtml = cards.map(({ title, href }) => {
+      const cardHtml = cards.map(({ icon, title, href }) => {
         // Split "Label (version)" into main title + subtitle
         const parenMatch = title.match(/^(.+?)\s*\(([^)]+)\)$/);
         const titleHtml = parenMatch
           ? `<span class="title">${parenMatch[1]}</span><span class="subtitle">${parenMatch[2]}</span>`
           : `<span class="title">${title}</span>`;
+        const iconHtml = icon ? `<i class="${icon}"></i>` : '';
 
-        return `<div class="ht-link-card"><a href="${href}">${titleHtml}</a><span class="arrow" aria-hidden="true">\u2192</span></div>`;
+        const isExternal = /^https?:\/\//.test(href);
+        const targetAttr = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
+
+        return `<div class="ht-link-card"><a href="${href}"${targetAttr}>${iconHtml}${titleHtml}</a><span class="arrow" aria-hidden="true">\u2192</span></div>`;
       }).join('\n');
 
       return `<div class="ht-card-grid">\n${cardHtml}\n</div>`;
