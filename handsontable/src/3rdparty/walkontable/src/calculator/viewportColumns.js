@@ -2,14 +2,6 @@ import { calculateAxis } from './axisCalculation';
 import { ViewportBaseCalculator } from './viewportBase';
 
 /**
- * The safety margin (in columns) subtracted from the binary-search result so
- * the overrideFn buffer and partially-visible columns are always included.
- *
- * @type {number}
- */
-const SCROLL_SKIP_MARGIN = 15;
-
-/**
  * @typedef {object} ViewportColumnsCalculatorOptions
  * @property {Map<string, ViewportBaseCalculator>} calculationTypes The calculation types to be performed.
  * @property {number} viewportWidth Width of the viewport.
@@ -69,7 +61,6 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
       zeroBasedScrollOffset: this.zeroBasedScrollOffset,
       scrollEnd: this.zeroBasedScrollOffset + this.viewportWidth,
       positionCache: this.positionCache,
-      skipMargin: SCROLL_SKIP_MARGIN,
       setSizeField: (ctx, size) => { ctx.columnWidth = size; },
       setTotalCalculated: (ctx, v) => { ctx.totalCalculatedWidth = v; },
       getTotalCalculated: ctx => ctx.totalCalculatedWidth,

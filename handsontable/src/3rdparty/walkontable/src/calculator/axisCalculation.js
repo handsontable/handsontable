@@ -13,7 +13,6 @@
  * @param {number} params.scrollEnd Pixel threshold at which iteration stops
  *   (rows: `innerViewportHeight`, columns: `zeroBasedScrollOffset + viewportWidth`).
  * @param {PositionCache} params.positionCache Built prefix sum cache.
- * @param {number} params.skipMargin Safety margin subtracted from the binary-search result.
  * @param {Function} params.setSizeField Callback `(ctx, size) => {}` that writes the
  *   per-item size onto the context (e.g. `ctx.rowHeight = size`).
  * @param {Function} params.setTotalCalculated Callback `(ctx, value) => {}` that writes
@@ -26,7 +25,6 @@ export function calculateAxis(context, {
   zeroBasedScrollOffset,
   scrollEnd,
   positionCache,
-  skipMargin,
   setSizeField,
   setTotalCalculated,
   getTotalCalculated,
@@ -38,12 +36,8 @@ export function calculateAxis(context, {
   if (zeroBasedScrollOffset > 0 && totalCount > 0) {
     const cachedIndex = positionCache.findIndexAtOffset(zeroBasedScrollOffset);
 
-    startIndex = Math.max(0, cachedIndex - skipMargin);
+    startIndex = cachedIndex;
     setTotalCalculated(context, positionCache.getOffset(startIndex));
-
-    if (startIndex > 0) {
-      context.startPositions[startIndex - 1] = positionCache.getOffset(startIndex - 1);
-    }
   }
 
   for (let i = startIndex; i < totalCount; i++) {

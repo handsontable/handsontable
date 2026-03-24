@@ -2,14 +2,6 @@ import { calculateAxis } from './axisCalculation';
 import { ViewportBaseCalculator } from './viewportBase';
 
 /**
- * The safety margin (in rows) subtracted from the binary-search result so
- * the overrideFn buffer and partially-visible rows are always included.
- *
- * @type {number}
- */
-const SCROLL_SKIP_MARGIN = 30;
-
-/**
  * @typedef {object} ViewportRowsCalculatorOptions
  * @property {Map<string, ViewportBaseCalculator>} calculationTypes The calculation types to be performed.
  * @property {number} viewportHeight Height of the viewport.
@@ -71,7 +63,6 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
       zeroBasedScrollOffset: this.zeroBasedScrollOffset,
       scrollEnd: this.innerViewportHeight,
       positionCache: this.positionCache,
-      skipMargin: SCROLL_SKIP_MARGIN,
       setSizeField: (ctx, size) => { ctx.rowHeight = size; },
       setTotalCalculated: (ctx, v) => { ctx.totalCalculatedHeight = v; },
       getTotalCalculated: ctx => ctx.totalCalculatedHeight,
