@@ -572,7 +572,7 @@ class DataProvider {
     const classNames = [];
 
     for (let col = startCol; col <= endCol; col++) {
-      if (!options.exportHiddenColumns && this._isHiddenColumn(col)) {
+      if (options.exportHiddenColumns === false && this._isHiddenColumn(col)) {
         continue;
       }
 
@@ -766,12 +766,12 @@ class DataProvider {
       return null;
     }
 
-    if (!this.options.exportHiddenRows && this._isHiddenRow(visualRow)) {
+    if (this.options.exportHiddenRows === false && this._isHiddenRow(visualRow)) {
       return null;
     }
 
     return this._countVisibleBefore(
-      visualRow, startRow, r => this.options.exportHiddenRows || !this._isHiddenRow(r)
+      visualRow, startRow, r => this.options.exportHiddenRows !== false || !this._isHiddenRow(r)
     );
   }
 
@@ -794,12 +794,12 @@ class DataProvider {
       return null;
     }
 
-    if (!this.options.exportHiddenColumns && this._isHiddenColumn(visualCol)) {
+    if (this.options.exportHiddenColumns === false && this._isHiddenColumn(visualCol)) {
       return null;
     }
 
     return this._countVisibleBefore(
-      visualCol, startCol, c => this.options.exportHiddenColumns || !this._isHiddenColumn(c)
+      visualCol, startCol, c => this.options.exportHiddenColumns !== false || !this._isHiddenColumn(c)
     );
   }
 
