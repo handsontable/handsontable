@@ -57,8 +57,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Copia solo intestazione', 'Copia solo intestazioni'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Taglia',
 
-  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Esporta in CSV',
-  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Esporta in Excel',
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Esporta',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'In CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'In Excel',
   [C.EXPORT_FILE_DIALOG_TITLE]: 'Esportazione in corso…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Inserisci riga figlia',

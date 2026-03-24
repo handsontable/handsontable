@@ -29,6 +29,7 @@ export const CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS = `${CM_ALIAS}.cop
 export const CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY = `${CM_ALIAS}.copyHeadersOnly`;
 export const CONTEXTMENU_ITEMS_CUT = `${CM_ALIAS}.cut`;
 
+export const CONTEXTMENU_ITEMS_EXPORT = `${CM_ALIAS}.export`;
 export const CONTEXTMENU_ITEMS_EXPORT_FILE_CSV = `${CM_ALIAS}.exportFileCsv`;
 export const CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX = `${CM_ALIAS}.exportFileXlsx`;
 

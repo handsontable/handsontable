@@ -58,8 +58,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopēt tikai galveni', 'Kopēt tikai galvenes'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Izgriezt',
 
-  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Eksportēt kā CSV',
-  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Eksportēt kā Excel',
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Eksportēt',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Kā CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Kā Excel',
   [C.EXPORT_FILE_DIALOG_TITLE]: 'Eksportē…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Ievietot pakārtoto rindu',

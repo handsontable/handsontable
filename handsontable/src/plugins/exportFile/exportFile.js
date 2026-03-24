@@ -5,8 +5,7 @@ import { LOADING_CLASS_NAME } from '../../helpers/constants';
 import { EXPORT_FILE_DIALOG_TITLE } from '../../i18n/constants';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
-import exportCsvItem from './contextMenuItem/exportCsv';
-import exportExcelItem from './contextMenuItem/exportExcel';
+import exportItem from './contextMenuItem/exportItem';
 import { buildExportDialogContent } from './utils';
 
 export const PLUGIN_KEY = 'exportFile';
@@ -181,8 +180,7 @@ export class ExportFile extends BasePlugin {
   #onAfterContextMenuDefaultOptions(options) {
     options.items.push(
       { name: '---------' },
-      exportCsvItem(this),
-      exportExcelItem(this),
+      exportItem(this),
     );
   }
 

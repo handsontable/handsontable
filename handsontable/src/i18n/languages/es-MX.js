@@ -60,8 +60,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Copiar solo el encabezado', 'Copiar solo los encabezados'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Cortar',
 
-  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Exportar a CSV',
-  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Exportar a Excel',
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exportar',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'A CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'A Excel',
   [C.EXPORT_FILE_DIALOG_TITLE]: 'Exportando…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Insertar fila hija',

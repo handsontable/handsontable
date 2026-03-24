@@ -60,8 +60,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopiëren koptekst', 'Kopiëren kopteksten'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Knippen',
 
-  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Exporteren naar CSV',
-  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Exporteren naar Excel',
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exporteren',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Naar CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Naar Excel',
   [C.EXPORT_FILE_DIALOG_TITLE]: 'Exporteren…',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Geneste rij invoegen',

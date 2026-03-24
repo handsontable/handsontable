@@ -1,3 +1,5 @@
+import ExcelJS from 'exceljs';
+
 describe('ExportFile', () => {
   const id = 'testContainer';
 
@@ -13,182 +15,251 @@ describe('ExportFile', () => {
   });
 
   describe('context menu', () => {
-    it('should add export items to the context menu when the ContextMenu plugin is active', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        contextMenu: true,
-        exportFile: true,
+    describe('submenu structure', () => {
+      it('should show an "Export" parent item with a submenu when exportFile is configured', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          contextMenu: true,
+          exportFile: true,
+        });
+
+        await contextMenu(getCell(1, 1));
+
+        const items = $('.htContextMenu tbody tr:not(.htHidden) td').map(function() {
+          return $(this).text();
+        }).get();
+
+        expect(items).toContain('Export');
       });
 
-      await contextMenu(getCell(1, 1));
+      it('should hide the "Export" parent item when exportFile is not configured', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          contextMenu: true,
+        });
 
-      const items = $('.htContextMenu tbody tr:not(.htHidden) td').map(function() {
-        return $(this).text();
-      }).get();
+        await contextMenu(getCell(1, 1));
 
-      expect(items).toContain('Export to CSV');
+        const items = $('.htContextMenu tbody tr:not(.htHidden) td').map(function() {
+          return $(this).text();
+        }).get();
+
+        expect(items).not.toContain('Export');
+      });
+
+      it('should contain "To CSV" in the Export submenu', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          contextMenu: true,
+          exportFile: true,
+        });
+
+        await contextMenu(getCell(1, 1));
+
+        await openContextSubmenuOption('Export');
+        await sleep(300);
+
+        const submenuItems = $('.htContextMenuSub_Export tbody td').map(function() {
+          return $(this).text();
+        }).get();
+
+        expect(submenuItems).toContain('To CSV');
+      });
+
+      it('should contain "To Excel" in the Export submenu when an engine is configured', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          contextMenu: true,
+          exportFile: { engines: { xlsx: ExcelJS } },
+        });
+
+        await contextMenu(getCell(1, 1));
+
+        await openContextSubmenuOption('Export');
+        await sleep(300);
+
+        const submenuItems = $('.htContextMenuSub_Export tbody td').map(function() {
+          return $(this).text();
+        }).get();
+
+        expect(submenuItems).toContain('To CSV');
+        expect(submenuItems).toContain('To Excel');
+      });
+
+      it('should hide "To Excel" in the Export submenu when no engine is configured', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          contextMenu: true,
+          exportFile: true,
+        });
+
+        await contextMenu(getCell(1, 1));
+
+        await openContextSubmenuOption('Export');
+        await sleep(300);
+
+        const submenuItems = $('.htContextMenuSub_Export tbody tr:not(.htHidden) td').map(function() {
+          return $(this).text();
+        }).get();
+
+        expect(submenuItems).toContain('To CSV');
+        expect(submenuItems).not.toContain('To Excel');
+      });
     });
 
-    it('should add export items even when no exportFile settings are provided', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        contextMenu: true,
+    describe('export options', () => {
+      it('should include columnHeaders and rowHeaders when they are enabled', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          colHeaders: true,
+          rowHeaders: true,
+          contextMenu: true,
+          exportFile: true,
+        });
+
+        const plugin = getPlugin('exportFile');
+
+        spyOn(plugin, 'downloadFile');
+
+        await contextMenu(getCell(1, 1));
+        await selectContextSubmenuOption('Export', 'To CSV');
+
+        expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
+          columnHeaders: true,
+          rowHeaders: true,
+        }));
       });
 
-      await contextMenu(getCell(1, 1));
+      it('should not include columnHeaders or rowHeaders when they are not enabled', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          contextMenu: true,
+          exportFile: true,
+        });
 
-      const items = $('.htContextMenu tbody tr:not(.htHidden) td').map(function() {
-        return $(this).text();
-      }).get();
+        const plugin = getPlugin('exportFile');
 
-      expect(items).toContain('Export to CSV');
+        spyOn(plugin, 'downloadFile');
+
+        await contextMenu(getCell(1, 1));
+        await selectContextSubmenuOption('Export', 'To CSV');
+
+        expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
+          columnHeaders: false,
+          rowHeaders: false,
+        }));
+      });
     });
 
-    it('should place the export items after a separator at the bottom of the context menu', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        contextMenu: true,
-        exportFile: true,
+    describe('selection range', () => {
+      it('should export the entire table when a single cell is selected', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          contextMenu: true,
+          exportFile: true,
+        });
+
+        const plugin = getPlugin('exportFile');
+
+        spyOn(plugin, 'downloadFile');
+
+        await selectCell(2, 2);
+        await contextMenu(getCell(2, 2));
+        await selectContextSubmenuOption('Export', 'To CSV');
+
+        expect(plugin.downloadFile).not.toHaveBeenCalledWith('csv', jasmine.objectContaining({
+          range: jasmine.anything(),
+        }));
       });
 
-      await contextMenu(getCell(1, 1));
+      it('should export the selected range when multiple cells are selected', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          contextMenu: true,
+          exportFile: true,
+        });
 
-      const cells = $('.htContextMenu tbody tr:not(.htHidden) td');
-      const lastTwo = cells.slice(-2);
+        const plugin = getPlugin('exportFile');
 
-      expect(lastTwo.eq(0).hasClass('htSeparator')).toBe(true);
-      expect(lastTwo.eq(1).text()).toBe('Export to CSV');
-    });
+        spyOn(plugin, 'downloadFile');
 
-    it('should hide "Export to Excel" when no ExcelJS engine is configured', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        contextMenu: true,
-        exportFile: true,
+        await selectCell(1, 1, 3, 3);
+        await contextMenu(getCell(2, 2));
+        await selectContextSubmenuOption('Export', 'To CSV');
+
+        expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
+          range: [1, 1, 3, 3],
+        }));
       });
 
-      await contextMenu(getCell(1, 1));
+      it('should export the entire table when the corner is right-clicked', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: true,
+          exportFile: true,
+        });
 
-      const items = $('.htContextMenu tbody tr:not(.htHidden) td').map(function() {
-        return $(this).text();
-      }).get();
+        const plugin = getPlugin('exportFile');
 
-      expect(items).toContain('Export to CSV');
-      expect(items).not.toContain('Export to Excel');
-    });
+        spyOn(plugin, 'downloadFile');
 
-    it('should show "Export to Excel" when an ExcelJS engine is configured', async() => {
-      const mockEngine = {};
+        await contextMenu(getCell(-1, -1));
+        await selectContextSubmenuOption('Export', 'To CSV');
 
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        contextMenu: true,
-        exportFile: { engines: { xlsx: mockEngine } },
+        expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
+          columnHeaders: true,
+          rowHeaders: true,
+        }));
+        expect(plugin.downloadFile).not.toHaveBeenCalledWith('csv', jasmine.objectContaining({
+          range: jasmine.anything(),
+        }));
       });
 
-      await contextMenu(getCell(1, 1));
+      it('should export the selected rows when a row header is right-clicked', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: true,
+          exportFile: true,
+        });
 
-      const items = $('.htContextMenu tbody tr:not(.htSeparator) td').map(function() {
-        return $(this).text();
-      }).get();
+        const plugin = getPlugin('exportFile');
 
-      expect(items).toContain('Export to CSV');
-      expect(items).toContain('Export to Excel');
-    });
+        spyOn(plugin, 'downloadFile');
 
-    it('should include columnHeaders and rowHeaders in export options when they are enabled', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        colHeaders: true,
-        rowHeaders: true,
-        contextMenu: true,
-        exportFile: true,
+        await selectRows(1, 3);
+        await contextMenu(getCell(2, -1));
+        await selectContextSubmenuOption('Export', 'To CSV');
+
+        expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
+          range: [1, 0, 3, 4],
+        }));
       });
 
-      const plugin = getPlugin('exportFile');
+      it('should export the selected columns when a column header is right-clicked', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: true,
+          exportFile: true,
+        });
 
-      spyOn(plugin, 'downloadFile');
+        const plugin = getPlugin('exportFile');
 
-      await contextMenu(getCell(1, 1));
-      $('.htContextMenu tbody td').filter(function() {
-        return $(this).text() === 'Export to CSV';
-      }).simulate('mousedown').simulate('mouseup');
+        spyOn(plugin, 'downloadFile');
 
-      expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
-        columnHeaders: true,
-        rowHeaders: true,
-      }));
-    });
+        await selectColumns(1, 3);
+        await contextMenu(getCell(-1, 2));
+        await selectContextSubmenuOption('Export', 'To CSV');
 
-    it('should not include columnHeaders or rowHeaders when they are not enabled', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        contextMenu: true,
-        exportFile: true,
+        expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
+          range: [0, 1, 4, 3],
+        }));
       });
-
-      const plugin = getPlugin('exportFile');
-
-      spyOn(plugin, 'downloadFile');
-
-      await contextMenu(getCell(1, 1));
-      $('.htContextMenu tbody td').filter(function() {
-        return $(this).text() === 'Export to CSV';
-      }).simulate('mousedown').simulate('mouseup');
-
-      expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
-        columnHeaders: false,
-        rowHeaders: false,
-      }));
-    });
-
-    it('should include the selected range in export options when a data cell is right-clicked', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        contextMenu: true,
-        exportFile: true,
-      });
-
-      const plugin = getPlugin('exportFile');
-
-      spyOn(plugin, 'downloadFile');
-
-      await selectCell(1, 1, 3, 3);
-      await contextMenu(getCell(2, 2));
-      $('.htContextMenu tbody td').filter(function() {
-        return $(this).text() === 'Export to CSV';
-      }).simulate('mousedown').simulate('mouseup');
-
-      expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
-        range: [1, 1, 3, 3],
-      }));
-    });
-
-    it('should not include a range in export options when the corner is right-clicked', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        rowHeaders: true,
-        colHeaders: true,
-        contextMenu: true,
-        exportFile: true,
-      });
-
-      const plugin = getPlugin('exportFile');
-
-      spyOn(plugin, 'downloadFile');
-
-      await contextMenu(getCell(-1, -1));
-      $('.htContextMenu tbody td').filter(function() {
-        return $(this).text() === 'Export to CSV';
-      }).simulate('mousedown').simulate('mouseup');
-
-      expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
-        columnHeaders: true,
-        rowHeaders: true,
-      }));
-      expect(plugin.downloadFile).not.toHaveBeenCalledWith('csv', jasmine.objectContaining({
-        range: jasmine.anything(),
-      }));
     });
   });
 });

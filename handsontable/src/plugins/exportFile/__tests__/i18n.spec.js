@@ -21,29 +21,33 @@ describe('ExportFile', () => {
     const LANGUAGES = [
       {
         code: 'en-US',
-        csvMenuLabel: 'Export to CSV',
+        exportMenuLabel: 'Export',
+        csvSubmenuLabel: 'To CSV',
         dialogTitle: 'Exporting\u2026',
       },
       {
         code: 'pl-PL',
-        csvMenuLabel: 'Eksportuj do CSV',
+        exportMenuLabel: 'Eksportuj',
+        csvSubmenuLabel: 'Do CSV',
         dialogTitle: 'Eksportowanie\u2026',
       },
       {
         code: 'de-DE',
-        csvMenuLabel: 'Als CSV exportieren',
+        exportMenuLabel: 'Exportieren',
+        csvSubmenuLabel: 'Als CSV',
         dialogTitle: 'Wird exportiert\u2026',
       },
       {
         code: 'fr-FR',
-        csvMenuLabel: 'Exporter en CSV',
+        exportMenuLabel: 'Exporter',
+        csvSubmenuLabel: 'En CSV',
         dialogTitle: 'Exportation\u2026',
       },
     ];
 
-    LANGUAGES.forEach(({ code, csvMenuLabel, dialogTitle }) => {
+    LANGUAGES.forEach(({ code, exportMenuLabel, csvSubmenuLabel, dialogTitle }) => {
       describe(`language: ${code}`, () => {
-        it('should display the translated "Export to CSV" label in the context menu', async() => {
+        it('should display the translated "Export" parent item in the context menu', async() => {
           handsontable({
             data: createSpreadsheetData(5, 5),
             contextMenu: true,
@@ -57,7 +61,27 @@ describe('ExportFile', () => {
             return $(this).text();
           }).get();
 
-          expect(items).toContain(csvMenuLabel);
+          expect(items).toContain(exportMenuLabel);
+        });
+
+        it('should display the translated "To CSV" label in the Export submenu', async() => {
+          handsontable({
+            data: createSpreadsheetData(5, 5),
+            contextMenu: true,
+            exportFile: true,
+            language: code,
+          });
+
+          await contextMenu(getCell(1, 1));
+
+          await openContextSubmenuOption(exportMenuLabel);
+          await sleep(300);
+
+          const submenuItems = $(`.htContextMenuSub_${exportMenuLabel} tbody td`).map(function() {
+            return $(this).text();
+          }).get();
+
+          expect(submenuItems).toContain(csvSubmenuLabel);
         });
 
         it('should display the translated dialog title when the export overlay is shown', async() => {
