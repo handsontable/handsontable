@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Reverted the MultiSelect cell type name compatibility alias. Only `multiselect` is supported.",
+  "type": "fixed",
+  "issueOrPR": 12213,
+  "breaking": false,
+  "framework": "none"
+}
