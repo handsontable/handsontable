@@ -138,35 +138,30 @@ export class DataProvider extends BasePlugin {
   /**
    * Serializes create/update/remove mutations so they run one after another.
    *
-   * @private
    * @type {{ tail: Promise<void> }}
    */
   #mutationQueue = { tail: Promise.resolve() };
   /**
    * Setting keys for which an incompatible-plugin warning was logged this session.
    *
-   * @private
    * @type {Set<string>}
    */
   #incompatibleSettingWarned = new Set();
   /**
    * Dedupes incomplete-`dataProvider` warnings until the setting is valid or removed from updates.
    *
-   * @private
    * @type {boolean}
    */
   #incompleteDataProviderWarningIssued = false;
   /**
    * Filter conditions saved before loadData (restored after load via setFiltersConditions hook).
    *
-   * @private
    * @type {Array<{ column: number, operation: 'conjunction'|'disjunction', conditions: Array<{ name?: string, args: Array<*> }> }>}
    */
   #savedConditionsForLoad = [];
   /**
    * Last known good filter conditions (for rollback when a fetch fails).
    *
-   * @private
    * @type {Array<{ column: number, operation: 'conjunction'|'disjunction', conditions: Array<{ name?: string, args: Array<*> }> }>}
    */
   #lastKnownGoodFilterConditions = [];
@@ -174,7 +169,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Raw `dataProvider` setting (config object only).
    *
-   * @private
    * @returns {object|undefined}
    */
   #getConfig() {
@@ -184,7 +178,6 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * @private
    * @param {object} c Config object.
    * @returns {boolean}
    */
@@ -195,7 +188,6 @@ export class DataProvider extends BasePlugin {
   /**
    * `rowId` from config (string path or function).
    *
-   * @private
    * @returns {string|Function|undefined|null}
    */
   #getRowIdOption() {
@@ -205,7 +197,6 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * @private
    * @returns {Function|undefined}
    */
   #getFetchFn() {
@@ -215,7 +206,6 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * @private
    * @returns {Function|undefined}
    */
   #getOnRowsCreate() {
@@ -225,7 +215,6 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * @private
    * @returns {Function|undefined}
    */
   #getOnRowsUpdate() {
@@ -235,7 +224,6 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * @private
    * @returns {Function|undefined}
    */
   #getOnRowsRemove() {
@@ -289,7 +277,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Logs a single warning per invalid `dataProvider` stretch; resets when the value becomes valid or cleared.
    *
-   * @private
    * @param {*} value Raw `dataProvider` setting value.
    * @returns {void}
    */
@@ -313,7 +300,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Copies `pageSize` / `initialPage` from Pagination and sort from ColumnSorting into `#queryParameters`.
    *
-   * @private
    * @returns {void}
    */
   #applyPaginationAndSortFromPlugins() {
@@ -324,7 +310,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Rebuilds `#queryParameters.filters` from the Filters plugin UI (e.g. after `updateSettings({ dataProvider })` reset query state).
    *
-   * @private
    * @returns {void}
    */
   #syncQueryFiltersFromFiltersPlugin() {
@@ -342,7 +327,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Registers DataProvider hooks (removed on disable via `BasePlugin.clearHooks`).
    *
-   * @private
    * @returns {void}
    */
   #registerHooks() {
@@ -374,7 +358,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Aborts an in-flight `fetchRows` call so a new request can start.
    *
-   * @private
    * @returns {void}
    */
   #abortInFlightFetch() {
@@ -391,7 +374,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Merges overrides into `#queryParameters` and normalizes sort / page for `fetchRows`.
    *
-   * @private
    * @param {object} overrides Partial query overrides (subset of [[DataProviderQueryParameters]] keys).
    * @returns {DataProviderQueryParameters} Query parameters object for `fetchRows`.
    */
@@ -410,7 +392,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Replaces `#abortController` with a new controller for the next fetch.
    *
-   * @private
    * @returns {AbortController}
    */
   #createFetchAbortController() {
@@ -424,7 +405,6 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * @private
    * @param {object} params Query parameters for the aborted `fetchRows` call.
    * @param {Error|undefined} reason `AbortError` (or subclass) when `fetchRows` rejected; omit the argument when the promise settled after superseding.
    * @returns {void}
@@ -442,7 +422,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Aborts any pending `fetchRows` and clears the controller.
    *
-   * @private
    * @returns {void}
    */
   #resetAbortController() {
@@ -482,7 +461,6 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * @private
    * @returns {void}
    */
   #onAfterInit = () => {
@@ -495,7 +473,6 @@ export class DataProvider extends BasePlugin {
    * Re-disables plugins that conflict with DataProvider after `updateSettings()` (their `updatePlugin` may re-enable them).
    * Registered with a late `afterUpdateSettings` order index so this runs after other plugins' listeners.
    *
-   * @private
    * @returns {void}
    */
   #onAfterUpdateSettings = () => {
@@ -505,13 +482,11 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
-   * @private
    * @returns {boolean|void}
    */
   #paginationExternalDataSourceActive = () => paginationExternalDataSourceActive(this.hot);
 
   /**
-   * @private
    * @returns {number|void}
    */
   #paginationTotalItemCount = () => paginationTotalItemCount(this.hot, this.#totalRows);
@@ -520,7 +495,6 @@ export class DataProvider extends BasePlugin {
    * Loads the requested page when Pagination runs in external paged mode.
    * Skips when `#queryParameters` already matches (e.g. after `applyLoadedPagingState`).
    *
-   * @private
    * @param {number} oldPage Previous 1-based page.
    * @param {number} newPage New 1-based page.
    * @returns {void}
@@ -542,7 +516,6 @@ export class DataProvider extends BasePlugin {
    * Loads page 1 with the new page size when Pagination runs in external paged mode.
    * Skips when `#queryParameters` already match (e.g. duplicate hook from `applyLoadedPagingState`).
    *
-   * @private
    * @param {number | 'auto'} oldPageSize Previous page size.
    * @param {number | 'auto'} newPageSize New page size.
    * @returns {void}
@@ -564,7 +537,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Returns true when DataProvider is enabled so the Filters plugin hides "Filter by value".
    *
-   * @private
    * @returns {boolean}
    */
   #filtersServerSideActive = () => this.isEnabled();
@@ -572,7 +544,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Intercepts filter action: applies server-side filters and refetches; returns false so Filters skip client-side trimming.
    *
-   * @private
    * @param {Array} conditionsStack Exported filter conditions (column = physical index).
    * @returns {boolean} False to signal that filtering is handled server-side.
    */
@@ -597,7 +568,6 @@ export class DataProvider extends BasePlugin {
   /**
    * beforeLoadData: when source is DataProvider, save current filter conditions for restore after load.
    *
-   * @private
    * @param {Array} sourceData Source data passed to loadData.
    * @param {boolean} initialLoad Whether this is the initial load.
    * @param {string} [source] Source identifier (e.g. 'dataProvider').
@@ -612,7 +582,6 @@ export class DataProvider extends BasePlugin {
    * afterLoadData: when source is DataProvider, restore filter conditions and update last-known-good.
    * Always re-disables plugins incompatible with DataProvider (e.g. `trimRows`) so they cannot persist across `loadData`.
    *
-   * @private
    * @param {Array} sourceData Source data passed to loadData.
    * @param {boolean} initialLoad Whether this is the initial load.
    * @param {string} [source] Source identifier (e.g. 'dataProvider').
@@ -629,7 +598,6 @@ export class DataProvider extends BasePlugin {
   /**
    * afterDataProviderFetchError: restore filter conditions to last known good and re-render.
    *
-   * @private
    */
   #onAfterDataProviderFetchErrorForFilters = () => {
     if (this.#lastKnownGoodFilterConditions.length > 0) {
@@ -640,7 +608,6 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
-   * @private
    * @param {Array} currentSortConfig Current sort config.
    * @param {Array} destinationSortConfigs Destination sort config.
    * @param {boolean} sortPossible Whether sort is allowed.
@@ -660,7 +627,6 @@ export class DataProvider extends BasePlugin {
   );
 
   /**
-   * @private
    * @param {number} visualRowIndex Visual row index.
    * @returns {number} Global row index for headers.
    */
@@ -669,7 +635,6 @@ export class DataProvider extends BasePlugin {
   /**
    * After a valid edit applies locally, queues `onRowsUpdate`. On failure, cells revert to previous values.
    *
-   * @private
    * @param {Array} changes `[visualRow, prop, oldVal, newVal][]`.
    * @param {string} [source] Change source.
    * @returns {void}
@@ -692,7 +657,6 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
-   * @private
    * @param {string} action Alter action name.
    * @param {number|Array} index Row index or index groups.
    * @param {number} amount Row count.
@@ -716,7 +680,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Appends a mutation onto the queue so concurrent CRUD runs sequentially.
    *
-   * @private
    * @param {function(): Promise<void>} fn Async work for one mutation.
    * @returns {Promise<void>}
    */
@@ -727,7 +690,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Shows an alert in the [[Options#dialog]] plugin when it is enabled.
    *
-   * @private
    * @param {'fetch'|'create'|'update'|'remove'} kind Which request failed.
    * @param {Error|*} err Rejection reason from the user callback or `fetchRows`.
    * @returns {void}
@@ -770,7 +732,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Calls `onRowsUpdate`, success/error hooks, then re-fetches or re-renders.
    *
-   * @private
    * @param {object[]} rowPayloads Per-row `{ id, changes, rowData }` payloads.
    * @param {object} [options] Optional flags.
    * @param {function(): void} [options.revertOptimistic] Restores previous cell values when the request fails.
@@ -876,7 +837,6 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * @private
    * @param {number} page 1-based page index (values below 1 are treated as 1 via `fetchData`).
    * @returns {Promise<void>}
    */
@@ -885,7 +845,6 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * @private
    * @param {number} pageSize New page size.
    * @returns {Promise<void>}
    */
@@ -910,8 +869,8 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Sets filter state for server-side filtering and refetches data (resets to page 1).
-   * Pass `null` to clear filters.
+   * Sets filter state for server-side filtering and refetches data (resets to page 1). Pass `null` to clear filters.
+   * External code should use [[DataProvider#fetchData]] with `filters` (and `page: 1` when changing filters).
    *
    * @param {Array<DataProviderFilterColumn>|null} filters Filter descriptors or null to clear.
    * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>} Result of the fetch, or null if fetch was skipped/aborted.
@@ -926,7 +885,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Queues create/remove (or similar) server calls with before/after mutation hooks.
    *
-   * @private
    * @param {string} operation `'create'` or `'remove'`.
    * @param {object} payload Hook payload (`{ rowsCreate }`, `{ rows }`, or `{ rowsRemove }`).
    * @param {function(): Promise<*>} userPromiseFn Server callback invocation.
@@ -1064,7 +1022,6 @@ export class DataProvider extends BasePlugin {
   /**
    * Logs a warning and disables plugins that conflict with server-backed data.
    *
-   * @private
    * @returns {void}
    */
   #warnAndDisableIncompatiblePlugins() {

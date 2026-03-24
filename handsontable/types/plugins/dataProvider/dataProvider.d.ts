@@ -13,8 +13,9 @@ export interface DataProviderSortDescriptor {
 
 /**
  * Filter column for server-side filtering: column data key (`prop`), operation, and conditions.
- * Used in query parameters and [[DataProvider#setFilters]]. Same shape as the Filters plugin's column conditions
- * but with `prop` instead of column index (matches sort descriptor naming).
+ * Used in query parameters (for example pass to [[DataProvider#fetchData]] as `filters`) and when the Filters plugin
+ * drives server-side filtering. Same shape as the Filters plugin's column conditions but with `prop` instead of column
+ * index (matches sort descriptor naming).
  */
 export interface DataProviderFilterColumn {
   prop: string;
@@ -33,8 +34,9 @@ export interface DataProviderQueryParameters {
    */
   sort: DataProviderSortDescriptor | null;
   /**
-   * Filter state for server-side filtering (or `null`). Set via [[DataProvider#setFilters]] or when the Filters
-   * plugin triggers server-side filtering. Your `fetchRows` receives this in the query parameters.
+   * Filter state for server-side filtering (or `null`). Set by calling [[DataProvider#fetchData]] with `filters` (and
+   * typically `page: 1`) or when the Filters plugin triggers server-side filtering. Your `fetchRows` receives this in
+   * the query parameters.
    */
   filters: DataProviderFilterColumn[] | null;
 }
@@ -175,10 +177,6 @@ export class DataProvider extends BasePlugin {
   getQueryParameters(): DataProviderQueryParameters;
   getRowId(visualRow: number): unknown;
   fetchData(overrides?: DataProviderFetchDataOverrides): Promise<{ rows: SourceRowData[]; totalRows: number } | null>;
-  /**
-   * Sets filter state for server-side filtering and refetches data (resets to page 1). Pass `null` to clear filters.
-   */
-  setFilters(filters: DataProviderFilterColumn[] | null): Promise<{ rows: SourceRowData[]; totalRows: number } | null>;
   /**
    * Create rows on the server via `onRowsCreate`. Set `rowsAmount` to insert more than one row.
    */
