@@ -28,7 +28,7 @@
   --sl-font: 'Inter', system-ui, -apple-system, sans-serif;
   --sl-text-base: 1rem;
   --sl-line-height: 1.7;
-  --sl-nav-height: 6rem;
+  --sl-nav-height: 6.5rem;
   --sl-content-gap-y: 1.25rem;
 }
 
@@ -57,13 +57,23 @@
 /* Allow two-row header to size naturally instead of fixed height */
 header.header {
   height: auto !important;
-  padding-block: 0.5rem;
+  padding-block: 1rem 0.5rem;
 }
 
 /* Align sidebar and TOC tops */
 .sidebar-pane,
 starlight-toc nav {
   padding-top: 0 !important;
+}
+
+/* Right sidebar — match header height */
+.right-sidebar {
+  padding-top: var(--sl-nav-height) !important;
+}
+
+/* Push main content down so breadcrumbs align with the "On this page" heading */
+.content-panel:first-child {
+  padding-top: 2.8rem;
 }
 
 /* Custom scrollbar styling — subtle */
@@ -137,6 +147,7 @@ starlight-toc nav {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 0.5rem;
+  margin-top: 0;
   padding: 0.75rem 1rem;
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 0.5rem;
@@ -146,6 +157,8 @@ starlight-toc nav {
 }
 
 .ht-link-card a {
+  display: flex;
+  flex-direction: column;
   text-decoration: none;
   line-height: var(--sl-line-height-headings);
 }
@@ -161,6 +174,12 @@ starlight-toc nav {
   color: var(--sl-color-white);
   font-weight: 600;
   font-size: 1rem;
+}
+
+.ht-link-card .subtitle {
+  color: var(--sl-color-gray-3);
+  font-size: 0.8rem;
+  font-weight: 400;
 }
 
 .ht-link-card .arrow {
@@ -192,15 +211,6 @@ starlight-toc nav {
 .sl-markdown-content :is(th, td):not(:where(.not-content *)) {
   border-bottom: revert;
   padding: revert;
-  vertical-align: revert;
-}
-
-.sl-markdown-content :is(th:first-child, td:first-child):not(:where(.not-content *)) {
-  padding-inline-start: revert;
-}
-
-.sl-markdown-content :is(th:last-child, td:last-child):not(:where(.not-content *)) {
-  padding-inline-end: revert;
 }
 
 .sl-markdown-content th:not(:where(.not-content *)) {
@@ -422,6 +432,12 @@ starlight-toc a:not([aria-current='true']):hover {
  * the grid renders correctly. Then apply clean table styles for
  * documentation tables.
  * ------------------------------------------------------------------------- */
+.table-container,
+.sl-markdown-content > .table-container:not(:where(.not-content *)) {
+  background-color: var(--sl-color-gray-7);
+  border-radius: 8px;
+}
+
 .table-container table,
 .sl-markdown-content > table:not(:where(.not-content *)) {
   width: 100%;
@@ -430,23 +446,27 @@ starlight-toc a:not([aria-current='true']):hover {
 
 .table-container th:not(:where(.not-content *)),
 .sl-markdown-content > table:not(:where(.not-content *)) th {
-  text-transform: uppercase;
-  font-size: var(--sl-text-xs);
-  letter-spacing: 0.04em;
-  border-bottom: 2px solid var(--sl-color-gray-4);
-  padding: 0.625rem 1rem;
-  text-align: start;
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  padding: 0.75rem 1.25rem;
+  text-align: left !important;
 }
 
 .table-container td:not(:where(.not-content *)),
 .sl-markdown-content > table:not(:where(.not-content *)) td {
-  border-bottom: 1px solid var(--sl-color-gray-5);
-  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--sl-color-gray-6);
+  padding: 0.75rem 1.25rem;
+}
+
+.table-container tr:last-child td:not(:where(.not-content *)),
+.sl-markdown-content > table:not(:where(.not-content *)) tr:last-child td {
+  border-bottom: none;
 }
 
 .table-container tr:nth-child(2n):not(:where(.not-content *)),
 .sl-markdown-content > table:not(:where(.not-content *)) tr:nth-child(2n) {
-  background-color: var(--sl-color-gray-7, var(--sl-color-gray-6));
+  background-color: transparent;
 }
 
 /* -------------------------------------------------------------------------
@@ -516,4 +536,13 @@ html {
 .sl-markdown-content img:not(:where(.not-content *)) {
   border-radius: 8px;
   border: 1px solid var(--sl-color-gray-5);
+}
+
+/* Theme-aware images: show light variant in light mode, dark in dark mode */
+:root[data-theme='dark'] .img-light {
+  display: none;
+}
+
+:root[data-theme='light'] .img-dark {
+  display: none;
 }

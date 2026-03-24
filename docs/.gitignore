@@ -33,3 +33,4 @@ report-check-links.xlsx
 /blob-report/
 /playwright/.cache/
 .astro/
+/public/_md/

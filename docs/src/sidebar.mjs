@@ -289,7 +289,7 @@ function buildRecipesSidebar(framework, prefix) {
 
 /**
  * Builds the Starlight sidebar config for the Changelog section, organized
- * into three sub-groups: Changelog, Policy, and Migration guides.
+ * into three sub-groups: Changelog (per major version), Policy, and Migration guides.
  *
  * @param {string} framework - "javascript" | "react" | "angular"
  * @param {string} prefix - URL prefix e.g. "javascript-data-grid"
@@ -314,7 +314,7 @@ function buildChangelogSidebar(framework, prefix) {
 
     const slug = item.path.split('/').pop();
 
-    if (slug === 'changelog') {
+    if (slug.startsWith('changelog')) {
       changelog.push(item);
     } else if (POLICY_SLUGS.includes(slug)) {
       policy.push(item);
@@ -344,11 +344,13 @@ function buildChangelogSidebar(framework, prefix) {
  * @returns {import('@astrojs/starlight').StarlightUserConfig['sidebar']}
  */
 export function buildSidebar(framework = 'javascript', prefix = 'javascript-data-grid') {
-  const guideSections = guides.map((section) => ({
-    label: section.title,
-    collapsed: false,
-    items: toStarlightItems(section.children, framework, prefix),
-  }));
+  const guideSections = guides
+    .filter((section) => section.title !== 'Upgrade and migration')
+    .map((section) => ({
+      label: section.title,
+      collapsed: false,
+      items: toStarlightItems(section.children, framework, prefix),
+    }));
 
   return [
     ...guideSections,

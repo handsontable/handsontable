@@ -104,7 +104,7 @@ Implementing Handsontable requires a certain level of front-end development skil
 
 ## Stay in the loop
 
-- [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md)
+- [Changelog](@/guides/upgrade-and-migration/changelog-17/changelog-17.md)
 - [Blog](https://handsontable.com/blog)
 - [X](https://x.com/handsontable)
 - [LinkedIn](https://linkedin.com/company/handsontable)

@@ -162,8 +162,22 @@ const technicalSpecificationItems = [
   { path: 'guides/technical-specification/documentation-license/documentation-license' },
 ];
 
+const changelogItems = [
+  { path: 'guides/upgrade-and-migration/changelog-17/changelog-17' },
+  { path: 'guides/upgrade-and-migration/changelog-16/changelog-16' },
+  { path: 'guides/upgrade-and-migration/changelog-15/changelog-15' },
+  { path: 'guides/upgrade-and-migration/changelog-14/changelog-14' },
+  { path: 'guides/upgrade-and-migration/changelog-13/changelog-13' },
+  { path: 'guides/upgrade-and-migration/changelog-12/changelog-12' },
+  { path: 'guides/upgrade-and-migration/changelog-11/changelog-11' },
+  { path: 'guides/upgrade-and-migration/changelog-10/changelog-10' },
+  { path: 'guides/upgrade-and-migration/changelog-9/changelog-9' },
+  { path: 'guides/upgrade-and-migration/changelog-8/changelog-8' },
+  { path: 'guides/upgrade-and-migration/changelog-7/changelog-7' },
+];
+
 const upgradeAndMigrationItems = [
-  { path: 'guides/upgrade-and-migration/changelog/changelog' },
+  ...changelogItems,
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
   { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },

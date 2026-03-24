@@ -1,12 +1,14 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightThemeRapide from 'starlight-theme-rapide';
+import starlightPageActions from 'starlight-page-actions';
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { buildAllSidebars } from './src/sidebar.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from 'fs';
+import { relative, join } from 'path';
 import { createRequire } from 'module';
 import { transformWithEsbuild } from 'vite';
 
@@ -239,6 +241,102 @@ function resolveMonorepoPackages() {
   };
 }
 
+/**
+ * Astro integration that generates clean Markdown files for the
+ * starlight-page-actions "View in Markdown" / "Copy Markdown" features.
+ *
+ * Scans docs/content/ for .md files, reads their `permalink` frontmatter,
+ * and writes cleaned Markdown to public/ (dev) and dist/ (build) for all
+ * three framework prefixes.
+ *
+ * Generated files live under public/_md/ and are gitignored.
+ */
+function markdownRoutesIntegration() {
+  const matter = _require('gray-matter');
+  const contentDir = resolve(__dirname, 'content');
+  const publicMdDir = resolve(__dirname, 'public', '_md');
+  const PREFIXES = ['javascript-data-grid', 'react-data-grid', 'angular-data-grid'];
+
+  function buildRouteMap() {
+    const routeMap = new Map();
+
+    function scanDir(dir) {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+
+        if (entry.isDirectory()) {
+          scanDir(full);
+          continue;
+        }
+
+        if (!entry.name.endsWith('.md')) continue;
+
+        let raw;
+
+        try {
+          raw = readFileSync(full, 'utf-8');
+        } catch {
+          continue;
+        }
+
+        const { data, content } = matter(raw);
+
+        if (!data.title) continue;
+
+        const rel = relative(contentDir, full);
+
+        if (rel === 'index.md') {
+          routeMap.set('index.md', `# ${data.title}\n\n${content.trim()}`);
+          continue;
+        }
+
+        if (!data.permalink) continue;
+
+        const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '') || 'index';
+        const md = `# ${data.title}\n\n${content.trim()}`;
+
+        for (const prefix of PREFIXES) {
+          routeMap.set(`${prefix}/${slug}.md`, md);
+        }
+      }
+    }
+
+    scanDir(contentDir);
+
+    return routeMap;
+  }
+
+  function writeFiles(outDir) {
+    const routeMap = buildRouteMap();
+
+    for (const [filePath, md] of routeMap) {
+      const dest = resolve(outDir, filePath);
+      const destDir = dirname(dest);
+
+      mkdirSync(destDir, { recursive: true });
+      writeFileSync(dest, md, 'utf-8');
+    }
+
+    return routeMap.size;
+  }
+
+  // Write to public/_md/ at startup so dev server can serve them.
+  // Files in public/ are served at the site root by Vite's static server.
+  writeFiles(publicMdDir);
+
+  return {
+    name: 'markdown-routes',
+    hooks: {
+      // Build mode: also write .md files into the dist directory.
+      'astro:build:done': ({ dir }) => {
+        const outDir = fileURLToPath(dir);
+
+        writeFiles(resolve(outDir, '_md'));
+      },
+    },
+  };
+}
+
 const allSidebars = buildAllSidebars();
 
 export default defineConfig({
@@ -309,7 +407,10 @@ export default defineConfig({
         SiteTitle: './src/components/SiteTitle.astro',
       },
 
-      plugins: [starlightThemeRapide()],
+      plugins: [
+        starlightThemeRapide(),
+        starlightPageActions(),
+      ],
 
       // Algolia DocSearch — install @astrojs/starlight-docsearch and add the
       // ALGOLIA_APP_ID / ALGOLIA_API_KEY / ALGOLIA_INDEX_NAME env vars.
@@ -317,6 +418,10 @@ export default defineConfig({
 
       // Pagefind is used as default local search until Algolia is wired up.
     }),
+
+    // Serves clean Markdown at *.md URLs for the "View in Markdown" button
+    // added by starlight-page-actions.
+    markdownRoutesIntegration(),
   ],
 
   markdown: {

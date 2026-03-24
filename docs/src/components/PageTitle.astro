@@ -3,22 +3,24 @@
  * PageTitle component override.
  *
  * Renders:
- *  1. A top bar with breadcrumbs on the left and a "Copy as Markdown" button
- *     on the right.
+ *  1. A top bar with breadcrumbs.
  *  2. The page <h1> (id="_top" preserved — required by Starlight's skip-link
  *     and on-page TOC behaviour).
+ *  3. Action buttons from starlight-page-actions (Copy Markdown, Open in AI,
+ *     Share) — integrated here because both this component and the plugin
+ *     override the same PageTitle slot.
  *
  * Breadcrumb structure (matches the VuePress docs):
  *   🏠 17.0.0 JavaScript Data Grid  ›  Current Page Title
- *
- * The "Copy as Markdown" button embeds the raw page markdown (title + body)
- * in a <script type="application/json"> block and copies it to the clipboard
- * on click, flashing "Copied!" for 2 s — mirroring CopyMarkdown.vue.
  */
 
 import { createRequire } from 'module';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { Icon } from '@astrojs/starlight/components';
+import config from 'virtual:config';
+import Dropdown from '../../node_modules/starlight-page-actions/components/Dropdown.astro';
+import Button from '../../node_modules/starlight-page-actions/components/Button.astro';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require   = createRequire(import.meta.url);
@@ -57,17 +59,110 @@ const homeLabel      = hotVersion ? `${hotVersion} ${frameworkLabel}` : framewor
 const homeHref       = `/docs/${prefix}/`;
 const pageHref       = pathname;
 
-// ── Markdown payload ──────────────────────────────────────────────────────────
-// Build a clean markdown document: frontmatter title + raw body.
-// Passed to the client script via define:vars (Astro JSON-serialises it).
-const description = (entry.data as any).description ?? '';
-const rawBody     = (entry as any).body ?? '';
+// ── Page actions (starlight-page-actions) ─────────────────────────────────────
+interface OptionsProps {
+  label: string;
+  href: string;
+  id: 'chatgpt' | 'claude' | 'markdown' | 'v0' | 't3chat';
+}
 
-const markdownDoc = [
-  `# ${pageTitle}`,
-  description ? `\n${description}` : '',
-  rawBody ? `\n${rawBody}` : '',
-].join('\n').trim();
+const currentPath = Astro.url.pathname.replace(/\/$/, '');
+const currentUrl  = Astro.url.href;
+// Path to the generated .md file (served from public/_md/).
+const mdSlug      = currentPath.replace(/^\/docs\//, '');
+const mdPath      = `/docs/_md/${mdSlug}.md`;
+const { actions, prompt: userPrompt, share } = config;
+const { pageActions } = (Astro.locals as any).starlightRoute.entry.data;
+
+const prompt = userPrompt?.includes('{url}')
+  ? userPrompt?.replace('{url}', currentUrl)
+  : `${userPrompt} ${currentUrl}`;
+const encodedPrompt    = encodeURIComponent(prompt as string);
+const encodedCurrentUrl = encodeURIComponent(currentUrl);
+const encodedTitle     = encodeURIComponent(pageTitle as string);
+
+const defaultOptions: OptionsProps[] = [
+  {
+    label: Astro.locals.t('open.chatgpt'),
+    href: `https://chatgpt.com/?q=${encodedPrompt}`,
+    id: 'chatgpt',
+  },
+  {
+    label: Astro.locals.t('open.claude'),
+    href: `https://claude.ai/new?q=${encodedPrompt}`,
+    id: 'claude',
+  },
+  {
+    label: Astro.locals.t('open.t3chat'),
+    href: `https://t3.chat/new?q=${encodedPrompt}`,
+    id: 't3chat',
+  },
+  {
+    label: Astro.locals.t('open.v0'),
+    href: `https://v0.app/?q=${encodedPrompt}`,
+    id: 'v0',
+  },
+  {
+    label: Astro.locals.t('view.markdown'),
+    href: mdPath,
+    id: 'markdown',
+  },
+];
+const filteredDefaultOptions = defaultOptions.filter((option) => {
+  return actions && actions[option.id];
+});
+const customOptions: OptionsProps[] = actions?.custom
+  ? Object.entries(actions.custom).map(([key, value]) => ({
+      label: value.label,
+      href: `${value.href}${encodedPrompt}`,
+      id: key as OptionsProps['id'],
+    }))
+  : [];
+const actionOptions = [...filteredDefaultOptions, ...customOptions];
+const shareOptions = [
+  {
+    label: Astro.locals.t('share.linkedin'),
+    href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedCurrentUrl}`,
+  },
+  {
+    label: Astro.locals.t('share.x'),
+    href: `https://x.com/intent/tweet?url=${encodedCurrentUrl}&text=${encodedTitle}`,
+  },
+  {
+    label: Astro.locals.t('share.threads'),
+    href: `https://threads.net/intent/post?url=${encodedCurrentUrl}&text=${encodedTitle}`,
+  },
+  {
+    label: Astro.locals.t('share.bluesky'),
+    href: `https://bsky.app/intent/compose?text=${encodedTitle}%20${encodedCurrentUrl}`,
+  },
+  {
+    label: Astro.locals.t('share.facebook'),
+    href: `https://www.facebook.com/sharer/sharer.php?u=${encodedCurrentUrl}`,
+  },
+  {
+    label: Astro.locals.t('share.reddit'),
+    href: `https://reddit.com/submit?url=${encodedCurrentUrl}&title=${encodedTitle}`,
+  },
+  {
+    label: Astro.locals.t('share.hackernews'),
+    href: `https://news.ycombinator.com/submitlink?u=${encodedCurrentUrl}&t=${encodedTitle}`,
+  },
+  {
+    label: Astro.locals.t('share.email'),
+    href: `mailto:?subject=${encodedTitle}&body=${encodedCurrentUrl}`,
+  },
+  {
+    label: Astro.locals.t('share.whatsapp'),
+    href: `https://wa.me/?text=${encodedTitle}%20${encodedCurrentUrl}`,
+  },
+  {
+    label: Astro.locals.t('share.telegram'),
+    href: `https://t.me/share/url?url=${encodedCurrentUrl}&text=${encodedTitle}`,
+  },
+];
+
+const showActions = pageActions || typeof pageActions === 'undefined';
 ---
 
 <div class="hot-page-header">
@@ -92,68 +187,59 @@ const markdownDoc = [
     </ol>
   </nav>
 
-  <!-- ── Copy as Markdown button ─────────────────────────────────────────── -->
-  <button
-    type="button"
-    class="hot-copy-md-btn"
-    id="hot-copy-md-btn"
-    aria-label="Copy page as Markdown"
-    title="Copy page as Markdown — useful for AI chats"
-  >
-    <!-- Clipboard icon (matches CopyMarkdown.vue SVG) -->
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-      <g clip-path="url(#hot-copy-clip)">
-        <path d="M5.333 6.667c0-.354.14-.693.39-.943.25-.25.589-.39.943-.39H12c.354 0 .693.14.943.39.25.25.39.589.39.943V12c0 .354-.14.693-.39.943-.25.25-.589.39-.943.39H6.667c-.354 0-.693-.14-.943-.39-.25-.25-.39-.589-.39-.943V6.667z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M10.667 5.333V4a1.333 1.333 0 00-1.334-1.333H4A1.333 1.333 0 002.667 4v5.333A1.333 1.333 0 004 10.667h1.333" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-      </g>
-      <defs>
-        <clipPath id="hot-copy-clip"><rect width="16" height="16" fill="white"/></clipPath>
-      </defs>
-    </svg>
-    <span class="hot-copy-md-btn__label">Copy as Markdown</span>
-  </button>
+  <!-- ── Page actions (inline with breadcrumbs) ──────────────────────────── -->
+  {showActions && (
+    <div class="actions-container">
+      <Button id="copy-markdown" dataPath={mdPath}>
+        <Icon name="mdx" size="1rem" class="icon-default" />
+        <Icon name="approve-check" size="1rem" class="icon-success" />
+        <Icon name="error" size="1rem" class="icon-error" />
+        <span>{Astro.locals.t('copy.markdown')}</span>
+      </Button>
+
+      <div class="dropdown-container">
+        {actionOptions.length !== 0 && (
+          <Dropdown label={Astro.locals.t('open')} options={actionOptions} id="0" />
+        )}
+        {share && (
+          <Dropdown label={Astro.locals.t('share')} options={shareOptions} id="1" />
+        )}
+      </div>
+    </div>
+  )}
 </div>
 
 <h1 id="_top">{pageTitle}</h1>
 
-<!--
-  define:vars passes markdownDoc as a JSON-serialised local variable into the
-  inline script. This is the correct Astro pattern for server → client data
-  transfer; {expressions} inside <script> tags are NOT processed by Astro.
--->
-<script define:vars={{ markdownDoc }}>
-  const btn     = document.getElementById('hot-copy-md-btn');
-  const labelEl = btn && btn.querySelector('.hot-copy-md-btn__label');
+<script>
+  const copyButton = document.querySelector(
+    '#copy-markdown'
+  ) as HTMLButtonElement;
 
-  if (btn && labelEl) {
-    btn.addEventListener('click', async () => {
-      if (!markdownDoc) return;
+  copyButton?.addEventListener('click', async () => {
+    let copyButtonClass: 'copied' | 'error' = 'copied';
 
-      const reset = () => {
-        labelEl.textContent = 'Copy as Markdown';
-        btn.classList.remove('is-copied');
-      };
+    try {
+      copyButton.disabled = true;
 
-      try {
-        await navigator.clipboard.writeText(markdownDoc);
-      } catch (_) {
-        // Fallback for older browsers / insecure contexts
-        const ta = document.createElement('textarea');
+      const mdPath = copyButton.dataset.path;
 
-        ta.value = markdownDoc;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-      }
+      const res = await fetch(mdPath);
+      const contentForClipboard = await res.text();
 
-      labelEl.textContent = 'Copied!';
-      btn.classList.add('is-copied');
-      setTimeout(reset, 2000);
-    });
-  }
+      await navigator.clipboard.writeText(contentForClipboard);
+    } catch (error) {
+      console.error(error);
+      copyButtonClass = 'error';
+    } finally {
+      copyButton.classList.add(copyButtonClass);
+      copyButton.disabled = false;
+
+      setTimeout(() => {
+        copyButton.classList.remove(copyButtonClass);
+      }, 3000);
+    }
+  });
 </script>
 
 <style>
@@ -162,7 +248,7 @@ const markdownDoc = [
     color: var(--sl-color-white);
   }
 
-  /* ── Top bar (breadcrumbs + copy button) ──────────────────────────────────── */
+  /* ── Top bar (breadcrumbs) ───────────────────────────────────────────────── */
   .hot-page-header {
     display: flex;
     align-items: center;
@@ -216,32 +302,37 @@ const markdownDoc = [
     pointer-events: none;
   }
 
-  /* ── Copy as Markdown button ──────────────────────────────────────────────── */
-  .hot-copy-md-btn {
-    display: inline-flex;
+  /* ── Page actions (inline with breadcrumbs, right-aligned) ───────────── */
+  .actions-container, .dropdown-container {
+    display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.3rem 0.65rem;
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 4px;
-    background: none;
-    color: var(--sl-color-gray-2);
-    font-size: var(--sl-text-xs);
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    gap: 0.5rem;
+  }
+
+  .actions-container {
     flex-shrink: 0;
   }
 
-  .hot-copy-md-btn:hover {
-    color: var(--sl-color-white);
-    border-color: var(--sl-color-gray-3);
+  #copy-markdown:disabled {
+    opacity: 0.7;
   }
 
-  .hot-copy-md-btn.is-copied {
-    color: var(--sl-color-green, #27ae60);
-    border-color: var(--sl-color-green, #27ae60);
+  :global(.icon-success),
+  :global(.icon-error) {
+    display: none;
+  }
+
+  :global(#copy-markdown.copied .icon-default),
+  :global(#copy-markdown.error .icon-default) {
+    display: none;
+  }
+
+  :global(#copy-markdown.copied .icon-success) {
+    display: block;
+  }
+
+  :global(#copy-markdown.error .icon-error) {
+    display: block;
   }
 
 </style>

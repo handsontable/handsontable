@@ -38,13 +38,13 @@ Dates below are offered as general guidance and are subject to change.
 
 <span class="img-light">
 
-![design_system_light](/img/lts-light.svg)
+![design_system_light](/docs/img/lts-light.svg)
 
 </span>
 
 <span class="img-dark">
 
-![design_system_dark](/img/lts-dark.svg)
+![design_system_dark](/docs/img/lts-dark.svg)
 
 </span>
 

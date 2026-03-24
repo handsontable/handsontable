@@ -234,10 +234,15 @@ function convertBoxesListToCardGrid(content) {
 
       if (cards.length === 0) return '';
 
-      const cardHtml = cards.map(
-        ({ title, href }) =>
-          `<div class="ht-link-card"><a href="${href}"><span class="title">${title}</span></a><span class="arrow" aria-hidden="true">\u2192</span></div>`
-      ).join('\n');
+      const cardHtml = cards.map(({ title, href }) => {
+        // Split "Label (version)" into main title + subtitle
+        const parenMatch = title.match(/^(.+?)\s*\(([^)]+)\)$/);
+        const titleHtml = parenMatch
+          ? `<span class="title">${parenMatch[1]}</span><span class="subtitle">${parenMatch[2]}</span>`
+          : `<span class="title">${title}</span>`;
+
+        return `<div class="ht-link-card"><a href="${href}">${titleHtml}</a><span class="arrow" aria-hidden="true">\u2192</span></div>`;
+      }).join('\n');
 
       return `<div class="ht-card-grid">\n${cardHtml}\n</div>`;
     }
