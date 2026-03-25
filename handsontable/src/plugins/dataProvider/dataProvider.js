@@ -65,7 +65,7 @@ import {
  *
  * @typedef {object} DataProviderFilterColumn
  * @property {string} prop Column data key.
- * @property {'conjunction'|'disjunction'} operation Filters stack operation.
+ * @property {'conjunction'|'disjunction'|'disjunctionWithExtraCondition'} operation Filters stack operation (same values as [[Filters#exportConditions]]).
  * @property {Array<{ name?: string, args: Array<*> }>} conditions Filter conditions (same shape as Filters `exportConditions`).
  */
 
@@ -793,7 +793,7 @@ export class DataProvider extends BasePlugin {
    * Queues create/remove (or similar) server calls with before/after mutation hooks.
    *
    * @param {string} operation `'create'` or `'remove'`.
-   * @param {object} payload Hook payload (`{ rowsCreate }`, `{ rows }`, or `{ rowsRemove }`).
+   * @param {object} payload Hook payload (`{ rowsCreate }` or `{ rowsRemove }`).
    * @param {function(): Promise<*>} userPromiseFn Server callback invocation.
    * @param {function(): Promise<void>|void} onSuccess Runs after success (e.g. `fetchData`).
    * @returns {Promise<void>}

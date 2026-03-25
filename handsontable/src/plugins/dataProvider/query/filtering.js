@@ -29,7 +29,7 @@ export function cloneDataProviderFiltersPayload(filters) {
  *
  * @param {Core} hot Handsontable instance.
  * @param {Array} conditionsStack Array of { column, operation, conditions } (same shape as exportConditions).
- * @returns {Array<{ prop: string, operation: 'conjunction'|'disjunction', conditions: Array<{ name?: string, args: Array<*> }> }>|null} Payload or null when empty.
+ * @returns {Array<{ prop: string, operation: 'conjunction'|'disjunction'|'disjunctionWithExtraCondition', conditions: Array<{ name?: string, args: Array<*> }> }>|null} Payload or null when empty.
  */
 export function conditionsStackToFiltersPayload(hot, conditionsStack) {
   if (!Array.isArray(conditionsStack) || conditionsStack.length === 0) {

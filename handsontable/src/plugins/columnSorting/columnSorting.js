@@ -760,7 +760,7 @@ export class ColumnSorting extends BasePlugin {
    * Callback for the `afterDataProviderFetch` hook.
    * Keeps header sort state in sync with query `sort` after server-backed `loadData` (same timing as Pagination).
    *
-   * @param {{ columnSortConfig?: Array|{ column: number, sortOrder: 'asc'|'desc' } }} result Fetch result payload.
+   * @param {object} result [[Hooks#afterDataProviderFetch]] payload; reads `columnSortConfig` only.
    */
   #onAfterDataProviderFetch = (result) => {
     this.setSortConfig(result?.columnSortConfig ?? []);

@@ -1624,7 +1624,7 @@ export default () => {
      *   fetchRows: async (queryParameters, { signal }) => {
      *     const { page, pageSize, sort, filters } = queryParameters;
      *     const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-     *     if (sort) { params.set('sortBy', sort.column); params.set('sortDir', sort.sortOrder); }
+     *     if (sort) { params.set('sortBy', sort.prop); params.set('sortDir', sort.order); }
      *     const res = await fetch(`/api/products?${params}`, { signal });
      *     const json = await res.json();
      *     return { rows: json.data, totalRows: json.total };

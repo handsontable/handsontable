@@ -1573,7 +1573,7 @@ export const REGISTERED_HOOKS = [
    * @since 17.1.0
    * @param {object} queryParameters Current query parameters: `{ page, pageSize, sort, filters }`. May include
    * `skipLoading` when the fetch was triggered internally (for example after column sort or CRUD); not sent to `fetchRows`.
-   * @returns {boolean} Return `false` to cancel the fetch.
+   * @returns {*|boolean} Return `false` to cancel the fetch; otherwise the fetch proceeds.
    */
   'beforeDataProviderFetch',
 
