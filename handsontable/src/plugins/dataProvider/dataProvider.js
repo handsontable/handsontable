@@ -47,6 +47,7 @@ import {
   sortingPayloadToSort,
 } from './query/sorting';
 import {
+  clampDataProviderPageToTotalRows,
   getDataProviderRequestErrorDescription,
   getIncompleteDataProviderWarningMessage,
   isCompleteDataProviderConfig,
@@ -663,6 +664,7 @@ export class DataProvider extends BasePlugin {
    * @param {object} [overrides] Partial query overrides (e.g. `{ page: 2 }`, `{ pageSize: 20, page: 1 }`, `{ sort }`, `{ filters }`).
    * Pass `{ skipLoading: true }` to mark internal refetches (for example sort or CRUD); [[Hooks#beforeDataProviderFetch]] receives it, and it is not passed to `fetchRows`.
    * Numeric `page` is clamped to at least 1.
+   * When the response `totalRows` implies fewer pages than the requested `page`, fetches again at the last valid page without applying the out-of-range result (avoids redundant `afterPageChange` loads and aborted duplicate requests after row removal on the last page).
    * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>}
    *
    * @fires Hooks#afterDataProviderFetch when data loads.
@@ -706,6 +708,15 @@ export class DataProvider extends BasePlugin {
         : rows.length;
 
       const persistedParams = this.#snapshotQueryParameters(params);
+      const clampedPage = clampDataProviderPageToTotalRows(
+        persistedParams.page,
+        persistedParams.pageSize,
+        totalRows
+      );
+
+      if (clampedPage !== persistedParams.page) {
+        return this.fetchData({ ...overrides, page: clampedPage, skipLoading: overrides.skipLoading });
+      }
 
       this.#queryParameters = persistedParams;
 
@@ -832,6 +843,11 @@ export class DataProvider extends BasePlugin {
   /**
    * Server remove via `onRowsRemove`. Pass one row id or an array of ids.
    *
+   * After a successful `onRowsRemove`, refetches from the server. When the remove clears every row currently
+   * loaded (typical when emptying the last page) and the current page is greater than 1, loads the previous page
+   * in one request. Otherwise refetches the current page, then loads the previous page when that response is empty
+   * and the current page is still greater than 1.
+   *
    * @param {*|*[]} rowIds Row id or ids.
    * @returns {Promise<void>}
    * @throws {Error} When any id is `null` or `undefined`.
@@ -851,15 +867,22 @@ export class DataProvider extends BasePlugin {
       }
     });
     const payload = { rowsRemove: ids };
-    const currentPage = this.#queryParameters.page;
 
     return this.#queueCrud('remove', payload, () => onRowsRemove(ids), async() => {
+      const pageBeforeFetch = this.#queryParameters.page;
+      const rowsLoaded = this.hot.countRows();
+      const removesEveryLoadedRow = ids.length >= rowsLoaded && rowsLoaded >= 1;
+
+      if (removesEveryLoadedRow && pageBeforeFetch > 1) {
+        await this.fetchData({ page: pageBeforeFetch - 1, skipLoading: true });
+
+        return;
+      }
+
       const result = await this.fetchData({ skipLoading: true });
 
-      if (result?.rows.length === 0 && currentPage > 1) {
-        // Avoid Pagination `setPage` here: it would fire `afterPageChange` and start another fetch path. One extra
-        // `fetchData` is enough; Pagination updates from [[Hooks#afterDataProviderFetch]] on that result.
-        await this.fetchData({ page: currentPage - 1, skipLoading: true });
+      if (result?.rows.length === 0 && pageBeforeFetch > 1) {
+        await this.fetchData({ page: pageBeforeFetch - 1, skipLoading: true });
       }
     });
   }

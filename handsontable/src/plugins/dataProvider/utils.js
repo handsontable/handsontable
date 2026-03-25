@@ -1,5 +1,6 @@
 import { isFunction } from '../../helpers/function';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { DEFAULT_PAGE_SIZE } from './constants';
 
 /**
  * Whether `dataProvider` settings are complete enough for the DataProvider plugin to run.
@@ -157,6 +158,21 @@ export function getDataProviderRequestErrorDescription(err) {
   }
 
   return String(err);
+}
+
+/**
+ * Clamps a 1-based page index to the range implied by `totalRows` and fixed `pageSize` (server-side pagination).
+ *
+ * @param {number} page Requested page (at least 1).
+ * @param {number} pageSize Rows per page from query parameters.
+ * @param {number} totalRows Non-negative total row count from `fetchRows`.
+ * @returns {number} Page in `[1, max(1, ceil(totalRows / pageSize))]`.
+ */
+export function clampDataProviderPageToTotalRows(page, pageSize, totalRows) {
+  const ps = typeof pageSize === 'number' && pageSize >= 1 ? pageSize : DEFAULT_PAGE_SIZE;
+  const totalPages = Math.max(1, Math.ceil(totalRows / ps));
+
+  return Math.max(1, Math.min(page, totalPages));
 }
 
 /**

@@ -121,6 +121,43 @@ describe('DataProvider `fetchData` method', () => {
     expect(fetchResult.totalRows).toBe(100);
   });
 
+  it('should refetch at the last valid page when the requested page is past totalPages without aborting a duplicate request', async() => {
+    const afterAbort = jasmine.createSpy('afterDataProviderFetchAbort');
+    const fetchRows = jasmine.createSpy('fetchRows').and.callFake((params) => {
+      if (params.page === 2) {
+        return Promise.resolve({ rows: [], totalRows: 2 });
+      }
+
+      return Promise.resolve({
+        rows: [{ id: 1 }, { id: 2 }],
+        totalRows: 2,
+      });
+    });
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }],
+      dataProvider: createDataProviderConfig({ fetchRows }),
+      afterDataProviderFetchAbort: afterAbort,
+    });
+
+    await sleep(50);
+
+    fetchRows.calls.reset();
+    afterAbort.calls.reset();
+
+    const plugin = getPlugin('dataProvider');
+
+    await plugin.fetchData({ page: 2, pageSize: 2, skipLoading: true });
+
+    expect(fetchRows.calls.count()).toBe(2);
+    expect(fetchRows.calls.argsFor(0)[0].page).toBe(2);
+    expect(fetchRows.calls.argsFor(1)[0].page).toBe(1);
+    expect(afterAbort).not.toHaveBeenCalled();
+    expect(countRows()).toBe(2);
+    expect(plugin.getQueryParameters().page).toBe(1);
+  });
+
   it('should clamp page to at least 1', async() => {
     const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(
       Promise.resolve({ rows: [], totalRows: 0 })
@@ -229,7 +266,7 @@ describe('DataProvider `fetchData` method', () => {
         return firstFetchPromise;
       }
 
-      return Promise.resolve({ rows: [{ id: 1 }], totalRows: 1 });
+      return Promise.resolve({ rows: [{ id: 1 }], totalRows: 25 });
     });
 
     handsontable({
@@ -249,7 +286,7 @@ describe('DataProvider `fetchData` method', () => {
 
     const result = await secondResult;
 
-    expect(result).toEqual({ rows: [{ id: 1 }], totalRows: 1 });
+    expect(result).toEqual({ rows: [{ id: 1 }], totalRows: 25 });
     expect(plugin.getQueryParameters().page).toBe(2);
   });
 
@@ -287,7 +324,7 @@ describe('DataProvider `fetchData` method', () => {
       dataProvider: createDataProviderConfig({
         fetchRows: params => Promise.resolve({
           rows: [{ id: params.page }],
-          totalRows: 10,
+          totalRows: 100,
         }),
       }),
     });

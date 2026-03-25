@@ -1,6 +1,7 @@
 import {
   applyColumnSortingToQueryParameters,
   applyPaginationToQueryParameters,
+  clampDataProviderPageToTotalRows,
   getDataProviderRequestErrorDescription,
   getIncompleteDataProviderWarningMessage,
   isCompleteDataProviderConfig,
@@ -371,6 +372,24 @@ describe('dataProvider utils', () => {
 
     it('should return Unknown error for null', () => {
       expect(getDataProviderRequestErrorDescription(null)).toBe('Unknown error');
+    });
+  });
+
+  describe('clampDataProviderPageToTotalRows', () => {
+    it('should return page 1 when totalRows fits on one page but page was 2', () => {
+      expect(clampDataProviderPageToTotalRows(2, 2, 2)).toBe(1);
+    });
+
+    it('should leave page unchanged when it is within range', () => {
+      expect(clampDataProviderPageToTotalRows(2, 2, 4)).toBe(2);
+    });
+
+    it('should use DEFAULT_PAGE_SIZE when pageSize is invalid', () => {
+      expect(clampDataProviderPageToTotalRows(5, 0, 25)).toBe(3);
+    });
+
+    it('should treat totalRows 0 as a single page', () => {
+      expect(clampDataProviderPageToTotalRows(3, 10, 0)).toBe(1);
     });
   });
 });

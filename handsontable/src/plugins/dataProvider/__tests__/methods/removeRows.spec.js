@@ -99,23 +99,24 @@ describe('DataProvider `removeRows` method', () => {
 
   it('should go to previous page when remove leaves current page empty (pagination)', async() => {
     let totalRows = 4;
+    const fetchRows = jasmine.createSpy('fetchRows').and.callFake((params) => {
+      const start = (params.page - 1) * params.pageSize;
+      const rows = start >= totalRows
+        ? []
+        : Array.from({ length: Math.min(params.pageSize, totalRows - start) }, (_, i) => ({
+          id: start + i + 1,
+          name: `Row ${start + i + 1}`,
+        }));
+
+      return Promise.resolve({ rows, totalRows });
+    });
 
     handsontable({
       data: [],
       columns: [{ data: 'id' }, { data: 'name' }],
       pagination: { pageSize: 2, initialPage: 2 },
       dataProvider: createDataProviderConfig({
-        fetchRows: (params) => {
-          const start = (params.page - 1) * params.pageSize;
-          const rows = start >= totalRows
-            ? []
-            : Array.from({ length: Math.min(params.pageSize, totalRows - start) }, (_, i) => ({
-              id: start + i + 1,
-              name: `Row ${start + i + 1}`,
-            }));
-
-          return Promise.resolve({ rows, totalRows });
-        },
+        fetchRows,
         onRowsRemove: () => {
           totalRows -= 2;
 
@@ -129,13 +130,62 @@ describe('DataProvider `removeRows` method', () => {
     expect(getPlugin('pagination').getPaginationData().currentPage).toBe(2);
     expect(countRows()).toBe(2);
 
+    fetchRows.calls.reset();
+
     const plugin = getPlugin('dataProvider');
 
     await plugin.removeRows([3, 4]);
 
     await sleep(100);
 
+    expect(fetchRows).toHaveBeenCalledTimes(1);
+    expect(fetchRows.calls.mostRecent().args[0].page).toBe(1);
     expect(getPlugin('pagination').getPaginationData().currentPage).toBe(1);
+  });
+
+  it('should refetch the same page when remove does not clear all loaded rows (pagination)', async() => {
+    let totalRows = 4;
+    const fetchRows = jasmine.createSpy('fetchRows').and.callFake((params) => {
+      const start = (params.page - 1) * params.pageSize;
+      const rows = start >= totalRows
+        ? []
+        : Array.from({ length: Math.min(params.pageSize, totalRows - start) }, (_, i) => ({
+          id: start + i + 1,
+          name: `Row ${start + i + 1}`,
+        }));
+
+      return Promise.resolve({ rows, totalRows });
+    });
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      pagination: { pageSize: 2, initialPage: 2 },
+      dataProvider: createDataProviderConfig({
+        fetchRows,
+        onRowsRemove: () => {
+          totalRows -= 1;
+
+          return Promise.resolve();
+        },
+      }),
+    });
+
+    await sleep(100);
+
+    fetchRows.calls.reset();
+
+    const plugin = getPlugin('dataProvider');
+
+    await plugin.removeRows(4);
+
+    await sleep(100);
+
+    expect(fetchRows).toHaveBeenCalledTimes(1);
+    expect(fetchRows.calls.mostRecent().args[0].page).toBe(2);
+    expect(getPlugin('pagination').getPaginationData().currentPage).toBe(2);
+    expect(countRows()).toBe(1);
+    expect(getDataAtCell(0, 0)).toBe(3);
   });
 
   it('should do nothing when onRowsRemove is not provided', async() => {

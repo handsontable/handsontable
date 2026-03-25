@@ -44,7 +44,7 @@ describe('DataProvider `afterDataProviderFetch` hook', () => {
     handsontable({
       data: [],
       dataProvider: createDataProviderConfig({
-        fetchRows: () => Promise.resolve({ rows: [], totalRows: 0 }),
+        fetchRows: () => Promise.resolve({ rows: [], totalRows: 25 }),
       }),
       afterDataProviderFetch: afterFetch,
     });

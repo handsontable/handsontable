@@ -24,7 +24,7 @@ describe('DataProvider `afterDataProviderFetchAbort` hook', () => {
         return firstFetchPromise;
       }
 
-      return Promise.resolve({ rows: [{ id: 1 }], totalRows: 1 });
+      return Promise.resolve({ rows: [{ id: 1 }], totalRows: 25 });
     });
 
     handsontable({

@@ -35,7 +35,7 @@ describe('DataProvider `getQueryParameters` method', () => {
       dataProvider: createDataProviderConfig({
         fetchRows: p => Promise.resolve({
           rows: [],
-          totalRows: 0,
+          totalRows: 60,
           _params: p,
         }),
       }),
