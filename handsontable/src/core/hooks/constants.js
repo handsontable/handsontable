@@ -1969,8 +1969,8 @@ export const REGISTERED_HOOKS = [
    * option is enabled.
    *
    * @event Hooks#modifyAutofillRange
-   * @param {Array} startArea Array of visual coordinates of the starting point for the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
    * @param {Array} entireArea Array of visual coordinates of the entire area of the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
+   * @param {Array} startArea Array of visual coordinates of the starting point for the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
    */
   'modifyAutofillRange',
 
