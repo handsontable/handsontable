@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [17.0.1-rc2] - 2026-03-23
+## [17.0.1] - 2026-03-25
 
 ### Fixed
 - Fix UndoRedo crash when nullified changes [#12000](https://github.com/handsontable/handsontable/pull/12000)
