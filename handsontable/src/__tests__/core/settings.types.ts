@@ -494,16 +494,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterPageNavigationVisibilityChange(isVisible) {
     const _isVisible: boolean = isVisible;
   },
-  paginationExternalDataSourceActive(isActive) {
-    const _a: boolean = isActive;
-
-    return true;
-  },
-  paginationTotalItemCount(defaultTotalItemCount) {
-    const _d: number = defaultTotalItemCount;
-
-    return 1;
-  },
   afterPaste: (data, coords) => {},
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},

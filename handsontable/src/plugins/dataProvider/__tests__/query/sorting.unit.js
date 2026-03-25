@@ -3,7 +3,7 @@ import {
   applyColumnSortToQueryFromPlugin,
   handleBeforeColumnSortForServer,
   normalizeSortInFetchParams,
-  syncColumnSortingStateFromQuerySort,
+  sortingPayloadToSort,
 } from '../../query/sorting';
 
 describe('dataProvider sorting', () => {
@@ -35,20 +35,43 @@ describe('dataProvider sorting', () => {
     });
   });
 
-  describe('syncColumnSortingStateFromQuerySort', () => {
-    it('should set ColumnSorting from query-format sort', () => {
-      const calls = [];
+  describe('sortingPayloadToSort', () => {
+    it('should map prop keys back to a ColumnSorting config object', () => {
+      const hot = {
+        propToCol: prop => (prop === 'name' ? 2 : 0),
+      };
+
+      expect(sortingPayloadToSort(hot, { prop: 'name', order: 'asc' })).toEqual({
+        column: 2,
+        sortOrder: 'asc',
+      });
+    });
+
+    it('should return [] for null, undefined, or invalid payload', () => {
+      const hot = { propToCol: () => 0 };
+
+      expect(sortingPayloadToSort(hot, null)).toEqual([]);
+      expect(sortingPayloadToSort(hot, undefined)).toEqual([]);
+      expect(sortingPayloadToSort(hot, { prop: 'x' })).toEqual([]);
+    });
+
+    it('should round-trip with applyColumnSortToQueryFromPlugin', () => {
+      const queryParameters = { sort: null };
       const hot = {
         getPlugin: key => (key === COLUMN_SORTING_PLUGIN_KEY ? {
           enabled: true,
-          setSortConfig: c => calls.push(c),
+          getSortConfig: () => [{ column: 1, sortOrder: 'desc' }],
         } : null),
-        propToCol: prop => (prop === 'name' ? 2 : -1),
+        colToProp: col => (col === 1 ? 'name' : 'id'),
+        propToCol: prop => (prop === 'name' ? 1 : 0),
       };
 
-      syncColumnSortingStateFromQuerySort(hot, { prop: 'name', order: 'asc' });
+      applyColumnSortToQueryFromPlugin(hot, queryParameters);
 
-      expect(calls).toEqual([{ column: 2, sortOrder: 'asc' }]);
+      expect(sortingPayloadToSort(hot, queryParameters.sort)).toEqual({
+        column: 1,
+        sortOrder: 'desc',
+      });
     });
   });
 

@@ -128,8 +128,6 @@ export interface Events {
   afterPageChange?: (oldPage: number, newPage: number) => void;
   afterPageCounterVisibilityChange?: (isVisible: boolean) => void;
   afterPageNavigationVisibilityChange?: (isVisible: boolean) => void;
-  paginationExternalDataSourceActive?: (isActive: boolean) => boolean | void;
-  paginationTotalItemCount?: (defaultTotalItemCount: number) => number | void;
   afterPageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void;
   afterPageSizeVisibilityChange?: (isVisible: boolean) => void;
   afterPaste?: (data: CellValue[][], coords: RangeType[]) => void;

@@ -1,7 +1,8 @@
 import Core from '../../core';
 import { CellValue, RowObject, SourceRowData } from '../../common';
 import { BasePlugin } from '../base';
-import type { ConditionId, OperationType } from '../filters';
+import type { Config as ColumnSortingConfig } from '../columnSorting/columnSorting';
+import type { ColumnConditions, ConditionId, OperationType } from '../filters';
 
 /**
  * Sort descriptor sent to the server (column data key and order).
@@ -66,6 +67,14 @@ export interface DataProviderFetchResult {
   rows: SourceRowData[];
   totalRows: number;
   queryParameters: DataProviderQueryParameters;
+  /**
+   * `queryParameters.sort` converted for [[ColumnSorting#setSortConfig]] (empty array when unsorted or invalid).
+   */
+  columnSortConfig: ColumnSortingConfig | ColumnSortingConfig[];
+  /**
+   * `queryParameters.filters` converted for [[Filters#importConditions]].
+   */
+  filtersConditionsStack: ColumnConditions[];
 }
 
 /**

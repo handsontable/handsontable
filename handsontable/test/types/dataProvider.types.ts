@@ -36,6 +36,8 @@ hot.addHook('afterDataProviderFetch', (result: DataProviderFetchResult) => {
   void result.rows;
   void result.totalRows;
   void result.queryParameters.page;
+  void result.columnSortConfig;
+  void result.filtersConditionsStack;
 });
 
 hot.addHook('beforeDataProviderFetch', (q: DataProviderBeforeFetchParameters) => {

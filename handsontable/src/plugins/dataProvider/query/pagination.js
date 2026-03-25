@@ -1,4 +1,5 @@
 import { applyPaginationToQueryParameters, normalizeExternalPaginationPageSize } from '../utils';
+
 import { DEFAULT_PAGE_SIZE } from '../constants';
 
 const PAGINATION_PLUGIN_KEY = 'pagination';
@@ -33,35 +34,6 @@ export function getPagedRowHeaderIndex(queryParameters, visualRowIndex, fallback
 }
 
 /**
- * Hook: Pagination external data source is active when Pagination plugin is enabled.
- *
- * @param {Core} hot Handsontable instance.
- * @returns {boolean|void} True when external pagination applies.
- */
-export function paginationExternalDataSourceActive(hot) {
-  if (!hot.getPlugin(PAGINATION_PLUGIN_KEY)?.enabled) {
-    return;
-  }
-
-  return true;
-}
-
-/**
- * Hook: total item count for Pagination when DataProvider drives totals.
- *
- * @param {Core} hot Handsontable instance.
- * @param {number} totalRows Total rows from the last successful fetch.
- * @returns {number|void}
- */
-export function paginationTotalItemCount(hot, totalRows) {
-  if (!hot.getPlugin(PAGINATION_PLUGIN_KEY)?.enabled) {
-    return;
-  }
-
-  return totalRows;
-}
-
-/**
  * Loads the requested page when Pagination runs in external paged mode.
  *
  * @param {object} ctx Context.
@@ -79,9 +51,9 @@ export function handleAfterPageChangeExternalPagination(
   newPage
 ) {
   const { isEnabled, hot, getQueryPage, goToPage } = ctx;
+  const paginationPlugin = hot.getPlugin(PAGINATION_PLUGIN_KEY);
 
-  if (!isEnabled()
-    || hot.runHooks('paginationExternalDataSourceActive', false) !== true) {
+  if (!isEnabled() || !paginationPlugin?.enabled) {
     return;
   }
 
@@ -118,8 +90,9 @@ export function handleAfterPageSizeChangeExternalPagination(
 ) {
   const { isEnabled, hot, getQueryPage, getQueryPageSize, setPageSize } = ctx;
 
-  if (!isEnabled()
-    || hot.runHooks('paginationExternalDataSourceActive', false) !== true) {
+  const paginationPlugin = hot.getPlugin(PAGINATION_PLUGIN_KEY);
+
+  if (!isEnabled() || !paginationPlugin?.enabled) {
     return;
   }
 
@@ -136,22 +109,4 @@ export function handleAfterPageSizeChangeExternalPagination(
       p.revertPageSizeTo(oldPageSize);
     }
   });
-}
-
-/**
- * Applies loaded paging state to the Pagination plugin after a successful fetch.
- *
- * @param {Core} hot Handsontable instance.
- * @param {{ page: number, pageSize: number }} params Query parameters used for the fetch.
- * @returns {void}
- */
-export function applyLoadedPaginationStateFromFetch(hot, params) {
-  const paginationPlugin = hot.getPlugin(PAGINATION_PLUGIN_KEY);
-
-  if (paginationPlugin?.enabled) {
-    paginationPlugin.applyLoadedPagingState({
-      page: params.page,
-      pageSize: params.pageSize,
-    });
-  }
 }

@@ -514,7 +514,7 @@ export const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterDataProviderFetch
    * @since 17.1.0
-   * @param {object} result Result object: `{ rows, totalRows, queryParameters }`.
+   * @param {object} result Result object: `{ rows, totalRows, queryParameters, columnSortConfig, filtersConditionsStack }`.
    */
   'afterDataProviderFetch',
 
@@ -2666,9 +2666,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page. This hook is fired when
-   * {@link Options#pagination} option is enabled. When an external source handles paging
-   * (see {@link Hooks#paginationExternalDataSourceActive}), load the requested page and call
-   * {@link Pagination#applyLoadedPagingState} after a successful fetch. {@link DataProvider} does this automatically.
+   * {@link Options#pagination} option is enabled. When a complete [[Options#dataProvider]] configuration
+   * handles paging, {@link DataProvider} loads the requested page via `fetchRows`. {@link Pagination} then aligns its
+   * UI from [[Hooks#afterDataProviderFetch]].
    *
    * @since 16.1.0
    * @event Hooks#afterPageChange
@@ -2691,9 +2691,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page size. This hook is fired when
-   * {@link Options#pagination} option is enabled. When an external source handles paging
-   * (see {@link Hooks#paginationExternalDataSourceActive}), load page 1 for the new size and call
-   * {@link Pagination#applyLoadedPagingState} after a successful fetch. {@link DataProvider} does this automatically.
+   * {@link Options#pagination} option is enabled. When a complete [[Options#dataProvider]] configuration
+   * handles paging, {@link DataProvider} loads page 1 for the new size via `fetchRows`. {@link Pagination} then aligns
+   * its UI from [[Hooks#afterDataProviderFetch]].
    *
    * @since 16.1.0
    * @event Hooks#afterPageSizeChange
@@ -2731,28 +2731,6 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} isVisible The visibility state of the page size section.
    */
   'afterPageNavigationVisibilityChange',
-
-  /**
-   * Return `true` when row paging and total row counts are supplied by an external source
-   * (not client-side row hiding). The {@link Pagination} plugin uses this to choose behavior.
-   *
-   * @since 17.1.0
-   * @event Hooks#paginationExternalDataSourceActive
-   * @param {boolean} isActive Previous value from earlier hooks.
-   * @returns {boolean|void} Return `true` when this instance uses external paged data with Pagination.
-   */
-  'paginationExternalDataSourceActive',
-
-  /**
-   * Supplies the total item count for {@link Pagination} when data is paged externally.
-   * The initial argument is the renderable row count (client-side default).
-   *
-   * @since 17.1.0
-   * @event Hooks#paginationTotalItemCount
-   * @param {number} defaultTotalItemCount Count from renderable rows.
-   * @returns {number|void} Total items for pagination, when overridden.
-   */
-  'paginationTotalItemCount',
 
   /**
    * Fired by the {@link Formulas} plugin, when any cell value changes.

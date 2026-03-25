@@ -34,6 +34,8 @@ describe('DataProvider `afterDataProviderFetch` hook', () => {
       page: 1,
       pageSize: 10,
     }));
+    expect(result.columnSortConfig).toEqual([]);
+    expect(result.filtersConditionsStack).toEqual([]);
   });
 
   it('should be called after fetchData', async() => {

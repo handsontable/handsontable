@@ -32,21 +32,19 @@ import {
   applyFiltersFromFiltersPluginToQueryParameters,
   cloneDataProviderFiltersPayload,
   conditionsStackToFiltersPayload,
+  filtersPayloadToConditionsStack,
 } from './query/filtering';
 import {
-  applyLoadedPaginationStateFromFetch,
   applyPaginationToQueryFromPlugin,
   getPagedRowHeaderIndex,
   handleAfterPageChangeExternalPagination,
   handleAfterPageSizeChangeExternalPagination,
-  paginationExternalDataSourceActive,
-  paginationTotalItemCount,
 } from './query/pagination';
 import {
   applyColumnSortToQueryFromPlugin,
   handleBeforeColumnSortForServer,
   normalizeSortInFetchParams,
-  syncColumnSortingStateFromQuerySort,
+  sortingPayloadToSort,
 } from './query/sorting';
 import {
   getDataProviderRequestErrorDescription,
@@ -310,8 +308,6 @@ export class DataProvider extends BasePlugin {
       ['beforeAlter', this.#onBeforeAlter],
       ['afterPageChange', this.#onAfterPageChangeExternalPagination],
       ['afterPageSizeChange', this.#onAfterPageSizeChangeExternalPagination],
-      ['paginationExternalDataSourceActive', this.#paginationExternalDataSourceActive],
-      ['paginationTotalItemCount', this.#paginationTotalItemCount],
       ['beforeFilter', this.#onBeforeFilter],
     ];
 
@@ -434,18 +430,8 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
-   * @returns {boolean|void}
-   */
-  #paginationExternalDataSourceActive = () => paginationExternalDataSourceActive(this.hot);
-
-  /**
-   * @returns {number|void}
-   */
-  #paginationTotalItemCount = () => paginationTotalItemCount(this.hot, this.#totalRows);
-
-  /**
    * Loads the requested page when Pagination runs in external paged mode.
-   * Skips when `#queryParameters` already matches (e.g. after `applyLoadedPagingState`).
+   * Skips when `#queryParameters` already matches the Pagination UI (e.g. right after a successful fetch).
    *
    * @param {number} oldPage Previous 1-based page.
    * @param {number} newPage New 1-based page.
@@ -466,7 +452,7 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Loads page 1 with the new page size when Pagination runs in external paged mode.
-   * Skips when `#queryParameters` already match (e.g. duplicate hook from `applyLoadedPagingState`).
+   * Skips when `#queryParameters` already match (e.g. duplicate `afterPageSizeChange` from Pagination sync).
    *
    * @param {number | 'auto'} oldPageSize Previous page size.
    * @param {number | 'auto'} newPageSize New page size.
@@ -732,12 +718,22 @@ export class DataProvider extends BasePlugin {
 
       this.hot.loadData(rows, PLUGIN_KEY);
 
-      syncColumnSortingStateFromQuerySort(this.hot, this.#queryParameters.sort);
-      applyLoadedPaginationStateFromFetch(this.hot, persistedParams);
+      const columnSortConfig = sortingPayloadToSort(this.hot, persistedParams.sort ?? null);
+      const filtersConditionsStack = filtersPayloadToConditionsStack(
+        this.hot,
+        persistedParams.filters ?? null
+      );
 
       this.hot.runHooks(
         'afterDataProviderFetch',
-        { ...result, rows, totalRows, queryParameters: persistedParams }
+        {
+          ...result,
+          rows,
+          totalRows,
+          queryParameters: persistedParams,
+          columnSortConfig,
+          filtersConditionsStack,
+        }
       );
 
       this.hot.render();
@@ -876,7 +872,7 @@ export class DataProvider extends BasePlugin {
 
       if (result?.rows.length === 0 && currentPage > 1) {
         // Avoid Pagination `setPage` here: it would fire `afterPageChange` and start another fetch path. One extra
-        // `fetchData` is enough; `applyLoadedPaginationStateFromFetch` syncs the Pagination plugin from the result.
+        // `fetchData` is enough; Pagination updates from [[Hooks#afterDataProviderFetch]] on that result.
         await this.fetchData({ page: currentPage - 1, skipLoading: true });
       }
     });

@@ -27,7 +27,6 @@ import {
 } from './constants';
 import { TrimmingMap } from '../../translations';
 import { isCompleteDataProviderConfig } from '../dataProvider/utils';
-import { filtersPayloadToConditionsStack } from '../dataProvider/query/filtering';
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
@@ -1076,15 +1075,10 @@ export class Filters extends BasePlugin {
   /**
    * After dataProvider fetch listener.
    *
-   * @param {{ queryParameters?: { filters: * } }} [result] Fetch result (filters match the request that just completed).
+   * @param {{ filtersConditionsStack?: Array }} [result] Fetch result (filters match the request that just completed).
    */
   #onAfterDataProviderFetch(result) {
-    const stack = filtersPayloadToConditionsStack(
-      this.hot,
-      result?.queryParameters?.filters ?? null
-    );
-
-    this.importConditions(stack);
+    this.importConditions(result?.filtersConditionsStack ?? []);
   }
 
   /**

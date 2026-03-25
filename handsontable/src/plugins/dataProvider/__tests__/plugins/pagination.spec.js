@@ -120,7 +120,7 @@ describe('DataProvider integration with Pagination', () => {
     );
   });
 
-  it('should provide total count to pagination via paginationTotalItemCount hook', async() => {
+  it('should provide total count to pagination after DataProvider fetch', async() => {
     handsontable({
       data: [],
       columns: [{ data: 'id' }],
@@ -136,9 +136,7 @@ describe('DataProvider integration with Pagination', () => {
     await sleep(100);
 
     const pagination = getPlugin('pagination');
-    const total = spec().$container.handsontable('getInstance').runHooks('paginationTotalItemCount');
 
-    expect(total).toBe(100);
     expect(pagination.getPaginationData().totalPages).toBe(10);
   });
 

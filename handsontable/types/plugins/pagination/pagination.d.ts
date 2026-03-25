@@ -50,7 +50,6 @@ export class Pagination extends BasePlugin {
   hidePageCounterSection(): void;
   showPageNavigationSection(): void;
   hidePageNavigationSection(): void;
-  applyLoadedPagingState(queryState?: { page?: number; pageSize?: PageSizeOption }): void;
   revertPageTo(previousPage: number): void;
   revertPageSizeTo(previousPageSize: PageSizeOption): void;
 }
