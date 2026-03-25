@@ -179,7 +179,6 @@ export type RowMutationPayload =
 export class DataProvider extends BasePlugin {
   constructor(hotInstance: Core);
   isEnabled(): boolean;
-  getTotalRows(): number;
   /**
    * Copy of current query parameters. `sort` and `filters` are cloned when non-null so callers cannot mutate internal state.
    */

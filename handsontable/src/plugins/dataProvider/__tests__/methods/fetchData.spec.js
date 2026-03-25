@@ -33,6 +33,8 @@ describe('DataProvider `fetchData` method', () => {
   });
 
   it('should use rows.length as totalRows when result.totalRows is missing or invalid', async() => {
+    const afterFetch = jasmine.createSpy('afterDataProviderFetch');
+
     handsontable({
       data: [],
       columns: [{ data: 'id' }],
@@ -41,16 +43,18 @@ describe('DataProvider `fetchData` method', () => {
           rows: [{ id: 1 }, { id: 2 }, { id: 3 }],
         }),
       }),
+      afterDataProviderFetch: afterFetch,
     });
 
     await sleep(50);
 
-    const plugin = getPlugin('dataProvider');
-
-    expect(plugin.getTotalRows()).toBe(3);
+    expect(afterFetch).toHaveBeenCalled();
+    expect(afterFetch.calls.mostRecent().args[0].totalRows).toBe(3);
   });
 
   it('should use rows.length as totalRows when result.totalRows is negative', async() => {
+    const afterFetch = jasmine.createSpy('afterDataProviderFetch');
+
     handsontable({
       data: [],
       columns: [{ data: 'id' }],
@@ -60,13 +64,13 @@ describe('DataProvider `fetchData` method', () => {
           totalRows: -1,
         }),
       }),
+      afterDataProviderFetch: afterFetch,
     });
 
     await sleep(50);
 
-    const plugin = getPlugin('dataProvider');
-
-    expect(plugin.getTotalRows()).toBe(2);
+    expect(afterFetch).toHaveBeenCalled();
+    expect(afterFetch.calls.mostRecent().args[0].totalRows).toBe(2);
   });
 
   it('should load rows and update the table', async() => {
@@ -108,13 +112,13 @@ describe('DataProvider `fetchData` method', () => {
 
     const plugin = getPlugin('dataProvider');
 
-    await plugin.fetchData({ page: 2, pageSize: 25 });
+    const fetchResult = await plugin.fetchData({ page: 2, pageSize: 25 });
 
     expect(fetchRows).toHaveBeenCalledWith(
       jasmine.objectContaining({ page: 2, pageSize: 25 }),
       jasmine.any(Object)
     );
-    expect(plugin.getTotalRows()).toBe(100);
+    expect(fetchResult.totalRows).toBe(100);
   });
 
   it('should clamp page to at least 1', async() => {
@@ -297,5 +301,46 @@ describe('DataProvider `fetchData` method', () => {
     await plugin.fetchData({ page: 3 });
 
     expect(plugin.getQueryParameters().page).toBe(3);
+  });
+
+  it('should not run afterDataProviderFetch until fetchRows resolves', async() => {
+    const afterFetch = jasmine.createSpy('afterDataProviderFetch');
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }],
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => new Promise(() => {}),
+      }),
+      afterDataProviderFetch: afterFetch,
+    });
+
+    await sleep(10);
+
+    expect(afterFetch).not.toHaveBeenCalled();
+  });
+
+  it('should return updated totalRows from each fetchData call', async() => {
+    let totalRows = 10;
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }],
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => Promise.resolve({ rows: [], totalRows }),
+      }),
+    });
+
+    await sleep(50);
+
+    const plugin = getPlugin('dataProvider');
+    const first = await plugin.fetchData();
+
+    expect(first.totalRows).toBe(10);
+
+    totalRows = 99;
+    const second = await plugin.fetchData();
+
+    expect(second.totalRows).toBe(99);
   });
 });

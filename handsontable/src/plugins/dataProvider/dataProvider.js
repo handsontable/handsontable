@@ -120,12 +120,6 @@ export class DataProvider extends BasePlugin {
    */
   #queryParameters = { ...INITIAL_QUERY_PARAMETERS };
   /**
-   * `totalRows` from the last successful `fetchRows` response.
-   *
-   * @type {number}
-   */
-  #totalRows = 0;
-  /**
    * Aborts in-flight fetch when superseded or on disable/destroy.
    *
    * @type {AbortController|null}
@@ -714,7 +708,6 @@ export class DataProvider extends BasePlugin {
       const persistedParams = this.#snapshotQueryParameters(params);
 
       this.#queryParameters = persistedParams;
-      this.#totalRows = totalRows;
 
       this.hot.loadData(rows, PLUGIN_KEY);
 
@@ -773,13 +766,6 @@ export class DataProvider extends BasePlugin {
     const ps = typeof pageSize === 'number' && pageSize >= 1 ? pageSize : DEFAULT_PAGE_SIZE;
 
     await this.fetchData({ pageSize: ps, page: 1 });
-  }
-
-  /**
-   * @returns {number} Total rows from the last successful fetch.
-   */
-  getTotalRows() {
-    return this.#totalRows;
   }
 
   /**
@@ -911,7 +897,6 @@ export class DataProvider extends BasePlugin {
   disablePlugin() {
     this.#resetAbortController();
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
-    this.#totalRows = 0;
 
     super.disablePlugin();
 

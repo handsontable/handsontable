@@ -25,6 +25,7 @@ describe('DataProvider integration with Pagination', () => {
         totalRows: 25,
       });
     });
+    const afterFetch = jasmine.createSpy('afterDataProviderFetch');
 
     handsontable({
       data: [],
@@ -34,6 +35,7 @@ describe('DataProvider integration with Pagination', () => {
         initialPage: 2,
       },
       dataProvider: createDataProviderConfig({ fetchRows }),
+      afterDataProviderFetch: afterFetch,
     });
 
     await sleep(100);
@@ -44,7 +46,7 @@ describe('DataProvider integration with Pagination', () => {
     expect(params.page).toBe(2);
     expect(params.pageSize).toBe(5);
     expect(countRows()).toBe(5);
-    expect(getPlugin('dataProvider').getTotalRows()).toBe(25);
+    expect(afterFetch.calls.mostRecent().args[0].totalRows).toBe(25);
   });
 
   it('should load new page when pagination page changes', async() => {
