@@ -1062,6 +1062,10 @@ jobs:
         run: |
           RELEASE_BRANCH='${{ needs.stable-prepare.outputs.release-branch }}'
 
+          # Clean up any leftover merge/dirty state from the develop step
+          git merge --abort 2>/dev/null || true
+          git reset --hard HEAD
+
           git remote set-url origin "https://x-access-token:${RELEASE_TOKEN}@github.com/${{ github.repository }}.git"
 
           git checkout master
