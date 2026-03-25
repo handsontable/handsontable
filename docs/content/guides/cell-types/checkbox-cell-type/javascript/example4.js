@@ -30,10 +30,8 @@ new Handsontable(container, {
       uncheckedTemplate: 'no',
       label: {
         position: 'after',
-        value: function() {
-          const checkboxState = arguments[3];
-
-          if (checkboxState === 'yes') {
+        value(row, column, prop, value) {
+          if (value === 'yes') {
             return 'In black';
           } else {
             return 'Not in black';
