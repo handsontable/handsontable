@@ -3077,7 +3077,9 @@ describe('IndexMapper', () => {
 
       expect(() => {
         indexMapper.observeMapChange(trimmingMap, callback);
-      }).toThrowWithCause('The "observeMapChange" method does not support trimming or hiding maps.', { handsontable: true });
+      }).toThrowWithCause('The "observeMapChange" method does not support trimming or hiding maps.', {
+        handsontable: true
+      });
     });
 
     it('should throw when observing a hiding map', () => {
@@ -3090,7 +3092,9 @@ describe('IndexMapper', () => {
 
       expect(() => {
         indexMapper.observeMapChange(hidingMap, callback);
-      }).toThrowWithCause('The "observeMapChange" method does not support trimming or hiding maps.', { handsontable: true });
+      }).toThrowWithCause('The "observeMapChange" method does not support trimming or hiding maps.', {
+        handsontable: true
+      });
     });
 
     it('should notify on `clear()` call (non-batched)', () => {
