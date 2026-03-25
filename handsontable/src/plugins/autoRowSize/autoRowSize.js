@@ -457,7 +457,6 @@ export class AutoRowSize extends BasePlugin {
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.invalidateIndexSizesCache();
         this.hot.view.adjustElementsSize();
       }
     };
