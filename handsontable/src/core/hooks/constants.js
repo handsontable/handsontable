@@ -2432,6 +2432,34 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after getting the column header renderers.
    *
+   * The `renderers` array initially contains one renderer function when [`colHeaders`](@/api/options.md#colheaders)
+   * is enabled, or zero functions when it is disabled. Each function in the array renders one layer of
+   * column headers above the grid. By pushing additional renderer functions to the array, you can display
+   * more than one layer of column headers simultaneously.
+   *
+   * Each renderer function receives the following arguments:
+   *
+   * | Argument               | Type                    | Description                                |
+   * | ---------------------- | ----------------------- | ------------------------------------------ |
+   * | `renderedColumnIndex`  | `number`                | The renderable index of the column.        |
+   * | `TH`                   | `HTMLTableCellElement`  | The `<th>` element to modify.              |
+   *
+   * ```js
+   * new Handsontable(container, {
+   *   colHeaders: true,
+   *   afterGetColumnHeaderRenderers(renderers) {
+   *     // Add a second layer of column headers above the default one.
+   *     renderers.push((renderedColumnIndex, TH) => {
+   *       TH.innerText = `Extra: ${renderedColumnIndex}`;
+   *     });
+   *   },
+   * });
+   * ```
+   *
+   * Read more:
+   * - [Options: `colHeaders`](@/api/options.md#colheaders)
+   * - [Guides: Column header](@/guides/columns/column-header/column-header.md)
+   *
    * @event Hooks#afterGetColumnHeaderRenderers
    * @param {Function[]} renderers An array of the column header renderers.
    */
@@ -2439,6 +2467,34 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired after getting the row header renderers.
+   *
+   * The `renderers` array initially contains one renderer function when [`rowHeaders`](@/api/options.md#rowheaders)
+   * is enabled, or zero functions when it is disabled. Each function in the array renders one layer of
+   * row headers to the left of the grid. By pushing additional renderer functions to the array, you can display
+   * more than one layer of row headers simultaneously.
+   *
+   * Each renderer function receives the following arguments:
+   *
+   * | Argument              | Type                    | Description                             |
+   * | --------------------- | ----------------------- | --------------------------------------- |
+   * | `renderableRowIndex`  | `number`                | The renderable index of the row.        |
+   * | `TH`                  | `HTMLTableCellElement`  | The `<th>` element to modify.           |
+   *
+   * ```js
+   * new Handsontable(container, {
+   *   rowHeaders: true,
+   *   afterGetRowHeaderRenderers(renderers) {
+   *     // Add a second layer of row headers next to the default one.
+   *     renderers.push((renderableRowIndex, TH) => {
+   *       TH.innerText = `Extra: ${renderableRowIndex}`;
+   *     });
+   *   },
+   * });
+   * ```
+   *
+   * Read more:
+   * - [Options: `rowHeaders`](@/api/options.md#rowheaders)
+   * - [Guides: Row header](@/guides/rows/row-header/row-header.md)
    *
    * @event Hooks#afterGetRowHeaderRenderers
    * @param {Function[]} renderers An array of the row header renderers.
