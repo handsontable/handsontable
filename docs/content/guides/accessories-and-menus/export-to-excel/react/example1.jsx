@@ -29,7 +29,7 @@ const ExampleComponent = () => {
 
     await exportPlugin?.downloadFileAsync('xlsx', {
       filename: 'Q1-Sales-Report',
-      columnHeaders: true,
+      colHeaders: true,
       rowHeaders: true,
       exportFormulas: true,
     });
