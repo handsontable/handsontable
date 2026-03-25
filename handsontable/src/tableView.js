@@ -444,35 +444,25 @@ class TableView {
   }
 
   /**
-   * Registers hooks that invalidate the Walkontable viewport position caches
-   * when row heights or column widths change. This enables targeted cache
-   * invalidation instead of blanket rebuilds on every full draw.
-   */
-  #registerCacheInvalidationHooks() {
-    const invalidateAllCaches = () => {
-      this.invalidateIndexSizesCache();
-    };
-    const specs = [
-      ['beforeRowResize', () => {
-        this._wt.wtViewport.invalidateRowHeightCache();
-      }],
-      ['beforeColumnResize', () => {
-        this._wt.wtViewport.invalidateColumnWidthCache();
-      }],
-      ['afterUpdateSettings', invalidateAllCaches],
-    ];
-
-    specs.forEach(([hookName, listener]) => {
-      this.hot.addHook(hookName, listener);
-    });
-  }
-
-  /**
    * Invalidates Walkontable viewport caches for row heights and column widths (per-index axis sizes).
    */
   invalidateIndexSizesCache() {
     this._wt.wtViewport.invalidateRowHeightCache();
     this._wt.wtViewport.invalidateColumnWidthCache();
+  }
+
+  /**
+   * Invalidates Walkontable viewport cache for column widths.
+   */
+  invalidateColumnWidthCache() {
+    this._wt.wtViewport.invalidateColumnWidthCache();
+  }
+
+  /**
+   * Invalidates Walkontable viewport cache for row heights.
+   */
+  invalidateRowHeightCache() {
+    this._wt.wtViewport.invalidateRowHeightCache();
   }
 
   /**
@@ -1276,8 +1266,6 @@ class TableView {
 
     this._wt = new Walkontable(walkontableConfig);
     this.activeWt = this._wt;
-
-    this.#registerCacheInvalidationHooks();
 
     const spreader = this._wt.wtTable.spreader;
     // We have to cache width and height after Walkontable initialization.
