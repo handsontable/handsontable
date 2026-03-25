@@ -330,6 +330,7 @@ export class MultipleSelectUI extends BaseUI {
 
     if (this.options.searchMode === 'apply') {
       const hiddenRows = this.#itemsBox.getPlugin('hiddenRows');
+      const rowsToHide = [];
 
       hiddenRows.showRows(hiddenRows.getHiddenRows());
 
@@ -337,10 +338,11 @@ export class MultipleSelectUI extends BaseUI {
         item.checked = `${item.value}`.toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0;
 
         if (!item.checked) {
-          hiddenRows.hideRow(index);
+          rowsToHide.push(index);
         }
       });
 
+      hiddenRows.hideRows(rowsToHide);
       this.#itemsBox.view.adjustElementsSize();
       this.#itemsBox.render();
     } else {

@@ -599,6 +599,8 @@ export default () => {
      *
      *   if (visualRowIndex === 0 && visualColIndex === 0) {
      *     cellProperties.readOnly = true;
+     *   } else {
+     *     cellProperties.readOnly = false;
      *   }
      *
      *   return cellProperties;
@@ -2456,11 +2458,11 @@ export default () => {
      * @example
      * ```js
      * columns: [{
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // press Enter to close the `multiSelect` editor and Space to select an option
      *   enterCommits: true,
      * }, {
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // press Enter to select an option
      *   enterCommits: false,
      * }],
@@ -2638,7 +2640,7 @@ export default () => {
      *     filteringCaseSensitive: true
      *   },
      *   {
-     *     type: 'multiSelect',
+     *     type: 'multiselect',
      *     source: [ ... ],
      *     // match case while searching multiSelect options
      *     filteringCaseSensitive: true
@@ -3665,7 +3667,7 @@ export default () => {
      * ```js
      * columns: [{
      *   // set the `type` of each cell in this column to `multiSelect`
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // set the maximum number of selections to 3
      *   maxSelections: 3,
      * }],
@@ -4973,7 +4975,7 @@ export default () => {
      * @example
      * ```js
      * columns: [{
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // hide the `multiSelect` editor's search input
      *   searchInput: false,
      * }],
@@ -5191,7 +5193,7 @@ export default () => {
      * ```js
      * columns: [{
      *   // set the `type` of each cell in this column to `multiSelect`
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // set options available in every `multiSelect` cell of this column
      *   source: ['A', 'B', 'C', 'D'],
      *   // sort the `multiSelect` options in this order: D, C, B, A
@@ -6193,7 +6195,7 @@ export default () => {
      *     visibleRows: 5,
      *   },
      *   {
-     *     type: 'multiSelect',
+     *     type: 'multiselect',
      *     // set the `multiSelect` list's height to 5 options
      *     // for each cell of this column
      *     visibleRows: 5,

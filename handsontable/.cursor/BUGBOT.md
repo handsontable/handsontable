@@ -1,6 +1,6 @@
 # Handsontable core review notes
 
-Apply these checks when changed files are in `/handsontable/**`.
+All coding rules and conventions are in `/AGENTS.md`. Apply those rules to every review. This file adds **review-specific checks** for files under `/handsontable/**`.
 
 ---
 
