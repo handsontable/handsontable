@@ -275,6 +275,14 @@ describe('DataProvider with Filters plugin', () => {
       }),
     });
 
+    const dataProviderPlugin = getPlugin('dataProvider');
+    const originalFetchData = dataProviderPlugin.fetchData.bind(dataProviderPlugin);
+
+    dataProviderPlugin.fetchData = (...args) =>
+      originalFetchData(...args).catch(() => {
+        // fetchData already invoked afterDataProviderFetchError before rejecting; consume rejection because filter() does not await fetchData.
+      });
+
     await sleep(50);
 
     const filtersPlugin = getPlugin('filters');
@@ -403,7 +411,7 @@ describe('DataProvider with Filters plugin', () => {
 
     const filtersPlugin = getPlugin('filters');
 
-    filtersPlugin.addCondition(1, 'eq', ['warsaw']);
+    filtersPlugin.addCondition(2, 'eq', ['warsaw']);
     filtersPlugin.filter();
 
     await sleep(100);

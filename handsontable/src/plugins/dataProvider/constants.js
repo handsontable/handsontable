@@ -3,14 +3,6 @@ export const PLUGIN_PRIORITY = 950;
 export const DEFAULT_PAGE_SIZE = 10;
 
 /**
- * `afterUpdateSettings` hook order so DataProvider runs after other plugins' [[BasePlugin#onUpdateSettings]].
- * Otherwise incompatible options (e.g. `trimRows`) can re-enable their plugins after DataProvider disabled them.
- *
- * @package
- */
-export const DATA_PROVIDER_AFTER_UPDATE_SETTINGS_ORDER = 100000;
-
-/**
  * Message used when an in-flight `fetchRows` is aborted because a newer request started.
  *
  * @package
@@ -22,12 +14,12 @@ export const ABORT_REASON_MESSAGE = 'DataProvider fetch superseded by a newer re
  *
  * @package
  */
-export const INITIAL_QUERY_PARAMETERS = {
+export const INITIAL_QUERY_PARAMETERS = Object.freeze({
   page: 1,
   pageSize: DEFAULT_PAGE_SIZE,
   sort: null,
   filters: null,
-};
+});
 
 /**
  * Change sources that batch into one `onRowsUpdate` call. Shared with UndoRedo (skip stack for these edits).
