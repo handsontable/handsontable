@@ -83,6 +83,21 @@ describe('BaseEditor', () => {
     document.body.removeChild(externalInputElement);
   });
 
+  it('should open the editor immediately after the `beginEditing` method is called (#dev-2961)', async() => {
+    handsontable({
+      data: createSpreadsheetData(100, 1),
+    });
+
+    await selectCell(99, 0);
+    await scrollViewportTo({ row: 0, col: 0 });
+
+    spyOn(getActiveEditor(), 'open').and.callThrough();
+
+    getActiveEditor().beginEditing();
+
+    expect(getActiveEditor().open).toHaveBeenCalled();
+  });
+
   describe('should populate value from the currently active cell to every cell in the selected range', () => {
     it('Ctrl/Meta + Enter when editor is active', async() => {
       handsontable({

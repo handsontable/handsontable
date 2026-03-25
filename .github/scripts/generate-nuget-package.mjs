@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { spawnProcess } from '../../scripts/utils/processes.mjs';
 import { displayInfoMessage, displayConfirmationMessage, displayErrorMessage } from '../../scripts/utils/console.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

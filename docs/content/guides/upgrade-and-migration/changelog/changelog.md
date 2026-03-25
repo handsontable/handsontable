@@ -28,12 +28,38 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
-## 17.0.0-rc15
+## 17.0.1
 
-Released on March 5th, 2026
+Released on March 25th, 2026
 
 For more information about this release, see:
 - [Documentation (17.0)](https://handsontable.com/docs/17.0)
+
+#### Fixed
+- Fix UndoRedo crash when nullified changes [#12000](https://github.com/handsontable/handsontable/pull/12000)
+- Fix UndoRedo beforeChange order [#12001](https://github.com/handsontable/handsontable/pull/12001)
+- Fixed a bug where the editor does not receive the user inputs [#12042](https://github.com/handsontable/handsontable/pull/12042)
+- Fixed scrollbar width calcualtion on Safari >=26. [#12047](https://github.com/handsontable/handsontable/pull/12047)
+- Added missing typings for Core [#12048](https://github.com/handsontable/handsontable/pull/12048)
+- Fixed rounded corners that may be applied in incorrect use cases [#12052](https://github.com/handsontable/handsontable/pull/12052)
+- Fixed undo/redo stack desync with formulas engine [#12056](https://github.com/handsontable/handsontable/pull/12056)
+- Fixed column width calculation for collapsed columns [#12059](https://github.com/handsontable/handsontable/pull/12059)
+- Fixed and issue with table backround overflow [#12063](https://github.com/handsontable/handsontable/pull/12063)
+- Fixed column header misalignment when nestedRow is enabled [#12081](https://github.com/handsontable/handsontable/pull/12081)
+- Fixed an issue with mobile select handles styles [#12083](https://github.com/handsontable/handsontable/pull/12083)
+- Improved clipboard processing after paste [#12084](https://github.com/handsontable/handsontable/pull/12084)
+- Fixed an issue with scrolling issue that occurs when preventOverflow is enabled [#12086](https://github.com/handsontable/handsontable/pull/12086)
+- Fixed date picker positioning near viewport edges [#12087](https://github.com/handsontable/handsontable/pull/12087)
+- Fixed an issue with main theme hover on menu icon background color [#12159](https://github.com/handsontable/handsontable/pull/12159)
+
+## 17.0.0
+
+Released on March 9th, 2026
+
+For more information about this release, see:
+- [Blog post (17.0.0)](https://handsontable.com/blog/handsontable-17.0.0-multiselect-cell-type-simpler-custom-cells-and-a-new-themes-api)
+- [Documentation (17.0)](https://handsontable.com/docs/17.0)
+- [Migration guide (16.2 → 17.0)](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md)
 
 #### Added
 - **Breaking change**: Added the Theme API. [#11950](https://github.com/handsontable/handsontable/pull/11950)
@@ -58,7 +84,7 @@ For more information about this release, see:
 - Deprecated **moment.js** for date parsing and display. Replace it with the `Intl.DateTimeFormat` API. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_4-migrate-from-moment-js-format-to-intl-datetimeformat)
 - Deprecated **DOMPurify** as a built-in XSS sanitizer. Use the new `sanitizer` option or convert content to plain text. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_5-migrate-from-built-in-dompurify-to-the-sanitizer-option)
 - Deprecated **core-js** polyfills for ECMAScript features. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_6-core-js-dependency-removed)
-- Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `licenseKey: 'internal-use'`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
+- Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
 
 #### Removed
 - **Breaking change**: Removed deprecated wrapper packages for Angular, React, and Vue, the `PersistentState` plugin, and the legacy undo/redo methods. [#12015](https://github.com/handsontable/handsontable/pull/12015)
@@ -85,6 +111,7 @@ For more information about this release, see:
 Released on November 25th, 2025
 
 For more information about this release see:
+- [Blog post (16.2.0)](https://handsontable.com/blog/handsontable-16.2.0-simplified-theming-and-advanced-user-notifications)
 - [Documentation (16.2)](https://handsontable.com/docs/16.2)
 
 #### Added
@@ -140,6 +167,7 @@ For more information about this release see:
 Released on September 15, 2025
 
 For more information about this release see:
+- [Blog post (16.1.0)](https://handsontable.com/blog/handsontable-16.1-row-pagination-loading-plugin-and-long-term-support-policy)
 - [Documentation (16.1)](https://handsontable.com/docs/16.1)
 - [Migration guide (16.0 → 16.1)](@/guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1.md)
 

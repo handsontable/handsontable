@@ -17,6 +17,15 @@ const data = [
   [['Phone', 'Keys'], ['First aid kit', 'Snacks', 'Umbrella'], ['Nature']],
   [['Wallet', 'Phone'], [], ['Food', 'Shopping']],
   [['Passport', 'Tickets'], ['Book'], ['Art', 'History']],
+  [['Phone', 'Keys'], ['First aid kit', 'Snacks', 'Umbrella'], ['Nature']],
+  [['Wallet', 'Phone'], [], ['Food', 'Shopping']],
+  [['Passport', 'Tickets'], ['Book'], ['Art', 'History']],
+  [['Phone', 'Keys'], ['First aid kit', 'Snacks', 'Umbrella'], ['Nature']],
+  [['Wallet', 'Phone'], [], ['Food', 'Shopping']],
+  [['Passport', 'Tickets'], ['Book'], ['Art', 'History']],
+  [['Phone', 'Keys'], ['First aid kit', 'Snacks', 'Umbrella'], ['Nature']],
+  [['Wallet', 'Phone'], [], ['Food', 'Shopping']],
+  [['Passport', 'Tickets'], ['Book'], ['Art', 'History']],
 ];
 
 const ExampleComponent = () => {
@@ -51,8 +60,9 @@ const ExampleComponent = () => {
           filteringCaseSensitive: true,
         },
       ]}
-      preventOverflow="horizontal"
-      colWidths={200}
+      height="auto"
+      stretchH="last"
+      width="100%"
     />
   );
 };

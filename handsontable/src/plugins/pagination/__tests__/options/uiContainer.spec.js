@@ -38,8 +38,8 @@ describe('Pagination `uiContainer` option', () => {
     expect(paginationContainer).toHaveClass('handsontable');
     expect(paginationContainer).toHaveClass('ht-pagination--bordered');
 
-    if (spec().loadedTheme !== 'classic') {
-      expect(paginationContainer).toHaveClass(`ht-theme-${spec().loadedTheme}`);
+    if (getLoadedTheme() !== 'classic') {
+      expect(paginationContainer).toHaveClass(`ht-theme-${getLoadedTheme()}`);
     }
 
     expect(externalContainer.className).toBe('');

@@ -41,22 +41,28 @@ export class DataChangeAction extends BaseAction {
         return;
       }
 
-      const hasDifferences = changes.find((change) => {
+      changes.find((change) => {
+        if (change === null) {
+          return false;
+        }
+
         const [, , oldValue, newValue] = change;
 
         return oldValue !== newValue;
       });
 
-      if (!hasDifferences) {
-        return;
-      }
-
       const wrappedAction = () => {
         const clonedChanges = changes.reduce((arr, change) => {
-          arr.push([...change]);
+          if (change !== null) {
+            arr.push([...change]);
+          }
 
           return arr;
         }, []);
+
+        if (clonedChanges.length === 0) {
+          return null;
+        }
 
         clonedChanges.forEach((change) => {
           change[1] = hot.propToCol(change[1]);
@@ -73,7 +79,7 @@ export class DataChangeAction extends BaseAction {
       };
 
       undoRedoPlugin.done(wrappedAction, source);
-    });
+    }, undoRedoPlugin.constructor.PLUGIN_PRIORITY);
   }
 
   /**

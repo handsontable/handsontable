@@ -9,6 +9,25 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [17.0.1] - 2026-03-25
+
+### Fixed
+- Fix UndoRedo crash when nullified changes [#12000](https://github.com/handsontable/handsontable/pull/12000)
+- Fix UndoRedo beforeChange order [#12001](https://github.com/handsontable/handsontable/pull/12001)
+- Fixed a bug where the editor does not receive the user inputs [#12042](https://github.com/handsontable/handsontable/pull/12042)
+- Fixed scrollbar width calcualtion on Safari >=26. [#12047](https://github.com/handsontable/handsontable/pull/12047)
+- Added missing typings for Core [#12048](https://github.com/handsontable/handsontable/pull/12048)
+- Fixed rounded corners that may be applied in incorrect use cases [#12052](https://github.com/handsontable/handsontable/pull/12052)
+- Fixed undo/redo stack desync with formulas engine [#12056](https://github.com/handsontable/handsontable/pull/12056)
+- Fixed column width calculation for collapsed columns [#12059](https://github.com/handsontable/handsontable/pull/12059)
+- Fixed and issue with table backround overflow [#12063](https://github.com/handsontable/handsontable/pull/12063)
+- Fixed column header misalignment when nestedRow is enabled [#12081](https://github.com/handsontable/handsontable/pull/12081)
+- Fixed an issue with mobile select handles styles [#12083](https://github.com/handsontable/handsontable/pull/12083)
+- Improved clipboard processing after paste [#12084](https://github.com/handsontable/handsontable/pull/12084)
+- Fixed an issue with scrolling issue that occurs when preventOverflow is enabled [#12086](https://github.com/handsontable/handsontable/pull/12086)
+- Fixed date picker positioning near viewport edges [#12087](https://github.com/handsontable/handsontable/pull/12087)
+- Fixed an issue with main theme hover on menu icon background color [#12159](https://github.com/handsontable/handsontable/pull/12159)
+
 ## [17.0.0] - 2026-03-09
 
 ### Added
@@ -34,7 +53,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Deprecated **moment.js** for date parsing and display. Replace it with the `Intl.DateTimeFormat` API. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_4-migrate-from-moment-js-format-to-intl-datetimeformat)
 - Deprecated **DOMPurify** as a built-in XSS sanitizer. Use the new `sanitizer` option or convert content to plain text. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_5-migrate-from-built-in-dompurify-to-the-sanitizer-option)
 - Deprecated **core-js** polyfills for ECMAScript features. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_6-core-js-dependency-removed)
-- Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `licenseKey: 'internal-use'`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
+- Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
 
 ### Removed
 - **Breaking change**: Removed deprecated wrapper packages for Angular, React, and Vue, the `PersistentState` plugin, and the legacy undo/redo methods. [#12015](https://github.com/handsontable/handsontable/pull/12015)

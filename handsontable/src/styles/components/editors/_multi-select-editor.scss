@@ -7,6 +7,7 @@
 
     .ht-multi-select-editor {
       @include mixins.menu-box-shadow;
+      @include mixins.scrollbar-styles;
 
       overflow-y: auto;
       border-radius: 0 0 var(--ht-menu-border-radius) var(--ht-menu-border-radius);
