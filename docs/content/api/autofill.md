@@ -35,7 +35,7 @@ square in the corner.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/autofill/autofill.js#L727
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/autofill/autofill.js#L727
 
 :::
 
@@ -47,7 +47,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/autofill/autofill.js#L136
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/autofill/autofill.js#L136
 
 :::
 
@@ -59,7 +59,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/autofill/autofill.js#L105
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/autofill/autofill.js#L105
 
 :::
 
@@ -71,7 +71,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/autofill/autofill.js#L98
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/autofill/autofill.js#L98
 
 :::
 
@@ -83,7 +83,7 @@ Checks if the plugin is enabled in the Handsontable settings.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/autofill/autofill.js#L127
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/autofill/autofill.js#L127
 
 :::
 

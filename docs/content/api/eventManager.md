@@ -30,7 +30,7 @@ Event DOM manager for internal use in Handsontable.
 
 ### context
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/eventManager.js#L19
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/eventManager.js#L19
 
 :::
 
@@ -41,7 +41,7 @@ _eventManager.context : object_
 
 ### addEventListener
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/eventManager.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/eventManager.js#L43
 
 :::
 
@@ -62,7 +62,7 @@ Register specified listener (`eventName`) to the element.
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/eventManager.js#L131
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/eventManager.js#L131
 
 :::
 
@@ -74,7 +74,7 @@ Clear all previously registered events.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/eventManager.js#L138
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/eventManager.js#L138
 
 :::
 
@@ -86,7 +86,7 @@ Destroy instance of EventManager, clearing all events of the context.
 
 ### destroyWithOwnEventsOnly
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/eventManager.js#L146
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/eventManager.js#L146
 
 :::
 
@@ -98,7 +98,7 @@ Destroy instance of EventManager, clearing only the own events.
 
 ### fireEvent
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/eventManager.js#L157
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/eventManager.js#L157
 
 :::
 
@@ -116,7 +116,7 @@ Trigger event at the specified target element.
 
 ### removeEventListener
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/eventManager.js#L77
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/eventManager.js#L77
 
 :::
 

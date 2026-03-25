@@ -66,7 +66,7 @@ settings = {
 
 ### bindRowsWithHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/dataMap/metaManager/metaSchema.js#L535
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/dataMap/metaManager/metaSchema.js#L535
 
 :::
 
@@ -95,7 +95,7 @@ bindRowsWithHeaders: true
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L126
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L126
 
 :::
 
@@ -107,7 +107,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L107
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L107
 
 :::
 
@@ -119,7 +119,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L90
 
 :::
 
@@ -131,7 +131,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L83
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L83
 
 :::
 

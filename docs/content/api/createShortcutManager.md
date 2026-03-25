@@ -23,7 +23,7 @@ angular:
 
 ### activeContextName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/shortcuts/manager.js#L38
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/shortcuts/manager.js#L38
 
 :::
 
@@ -35,7 +35,7 @@ The name of the active [`ShortcutContext`](@/api/shortcutContext.md).
 
 ### CONTEXTS
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/shortcuts/manager.js#L30
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/shortcuts/manager.js#L30
 
 :::
 
@@ -47,7 +47,7 @@ A unique map that stores keyboard shortcut contexts.
 
 ### isCtrlKeySilenced
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/shortcuts/manager.js#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/shortcuts/manager.js#L111
 
 :::
 
@@ -62,7 +62,7 @@ Some of the default keyboard shortcuts related to cell selection need this featu
 
 ### handleEventWithScope
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/shortcuts/manager.js#L177
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/shortcuts/manager.js#L177
 
 :::
 
@@ -79,7 +79,7 @@ Handle the event with the scope of the active context.
 
 ### recorderCallback
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/shortcuts/manager.js#L123
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/shortcuts/manager.js#L123
 
 :::
 

@@ -33,7 +33,7 @@ The plugin creates additional components to make resizing possibly using user in
 
 ### manualRowResize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/dataMap/metaManager/metaSchema.js#L3611
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/dataMap/metaManager/metaSchema.js#L3611
 
 :::
 
@@ -69,7 +69,7 @@ manualRowResize: [40, 50, 60],
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/manualRowResize/manualRowResize.js#L636
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/manualRowResize/manualRowResize.js#L636
 
 :::
 
@@ -81,7 +81,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/manualRowResize/manualRowResize.js#L163
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/manualRowResize/manualRowResize.js#L163
 
 :::
 
@@ -93,7 +93,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/manualRowResize/manualRowResize.js#L131
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/manualRowResize/manualRowResize.js#L131
 
 :::
 
@@ -105,7 +105,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getLastDesiredRowHeight
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/manualRowResize/manualRowResize.js#L191
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/manualRowResize/manualRowResize.js#L191
 
 :::
 
@@ -118,7 +118,7 @@ Returns the last desired row height set manually with the resize handle.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/manualRowResize/manualRowResize.js#L124
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/manualRowResize/manualRowResize.js#L124
 
 :::
 
@@ -131,7 +131,7 @@ hook and if it returns `true` then the [ManualRowResize#enablePlugin](@/api/manu
 
 ### setManualSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/manualRowResize/manualRowResize.js#L177
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/manualRowResize/manualRowResize.js#L177
 
 :::
 
@@ -150,7 +150,7 @@ Sets the new height for specified row index.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/manualRowResize/manualRowResize.js#L153
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/manualRowResize/manualRowResize.js#L153
 
 :::
 

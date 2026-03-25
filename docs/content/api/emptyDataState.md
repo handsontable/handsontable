@@ -171,7 +171,7 @@ hotSettings: Handsontable.GridSettings = {
 
 ### emptyDataState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/dataMap/metaManager/metaSchema.js#L2416
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/dataMap/metaManager/metaSchema.js#L2416
 
 :::
 
@@ -257,7 +257,7 @@ emptyDataState: {
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/emptyDataState/emptyDataState.js#L557
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/emptyDataState/emptyDataState.js#L557
 
 :::
 
@@ -269,7 +269,7 @@ Destroy plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/emptyDataState/emptyDataState.js#L289
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/emptyDataState/emptyDataState.js#L289
 
 :::
 
@@ -281,7 +281,7 @@ Disable plugin for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/emptyDataState/emptyDataState.js#L245
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/emptyDataState/emptyDataState.js#L245
 
 :::
 
@@ -293,7 +293,7 @@ Enable plugin for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/emptyDataState/emptyDataState.js#L238
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/emptyDataState/emptyDataState.js#L238
 
 :::
 
@@ -305,7 +305,7 @@ Check if the plugin is enabled in the handsontable settings.
 
 ### isVisible
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/emptyDataState/emptyDataState.js#L304
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/emptyDataState/emptyDataState.js#L304
 
 :::
 
@@ -317,7 +317,7 @@ Check if the plugin is currently visible.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/emptyDataState/emptyDataState.js#L273
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/emptyDataState/emptyDataState.js#L273
 
 :::
 

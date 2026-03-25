@@ -37,7 +37,7 @@ instance based on the current state of the scopes.
 
 ### activateScope
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/focusManager/scopeManager.js#L139
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/focusManager/scopeManager.js#L139
 
 :::
 
@@ -54,7 +54,7 @@ Activates a focus scope by its ID.
 
 ### deactivateScope
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/focusManager/scopeManager.js#L154
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/focusManager/scopeManager.js#L154
 
 :::
 
@@ -71,7 +71,7 @@ Deactivates a scope by its ID.
 
 ### getActiveScopeId
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/focusManager/scopeManager.js#L47
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/focusManager/scopeManager.js#L47
 
 :::
 
@@ -84,7 +84,7 @@ Returns the ID of the active scope.
 
 ### registerScope
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/focusManager/scopeManager.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/focusManager/scopeManager.js#L103
 
 :::
 
@@ -133,7 +133,7 @@ hot.getFocusScopeManager().registerScope('myPluginName', containerElement, {
 
 ### unregisterScope
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/focusManager/scopeManager.js#L121
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/focusManager/scopeManager.js#L121
 
 :::
 

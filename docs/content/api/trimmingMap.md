@@ -30,7 +30,7 @@ NOT included in a dataset and skipped in the process of rendering.
 
 ### getTrimmedIndexes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/translations/maps/trimmingMap.js#L22
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/translations/maps/trimmingMap.js#L22
 
 :::
 

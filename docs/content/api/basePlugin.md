@@ -24,7 +24,7 @@ angular:
 
 ### DEFAULT_SETTINGS
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L54
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L54
 
 :::
 
@@ -36,7 +36,7 @@ The `DEFAULT_SETTINGS` getter defines the plugin default settings.
 
 ### enabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L94
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L94
 
 :::
 
@@ -46,7 +46,7 @@ _basePlugin.enabled : boolean_
 
 ### eventManager
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L78
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L78
 
 :::
 
@@ -58,7 +58,7 @@ The instance of the [EventManager](@/api/eventManager.md) class.
 
 ### initialized
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L98
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L98
 
 :::
 
@@ -68,7 +68,7 @@ _basePlugin.initialized : boolean_
 
 ### isPluginsReady
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L90
 
 :::
 
@@ -78,7 +78,7 @@ _basePlugin.isPluginsReady : boolean_
 
 ### pluginName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L82
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L82
 
 :::
 
@@ -88,7 +88,7 @@ _basePlugin.pluginName : string_
 
 ### pluginsInitializedCallbacks
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L86
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L86
 
 :::
 
@@ -98,7 +98,7 @@ _basePlugin.pluginsInitializedCallbacks : Array&lt;function()&gt;_
 
 ### SETTING_KEYS
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L43
 
 :::
 
@@ -114,7 +114,7 @@ config object.
 
 ### SETTINGS_VALIDATORS
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L63
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L63
 
 :::
 
@@ -127,7 +127,7 @@ Validators for plugin settings.
 
 ### addHook
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L347
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L347
 
 :::
 
@@ -146,7 +146,7 @@ Add listener to plugin hooks system.
 
 ### callOnPluginsReady
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L383
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L383
 
 :::
 
@@ -163,7 +163,7 @@ Register function which will be immediately called after all plugins initialized
 
 ### clearHooks
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L371
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L371
 
 :::
 
@@ -175,7 +175,7 @@ Clear all hooks.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L476
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L476
 
 :::
 
@@ -187,7 +187,7 @@ Destroy plugin.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L200
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L200
 
 :::
 
@@ -199,7 +199,7 @@ Disable plugin for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L193
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L193
 
 :::
 
@@ -211,7 +211,7 @@ Enable plugin for this Handsontable instance.
 
 ### getSetting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L214
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L214
 
 :::
 
@@ -229,7 +229,7 @@ provided by the DEFAULT_SETTINGS static property of the class.
 
 ### removeHooks
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L362
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L362
 
 :::
 
@@ -246,7 +246,7 @@ Remove all hooks listeners by hook name.
 
 ### updatePluginSettings
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/base/base.js#L284
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/base/base.js#L284
 
 :::
 

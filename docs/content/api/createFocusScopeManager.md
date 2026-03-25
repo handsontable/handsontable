@@ -23,7 +23,7 @@ angular:
 
 ### activateScope
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/focusManager/scopeManager.js#L168
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/focusManager/scopeManager.js#L168
 
 :::
 
@@ -41,7 +41,7 @@ Activates a specific scope.
 
 ### deactivateScope
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/focusManager/scopeManager.js#L188
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/focusManager/scopeManager.js#L188
 
 :::
 
@@ -58,7 +58,7 @@ Deactivates a scope by its ID.
 
 ### processScopes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/focusManager/scopeManager.js#L241
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/focusManager/scopeManager.js#L241
 
 :::
 
@@ -77,7 +77,7 @@ triggered by the focus or click event.
 
 ### updateScopesFocusVisibilityState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/focusManager/scopeManager.js#L203
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/focusManager/scopeManager.js#L203
 
 :::
 

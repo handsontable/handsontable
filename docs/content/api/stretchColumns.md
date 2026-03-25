@@ -80,7 +80,7 @@ settings = {
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/stretchColumns/stretchColumns.js#L209
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/stretchColumns/stretchColumns.js#L209
 
 :::
 
@@ -92,7 +92,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/stretchColumns/stretchColumns.js#L156
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/stretchColumns/stretchColumns.js#L156
 
 :::
 
@@ -104,7 +104,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/stretchColumns/stretchColumns.js#L131
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/stretchColumns/stretchColumns.js#L131
 
 :::
 
@@ -116,7 +116,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getColumnWidth
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/stretchColumns/stretchColumns.js#L168
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/stretchColumns/stretchColumns.js#L168
 
 :::
 
@@ -134,7 +134,7 @@ strategy defined by [Options#stretchH](@/api/options.md#stretchh) option.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/stretchColumns/stretchColumns.js#L124
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/stretchColumns/stretchColumns.js#L124
 
 :::
 
@@ -147,7 +147,7 @@ hook and if it returns `true` then the [#enablePlugin](#enableplugin) method is 
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/stretchColumns/stretchColumns.js#L148
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/stretchColumns/stretchColumns.js#L148
 
 :::
 

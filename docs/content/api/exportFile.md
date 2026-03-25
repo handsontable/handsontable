@@ -156,7 +156,7 @@ export class ExampleComponent implements AfterViewInit {
 
 ### ExportOptions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/exportFile/exportFile.js#L163
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/exportFile/exportFile.js#L163
 
 :::
 
@@ -179,7 +179,7 @@ _ExportFile.ExportOptions : object_
 
 ### downloadFile
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/exportFile/exportFile.js#L204
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/exportFile/exportFile.js#L204
 
 :::
 
@@ -197,7 +197,7 @@ Exports table data as a downloadable file.
 
 ### exportAsBlob
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/exportFile/exportFile.js#L194
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/exportFile/exportFile.js#L194
 
 :::
 
@@ -215,7 +215,7 @@ Exports table data as a blob object.
 
 ### exportAsString
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/exportFile/exportFile.js#L183
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/exportFile/exportFile.js#L183
 
 :::
 
@@ -233,7 +233,7 @@ Exports table data as a string.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/53e039566708d1b19ea3cf69f74562bd0dcda552/handsontable/src/plugins/exportFile/exportFile.js#L159
+::: source-code-link https://github.com/handsontable/handsontable/blob/e5a9f90198476bcda80b36c41c37309d8287e121/handsontable/src/plugins/exportFile/exportFile.js#L159
 
 :::
 
