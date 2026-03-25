@@ -1025,18 +1025,17 @@ jobs:
               echo "::warning::Conflicts merging release to develop — creating a PR for manual resolution."
               git merge --abort
 
-              # Push the release branch as a merge branch and create a PR for human review
+              # Check if a merge PR already exists before pushing (idempotent for workflow re-runs)
               MERGE_BRANCH="merge/${RELEASE_BRANCH##*/}-to-develop"
-              git checkout -b "${MERGE_BRANCH}" origin/${RELEASE_BRANCH}
-              git push -u origin "${MERGE_BRANCH}"
-
-              # Check if a PR already exists (idempotent for workflow re-runs)
               EXISTING_PR=$(gh pr list --base develop --head "${MERGE_BRANCH}" --json url --jq '.[0].url // empty')
 
               if [ -n "$EXISTING_PR" ]; then
                 PR_URL="$EXISTING_PR"
                 echo "::notice::Merge PR already exists: ${PR_URL}"
               else
+                git checkout -b "${MERGE_BRANCH}" origin/${RELEASE_BRANCH}
+                git push -u origin "${MERGE_BRANCH}"
+
                 PR_URL=$(gh pr create \
                   --base develop \
                   --head "${MERGE_BRANCH}" \
