@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Improved clipboard processing after paste",
-  "type": "fixed",
-  "issueOrPR": 12084,
-  "breaking": false,
-  "framework": "none"
-}

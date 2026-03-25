@@ -26,6 +26,15 @@ class BaseType {
   }
 
   /**
+   * Whether the format produces binary (asynchronous) output.
+   *
+   * @returns {boolean}
+   */
+  get binary() {
+    return false;
+  }
+
+  /**
    * Data provider.
    *
    * @type {DataProvider}

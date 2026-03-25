@@ -173,11 +173,12 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 The plugin exposes the following methods to export data.
 
-- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
+- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - generates a downloadable file directly in the browser. Synchronous; supports text-based formats only (e.g. CSV). For XLSX, use [`downloadFileAsync`](@/api/exportFile.md#downloadfileasync).
+- [`downloadFileAsync(format, options)`](@/api/exportFile.md#downloadfileasync) - generates a downloadable file and returns a `Promise`. Supports all formats including XLSX.
 - [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
-- [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
+- [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string. Supports text-based formats only (e.g. CSV).
 
-Each method takes two parameters. The first, `format`, is required; the only supported value is `'csv'`. The second, `options`, is an optional object that overrides or extends the default CSV configuration. The table below lists all supported options.
+Each method takes two parameters. The first, `format`, is required. The second, `options`, is an optional object that overrides or extends the default export configuration. The table below lists all supported options for CSV export.
 
 ## Available options in the export configuration
 
