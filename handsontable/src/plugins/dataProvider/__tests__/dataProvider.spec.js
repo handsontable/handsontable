@@ -182,6 +182,44 @@ describe('DataProvider', () => {
     expect(onRowsUpdate).not.toHaveBeenCalled();
   });
 
+  it('should not push batched server edit sources onto the undo stack when onRowsUpdate is set', async() => {
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => Promise.resolve({
+          rows: [{ id: 1, name: 'Alice' }],
+          totalRows: 1,
+        }),
+      }),
+    });
+
+    await sleep(50);
+
+    await setDataAtCell(0, 1, 'Bob', 'edit');
+
+    expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+  });
+
+  it('should still push non-batched change sources onto the undo stack when onRowsUpdate is set', async() => {
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => Promise.resolve({
+          rows: [{ id: 1, name: 'Alice' }],
+          totalRows: 1,
+        }),
+      }),
+    });
+
+    await sleep(50);
+
+    await setDataAtCell(0, 1, 'Bob', 'customSource');
+
+    expect(getPlugin('undoRedo').isUndoAvailable()).toBe(true);
+  });
+
   it('should queue onRowsUpdate when Clear column is used from the column dropdown menu', async() => {
     const onRowsUpdate = jasmine.createSpy('onRowsUpdate').and.returnValue(Promise.resolve());
 

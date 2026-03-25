@@ -4,6 +4,7 @@ import { throwWithCause } from '../../helpers/errors';
 import { BasePlugin } from '../base';
 import {
   ABORT_REASON_MESSAGE,
+  DATA_PROVIDER_BATCH_UPDATE_SOURCES,
   DATA_PROVIDER_ERROR_REMOVE_ROWS_MISSING_ID,
   DATA_PROVIDER_ERROR_UPDATE_ROWS_MISSING_ID,
   DEFAULT_PAGE_SIZE,
@@ -304,6 +305,7 @@ export class DataProvider extends BasePlugin {
       ['afterInit', this.#onAfterInit],
       ['modifyRowHeader', this.#onModifyRowHeader],
       ['beforeColumnSort', this.#onBeforeColumnSort],
+      ['beforeUndoStackChange', this.#onBeforeUndoStackChange],
       ['afterChange', this.#onAfterChangeForServerUpdate],
       ['beforeAlter', this.#onBeforeAlter],
       ['afterPageChange', this.#onAfterPageChangeExternalPagination],
@@ -533,6 +535,25 @@ export class DataProvider extends BasePlugin {
    * @returns {number} Global row index for headers.
    */
   #onModifyRowHeader = visualRowIndex => getPagedRowHeaderIndex(this.#queryParameters, visualRowIndex);
+
+  /**
+   * Skips the local undo stack for edits that batch to `onRowsUpdate` (same sources as `shouldIgnoreAfterChangeForServerUpdate`).
+   *
+   * @param {Array} doneActionsCopy Snapshot of the undo stack before the new action.
+   * @param {string} [source] Change source for the action being pushed onto the stack.
+   * @returns {boolean|void} Return `false` to block stacking (see [[Hooks#beforeUndoStackChange]]).
+   */
+  #onBeforeUndoStackChange = (doneActionsCopy, source) => {
+    if (!isFunction(this.#getOnRowsUpdate())) {
+      return;
+    }
+
+    if (!DATA_PROVIDER_BATCH_UPDATE_SOURCES.has(source)) {
+      return;
+    }
+
+    return false;
+  };
 
   /**
    * After a valid edit applies locally, queues `onRowsUpdate`. On failure, cells revert to previous values.

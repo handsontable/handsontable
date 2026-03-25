@@ -22,7 +22,8 @@ export const INITIAL_QUERY_PARAMETERS = Object.freeze({
 });
 
 /**
- * Change sources that batch into one `onRowsUpdate` call. Shared with UndoRedo (skip stack for these edits).
+ * Change sources that batch into one `onRowsUpdate` call. DataProvider also returns `false` from
+ * `beforeUndoStackChange` for these sources when `onRowsUpdate` is set, so local undo does not fight server-backed state.
  *
  * @package
  */
