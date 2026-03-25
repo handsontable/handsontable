@@ -945,6 +945,7 @@ jobs:
       version: ${{ needs.stable-prepare.outputs.version }}
       release-branch: ${{ needs.stable-prepare.outputs.release-branch }}
       develop-merge-pr: ${{ steps.merge-develop.outputs.pr-url }}
+      develop-merge-result: ${{ steps.merge-develop.outcome }}
     steps:
       - name: Generate release bot token
         id: release-token
@@ -1004,6 +1005,7 @@ jobs:
 
       - name: Merge to develop
         id: merge-develop
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
         run: |
@@ -1150,6 +1152,7 @@ jobs:
       version: ${{ needs.stable-merge.outputs.version }}
       release-branch: ${{ needs.stable-merge.outputs.release-branch }}
       develop-merge-pr: ${{ needs.stable-merge.outputs.develop-merge-pr }}
+      develop-merge-result: ${{ needs.stable-merge.outputs.develop-merge-result }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
@@ -1515,6 +1518,7 @@ jobs:
           NUGET_RESULT: ${{ needs.stable-publish-nuget.result }}
           DOCS_RESULT: ${{ needs.stable-publish.outputs.docs-result }}
           DEVELOP_MERGE_PR: ${{ needs.stable-build.outputs.develop-merge-pr }}
+          DEVELOP_MERGE_RESULT: ${{ needs.stable-build.outputs.develop-merge-result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
@@ -1531,7 +1535,7 @@ jobs:
           else
             DOCS_STATUS=":x: :chrome: *Docs*"
           fi
-          if [ -n "$DEVELOP_MERGE_PR" ]; then
+          if [ -n "$DEVELOP_MERGE_PR" ] || [ "$DEVELOP_MERGE_RESULT" = "failure" ]; then
             GITHUB_STATUS=":x: :github: *GitHub*"
           else
             GITHUB_STATUS=":white_check_mark: :github: *GitHub*"
@@ -1546,6 +1550,8 @@ jobs:
           fi
           if [ -n "$DEVELOP_MERGE_PR" ]; then
             FAILURE_NOTES="${FAILURE_NOTES}• *GitHub*: merge to develop had conflicts. A <${DEVELOP_MERGE_PR}|PR was created> for manual resolution.${NL}"
+          elif [ "$DEVELOP_MERGE_RESULT" = "failure" ]; then
+            FAILURE_NOTES="${FAILURE_NOTES}• *GitHub*: merge to develop failed. Check the <${RUN_URL}|Actions run> and merge manually.${NL}"
           fi
           CHANGELOG_URL="${REPO_URL}/blob/master/CHANGELOG.md"
 
