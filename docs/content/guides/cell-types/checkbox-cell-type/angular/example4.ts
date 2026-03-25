@@ -39,9 +39,9 @@ export class Example4CheckboxCellTypeComponent {
         label: {
           position: 'after',
           value: function(
-            _row: number,
-            _column: number,
-            _prop: string | number,
+            row: number,
+            column: number,
+            prop: string | number,
             value: string
           ) {
             if (value === 'yes') {
