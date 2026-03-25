@@ -298,8 +298,8 @@ class Table {
       wtOverlays.beforeDraw();
       this.holderOffset = offset(this.holder);
 
-      wtViewport.rowHeightCache.build();
-      wtViewport.columnWidthCache.build();
+      wtViewport.rowHeightCache.ensureBuilt();
+      wtViewport.columnWidthCache.ensureBuilt();
 
       runFastDraw = wtViewport.createCalculators(runFastDraw);
 

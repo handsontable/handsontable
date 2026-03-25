@@ -125,6 +125,7 @@ class GhostTable {
       this.widthsMap.setValueAtIndex(physicalColumnIndex, width);
     }
 
+    this.hot.view.invalidateIndexSizesCache();
     this.container.remove();
     this.container = null;
   }
