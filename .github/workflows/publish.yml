@@ -944,7 +944,15 @@ jobs:
     outputs:
       version: ${{ needs.stable-prepare.outputs.version }}
       release-branch: ${{ needs.stable-prepare.outputs.release-branch }}
+      develop-merge-pr: ${{ steps.merge-develop.outputs.pr-url }}
     steps:
+      - name: Generate release bot token
+        id: release-token
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # https://github.com/actions/create-github-app-token/releases/tag/v1
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           ref: ${{ needs.stable-prepare.outputs.release-branch }}
@@ -962,45 +970,42 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Check merge compatibility
+      - name: Check merge compatibility (master)
         run: |
           RELEASE_BRANCH='${{ needs.stable-prepare.outputs.release-branch }}'
 
           git fetch origin develop master
 
-          FAILED=0
-          for TARGET in develop master; do
-            git checkout -b _dry_${TARGET} origin/${TARGET}
+          # Only dry-run master — develop conflicts are handled gracefully via PR.
+          git checkout -b _dry_master origin/master
 
-            if ! git merge --no-commit --no-ff origin/${RELEASE_BRANCH} 2>/dev/null; then
-              CONFLICTS=$(git diff --name-only --diff-filter=U)
-              UNEXPECTED=$(echo "$CONFLICTS" | grep -v '^pnpm-lock.yaml$' || true)
+          if ! git merge --no-commit --no-ff origin/${RELEASE_BRANCH} 2>/dev/null; then
+            CONFLICTS=$(git diff --name-only --diff-filter=U)
+            UNEXPECTED=$(echo "$CONFLICTS" | grep -v '^pnpm-lock.yaml$' || true)
 
-              if [ -n "$UNEXPECTED" ]; then
-                echo "::error::Conflicts with ${TARGET} require human attention:"
-                echo "$UNEXPECTED" | while IFS= read -r f; do echo "  - $f"; done
-                FAILED=1
-              else
-                echo "::notice::${TARGET}: pnpm-lock.yaml conflict will be auto-resolved"
-              fi
-
+            if [ -n "$UNEXPECTED" ]; then
+              echo "::error::Conflicts with master require human attention:"
+              echo "$UNEXPECTED" | while IFS= read -r f; do echo "  - $f"; done
               git merge --abort 2>/dev/null || true
+              git checkout -
+              git branch -D _dry_master
+              exit 1
             else
-              git reset --merge
+              echo "::notice::master: pnpm-lock.yaml conflict will be auto-resolved"
             fi
 
-            git checkout -
-            git branch -D _dry_${TARGET}
-          done
-
-          if [ "$FAILED" -ne 0 ]; then
-            echo "::error::Fix the conflicts on the release branch or develop, then re-run this job."
-            exit 1
+            git merge --abort 2>/dev/null || true
+          else
+            git reset --merge
           fi
 
+          git checkout -
+          git branch -D _dry_master
+
       - name: Merge to develop
+        id: merge-develop
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
         run: |
           RELEASE_BRANCH='${{ needs.stable-prepare.outputs.release-branch }}'
 
@@ -1015,24 +1020,40 @@ jobs:
             UNEXPECTED=$(echo "$UNRESOLVED" | grep -v '^pnpm-lock.yaml$' || true)
 
             if [ -n "$UNEXPECTED" ]; then
-              echo "::error::Unexpected conflicts during merge to develop: $UNEXPECTED"
+              echo "::warning::Conflicts merging release to develop — creating a PR for manual resolution."
               git merge --abort
-              exit 1
+
+              # Push the release branch as a merge branch and create a PR for human review
+              MERGE_BRANCH="merge/${RELEASE_BRANCH##*/}-to-develop"
+              git checkout -b "${MERGE_BRANCH}" origin/${RELEASE_BRANCH}
+              git push origin "${MERGE_BRANCH}"
+
+              PR_URL=$(gh pr create \
+                --base develop \
+                --head "${MERGE_BRANCH}" \
+                --title "Merge ${RELEASE_BRANCH} back to develop" \
+                --body "Automatic merge from the release workflow had conflicts that need manual resolution.")
+
+              echo "pr-url=${PR_URL}" >> $GITHUB_OUTPUT
+              echo "::notice::PR created for manual merge to develop: ${PR_URL}"
+            else
+              git checkout --ours pnpm-lock.yaml
+              pnpm install --lockfile-only
+              git add pnpm-lock.yaml
+              git commit --no-edit
+              git push origin develop
             fi
-
-            git checkout --ours pnpm-lock.yaml
-            pnpm install --lockfile-only
-            git add pnpm-lock.yaml
-            git commit --no-edit
+          else
+            git push origin develop
           fi
-
-          git push origin develop
 
       - name: Merge to master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TOKEN: ${{ steps.release-token.outputs.token }}
         run: |
           RELEASE_BRANCH='${{ needs.stable-prepare.outputs.release-branch }}'
+
+          git remote set-url origin "https://x-access-token:${RELEASE_TOKEN}@github.com/${{ github.repository }}.git"
 
           git checkout master
 
@@ -1056,7 +1077,7 @@ jobs:
 
       - name: Move version tag to post-merge master commit
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
         run: |
           VERSION='${{ needs.stable-prepare.outputs.version }}'
           NEW_SHA=$(git rev-parse HEAD) # HEAD is master after the merge step
@@ -1120,6 +1141,7 @@ jobs:
     outputs:
       version: ${{ needs.stable-merge.outputs.version }}
       release-branch: ${{ needs.stable-merge.outputs.release-branch }}
+      develop-merge-pr: ${{ needs.stable-merge.outputs.develop-merge-pr }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
@@ -1298,6 +1320,16 @@ jobs:
         continue-on-error: true
         run: node .github/scripts/purge-jsdelivr-cache.mjs '${{ needs.stable-build.outputs.version }}'
 
+      - name: Extract changelog for docs
+        id: docs-changelog-content
+        continue-on-error: true
+        run: |
+          VERSION='${{ needs.stable-build.outputs.version }}'
+          CONTENT=$(node .github/scripts/extract-changelog.mjs "$VERSION")
+          echo "content<<DOCS_CHANGELOG_EOF" >> $GITHUB_OUTPUT
+          echo "$CONTENT" >> $GITHUB_OUTPUT
+          echo "DOCS_CHANGELOG_EOF" >> $GITHUB_OUTPUT
+
       - name: Install dependencies
         id: docs-deps
         continue-on-error: true
@@ -1365,6 +1397,13 @@ jobs:
             exit 1
           fi
 
+      - name: Update docs changelog
+        id: docs-changelog
+        continue-on-error: true
+        env:
+          CHANGELOG_CONTENT: ${{ steps.docs-changelog-content.outputs.content }}
+        run: node .github/scripts/update-docs-changelog.mjs '${{ needs.stable-build.outputs.version }}'
+
       - name: Commit and push docs branch
         id: docs-commit
         continue-on-error: true
@@ -1383,16 +1422,20 @@ jobs:
         id: docs-result
         if: always()
         run: |
-          if [ "${{ steps.docs-deps.outcome }}" = "failure" ] || \
+          if [ "${{ steps.docs-changelog-content.outcome }}" = "failure" ] || \
+             [ "${{ steps.docs-deps.outcome }}" = "failure" ] || \
              [ "${{ steps.docs-branch.outcome }}" = "failure" ] || \
              [ "${{ steps.docs-api.outcome }}" = "failure" ] || \
              [ "${{ steps.docs-angular.outcome }}" = "failure" ] || \
+             [ "${{ steps.docs-changelog.outcome }}" = "failure" ] || \
              [ "${{ steps.docs-commit.outcome }}" = "failure" ]; then
             echo "result=failure" >> $GITHUB_OUTPUT
-          elif [ "${{ steps.docs-deps.outcome }}" = "success" ] && \
+          elif [ "${{ steps.docs-changelog-content.outcome }}" = "success" ] && \
+               [ "${{ steps.docs-deps.outcome }}" = "success" ] && \
                [ "${{ steps.docs-branch.outcome }}" = "success" ] && \
                [ "${{ steps.docs-api.outcome }}" = "success" ] && \
                [ "${{ steps.docs-angular.outcome }}" = "success" ] && \
+               [ "${{ steps.docs-changelog.outcome }}" = "success" ] && \
                [ "${{ steps.docs-commit.outcome }}" = "success" ]; then
             echo "result=success" >> $GITHUB_OUTPUT
           else
@@ -1463,6 +1506,7 @@ jobs:
           NPM_RESULT: ${{ needs.stable-publish.result }}
           NUGET_RESULT: ${{ needs.stable-publish-nuget.result }}
           DOCS_RESULT: ${{ needs.stable-publish.outputs.docs-result }}
+          DEVELOP_MERGE_PR: ${{ needs.stable-build.outputs.develop-merge-pr }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
@@ -1479,6 +1523,11 @@ jobs:
           else
             DOCS_STATUS=":x: :chrome: *Docs*"
           fi
+          if [ -n "$DEVELOP_MERGE_PR" ]; then
+            GITHUB_STATUS=":x: :github: *GitHub*"
+          else
+            GITHUB_STATUS=":white_check_mark: :github: *GitHub*"
+          fi
           NL=$'\n'
           FAILURE_NOTES=""
           if [ "$NUGET_RESULT" != "success" ]; then
@@ -1486,6 +1535,9 @@ jobs:
           fi
           if [ "$DOCS_RESULT" = "failure" ]; then
             FAILURE_NOTES="${FAILURE_NOTES}• *Docs*: branch update failed. Manual intervention required — check the <${RUN_URL}|Actions run> and update the docs branch manually.${NL}"
+          fi
+          if [ -n "$DEVELOP_MERGE_PR" ]; then
+            FAILURE_NOTES="${FAILURE_NOTES}• *GitHub*: merge to develop had conflicts. A <${DEVELOP_MERGE_PR}|PR was created> for manual resolution.${NL}"
           fi
           CHANGELOG_URL="${REPO_URL}/blob/master/CHANGELOG.md"
 
@@ -1496,6 +1548,7 @@ jobs:
             --arg npm_ok        "$NPM_OK" \
             --arg nuget_status  "$NUGET_STATUS" \
             --arg docs_status   "$DOCS_STATUS" \
+            --arg github_status "$GITHUB_STATUS" \
             --arg failure_notes "$FAILURE_NOTES" \
             --arg changelog_url "$CHANGELOG_URL" \
             --arg repo_url      "${REPO_URL}" \
@@ -1521,7 +1574,7 @@ jobs:
               {
                 type: "section",
                 fields: [
-                  { type: "mrkdwn", text: ":white_check_mark: :github: *GitHub*" },
+                  { type: "mrkdwn", text: $github_status },
                   { type: "mrkdwn", text: $npm_status },
                   { type: "mrkdwn", text: $nuget_status },
                   { type: "mrkdwn", text: $docs_status }
