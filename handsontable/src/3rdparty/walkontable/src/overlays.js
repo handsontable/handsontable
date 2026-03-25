@@ -666,13 +666,13 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    const isScrollTriggered = this.verticalScrolling || this.horizontalScrolling;
+    // const isScrollTriggered = this.verticalScrolling || this.horizontalScrolling;
 
-    if (isScrollTriggered) {
-      this.#postponedAdjustElementsSize();
-    } else {
-      this.#adjustElementsSizeIfNeeded();
-    }
+    // if (isScrollTriggered) {
+    //   this.#postponedAdjustElementsSize();
+    // } else {
+    this.#adjustElementsSizeIfNeeded();
+    // }
 
     if (this.bottomOverlay.clone) {
       this.bottomOverlay.refresh(fastDraw);
