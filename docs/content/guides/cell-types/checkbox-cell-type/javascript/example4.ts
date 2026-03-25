@@ -30,12 +30,7 @@ new Handsontable(container, {
       uncheckedTemplate: 'no',
       label: {
         position: 'after',
-        value: function(
-          _row: number,
-          _column: number,
-          _prop: string | number,
-          value: string
-        ) {
+        value(row: number, column: number, prop: string | number, value: string) {
           if (value === 'yes') {
             return 'In black';
           } else {
