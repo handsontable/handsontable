@@ -1,0 +1,79 @@
+name: Performance tests
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  performance-tests:
+    name: Performance tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+        with:
+          version: 10.30.2
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Run performance test setup
+        working-directory: performance-tests
+        run: bash test.sh
+
+      # - name: Install Playwright system dependencies
+      #   working-directory: performance-tests
+      #   run: npx playwright install-deps chromium
+
+      # - name: Run Playwright performance tests
+      #   working-directory: performance-tests
+      #   env:
+      #     CI: true
+      #   run: npx playwright test
+
+      - name: Upload performance-tests output
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: performance-tests-output
+          path: performance-tests/output
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Ensure PR comment body exists
+        if: always()
+        run: |
+          mkdir -p performance-tests/output
+          if [ ! -f performance-tests/output/result.md ]; then
+            {
+              echo '## Performance tests'
+              echo
+              echo 'No result.md was generated. Check the workflow log and downloaded artifacts.'
+            } > performance-tests/output/result.md
+          fi
+
+      - name: Post performance summary to pull request
+        if: always()
+        uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.9.4
+        with:
+          header: performance-tests
+          path: performance-tests/output/result.md
