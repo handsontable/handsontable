@@ -152,12 +152,30 @@ class HeadersUI extends BaseUI {
     this.hot.render();
   }
 
+  /**
+   * Cache the row header width according to number of levels in the dataset.
+   *
+   * @private
+   * @param {number} deepestLevel Cached deepest level of nesting.
+   */
   cacheRowHeaderWidth(deepestLevel) {
     const { rowHeaderWidthCache } = this.#calculateRowHeaderWidth(deepestLevel);
 
     this.rowHeaderWidthCache = rowHeaderWidthCache;
   }
 
+  /**
+   * Calculate values required to determine the row header width.
+   *
+   * @private
+   * @param {number} deepestLevel Cached deepest level of nesting.
+   * @returns {{
+   *   deepestLevelIndex: number,
+   *   verticalPadding: number,
+   *   completeVerticalPadding: number,
+   *   rowHeaderWidthCache: number
+   * }} Calculated row header width metadata.
+   */
   #calculateRowHeaderWidth(deepestLevel) {
     let deepestLevelIndex = deepestLevel;
 
