@@ -15,3 +15,5 @@ cp dist/handsontable.full.js ../performance-tests/fixtures/handsontable.full.js
 cd ../performance-tests
 npm install
 npx playwright install chromium
+
+npx playwright test
