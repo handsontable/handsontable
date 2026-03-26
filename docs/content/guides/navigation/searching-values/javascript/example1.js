@@ -12,7 +12,6 @@ const data = [
 ];
 
 const container = document.querySelector('#example1');
-
 const hot = new Handsontable(container, {
   data,
   colHeaders: true,
@@ -34,6 +33,5 @@ searchField.addEventListener('keyup', (event) => {
   const queryResult = search.query(event.target.value);
 
   console.log(queryResult);
-
   hot.render();
 });

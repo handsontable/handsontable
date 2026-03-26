@@ -12,7 +12,6 @@ const data = [
 ];
 
 const container = document.querySelector('#example2');
-
 const hot = new Handsontable(container, {
   data,
   colHeaders: true,

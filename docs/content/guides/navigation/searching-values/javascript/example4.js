@@ -5,7 +5,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 let searchResultCount = 0;
-
 const data = [
   ['Tesla', 2017, 'black', 'black'],
   ['Nissan', 2018, 'blue', 'blue'],
@@ -14,13 +13,7 @@ const data = [
 ];
 
 // define your custom callback function
-function searchResultCounter(
-  instance,
-  row,
-  column,
-  value,
-  result
-) {
+function searchResultCounter(instance, row, column, value, result) {
   const DEFAULT_CALLBACK = function (instance, row, col, _data, testResult) {
     instance.getCellMeta(row, col).isSearchResult = testResult;
   };
@@ -33,7 +26,6 @@ function searchResultCounter(
 }
 
 const container = document.querySelector('#example4');
-
 const hot = new Handsontable(container, {
   data,
   colHeaders: true,
