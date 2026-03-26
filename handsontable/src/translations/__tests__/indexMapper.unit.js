@@ -2905,4 +2905,232 @@ describe('IndexMapper', () => {
       expect(cacheUpdatedCallback.calls.count()).toEqual(1);
     });
   });
+
+  describe('observeMapChange', () => {
+    it('should notify the observer immediately when not batched', () => {
+      const indexMapper = new IndexMapper();
+      const valueMap = new PIndexToValueMap();
+      const callback = jasmine.createSpy('observer');
+
+      indexMapper.registerMap('myMap', valueMap);
+      indexMapper.initToLength(5);
+      indexMapper.observeMapChange(valueMap, callback);
+
+      valueMap.setValueAtIndex(0, 'foo');
+
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      valueMap.setValueAtIndex(1, 'bar');
+
+      expect(callback).toHaveBeenCalledTimes(2);
+    });
+
+    it('should coalesce notifications during a batch into a single call', () => {
+      const indexMapper = new IndexMapper();
+      const valueMap = new PIndexToValueMap();
+      const callback = jasmine.createSpy('observer');
+
+      indexMapper.registerMap('myMap', valueMap);
+      indexMapper.initToLength(5);
+      indexMapper.observeMapChange(valueMap, callback);
+
+      indexMapper.suspendOperations();
+
+      valueMap.setValueAtIndex(0, 'a');
+      valueMap.setValueAtIndex(1, 'b');
+      valueMap.setValueAtIndex(2, 'c');
+
+      expect(callback).not.toHaveBeenCalled();
+
+      indexMapper.resumeOperations();
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should pass the changed map instance to the callback', () => {
+      const indexMapper = new IndexMapper();
+      const valueMap = new PIndexToValueMap();
+      const callback = jasmine.createSpy('observer');
+
+      indexMapper.registerMap('myMap', valueMap);
+      indexMapper.initToLength(5);
+      indexMapper.observeMapChange(valueMap, callback);
+
+      valueMap.setValueAtIndex(0, 'foo');
+
+      expect(callback).toHaveBeenCalledWith(valueMap);
+    });
+
+    it('should not notify the observer for unobserved maps', () => {
+      const indexMapper = new IndexMapper();
+      const observedMap = new PIndexToValueMap();
+      const otherMap = new PIndexToValueMap();
+      const callback = jasmine.createSpy('observer');
+
+      indexMapper.registerMap('observed', observedMap);
+      indexMapper.registerMap('other', otherMap);
+      indexMapper.initToLength(5);
+      indexMapper.observeMapChange(observedMap, callback);
+
+      otherMap.setValueAtIndex(0, 'foo');
+
+      expect(callback).not.toHaveBeenCalled();
+
+      observedMap.setValueAtIndex(0, 'bar');
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should support multiple observers for the same map', () => {
+      const indexMapper = new IndexMapper();
+      const valueMap = new PIndexToValueMap();
+      const callback1 = jasmine.createSpy('observer1');
+      const callback2 = jasmine.createSpy('observer2');
+
+      indexMapper.registerMap('myMap', valueMap);
+      indexMapper.initToLength(5);
+      indexMapper.observeMapChange(valueMap, callback1);
+      indexMapper.observeMapChange(valueMap, callback2);
+
+      valueMap.setValueAtIndex(0, 'foo');
+
+      expect(callback1).toHaveBeenCalledTimes(1);
+      expect(callback2).toHaveBeenCalledTimes(1);
+    });
+
+    it('should support observing multiple maps independently', () => {
+      const indexMapper = new IndexMapper();
+      const mapA = new PIndexToValueMap();
+      const mapB = new PIndexToValueMap();
+      const callbackA = jasmine.createSpy('observerA');
+      const callbackB = jasmine.createSpy('observerB');
+
+      indexMapper.registerMap('mapA', mapA);
+      indexMapper.registerMap('mapB', mapB);
+      indexMapper.initToLength(5);
+      indexMapper.observeMapChange(mapA, callbackA);
+      indexMapper.observeMapChange(mapB, callbackB);
+
+      indexMapper.suspendOperations();
+
+      mapA.setValueAtIndex(0, 'a');
+      mapB.setValueAtIndex(0, 'b');
+
+      expect(callbackA).not.toHaveBeenCalled();
+      expect(callbackB).not.toHaveBeenCalled();
+
+      indexMapper.resumeOperations();
+
+      expect(callbackA).toHaveBeenCalledTimes(1);
+      expect(callbackB).toHaveBeenCalledTimes(1);
+    });
+
+    it('should remove the observer when the disposer is called', () => {
+      const indexMapper = new IndexMapper();
+      const valueMap = new PIndexToValueMap();
+      const callback = jasmine.createSpy('observer');
+
+      indexMapper.registerMap('myMap', valueMap);
+      indexMapper.initToLength(5);
+
+      const dispose = indexMapper.observeMapChange(valueMap, callback);
+
+      valueMap.setValueAtIndex(0, 'foo');
+
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      dispose();
+
+      valueMap.setValueAtIndex(1, 'bar');
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should remove only the disposed observer when multiple observers exist', () => {
+      const indexMapper = new IndexMapper();
+      const valueMap = new PIndexToValueMap();
+      const callback1 = jasmine.createSpy('observer1');
+      const callback2 = jasmine.createSpy('observer2');
+
+      indexMapper.registerMap('myMap', valueMap);
+      indexMapper.initToLength(5);
+
+      const dispose1 = indexMapper.observeMapChange(valueMap, callback1);
+
+      indexMapper.observeMapChange(valueMap, callback2);
+
+      dispose1();
+
+      valueMap.setValueAtIndex(0, 'foo');
+
+      expect(callback1).not.toHaveBeenCalled();
+      expect(callback2).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw when observing a trimming map', () => {
+      const indexMapper = new IndexMapper();
+      const trimmingMap = new TrimmingMap();
+      const callback = jasmine.createSpy('observer');
+
+      indexMapper.registerMap('trimming', trimmingMap);
+      indexMapper.initToLength(5);
+
+      expect(() => {
+        indexMapper.observeMapChange(trimmingMap, callback);
+      }).toThrowWithCause('The "observeMapChange" method does not support trimming or hiding maps.', {
+        handsontable: true
+      });
+    });
+
+    it('should throw when observing a hiding map', () => {
+      const indexMapper = new IndexMapper();
+      const hidingMap = new HidingMap();
+      const callback = jasmine.createSpy('observer');
+
+      indexMapper.registerMap('hiding', hidingMap);
+      indexMapper.initToLength(5);
+
+      expect(() => {
+        indexMapper.observeMapChange(hidingMap, callback);
+      }).toThrowWithCause('The "observeMapChange" method does not support trimming or hiding maps.', {
+        handsontable: true
+      });
+    });
+
+    it('should notify on `clear()` call (non-batched)', () => {
+      const indexMapper = new IndexMapper();
+      const valueMap = new PIndexToValueMap();
+      const callback = jasmine.createSpy('observer');
+
+      indexMapper.registerMap('myMap', valueMap);
+      indexMapper.initToLength(5);
+
+      valueMap.setValueAtIndex(0, 'foo');
+      valueMap.setValueAtIndex(1, 'bar');
+
+      indexMapper.observeMapChange(valueMap, callback);
+
+      valueMap.clear();
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle dispose being called multiple times without error', () => {
+      const indexMapper = new IndexMapper();
+      const valueMap = new PIndexToValueMap();
+      const callback = jasmine.createSpy('observer');
+
+      indexMapper.registerMap('myMap', valueMap);
+      indexMapper.initToLength(5);
+
+      const dispose = indexMapper.observeMapChange(valueMap, callback);
+
+      dispose();
+      dispose();
+
+      valueMap.setValueAtIndex(0, 'foo');
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -4,14 +4,32 @@ import {
   FullyVisibleColumnsCalculationType,
   PartiallyVisibleColumnsCalculationType,
 } from '../../../src/calculator';
+import { PositionCache } from '../../../src/utils/positionCache';
 
 function allColumns20() {
   return 20;
 }
 
 function createViewportColumnsCalculator(options) {
+  const {
+    totalColumns = 0,
+    columnWidthFn = () => NaN,
+    defaultColumnWidth = 50,
+    ...rest
+  } = options;
+
+  const cache = new PositionCache({
+    totalItemsFn: () => totalColumns,
+    sizeFn: columnWidthFn,
+    defaultSizeFn: () => defaultColumnWidth,
+  });
+
+  cache.build();
+
   return new ViewportColumnsCalculator({
-    ...options,
+    ...rest,
+    totalColumns,
+    columnWidthCache: cache,
     calculationTypes: [
       ['rendered', new RenderedColumnsCalculationType()],
       ['fullyVisible', new FullyVisibleColumnsCalculationType()],

@@ -94,6 +94,12 @@ export class ManualRowResize extends BasePlugin {
    */
   #rowHeightsMap;
   /**
+   * Disposer function for the row heights map observer. Called on disable to clean up.
+   *
+   * @type {Function|null}
+   */
+  #disposeMapObserver = null;
+  /**
    * Private pool to save configuration from updateSettings.
    *
    * @type {object}
@@ -137,6 +143,11 @@ export class ManualRowResize extends BasePlugin {
     this.#rowHeightsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.rowIndexMapper.registerMap(this.pluginName, this.#rowHeightsMap);
 
+    this.#disposeMapObserver = this.hot.rowIndexMapper
+      .observeMapChange(this.#rowHeightsMap, () => {
+        this.hot.view?.invalidateRowHeightCache();
+      });
+
     this.addHook('modifyRowHeight', (height, row) => this.#onModifyRowHeight(height, row));
 
     this.bindEvents();
@@ -161,6 +172,11 @@ export class ManualRowResize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    if (this.#disposeMapObserver) {
+      this.#disposeMapObserver();
+      this.#disposeMapObserver = null;
+    }
+
     this.#config = this.#rowHeightsMap.getValues();
 
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
