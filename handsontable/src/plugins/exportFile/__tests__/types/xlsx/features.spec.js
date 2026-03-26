@@ -293,6 +293,32 @@ describe('exportFile XLSX type — features', () => {
       expect(sheets[1].getRow(1).getCell(1).value).toBe('A1');
     });
 
+    it('should support per-sheet deprecated `columnHeaders` alias', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 2),
+        colHeaders: ['Name', 'Score'],
+        exportFile: { engines: { xlsx: ExcelJS } },
+      });
+
+      hot2Container = $('<div></div>').appendTo('body');
+      hot2 = hot2Container
+        .handsontable({ data: createSpreadsheetData(1, 2), colHeaders: ['X', 'Y'] })
+        .handsontable('getInstance');
+
+      const sheets = await parseXlsxAllSheets({
+        sheets: [
+          { instance: hot(), name: 'WithDeprecatedAlias', columnHeaders: true },
+          { instance: hot2, name: 'NoHeaders' },
+        ],
+      });
+
+      // `columnHeaders` should be promoted to `colHeaders` for each sheet.
+      expect(sheets[0].getRow(1).getCell(1).value).toBe('Name');
+      expect(sheets[0].getRow(2).getCell(1).value).toBe('A1');
+
+      expect(sheets[1].getRow(1).getCell(1).value).toBe('A1');
+    });
+
     it('should fall back to sheet name "Sheet" when the name property is omitted', async() => {
       handsontable({
         data: [['a']],

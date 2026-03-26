@@ -1112,6 +1112,32 @@ The **Formulas** plugin uses [HyperFormula](https://hyperformula.handsontable.co
 
 See the [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) guide for configuration details.
 
+## 8. ExportFile option rename: `columnHeaders` → `colHeaders`
+
+The ExportFile plugin now uses the `colHeaders` option name for exported column headers.
+The legacy `columnHeaders` alias is no longer supported in export options.
+
+### What Changed
+
+- **Renamed export option**: `columnHeaders` was replaced with `colHeaders` in ExportFile options.
+- **Scope**: This applies to top-level export options and per-sheet options in XLSX multi-sheet exports.
+
+### How to Migrate
+
+Update your export options to use `colHeaders`.
+
+```diff
+- getPlugin('exportFile').downloadFile('csv', { columnHeaders: true });
++ getPlugin('exportFile').downloadFile('csv', { colHeaders: true });
+```
+
+```diff
+  sheets: [
+-   { instance: hot, columnHeaders: true },
++   { instance: hot, colHeaders: true },
+  ],
+```
+
 ## Summary of breaking changes
 
 | Change                                            | Action Required                                                            |
@@ -1121,6 +1147,7 @@ See the [Formula calculation](@/guides/formulas/formula-calculation/formula-calc
 | CSS-based themes (optional migration)             | Consider migrating to Theme API for runtime features                       |
 | `core-js` dependency removed                      | Add `core-js` or other polyfills in your app if you support older environments |
 | Built-in HyperFormula (deprecation)               | In 18.0, import HyperFormula yourself and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'` |
+| ExportFile `columnHeaders` option rename          | Replace `columnHeaders` with `colHeaders` in export options and per-sheet XLSX options |
 
 ## Related resources
 

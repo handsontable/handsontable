@@ -121,7 +121,7 @@ class Xlsx extends BaseType {
 
       sheets.forEach((sheetConfig) => {
         const dp = new DataProvider(sheetConfig.instance);
-        const sheetOptions = { ...this.options, ...sheetConfig };
+        const sheetOptions = this._mergeOptions({ ...this.options, ...sheetConfig });
 
         dp.setOptions(sheetOptions);
 
