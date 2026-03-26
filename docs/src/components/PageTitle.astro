@@ -6,9 +6,9 @@
  *  1. A top bar with breadcrumbs.
  *  2. The page <h1> (id="_top" preserved — required by Starlight's skip-link
  *     and on-page TOC behaviour).
- *  3. Action buttons from starlight-page-actions (Copy Markdown, Open in AI,
- *     Share) — integrated here because both this component and the plugin
- *     override the same PageTitle slot.
+ *
+ * Page-action buttons (Copy Markdown, Open in…) are rendered by the
+ * PageSidebar override below the table of contents.
  *
  * Breadcrumb structure (matches the VuePress docs):
  *   🏠 17.0.0 JavaScript Data Grid  ›  Current Page Title
@@ -17,10 +17,6 @@
 import { createRequire } from 'module';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { Icon } from '@astrojs/starlight/components';
-import config from 'virtual:config';
-import Dropdown from '../../node_modules/starlight-page-actions/components/Dropdown.astro';
-import Button from '../../node_modules/starlight-page-actions/components/Button.astro';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require   = createRequire(import.meta.url);
@@ -58,111 +54,6 @@ const frameworkLabel = FRAMEWORK_LABELS[prefix];
 const homeLabel      = hotVersion ? `${hotVersion} ${frameworkLabel}` : frameworkLabel;
 const homeHref       = `/docs/${prefix}/`;
 const pageHref       = pathname;
-
-// ── Page actions (starlight-page-actions) ─────────────────────────────────────
-interface OptionsProps {
-  label: string;
-  href: string;
-  id: 'chatgpt' | 'claude' | 'markdown' | 'v0' | 't3chat';
-}
-
-const currentPath = Astro.url.pathname.replace(/\/$/, '');
-const currentUrl  = Astro.url.href;
-// Path to the generated .md file (served from public/_md/).
-const mdSlug      = currentPath.replace(/^\/docs\//, '');
-const mdPath      = `/docs/_md/${mdSlug}.md`;
-const { actions, prompt: userPrompt, share } = config;
-const { pageActions } = (Astro.locals as any).starlightRoute.entry.data;
-
-const prompt = userPrompt?.includes('{url}')
-  ? userPrompt?.replace('{url}', currentUrl)
-  : `${userPrompt} ${currentUrl}`;
-const encodedPrompt    = encodeURIComponent(prompt as string);
-const encodedCurrentUrl = encodeURIComponent(currentUrl);
-const encodedTitle     = encodeURIComponent(pageTitle as string);
-
-const defaultOptions: OptionsProps[] = [
-  {
-    label: Astro.locals.t('open.chatgpt'),
-    href: `https://chatgpt.com/?q=${encodedPrompt}`,
-    id: 'chatgpt',
-  },
-  {
-    label: Astro.locals.t('open.claude'),
-    href: `https://claude.ai/new?q=${encodedPrompt}`,
-    id: 'claude',
-  },
-  {
-    label: Astro.locals.t('open.t3chat'),
-    href: `https://t3.chat/new?q=${encodedPrompt}`,
-    id: 't3chat',
-  },
-  {
-    label: Astro.locals.t('open.v0'),
-    href: `https://v0.app/?q=${encodedPrompt}`,
-    id: 'v0',
-  },
-  {
-    label: Astro.locals.t('view.markdown'),
-    href: mdPath,
-    id: 'markdown',
-  },
-];
-const filteredDefaultOptions = defaultOptions.filter((option) => {
-  return actions && actions[option.id];
-});
-const customOptions: OptionsProps[] = actions?.custom
-  ? Object.entries(actions.custom).map(([key, value]) => ({
-      label: value.label,
-      href: `${value.href}${encodedPrompt}`,
-      id: key as OptionsProps['id'],
-    }))
-  : [];
-const actionOptions = [...filteredDefaultOptions, ...customOptions];
-const shareOptions = [
-  {
-    label: Astro.locals.t('share.linkedin'),
-    href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedCurrentUrl}`,
-  },
-  {
-    label: Astro.locals.t('share.x'),
-    href: `https://x.com/intent/tweet?url=${encodedCurrentUrl}&text=${encodedTitle}`,
-  },
-  {
-    label: Astro.locals.t('share.threads'),
-    href: `https://threads.net/intent/post?url=${encodedCurrentUrl}&text=${encodedTitle}`,
-  },
-  {
-    label: Astro.locals.t('share.bluesky'),
-    href: `https://bsky.app/intent/compose?text=${encodedTitle}%20${encodedCurrentUrl}`,
-  },
-  {
-    label: Astro.locals.t('share.facebook'),
-    href: `https://www.facebook.com/sharer/sharer.php?u=${encodedCurrentUrl}`,
-  },
-  {
-    label: Astro.locals.t('share.reddit'),
-    href: `https://reddit.com/submit?url=${encodedCurrentUrl}&title=${encodedTitle}`,
-  },
-  {
-    label: Astro.locals.t('share.hackernews'),
-    href: `https://news.ycombinator.com/submitlink?u=${encodedCurrentUrl}&t=${encodedTitle}`,
-  },
-  {
-    label: Astro.locals.t('share.email'),
-    href: `mailto:?subject=${encodedTitle}&body=${encodedCurrentUrl}`,
-  },
-  {
-    label: Astro.locals.t('share.whatsapp'),
-    href: `https://wa.me/?text=${encodedTitle}%20${encodedCurrentUrl}`,
-  },
-  {
-    label: Astro.locals.t('share.telegram'),
-    href: `https://t.me/share/url?url=${encodedCurrentUrl}&text=${encodedTitle}`,
-  },
-];
-
-const showActions = pageActions || typeof pageActions === 'undefined';
 ---
 
 <div class="hot-page-header">
@@ -187,60 +78,9 @@ const showActions = pageActions || typeof pageActions === 'undefined';
     </ol>
   </nav>
 
-  <!-- ── Page actions (inline with breadcrumbs) ──────────────────────────── -->
-  {showActions && (
-    <div class="actions-container">
-      <Button id="copy-markdown" dataPath={mdPath}>
-        <Icon name="mdx" size="1rem" class="icon-default" />
-        <Icon name="approve-check" size="1rem" class="icon-success" />
-        <Icon name="error" size="1rem" class="icon-error" />
-        <span>{Astro.locals.t('copy.markdown')}</span>
-      </Button>
-
-      <div class="dropdown-container">
-        {actionOptions.length !== 0 && (
-          <Dropdown label={Astro.locals.t('open')} options={actionOptions} id="0" />
-        )}
-        {share && (
-          <Dropdown label={Astro.locals.t('share')} options={shareOptions} id="1" />
-        )}
-      </div>
-    </div>
-  )}
 </div>
 
 <h1 id="_top">{pageTitle}</h1>
-
-<script>
-  const copyButton = document.querySelector(
-    '#copy-markdown'
-  ) as HTMLButtonElement;
-
-  copyButton?.addEventListener('click', async () => {
-    let copyButtonClass: 'copied' | 'error' = 'copied';
-
-    try {
-      copyButton.disabled = true;
-
-      const mdPath = copyButton.dataset.path;
-
-      const res = await fetch(mdPath);
-      const contentForClipboard = await res.text();
-
-      await navigator.clipboard.writeText(contentForClipboard);
-    } catch (error) {
-      console.error(error);
-      copyButtonClass = 'error';
-    } finally {
-      copyButton.classList.add(copyButtonClass);
-      copyButton.disabled = false;
-
-      setTimeout(() => {
-        copyButton.classList.remove(copyButtonClass);
-      }, 3000);
-    }
-  });
-</script>
 
 <style>
   /* ── Page title ─────────────────────────────────────────────────────────── */
@@ -300,39 +140,6 @@ const showActions = pageActions || typeof pageActions === 'undefined';
     text-decoration: none;
     cursor: default;
     pointer-events: none;
-  }
-
-  /* ── Page actions (inline with breadcrumbs, right-aligned) ───────────── */
-  .actions-container, .dropdown-container {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .actions-container {
-    flex-shrink: 0;
-  }
-
-  #copy-markdown:disabled {
-    opacity: 0.7;
-  }
-
-  :global(.icon-success),
-  :global(.icon-error) {
-    display: none;
-  }
-
-  :global(#copy-markdown.copied .icon-default),
-  :global(#copy-markdown.error .icon-default) {
-    display: none;
-  }
-
-  :global(#copy-markdown.copied .icon-success) {
-    display: block;
-  }
-
-  :global(#copy-markdown.error .icon-error) {
-    display: block;
   }
 
 </style>

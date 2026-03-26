@@ -235,11 +235,13 @@ function convertBoxesListToCardGrid(content) {
       if (cards.length === 0) return '';
 
       const cardHtml = cards.map(({ title, href }) => {
+        // Convert backtick-wrapped text to <code> tags
+        const processed = title.replace(/`([^`]+)`/g, '<code>$1</code>');
         // Split "Label (version)" into main title + subtitle
-        const parenMatch = title.match(/^(.+?)\s*\(([^)]+)\)$/);
+        const parenMatch = processed.match(/^(.+?)\s*\(([^)]+)\)$/);
         const titleHtml = parenMatch
           ? `<span class="title">${parenMatch[1]}</span><span class="subtitle">${parenMatch[2]}</span>`
-          : `<span class="title">${title}</span>`;
+          : `<span class="title">${processed}</span>`;
 
         return `<div class="ht-link-card"><a href="${href}">${titleHtml}</a><span class="arrow" aria-hidden="true">\u2192</span></div>`;
       }).join('\n');

@@ -130,6 +130,12 @@ const isLatest = currentMinor === latestVersion;
 
   if (wrapper && trigger && menu) {
     trigger.addEventListener('click', () => {
+      // Close framework dropdown if open
+      const fwMenu = document.querySelector('.fw-menu') as HTMLElement | null;
+      const fwTrigger = document.getElementById('fw-trigger');
+      if (fwMenu) fwMenu.hidden = true;
+      if (fwTrigger) fwTrigger.setAttribute('aria-expanded', 'false');
+
       const isOpen = !menu.hidden;
       menu.hidden = isOpen;
       trigger.setAttribute('aria-expanded', String(!isOpen));
@@ -162,20 +168,22 @@ const isLatest = currentMinor === latestVersion;
   .versions-trigger {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.5rem;
     background: none;
     border: none;
+    border-right: 1px solid var(--sl-color-gray-5);
     color: var(--sl-color-gray-2);
     cursor: pointer;
     font-size: var(--sl-text-sm);
     font-weight: 500;
     padding: 0.5rem 0.625rem;
-    transition: color 0.15s;
+    transition: color 0.15s, background-color 0.15s;
     white-space: nowrap;
   }
 
   .versions-trigger:hover {
     color: var(--sl-color-white);
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
   }
 
   .versions-trigger__version {
@@ -183,14 +191,14 @@ const isLatest = currentMinor === latestVersion;
   }
 
   .versions-tag {
-    background: #41a167;
-    border: 1px solid #41a167;
+    background: var(--sl-color-accent);
+    border: 1px solid var(--sl-color-accent);
     border-radius: 99px;
-    color: #121316;
+    color: #fff;
     font-family: var(--sl-font-system, system-ui, sans-serif);
     font-size: 0.65rem;
     font-weight: 400;
-    letter-spacing: 0.02em;
+    line-height: 1;
     padding: 0.15rem 0.5rem;
     text-transform: capitalize;
     vertical-align: middle;
@@ -208,18 +216,18 @@ const isLatest = currentMinor === latestVersion;
 
   .versions-menu {
     background: var(--sl-color-bg-nav);
-    border: 1px solid var(--sl-color-hairline-light);
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0;
+    box-shadow: none;
     inset-inline-end: 0;
     list-style: none;
     margin: 0;
     max-height: 18rem;
     min-width: 10rem;
     overflow-y: auto;
-    padding: 0.25rem 0;
+    padding: 0;
     position: absolute;
-    top: calc(100% + 0.4rem);
+    top: 100%;
     z-index: 100;
   }
 
@@ -233,19 +241,27 @@ const isLatest = currentMinor === latestVersion;
     display: flex;
     font-size: var(--sl-text-sm);
     gap: 0.4rem;
-    padding: 0.35rem 0.75rem;
+    padding: 0.5rem 0.75rem;
     text-decoration: none;
+    border-bottom: 1px solid var(--sl-color-gray-5);
     transition: background 0.1s, color 0.1s;
     white-space: nowrap;
   }
 
-  .versions-item:hover {
-    background: var(--sl-color-bg-sidebar);
-    color: var(--sl-color-accent);
+  .versions-item:last-child {
+    border-bottom: none;
+  }
+
+  .versions-item:hover,
+  .versions-item:focus-visible {
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-white);
+    outline: none;
+    box-shadow: inset 0 0 0 1px var(--sl-color-accent);
   }
 
   .versions-item--current {
-    color: var(--sl-color-accent);
-    font-weight: 700;
+    color: var(--sl-color-white);
+    box-shadow: inset 0 0 0 1px var(--sl-color-accent);
   }
 </style>

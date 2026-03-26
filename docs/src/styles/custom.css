@@ -23,27 +23,29 @@
 /* Dark mode accent colours + pure neutral gray palette */
 :root {
   --sl-color-accent-low:  #1a3a6b;
-  --sl-color-accent:      #4d8ff5;
+  --sl-color-accent:      #2856ea;
   --sl-color-accent-high: #a8c8ff;
   --sl-font: 'Inter', system-ui, -apple-system, sans-serif;
   --sl-text-base: 1rem;
   --sl-line-height: 1.7;
-  --sl-nav-height: 6.5rem;
+  --sl-nav-height: 7.125rem;
   --sl-content-gap-y: 1.25rem;
 
-  /* Pure gray palette — zero chroma removes the warm tint from rapide's hue-base */
+  /* Pure gray palette (1–9) — zero chroma removes the warm tint from rapide's hue-base */
   --sl-color-white: oklch(90% 0 0);
   --sl-color-gray-1: oklch(80% 0 0);
-  --sl-color-gray-2: oklch(80% 0 0);
+  --sl-color-gray-2: oklch(72% 0 0);
   --sl-color-gray-3: oklch(65% 0 0);
   --sl-color-gray-4: oklch(48% 0 0);
   --sl-color-gray-5: oklch(29% 0 0);
   --sl-color-gray-6: oklch(23% 0 0);
   --sl-color-gray-7: oklch(20.5% 0 0);
-  --sl-color-black: oklch(18% 0 0);
+  --sl-color-gray-8: oklch(17% 0 0);
+  --sl-color-gray-9: oklch(14% 0 0);
+  --sl-color-black: oklch(11% 0 0);
 
-  /* Override text color to gray-3 for softer body text */
-  --sl-color-text: var(--sl-color-gray-3);
+  /* Body text color */
+  --sl-color-text: var(--sl-color-gray-2);
 
   /* Inline code: darker bg (gray-7) + white text */
   --sl-color-bg-inline-code: var(--sl-color-gray-7);
@@ -86,7 +88,6 @@
   button[data-open-modal] {
     max-width: 100%;
     background-color: var(--sl-color-gray-6) !important;
-    border: none !important;
   }
 }
 
@@ -96,10 +97,38 @@
   width: auto;
 }
 
-/* Allow two-row header to size naturally instead of fixed height */
+/* -------------------------------------------------------------------------
+ * Constrain entire page layout to ~1500px on wide viewports
+ * ------------------------------------------------------------------------- */
+.page {
+  max-width: 1500px;
+  margin-inline: auto;
+}
+
+/* Header bar spans full viewport; inner content matches page max-width */
 header.header {
   height: auto !important;
   padding-block: 1rem 0.5rem;
+}
+
+header.header > .header {
+  max-width: 1500px;
+  margin-inline: auto;
+}
+
+starlight-theme-select button {
+  color: var(--sl-color-gray-1);
+}
+
+starlight-theme-select button:hover {
+  color: var(--sl-color-white);
+}
+
+/* Align fixed sidebar with the constrained page */
+@media (min-width: 50rem) {
+  .sidebar-pane {
+    inset-inline-start: max(0px, calc(50vw - 750px)) !important;
+  }
 }
 
 /* Align sidebar and TOC tops */
@@ -108,7 +137,16 @@ header.header {
 }
 
 .sidebar-pane ul {
-  padding: 8px 0;
+  padding: 0.5rem 0;
+}
+
+starlight-toc > nav > ul {
+  padding: 0.5rem 0;
+}
+
+/* Hide the "Overview" entry (h1#_top) from the ToC */
+starlight-toc a[href='#_top'] {
+  display: none;
 }
 
 starlight-toc nav {
@@ -123,6 +161,7 @@ starlight-toc ul {
 starlight-toc {
   display: block !important;
   padding-top: 1rem !important;
+  font-size: var(--sl-text-sm);
 }
 
 /* Right sidebar — match header height */
@@ -136,12 +175,28 @@ starlight-toc {
 
 /* Main frame — extra breathing room below fixed header */
 .main-frame {
-  padding-top: 8rem !important;
+  padding-top: 8.75rem !important;
+}
+
+.sl-container > * + * {
+  margin-top: 3rem;
+}
+
+.sl-steps {
+  margin-top: 2rem;
+}
+
+.sl-steps > li {
+  padding-bottom: 2rem;
+}
+
+.sl-markdown-content ul:not(:where(.not-content *)) {
+  list-style: disc;
 }
 
 /* Push main content down so breadcrumbs align with the "On this page" heading */
 .content-panel:first-child {
-  padding-top: 2.8rem;
+  padding-top: 0.8rem;
 }
 
 .content-panel {
@@ -151,6 +206,10 @@ starlight-toc {
 /* Page title — extra top margin */
 main h1 {
   margin-top: 2rem !important;
+}
+
+main {
+  padding-bottom: 4rem;
 }
 
 /* Paragraph right after h2/h3 — no extra gap */
@@ -167,10 +226,6 @@ h3 + p {
   color-scheme: light;
 }
 
-/* Header row 2 — negative left margin */
-.header-row-2 {
-  margin-left: -0.75rem;
-}
 
 /* Custom scrollbar styling — subtle */
 * {
@@ -233,9 +288,11 @@ h3 + p {
  * ------------------------------------------------------------------------- */
 .ht-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
-  gap: 1rem;
-  margin-block: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0;
+  margin-block: 1.5rem;
+  border-top: 1px solid var(--sl-color-gray-5);
+  border-left: 1px solid var(--sl-color-gray-5);
 }
 
 .ht-link-card {
@@ -245,19 +302,24 @@ h3 + p {
   gap: 0.5rem;
   margin-top: 0;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.5rem;
-  box-shadow: var(--sl-shadow-sm);
+  border: 0;
+  border-right: 1px solid var(--sl-color-gray-5);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  box-shadow: none;
   position: relative;
-  transition: border-color 0.15s, background-color 0.15s;
+  transition: background-color 0.15s;
 }
 
 .ht-link-card a {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.125rem 0.5rem;
   text-decoration: none;
   line-height: var(--sl-line-height-headings);
+  overflow: hidden;
+  min-width: 0;
 }
 
 /* Clickable overlay for the whole card (a11y pattern from Starlight). */
@@ -293,6 +355,12 @@ h3 + p {
   font-weight: 600;
   font-size: 1rem;
   line-height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ht-link-card .subtitle {
@@ -300,6 +368,7 @@ h3 + p {
   font-size: 0.8rem;
   font-weight: 400;
   line-height: 1.5rem;
+  width: 100%;
 }
 
 .ht-link-card .arrow {
@@ -310,7 +379,6 @@ h3 + p {
 
 .ht-link-card:hover {
   background: var(--sl-color-gray-7, var(--sl-color-gray-6));
-  border-color: var(--sl-color-gray-2);
 }
 
 .ht-link-card:hover .arrow {
@@ -361,10 +429,76 @@ h3 + p {
 /* -------------------------------------------------------------------------
  * Code block enhancements
  * ------------------------------------------------------------------------- */
+
+/* Override Expressive Code variables — Ion-inspired dark theme */
+.expressive-code {
+  /* Code block background & text */
+  --ec-codeBg: #121212;
+  --ec-codeFg: #e1e4e8;
+  --ec-codeSelBg: #3392ff44;
+  /* Frame backgrounds */
+  --ec-frm-edBg: #121212;
+  --ec-frm-termBg: #121212;
+  --ec-frm-trmTtbBg: #121212;
+  --ec-frm-trmTtbBrdBtmCol: #1b1f23;
+  /* Border */
+  --ec-brdCol: #1b1f23;
+  --ec-brdWd: 1px;
+  --ec-brdRad: 0;
+  /* Tab bar */
+  --ec-frm-edTabBarBg: #262626;
+  --ec-frm-edActTabBg: #121212;
+  --ec-frm-edTabBarBrdCol: #1b1f23;
+  --ec-frm-edTabBarBrdBtmCol: #1b1f23;
+  --ec-frm-edActTabIndHt: 1px;
+  --ec-frm-edActTabIndTopCol: #f9826c;
+  --ec-frm-edActTabIndBtmCol: #121212;
+  --ec-frm-edTabBrdRad: 0px;
+  /* Gutter / line numbers */
+  --ec-gtrFg: #616970;
+  --ec-gtrBrdCol: #61697033;
+  --ec-gtrBrdWd: 1.5px;
+  --ec-gtrHlFg: #e1e4e88b;
+  /* Scrollbar */
+  --ec-sbThumbCol: #6a737d33;
+  --ec-sbThumbHoverCol: #6a737db1;
+  /* UI selection */
+  --ec-uiSelBg: #39414a;
+  --ec-uiSelFg: #e1e4e8;
+  /* Inline buttons (copy, etc.) */
+  --ec-frm-inlBtnFg: #e1e4e8;
+  --ec-frm-inlBtnBg: #e1e4e8;
+  --ec-frm-inlBtnBrd: #e1e4e8;
+  --ec-frm-inlBtnBrdOpa: 0.4;
+  /* Shadow */
+  --ec-frm-shdCol: #0000005b;
+  --ec-frm-frameBoxShdCssVal: 0.1rem 0.1rem 0.2rem #0000005b;
+  /* Diff markers */
+  --ec-tm-markBg: #174a9099;
+  --ec-tm-markBrdCol: #4d70bcd0;
+  --ec-tm-insBg: #1e571599;
+  --ec-tm-insBrdCol: #487f3bd0;
+  --ec-tm-delBg: #862d2799;
+  --ec-tm-delBrdCol: #b4554bd0;
+}
+
+.expressive-code figure.frame {
+  border-radius: 0;
+  border: 1px solid #1b1f23;
+}
+
+.expressive-code .ec-line .gutter {
+  width: 56px;
+}
+
 .sl-markdown-content pre {
-  border-radius: 8px;
-  background-color: var(--sl-color-gray-7) !important;
+  border-radius: 0;
+  background-color: #121212 !important;
   border: none;
+}
+
+.expressive-code pre > code {
+  font-size: var(--sl-text-xs);
 }
 
 /* Terminal code block header — remove background and border */
@@ -436,6 +570,7 @@ h3 + p {
     --y-pad: 0;
     display: block;
     border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0;
     padding: 1rem;
     background-color: var(--sl-color-gray-6);
     font-size: var(--sl-text-xs);
@@ -516,12 +651,64 @@ h3 + p {
     flex-shrink: 0;
   }
 
+  starlight-file-tree .empty {
+    color: var(--sl-color-gray-3);
+    padding-inline-start: 0.375rem;
+  }
+
+  starlight-file-tree .highlight {
+    display: inline-block;
+    border-radius: 0.25rem;
+    padding-inline-end: 0.5rem;
+    color: var(--sl-color-text-invert);
+    background-color: var(--sl-color-text-accent);
+  }
+
+  starlight-file-tree svg {
+    display: inline;
+    fill: var(--sl-color-gray-3);
+    vertical-align: middle;
+    margin-inline: 0.25rem 0.375rem;
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  starlight-file-tree .highlight svg.tree-icon {
+    fill: currentColor;
+  }
+
   starlight-file-tree .comment {
     color: var(--sl-color-gray-3);
     padding-inline-start: 1.625rem;
     max-width: 24rem;
     min-width: 12rem;
   }
+}
+
+/* File-tree overrides — must be OUTSIDE @layer to beat the unlayered
+ * `* { margin: 0 }` reset and the rapide theme layer. */
+starlight-file-tree {
+  border-radius: 0;
+}
+
+starlight-file-tree .directory > details > summary {
+  margin-inline-start: calc(-1 * var(--x-space));
+}
+
+starlight-file-tree ul {
+  margin-inline-start: 0.5rem;
+}
+
+starlight-file-tree > ul {
+  margin: 0;
+}
+
+starlight-file-tree li {
+  margin: var(--y-space) 0;
+}
+
+starlight-file-tree .file {
+  margin-inline-start: calc(var(--x-space) - 0.125rem);
 }
 
 /* -------------------------------------------------------------------------
@@ -566,7 +753,7 @@ h3 + p {
 
 .code-group-tab.is-active {
   color: var(--sl-color-white);
-  border-bottom-color: #2856ea;
+  border-bottom-color: var(--sl-color-accent);
 }
 
 /* Hide Expressive Code's own frame header inside grouped blocks */
@@ -639,7 +826,7 @@ h3 + p {
  * ------------------------------------------------------------------------- */
 .sidebar-pane a[aria-current='page'] {
   color: #fff !important;
-  border-color: #2856ea !important;
+  border-color: var(--sl-color-accent) !important;
   font-weight: 400 !important;
 }
 
@@ -649,7 +836,7 @@ nav[aria-label="Main navigation"] a[aria-current='page'] {
 }
 
 .sidebar-pane ul ul li:has(> a[aria-current='page']) {
-  border-inline-start-color: #2856ea !important;
+  border-inline-start-color: var(--sl-color-accent) !important;
 }
 
 /* Sidebar hover border — subtle */
@@ -659,17 +846,17 @@ nav[aria-label="Main navigation"] a[aria-current='page'] {
 
 /* Sidebar & TOC link color — use gray-3 for softer text */
 .sidebar-pane :where(a) {
-  color: var(--sl-color-gray-3);
+  color: var(--sl-color-text);
 }
 
 .right-sidebar-panel :where(a) {
-  color: var(--sl-color-gray-3);
+  color: var(--sl-color-text);
   line-height: 1.5;
 }
 
 starlight-toc a[aria-current='true'] {
   color: #fff !important;
-  border-color: #2856ea !important;
+  border-color: var(--sl-color-accent) !important;
 }
 
 /* TOC hover border — subtle */
@@ -680,8 +867,17 @@ starlight-toc a:not([aria-current='true']):hover {
 /* -------------------------------------------------------------------------
  * Typography & heading polish
  * ------------------------------------------------------------------------- */
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) {
+  font-weight: 500;
+}
+
+.sl-markdown-content strong {
+  font-weight: 500;
+}
+
 .sl-markdown-content h1 {
   letter-spacing: -0.02em;
+  margin-bottom: 1rem;
 }
 
 .sl-markdown-content h2 {
@@ -690,8 +886,50 @@ starlight-toc a:not([aria-current='true']):hover {
   margin-bottom: 0.5rem;
 }
 
+.sl-markdown-content h2:first-child,
+.sl-markdown-content .sl-heading-wrapper:first-child h2 {
+  margin-top: 0;
+}
+
+.sl-markdown-content :not(h1, h2, h3, h4, h5, h6) + :is(h1, h2, h3, h4, h5, h6):not(:where(.not-content *)) {
+  margin-top: 2em;
+}
+
 .sl-markdown-content h3 {
   letter-spacing: -0.005em;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0.15em 0.5em;
+  font-family: var(--sl-font);
+  font-size: var(--sl-text-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--sl-color-white);
+  background: var(--sl-color-gray-6);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+
+/* -------------------------------------------------------------------------
+ * Clickable headings — make the entire heading text act as an anchor link.
+ * Starlight places an <a> next to the <h*>; we stretch it over the heading.
+ * ------------------------------------------------------------------------- */
+.sl-markdown-content .sl-heading-wrapper {
+  position: relative;
+}
+
+.sl-markdown-content .sl-heading-wrapper > :first-child {
+  cursor: pointer;
+}
+
+.sl-markdown-content .sl-anchor-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
 }
 
 /* -------------------------------------------------------------------------
@@ -703,15 +941,21 @@ starlight-toc a:not([aria-current='true']):hover {
   text-underline-offset: 0.2em;
 }
 
-.sl-markdown-content a:not(.source-code-link):not(.ht-link-card a):not(:where(.not-content *)):hover {
+.sl-markdown-content a:not(.source-code-link):not(.ht-link-card a):not(:where(.not-content *)):hover:not(:has(> code)) {
   text-decoration: underline;
   text-decoration-color: var(--sl-color-gray-3);
+}
+
+/* Links wrapping inline code — chip bg change on hover, no underline */
+.sl-markdown-content a:has(> code):hover > code {
+  background-color: var(--sl-color-gray-5);
 }
 
 .sl-markdown-content :not(pre) > code:not(:where(.not-content *)) {
   color: var(--sl-color-white);
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 4px;
+  font-weight: 400;
 }
 
 /* -------------------------------------------------------------------------
@@ -724,7 +968,8 @@ starlight-toc a:not([aria-current='true']):hover {
 .table-container,
 .sl-markdown-content > .table-container:not(:where(.not-content *)) {
   background-color: var(--sl-color-gray-7);
-  border-radius: 8px;
+  border-radius: 0;
+  border: 1px solid var(--sl-color-gray-5);
 }
 
 .table-container table,
@@ -737,6 +982,7 @@ starlight-toc a:not([aria-current='true']):hover {
 .sl-markdown-content > table:not(:where(.not-content *)) th {
   font-size: var(--sl-text-sm);
   font-weight: 600;
+  background-color: var(--sl-color-bg);
   border-bottom: 1px solid var(--sl-color-gray-5);
   padding: 0.75rem 1.25rem;
   text-align: left !important;
@@ -744,7 +990,7 @@ starlight-toc a:not([aria-current='true']):hover {
 
 .table-container td:not(:where(.not-content *)),
 .sl-markdown-content > table:not(:where(.not-content *)) td {
-  border-bottom: 1px solid var(--sl-color-gray-6);
+  border-bottom: 1px solid var(--sl-color-gray-5);
   padding: 0.75rem 1.25rem;
 }
 
@@ -758,9 +1004,19 @@ starlight-toc a:not([aria-current='true']):hover {
   background-color: transparent;
 }
 
+.table-container strong:not(:where(.not-content *)),
+.sl-markdown-content > table:not(:where(.not-content *)) strong {
+  color: var(--sl-color-white);
+}
+
 /* -------------------------------------------------------------------------
  * Sidebar group headings — match "On this page" heading style
  * ------------------------------------------------------------------------- */
+.sidebar-pane summary {
+  gap: 0.5rem;
+  padding-inline-start: 0.75rem;
+}
+
 .sidebar-pane summary .large {
   font-size: var(--sl-text-h5);
   font-weight: 600;
@@ -773,35 +1029,83 @@ starlight-toc a:not([aria-current='true']):hover {
   color: var(--sl-color-white);
 }
 
+.sidebar-pane summary:hover svg.caret,
+.sidebar-pane summary svg.caret {
+  color: var(--sl-color-gray-3) !important;
+}
+
 .sidebar-content {
   scroll-behavior: smooth;
+  padding-inline: 0.25rem;
+}
+
+/* Align submenu item text with group heading text */
+.sidebar-pane ul ul li {
+  margin-inline-start: 1.25rem;
+}
+
+/* Override Starlight's filled caret with a Tabler-style stroke chevron */
+.sidebar-pane svg.caret path {
+  display: none;
+}
+
+.sidebar-pane svg.caret {
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6l-6 6'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6l-6 6'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
 /* -------------------------------------------------------------------------
- * Prev/Next pagination cards — lift on hover
+ * Prev/Next pagination — spreadsheet-style (matches .ht-card-grid)
  * ------------------------------------------------------------------------- */
+.pagination-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: 0;
+  border-top: 1px solid var(--sl-color-gray-5);
+  border-left: 1px solid var(--sl-color-gray-5);
+  padding-top: 0 !important;
+}
+
 .pagination-links a {
-  border-radius: 10px;
-  padding: 1.25rem;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  border: 0 !important;
+  border-right: 1px solid var(--sl-color-gray-5) !important;
+  border-bottom: 1px solid var(--sl-color-gray-5) !important;
+  border-radius: 0 !important;
+  padding: 1rem 1.25rem;
+  box-shadow: none !important;
+  transition: background-color 0.15s;
 }
 
 .pagination-links a:hover {
-  border-color: var(--sl-color-gray-3);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
+  background: var(--sl-color-gray-7, var(--sl-color-gray-6));
 }
 
 /* -------------------------------------------------------------------------
  * Asides / callouts — card-like feel
  * ------------------------------------------------------------------------- */
 .starlight-aside {
-  border-radius: 10px;
-  padding: 1.25rem;
+  border-radius: 0;
+  padding: 0.75rem 1rem;
+  color: var(--sl-color-white);
+}
+
+.starlight-aside__title {
+  display: none;
+}
+
+.starlight-aside__content {
+  margin-top: 0;
 }
 
 .starlight-aside--tip {
-  border-color: #2856ea;
+  border-color: var(--sl-color-accent);
   --sl-color-asides-text-accent: #adaeaf;
 }
 
@@ -838,6 +1142,11 @@ html {
 
 :root[data-theme='light'] .img-dark {
   display: none;
+}
+
+/* Invert light-background images in dark mode (SVGs, diagrams, etc.) */
+:root[data-theme='dark'] .img-invert img {
+  filter: invert(1);
 }
 
 /* ── Hooks example: event log ────────────────────────────────────────── */

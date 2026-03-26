@@ -2,6 +2,8 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightThemeRapide from 'starlight-theme-rapide';
 import starlightPageActions from 'starlight-page-actions';
+import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
+import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
@@ -369,7 +371,11 @@ export default defineConfig({
       },
 
       expressiveCode: {
-        themes: ['night-owl', 'github-light'],
+        plugins: [pluginLineNumbers(), pluginCollapsibleSections()],
+        themes: ['github-dark', 'github-light'],
+        defaultProps: {
+          showLineNumbers: true,
+        },
       },
 
       customCss: [
@@ -388,15 +394,15 @@ export default defineConfig({
       ],
 
       sidebar: [
-        { label: 'JavaScript', collapsed: false, items: allSidebars.javascript },
-        { label: 'React', collapsed: false, items: allSidebars.react },
-        { label: 'Angular', collapsed: false, items: allSidebars.angular },
-        { label: 'JavaScript Recipes', collapsed: false, items: allSidebars.javascriptRecipes },
-        { label: 'React Recipes', collapsed: false, items: allSidebars.reactRecipes },
-        { label: 'Angular Recipes', collapsed: false, items: allSidebars.angularRecipes },
-        { label: 'JavaScript Changelog', collapsed: false, items: allSidebars.javascriptChangelog },
-        { label: 'React Changelog', collapsed: false, items: allSidebars.reactChangelog },
-        { label: 'Angular Changelog', collapsed: false, items: allSidebars.angularChangelog },
+        { label: 'JavaScript', collapsed: true, items: allSidebars.javascript },
+        { label: 'React', collapsed: true, items: allSidebars.react },
+        { label: 'Angular', collapsed: true, items: allSidebars.angular },
+        { label: 'JavaScript Recipes', collapsed: true, items: allSidebars.javascriptRecipes },
+        { label: 'React Recipes', collapsed: true, items: allSidebars.reactRecipes },
+        { label: 'Angular Recipes', collapsed: true, items: allSidebars.angularRecipes },
+        { label: 'JavaScript Changelog', collapsed: true, items: allSidebars.javascriptChangelog },
+        { label: 'React Changelog', collapsed: true, items: allSidebars.reactChangelog },
+        { label: 'Angular Changelog', collapsed: true, items: allSidebars.angularChangelog },
       ],
 
       components: {
@@ -405,6 +411,7 @@ export default defineConfig({
         Footer: './src/components/Footer.astro',
         PageTitle: './src/components/PageTitle.astro',
         Sidebar: './src/components/Sidebar.astro',
+        PageSidebar: './src/components/PageSidebar.astro',
         SiteTitle: './src/components/SiteTitle.astro',
       },
 
@@ -440,7 +447,7 @@ export default defineConfig({
       // Mirrors the VuePress highlight.js colour scheme.
       themes: {
         light: 'github-light',
-        dark: 'night-owl',
+        dark: 'github-dark',
       },
       wrap: false,
     },

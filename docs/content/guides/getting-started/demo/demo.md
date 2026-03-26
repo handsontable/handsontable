@@ -25,9 +25,7 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 ::: only-for javascript
 ::: example-without-tabs #example
-@[code](@/content/guides/getting-started/demo/javascript/example.html)
-@[code](@/content/guides/getting-started/demo/javascript/example.css)
-@[code](@/content/guides/getting-started/demo/javascript/example.js)
+@[code collapse={9-108}](@/content/guides/getting-started/demo/javascript/example.js)
 :::
 :::
 
@@ -66,6 +64,8 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 Explore the demo and discover Handsontable's most popular features:
 
+<div class="boxes-list">
+
 - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
 - [Column groups](@/guides/columns/column-groups/column-groups.md)
@@ -73,7 +73,8 @@ Explore the demo and discover Handsontable's most popular features:
 - [Column filter](@/guides/columns/column-filter/column-filter.md)
 - [Column hiding](@/guides/columns/column-hiding/column-hiding.md)
 - [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)
-- And more!
+
+</div>
 
 ## Edit the demo's source code
 

@@ -19,6 +19,8 @@
   "license": "CC BY 4.0",
   "dependencies": {
     "@astrojs/starlight": "^0.38.2",
+    "@expressive-code/plugin-collapsible-sections": "^0.41.7",
+    "@expressive-code/plugin-line-numbers": "^0.41.7",
     "@handsontable/pikaday": "^1.0.0",
     "@simonwep/pickr": "^1.9.1",
     "astro": "^6.0.8",

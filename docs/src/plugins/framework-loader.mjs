@@ -112,9 +112,10 @@ function escapeHtml(str) {
  * @param {string} directive - 'example' or 'example-without-tabs'
  * @param {string[]} fileRefs - Paths relative to contentDir (after stripping '@/content/')
  * @param {string} contentDir - Absolute path to docs/content/
+ * @param {Object<string, string>} [fileMeta] - Optional EC meta attributes keyed by file path
  * @returns {string} HTML + markdown fences string
  */
-function buildExampleHtml(id, directive, fileRefs, contentDir) {
+function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
   const hideTabs = directive === 'example-without-tabs';
 
   // Detect framework from the directory path first. JS examples also ship a
@@ -227,18 +228,20 @@ function buildExampleHtml(id, directive, fileRefs, contentDir) {
   const showTabs = !hideTabs && files.length > 1;
   const tabLabels = showTabs ? files.map(f => f.label).join(',') : '';
 
-  const fences = files.map(f =>
-    `\`\`\`\`${f.lang} title="${f.label}"\n${f.code}\n\`\`\`\``
-  ).join('\n\n');
+  const fences = files.map((f) => {
+    const meta = fileMeta[f.ref] || '';
+
+    return `\`\`\`\`${f.lang} title="${f.label}"${meta ? ` ${meta}` : ''}\n${f.code}\n\`\`\`\``;
+  }).join('\n\n');
 
   // ── SVG icons (inlined to keep no external dependencies) ──────────────────
   const iconCode = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`;
-  const iconChevron = `<svg class="hot-example-source-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const iconChevron = `<svg class="hot-example-source-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>`;
   const iconStackBlitz = `<svg aria-hidden="true" width="13" height="13" viewBox="0 0 28 28" fill="currentColor"><path d="M15.245 0L0 15.556h10.976L7.757 28 28 12.444H17.024L15.245 0z"/></svg>`;
   const iconGitHub = `<svg aria-hidden="true" width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
 
-  return `<div class="hot-example"${exampleAttr} id="hot-example-${escapeHtml(id)}">
-<div class="hot-example-preview hot-example-preview--loading">
+  return `<div class="hot-example not-content"${exampleAttr} id="hot-example-${escapeHtml(id)}">
+<div class="hot-example-preview hot-example-preview--loading not-content">
   <div class="hot-example-loader" aria-hidden="true">
     <div class="hot-example-loader__row hot-example-loader__row--header"></div>
     <div class="hot-example-loader__row"></div>
@@ -319,16 +322,26 @@ function processExampleBlocks(content, contentDir) {
         i++;
       }
 
-      // Extract @[code](@/content/...) file references
+      // Extract @[code](@/content/...) file references with optional meta
+      // e.g. @[code collapse={9-108}](@/content/path/to/file.js)
       const fileRefs = [];
+      const fileMeta = {};
 
       for (const bl of blockLines) {
-        const m = bl.match(/@\[code\]\(@\/content\/(.+)\)/);
+        const m = bl.match(/@\[code(?:\s+([^\]]*))?\]\(@\/content\/(.+)\)/);
 
-        if (m) fileRefs.push(m[1].trim());
+        if (m) {
+          const path = m[2].trim();
+
+          fileRefs.push(path);
+
+          if (m[1]) {
+            fileMeta[path] = m[1].trim();
+          }
+        }
       }
 
-      result.push(buildExampleHtml(id, directive, fileRefs, contentDir));
+      result.push(buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta));
       // i is already incremented past the closing ::: by the inner loop
     } else {
       result.push(line);

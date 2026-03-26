@@ -94,10 +94,10 @@ The following matrix defines which types of fixes are backported to each support
 | Issue Type | Current | Active LTS | Maintenance LTS |
 | ---| ---| --- | --- |
 | Security vulnerability | ✅  | ✅  | ✅  |
-| Critical bug | ✅ | ✅ | ❌ |
-| Major/Minor bug | ✅ | ❌ | ❌ |
-| Performance | ✅ | ❌ | ❌ |
-| Feature | ✅ | ❌ | ❌ |
+| Critical bug | ✅ | ✅ | - |
+| Major/Minor bug | ✅ | - | - |
+| Performance | ✅ | - | - |
+| Feature | ✅ | - | - |
 
 *   **Security vulnerabilities** receive immediate attention across all supported versions, including those in Maintenance LTS. These fixes are prioritized and released as quickly as possible to protect production deployments.
 *   **Critical bugs** that significantly impact functionality are backported to Active LTS releases in the next patch version. These fixes undergo thorough testing to ensure they don't introduce new issues.

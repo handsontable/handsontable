@@ -87,19 +87,19 @@ const links = [
     gap: 0.35rem;
     background: none;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-right: 1px solid var(--sl-color-gray-5);
     color: var(--sl-color-gray-2);
     cursor: pointer;
     font-size: var(--sl-text-sm);
     font-weight: 500;
     padding: 0.5rem 0.75rem;
-    padding-bottom: calc(0.5rem + 0.5rem);
-    transition: color 0.15s, border-color 0.15s;
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
     white-space: nowrap;
   }
 
   .support-trigger:hover {
     color: var(--sl-color-white);
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
   }
 
   .support-chevron {
@@ -114,16 +114,16 @@ const links = [
 
   .support-menu {
     background: var(--sl-color-bg-nav);
-    border: 1px solid var(--sl-color-hairline-light);
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0;
+    box-shadow: none;
     inset-inline-end: 0;
     list-style: none;
     margin: 0;
     min-width: 11rem;
-    padding: 0.25rem 0;
+    padding: 0;
     position: absolute;
-    top: calc(100% + 0.4rem);
+    top: 100%;
     z-index: 100;
   }
 
@@ -138,14 +138,22 @@ const links = [
     font-size: var(--sl-text-sm);
     gap: 0.4rem;
     justify-content: space-between;
-    padding: 0.35rem 0.75rem;
+    padding: 0.5rem 0.75rem;
     text-decoration: none;
+    border-bottom: 1px solid var(--sl-color-gray-5);
     transition: background 0.1s, color 0.1s;
     white-space: nowrap;
   }
 
-  .support-item:hover {
-    background: var(--sl-color-bg-sidebar);
-    color: var(--sl-color-accent);
+  .support-item:last-child {
+    border-bottom: none;
+  }
+
+  .support-item:hover,
+  .support-item:focus-visible {
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-white);
+    outline: none;
+    box-shadow: inset 0 0 0 1px var(--sl-color-accent);
   }
 </style>

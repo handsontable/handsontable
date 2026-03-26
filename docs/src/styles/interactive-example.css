@@ -10,14 +10,14 @@
 
 .hot-example {
   margin: 2rem 0;
-  border-radius: 10px;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  transition: box-shadow 0.2s ease;
+  border: 1px solid var(--sl-color-gray-5);
+  border-left: none;
 }
 
 .hot-example:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  /* no hover effect — spreadsheet style */
 }
 
 /* ── Loading shimmer ───────────────────────────────────────────────────── */
@@ -37,7 +37,7 @@
 
 .hot-example-loader__row {
   height: 24px;
-  border-radius: 3px;
+  border-radius: 0;
   background: linear-gradient(
     90deg,
     var(--sl-color-gray-6, #e8ecf0) 25%,
@@ -51,6 +51,19 @@
 .hot-example-loader__row--header {
   height: 28px;
   width: 40%;
+}
+
+.hot-example-preview {
+  padding: 1rem;
+  border-left: 1px solid var(--sl-color-gray-5);
+}
+
+/* Shield example internals from Starlight's content spacing rules
+   (.sl-markdown-content sibling margin-top: var(--sl-content-gap-y)).
+   Target only direct children — not Handsontable's own DOM. */
+.hot-example > *,
+.hot-example-preview > * {
+  margin-top: 0;
 }
 
 /* Hide the loader once the example has mounted */
@@ -69,20 +82,23 @@
 
 .hot-example-toolbar {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding: 0.75rem;
+  gap: 0;
+  height: 40px;
+  margin-top: 0;
+  padding: 0;
   background: var(--sl-color-gray-7);
   border: 0;
-  border-radius: 0.5rem;
+  border-top: 1px solid var(--sl-color-gray-5);
+  border-left: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
 }
 
 .hot-example-actions {
   display: flex;
-  align-items: center;
-  gap: 0.25rem;
+  align-items: stretch;
+  gap: 0;
   flex-shrink: 0;
   margin-top: 0;
 }
@@ -93,26 +109,34 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background-color: var(--sl-color-gray-6);
-  border: 1px solid var(--sl-color-gray-5);
+  background-color: transparent;
+  border: none;
+  border-right: 1px solid var(--sl-color-gray-5);
   color: var(--sl-color-white);
   cursor: pointer;
   font-family: var(--sl-font);
   font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
+  margin-left: -1px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0;
   white-space: nowrap;
-  transition: border-color 0.15s;
+  transition: color 0.15s, background-color 0.15s;
 }
 
 .hot-example-source-btn:hover {
-  border-color: var(--sl-color-gray-4);
+  background: var(--sl-color-gray-6);
+}
+
+.hot-example-source-btn:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--sl-color-accent);
 }
 
 .hot-example-source-btn.is-open {
-  color: var(--sl-color-accent);
+  color: var(--sl-color-white);
+  box-shadow: inset 1px 0 0 0 var(--sl-color-accent);
 }
 
 .hot-example-source-chevron {
@@ -127,36 +151,46 @@
   transform: rotate(180deg);
 }
 
-/* Icon-only action buttons (StackBlitz, GitHub) */
+/* Icon-only action buttons (StackBlitz, GitHub) — merged as cells */
 .hot-example-stackblitz-btn,
 .hot-example-github-btn {
   appearance: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--sl-color-gray-6);
-  border: 1px solid var(--sl-color-gray-5);
-  color: var(--sl-color-gray-3);
+  background-color: transparent;
+  border: none;
+  border-left: 1px solid var(--sl-color-gray-5);
+  color: var(--sl-color-white);
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0;
   text-decoration: none;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.15s, background-color 0.15s;
 }
 
 .hot-example-stackblitz-btn:hover,
 .hot-example-github-btn:hover {
   color: var(--sl-color-white);
-  border-color: var(--sl-color-gray-4);
+  background: var(--sl-color-gray-6);
+}
+
+.hot-example-stackblitz-btn:focus-visible,
+.hot-example-github-btn:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--sl-color-accent);
 }
 
 /* ── Code section (hidden by default, toggled by Source code btn) ──────── */
 
 .hot-example-code {
   background: var(--sl-color-gray-7);
+  margin-top: 0;
   max-height: 30rem;
   overflow: auto;
-  border-radius: 0.5rem;
+  border-radius: 0;
+  border-left: 1px solid var(--sl-color-accent);
+  border-top: 1px solid var(--sl-color-gray-5);
 }
 
 .hot-example-code[hidden] {
@@ -194,7 +228,7 @@
 }
 
 .hot-example-tab.is-active {
-  border-bottom-color: #2856ea;
+  border-bottom-color: var(--sl-color-accent);
   color: var(--sl-color-white);
 }
 
@@ -222,6 +256,7 @@
   border: none;
   margin: 0;
   overflow: visible;
+  min-width: max-content;
 }
 
 /* ── Hide marker elements before JS runs ───────────────────────────────── */

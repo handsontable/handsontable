@@ -275,7 +275,7 @@ function buildRecipesSidebar(framework, prefix) {
         });
 
       if (children.length > 0) {
-        items.push({ label: entry.title, collapsed: false, items: children });
+        items.push({ label: entry.title, collapsed: true, items: children });
       }
     }
   }
@@ -326,9 +326,9 @@ function buildChangelogSidebar(framework, prefix) {
   const toItems = (items) => toStarlightItems(items, framework, prefix);
 
   return [
-    { label: 'Changelog', collapsed: false, items: toItems(changelog) },
-    { label: 'Policy', collapsed: false, items: toItems(policy) },
-    { label: 'Migration guides', collapsed: false, items: toItems(migration) },
+    { label: 'Changelog', collapsed: true, items: toItems(changelog) },
+    { label: 'Policy', collapsed: true, items: toItems(policy) },
+    { label: 'Migration guides', collapsed: true, items: toItems(migration) },
   ];
 }
 
@@ -348,7 +348,7 @@ export function buildSidebar(framework = 'javascript', prefix = 'javascript-data
     .filter((section) => section.title !== 'Upgrade and migration')
     .map((section) => ({
       label: section.title,
-      collapsed: false,
+      collapsed: true,
       items: toStarlightItems(section.children, framework, prefix),
     }));
 

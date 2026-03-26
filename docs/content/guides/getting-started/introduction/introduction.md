@@ -93,10 +93,14 @@ Handsontable's built-in features make it a perfect fit for applications across d
 
 You are welcome to join our GitHub community. Discuss new releases, propose features, and report bugs on:
 
+<div class="boxes-list">
+
 - [GitHub Discussions](https://github.com/handsontable/handsontable/discussions)
 - [Developers' forum](https://forum.handsontable.com/)
 - [X](https://x.com/handsontable)
 - [Stack Overflow](https://stackoverflow.com/tags/handsontable)
+
+</div>
 
 ## Technical support
 
@@ -104,7 +108,11 @@ Implementing Handsontable requires a certain level of front-end development skil
 
 ## Stay in the loop
 
+<div class="boxes-list">
+
 - [Changelog](@/guides/upgrade-and-migration/changelog-17/changelog-17.md)
 - [Blog](https://handsontable.com/blog)
 - [X](https://x.com/handsontable)
 - [LinkedIn](https://linkedin.com/company/handsontable)
+
+</div>

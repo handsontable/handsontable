@@ -13,6 +13,7 @@ import SiteTitle from 'virtual:starlight/components/SiteTitle';
 import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
 import VersionsDropdown from './VersionsDropdown.astro';
 import SupportDropdown from './SupportDropdown.astro';
+import FrameworkSwitcher from './FrameworkSwitcher.astro';
 
 const shouldRenderSearch =
   config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro';
@@ -104,6 +105,7 @@ const isGuidesPage = !isApiPage && !isRecipesPage && !isChangelogPage;
     </a>
     <SupportDropdown />
     <div class="nav-spacer"></div>
+    <FrameworkSwitcher />
     <VersionsDropdown />
   </nav>
 </div>
@@ -141,6 +143,7 @@ const isGuidesPage = !isApiPage && !isRecipesPage && !isChangelogPage;
     grid-template-columns: 1fr 240px 1fr;
     align-items: center;
     gap: var(--sl-nav-gap);
+    padding-bottom: 1rem;
   }
 
   .title-wrapper {
@@ -169,43 +172,69 @@ const isGuidesPage = !isApiPage && !isRecipesPage && !isChangelogPage;
     gap: 0;
     padding-top: 0;
     margin-bottom: -0.5rem;
+    border-top: none;
+    border-bottom: 0;
+    position: relative;
+  }
+
+  .header-row-2::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    height: 1px;
+    background: var(--sl-color-gray-5);
   }
 
   .nav-spacer {
     flex: 1;
   }
 
-  /* Tab-style nav links (Guides / Recipes / API / Changelog) */
+  /* Spreadsheet-cell nav links (Guides / API / Recipes / Changelog) */
   .nav-link {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.5rem;
     color: var(--sl-color-gray-2);
     font-size: var(--sl-text-sm);
     font-weight: 500;
     text-decoration: none;
     padding: 0.5rem 0.75rem;
-    padding-bottom: calc(0.5rem + 0.5rem);
-    border-bottom: 1px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
+    border: 1px solid transparent;
+    border-top-color: var(--sl-color-gray-5);
+    border-right-color: var(--sl-color-gray-5);
+    margin-left: 0;
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
     white-space: nowrap;
+    position: relative;
+  }
+
+  .nav-link:first-child {
+    border-left-color: var(--sl-color-gray-5);
   }
 
   .nav-link:hover {
     color: var(--sl-color-white);
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
   }
 
-  .nav-link--active {
+  /* Active = Excel-style blue selection border */
+  .nav-link--active,
+  .nav-link--active:first-child {
     color: var(--sl-color-white);
     font-weight: 600;
-    border-bottom-color: #2856ea;
+    border-color: var(--sl-color-accent);
+    z-index: 1;
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
   }
 
   /* GitHub stars badge */
   .github-stars {
     align-items: center;
     border: none;
-    color: var(--sl-color-text);
+    color: var(--sl-color-gray-1);
     display: inline-flex;
     font-size: var(--sl-text-sm);
     font-weight: 600;
@@ -217,7 +246,7 @@ const isGuidesPage = !isApiPage && !isRecipesPage && !isChangelogPage;
   }
 
   .github-stars:hover {
-    color: var(--sl-color-accent);
+    color: var(--sl-color-white);
   }
 
   .github-stars__count:empty {
