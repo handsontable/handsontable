@@ -13,7 +13,9 @@ To run an example locally, see [How to run an arbitrary code example](#how-to-ru
 - [Folder structure](#folder-structure)
 - [Live on production](#live-on-production)
 - [Creating new examples](#creating-new-examples)
-- [Deployment](#deployment-of-the-new-code-examples)
+- [Deployment](#deployment)
+  - [Automatic deployment](#automatic-deployment)
+  - [Manual deployment](#manual-deployment)
 - [Editing existing examples](#editing-existing-examples)
 - [Copying an example to a separate repo](#copying-an-example-to-a-separate-repo)
 - [Development](#development)
@@ -61,13 +63,35 @@ For more details, see the [Folder structure](#folder-structure) section.
 
 Read the [Templates Guideline](./templates/README.md) for detailed information about creating new code examples.
 
-## Deployment of the new code examples
+## Deployment
 
-After new code examples are merged into the master branch and the new version of Handsontable has been released to npm, you can deploy the new examples.
+### Automatic deployment
 
-In GitHub Actions, manually dispatch the ["Code Examples Deployment" workflow](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml) with the `<version_number>` input set to the Handsontable version you want to deploy. A new folder will be created at `/examples/<version_number>`, containing the new code examples with Handsontable version pinned to `<version_number>`.
+Merging a feature branch to `develop` automatically triggers the CI/CD pipeline, which deploys all changed examples to GitHub Pages. The examples become available at their existing URLs immediately after the pipeline completes.
 
-The new examples will be deployed to GitHub Pages and available at the URL described in the [Live on production](#live-on-production) section.
+This covers the most common case: publishing edits to existing examples after a code review.
+
+### Manual deployment
+
+You can also trigger deployment manually using the [**Code Examples Deployment**](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml) workflow in GitHub Actions.
+
+**When to use manual deployment:**
+
+- Deploying a brand-new set of examples for a new Handsontable release (requires the new version to already be published to npm).
+- Redeploying examples from a specific branch without merging to `develop` first.
+- Overwriting already-deployed examples to fix a mistake without creating a new commit.
+- Verifying how examples look on GitHub Pages before merging.
+
+**How to trigger the workflow:**
+
+1. Open the [Code Examples Deployment](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml) workflow in GitHub Actions.
+2. Click **Run workflow**.
+3. Enter the `<version_number>` of the Handsontable version you want to deploy.
+4. Click **Run workflow** to start the deployment.
+
+When deploying a new version, a folder is created at `/examples/<version_number>` with Handsontable version pinned to `<version_number>`. The deployed examples are available at the URL described in the [Live on production](#live-on-production) section.
+
+**Note:** Dispatching the workflow overwrites existing examples on the `gh-pages` branch, even when they originate from a branch other than `develop`.
 
 ## Editing existing examples
 
@@ -75,11 +99,7 @@ To edit code examples that are already live in `/examples/<version_number>`:
 
 1. Edit the code examples within the `/examples/<version_number>` directory.
 2. Commit and push the changes to the repo.
-3. After merging your feature branch to `develop`, the examples will be automatically deployed to GitHub Pages under their existing URLs.
-
-You can also deploy examples without committing by manually dispatching the ["Code Examples Deployment" workflow](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml). See [Deployment of the new code examples](#deployment-of-the-new-code-examples) for details.
-
-Note that dispatching the workflow will overwrite the existing examples from the `gh-pages` branch, even when they are based on a branch other than `develop`.
+3. Merge your feature branch to `develop`. The [automatic deployment](#automatic-deployment) pipeline will publish the changes to GitHub Pages.
 
 ## Copying an example to a separate repo
 
