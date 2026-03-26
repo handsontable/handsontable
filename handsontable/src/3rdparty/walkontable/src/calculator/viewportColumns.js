@@ -25,7 +25,6 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
   overrideFn = null;
   inlineStartOffset = 0;
   totalCalculatedWidth = 0;
-  startPositions = [];
   needReverse = true;
 
   /**

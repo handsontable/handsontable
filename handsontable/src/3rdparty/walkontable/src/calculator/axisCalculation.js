@@ -40,13 +40,15 @@ export function calculateAxis(context, {
     setTotalCalculated(context, positionCache.getOffset(startIndex));
   }
 
+  let lastProcessedIndex = -1;
+
   for (let i = startIndex; i < totalCount; i++) {
     const size = positionCache.getSizeAt(i);
 
     setSizeField(context, size);
     context._process(i, context);
 
-    context.startPositions[i] = getTotalCalculated(context);
+    lastProcessedIndex = i;
     setTotalCalculated(context, getTotalCalculated(context) + size);
 
     if (getTotalCalculated(context) >= scrollEnd) {
@@ -55,9 +57,6 @@ export function calculateAxis(context, {
     }
   }
 
-  for (let i = 0; i < startIndex; i++) {
-    context.startPositions[i] = positionCache.getOffset(i);
-  }
-
+  context.lastProcessedIndex = lastProcessedIndex;
   context._finalize(context);
 }

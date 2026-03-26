@@ -26,7 +26,6 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
   horizontalScrollbarHeight = 0;
   innerViewportHeight = 0;
   totalCalculatedHeight = 0;
-  startPositions = [];
   needReverse = true;
 
   /**
