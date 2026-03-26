@@ -40,14 +40,21 @@ Handsontable team.
 
 Key capabilities:
 
-- **386 built-in functions** - Math, Engineering, Statistical, Financial, Logical, and more.
+- **~400 built-in functions** - Math, Engineering, Statistical, Financial, Logical, and more.
 - **Cross-sheet references** - formulas can reference cells in other Handsontable instances that
   share the same HyperFormula engine.
 - **Named expressions** - assign a label to a value or formula and reuse it across the workbook.
 - **Custom functions** - extend HyperFormula with your own function implementations.
 
-Common use cases: spreadsheet apps, smart documents, business logic builders, form calculators, and
-low-connectivity offline tools.
+Below are some ideas on what you can do with it:
+
+- Fully-featured spreadsheet apps
+- Smart documents
+- Educational apps
+- Business logic builders
+- Forms and form builders
+- Online calculators
+- Low connectivity apps
 
 ## Basic multi-sheet example
 
@@ -608,34 +615,48 @@ be used anywhere in cell formulas across the workbook - the same way a cell refe
 would be. This is useful for shared constants, computed ranges, or any value you want to reference
 by a meaningful name instead of repeating a formula.
 
-Named expressions are registered in the `namedExpressions` array inside the `formulas` plugin
-configuration. Each entry has a `name` and an `expression`:
-
-```js
-formulas: {
-  engine: HyperFormula,
-  namedExpressions: [
-    // A plain number - referenced in cells as =ADDITIONAL_COST
-    { name: 'ADDITIONAL_COST', expression: 100 },
-    // A formula summing a column range - absolute references are required
-    { name: 'Q1_TOTAL', expression: '=SUM(Sheet1!$B$1:Sheet1!$B$3)' },
-    // A formula combining two column totals
-    { name: 'COMBINED_TOTAL', expression: '=SUM(Sheet1!$A$1:Sheet1!$A$3)+SUM(Sheet1!$B$1:Sheet1!$B$3)' },
-  ],
-}
-```
-
 The `expression` field accepts:
 
 - A **number** (e.g. `100`) or **string** (e.g. `'"My Label"'` - note the inner quotes, which are
   part of HyperFormula formula syntax for string literals).
 - A **formula string** starting with `=`, using the same syntax as cell formulas.
 
+**Plain values** can be registered directly in the `namedExpressions` config array:
+
+```js
+formulas: {
+  engine: HyperFormula,
+  namedExpressions: [
+    { name: 'ADDITIONAL_COST', expression: 100 },
+  ],
+}
+```
+
+**Range-formula expressions** (those that reference cells with `Sheet1!...`) must be registered on
+a pre-built HyperFormula instance after the sheet has been created. Registering them via the config
+array causes a `#REF!` error because the sheet does not exist yet at that point in the
+initialization sequence:
+
+```js
+const hfInstance = HyperFormula.buildEmpty({
+  licenseKey: 'internal-use-in-handsontable',
+});
+
+hfInstance.addSheet('Sheet1');
+hfInstance.addNamedExpression('Q1_TOTAL', '=SUM(Sheet1!$B$1:$B$3)');
+hfInstance.addNamedExpression('COMBINED', '=SUM(Sheet1!$A$1:$A$3)+SUM(Sheet1!$B$1:$B$3)');
+
+new Handsontable(container, {
+  formulas: { engine: hfInstance, sheetName: 'Sheet1' },
+  // ...
+});
+```
+
 ::: tip
 
 References inside named expressions must use **absolute notation** (`$A$1`). The sheet name (e.g.
-`Sheet1!`) must match the `sheetName` configured for the Handsontable instance. When no `sheetName`
-is set, Handsontable defaults to `Sheet1`. See the
+`Sheet1!`) must match the `sheetName` passed to both `addSheet` and the Handsontable `formulas`
+config. See the
 [HyperFormula named expressions guide](https://hyperformula.handsontable.com/guide/named-expressions.html)
 for the full naming rules and supported expression types.
 
@@ -685,8 +706,9 @@ using `changeNamedExpression()`.
 
 ### Demo: formula-based named expressions
 
-The example below registers `Q1_TOTAL` and `Q2_TOTAL` as formula strings that each sum a column
-range. The "Totals" row references those names directly as `=Q1_TOTAL` and `=Q2_TOTAL`.
+The example below registers `Q1_TOTAL` and `Q2_TOTAL` as range-sum formulas on a pre-built
+HyperFormula instance. The "Totals" row references those names directly as `=Q1_TOTAL` and
+`=Q2_TOTAL`.
 
 ::: only-for javascript
 

@@ -3,8 +3,8 @@ import { Component } from '@angular/core';
 import { GridSettings } from '@handsontable/angular-wrapper';
 import { HyperFormula } from 'hyperformula';
 
-// Named expressions Q1_TOTAL and Q2_TOTAL reference absolute column ranges.
-// The sheet name 'Sheet1' matches the default sheetName for this instance.
+// Named expressions that reference cell ranges must be registered after the sheet
+// exists. Pre-build the engine in the constructor so the sheet is created first.
 @Component({
   selector: 'app-example4',
   template: `
@@ -22,26 +22,29 @@ export class AppComponent {
     ['Totals', '=Q1_TOTAL', '=Q2_TOTAL'],
   ];
 
-  readonly hotSettings: GridSettings = {
-    colHeaders: ['Product', 'Q1 Sales', 'Q2 Sales'],
-    rowHeaders: true,
-    height: 'auto',
-    formulas: {
-      engine: HyperFormula,
-      namedExpressions: [
-        {
-          name: 'Q1_TOTAL',
-          expression: '=SUM(Sheet1!$B$1:Sheet1!$B$3)',
-        },
-        {
-          name: 'Q2_TOTAL',
-          expression: '=SUM(Sheet1!$C$1:Sheet1!$C$3)',
-        },
-      ],
-    },
-    autoWrapRow: true,
-    autoWrapCol: true,
-  };
+  readonly hotSettings: GridSettings;
+
+  constructor() {
+    const hfInstance = HyperFormula.buildEmpty({
+      licenseKey: 'internal-use-in-handsontable',
+    });
+
+    hfInstance.addSheet('Sheet1');
+    hfInstance.addNamedExpression('Q1_TOTAL', '=SUM(Sheet1!$B$1:$B$3)');
+    hfInstance.addNamedExpression('Q2_TOTAL', '=SUM(Sheet1!$C$1:$C$3)');
+
+    this.hotSettings = {
+      colHeaders: ['Product', 'Q1 Sales', 'Q2 Sales'],
+      rowHeaders: true,
+      height: 'auto',
+      formulas: {
+        engine: hfInstance,
+        sheetName: 'Sheet1',
+      },
+      autoWrapRow: true,
+      autoWrapCol: true,
+    };
+  }
 }
 /* end-file */
 

@@ -5,8 +5,16 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-// Named expressions Q1_TOTAL and Q2_TOTAL reference absolute column ranges.
-// The sheet name 'Sheet1' matches the default sheetName for this instance.
+// Named expressions that reference cell ranges must be registered after the sheet
+// exists. Pre-build the engine at module level so it is created only once.
+const hfInstance = HyperFormula.buildEmpty({
+  licenseKey: 'internal-use-in-handsontable',
+});
+
+hfInstance.addSheet('Sheet1');
+hfInstance.addNamedExpression('Q1_TOTAL', '=SUM(Sheet1!$B$1:$B$3)');
+hfInstance.addNamedExpression('Q2_TOTAL', '=SUM(Sheet1!$C$1:$C$3)');
+
 const data = [
   ['Widget A', 200, 250],
   ['Widget B', 150, 300],
@@ -22,17 +30,8 @@ const ExampleComponent = () => {
       rowHeaders={true}
       height="auto"
       formulas={{
-        engine: HyperFormula,
-        namedExpressions: [
-          {
-            name: 'Q1_TOTAL',
-            expression: '=SUM(Sheet1!$B$1:Sheet1!$B$3)',
-          },
-          {
-            name: 'Q2_TOTAL',
-            expression: '=SUM(Sheet1!$C$1:Sheet1!$C$3)',
-          },
-        ],
+        engine: hfInstance,
+        sheetName: 'Sheet1',
       }}
       autoWrapRow={true}
       autoWrapCol={true}
