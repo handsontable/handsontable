@@ -97,9 +97,10 @@ export class PositionCache {
    *
    * @param {number} offset The pixel offset.
    * @returns {number} The index whose cumulative start position is at or just before the offset.
+   *   Returns `0` when there are no items (`totalItems === 0`), including when `offset > 0`.
    */
   findIndexAtOffset(offset) {
-    if (!this.prefixSum || offset <= 0) {
+    if (!this.isBuilt() || offset <= 0 || this.totalItems === 0) {
       return 0;
     }
 

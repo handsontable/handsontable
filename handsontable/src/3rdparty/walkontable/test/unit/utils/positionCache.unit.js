@@ -188,6 +188,16 @@ describe('PositionCache', () => {
       expect(cache.findIndexAtOffset(39)).toBe(1);
       expect(cache.findIndexAtOffset(40)).toBe(2);
     });
+
+    it('should return 0 when there are no items and offset is positive', () => {
+      const { cache } = createCache(0, () => 10, 10);
+
+      cache.build();
+
+      expect(cache.totalItems).toBe(0);
+      expect(cache.findIndexAtOffset(1)).toBe(0);
+      expect(cache.findIndexAtOffset(100)).toBe(0);
+    });
   });
 
   describe('invalidate', () => {
