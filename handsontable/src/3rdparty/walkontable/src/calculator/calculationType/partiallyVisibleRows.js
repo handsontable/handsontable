@@ -105,7 +105,10 @@ export class PartiallyVisibleRowsCalculationType {
 
     const mostBottomScrollOffset = scrollOffset + viewportHeight - horizontalScrollbarHeight;
 
-    if (mostBottomScrollOffset < 0 || scrollOffset > positionCache.getOffset(viewportCalculator.lastProcessedIndex) + rowHeight) {
+    if (
+      mostBottomScrollOffset < 0 ||
+      scrollOffset > positionCache.getOffset(viewportCalculator.lastProcessedIndex) + rowHeight
+    ) {
       this.isVisibleInTrimmingContainer = false;
     } else {
       this.isVisibleInTrimmingContainer = true;

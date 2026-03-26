@@ -105,7 +105,10 @@ export class FullyVisibleRowsCalculationType {
     const mostBottomScrollOffset = scrollOffset + viewportHeight - horizontalScrollbarHeight;
     const topRowOffset = this.startRow === null ? 0 : viewportCalculator.getRowHeight(this.startRow);
 
-    if (mostBottomScrollOffset < topRowOffset || scrollOffset > positionCache.getOffset(viewportCalculator.lastProcessedIndex)) {
+    if (
+      mostBottomScrollOffset < topRowOffset ||
+      scrollOffset > positionCache.getOffset(viewportCalculator.lastProcessedIndex)
+    ) {
       this.isVisibleInTrimmingContainer = false;
     } else {
       this.isVisibleInTrimmingContainer = true;
