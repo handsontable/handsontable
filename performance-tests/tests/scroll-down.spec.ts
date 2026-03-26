@@ -1,14 +1,12 @@
 import { Page, test } from '@playwright/test'
 import { resolve } from 'node:path'
 import { writeFileSync, readFileSync } from 'node:fs'
-import { chromium } from 'playwright';
 
 const testVersion = async (version: 'current' | 'latest', iteration: number, page: Page) => {
 
   
 
   const url = resolve(  `fixtures/tests-${version}.html`);
-  const browser = await chromium.launch();
   // Create a CDP session on the page's target
   const cdp = await page.context().newCDPSession(page);
   // Start tracing via CDP
@@ -64,8 +62,6 @@ const testVersion = async (version: 'current' | 'latest', iteration: number, pag
 
   writeFileSync(`output/test-${version}-${iteration}.json`, traceJson);
   // console.log('trace.json saved ✓', traceJson.length, 'chars');
-
-  await browser.close();
 
 }
 
