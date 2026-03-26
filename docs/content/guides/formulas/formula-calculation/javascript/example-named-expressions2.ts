@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
-import { DetailedSettings } from 'handsontable/plugins/formulas';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -34,7 +33,7 @@ new Handsontable(container, {
         expression: '=SUM(Sheet1!$C$1:Sheet1!$C$3)',
       },
     ],
-  } as DetailedSettings,
+  },
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
