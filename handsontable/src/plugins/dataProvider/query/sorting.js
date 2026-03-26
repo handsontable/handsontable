@@ -66,9 +66,9 @@ export function handleBeforeColumnSortForServer(
   destinationSortConfigs,
   sortPossible
 ) {
-  const { hot, isEnabled, hasFetchFn, applyQueryParametersFromPlugins, fetchData } = ctx;
+  const { hot, hasFetchFn, applyQueryParametersFromPlugins, fetchData } = ctx;
 
-  if (!hasFetchFn() || !isEnabled() || !sortPossible) {
+  if (!hasFetchFn() || !sortPossible) {
     return;
   }
 

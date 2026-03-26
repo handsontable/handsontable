@@ -124,6 +124,13 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetuj filtere',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Učitavanje podataka',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Sačekajte.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Nije moguće učitati podatke',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Nije moguće kreirati redove',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nije moguće ažurirati redove',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti redove',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtev nije uspeo',
+  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Zatvori',
 };
 
 export default dictionary;

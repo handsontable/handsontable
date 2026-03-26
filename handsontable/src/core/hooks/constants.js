@@ -540,6 +540,17 @@ export const REGISTERED_HOOKS = [
   'afterDataProviderFetchAbort',
 
   /**
+   * Queried to determine if the instance uses an external data source (complete [[Options#dataProvider]] configuration).
+   * The DataProvider plugin registers a default handler. Callbacks may return `true`, `false`, or `undefined`; the value
+   * propagates through the hook chain like other [[Hooks#run]] hooks.
+   *
+   * @event Hooks#hasExternalDataSource
+   * @since 17.1.0
+   * @returns {boolean|void}
+   */
+  'hasExternalDataSource',
+
+  /**
    * Fired before rows mutation (create, update, remove) is sent to the server. Return `false` to cancel.
    *
    * @event Hooks#beforeRowsMutation

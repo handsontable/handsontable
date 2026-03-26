@@ -64,7 +64,6 @@ import {
 import { getValueSetterValue } from './utils/valueAccessors';
 import { createThemeManager } from './themes/engine';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
-import { isCompleteDataProviderConfig } from './plugins/dataProvider/utils';
 
 let activeGuid = null;
 
@@ -2893,8 +2892,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     // Load data or create data map
-    if (isCompleteDataProviderConfig(settings.dataProvider)) {
-      // When dataProvider is a complete server-backed config, ignore static data; the plugin loads rows.
+    if (instance.runHooks('hasExternalDataSource') === true) {
+      // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
       if (settings.data) {
         warn('The "data" setting is ignored when "dataProvider" is set. ' +
           'The DataProvider plugin will load data instead.');

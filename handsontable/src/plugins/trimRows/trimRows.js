@@ -1,8 +1,6 @@
 import { BasePlugin } from '../base';
 import { TrimmingMap } from '../../translations';
 import { arrayEach, arrayReduce } from '../../helpers/array';
-import { isCompleteDataProviderConfig } from '../dataProvider/utils';
-import { warn } from '../../helpers/console';
 
 export const PLUGIN_KEY = 'trimRows';
 export const PLUGIN_PRIORITY = 330;
@@ -179,7 +177,7 @@ export class TrimRows extends BasePlugin {
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link TrimRows#enablePlugin} method is called.
-   * When {@link Options#dataProvider} is active, the DataProvider plugin disables this plugin.
+   * When [[Options#dataProvider]] is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
    *
    * @returns {boolean}
    */
@@ -195,9 +193,7 @@ export class TrimRows extends BasePlugin {
       return;
     }
 
-    if (isCompleteDataProviderConfig(this.hot.getSettings().dataProvider)) {
-      warn('trimRows is not compatible with dataProvider');
-
+    if (this.isHardConflictBlocked()) {
       return;
     }
 

@@ -724,6 +724,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   construct: () => {},
   dialogFocusNextElement: () => {},
   dialogFocusPreviousElement: () => {},
+  hasExternalDataSource: () => false,
   init: () => {},
   modifyAutoColumnSizeSeed: (seed, cellProperties, cellValue) => '1',
   modifyAutofillRange: (startArea, entireArea) => {},

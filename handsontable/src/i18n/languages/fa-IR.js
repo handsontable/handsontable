@@ -127,6 +127,13 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'بازنشانی فیلترها',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'در حال بارگذاری داده‌ها',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'لطفاً صبر کنید.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'بارگذاری داده‌ها ناموفق بود',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'ایجاد ردیف‌ها ناموفق بود',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'به‌روزرسانی ردیف‌ها ناموفق بود',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'حذف ردیف‌ها ناموفق بود',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'درخواست ناموفق بود',
+  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'بستن',
 };
 
 export default dictionary;

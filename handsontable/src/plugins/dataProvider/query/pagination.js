@@ -50,10 +50,10 @@ export function handleAfterPageChangeExternalPagination(
   oldPage,
   newPage
 ) {
-  const { isEnabled, hot, getQueryPage, goToPage } = ctx;
+  const { hot, getQueryPage, goToPage } = ctx;
   const paginationPlugin = hot.getPlugin(PAGINATION_PLUGIN_KEY);
 
-  if (!isEnabled() || !paginationPlugin?.enabled) {
+  if (!paginationPlugin?.enabled) {
     return;
   }
 
@@ -88,11 +88,11 @@ export function handleAfterPageSizeChangeExternalPagination(
   oldPageSize,
   newPageSize
 ) {
-  const { isEnabled, hot, getQueryPage, getQueryPageSize, setPageSize } = ctx;
+  const { hot, getQueryPage, getQueryPageSize, setPageSize } = ctx;
 
   const paginationPlugin = hot.getPlugin(PAGINATION_PLUGIN_KEY);
 
-  if (!isEnabled() || !paginationPlugin?.enabled) {
+  if (!paginationPlugin?.enabled) {
     return;
   }
 

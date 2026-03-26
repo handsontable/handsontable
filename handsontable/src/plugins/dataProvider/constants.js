@@ -1,6 +1,24 @@
+import { isFunction } from '../../helpers/function';
+
 export const PLUGIN_KEY = 'dataProvider';
 export const PLUGIN_PRIORITY = 950;
 export const DEFAULT_PAGE_SIZE = 10;
+
+export const DEFAULT_SETTINGS = {
+  rowId: undefined,
+  fetchRows: undefined,
+  onRowsCreate: undefined,
+  onRowsUpdate: undefined,
+  onRowsRemove: undefined,
+};
+
+export const SETTINGS_VALIDATORS = {
+  rowId: value => typeof value === 'string' || isFunction(value),
+  fetchRows: value => isFunction(value),
+  onRowsCreate: value => isFunction(value),
+  onRowsUpdate: value => isFunction(value),
+  onRowsRemove: value => isFunction(value),
+};
 
 /**
  * Message used when an in-flight `fetchRows` is aborted because a newer request started.

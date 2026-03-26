@@ -1,8 +1,6 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
-import { isCompleteDataProviderConfig } from '../dataProvider/utils';
-import { warn } from '../../helpers/console';
 import { addClass, removeClass, offset, hasClass, outerWidth } from '../../helpers/dom/element';
 import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
@@ -106,6 +104,7 @@ export class ManualColumnMove extends BasePlugin {
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ManualColumnMove#enablePlugin} method is called.
+   * When [[Options#dataProvider]] is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
    *
    * @returns {boolean}
    */
@@ -121,9 +120,7 @@ export class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    if (isCompleteDataProviderConfig(this.hot.getSettings().dataProvider)) {
-      warn('manualColumnMove is not compatible with dataProvider');
-
+    if (this.isHardConflictBlocked()) {
       return;
     }
 

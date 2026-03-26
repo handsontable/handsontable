@@ -20,7 +20,7 @@ describe('DataProvider', () => {
     expect(plugin.isEnabled()).toBe(false);
   });
 
-  it('should be disabled when dataProvider is not a complete config', async() => {
+  it('should report enabled when dataProvider is set to an incomplete object', async() => {
     spyOn(console, 'warn');
 
     handsontable({
@@ -30,14 +30,34 @@ describe('DataProvider', () => {
 
     const plugin = getPlugin('dataProvider');
 
-    expect(plugin.isEnabled()).toBe(false);
+    expect(plugin.isEnabled()).toBe(true);
+    // eslint-disable-next-line no-console
+    expect(console.warn).not.toHaveBeenCalled();
+  });
+
+  it('should warn when a present dataProvider option fails SETTINGS_VALIDATORS', async() => {
+    spyOn(console, 'warn');
+    const noop = () => {};
+
+    handsontable({
+      data: [],
+      dataProvider: {
+        rowId: 'id',
+        fetchRows: 'not-a-function',
+        onRowsCreate: noop,
+        onRowsUpdate: noop,
+        onRowsRemove: noop,
+      },
+    });
+
+    expect(getPlugin('dataProvider').isEnabled()).toBe(true);
     // eslint-disable-next-line no-console
     expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/dataProvider.*missing or invalid required options/i)
+      jasmine.stringMatching(/fetchRows.*not valid/i)
     );
   });
 
-  it('should warn when dataProvider is not a plain object', async() => {
+  it('should report enabled when dataProvider is a non-object truthy value without an option warning', async() => {
     spyOn(console, 'warn');
 
     handsontable({
@@ -45,37 +65,39 @@ describe('DataProvider', () => {
       dataProvider: true,
     });
 
-    expect(getPlugin('dataProvider').isEnabled()).toBe(false);
+    expect(getPlugin('dataProvider').isEnabled()).toBe(true);
     // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/dataProvider.*plain object/i)
-    );
+    expect(console.warn).not.toHaveBeenCalled();
   });
 
-  it('should warn again after updateSettings fixes then breaks dataProvider', async() => {
+  it('should warn when updateSettings sets an invalid option after a valid config', async() => {
     spyOn(console, 'warn');
 
     const good = createDataProviderConfig({
       fetchRows: () => Promise.resolve({ rows: [], totalRows: 0 }),
     });
 
+    // Omit `data`: with a complete dataProvider, core warns when both `data` and `dataProvider` are set.
     handsontable({
-      data: [],
-      dataProvider: { rowId: 'id' },
+      dataProvider: good,
+    });
+
+    await sleep(50);
+
+    // eslint-disable-next-line no-console
+    expect(console.warn).not.toHaveBeenCalled();
+
+    await updateSettings({
+      dataProvider: {
+        ...good,
+        fetchRows: 'bad',
+      },
     });
 
     // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledTimes(1);
-
-    await updateSettings({ dataProvider: good });
-
-    // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledTimes(1);
-
-    await updateSettings({ dataProvider: { rowId: 'id' } });
-
-    // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledTimes(2);
+    expect(console.warn).toHaveBeenCalledWith(
+      jasmine.stringMatching(/fetchRows.*not valid/i)
+    );
   });
 
   it('should be enabled when dataProvider has all required keys', async() => {
@@ -153,7 +175,7 @@ describe('DataProvider', () => {
 
     await updateSettings({ dataProvider: { rowId: 'id' } });
 
-    expect(getPlugin('dataProvider').isEnabled()).toBe(false);
+    expect(getPlugin('dataProvider').isEnabled()).toBe(true);
     expect(countRows()).toBe(2);
     expect(getDataAtCell(0, 0)).toBe('A1');
   });

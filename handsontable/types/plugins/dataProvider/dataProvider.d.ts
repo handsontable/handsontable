@@ -138,14 +138,11 @@ export interface DataProviderConfig {
 }
 
 /**
- * `dataProvider` option: full config object (all keys required for the plugin to enable).
- *
- * When active, `trimRows`, `manualRowMove`, `manualColumnMove`, and `multiColumnSorting` are disabled. Use `columnSorting` for server-side sort.
- * An incomplete or invalid value logs a console warning; the plugin stays disabled until the configuration is valid.
+ * `dataProvider` setting. A truthy value enables the DataProvider plugin; each key is validated like other plugin options.
+ * When the value is a full [[DataProviderConfig]] (all keys present and valid), Handsontable loads data via `fetchRows` and disables `trimRows`, `manualRowMove`, `manualColumnMove`, and `multiColumnSorting`. Use `columnSorting` for server-side sort.
+ * Server fetch and mutations no-op when the corresponding callbacks are missing or invalid.
  */
 export type Settings = DataProviderConfig | undefined;
-
-export const DEFAULT_PAGE_SIZE: number;
 
 /**
  * Payload for `beforeRowsMutation` / `afterRowsMutation` / `afterRowsMutationError` when `operation` is `'create'`.
@@ -177,6 +174,8 @@ export type RowMutationPayload =
   | RowMutationRemovePayload;
 
 export class DataProvider extends BasePlugin {
+  static get SETTINGS_VALIDATORS(): Record<keyof DataProviderConfig, (value: unknown) => boolean>;
+
   constructor(hotInstance: Core);
   isEnabled(): boolean;
   /**

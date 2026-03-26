@@ -46,6 +46,8 @@ hot.addHook('beforeDataProviderFetch', (q: DataProviderBeforeFetchParameters) =>
   return q.page > 0;
 });
 
+hot.addHook('hasExternalDataSource', () => false);
+
 hot.addHook('afterDataProviderFetchError', (error: Error, queryParameters: DataProviderQueryParameters) => {
   void error;
   void queryParameters.filters;

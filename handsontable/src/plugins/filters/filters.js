@@ -26,7 +26,6 @@ import {
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
 import { TrimmingMap } from '../../translations';
-import { isCompleteDataProviderConfig } from '../dataProvider/utils';
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
@@ -213,7 +212,7 @@ export class Filters extends BasePlugin {
       return;
     }
 
-    this.#isDataProviderActive = isCompleteDataProviderConfig(this.hot.getSettings().dataProvider);
+    this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
 
     this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');

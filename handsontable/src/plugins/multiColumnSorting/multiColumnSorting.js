@@ -2,8 +2,6 @@ import {
   APPEND_COLUMN_CONFIG_STRATEGY,
   ColumnSorting
 } from '../columnSorting';
-import { isCompleteDataProviderConfig } from '../dataProvider/utils';
-import { warn } from '../../helpers/console';
 import { registerRootComparator } from '../columnSorting/sortService';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
 import { addClass, removeClass } from '../../helpers/dom/element';
@@ -93,7 +91,7 @@ export class MultiColumnSorting extends ColumnSorting {
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link MultiColumnSorting#enablePlugin} method is called.
-   * When {@link Options#dataProvider} is active, the DataProvider plugin disables this plugin.
+   * When [[Options#dataProvider]] is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
    *
    * @returns {boolean}
    */
@@ -109,9 +107,7 @@ export class MultiColumnSorting extends ColumnSorting {
       return;
     }
 
-    if (isCompleteDataProviderConfig(this.hot.getSettings().dataProvider)) {
-      warn('multiColumnSorting is not compatible with dataProvider');
-
+    if (this.isHardConflictBlocked()) {
       return;
     }
 

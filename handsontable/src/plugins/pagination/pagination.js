@@ -7,7 +7,6 @@ import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
-import { isCompleteDataProviderConfig } from '../dataProvider/utils';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
@@ -204,7 +203,7 @@ export class Pagination extends BasePlugin {
       this.#pageSize = this.getSetting('pageSize');
     }
 
-    this.#isDataProviderActive = isCompleteDataProviderConfig(this.hot.getSettings().dataProvider);
+    this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
     this.#serverSideTotalCount = null;
 
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);

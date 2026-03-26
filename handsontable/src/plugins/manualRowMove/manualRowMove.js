@@ -1,8 +1,6 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
-import { isCompleteDataProviderConfig } from '../dataProvider/utils';
-import { warn } from '../../helpers/console';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
@@ -88,7 +86,7 @@ export class ManualRowMove extends BasePlugin {
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ManualRowMove#enablePlugin} method is called.
-   * When {@link Options#dataProvider} is active, the DataProvider plugin disables this plugin.
+   * When [[Options#dataProvider]] is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
    *
    * @returns {boolean}
    */
@@ -104,9 +102,7 @@ export class ManualRowMove extends BasePlugin {
       return;
     }
 
-    if (isCompleteDataProviderConfig(this.hot.getSettings().dataProvider)) {
-      warn('manualRowMove is not compatible with dataProvider');
-
+    if (this.isHardConflictBlocked()) {
       return;
     }
 

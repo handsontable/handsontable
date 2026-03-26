@@ -130,6 +130,13 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetuj filtry',
   [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Wczytywanie danych',
   [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Proszę czekać.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Nie udało się wczytać danych',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Nie udało się utworzyć wierszy',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nie udało się zaktualizować wierszy',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nie udało się usunąć wierszy',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Żądanie nie powiodło się',
+  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Zamknij',
 };
 
 export default dictionary;

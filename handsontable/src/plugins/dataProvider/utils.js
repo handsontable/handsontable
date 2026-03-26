@@ -1,6 +1,4 @@
-import { isFunction } from '../../helpers/function';
-import { toSingleLine } from '../../helpers/templateLiteralTag';
-import { DEFAULT_PAGE_SIZE } from './constants';
+import { DEFAULT_PAGE_SIZE, SETTINGS_VALIDATORS } from './constants';
 
 /**
  * Whether `dataProvider` settings are complete enough for the DataProvider plugin to run.
@@ -9,55 +7,11 @@ import { DEFAULT_PAGE_SIZE } from './constants';
  * @returns {boolean}
  */
 export function isCompleteDataProviderConfig(c) {
-  if (!c || typeof c !== 'object') {
+  if (!c || typeof c !== 'object' || Array.isArray(c)) {
     return false;
   }
 
-  const rid = c.rowId;
-
-  return (typeof rid === 'string' || isFunction(rid))
-    && isFunction(c.fetchRows)
-    && isFunction(c.onRowsCreate)
-    && isFunction(c.onRowsUpdate)
-    && isFunction(c.onRowsRemove);
-}
-
-/**
- * Builds a console warning message when `dataProvider` is set but not usable, or returns null when no warning applies.
- *
- * @param {*} c Value of the `dataProvider` setting (including from `updateSettings`).
- * @returns {string|null} Warning text, or null when the option is absent, disabled, or complete.
- */
-export function getIncompleteDataProviderWarningMessage(c) {
-  if (c === undefined || c === null || c === false) {
-    return null;
-  }
-
-  if (typeof c !== 'object' || Array.isArray(c)) {
-    return toSingleLine`Handsontable: \`dataProvider\` must be a plain object with \`rowId\`, \`fetchRows\`,\x20
-                        \`onRowsCreate\`, \`onRowsUpdate\`, and \`onRowsRemove\`. The DataProvider plugin\x20
-                        stays disabled.`;
-  }
-
-  const invalid = [];
-
-  if (!(typeof c.rowId === 'string' || isFunction(c.rowId))) {
-    invalid.push('rowId');
-  }
-
-  ['fetchRows', 'onRowsCreate', 'onRowsUpdate', 'onRowsRemove'].forEach((key) => {
-    if (!isFunction(c[key])) {
-      invalid.push(key);
-    }
-  });
-
-  if (invalid.length === 0) {
-    return null;
-  }
-
-  return toSingleLine`Handsontable: \`dataProvider\` has missing or invalid required options: ${invalid.join(', ')}.\x20
-                      \`rowId\` must be a string or a function. \`fetchRows\`, \`onRowsCreate\`, \`onRowsUpdate\`,\x20
-                      and \`onRowsRemove\` must be functions. The DataProvider plugin stays disabled.`;
+  return Object.keys(SETTINGS_VALIDATORS).every(key => SETTINGS_VALIDATORS[key](c[key]));
 }
 
 /**

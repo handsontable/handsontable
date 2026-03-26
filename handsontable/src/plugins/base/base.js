@@ -8,6 +8,7 @@ import { hasRenderer } from '../../renderers/registry';
 import { hasValidator } from '../../validators/registry';
 import EventManager from '../../eventManager';
 import { warn } from '../../helpers/console';
+import { getHardConflict } from './conflictRegistry';
 
 const DEPS_TYPE_CHECKERS = new Map([
   ['plugin', hasPlugin],
@@ -163,6 +164,9 @@ export class BasePlugin {
 
     this.hot.addHookOnce('afterPluginsInitialized', () => {
       if (this.isEnabled && this.isEnabled()) {
+        if (this.isHardConflictBlocked()) {
+          return;
+        }
         this.enablePlugin();
       }
     });
@@ -185,6 +189,25 @@ export class BasePlugin {
     }
 
     this.initialized = true;
+  }
+
+  /**
+   * Whether this plugin is blocked by a registered hard conflict (for example DataProvider vs manual row move).
+   * Emits a console warning when blocked.
+   *
+   * @returns {boolean} `true` if the plugin must not enable.
+   */
+  isHardConflictBlocked() {
+    const pluginKey = this.constructor.PLUGIN_KEY;
+    const conflict = getHardConflict(this.hot.getSettings(), pluginKey);
+
+    if (conflict) {
+      warn(`${pluginKey} is not compatible with ${conflict.ownerPluginKey}`);
+
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -447,6 +470,9 @@ export class BasePlugin {
       }
 
       if (!this.enabled && this.isEnabled()) {
+        if (this.isHardConflictBlocked()) {
+          return;
+        }
         this.enablePlugin();
       }
 
