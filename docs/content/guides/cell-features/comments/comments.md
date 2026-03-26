@@ -272,6 +272,11 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 
 ## Related API reference
 
-- Configuration options:
-  - [`commentedCellClassName`](@/api/options.md#commentedcellclassname)
-  - [`comments`](@/api/options.md#comments)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [commentedCellClassName](@/api/options.md#commentedcellclassname)
+- [comments](@/api/options.md#comments)
+
+</div>

@@ -62,5 +62,10 @@ The example below shows how cell renderers can be used to populate the template 
 
 ## Related API reference
 
-- Hooks:
-  - [`beforeChange`](@/api/hooks.md#beforechange)
+**Hooks**
+
+<div class="boxes-list">
+
+- [beforeChange](@/api/hooks.md#beforechange)
+
+</div>

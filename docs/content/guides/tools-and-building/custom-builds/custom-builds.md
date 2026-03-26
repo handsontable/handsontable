@@ -298,7 +298,7 @@ From the `/wrappers/vue3` directory, you can also run individual Vue `build` tas
 
 ## Related guides
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 ::: only-for javascript
 

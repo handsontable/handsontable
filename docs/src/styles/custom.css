@@ -52,7 +52,7 @@
 
   /* Rapide UI variables — neutralize hue-base tint */
   --sl-color-backdrop-overlay: oklch(24% 0 0 / 0.7);
-  --sl-rapide-ui-header-bg-color: oklch(18% 0 0 / 0.8);
+  --sl-rapide-ui-header-bg-color: oklch(11% 0 0 / 0.8);
   --sl-rapide-ui-border-color: oklch(28% 0 0);
   --sl-rapide-ec-marker-bg-color: oklch(27% 0 0);
   --sl-rapide-ec-marker-border-color: oklch(47% 0 0);
@@ -162,6 +162,28 @@ starlight-toc {
   display: block !important;
   padding-top: 1rem !important;
   font-size: var(--sl-text-sm);
+  line-height: 1.4;
+}
+
+#starlight__on-this-page {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+#starlight__on-this-page::before {
+  content: '';
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  background: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l11 0'/%3E%3Cpath d='M9 12l11 0'/%3E%3Cpath d='M9 18l11 0'/%3E%3Cpath d='M5 6l0 .01'/%3E%3Cpath d='M5 12l0 .01'/%3E%3Cpath d='M5 18l0 .01'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l11 0'/%3E%3Cpath d='M9 12l11 0'/%3E%3Cpath d='M9 18l11 0'/%3E%3Cpath d='M5 6l0 .01'/%3E%3Cpath d='M5 12l0 .01'/%3E%3Cpath d='M5 18l0 .01'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
 /* Right sidebar — match header height */
@@ -209,7 +231,7 @@ main h1 {
 }
 
 main {
-  padding-bottom: 4rem;
+  padding-bottom: 4rem !important;
 }
 
 /* Paragraph right after h2/h3 — no extra gap */
@@ -719,7 +741,8 @@ starlight-file-tree .file {
  * ------------------------------------------------------------------------- */
 .code-group {
   margin-block: 1.5rem;
-  border-radius: 10px;
+  border-radius: 0;
+  border: 1px solid var(--sl-color-gray-5);
   overflow: hidden;
 }
 
@@ -727,7 +750,7 @@ starlight-file-tree .file {
   display: flex;
   align-items: stretch;
   gap: 0;
-  background: var(--sl-color-gray-7);
+  background: none;
   border-bottom: 1px solid var(--sl-color-gray-5);
   padding: 0 0.75rem;
 }
@@ -753,12 +776,16 @@ starlight-file-tree .file {
 
 .code-group-tab.is-active {
   color: var(--sl-color-white);
-  border-bottom-color: var(--sl-color-accent);
+  border-bottom: 1px solid var(--sl-color-accent);
 }
 
 /* Hide Expressive Code's own frame header inside grouped blocks */
 .code-group .expressive-code .header {
   display: none;
+}
+
+.code-group .expressive-code .copy {
+  top: 0.5rem;
 }
 
 /* Remove individual block margins and border-radius inside the group */
@@ -912,6 +939,13 @@ kbd {
   border-radius: 0;
   white-space: nowrap;
   vertical-align: baseline;
+}
+
+kbd kbd {
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: inherit;
 }
 
 /* -------------------------------------------------------------------------
@@ -1147,6 +1181,41 @@ html {
 /* Invert light-background images in dark mode (SVGs, diagrams, etc.) */
 :root[data-theme='dark'] .img-invert img {
   filter: invert(1);
+}
+
+/* ── Global checkbox styling ─────────────────────────────────────────── */
+
+.sl-markdown-content input[type="checkbox"],
+.hot-example input[type="checkbox"] {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  background: var(--sl-color-gray-6);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.sl-markdown-content input[type="checkbox"]:checked,
+.hot-example input[type="checkbox"]:checked {
+  background: var(--sl-color-accent);
+  border-color: var(--sl-color-accent);
+}
+
+.sl-markdown-content input[type="checkbox"]:checked::after,
+.hot-example input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--sl-color-white);
+  border-width: 0 1px 1px 0;
+  transform: rotate(45deg);
 }
 
 /* ── Hooks example: event log ────────────────────────────────────────── */

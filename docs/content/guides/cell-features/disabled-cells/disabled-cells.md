@@ -230,6 +230,11 @@ The following example shows the table with non-editable cells containing the wor
 
 ## Related API reference
 
-- Configuration options:
-  - [`readOnly`](@/api/options.md#readonly)
-  - [`readOnlyCellClassName`](@/api/options.md#readonlycellclassname)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [readOnly](@/api/options.md#readonly)
+- [readOnlyCellClassName](@/api/options.md#readonlycellclassname)
+
+</div>

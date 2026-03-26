@@ -191,16 +191,39 @@ collapsibleColumns: [
 
 ## Related API reference
 
-- Configuration options:
-  - [`collapsibleColumns`](@/api/options.md#collapsiblecolumns)
-  - [`nestedHeaders`](@/api/options.md#nestedheaders)
-- Core methods:
-  - [`isColumnModificationAllowed()`](@/api/core.md#iscolumnmodificationallowed)
-- Hooks:
-  - [`afterColumnCollapse`](@/api/hooks.md#aftercolumncollapse)
-  - [`afterColumnExpand`](@/api/hooks.md#aftercolumnexpand)
-  - [`beforeColumnCollapse`](@/api/hooks.md#beforecolumncollapse)
-  - [`beforeColumnExpand`](@/api/hooks.md#beforecolumnexpand)
-- Plugins:
-  - [`CollapsibleColumns`](@/api/collapsibleColumns.md)
-  - [`NestedHeaders`](@/api/nestedHeaders.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [collapsibleColumns](@/api/options.md#collapsiblecolumns)
+- [nestedHeaders](@/api/options.md#nestedheaders)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [isColumnModificationAllowed()](@/api/core.md#iscolumnmodificationallowed)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterColumnCollapse](@/api/hooks.md#aftercolumncollapse)
+- [afterColumnExpand](@/api/hooks.md#aftercolumnexpand)
+- [beforeColumnCollapse](@/api/hooks.md#beforecolumncollapse)
+- [beforeColumnExpand](@/api/hooks.md#beforecolumnexpand)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [CollapsibleColumns](@/api/collapsibleColumns.md)
+- [NestedHeaders](@/api/nestedHeaders.md)
+
+</div>

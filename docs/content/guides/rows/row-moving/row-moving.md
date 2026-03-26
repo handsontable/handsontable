@@ -84,12 +84,35 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some a
 
 ## Related API reference
 
-- Options:
-  - [`manualRowMove`](@/api/options.md#manualrowmove)
-- Core methods:
-  - [`toVisualRow`](@/api/core.md#tovisualrow)
-- Hooks:
-  - [`afterRowMove`](@/api/hooks.md#afterrowmove)
-  - [`beforeRowMove`](@/api/hooks.md#beforerowmove)
-- Plugins:
-  - [`ManualRowMove`](@/api/manualRowMove.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [manualRowMove](@/api/options.md#manualrowmove)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [toVisualRow](@/api/core.md#tovisualrow)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterRowMove](@/api/hooks.md#afterrowmove)
+- [beforeRowMove](@/api/hooks.md#beforerowmove)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ManualRowMove](@/api/manualRowMove.md)
+
+</div>

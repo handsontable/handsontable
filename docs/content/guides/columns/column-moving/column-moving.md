@@ -155,16 +155,39 @@ The [`moveColumns`](@/api/manualColumnMove.md#movecolumns) function cannot perfo
 
 ## Related API reference
 
-- Configuration options:
-  - [`manualColumnMove`](@/api/options.md#manualcolumnmove)
-- Core methods:
-  - [`colToProp()`](@/api/core.md#coltoprop)
-  - [`isColumnModificationAllowed()`](@/api/core.md#iscolumnmodificationallowed)
-  - [`propToCol()`](@/api/core.md#proptocol)
-  - [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn)
-  - [`toVisualColumn()`](@/api/core.md#tovisualcolumn)
-- Hooks:
-  - [`afterColumnMove`](@/api/hooks.md#aftercolumnmove)
-  - [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove)
-- Plugins:
-  - [`ManualColumnMove`](@/api/manualColumnMove.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [manualColumnMove](@/api/options.md#manualcolumnmove)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [colToProp()](@/api/core.md#coltoprop)
+- [isColumnModificationAllowed()](@/api/core.md#iscolumnmodificationallowed)
+- [propToCol()](@/api/core.md#proptocol)
+- [toPhysicalColumn()](@/api/core.md#tophysicalcolumn)
+- [toVisualColumn()](@/api/core.md#tovisualcolumn)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterColumnMove](@/api/hooks.md#aftercolumnmove)
+- [beforeColumnMove](@/api/hooks.md#beforecolumnmove)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ManualColumnMove](@/api/manualColumnMove.md)
+
+</div>

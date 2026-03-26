@@ -87,7 +87,7 @@ Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/dev
 
 ## Related guides
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Building](@/guides/tools-and-building/custom-builds/custom-builds.md)
 

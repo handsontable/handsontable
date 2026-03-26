@@ -1129,9 +1129,9 @@ You can also use modules with Handsontable's framework wrappers:
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
 - [Installation](@/guides/getting-started/installation/installation.md)
@@ -1146,7 +1146,7 @@ You can also use modules with Handsontable's framework wrappers:
 
 </div>
 
-### Related blog articles
+**Related blog articles**
 
 <div class="boxes-list">
 

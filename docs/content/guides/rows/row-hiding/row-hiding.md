@@ -354,12 +354,29 @@ plugin.showRows([0, 4, 6]);
 
 ## Related API reference
 
-- Configuration options:
-  - [`hiddenRows`](@/api/options.md#hiddenrows)
-- Hooks:
-  - [`afterHideRows`](@/api/hooks.md#afterhiderows)
-  - [`afterUnhideRows`](@/api/hooks.md#afterunhiderows)
-  - [`beforeHideRows`](@/api/hooks.md#beforehiderows)
-  - [`beforeUnhideRows`](@/api/hooks.md#beforeunhiderows)
-- Plugins:
-  - [`HiddenRows`](@/api/hiddenRows.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [hiddenRows](@/api/options.md#hiddenrows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterHideRows](@/api/hooks.md#afterhiderows)
+- [afterUnhideRows](@/api/hooks.md#afterunhiderows)
+- [beforeHideRows](@/api/hooks.md#beforehiderows)
+- [beforeUnhideRows](@/api/hooks.md#beforeunhiderows)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [HiddenRows](@/api/hiddenRows.md)
+
+</div>

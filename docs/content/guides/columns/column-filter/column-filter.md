@@ -895,8 +895,14 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to filtering, see the
 following API reference pages:
 
-- [`Filters`](@/api/filters.md)
-- [`DropdownMenu`](@/api/dropdownMenu.md)
+**Plugins**
+
+<div class="boxes-list">
+
+- [Filters](@/api/filters.md)
+- [DropdownMenu](@/api/dropdownMenu.md)
+
+</div>
 
 ## Troubleshooting
 

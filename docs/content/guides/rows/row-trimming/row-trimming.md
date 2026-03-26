@@ -197,12 +197,29 @@ To see the changes made, call `hot.render();` to re-render the table.
 
 ## Related API reference
 
-- Options:
-  - [`trimRows`](@/api/options.md#trimrows)
-- Hooks:
-  - [`afterTrimRow`](@/api/hooks.md#aftertrimrow)
-  - [`afterUntrimRow`](@/api/hooks.md#afteruntrimrow)
-  - [`beforeTrimRow`](@/api/hooks.md#beforetrimrow)
-  - [`beforeUntrimRow`](@/api/hooks.md#beforeuntrimrow)
-- Plugins:
-  - [`TrimRows`](@/api/trimRows.md)
+**Options**
+
+<div class="boxes-list">
+
+- [trimRows](@/api/options.md#trimrows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterTrimRow](@/api/hooks.md#aftertrimrow)
+- [afterUntrimRow](@/api/hooks.md#afteruntrimrow)
+- [beforeTrimRow](@/api/hooks.md#beforetrimrow)
+- [beforeUntrimRow](@/api/hooks.md#beforeuntrimrow)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [TrimRows](@/api/trimRows.md)
+
+</div>

@@ -671,9 +671,9 @@ Empty cells may be treated differently in different contexts, for example, the [
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Cell function](@/guides/cell-functions/cell-function/cell-function.md)
 - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
@@ -682,33 +682,48 @@ Empty cells may be treated differently in different contexts, for example, the [
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`editor`](@/api/options.md#editor)
-  - [`renderer`](@/api/options.md#renderer)
-  - [`type`](@/api/options.md#type)
-  - [`validator`](@/api/options.md#validator)
-- Core methods:
-  - [`getCellEditor()`](@/api/core.md#getcelleditor)
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
-  - [`getCellValidator()`](@/api/core.md#getcellvalidator)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
-  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`afterValidate`](@/api/hooks.md#aftervalidate)
-  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
-  - [`beforeValidate`](@/api/hooks.md#beforevalidate)
+<div class="boxes-list">
+
+- [editor](@/api/options.md#editor)
+- [renderer](@/api/options.md#renderer)
+- [type](@/api/options.md#type)
+- [validator](@/api/options.md#validator)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellEditor()](@/api/core.md#getcelleditor)
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getCellRenderer()](@/api/core.md#getcellrenderer)
+- [getCellValidator()](@/api/core.md#getcellvalidator)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterBeginEditing](@/api/hooks.md#afterbeginediting)
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterGetColumnHeaderRenderers](@/api/hooks.md#aftergetcolumnheaderrenderers)
+- [afterGetRowHeaderRenderers](@/api/hooks.md#aftergetrowheaderrenderers)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [afterValidate](@/api/hooks.md#aftervalidate)
+- [afterRenderer](@/api/hooks.md#afterrenderer)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeRenderer](@/api/hooks.md#beforerenderer)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+- [beforeValidate](@/api/hooks.md#beforevalidate)
+
+</div>

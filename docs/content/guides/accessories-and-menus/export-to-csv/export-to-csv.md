@@ -195,5 +195,10 @@ Each method takes two parameters. The first, `format`, is required; the only sup
 
 ## Related API reference
 
-- Plugins:
-  - [`ExportFile`](@/api/exportFile.md)
+**Plugins**
+
+<div class="boxes-list">
+
+- [ExportFile](@/api/exportFile.md)
+
+</div>

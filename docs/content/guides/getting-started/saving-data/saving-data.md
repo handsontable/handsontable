@@ -70,8 +70,19 @@ To persist table state (e.g. column order, column widths, row order) across page
 
 ## Related API reference
 
-- Core methods:
-  - [`updateSettings()`](@/api/core.md#updatesettings)
-- Hooks:
-  - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
-  - [`afterChange`](@/api/hooks.md#afterchange)
+**Core methods**
+
+<div class="boxes-list">
+
+- [updateSettings()](@/api/core.md#updatesettings)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterCellMetaReset](@/api/hooks.md#aftercellmetareset)
+- [afterChange](@/api/hooks.md#afterchange)
+
+</div>

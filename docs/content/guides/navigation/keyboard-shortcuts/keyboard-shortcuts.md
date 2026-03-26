@@ -237,27 +237,50 @@ These keyboard shortcuts work with [comments](@/guides/cell-features/comments/co
 
 For the list of [options](@/guides/getting-started/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:
 
-- APIs:
-  - [`ShortcutContext`](@/api/shortcutContext.md)
-  - [`ShortcutManager`](@/api/shortcutManager.md)
-- Configuration options:
-  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
-  - [`enterMoves`](@/api/options.md#entermoves)
-  - [`tabMoves`](@/api/options.md#tabmoves)
-- Core methods:
-  - [`getShortcutManager()`](@/api/core.md#getshortcutmanager)
-  - [`isListening()`](@/api/core.md#islistening)
-  - [`listen()`](@/api/core.md#listen)
-  - [`unlisten()`](@/api/core.md#unlisten)
-- Hooks:
-  - [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown)
-  - [`beforeKeyDown`](@/api/hooks.md#beforekeydown)
+**APIs**
+
+<div class="boxes-list">
+
+- [ShortcutContext](@/api/shortcutContext.md)
+- [ShortcutManager](@/api/shortcutManager.md)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [enterBeginsEditing](@/api/options.md#enterbeginsediting)
+- [enterMoves](@/api/options.md#entermoves)
+- [tabMoves](@/api/options.md#tabmoves)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getShortcutManager()](@/api/core.md#getshortcutmanager)
+- [isListening()](@/api/core.md#islistening)
+- [listen()](@/api/core.md#listen)
+- [unlisten()](@/api/core.md#unlisten)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterDocumentKeyDown](@/api/hooks.md#afterdocumentkeydown)
+- [beforeKeyDown](@/api/hooks.md#beforekeydown)
+
+</div>
 
 ## Troubleshooting
 
 Didn't find what you need? Try this:
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [View related topics](https://github.com/handsontable/handsontable/issues) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub

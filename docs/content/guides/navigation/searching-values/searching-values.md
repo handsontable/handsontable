@@ -282,7 +282,18 @@ The example below displays the number of matching search results. To do this, it
 
 ## Related API reference
 
-- Configuration options:
-  - [`search`](@/api/options.md#search)
-- Plugins:
-  - [`Search`](@/api/search.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [search](@/api/options.md#search)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [Search](@/api/search.md)
+
+</div>

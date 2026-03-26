@@ -190,16 +190,39 @@ You can adjust the size of one or multiple rows simultaneously, even if the sele
 
 ## Related API reference
 
-- Configuration options:
-  - [`autoRowSize`](@/api/options.md#autorowsize)
-  - [`manualRowResize`](@/api/options.md#manualrowresize)
-  - [`minRowHeights`](@/api/options.md#minRowHeights)
-- Core methods:
-  - [`getRowHeight()`](@/api/core.md#getrowheight)
-- Hooks:
-  - [`afterRowResize`](@/api/hooks.md#afterrowresize)
-  - [`beforeRowResize`](@/api/hooks.md#beforerowresize)
-  - [`modifyRowHeight`](@/api/hooks.md#modifyrowheight)
-- Plugins:
-  - [`AutoRowSize`](@/api/autoRowSize.md)
-  - [`ManualRowResize`](@/api/manualRowResize.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [autoRowSize](@/api/options.md#autorowsize)
+- [manualRowResize](@/api/options.md#manualrowresize)
+- [minRowHeights](@/api/options.md#minRowHeights)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getRowHeight()](@/api/core.md#getrowheight)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterRowResize](@/api/hooks.md#afterrowresize)
+- [beforeRowResize](@/api/hooks.md#beforerowresize)
+- [modifyRowHeight](@/api/hooks.md#modifyrowheight)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [AutoRowSize](@/api/autoRowSize.md)
+- [ManualRowResize](@/api/manualRowResize.md)
+
+</div>

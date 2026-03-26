@@ -906,7 +906,18 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 
 ## Related API reference
 
-- Configuration options:
-  - [`columnSummary`](@/api/options.md#columnsummary)
-- Plugins:
-  - [`ColumnSummary`](@/api/columnSummary.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [columnSummary](@/api/options.md#columnsummary)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ColumnSummary](@/api/columnSummary.md)
+
+</div>

@@ -154,29 +154,50 @@ When you use the parent-child row structure, the following Handsontable features
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Row header](@/guides/rows/row-header/row-header.md)
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders)
-  - [`contextMenu`](@/api/options.md#contextmenu)
-  - [`nestedRows`](@/api/options.md#nestedrows)
-  - [`rowHeaders`](@/api/options.md#rowheaders)
-- Core methods:
-  - [`getRowHeader()`](@/api/core.md#getrowheader)
-- Hooks:
-  - [`afterAddChild`](@/api/hooks.md#afteraddchild)
-  - [`afterDetachChild`](@/api/hooks.md#afterdetachchild)
-  - [`beforeAddChild`](@/api/hooks.md#beforeaddchild)
-  - [`beforeDetachChild`](@/api/hooks.md#beforedetachchild)
-- Plugins:
-  - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
-  - [`ContextMenu`](@/api/contextMenu.md)
-  - [`NestedRows`](@/api/nestedRows.md)
+<div class="boxes-list">
+
+- [bindRowsWithHeaders](@/api/options.md#bindrowswithheaders)
+- [contextMenu](@/api/options.md#contextmenu)
+- [nestedRows](@/api/options.md#nestedrows)
+- [rowHeaders](@/api/options.md#rowheaders)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getRowHeader()](@/api/core.md#getrowheader)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterAddChild](@/api/hooks.md#afteraddchild)
+- [afterDetachChild](@/api/hooks.md#afterdetachchild)
+- [beforeAddChild](@/api/hooks.md#beforeaddchild)
+- [beforeDetachChild](@/api/hooks.md#beforedetachchild)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [BindRowsWithHeaders](@/api/bindRowsWithHeaders.md)
+- [ContextMenu](@/api/contextMenu.md)
+- [NestedRows](@/api/nestedRows.md)
+
+</div>

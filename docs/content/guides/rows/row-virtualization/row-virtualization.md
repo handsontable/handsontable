@@ -86,13 +86,20 @@ Using row virtualization has the following side effects:
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
 - [Performance](@/guides/optimization/performance/performance.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`renderAllRows`](@/api/options.md#renderallrows)
-  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [renderAllRows](@/api/options.md#renderallrows)
+- [viewportRowRenderingOffset](@/api/options.md#viewportrowrenderingoffset)
+
+</div>

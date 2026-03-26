@@ -79,29 +79,50 @@ A tree grid enables you to represent the nested data structures within the data 
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Row parent-child](@/guides/rows/row-parent-child/row-parent-child.md)
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
-  - [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
-  - [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders)
-  - [`rowHeaders`](@/api/options.md#rowheaders)
-- Core methods:
-  - [`getRowHeader()`](@/api/core.md#getrowheader)
-  - [`hasRowHeaders()`](@/api/core.md#hasrowheaders)
-- Hooks:
-  - [`afterGetRowHeader`](@/api/hooks.md#aftergetrowheader)
-  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
-  - [`beforeHighlightingRowHeader`](@/api/hooks.md#beforehighlightingrowheader)
-  - [`modifyRowHeader`](@/api/hooks.md#modifyrowheader)
-  - [`modifyRowHeaderWidth`](@/api/hooks.md#modifyrowheaderwidth)
-- Plugins:
-  - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
+<div class="boxes-list">
+
+- [activeHeaderClassName](@/api/options.md#activeheaderclassname)
+- [currentHeaderClassName](@/api/options.md#currentheaderclassname)
+- [bindRowsWithHeaders](@/api/options.md#bindrowswithheaders)
+- [rowHeaders](@/api/options.md#rowheaders)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getRowHeader()](@/api/core.md#getrowheader)
+- [hasRowHeaders()](@/api/core.md#hasrowheaders)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetRowHeader](@/api/hooks.md#aftergetrowheader)
+- [afterGetRowHeaderRenderers](@/api/hooks.md#aftergetrowheaderrenderers)
+- [beforeHighlightingRowHeader](@/api/hooks.md#beforehighlightingrowheader)
+- [modifyRowHeader](@/api/hooks.md#modifyrowheader)
+- [modifyRowHeaderWidth](@/api/hooks.md#modifyrowheaderwidth)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [BindRowsWithHeaders](@/api/bindRowsWithHeaders.md)
+
+</div>

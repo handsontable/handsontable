@@ -111,8 +111,19 @@ Mind that when you unfreeze a frozen column, it doesn't go back to the original 
 
 ## Related API reference
 
-- Configuration options:
-  - [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart)
-  - [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze)
-- Plugins:
-  - [`ManualColumnFreeze`](@/api/manualColumnFreeze.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [fixedColumnsStart](@/api/options.md#fixedcolumnsstart)
+- [manualColumnFreeze](@/api/options.md#manualcolumnfreeze)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ManualColumnFreeze](@/api/manualColumnFreeze.md)
+
+</div>

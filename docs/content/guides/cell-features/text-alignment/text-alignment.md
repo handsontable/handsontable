@@ -94,8 +94,19 @@ The following code sample configures the grid to use `htCenter` and configures i
 
 ## Related API reference
 
-- Configuration options:
-  - [`className`](@/api/options.md#classname)
-- Hooks:
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeCellAlignment`](@/api/hooks.md#beforecellalignment)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [className](@/api/options.md#classname)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeCellAlignment](@/api/hooks.md#beforecellalignment)
+
+</div>

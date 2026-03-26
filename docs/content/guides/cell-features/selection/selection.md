@@ -213,34 +213,57 @@ To jump across a horizontal edge:
 
 ## Related API reference
 
-- Configuration options:
-  - [`autoWrapCol`](@/api/options.md#autowrapcol)
-  - [`autoWrapRow`](@/api/options.md#autowraprow)
-  - [`fragmentSelection`](@/api/options.md#fragmentselection)
-  - [`disableVisualSelection`](@/api/options.md#disablevisualselection)
-  - [`dragToScroll`](@/api/options.md#dragtoscroll)
-  - [`selectionMode`](@/api/options.md#selectionmode)
-  - [`outsideClickDeselects`](@/api/options.md#outsideclickdeselects)
-- Core methods:
-  - [`deselectCell()`](@/api/core.md#deselectcell)
-  - [`getSelected()`](@/api/core.md#getselected)
-  - [`getSelectedLast()`](@/api/core.md#getselectedlast)
-  - [`getSelectedRange()`](@/api/core.md#getselectedrange)
-  - [`getSelectedRangeLast()`](@/api/core.md#getselectedrangelast)
-  - [`selectAll()`](@/api/core.md#selectall)
-  - [`selectCell()`](@/api/core.md#selectcell)
-  - [`selectCells()`](@/api/core.md#selectcells)
-  - [`selectColumns()`](@/api/core.md#selectcolumns)
-  - [`selectRows()`](@/api/core.md#selectrows)
-- Hooks:
-  - [`afterDeselect`](@/api/hooks.md#afterdeselect)
-  - [`afterDrawSelection`](@/api/hooks.md#afterdrawselection)
-  - [`afterModifyTransformEnd`](@/api/hooks.md#aftermodifytransformend)
-  - [`afterModifyTransformStart`](@/api/hooks.md#aftermodifytransformstart)
-  - [`afterSelection`](@/api/hooks.md#afterselection)
-  - [`afterSelectionByProp`](@/api/hooks.md#afterselectionbyprop)
-  - [`afterSelectionEnd`](@/api/hooks.md#afterselectionend)
-  - [`afterSelectionEndByProp`](@/api/hooks.md#afterselectionendbyprop)
-  - [`modifyTransformStart`](@/api/hooks.md#modifytransformstart)
-- Plugins:
-  - [`DragToScroll`](@/api/dragToScroll.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [autoWrapCol](@/api/options.md#autowrapcol)
+- [autoWrapRow](@/api/options.md#autowraprow)
+- [fragmentSelection](@/api/options.md#fragmentselection)
+- [disableVisualSelection](@/api/options.md#disablevisualselection)
+- [dragToScroll](@/api/options.md#dragtoscroll)
+- [selectionMode](@/api/options.md#selectionmode)
+- [outsideClickDeselects](@/api/options.md#outsideclickdeselects)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [deselectCell()](@/api/core.md#deselectcell)
+- [getSelected()](@/api/core.md#getselected)
+- [getSelectedLast()](@/api/core.md#getselectedlast)
+- [getSelectedRange()](@/api/core.md#getselectedrange)
+- [getSelectedRangeLast()](@/api/core.md#getselectedrangelast)
+- [selectAll()](@/api/core.md#selectall)
+- [selectCell()](@/api/core.md#selectcell)
+- [selectCells()](@/api/core.md#selectcells)
+- [selectColumns()](@/api/core.md#selectcolumns)
+- [selectRows()](@/api/core.md#selectrows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterDeselect](@/api/hooks.md#afterdeselect)
+- [afterDrawSelection](@/api/hooks.md#afterdrawselection)
+- [afterModifyTransformEnd](@/api/hooks.md#aftermodifytransformend)
+- [afterModifyTransformStart](@/api/hooks.md#aftermodifytransformstart)
+- [afterSelection](@/api/hooks.md#afterselection)
+- [afterSelectionByProp](@/api/hooks.md#afterselectionbyprop)
+- [afterSelectionEnd](@/api/hooks.md#afterselectionend)
+- [afterSelectionEndByProp](@/api/hooks.md#afterselectionendbyprop)
+- [modifyTransformStart](@/api/hooks.md#modifytransformstart)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [DragToScroll](@/api/dragToScroll.md)
+
+</div>

@@ -334,5 +334,18 @@ You can control the dialog programmatically using the plugin's methods.
 
 ## Related API reference
 
-- [Options: `dialog`](@/api/options.md#dialog)
-- [Plugins: `Dialog`](@/api/dialog.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [dialog](@/api/options.md#dialog)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [Dialog](@/api/dialog.md)
+
+</div>

@@ -108,19 +108,38 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`dropdownMenu`](@/api/options.md#dropdownmenu)
-- Hooks:
-  - [`afterDropdownMenuDefaultOptions`](@/api/hooks.md#afterdropdownmenudefaultoptions)
-  - [`afterDropdownMenuHide`](@/api/hooks.md#afterdropdownmenuhide)
-  - [`afterDropdownMenuShow`](@/api/hooks.md#afterdropdownmenushow)
-  - [`beforeDropdownMenuSetItems`](@/api/hooks.md#beforedropdownmenusetitems)
-  - [`beforeDropdownMenuShow`](@/api/hooks.md#beforedropdownmenushow)
-- Plugins:
-  - [`DropdownMenu`](@/api/dropdownMenu.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [dropdownMenu](@/api/options.md#dropdownmenu)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterDropdownMenuDefaultOptions](@/api/hooks.md#afterdropdownmenudefaultoptions)
+- [afterDropdownMenuHide](@/api/hooks.md#afterdropdownmenuhide)
+- [afterDropdownMenuShow](@/api/hooks.md#afterdropdownmenushow)
+- [beforeDropdownMenuSetItems](@/api/hooks.md#beforedropdownmenusetitems)
+- [beforeDropdownMenuShow](@/api/hooks.md#beforedropdownmenushow)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [DropdownMenu](@/api/dropdownMenu.md)
+
+</div>

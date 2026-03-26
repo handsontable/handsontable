@@ -396,28 +396,45 @@ When pagination is enabled:
 
 ## Related API reference
 
-- Configuration options:
-  - [`pagination`](@/api/options.md#pagination)
-  - [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom)
-  - [`fixedRowsTop`](@/api/options.md#fixedrowstop)
-- Hooks:
-  - [`beforePageChange()`](@/api/hooks.md#beforepagechange)
-  - [`afterPageChange()`](@/api/hooks.md#afterpagechange)
-  - [`beforePageSizeChange()`](@/api/hooks.md#beforepagesizechange)
-  - [`afterPageSizeChange()`](@/api/hooks.md#afterpagesizechange)
-  - [`afterPageSizeVisibilityChange()`](@/api/hooks.md#afterpagesizevisibilitychange)
-  - [`afterPageCounterVisibilityChange()`](@/api/hooks.md#afterpagecountervisibilitychange)
-  - [`afterPageNavigationVisibilityChange()`](@/api/hooks.md#afterpagenavigationvisibilitychange)
-- Plugins:
-  - [`Pagination`](@/api/pagination.md)
-  - [`NestedRows`](@/api/nestedRows.md)
-  - [`MergeCells`](@/api/mergeCells.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [pagination](@/api/options.md#pagination)
+- [fixedRowsBottom](@/api/options.md#fixedrowsbottom)
+- [fixedRowsTop](@/api/options.md#fixedrowstop)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [beforePageChange()](@/api/hooks.md#beforepagechange)
+- [afterPageChange()](@/api/hooks.md#afterpagechange)
+- [beforePageSizeChange()](@/api/hooks.md#beforepagesizechange)
+- [afterPageSizeChange()](@/api/hooks.md#afterpagesizechange)
+- [afterPageSizeVisibilityChange()](@/api/hooks.md#afterpagesizevisibilitychange)
+- [afterPageCounterVisibilityChange()](@/api/hooks.md#afterpagecountervisibilitychange)
+- [afterPageNavigationVisibilityChange()](@/api/hooks.md#afterpagenavigationvisibilitychange)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [Pagination](@/api/pagination.md)
+- [NestedRows](@/api/nestedRows.md)
+- [MergeCells](@/api/mergeCells.md)
+
+</div>
 
 ## Troubleshooting
 
 Didn't find what you need? Try this:
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [View related topics](https://github.com/handsontable/handsontable/labels/Pagination) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub

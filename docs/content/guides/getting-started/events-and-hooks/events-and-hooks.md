@@ -243,24 +243,28 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 
 List of callbacks that operate on the `source` parameter:
 
-- [`afterChange`](@/api/hooks.md#afterchange)
-- [`afterCreateCol`](@/api/hooks.md#aftercreatecol)
-- [`afterCreateRow`](@/api/hooks.md#aftercreaterow)
-- [`afterLoadData`](@/api/hooks.md#afterloaddata)
-- [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell)
-- [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
-- [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell)
-- [`afterRemoveCol`](@/api/hooks.md#afterremovecol)
-- [`afterRemoveRow`](@/api/hooks.md#aftermoverow)
-- [`afterValidate`](@/api/hooks.md#aftervalidate)
-- [`beforeChange`](@/api/hooks.md#beforechange)
-- [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
-- [`beforeCreateCol`](@/api/hooks.md#beforecreatecol)
-- [`beforeCreateRow`](@/api/hooks.md#beforecreaterow)
-- [`beforeLoadData`](@/api/hooks.md#beforeloaddata)
-- [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol)
-- [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow)
-- [`beforeValidate`](@/api/hooks.md#beforevalidate)
+<div class="boxes-list">
+
+- [afterChange](@/api/hooks.md#afterchange)
+- [afterCreateCol](@/api/hooks.md#aftercreatecol)
+- [afterCreateRow](@/api/hooks.md#aftercreaterow)
+- [afterLoadData](@/api/hooks.md#afterloaddata)
+- [afterSetDataAtCell](@/api/hooks.md#aftersetdataatcell)
+- [afterSetDataAtRowProp](@/api/hooks.md#aftersetdataatrowprop)
+- [afterSetSourceDataAtCell](@/api/hooks.md#aftersetsourcedataatcell)
+- [afterRemoveCol](@/api/hooks.md#afterremovecol)
+- [afterRemoveRow](@/api/hooks.md#aftermoverow)
+- [afterValidate](@/api/hooks.md#aftervalidate)
+- [beforeChange](@/api/hooks.md#beforechange)
+- [beforeChangeRender](@/api/hooks.md#beforechangerender)
+- [beforeCreateCol](@/api/hooks.md#beforecreatecol)
+- [beforeCreateRow](@/api/hooks.md#beforecreaterow)
+- [beforeLoadData](@/api/hooks.md#beforeloaddata)
+- [beforeRemoveCol](@/api/hooks.md#beforeremovecol)
+- [beforeRemoveRow](@/api/hooks.md#beforeremoverow)
+- [beforeValidate](@/api/hooks.md#beforevalidate)
+
+</div>
 
 ## The [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
@@ -304,14 +308,25 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
 ## Related API reference
 
-- Core methods:
-  - [`addHook()`](@/api/core.md#addhook)
-  - [`addHookOnce()`](@/api/core.md#addhookonce)
-  - [`hasHook()`](@/api/core.md#hashook)
-  - [`removeHook()`](@/api/core.md#removehook)
-  - [`hasHook()`](@/api/core.md#hashook)
-  - [`runHooks()`](@/api/core.md#runhooks)
-- Hooks:
-  - [List of all Handsontable hooks](@/api/hooks.md)
-  - [`afterListen`](@/api/hooks.md#afterlisten)
-  - [`afterUnlisten`](@/api/hooks.md#afterunlisten)
+**Core methods**
+
+<div class="boxes-list">
+
+- [addHook()](@/api/core.md#addhook)
+- [addHookOnce()](@/api/core.md#addhookonce)
+- [hasHook()](@/api/core.md#hashook)
+- [removeHook()](@/api/core.md#removehook)
+- [hasHook()](@/api/core.md#hashook)
+- [runHooks()](@/api/core.md#runhooks)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [List of all Handsontable hooks](@/api/hooks.md)
+- [afterListen](@/api/hooks.md#afterlisten)
+- [afterUnlisten](@/api/hooks.md#afterunlisten)
+
+</div>

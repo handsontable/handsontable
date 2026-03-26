@@ -136,6 +136,8 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
 
     try {
       code = readFileSync(absPath, 'utf-8').trimEnd();
+      // Replace VuePress template variables in example source files
+      code = code.replace(/\{\{\s*\$basePath\s*\}\}/g, '/docs');
     } catch {
       code = `// File not found: ${ref}`;
     }
@@ -225,10 +227,28 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
   }).replace(/<\/script>/gi, '<\\/script>');
 
   // ── Code fences (rendered by Expressive Code at build time) ────────────────
-  const showTabs = !hideTabs && files.length > 1;
-  const tabLabels = showTabs ? files.map(f => f.label).join(',') : '';
+  // Scripts (JS+TS or JSX+TSX) are grouped under one "JavaScript" tab with a
+  // language dropdown selector. Remaining files (HTML, CSS) become separate tabs.
+  const scriptExts = new Set(['js', 'ts', 'jsx', 'tsx']);
+  const scriptFiles = files.filter(f => scriptExts.has(f.ext));
+  const otherFiles = files.filter(f => !scriptExts.has(f.ext));
 
-  const fences = files.map((f) => {
+  // Build logical tab names: "JavaScript" (once for all script variants) + others
+  const tabNames = [];
+
+  if (scriptFiles.length > 0) tabNames.push('JavaScript');
+
+  for (const f of otherFiles) tabNames.push(f.label);
+
+  const showTabs = !hideTabs && (tabNames.length > 1 || scriptFiles.length > 1);
+  const tabLabels = showTabs ? tabNames.join(',') : '';
+  const scriptLangs = showTabs && scriptFiles.length > 1
+    ? scriptFiles.map(f => f.label).join(',')
+    : '';
+
+  // Generate fences: script files first, then other files
+  const allOrderedFiles = [...scriptFiles, ...otherFiles];
+  const fences = allOrderedFiles.map((f) => {
     const meta = fileMeta[f.ref] || '';
 
     return `\`\`\`\`${f.lang} title="${f.label}"${meta ? ` ${meta}` : ''}\n${f.code}\n\`\`\`\``;
@@ -267,7 +287,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
 <script type="application/json" class="hot-example-sb-data">${sbDataJson}</script>
 </div>
 
-<div class="hot-example-code-start" data-example="${escapeHtml(id)}" data-tabs="${escapeHtml(tabLabels)}"></div>
+<div class="hot-example-code-start" data-example="${escapeHtml(id)}" data-tabs="${escapeHtml(tabLabels)}"${scriptLangs ? ` data-script-langs="${escapeHtml(scriptLangs)}" data-script-count="${scriptFiles.length}"` : ''}></div>
 
 ${fences}
 
@@ -362,7 +382,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v16';
+const LOADER_VERSION = 'v17';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
