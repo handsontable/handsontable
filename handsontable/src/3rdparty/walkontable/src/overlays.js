@@ -639,6 +639,13 @@ class Overlays {
    *
    */
   destroy() {
+    this.#postponedAdjustElementsSize.cancel();
+
+    if (this.#containerDomResizeCountTimeout !== null) {
+      clearTimeout(this.#containerDomResizeCountTimeout);
+      this.#containerDomResizeCountTimeout = null;
+    }
+
     this.resizeObserver.disconnect();
     this.eventManager.destroy();
     // todo, probably all below `destroy` calls has no sense. To analyze

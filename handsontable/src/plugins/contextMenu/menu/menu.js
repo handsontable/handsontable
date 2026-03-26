@@ -317,7 +317,7 @@ export class Menu {
       modifyRowHeight: (rowHeight, visualRowIndex) => {
         const item = this.hotMenu.getSourceDataAtRow(visualRowIndex);
 
-        return item.name === SEPARATOR ? 1 : rowHeight;
+        return item && item.name === SEPARATOR ? 1 : rowHeight;
       },
       beforeRefreshDimensions: () => false,
       beforeOnCellMouseOver: (event, coords) => {
