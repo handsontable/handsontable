@@ -671,7 +671,11 @@ class Overlays {
     if (isScrollTriggered) {
       this.#postponedAdjustElementsSize();
     } else {
-      this.adjustElementsSize();
+      const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
+
+      if (wasSpreaderSizeUpdated) {
+        this.adjustElementsSize();
+      }
     }
 
     if (this.bottomOverlay.clone) {

@@ -30,6 +30,10 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
   constructor(rootNode) {
     super('TR', rootNode);
 
+    while (rootNode.firstChild) {
+      rootNode.removeChild(rootNode.firstChild);
+    }
+
     this.orderView = new OrderView(
       rootNode,
       sourceRowIndex => this.nodesPool.obtain(sourceRowIndex),
