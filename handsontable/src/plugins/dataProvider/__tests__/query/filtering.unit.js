@@ -3,6 +3,7 @@ import {
   cloneDataProviderFiltersPayload,
   conditionsStackToFiltersPayload,
   filtersPayloadToConditionsStack,
+  handleBeforeFilterForServer,
 } from '../../query/filtering';
 
 describe('dataProvider filtering', () => {
@@ -160,6 +161,54 @@ describe('dataProvider filtering', () => {
         prop: 'keep',
         operation: 'conjunction',
         conditions: [],
+      }]);
+    });
+  });
+
+  describe('handleBeforeFilterForServer', () => {
+    const hot = {
+      toVisualColumn: col => col,
+      colToProp: visualCol => (visualCol === 2 ? 'city' : 'id'),
+    };
+    const conditionsStack = [{
+      column: 2,
+      operation: 'conjunction',
+      conditions: [{ name: 'eq', args: ['Warsaw'] }],
+    }];
+
+    it('should no-op when fetchRows is not configured', () => {
+      const applyFiltersAndRefetch = jasmine.createSpy('applyFiltersAndRefetch');
+
+      const result = handleBeforeFilterForServer(
+        {
+          hot,
+          hasFetchFn: () => false,
+          applyFiltersAndRefetch,
+        },
+        conditionsStack
+      );
+
+      expect(result).toBeUndefined();
+      expect(applyFiltersAndRefetch).not.toHaveBeenCalled();
+    });
+
+    it('should apply filters and return false when fetchRows is configured', () => {
+      const applyFiltersAndRefetch = jasmine.createSpy('applyFiltersAndRefetch');
+
+      const result = handleBeforeFilterForServer(
+        {
+          hot,
+          hasFetchFn: () => true,
+          applyFiltersAndRefetch,
+        },
+        conditionsStack
+      );
+
+      expect(result).toBe(false);
+      expect(applyFiltersAndRefetch).toHaveBeenCalledWith([{
+        prop: 'city',
+        operation: 'conjunction',
+        conditions: [{ name: 'eq', args: ['Warsaw'] }],
       }]);
     });
   });

@@ -33,8 +33,8 @@ import {
 import {
   applyFiltersFromFiltersPluginToQueryParameters,
   cloneDataProviderFiltersPayload,
-  conditionsStackToFiltersPayload,
   filtersPayloadToConditionsStack,
+  handleBeforeFilterForServer,
 } from './query/filtering';
 import {
   applyPaginationToQueryFromPlugin,
@@ -729,21 +729,24 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
-   * Intercepts filter action: applies server-side filters and refetches; returns false so Filters skip client-side trimming.
+   * Intercepts filter action when `fetchRows` is set: applies server-side filters and refetches; returns false so Filters skip client-side trimming.
+   * Without `fetchRows`, returns nothing so Filters run client-side trimming (same guard pattern as [[#onBeforeColumnSort]]).
    *
    * @param {Array} conditionsStack Exported filter conditions (column = physical index).
-   * @returns {boolean} False to signal that filtering is handled server-side.
+   * @returns {boolean|void} False when filtering is handled server-side.
    */
-  #onBeforeFilter = (conditionsStack) => {
-    const filtersForProvider = conditionsStackToFiltersPayload(this.hot, conditionsStack);
-
-    this.#queryParameters.filters = filtersForProvider ?? null;
-    this.#queryParameters.page = 1;
-
-    this.fetchData();
-
-    return false;
-  };
+  #onBeforeFilter = conditionsStack => handleBeforeFilterForServer(
+    {
+      hot: this.hot,
+      hasFetchFn: () => isFunction(this.#getFetchFn()),
+      applyFiltersAndRefetch: (filtersForProvider) => {
+        this.#queryParameters.filters = filtersForProvider ?? null;
+        this.#queryParameters.page = 1;
+        this.fetchData();
+      },
+    },
+    conditionsStack
+  );
 
   /**
    * @param {Array} currentSortConfig Current sort config.

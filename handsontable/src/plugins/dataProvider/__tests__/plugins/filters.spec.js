@@ -10,6 +10,32 @@ describe('DataProvider with Filters plugin', () => {
     }
   });
 
+  it('should trim rows with client-side Filters when dataProvider has no fetchRows', async() => {
+    handsontable({
+      data: [
+        { id: 1, name: 'Alice', city: 'Warsaw' },
+        { id: 2, name: 'Bob', city: 'Berlin' },
+      ],
+      columns: [{ data: 'id' }, { data: 'name' }, { data: 'city' }],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      dataProvider: { rowId: 'id' },
+    });
+
+    await render();
+
+    const filtersPlugin = getPlugin('filters');
+
+    filtersPlugin.addCondition(2, 'eq', ['Warsaw']);
+    filtersPlugin.filter();
+
+    await render();
+
+    expect(countRows()).toBe(1);
+    expect(getDataAtCell(0, 2)).toBe('Warsaw');
+  });
+
   it('should hide "Filter by value" section when dataProvider is enabled', async() => {
     const rows = [
       { id: 1, name: 'A1', city: 'Warsaw' },

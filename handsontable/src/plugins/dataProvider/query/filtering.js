@@ -129,3 +129,27 @@ export function applyFiltersFromFiltersPluginToQueryParameters(hot, queryParamet
 
   queryParameters.filters = filtersForProvider ?? null;
 }
+
+/**
+ * Server-backed filter: write query `filters`, reset page, refetch; return false so Filters skip client-side row trimming.
+ *
+ * @param {object} ctx Hook context.
+ * @param {Core} ctx.hot Handsontable instance.
+ * @param {function(): boolean} ctx.hasFetchFn Whether `fetchRows` is configured.
+ * @param {function(Array|null): void} ctx.applyFiltersAndRefetch Receives payload from [[conditionsStackToFiltersPayload]] (or null), updates query and refetches.
+ * @param {Array} conditionsStack Exported filter conditions (column = physical index).
+ * @returns {boolean|void} False when the server path handled the filter.
+ */
+export function handleBeforeFilterForServer(ctx, conditionsStack) {
+  const { hot, hasFetchFn, applyFiltersAndRefetch } = ctx;
+
+  if (!hasFetchFn()) {
+    return;
+  }
+
+  const filtersForProvider = conditionsStackToFiltersPayload(hot, conditionsStack);
+
+  applyFiltersAndRefetch(filtersForProvider);
+
+  return false;
+}
