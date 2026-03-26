@@ -6,6 +6,7 @@ export type Formats = 'csv' | 'xlsx';
 export interface SheetOptions {
   instance: Core;
   name?: string;
+  colHeaders?: boolean;
   columnHeaders?: boolean;
   rowHeaders?: boolean;
   exportHiddenColumns?: boolean | 'hide';
@@ -38,6 +39,7 @@ export interface ExportOptions {
   bom?: boolean;
   columnDelimiter?: string;
   rowDelimiter?: string;
+  colHeaders?: boolean;
   columnHeaders?: boolean;
   rowHeaders?: boolean;
   exportHiddenColumns?: boolean | 'hide';

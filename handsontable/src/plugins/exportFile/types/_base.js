@@ -66,6 +66,10 @@ class BaseType {
     _options = extend(clone(BaseType.DEFAULT_OPTIONS), _options);
     _options = extend(_options, options);
 
+    if (options && Object.prototype.hasOwnProperty.call(options, 'colHeaders')) {
+      _options.columnHeaders = options.colHeaders;
+    }
+
     _options.filename = substitute(_options.filename, {
       YYYY: date.getFullYear(),
       MM: (`${date.getMonth() + 1}`).padStart(2, '0'),

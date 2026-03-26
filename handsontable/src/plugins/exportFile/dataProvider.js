@@ -103,7 +103,7 @@ class DataProvider {
   getColumnHeaders() {
     const headers = [];
 
-    if (this.options.columnHeaders) {
+    if (this._isColumnHeadersEnabled()) {
       const { startCol, endCol } = this._getDataRange();
       const colHeaders = this.hot.getColHeader();
 
@@ -563,7 +563,7 @@ class DataProvider {
    * @returns {string[]}
    */
   getColumnHeadersClassNames() {
-    if (!this.options.columnHeaders) {
+    if (!this._isColumnHeadersEnabled()) {
       return [];
     }
 
@@ -580,6 +580,23 @@ class DataProvider {
     }
 
     return classNames;
+  }
+
+  /**
+   * Checks whether column headers should be included in export output.
+   *
+   * Supports both the legacy `columnHeaders` option and the new `colHeaders`
+   * alias used by the public API and documentation.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  _isColumnHeadersEnabled() {
+    if (Object.prototype.hasOwnProperty.call(this.options, 'colHeaders')) {
+      return !!this.options.colHeaders;
+    }
+
+    return !!this.options.columnHeaders;
   }
 
   /**

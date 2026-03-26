@@ -1,4 +1,6 @@
 import { ExportFile } from '../exportFile';
+import Csv from '../types/csv';
+import DataProvider from '../dataProvider';
 
 function fakeCtx(exportFileSettings) {
   return { hot: { getSettings: () => ({ exportFile: exportFileSettings }) } };
@@ -53,5 +55,29 @@ describe('ExportFile#_createBlob', () => {
     } finally {
       global.Blob = savedBlob;
     }
+  });
+});
+
+describe('ExportFile options aliases', () => {
+  it('should map `colHeaders` to `columnHeaders` in formatter options', () => {
+    const fakeDataProvider = { setOptions() {} };
+    const formatter = new Csv(fakeDataProvider, { colHeaders: true });
+
+    expect(formatter.options.columnHeaders).toBe(true);
+  });
+
+  it('should prefer `colHeaders` when both aliases are passed', () => {
+    const fakeDataProvider = { setOptions() {} };
+    const formatter = new Csv(fakeDataProvider, { columnHeaders: true, colHeaders: false });
+
+    expect(formatter.options.columnHeaders).toBe(false);
+  });
+
+  it('should prefer `colHeaders` in DataProvider when both aliases are present', () => {
+    const dataProvider = new DataProvider({});
+
+    dataProvider.setOptions({ columnHeaders: true, colHeaders: false });
+
+    expect(dataProvider._isColumnHeadersEnabled()).toBe(false);
   });
 });
