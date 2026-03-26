@@ -1,6 +1,5 @@
 export {
   DataProvider,
-  DEFAULT_PAGE_SIZE,
   DataProviderBeforeFetchParameters,
   DataProviderConfig,
   DataProviderFetchDataOverrides,

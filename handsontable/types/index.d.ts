@@ -173,7 +173,6 @@ import {
 import {
   DataProvider as _DataProvider,
   Settings as DataProviderSettings,
-  DEFAULT_PAGE_SIZE as DataProviderDefaultPageSize,
   DataProviderBeforeFetchParameters,
   DataProviderQueryParameters,
   DataProviderFetchDataOverrides,
@@ -554,7 +553,6 @@ declare namespace Handsontable {
 
     export namespace DataProvider {
       export { DataProviderSettings as Settings };
-      export { DataProviderDefaultPageSize as DEFAULT_PAGE_SIZE };
       export { DataProviderQueryParameters as QueryParameters };
       export { DataProviderBeforeFetchParameters as BeforeFetchParameters };
       export { DataProviderFetchDataOverrides as FetchDataOverrides };
