@@ -210,7 +210,7 @@ export function buildTraceComparisonMarkdown(options = {}) {
   const rowsAll =
     rowsMemory.length > 0 ? [...rowsTimeline, ...rowsMemory] : rowsTimeline;
 
-  const esc = s => String(s).replace(/\|/g, '\\|');
+  const esc = s => String(s).replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
 
   /** Metric | v1 | v2 | % change | Value change (compare − baseline). */
   function formatTable(rows, colTitleA, colTitleB) {
