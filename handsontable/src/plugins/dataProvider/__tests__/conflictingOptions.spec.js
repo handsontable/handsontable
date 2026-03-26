@@ -85,4 +85,35 @@ describe('DataProvider with conflicting options', () => {
       jasmine.stringMatching(/manualRowMove.*not compatible.*dataProvider/i)
     );
   });
+
+  it('should disable an already-enabled conflicting plugin when updateSettings only enables dataProvider', async() => {
+    spyOn(console, 'warn');
+
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      manualRowMove: true,
+    });
+
+    await sleep(50);
+
+    expect(getPlugin('manualRowMove').enabled).toBe(true);
+    expect(getPlugin('dataProvider').enabled).toBe(false);
+
+    await updateSettings({
+      data: [],
+      dataProvider: createDataProviderConfig({
+        fetchRows: () => Promise.resolve({ rows: [], totalRows: 0 }),
+      }),
+    });
+
+    await sleep(50);
+
+    expect(getPlugin('dataProvider').enabled).toBe(true);
+    expect(getPlugin('manualRowMove').enabled).toBe(false);
+
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledWith(
+      jasmine.stringMatching(/manualRowMove.*not compatible.*dataProvider/i)
+    );
+  });
 });

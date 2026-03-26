@@ -1,8 +1,57 @@
-import { applyPaginationToQueryParameters, normalizeExternalPaginationPageSize } from '../utils';
-
 import { DEFAULT_PAGE_SIZE } from '../constants';
 
 const PAGINATION_PLUGIN_KEY = 'pagination';
+
+/**
+ * Copies enabled Pagination `pageSize` and current page into query parameters.
+ *
+ * Uses [[Pagination#getCurrentPage]] when present so refetches (e.g. after sort) keep the active page
+ * without calling [[Pagination#getPaginationData]] (unsafe before DataProvider registers external-pagination hooks).
+ * Falls back to `initialPage` from settings when `getCurrentPage` is missing (tests) or returns an invalid value.
+ *
+ * @param {{ enabled?: boolean, getSetting: function(string): *, getCurrentPage?: function(): number }|null|undefined} paginationPlugin Pagination plugin instance.
+ * @param {{ page: number, pageSize: number }} queryParameters Target object (mutated).
+ * @returns {void}
+ */
+export function applyPaginationToQueryParameters(paginationPlugin, queryParameters) {
+  if (!paginationPlugin?.enabled) {
+    return;
+  }
+
+  const pageSize = paginationPlugin.getSetting('pageSize');
+  const initialPage = paginationPlugin.getSetting('initialPage');
+  const currentPage = typeof paginationPlugin.getCurrentPage === 'function'
+    ? paginationPlugin.getCurrentPage()
+    : undefined;
+
+  if (typeof pageSize === 'number') {
+    queryParameters.pageSize = pageSize;
+  }
+
+  if (typeof currentPage === 'number' && currentPage >= 1) {
+    queryParameters.page = currentPage;
+  } else if (typeof initialPage === 'number' && initialPage >= 1) {
+    queryParameters.page = initialPage;
+  }
+}
+
+/**
+ * Resolves page size for external pagination fetch when UI reports `'auto'` or invalid values.
+ *
+ * @param {number | 'auto'} newPageSize Value from Pagination hook.
+ * @param {number} fallbackPageSize Default when `newPageSize` is not a positive number.
+ * @returns {number}
+ */
+export function normalizeExternalPaginationPageSize(newPageSize, fallbackPageSize) {
+  if (newPageSize === 'auto'
+    || typeof newPageSize !== 'number'
+    || !Number.isFinite(newPageSize)
+    || newPageSize < 1) {
+    return fallbackPageSize;
+  }
+
+  return newPageSize;
+}
 
 /**
  * Copies Pagination `pageSize` / `initialPage` into query parameters when the plugin is enabled.

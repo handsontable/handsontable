@@ -456,7 +456,9 @@ export class BasePlugin {
   }
 
   /**
-   * On update settings listener.
+   * On update settings listener. Re-applies hard conflict rules when settings change so a plugin that is already
+   * enabled disables if a conflicting owner (for example DataProvider) becomes active, even when this plugin's
+   * `SETTING_KEYS` do not overlap the `updateSettings` payload.
    *
    * @private
    * @param {object} newSettings New set of settings passed to the `updateSettings` method.
@@ -474,6 +476,16 @@ export class BasePlugin {
           return;
         }
         this.enablePlugin();
+      }
+
+      if (
+        this.enabled &&
+        this.isEnabled() &&
+        this.isHardConflictBlocked()
+      ) {
+        this.disablePlugin();
+
+        return;
       }
 
       if (
