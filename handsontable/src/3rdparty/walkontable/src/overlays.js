@@ -671,7 +671,7 @@ class Overlays {
     if (isScrollTriggered) {
       this.#postponedAdjustElementsSize();
     } else {
-      this.adjustElementsSize();
+      this.#adjustElementsSizeIfNeeded();
     }
 
     if (this.bottomOverlay.clone) {
