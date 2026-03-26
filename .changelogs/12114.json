@@ -2,7 +2,7 @@
   "issuesOrigin": "public",
   "title": "Fixed incorrect parsing of comma-grouped values in numeric cells",
   "type": "fixed",
-  "issueOrPR": 11880,
+  "issueOrPR": 12114,
   "breaking": false,
   "framework": "none"
 }
