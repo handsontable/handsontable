@@ -103,7 +103,7 @@ class DataProvider {
   getColumnHeaders() {
     const headers = [];
 
-    if (this.options.columnHeaders) {
+    if (this.options.colHeaders) {
       const { startCol, endCol } = this._getDataRange();
       const colHeaders = this.hot.getColHeader();
 
@@ -563,7 +563,7 @@ class DataProvider {
    * @returns {string[]}
    */
   getColumnHeadersClassNames() {
-    if (!this.options.columnHeaders) {
+    if (!this.options.colHeaders) {
       return [];
     }
 

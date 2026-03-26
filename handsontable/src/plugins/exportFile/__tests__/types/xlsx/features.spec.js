@@ -162,7 +162,7 @@ describe('exportFile XLSX type — features', () => {
 
       // With one column-header row, data row 0 maps to Excel row 2.
       const ws = await parseXlsx({
-        columnHeaders: true,
+        colHeaders: true,
         conditionalFormatting: [{
           rules: [{ type: 'cellIs', operator: 'greaterThan', formulae: [15], style: {} }],
         }],
@@ -266,7 +266,7 @@ describe('exportFile XLSX type — features', () => {
       expect(sheets[1].getRow(1).getCell(2).value).toBe('50');
     });
 
-    it('should apply per-sheet options (columnHeaders) independently', async() => {
+    it('should apply per-sheet options (colHeaders) independently', async() => {
       handsontable({
         data: createSpreadsheetData(1, 2),
         colHeaders: ['Name', 'Score'],
@@ -280,7 +280,7 @@ describe('exportFile XLSX type — features', () => {
 
       const sheets = await parseXlsxAllSheets({
         sheets: [
-          { instance: hot(), name: 'WithHeaders', columnHeaders: true },
+          { instance: hot(), name: 'WithHeaders', colHeaders: true },
           { instance: hot2, name: 'NoHeaders' },
         ],
       });
