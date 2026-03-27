@@ -79,7 +79,7 @@ export class FullyVisibleColumnsCalculationType {
       zeroBasedScrollOffset,
       totalColumns,
       needReverse,
-      startPositions,
+      positionCache,
       columnWidth,
     } = viewportCalculator;
 
@@ -89,9 +89,9 @@ export class FullyVisibleColumnsCalculationType {
       this.startColumn = this.endColumn;
 
       while (this.startColumn > 0) {
-        const calculatedViewportHeight = startPositions[this.endColumn] +
+        const calculatedViewportHeight = positionCache.getOffset(this.endColumn) +
           columnWidth -
-          startPositions[this.startColumn - 1];
+          positionCache.getOffset(this.startColumn - 1);
 
         if (calculatedViewportHeight <= viewportWidth) {
           this.startColumn -= 1;
@@ -103,7 +103,7 @@ export class FullyVisibleColumnsCalculationType {
       }
     }
 
-    this.startPosition = startPositions[this.startColumn] ?? null;
+    this.startPosition = this.startColumn !== null ? positionCache.getOffset(this.startColumn) : null;
 
     const compensatedViewportWidth = zeroBasedScrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
     const mostRightScrollOffset = scrollOffset + viewportWidth - compensatedViewportWidth;
@@ -113,7 +113,7 @@ export class FullyVisibleColumnsCalculationType {
       // the table is to the left of the viewport
       (
         mostRightScrollOffset < (-1) * inlineStartOffset ||
-        scrollOffset > startPositions.at(-1)
+        scrollOffset > positionCache.getOffset(viewportCalculator.lastProcessedIndex)
       ) ||
       // the table is to the right of the viewport
       (((-1) * scrollOffset) - viewportWidth > (-1) * inlineStartColumnOffset)

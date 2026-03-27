@@ -2458,11 +2458,11 @@ export default () => {
      * @example
      * ```js
      * columns: [{
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // press Enter to close the `multiSelect` editor and Space to select an option
      *   enterCommits: true,
      * }, {
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // press Enter to select an option
      *   enterCommits: false,
      * }],
@@ -2511,6 +2511,44 @@ export default () => {
      * ```
      */
     enterMoves: { col: 0, row: 1 },
+
+    /**
+     * The `exportFile` option configures the [`ExportFile`](@/api/exportFile.md) plugin.
+     *
+     * You can set the `exportFile` option to one of the following:
+     *
+     * | Setting     | Description                                                                                |
+     * | ----------- | ------------------------------------------------------------------------------------------ |
+     * | `undefined` | Use the [`ExportFile`](@/api/exportFile.md) plugin with the default configuration          |
+     * | An object   | Enable the [`ExportFile`](@/api/exportFile.md) plugin and modify the plugin options        |
+     *
+     * If you set the `exportFile` option to an object, you can configure the following options:
+     *
+     * | Option    | Type     | Default | Description                                                                         |
+     * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
+     * | `engines` | `Object` | –       | A map of format keys to their engine constructors. Pass `{ xlsx: ExcelJS }` to enable XLSX export via [ExcelJS](https://github.com/exceljs/exceljs). |
+     *
+     * Read more:
+     * - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
+     * - [Plugins: `ExportFile`](@/api/exportFile.md)
+     *
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @since 17.1.0
+     * @category ExportFile
+     *
+     * @example
+     * ```js
+     * import ExcelJS from 'exceljs';
+     *
+     * // enable XLSX export
+     * exportFile: {
+     *   engines: { xlsx: ExcelJS },
+     * },
+     * ```
+     */
+    exportFile: undefined,
 
     /**
      * The `fillHandle` option configures the [Autofill](@/api/autofill.md) plugin.
@@ -2640,7 +2678,7 @@ export default () => {
      *     filteringCaseSensitive: true
      *   },
      *   {
-     *     type: 'multiSelect',
+     *     type: 'multiselect',
      *     source: [ ... ],
      *     // match case while searching multiSelect options
      *     filteringCaseSensitive: true
@@ -3667,7 +3705,7 @@ export default () => {
      * ```js
      * columns: [{
      *   // set the `type` of each cell in this column to `multiSelect`
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // set the maximum number of selections to 3
      *   maxSelections: 3,
      * }],
@@ -4975,7 +5013,7 @@ export default () => {
      * @example
      * ```js
      * columns: [{
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // hide the `multiSelect` editor's search input
      *   searchInput: false,
      * }],
@@ -5193,7 +5231,7 @@ export default () => {
      * ```js
      * columns: [{
      *   // set the `type` of each cell in this column to `multiSelect`
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // set options available in every `multiSelect` cell of this column
      *   source: ['A', 'B', 'C', 'D'],
      *   // sort the `multiSelect` options in this order: D, C, B, A
@@ -6195,7 +6233,7 @@ export default () => {
      *     visibleRows: 5,
      *   },
      *   {
-     *     type: 'multiSelect',
+     *     type: 'multiselect',
      *     // set the `multiSelect` list's height to 5 options
      *     // for each cell of this column
      *     visibleRows: 5,

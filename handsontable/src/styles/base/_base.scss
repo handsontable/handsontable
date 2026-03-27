@@ -553,6 +553,11 @@
       border-inline-end-width: 1px;
     }
 
+    .ht_clone_top_inline_start_corner th:nth-child(2) {
+      border-inline-start-width: 0;
+      border-inline-end-width: 1px;
+    }
+
     &.htRowHeaders thead tr th:nth-child(2) {
       border-inline-start-width: 1px;
     }

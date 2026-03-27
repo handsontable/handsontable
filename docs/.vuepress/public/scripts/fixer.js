@@ -90,6 +90,9 @@
       } else if (key === 'hyperformula') {
         ns = 'HyperFormula';
 
+      } else if (key === 'exceljs') {
+        ns = 'ExcelJS';
+
       } else if (key === 'react-dom/client') {
         ns = 'ReactDOM';
 

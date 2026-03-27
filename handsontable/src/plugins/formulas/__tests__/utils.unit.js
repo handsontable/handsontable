@@ -8,6 +8,7 @@ import {
   getDateInHfFormat,
   getDateFromExcelDate,
   omitAutofillDataForSkippedPasteCells,
+  normalizeValueForFormulaEngine,
 } from '../utils';
 
 describe('Formulas utils', () => {
@@ -121,6 +122,40 @@ describe('Formulas utils', () => {
       });
 
       expect(omitAutofillDataForSkippedPasteCells(fillData, 0, 1, metaFactory)).toEqual([[]]);
+    });
+
+    it('should omit rows marked by `skipRowOnPaste`', () => {
+      const fillData = [
+        ['=A2'],
+        ['=A3'],
+      ];
+      const metaFactory = (row) => ({
+        skipRowOnPaste: row === 1,
+        skipColumnOnPaste: false,
+      });
+
+      expect(omitAutofillDataForSkippedPasteCells(fillData, 1, 0, metaFactory)).toEqual([['=A3']]);
+    });
+  });
+
+  describe('normalizeValueForFormulaEngine', () => {
+    it('should convert array values to comma-separated strings', () => {
+      expect(normalizeValueForFormulaEngine([])).toBe('');
+      expect(normalizeValueForFormulaEngine(['A', 'B'])).toBe('A, B');
+      expect(normalizeValueForFormulaEngine([{ key: 'a', value: 'Alpha' }])).toBe('Alpha');
+      expect(normalizeValueForFormulaEngine([
+        { key: 'a', value: 'Alpha' },
+        { key: 'b', value: 'Beta' },
+      ])).toBe('Alpha, Beta');
+    });
+
+    it('should keep non-array values unchanged', () => {
+      const objectValue = { key: 'A', value: 'Alpha' };
+
+      expect(normalizeValueForFormulaEngine('A')).toBe('A');
+      expect(normalizeValueForFormulaEngine(123)).toBe(123);
+      expect(normalizeValueForFormulaEngine(null)).toBeNull();
+      expect(normalizeValueForFormulaEngine(objectValue)).toBe(objectValue);
     });
   });
 });
