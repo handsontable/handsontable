@@ -129,6 +129,10 @@ const configurationOptions: GridSettings = {
 
 :::
 
+::: tip
+When `columnSorting` (or `multiColumnSorting`) is enabled, Handsontable adds a sort-order arrow icon to each sortable column header. To make room for the icon, the minimum width of those columns is increased slightly. If you define explicit column widths, the sort icon is placed on top of the existing header space and does not affect your widths.
+:::
+
 To disable sorting for specific columns, set [`headerAction`](@/api/options.md#columnsorting) to `false` in the per-column configuration. In the following example, only the **Model**, **Date**, and **In stock** columns are sortable.
 
 ::: only-for javascript
