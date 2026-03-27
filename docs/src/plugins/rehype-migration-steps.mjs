@@ -49,6 +49,16 @@ function isStepHeading(node, tag) {
   return isTag(node, tag) && STEP_RE.test(textContent(node));
 }
 
+/** Heading levels for hierarchy comparison. */
+const HEADING_LEVEL = { h1: 1, h2: 2, h3: 3, h4: 4, h5: 5, h6: 6 };
+
+/** True when `node` is a heading with a higher level (lower number) than `stepTag`. */
+function isHigherLevelHeading(node, stepTag) {
+  if (node.type !== 'element') return false;
+  const nodeLevel = HEADING_LEVEL[node.tagName];
+  return nodeLevel !== undefined && nodeLevel < HEADING_LEVEL[stepTag];
+}
+
 // ---------------------------------------------------------------------------
 // Steps transformation
 // ---------------------------------------------------------------------------
@@ -77,7 +87,7 @@ function wrapSteps(children, stepTag, nestedTag) {
       // Collect heading + all content until the next heading of the same level.
       const liChildren = [node];
       i++;
-      while (i < children.length && !isTag(children[i], stepTag)) {
+      while (i < children.length && !isTag(children[i], stepTag) && !isHigherLevelHeading(children[i], stepTag)) {
         liChildren.push(children[i]);
         i++;
       }
@@ -174,6 +184,10 @@ export function rehypeMigrationSteps() {
     transformDomTrees(tree);
 
     // 2. Wrap step headings in <ol class="sl-steps"> structure.
+    //    h2 steps nest h3, h3 steps nest h4.
     tree.children = wrapSteps(tree.children, 'h2', 'h3');
+
+    // 3. Catch orphaned h4 step headings (e.g. "Step 1. …" under a non-step h3).
+    tree.children = wrapSteps(tree.children, 'h4', null);
   };
 }

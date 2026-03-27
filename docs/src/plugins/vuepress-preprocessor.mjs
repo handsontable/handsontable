@@ -54,6 +54,11 @@ function preprocessMarkdown(content, framework) {
   );
   // Closing ::: (3 colons) stays unchanged — Starlight uses the same syntax
 
+  // 3b. Convert backtick inline code to <code> inside aside blocks.
+  //     Starlight/remark-directive does not process inline markdown in aside
+  //     content, so we pre-convert `code` → <code>code</code> ourselves.
+  result = convertInlineCodeInAsides(result);
+
   // 4. Strip :::example / :::example-without-tabs container markers.
   //    Keep the code blocks inside so they render as plain fenced code.
   result = stripExampleContainers(result);
@@ -254,6 +259,56 @@ function convertBoxesListToCardGrid(content) {
 /**
  * Converts ::: source-code-link URL ::: blocks to plain HTML anchor tags.
  */
+/**
+ * Converts backtick inline code (`text`) to <code>text</code> inside Starlight
+ * aside blocks (:::tip, :::caution, :::danger, :::note).
+ *
+ * Starlight/remark-directive treats aside body content as plain text and does
+ * not process inline markdown. This function pre-converts the backticks so the
+ * rendered HTML contains proper <code> elements.
+ */
+function convertInlineCodeInAsides(content) {
+  const lines = content.split('\n');
+  const result = [];
+  let insideAside = false;
+  let asideDepth = 0;
+
+  for (const line of lines) {
+    if (/^:::(tip|caution|danger|note)/.test(line)) {
+      insideAside = true;
+      asideDepth = 1;
+      result.push(line);
+      continue;
+    }
+
+    if (insideAside) {
+      if (/^:{3,}\s+\S/.test(line)) {
+        asideDepth++;
+        result.push(line);
+        continue;
+      }
+
+      if (/^:{3,}\s*$/.test(line)) {
+        asideDepth--;
+
+        if (asideDepth <= 0) {
+          insideAside = false;
+        }
+
+        result.push(line);
+        continue;
+      }
+
+      result.push(line.replace(/`([^`]+)`/g, '<code>$1</code>'));
+      continue;
+    }
+
+    result.push(line);
+  }
+
+  return result.join('\n');
+}
+
 function convertSourceCodeLinks(content) {
   const lines = content.split('\n');
   const result = [];

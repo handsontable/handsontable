@@ -98,7 +98,6 @@ You are welcome to join our GitHub community. Discuss new releases, propose feat
 - [GitHub Discussions](https://github.com/handsontable/handsontable/discussions)
 - [Developers' forum](https://forum.handsontable.com/)
 - [X](https://x.com/handsontable)
-- [Stack Overflow](https://stackoverflow.com/tags/handsontable)
 
 </div>
 

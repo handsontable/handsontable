@@ -116,40 +116,90 @@ export const data: (string | number | boolean)[][] = [
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-  const currentTheme = document.querySelector('html')?.classList.contains('theme-dark')
+  const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark'
     ? 'horizon-dark'
     : 'horizon-light';
 
   const [themeName, setThemeName] = useState(currentTheme);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const theme = event.target.value;
+  const themeOptions = [
+    { value: 'main-light', label: 'Main Light', themeClass: 'ht-theme-main' },
+    { value: 'main-dark', label: 'Main Dark', themeClass: 'ht-theme-main-dark' },
+    { value: 'horizon-light', label: 'Horizon Light', themeClass: 'ht-theme-horizon' },
+    { value: 'horizon-dark', label: 'Horizon Dark', themeClass: 'ht-theme-horizon-dark' },
+    { value: 'classic-light', label: 'Classic Light', themeClass: 'ht-theme-classic' },
+    { value: 'classic-dark', label: 'Classic Dark', themeClass: 'ht-theme-classic-dark' },
+  ];
 
-    setThemeName(theme);
-  };
+  const currentOption = themeOptions.find((o) => o.value === themeName) || themeOptions[0];
+  const [dotColors, setDotColors] = useState({ fg: '', bg: '', accent: '' });
+
+  useEffect(() => {
+    const gridEl = hotRef.current?.hotInstance?.rootElement;
+
+    if (gridEl) {
+      const helper = document.createElement('div');
+
+      helper.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;';
+      gridEl.appendChild(helper);
+
+      const resolve = (varName: string) => {
+        helper.style.color = `var(${varName})`;
+
+        return getComputedStyle(helper).color;
+      };
+
+      setDotColors({
+        fg: resolve('--ht-foreground-color'),
+        bg: resolve('--ht-background-color'),
+        accent: resolve('--ht-accent-color'),
+      });
+
+      gridEl.removeChild(helper);
+    }
+  }, [themeName]);
 
   return (
     <>
-      <div className="theme-examples-controls">
-        <div className="example-container">
-          <label className="color-select">
-            <select value={`${themeName}`} onChange={handleOnChange}>
-              <option value="main-light">Main Light</option>
-              <option value="main-dark">Main Dark</option>
-              <option value="horizon-light">Horizon Light</option>
-              <option value="horizon-dark">Horizon Dark</option>
-              <option value="classic-light">Classic Light</option>
-              <option value="classic-dark">Classic Dark</option>
-            </select>
-            <div className={`color-box ht-theme-${themeName.split('-')[0]}`}>
-              <span className="color" style={{ background: 'var(--ht-foreground-color)' }} />
-              <span className="color" style={{ background: 'var(--ht-background-color)' }} />
-              <span className="color" style={{ background: 'var(--ht-accent-color)' }} />
-            </div>
-          </label>
+      <div className="example-controls-container">
+        <div className="controls">
+          <div className="theme-dropdown" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="theme-dropdown-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              <span className="theme-dropdown-colors">
+                <span className="color" style={{ background: dotColors.fg }} />
+                <span className="color" style={{ background: dotColors.bg }} />
+                <span className="color" style={{ background: dotColors.accent }} />
+              </span>
+              <span className="theme-dropdown-label">{currentOption.label}</span>
+              <svg className="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
+            </button>
+            {menuOpen && (
+              <ul className="theme-dropdown-menu" role="listbox">
+                {themeOptions.map((opt) => (
+                  <li
+                    key={opt.value}
+                    role="option"
+                    aria-selected={opt.value === themeName}
+                    onClick={() => {
+                      setThemeName(opt.value);
+                      setMenuOpen(false);
+                    }}
+                  >
+                    {opt.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
-
       <HotTable
         key={themeName}
         ref={hotRef}

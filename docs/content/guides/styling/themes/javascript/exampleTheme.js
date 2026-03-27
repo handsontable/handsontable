@@ -109,8 +109,9 @@ export const data = [
   [false, 'Photofeed', 'China', 'HL Mountain Frame', '14/07/2025', '94-5088099', true, '106', 1, 4],
 ];
 const example = document.getElementById('exampleTheme');
+const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 const hotInstance = new Handsontable(example, {
-  theme: getTheme('main'),
+  theme: getTheme('horizon').setColorScheme(isDark ? 'dark' : 'light'),
   data,
   height: 450,
   colWidths: [180, 220, 140, 120, 120, 120, 140],
@@ -183,23 +184,99 @@ const hotInstance = new Handsontable(example, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const colorBox = document.getElementById('colorBox');
-const themeSelect = document.getElementById('themeSelect');
-const currentTheme = document.querySelector('html')?.classList.contains('theme-dark')
+// Theme dropdown
+const dropdown = document.getElementById('themeDropdown');
+const trigger = document.getElementById('themeTrigger');
+const triggerLabel = document.getElementById('triggerLabel');
+const triggerColors = document.getElementById('triggerColors');
+const menu = document.getElementById('themeMenu');
+const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark'
   ? 'horizon-dark'
   : 'horizon-light';
 
-const setTheme = (theme) => {
-  const [themeName, colorScheme] = theme.split('-');
+const setTheme = (value) => {
+  const [themeName, colorScheme] = value.split('-');
 
-  colorBox.classList.value = `color-box ht-theme-${themeName}`;
   hotInstance.updateSettings({ theme: getTheme(themeName).setColorScheme(colorScheme || 'auto') });
+
+  // Update trigger label
+  const item = menu.querySelector(`[data-value="${value}"]`);
+
+  if (item) {
+    triggerLabel.textContent = item.textContent.trim();
+  }
+
+  // Update trigger color dots by resolving computed grid styles
+  const hotRoot = document.querySelector('#exampleTheme .handsontable');
+
+  if (hotRoot) {
+    const helper = document.createElement('div');
+
+    helper.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;';
+    hotRoot.appendChild(helper);
+
+    const resolve = (varName) => {
+      helper.style.color = `var(${varName})`;
+
+      return getComputedStyle(helper).color;
+    };
+
+    const fg = resolve('--ht-foreground-color');
+    const bg = resolve('--ht-background-color');
+    const accent = resolve('--ht-accent-color');
+
+    hotRoot.removeChild(helper);
+
+    const dots = triggerColors.querySelectorAll('.color');
+
+    if (dots.length >= 3) {
+      dots[0].style.background = fg;
+      dots[1].style.background = bg;
+      dots[2].style.background = accent;
+    }
+  }
+
+  // Update aria-selected
+  menu.querySelectorAll('li').forEach((li) => {
+    li.setAttribute('aria-selected', li.dataset.value === value ? 'true' : 'false');
+  });
 };
 
-themeSelect.value = currentTheme;
-setTheme(currentTheme);
-themeSelect.addEventListener('change', (event) => {
-  const themeName = event.target.value;
+// Toggle dropdown
+trigger.addEventListener('click', () => {
+  const isOpen = !menu.hidden;
 
-  setTheme(themeName);
+  menu.hidden = isOpen;
+  trigger.setAttribute('aria-expanded', String(!isOpen));
 });
+
+// Select item
+menu.addEventListener('click', (e) => {
+  const item = e.target.closest('li[data-value]');
+
+  if (item) {
+    setTheme(item.dataset.value);
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+});
+
+// Close on outside click
+document.addEventListener('click', (e) => {
+  if (!dropdown.contains(e.target)) {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+});
+
+// Close on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !menu.hidden) {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.focus();
+  }
+});
+
+// Set initial theme
+setTheme(currentTheme);

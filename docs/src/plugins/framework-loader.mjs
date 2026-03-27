@@ -609,9 +609,10 @@ function convertAsideBlocks(content) {
       }
       result.push(line);
     } else if (/^:::\s*$/.test(line)) {
-      // Convert markdown links [text](url) to <a> tags since the body is
-      // injected as raw HTML and won't be processed by remark.
+      // Convert markdown syntax to HTML since the body is injected as raw
+      // HTML and won't be processed by remark.
       const body = asideBody.join('\n').trim()
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
         .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
       result.push(`<aside class="starlight-aside starlight-aside--${asideType}" aria-label="${asideTitle}">`);
