@@ -1,7 +1,7 @@
 {
   "issuesOrigin": "public",
-  "title": "Added regression tests for overlapping multi-range clear undo in UndoRedo.",
-  "type": "changed",
+  "title": "Fixed undo restore for mixed checkbox multi-selection delete.",
+  "type": "fixed",
   "issueOrPR": 12153,
   "breaking": false,
   "framework": "none"
