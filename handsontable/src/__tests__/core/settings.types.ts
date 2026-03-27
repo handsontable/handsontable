@@ -143,6 +143,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   'password', 'select', 'text', 'time', 'custom.editor'),
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 1, col: 1})),
+  exportFile: { engines: { xlsx: {} } },
   fillHandle: true,
   filter: true,
   filteringCaseSensitive: true,

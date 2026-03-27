@@ -3,6 +3,30 @@
 /docs/:version/redirect pageId=:pageId /docs/:version
 /docs/redirect pageId=:pageId /docs 301
 
+# Angular docs are available from 16.0+ only.
+/docs/15.3/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/15.2/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/15.1/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/15.0/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/14.6/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/14.5/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/14.4/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/14.3/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/14.2/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/14.1/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/14.0/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/13.1/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/13.0/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/12.4/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/12.3/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/12.2/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/12.1/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/12.0/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/11.1/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/11.0/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/10.0/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/9.0/angular-data-grid/* /docs/javascript-data-grid/ 301
+
 /docs/ActionBarComponent.html /docs/javascript-data-grid/api/action-bar-component/
 /docs/AlterManager.html /docs/javascript-data-grid/api/alter-manager/
 /docs/AutoColumnSize.html /docs/javascript-data-grid/api/auto-column-size/

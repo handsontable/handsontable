@@ -199,6 +199,23 @@ describe('settings', () => {
       expect(getInlineStartClone().height()).toBe(0);
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(0);
     });
+
+    it('should align selected fixed second column header content with selected fixed second column content', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        fixedColumnsStart: 2,
+      });
+
+      await selectColumns(1);
+
+      const selectedHeaderRelative = getTopInlineStartClone().find('thead tr:eq(0) th:eq(1) .relative')[0];
+      const selectedColumnCell = getInlineStartClone().find('tbody tr:eq(0) td:eq(1)')[0];
+      const headerRect = selectedHeaderRelative.getBoundingClientRect();
+      const cellRect = selectedColumnCell.getBoundingClientRect();
+
+      expect(Math.round(headerRect.left)).toBe(Math.round(cellRect.left));
+    });
   });
 
   describe('fixedColumnsLeft', () => {
