@@ -44,7 +44,7 @@ describe('HiddenColumns', () => {
       container.remove();
     });
 
-    it('should use inner height in oversized column header measurement', () => {
+    it('should reset oversized markers and request header sync when showing hidden columns with row headers', () => {
       registerPlugin(HiddenColumns);
 
       const container = document.createElement('div');
@@ -62,19 +62,86 @@ describe('HiddenColumns', () => {
         },
         licenseKey: 'non-commercial-and-evaluation',
       });
-      const wtTable = hot.view._wt.wtTable;
-      const stylesHandler = wtTable.wtSettings.getSetting('stylesHandler');
-      const mockedHeader = document.createElement('div');
+      const viewport = hot.view._wt.wtViewport;
 
-      Object.defineProperty(mockedHeader, 'clientHeight', { value: 120 });
-      Object.defineProperty(mockedHeader, 'offsetHeight', { value: 121 });
+      hot.render();
 
-      jest.spyOn(stylesHandler, 'getDefaultRowHeight').mockReturnValue(23);
-      jest.spyOn(wtTable, 'getColumnHeader').mockReturnValue(mockedHeader);
+      viewport.hasOversizedColumnHeadersMarked.master = true;
+      viewport.shouldSynchronizeColumnHeaders = false;
 
-      wtTable.markIfOversizedColumnHeader(0);
+      hot.getPlugin('hiddenColumns').showColumns([0]);
 
-      expect(hot.view._wt.wtViewport.oversizedColumnHeaders[0]).toBe(120);
+      expect(viewport.hasOversizedColumnHeadersMarked.master).toBeUndefined();
+      expect(viewport.shouldSynchronizeColumnHeaders).toBe(true);
+
+      hot.destroy();
+      container.remove();
+    });
+
+    it('should not reset markers or request sync for no-op/invalid showColumns calls', () => {
+      registerPlugin(HiddenColumns);
+
+      const container = document.createElement('div');
+
+      document.body.appendChild(container);
+
+      const hot = new Handsontable(container, {
+        data: Array.from({ length: 5 }, (__, rowIndex) => {
+          return Array.from({ length: 5 }, (___, columnIndex) => `r${rowIndex}c${columnIndex}`);
+        }),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const viewport = hot.view._wt.wtViewport;
+
+      hot.render();
+
+      viewport.hasOversizedColumnHeadersMarked.master = true;
+      viewport.shouldSynchronizeColumnHeaders = false;
+
+      hot.getPlugin('hiddenColumns').showColumns([]);
+      hot.getPlugin('hiddenColumns').showColumns([99]);
+
+      expect(viewport.hasOversizedColumnHeadersMarked.master).toBe(true);
+      expect(viewport.shouldSynchronizeColumnHeaders).toBe(false);
+
+      hot.destroy();
+      container.remove();
+    });
+
+    it('should not request header sync when row headers are disabled', () => {
+      registerPlugin(HiddenColumns);
+
+      const container = document.createElement('div');
+
+      document.body.appendChild(container);
+
+      const hot = new Handsontable(container, {
+        data: Array.from({ length: 5 }, (__, rowIndex) => {
+          return Array.from({ length: 5 }, (___, columnIndex) => `r${rowIndex}c${columnIndex}`);
+        }),
+        rowHeaders: false,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const viewport = hot.view._wt.wtViewport;
+
+      hot.render();
+
+      viewport.hasOversizedColumnHeadersMarked.master = true;
+      viewport.shouldSynchronizeColumnHeaders = false;
+
+      hot.getPlugin('hiddenColumns').showColumns([0]);
+
+      expect(viewport.hasOversizedColumnHeadersMarked.master).toBeUndefined();
+      expect(viewport.shouldSynchronizeColumnHeaders).toBe(false);
 
       hot.destroy();
       container.remove();
