@@ -242,7 +242,7 @@ describe('Updating the Handsontable settings', () => {
     console.error = originalError;
   });
 
-  it('should keep invalid-cell validation state after the first paste when `dataSchema` triggers rerender', async () => {
+  it('should not pass equivalent `dataSchema` and `columns` during paste-triggered rerender', async () => {
     const afterValidate = jest.fn();
     const hotTableRef = React.createRef<HotTableRef>();
 
@@ -295,26 +295,32 @@ describe('Updating the Handsontable settings', () => {
     mountComponent(<ExampleComponent />);
 
     const hotInstance = hotTableRef.current!.hotInstance!;
+    const updateSettingsSpy = jest.spyOn(hotInstance, 'updateSettings');
 
     await act(async() => {
       hotInstance.populateFromArray(0, 0, [['INVALID DIVISION', '2', '10']], undefined, undefined, 'CopyPaste.paste');
     });
 
-    await sleep(300);
+    for (let i = 0; i < 10 && updateSettingsSpy.mock.calls.length === 0; i++) {
+      await sleep(0);
+    }
+
+    expect(updateSettingsSpy).toHaveBeenCalled();
 
     expect(afterValidate).toHaveBeenCalledWith(false, 'INVALID DIVISION', 0, 'paymentDivision', 'CopyPaste.paste');
     expect(hotInstance.getDataAtCell(0, 0)).toBe('INVALID DIVISION');
     expect(hotInstance.getCell(0, 0)!.className).toContain('htInvalid');
 
-    await act(async() => {
-      hotInstance.populateFromArray(0, 0, [['INVALID DIVISION SECOND TRY', '2', '10']], undefined, undefined, 'CopyPaste.paste');
+    const callsFromWrapper = updateSettingsSpy.mock.calls
+      .filter(([, init]) => init === false);
+
+    expect(callsFromWrapper.length).toBeGreaterThan(0);
+    callsFromWrapper.forEach(([settings]) => {
+      expect(Object.prototype.hasOwnProperty.call(settings as object, 'dataSchema')).toBe(false);
+      expect(Object.prototype.hasOwnProperty.call(settings as object, 'columns')).toBe(false);
     });
 
-    await sleep(300);
-
-    expect(afterValidate).toHaveBeenCalledWith(false, 'INVALID DIVISION SECOND TRY', 0, 'paymentDivision', 'CopyPaste.paste');
-    expect(hotInstance.getDataAtCell(0, 0)).toBe('INVALID DIVISION SECOND TRY');
-    expect(hotInstance.getCell(0, 0)!.className).toContain('htInvalid');
+    updateSettingsSpy.mockRestore();
   });
 });
 

@@ -1,66 +1,8 @@
 import Handsontable from 'handsontable/base';
 import { HotTableProps } from './types';
+import { areEquivalentSettingsValue } from './helpers';
 
-function isObjectLike(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function isArray(value: unknown): value is unknown[] {
-  return Array.isArray(value);
-}
-
-function areEquivalentSettingsValue(previousValue: unknown, currentValue: unknown): boolean {
-  if (previousValue === currentValue) {
-    return true;
-  }
-
-  const previousIsArray = isArray(previousValue);
-  const currentIsArray = isArray(currentValue);
-
-  if (previousIsArray || currentIsArray) {
-    if (!previousIsArray || !currentIsArray) {
-      return false;
-    }
-
-    const previousEntries = previousValue as unknown as unknown[];
-    const currentEntries = currentValue as unknown as unknown[];
-
-    if (previousEntries.length !== currentEntries.length) {
-      return false;
-    }
-
-    for (let index = 0; index < previousEntries.length; index++) {
-      if (!areEquivalentSettingsValue(previousEntries[index], currentEntries[index])) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  if (!isObjectLike(previousValue) || !isObjectLike(currentValue)) {
-    return false;
-  }
-
-  const previousKeys = Object.keys(previousValue);
-  const currentKeys = Object.keys(currentValue);
-
-  if (previousKeys.length !== currentKeys.length) {
-    return false;
-  }
-
-  for (const key of previousKeys) {
-    if (!Object.prototype.hasOwnProperty.call(currentValue, key)) {
-      return false;
-    }
-
-    if (!areEquivalentSettingsValue(previousValue[key], currentValue[key])) {
-      return false;
-    }
-  }
-
-  return true;
-}
+const DEEP_COMPARABLE_SETTINGS: Array<keyof Handsontable.GridSettings> = ['dataSchema', 'columns'];
 
 export class SettingsMapper {
   /**
@@ -84,7 +26,7 @@ export class SettingsMapper {
       initOnlySettingKeys?: Array<keyof Handsontable.GridSettings>
     } = {}): Handsontable.GridSettings {
     const shouldSkipProp = (key: keyof Handsontable.GridSettings) => {
-      if (!isInit && (key === 'dataSchema' || key === 'columns')) {
+      if (!isInit && DEEP_COMPARABLE_SETTINGS.includes(key)) {
         return areEquivalentSettingsValue(prevProps[key], properties[key]);
       }
 
