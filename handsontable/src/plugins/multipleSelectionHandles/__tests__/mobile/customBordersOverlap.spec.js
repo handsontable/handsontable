@@ -1,10 +1,5 @@
 describe('MultipleSelectionHandles (customBorders overlap)', () => {
   const id = 'testContainer';
-  const desktopBrowserMeta = {
-    userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ' +
-      '(KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36',
-    vendor: 'Google Inc.',
-  };
   const mobileBrowserMeta = {
     userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 ' +
       '(KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36',
@@ -17,7 +12,7 @@ describe('MultipleSelectionHandles (customBorders overlap)', () => {
   });
 
   afterEach(function() {
-    Handsontable.helper.setBrowserMeta(desktopBrowserMeta);
+    Handsontable.helper.setBrowserMeta();
 
     if (this.$container) {
       destroy();
