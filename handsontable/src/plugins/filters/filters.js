@@ -446,9 +446,9 @@ export class Filters extends BasePlugin {
    *
    * **Note**: Mind that you cannot mix different types of operations (for instance, if you use `conjunction`, use it consequently for a particular column).
    *
-   * **Note**: If the number of conditions added programmatically via `addCondition()` exceeds the number supported by
-   * the filter's dropdown UI (two conditions per column), the extra conditions will be applied to the data but will
-   * not be visible or editable in the dropdown menu.
+   * **Note**: If the number of conditions added programmatically via `addCondition()` exceeds the capacity of the
+   * filter's dropdown UI (at most 2 regular conditions and 1 `by_value` condition per column), the extra conditions
+   * will be applied to the data but will not be visible or editable in the dropdown menu.
    *
    * @example
    * ::: only-for javascript
@@ -1303,9 +1303,9 @@ export class Filters extends BasePlugin {
     const conditionsWithoutByValue = conditions.filter(condition => condition.name !== CONDITION_BY_VALUE);
 
     if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
-      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
-        The dropdown menu supports a maximum of 2 conditions per column, but more were provided.\x20
-        For more details see the documentation.`);
+      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually. 
+        The dropdown menu supports at most 2 regular conditions and 1 'filter by value' condition per column, 
+        but more were provided. For more details see the documentation.`);
 
     } else {
       const operationType = this.conditionCollection.getOperation(column);
