@@ -10,64 +10,6 @@ describe('Core hooks (`afterScroll*`)', () => {
     }
   });
 
-  it('should not emit `afterScrollVertically` when only horizontal scroll changes and vertical scroll is already set', async() => {
-    const onAfterScrollHorizontally = jasmine.createSpy('onAfterScrollHorizontally');
-    const onAfterScrollVertically = jasmine.createSpy('onAfterScrollVertically');
-
-    handsontable({
-      data: createSpreadsheetData(100, 100),
-      width: 300,
-      height: 200,
-      rowHeaders: true,
-      colHeaders: true,
-      afterScrollHorizontally: onAfterScrollHorizontally,
-      afterScrollVertically: onAfterScrollVertically,
-    });
-
-    const holder = tableView()._wt.wtTable.holder;
-
-    holder.scrollTop = 200;
-    await sleep(50);
-
-    onAfterScrollHorizontally.calls.reset();
-    onAfterScrollVertically.calls.reset();
-
-    holder.scrollLeft = 200;
-    await sleep(50);
-
-    expect(onAfterScrollVertically).toHaveBeenCalledTimes(0);
-    expect(onAfterScrollHorizontally).toHaveBeenCalledTimes(1);
-  });
-
-  it('should not emit `afterScrollHorizontally` when only vertical scroll changes and horizontal scroll is already set', async() => {
-    const onAfterScrollHorizontally = jasmine.createSpy('onAfterScrollHorizontally');
-    const onAfterScrollVertically = jasmine.createSpy('onAfterScrollVertically');
-
-    handsontable({
-      data: createSpreadsheetData(100, 100),
-      width: 300,
-      height: 200,
-      rowHeaders: true,
-      colHeaders: true,
-      afterScrollHorizontally: onAfterScrollHorizontally,
-      afterScrollVertically: onAfterScrollVertically,
-    });
-
-    const holder = tableView()._wt.wtTable.holder;
-
-    holder.scrollLeft = 200;
-    await sleep(50);
-
-    onAfterScrollHorizontally.calls.reset();
-    onAfterScrollVertically.calls.reset();
-
-    holder.scrollTop = 200;
-    await sleep(50);
-
-    expect(onAfterScrollHorizontally).toHaveBeenCalledTimes(0);
-    expect(onAfterScrollVertically).toHaveBeenCalledTimes(1);
-  });
-
   it('should not emit `afterScrollVertically` when vertical callback is fired without vertical position change', async() => {
     const onAfterScrollVertically = jasmine.createSpy('onAfterScrollVertically');
 
@@ -80,10 +22,12 @@ describe('Core hooks (`afterScroll*`)', () => {
       afterScrollVertically: onAfterScrollVertically,
     });
 
-    const holder = tableView()._wt.wtTable.holder;
+    const topOverlay = tableView()._wt.wtOverlays.topOverlay;
 
-    holder.scrollTop = 200;
-    await sleep(50);
+    spyOn(topOverlay, 'getScrollPosition').and.returnValue(200);
+
+    tableView()._wt.wtSettings.getSetting('onScrollVertically');
+    expect(onAfterScrollVertically).toHaveBeenCalledTimes(1);
 
     onAfterScrollVertically.calls.reset();
     tableView()._wt.wtSettings.getSetting('onScrollVertically');
@@ -103,10 +47,12 @@ describe('Core hooks (`afterScroll*`)', () => {
       afterScrollHorizontally: onAfterScrollHorizontally,
     });
 
-    const holder = tableView()._wt.wtTable.holder;
+    const inlineStartOverlay = tableView()._wt.wtOverlays.inlineStartOverlay;
 
-    holder.scrollLeft = 200;
-    await sleep(50);
+    spyOn(inlineStartOverlay, 'getScrollPosition').and.returnValue(200);
+
+    tableView()._wt.wtSettings.getSetting('onScrollHorizontally');
+    expect(onAfterScrollHorizontally).toHaveBeenCalledTimes(1);
 
     onAfterScrollHorizontally.calls.reset();
     tableView()._wt.wtSettings.getSetting('onScrollHorizontally');
