@@ -914,17 +914,12 @@ export default () => {
      *   }
      * }
      *
-     * // enable the `ColumnSorting` plugin
+     * // enable the `ColumnSorting` plugin with an initial sort order:
+     * // sort column 1 in ascending order at initialization
      * columnSorting: {
-     *   // at initialization, sort column 1 in ascending order
      *   initialConfig: {
      *     column: 1,
      *     sortOrder: 'asc'
-     *   },
-     *   // at initialization, sort column 2 in descending order
-     *   initialConfig: {
-     *     column: 2,
-     *     sortOrder: 'desc'
      *   }
      * }
      * ```
@@ -3912,7 +3907,7 @@ export default () => {
 
     /**
      * @description
-     * The `multiColumnSorting` option configures the [`MultiColumnSorting`](@/api/columnSorting.md) plugin.
+     * The `multiColumnSorting` option configures the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin.
      *
      * You can set the `multiColumnSorting` option to one of the following:
      *
@@ -3972,18 +3967,13 @@ export default () => {
      *   }
      * }
      *
-     * // enable the `MultiColumnSorting` plugin
+     * // enable the `MultiColumnSorting` plugin with a multi-column initial sort order:
+     * // sort column 1 ascending first, then column 2 descending
      * multiColumnSorting: {
-     *   // at initialization, sort column 1 in ascending order
-     *   initialConfig: {
-     *     column: 1,
-     *     sortOrder: 'asc'
-     *   },
-     *   // at initialization, sort column 2 in descending order
-     *   initialConfig: {
-     *     column: 2,
-     *     sortOrder: 'desc'
-     *   }
+     *   initialConfig: [
+     *     { column: 1, sortOrder: 'asc' },
+     *     { column: 2, sortOrder: 'desc' }
+     *   ]
      * }
      * ```
      */
