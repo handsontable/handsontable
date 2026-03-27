@@ -45,11 +45,8 @@ class ConflictBlockedOnUpdateTestPlugin extends BasePlugin {
   }
 }
 
-registerConflict(
-  OWNER_SETTING,
-  settings => settings[OWNER_SETTING] === true,
-  [BLOCKED_SETTING],
-);
+// Blocked plugin key first; second key is the incompatible top-level setting (truthy => conflict).
+registerConflict(BLOCKED_SETTING, OWNER_SETTING);
 
 registerPlugin(ConflictOwnerOnUpdateTestPlugin);
 registerPlugin(ConflictBlockedOnUpdateTestPlugin);

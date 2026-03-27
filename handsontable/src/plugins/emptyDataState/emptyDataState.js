@@ -286,14 +286,10 @@ export class EmptyDataState extends BasePlugin {
     this.addHook('afterInit', () => this.#onAfterInit());
     this.addHook('afterRender', () => this.#onAfterRender());
     this.addHook('afterRowSequenceCacheUpdate', () => {
-      if (!this.#loadingActive) {
-        this.#toggleEmptyDataState();
-      }
+      this.#toggleEmptyDataState();
     });
     this.addHook('afterColumnSequenceCacheUpdate', () => {
-      if (!this.#loadingActive) {
-        this.#toggleEmptyDataState();
-      }
+      this.#toggleEmptyDataState();
     });
     this.addHook('beforeFilter', conditions => this.#onBeforeFilter(conditions));
     this.addHook('beforeDataProviderFetch', (queryParameters) => {

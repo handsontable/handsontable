@@ -1,3 +1,7 @@
+const DATA_PROVIDER_CONFLICT_WITH_MANUAL_ROW_MOVE =
+  'The `dataProvider` plugin cannot be used with the `manualRowMove` option. ' +
+  'This combination is not supported. The plugin will remain disabled.';
+
 describe('DataProvider with conflicting options', () => {
   beforeEach(function() {
     this.$container = $('<div id="testContainer"></div>').appendTo('body');
@@ -10,7 +14,7 @@ describe('DataProvider with conflicting options', () => {
     }
   });
 
-  it('should keep incompatible plugins disabled when dataProvider is enabled', async() => {
+  it('should keep dataProvider disabled when incompatible plugins are enabled', async() => {
     spyOn(console, 'warn');
 
     handsontable({
@@ -26,31 +30,17 @@ describe('DataProvider with conflicting options', () => {
 
     await sleep(50);
 
-    expect(getPlugin('dataProvider').enabled).toBe(true);
-    expect(getPlugin('trimRows').enabled).toBe(false);
-    expect(getPlugin('manualRowMove').enabled).toBe(false);
-    expect(getPlugin('manualColumnMove').enabled).toBe(false);
-    expect(getPlugin('multiColumnSorting').enabled).toBe(false);
+    expect(getPlugin('dataProvider').enabled).toBe(false);
+    expect(getPlugin('trimRows').enabled).toBe(true);
+    expect(getPlugin('manualRowMove').enabled).toBe(true);
+    expect(getPlugin('manualColumnMove').enabled).toBe(true);
+    expect(getPlugin('multiColumnSorting').enabled).toBe(true);
 
     // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/trimRows.*not compatible.*dataProvider/i)
-    );
-    // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/manualRowMove.*not compatible.*dataProvider/i)
-    );
-    // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/manualColumnMove.*not compatible.*dataProvider/i)
-    );
-    // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/multiColumnSorting.*not compatible.*dataProvider/i)
-    );
+    expect(console.warn).toHaveBeenCalledWith(DATA_PROVIDER_CONFLICT_WITH_MANUAL_ROW_MOVE);
   });
 
-  it('should keep incompatible plugins disabled when updateSettings turns them on with dataProvider', async() => {
+  it('should disable dataProvider when updateSettings turns conflicting plugins on', async() => {
     spyOn(console, 'warn');
 
     handsontable({
@@ -73,20 +63,15 @@ describe('DataProvider with conflicting options', () => {
 
     await sleep(50);
 
-    expect(getPlugin('trimRows').enabled).toBe(false);
-    expect(getPlugin('manualRowMove').enabled).toBe(false);
+    expect(getPlugin('dataProvider').enabled).toBe(false);
+    expect(getPlugin('trimRows').enabled).toBe(true);
+    expect(getPlugin('manualRowMove').enabled).toBe(true);
 
     // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/trimRows.*not compatible.*dataProvider/i)
-    );
-    // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/manualRowMove.*not compatible.*dataProvider/i)
-    );
+    expect(console.warn).toHaveBeenCalledWith(DATA_PROVIDER_CONFLICT_WITH_MANUAL_ROW_MOVE);
   });
 
-  it('should disable an already-enabled conflicting plugin when updateSettings only enables dataProvider', async() => {
+  it('should not enable dataProvider when updateSettings adds it alongside a conflicting plugin', async() => {
     spyOn(console, 'warn');
 
     handsontable({
@@ -108,12 +93,10 @@ describe('DataProvider with conflicting options', () => {
 
     await sleep(50);
 
-    expect(getPlugin('dataProvider').enabled).toBe(true);
-    expect(getPlugin('manualRowMove').enabled).toBe(false);
+    expect(getPlugin('dataProvider').enabled).toBe(false);
+    expect(getPlugin('manualRowMove').enabled).toBe(true);
 
     // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith(
-      jasmine.stringMatching(/manualRowMove.*not compatible.*dataProvider/i)
-    );
+    expect(console.warn).toHaveBeenCalledWith(DATA_PROVIDER_CONFLICT_WITH_MANUAL_ROW_MOVE);
   });
 });

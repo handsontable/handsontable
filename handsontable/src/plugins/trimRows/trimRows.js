@@ -193,10 +193,6 @@ export class TrimRows extends BasePlugin {
       return;
     }
 
-    if (this.isHardConflictBlocked()) {
-      return;
-    }
-
     this.trimmedRowsMap = this.hot.rowIndexMapper.registerMap('trimRows', new TrimmingMap());
     this.trimmedRowsMap.addLocalHook('init', () => this.#onMapInit());
 

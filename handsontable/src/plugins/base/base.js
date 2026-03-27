@@ -8,6 +8,7 @@ import { hasRenderer } from '../../renderers/registry';
 import { hasValidator } from '../../validators/registry';
 import EventManager from '../../eventManager';
 import { warn } from '../../helpers/console';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { getHardConflict } from './conflictRegistry';
 
 const DEPS_TYPE_CHECKERS = new Map([
@@ -164,9 +165,6 @@ export class BasePlugin {
 
     this.hot.addHookOnce('afterPluginsInitialized', () => {
       if (this.isEnabled && this.isEnabled()) {
-        if (this.isHardConflictBlocked()) {
-          return;
-        }
         this.enablePlugin();
       }
     });
@@ -192,8 +190,8 @@ export class BasePlugin {
   }
 
   /**
-   * Whether this plugin is blocked by a registered hard conflict (for example DataProvider vs manual row move).
-   * Emits a console warning when blocked.
+   * Whether this plugin is blocked by a registered hard conflict (another top-level setting is truthy; for example
+   * `nestedRows` blocks `pagination`, or `manualRowMove` blocks `dataProvider`). Emits a console warning when blocked.
    *
    * @returns {boolean} `true` if the plugin must not enable.
    */
@@ -202,7 +200,10 @@ export class BasePlugin {
     const conflict = getHardConflict(this.hot.getSettings(), pluginKey);
 
     if (conflict) {
-      warn(`${pluginKey} is not compatible with ${conflict.ownerPluginKey}`);
+      const { incompatibleSettingKey } = conflict;
+
+      warn(toSingleLine`The \`${pluginKey}\` plugin cannot be used with the \`${incompatibleSettingKey}\` option.\x20
+        This combination is not supported. The plugin will remain disabled.`);
 
       return true;
     }
@@ -457,8 +458,8 @@ export class BasePlugin {
 
   /**
    * On update settings listener. Re-applies hard conflict rules when settings change so a plugin that is already
-   * enabled disables if a conflicting owner (for example DataProvider) becomes active, even when this plugin's
-   * `SETTING_KEYS` do not overlap the `updateSettings` payload.
+   * enabled disables if a conflicting top-level setting becomes truthy, even when this plugin's `SETTING_KEYS` do not
+   * overlap the `updateSettings` payload.
    *
    * @private
    * @param {object} newSettings New set of settings passed to the `updateSettings` method.

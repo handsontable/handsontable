@@ -56,11 +56,12 @@ import {
 import { Hooks } from '../../core/hooks';
 import { registerConflict } from '../base/conflictRegistry';
 
-registerConflict(
-  'dataProvider',
-  settings => isCompleteDataProviderConfig(settings.dataProvider),
-  ['manualRowMove', 'manualColumnMove', 'trimRows', 'multiColumnSorting'],
-);
+registerConflict('dataProvider', [
+  'manualRowMove',
+  'manualColumnMove',
+  'trimRows',
+  'multiColumnSorting',
+]);
 
 Hooks.getSingleton().register('hasExternalDataSource');
 Hooks.getSingleton().add('hasExternalDataSource', function hasExternalDataSourceDefault() {
@@ -110,7 +111,7 @@ export {
  * Valid edits apply to the grid immediately; if `onRowsUpdate` fails, if validation fails later, or if `beforeRowsMutation` cancels, those cells revert to their previous values.
  * When the [[Options#dialog]] plugin is enabled, failed `fetchRows`, `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` requests (including a refetch after a successful mutation) open an alert dialog with the error message.
  *
- * With a complete `dataProvider` configuration, `trimRows`, `manualRowMove`, `manualColumnMove`, and `multiColumnSorting` do not enable. Handsontable logs a console warning for each of those options you still set.
+ * If `trimRows`, `manualRowMove`, `manualColumnMove`, or `multiColumnSorting` is enabled, the DataProvider plugin does not enable. Handsontable logs a console warning when you still set a complete `dataProvider` configuration.
  * Use [[Options#columnSorting]] for server-driven sort (single column). Query `sort` uses `prop` (column data key).
  */
 export class DataProvider extends BasePlugin {
@@ -163,6 +164,12 @@ export class DataProvider extends BasePlugin {
    * Enables the plugin, syncs query parameters from Pagination, ColumnSorting, and Filters, and registers hooks.
    */
   enablePlugin() {
+    if (this.isHardConflictBlocked()) {
+      this.hot.getSettings()[PLUGIN_KEY] = false;
+
+      return;
+    }
+
     if (this.enabled) {
       return;
     }

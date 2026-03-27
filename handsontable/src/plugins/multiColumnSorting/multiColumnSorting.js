@@ -107,10 +107,6 @@ export class MultiColumnSorting extends ColumnSorting {
       return;
     }
 
-    if (this.isHardConflictBlocked()) {
-      return;
-    }
-
     super.enablePlugin();
   }
 

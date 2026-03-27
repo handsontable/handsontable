@@ -2,11 +2,19 @@ import { BasePlugin } from '../base';
 import { clamp } from '../../helpers/number';
 import { getScrollbarWidth } from '../../helpers/dom/element';
 import { PaginationUI } from './ui';
-import { checkPluginSettingsConflict } from './utils';
 import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
+import { registerConflict } from '../base/conflictRegistry';
+
+// Hard conflicts: Pagination stays off while any of these top-level settings is truthy.
+registerConflict('pagination', [
+  'nestedRows',
+  'mergeCells',
+  'fixedRowsTop',
+  'fixedRowsBottom',
+]);
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
@@ -183,7 +191,7 @@ export class Pagination extends BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
-    if (checkPluginSettingsConflict(this.hot.getSettings())) {
+    if (this.isHardConflictBlocked()) {
       this.hot.getSettings()[PLUGIN_KEY] = false;
 
       return;

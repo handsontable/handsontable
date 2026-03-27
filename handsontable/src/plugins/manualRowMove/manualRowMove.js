@@ -102,10 +102,6 @@ export class ManualRowMove extends BasePlugin {
       return;
     }
 
-    if (this.isHardConflictBlocked()) {
-      return;
-    }
-
     this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
     this.addHook('beforeOnCellMouseOver', (...args) => this.#onBeforeOnCellMouseOver(...args));
     this.addHook('afterScrollHorizontally', () => this.#onAfterScrollHorizontally());
