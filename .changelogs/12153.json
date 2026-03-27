@@ -2,7 +2,7 @@
   "issuesOrigin": "public",
   "title": "Added regression tests for overlapping multi-range clear undo in UndoRedo.",
   "type": "changed",
-  "issueOrPR": 2628,
+  "issueOrPR": 12153,
   "breaking": false,
   "framework": "none"
 }
