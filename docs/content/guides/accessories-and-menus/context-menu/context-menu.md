@@ -111,6 +111,7 @@ You can define the items in the menu by passing the [`contextMenu`](@/api/option
 | [`filter_operators`](@/api/contextMenu.md)               | Select a filter parameter. Requires: [`Filters`](@/api/filters.md)                                                                                                   |
 | [`filter_by_value`](@/api/contextMenu.md)                | Add a filter value. Requires: [`Filters`](@/api/filters.md)                                                                                                          |
 | [`filter_action_bar`](@/api/contextMenu.md)              | Apply the configured filter. Requires: [`Filters`](@/api/filters.md)                                                                                                 |
+| [`export_file`](@/api/contextMenu.md)                    | Open the Export submenu with "To CSV" and "To Excel" items. Requires: [`ExportFile`](@/api/exportFile.md). The Excel item is hidden when no XLSX engine is configured. |
 
 To see the context menu, right-click on a cell:
 
@@ -173,6 +174,20 @@ This example shows how to:
 - Set custom text for predefined option
 - Add own custom option
 - Add callback for specific option
+
+Here are the API options for the custom context menu:
+
+| Option                                                      | Description                                                |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                     | The label displayed in the menu. Can be a string or a function returning a string. Supports HTML.                                                                                                                                          |
+| `disabled`                  | Whether the item is grayed out and non-clickable. Can be a boolean or a function returning a boolean. this refers to the Handsontable instance.                                                                                                                                          |
+| `hidden`                  | Whether the item is grayed out and non-clickable. Can be a boolean or a function returning a boolean. this refers to the Handsontable instance.                                                                                                                                          |
+| `callback`                  | A function called when the item is clicked. Receives key, selection, and clickEvent as arguments.                                                                                                                                          |
+| `submenu`                  | Defines a nested submenu. Takes an object with an items array. Each item's key must be prefixed with the parent key followed by a colon, e.g. parent:child.                                                                                                                                          |
+| `renderer`                  | A custom function for rendering the item's HTML content.                                                                                                                                          |
+| `disableSelection`                  | A boolean. When true, hovering over the item does not highlight it.                                                                                                                                          |
+| `isCommand`                  | A boolean. When false, clicking the item neither executes a command nor closes the menu.                                                                                                                                         |
+
 
 To see the context menu, right-click on a cell:
 

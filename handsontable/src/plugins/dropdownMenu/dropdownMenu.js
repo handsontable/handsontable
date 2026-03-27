@@ -349,6 +349,13 @@ export class DropdownMenu extends BasePlugin {
    * the offset to the menu position.
    * @fires Hooks#beforeDropdownMenuShow
    * @fires Hooks#afterDropdownMenuShow
+   * @example
+   * ```js
+   * const menu = hot.getPlugin('dropdownMenu');
+   *
+   * hot.selectCell(0, 0);
+   * menu.open({ top: 50, left: 50 });
+   * ```
    */
   open(position, offset = { above: 0, below: 0, left: 0, right: 0 }) {
     if (this.menu?.isOpened()) {

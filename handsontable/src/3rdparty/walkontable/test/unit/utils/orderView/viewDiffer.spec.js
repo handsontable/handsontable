@@ -1,5 +1,13 @@
 import { ViewDiffer } from 'walkontable/utils/orderView/viewDiffer';
 import { ViewSizeSet } from 'walkontable/utils/orderView/viewSizeSet';
+import {
+  CMD_NONE,
+  CMD_REMOVE,
+  CMD_APPEND,
+  CMD_PREPEND,
+  CMD_INSERT_BEFORE,
+  CMD_REPLACE,
+} from 'walkontable/utils/orderView/constants';
 
 describe('ViewDiffer', () => {
   it('should generate leads filled with "append" type when previous order wasn\'t exist', async() => {
@@ -10,12 +18,12 @@ describe('ViewDiffer', () => {
     sizeSet.setOffset(0);
 
     expect(differ.diff()).toEqual([
-      ['append', 0],
-      ['append', 1],
-      ['append', 2],
-      ['append', 3],
-      ['append', 4],
-      ['append', 5],
+      [CMD_APPEND, 0],
+      [CMD_APPEND, 1],
+      [CMD_APPEND, 2],
+      [CMD_APPEND, 3],
+      [CMD_APPEND, 4],
+      [CMD_APPEND, 5],
     ]);
   });
 
@@ -29,12 +37,12 @@ describe('ViewDiffer', () => {
     sizeSet.setOffset(0);
 
     expect(differ.diff()).toEqual([
-      ['none', 0],
-      ['none', 1],
-      ['none', 2],
-      ['append', 3],
-      ['append', 4],
-      ['append', 5],
+      [CMD_NONE, 0],
+      [CMD_NONE, 1],
+      [CMD_NONE, 2],
+      [CMD_APPEND, 3],
+      [CMD_APPEND, 4],
+      [CMD_APPEND, 5],
     ]);
   });
 
@@ -48,12 +56,12 @@ describe('ViewDiffer', () => {
     sizeSet.setOffset(0);
 
     expect(differ.diff()).toEqual([
-      ['remove', 0],
-      ['remove', 1],
-      ['remove', 2],
-      ['remove', 3],
-      ['remove', 4],
-      ['remove', 5],
+      [CMD_REMOVE, 0],
+      [CMD_REMOVE, 1],
+      [CMD_REMOVE, 2],
+      [CMD_REMOVE, 3],
+      [CMD_REMOVE, 4],
+      [CMD_REMOVE, 5],
     ]);
   });
 
@@ -68,12 +76,12 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(1);
 
       expect(differ.diff()).toEqual([
-        ['replace', 1, 0],
-        ['none', 2],
-        ['none', 3],
-        ['none', 4],
-        ['none', 5],
-        ['append', 6],
+        [CMD_REPLACE, 1, 0],
+        [CMD_NONE, 2],
+        [CMD_NONE, 3],
+        [CMD_NONE, 4],
+        [CMD_NONE, 5],
+        [CMD_APPEND, 6],
       ]);
     });
 
@@ -87,12 +95,12 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(3);
 
       expect(differ.diff()).toEqual([
-        ['replace', 3, 0],
-        ['replace', 4, 1],
-        ['replace', 5, 2],
-        ['append', 6],
-        ['append', 7],
-        ['append', 8],
+        [CMD_REPLACE, 3, 0],
+        [CMD_REPLACE, 4, 1],
+        [CMD_REPLACE, 5, 2],
+        [CMD_APPEND, 6],
+        [CMD_APPEND, 7],
+        [CMD_APPEND, 8],
       ]);
     });
 
@@ -106,12 +114,12 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(5);
 
       expect(differ.diff()).toEqual([
-        ['replace', 5, 0],
-        ['replace', 6, 1],
-        ['replace', 7, 2],
-        ['replace', 8, 3],
-        ['replace', 9, 4],
-        ['append', 10],
+        [CMD_REPLACE, 5, 0],
+        [CMD_REPLACE, 6, 1],
+        [CMD_REPLACE, 7, 2],
+        [CMD_REPLACE, 8, 3],
+        [CMD_REPLACE, 9, 4],
+        [CMD_APPEND, 10],
       ]);
     });
 
@@ -125,12 +133,12 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(10);
 
       expect(differ.diff()).toEqual([
-        ['replace', 10, 0],
-        ['replace', 11, 1],
-        ['replace', 12, 2],
-        ['replace', 13, 3],
-        ['replace', 14, 4],
-        ['replace', 15, 5],
+        [CMD_REPLACE, 10, 0],
+        [CMD_REPLACE, 11, 1],
+        [CMD_REPLACE, 12, 2],
+        [CMD_REPLACE, 13, 3],
+        [CMD_REPLACE, 14, 4],
+        [CMD_REPLACE, 15, 5],
       ]);
     });
 
@@ -144,16 +152,16 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(3);
 
       expect(differ.diff()).toEqual([
-        ['replace', 3, 0],
-        ['replace', 4, 1],
-        ['replace', 5, 2],
-        ['append', 6],
-        ['append', 7],
-        ['append', 8],
-        ['append', 9],
-        ['append', 10],
-        ['append', 11],
-        ['append', 12],
+        [CMD_REPLACE, 3, 0],
+        [CMD_REPLACE, 4, 1],
+        [CMD_REPLACE, 5, 2],
+        [CMD_APPEND, 6],
+        [CMD_APPEND, 7],
+        [CMD_APPEND, 8],
+        [CMD_APPEND, 9],
+        [CMD_APPEND, 10],
+        [CMD_APPEND, 11],
+        [CMD_APPEND, 12],
       ]);
     });
 
@@ -167,14 +175,14 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(9);
 
       expect(differ.diff()).toEqual([
-        ['replace', 9, 2],
-        ['replace', 10, 3],
-        ['replace', 11, 4],
-        ['replace', 12, 5],
-        ['replace', 13, 6],
-        ['replace', 14, 7],
-        ['replace', 15, 8],
-        ['append', 16],
+        [CMD_REPLACE, 9, 2],
+        [CMD_REPLACE, 10, 3],
+        [CMD_REPLACE, 11, 4],
+        [CMD_REPLACE, 12, 5],
+        [CMD_REPLACE, 13, 6],
+        [CMD_REPLACE, 14, 7],
+        [CMD_REPLACE, 15, 8],
+        [CMD_APPEND, 16],
       ]);
     });
 
@@ -188,9 +196,9 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(3);
 
       expect(differ.diff()).toEqual([
-        ['replace', 3, 0],
-        ['replace', 4, 1],
-        ['replace', 5, 2],
+        [CMD_REPLACE, 3, 0],
+        [CMD_REPLACE, 4, 1],
+        [CMD_REPLACE, 5, 2],
       ]);
     });
 
@@ -204,12 +212,12 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(30);
 
       expect(differ.diff()).toEqual([
-        ['replace', 30, 0],
-        ['replace', 31, 1],
-        ['replace', 32, 2],
-        ['remove', 3],
-        ['remove', 4],
-        ['remove', 5],
+        [CMD_REPLACE, 30, 0],
+        [CMD_REPLACE, 31, 1],
+        [CMD_REPLACE, 32, 2],
+        [CMD_REMOVE, 3],
+        [CMD_REMOVE, 4],
+        [CMD_REMOVE, 5],
       ]);
     });
 
@@ -224,14 +232,14 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(21);
 
       expect(differ.diff()).toEqual([
-        ['replace', 21, 19],
-        ['replace', 22, 20],
-        ['none', 23],
-        ['none', 24],
-        ['none', 25],
-        ['none', 26],
-        ['none', 27],
-        ['append', 28],
+        [CMD_REPLACE, 21, 19],
+        [CMD_REPLACE, 22, 20],
+        [CMD_NONE, 23],
+        [CMD_NONE, 24],
+        [CMD_NONE, 25],
+        [CMD_NONE, 26],
+        [CMD_NONE, 27],
+        [CMD_APPEND, 28],
       ]);
     });
   });
@@ -247,12 +255,12 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(19);
 
       expect(differ.diff()).toEqual([
-        ['insert_before', 19, 20, 25],
-        ['none', 20],
-        ['none', 21],
-        ['none', 22],
-        ['none', 23],
-        ['none', 24],
+        [CMD_INSERT_BEFORE, 19, 20, 25],
+        [CMD_NONE, 20],
+        [CMD_NONE, 21],
+        [CMD_NONE, 22],
+        [CMD_NONE, 23],
+        [CMD_NONE, 24],
       ]);
     });
 
@@ -266,12 +274,12 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(17);
 
       expect(differ.diff()).toEqual([
-        ['insert_before', 17, 20, 25],
-        ['insert_before', 18, 20, 24],
-        ['insert_before', 19, 20, 23],
-        ['none', 20],
-        ['none', 21],
-        ['none', 22],
+        [CMD_INSERT_BEFORE, 17, 20, 25],
+        [CMD_INSERT_BEFORE, 18, 20, 24],
+        [CMD_INSERT_BEFORE, 19, 20, 23],
+        [CMD_NONE, 20],
+        [CMD_NONE, 21],
+        [CMD_NONE, 22],
       ]);
     });
 
@@ -285,12 +293,12 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(15);
 
       expect(differ.diff()).toEqual([
-        ['insert_before', 15, 20, 25],
-        ['insert_before', 16, 20, 24],
-        ['insert_before', 17, 20, 23],
-        ['insert_before', 18, 20, 22],
-        ['insert_before', 19, 20, 21],
-        ['none', 20],
+        [CMD_INSERT_BEFORE, 15, 20, 25],
+        [CMD_INSERT_BEFORE, 16, 20, 24],
+        [CMD_INSERT_BEFORE, 17, 20, 23],
+        [CMD_INSERT_BEFORE, 18, 20, 22],
+        [CMD_INSERT_BEFORE, 19, 20, 21],
+        [CMD_NONE, 20],
       ]);
     });
 
@@ -304,12 +312,12 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(10);
 
       expect(differ.diff()).toEqual([
-        ['insert_before', 10, 20, 25],
-        ['insert_before', 11, 20, 24],
-        ['insert_before', 12, 20, 23],
-        ['insert_before', 13, 20, 22],
-        ['insert_before', 14, 20, 21],
-        ['insert_before', 15, 20, 20],
+        [CMD_INSERT_BEFORE, 10, 20, 25],
+        [CMD_INSERT_BEFORE, 11, 20, 24],
+        [CMD_INSERT_BEFORE, 12, 20, 23],
+        [CMD_INSERT_BEFORE, 13, 20, 22],
+        [CMD_INSERT_BEFORE, 14, 20, 21],
+        [CMD_INSERT_BEFORE, 15, 20, 20],
       ]);
     });
 
@@ -323,14 +331,14 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(17);
 
       expect(differ.diff()).toEqual([
-        ['insert_before', 17, 20, 25],
-        ['insert_before', 18, 20, 24],
-        ['insert_before', 19, 20, 23],
-        ['none', 20],
-        ['none', 21],
-        ['none', 22],
-        ['append', 23],
-        ['append', 24],
+        [CMD_INSERT_BEFORE, 17, 20, 25],
+        [CMD_INSERT_BEFORE, 18, 20, 24],
+        [CMD_INSERT_BEFORE, 19, 20, 23],
+        [CMD_NONE, 20],
+        [CMD_NONE, 21],
+        [CMD_NONE, 22],
+        [CMD_APPEND, 23],
+        [CMD_APPEND, 24],
       ]);
     });
 
@@ -344,14 +352,14 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(13);
 
       expect(differ.diff()).toEqual([
-        ['insert_before', 13, 20, 25],
-        ['insert_before', 14, 20, 24],
-        ['insert_before', 15, 20, 23],
-        ['insert_before', 16, 20, 22],
-        ['insert_before', 17, 20, 21],
-        ['insert_before', 18, 20, 20],
-        ['append', 19],
-        ['append', 20],
+        [CMD_INSERT_BEFORE, 13, 20, 25],
+        [CMD_INSERT_BEFORE, 14, 20, 24],
+        [CMD_INSERT_BEFORE, 15, 20, 23],
+        [CMD_INSERT_BEFORE, 16, 20, 22],
+        [CMD_INSERT_BEFORE, 17, 20, 21],
+        [CMD_INSERT_BEFORE, 18, 20, 20],
+        [CMD_APPEND, 19],
+        [CMD_APPEND, 20],
       ]);
     });
 
@@ -366,13 +374,13 @@ describe('ViewDiffer', () => {
         sizeSet.setOffset(17);
 
         expect(differ.diff()).toEqual([
-          ['insert_before', 17, 20, 26],
-          ['insert_before', 18, 20, 25],
-          ['insert_before', 19, 20, 24],
-          ['remove', 20],
-          ['remove', 21],
-          ['remove', 22],
-          ['remove', 23],
+          [CMD_INSERT_BEFORE, 17, 20, 26],
+          [CMD_INSERT_BEFORE, 18, 20, 25],
+          [CMD_INSERT_BEFORE, 19, 20, 24],
+          [CMD_REMOVE, 20],
+          [CMD_REMOVE, 21],
+          [CMD_REMOVE, 22],
+          [CMD_REMOVE, 23],
         ]);
       }
       {
@@ -385,10 +393,10 @@ describe('ViewDiffer', () => {
         sizeSet.setOffset(24);
 
         expect(differ.diff()).toEqual([
-          ['replace', 24, 20],
-          ['replace', 25, 21],
-          ['replace', 26, 22],
-          ['remove', 23],
+          [CMD_REPLACE, 24, 20],
+          [CMD_REPLACE, 25, 21],
+          [CMD_REPLACE, 26, 22],
+          [CMD_REMOVE, 23],
         ]);
       }
     });
@@ -403,12 +411,12 @@ describe('ViewDiffer', () => {
       sizeSet.setOffset(0);
 
       expect(differ.diff()).toEqual([
-        ['insert_before', 0, 20, 25],
-        ['insert_before', 1, 20, 24],
-        ['insert_before', 2, 20, 23],
-        ['remove', 20],
-        ['remove', 21],
-        ['remove', 22],
+        [CMD_INSERT_BEFORE, 0, 20, 25],
+        [CMD_INSERT_BEFORE, 1, 20, 24],
+        [CMD_INSERT_BEFORE, 2, 20, 23],
+        [CMD_REMOVE, 20],
+        [CMD_REMOVE, 21],
+        [CMD_REMOVE, 22],
       ]);
     });
   });
@@ -435,11 +443,11 @@ describe('ViewDiffer', () => {
 
       expect(differTH.diff()).toEqual([]);
       expect(differTD.diff()).toEqual([
-        ['append', 0],
-        ['append', 1],
-        ['append', 2],
-        ['append', 3],
-        ['append', 4],
+        [CMD_APPEND, 0],
+        [CMD_APPEND, 1],
+        [CMD_APPEND, 2],
+        [CMD_APPEND, 3],
+        [CMD_APPEND, 4],
       ]);
 
       sizeSetTH.setSize(1);
@@ -448,14 +456,14 @@ describe('ViewDiffer', () => {
       sizeSetTD.setOffset(0);
 
       expect(differTH.diff()).toEqual([
-        ['prepend', 0],
+        [CMD_PREPEND, 0],
       ]);
       expect(differTD.diff()).toEqual([
-        ['none', 0],
-        ['none', 1],
-        ['none', 2],
-        ['none', 3],
-        ['none', 4],
+        [CMD_NONE, 0],
+        [CMD_NONE, 1],
+        [CMD_NONE, 2],
+        [CMD_NONE, 3],
+        [CMD_NONE, 4],
       ]);
     });
 
@@ -475,14 +483,14 @@ describe('ViewDiffer', () => {
       sizeSetTD.setOffset(0);
 
       expect(differTH.diff()).toEqual([
-        ['prepend', 0],
+        [CMD_PREPEND, 0],
       ]);
       expect(differTD.diff()).toEqual([
-        ['append', 0],
-        ['append', 1],
-        ['append', 2],
-        ['append', 3],
-        ['append', 4],
+        [CMD_APPEND, 0],
+        [CMD_APPEND, 1],
+        [CMD_APPEND, 2],
+        [CMD_APPEND, 3],
+        [CMD_APPEND, 4],
       ]);
 
       sizeSetTH.setSize(0);
@@ -491,14 +499,14 @@ describe('ViewDiffer', () => {
       sizeSetTD.setOffset(0);
 
       expect(differTH.diff()).toEqual([
-        ['remove', 0],
+        [CMD_REMOVE, 0],
       ]);
       expect(differTD.diff()).toEqual([
-        ['none', 0],
-        ['none', 1],
-        ['none', 2],
-        ['none', 3],
-        ['none', 4],
+        [CMD_NONE, 0],
+        [CMD_NONE, 1],
+        [CMD_NONE, 2],
+        [CMD_NONE, 3],
+        [CMD_NONE, 4],
       ]);
     });
   });

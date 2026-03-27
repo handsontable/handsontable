@@ -1347,8 +1347,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         },
         {
           data: 4,
-          type: 'date',
-          dateFormat: 'DD/MM/YYYY',
+          type: 'intl-date',
+          locale: 'en-GB',
+          dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' },
           headerClassName: 'htLeft',
         },
         {
