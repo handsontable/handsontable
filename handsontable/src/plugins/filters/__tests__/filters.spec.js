@@ -201,7 +201,7 @@ describe('Filters', () => {
 
     expect(warnSpy.calls.mostRecent().args).toEqual(['The filter conditions have been applied properly, ' +
       'but couldn’t be displayed visually. The dropdown menu supports at most 2 regular conditions and 1 ' +
-      "'filter by value' condition per column, but more were provided. " +
+      '\'filter by value\' condition per column, but more were provided. ' +
       'For more details see the documentation.']);
 
     plugin.addCondition(0, 'contains', ['o']);
@@ -209,7 +209,7 @@ describe('Filters', () => {
 
     expect(warnSpy.calls.mostRecent().args).toEqual(['The filter conditions have been applied properly, ' +
       'but couldn’t be displayed visually. The dropdown menu supports at most 2 regular conditions and 1 ' +
-      "'filter by value' condition per column, but more were provided. " +
+      '\'filter by value\' condition per column, but more were provided. ' +
       'For more details see the documentation.']);
     expect(warnSpy.calls.count()).toBe(2);
   });
