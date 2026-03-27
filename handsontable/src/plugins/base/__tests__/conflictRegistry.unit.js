@@ -1,6 +1,6 @@
 import { getHardConflict, registerConflict } from '../conflictRegistry';
 
-// Registers production dataProvider hard conflicts (and hasExternalDataSource hook).
+// Registers production dataProvider hard conflicts (imports dataProvider module for side effects).
 import '../../dataProvider/dataProvider';
 // Registers pagination hard conflicts (nestedRows, mergeCells, frozen rows).
 import '../../pagination/pagination';

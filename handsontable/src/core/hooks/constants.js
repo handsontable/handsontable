@@ -541,8 +541,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Queried to determine if the instance uses an external data source (complete [[Options#dataProvider]] configuration).
-   * The DataProvider plugin registers a default handler. Callbacks may return `true`, `false`, or `undefined`; the value
-   * propagates through the hook chain like other [[Hooks#run]] hooks.
+   * When the DataProvider plugin is enabled, it adds an instance handler in `enablePlugin()`. Callbacks may return
+   * `true`, `false`, or `undefined`; the value propagates through the hook chain like other [[Hooks#run]] hooks.
    *
    * @event Hooks#hasExternalDataSource
    * @since 17.1.0

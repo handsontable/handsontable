@@ -53,7 +53,6 @@ import {
   getDataProviderRequestErrorDescription,
   isCompleteDataProviderConfig,
 } from './utils';
-import { Hooks } from '../../core/hooks';
 import { registerConflict } from '../base/conflictRegistry';
 
 registerConflict('dataProvider', [
@@ -62,11 +61,6 @@ registerConflict('dataProvider', [
   'trimRows',
   'multiColumnSorting',
 ]);
-
-Hooks.getSingleton().register('hasExternalDataSource');
-Hooks.getSingleton().add('hasExternalDataSource', function hasExternalDataSourceDefault() {
-  return isCompleteDataProviderConfig(this.getSettings().dataProvider);
-});
 
 /**
  * Sort descriptor in query parameters (`fetchRows` and DataProvider getters).
@@ -150,6 +144,12 @@ export class DataProvider extends BasePlugin {
    * @type {{ tail: Promise<void> }}
    */
   #mutationQueue = { tail: Promise.resolve() };
+
+  constructor(hotInstance) {
+    super(hotInstance);
+
+    this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
+  }
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -680,6 +680,14 @@ export class DataProvider extends BasePlugin {
       onSuccess
     );
   }
+
+  /**
+   * Default handler for [[Hooks#hasExternalDataSource]]: `true` when this instance has a complete server-backed
+   * `dataProvider` configuration. Registered only while the plugin is enabled so the hook is instance-scoped.
+   *
+   * @returns {boolean}
+   */
+  #onHasExternalDataSource = () => isCompleteDataProviderConfig(this.hot.getSettings().dataProvider);
 
   /**
    * @returns {void}
