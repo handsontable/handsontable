@@ -139,15 +139,10 @@ class HeadersUI extends BaseUI {
   /**
    * Update the row header width according to number of levels in the dataset.
    *
-   * @private
    * @param {number} deepestLevel Cached deepest level of nesting.
    */
   updateRowHeaderWidth(deepestLevel) {
-    const {
-      rowHeaderWidthCache,
-    } = this.#calculateRowHeaderWidth(deepestLevel);
-
-    this.rowHeaderWidthCache = rowHeaderWidthCache;
+    this.cacheRowHeaderWidth(deepestLevel);
 
     this.hot.render();
   }
@@ -155,26 +150,17 @@ class HeadersUI extends BaseUI {
   /**
    * Cache the row header width according to number of levels in the dataset.
    *
-   * @private
    * @param {number} deepestLevel Cached deepest level of nesting.
    */
   cacheRowHeaderWidth(deepestLevel) {
-    const { rowHeaderWidthCache } = this.#calculateRowHeaderWidth(deepestLevel);
-
-    this.rowHeaderWidthCache = rowHeaderWidthCache;
+    this.rowHeaderWidthCache = this.#calculateRowHeaderWidth(deepestLevel);
   }
 
   /**
-   * Calculate values required to determine the row header width.
+   * Calculate the row header width according to number of levels in the dataset.
    *
-   * @private
    * @param {number} deepestLevel Cached deepest level of nesting.
-   * @returns {{
-   *   deepestLevelIndex: number,
-   *   verticalPadding: number,
-   *   completeVerticalPadding: number,
-   *   rowHeaderWidthCache: number
-   * }} Calculated row header width metadata.
+   * @returns {number} The calculated row header width.
    */
   #calculateRowHeaderWidth(deepestLevel) {
     let deepestLevelIndex = deepestLevel;
@@ -185,14 +171,8 @@ class HeadersUI extends BaseUI {
 
     const verticalPadding = this.hot.stylesHandler.getCSSVariableValue('cell-horizontal-padding');
     const completeVerticalPadding = verticalPadding * 2;
-    const rowHeaderWidthCache = Math.max(50, completeVerticalPadding + (10 * deepestLevelIndex) + 25);
 
-    return {
-      deepestLevelIndex,
-      verticalPadding,
-      completeVerticalPadding,
-      rowHeaderWidthCache,
-    };
+    return Math.max(50, completeVerticalPadding + (10 * deepestLevelIndex) + 25);
   }
 }
 

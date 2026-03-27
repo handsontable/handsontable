@@ -1034,7 +1034,6 @@ describe('Core_view', () => {
 
     handsontable({
       data: nestedData,
-      themeName: 'ht-theme-main',
       colHeaders: ['ID', 'Name Name Name Name'],
       nestedRows: true,
       rowHeaders: true
@@ -1043,7 +1042,10 @@ describe('Core_view', () => {
     await sleep(100);
 
     const headerCell = getCell(-1, 1);
+    const $htCore = spec().$container.find('.ht_master .wtHolder .wtHider .wtSpreader .htCore');
+    const $wtHider = spec().$container.find('.ht_master .wtHolder .wtHider');
 
     expect(headerCell.clientWidth).toBeGreaterThanOrEqual(headerCell.scrollWidth);
+    expect($wtHider.width()).toEqual($htCore.width());
   });
 });

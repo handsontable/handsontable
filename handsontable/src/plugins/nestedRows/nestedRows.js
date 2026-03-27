@@ -454,6 +454,10 @@ export class NestedRows extends BasePlugin {
    */
   #onAfterInit() {
     this.headersUI.updateRowHeaderWidth();
+
+    if (this.hot.view) {
+      this.hot.view.adjustElementsSize(true);
+    }
   }
 
   /**
