@@ -885,6 +885,9 @@ At the moment, filtering comes with the following limitations:
 - There is no easy way to add custom filter operators to the user interface.
 - The list of values that you can filter by is generated automatically and there's no supported way
   of modifying it.
+- The filter's dropdown menu supports at most two conditions per column. If you add more conditions
+  programmatically via [`addCondition()`](@/api/filters.md), the extra conditions are applied to the
+  data but are not visible or editable in the dropdown menu.
 
 ## Related keyboard shortcuts
 

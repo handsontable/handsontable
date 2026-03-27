@@ -200,15 +200,15 @@ describe('Filters', () => {
     plugin.filter();
 
     expect(warnSpy.calls.mostRecent().args).toEqual(['The filter conditions have been applied properly, ' +
-      'but couldn’t be displayed visually. The overall amount of conditions exceed the capability of the ' +
-      'dropdown menu. For more details see the documentation.']);
+      'but couldn’t be displayed visually. The dropdown menu supports a maximum of 2 conditions per column, ' +
+      'but more were provided. For more details see the documentation.']);
 
     plugin.addCondition(0, 'contains', ['o']);
     plugin.filter();
 
     expect(warnSpy.calls.mostRecent().args).toEqual(['The filter conditions have been applied properly, ' +
-      'but couldn’t be displayed visually. The overall amount of conditions exceed the capability of the ' +
-      'dropdown menu. For more details see the documentation.']);
+      'but couldn’t be displayed visually. The dropdown menu supports a maximum of 2 conditions per column, ' +
+      'but more were provided. For more details see the documentation.']);
     expect(warnSpy.calls.count()).toBe(2);
   });
 
