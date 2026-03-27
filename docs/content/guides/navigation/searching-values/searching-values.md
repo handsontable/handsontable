@@ -235,11 +235,17 @@ The example below:
 
 You can style search results with a custom CSS class, using the [`Search`](@/api/search.md) plugin's [`searchResultClass`](@/api/options.md#search) option.
 
-The example below highlights search results in bold red. To do this, it:
+::: tip
 
-- Defines a custom CSS class called `my-custom-search-result-class`
+Always scope your custom class under the theme and `.handsontable` selectors (for example, `.ht-theme-main .handsontable .my-class`) to avoid conflicts with other styles. For more details, see the [Themes](@/guides/styling/themes/themes.md) guide.
+
+:::
+
+The example below highlights search results with a pink background and red text. To do this, it:
+
+- Defines a custom CSS class called `my-class`, scoped to `.ht-theme-main .handsontable`
 - Enables the [`Search`](@/api/search.md) plugin with a configuration object
-- Sets [`searchResultClass`](@/api/options.md#search) to `'my-custom-search-result-class'`
+- Sets [`searchResultClass`](@/api/options.md#search) to `'my-class'`
 
 ::: only-for javascript
 
