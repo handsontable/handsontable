@@ -192,12 +192,6 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
     }, {
       keys: [['delete'], ['backspace']],
       callback: () => {
-        const hasMultipleSelectionLayers = (hotInstance.getSelectedRange()?.length ?? 0) > 1;
-
-        if (hasMultipleSelectionLayers && !areAllSelectedCheckboxCells()) {
-          return true;
-        }
-
         changeSelectedCheckboxesState(true);
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
@@ -385,51 +379,6 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
     return false;
   }
 
-  /**
-   * Checks whether every non-readonly selected data cell is checkbox-typed.
-   *
-   * @returns {boolean}
-   * @private
-   */
-  function areAllSelectedCheckboxCells() {
-    const selRange = hotInstance.getSelectedRange();
-    let hasAtLeastOneCheckbox = false;
-
-    if (!selRange) {
-      return false;
-    }
-
-    for (let key = 0; key < selRange.length; key++) {
-      const topLeft = selRange[key].getTopStartCorner();
-      const bottomRight = selRange[key].getBottomEndCorner();
-      const fromRow = Math.max(topLeft.row, 0);
-      const toRow = Math.min(bottomRight.row, hotInstance.countRows() - 1);
-      const fromColumn = Math.max(topLeft.col, 0);
-      const toColumn = Math.min(bottomRight.col, hotInstance.countCols() - 1);
-
-      if (fromRow > toRow || fromColumn > toColumn) {
-        continue;
-      }
-
-      for (let visualRow = fromRow; visualRow <= toRow; visualRow++) {
-        for (let visualColumn = fromColumn; visualColumn <= toColumn; visualColumn++) {
-          const cellMeta = hotInstance.getCellMeta(visualRow, visualColumn);
-
-          if (cellMeta.readOnly) {
-            continue;
-          }
-
-          if (cellMeta.type !== 'checkbox') {
-            return false;
-          }
-
-          hasAtLeastOneCheckbox = true;
-        }
-      }
-    }
-
-    return hasAtLeastOneCheckbox;
-  }
 }
 
 checkboxRenderer.RENDERER_TYPE = RENDERER_TYPE;

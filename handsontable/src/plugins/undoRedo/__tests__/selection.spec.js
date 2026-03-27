@@ -158,7 +158,7 @@ describe('UndoRedo', () => {
       addHook('beforeChange', (changes, source) => {
         beforeChangeSummaries.push({
           source,
-          changesLength: changes.length,
+          changes: [...changes],
           firstChange: changes[0] ?? null,
           selectedLength: getSelected()?.length ?? 0,
         });
@@ -175,13 +175,25 @@ describe('UndoRedo', () => {
       expect(getSelected().length).toBe(2);
 
       await keyDownUp('delete');
+      expect(getData()).toEqual([
+        [null, null, false],
+        [null, null, false],
+        [null, null, false],
+      ]);
       expect(beforeChangeSummaries.length).toBe(1);
-      expect(beforeChangeSummaries[0].source).toBe('edit');
-      expect(beforeChangeSummaries[0].changesLength).toBe(10);
-      expect(beforeChangeSummaries[0].selectedLength).toBe(2);
+      expect(beforeChangeSummaries[0]).toEqual(jasmine.objectContaining({ source: 'edit', selectedLength: 2 }));
+      const checkboxChanges = beforeChangeSummaries[0].changes.filter(([, prop]) => prop === 'available');
+
+      expect(checkboxChanges.length).toBeGreaterThan(0);
+      expect(checkboxChanges.every(([, , , nextValue]) => nextValue === false)).toBe(true);
       expect(getPlugin('undoRedo').doneActions.length).toBe(1);
-      expect(getPlugin('undoRedo').doneActions[0].changes.length).toBe(10);
       expect(getPlugin('undoRedo').doneActions[0].selected.length).toBe(2);
+      expect(getData()).toEqual([
+        [null, null, false],
+        [null, null, false],
+        [null, null, false],
+      ]);
+      expect(getCell(0, 2).querySelector('input[type=checkbox]').classList.contains('noValue')).toBe(false);
       await keyDownUp(['control/meta', 'z']);
 
       expect(getData()).toEqual(originalData);
