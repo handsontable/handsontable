@@ -3008,6 +3008,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       if (instance.view) {
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
         instance.view._wt.exportSettingsAsClassNames();
+        instance.view.invalidateIndexSizesCache();
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -4360,7 +4361,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
-   * Returns the total number of columns in the data source.
+   * Returns the total number of columns in the data source. It will take value either from schema, columns settings or the first row from the data set. Unlike [countCols()](@/api/core.md#countcols), this value is not affected by the columns configuration option.
    *
    * @memberof Core#
    * @function countSourceCols
@@ -4382,7 +4383,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
-   * Returns the total number of visible columns in the table.
+   * Returns the total number of rendered columns. If the columns option is defined, it returns the number of columns set in that configuration, not the number of columns in the data source.
    *
    * @memberof Core#
    * @function countCols
@@ -4998,8 +4999,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     // The plugin's `destroy` method is called as a consequence and it should handle
     // unregistration of plugin's maps. Some unregistered maps reset the cache.
     instance.batchExecution(() => {
-      instance.rowIndexMapper.unregisterAll();
-      instance.columnIndexMapper.unregisterAll();
+      instance.rowIndexMapper.destroy();
+      instance.columnIndexMapper.destroy();
 
       pluginsRegistry
         .getItems()

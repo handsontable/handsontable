@@ -96,6 +96,22 @@ describe('ThemeBuilder', () => {
       consoleSpy.mockRestore();
     });
 
+    it('should not warn for unknown token keys when using built-in tokens in createTheme', () => {
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      createTheme(createValidConfig({
+        tokens: mainTokens,
+      }));
+
+      const unknownTokenWarnings = consoleSpy.mock.calls
+        .map(([message]) => message)
+        .filter(message => message.startsWith('[ThemeBuilder] Unknown token key:'));
+
+      expect(unknownTokenWarnings).toEqual([]);
+
+      consoleSpy.mockRestore();
+    });
+
     it('should warn for missing icon keys in createTheme', () => {
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 

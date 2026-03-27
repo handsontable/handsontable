@@ -193,7 +193,13 @@ export default class CellMeta {
 
     const rowsMeta = new Map(this.metas);
 
-    return rowsMeta.has(physicalRow) ? Array.from(rowsMeta.get(physicalRow).values()) : [];
+    if (!rowsMeta.has(physicalRow)) {
+      return [];
+    }
+
+    return Array.from(rowsMeta.get(physicalRow))
+      .sort(([a], [b]) => a - b)
+      .map(([, meta]) => meta);
   }
 
   /**

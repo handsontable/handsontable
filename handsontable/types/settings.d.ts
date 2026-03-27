@@ -43,6 +43,7 @@ import { Settings as TrimRowsSettings } from './plugins/trimRows';
 import { Settings as DialogSettings } from './plugins/dialog';
 import { Settings as LoadingSettings } from './plugins/loading';
 import { Settings as EmptyDataStateSettings } from './plugins/emptyDataState';
+import { Settings as ExportFileSettings } from './plugins/exportFile';
 import { Settings as UndoRedoSettings } from './plugins/undoRedo';
 import { ThemeBuilder, BaseTheme } from './themes';
 import { EditorType, BaseEditor } from './editors';
@@ -149,6 +150,7 @@ export interface GridSettings extends Events {
   editor?: EditorType | typeof BaseEditor | BaseEditor | boolean | string;
   enterBeginsEditing?: boolean;
   enterMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
+  exportFile?: ExportFileSettings;
   fillHandle?: AutofillSettings;
   filter?: boolean;
   filteringCaseSensitive?: boolean;
