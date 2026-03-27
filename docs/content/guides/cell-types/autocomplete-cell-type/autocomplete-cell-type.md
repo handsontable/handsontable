@@ -236,6 +236,84 @@ When working with object-based autocomplete data, you can use methods like [`get
 :::
 
 
+## The `filter` option
+
+By default, the autocomplete dropdown hides options that don't match what the user is typing. Set `filter: false` to always show the full list of source options, regardless of the current input. This is useful when you want to give users a visual reference of all available choices while they type.
+
+The left column uses the default behavior (`filter: true`) — options are narrowed as you type. The right column has `filter: false` — all options remain visible no matter what you enter.
+
+::: only-for javascript
+
+::: example #example6 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example6.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example6.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example6 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example6.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example6.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example6 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example6.ts)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example6.html)
+
+:::
+
+:::
+
+## The `filteringCaseSensitive` option
+
+By default, the autocomplete search is case-insensitive — typing `"bl"` matches both `"Black"` and `"blue"`. Set `filteringCaseSensitive: true` to require an exact case match when filtering suggestions.
+
+The left column uses the default case-insensitive behavior. The right column has `filteringCaseSensitive: true` — only options whose case matches the typed characters are shown.
+
+::: only-for javascript
+
+::: example #example7 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example7.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example7.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example7 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example7.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example7.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example7 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example7.ts)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example7.html)
+
+:::
+
+:::
+
 ## Related articles
 
 ### Related guides
@@ -248,6 +326,7 @@ When working with object-based autocomplete data, you can use methods like [`get
 
 - Configuration options:
   - [`allowHtml`](@/api/options.md#allowhtml)
+  - [`filter`](@/api/options.md#filter)
   - [`filteringCaseSensitive`](@/api/options.md#filteringcasesensitive)
   - [`sortByRelevance`](@/api/options.md#sortbyrelevance)
   - [`source`](@/api/options.md#source)

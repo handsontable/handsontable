@@ -467,6 +467,28 @@ class TableView {
   }
 
   /**
+   * Invalidates Walkontable viewport caches for row heights and column widths (per-index axis sizes).
+   */
+  invalidateIndexSizesCache() {
+    this._wt.wtViewport.invalidateRowHeightCache();
+    this._wt.wtViewport.invalidateColumnWidthCache();
+  }
+
+  /**
+   * Invalidates Walkontable viewport cache for column widths.
+   */
+  invalidateColumnWidthCache() {
+    this._wt.wtViewport.invalidateColumnWidthCache();
+  }
+
+  /**
+   * Invalidates Walkontable viewport cache for row heights.
+   */
+  invalidateRowHeightCache() {
+    this._wt.wtViewport.invalidateRowHeightCache();
+  }
+
+  /**
    * Translate renderable cell coordinates to visual coordinates.
    *
    * @param {CellCoords} coords The cell coordinates.

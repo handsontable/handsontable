@@ -1592,6 +1592,133 @@ describe('Filters UI', () => {
       expect(getData()[0][2]).toBe('Cascades');
       expect(getData().length).toBe(5);
     });
+
+    it('should call `hideRows` once with all non-matching indices when searchMode is `apply` (#12104)', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: {
+          searchMode: 'apply'
+        },
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      await dropdownMenu(2);
+
+      const multipleSelect = byValueMultipleSelect();
+      const itemsBox = multipleSelect.getItemsBox();
+      const hiddenRows = itemsBox.getPlugin('hiddenRows');
+
+      spyOn(hiddenRows, 'hideRows').and.callThrough();
+      spyOn(hiddenRows, 'hideRow').and.callThrough();
+
+      multipleSelect.element.querySelector('input').focus();
+
+      await sleep(200);
+
+      const event = new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      });
+
+      document.activeElement.value = 'c';
+      document.activeElement.dispatchEvent(event);
+
+      expect(hiddenRows.hideRows).toHaveBeenCalledTimes(1);
+      expect(hiddenRows.hideRow).not.toHaveBeenCalled();
+    });
+
+    it('should correctly check matching items and hide non-matching items when searchMode is `apply`', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: {
+          searchMode: 'apply'
+        },
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      await dropdownMenu(2);
+
+      const multipleSelect = byValueMultipleSelect();
+
+      multipleSelect.element.querySelector('input').focus();
+
+      await sleep(200);
+
+      const event = new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      });
+
+      document.activeElement.value = 'c';
+      document.activeElement.dispatchEvent(event);
+
+      const items = multipleSelect.getItems();
+      const checkedItems = items.filter(item => item.checked);
+      const uncheckedItems = items.filter(item => !item.checked);
+
+      checkedItems.forEach((item) => {
+        expect(`${item.value}`.toLowerCase()).toContain('c');
+      });
+
+      uncheckedItems.forEach((item) => {
+        expect(`${item.value}`.toLowerCase()).not.toContain('c');
+      });
+
+      const itemsBox = multipleSelect.getItemsBox();
+      const hiddenRowsPlugin = itemsBox.getPlugin('hiddenRows');
+      const hiddenRowCount = hiddenRowsPlugin.getHiddenRows().length;
+
+      expect(hiddenRowCount).toBe(uncheckedItems.length);
+    });
+
+    it('should correctly update visible items after consecutive searches when searchMode is `apply`', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: {
+          searchMode: 'apply'
+        },
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      await dropdownMenu(2);
+
+      const multipleSelect = byValueMultipleSelect();
+
+      multipleSelect.element.querySelector('input').focus();
+
+      await sleep(200);
+
+      const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+
+      document.activeElement.value = 'c';
+      document.activeElement.dispatchEvent(inputEvent);
+
+      const firstSearchChecked = multipleSelect.getItems().filter(item => item.checked).length;
+
+      const inputEvent2 = new Event('input', { bubbles: true, cancelable: true });
+
+      document.activeElement.value = '';
+      document.activeElement.dispatchEvent(inputEvent2);
+
+      const afterClearChecked = multipleSelect.getItems().filter(item => item.checked).length;
+
+      expect(afterClearChecked).toBe(multipleSelect.getItems().length);
+      expect(afterClearChecked).toBeGreaterThan(firstSearchChecked);
+
+      const itemsBox = multipleSelect.getItemsBox();
+      const hiddenRowsPlugin = itemsBox.getPlugin('hiddenRows');
+
+      expect(hiddenRowsPlugin.getHiddenRows().length).toBe(0);
+    });
   });
 
   it('should be possible to filter data "by value" changing the condition on each filter (#dev-2962)', async() => {
