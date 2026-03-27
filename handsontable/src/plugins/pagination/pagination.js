@@ -191,12 +191,6 @@ export class Pagination extends BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
-    if (this.isHardConflictBlocked()) {
-      this.hot.getSettings()[PLUGIN_KEY] = false;
-
-      return;
-    }
-
     if (this.enabled) {
       return;
     }

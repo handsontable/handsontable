@@ -164,12 +164,6 @@ export class DataProvider extends BasePlugin {
    * Enables the plugin, syncs query parameters from Pagination, ColumnSorting, and Filters, and registers hooks.
    */
   enablePlugin() {
-    if (this.isHardConflictBlocked()) {
-      this.hot.getSettings()[PLUGIN_KEY] = false;
-
-      return;
-    }
-
     if (this.enabled) {
       return;
     }

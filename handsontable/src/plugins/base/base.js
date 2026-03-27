@@ -165,6 +165,11 @@ export class BasePlugin {
 
     this.hot.addHookOnce('afterPluginsInitialized', () => {
       if (this.isEnabled && this.isEnabled()) {
+        if (this.isHardConflictBlocked()) {
+          this.hot.getSettings()[this.constructor.PLUGIN_KEY] = false;
+
+          return;
+        }
         this.enablePlugin();
       }
     });
