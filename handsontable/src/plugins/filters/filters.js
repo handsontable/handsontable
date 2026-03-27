@@ -1303,8 +1303,8 @@ export class Filters extends BasePlugin {
     const conditionsWithoutByValue = conditions.filter(condition => condition.name !== CONDITION_BY_VALUE);
 
     if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
-      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually. 
-        The dropdown menu supports at most 2 regular conditions and 1 'filter by value' condition per column, 
+      warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
+        The dropdown menu supports at most 2 regular conditions and 1 'filter by value' condition per column,\x20
         but more were provided. For more details see the documentation.`);
 
     } else {
