@@ -129,7 +129,7 @@ describe('Formulas utils', () => {
         ['=A2'],
         ['=A3'],
       ];
-      const metaFactory = (row) => ({
+      const metaFactory = row => ({
         skipRowOnPaste: row === 1,
         skipColumnOnPaste: false,
       });
