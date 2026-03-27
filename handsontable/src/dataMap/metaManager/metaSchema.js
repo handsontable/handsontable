@@ -4942,28 +4942,35 @@ export default () => {
 
     /**
      * @description
-     * The `search` option configures the [`Search`](@/api/search.md) plugin.
+     * The `search` option enables and configures the [`Search`](@/api/search.md) plugin.
      *
-     * You can set the `search` option to one of the following:
+     * | Setting           | Description                                                                    |
+     * | ----------------- | ------------------------------------------------------------------------------ |
+     * | `false` (default) | Disable the [`Search`](@/api/search.md) plugin                                 |
+     * | `true`            | Enable the [`Search`](@/api/search.md) plugin with the default configuration   |
+     * | An object         | Enable the [`Search`](@/api/search.md) plugin and apply a custom configuration |
      *
-     * | Setting           | Description                                                                          |
-     * | ----------------- | ------------------------------------------------------------------------------------ |
-     * | `false` (default) | Disable the [`Search`](@/api/search.md) plugin                                       |
-     * | `true`            | Enable the [`Search`](@/api/search.md) plugin with the default configuration         |
-     * | An object         | - Enable the [`Search`](@/api/search.md) plugin<br>- Apply your custom configuration |
+     * When set to an object, the following properties are supported:
      *
-     * If you set the `search` option to an object, you can configure the following search options:
+     * | Property            | Type       | Default                          | Description                                                                                                                                                        |
+     * | ------------------- | ---------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `searchResultClass` | `string`   | `'htSearchResult'`               | CSS class name applied to every cell where `isSearchResult === true`.                                                                                              |
+     * | `queryMethod`       | `Function` | Case-insensitive substring match | Tests whether the query string matches a cell value. Signature: `(queryStr: string, value: string\|number\|null, cellProperties: object) => boolean`.              |
+     * | `callback`          | `Function` | Sets `isSearchResult` on cell metadata | Called for every cell after each test. Signature: `(instance: Handsontable, row: number, col: number, data: string\|number\|null, testResult: boolean) => void`. |
      *
-     * | Option              | Possible settings | Description                                                                                          |
-     * | ------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
-     * | `searchResultClass` | A string          | Add a custom CSS class name to search results                                                        |
-     * | `queryMethod`       | A function        | Add a [custom query method](@/guides/navigation/searching-values/searching-values.md#custom-query-method)  |
-     * | `callback`          | A function        | Add a [custom callback function](@/guides/navigation/searching-values/searching-values.md#custom-callback) |
+     * Default `queryMethod` behavior: case-insensitive, locale-aware substring match using `toLocaleLowerCase()` with `cellProperties.locale`.
+     *
+     * Default `callback` behavior: sets `instance.getCellMeta(row, col).isSearchResult = testResult` on every cell.
+     *
+     * **Per-cell overrides:** `queryMethod` and `callback` can also be set on individual cells, columns, or rows
+     * using the cascading configuration model. A cell-level `search.queryMethod` or `search.callback` takes
+     * precedence over the plugin-level setting for that cell. `searchResultClass` does not support per-cell overrides.
      *
      * Read more:
      * - [Searching values](@/guides/navigation/searching-values/searching-values.md)
-     * - [Searching values: Custom query method](@/guides/navigation/searching-values/searching-values.md#custom-query-method)
-     * - [Searching values: Custom callback](@/guides/navigation/searching-values/searching-values.md#custom-callback)
+     * - [Custom query method](@/guides/navigation/searching-values/searching-values.md#custom-query-method)
+     * - [Custom callback](@/guides/navigation/searching-values/searching-values.md#custom-callback)
+     * - [Per-cell overrides](@/guides/navigation/searching-values/searching-values.md#per-cell-querymethod-and-callback)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -4972,22 +4979,42 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable the `Search` plugin with the default configuration
+     * // Enable with the default configuration
      * search: true,
      *
-     * // enable the `Search` plugin with a custom configuration
+     * // Enable with a custom configuration
      * search: {
-     *   // add a `customClass` CSS class name to search results
+     *   // Apply a custom CSS class to matching cells instead of 'htSearchResult'
      *   searchResultClass: 'customClass',
-     *   // add a custom query method
-     *   queryMethod(queryStr, value) {
-     *     ...
+     *   // Replace the built-in substring match with exact matching
+     *   queryMethod(queryStr, value, cellProperties) {
+     *     if (!queryStr || queryStr.length === 0) return false;
+     *     if (value === undefined || value === null) return false;
+     *
+     *     return queryStr.toString() === value.toString();
      *   },
-     *   // add a custom callback function
-     *   callback(instance, row, column, value, result) {
-     *     ...
+     *   // Count results while preserving default highlighting
+     *   callback(instance, row, col, data, testResult) {
+     *     // Preserve the default isSearchResult flag so highlighting still works
+     *     instance.getCellMeta(row, col).isSearchResult = testResult;
+     *
+     *     if (testResult) {
+     *       // Custom logic: e.g., increment a result counter
+     *     }
      *   }
-     * }
+     * },
+     *
+     * // Override queryMethod for a specific column only (per-cell via cascading config)
+     * columns: [
+     *   {},
+     *   {
+     *     search: {
+     *       queryMethod(queryStr, value) {
+     *         return queryStr.toString() === value.toString(); // exact match for column 1
+     *       }
+     *     }
+     *   }
+     * ],
      * ```
      */
     search: false,
