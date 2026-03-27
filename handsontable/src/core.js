@@ -3000,6 +3000,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       if (instance.view) {
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
         instance.view._wt.exportSettingsAsClassNames();
+        instance.view.invalidateIndexSizesCache();
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -4990,8 +4991,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     // The plugin's `destroy` method is called as a consequence and it should handle
     // unregistration of plugin's maps. Some unregistered maps reset the cache.
     instance.batchExecution(() => {
-      instance.rowIndexMapper.unregisterAll();
-      instance.columnIndexMapper.unregisterAll();
+      instance.rowIndexMapper.destroy();
+      instance.columnIndexMapper.destroy();
 
       pluginsRegistry
         .getItems()

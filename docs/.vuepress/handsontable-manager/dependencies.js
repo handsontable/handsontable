@@ -151,6 +151,7 @@ const buildDependencyGetter = (version) => {
       '@simonwep/pickr': ['https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js', ['Pickr']],
       pikaday: ['https://cdn.jsdelivr.net/npm/@handsontable/pikaday/pikaday.js', [/* todo */]],
       flatpickr: ['https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js', ['flatpickr']],
+      exceljs: ['https://cdn.jsdelivr.net/npm/exceljs@4/dist/exceljs.min.js', ['ExcelJS']],
     };
     /* eslint-enable max-len */
 
@@ -162,6 +163,9 @@ const buildDependencyGetter = (version) => {
 const presetMap = {
   /* eslint-disable max-len */
   'hot-recipe': ['hot', 'moment', 'pikaday', 'date-fns', '@simonwep/pickr', 'flatpickr', 'numbro', 'fixer'],
+  'hot-excel': ['hot', 'exceljs', 'fixer'],
+  'react-excel': ['hot', 'exceljs', 'react', 'react-dom', 'hot-react', 'fixer'],
+  'angular-excel': ['hot', 'exceljs', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'angular-cdk-a11y', 'angular-cdk-observers', 'angular-cdk-coercion', 'angular-material-checkbox', 'date-fns', 'fixer'],
   hot: ['hot', 'fixer'],
   'hot-lang': ['hot', 'languages', 'fixer'],
   'hot-numbro': ['hot', 'numbro', 'fixer'],

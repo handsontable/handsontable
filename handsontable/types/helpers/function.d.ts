@@ -1,7 +1,11 @@
 export function isFunction(func: any): boolean;
 export function throttle(func: () => void, wait?: number): () => void;
 export function throttleAfterHits(func: () => void, wait?: number, hits?: number): () => void;
-export function debounce(func: () => void, wait?: number): () => void;
+export interface DebouncedFunction {
+  (...args: any[]): any;
+  cancel(): void;
+}
+export function debounce(func: (...args: any[]) => any, wait?: number): DebouncedFunction;
 export function pipe(...functions: Array<() => void>): () => void;
 export function partial(func: () => void, ...params: any[]): () => void;
 export function curry(func: () => void): () => void;

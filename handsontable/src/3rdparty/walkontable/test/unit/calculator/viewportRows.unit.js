@@ -4,14 +4,32 @@ import {
   FullyVisibleRowsCalculationType,
   PartiallyVisibleRowsCalculationType,
 } from '../../../src/calculator';
+import { PositionCache } from '../../../src/utils/positionCache';
 
 function allRows20() {
   return 20;
 }
 
 function createViewportRowsCalculator(options) {
+  const {
+    totalRows = 0,
+    rowHeightFn = () => NaN,
+    defaultRowHeight = 0,
+    ...rest
+  } = options;
+
+  const cache = new PositionCache({
+    totalItemsFn: () => totalRows,
+    sizeFn: rowHeightFn,
+    defaultSizeFn: () => defaultRowHeight,
+  });
+
+  cache.build();
+
   return new ViewportRowsCalculator({
-    ...options,
+    ...rest,
+    totalRows,
+    rowHeightCache: cache,
     calculationTypes: [
       ['rendered', new RenderedRowsCalculationType()],
       ['fullyVisible', new FullyVisibleRowsCalculationType()],
