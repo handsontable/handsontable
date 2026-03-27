@@ -2749,10 +2749,14 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * Since 12.0.0 passing `data` inside `settings` objects no longer results in resetting states corresponding to rows and columns
    * (for example, row/column sequence, column width, row height, frozen columns etc.).
    *
+   * When [[Hooks#hasExternalDataSource]] is true, Handsontable clears and rebinds the placeholder dataset only during
+   * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
+   * If only `columns` changes, the column map is rebuilt without clearing rows.
+   *
    * @memberof Core#
    * @function updateSettings
    * @param {object} settings A settings object (see {@link Options}). Only provide the settings that are changed, not the whole settings object that was used for initialization.
-   * @param {boolean} [init=false] Internally used for in initialization mode.
+   * @param {boolean} [init=false] Internally used during initialization.
    * @example
    * ```js
    * hot.updateSettings({
@@ -2899,7 +2903,19 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           'The DataProvider plugin will load data instead.');
       }
 
-      dataUpdateFunction([], 'updateSettings');
+      // Replace the in-memory placeholder only when the update touches init, `data`, or `dataProvider`. Otherwise
+      // `updateData([], …)` would empty the grid without a refetch, because DataProvider runs `updatePlugin` only when
+      // `dataProvider` is present in this payload.
+      const shouldSyncExternalPlaceholderData = init ||
+        hasOwnProperty(settings, 'data') ||
+        hasOwnProperty(settings, 'dataProvider');
+
+      if (shouldSyncExternalPlaceholderData) {
+        dataUpdateFunction([], 'updateSettings');
+      } else if (settings.columns !== undefined) {
+        datamap.createMap();
+        instance.initIndexMappers();
+      }
 
     } else if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null, 'updateSettings'); // data source created just now

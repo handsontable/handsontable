@@ -121,6 +121,28 @@ describe('DataProvider', () => {
     expect(getDataAtCell(0, 1)).toBe('A');
   });
 
+  // Unrelated keys must not run updateData([], …) without a DataProvider refetch (SETTING_KEYS is only `dataProvider`).
+  it('should not clear loaded rows when updateSettings changes an unrelated option', async() => {
+    const config = createDataProviderConfig({
+      fetchRows: () => Promise.resolve({ rows: [{ id: 1, name: 'A' }], totalRows: 1 }),
+    });
+
+    handsontable({
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: config,
+    });
+
+    await sleep(50);
+
+    expect(countRows()).toBe(1);
+
+    await updateSettings({ height: 500 });
+
+    expect(countRows()).toBe(1);
+    expect(getDataAtCell(0, 0)).toBe(1);
+    expect(getDataAtCell(0, 1)).toBe('A');
+  });
+
   it('should be possible to disable the plugin via updateSettings', async() => {
     const config = createDataProviderConfig({
       fetchRows: () => Promise.resolve({ rows: [{ id: 1 }], totalRows: 1 }),
