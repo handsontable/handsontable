@@ -159,5 +159,33 @@ describe('Formulas', () => {
       expect(getSourceDataAtCell(0, 4)).toBe(null);
       expect(getSourceDataAtCell(0, 5)).toBe(null);
     });
+
+    it('should not overwrite extra visible rows when dragging across hidden rows with disabled copyPaste', async() => {
+      handsontable({
+        data: [
+          ['=A1'],
+          [null],
+          [null],
+          [null],
+          [null],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        hiddenRows: {
+          copyPasteEnabled: false,
+          rows: [1, 2],
+        },
+      });
+
+      await selectCell(0, 0);
+
+      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+      $(getCell(3, 0, true)).simulate('mouseover').simulate('mouseup');
+
+      expect(getSourceDataAtCell(3, 0)).toEqual('=A4');
+      expect(getSourceDataAtCell(4, 0)).toBe(null);
+    });
   });
 });

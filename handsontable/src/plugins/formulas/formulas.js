@@ -745,11 +745,26 @@ export class Formulas extends BasePlugin {
       }
     }
 
+    const hiddenRowsPlugin = this.hot.getPlugin('hiddenRows');
+    const hiddenColumnsPlugin = this.hot.getPlugin('hiddenColumns');
+    const skipHiddenRowsOnPaste =
+      hiddenRowsPlugin.isEnabled() && hiddenRowsPlugin.getSetting('copyPasteEnabled') === false;
+    const skipHiddenColumnsOnPaste =
+      hiddenColumnsPlugin.isEnabled() && hiddenColumnsPlugin.getSetting('copyPasteEnabled') === false;
+
     return omitAutofillDataForSkippedPasteCells(
       fillRangeData,
       targetTopStartRow,
       targetTopStartColumn,
-      (row, column) => this.hot.getCellMeta(row, column),
+      (row, column) => {
+        const cellMeta = this.hot.getCellMeta(row, column);
+
+        return {
+          skipRowOnPaste: cellMeta.skipRowOnPaste || (skipHiddenRowsOnPaste && hiddenRowsPlugin.isHidden(row)),
+          skipColumnOnPaste: cellMeta.skipColumnOnPaste ||
+            (skipHiddenColumnsOnPaste && hiddenColumnsPlugin.isHidden(column)),
+        };
+      },
     );
   }
 

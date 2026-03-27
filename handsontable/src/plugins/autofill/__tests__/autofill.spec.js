@@ -1647,6 +1647,51 @@ describe('AutoFill', () => {
     ]); // Extra test for checking wrong data propagation.
   });
 
+  it('should not overwrite extra visible columns when dragging across hidden columns without Formulas', async() => {
+    handsontable({
+      data: [
+        ['A', null, null, null, null, null],
+      ],
+      hiddenColumns: {
+        copyPasteEnabled: false,
+        columns: [1, 2],
+      },
+    });
+
+    await selectCell(0, 0);
+
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    $(getCell(0, 3, true)).simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 3)).toEqual('A');
+    expect(getDataAtCell(0, 4)).toBe(null);
+    expect(getDataAtCell(0, 5)).toBe(null);
+  });
+
+  it('should not overwrite extra visible rows when dragging across hidden rows without Formulas', async() => {
+    handsontable({
+      data: [
+        ['A'],
+        [null],
+        [null],
+        [null],
+        [null],
+      ],
+      hiddenRows: {
+        copyPasteEnabled: false,
+        rows: [1, 2],
+      },
+    });
+
+    await selectCell(0, 0);
+
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    $(getCell(3, 0, true)).simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(3, 0)).toEqual('A');
+    expect(getDataAtCell(4, 0)).toBe(null);
+  });
+
   describe('should works properly when two or more instances of Handsontable was initialized with ' +
            'other settings (#3257)', () => {
     let getData;
