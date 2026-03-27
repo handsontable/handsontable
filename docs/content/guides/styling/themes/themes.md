@@ -61,8 +61,8 @@ If you want to use the `main` theme without any modifications, you don't need to
 
 ::: example #exampleTheme --html 1 --js 2 --ts 3 --css 4
 @[code](@/content/guides/styling/themes/javascript/exampleTheme.html)
-@[code](@/content/guides/styling/themes/javascript/exampleTheme.js)
-@[code](@/content/guides/styling/themes/javascript/exampleTheme.ts)
+@[code collapse={9-110}](@/content/guides/styling/themes/javascript/exampleTheme.js)
+@[code collapse={9-111}](@/content/guides/styling/themes/javascript/exampleTheme.ts)
 @[code](@/content/guides/styling/themes/javascript/exampleTheme.css)
 :::
 
@@ -71,8 +71,8 @@ If you want to use the `main` theme without any modifications, you don't need to
 ::: only-for react
 
 ::: example #exampleTheme .disable-auto-theme :react --js 1 --ts 2 --css 3
-@[code](@/content/guides/styling/themes/react/exampleTheme.jsx)
-@[code](@/content/guides/styling/themes/react/exampleTheme.tsx)
+@[code collapse={13-114}](@/content/guides/styling/themes/react/exampleTheme.jsx)
+@[code collapse={14-115}](@/content/guides/styling/themes/react/exampleTheme.tsx)
 @[code](@/content/guides/styling/themes/react/exampleTheme.css)
 :::
 

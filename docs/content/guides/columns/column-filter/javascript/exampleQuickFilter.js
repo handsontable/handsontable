@@ -6,6 +6,40 @@ registerAllModules();
 
 const container = document.querySelector('#exampleQuickFilter');
 const filterField = document.querySelector('#filterField');
+
+// Custom dropdown logic
+const trigger = document.getElementById('filterTrigger');
+const menu = document.getElementById('filterMenu');
+const label = document.getElementById('filterTriggerLabel');
+let selectedColumn = '0';
+
+trigger.addEventListener('click', () => {
+  const open = trigger.getAttribute('aria-expanded') === 'true';
+
+  trigger.setAttribute('aria-expanded', String(!open));
+  menu.hidden = open;
+});
+
+menu.addEventListener('click', (e) => {
+  const li = e.target.closest('li[data-value]');
+
+  if (!li) return;
+
+  menu.querySelectorAll('li').forEach((el) => el.removeAttribute('aria-selected'));
+  li.setAttribute('aria-selected', 'true');
+  selectedColumn = li.dataset.value;
+  label.textContent = li.textContent.trim();
+  trigger.setAttribute('aria-expanded', 'false');
+  menu.hidden = true;
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#filterDropdown')) {
+    trigger.setAttribute('aria-expanded', 'false');
+    menu.hidden = true;
+  }
+});
+
 const hot = new Handsontable(container, {
   data: [
     {
@@ -101,11 +135,9 @@ const hot = new Handsontable(container, {
 // add a filter input listener
 filterField.addEventListener('keyup', (event) => {
   const filters = hot.getPlugin('filters');
-  const columnSelector = document.getElementById('columns');
-  const columnValue = columnSelector.value;
 
-  filters.removeConditions(columnValue);
-  filters.addCondition(columnValue, 'contains', [event.target.value]);
+  filters.removeConditions(selectedColumn);
+  filters.addCondition(selectedColumn, 'contains', [event.target.value]);
   filters.filter();
   hot.render();
 });

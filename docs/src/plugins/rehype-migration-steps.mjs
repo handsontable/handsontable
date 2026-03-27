@@ -187,7 +187,10 @@ export function rehypeMigrationSteps() {
     //    h2 steps nest h3, h3 steps nest h4.
     tree.children = wrapSteps(tree.children, 'h2', 'h3');
 
-    // 3. Catch orphaned h4 step headings (e.g. "Step 1. …" under a non-step h3).
+    // 3. Catch orphaned h3 step headings (e.g. "Step 1: …" not inside an h2 step).
+    tree.children = wrapSteps(tree.children, 'h3', 'h4');
+
+    // 4. Catch orphaned h4 step headings (e.g. "Step 1. …" under a non-step h3).
     tree.children = wrapSteps(tree.children, 'h4', null);
   };
 }

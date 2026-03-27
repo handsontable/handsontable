@@ -382,7 +382,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v17';
+const LOADER_VERSION = 'v18';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -578,6 +578,123 @@ function postProcessRenderedHtml(rendered) {
   rendered.html = rendered.html
     .replace(/\u2705/g, checkSvg)   // ✅
     .replace(/\u274C/g, crossSvg);  // ❌
+
+  // Wrap consecutive step headings ("Step N:" or "N. Title") into
+  // <ol class="sl-steps"> to match Starlight's Steps component output.
+  rendered.html = wrapStepHeadingsInHtml(rendered.html);
+}
+
+// ---------------------------------------------------------------------------
+// Step heading wrapping (HTML-level, runs after renderMarkdown)
+// ---------------------------------------------------------------------------
+
+/** Matches "1. Title" or "Step 1: Title" prefixes in plain text. */
+const STEP_PREFIX_RE = /^(?:\d+\.\s+|Step\s+\d+[.:]\s*)/;
+
+/**
+ * Wraps consecutive step headings and their content sections in
+ * `<ol class="sl-steps" role="list"><li>…</li></ol>`.
+ * Processes h4, h3, h2 (deepest first) so nested steps are handled.
+ *
+ * @param {string} html
+ * @returns {string}
+ */
+function wrapStepHeadingsInHtml(html) {
+  for (const level of [4, 3, 2]) {
+    html = _wrapStepsForLevel(html, level);
+  }
+  return html;
+}
+
+/**
+ * For one heading level, find groups of consecutive step headings and wrap them.
+ *
+ * @param {string} html
+ * @param {number} level  – heading level (2, 3, or 4)
+ * @returns {string}
+ */
+function _wrapStepsForLevel(html, level) {
+  const tag = `h${level}`;
+
+  // Locate every heading at this level.
+  const headingRe = new RegExp(`<${tag}\\b[^>]*>[\\s\\S]*?<\\/${tag}>`, 'gi');
+  const headings = [];
+  let m;
+
+  while ((m = headingRe.exec(html)) !== null) {
+    const text = m[0].replace(/<[^>]+>/g, '').trim();
+
+    headings.push({
+      index: m.index,
+      end: m.index + m[0].length,
+      isStep: STEP_PREFIX_RE.test(text),
+    });
+  }
+
+  if (!headings.some((h) => h.isStep)) return html;
+
+  // For each heading, find where its content section ends: at the next heading
+  // of the same or higher level (lower number), or at end-of-string.
+  const boundaryRe = new RegExp(`<h[1-${level}]\\b`, 'gi');
+
+  for (const h of headings) {
+    boundaryRe.lastIndex = h.end;
+    const next = boundaryRe.exec(html);
+
+    h.sectionEnd = next ? next.index : html.length;
+  }
+
+  // Group consecutive step headings. A non-step heading at the same level or
+  // a higher-level heading between two steps breaks the group.
+  const groups = [];
+  let current = null;
+
+  for (const h of headings) {
+    if (h.isStep) {
+      if (current && current.length > 0) {
+        const prev = current[current.length - 1];
+
+        // If a higher-level heading sits between prev and h, break the group.
+        if (prev.sectionEnd < h.index) {
+          groups.push(current);
+          current = [];
+        }
+      }
+      if (!current) current = [];
+      current.push(h);
+    } else {
+      if (current && current.length > 0) groups.push(current);
+      current = null;
+    }
+  }
+  if (current && current.length > 0) groups.push(current);
+
+  // Process groups in reverse so earlier indices stay valid.
+  for (let g = groups.length - 1; g >= 0; g--) {
+    const group = groups[g];
+    const groupStart = group[0].index;
+    const groupEnd = group[group.length - 1].sectionEnd;
+
+    // Build <li> items, stripping the step prefix from each heading.
+    const items = [];
+
+    for (const h of group) {
+      let itemHtml = html.slice(h.index, h.sectionEnd).trimEnd();
+
+      // Strip "Step N: " or "N. " prefix from the heading text.
+      itemHtml = itemHtml.replace(
+        new RegExp(`(<${tag}\\b[^>]*>\\s*)(?:\\d+\\.\\s+|Step\\s+\\d+[.:]\\s*)`),
+        '$1'
+      );
+      items.push(`<li>${itemHtml}</li>`);
+    }
+
+    const olHtml = `<ol class="sl-steps" role="list">\n${items.join('\n')}\n</ol>`;
+
+    html = html.slice(0, groupStart) + olHtml + html.slice(groupEnd);
+  }
+
+  return html;
 }
 
 /**

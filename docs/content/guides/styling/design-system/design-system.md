@@ -36,9 +36,9 @@ The Handsontable Design System is a complete toolkit for building, prototyping, 
 
 ## Live preview
 
-<iframe class="iframe-responsive" src="https://embed.figma.com/file/1487445656371116081/hf_embed?community_viewer=true&embed_host=fastma&fuid=644302446942094315&kind=file&page-selector=0&viewer=1" allowfullscreen></iframe>
+<iframe style="width:100%;height:360px;border:0" src="https://embed.figma.com/file/1487445656371116081/hf_embed?community_viewer=true&embed_host=fastma&fuid=644302446942094315&kind=file&page-selector=0&viewer=1" allowfullscreen></iframe>
 
-[Open the Design System in Figma](https://www.figma.com/community/file/1487445656371116081)
+<a href="https://www.figma.com/community/file/1487445656371116081" target="_blank" rel="noopener noreferrer">Open the Design System in Figma <svg aria-hidden="true" style="display:inline;vertical-align:middle;margin-left:2px" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg></a>
 
 ## Use tokens to generate a theme
 

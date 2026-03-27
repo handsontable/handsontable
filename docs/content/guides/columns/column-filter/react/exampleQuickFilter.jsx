@@ -1,47 +1,85 @@
-// you need `useRef` to call Handsontable's instance methods
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
+const columns = [
+  { value: '0', label: 'Brand' },
+  { value: '1', label: 'Model' },
+  { value: '2', label: 'Price' },
+  { value: '3', label: 'Date' },
+  { value: '4', label: 'Time' },
+  { value: '5', label: 'In stock' },
+];
+
 const ExampleComponent = () => {
   const hotTableComponentRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const [selectedColumn, setSelectedColumn] = useState('0');
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const handsontableInstance = hotTableComponentRef.current?.hotInstance;
-    const filterField = document.querySelector('#filterField');
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
 
-    filterField?.addEventListener('keyup', function (event) {
-      const filtersPlugin = handsontableInstance?.getPlugin('filters');
-      const columnSelector = document.getElementById('columns');
-      const columnValue = columnSelector.value;
+    document.addEventListener('click', handleClickOutside);
 
-      filtersPlugin?.removeConditions(Number(columnValue));
-      filtersPlugin?.addCondition(Number(columnValue), 'contains', [event.target.value]);
-      filtersPlugin?.filter();
-      handsontableInstance?.render();
-    });
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+
+  const handleFilter = (event) => {
+    const handsontableInstance = hotTableComponentRef.current?.hotInstance;
+    const filtersPlugin = handsontableInstance?.getPlugin('filters');
+
+    filtersPlugin?.removeConditions(Number(selectedColumn));
+    filtersPlugin?.addCondition(Number(selectedColumn), 'contains', [event.target.value]);
+    filtersPlugin?.filter();
+    handsontableInstance?.render();
+  };
+
+  const handleSelect = (col) => {
+    setSelectedColumn(col.value);
+    setOpen(false);
+  };
+
+  const selectedLabel = columns.find((c) => c.value === selectedColumn)?.label || 'Brand';
 
   return (
     <>
       <div className="controlsQuickFilter">
-        <label htmlFor="columns" className="selectColumn">
-          Select a column:{' '}
-          <select name="columns" id="columns">
-            <option value="0">Brand</option>
-            <option value="1">Model</option>
-            <option value="2">Price</option>
-            <option value="3">Date</option>
-            <option value="4">Time</option>
-            <option value="5">In stock</option>
-          </select>
-        </label>
-      </div>
-      <div className="controlsQuickFilter">
-        <input id="filterField" type="text" placeholder="Filter" />
+        <div className="filter-dropdown" ref={dropdownRef}>
+          <span className="filter-dropdown-label">Select a column:</span>
+          <button
+            className="filter-dropdown-trigger"
+            type="button"
+            aria-haspopup="listbox"
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
+          >
+            <span className="filter-dropdown-text">{selectedLabel}</span>
+            <svg className="filter-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+          </button>
+          {open && (
+            <ul className="filter-dropdown-menu" role="listbox">
+              {columns.map((col) => (
+                <li
+                  key={col.value}
+                  role="option"
+                  aria-selected={col.value === selectedColumn}
+                  onClick={() => handleSelect(col)}
+                >
+                  {col.label}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <input id="filterField" type="text" placeholder="Filter" onKeyUp={handleFilter} />
       </div>
       <HotTable
         ref={hotTableComponentRef}
