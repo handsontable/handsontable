@@ -120,6 +120,21 @@ class Overlays {
   #postponedAdjustElementsSize = debounce(this.#adjustElementsSizeIfNeeded.bind(this), 200);
 
   /**
+   * Whether the user is currently dragging a native scrollbar thumb.
+   *
+   * @type {boolean}
+   */
+  #scrollbarDragging = false;
+
+  /**
+   * Whether the mouse button is currently pressed. Used together with scroll
+   * direction flags to detect native scrollbar interaction.
+   *
+   * @type {boolean}
+   */
+  #mouseDown = false;
+
+  /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
    * In case of the size change detection the `onContainerElementResize` is fired.
    *
@@ -334,6 +349,17 @@ class Overlays {
     this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', event => this.onKeyDown(event));
     this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
     this.eventManager.addEventListener(rootDocument, 'visibilitychange', () => this.onKeyUp());
+
+    this.eventManager.addEventListener(rootDocument, 'mousedown', () => {
+      this.#mouseDown = true;
+    });
+    this.eventManager.addEventListener(rootDocument, 'mouseup', () => {
+      this.#mouseDown = false;
+
+      if (this.#scrollbarDragging) {
+        this.#deactivateStickyScroll();
+      }
+    });
     this.eventManager.addEventListener(
       topOverlayScrollableElement,
       'scroll',
@@ -567,6 +593,11 @@ class Overlays {
     this.lastScrollX = scrollX;
     this.lastScrollY = scrollY;
 
+    if (this.#mouseDown && !this.#scrollbarDragging
+      && (this.verticalScrolling || this.horizontalScrolling)) {
+      this.#activateStickyScroll();
+    }
+
     if (this.horizontalScrolling) {
       topHolder.scrollLeft = scrollX;
 
@@ -582,6 +613,15 @@ class Overlays {
     }
 
     this.refreshAll();
+
+    // After every scroll-triggered render during drag, recalculate the sticky
+    // offsets. This is needed because fast draws (when visible rows haven't
+    // changed) skip applyToDOM(), leaving the sticky offset stale. Without this,
+    // scrolling from 800→50 with the same rows visible would keep stickyTop=-800
+    // instead of updating to -50, causing a large jump on mouse release.
+    if (this.#scrollbarDragging) {
+      this.#updateStickyOffsets();
+    }
   }
 
   /**
@@ -798,6 +838,10 @@ class Overlays {
     }
 
     this.inlineStartOverlay.applyToDOM();
+
+    if (this.#scrollbarDragging) {
+      this.#updateStickyOffsets();
+    }
   }
 
   /**
@@ -854,6 +898,171 @@ class Overlays {
 
       elem.clone.wtTable.TABLE.className = masterTable.className; // todo demeter
     });
+  }
+
+  /**
+   * Activates sticky-scroll mode: switches the master spreader to `position: sticky`
+   * so the rendered table stays visible in the viewport during fast scrollbar drag.
+   * Row/column content still updates via `refreshAll()` on each scroll event,
+   * but the spreader position is maintained by the browser instead of JS.
+   */
+  #activateStickyScroll() {
+    const spreader = this.wtTable.spreader;
+    const holder = this.wtTable.holder;
+    const isRtl = this.wtSettings.getSetting('rtlMode');
+
+    // Calculate the exact visual offset: startPosition - scrollOffset.
+    // This keeps the content at the same pixel position on screen.
+    const startTop = parseInt(spreader.style.top, 10) || 0;
+    const stickyTop = startTop - holder.scrollTop;
+
+    const leftProp = isRtl ? 'right' : 'left';
+    const startLeft = parseInt(spreader.style[leftProp], 10) || 0;
+    const stickyLeft = startLeft - holder.scrollLeft;
+
+    this.#scrollbarDragging = true;
+
+    spreader.style.position = 'sticky';
+    spreader.style.top = `${stickyTop}px`;
+    spreader.style.bottom = '';
+    spreader.style[leftProp] = `${stickyLeft}px`;
+    spreader.style[isRtl ? 'left' : 'right'] = '';
+
+    if (this.inlineStartOverlay.needFullRender) {
+      const cloneSpreader = this.inlineStartOverlay.clone.wtTable.spreader;
+
+      cloneSpreader.style.position = 'sticky';
+      cloneSpreader.style.top = `${stickyTop}px`;
+    }
+
+    if (this.topOverlay.needFullRender) {
+      const cloneSpreader = this.topOverlay.clone.wtTable.spreader;
+
+      cloneSpreader.style.position = 'sticky';
+      cloneSpreader.style[leftProp] = `${stickyLeft}px`;
+      cloneSpreader.style[isRtl ? 'left' : 'right'] = '';
+    }
+
+    if (this.bottomOverlay.needFullRender && this.bottomOverlay.clone) {
+      const cloneSpreader = this.bottomOverlay.clone.wtTable.spreader;
+
+      cloneSpreader.style.position = 'sticky';
+      cloneSpreader.style[leftProp] = `${stickyLeft}px`;
+      cloneSpreader.style[isRtl ? 'left' : 'right'] = '';
+    }
+  }
+
+  /**
+   * Deactivates sticky-scroll mode: restores the spreader to `position: relative`
+   * and triggers a final full render with correct positioning.
+   */
+  #deactivateStickyScroll() {
+    const holder = this.wtTable.holder;
+    const spreader = this.wtTable.spreader;
+    const { wtViewport } = this.wot;
+    const isRtl = this.wtSettings.getSetting('rtlMode');
+    const leftProp = isRtl ? 'right' : 'left';
+
+    // Render while still in drag mode (same code path as during drag).
+    this.refreshAll();
+
+    // Capture the sticky offsets and computed start positions.
+    const lastStickyTop = parseInt(spreader.style.top, 10) || 0;
+    const lastStickyLeft = parseInt(spreader.style[leftProp], 10) || 0;
+    const startTop = wtViewport.rowsRenderCalculator.startPosition;
+    const startLeft = wtViewport.columnsRenderCalculator.startPosition;
+
+    // Adjust scrollTop while still in drag mode. Any scroll events triggered
+    // by this assignment will go through the drag code path (resetFixedPosition
+    // skipped), preventing the cascading double-render that causes jumps.
+    const targetScrollTop = typeof startTop === 'number' ? startTop - lastStickyTop : holder.scrollTop;
+    const targetScrollLeft = typeof startLeft === 'number' ? startLeft - lastStickyLeft : holder.scrollLeft;
+
+    holder.scrollTop = targetScrollTop;
+    holder.scrollLeft = targetScrollLeft;
+
+    // Deactivate and restore relative positioning.
+    this.#scrollbarDragging = false;
+
+    spreader.style.position = 'relative';
+
+    if (this.inlineStartOverlay.needFullRender) {
+      this.inlineStartOverlay.clone.wtTable.spreader.style.position = 'relative';
+    }
+    if (this.topOverlay.needFullRender) {
+      this.topOverlay.clone.wtTable.spreader.style.position = 'relative';
+    }
+    if (this.bottomOverlay.needFullRender && this.bottomOverlay.clone) {
+      this.bottomOverlay.clone.wtTable.spreader.style.position = 'relative';
+    }
+
+    // Final render in normal mode at the corrected scroll position.
+    this.refreshAll();
+    this.applyToDOM();
+  }
+
+  /**
+   * Recalculates and applies sticky offsets on the master spreader and overlay
+   * clone spreaders. The offset `(startPosition - scrollOffset)` matches the
+   * visual position that relative positioning would produce, so the switch
+   * back to relative on mouseup causes zero visual jump.
+   */
+  #updateStickyOffsets() {
+    const { wtViewport } = this.wot;
+    const holder = this.wtTable.holder;
+    const spreader = this.wtTable.spreader;
+    const isRtl = this.wtSettings.getSetting('rtlMode');
+
+    const startTop = wtViewport.rowsRenderCalculator.startPosition;
+    const startLeft = wtViewport.columnsRenderCalculator.startPosition;
+    const stickyTop = startTop - holder.scrollTop;
+    const stickyLeft = startLeft - holder.scrollLeft;
+
+    spreader.style.position = 'sticky';
+    spreader.style.top = `${stickyTop}px`;
+
+    if (isRtl) {
+      spreader.style.right = `${stickyLeft}px`;
+      spreader.style.left = '';
+    } else {
+      spreader.style.left = `${stickyLeft}px`;
+      spreader.style.right = '';
+    }
+
+    if (this.inlineStartOverlay.needFullRender) {
+      const cloneSpreader = this.inlineStartOverlay.clone.wtTable.spreader;
+
+      cloneSpreader.style.position = 'sticky';
+      cloneSpreader.style.top = `${stickyTop}px`;
+    }
+
+    if (this.topOverlay.needFullRender) {
+      const cloneSpreader = this.topOverlay.clone.wtTable.spreader;
+
+      cloneSpreader.style.position = 'sticky';
+
+      if (isRtl) {
+        cloneSpreader.style.right = `${stickyLeft}px`;
+        cloneSpreader.style.left = '';
+      } else {
+        cloneSpreader.style.left = `${stickyLeft}px`;
+        cloneSpreader.style.right = '';
+      }
+    }
+
+    if (this.bottomOverlay.needFullRender && this.bottomOverlay.clone) {
+      const cloneSpreader = this.bottomOverlay.clone.wtTable.spreader;
+
+      cloneSpreader.style.position = 'sticky';
+
+      if (isRtl) {
+        cloneSpreader.style.right = `${stickyLeft}px`;
+        cloneSpreader.style.left = '';
+      } else {
+        cloneSpreader.style.left = `${stickyLeft}px`;
+        cloneSpreader.style.right = '';
+      }
+    }
   }
 
   /**
