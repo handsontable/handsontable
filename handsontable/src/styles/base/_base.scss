@@ -109,6 +109,11 @@
 
     // Force the ghost table to ignore the additional 1px border for the first rows in the table
     &.htGhostTable {
+      &.htNestedHeaders table {
+        border-spacing: 0;
+        border-collapse: collapse;
+      }
+
       table {
         thead {
           th {
@@ -544,6 +549,11 @@
     // Visual fixes
     // It removes double right border from first column header when row headers are disabled
     .ht_clone_top th:nth-child(2) {
+      border-inline-start-width: 0;
+      border-inline-end-width: 1px;
+    }
+
+    .ht_clone_top_inline_start_corner th:nth-child(2) {
       border-inline-start-width: 0;
       border-inline-end-width: 1px;
     }

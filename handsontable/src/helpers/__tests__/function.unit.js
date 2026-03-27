@@ -124,6 +124,31 @@ describe('Function helper', () => {
 
       expect(spy.calls.count()).toBe(2);
     });
+
+    it('should not invoke the function after cancel clears a pending timer', async() => {
+      const spy = jasmine.createSpy();
+      const debounced = debounce(spy, 200);
+
+      debounced();
+      debounced.cancel();
+
+      await sleep(300);
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should allow scheduling again after cancel', async() => {
+      const spy = jasmine.createSpy();
+      const debounced = debounce(spy, 200);
+
+      debounced();
+      debounced.cancel();
+      debounced();
+
+      await sleep(300);
+
+      expect(spy.calls.count()).toBe(1);
+    });
   });
 
   //
