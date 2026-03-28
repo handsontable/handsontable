@@ -16,6 +16,7 @@ const jsModules       = import.meta.glob('/content/**/example*.js');
 const jsxModules      = import.meta.glob('/content/**/example*.jsx');
 const angularModules  = import.meta.glob('/content/**/example*.ts');
 const htmlTemplates   = import.meta.glob('/content/**/example*.html', { query: '?raw', import: 'default' });
+const cssModules      = import.meta.glob('/content/**/example*.css', { query: '?raw', import: 'default' });
 
 // ── Zone.js load-once guard ───────────────────────────────────────────────
 let zoneLoaded = false;
@@ -36,6 +37,24 @@ function markLoaded(el: Element): void {
 // ── Main runner ───────────────────────────────────────────────────────────
 
 async function runExamples(): Promise<void> {
+  // ── Inject example CSS files ──────────────────────────────────────────
+  for (const el of document.querySelectorAll('[data-example-css]')) {
+    const src = (el as HTMLElement).dataset.exampleCss!;
+    const loader = cssModules[src];
+
+    if (loader) {
+      try {
+        const cssText = await loader() as string;
+        const style = document.createElement('style');
+
+        style.textContent = cssText;
+        document.head.appendChild(style);
+      } catch (err) {
+        console.error('[hot-example] CSS failed:', src, err);
+      }
+    }
+  }
+
   // ── Vanilla JS examples ────────────────────────────────────────────────
   for (const el of document.querySelectorAll('[data-example-js]')) {
     const src = (el as HTMLElement).dataset.exampleJs!;

@@ -19,7 +19,7 @@ new Handsontable(container, {
     {
       type: 'autocomplete',
       source(_query, process) {
-        fetch('{{$basePath}}/scripts/json/autocomplete.json')
+        fetch('/docs/scripts/json/autocomplete.json')
           .then((response) => response.json())
           .then((response) => process(response.data));
       },

@@ -204,8 +204,8 @@ Callback console log:
 ::: example #example1 --js 2 --ts 3 --html 1
 
 @[code](@/content/guides/cell-functions/cell-validator/javascript/example1.html)
-@[code](@/content/guides/cell-functions/cell-validator/javascript/example1.js)
-@[code](@/content/guides/cell-functions/cell-validator/javascript/example1.ts)
+@[code collapse={24-89}](@/content/guides/cell-functions/cell-validator/javascript/example1.js)
+@[code collapse={25-90}](@/content/guides/cell-functions/cell-validator/javascript/example1.ts)
 
 :::
 
@@ -215,8 +215,8 @@ Callback console log:
 
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/cell-functions/cell-validator/react/example1.jsx)
-@[code](@/content/guides/cell-functions/cell-validator/react/example1.tsx)
+@[code collapse={32-97}](@/content/guides/cell-functions/cell-validator/react/example1.jsx)
+@[code collapse={34-99}](@/content/guides/cell-functions/cell-validator/react/example1.tsx)
 
 :::
 
@@ -226,7 +226,7 @@ Callback console log:
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-functions/cell-validator/angular/example1.ts)
+@[code collapse={33-98}](@/content/guides/cell-functions/cell-validator/angular/example1.ts)
 @[code](@/content/guides/cell-functions/cell-validator/angular/example1.html)
 
 :::

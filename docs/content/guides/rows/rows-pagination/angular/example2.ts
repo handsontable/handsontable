@@ -12,15 +12,7 @@ import { GridSettings } from '@handsontable/angular-wrapper';
   styles: `
     :host ::ng-deep {
       .ht-root-wrapper {
-        border: 5px solid transparent;
-        border-image:
-          repeating-linear-gradient(
-            45deg,
-            #f5f5f7 0,
-            #f5f5f7 5px,
-            transparent 5px,
-            transparent 10px
-          ) 5;
+        border: 1px dashed var(--sl-color-accent);
         border-radius: 4px;
         height: 300px;
         min-height: 120px;

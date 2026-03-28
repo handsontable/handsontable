@@ -102,11 +102,28 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 
 ## Related API reference
 
-- Configuration options:
-  - [`fillHandle`](@/api/options.md#fillhandle)
-- Hooks:
-  - [`afterAutofill`](@/api/hooks.md#afterautofill)
-  - [`beforeAutofill`](@/api/hooks.md#beforeautofill)
-  - [`modifyAutofillRange`](@/api/hooks.md#modifyautofillrange)
-- Plugins:
-  - [`Autofill`](@/api/autofill.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [fillHandle](@/api/options.md#fillhandle)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterAutofill](@/api/hooks.md#afterautofill)
+- [beforeAutofill](@/api/hooks.md#beforeautofill)
+- [modifyAutofillRange](@/api/hooks.md#modifyautofillrange)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [Autofill](@/api/autofill.md)
+
+</div>

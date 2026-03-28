@@ -6,110 +6,22 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
 @Component({
   selector: 'app-example3',
   template: `
+    <div class="example-controls-container">
+      <div class="controls">
+        <button [disabled]="isFirstPage" (click)="goToFirstPage()">First page</button>
+        <button [disabled]="isFirstPage" (click)="goToPrevPage()">Previous page</button>
+        <button [disabled]="isLastPage" (click)="goToNextPage()">Next page</button>
+        <button [disabled]="isLastPage" (click)="goToLastPage()">Last page</button>
+        <label for="pageNumber">Page:
+          <input type="number" id="pageNumber" [value]="currentPage" [min]="1" [max]="totalPages" (input)="onPageNumberChange($event)">
+        </label>
+        <output>{{ firstVisibleRow }} - {{ lastVisibleRow }} of {{ totalRows }} rows</output>
+      </div>
+    </div>
     <hot-table
       #hotTable
       [settings]="hotSettings!" [data]="hotData">
     </hot-table>
-    <div class="example-controls-container">
-      <div class="controls-row">
-        <button
-          class="pagination-btn"
-          [disabled]="isFirstPage"
-          (click)="goToFirstPage()">
-          First page
-        </button>
-        <button
-          class="pagination-btn"
-          [disabled]="isFirstPage"
-          (click)="goToPrevPage()">
-          Previous page
-        </button>
-        <button
-          class="pagination-btn"
-          [disabled]="isLastPage"
-          (click)="goToNextPage()">
-          Next page
-        </button>
-        <button
-          class="pagination-btn"
-          [disabled]="isLastPage"
-          (click)="goToLastPage()">
-          Last page
-        </button>
-      </div>
-      <div class="status-row">
-        <div class="page-input-group">
-          <label for="pageNumber">Page:</label>
-          <input
-            type="number"
-            id="pageNumber"
-            [value]="currentPage"
-            [min]="1"
-            [max]="totalPages"
-            class="page-input"
-            (input)="onPageNumberChange($event)">
-        </div>
-        <div class="page-stats">
-          <span>{{ firstVisibleRow }}</span> - <span>{{ lastVisibleRow }}</span> of <span>{{ totalRows }}</span> rows
-        </div>
-      </div>
-    </div>
-  `,
-  styles: `
-    .example-controls-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: #f7f7f9;
-      border-radius: 8px;
-      margin-top: 12px;
-      padding: 12px 30px;
-    }
-
-    .example-controls-container .pagination-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .example-controls-container .controls-row {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      margin-bottom: 12px;
-      gap: 10px;
-    }
-
-    .example-controls-container .status-row {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      padding: 0 10px;
-    }
-
-    .example-controls-container .page-input-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .example-controls-container .page-input-group label {
-      color: #485164;
-    }
-
-    .example-controls-container .page-input {
-      width: 45px;
-      padding: 4px;
-      border: 1px solid #d1d5db;
-      text-align: center;
-      background: #fff;
-      color: #22292f;
-    }
-
-    .example-controls-container .page-stats {
-      color: #485164;
-    }
   `,
   standalone: false
 })

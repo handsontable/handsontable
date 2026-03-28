@@ -169,6 +169,13 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
     }
   }
 
+  // Attach CSS file reference so the example runner can inject it at runtime.
+  const cssRef = fileRefs.find((ref) => ref.endsWith('.css'));
+
+  if (cssRef) {
+    exampleAttr += ` data-example-css="/content/${escapeHtml(cssRef)}"`;
+  }
+
   // ── HTML preview content for JS examples ───────────────────────────────────
   // Some JS examples ship an .html file with extra DOM elements the script
   // depends on (event log panels, checkbox lists, etc.).  When present, inject
@@ -382,7 +389,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v18';
+const LOADER_VERSION = 'v26';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)

@@ -250,22 +250,22 @@ h3 + p {
 }
 
 
-/* Custom scrollbar styling — subtle */
-* {
+/* Custom scrollbar styling — subtle (exclude Handsontable internals) */
+*:not(.handsontable *) {
   scrollbar-width: thin;
   scrollbar-color: var(--sl-color-gray-5) transparent;
 }
 
-*::-webkit-scrollbar {
+*:not(.handsontable *)::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 
-*::-webkit-scrollbar-track {
+*:not(.handsontable *)::-webkit-scrollbar-track {
   background: transparent;
 }
 
-*::-webkit-scrollbar-thumb {
+*:not(.handsontable *)::-webkit-scrollbar-thumb {
   background-color: var(--sl-color-gray-5);
   border-radius: 2px;
 }
@@ -939,7 +939,7 @@ starlight-toc a:not([aria-current='true']):hover {
 }
 
 kbd {
-  display: inline-block;
+  display: inline;
   padding: 0.15em 0.5em;
   font-family: var(--sl-font);
   font-size: var(--sl-text-xs);
@@ -950,7 +950,8 @@ kbd {
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 0;
   white-space: nowrap;
-  vertical-align: baseline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 kbd kbd {
@@ -959,6 +960,7 @@ kbd kbd {
   border: none;
   font-size: inherit;
 }
+
 
 /* -------------------------------------------------------------------------
  * Clickable headings — make the entire heading text act as an anchor link.
@@ -1256,6 +1258,13 @@ html {
   border-bottom: 1px solid var(--sl-color-gray-5);
 }
 
+/* ── Selection example: ensure dropdown overlays the grid ─────────── */
+
+#example1 {
+  z-index: 1;
+  position: relative;
+}
+
 /* ── Hooks example: event log ────────────────────────────────────────── */
 
 #example1_events {
@@ -1384,6 +1393,22 @@ html {
 .example-controls-container {
   position: relative;
   z-index: 10;
+}
+
+.example-controls-container button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Pagination resizable demo (pageSize: 'auto') */
+.pagination-resize-demo .ht-root-wrapper {
+  border: 1px dashed var(--sl-color-accent);
+  border-radius: 4px;
+  height: 300px;
+  min-height: 120px;
+  max-height: 600px;
+  resize: vertical;
+  overflow: auto;
 }
 
 #exampleTheme {
