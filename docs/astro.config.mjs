@@ -11,7 +11,7 @@ import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { buildAllSidebars } from './src/sidebar.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, symlinkSync } from 'fs';
 import { relative, join } from 'path';
 import { createRequire } from 'module';
 import { transformWithEsbuild } from 'vite';
@@ -26,6 +26,17 @@ const ts = _require('typescript');
 import 'dotenv/config';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// ── Symlink for starlight-page-actions ───────────────────────────────────────
+// The plugin hardcodes `src/content/docs/**/*.{md,mdx}` as the static-copy
+// source path, but this project stores content at `docs/content/`. Create a
+// symlink so the plugin can find the files on both local dev and CI.
+const symlinkTarget = resolve(__dirname, 'src', 'content', 'docs');
+
+if (!existsSync(symlinkTarget)) {
+  mkdirSync(resolve(__dirname, 'src', 'content'), { recursive: true });
+  symlinkSync(resolve(__dirname, 'content'), symlinkTarget);
+}
 
 // ── Build mode detection ─────────────────────────────────────────────────────
 // BUILD_MODE env var is set by the deployment pipeline. When set to
