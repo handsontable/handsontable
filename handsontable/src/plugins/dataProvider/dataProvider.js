@@ -117,6 +117,10 @@ export class DataProvider extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get SETTING_KEYS() {
+    return [PLUGIN_KEY];
+  }
+
   static get DEFAULT_SETTINGS() {
     return DEFAULT_SETTINGS;
   }
@@ -145,9 +149,15 @@ export class DataProvider extends BasePlugin {
    */
   #mutationQueue = { tail: Promise.resolve() };
 
+  /**
+   * @param {object} hotInstance Handsontable instance.
+   */
   constructor(hotInstance) {
     super(hotInstance);
 
+    // Before `enablePlugin()` runs (`afterPluginsInitialized`), core may call `runHooks('hasExternalDataSource')`
+    // (for example during `updateSettings`). `disablePlugin()` clears all `addHook` listeners, so `enablePlugin()`
+    // registers this hook again.
     this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
   }
 
@@ -170,6 +180,7 @@ export class DataProvider extends BasePlugin {
 
     this.#applyQueryParametersFromPlugins();
 
+    this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
     this.addHook('afterInit', () => this.#onAfterInit());
     this.addHook('modifyRowHeader', (...args) => this.#onModifyRowHeader(...args));
     this.addHook('beforeColumnSort', (...args) => this.#onBeforeColumnSort(...args));
@@ -200,6 +211,8 @@ export class DataProvider extends BasePlugin {
   /**
    * Disables the plugin, aborts fetch, resets query state.
    * Hook listeners registered with `addHook` are removed by `super.disablePlugin()` via `clearHooks()`.
+   * The constructor registers [[Hooks#hasExternalDataSource]] for the period before the first `enablePlugin()`;
+   * `enablePlugin()` registers it again so it survives each `updatePlugin()` cycle.
    */
   disablePlugin() {
     this.#resetAbortController();
@@ -683,7 +696,8 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Default handler for [[Hooks#hasExternalDataSource]]: `true` when this instance has a complete server-backed
-   * `dataProvider` configuration. Registered only while the plugin is enabled so the hook is instance-scoped.
+   * `dataProvider` configuration. Registered in the constructor (early lifecycle) and in `enablePlugin()` after each
+   * `disablePlugin()` clears `addHook` listeners.
    *
    * @returns {boolean}
    */

@@ -143,6 +143,39 @@ describe('DataProvider', () => {
     expect(getDataAtCell(0, 1)).toBe('A');
   });
 
+  it('should keep hasExternalDataSource after updatePlugin and not apply static data as dataset', async() => {
+    const config = createDataProviderConfig({
+      fetchRows: () => Promise.resolve({ rows: [{ id: 1, name: 'A' }], totalRows: 1 }),
+    });
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: config,
+    });
+
+    await sleep(50);
+
+    expect(runHooks('hasExternalDataSource')).toBe(true);
+
+    await updateSettings({ dataProvider: { ...config } });
+
+    await sleep(50);
+
+    expect(runHooks('hasExternalDataSource')).toBe(true);
+
+    await updateSettings({ data: [{ id: 99, name: 'Replaced' }] });
+
+    expect(countRows() === 1 && getDataAtCell(0, 0) === 99).toBe(false);
+
+    await getPlugin('dataProvider').fetchData();
+    await sleep(50);
+
+    expect(countRows()).toBe(1);
+    expect(getDataAtCell(0, 0)).toBe(1);
+    expect(getDataAtCell(0, 1)).toBe('A');
+  });
+
   it('should be possible to disable the plugin via updateSettings', async() => {
     const config = createDataProviderConfig({
       fetchRows: () => Promise.resolve({ rows: [{ id: 1 }], totalRows: 1 }),
