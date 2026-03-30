@@ -185,7 +185,7 @@ export default () => {
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the grid level, the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * @memberof Options#
      * @type {boolean}
@@ -653,7 +653,7 @@ export default () => {
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the grid level, the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Checkbox cell type: Checkbox template](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#checkbox-template)
@@ -2013,7 +2013,7 @@ export default () => {
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the grid level, the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
@@ -5531,7 +5531,7 @@ export default () => {
      * | `false` | [Flexible mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-flexible-mode)     | The end user:<br>- Can choose one of suggested values<br>- Can enter a custom value        |
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the grid level, the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -5829,7 +5829,7 @@ export default () => {
      * | `false`          | Scale the dropdown/autocomplete list's width to the list's content              |
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the grid level, the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -5999,7 +5999,7 @@ export default () => {
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the grid level, the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Checkbox cell type: Checkbox template](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#checkbox-template)
@@ -6076,7 +6076,7 @@ export default () => {
      * | A regular expression | A regular expression used for cell validation                                    |
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the grid level, the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * By setting the `validator` option to a string,
      * you can use one of the following [cell validator aliases](@/guides/cell-functions/cell-validator/cell-validator.md):
@@ -6379,7 +6379,7 @@ export default () => {
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the grid level, the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -6477,7 +6477,7 @@ export default () => {
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the grid level, the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [`noWordWrapClassName`](#noWordWrapClassName)
