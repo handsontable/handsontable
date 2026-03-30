@@ -162,7 +162,7 @@ describe('keyboard navigation', () => {
       expect(getActiveEditor().isOpened()).toBe(true);
 
       await keyDownUp('enter');
-      await sleep(15);
+      await waitForNextAnimationFrames(1);
 
       expect(getActiveEditor().isOpened()).toBe(false);
 
@@ -191,7 +191,7 @@ describe('keyboard navigation', () => {
       expect(getActiveEditor().isOpened()).toBe(true);
 
       await keyDownUp('escape');
-      await sleep(15);
+      await waitForNextAnimationFrames(1);
 
       expect(getActiveEditor().isOpened()).toBe(false);
       expect(getDataAtCell(0, 0)).toEqual('01/14/2006');

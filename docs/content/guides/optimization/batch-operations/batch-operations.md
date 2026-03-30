@@ -166,7 +166,7 @@ hot.batchRender(() => {
 
 #### batchExecution
 
-The [`batchExecution()`](@/api/core.md#batchexecution) is a callback function. Excessive renders can be skipped by placing the API calls inside of it. The table will be rendered after executing the callback. It is less prone to errors as you don't have to remember to resume the operations. The only drawback to this method is that it doesn't support async operations.
+The [`batchExecution()`](@/api/core.md#batchexecution) method aggregates multi-line API calls into a callback and postpones the table execution process. After the execution of the operations, the internal table cache is recalculated once. As a result, it improves the performance of wrapped operations. Without batching, a similar case could trigger multiple table cache rebuilds. It is less prone to errors as you don't have to remember to resume the operations. The only drawback to this method is that it doesn't support async operations.
 
 ```js
 hot.batchExecution(() => {
@@ -197,7 +197,9 @@ hot.resumeRender(); // remember to resume rendering
 
 #### suspendExecution and resumeExecution
 
-To suspend the rendering process, you can call the [`suspendExecution()`](@/api/core.md#suspendexecution) method just before the actions you want to batch. This is a manual approach. After suspending, you must remember to resume the process with the [`resumeExecution()`](@/api/core.md#resumeexecution) method.
+The [`suspendExecution()`](@/api/core.md#suspendexecution) method suspends the execution process. It's helpful to wrap the table logic changes such as index changes into one call after which the cache is updated. The method is intended to be used by advanced users. Suspending the execution process could cause visual glitches caused by not updating the internal table cache.
+
+To suspend, call [`suspendExecution()`](@/api/core.md#suspendexecution) just before the actions you want to batch. This is a manual approach. After suspending, you must remember to resume the process with the [`resumeExecution()`](@/api/core.md#resumeexecution) method. In combination, these two methods allow aggregating the table logic changes after which the cache is updated. Resuming the state automatically invokes the table cache updating process.
 
 ```js
 hot.suspendExecution();

@@ -114,7 +114,7 @@ describe('Core.setDataAtRowProp', () => {
       [2, 'b', 777],
     ]);
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getSourceDataAtCell(0, 'a')).toEqual(1);
     expect(getSourceDataAtCell(0, 'b')).toEqual(2);

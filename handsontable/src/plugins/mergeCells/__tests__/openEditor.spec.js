@@ -130,11 +130,11 @@ describe('MergeCells open editor', () => {
 
       await selectCell(1, 90);
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       await keyDownUp('enter');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(isEditorVisible()).toBe(true);
       expect($(getActiveEditor().TEXTAREA_PARENT).offset()).forThemes(({ classic, main, horizon }) => {
@@ -159,11 +159,11 @@ describe('MergeCells open editor', () => {
 
       await selectCell(90, 1);
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       await keyDownUp('enter');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(isEditorVisible()).toBe(true);
       expect($(getActiveEditor().TEXTAREA_PARENT).offset()).forThemes(({ classic, main, horizon }) => {

@@ -316,7 +316,7 @@ describe('Comments (RTL mode)', () => {
           clientY: cell.offset().top + 5,
         });
 
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         const commentEditor = $(hot.getPlugin('comments').getEditorInputElement());
         const commentEditorOffset = commentEditor.offset();

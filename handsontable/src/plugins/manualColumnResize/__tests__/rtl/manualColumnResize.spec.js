@@ -40,7 +40,7 @@ describe('manualColumnResize (RTL)', () => {
     $resizer.simulate('mousemove', { clientX: spec().$container.find('tr:eq(0) th:eq(1)').offset().left + 29 });
     $resizer.simulate('mouseup');
 
-    await sleep(1000);
+    await waitForNextAnimationFrames(2);
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
@@ -85,7 +85,7 @@ describe('manualColumnResize (RTL)', () => {
     $resizer.simulate('mousemove', { clientX: spec().$container.find('tr:eq(0) th:eq(1)').offset().left - 150 });
     $resizer.simulate('mouseup');
 
-    await sleep(1000);
+    await waitForNextAnimationFrames(2);
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 

@@ -440,3 +440,7 @@ When calling `updateSettings()` in the React wrapper, **preserve and restore sel
 - The docs site (`docs/`) uses Node 20 and is not needed for core development.
 - Walkontable has its **own test runner** -- do not mix with main E2E tests.
 - No Docker, databases, or external services are required.
+
+### Testing preference
+
+- For bug fixes in `handsontable/`, add both a focused unit test and a focused E2E regression test when practical.

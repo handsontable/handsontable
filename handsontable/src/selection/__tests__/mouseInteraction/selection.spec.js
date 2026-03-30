@@ -920,7 +920,7 @@ describe('Selection using mouse interaction', () => {
 
     $(getCell(-1, 11, true)).simulate('mouseover'); // Header `L`
 
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(getSelected()).toEqual([[12, 11, 0, 11]]);
     expect(`
@@ -966,7 +966,7 @@ describe('Selection using mouse interaction', () => {
       .simulate('mouseover')
       .simulate('mouseup');
 
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(getSelected()).toEqual([[12, 11, 12, 0]]);
     expect(`
