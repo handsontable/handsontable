@@ -337,9 +337,7 @@ function applyQueryFilters(
     return rows;
   }
 
-  return rows.filter((row) =>
-    filters.every((f) => rowMatchesFilterColumn(row, f))
-  );
+  return rows.filter((row) => filters.every((f) => rowMatchesFilterColumn(row, f)));
 }
 
 function delay(ms: number, signal: AbortSignal): Promise<void> {
@@ -402,7 +400,13 @@ function createInventoryDemoServer(): InventoryDemoServer {
         rows.sort((a, b) => {
           const av = a[sort.prop as keyof DemoRow];
           const bv = b[sort.prop as keyof DemoRow];
-          const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+          let cmp = 0;
+
+          if (av < bv) {
+            cmp = -1;
+          } else if (av > bv) {
+            cmp = 1;
+          }
 
           return sort.order === 'asc' ? cmp : -cmp;
         });
@@ -421,9 +425,7 @@ function createInventoryDemoServer(): InventoryDemoServer {
         if (failNextFetch) {
           failNextFetch = false;
 
-          return Promise.reject(
-            new Error('Simulated server error (for example HTTP 503).')
-          );
+          return Promise.reject(new Error('Simulated server error (for example HTTP 503).'));
         }
 
         return {
@@ -517,9 +519,7 @@ const hot = new Handsontable(container, {
   dialog: true,
   beforeDataProviderFetch: (params: DataProviderBeforeFetchParameters) => {
     if (statusEl) {
-      statusEl.textContent = params.skipLoading
-        ? 'Updating after sort or edit…'
-        : 'Loading data…';
+      statusEl.textContent = params.skipLoading ? 'Updating after sort or edit…' : 'Loading data…';
     }
   },
   afterDataProviderFetch: () => {
@@ -546,9 +546,5 @@ function runFetch(clearFail: boolean) {
   void p.catch(() => {});
 }
 
-document
-  .querySelector('#example1-reload')
-  ?.addEventListener('click', () => runFetch(true));
-document
-  .querySelector('#example1-fail-fetch')
-  ?.addEventListener('click', () => runFetch(false));
+document.querySelector('#example1-reload')?.addEventListener('click', () => runFetch(true));
+document.querySelector('#example1-fail-fetch')?.addEventListener('click', () => runFetch(false));
