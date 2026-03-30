@@ -35,7 +35,7 @@ describe('Dialog - dialogFocusNextElement hook', () => {
 
     await keyDownUp('tab');
 
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(dialogFocusNextElementSpy).toHaveBeenCalledTimes(1);
   });
@@ -63,7 +63,7 @@ describe('Dialog - dialogFocusNextElement hook', () => {
 
     await keyDownUp(['shift', 'tab']);
 
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(dialogFocusNextElementSpy).not.toHaveBeenCalled();
   });
@@ -91,7 +91,7 @@ describe('Dialog - dialogFocusNextElement hook', () => {
 
     await unlisten();
     await keyDownUp('tab');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(dialogFocusNextElementSpy).not.toHaveBeenCalled();
   });
@@ -117,7 +117,7 @@ describe('Dialog - dialogFocusNextElement hook', () => {
     input.focus();
 
     await keyDownUp('tab');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     document.body.removeChild(input);
 

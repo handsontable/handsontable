@@ -35,17 +35,17 @@ describe('Formulas', () => {
 
       expect(countRows()).toBe(4);
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
       expect(countRows()).toBe(5);
 
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
       expect(countRows()).toBe(6);
 
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseup');
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
 
       expect(getData()).toEqual([
         ['test', 2, 'TEST', 4, 5, 6],
@@ -88,7 +88,7 @@ describe('Formulas', () => {
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
       spec().$container.find('tr:last-child td:eq(0)').simulate('mouseover');
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
 
       spec().$container.find('tr:last-child td:eq(0)').simulate('mouseup');
 
@@ -122,7 +122,7 @@ describe('Formulas', () => {
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
       spec().$container.find('tr:last-child td:eq(0)').simulate('mouseover');
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
 
       spec().$container.find('tr:last-child td:eq(0)').simulate('mouseup');
 
