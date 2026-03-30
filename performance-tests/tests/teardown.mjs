@@ -13,8 +13,9 @@ import { pathToFileURL } from 'node:url';
 
 import { averageTraceFiles } from '../trace-parser.mjs';
 
-export const DEFAULT_VERSIONS = [process.env.VERSION_1 || 'latest', process.env.VERSION_2 || 'current'];
-export const DEFAULT_ITERATIONS = process.env.ITERATIONS || 3;
+export const DEFAULT_VERSION_KEYS = ['latest', 'current'];
+export const DEFAULT_VERSION_LABELS = [process.env.VERSION_1 || 'latest', process.env.VERSION_2 || 'current'];
+export const DEFAULT_ITERATIONS = Number(process.env.ITERATIONS) || 3;
 
 /**
  * Paths to existing traces for one version: test-{version}-1.json … test-{version}-{iterations}.json
@@ -26,15 +27,6 @@ export function resolveTracePathsForVersion(outputDir, version, iterations) {
     if (fs.existsSync(fp)) paths.push(fp);
   }
   return paths;
-}
-
-/**
- * Arithmetic mean across iterations using trace-parser.mjs (same as averageTraceFiles).
- */
-export function averageAggregateForVersion(outputDir, version, iterations) {
-  const paths = resolveTracePathsForVersion(outputDir, version, iterations);
-  if (paths.length === 0) return null;
-  return averageTraceFiles(paths);
 }
 
 /**
@@ -96,24 +88,31 @@ function cat(agg, key) {
 export function buildTraceComparisonMarkdown(options = {}) {
   const {
     outputDir = path.join(process.cwd(), 'output'),
-    versions = DEFAULT_VERSIONS,
+    versionKeys = DEFAULT_VERSION_KEYS,
+    versionLabels = DEFAULT_VERSION_LABELS,
     iterations = DEFAULT_ITERATIONS,
   } = options;
 
-  if (!versions || versions.length < 2) {
-    return '*Need at least two entries in `versions` (baseline first, then compare).*\n';
+  if (!versionKeys || versionKeys.length < 2) {
+    return '*Need at least two entries in `versionKeys` (baseline first, then compare).*\n';
   }
 
-  const baselineVersion = versions[0];
-  const compareVersion = versions[1];
-  const basePaths = resolveTracePathsForVersion(outputDir, baselineVersion, iterations);
-  const cmpPaths = resolveTracePathsForVersion(outputDir, compareVersion, iterations);
+  if (!versionLabels || versionLabels.length < 2) {
+    return '*Need at least two entries in `versionLabels` (baseline first, then compare).*\n';
+  }
+
+  const baselineVersionKey = versionKeys[0];
+  const compareVersionKey = versionKeys[1];
+  const baselineVersionLabel = versionLabels[0];
+  const compareVersionLabel = versionLabels[1];
+  const basePaths = resolveTracePathsForVersion(outputDir, baselineVersionKey, iterations);
+  const cmpPaths = resolveTracePathsForVersion(outputDir, compareVersionKey, iterations);
 
   if (basePaths.length === 0) {
-    return `*No traces for baseline \`${baselineVersion}\` under \`${outputDir}\` (expected \`test-${baselineVersion}-1.json\` …).*\n`;
+    return `*No traces for baseline \`${baselineVersionLabel}\` under \`${outputDir}\` (expected \`test-${baselineVersionKey}-1.json\` …).*\n`;
   }
   if (cmpPaths.length === 0) {
-    return `*No traces for compare \`${compareVersion}\` under \`${outputDir}\` (expected \`test-${compareVersion}-1.json\` …).*\n`;
+    return `*No traces for compare \`${compareVersionLabel}\` under \`${outputDir}\` (expected \`test-${compareVersionKey}-1.json\` …).*\n`;
   }
 
   const base = averageTraceFiles(basePaths);
@@ -241,7 +240,7 @@ export function buildTraceComparisonMarkdown(options = {}) {
     return out.join('\n');
   }
 
-  return `${formatTable(rowsAll, baselineVersion, compareVersion)}\n`;
+  return `${formatTable(rowsAll, baselineVersionLabel, compareVersionLabel)}\n`;
 }
 
 /** Playwright global teardown: print the markdown report to stdout and save to output/result.md. */
@@ -249,7 +248,8 @@ export default async function teardown() {
   const outputDir = path.join(process.cwd(), 'output');
   const md = buildTraceComparisonMarkdown({
     outputDir,
-    versions: DEFAULT_VERSIONS,
+    versionKeys: DEFAULT_VERSION_KEYS,
+    versionLabels: DEFAULT_VERSION_LABELS,
     iterations: DEFAULT_ITERATIONS,
   });
   console.log(md);
@@ -268,7 +268,8 @@ if (isMain) {
   const outputDir = path.join(process.cwd(), 'output');
   const md = buildTraceComparisonMarkdown({
     outputDir,
-    versions: DEFAULT_VERSIONS,
+    versionKeys: DEFAULT_VERSION_KEYS,
+    versionLabels: DEFAULT_VERSION_LABELS,
     iterations: DEFAULT_ITERATIONS,
   });
   console.log(md);

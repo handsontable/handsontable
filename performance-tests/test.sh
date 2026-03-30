@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+
 mkdir -p output
 cd ../
 PUPPETEER_SKIP_DOWNLOAD=true pnpm install && pnpm -r rebuild
