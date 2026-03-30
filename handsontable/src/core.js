@@ -2899,8 +2899,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     if (instance.runHooks('hasExternalDataSource') === true) {
       // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
       if (settings.data) {
-        warn('The "data" setting is ignored when "dataProvider" is set. ' +
-          'The DataProvider plugin will load data instead.');
+        warn('The "data" setting is ignored when "hasExternalDataSource" returns `true`.');
       }
 
       // Replace the in-memory placeholder only when the update touches init, `data`, or `dataProvider`. Otherwise
