@@ -300,9 +300,9 @@ describe('manualRowMove', () => {
       const nextElement = $(document.body);
 
       expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeGreaterThan(130);
-        main.toBeGreaterThan(185); // not sure about this value
-        horizon.toBeGreaterThan(235); // not sure about this value
+        classic.toBeGreaterThan(calcE2eManualRowMoveScrollAboveTableBeforeScrollTopGt('classic'));
+        main.toBeGreaterThan(calcE2eManualRowMoveScrollAboveTableBeforeScrollTopGt('main'));
+        horizon.toBeGreaterThan(calcE2eManualRowMoveScrollAboveTableBeforeScrollTopGt('horizon'));
       });
 
       rowHeader
@@ -320,9 +320,9 @@ describe('manualRowMove', () => {
         .simulate('mouseup');
 
       expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeLessThan(140);
-        main.toBeLessThan(185);
-        horizon.toBeLessThan(240);
+        classic.toBeLessThan(calcE2eManualRowMoveScrollAboveTableAfterScrollTopLt('classic'));
+        main.toBeLessThan(calcE2eManualRowMoveScrollAboveTableAfterScrollTopLt('main'));
+        horizon.toBeLessThan(calcE2eManualRowMoveScrollAboveTableAfterScrollTopLt('horizon'));
       });
     });
 
@@ -349,9 +349,9 @@ describe('manualRowMove', () => {
       const topOverlayLastRowHeader = $(getCell(1, -1));
 
       expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeGreaterThan(100);
-        main.toBeGreaterThan(100);
-        horizon.toBeGreaterThan(170);
+        classic.toBeGreaterThan(calcE2eManualRowMoveScrollTopOverlayCompareBound('classic'));
+        main.toBeGreaterThan(calcE2eManualRowMoveScrollTopOverlayCompareBound('main'));
+        horizon.toBeGreaterThan(calcE2eManualRowMoveScrollTopOverlayCompareBound('horizon'));
       });
 
       rowHeader
@@ -368,9 +368,9 @@ describe('manualRowMove', () => {
         .simulate('mouseup');
 
       expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeLessThan(100);
-        main.toBeLessThan(100);
-        horizon.toBeLessThan(170);
+        classic.toBeLessThan(calcE2eManualRowMoveScrollTopOverlayCompareBound('classic'));
+        main.toBeLessThan(calcE2eManualRowMoveScrollTopOverlayCompareBound('main'));
+        horizon.toBeLessThan(calcE2eManualRowMoveScrollTopOverlayCompareBound('horizon'));
       });
     });
 
@@ -400,9 +400,9 @@ describe('manualRowMove', () => {
       const topOverlayLastRowHeader = $(getCell(1, -1));
 
       expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeGreaterThan(50);
-        main.toBeGreaterThan(50);
-        horizon.toBeGreaterThan(85);
+        classic.toBeGreaterThan(calcE2eManualRowMoveScrollTopOverlayHiddenBeforeScrollTopGt('classic'));
+        main.toBeGreaterThan(calcE2eManualRowMoveScrollTopOverlayHiddenBeforeScrollTopGt('main'));
+        horizon.toBeGreaterThan(calcE2eManualRowMoveScrollTopOverlayHiddenBeforeScrollTopGt('horizon'));
       });
 
       rowHeader
@@ -419,9 +419,9 @@ describe('manualRowMove', () => {
         .simulate('mouseup');
 
       expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeLessThan(100);
-        main.toBeLessThan(100);
-        horizon.toBeLessThan(170);
+        classic.toBeLessThan(calcE2eManualRowMoveScrollTopOverlayCompareBound('classic'));
+        main.toBeLessThan(calcE2eManualRowMoveScrollTopOverlayCompareBound('main'));
+        horizon.toBeLessThan(calcE2eManualRowMoveScrollTopOverlayCompareBound('horizon'));
       });
     });
 
@@ -447,7 +447,7 @@ describe('manualRowMove', () => {
       const rowHeader = $(getCell(8, -1));
       const nextRowHeader = $(getCell(7, -1));
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(100);
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(calcE2eManualRowMoveNoMoveMinScrollTop());
 
       rowHeader
         .simulate('mousedown')
@@ -462,7 +462,7 @@ describe('manualRowMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(100);
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(calcE2eManualRowMoveNoMoveMinScrollTop());
     });
   });
 });

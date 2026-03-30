@@ -42,16 +42,15 @@ describe('Core.scrollViewportTo', () => {
       // col 50, end snap, colWidths=60, width=300, rowHeaderWidth=66
       // scroll = (col + 1) * colWidth - (viewportWidth - rowHeaderWidth) = 51 * 60 - (300 - 66) = 2826
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(51 * 60 - (300 - 66));
-        main.toBe(51 * 60 - (300 - 66));
-        horizon.toBe(51 * 60 - (300 - 66));
+        classic.toBe(calcHorizontalScrollEndSnap(50, 60, 300));
+        main.toBe(calcHorizontalScrollEndSnap(50, 60, 300));
+        horizon.toBe(calcHorizontalScrollEndSnap(50, 60, 300));
       });
       // row 150, bottom snap: rowTop - (viewportHeight - rowHeight - colHeaderHeight - scrollbarHeight)
-      // scrollbarHeight = 18 (native OS scrollbar)
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(calcRowHeight('classic') * 150 - (300 - calcRowHeight('classic') - calcColHeaderHeight('classic') - 18));
-        main.toBe(calcRowHeight('main') * 150 - (300 - calcRowHeight('main') - calcColHeaderHeight('main') - 18));
-        horizon.toBe(calcRowHeight('horizon') * 150 - (300 - calcRowHeight('horizon') - calcColHeaderHeight('horizon') - 18));
+        classic.toBe(calcTopOverlayBottomSnapScroll(150, 300, 'classic'));
+        main.toBe(calcTopOverlayBottomSnapScroll(150, 300, 'main'));
+        horizon.toBe(calcTopOverlayBottomSnapScroll(150, 300, 'horizon'));
       });
     });
 
@@ -80,16 +79,14 @@ describe('Core.scrollViewportTo', () => {
       expect(result).toBe(true);
       // col 50, start snap, colWidths=60: scroll = col * colWidth = 50 * 60 = 3000
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50 * 60);
-        main.toBe(50 * 60);
-        horizon.toBe(50 * 60);
+        classic.toBe(calcHorizontalScrollStartSnap(50, 60));
+        main.toBe(calcHorizontalScrollStartSnap(50, 60));
+        horizon.toBe(calcHorizontalScrollStartSnap(50, 60));
       });
-      // row 150, bottom snap: rowTop - (viewportHeight - rowHeight - colHeaderHeight - scrollbarHeight)
-      // scrollbarHeight = 18 (native OS scrollbar)
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(calcRowHeight('classic') * 150 - (300 - calcRowHeight('classic') - calcColHeaderHeight('classic') - 18));
-        main.toBe(calcRowHeight('main') * 150 - (300 - calcRowHeight('main') - calcColHeaderHeight('main') - 18));
-        horizon.toBe(calcRowHeight('horizon') * 150 - (300 - calcRowHeight('horizon') - calcColHeaderHeight('horizon') - 18));
+        classic.toBe(calcTopOverlayBottomSnapScroll(150, 300, 'classic'));
+        main.toBe(calcTopOverlayBottomSnapScroll(150, 300, 'main'));
+        horizon.toBe(calcTopOverlayBottomSnapScroll(150, 300, 'horizon'));
       });
     });
 
@@ -118,9 +115,9 @@ describe('Core.scrollViewportTo', () => {
       expect(result).toBe(true);
       // col 50, start snap, colWidths=60: scroll = col * colWidth = 50 * 60 = 3000
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50 * 60);
-        main.toBe(50 * 60);
-        horizon.toBe(50 * 60);
+        classic.toBe(calcHorizontalScrollStartSnap(50, 60));
+        main.toBe(calcHorizontalScrollStartSnap(50, 60));
+        horizon.toBe(calcHorizontalScrollStartSnap(50, 60));
       });
       // row 150, top snap: scroll = row * rowHeight
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
@@ -156,9 +153,9 @@ describe('Core.scrollViewportTo', () => {
       // col 50, end snap, colWidths=60, width=300, rowHeaderWidth=66
       // scroll = (col + 1) * colWidth - (viewportWidth - rowHeaderWidth) = 51 * 60 - (300 - 66) = 2826
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(51 * 60 - (300 - 66));
-        main.toBe(51 * 60 - (300 - 66));
-        horizon.toBe(51 * 60 - (300 - 66));
+        classic.toBe(calcHorizontalScrollEndSnap(50, 60, 300));
+        main.toBe(calcHorizontalScrollEndSnap(50, 60, 300));
+        horizon.toBe(calcHorizontalScrollEndSnap(50, 60, 300));
       });
       // row 150, top snap: scroll = row * rowHeight
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
@@ -229,12 +226,10 @@ describe('Core.scrollViewportTo', () => {
 
     expect(result).toBe(true);
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-    // row 150, bottom snap: rowTop - (viewportHeight - rowHeight - colHeaderHeight - scrollbarHeight)
-    // scrollbarHeight = 18 (native OS scrollbar)
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(calcRowHeight('classic') * 150 - (300 - calcRowHeight('classic') - calcColHeaderHeight('classic') - 18));
-      main.toBe(calcRowHeight('main') * 150 - (300 - calcRowHeight('main') - calcColHeaderHeight('main') - 18));
-      horizon.toBe(calcRowHeight('horizon') * 150 - (300 - calcRowHeight('horizon') - calcColHeaderHeight('horizon') - 18));
+      classic.toBe(calcTopOverlayBottomSnapScroll(150, 300, 'classic'));
+      main.toBe(calcTopOverlayBottomSnapScroll(150, 300, 'main'));
+      horizon.toBe(calcTopOverlayBottomSnapScroll(150, 300, 'horizon'));
     });
   });
 
@@ -281,9 +276,9 @@ describe('Core.scrollViewportTo', () => {
     // col 50, end snap, colWidths=60, width=300, rowHeaderWidth=66
     // scroll = (col + 1) * colWidth - (viewportWidth - rowHeaderWidth) = 51 * 60 - (300 - 66) = 2826
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(51 * 60 - (300 - 66));
-      main.toBe(51 * 60 - (300 - 66));
-      horizon.toBe(51 * 60 - (300 - 66));
+      classic.toBe(calcHorizontalScrollEndSnap(50, 60, 300));
+      main.toBe(calcHorizontalScrollEndSnap(50, 60, 300));
+      horizon.toBe(calcHorizontalScrollEndSnap(50, 60, 300));
     });
     expect(topOverlay().getScrollPosition()).toBe(0);
   });
@@ -304,11 +299,10 @@ describe('Core.scrollViewportTo', () => {
     });
 
     expect(result).toBe(true);
-    // col 50, start snap, colWidths=60: scroll = col * colWidth = 50 * 60 = 3000
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50 * 60);
-      main.toBe(50 * 60);
-      horizon.toBe(50 * 60);
+      classic.toBe(calcHorizontalScrollStartSnap(50, 60));
+      main.toBe(calcHorizontalScrollStartSnap(50, 60));
+      horizon.toBe(calcHorizontalScrollStartSnap(50, 60));
     });
     expect(topOverlay().getScrollPosition()).toBe(0);
   });

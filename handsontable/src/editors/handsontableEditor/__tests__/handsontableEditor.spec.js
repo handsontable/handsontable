@@ -902,14 +902,14 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(324);
-      main.toBe(357);
-      horizon.toBe(381);
+      classic.toBe(calcE2eHandsontableEditorEmbeddedContainerClientWidth('classic'));
+      main.toBe(calcE2eHandsontableEditorEmbeddedContainerClientWidth('main'));
+      horizon.toBe(calcE2eHandsontableEditorEmbeddedContainerClientWidth('horizon'));
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(188);
-      main.toBe(213);
-      horizon.toBe(273);
+      classic.toBe(calcE2eHandsontableEditorEmbeddedContainerClientHeight('classic'));
+      main.toBe(calcE2eHandsontableEditorEmbeddedContainerClientHeight('main'));
+      horizon.toBe(calcE2eHandsontableEditorEmbeddedContainerClientHeight('horizon'));
     });
   });
 
@@ -943,14 +943,14 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(324);
-      main.toBe(357);
-      horizon.toBe(381);
+      classic.toBe(calcE2eHandsontableEditorEmbeddedContainerClientWidth('classic'));
+      main.toBe(calcE2eHandsontableEditorEmbeddedContainerClientWidth('main'));
+      horizon.toBe(calcE2eHandsontableEditorEmbeddedContainerClientWidth('horizon'));
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(188);
-      main.toBe(213);
-      horizon.toBe(273);
+      classic.toBe(calcE2eHandsontableEditorEmbeddedContainerClientHeight('classic'));
+      main.toBe(calcE2eHandsontableEditorEmbeddedContainerClientHeight('main'));
+      horizon.toBe(calcE2eHandsontableEditorEmbeddedContainerClientHeight('horizon'));
     });
   });
 });

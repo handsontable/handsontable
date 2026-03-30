@@ -716,11 +716,12 @@ describe('Core_view', () => {
     await render();
 
     expect(getTopClone().width()).forThemes(({ classic, main, horizon }) => {
-      // TODO: verify formula — width depends on scrollbar presence/absence which differs per theme
-      // due to row heights causing different overflow conditions; not directly derivable from tokens
-      classic.toBe(200);
-      main.toBe(185);
-      horizon.toBe(185);
+      const fullWidth = 200;
+      const scrollbar = Handsontable.dom.getScrollbarWidth();
+
+      classic.toBe(fullWidth);
+      main.toBe(fullWidth - scrollbar);
+      horizon.toBe(fullWidth - scrollbar);
     });
   });
 

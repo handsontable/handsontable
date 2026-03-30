@@ -27,16 +27,18 @@ describe('Vertical scroll', () => {
       }
     });
 
-    // make sure that the `9` row is partially visible
-    await scrollViewportVertically(195);
+    // make sure that the `9` row is partially visible (same value as expected scroll after snap)
+    const partialRowScrollPx = 195;
+
+    await scrollViewportVertically(partialRowScrollPx);
     // select the `9` row
     await selectCell(8, 0);
 
     // expect that the viewport is scrolled to the beginning of the `9` row
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(195);
-      main.toBe(195);
-      horizon.toBe(195);
+      classic.toBe(partialRowScrollPx);
+      main.toBe(partialRowScrollPx);
+      horizon.toBe(partialRowScrollPx);
     });
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(8, 0, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({

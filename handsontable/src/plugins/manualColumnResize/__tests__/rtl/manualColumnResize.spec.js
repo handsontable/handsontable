@@ -44,20 +44,8 @@ describe('manualColumnResize (RTL)', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).outerWidth()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(20);
-      main.toBe(20);
-      horizon.toBe(20);
-    });
-    expect($columnHeaders.eq(2).outerWidth()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(20);
-      main.toBe(20);
-      horizon.toBe(20);
-    });
-    expect($columnHeaders.eq(3).outerWidth()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(20);
-      main.toBe(20);
-      horizon.toBe(20);
+    [1, 2, 3].forEach((idx) => {
+      expect($columnHeaders.eq(idx).outerWidth()).toBe(calcE2eManualColumnResizeRtlNarrowSelectedHeaderOuterWidth());
     });
   });
 
@@ -89,20 +77,12 @@ describe('manualColumnResize (RTL)', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).outerWidth()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(196);
-      main.toBe(196);
-      horizon.toBe(198);
-    });
-    expect($columnHeaders.eq(2).outerWidth()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(196);
-      main.toBe(196);
-      horizon.toBe(198);
-    });
-    expect($columnHeaders.eq(3).outerWidth()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(196);
-      main.toBe(196);
-      horizon.toBe(198);
+    [1, 2, 3].forEach((idx) => {
+      expect($columnHeaders.eq(idx).outerWidth()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(calcE2eManualColumnResizeRtlExpandedSelectedHeaderOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeRtlExpandedSelectedHeaderOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeRtlExpandedSelectedHeaderOuterWidth('horizon'));
+      });
     });
   });
 

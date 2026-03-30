@@ -278,19 +278,19 @@ describe('manualColumnResize', () => {
     const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
 
     expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(34);
-      main.toBe(34);
-      horizon.toBe(35);
+      classic.toBe(calcE2eManualColumnResizeTripleClickHeaderWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeTripleClickHeaderWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeTripleClickHeaderWidth('horizon'));
     });
     expect($columnHeaders.eq(2).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(34);
-      main.toBe(34);
-      horizon.toBe(35);
+      classic.toBe(calcE2eManualColumnResizeTripleClickHeaderWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeTripleClickHeaderWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeTripleClickHeaderWidth('horizon'));
     });
     expect($columnHeaders.eq(3).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(34);
-      main.toBe(34);
-      horizon.toBe(35);
+      classic.toBe(calcE2eManualColumnResizeTripleClickHeaderWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeTripleClickHeaderWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeTripleClickHeaderWidth('horizon'));
     });
   });
 
@@ -374,19 +374,19 @@ describe('manualColumnResize', () => {
     const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
 
     expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(155);
-      main.toBe(155);
-      horizon.toBe(156);
+      classic.toBe(calcE2eManualColumnResizeStretchedHeaderWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeStretchedHeaderWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeStretchedHeaderWidth('horizon'));
     });
     expect($columnHeaders.eq(2).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(155);
-      main.toBe(155);
-      horizon.toBe(156);
+      classic.toBe(calcE2eManualColumnResizeStretchedHeaderWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeStretchedHeaderWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeStretchedHeaderWidth('horizon'));
     });
     expect($columnHeaders.eq(3).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(155);
-      main.toBe(155);
-      horizon.toBe(156);
+      classic.toBe(calcE2eManualColumnResizeStretchedHeaderWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeStretchedHeaderWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeStretchedHeaderWidth('horizon'));
     });
   });
 
@@ -420,29 +420,29 @@ describe('manualColumnResize', () => {
     await waitForNextAnimationFrames(63);
 
     expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(220);
-      main.toBe(219);
-      horizon.toBe(217);
+      classic.toBe(calcE2eManualColumnResizeNestedHeadersStretchAllCol0OuterWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeNestedHeadersStretchAllCol0OuterWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeNestedHeadersStretchAllCol0OuterWidth('horizon'));
     });
     expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(22);
-      main.toBe(27);
-      horizon.toBe(35);
+      classic.toBe(calcE2eManualColumnResizeNestedHeadersStretchAllCol1OuterWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeNestedHeadersStretchAllCol1OuterWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeNestedHeadersStretchAllCol1OuterWidth('horizon'));
     });
     expect($columnHeaders.eq(2).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(221);
-      main.toBe(220);
-      horizon.toBe(218);
+      classic.toBe(calcE2eManualColumnResizeNestedHeadersStretchWideColOuterWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeNestedHeadersStretchWideColOuterWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeNestedHeadersStretchWideColOuterWidth('horizon'));
     });
     expect($columnHeaders.eq(3).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(221);
-      main.toBe(220);
-      horizon.toBe(218);
+      classic.toBe(calcE2eManualColumnResizeNestedHeadersStretchWideColOuterWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeNestedHeadersStretchWideColOuterWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeNestedHeadersStretchWideColOuterWidth('horizon'));
     });
     expect($columnHeaders.eq(4).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(220);
-      main.toBe(218);
-      horizon.toBe(216);
+      classic.toBe(calcE2eManualColumnResizeNestedHeadersStretchAllCol4OuterWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeNestedHeadersStretchAllCol4OuterWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeNestedHeadersStretchAllCol4OuterWidth('horizon'));
     });
   });
 
@@ -460,9 +460,9 @@ describe('manualColumnResize', () => {
 
     expect($columnHeaders.eq(0).width()).toBe(64);
     expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(48);
-      main.toBe(48);
-      horizon.toBe(48); // TODO: seems to be an issue with how .width() reads the width value.
+      classic.toBe(calcE2eManualColumnResizeStretchLastUniformHeaderWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeStretchLastUniformHeaderWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeStretchLastUniformHeaderWidth('horizon')); // TODO: seems to be an issue with how .width() reads the width value.
     });
     expect($columnHeaders.eq(2).width()).toBe(49);
     expect($columnHeaders.eq(3).width()).toBe(49);
@@ -484,19 +484,19 @@ describe('manualColumnResize', () => {
       horizon.toBeAroundValue(35);
     });
     expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(48);
-      main.toBe(48);
-      horizon.toBe(48);
+      classic.toBe(calcE2eManualColumnResizeStretchLastUniformHeaderWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeStretchLastUniformHeaderWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeStretchLastUniformHeaderWidth('horizon'));
     });
     expect($columnHeaders.eq(2).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(49);
-      main.toBe(49);
-      horizon.toBe(49);
+      classic.toBe(calcE2eManualColumnResizeStretchLastWideHeaderWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeStretchLastWideHeaderWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeStretchLastWideHeaderWidth('horizon'));
     });
     expect($columnHeaders.eq(3).width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(49);
-      main.toBe(49);
-      horizon.toBe(49);
+      classic.toBe(calcE2eManualColumnResizeStretchLastWideHeaderWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeStretchLastWideHeaderWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeStretchLastWideHeaderWidth('horizon'));
     });
     expect($columnHeaders.eq(4).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(736);
@@ -533,14 +533,14 @@ describe('manualColumnResize', () => {
       await waitForNextAnimationFrames(63);
 
       expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(29);
-        main.toBe(35);
-        horizon.toBe(43);
+        classic.toBe(calcE2eManualColumnResizeHeaderLabelOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeHeaderLabelOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeHeaderLabelOuterWidth('horizon'));
       });
       expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118);
-        main.toBe(118);
-        horizon.toBe(118);
+        classic.toBe(calcE2eManualColumnResizeMergedHeaderOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeMergedHeaderOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeMergedHeaderOuterWidth('horizon'));
       });
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
@@ -559,14 +559,14 @@ describe('manualColumnResize', () => {
       await waitForNextAnimationFrames(63);
 
       expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(29);
-        main.toBe(35);
-        horizon.toBe(43);
+        classic.toBe(calcE2eManualColumnResizeHeaderLabelOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeHeaderLabelOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeHeaderLabelOuterWidth('horizon'));
       });
       expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(78);
-        main.toBe(87);
-        horizon.toBe(95);
+        classic.toBe(calcE2eManualColumnResizeRtlHeaderOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeRtlHeaderOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeRtlHeaderOuterWidth('horizon'));
       });
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
@@ -733,14 +733,14 @@ describe('manualColumnResize', () => {
 
     expect(afterColumnResizeCallback).toHaveBeenCalledTimes(1);
     expect(afterColumnResizeCallback).forThemes(({ classic, main, horizon }) => {
-      classic.toHaveBeenCalledWith(30, 0, true);
-      main.toHaveBeenCalledWith(36, 0, true);
-      horizon.toHaveBeenCalledWith(44, 0, true);
+      classic.toHaveBeenCalledWith(calcE2eManualColumnResizeCallbackCol0OuterWidth('classic'), 0, true);
+      main.toHaveBeenCalledWith(calcE2eManualColumnResizeCallbackCol0OuterWidth('main'), 0, true);
+      horizon.toHaveBeenCalledWith(calcE2eManualColumnResizeCallbackCol0OuterWidth('horizon'), 0, true);
     });
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(30);
-      main.toBe(36);
-      horizon.toBe(44);
+      classic.toBe(calcE2eManualColumnResizeCallbackCol0OuterWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeCallbackCol0OuterWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeCallbackCol0OuterWidth('horizon'));
     });
   });
 
@@ -823,19 +823,19 @@ describe('manualColumnResize', () => {
     await waitForNextAnimationFrames(38);
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(30);
-      main.toBe(36);
-      horizon.toBe(44);
+      classic.toBe(calcE2eManualColumnResizeCallbackCol0OuterWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeCallbackCol0OuterWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeCallbackCol0OuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(31);
-      main.toBe(36);
-      horizon.toBe(44);
+      classic.toBe(calcE2eManualColumnResizeCallbackNeighborOuterWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeCallbackNeighborOuterWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeCallbackNeighborOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(31);
-      main.toBe(36);
-      horizon.toBe(44);
+      classic.toBe(calcE2eManualColumnResizeCallbackNeighborOuterWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeCallbackNeighborOuterWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeCallbackNeighborOuterWidth('horizon'));
     });
   });
 
@@ -857,9 +857,9 @@ describe('manualColumnResize', () => {
     await waitForNextAnimationFrames(38);
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(30);
-      main.toBe(36);
-      horizon.toBe(44);
+      classic.toBe(calcE2eManualColumnResizeCallbackCol0OuterWidth('classic'));
+      main.toBe(calcE2eManualColumnResizeCallbackCol0OuterWidth('main'));
+      horizon.toBe(calcE2eManualColumnResizeCallbackCol0OuterWidth('horizon'));
     });
   });
 
@@ -1207,19 +1207,19 @@ describe('manualColumnResize', () => {
       $resizer.simulate('mouseup');
 
       expect(getTopClone().find('thead tr:eq(0) th:eq(5)').width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(79);
-        horizon.toBe(81);
+        classic.toBe(calcE2eManualColumnResizeTopCloneThOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeTopCloneThOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeTopCloneThOuterWidth('horizon'));
       });
       expect(getTopClone().find('thead tr:eq(0) th:eq(6)').width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(79);
-        horizon.toBe(81);
+        classic.toBe(calcE2eManualColumnResizeTopCloneThOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeTopCloneThOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeTopCloneThOuterWidth('horizon'));
       });
       expect(getTopClone().find('thead tr:eq(0) th:eq(7)').width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(79);
-        horizon.toBe(81);
+        classic.toBe(calcE2eManualColumnResizeTopCloneThOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeTopCloneThOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeTopCloneThOuterWidth('horizon'));
       });
     });
 
@@ -1273,29 +1273,29 @@ describe('manualColumnResize', () => {
       $resizer.simulate('mouseup');
 
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(52);
+        classic.toBe(calcE2eManualColumnResizeContiguousDefaultColOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeContiguousDefaultColOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeContiguousDefaultColOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(80);
-        main.toBe(80);
-        horizon.toBe(82);
+        classic.toBe(calcE2eManualColumnResizeContiguousStretchedColOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeContiguousStretchedColOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeContiguousStretchedColOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 4)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(80);
-        main.toBe(80);
-        horizon.toBe(82);
+        classic.toBe(calcE2eManualColumnResizeContiguousStretchedColOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeContiguousStretchedColOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeContiguousStretchedColOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 5)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(80);
-        main.toBe(80);
-        horizon.toBe(82);
+        classic.toBe(calcE2eManualColumnResizeContiguousStretchedColOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeContiguousStretchedColOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeContiguousStretchedColOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 6)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(53);
+        classic.toBe(calcE2eManualColumnResizeContiguousHorizonEdgeColOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeContiguousHorizonEdgeColOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeContiguousHorizonEdgeColOuterWidth('horizon'));
       });
     });
 
@@ -1329,41 +1329,41 @@ describe('manualColumnResize', () => {
       $resizer.simulate('mouseup');
 
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(52);
+        classic.toBe(calcE2eManualColumnResizeContiguousDefaultColOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeContiguousDefaultColOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeContiguousDefaultColOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(80);
-        main.toBe(80);
-        horizon.toBe(81);
+        classic.toBe(calcE2eManualColumnResizeNonContiguousStretchedColOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeNonContiguousStretchedColOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeNonContiguousStretchedColOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 4)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(51);
+        classic.toBe(calcE2eManualColumnResizeNonContiguousNarrowHorizonColOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeNonContiguousNarrowHorizonColOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeNonContiguousNarrowHorizonColOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 5)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(51);
+        classic.toBe(calcE2eManualColumnResizeNonContiguousNarrowHorizonColOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeNonContiguousNarrowHorizonColOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeNonContiguousNarrowHorizonColOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 6)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(53);
+        classic.toBe(calcE2eManualColumnResizeContiguousHorizonEdgeColOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeContiguousHorizonEdgeColOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeContiguousHorizonEdgeColOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 7)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(80);
-        main.toBe(80);
-        horizon.toBe(81);
+        classic.toBe(calcE2eManualColumnResizeNonContiguousStretchedColOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeNonContiguousStretchedColOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeNonContiguousStretchedColOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 8)).toBe(50);
       expect(colWidth(spec().$container, 9)).toBe(50);
       expect(colWidth(spec().$container, 10)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(80);
-        main.toBe(80);
-        horizon.toBe(81);
+        classic.toBe(calcE2eManualColumnResizeNonContiguousStretchedColOuterWidth('classic'));
+        main.toBe(calcE2eManualColumnResizeNonContiguousStretchedColOuterWidth('main'));
+        horizon.toBe(calcE2eManualColumnResizeNonContiguousStretchedColOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 11)).toBe(50);
     });

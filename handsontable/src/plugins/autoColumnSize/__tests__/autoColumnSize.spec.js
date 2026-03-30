@@ -45,19 +45,19 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
+      classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+      main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+      horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(104);
-      main.toBe(115);
-      horizon.toBe(123);
+      classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(192);
-      main.toBe(210);
-      horizon.toBe(218);
+      classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
     });
 
     await setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
@@ -65,15 +65,15 @@ describe('AutoColumnSize', () => {
     await waitForNextAnimationFrames(2);
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(143);
-      main.toBe(157);
-      horizon.toBe(165);
+      classic.toBe(calcE2eAutoColumnAfterLongIdCellUpdateOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnAfterLongIdCellUpdateOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnAfterLongIdCellUpdateOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(192);
-      main.toBe(210);
-      horizon.toBe(218);
+      classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
     });
   });
 
@@ -89,9 +89,9 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
+      classic.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('horizon'));
     });
   });
 
@@ -107,17 +107,17 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
+      classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+      main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+      horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
     });
 
     await updateSettings({ colHeaders: ['Identifier Longer text', 'Identifier Longer and longer text'] });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
+      classic.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(198);
@@ -138,22 +138,22 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
+      classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+      main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+      horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
     });
 
     await updateSettings({ colHeaders: 'Identifier Longer text' });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
+      classic.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
+      classic.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('horizon'));
     });
   });
 
@@ -169,9 +169,9 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
+      classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+      main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+      horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
     });
 
     await updateSettings({
@@ -181,9 +181,9 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
+      classic.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnLongIdentifierHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(198);
@@ -241,9 +241,9 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(155);
-      main.toBe(170);
-      horizon.toBe(178);
+      classic.toBe(calcE2eAutoColumnTitleLongTextOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnTitleLongTextOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnTitleLongTextOuterWidth('horizon'));
     });
   });
 
@@ -296,17 +296,17 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(151);
-      horizon.toBe(161);
+      classic.toBe(calcE2eAutoColumnHyperFormulaCheckboxColOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnHyperFormulaCheckboxColOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnHyperFormulaCheckboxColOuterWidth('horizon'));
     });
 
     await setDataAtCell(0, 0, false);
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(151);
-      horizon.toBe(161);
+      classic.toBe(calcE2eAutoColumnHyperFormulaCheckboxColOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnHyperFormulaCheckboxColOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnHyperFormulaCheckboxColOuterWidth('horizon'));
     });
   });
 
@@ -338,34 +338,34 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(82);
-      main.toBe(91);
-      horizon.toBe(99);
+      classic.toBe(calcE2eAutoColumnUnitsSamplingOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnUnitsSamplingOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnUnitsSamplingOuterWidth('horizon'));
     });
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(27);
-      main.toBe(30);
-      horizon.toBe(38);
+      classic.toBe(calcFirstBodyRowHeight('classic'));
+      main.toBe(calcFirstBodyRowHeight('main'));
+      horizon.toBe(calcFirstBodyRowHeight('horizon'));
     });
     expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
+      classic.toBe(calcRowHeight('classic'));
+      main.toBe(calcRowHeight('main'));
+      horizon.toBe(calcRowHeight('horizon'));
     });
     expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
+      classic.toBe(calcRowHeight('classic'));
+      main.toBe(calcRowHeight('main'));
+      horizon.toBe(calcRowHeight('horizon'));
     });
     expect(rowHeight(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
+      classic.toBe(calcRowHeight('classic'));
+      main.toBe(calcRowHeight('main'));
+      horizon.toBe(calcRowHeight('horizon'));
     });
     expect(rowHeight(spec().$container, 4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
+      classic.toBe(calcRowHeight('classic'));
+      main.toBe(calcRowHeight('main'));
+      horizon.toBe(calcRowHeight('horizon'));
     });
   });
 
@@ -656,18 +656,18 @@ describe('AutoColumnSize', () => {
     const cloneTopHider = spec().$container.find('.ht_clone_top .wtHider');
 
     expect(cloneTopHider.width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(129);
-      main.toBe(138);
-      horizon.toBe(146);
+      classic.toBe(calcE2eAutoColumnCloneTopHiderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnCloneTopHiderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnCloneTopHiderOuterWidth('horizon'));
     });
 
     await selectCell(0, 0);
     await waitForNextAnimationFrames(2);
 
     expect(cloneTopHider.width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(129);
-      main.toBe(138);
-      horizon.toBe(146);
+      classic.toBe(calcE2eAutoColumnCloneTopHiderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnCloneTopHiderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnCloneTopHiderOuterWidth('horizon'));
     });
   });
 
@@ -714,38 +714,38 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
+      classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+      main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+      horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
+      classic.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
+      classic.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('horizon'));
     });
 
     await alter('insert_col_start', 0);
 
     expect(colWidth(spec().$container, 0)).toBe(50); // Added new column here.
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
+      classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+      main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+      horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
+      classic.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
+      classic.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 4)).toBe(50);
 
@@ -753,20 +753,20 @@ describe('AutoColumnSize', () => {
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
+      classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+      main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+      horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
+      classic.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 3)).toBe(50); // Added new column here.
     expect(colWidth(spec().$container, 4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
+      classic.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 5)).toBe(50);
 
@@ -774,20 +774,20 @@ describe('AutoColumnSize', () => {
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
+      classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+      main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+      horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
+      classic.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 3)).toBe(50);
     expect(colWidth(spec().$container, 4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
+      classic.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 5)).toBe(50); // Added new column here.
     expect(colWidth(spec().$container, 6)).toBe(50);
@@ -800,33 +800,33 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
+      classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+      main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+      horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
+      classic.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
+      classic.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 3)).toBe(50);
 
     await alter('remove_col', 0);
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
+      classic.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
+      classic.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 2)).toBe(50);
   });
@@ -841,28 +841,28 @@ describe('AutoColumnSize', () => {
     await render();
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
+      classic.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
+      classic.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('horizon'));
     });
 
     columnIndexMapper().moveIndexes(1, 2);
     await render();
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
+      classic.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
+      classic.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('horizon'));
     });
   });
 
@@ -877,27 +877,27 @@ describe('AutoColumnSize', () => {
     await render();
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
+      classic.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
+      classic.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('horizon'));
     });
 
     await populateFromArray(0, 1, [[null], [null], [null], [null], [null]]); // Empty values on the second visual column.
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
+      classic.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertLongestHeaderOuterWidth('horizon'));
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
+      classic.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('classic'));
+      main.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('main'));
+      horizon.toBe(calcE2eAutoColumnInsertShortHeaderOuterWidth('horizon'));
     });
   });
 
@@ -914,9 +914,9 @@ describe('AutoColumnSize', () => {
     await scrollViewportTo(0, 49);
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2235);
-      main.toBe(2322);
-      horizon.toBe(2575);
+      classic.toBe(calcE2eAutoColumnSizeDev1888InlineStartScroll('classic'));
+      main.toBe(calcE2eAutoColumnSizeDev1888InlineStartScroll('main'));
+      horizon.toBe(calcE2eAutoColumnSizeDev1888InlineStartScroll('horizon'));
     });
 
     await listen();
@@ -924,9 +924,9 @@ describe('AutoColumnSize', () => {
     await keyDownUp('delete');
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2235);
-      main.toBe(2322);
-      horizon.toBe(2575);
+      classic.toBe(calcE2eAutoColumnSizeDev1888InlineStartScroll('classic'));
+      main.toBe(calcE2eAutoColumnSizeDev1888InlineStartScroll('main'));
+      horizon.toBe(calcE2eAutoColumnSizeDev1888InlineStartScroll('horizon'));
     });
   });
 
@@ -942,50 +942,50 @@ describe('AutoColumnSize', () => {
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       await alter('remove_col', 1);
@@ -993,32 +993,32 @@ describe('AutoColumnSize', () => {
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       getPlugin('undoRedo').undo();
@@ -1028,32 +1028,32 @@ describe('AutoColumnSize', () => {
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
     });
 
@@ -1068,56 +1068,56 @@ describe('AutoColumnSize', () => {
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       await alter('insert_col_start', 1);
@@ -1125,56 +1125,56 @@ describe('AutoColumnSize', () => {
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).toBe(50);
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       await alter('insert_col_start', 2);
@@ -1182,56 +1182,56 @@ describe('AutoColumnSize', () => {
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).toBe(50);
       expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       await alter('insert_col_start', 3);
@@ -1239,37 +1239,37 @@ describe('AutoColumnSize', () => {
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
+        classic.toBe(calcE2eMinMasterCellOuterWidth('classic'));
+        main.toBe(calcE2eMinMasterCellOuterWidth('main'));
+        horizon.toBe(calcE2eMinMasterCellOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 3)).toBe(50);
     });
@@ -1291,14 +1291,14 @@ describe('AutoColumnSize', () => {
         horizon.toBeAroundValue(80);
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
 
       await alter('remove_row', 0);
@@ -1311,14 +1311,14 @@ describe('AutoColumnSize', () => {
         horizon.toBeAroundValue(80);
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsNameOuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
+        classic.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnArrayOfObjectsLastNameOuterWidth('horizon'));
       });
     });
   });
@@ -1341,14 +1341,14 @@ describe('AutoColumnSize', () => {
       });
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(65);
-        main.toBe(67);
-        horizon.toBe(75);
+        classic.toBe(calcE2eAutoColumnHiddenColumnsCol0OuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnHiddenColumnsCol0OuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnHiddenColumnsCol0OuterWidth('horizon'));
       });
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(207);
-        main.toBe(225);
-        horizon.toBe(233);
+        classic.toBe(calcE2eAutoColumnHiddenColumnsCol1OuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnHiddenColumnsCol1OuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnHiddenColumnsCol1OuterWidth('horizon'));
       });
     });
   });
@@ -1419,9 +1419,9 @@ describe('AutoColumnSize', () => {
       });
 
       expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(162);
-        main.toBe(177);
-        horizon.toBe(185);
+        classic.toBe(calcE2eAutoColumnModifySeedOuterWidth('classic'));
+        main.toBe(calcE2eAutoColumnModifySeedOuterWidth('main'));
+        horizon.toBe(calcE2eAutoColumnModifySeedOuterWidth('horizon'));
       });
     });
   });
@@ -1469,18 +1469,18 @@ describe('AutoColumnSize', () => {
       });
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(58);
+        classic.toBe(calcE2eAutoColumnFormulaShortNumericColWidth('classic'));
+        main.toBe(calcE2eAutoColumnFormulaShortNumericColWidth('main'));
+        horizon.toBe(calcE2eAutoColumnFormulaShortNumericColWidth('horizon'));
       });
 
       await setDataAtCell(0, 0, 999999999999);
       await waitForNextAnimationFrames(2);
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(123);
-        main.toBe(135);
-        horizon.toBe(143);
+        classic.toBe(calcE2eAutoColumnFormulaLongNumericColWidth('classic'));
+        main.toBe(calcE2eAutoColumnFormulaLongNumericColWidth('main'));
+        horizon.toBe(calcE2eAutoColumnFormulaLongNumericColWidth('horizon'));
       });
     });
 
@@ -1498,18 +1498,18 @@ describe('AutoColumnSize', () => {
       });
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(58);
-        main.toBe(65);
-        horizon.toBe(73);
+        classic.toBe(calcE2eAutoColumnFormulaMediumNumericColWidth('classic'));
+        main.toBe(calcE2eAutoColumnFormulaMediumNumericColWidth('main'));
+        horizon.toBe(calcE2eAutoColumnFormulaMediumNumericColWidth('horizon'));
       });
 
       await setDataAtCell(0, 0, 9);
       await waitForNextAnimationFrames(2);
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(58);
+        classic.toBe(calcE2eAutoColumnFormulaShortNumericColWidth('classic'));
+        main.toBe(calcE2eAutoColumnFormulaShortNumericColWidth('main'));
+        horizon.toBe(calcE2eAutoColumnFormulaShortNumericColWidth('horizon'));
       });
     });
 
@@ -1527,18 +1527,18 @@ describe('AutoColumnSize', () => {
       });
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(58);
+        classic.toBe(calcE2eAutoColumnFormulaShortNumericColWidth('classic'));
+        main.toBe(calcE2eAutoColumnFormulaShortNumericColWidth('main'));
+        horizon.toBe(calcE2eAutoColumnFormulaShortNumericColWidth('horizon'));
       });
 
       await setDataAtCell(0, 0, 'not a number');
       await waitForNextAnimationFrames(2);
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(67);
-        main.toBe(75);
-        horizon.toBe(83);
+        classic.toBe(calcE2eAutoColumnFormulaErrorColWidth('classic'));
+        main.toBe(calcE2eAutoColumnFormulaErrorColWidth('main'));
+        horizon.toBe(calcE2eAutoColumnFormulaErrorColWidth('horizon'));
       });
     });
   });

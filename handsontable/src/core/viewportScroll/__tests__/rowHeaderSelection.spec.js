@@ -268,9 +268,9 @@ describe('Row header selection scroll', () => {
     await selectRows(19, 0);
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(226);
-      main.toBe(250);
-      horizon.toBe(314);
+      classic.toBe(calcE2eRowHeaderSelectionLastToFirstScrollTop('classic'));
+      main.toBe(calcE2eRowHeaderSelectionLastToFirstScrollTop('main'));
+      horizon.toBe(calcE2eRowHeaderSelectionLastToFirstScrollTop('horizon'));
     });
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(19, -1, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({

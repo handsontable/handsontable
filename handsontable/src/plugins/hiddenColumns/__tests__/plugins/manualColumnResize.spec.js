@@ -146,9 +146,9 @@ describe('HiddenColumns', () => {
       ;
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(86); // 50 (initial column width) + 30 + 6
-        main.toBe(93);
-        horizon.toBe(101);
+        classic.toBe(calcE2eHiddenColumnsManualResizeAfterDragColWidth('classic'));
+        main.toBe(calcE2eHiddenColumnsManualResizeAfterDragColWidth('main'));
+        horizon.toBe(calcE2eHiddenColumnsManualResizeAfterDragColWidth('horizon'));
       });
     });
   });

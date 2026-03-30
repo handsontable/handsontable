@@ -540,14 +540,14 @@ describe('DropdownEditor', () => {
       const container = getActiveEditor().htContainer;
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118);
-        main.toBe(118);
-        horizon.toBe(133);
+        classic.toBe(calcE2eDropdownEditorNoScrollbarContainerClientWidth('classic'));
+        main.toBe(calcE2eDropdownEditorNoScrollbarContainerClientWidth('main'));
+        horizon.toBe(calcE2eDropdownEditorNoScrollbarContainerClientWidth('horizon'));
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(131);
-        main.toBe(146);
-        horizon.toBe(148);
+        classic.toBe(calcE2eDropdownEditorNoScrollbarContainerClientHeight('classic'));
+        main.toBe(calcE2eDropdownEditorNoScrollbarContainerClientHeight('main'));
+        horizon.toBe(calcE2eDropdownEditorNoScrollbarContainerClientHeight('horizon'));
       });
     });
 
@@ -569,15 +569,13 @@ describe('DropdownEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
-      });
+      expect(container.clientWidth).toBe(
+        calcE2eDropdownEditorEmbeddedListBaseClientWidth() + Handsontable.dom.getScrollbarWidth(),
+      );
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
+        classic.toBe(calcE2eDropdownEditorScrollbarListContainerClientHeight('classic'));
+        main.toBe(calcE2eDropdownEditorScrollbarListContainerClientHeight('main'));
+        horizon.toBe(calcE2eDropdownEditorScrollbarListContainerClientHeight('horizon'));
       });
     });
 
@@ -600,15 +598,13 @@ describe('DropdownEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
-      });
+      expect(container.clientWidth).toBe(
+        calcE2eDropdownEditorEmbeddedListBaseClientWidth() + Handsontable.dom.getScrollbarWidth(),
+      );
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(37);
+        classic.toBe(calcE2eDropdownEditorScrollbarListAndHostTableContainerClientHeight('classic'));
+        main.toBe(calcE2eDropdownEditorScrollbarListAndHostTableContainerClientHeight('main'));
+        horizon.toBe(calcE2eDropdownEditorScrollbarListAndHostTableContainerClientHeight('horizon'));
       });
     });
 

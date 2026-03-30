@@ -22,43 +22,27 @@ describe('StretchColumns cooperation with columns altering', () => {
 
     await alter('insert_col_end', null, 1);
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(90);
-      horizon.toBe(85);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(90);
-      horizon.toBe(85);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(90);
-      horizon.toBe(85);
+    [0, 1, 2].forEach((col) => {
+      expect(getColWidth(col)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(calcE2eStretchColumnsWidth320InsertEndThreeColsStretchAll('classic'));
+        main.toBe(calcE2eStretchColumnsWidth320InsertEndThreeColsStretchAll('main'));
+        horizon.toBe(calcE2eStretchColumnsWidth320InsertEndThreeColsStretchAll('horizon'));
+      });
     });
 
     await alter('insert_col_start', null, 1);
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(68);
-      main.toBe(68);
-      horizon.toBe(64);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(68);
-      main.toBe(68);
-      horizon.toBe(64);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(68);
-      main.toBe(68);
-      horizon.toBe(64);
+    [0, 1, 2].forEach((col) => {
+      expect(getColWidth(col)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(calcE2eStretchColumnsWidth320InsertStartFourColsStretchBody('classic'));
+        main.toBe(calcE2eStretchColumnsWidth320InsertStartFourColsStretchBody('main'));
+        horizon.toBe(calcE2eStretchColumnsWidth320InsertStartFourColsStretchBody('horizon'));
+      });
     });
     expect(getColWidth(3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(66);
-      main.toBe(66);
-      horizon.toBe(63);
+      classic.toBe(calcE2eStretchColumnsWidth320InsertStartFourColsStretchLast('classic'));
+      main.toBe(calcE2eStretchColumnsWidth320InsertStartFourColsStretchLast('main'));
+      horizon.toBe(calcE2eStretchColumnsWidth320InsertStartFourColsStretchLast('horizon'));
     });
   });
 
@@ -87,30 +71,12 @@ describe('StretchColumns cooperation with columns altering', () => {
 
     expect(tableView().hasHorizontalScroll()).toBe(false);
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
+    [0, 1, 2, 3, 4].forEach((col) => {
+      expect(getColWidth(col)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(calcE2eStretchColumnsWidth320FiveEqualStretch('classic'));
+        main.toBe(calcE2eStretchColumnsWidth320FiveEqualStretch('main'));
+        horizon.toBe(calcE2eStretchColumnsWidth320FiveEqualStretch('horizon'));
+      });
     });
   });
 
@@ -127,30 +93,12 @@ describe('StretchColumns cooperation with columns altering', () => {
     await alter('insert_col_end', null, 3);
 
     expect(tableView().hasHorizontalScroll()).toBe(false);
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
+    [0, 1, 2, 3, 4].forEach((col) => {
+      expect(getColWidth(col)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(calcE2eStretchColumnsWidth320FiveEqualStretch('classic'));
+        main.toBe(calcE2eStretchColumnsWidth320FiveEqualStretch('main'));
+        horizon.toBe(calcE2eStretchColumnsWidth320FiveEqualStretch('horizon'));
+      });
     });
 
     await alter('insert_col_end', null, 1);

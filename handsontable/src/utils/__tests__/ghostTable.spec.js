@@ -116,21 +116,21 @@ describe('GhostTable', () => {
       expect(heightSpy.calls.count()).toBe(3);
       expect(heightSpy.calls.argsFor(0)[0]).toBe(0);
       expect(heightSpy.calls.argsFor(0)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(29);
-        horizon.toBe(37);
+        classic.toBe(calcRowHeight('classic'));
+        main.toBe(calcRowHeight('main'));
+        horizon.toBe(calcRowHeight('horizon'));
       });
       expect(heightSpy.calls.argsFor(1)[0]).toBe(1);
       expect(heightSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(68);
-        main.toBe(69);
-        horizon.toBe(77);
+        classic.toBe(calcE2eUtilsGhostTableMultilineFooBarSqwRowHeight('classic'));
+        main.toBe(calcE2eUtilsGhostTableMultilineFooBarSqwRowHeight('main'));
+        horizon.toBe(calcE2eUtilsGhostTableMultilineFooBarSqwRowHeight('horizon'));
       });
       expect(heightSpy.calls.argsFor(2)[0]).toBe(2);
       expect(heightSpy.calls.argsFor(2)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(47);
-        main.toBe(49);
-        horizon.toBe(57);
+        classic.toBe(calcE2eAutoRowSizeArrayOfObjectsRow1OuterHeight('classic'));
+        main.toBe(calcE2eAutoRowSizeArrayOfObjectsRow1OuterHeight('main'));
+        horizon.toBe(calcE2eAutoRowSizeArrayOfObjectsRow1OuterHeight('horizon'));
       });
     });
   });
@@ -234,21 +234,21 @@ describe('GhostTable', () => {
       expect(widthSpy.calls.count()).toBe(3);
       expect(widthSpy.calls.argsFor(0)[0]).toBe(0);
       expect(widthSpy.calls.argsFor(0)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(75);
-        main.toBe(84);
-        horizon.toBe(92);
+        classic.toBe(calcE2eUtilsGhostTableWidthsSpyCol0('classic'));
+        main.toBe(calcE2eUtilsGhostTableWidthsSpyCol0('main'));
+        horizon.toBe(calcE2eUtilsGhostTableWidthsSpyCol0('horizon'));
       });
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
       expect(widthSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(38);
-        main.toBe(43);
-        horizon.toBe(51);
+        classic.toBe(calcE2eUtilsGhostTableWidthsSpyCol1('classic'));
+        main.toBe(calcE2eUtilsGhostTableWidthsSpyCol1('main'));
+        horizon.toBe(calcE2eUtilsGhostTableWidthsSpyCol1('horizon'));
       });
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
       expect(widthSpy.calls.argsFor(2)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(61);
-        main.toBe(68);
-        horizon.toBe(76);
+        classic.toBe(calcE2eUtilsGhostTableWidthsSpyCol2('classic'));
+        main.toBe(calcE2eUtilsGhostTableWidthsSpyCol2('main'));
+        horizon.toBe(calcE2eUtilsGhostTableWidthsSpyCol2('horizon'));
       });
     });
 

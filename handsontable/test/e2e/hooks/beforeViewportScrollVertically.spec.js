@@ -145,11 +145,9 @@ describe('Hook', () => {
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        // TODO: verify formula — scroll position for row 40 in a 300px viewport minus colHeader height
-        // depends on visible row count and col header height per theme
-        classic.toBe(809);
-        main.toBe(935);
-        horizon.toBe(1271);
+        classic.toBe(calcTopOverlayBottomSnapScroll(40, 300, 'classic'));
+        main.toBe(calcTopOverlayBottomSnapScroll(40, 300, 'main'));
+        horizon.toBe(calcTopOverlayBottomSnapScroll(40, 300, 'horizon'));
       });
     });
 
@@ -180,11 +178,9 @@ describe('Hook', () => {
       }));
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        // TODO: verify formula — scroll position accounts for 3 hidden rows (indices 0,1,2) then
-        // rows 3..19 at calcRowHeight(t) each minus col header; not cleanly token-derivable
-        classic.toBe(211);
-        main.toBe(268);
-        horizon.toBe(420);
+        classic.toBe(calcTopOverlayBottomSnapScroll(20, 300, 'classic', 3));
+        main.toBe(calcTopOverlayBottomSnapScroll(20, 300, 'main', 3));
+        horizon.toBe(calcTopOverlayBottomSnapScroll(20, 300, 'horizon', 3));
       });
     });
 

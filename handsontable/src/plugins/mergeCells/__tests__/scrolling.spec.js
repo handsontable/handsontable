@@ -20,26 +20,28 @@ describe('MergeCells scrolling', () => {
       width: 400
     });
 
-    await scrollViewportVertically(130);
+    const verticalScrollSetpoint = 130;
+
+    await scrollViewportVertically(verticalScrollSetpoint);
     await render();
     await simulateClick(getCell(5, 0));
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(130);
-      main.toBe(130);
+      classic.toBe(verticalScrollSetpoint);
+      main.toBe(verticalScrollSetpoint);
       horizon.toBe(160);
     });
 
     await scrollViewportVertically(0);
     await render();
-    await scrollViewportVertically(130);
+    await scrollViewportVertically(verticalScrollSetpoint);
     await render();
     await simulateClick(getCell(5, 2));
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(130);
-      main.toBe(130);
-      horizon.toBe(130);
+      classic.toBe(verticalScrollSetpoint);
+      main.toBe(verticalScrollSetpoint);
+      horizon.toBe(verticalScrollSetpoint);
     });
   });
 
@@ -86,9 +88,9 @@ describe('MergeCells scrolling', () => {
     await simulateClick(getCell(5, 0));
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(131);
-      main.toBe(146);
-      horizon.toBe(186);
+      classic.toBe(calcTotalDataRowsHeight(5, 'classic'));
+      main.toBe(calcTotalDataRowsHeight(5, 'main'));
+      horizon.toBe(calcTotalDataRowsHeight(5, 'horizon'));
     });
   });
 

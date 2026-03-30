@@ -386,9 +386,9 @@ describe('HiddenRows', () => {
 
           expect($backlight.offset().top).toBe($headerTH.offset().top);
           expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
-            classic.toBe(26);
-            main.toBe(29);
-            horizon.toBe(37);
+            classic.toBe(calcRowHeight('classic'));
+            main.toBe(calcRowHeight('main'));
+            horizon.toBe(calcRowHeight('horizon'));
           });
         });
 
@@ -421,9 +421,9 @@ describe('HiddenRows', () => {
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
           expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
-            classic.toBe(78); // 26 * 3
-            main.toBe(87); // 29 * 3
-            horizon.toBe(111); // 37 * 3
+            classic.toBe(3 * calcRowHeight('classic'));
+            main.toBe(3 * calcRowHeight('main'));
+            horizon.toBe(3 * calcRowHeight('horizon'));
           });
         });
 
@@ -448,9 +448,9 @@ describe('HiddenRows', () => {
 
           expect($backlight.offset().top).toBe($headerTH.offset().top);
           expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
-            classic.toBe(26);
-            main.toBe(29);
-            horizon.toBe(37);
+            classic.toBe(calcRowHeight('classic'));
+            main.toBe(calcRowHeight('main'));
+            horizon.toBe(calcRowHeight('horizon'));
           });
         });
 
@@ -483,9 +483,9 @@ describe('HiddenRows', () => {
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
           expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
-            classic.toBe(78); // 26 * 3
-            main.toBe(87); // 29 * 3
-            horizon.toBe(111); // 37 * 3
+            classic.toBe(3 * calcRowHeight('classic'));
+            main.toBe(3 * calcRowHeight('main'));
+            horizon.toBe(3 * calcRowHeight('horizon'));
           });
         });
       });

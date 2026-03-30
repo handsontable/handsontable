@@ -37,19 +37,19 @@ describe('StretchColumns', () => {
     });
 
     expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(67);
-      main.toBe(67);
-      horizon.toBe(62);
+      classic.toBe(calcE2eStretchColumnsWidth200StretchAllBody('classic'));
+      main.toBe(calcE2eStretchColumnsWidth200StretchAllBody('main'));
+      horizon.toBe(calcE2eStretchColumnsWidth200StretchAllBody('horizon'));
     });
     expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(67);
-      main.toBe(67);
-      horizon.toBe(62);
+      classic.toBe(calcE2eStretchColumnsWidth200StretchAllBody('classic'));
+      main.toBe(calcE2eStretchColumnsWidth200StretchAllBody('main'));
+      horizon.toBe(calcE2eStretchColumnsWidth200StretchAllBody('horizon'));
     });
     expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(66);
-      main.toBe(66);
-      horizon.toBe(61);
+      classic.toBe(calcE2eStretchColumnsWidth200StretchAllLast('classic'));
+      main.toBe(calcE2eStretchColumnsWidth200StretchAllLast('main'));
+      horizon.toBe(calcE2eStretchColumnsWidth200StretchAllLast('horizon'));
     });
 
     await updateSettings({
@@ -59,9 +59,9 @@ describe('StretchColumns', () => {
     expect(getColWidth(0)).toBe(50);
     expect(getColWidth(1)).toBe(50);
     expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(100);
-      main.toBe(100);
-      horizon.toBe(85);
+      classic.toBe(calcE2eStretchColumnsWidth200StretchLast('classic'));
+      main.toBe(calcE2eStretchColumnsWidth200StretchLast('main'));
+      horizon.toBe(calcE2eStretchColumnsWidth200StretchLast('horizon'));
     });
 
     await updateSettings({
@@ -106,20 +106,12 @@ describe('StretchColumns', () => {
       width: 500,
     });
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(150);
-      main.toBe(150);
-      horizon.toBe(145);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(150);
-      main.toBe(150);
-      horizon.toBe(145);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(150);
-      main.toBe(150);
-      horizon.toBe(145);
+    [0, 1, 2].forEach((col) => {
+      expect(getColWidth(col)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(calcE2eStretchColumnsWidth500StretchAllThreeCols('classic'));
+        main.toBe(calcE2eStretchColumnsWidth500StretchAllThreeCols('main'));
+        horizon.toBe(calcE2eStretchColumnsWidth500StretchAllThreeCols('horizon'));
+      });
     });
   });
 
@@ -317,14 +309,14 @@ describe('StretchColumns', () => {
     });
 
     expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(412);
-      main.toBe(418);
-      horizon.toBe(420);
+      classic.toBe(calcE2eStretchColumnsWidth500MultilineWideCol('classic'));
+      main.toBe(calcE2eStretchColumnsWidth500MultilineWideCol('main'));
+      horizon.toBe(calcE2eStretchColumnsWidth500MultilineWideCol('horizon'));
     });
     expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(88);
-      main.toBe(82);
-      horizon.toBe(80);
+      classic.toBe(calcE2eStretchColumnsWidth500MultilineNarrowCol('classic'));
+      main.toBe(calcE2eStretchColumnsWidth500MultilineNarrowCol('main'));
+      horizon.toBe(calcE2eStretchColumnsWidth500MultilineNarrowCol('horizon'));
     });
   });
 
@@ -371,9 +363,9 @@ describe('StretchColumns', () => {
     });
 
     expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(286);
-      main.toBe(311);
-      horizon.toBe(319);
+      classic.toBe(calcE2eStretchColumnsWidth400Dev1727LongTextCol('classic'));
+      main.toBe(calcE2eStretchColumnsWidth400Dev1727LongTextCol('main'));
+      horizon.toBe(calcE2eStretchColumnsWidth400Dev1727LongTextCol('horizon'));
     });
 
     await setDataAtCell(0, 4, 'text');
@@ -383,9 +375,9 @@ describe('StretchColumns', () => {
     await setDataAtCell(0, 4, 'very long text is here to make the column wider');
 
     expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(286);
-      main.toBe(311);
-      horizon.toBe(319);
+      classic.toBe(calcE2eStretchColumnsWidth400Dev1727LongTextCol('classic'));
+      main.toBe(calcE2eStretchColumnsWidth400Dev1727LongTextCol('main'));
+      horizon.toBe(calcE2eStretchColumnsWidth400Dev1727LongTextCol('horizon'));
     });
   });
 

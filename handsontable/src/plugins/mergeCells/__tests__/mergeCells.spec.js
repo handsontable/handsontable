@@ -1318,18 +1318,18 @@ describe('MergeCells', () => {
       // First merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
+        classic.toBe(calcMergedCellBlockHeight(2, 'classic'));
+        main.toBe(calcMergedCellBlockHeight(2, 'main'));
+        horizon.toBe(calcMergedCellBlockHeight(2, 'horizon'));
       });
       expect(getCell(0, 1).innerText).toBe('A1');
       expect(getDataAtCell(0, 0)).toBe('A1');
       // Already populated merged cell.
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(74);
+        classic.toBe(calcAutofillMergedRowspan2SecondaryHeight('classic'));
+        main.toBe(calcAutofillMergedRowspan2SecondaryHeight('main'));
+        horizon.toBe(calcAutofillMergedRowspan2SecondaryHeight('horizon'));
       });
       expect(getCell(2, 1).innerText).toBe('A1');
       expect(getDataAtCell(2, 0)).toBe('A1');
@@ -1344,36 +1344,36 @@ describe('MergeCells', () => {
       // First merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
+        classic.toBe(calcMergedCellBlockHeight(2, 'classic'));
+        main.toBe(calcMergedCellBlockHeight(2, 'main'));
+        horizon.toBe(calcMergedCellBlockHeight(2, 'horizon'));
       });
       expect(getCell(0, 1).innerText).toBe('A1');
       expect(getDataAtCell(0, 0)).toBe('A1');
       // Previously populated merged cell.
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(74);
+        classic.toBe(calcAutofillMergedRowspan2SecondaryHeight('classic'));
+        main.toBe(calcAutofillMergedRowspan2SecondaryHeight('main'));
+        horizon.toBe(calcAutofillMergedRowspan2SecondaryHeight('horizon'));
       });
       expect(getCell(2, 1).innerText).toBe('A1');
       expect(getDataAtCell(2, 0)).toBe('A1');
       // Already populated merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
+        classic.toBe(calcMergedCellBlockHeight(2, 'classic'));
+        main.toBe(calcMergedCellBlockHeight(2, 'main'));
+        horizon.toBe(calcMergedCellBlockHeight(2, 'horizon'));
       });
       expect(getCell(0, 3).innerText).toBe('A1');
       expect(getDataAtCell(0, 2)).toBe('A1');
 
       expect($(getHtCore())[0].offsetWidth).toBe(5 * 50);
       expect($(getHtCore())[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(27 + (4 * 26)); // First row is 1px higher than others.
-        main.toBe(30 + (4 * 29));
-        horizon.toBe(38 + (4 * 37));
+        classic.toBe(calcTotalDataRowsHeight(5, 'classic'));
+        main.toBe(calcTotalDataRowsHeight(5, 'main'));
+        horizon.toBe(calcTotalDataRowsHeight(5, 'horizon'));
       });
     });
   });
@@ -1492,9 +1492,9 @@ describe('MergeCells', () => {
     });
 
     expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(79);
-      main.toBe(88);
-      horizon.toBe(112);
+      classic.toBe(calcMergedCellBlockHeight(3, 'classic'));
+      main.toBe(calcMergedCellBlockHeight(3, 'main'));
+      horizon.toBe(calcMergedCellBlockHeight(3, 'horizon'));
     });
   });
 
@@ -1510,9 +1510,9 @@ describe('MergeCells', () => {
     });
 
     expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(131);
-      main.toBe(146);
-      horizon.toBe(186);
+      classic.toBe(calcTotalDataRowsHeight(5, 'classic'));
+      main.toBe(calcTotalDataRowsHeight(5, 'main'));
+      horizon.toBe(calcTotalDataRowsHeight(5, 'horizon'));
     });
 
     await updateSettings({
@@ -1520,9 +1520,9 @@ describe('MergeCells', () => {
     });
 
     expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(131);
-      main.toBe(146);
-      horizon.toBe(186);
+      classic.toBe(calcTotalDataRowsHeight(5, 'classic'));
+      main.toBe(calcTotalDataRowsHeight(5, 'main'));
+      horizon.toBe(calcTotalDataRowsHeight(5, 'horizon'));
     });
 
     await updateSettings({
@@ -1530,9 +1530,9 @@ describe('MergeCells', () => {
     });
 
     expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(131);
-      main.toBe(146);
-      horizon.toBe(186);
+      classic.toBe(calcTotalDataRowsHeight(5, 'classic'));
+      main.toBe(calcTotalDataRowsHeight(5, 'main'));
+      horizon.toBe(calcTotalDataRowsHeight(5, 'horizon'));
     });
   });
 
@@ -1577,14 +1577,14 @@ describe('MergeCells', () => {
     });
 
     expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(79);
-      main.toBe(88);
-      horizon.toBe(112);
+      classic.toBe(calcMergedCellBlockHeight(3, 'classic'));
+      main.toBe(calcMergedCellBlockHeight(3, 'main'));
+      horizon.toBe(calcMergedCellBlockHeight(3, 'horizon'));
     });
     expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(79);
-      main.toBe(88);
-      horizon.toBe(112);
+      classic.toBe(calcMergedCellBlockHeight(3, 'classic'));
+      main.toBe(calcMergedCellBlockHeight(3, 'main'));
+      horizon.toBe(calcMergedCellBlockHeight(3, 'horizon'));
     });
     expect(getInlineStartClone().height()).toBe(400);
   });
@@ -1609,6 +1609,7 @@ describe('MergeCells', () => {
     getActiveEditor().TEXTAREA.value = 'test\n\ntest';
     await keyDownUp('enter');
 
+    // Overlay height after AutoRowSize measures multiline editor text — not `calcRowHeight` alone.
     expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(121);
       main.toBe(128);
@@ -1709,115 +1710,127 @@ describe('MergeCells', () => {
   });
 
   it('should correctly calculate the height of the merged cell for custom defined height (the first column as merged cell, row headers enabled)', async() => {
+    const rowHeightPx = 50;
+
     handsontable({
       data: createSpreadsheetData(6, 3),
       rowHeaders: true,
-      rowHeights: 50,
+      rowHeights: rowHeightPx,
       mergeCells: [{ row: 0, col: 0, rowspan: 6, colspan: 1 }],
     });
 
     expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(300);
-      main.toBe(300);
-      horizon.toBe(300);
+      classic.toBe(rowHeightPx * 6);
+      main.toBe(rowHeightPx * 6);
+      horizon.toBe(rowHeightPx * 6);
     });
   });
 
   it('should correctly calculate the height of the merged cell for custom defined height (the first column as merged cell, row headers disabled)', async() => {
+    const rowHeightPx = 50;
+
     handsontable({
       data: createSpreadsheetData(6, 3),
       rowHeaders: false,
-      rowHeights: 50,
+      rowHeights: rowHeightPx,
       mergeCells: [{ row: 0, col: 0, rowspan: 6, colspan: 1 }],
     });
 
     expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(300);
-      main.toBe(300);
-      horizon.toBe(300);
+      classic.toBe(rowHeightPx * 6);
+      main.toBe(rowHeightPx * 6);
+      horizon.toBe(rowHeightPx * 6);
     });
   });
 
   it('should correctly calculate the height of the merged cell for custom defined height (the second column as merged cell)', async() => {
+    const rowHeightPx = 50;
+
     handsontable({
       data: createSpreadsheetData(6, 3),
       rowHeaders: false,
-      rowHeights: 50,
+      rowHeights: rowHeightPx,
       mergeCells: [{ row: 0, col: 1, rowspan: 6, colspan: 1 }],
     });
 
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(300);
-      main.toBe(300);
-      horizon.toBe(300);
+      classic.toBe(rowHeightPx * 6);
+      main.toBe(rowHeightPx * 6);
+      horizon.toBe(rowHeightPx * 6);
     });
   });
 
   it('should correctly calculate the height of the merged cell for custom defined height (the second column as non-fully merged cell)', async() => {
+    const rowHeightPx = 50;
+
     handsontable({
       data: createSpreadsheetData(6, 3),
       rowHeaders: false,
-      rowHeights: 50,
+      rowHeights: rowHeightPx,
       mergeCells: [{ row: 0, col: 1, rowspan: 4, colspan: 1 }],
     });
 
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(200);
-      main.toBe(200);
-      horizon.toBe(200);
+      classic.toBe(rowHeightPx * 4);
+      main.toBe(rowHeightPx * 4);
+      horizon.toBe(rowHeightPx * 4);
     });
   });
 
   it('should proportionally calculate the height of the cells on the right of the merged cell (#dev-2302)', async() => {
+    const rowHeightPx = 50;
+
     handsontable({
       data: createSpreadsheetData(4, 3),
       rowHeaders: false,
-      rowHeights: 50,
+      rowHeights: rowHeightPx,
       mergeCells: [{ row: 0, col: 0, rowspan: 4, colspan: 1 }],
     });
 
     expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(200);
-      main.toBe(200);
-      horizon.toBe(200);
+      classic.toBe(rowHeightPx * 4);
+      main.toBe(rowHeightPx * 4);
+      horizon.toBe(rowHeightPx * 4);
     });
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(50);
-      horizon.toBe(50);
+      classic.toBe(rowHeightPx);
+      main.toBe(rowHeightPx);
+      horizon.toBe(rowHeightPx);
     });
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(50);
-      horizon.toBe(50);
+      classic.toBe(rowHeightPx);
+      main.toBe(rowHeightPx);
+      horizon.toBe(rowHeightPx);
     });
-    expect(getCell(1, 1).offsetHeight).toBe(50);
-    expect(getCell(2, 1).offsetHeight).toBe(50);
-    expect(getCell(3, 1).offsetHeight).toBe(50);
+    expect(getCell(1, 1).offsetHeight).toBe(rowHeightPx);
+    expect(getCell(2, 1).offsetHeight).toBe(rowHeightPx);
+    expect(getCell(3, 1).offsetHeight).toBe(rowHeightPx);
   });
 
   it('should respect the row heights when the first column is merged (#dev-2653)', async() => {
+    const rowHeightsPx = [80, 180, 60];
+
     handsontable({
       data: createSpreadsheetData(3, 3),
       rowHeaders: false,
-      rowHeights: [80, 180, 60],
+      rowHeights: rowHeightsPx,
       mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }],
     });
 
     expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(260);
-      main.toBe(260);
-      horizon.toBe(260);
+      classic.toBe(rowHeightsPx[0] + rowHeightsPx[1]);
+      main.toBe(rowHeightsPx[0] + rowHeightsPx[1]);
+      horizon.toBe(rowHeightsPx[0] + rowHeightsPx[1]);
     });
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(80);
-      main.toBe(80);
-      horizon.toBe(80);
+      classic.toBe(rowHeightsPx[0]);
+      main.toBe(rowHeightsPx[0]);
+      horizon.toBe(rowHeightsPx[0]);
     });
     expect(getCell(1, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(180);
-      main.toBe(180);
-      horizon.toBe(180);
+      classic.toBe(rowHeightsPx[1]);
+      main.toBe(rowHeightsPx[1]);
+      horizon.toBe(rowHeightsPx[1]);
     });
     expect(getCell(2, 1).offsetHeight).toBe(60);
   });

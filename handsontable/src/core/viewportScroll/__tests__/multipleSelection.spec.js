@@ -373,7 +373,7 @@ describe('Multiple selection scroll', () => {
       await keyDown('shift');
       await simulateClick(getCell(11, 0));
 
-      expect(topOverlay().getScrollPosition()).toBe(18);
+      expect(topOverlay().getScrollPosition()).toBe(E2E_NATIVE_SCROLLBAR_WIDTH);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, 0, true));
       expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(11, 0, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -394,7 +394,7 @@ describe('Multiple selection scroll', () => {
       await selectCell(10, 0);
       await keyDownUp(['shift', 'arrowdown']);
 
-      expect(topOverlay().getScrollPosition()).toBe(18);
+      expect(topOverlay().getScrollPosition()).toBe(E2E_NATIVE_SCROLLBAR_WIDTH);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, 0, true));
       expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(11, 0, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -418,10 +418,12 @@ describe('Multiple selection scroll', () => {
       await selectCell(10, -1);
       await keyDownUp(['shift', 'arrowdown']);
 
+      const viewportHeightPx = 300;
+
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(29);
-        main.toBe(65);
-        horizon.toBe(161);
+        classic.toBe(calcTopOverlayBottomSnapScroll(10, viewportHeightPx, 'classic'));
+        main.toBe(calcTopOverlayBottomSnapScroll(10, viewportHeightPx, 'main'));
+        horizon.toBe(calcTopOverlayBottomSnapScroll(10, viewportHeightPx, 'horizon'));
       });
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, -1, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -441,7 +443,7 @@ describe('Multiple selection scroll', () => {
 
       await selectCells([[10, 0, 11, 0]]);
 
-      expect(topOverlay().getScrollPosition()).toBe(18);
+      expect(topOverlay().getScrollPosition()).toBe(E2E_NATIVE_SCROLLBAR_WIDTH);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(11, 0, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',
@@ -462,10 +464,12 @@ describe('Multiple selection scroll', () => {
       await scrollViewportVertically(5);
       await selectCells([[11, 0, 10, 0]]);
 
+      const viewportHeightPx = 300;
+
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(55);
-        main.toBe(94);
-        horizon.toBe(198);
+        classic.toBe(calcTopOverlayBottomSnapScroll(11, viewportHeightPx, 'classic'));
+        main.toBe(calcTopOverlayBottomSnapScroll(11, viewportHeightPx, 'main'));
+        horizon.toBe(calcTopOverlayBottomSnapScroll(11, viewportHeightPx, 'horizon'));
       });
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(11, 0, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({

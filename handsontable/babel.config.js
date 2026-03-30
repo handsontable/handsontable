@@ -10,6 +10,7 @@ const allowedE2EModules = [
   './htmlNormalize',
   './focusNavigator',
   './common',
+  './designTokens',
   './utils',
   './jasmine-helpers',
   './mouseEvents',
@@ -27,6 +28,11 @@ const allowedE2EModules = [
   '../../../src/themes/static/variables/icons/*',
   '../../../src/themes/static/variables/colors/*',
   '../../../src/themes/static/variables/tokens/*',
+  '../../src/themes/static/variables/sizing',
+  '../../src/themes/static/variables/density',
+  '../../src/themes/static/variables/tokens/main',
+  '../../src/themes/static/variables/tokens/classic',
+  '../../src/themes/static/variables/tokens/horizon',
 ];
 
 module.exports = {

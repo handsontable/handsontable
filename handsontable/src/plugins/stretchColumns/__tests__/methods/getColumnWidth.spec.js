@@ -34,19 +34,19 @@ describe('StretchColumns', () => {
       const plugin = getPlugin('stretchColumns');
 
       expect(plugin.getColumnWidth(0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(67);
-        main.toBe(67);
-        horizon.toBe(62);
+        classic.toBe(calcE2eStretchColumnsWidth200StretchAllBody('classic'));
+        main.toBe(calcE2eStretchColumnsWidth200StretchAllBody('main'));
+        horizon.toBe(calcE2eStretchColumnsWidth200StretchAllBody('horizon'));
       });
       expect(plugin.getColumnWidth(1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(67);
-        main.toBe(67);
-        horizon.toBe(62);
+        classic.toBe(calcE2eStretchColumnsWidth200StretchAllBody('classic'));
+        main.toBe(calcE2eStretchColumnsWidth200StretchAllBody('main'));
+        horizon.toBe(calcE2eStretchColumnsWidth200StretchAllBody('horizon'));
       });
       expect(plugin.getColumnWidth(2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(66);
-        main.toBe(66);
-        horizon.toBe(61);
+        classic.toBe(calcE2eStretchColumnsWidth200StretchAllLast('classic'));
+        main.toBe(calcE2eStretchColumnsWidth200StretchAllLast('main'));
+        horizon.toBe(calcE2eStretchColumnsWidth200StretchAllLast('horizon'));
       });
     });
 
@@ -63,9 +63,9 @@ describe('StretchColumns', () => {
       expect(plugin.getColumnWidth(0)).toBe(null);
       expect(plugin.getColumnWidth(1)).toBe(null);
       expect(plugin.getColumnWidth(2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(100);
-        main.toBe(100);
-        horizon.toBe(85);
+        classic.toBe(calcE2eStretchColumnsWidth200StretchLast('classic'));
+        main.toBe(calcE2eStretchColumnsWidth200StretchLast('main'));
+        horizon.toBe(calcE2eStretchColumnsWidth200StretchLast('horizon'));
       });
     });
   });

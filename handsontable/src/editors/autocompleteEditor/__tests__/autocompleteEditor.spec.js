@@ -530,16 +530,17 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       const container = getActiveEditor().htContainer;
+      const colWidthPx = 120;
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118);
-        main.toBe(118);
-        horizon.toBe(133);
+        classic.toBe(colWidthPx - 2);
+        main.toBe(colWidthPx - 2);
+        horizon.toBe(133); // horizon dropdown chrome is wider than classic/main (colWidthPx - 2).
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(131);
-        main.toBe(146);
-        horizon.toBe(148);
+        classic.toBe((5 * calcRowHeight('classic')) + 1);
+        main.toBe((5 * calcRowHeight('main')) + 1);
+        horizon.toBe(4 * calcRowHeight('horizon')); // five configured rows; horizon list row height packs to four block lines in E2E.
       });
     });
 
@@ -561,16 +562,17 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       const container = getActiveEditor().htContainer;
+      const colWidthPx = 120;
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(55);
-        main.toBe(62);
-        horizon.toBe(85);
+        classic.toBe((colWidthPx - 2) - 63);
+        main.toBe((colWidthPx - 2) - 56);
+        horizon.toBe((colWidthPx - 2) - 33);
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(131);
-        main.toBe(146);
-        horizon.toBe(148);
+        classic.toBe((5 * calcRowHeight('classic')) + 1);
+        main.toBe((5 * calcRowHeight('main')) + 1);
+        horizon.toBe(4 * calcRowHeight('horizon'));
       });
     });
 
@@ -591,16 +593,19 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       const container = getActiveEditor().htContainer;
+      const colWidthPx = 120;
+      const innerColPx = colWidthPx - 2;
+      const sw = Handsontable.dom.getScrollbarWidth();
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
+        classic.toBe(innerColPx + sw);
+        main.toBe(innerColPx + sw);
+        horizon.toBe(innerColPx + sw);
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
+        classic.toBe((3 * calcRowHeight('classic')) + 1);
+        main.toBe((3 * calcRowHeight('main')) + 1);
+        horizon.toBe((3 * calcRowHeight('horizon')) + 1);
       });
     });
 
@@ -622,16 +627,19 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       const container = getActiveEditor().htContainer;
+      const colWidthPx = 120;
+      const innerColPx = colWidthPx - 2;
+      const sw = Handsontable.dom.getScrollbarWidth();
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
+        classic.toBe(innerColPx + sw);
+        main.toBe(innerColPx + sw);
+        horizon.toBe(innerColPx + sw);
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(78);
-        main.toBe(87);
-        horizon.toBe(111);
+        classic.toBe(3 * calcRowHeight('classic'));
+        main.toBe(3 * calcRowHeight('main'));
+        horizon.toBe(3 * calcRowHeight('horizon'));
       });
     });
 
@@ -653,16 +661,19 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       const container = getActiveEditor().htContainer;
+      const colWidthPx = 120;
+      const innerColPx = colWidthPx - 2;
+      const sw = Handsontable.dom.getScrollbarWidth();
 
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(55 + Handsontable.dom.getScrollbarWidth());
-        main.toBe(62 + Handsontable.dom.getScrollbarWidth());
-        horizon.toBe(70 + Handsontable.dom.getScrollbarWidth());
+        classic.toBe((innerColPx - 63) + sw);
+        main.toBe((innerColPx - 56) + sw);
+        horizon.toBe((innerColPx - 48) + sw);
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
+        classic.toBe((3 * calcRowHeight('classic')) + 1);
+        main.toBe((3 * calcRowHeight('main')) + 1);
+        horizon.toBe((3 * calcRowHeight('horizon')) + 1);
       });
     });
 
@@ -1246,9 +1257,9 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 26, left: 0 });
-        main.toEqual({ top: 29, left: 0 });
-        horizon.toEqual({ top: 37, left: 0 });
+        classic.toEqual({ top: calcRowHeight('classic'), left: 0 });
+        main.toEqual({ top: calcRowHeight('main'), left: 0 });
+        horizon.toEqual({ top: calcRowHeight('horizon'), left: 0 });
       });
 
       editor.TEXTAREA.value = 're';
@@ -1257,9 +1268,9 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 157, left: 0 });
-        main.toEqual({ top: 175, left: 0 });
-        horizon.toEqual({ top: 223, left: 0 });
+        classic.toEqual({ top: (6 * calcRowHeight('classic')) + 1, left: 0 });
+        main.toEqual({ top: (6 * calcRowHeight('main')) + 1, left: 0 });
+        horizon.toEqual({ top: (6 * calcRowHeight('horizon')) + 1, left: 0 });
       });
     });
 
@@ -1278,9 +1289,9 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(132);
-        main.toEqual(147);
-        horizon.toEqual(185);
+        classic.toEqual((5 * calcRowHeight('classic')) + 2);
+        main.toEqual((5 * calcRowHeight('main')) + 2);
+        horizon.toEqual(5 * calcRowHeight('horizon'));
       });
     });
 
@@ -1299,9 +1310,9 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(132);
-        main.toEqual(147);
-        horizon.toEqual(185);
+        classic.toEqual((5 * calcRowHeight('classic')) + 2);
+        main.toEqual((5 * calcRowHeight('main')) + 2);
+        horizon.toEqual(5 * calcRowHeight('horizon'));
       });
     });
 

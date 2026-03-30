@@ -38,9 +38,9 @@ describe('NestedHeaders', () => {
       $resizer.simulate('mouseup');
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(35);
-        horizon.toBe(43);
+        classic.toBe(calcE2eNestedHeadersColumnResizeCol1OuterWidth('classic'));
+        main.toBe(calcE2eNestedHeadersColumnResizeCol1OuterWidth('main'));
+        horizon.toBe(calcE2eNestedHeadersColumnResizeCol1OuterWidth('horizon'));
       });
     });
 

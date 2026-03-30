@@ -30,14 +30,14 @@ describe('MergeCells', () => {
     });
 
     expect(getRowHeight(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(27);
-      main.toBe(30);
-      horizon.toBe(38);
+      classic.toBe(calcFirstBodyRowHeight('classic'));
+      main.toBe(calcFirstBodyRowHeight('main'));
+      horizon.toBe(calcFirstBodyRowHeight('horizon'));
     });
     expect(getRowHeight(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
+      classic.toBe(calcRowHeight('classic'));
+      main.toBe(calcRowHeight('main'));
+      horizon.toBe(calcRowHeight('horizon'));
     });
   });
 });

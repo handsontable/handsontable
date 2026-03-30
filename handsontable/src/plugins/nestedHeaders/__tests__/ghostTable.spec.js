@@ -54,40 +54,19 @@ describe('NestedHeaders', () => {
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(100);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(117);
+        [0, 1].forEach((idx) => {
+          expect(ghostTable.widthsMap.getValueAtIndex(idx)).forThemes(({ classic, main, horizon }) => {
+            classic.toBeAroundValue(calcE2eNestedHeadersGhostTableVeryLongTitleWidthCol01('classic'));
+            main.toBeAroundValue(calcE2eNestedHeadersGhostTableVeryLongTitleWidthCol01('main'));
+            horizon.toBeAroundValue(calcE2eNestedHeadersGhostTableVeryLongTitleWidthCol01('horizon'));
+          });
         });
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(100);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(117);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
+        [2, 3, 4, 5, 6].forEach((idx) => {
+          expect(ghostTable.widthsMap.getValueAtIndex(idx)).forThemes(({ classic, main, horizon }) => {
+            classic.toBeAroundValue(calcE2eNestedHeadersGhostTableVeryLongTitleWidthColRest('classic'));
+            main.toBeAroundValue(calcE2eNestedHeadersGhostTableVeryLongTitleWidthColRest('main'));
+            horizon.toBeAroundValue(calcE2eNestedHeadersGhostTableVeryLongTitleWidthColRest('horizon'));
+          });
         });
       });
 
