@@ -126,9 +126,10 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
   const isVueDir     = fileRefs.some(r => /\/vue(?:3)?\//i.test(r));
 
   // Find the primary executable file for live rendering.
-  const jsRef  = (!isAngularDir && !isReactDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
+  const jsRef  = (!isAngularDir && !isReactDir && !isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
   const jsxRef = isReactDir ? fileRefs.find(r => r.endsWith('.jsx') || r.endsWith('.tsx')) : null;
   const tsRef  = isAngularDir ? fileRefs.find(r => r.endsWith('.ts')) : null;
+  const vueRef = isVueDir ? fileRefs.find(r => r.endsWith('.js')) : null;
 
   const files = fileRefs.map((ref) => {
     const absPath = join(contentDir, ref);
@@ -160,6 +161,13 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
     exampleAttr = ` data-example-js="/content/${escapeHtml(jsRef)}"`;
   } else if (jsxRef) {
     exampleAttr = ` data-example-jsx="/content/${escapeHtml(jsxRef)}" data-example-id="${escapeHtml(id)}"`;
+  } else if (vueRef) {
+    const htmlRef = fileRefs.find((ref) => ref.endsWith('.html'));
+
+    exampleAttr = ` data-example-vue="/content/${escapeHtml(vueRef)}" data-example-id="${escapeHtml(id)}"`;
+    if (htmlRef) {
+      exampleAttr += ` data-example-html="/content/${escapeHtml(htmlRef)}"`;
+    }
   } else if (tsRef) {
     const htmlRef = fileRefs.find((ref) => ref.endsWith('.html'));
 
@@ -264,6 +272,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
   // ── SVG icons (inlined to keep no external dependencies) ──────────────────
   const iconCode = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`;
   const iconChevron = `<svg class="hot-example-source-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>`;
+  const iconReset = `<svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 3 6.36"/><polyline points="3 22 3 16 9 16"/></svg>`;
   const iconStackBlitz = `<svg aria-hidden="true" width="13" height="13" viewBox="0 0 28 28" fill="currentColor"><path d="M15.245 0L0 15.556h10.976L7.757 28 28 12.444H17.024L15.245 0z"/></svg>`;
   const iconGitHub = `<svg aria-hidden="true" width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
 
@@ -283,6 +292,9 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
     ${iconCode} Source code ${iconChevron}
   </button>
   <div class="hot-example-actions">
+    <button class="hot-example-reset-btn" type="button" title="Reset demo" aria-label="Reset demo">
+      ${iconReset}
+    </button>
     <button class="hot-example-stackblitz-btn" type="button" title="Edit on StackBlitz" aria-label="Edit on StackBlitz">
       ${iconStackBlitz}
     </button>
@@ -389,7 +401,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v26';
+const LOADER_VERSION = 'v28';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -832,11 +844,21 @@ function convertBoxesListToCardGrid(content) {
       if (cards.length === 0) return '';
 
       const cardHtml = cards.map(({ icon, title, href }) => {
+        // Convert backtick-wrapped text to <code> tags
+        const processed = title.replace(/`([^`]+)`/g, '<code>$1</code>');
+        // Split "Prefix: `code`" into code as title + prefix as subtitle
+        const prefixMatch = processed.match(/^([^<]+?):\s*(<code>[^<]+<\/code>)$/);
         // Split "Label (version)" into main title + subtitle
-        const parenMatch = title.match(/^(.+?)\s*\(([^)]+)\)$/);
-        const titleHtml = parenMatch
-          ? `<span class="title">${parenMatch[1]}</span><span class="subtitle">${parenMatch[2]}</span>`
-          : `<span class="title">${title}</span>`;
+        const parenMatch = !prefixMatch && processed.match(/^(.+?)\s*\(([^)]+)\)$/);
+        let titleHtml;
+
+        if (prefixMatch) {
+          titleHtml = `<span class="title">${prefixMatch[2]}</span><span class="subtitle">${prefixMatch[1]}</span>`;
+        } else if (parenMatch) {
+          titleHtml = `<span class="title">${parenMatch[1]}</span><span class="subtitle">${parenMatch[2]}</span>`;
+        } else {
+          titleHtml = `<span class="title">${processed}</span>`;
+        }
         const iconHtml = icon ? `<i class="${icon}"></i>` : '';
 
         const isExternal = /^https?:\/\//.test(href);

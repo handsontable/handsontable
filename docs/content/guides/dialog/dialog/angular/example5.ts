@@ -1,18 +1,32 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'app-example5',
   template: `
-    <div class="example-controls-container" style="padding-bottom: 16px">
-      <div class="controlsQuickFilter">
-        <label for="background-select" class="selectColumn">Select a background:
-          <select id="background-select" (change)="onBackgroundChange($event)">
-            <option value="solid">Solid</option>
-            <option value="semi-transparent">Semi-transparent</option>
-          </select>
-        </label>
+    <div class="example-controls-container">
+      <div class="controls">
+        <div class="theme-dropdown" #dropdown>
+          <button
+            class="theme-dropdown-trigger"
+            type="button"
+            aria-haspopup="listbox"
+            [attr.aria-expanded]="isOpen"
+            (click)="toggleDropdown()"
+          >
+            <span>{{ selectedLabel }}</span>
+            <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+          </button>
+          <ul class="theme-dropdown-menu" role="listbox" *ngIf="isOpen">
+            <li
+              *ngFor="let opt of backgroundOptions"
+              role="option"
+              [attr.aria-selected]="selected === opt.value"
+              (click)="selectBackground(opt.value)"
+            >{{ opt.label }}</li>
+          </ul>
+        </div>
       </div>
     </div>
     <hot-table
@@ -24,8 +38,49 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
   `,
   standalone: false
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements AfterViewInit, OnDestroy {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
+  @ViewChild('dropdown') dropdownRef!: ElementRef;
+
+  isOpen = false;
+  selected = 'solid';
+  backgroundOptions = [
+    { value: 'solid', label: 'Solid' },
+    { value: 'semi-transparent', label: 'Semi-transparent' },
+  ];
+
+  private clickListener = (e: MouseEvent) => {
+    if (this.dropdownRef && !this.dropdownRef.nativeElement.contains(e.target)) {
+      this.isOpen = false;
+    }
+  };
+
+  private keydownListener = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') this.isOpen = false;
+  };
+
+  get selectedLabel(): string {
+    return this.backgroundOptions.find((o) => o.value === this.selected)?.label || '';
+  }
+
+  toggleDropdown() {
+    this.isOpen = !this.isOpen;
+  }
+
+  selectBackground(value: string) {
+    this.selected = value;
+    this.isOpen = false;
+
+    const hotInstance = this.hotTable.hotInstance;
+
+    if (hotInstance) {
+      const content = value === 'solid'
+        ? 'This dialog uses a solid background (default).'
+        : 'This dialog uses a semi-transparent background.';
+
+      hotInstance.getPlugin('dialog').update({ content, background: value });
+    }
+  }
 
   readonly hotData = [
     { model: 'Trail Helmet', price: 1298.14, sellDate: '2025-08-31', sellTime: '14:12', inStock: true },
@@ -122,25 +177,16 @@ export class AppComponent implements AfterViewInit {
     const hotInstance = this.hotTable.hotInstance;
 
     if (hotInstance) {
-      // Show dialog after initialization
-      const dialogPlugin = hotInstance.getPlugin('dialog');
-      dialogPlugin.show();
+      hotInstance.getPlugin('dialog').show();
     }
+
+    document.addEventListener('click', this.clickListener);
+    document.addEventListener('keydown', this.keydownListener);
   }
 
-  onBackgroundChange(event: Event) {
-    const hotInstance = this.hotTable.hotInstance;
-
-    if (hotInstance) {
-      const background = (event.target as HTMLSelectElement).value;
-      const content = background === 'solid' ? 'This dialog uses a solid background (default).' : 'This dialog uses a semi-transparent background.';
-      const dialogPlugin = hotInstance.getPlugin('dialog');
-
-      dialogPlugin.update({
-        content,
-        background,
-      });
-    }
+  ngOnDestroy() {
+    document.removeEventListener('click', this.clickListener);
+    document.removeEventListener('keydown', this.keydownListener);
   }
 }
 /* end-file */

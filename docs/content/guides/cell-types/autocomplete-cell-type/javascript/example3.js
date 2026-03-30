@@ -7,6 +7,7 @@ registerAllModules();
 const container = document.querySelector('#example3');
 
 new Handsontable(container, {
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],

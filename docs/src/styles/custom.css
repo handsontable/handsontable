@@ -407,6 +407,47 @@ h3 + p {
 }
 
 /* -------------------------------------------------------------------------
+ * Icon pack grid — spreadsheet-style boxes, 4 per row
+ * ------------------------------------------------------------------------- */
+.icons-wrapper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-block: 1.5rem;
+  border-top: 1px solid var(--sl-color-gray-5);
+  border-left: 1px solid var(--sl-color-gray-5);
+}
+
+.icons-wrapper > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0;
+  padding: 1.25rem 1rem;
+  border-right: 1px solid var(--sl-color-gray-5);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  transition: background-color 0.15s;
+}
+
+.icons-wrapper > div:hover {
+  background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+}
+
+.icons-wrapper > div svg {
+  width: 24px;
+  height: 24px;
+  fill: var(--sl-color-white);
+}
+
+.icons-wrapper > div span {
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-2);
+  text-align: center;
+  word-break: break-word;
+}
+
+/* -------------------------------------------------------------------------
  * Remove Starlight's default table styles from the markdown content area.
  * Handsontable renders its own <table> elements inside the preview containers
  * and those rules collide with the grid rendering.
@@ -914,12 +955,12 @@ starlight-toc a:not([aria-current='true']):hover {
   font-weight: 500;
 }
 
-.sl-markdown-content h1 {
+.sl-markdown-content h1:not(:where(.not-content *)) {
   letter-spacing: -0.02em;
   margin-bottom: 1rem;
 }
 
-.sl-markdown-content h2 {
+.sl-markdown-content h2:not(:where(.not-content *)) {
   letter-spacing: -0.01em;
   margin-top: 2.5rem;
   margin-bottom: 0.5rem;
@@ -934,7 +975,7 @@ starlight-toc a:not([aria-current='true']):hover {
   margin-top: 2em;
 }
 
-.sl-markdown-content h3 {
+.sl-markdown-content h3:not(:where(.not-content *)) {
   letter-spacing: -0.005em;
 }
 
@@ -1380,13 +1421,15 @@ html {
   margin: 1rem 0 0;
 }
 
-/* ── Theme example: custom dropdown ──────────────────────────────────── */
+/* ── Theme dropdown: overflow fix ─────────────────────────────────────
+   .hot-example has overflow:hidden which clips the dropdown menu.
+   Any example using the custom dropdown needs visible overflow. */
 
-#hot-example-exampleTheme {
+.hot-example:has(.theme-dropdown) {
   overflow: visible;
 }
 
-#hot-example-exampleTheme .hot-example-preview {
+.hot-example:has(.theme-dropdown) .hot-example-preview {
   overflow: visible;
 }
 

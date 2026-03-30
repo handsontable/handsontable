@@ -7,36 +7,34 @@
  *  2. A footer bar with social icons, site links, and a live status dot.
  *  3. A copyright line.
  *
- * The status indicator color is fetched from the Statuspage API at render
- * time. If the network is unavailable it falls back to gray.
+ * The status dot color is fetched server-side from the updown.io status page
+ * by extracting the theme-color meta tag. In dev (SSR) mode the color is
+ * resolved on every page load; in production it reflects the build-time state.
  */
 import Pagination from 'virtual:starlight/components/Pagination';
 
-// ── Status dot ────────────────────────────────────────────────────────────────
-// Statuspage public API: indicator is "none" | "minor" | "major" | "critical".
-type StatusIndicator = 'none' | 'minor' | 'major' | 'critical' | 'unknown';
-
-let statusIndicator: StatusIndicator = 'unknown';
+// ── Server-side status (SSR fallback & build-time snapshot) ──────────────────
+// The updown.io page uses CSS class "status up" / "status down" on check divs.
+// We look for that class to determine operational state, then map to our own
+// palette so the dot matches the sidebar "Updated" badge green (#41a167).
+let statusColor = '#8e99a4'; // gray — unknown / network error
 
 try {
-  const res = await fetch('https://status.handsontable.com/api/v2/status.json');
+  const res = await fetch('https://status.handsontable.com/');
   if (res.ok) {
-    const data = await res.json();
-    statusIndicator = data?.status?.indicator ?? 'unknown';
+    const html = await res.text();
+    const isUp = /class="status up"/.test(html);
+    const isDown = /class="status down"/.test(html);
+
+    if (isUp && !isDown) {
+      statusColor = '#41a167'; // green — matches sidebar "Updated" badge
+    } else if (isDown) {
+      statusColor = '#e74c3c'; // red — incident
+    }
   }
 } catch {
-  // Network unavailable — show neutral dot
+  // Network unavailable — keep gray
 }
-
-const STATUS_COLORS: Record<StatusIndicator, string> = {
-  none: '#37bc6c',      // green  — all systems operational
-  minor: '#f4a623',     // yellow — minor incident
-  major: '#e74c3c',     // red    — major incident
-  critical: '#c0392b',  // dark red — critical incident
-  unknown: '#8e99a4',   // gray   — could not determine
-};
-
-const statusColor = STATUS_COLORS[statusIndicator];
 
 const year = new Date().getFullYear();
 ---
@@ -169,6 +167,7 @@ const year = new Date().getFullYear();
   }
 
   .hot-footer__status-dot {
+    background-color: #8e99a4;
     border-radius: 50%;
     display: inline-block;
     flex-shrink: 0;

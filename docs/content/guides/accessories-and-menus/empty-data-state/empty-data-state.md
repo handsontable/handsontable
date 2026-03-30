@@ -158,6 +158,10 @@ To learn more about the translation mechanism, see the [Languages guide](@/guide
 
 ## Related API reference
 
+<div class="boxes-list">
+
 - [Options: `emptyDataState`](@/api/options.md#emptydatastate)
 - [Plugins: `EmptyDataState`](@/api/emptyDataState.md)
 - [Plugins: `Filters`](@/api/filters.md)
+
+</div>

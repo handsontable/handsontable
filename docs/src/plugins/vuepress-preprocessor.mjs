@@ -242,11 +242,19 @@ function convertBoxesListToCardGrid(content) {
       const cardHtml = cards.map(({ title, href }) => {
         // Convert backtick-wrapped text to <code> tags
         const processed = title.replace(/`([^`]+)`/g, '<code>$1</code>');
+        // Split "Prefix: `code`" into code as title + prefix as subtitle
+        const prefixMatch = processed.match(/^([^<]+?):\s*(<code>[^<]+<\/code>)$/);
         // Split "Label (version)" into main title + subtitle
-        const parenMatch = processed.match(/^(.+?)\s*\(([^)]+)\)$/);
-        const titleHtml = parenMatch
-          ? `<span class="title">${parenMatch[1]}</span><span class="subtitle">${parenMatch[2]}</span>`
-          : `<span class="title">${processed}</span>`;
+        const parenMatch = !prefixMatch && processed.match(/^(.+?)\s*\(([^)]+)\)$/);
+        let titleHtml;
+
+        if (prefixMatch) {
+          titleHtml = `<span class="title">${prefixMatch[2]}</span><span class="subtitle">${prefixMatch[1]}</span>`;
+        } else if (parenMatch) {
+          titleHtml = `<span class="title">${parenMatch[1]}</span><span class="subtitle">${parenMatch[2]}</span>`;
+        } else {
+          titleHtml = `<span class="title">${processed}</span>`;
+        }
 
         return `<div class="ht-link-card"><a href="${href}">${titleHtml}</a><span class="arrow" aria-hidden="true">\u2192</span></div>`;
       }).join('\n');

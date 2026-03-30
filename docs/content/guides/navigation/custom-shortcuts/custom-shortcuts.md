@@ -58,27 +58,42 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 :::
 
-1. Access the [`ShortcutManager`](@/api/shortcutManager.md) API:
-  ```js
-  hot.getShortcutManager();
-  ```
-2. Select a keyboard shortcut [context](#keyboard-shortcut-contexts), for example:
-  ```js
-  const gridContext = hot.getShortcutManager().getContext('grid');
-  ```
-3. Use the selected context's [methods](@/api/shortcutContext.md). For example, to use the [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method in the
-   `grid` context:
+<ol class="sl-steps">
+<li>
 
-  ```js
-  const gridContext = hot.getShortcutManager().getContext('grid');
+**Access the [`ShortcutManager`](@/api/shortcutManager.md) API:**
 
-  gridContext.addShortcut({
-    group: 'group_ID', // a string value; the user can decide on its name. 
-    // Each shortcut should be assigned to the group.
-    keys: [['enter']],
-    callback: () => {},
-  });
-  ```
+```js
+hot.getShortcutManager();
+```
+
+</li>
+<li>
+
+**Select a keyboard shortcut [context](#keyboard-shortcut-contexts), for example:**
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+```
+
+</li>
+<li>
+
+**Use the selected context's [methods](@/api/shortcutContext.md).** For example, to use the [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method in the `grid` context:
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.addShortcut({
+  group: 'group_ID', // a string value; the user can decide on its name.
+  // Each shortcut should be assigned to the group.
+  keys: [['enter']],
+  callback: () => {},
+});
+```
+
+</li>
+</ol>
 
 ## Keyboard shortcut contexts
 
@@ -110,22 +125,33 @@ For example: if you're using a complex [custom editor](@/guides/cell-functions/c
 
 To add a custom keyboard shortcut:
 
-1. Select a [context](#keyboard-shortcut-contexts) in which you want to add a shortcut, for example:
-  ```js
-  const gridContext = hot.getShortcutManager().getContext('grid');
-  ```
-2. Using the selected context's [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method, add your keyboard shortcut:
+<ol class="sl-steps">
+<li>
 
-  ```js
-  const gridContext = hot.getShortcutManager().getContext('grid');
+**Select a [context](#keyboard-shortcut-contexts) in which you want to add a shortcut, for example:**
 
-  gridContext.addShortcut({
-    group: 'group_ID', // a string value; the user can decide on its name. 
-    // Each shortcut should be assigned to the group.
-    keys: [['enter']],
-    callback: () => {},
-  });
-  ```
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+```
+
+</li>
+<li>
+
+**Using the selected context's [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method, add your keyboard shortcut:**
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.addShortcut({
+  group: 'group_ID', // a string value; the user can decide on its name.
+  // Each shortcut should be assigned to the group.
+  keys: [['enter']],
+  callback: () => {},
+});
+```
+
+</li>
+</ol>
 
    The [`keys`](@/api/shortcutContext.md#addshortcut) parameter:
 
@@ -181,8 +207,15 @@ gridContext.addShortcut({
 
 To remove a keyboard shortcut (e.g., one of the [default](#default-custom-shortcuts) keyboard shortcuts):
 
-1. Select a [context](#keyboard-shortcut-contexts) in which you want to remove a keyboard shortcut.
-2. Use the selected context's [`removeShortcutsByKeys()`](@/api/shortcutContext.md#removeshortcutsbykeys) method.
+<ol class="sl-steps">
+<li>
+
+**Select a [context](#keyboard-shortcut-contexts) in which you want to remove a keyboard shortcut.**
+
+</li>
+<li>
+
+**Use the selected context's [`removeShortcutsByKeys()`](@/api/shortcutContext.md#removeshortcutsbykeys) method.**
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
@@ -190,10 +223,20 @@ const gridContext = hot.getShortcutManager().getContext('grid');
 gridContext.removeShortcutsByKeys(['enter']);
 ```
 
+</li>
+</ol>
+
 To remove all keyboard shortcuts registered in a certain group:
 
-1. Select a [context](#keyboard-shortcut-contexts).
-2. Use the selected context's [`removeShortcutsByGroup()`](@/api/shortcutContext.md#removeshortcutsbygroup) method.
+<ol class="sl-steps">
+<li>
+
+**Select a [context](#keyboard-shortcut-contexts).**
+
+</li>
+<li>
+
+**Use the selected context's [`removeShortcutsByGroup()`](@/api/shortcutContext.md#removeshortcutsbygroup) method.**
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
@@ -201,15 +244,37 @@ const gridContext = hot.getShortcutManager().getContext('grid');
 gridContext.removeShortcutsByGroup('group_ID');
 ```
 
+</li>
+</ol>
+
 ## Replace a keyboard shortcut
 
 To replace a keyboard shortcut:
 
-1. Select a [context](#keyboard-shortcut-contexts) in which you want to replace a keyboard shortcut.
-2. Get the old keyboard shortcut, using the selected context's [`getShortcuts()`](@/api/shortcutContext.md#getshortcuts) method.
-3. Remove the old keyboard shortcut, using the selected context's [`removeShortcutsByKeys()`](@/api/shortcutContext.md#removeshortcutsbykeys) method.
-4. Replace the `keys` property of the old keyboard shortcut with your new array of keys.
-5. Add your new keyboard shortcut, using the selected context's [`addShortcuts()`](@/api/shortcutContext.md#addshortcuts) method.
+<ol class="sl-steps">
+<li>
+
+**Select a [context](#keyboard-shortcut-contexts) in which you want to replace a keyboard shortcut.**
+
+</li>
+<li>
+
+**Get the old keyboard shortcut, using the selected context's [`getShortcuts()`](@/api/shortcutContext.md#getshortcuts) method.**
+
+</li>
+<li>
+
+**Remove the old keyboard shortcut, using the selected context's [`removeShortcutsByKeys()`](@/api/shortcutContext.md#removeshortcutsbykeys) method.**
+
+</li>
+<li>
+
+**Replace the `keys` property of the old keyboard shortcut with your new array of keys.**
+
+</li>
+<li>
+
+**Add your new keyboard shortcut, using the selected context's [`addShortcuts()`](@/api/shortcutContext.md#addshortcuts) method.**
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
@@ -223,6 +288,9 @@ undoShortcut.map((shortcut) => {
 
 gridContext.addShortcuts(undoShortcut);
 ```
+
+</li>
+</ol>
 
 ## Block a keyboard shortcut's actions
 
@@ -279,27 +347,50 @@ settings = {
 
 For the list of [options](@/guides/getting-started/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:
 
-- APIs:
-  - [`ShortcutContext`](@/api/shortcutContext.md)
-  - [`ShortcutManager`](@/api/shortcutManager.md)
-- Configuration options:
-  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
-  - [`enterMoves`](@/api/options.md#entermoves)
-  - [`tabMoves`](@/api/options.md#tabmoves)
-- Core methods:
-  - [`getShortcutManager()`](@/api/core.md#getshortcutmanager)
-  - [`isListening()`](@/api/core.md#islistening)
-  - [`listen()`](@/api/core.md#listen)
-  - [`unlisten()`](@/api/core.md#unlisten)
-- Hooks:
-  - [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown)
-  - [`beforeKeyDown`](@/api/hooks.md#beforekeydown)
+**APIs**
+
+<div class="boxes-list">
+
+- [ShortcutContext](@/api/shortcutContext.md)
+- [ShortcutManager](@/api/shortcutManager.md)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [enterBeginsEditing](@/api/options.md#enterbeginsediting)
+- [enterMoves](@/api/options.md#entermoves)
+- [tabMoves](@/api/options.md#tabmoves)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getShortcutManager()](@/api/core.md#getshortcutmanager)
+- [isListening()](@/api/core.md#islistening)
+- [listen()](@/api/core.md#listen)
+- [unlisten()](@/api/core.md#unlisten)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterDocumentKeyDown](@/api/hooks.md#afterdocumentkeydown)
+- [beforeKeyDown](@/api/hooks.md#beforekeydown)
+
+</div>
 
 ## Troubleshooting
 
 Didn't find what you need? Try this:
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [View related topics](https://github.com/handsontable/handsontable/issues) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub

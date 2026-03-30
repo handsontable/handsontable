@@ -51,22 +51,34 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 :::
 :::
 
-1. Access the [`FocusScopeManager`](@/api/focusScopeManager.md) API:
-  ```js
-  hot.getFocusScopeManager();
-  ```
-2. Register a focus scope with a container element:
-  ```js
-  const focusScopeManager = hot.getFocusScopeManager();
+<ol class="sl-steps">
+<li>
 
-  focusScopeManager.registerScope('customScope', containerElement, {
-    shortcutsContextName: 'plugin:customScope',
-    onActivate: (focusSource) => {
-      // Focus the first focusable element in your plugin's UI
-      // container
-    },
-  });
-  ```
+**Access the [`FocusScopeManager`](@/api/focusScopeManager.md) API:**
+
+```js
+hot.getFocusScopeManager();
+```
+
+</li>
+<li>
+
+**Register a focus scope with a container element:**
+
+```js
+const focusScopeManager = hot.getFocusScopeManager();
+
+focusScopeManager.registerScope('customScope', containerElement, {
+  shortcutsContextName: 'plugin:customScope',
+  onActivate: (focusSource) => {
+    // Focus the first focusable element in your plugin's UI
+    // container
+  },
+});
+```
+
+</li>
+</ol>
 
 ## Focus scope types
 
@@ -177,15 +189,26 @@ appears after the inline scope elements in the DOM.
 
 To register a focus scope:
 
-1. Access the [`FocusScopeManager`](@/api/focusScopeManager.md) API:
-  ```js
-  const focusScopeManager = hot.getFocusScopeManager();
-  ```
-2. Use the [`registerScope()`](@/api/focusScopeManager.md#registerscope) method:
+<ol class="sl-steps">
+<li>
 
-  ```js
-  focusScopeManager.registerScope('customScope', containerElement);
-  ```
+**Access the [`FocusScopeManager`](@/api/focusScopeManager.md) API:**
+
+```js
+const focusScopeManager = hot.getFocusScopeManager();
+```
+
+</li>
+<li>
+
+**Use the [`registerScope()`](@/api/focusScopeManager.md#registerscope) method:**
+
+```js
+focusScopeManager.registerScope('customScope', containerElement);
+```
+
+</li>
+</ol>
 
 ### Connect a scope with a shortcuts context
 
@@ -325,26 +348,49 @@ The focus scope manager automatically:
 
 For the complete API reference, see the following pages:
 
-- APIs:
-  - [`FocusScopeManager`](@/api/focusScopeManager.md)
-- Configuration options:
-  - [`tabMoves`](@/api/options.md#tabmoves)
-  - [`tabNavigation`](@/api/options.md#tabnavigation)
-  - [`navigableHeaders`](@/api/options.md#navigableheaders)
-- Core methods:
-  - [`getFocusScopeManager()`](@/api/core.md#getfocusscopemanager)
-  - [`isListening()`](@/api/core.md#islistening)
-  - [`listen()`](@/api/core.md#listen)
-  - [`unlisten()`](@/api/core.md#unlisten)
-- Hooks:
-  - [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown)
-  - [`beforeKeyDown`](@/api/hooks.md#beforekeydown)
+**APIs**
+
+<div class="boxes-list">
+
+- [FocusScopeManager](@/api/focusScopeManager.md)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [tabMoves](@/api/options.md#tabmoves)
+- [tabNavigation](@/api/options.md#tabnavigation)
+- [navigableHeaders](@/api/options.md#navigableheaders)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getFocusScopeManager()](@/api/core.md#getfocusscopemanager)
+- [isListening()](@/api/core.md#islistening)
+- [listen()](@/api/core.md#listen)
+- [unlisten()](@/api/core.md#unlisten)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterDocumentKeyDown](@/api/hooks.md#afterdocumentkeydown)
+- [beforeKeyDown](@/api/hooks.md#beforekeydown)
+
+</div>
 
 ## Troubleshooting
 
 Didn't find what you need? Try this:
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [View related topics](https://github.com/handsontable/handsontable/issues) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub

@@ -105,6 +105,8 @@ The dialog supports multiple content types including plain text, HTML strings, a
 
 :::
 
+:::
+
 ### HTML content
 
 ::: only-for javascript

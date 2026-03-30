@@ -66,8 +66,8 @@ Double click on a cell to open the editor and preview the formula.
 
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.html)
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.css)
-@[code](@/content/guides/formulas/formula-calculation/javascript/example1.js)
-@[code](@/content/guides/formulas/formula-calculation/javascript/example1.ts)
+@[code collapse={8-22}](@/content/guides/formulas/formula-calculation/javascript/example1.js)
+@[code collapse={8-22}](@/content/guides/formulas/formula-calculation/javascript/example1.ts)
 
 :::
 
@@ -78,8 +78,8 @@ Double click on a cell to open the editor and preview the formula.
 ::: example #example1 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/formulas/formula-calculation/react/example1.css)
-@[code](@/content/guides/formulas/formula-calculation/react/example1.jsx)
-@[code](@/content/guides/formulas/formula-calculation/react/example1.tsx)
+@[code collapse={9-23}](@/content/guides/formulas/formula-calculation/react/example1.jsx)
+@[code collapse={9-23}](@/content/guides/formulas/formula-calculation/react/example1.tsx)
 
 :::
 
@@ -89,7 +89,7 @@ Double click on a cell to open the editor and preview the formula.
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/formulas/formula-calculation/angular/example1.ts)
+@[code collapse={37-64}](@/content/guides/formulas/formula-calculation/angular/example1.ts)
 @[code](@/content/guides/formulas/formula-calculation/angular/example1.html)
 
 :::
@@ -105,8 +105,8 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 ::: example #example-data-grid --js 1 --ts 2
 
-@[code](@/content/guides/formulas/formula-calculation/javascript/example-data-grid.js)
-@[code](@/content/guides/formulas/formula-calculation/javascript/example-data-grid.ts)
+@[code collapse={8-111}](@/content/guides/formulas/formula-calculation/javascript/example-data-grid.js)
+@[code collapse={8-111}](@/content/guides/formulas/formula-calculation/javascript/example-data-grid.ts)
 
 :::
 
@@ -116,8 +116,8 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 ::: example #example-data-grid :react --js 1 --ts 2
 
-@[code](@/content/guides/formulas/formula-calculation/react/example-data-grid.jsx)
-@[code](@/content/guides/formulas/formula-calculation/react/example-data-grid.tsx)
+@[code collapse={9-112}](@/content/guides/formulas/formula-calculation/react/example-data-grid.jsx)
+@[code collapse={9-112}](@/content/guides/formulas/formula-calculation/react/example-data-grid.tsx)
 
 :::
 
@@ -127,7 +127,7 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 ::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/formulas/formula-calculation/angular/example2.ts)
+@[code collapse={17-126}](@/content/guides/formulas/formula-calculation/angular/example2.ts)
 @[code](@/content/guides/formulas/formula-calculation/angular/example2.html)
 
 :::
@@ -746,7 +746,7 @@ For more information about named expressions, refer to the
 
 ## View the explainer video
 
-<iframe width="100%" height="425px" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
+<iframe width="100%" src="https://www.youtube.com/embed/JJXUmACTDdk" style="border:0"></iframe>
 
 ## Known limitations
 

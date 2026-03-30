@@ -6,6 +6,7 @@ import { handsontableRenderer, RENDERER_TYPE as HANDSONTABLE_RENDERER } from './
 import { htmlRenderer, RENDERER_TYPE as HTML_RENDERER } from './htmlRenderer';
 import { intlDateRenderer, RENDERER_TYPE as INTL_DATE_RENDERER } from './intlDateRenderer';
 import { intlTimeRenderer, RENDERER_TYPE as INTL_TIME_RENDERER } from './intlTimeRenderer';
+import { multiSelectRenderer, RENDERER_TYPE as MULTISELECT_RENDERER } from './multiSelectRenderer';
 import { numericRenderer, RENDERER_TYPE as NUMERIC_RENDERER } from './numericRenderer';
 import { passwordRenderer, RENDERER_TYPE as PASSWORD_RENDERER } from './passwordRenderer';
 import { selectRenderer, RENDERER_TYPE as SELECT_RENDERER } from './selectRenderer';
@@ -25,6 +26,7 @@ export function registerAllRenderers() {
   registerRenderer(htmlRenderer);
   registerRenderer(intlDateRenderer);
   registerRenderer(intlTimeRenderer);
+  registerRenderer(multiSelectRenderer);
   registerRenderer(numericRenderer);
   registerRenderer(passwordRenderer);
   registerRenderer(selectRenderer);
@@ -41,6 +43,7 @@ export {
   htmlRenderer, HTML_RENDERER,
   intlDateRenderer, INTL_DATE_RENDERER,
   intlTimeRenderer, INTL_TIME_RENDERER,
+  multiSelectRenderer, MULTISELECT_RENDERER,
   numericRenderer, NUMERIC_RENDERER,
   passwordRenderer, PASSWORD_RENDERER,
   selectRenderer, SELECT_RENDERER,
