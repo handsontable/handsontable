@@ -23,7 +23,7 @@
     "@expressive-code/plugin-line-numbers": "^0.41.7",
     "@handsontable/pikaday": "^1.0.0",
     "@simonwep/pickr": "^1.9.1",
-    "astro": "^6.0.8",
+    "astro": "^6.1.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.5",
@@ -58,6 +58,16 @@
     "rimraf": "^3.0.2",
     "semver": "^5.7.1",
     "typescript": "^5.4.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "react-star-rating-component>react": "$react"
+    }
+  },
+  "overrides": {
+    "react-star-rating-component": {
+      "react": "$react"
+    }
   },
   "browserslist": [
     "last 2 Chrome versions",

@@ -34,3 +34,4 @@ report-check-links.xlsx
 /playwright/.cache/
 .astro/
 /public/_md/
+/src/content/docs
