@@ -102,7 +102,7 @@ describe('editors', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getCell(0, 0).innerHTML).not.toEqual('10');
 
@@ -111,7 +111,7 @@ describe('editors', () => {
 
     destroyEditor();
 
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     expect(getCell(1, 0).innerHTML).not.toEqual('Cup');
   });

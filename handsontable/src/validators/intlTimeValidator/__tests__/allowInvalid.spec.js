@@ -25,14 +25,14 @@ describe('IntlTimeType - allowInvalid', () => {
     expect(getCell(0, 0).innerText).toBe('12:00 PM');
 
     await setDataAtCell(0, 0, 'test');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(getData()).toEqual([['test', '12:00:00', '12:00:00.000', 'test']]);
     expect(getSourceData()).toEqual([['test', '12:00:00', '12:00:00.000', 'test']]);
     expect(getCell(0, 0).innerText).toBe('#bad-value#');
 
     await setSourceDataAtCell(0, 0, 'test2');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(getData()).toEqual([['test2', '12:00:00', '12:00:00.000', 'test']]);
     expect(getSourceData()).toEqual([['test2', '12:00:00', '12:00:00.000', 'test']]);
@@ -53,14 +53,14 @@ describe('IntlTimeType - allowInvalid', () => {
     expect(getCell(0, 0).innerText).toBe('12:00 PM');
 
     await setDataAtCell(0, 0, 'test');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(getData()).toEqual([['12:00', null, '11:11', null]]);
     expect(getSourceData()).toEqual([['12:00', null, '11:11', null]]);
     expect(getCell(0, 0).innerText).toBe('12:00 PM');
 
     await setSourceDataAtCell(0, 0, 'test');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(getData()).toEqual([['12:00', null, '11:11', null]]);
     expect(getSourceData()).toEqual([['12:00', null, '11:11', null]]);
