@@ -145,9 +145,10 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 0, y: 2210 });
-        main.toEqual({ x: 0, y: 2494 });
-        horizon.toEqual({ x: 0, y: 3219 });
+        // y = (row - (ceil(floor(viewportH / rowHeight) / 2) - 1)) * rowHeight, viewportH=300
+        classic.toEqual({ x: 0, y: (90 - (Math.ceil(Math.floor(300 / calcRowHeight('classic')) / 2) - 1)) * calcRowHeight('classic') });
+        main.toEqual({ x: 0, y: (90 - (Math.ceil(Math.floor(300 / calcRowHeight('main')) / 2) - 1)) * calcRowHeight('main') });
+        horizon.toEqual({ x: 0, y: (90 - (Math.ceil(Math.floor(300 / calcRowHeight('horizon')) / 2) - 1)) * calcRowHeight('horizon') });
       });
     });
 
@@ -168,6 +169,9 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        // x values depend on auto-sized column widths (2-char column headers at col 40 = "AO"),
+        // which are font-metric-dependent and cannot be derived from design tokens alone.
+        // TODO: verify formula
         classic.toEqual({ x: 1887, y: 0 });
         main.toEqual({ x: 2001, y: 0 });
         horizon.toEqual({ x: 2292, y: 0 });
@@ -191,6 +195,9 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        // x values depend on auto-sized column widths (single-char column headers at col 10 = "K"),
+        // which are font-metric-dependent and cannot be derived from design tokens alone.
+        // TODO: verify formula
         classic.toEqual({ x: 350, y: 0 });
         main.toEqual({ x: 412, y: 0 });
         horizon.toEqual({ x: 476, y: 0 });
@@ -214,9 +221,10 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 0, y: 130 });
-        main.toEqual({ x: 0, y: 174 });
-        horizon.toEqual({ x: 0, y: 259 });
+        // y = (row - (ceil(floor(viewportH / rowHeight) / 2) - 1)) * rowHeight, viewportH=300
+        classic.toEqual({ x: 0, y: (10 - (Math.ceil(Math.floor(300 / calcRowHeight('classic')) / 2) - 1)) * calcRowHeight('classic') });
+        main.toEqual({ x: 0, y: (10 - (Math.ceil(Math.floor(300 / calcRowHeight('main')) / 2) - 1)) * calcRowHeight('main') });
+        horizon.toEqual({ x: 0, y: (10 - (Math.ceil(Math.floor(300 / calcRowHeight('horizon')) / 2) - 1)) * calcRowHeight('horizon') });
       });
     });
 
@@ -241,9 +249,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 0, y: 1456 });
-        main.toEqual({ x: 0, y: 1653 });
-        horizon.toEqual({ x: 0, y: 2146 });
+        // Focused cell is at row 61 (second selection layer, after Shift+Tab).
+        // y = (row - (ceil(floor(viewportH / rowHeight) / 2) - 1)) * rowHeight, viewportH=300
+        classic.toEqual({ x: 0, y: (61 - (Math.ceil(Math.floor(300 / calcRowHeight('classic')) / 2) - 1)) * calcRowHeight('classic') });
+        main.toEqual({ x: 0, y: (61 - (Math.ceil(Math.floor(300 / calcRowHeight('main')) / 2) - 1)) * calcRowHeight('main') });
+        horizon.toEqual({ x: 0, y: (61 - (Math.ceil(Math.floor(300 / calcRowHeight('horizon')) / 2) - 1)) * calcRowHeight('horizon') });
       });
     });
 
@@ -264,9 +274,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 1100, y: 1170 });
-        main.toEqual({ x: 1132, y: 1334 });
-        horizon.toEqual({ x: 1303, y: 1739 });
+        // y = (row - (ceil(floor(viewportH / rowHeight) / 2) - 1)) * rowHeight, viewportH=300
+        // x values depend on auto-sized column widths (font-metric-dependent).
+        // TODO: verify formula for x
+        classic.toEqual({ x: 1100, y: (50 - (Math.ceil(Math.floor(300 / calcRowHeight('classic')) / 2) - 1)) * calcRowHeight('classic') });
+        main.toEqual({ x: 1132, y: (50 - (Math.ceil(Math.floor(300 / calcRowHeight('main')) / 2) - 1)) * calcRowHeight('main') });
+        horizon.toEqual({ x: 1303, y: (50 - (Math.ceil(Math.floor(300 / calcRowHeight('horizon')) / 2) - 1)) * calcRowHeight('horizon') });
       });
     });
 
@@ -290,9 +303,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 1100, y: 2109 });
-        main.toEqual({ x: 1187, y: 2385 });
-        horizon.toEqual({ x: 1366, y: 3121 });
+        // y = scrollViewportTo result: (row + 1) * rowHeight - (viewportH - colHeaderHeight - 18), viewportH=300
+        // x = Ctrl+Backspace centering on col 25 with rowHeaders present (font-metric-dependent width).
+        // TODO: verify formula for x
+        classic.toEqual({ x: 1100, y: (90 + 1) * calcRowHeight('classic') - (300 - calcColHeaderHeight('classic') - 18) });
+        main.toEqual({ x: 1187, y: (90 + 1) * calcRowHeight('main') - (300 - calcColHeaderHeight('main') - 18) });
+        horizon.toEqual({ x: 1366, y: (90 + 1) * calcRowHeight('horizon') - (300 - calcColHeaderHeight('horizon') - 18) });
       });
     });
 
@@ -354,9 +370,13 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 1800, y: 1196 });
-        main.toEqual({ x: 1942, y: 1334 });
-        horizon.toEqual({ x: 2265, y: 1739 });
+        // y = (row - (ceil(floor((viewportH - colHeaderH) / rowHeight) / 2) - 1)) * rowHeight
+        // viewportH=300; effective height reduced by colHeaders.
+        // x = scrollViewportTo result for col 40 with rowHeaders present (font-metric-dependent).
+        // TODO: verify formula for x
+        classic.toEqual({ x: 1800, y: (50 - (Math.ceil(Math.floor((300 - calcColHeaderHeight('classic')) / calcRowHeight('classic')) / 2) - 1)) * calcRowHeight('classic') });
+        main.toEqual({ x: 1942, y: (50 - (Math.ceil(Math.floor((300 - calcColHeaderHeight('main')) / calcRowHeight('main')) / 2) - 1)) * calcRowHeight('main') });
+        horizon.toEqual({ x: 2265, y: (50 - (Math.ceil(Math.floor((300 - calcColHeaderHeight('horizon')) / calcRowHeight('horizon')) / 2) - 1)) * calcRowHeight('horizon') });
       });
     });
 
@@ -377,9 +397,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 0, y: 1170 });
-        main.toEqual({ x: 0, y: 1334 });
-        horizon.toEqual({ x: 0, y: 1739 });
+        // When all columns are trimmed, no col header is rendered so viewportH=300 (full height).
+        // y = (row - (ceil(floor(viewportH / rowHeight) / 2) - 1)) * rowHeight, viewportH=300
+        classic.toEqual({ x: 0, y: (50 - (Math.ceil(Math.floor(300 / calcRowHeight('classic')) / 2) - 1)) * calcRowHeight('classic') });
+        main.toEqual({ x: 0, y: (50 - (Math.ceil(Math.floor(300 / calcRowHeight('main')) / 2) - 1)) * calcRowHeight('main') });
+        horizon.toEqual({ x: 0, y: (50 - (Math.ceil(Math.floor(300 / calcRowHeight('horizon')) / 2) - 1)) * calcRowHeight('horizon') });
       });
     });
 
@@ -400,9 +422,11 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 0, y: 1170 });
-        main.toEqual({ x: 0, y: 1334 });
-        horizon.toEqual({ x: 0, y: 1739 });
+        // When all columns are hidden, no col header is rendered so viewportH=300 (full height).
+        // y = (row - (ceil(floor(viewportH / rowHeight) / 2) - 1)) * rowHeight, viewportH=300
+        classic.toEqual({ x: 0, y: (50 - (Math.ceil(Math.floor(300 / calcRowHeight('classic')) / 2) - 1)) * calcRowHeight('classic') });
+        main.toEqual({ x: 0, y: (50 - (Math.ceil(Math.floor(300 / calcRowHeight('main')) / 2) - 1)) * calcRowHeight('main') });
+        horizon.toEqual({ x: 0, y: (50 - (Math.ceil(Math.floor(300 / calcRowHeight('horizon')) / 2) - 1)) * calcRowHeight('horizon') });
       });
     });
 
@@ -425,17 +449,21 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 996, y: 1069 });
-        main.toEqual({ x: 1035, y: 1225 });
-        horizon.toEqual({ x: 1238, y: 1641 });
+        // y = scrollViewportTo result: (row + 1) * rowHeight - (viewportH - colHeaderHeight - 18), viewportH=300
+        // x = scrollViewportTo result for col 25 with rowHeaders present (font-metric-dependent).
+        // TODO: verify formula for x
+        classic.toEqual({ x: 996, y: (50 + 1) * calcRowHeight('classic') - (300 - calcColHeaderHeight('classic') - 18) });
+        main.toEqual({ x: 1035, y: (50 + 1) * calcRowHeight('main') - (300 - calcColHeaderHeight('main') - 18) });
+        horizon.toEqual({ x: 1238, y: (50 + 1) * calcRowHeight('horizon') - (300 - calcColHeaderHeight('horizon') - 18) });
       });
 
       await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 996, y: 1069 });
-        main.toEqual({ x: 1035, y: 1225 });
-        horizon.toEqual({ x: 1238, y: 1641 });
+        // Corner header focused: Ctrl+Backspace does not scroll, position unchanged.
+        classic.toEqual({ x: 996, y: (50 + 1) * calcRowHeight('classic') - (300 - calcColHeaderHeight('classic') - 18) });
+        main.toEqual({ x: 1035, y: (50 + 1) * calcRowHeight('main') - (300 - calcColHeaderHeight('main') - 18) });
+        horizon.toEqual({ x: 1238, y: (50 + 1) * calcRowHeight('horizon') - (300 - calcColHeaderHeight('horizon') - 18) });
       });
     });
   });

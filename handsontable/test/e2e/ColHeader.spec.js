@@ -34,9 +34,10 @@ describe('ColHeader', () => {
 
     expect(spec().$container.find('.handsontable.ht_clone_top').height())
       .forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(26); // THs are 25px height and have 1px border on top
-        main.toEqual(29);
-        horizon.toEqual(37);
+        // col header height: calcColHeaderHeight(t) + 1px top border
+        classic.toEqual(calcColHeaderHeight('classic') + 1);
+        main.toEqual(calcColHeaderHeight('main') + 1);
+        horizon.toEqual(calcColHeaderHeight('horizon') + 1);
       });
   });
 
@@ -393,11 +394,8 @@ describe('ColHeader', () => {
 
     await render();
 
-    expect(spec().$container.find('th').eq(0).height()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(39);
-      main.toEqual(39);
-      horizon.toEqual(39);
-    });
+    // user-defined columnHeaderHeight:40 minus 1px border — theme-invariant
+    expect(spec().$container.find('th').eq(0).height()).toBe(40 - 1);
   });
 
   it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', async() => {
@@ -427,12 +425,9 @@ describe('ColHeader', () => {
 
     await render();
 
+    // user-defined columnHeaderHeight:[45,65] first level minus 2px borders — theme-invariant
     expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(1) th:nth-child(1)').height())
-      .forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(43);
-        main.toEqual(43);
-        horizon.toEqual(43);
-      });
+      .toBe(45 - 2);
 
     expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(2) th:nth-child(1)').height()).toEqual(65);
   });

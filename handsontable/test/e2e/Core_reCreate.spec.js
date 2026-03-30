@@ -33,6 +33,9 @@ describe('Core_reCreate', () => {
     // div.relative has 35px in Chrome and 35.95px (rounded to 36px) in Firefox and IE
     // th adds 1px of top border
     expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+      // TODO: verify formula — multiline col header: 2 text lines + vertical padding + 1px border.
+      // The extra line pushes height above calcColHeaderHeight(t); exact values depend on
+      // browser line-height rounding and inline-block baseline alignment per theme.
       classic.toBeAroundValue(46);
       main.toEqual(48);
       horizon.toEqual(56);

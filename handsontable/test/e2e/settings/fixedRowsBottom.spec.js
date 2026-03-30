@@ -207,67 +207,79 @@ describe('settings', () => {
       await alter('insert_row_above', 0);
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53); // 26px corner + 27px added row
-        main.toBe(59);
-        horizon.toBe(75);
+        // calcColHeaderHeight(t) + 1 border + calcRowHeight(t) + 1 border
+        classic.toBe(calcColHeaderHeight('classic') + 1 + calcRowHeight('classic') + 1);
+        main.toBe(calcColHeaderHeight('main') + 1 + calcRowHeight('main') + 1);
+        horizon.toBe(calcColHeaderHeight('horizon') + 1 + calcRowHeight('horizon') + 1);
       });
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26); // 26px as rowHeaders is enabled
-        main.toBe(29);
-        horizon.toBe(37);
+        // calcRowHeight(t) — row headers enabled, top clone shows one row
+        classic.toBe(calcRowHeight('classic'));
+        main.toBe(calcRowHeight('main'));
+        horizon.toBe(calcRowHeight('horizon'));
       });
       expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26); // 26px as rowHeaders is enabled
-        main.toBe(29);
-        horizon.toBe(37);
+        // calcRowHeight(t) — row headers enabled, top-inline-start clone shows one row
+        classic.toBe(calcRowHeight('classic'));
+        main.toBe(calcRowHeight('main'));
+        horizon.toBe(calcRowHeight('horizon'));
       });
       expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
+        // calcColHeaderHeight(t) + 1 border + calcRowHeight(t) + 1 border
+        classic.toBe(calcColHeaderHeight('classic') + 1 + calcRowHeight('classic') + 1);
+        main.toBe(calcColHeaderHeight('main') + 1 + calcRowHeight('main') + 1);
+        horizon.toBe(calcColHeaderHeight('horizon') + 1 + calcRowHeight('horizon') + 1);
       });
       expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(27);
-        main.toBe(30);
-        horizon.toBe(38);
+        // calcRowHeight(t) + 1 bottom border
+        classic.toBe(calcRowHeight('classic') + 1);
+        main.toBe(calcRowHeight('main') + 1);
+        horizon.toBe(calcRowHeight('horizon') + 1);
       });
       expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(27);
-        main.toBe(30);
-        horizon.toBe(38);
+        // calcRowHeight(t) + 1 bottom border
+        classic.toBe(calcRowHeight('classic') + 1);
+        main.toBe(calcRowHeight('main') + 1);
+        horizon.toBe(calcRowHeight('horizon') + 1);
       });
 
       await alter('insert_row_above', 0);
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
+        // calcColHeaderHeight(t) + 1 border + calcRowHeight(t) * 2 rows + 1 border
+        classic.toBe(calcColHeaderHeight('classic') + 1 + calcRowHeight('classic') * 2 + 1);
+        main.toBe(calcColHeaderHeight('main') + 1 + calcRowHeight('main') * 2 + 1);
+        horizon.toBe(calcColHeaderHeight('horizon') + 1 + calcRowHeight('horizon') * 2 + 1);
       });
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(29);
-        horizon.toBe(37);
+        // calcRowHeight(t) — top clone shows one row
+        classic.toBe(calcRowHeight('classic'));
+        main.toBe(calcRowHeight('main'));
+        horizon.toBe(calcRowHeight('horizon'));
       });
       expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(29);
-        horizon.toBe(37);
+        // calcRowHeight(t) — top-inline-start clone shows one row
+        classic.toBe(calcRowHeight('classic'));
+        main.toBe(calcRowHeight('main'));
+        horizon.toBe(calcRowHeight('horizon'));
       });
       expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
+        // calcColHeaderHeight(t) + 1 border + calcRowHeight(t) * 2 rows + 1 border
+        classic.toBe(calcColHeaderHeight('classic') + 1 + calcRowHeight('classic') * 2 + 1);
+        main.toBe(calcColHeaderHeight('main') + 1 + calcRowHeight('main') * 2 + 1);
+        horizon.toBe(calcColHeaderHeight('horizon') + 1 + calcRowHeight('horizon') * 2 + 1);
       });
       expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
+        // calcRowHeight(t) * 2 rows + 1 bottom border
+        classic.toBe(calcRowHeight('classic') * 2 + 1);
+        main.toBe(calcRowHeight('main') * 2 + 1);
+        horizon.toBe(calcRowHeight('horizon') * 2 + 1);
       });
       expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
+        // calcRowHeight(t) * 2 rows + 1 bottom border
+        classic.toBe(calcRowHeight('classic') * 2 + 1);
+        main.toBe(calcRowHeight('main') * 2 + 1);
+        horizon.toBe(calcRowHeight('horizon') * 2 + 1);
       });
     });
 
@@ -280,34 +292,38 @@ describe('settings', () => {
       });
 
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(29);
-        horizon.toBe(37);
+        // calcColHeaderHeight(t) + 1 border
+        classic.toBe(calcColHeaderHeight('classic') + 1);
+        main.toBe(calcColHeaderHeight('main') + 1);
+        horizon.toBe(calcColHeaderHeight('horizon') + 1);
       });
 
       await updateSettings({ fixedRowsBottom: 0 });
 
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(29);
-        horizon.toBe(37);
+        // calcColHeaderHeight(t) + 1 border
+        classic.toBe(calcColHeaderHeight('classic') + 1);
+        main.toBe(calcColHeaderHeight('main') + 1);
+        horizon.toBe(calcColHeaderHeight('horizon') + 1);
       });
 
       await updateSettings({ fixedRowsBottom: 1 });
 
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(29);
-        horizon.toBe(37);
+        // calcColHeaderHeight(t) + 1 border
+        classic.toBe(calcColHeaderHeight('classic') + 1);
+        main.toBe(calcColHeaderHeight('main') + 1);
+        horizon.toBe(calcColHeaderHeight('horizon') + 1);
       });
 
       await updateSettings({ data: [] });
 
       // The only header (when there is no cells - even when the `fixedRowsBottom` isn't defined) has such height.
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(27);
-        main.toBe(30);
-        horizon.toBe(38);
+        // calcColHeaderHeight(t) + 2 borders (top + bottom)
+        classic.toBe(calcColHeaderHeight('classic') + 2);
+        main.toBe(calcColHeaderHeight('main') + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + 2);
       });
     });
 

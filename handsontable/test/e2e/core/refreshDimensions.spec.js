@@ -25,36 +25,38 @@ describe('Core.await refreshDimensions()', () => {
     await refreshDimensions();
 
     expect(beforeRefreshDimensions).forThemes(({ classic, main, horizon }) => {
+      // 5 data rows × calcRowHeight(t) + 1px container border
       classic.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 131 },
+        { width: 1265, height: 5 * calcRowHeight('classic') + 1 },
         true,
       );
       main.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 146 },
+        { width: 1265, height: 5 * calcRowHeight('main') + 1 },
         true,
       );
       horizon.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 186 },
+        { width: 1265, height: 5 * calcRowHeight('horizon') + 1 },
         true,
       );
     });
     expect(afterRefreshDimensions).forThemes(({ classic, main, horizon }) => {
+      // 5 data rows × calcRowHeight(t) + 1px container border
       classic.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 131 },
+        { width: 1265, height: 5 * calcRowHeight('classic') + 1 },
         true,
       );
       main.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 146 },
+        { width: 1265, height: 5 * calcRowHeight('main') + 1 },
         true,
       );
       horizon.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 186 },
+        { width: 1265, height: 5 * calcRowHeight('horizon') + 1 },
         true,
       );
     });

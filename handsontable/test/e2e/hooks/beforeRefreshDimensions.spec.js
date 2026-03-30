@@ -208,19 +208,20 @@ describe('Hook', () => {
         await sleep(50);
 
         expect(beforeRefreshDimensions).forThemes(({ classic, main, horizon }) => {
+          // 5 data rows × calcRowHeight(t) + 1px container border
           classic.toHaveBeenCalledWith(
             { width: 500, height: 0 },
-            { width: 35, height: 131 },
+            { width: 35, height: 5 * calcRowHeight('classic') + 1 },
             true,
           );
           main.toHaveBeenCalledWith(
             { width: 500, height: 0 },
-            { width: 35, height: 146 },
+            { width: 35, height: 5 * calcRowHeight('main') + 1 },
             true,
           );
           horizon.toHaveBeenCalledWith(
             { width: 500, height: 0 },
-            { width: 35, height: 186 },
+            { width: 35, height: 5 * calcRowHeight('horizon') + 1 },
             true,
           );
         });

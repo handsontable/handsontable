@@ -209,48 +209,50 @@ describe('settings', () => {
       await alter('insert_row_above', 0);
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53); // 26px corner + 27px added row
-        main.toBe(59);
-        horizon.toBe(75);
+        // colHeaderHeight + rowHeight + 2px (borders)
+        classic.toBe(calcColHeaderHeight('classic') + calcRowHeight('classic') + 2);
+        main.toBe(calcColHeaderHeight('main') + calcRowHeight('main') + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + calcRowHeight('horizon') + 2);
       });
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
+        classic.toBe(calcColHeaderHeight('classic') + calcRowHeight('classic') + 2);
+        main.toBe(calcColHeaderHeight('main') + calcRowHeight('main') + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + calcRowHeight('horizon') + 2);
       });
       expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
+        classic.toBe(calcColHeaderHeight('classic') + calcRowHeight('classic') + 2);
+        main.toBe(calcColHeaderHeight('main') + calcRowHeight('main') + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + calcRowHeight('horizon') + 2);
       });
       expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
+        classic.toBe(calcColHeaderHeight('classic') + calcRowHeight('classic') + 2);
+        main.toBe(calcColHeaderHeight('main') + calcRowHeight('main') + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + calcRowHeight('horizon') + 2);
       });
       expect(getBottomClone().height()).toBe(0);
 
       await alter('insert_row_above', 0);
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
+        // colHeaderHeight + (2 * rowHeight) + 2px (borders)
+        classic.toBe(calcColHeaderHeight('classic') + calcRowHeight('classic') * 2 + 2);
+        main.toBe(calcColHeaderHeight('main') + calcRowHeight('main') * 2 + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + calcRowHeight('horizon') * 2 + 2);
       });
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
+        classic.toBe(calcColHeaderHeight('classic') + calcRowHeight('classic') * 2 + 2);
+        main.toBe(calcColHeaderHeight('main') + calcRowHeight('main') * 2 + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + calcRowHeight('horizon') * 2 + 2);
       });
       expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
+        classic.toBe(calcColHeaderHeight('classic') + calcRowHeight('classic') * 2 + 2);
+        main.toBe(calcColHeaderHeight('main') + calcRowHeight('main') * 2 + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + calcRowHeight('horizon') * 2 + 2);
       });
       expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
+        classic.toBe(calcColHeaderHeight('classic') + calcRowHeight('classic') * 2 + 2);
+        main.toBe(calcColHeaderHeight('main') + calcRowHeight('main') * 2 + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + calcRowHeight('horizon') * 2 + 2);
       });
       expect(getBottomClone().height()).toBe(0);
     });
