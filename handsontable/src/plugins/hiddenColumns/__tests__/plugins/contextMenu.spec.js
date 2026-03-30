@@ -794,6 +794,8 @@ describe('HiddenColumns', () => {
               columns: [1]
             },
             fixedColumnsStart: 3,
+            viewportColumnRenderingOffset: 10,
+            viewportRowRenderingOffset: 10,
           });
 
           await selectColumns(0, 2);

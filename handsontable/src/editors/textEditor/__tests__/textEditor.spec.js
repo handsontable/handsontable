@@ -1860,7 +1860,9 @@ describe('TextEditor', () => {
     handsontable({
       data: createSpreadsheetData(16, 8),
       fixedColumnsStart: 2,
-      fixedRowsTop: 2
+      fixedRowsTop: 2,
+      viewportColumnRenderingOffset: 10,
+      viewportRowRenderingOffset: 10,
     });
 
     // corner

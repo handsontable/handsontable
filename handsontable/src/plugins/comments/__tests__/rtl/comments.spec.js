@@ -138,6 +138,8 @@ describe('Comments (RTL mode)', () => {
           comments: true,
           width: 200,
           height: 200,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         await scrollViewportTo({
@@ -157,11 +159,7 @@ describe('Comments (RTL mode)', () => {
         const editorWidth = $editor.outerWidth();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
-          main.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
-          horizon.toBeCloseTo(cellOffset.left - editorWidth - 1, 0); // border compensation?
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth - 1, 0); // border compensation?
       });
 
       it('should display the comment editor on the right of the cell when there is not enough space of the left', async() => {

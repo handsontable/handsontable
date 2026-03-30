@@ -1810,7 +1810,9 @@ describe('manualRowResize', () => {
           rowHeaders: true,
           manualRowResize: true,
           height: 100,
-          width: 200
+          width: 200,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');

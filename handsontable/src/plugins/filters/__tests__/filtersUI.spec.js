@@ -501,6 +501,7 @@ describe('Filters UI', () => {
         height: 300
       });
 
+      await selectCell(0, 6);
       await dropdownMenu(6);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Contains');

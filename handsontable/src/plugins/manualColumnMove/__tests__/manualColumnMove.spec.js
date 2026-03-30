@@ -1343,7 +1343,9 @@ describe('manualColumnMove', () => {
           manualColumnMove: true,
           width: 600,
           height: 600,
-          rowHeights: 47
+          rowHeights: 47,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         await selectCell(19, 0);

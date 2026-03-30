@@ -1143,6 +1143,11 @@ describe('NestedHeaders', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
+            <th class="" colspan="4">K1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">S1</th>
             <th class="" colspan="4">T1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -1156,16 +1161,13 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="">AK1</th>
             <th class="" colspan="8">AL1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT1</th>
           </tr>
           <tr>
+            <th class="" colspan="2">K2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">O2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">S2</th>
             <th class="" colspan="2">T2</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">X2</th>
@@ -1179,16 +1181,13 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="">AK2</th>
             <th class="" colspan="4">AL2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="4">AP2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT2</th>
           </tr>
           <tr>
+            <th class="">K3</th>
+            <th class="">M3</th>
+            <th class="">O3</th>
+            <th class="">Q3</th>
+            <th class="">S3</th>
             <th class="">T3</th>
             <th class="">V3</th>
             <th class="">X3</th>
@@ -1202,16 +1201,13 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="">AK3</th>
             <th class="" colspan="2">AL3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AN3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AP3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AR3</th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT3</th>
           </tr>
           <tr>
+            <th class="">K4</th>
+            <th class="">M4</th>
+            <th class="">O4</th>
+            <th class="">Q4</th>
+            <th class="">S4</th>
             <th class="">U4</th>
             <th class="">W4</th>
             <th class="">Y4</th>
@@ -1225,18 +1221,15 @@ describe('NestedHeaders', () => {
             <th class="">AJ4</th>
             <th class="">AK4</th>
             <th class="">AL4</th>
-            <th class="">AM4</th>
-            <th class="">AN4</th>
-            <th class="">AO4</th>
-            <th class="">AP4</th>
-            <th class="">AQ4</th>
-            <th class="">AR4</th>
-            <th class="">AS4</th>
-            <th class="">AT4</th>
           </tr>
         </thead>
         <tbody>
           <tr class="ht__row_odd">
+            <td class="">K1</td>
+            <td class="">M1</td>
+            <td class="">O1</td>
+            <td class="">Q1</td>
+            <td class="">S1</td>
             <td class="">U1</td>
             <td class="">W1</td>
             <td class="">Y1</td>
@@ -1250,14 +1243,6 @@ describe('NestedHeaders', () => {
             <td class="">AJ1</td>
             <td class="">AK1</td>
             <td class="">AL1</td>
-            <td class="">AM1</td>
-            <td class="">AN1</td>
-            <td class="">AO1</td>
-            <td class="">AP1</td>
-            <td class="">AQ1</td>
-            <td class="">AR1</td>
-            <td class="">AS1</td>
-            <td class="">AT1</td>
           </tr>
         </tbody>
         `);
@@ -1402,6 +1387,11 @@ describe('NestedHeaders', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
+            <th class="" colspan="4">K1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">S1</th>
             <th class="" colspan="4">T1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -1416,15 +1406,13 @@ describe('NestedHeaders', () => {
             <th class="">AK1</th>
             <th class="" colspan="8">AL1</th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT1</th>
           </tr>
           <tr>
+            <th class="" colspan="2">K2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">O2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">S2</th>
             <th class="" colspan="2">T2</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">X2</th>
@@ -1439,15 +1427,13 @@ describe('NestedHeaders', () => {
             <th class="">AK2</th>
             <th class="" colspan="4">AL2</th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="4">AP2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT2</th>
           </tr>
           <tr>
+            <th class="">K3</th>
+            <th class="">M3</th>
+            <th class="">O3</th>
+            <th class="">Q3</th>
+            <th class="">S3</th>
             <th class="">T3</th>
             <th class="">V3</th>
             <th class="">X3</th>
@@ -1462,15 +1448,13 @@ describe('NestedHeaders', () => {
             <th class="">AK3</th>
             <th class="" colspan="2">AL3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AN3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AP3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AR3</th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT3</th>
           </tr>
           <tr>
+            <th class="">K4</th>
+            <th class="">M4</th>
+            <th class="">O4</th>
+            <th class="">Q4</th>
+            <th class="">S4</th>
             <th class="">U4</th>
             <th class="">W4</th>
             <th class="">Y4</th>
@@ -1485,17 +1469,15 @@ describe('NestedHeaders', () => {
             <th class="">AK4</th>
             <th class="">AL4</th>
             <th class="">AM4</th>
-            <th class="">AN4</th>
-            <th class="">AO4</th>
-            <th class="">AP4</th>
-            <th class="">AQ4</th>
-            <th class="">AR4</th>
-            <th class="">AS4</th>
-            <th class="">AT4</th>
           </tr>
         </thead>
         <tbody>
           <tr class="ht__row_odd">
+            <td class="">K1</td>
+            <td class="">M1</td>
+            <td class="">O1</td>
+            <td class="">Q1</td>
+            <td class="">S1</td>
             <td class="">U1</td>
             <td class="">W1</td>
             <td class="">Y1</td>
@@ -1510,13 +1492,6 @@ describe('NestedHeaders', () => {
             <td class="">AK1</td>
             <td class="">AL1</td>
             <td class="">AM1</td>
-            <td class="">AN1</td>
-            <td class="">AO1</td>
-            <td class="">AP1</td>
-            <td class="">AQ1</td>
-            <td class="">AR1</td>
-            <td class="">AS1</td>
-            <td class="">AT1</td>
           </tr>
         </tbody>
         `);

@@ -17,7 +17,7 @@ describe('Core.getLastRenderedVisibleColumn', () => {
       height: 200,
     });
 
-    expect(getLastRenderedVisibleColumn()).toBe(5);
+    expect(getLastRenderedVisibleColumn()).toBe(4);
   });
 
   it('should return last rendered and not hidden column index', async() => {
@@ -59,7 +59,7 @@ describe('Core.getLastRenderedVisibleColumn', () => {
     await scrollViewportHorizontally(780); // row 19 (T1) is partially visible
     await render();
 
-    expect(getLastRenderedVisibleColumn()).toBe(21);
+    expect(getLastRenderedVisibleColumn()).toBe(20);
   });
 
   it.forTheme('horizon')('should return last rendered column index (scrolled viewport)', async() => {

@@ -111,7 +111,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     await scrollViewportVertically(447); // row 23 (A24) is partially visible
     await render();
 
-    expect(getLastRenderedVisibleRow()).toBe(26);
+    expect(getLastRenderedVisibleRow()).toBe(24);
   });
 
   it.forTheme('horizon')('should return last rendered row index (scrolled viewport)', async() => {

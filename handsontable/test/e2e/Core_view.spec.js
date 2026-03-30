@@ -196,10 +196,10 @@ describe('Core_view', () => {
     expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
     expect(topClone.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
 
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
+    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual('A4');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A5');
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A6');
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A7');
   });
 
   it('should scroll viewport, respecting fixed columns', async() => {
@@ -316,7 +316,7 @@ describe('Core_view', () => {
     await selectCell(1, 40);
     await selectCell(1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('AH1');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('AL1');
 
     await keyDownUp('arrowright');
 
@@ -338,7 +338,7 @@ describe('Core_view', () => {
     await selectCell(1, 40);
     await selectCell(-1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('AH1');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('AL1');
 
     await keyDownUp('arrowright');
 
@@ -442,7 +442,7 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, 1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
 
     await keyDownUp('arrowdown');
 
@@ -465,7 +465,7 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, 1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
 
     await keyDownUp('arrowdown');
 
@@ -534,7 +534,7 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
 
     await keyDownUp('arrowdown');
 
@@ -953,19 +953,17 @@ describe('Core_view', () => {
         fixedRowsTop: 2,
         fixedColumnsStart: 2,
         width: 200,
-        height: 200
+        height: 200,
       });
 
-      const rowHeight = getCell(1, 3).clientHeight;
+      const rowHeight = getCell(1, 3).clientHeight + 1;
 
-      expect(spec().$container.find('.ht_clone_top_inline_start_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
-        .toEqual(rowHeight);
+      expect(getCell(1, 1, true).clientHeight).toEqual(rowHeight);
 
       await scrollViewportVertically(200);
       await render();
 
-      expect(spec().$container.find('.ht_clone_top_inline_start_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
-        .toEqual(rowHeight);
+      expect(getCell(1, 1, true).clientHeight).toEqual(rowHeight);
     });
   });
 
