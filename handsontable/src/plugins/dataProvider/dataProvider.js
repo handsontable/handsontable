@@ -77,12 +77,20 @@ Hooks.getSingleton().add('hasExternalDataSource', function hasExternalDataSource
  */
 
 /**
+ * Single filter condition entry (same shape as Filters `exportConditions` items).
+ *
+ * @typedef {object} DataProviderFilterCondition
+ * @property {string} [name] Condition name (omitted for some stack entries).
+ * @property {Array<*>} args Condition arguments.
+ */
+
+/**
  * Server filter column (`prop` replaces physical column index). Same shape as in `types/plugins/dataProvider/dataProvider.d.ts`.
  *
  * @typedef {object} DataProviderFilterColumn
  * @property {string} prop Column data key.
  * @property {'conjunction'|'disjunction'|'disjunctionWithExtraCondition'} operation Filters stack operation (same values as [[Filters#exportConditions]]).
- * @property {Array<{ name?: string, args: Array<*> }>} conditions Filter conditions (same shape as Filters `exportConditions`).
+ * @property {Array<DataProviderFilterCondition>} conditions Filter conditions (same shape as Filters `exportConditions`).
  */
 
 /**
@@ -362,7 +370,7 @@ export class DataProvider extends BasePlugin {
    * in one request. Otherwise refetches the current page, then loads the previous page when that response is empty
    * and the current page is still greater than 1.
    *
-   * @param {*|*[]} rowIds Row id or ids.
+   * @param {Array<*>|*} rowIds Row id or ids.
    * @returns {Promise<void>}
    * @throws {Error} When any id is `null` or `undefined`.
    */
