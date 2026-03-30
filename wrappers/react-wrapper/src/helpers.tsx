@@ -216,6 +216,16 @@ function isObjectLike(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (!isObjectLike(value)) {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  return prototype === Object.prototype || prototype === null;
+}
+
 function isArray(value: unknown): value is unknown[] {
   return Array.isArray(value);
 }
@@ -266,6 +276,10 @@ export function areEquivalentSettingsValue(previousValue: unknown, currentValue:
   }
 
   if (!isObjectLike(previousValue) || !isObjectLike(currentValue)) {
+    return false;
+  }
+
+  if (!isPlainObject(previousValue) || !isPlainObject(currentValue)) {
     return false;
   }
 

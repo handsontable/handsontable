@@ -138,5 +138,51 @@ describe('Settings mapper unit tests', () => {
 
       expect(result.columns).toEqual(nextProps.columns);
     });
+
+    it('should keep `dataSchema` in updated settings when a Date value changes', () => {
+      const prevProps: HotTableProps = {
+        dataSchema: {
+          createdAt: new Date(0),
+        },
+      };
+      const nextProps: HotTableProps = {
+        dataSchema: {
+          createdAt: new Date(99999),
+        },
+      };
+
+      const result = SettingsMapper.getSettings(nextProps, {
+        prevProps,
+        isInit: false,
+      });
+
+      expect(result.dataSchema).toEqual(nextProps.dataSchema);
+    });
+
+    it('should keep `columns` in updated settings when a Set value changes', () => {
+      const prevProps: HotTableProps = {
+        columns: [
+          {
+            data: 'type',
+            source: new Set(['A']),
+          },
+        ],
+      };
+      const nextProps: HotTableProps = {
+        columns: [
+          {
+            data: 'type',
+            source: new Set(['B']),
+          },
+        ],
+      };
+
+      const result = SettingsMapper.getSettings(nextProps, {
+        prevProps,
+        isInit: false,
+      });
+
+      expect(result.columns).toEqual(nextProps.columns);
+    });
   });
 });
