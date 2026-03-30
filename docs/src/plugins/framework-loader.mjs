@@ -629,7 +629,17 @@ function _wrapStepsForLevel(html, level) {
   let m;
 
   while ((m = headingRe.exec(html)) !== null) {
-    const text = m[0].replace(/<[^>]+>/g, '').trim();
+    // Strip HTML tags in a loop to handle residual fragments (e.g. nested or
+    // partial tags like "<scr" + "ipt>") that a single pass may leave behind.
+    let text = m[0];
+    let prev;
+
+    do {
+      prev = text;
+      text = text.replace(/<[^>]+>/g, '');
+    } while (text !== prev);
+
+    text = text.trim();
 
     headings.push({
       index: m.index,
