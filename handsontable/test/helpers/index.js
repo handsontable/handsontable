@@ -4,6 +4,7 @@ import './../bootstrap';
 import * as mouseEvents from './mouseEvents';
 import * as keyboardEvents from './keyboardEvents';
 import * as common from './common';
+import * as designTokens from './designTokens';
 
 const exportToWindow = (helpersHolder) => {
   Object.keys(helpersHolder).forEach((key) => {
@@ -23,6 +24,7 @@ const exportToWindow = (helpersHolder) => {
 exportToWindow(mouseEvents);
 exportToWindow(keyboardEvents);
 exportToWindow(common);
+exportToWindow(designTokens);
 
 // Include all js files within the "helper/" folder for all plugins. That files can export some additional
 // functions, helpers which provides a different dataset for different test cases.
