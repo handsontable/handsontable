@@ -599,6 +599,8 @@ export default () => {
      *
      *   if (visualRowIndex === 0 && visualColIndex === 0) {
      *     cellProperties.readOnly = true;
+     *   } else {
+     *     cellProperties.readOnly = false;
      *   }
      *
      *   return cellProperties;
@@ -912,17 +914,12 @@ export default () => {
      *   }
      * }
      *
-     * // enable the `ColumnSorting` plugin
+     * // enable the `ColumnSorting` plugin with an initial sort order:
+     * // sort column 1 in ascending order at initialization
      * columnSorting: {
-     *   // at initialization, sort column 1 in ascending order
      *   initialConfig: {
      *     column: 1,
      *     sortOrder: 'asc'
-     *   },
-     *   // at initialization, sort column 2 in descending order
-     *   initialConfig: {
-     *     column: 2,
-     *     sortOrder: 'desc'
      *   }
      * }
      * ```
@@ -2456,11 +2453,11 @@ export default () => {
      * @example
      * ```js
      * columns: [{
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // press Enter to close the `multiSelect` editor and Space to select an option
      *   enterCommits: true,
      * }, {
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // press Enter to select an option
      *   enterCommits: false,
      * }],
@@ -2509,6 +2506,44 @@ export default () => {
      * ```
      */
     enterMoves: { col: 0, row: 1 },
+
+    /**
+     * The `exportFile` option configures the [`ExportFile`](@/api/exportFile.md) plugin.
+     *
+     * You can set the `exportFile` option to one of the following:
+     *
+     * | Setting     | Description                                                                                |
+     * | ----------- | ------------------------------------------------------------------------------------------ |
+     * | `undefined` | Use the [`ExportFile`](@/api/exportFile.md) plugin with the default configuration          |
+     * | An object   | Enable the [`ExportFile`](@/api/exportFile.md) plugin and modify the plugin options        |
+     *
+     * If you set the `exportFile` option to an object, you can configure the following options:
+     *
+     * | Option    | Type     | Default | Description                                                                         |
+     * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
+     * | `engines` | `Object` | –       | A map of format keys to their engine constructors. Pass `{ xlsx: ExcelJS }` to enable XLSX export via [ExcelJS](https://github.com/exceljs/exceljs). |
+     *
+     * Read more:
+     * - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
+     * - [Plugins: `ExportFile`](@/api/exportFile.md)
+     *
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @since 17.1.0
+     * @category ExportFile
+     *
+     * @example
+     * ```js
+     * import ExcelJS from 'exceljs';
+     *
+     * // enable XLSX export
+     * exportFile: {
+     *   engines: { xlsx: ExcelJS },
+     * },
+     * ```
+     */
+    exportFile: undefined,
 
     /**
      * The `fillHandle` option configures the [Autofill](@/api/autofill.md) plugin.
@@ -2638,7 +2673,7 @@ export default () => {
      *     filteringCaseSensitive: true
      *   },
      *   {
-     *     type: 'multiSelect',
+     *     type: 'multiselect',
      *     source: [ ... ],
      *     // match case while searching multiSelect options
      *     filteringCaseSensitive: true
@@ -3665,7 +3700,7 @@ export default () => {
      * ```js
      * columns: [{
      *   // set the `type` of each cell in this column to `multiSelect`
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // set the maximum number of selections to 3
      *   maxSelections: 3,
      * }],
@@ -3872,7 +3907,7 @@ export default () => {
 
     /**
      * @description
-     * The `multiColumnSorting` option configures the [`MultiColumnSorting`](@/api/columnSorting.md) plugin.
+     * The `multiColumnSorting` option configures the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin.
      *
      * You can set the `multiColumnSorting` option to one of the following:
      *
@@ -3932,18 +3967,13 @@ export default () => {
      *   }
      * }
      *
-     * // enable the `MultiColumnSorting` plugin
+     * // enable the `MultiColumnSorting` plugin with a multi-column initial sort order:
+     * // sort column 1 ascending first, then column 2 descending
      * multiColumnSorting: {
-     *   // at initialization, sort column 1 in ascending order
-     *   initialConfig: {
-     *     column: 1,
-     *     sortOrder: 'asc'
-     *   },
-     *   // at initialization, sort column 2 in descending order
-     *   initialConfig: {
-     *     column: 2,
-     *     sortOrder: 'desc'
-     *   }
+     *   initialConfig: [
+     *     { column: 1, sortOrder: 'asc' },
+     *     { column: 2, sortOrder: 'desc' }
+     *   ]
      * }
      * ```
      */
@@ -4912,28 +4942,35 @@ export default () => {
 
     /**
      * @description
-     * The `search` option configures the [`Search`](@/api/search.md) plugin.
+     * The `search` option enables and configures the [`Search`](@/api/search.md) plugin.
      *
-     * You can set the `search` option to one of the following:
+     * | Setting           | Description                                                                    |
+     * | ----------------- | ------------------------------------------------------------------------------ |
+     * | `false` (default) | Disable the [`Search`](@/api/search.md) plugin                                 |
+     * | `true`            | Enable the [`Search`](@/api/search.md) plugin with the default configuration   |
+     * | An object         | Enable the [`Search`](@/api/search.md) plugin and apply a custom configuration |
      *
-     * | Setting           | Description                                                                          |
-     * | ----------------- | ------------------------------------------------------------------------------------ |
-     * | `false` (default) | Disable the [`Search`](@/api/search.md) plugin                                       |
-     * | `true`            | Enable the [`Search`](@/api/search.md) plugin with the default configuration         |
-     * | An object         | - Enable the [`Search`](@/api/search.md) plugin<br>- Apply your custom configuration |
+     * When set to an object, the following properties are supported:
      *
-     * If you set the `search` option to an object, you can configure the following search options:
+     * | Property            | Type       | Default                          | Description                                                                                                                                                        |
+     * | ------------------- | ---------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `searchResultClass` | `string`   | `'htSearchResult'`               | CSS class name applied to every cell where `isSearchResult === true`.                                                                                              |
+     * | `queryMethod`       | `Function` | Case-insensitive substring match | Tests whether the query string matches a cell value. Signature: `(queryStr: string, value: string\|number\|null, cellProperties: object) => boolean`.              |
+     * | `callback`          | `Function` | Sets `isSearchResult` on cell metadata | Called for every cell after each test. Signature: `(instance: Handsontable, row: number, col: number, data: string\|number\|null, testResult: boolean) => void`. |
      *
-     * | Option              | Possible settings | Description                                                                                          |
-     * | ------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
-     * | `searchResultClass` | A string          | Add a custom CSS class name to search results                                                        |
-     * | `queryMethod`       | A function        | Add a [custom query method](@/guides/navigation/searching-values/searching-values.md#custom-query-method)  |
-     * | `callback`          | A function        | Add a [custom callback function](@/guides/navigation/searching-values/searching-values.md#custom-callback) |
+     * Default `queryMethod` behavior: case-insensitive, locale-aware substring match using `toLocaleLowerCase()` with `cellProperties.locale`.
+     *
+     * Default `callback` behavior: sets `instance.getCellMeta(row, col).isSearchResult = testResult` on every cell.
+     *
+     * **Per-cell overrides:** `queryMethod` and `callback` can also be set on individual cells, columns, or rows
+     * using the cascading configuration model. A cell-level `search.queryMethod` or `search.callback` takes
+     * precedence over the plugin-level setting for that cell. `searchResultClass` does not support per-cell overrides.
      *
      * Read more:
      * - [Searching values](@/guides/navigation/searching-values/searching-values.md)
-     * - [Searching values: Custom query method](@/guides/navigation/searching-values/searching-values.md#custom-query-method)
-     * - [Searching values: Custom callback](@/guides/navigation/searching-values/searching-values.md#custom-callback)
+     * - [Custom query method](@/guides/navigation/searching-values/searching-values.md#custom-query-method)
+     * - [Custom callback](@/guides/navigation/searching-values/searching-values.md#custom-callback)
+     * - [Per-cell overrides](@/guides/navigation/searching-values/searching-values.md#per-cell-querymethod-and-callback)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -4942,22 +4979,42 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable the `Search` plugin with the default configuration
+     * // Enable with the default configuration
      * search: true,
      *
-     * // enable the `Search` plugin with a custom configuration
+     * // Enable with a custom configuration
      * search: {
-     *   // add a `customClass` CSS class name to search results
+     *   // Apply a custom CSS class to matching cells instead of 'htSearchResult'
      *   searchResultClass: 'customClass',
-     *   // add a custom query method
-     *   queryMethod(queryStr, value) {
-     *     ...
+     *   // Replace the built-in substring match with exact matching
+     *   queryMethod(queryStr, value, cellProperties) {
+     *     if (!queryStr || queryStr.length === 0) return false;
+     *     if (value === undefined || value === null) return false;
+     *
+     *     return queryStr.toString() === value.toString();
      *   },
-     *   // add a custom callback function
-     *   callback(instance, row, column, value, result) {
-     *     ...
+     *   // Count results while preserving default highlighting
+     *   callback(instance, row, col, data, testResult) {
+     *     // Preserve the default isSearchResult flag so highlighting still works
+     *     instance.getCellMeta(row, col).isSearchResult = testResult;
+     *
+     *     if (testResult) {
+     *       // Custom logic: e.g., increment a result counter
+     *     }
      *   }
-     * }
+     * },
+     *
+     * // Override queryMethod for a specific column only (per-cell via cascading config)
+     * columns: [
+     *   {},
+     *   {
+     *     search: {
+     *       queryMethod(queryStr, value) {
+     *         return queryStr.toString() === value.toString(); // exact match for column 1
+     *       }
+     *     }
+     *   }
+     * ],
      * ```
      */
     search: false,
@@ -4973,7 +5030,7 @@ export default () => {
      * @example
      * ```js
      * columns: [{
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // hide the `multiSelect` editor's search input
      *   searchInput: false,
      * }],
@@ -5077,7 +5134,7 @@ export default () => {
      * @description
      * The `skipColumnOnPaste` option determines whether you can paste data into a given column.
      *
-     * You can only apply the `skipColumnOnPaste` option to an entire column, using the [`columns`](#columns) option.
+     * You can only apply the `skipColumnOnPaste` option to an entire column, using the [`columns`](#columns) option. This option is not supported for the global table level settings.
      *
      * You can set the `skipColumnOnPaste` option to one of the following:
      *
@@ -5111,7 +5168,7 @@ export default () => {
      *
      * The `skipRowOnPaste` option determines whether you can paste data into a given row.
      *
-     * You can only apply the `skipRowOnPaste` option to an entire row, using the [`cells`](#cells) option.
+     * You can only apply the `skipRowOnPaste` option to an entire row, using the [`cells`](#cells) option. This option is not supported for the global table level settings.
      *
      * You can set the `skipRowOnPaste` option to one of the following:
      *
@@ -5191,7 +5248,7 @@ export default () => {
      * ```js
      * columns: [{
      *   // set the `type` of each cell in this column to `multiSelect`
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // set options available in every `multiSelect` cell of this column
      *   source: ['A', 'B', 'C', 'D'],
      *   // sort the `multiSelect` options in this order: D, C, B, A
@@ -6193,7 +6250,7 @@ export default () => {
      *     visibleRows: 5,
      *   },
      *   {
-     *     type: 'multiSelect',
+     *     type: 'multiselect',
      *     // set the `multiSelect` list's height to 5 options
      *     // for each cell of this column
      *     visibleRows: 5,

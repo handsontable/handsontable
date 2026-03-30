@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed column header misalignment when nestedRow is enabled",
-  "type": "fixed",
-  "issueOrPR": 12081,
-  "breaking": false,
-  "framework": "none"
-}

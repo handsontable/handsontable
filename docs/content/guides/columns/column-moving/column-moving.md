@@ -129,6 +129,23 @@ But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option wit
 
 :::
 
+## Set a pre-defined column order
+
+Instead of setting [`manualColumnMove`](@/api/options.md#manualcolumnmove) to `true`, you can pass an **array of physical column indexes** to define the initial visual order of columns on render.
+
+Each position in the array corresponds to a visual (display) position, and the value at that position is the physical (source data) column index. For example:
+
+```js
+manualColumnMove: [1, 0, 2]
+```
+
+This renders the columns in the following order:
+- Visual position 0 → physical column `1`
+- Visual position 1 → physical column `0`
+- Visual position 2 → physical column `2`
+
+The array must contain all physical column indexes (its length must equal the total number of columns). After the initial render, users can still drag columns to change the order further.
+
 ## Drag and move actions of the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin
 
 There are significant differences between the plugin's [`dragColumns`](@/api/manualColumnMove.md#dragcolumns) and [`moveColumns`](@/api/manualColumnMove.md#movecolumns) API functions. Both of them change the order of columns, but they rely on different kinds of indexes. The differences between them are shown in the diagrams below.

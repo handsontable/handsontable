@@ -446,6 +446,10 @@ export class Filters extends BasePlugin {
    *
    * **Note**: Mind that you cannot mix different types of operations (for instance, if you use `conjunction`, use it consequently for a particular column).
    *
+   * **Note**: If the number of conditions added programmatically via `addCondition()` exceeds the capacity of the
+   * filter's dropdown UI (at most 2 regular conditions and 1 `by_value` condition per column), the extra conditions
+   * will be applied to the data but will not be visible or editable in the dropdown menu.
+   *
    * @example
    * ::: only-for javascript
    * ```js
@@ -458,23 +462,89 @@ export class Filters extends BasePlugin {
    * // access to filters plugin instance
    * const filtersPlugin = hot.getPlugin('filters');
    *
+   * // add filter "Begins with" with value "de" to column at index 1
+   * filtersPlugin.addCondition(1, 'begins_with', ['de']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Between" 10 and 50 to column at index 1
+   * filtersPlugin.addCondition(1, 'between', [10, 50]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "By value" to column at index 1
+   * // in this case all values that don't match will be filtered
+   * filtersPlugin.addCondition(1, 'by_value', [['ing', 'ed', 'as', 'on']]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Contains" with value "ing" to column at index 1
+   * filtersPlugin.addCondition(1, 'contains', ['ing']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "After a date" with value "1/1/2023" to column at index 1
+   * filtersPlugin.addCondition(1, 'date_after', ['1/1/2023']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Before a date" with value "1/1/2023" to column at index 1
+   * filtersPlugin.addCondition(1, 'date_before', ['1/1/2023']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Today" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'date_today', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Tomorrow" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'date_tomorrow', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Yesterday" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'date_yesterday', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Empty" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'empty', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Ends with" with value "ing" to column at index 1
+   * filtersPlugin.addCondition(1, 'ends_with', ['ing']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Equal" with value "John" to column at index 1
+   * filtersPlugin.addCondition(1, 'eq', ['John']);
+   * filtersPlugin.filter();
+   *
    * // add filter "Greater than" 95 to column at index 1
    * filtersPlugin.addCondition(1, 'gt', [95]);
    * filtersPlugin.filter();
    *
-   * // add filter "By value" to column at index 1
-   * // in this case all value's that don't match will be filtered.
-   * filtersPlugin.addCondition(1, 'by_value', [['ing', 'ed', 'as', 'on']]);
+   * // add filter "Greater than or equal" 95 to column at index 1
+   * filtersPlugin.addCondition(1, 'gte', [95]);
    * filtersPlugin.filter();
    *
-   * // add filter "Begins with" with value "de" AND "Not contains" with value "ing"
-   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'conjunction');
-   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'conjunction');
+   * // add filter "Less than" 10 to column at index 1
+   * filtersPlugin.addCondition(1, 'lt', [10]);
    * filtersPlugin.filter();
    *
-   * // add filter "Begins with" with value "de" OR "Not contains" with value "ing"
-   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'disjunction');
-   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'disjunction');
+   * // add filter "Less than or equal" 10 to column at index 1
+   * filtersPlugin.addCondition(1, 'lte', [10]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "None" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'none', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not between" 10 and 50 to column at index 1
+   * filtersPlugin.addCondition(1, 'not_between', [10, 50]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not contains" with value "ing" to column at index 1
+   * filtersPlugin.addCondition(1, 'not_contains', ['ing']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not empty" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'not_empty', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not equal" with value "John" to column at index 1
+   * filtersPlugin.addCondition(1, 'neq', ['John']);
    * filtersPlugin.filter();
    * ```
    * :::
@@ -495,23 +565,89 @@ export class Filters extends BasePlugin {
    * const hot = hotRef.current.hotInstance;
    * const filtersPlugin = hot.getPlugin('filters');
    *
+   * // add filter "Begins with" with value "de" to column at index 1
+   * filtersPlugin.addCondition(1, 'begins_with', ['de']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Between" 10 and 50 to column at index 1
+   * filtersPlugin.addCondition(1, 'between', [10, 50]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "By value" to column at index 1
+   * // in this case all values that don't match will be filtered
+   * filtersPlugin.addCondition(1, 'by_value', [['ing', 'ed', 'as', 'on']]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Contains" with value "ing" to column at index 1
+   * filtersPlugin.addCondition(1, 'contains', ['ing']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "After a date" with value "1/1/2023" to column at index 1
+   * filtersPlugin.addCondition(1, 'date_after', ['1/1/2023']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Before a date" with value "1/1/2023" to column at index 1
+   * filtersPlugin.addCondition(1, 'date_before', ['1/1/2023']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Today" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'date_today', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Tomorrow" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'date_tomorrow', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Yesterday" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'date_yesterday', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Empty" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'empty', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Ends with" with value "ing" to column at index 1
+   * filtersPlugin.addCondition(1, 'ends_with', ['ing']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Equal" with value "John" to column at index 1
+   * filtersPlugin.addCondition(1, 'eq', ['John']);
+   * filtersPlugin.filter();
+   *
    * // add filter "Greater than" 95 to column at index 1
    * filtersPlugin.addCondition(1, 'gt', [95]);
    * filtersPlugin.filter();
    *
-   * // add filter "By value" to column at index 1
-   * // in this case all value's that don't match will be filtered.
-   * filtersPlugin.addCondition(1, 'by_value', [['ing', 'ed', 'as', 'on']]);
+   * // add filter "Greater than or equal" 95 to column at index 1
+   * filtersPlugin.addCondition(1, 'gte', [95]);
    * filtersPlugin.filter();
    *
-   * // add filter "Begins with" with value "de" AND "Not contains" with value "ing"
-   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'conjunction');
-   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'conjunction');
+   * // add filter "Less than" 10 to column at index 1
+   * filtersPlugin.addCondition(1, 'lt', [10]);
    * filtersPlugin.filter();
    *
-   * // add filter "Begins with" with value "de" OR "Not contains" with value "ing"
-   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'disjunction');
-   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'disjunction');
+   * // add filter "Less than or equal" 10 to column at index 1
+   * filtersPlugin.addCondition(1, 'lte', [10]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "None" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'none', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not between" 10 and 50 to column at index 1
+   * filtersPlugin.addCondition(1, 'not_between', [10, 50]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not contains" with value "ing" to column at index 1
+   * filtersPlugin.addCondition(1, 'not_contains', ['ing']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not empty" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'not_empty', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not equal" with value "John" to column at index 1
+   * filtersPlugin.addCondition(1, 'neq', ['John']);
    * filtersPlugin.filter();
    * ```
    * :::
@@ -547,8 +683,12 @@ export class Filters extends BasePlugin {
    *     const hot = this.hotTable.hotInstance;
    *     const filtersPlugin = hot.getPlugin("filters");
    *
-   *     // Add filter "Greater than" 95 to column at index 1
-   *     filtersPlugin.addCondition(1, "gt", [95]);
+   *     // Add filter "Begins with" with value "de" to column at index 1
+   *     filtersPlugin.addCondition(1, "begins_with", ["de"]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Between" 10 and 50 to column at index 1
+   *     filtersPlugin.addCondition(1, "between", [10, 50]);
    *     filtersPlugin.filter();
    *
    *     // Add filter "By value" to column at index 1
@@ -556,14 +696,76 @@ export class Filters extends BasePlugin {
    *     filtersPlugin.addCondition(1, "by_value", [["ing", "ed", "as", "on"]]);
    *     filtersPlugin.filter();
    *
-   *     // Add filter "Begins with" with value "de" AND "Not contains" with value "ing"
-   *     filtersPlugin.addCondition(1, "begins_with", ["de"], "conjunction");
-   *     filtersPlugin.addCondition(1, "not_contains", ["ing"], "conjunction");
+   *     // Add filter "Contains" with value "ing" to column at index 1
+   *     filtersPlugin.addCondition(1, "contains", ["ing"]);
    *     filtersPlugin.filter();
    *
-   *     // Add filter "Begins with" with value "de" OR "Not contains" with value "ing"
-   *     filtersPlugin.addCondition(1, "begins_with", ["de"], "disjunction");
-   *     filtersPlugin.addCondition(1, "not_contains", ["ing"], "disjunction");
+   *     // Add filter "After a date" with value "1/1/2023" to column at index 1
+   *     filtersPlugin.addCondition(1, "date_after", ["1/1/2023"]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Before a date" with value "1/1/2023" to column at index 1
+   *     filtersPlugin.addCondition(1, "date_before", ["1/1/2023"]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Today" with no arguments to column at index 1
+   *     filtersPlugin.addCondition(1, "date_today", []);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Tomorrow" with no arguments to column at index 1
+   *     filtersPlugin.addCondition(1, "date_tomorrow", []);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Yesterday" with no arguments to column at index 1
+   *     filtersPlugin.addCondition(1, "date_yesterday", []);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Empty" with no arguments to column at index 1
+   *     filtersPlugin.addCondition(1, "empty", []);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Ends with" with value "ing" to column at index 1
+   *     filtersPlugin.addCondition(1, "ends_with", ["ing"]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Equal" with value "John" to column at index 1
+   *     filtersPlugin.addCondition(1, "eq", ["John"]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Greater than" 95 to column at index 1
+   *     filtersPlugin.addCondition(1, "gt", [95]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Greater than or equal" 95 to column at index 1
+   *     filtersPlugin.addCondition(1, "gte", [95]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Less than" 10 to column at index 1
+   *     filtersPlugin.addCondition(1, "lt", [10]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Less than or equal" 10 to column at index 1
+   *     filtersPlugin.addCondition(1, "lte", [10]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "None" with no arguments to column at index 1
+   *     filtersPlugin.addCondition(1, "none", []);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Not between" 10 and 50 to column at index 1
+   *     filtersPlugin.addCondition(1, "not_between", [10, 50]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Not contains" with value "ing" to column at index 1
+   *     filtersPlugin.addCondition(1, "not_contains", ["ing"]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Not empty" with no arguments to column at index 1
+   *     filtersPlugin.addCondition(1, "not_empty", []);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Not equal" with value "John" to column at index 1
+   *     filtersPlugin.addCondition(1, "neq", ["John"]);
    *     filtersPlugin.filter();
    *   }
    *
@@ -1102,8 +1304,8 @@ export class Filters extends BasePlugin {
 
     if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
       warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
-        The overall amount of conditions exceed the capability of the dropdown menu.\x20
-        For more details see the documentation.`);
+        The dropdown menu supports at most 2 regular conditions and 1 'filter by value' condition per column,\x20
+        but more were provided. For more details see the documentation.`);
 
     } else {
       const operationType = this.conditionCollection.getOperation(column);

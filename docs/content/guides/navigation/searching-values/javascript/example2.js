@@ -18,7 +18,7 @@ const hot = new Handsontable(container, {
   // enable the `Search` plugin
   search: {
     // add your custom CSS class
-    searchResultClass: 'my-custom-search-result-class',
+    searchResultClass: 'my-class',
   },
   height: 'auto',
   autoWrapRow: true,

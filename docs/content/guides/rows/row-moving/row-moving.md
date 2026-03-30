@@ -57,6 +57,23 @@ A draggable move handle appears above the selected row header. You can click and
 
 :::
 
+## Set a pre-defined row order
+
+Instead of setting [`manualRowMove`](@/api/options.md#manualrowmove) to `true`, you can pass an **array of physical row indexes** to define the initial visual order of rows on render.
+
+Each position in the array corresponds to a visual (display) position, and the value at that position is the physical (source data) row index. For example:
+
+```js
+manualRowMove: [2, 0, 1]
+```
+
+This renders the rows in the following order:
+- Visual position 0 → physical row `2`
+- Visual position 1 → physical row `0`
+- Visual position 2 → physical row `1`
+
+The array must contain all physical row indexes (its length must equal the total number of rows). After the initial render, users can still drag rows to change the order further.
+
 ## Drag and move actions of `manualRowMove` plugin
 
 There are significant differences between the plugin's [`dragRows`](@/api/manualRowMove.md#dragrows) and [`moveRows`](@/api/manualRowMove.md#moverows) API functions. Both of them change the order of rows, but they rely on different kinds of indexes. The differences between them are shown in the diagrams below.

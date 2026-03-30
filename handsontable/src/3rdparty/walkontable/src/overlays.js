@@ -3,9 +3,9 @@ import {
   getScrollbarWidth,
 } from '../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../helpers/feature';
+import { debounce } from '../../../helpers/function';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
-import { isChrome } from '../../../helpers/browser';
 import { warn } from '../../../helpers/console';
 import {
   InlineStartOverlay,
@@ -110,6 +110,14 @@ class Overlays {
    * @type {number}
    */
   #containerDomResizeCountTimeout = null;
+
+  /**
+   * Debounced `updateLastSpreaderSize` / `adjustElementsSize` used during scroll so rapid
+   * `refresh` calls do not repeat layout work every frame.
+   *
+   * @type {Function}
+   */
+  #postponedAdjustElementsSize = debounce(this.#adjustElementsSizeIfNeeded.bind(this), 200);
 
   /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
@@ -342,19 +350,16 @@ class Overlays {
       );
     }
 
-    const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
     const isScrollOnWindow = this.scrollableElement === rootWindow;
     const preventWheel = this.wtSettings.getSetting('preventWheel');
     const wheelEventOptions = { passive: isScrollOnWindow };
 
-    if (preventWheel || isHighPixelRatio || !isChrome()) {
-      this.eventManager.addEventListener(
-        this.wtTable.wtRootElement,
-        'wheel',
-        event => this.onCloneWheel(event, preventWheel),
-        wheelEventOptions
-      );
-    }
+    this.eventManager.addEventListener(
+      this.wtTable.wtRootElement,
+      'wheel',
+      event => this.onCloneWheel(event, preventWheel),
+      wheelEventOptions
+    );
 
     const overlays = [
       this.topOverlay,
@@ -634,6 +639,13 @@ class Overlays {
    *
    */
   destroy() {
+    this.#postponedAdjustElementsSize.cancel();
+
+    if (this.#containerDomResizeCountTimeout !== null) {
+      clearTimeout(this.#containerDomResizeCountTimeout);
+      this.#containerDomResizeCountTimeout = null;
+    }
+
     this.resizeObserver.disconnect();
     this.eventManager.destroy();
     // todo, probably all below `destroy` calls has no sense. To analyze
@@ -661,10 +673,12 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
+    const isScrollTriggered = this.verticalScrolling || this.horizontalScrolling;
 
-    if (wasSpreaderSizeUpdated) {
-      this.adjustElementsSize();
+    if (isScrollTriggered) {
+      this.#postponedAdjustElementsSize();
+    } else {
+      this.#adjustElementsSizeIfNeeded();
     }
 
     if (this.bottomOverlay.clone) {
@@ -840,6 +854,21 @@ class Overlays {
 
       elem.clone.wtTable.TABLE.className = masterTable.className; // todo demeter
     });
+  }
+
+  /**
+   * Adjust the elements size if needed.
+   */
+  #adjustElementsSizeIfNeeded() {
+    if (this.destroyed) {
+      return;
+    }
+
+    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
+
+    if (wasSpreaderSizeUpdated) {
+      this.adjustElementsSize();
+    }
   }
 }
 

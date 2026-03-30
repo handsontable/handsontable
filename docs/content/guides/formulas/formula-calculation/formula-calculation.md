@@ -31,14 +31,19 @@ functions, custom functions, named expressions, and more.
 
 ## Overview
 
-The _Formulas_ plugin provides you an extensive calculation capabilities based on formulas using the
-spreadsheet notation. Under the hood, it uses an engine called
-[HyperFormula](https://hyperformula.handsontable.com/) created by the Handsontable team as an
-independent library to help developers build complex data management apps.
+The _Formulas_ plugin adds spreadsheet-style calculation to Handsontable. It is powered by
+[HyperFormula](https://hyperformula.handsontable.com/), an open-source formula engine built by the
+Handsontable team.
 
-This plugin comes with a library of 386 functions grouped into categories, such as Math and
-trigonometry, Engineering, Statistical, Financial, and Logical. Using these, you can create complex
-data entry rules in business apps and much more. Below are some ideas on what you can do with it:
+Key capabilities:
+
+- **~400 built-in functions** - Math, Engineering, Statistical, Financial, Logical, and more.
+- **Cross-sheet references** - formulas can reference cells in other Handsontable instances that
+  share the same HyperFormula engine.
+- **Named expressions** - assign a label to a value or formula and reuse it across the workbook.
+- **Custom functions** - extend HyperFormula with your own function implementations.
+
+Below are some ideas on what you can do with it:
 
 - Fully-featured spreadsheet apps
 - Smart documents
@@ -131,17 +136,17 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 ## Initialization methods
 
-There are multiple ways of initializing the Formulas plugin. You can select the most convenient one
-depending on your use case.
+The `formulas` option accepts either the `HyperFormula` class or an already-created HyperFormula
+instance. Choose the pattern that matches your use case.
 
-In all cases, it is required to either pass in the `HyperFormula` object or a HyperFormula instance:
+All patterns require importing HyperFormula:
 
 ```js
 import { HyperFormula } from 'hyperformula';
 ```
 
-There are also other installation methods available. Check out
-[HyperFormula's installation documentation](https://handsontable.github.io/hyperformula/guide/client-side-installation.html).
+See [HyperFormula's installation docs](https://handsontable.github.io/hyperformula/guide/client-side-installation.html)
+for alternative installation methods (CDN, UMD, etc.).
 
 ::: tip HyperFormula instance
 
@@ -516,18 +521,21 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 
 ## Available options and methods
 
-For the list of available settings and methods, visit the [API reference](@/api/formulas.md).
+For the full list of configuration options and plugin methods, see the
+[`Formulas` API reference](@/api/formulas.md).
 
 ## Available functions
 
-This plugin inherits the calculation powers from _HyperFormula_. The complete functions reference
-can be found in the
-[HyperFormula documentation](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
+The plugin inherits all calculation capabilities from HyperFormula. The complete function reference
+(386 functions across Math, Engineering, Statistical, Financial, Logical, and other categories) is
+in the
+[HyperFormula built-in functions docs](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
 
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
-This hook listens for any changes to cells in the calculation engine, including dependent cells
-containing formulas.
+This hook fires whenever the calculation engine recomputes cell values - including cells that
+changed directly and all dependent formula cells. Use it to react to recalculations outside of the
+normal `afterChange` flow.
 
 ::: only-for javascript
 
@@ -599,9 +607,63 @@ const configurationOptions: GridSettings = {
 
 ## Named expressions
 
-You can use custom-named expressions in your formula expressions. A named expression can be either
-plain values or formulas with references to absolute cell addresses. To register a named expression,
-pass an array with `name` and `expression` to your `formulas` configuration object:
+A named expression assigns a human-friendly label to a value or formula. Once defined, the name can
+be used anywhere in cell formulas across the workbook - the same way a cell reference or constant
+would be. This is useful for shared constants, computed ranges, or any value you want to reference
+by a meaningful name instead of repeating a formula.
+
+The `expression` field accepts:
+
+- A **number** (e.g. `100`) or **string** (e.g. `'"My Label"'` - note the inner quotes, which are
+  part of HyperFormula formula syntax for string literals).
+- A **formula string** starting with `=`, using the same syntax as cell formulas.
+
+**Plain values** can be registered directly in the `namedExpressions` config array:
+
+```js
+formulas: {
+  engine: HyperFormula,
+  namedExpressions: [
+    { name: 'ADDITIONAL_COST', expression: 100 },
+  ],
+}
+```
+
+**Range-formula expressions** (those that reference cells with `Sheet1!...`) must be registered on
+a pre-built HyperFormula instance after the sheet has been created. Registering them via the config
+array causes a `#REF!` error because the sheet does not exist yet at that point in the
+initialization sequence:
+
+```js
+const hfInstance = HyperFormula.buildEmpty({
+  licenseKey: 'internal-use-in-handsontable',
+});
+
+hfInstance.addSheet('Sheet1');
+hfInstance.addNamedExpression('Q1_TOTAL', '=SUM(Sheet1!$B$1:$B$3)');
+hfInstance.addNamedExpression('COMBINED', '=SUM(Sheet1!$A$1:$A$3)+SUM(Sheet1!$B$1:$B$3)');
+
+new Handsontable(container, {
+  formulas: { engine: hfInstance, sheetName: 'Sheet1' },
+  // ...
+});
+```
+
+::: tip
+
+References inside named expressions must use **absolute notation** (`$A$1`). The sheet name (e.g.
+`Sheet1!`) must match the `sheetName` passed to both `addSheet` and the Handsontable `formulas`
+config. See the
+[HyperFormula named expressions guide](https://hyperformula.handsontable.com/guide/named-expressions.html)
+for the full naming rules and supported expression types.
+
+:::
+
+### Demo: plain-value named expression
+
+The example below registers `ADDITIONAL_COST` as a plain number. Cell formulas in column D add that
+constant to each base price. The input below the grid lets you replace the expression at runtime
+using `changeNamedExpression()`.
 
 ::: only-for javascript
 
@@ -639,8 +701,48 @@ pass an array with `name` and `expression` to your `formulas` configuration obje
 
 :::
 
+### Demo: formula-based named expressions
+
+The example below registers `Q1_TOTAL` and `Q2_TOTAL` as range-sum formulas on a pre-built
+HyperFormula instance. The "Totals" row references those names directly as `=Q1_TOTAL` and
+`=Q2_TOTAL`.
+
+::: only-for javascript
+
+::: example #example-named-expressions2 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-named-expressions2.html)
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-named-expressions2.js)
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-named-expressions2.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example-named-expressions2 :react --js 1 --ts 2
+
+@[code](@/content/guides/formulas/formula-calculation/react/example-named-expressions2.jsx)
+@[code](@/content/guides/formulas/formula-calculation/react/example-named-expressions2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/formulas/formula-calculation/angular/example4.ts)
+@[code](@/content/guides/formulas/formula-calculation/angular/example4.html)
+
+:::
+
+:::
+
 For more information about named expressions, refer to the
-[HyperFormula docs](https://hyperformula.handsontable.com/guide/cell-references.html#relative-references).
+[HyperFormula named expressions docs](https://hyperformula.handsontable.com/guide/named-expressions.html).
 
 ## View the explainer video
 
