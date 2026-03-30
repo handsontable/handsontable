@@ -232,6 +232,15 @@ export function areEquivalentSettingsValue(previousValue: unknown, currentValue:
     return true;
   }
 
+  if (previousValue instanceof RegExp || currentValue instanceof RegExp) {
+    if (!(previousValue instanceof RegExp) || !(currentValue instanceof RegExp)) {
+      return false;
+    }
+
+    return previousValue.source === currentValue.source &&
+      previousValue.flags === currentValue.flags;
+  }
+
   const previousIsArray = isArray(previousValue);
   const currentIsArray = isArray(currentValue);
 

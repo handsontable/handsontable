@@ -112,5 +112,31 @@ describe('Settings mapper unit tests', () => {
         quantity: 1,
       });
     });
+
+    it('should keep `columns` in updated settings when a RegExp validator changes', () => {
+      const prevProps: HotTableProps = {
+        columns: [
+          {
+            data: 'quantity',
+            validator: /^\d+$/,
+          }
+        ],
+      };
+      const nextProps: HotTableProps = {
+        columns: [
+          {
+            data: 'quantity',
+            validator: /^[a-z]+$/,
+          }
+        ],
+      };
+
+      const result = SettingsMapper.getSettings(nextProps, {
+        prevProps,
+        isInit: false,
+      });
+
+      expect(result.columns).toEqual(nextProps.columns);
+    });
   });
 });
