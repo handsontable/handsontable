@@ -59,6 +59,7 @@
     "build:all.styles.min": "npm run build:styles.min && npm run build:themes-css.min",
     "build:styles": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-development env-cmd -f ../hot.config.js webpack",
     "build:styles.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-production env-cmd -f ../hot.config.js webpack",
+    "build:design-tokens": "node src/themes/figma/index.mjs",
     "build:themes-css": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-css-development env-cmd -f ../hot.config.js webpack",
     "build:themes-css.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-css-production env-cmd -f ../hot.config.js webpack",
     "build:themes-umd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-development env-cmd -f ../hot.config.js webpack",
