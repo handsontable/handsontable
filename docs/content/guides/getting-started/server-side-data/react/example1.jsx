@@ -5,36 +5,231 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const LATENCY_MS = 450;
-
 const SEED_CATALOG = [
-  { id: 1, product: 'Wireless ergonomic keyboard', sku: 'PER-KBD-901', category: 'Peripherals', unitPrice: 79.99, inStock: 210 },
-  { id: 2, product: 'USB-C 7-port hub', sku: 'PER-HUB-707', category: 'Peripherals', unitPrice: 45.5, inStock: 88 },
-  { id: 3, product: '27" QHD monitor', sku: 'DSP-MON-270', category: 'Displays', unitPrice: 329, inStock: 42 },
-  { id: 4, product: 'Laptop stand aluminum', sku: 'ACC-STD-112', category: 'Accessories', unitPrice: 39.99, inStock: 156 },
-  { id: 5, product: 'Noise-cancelling headset', sku: 'AUD-HDS-440', category: 'Audio', unitPrice: 199, inStock: 67 },
-  { id: 6, product: 'Mechanical keyboard MX Brown', sku: 'PER-KBD-303', category: 'Peripherals', unitPrice: 129, inStock: 94 },
-  { id: 7, product: 'Webcam 1080p autofocus', sku: 'VID-CAM-108', category: 'Video', unitPrice: 89, inStock: 203 },
-  { id: 8, product: 'Docking station Thunderbolt 4', sku: 'PER-DCK-401', category: 'Peripherals', unitPrice: 279, inStock: 31 },
-  { id: 9, product: 'Portable SSD 1TB', sku: 'STO-SSD-1T', category: 'Storage', unitPrice: 119.99, inStock: 178 },
-  { id: 10, product: 'Office chair mesh back', sku: 'FUR-CHR-882', category: 'Furniture', unitPrice: 349, inStock: 22 },
-  { id: 11, product: 'LED desk lamp dimmable', sku: 'LGT-LMP-210', category: 'Lighting', unitPrice: 54.25, inStock: 115 },
-  { id: 12, product: 'Bluetooth mouse silent', sku: 'PER-MSE-055', category: 'Peripherals', unitPrice: 32.99, inStock: 340 },
-  { id: 13, product: 'HDMI 2.1 cable 2m', sku: 'CBL-HDM-200', category: 'Cables', unitPrice: 18.99, inStock: 512 },
-  { id: 14, product: 'USB-C PD charger 65W', sku: 'PWR-PD65-W', category: 'Power', unitPrice: 49, inStock: 189 },
-  { id: 15, product: 'Mesh Wi-Fi router', sku: 'NET-RT-M1', category: 'Networking', unitPrice: 159, inStock: 58 },
-  { id: 16, product: 'External HDD 4TB', sku: 'STO-HDD-4T', category: 'Storage', unitPrice: 99.5, inStock: 76 },
-  { id: 17, product: 'Graphics tablet medium', sku: 'CRT-TAB-M2', category: 'Creative', unitPrice: 249, inStock: 41 },
-  { id: 18, product: 'Microphone USB condenser', sku: 'AUD-MIC-U1', category: 'Audio', unitPrice: 74.99, inStock: 99 },
-  { id: 19, product: 'Privacy screen 14"', sku: 'ACC-PRV-140', category: 'Accessories', unitPrice: 42, inStock: 133 },
-  { id: 20, product: 'Surge protector 8-outlet', sku: 'PWR-SRG-808', category: 'Power', unitPrice: 28.75, inStock: 267 },
-  { id: 21, product: 'FHD portable monitor 15.6"', sku: 'DSP-MON-156', category: 'Displays', unitPrice: 189, inStock: 48 },
-  { id: 22, product: 'Ethernet cable Cat6 5m', sku: 'CBL-ETH-500', category: 'Cables', unitPrice: 12.5, inStock: 620 },
-  { id: 23, product: 'Laptop sleeve 15"', sku: 'ACC-SLV-150', category: 'Accessories', unitPrice: 35, inStock: 201 },
-  { id: 24, product: 'Smart power strip', sku: 'PWR-STR-S1', category: 'Power', unitPrice: 59.99, inStock: 71 },
-  { id: 25, product: 'Ring light 12" with stand', sku: 'LGT-RNG-120', category: 'Lighting', unitPrice: 65, inStock: 84 },
-  { id: 26, product: 'NVMe enclosure USB4', sku: 'STO-ENC-NV', category: 'Storage', unitPrice: 79, inStock: 55 },
-  { id: 27, product: 'Vertical mouse', sku: 'PER-MSE-VER', category: 'Peripherals', unitPrice: 56.5, inStock: 112 },
-  { id: 28, product: 'Conference speakerphone', sku: 'AUD-SPK-CF', category: 'Audio', unitPrice: 189.99, inStock: 36 },
+  {
+    id: 1,
+    product: 'Wireless ergonomic keyboard',
+    sku: 'PER-KBD-901',
+    category: 'Peripherals',
+    unitPrice: 79.99,
+    inStock: 210,
+  },
+  {
+    id: 2,
+    product: 'USB-C 7-port hub',
+    sku: 'PER-HUB-707',
+    category: 'Peripherals',
+    unitPrice: 45.5,
+    inStock: 88,
+  },
+  {
+    id: 3,
+    product: '27" QHD monitor',
+    sku: 'DSP-MON-270',
+    category: 'Displays',
+    unitPrice: 329,
+    inStock: 42,
+  },
+  {
+    id: 4,
+    product: 'Laptop stand aluminum',
+    sku: 'ACC-STD-112',
+    category: 'Accessories',
+    unitPrice: 39.99,
+    inStock: 156,
+  },
+  {
+    id: 5,
+    product: 'Noise-cancelling headset',
+    sku: 'AUD-HDS-440',
+    category: 'Audio',
+    unitPrice: 199,
+    inStock: 67,
+  },
+  {
+    id: 6,
+    product: 'Mechanical keyboard MX Brown',
+    sku: 'PER-KBD-303',
+    category: 'Peripherals',
+    unitPrice: 129,
+    inStock: 94,
+  },
+  {
+    id: 7,
+    product: 'Webcam 1080p autofocus',
+    sku: 'VID-CAM-108',
+    category: 'Video',
+    unitPrice: 89,
+    inStock: 203,
+  },
+  {
+    id: 8,
+    product: 'Docking station Thunderbolt 4',
+    sku: 'PER-DCK-401',
+    category: 'Peripherals',
+    unitPrice: 279,
+    inStock: 31,
+  },
+  {
+    id: 9,
+    product: 'Portable SSD 1TB',
+    sku: 'STO-SSD-1T',
+    category: 'Storage',
+    unitPrice: 119.99,
+    inStock: 178,
+  },
+  {
+    id: 10,
+    product: 'Office chair mesh back',
+    sku: 'FUR-CHR-882',
+    category: 'Furniture',
+    unitPrice: 349,
+    inStock: 22,
+  },
+  {
+    id: 11,
+    product: 'LED desk lamp dimmable',
+    sku: 'LGT-LMP-210',
+    category: 'Lighting',
+    unitPrice: 54.25,
+    inStock: 115,
+  },
+  {
+    id: 12,
+    product: 'Bluetooth mouse silent',
+    sku: 'PER-MSE-055',
+    category: 'Peripherals',
+    unitPrice: 32.99,
+    inStock: 340,
+  },
+  {
+    id: 13,
+    product: 'HDMI 2.1 cable 2m',
+    sku: 'CBL-HDM-200',
+    category: 'Cables',
+    unitPrice: 18.99,
+    inStock: 512,
+  },
+  {
+    id: 14,
+    product: 'USB-C PD charger 65W',
+    sku: 'PWR-PD65-W',
+    category: 'Power',
+    unitPrice: 49,
+    inStock: 189,
+  },
+  {
+    id: 15,
+    product: 'Mesh Wi-Fi router',
+    sku: 'NET-RT-M1',
+    category: 'Networking',
+    unitPrice: 159,
+    inStock: 58,
+  },
+  {
+    id: 16,
+    product: 'External HDD 4TB',
+    sku: 'STO-HDD-4T',
+    category: 'Storage',
+    unitPrice: 99.5,
+    inStock: 76,
+  },
+  {
+    id: 17,
+    product: 'Graphics tablet medium',
+    sku: 'CRT-TAB-M2',
+    category: 'Creative',
+    unitPrice: 249,
+    inStock: 41,
+  },
+  {
+    id: 18,
+    product: 'Microphone USB condenser',
+    sku: 'AUD-MIC-U1',
+    category: 'Audio',
+    unitPrice: 74.99,
+    inStock: 99,
+  },
+  {
+    id: 19,
+    product: 'Privacy screen 14"',
+    sku: 'ACC-PRV-140',
+    category: 'Accessories',
+    unitPrice: 42,
+    inStock: 133,
+  },
+  {
+    id: 20,
+    product: 'Surge protector 8-outlet',
+    sku: 'PWR-SRG-808',
+    category: 'Power',
+    unitPrice: 28.75,
+    inStock: 267,
+  },
+  {
+    id: 21,
+    product: 'FHD portable monitor 15.6"',
+    sku: 'DSP-MON-156',
+    category: 'Displays',
+    unitPrice: 189,
+    inStock: 48,
+  },
+  {
+    id: 22,
+    product: 'Ethernet cable Cat6 5m',
+    sku: 'CBL-ETH-500',
+    category: 'Cables',
+    unitPrice: 12.5,
+    inStock: 620,
+  },
+  {
+    id: 23,
+    product: 'Laptop sleeve 15"',
+    sku: 'ACC-SLV-150',
+    category: 'Accessories',
+    unitPrice: 35,
+    inStock: 201,
+  },
+  {
+    id: 24,
+    product: 'Smart power strip',
+    sku: 'PWR-STR-S1',
+    category: 'Power',
+    unitPrice: 59.99,
+    inStock: 71,
+  },
+  {
+    id: 25,
+    product: 'Ring light 12" with stand',
+    sku: 'LGT-RNG-120',
+    category: 'Lighting',
+    unitPrice: 65,
+    inStock: 84,
+  },
+  {
+    id: 26,
+    product: 'NVMe enclosure USB4',
+    sku: 'STO-ENC-NV',
+    category: 'Storage',
+    unitPrice: 79,
+    inStock: 55,
+  },
+  {
+    id: 27,
+    product: 'Vertical mouse',
+    sku: 'PER-MSE-VER',
+    category: 'Peripherals',
+    unitPrice: 56.5,
+    inStock: 112,
+  },
+  {
+    id: 28,
+    product: 'Conference speakerphone',
+    sku: 'AUD-SPK-CF',
+    category: 'Audio',
+    unitPrice: 189.99,
+    inStock: 36,
+  },
 ];
 
 function delay(ms, signal) {
@@ -110,8 +305,8 @@ function matchesCondition(cell, cond) {
 
 function rowMatchesFilterColumn(row, colFilter) {
   const value = row[colFilter.prop];
-  const conditions = colFilter.conditions || [];
-  const op = colFilter.operation || 'conjunction';
+  const conditions = colFilter.conditions ?? [];
+  const op = colFilter.operation ?? 'conjunction';
 
   if (conditions.length === 0) {
     return true;
@@ -135,12 +330,11 @@ function applyQueryFilters(rows, filters) {
     return rows;
   }
 
-  return rows.filter((row) => filters.every((f) => rowMatchesFilterColumn(row, f)));
+  return rows.filter((row) =>
+    filters.every((f) => rowMatchesFilterColumn(row, f))
+  );
 }
 
-/**
- * In-memory server: swap for fetch() in production.
- */
 function createInventoryDemoServer() {
   const store = {
     nextId: SEED_CATALOG.reduce((max, r) => Math.max(max, r.id), 0),
@@ -183,7 +377,9 @@ function createInventoryDemoServer() {
         if (failNextFetch) {
           failNextFetch = false;
 
-          return Promise.reject(new Error('Simulated server error (for example HTTP 503).'));
+          return Promise.reject(
+            new Error('Simulated server error (for example HTTP 503).')
+          );
         }
 
         return {
@@ -220,10 +416,8 @@ function createInventoryDemoServer() {
       store.rows.splice(insertAt, 0, ...newRows);
     },
     async onRowsUpdate(rows) {
-      const { rows: all } = store;
-
       rows.forEach(({ id, changes }) => {
-        const row = all.find((r) => r.id === id);
+        const row = store.rows.find((r) => r.id === id);
 
         if (row) {
           Object.assign(row, changes);
@@ -247,7 +441,6 @@ const columns = [
 ];
 
 const colHeaders = ['Product', 'SKU', 'Category', 'Unit price', 'In stock'];
-
 /**
  * Renders HotTable in isolation so parent `setState` (status text) does not re-render HotTable.
  * The React wrapper calls `updateSettings` after every HotTable render; with `dataProvider`, each
@@ -260,7 +453,6 @@ const InventoryServerTable = memo(function InventoryServerTable({
 }) {
   const hotRef = useRef(null);
   const server = useMemo(() => createInventoryDemoServer(), []);
-
   const fetchRows = useCallback(
     (queryParameters, options) => server.fetchRows(queryParameters, options),
     [server]
@@ -285,7 +477,9 @@ const InventoryServerTable = memo(function InventoryServerTable({
         server.setFailNextFetch();
       }
 
-      const p = hotRef.current?.hotInstance?.getPlugin('dataProvider')?.fetchData();
+      const p = hotRef.current?.hotInstance
+        ?.getPlugin('dataProvider')
+        ?.fetchData();
 
       if (p) {
         void p.catch(() => {});
@@ -296,7 +490,14 @@ const InventoryServerTable = memo(function InventoryServerTable({
 
   return (
     <>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '8px',
+          marginBottom: '10px',
+        }}
+      >
         <button type="button" onClick={() => runFetch(true)}>
           Reload data
         </button>
@@ -332,9 +533,10 @@ const InventoryServerTable = memo(function InventoryServerTable({
 
 const ExampleComponent = () => {
   const [status, setStatus] = useState('Initializing…');
-
   const beforeDataProviderFetch = useCallback((params) => {
-    setStatus(params.skipLoading ? 'Updating after sort or edit…' : 'Loading data…');
+    setStatus(
+      params.skipLoading ? 'Updating after sort or edit…' : 'Loading data…'
+    );
   }, []);
 
   const afterDataProviderFetch = useCallback(() => {
