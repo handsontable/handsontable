@@ -36,7 +36,7 @@ describe('intlTimeValidator', () => {
 
     await setDataAtCell(0, 0, '');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'time');
   });
@@ -56,7 +56,7 @@ describe('intlTimeValidator', () => {
 
     await setDataAtCell(0, 0, 'nd');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, 'nd', 0, 'time');
   });
@@ -76,7 +76,7 @@ describe('intlTimeValidator', () => {
 
     await setDataAtCell(0, 0, '30:10:25');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '30:10:25', 0, 'time');
   });

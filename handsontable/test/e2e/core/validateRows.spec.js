@@ -22,7 +22,7 @@ describe('Core.validateColumns', () => {
 
     await validateRows([0, 1], onValidate);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(2); // wait for async validation
 
     expect(onValidate).toHaveBeenCalledWith(true);
   });
@@ -41,7 +41,7 @@ describe('Core.validateColumns', () => {
 
     await validateRows([0, 1], onValidate);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(2); // wait for async validation
 
     expect(onValidate).toHaveBeenCalledWith(false);
   });
@@ -91,7 +91,7 @@ describe('Core.validateColumns', () => {
       render();
     });
 
-    await sleep(150);
+    await waitForNextAnimationFrames(2);
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
@@ -103,7 +103,7 @@ describe('Core.validateColumns', () => {
       render();
     });
 
-    await sleep(150);
+    await waitForNextAnimationFrames(2);
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
@@ -115,7 +115,7 @@ describe('Core.validateColumns', () => {
       render();
     });
 
-    await sleep(150);
+    await waitForNextAnimationFrames(2);
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
@@ -127,7 +127,7 @@ describe('Core.validateColumns', () => {
       render();
     });
 
-    await sleep(150);
+    await waitForNextAnimationFrames(2);
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
@@ -139,7 +139,7 @@ describe('Core.validateColumns', () => {
       render();
     });
 
-    await sleep(150);
+    await waitForNextAnimationFrames(2);
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
@@ -151,7 +151,7 @@ describe('Core.validateColumns', () => {
       render();
     });
 
-    await sleep(150);
+    await waitForNextAnimationFrames(2);
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
