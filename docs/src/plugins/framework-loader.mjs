@@ -602,6 +602,8 @@ function convertSourceCodeLinks(content) {
 
     if (inSourceLink && /^:::\s*$/.test(line)) {
       inSourceLink = false;
+      // Emit as a standalone HTML line. The CSS uses :has(+ p > .source-code-link)
+      // on the preceding heading to create the visual row layout.
       result.push(
         `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer" class="source-code-link">Source code</a>`
       );

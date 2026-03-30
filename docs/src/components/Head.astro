@@ -32,3 +32,18 @@ import Default from '@astrojs/starlight/components/Head.astro';
     setTimeout(() => btn.classList.remove('copied'), 3000);
   });
 </script>
+
+<script>
+  // Move source-code-link elements inside their preceding heading for
+  // absolute positioning. The preprocessor emits them as standalone <a> tags
+  // (wrapped in <p> by Astro), but CSS absolute positioning requires a
+  // parent–child relationship.
+  document.querySelectorAll<HTMLAnchorElement>('.source-code-link').forEach((link) => {
+    const p = link.parentElement;
+    if (!p || p.tagName !== 'P') return;
+    const heading = p.previousElementSibling;
+    if (!heading || !/^H[2-4]$/.test(heading.tagName)) return;
+    heading.appendChild(link);
+    p.remove();
+  });
+</script>

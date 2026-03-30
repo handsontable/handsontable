@@ -285,24 +285,64 @@ h3 + p {
 }
 
 /* -------------------------------------------------------------------------
- * Source code link — added by vuepress-preprocessor.mjs
+ * API method header — heading + source code link in a visual row.
+ * A client-side script moves the <a class="source-code-link"> inside the
+ * preceding heading, enabling absolute positioning within it.
  * ------------------------------------------------------------------------- */
+/* Before JS moves the link: hide the standalone <p> wrapper to prevent FOUC */
+.sl-markdown-content :is(h2, h3, h4):has(+ p > .source-code-link) {
+  border-top: 1px solid var(--sl-color-gray-5);
+  padding-top: 1rem;
+  margin-bottom: 0;
+}
+
+.sl-markdown-content p:has(> .source-code-link:only-child) {
+  display: none;
+}
+
+/* After JS moves the link inside the heading */
+.sl-markdown-content :is(h2, h3, h4):has(> .source-code-link) {
+  position: relative;
+  border-top: 1px solid var(--sl-color-gray-5);
+  padding-top: 1rem;
+  margin-bottom: 0;
+}
+
 .source-code-link {
+  position: absolute;
+  top: 0;
+  right: 0;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4em;
-  font-size: 0.875rem;
-  color: var(--sl-color-accent);
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
   text-decoration: none;
-  border: 1px solid var(--sl-color-accent);
-  border-radius: 4px;
-  padding: 0.25em 0.75em;
-  margin-block-start: 1rem;
-  transition: background-color 0.15s;
+  border: 1px solid var(--sl-color-gray-5);
+  border-top: none;
+  border-radius: 0;
+  padding: 0 0.75em;
+  min-height: 40px;
+  white-space: nowrap;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.source-code-link::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22'/%3E%3C/svg%3E");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  flex-shrink: 0;
 }
 
 .source-code-link:hover {
-  background-color: var(--sl-color-accent-low);
+  color: var(--sl-color-white);
+  background-color: var(--sl-color-gray-6);
 }
 
 /* -------------------------------------------------------------------------
@@ -528,9 +568,9 @@ h3 + p {
   --ec-uiSelBg: #39414a;
   --ec-uiSelFg: #e1e4e8;
   /* Inline buttons (copy, etc.) */
-  --ec-frm-inlBtnFg: #e1e4e8;
-  --ec-frm-inlBtnBg: #e1e4e8;
-  --ec-frm-inlBtnBrd: #e1e4e8;
+  --ec-frm-inlBtnFg: var(--sl-color-gray-3);
+  --ec-frm-inlBtnBg: var(--sl-color-gray-3);
+  --ec-frm-inlBtnBrd: var(--sl-color-gray-3);
   --ec-frm-inlBtnBrdOpa: 0.4;
   /* Shadow */
   --ec-frm-shdCol: #0000005b;
@@ -571,9 +611,9 @@ h3 + p {
 
 /* Copy button in code blocks — match the "Copy Markdown" action button style */
 .expressive-code .copy button {
-  background-color: var(--sl-color-gray-6);
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.25rem;
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 0;
   opacity: 0;
   transition: opacity 0.15s, border-color 0.15s;
 }
@@ -592,7 +632,7 @@ h3 + p {
 }
 
 .expressive-code .copy button:hover {
-  border-color: var(--sl-color-gray-4);
+  border-color: var(--sl-color-gray-5);
 }
 
 /* Hide EC's "Copied!" text feedback */
