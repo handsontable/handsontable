@@ -190,7 +190,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
   // its content into the preview area instead of a bare <div id="…"></div>.
   let htmlPreviewContent = '';
 
-  if (jsRef) {
+  if (jsRef || vueRef) {
     const htmlFile = files.find(f => f.ext === 'html');
 
     if (htmlFile) {

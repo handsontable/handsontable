@@ -14,6 +14,11 @@ import Default from '@astrojs/starlight/components/Head.astro';
 <link rel="icon" media="(prefers-color-scheme: light)" href="/docs/img/favicon.png" />
 <link rel="icon" media="(prefers-color-scheme: dark)" href="/docs/img/favicon-dark.png" />
 
+<script is:inline>
+  // Remove Starlight's default favicon in favor of light/dark media-query versions above.
+  document.querySelector('link[rel="shortcut icon"]')?.remove();
+</script>
+
 <script>
   import '../scripts/example-runner';
 </script>

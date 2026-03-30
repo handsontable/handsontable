@@ -904,7 +904,7 @@ starlight-file-tree .file {
  * Active sidebar link & TOC link — accent text + blue accent bar
  * ------------------------------------------------------------------------- */
 .sidebar-pane a[aria-current='page'] {
-  color: var(--sl-color-text-accent) !important;
+  color: var(--sl-color-white) !important;
   border-color: var(--sl-color-accent) !important;
   font-weight: 400 !important;
 }
@@ -1061,6 +1061,11 @@ kbd kbd {
   border: 1px solid var(--sl-color-gray-5);
 }
 
+pre .table-container {
+  background-color: transparent;
+  border: none;
+}
+
 .table-container table,
 .sl-markdown-content > table:not(:where(.not-content *)) {
   width: 100%;
@@ -1213,7 +1218,7 @@ kbd kbd {
  * Micro-interactions & polish
  * ------------------------------------------------------------------------- */
 ::selection {
-  background-color: rgba(40, 86, 234, 0.2);
+  background-color: rgba(78, 148, 248, 0.2);
 }
 
 html {
