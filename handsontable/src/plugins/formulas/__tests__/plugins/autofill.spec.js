@@ -135,7 +135,7 @@ describe('Formulas', () => {
       ]);
     });
 
-    it('should not overwrite extra visible columns when dragging across hidden columns with disabled copyPaste', async() => {
+    it('should not overwrite extra visible columns when dragging right across hidden columns', async() => {
       handsontable({
         data: [
           ['=A1', null, null, null, null, null],
@@ -160,7 +160,7 @@ describe('Formulas', () => {
       expect(getSourceDataAtCell(0, 5)).toBe(null);
     });
 
-    it('should not overwrite extra visible rows when dragging across hidden rows with disabled copyPaste', async() => {
+    it('should not overwrite extra visible rows when dragging down across hidden rows', async() => {
       handsontable({
         data: [
           ['=A1'],
@@ -186,6 +186,67 @@ describe('Formulas', () => {
 
       expect(getSourceDataAtCell(3, 0)).toEqual('=A4');
       expect(getSourceDataAtCell(4, 0)).toBe(null);
+    });
+
+    it('should keep left-side order without spilling while dragging left across hidden columns', async() => {
+      handsontable({
+        data: [
+          [null, null, null, '=C1', '=D1', null],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        hiddenColumns: {
+          copyPasteEnabled: false,
+          columns: [2],
+        },
+      });
+
+      await selectCell(0, 4, 0, 3);
+
+      spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+      $(getCell(0, 0, true)).simulate('mouseover').simulate('mouseup');
+
+      expect(getSourceDataAtCell(0, 0)).toEqual('=#REF!');
+      expect(getSourceDataAtCell(0, 1)).toEqual('=A1');
+      expect(getSourceDataAtCell(0, 2)).toBe(null);
+      expect(getSourceDataAtCell(0, 3)).toEqual('=C1');
+      expect(getSourceDataAtCell(0, 4)).toEqual('=D1');
+      expect(getSourceDataAtCell(0, 5)).toBe(null);
+    });
+
+    it('should keep up-side order without spilling while dragging up across hidden rows', async() => {
+      handsontable({
+        data: [
+          [null],
+          [null],
+          [null],
+          ['=A3'],
+          ['=A4'],
+          [null],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        hiddenRows: {
+          copyPasteEnabled: false,
+          rows: [2],
+        },
+      });
+
+      await selectCell(4, 0, 3, 0);
+
+      spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+      $(getCell(0, 0, true)).simulate('mouseover').simulate('mouseup');
+
+      expect(getSourceDataAtCell(0, 0)).toEqual('=#REF!');
+      expect(getSourceDataAtCell(1, 0)).toEqual('=A1');
+      expect(getSourceDataAtCell(2, 0)).toBe(null);
+      expect(getSourceDataAtCell(3, 0)).toEqual('=A3');
+      expect(getSourceDataAtCell(4, 0)).toEqual('=A4');
+      expect(getSourceDataAtCell(5, 0)).toBe(null);
     });
   });
 });

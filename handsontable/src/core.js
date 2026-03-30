@@ -1140,6 +1140,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           let skippedColumn = 0;
           let pushData = true;
           let cellMeta;
+          const isAutofillSource = source === 'Autofill.fill' || source === 'autofill.fill';
 
           const getInputValue = function getInputValue(row, col = null) {
             const rowValue = input[row % input.length];
@@ -1165,7 +1166,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               break;
             }
             const visualRow = r - skippedRow;
-            const colInputLength = getInputValue(visualRow).length;
+            const sourceRow = isAutofillSource ? r : visualRow;
+            const colInputLength = getInputValue(sourceRow).length;
             const colSelectionLength = end ? end.col - start.col + 1 : 0;
 
             if (end) {
@@ -1176,10 +1178,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
             current.col = start.col;
             cellMeta = instance.getCellMeta(current.row, current.col);
 
-            if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipRowOnPaste) {
+            if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
+                cellMeta.skipRowOnPaste) {
               skippedRow += 1;
               current.row += 1;
-              rlen += 1;
+
+              if (source === 'CopyPaste.paste') {
+                rlen += 1;
+              }
+
               /* eslint-disable no-continue */
               continue;
             }
@@ -1193,10 +1200,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               }
               cellMeta = instance.getCellMeta(current.row, current.col);
 
-              if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipColumnOnPaste) {
+              if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
+                  cellMeta.skipColumnOnPaste) {
                 skippedColumn += 1;
                 current.col += 1;
-                clen += 1;
+
+                if (source === 'CopyPaste.paste') {
+                  clen += 1;
+                }
+
                 continue;
               }
 
@@ -1207,9 +1219,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               }
 
               const visualColumn = c - skippedColumn;
+              const sourceColumn = isAutofillSource ? c : visualColumn;
               const hasValueSetter = !!cellMeta.valueSetter;
 
-              let value = getInputValue(visualRow, visualColumn);
+              let value = getInputValue(sourceRow, sourceColumn);
               let orgValue = instance.getSourceDataAtCell(current.row, current.col) ?? null;
 
               if (value !== null && typeof value === 'object') {
