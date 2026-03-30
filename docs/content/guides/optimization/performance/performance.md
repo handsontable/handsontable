@@ -149,6 +149,8 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 
 ### Related guides
 
+<div class="boxes-list">
+
 - [Batch operations](@/guides/optimization/batch-operations/batch-operations.md)
 - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
@@ -156,12 +158,19 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 - [Modules](@/guides/tools-and-building/modules/modules.md)
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
 
+</div>
+
 ### Related API reference
 
-- Configuration options:
-  - [`pagination`](@/api/options.md#pagination)
-  - [`autoColumnSize`](@/api/options.md#autocolumnsize)
-  - [`autoRowSize`](@/api/options.md#autorowsize)
-  - [`colWidths`](@/api/options.md#colwidths)
-  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
-  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
+**Configuration options:**
+
+<div class="boxes-list">
+
+- [`pagination`](@/api/options.md#pagination)
+- [`autoColumnSize`](@/api/options.md#autocolumnsize)
+- [`autoRowSize`](@/api/options.md#autorowsize)
+- [`colWidths`](@/api/options.md#colwidths)
+- [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
+- [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
+
+</div>

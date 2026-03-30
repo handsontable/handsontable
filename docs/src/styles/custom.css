@@ -28,7 +28,7 @@
   --sl-font: 'Inter', system-ui, -apple-system, sans-serif;
   --sl-text-base: 1rem;
   --sl-line-height: 1.7;
-  --sl-nav-height: 7.125rem;
+  --sl-nav-height: 6.625rem;
   --sl-content-gap-y: 1.25rem;
 
   /* Pure gray palette (1–9) — zero chroma removes the warm tint from rapide's hue-base */
@@ -1212,6 +1212,58 @@ pre .table-container {
   font-size: 0.85em;
   white-space: nowrap;
   line-height: 1;
+}
+
+/* -------------------------------------------------------------------------
+ * Collapsible <details> sections
+ * ------------------------------------------------------------------------- */
+.sl-markdown-content details {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  margin: 1rem 0;
+}
+
+.sl-markdown-content details summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  font-weight: 500;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-white);
+  cursor: pointer;
+  list-style: none;
+}
+
+.sl-markdown-content details summary::-webkit-details-marker {
+  display: none;
+}
+
+.sl-markdown-content details summary::before {
+  content: '';
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(0deg);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.sl-markdown-content details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.sl-markdown-content details > :not(summary) {
+  padding: 0 0.875rem;
+}
+
+.sl-markdown-content details > .table-container,
+.sl-markdown-content details > .expressive-code {
+  margin: 0 0 0 -1rem;
+  border: none;
+  padding: 0;
 }
 
 /* -------------------------------------------------------------------------

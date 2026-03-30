@@ -190,4 +190,8 @@ export class ExampleComponent {
 
 ## Related guides
 
+<div class="boxes-list">
+
 - [Modules](@/guides/tools-and-building/modules/modules.md)
+
+</div>

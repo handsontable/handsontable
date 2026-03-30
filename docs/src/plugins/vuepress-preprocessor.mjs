@@ -59,6 +59,9 @@ function preprocessMarkdown(content, framework) {
   //     content, so we pre-convert `code` → <code>code</code> ourselves.
   result = convertInlineCodeInAsides(result);
 
+  // 3c. Convert ::: details Title → <details><summary>Title</summary>…</details>
+  result = convertDetailsContainers(result);
+
   // 4. Strip :::example / :::example-without-tabs container markers.
   //    Keep the code blocks inside so they render as plain fenced code.
   result = stripExampleContainers(result);
@@ -267,6 +270,39 @@ function convertBoxesListToCardGrid(content) {
 /**
  * Converts ::: source-code-link URL ::: blocks to plain HTML anchor tags.
  */
+/**
+ * Converts ::: details Title → <details><summary>Title</summary>…</details>.
+ * Content between the markers is kept as-is (markdown will process it).
+ */
+function convertDetailsContainers(content) {
+  const lines = content.split('\n');
+  const result = [];
+  let depth = 0;
+
+  for (const line of lines) {
+    const openMatch = line.match(/^:{3,}\s+details\s+(.+)$/);
+
+    if (openMatch) {
+      depth++;
+      result.push(`<details>`);
+      result.push(`<summary>${openMatch[1].trim()}</summary>`);
+      result.push('');
+      continue;
+    }
+
+    if (depth > 0 && /^:{3,}\s*$/.test(line)) {
+      depth--;
+      result.push('');
+      result.push('</details>');
+      continue;
+    }
+
+    result.push(line);
+  }
+
+  return result.join('\n');
+}
+
 /**
  * Converts backtick inline code (`text`) to <code>text</code> inside Starlight
  * aside blocks (:::tip, :::caution, :::danger, :::note).

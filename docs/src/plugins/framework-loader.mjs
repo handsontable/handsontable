@@ -545,6 +545,41 @@ function stripExampleContainers(content) {
 }
 
 /**
+ * Converts ::: details Title → <details><summary>Title</summary>…</details>.
+ *
+ * @param {string} content
+ * @returns {string}
+ */
+function convertDetailsContainers(content) {
+  const lines = content.split('\n');
+  const result = [];
+  let depth = 0;
+
+  for (const line of lines) {
+    const openMatch = line.match(/^:{3,}\s+details\s+(.+)$/);
+
+    if (openMatch) {
+      depth++;
+      result.push('<details>');
+      result.push(`<summary>${openMatch[1].trim()}</summary>`);
+      result.push('');
+      continue;
+    }
+
+    if (depth > 0 && /^:{3,}\s*$/.test(line)) {
+      depth--;
+      result.push('');
+      result.push('</details>');
+      continue;
+    }
+
+    result.push(line);
+  }
+
+  return result.join('\n');
+}
+
+/**
  * Converts ::: source-code-link URL ::: blocks to plain HTML anchor tags.
  *
  * @param {string} content
@@ -1012,6 +1047,9 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
 
   // Convert <code-group>/<code-block> VuePress tabs to HTML tabs
   result = convertCodeGroupToTabs(result);
+
+  // Convert ::: details Title → <details><summary>…</summary>…</details>
+  result = convertDetailsContainers(result);
 
   // Strip :::example / :::example-without-tabs container markers
   result = stripExampleContainers(result);
