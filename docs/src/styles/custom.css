@@ -860,10 +860,10 @@ starlight-file-tree .file {
 }
 
 /* -------------------------------------------------------------------------
- * Active sidebar link & TOC link — white text + blue accent bar
+ * Active sidebar link & TOC link — accent text + blue accent bar
  * ------------------------------------------------------------------------- */
 .sidebar-pane a[aria-current='page'] {
-  color: #fff !important;
+  color: var(--sl-color-text-accent) !important;
   border-color: var(--sl-color-accent) !important;
   font-weight: 400 !important;
 }

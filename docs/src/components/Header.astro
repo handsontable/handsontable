@@ -254,7 +254,13 @@ const isGuidesPage = !isApiPage && !isRecipesPage && !isChangelogPage;
     color: var(--sl-color-white);
   }
 
-  .github-stars__count:empty {
-    display: none;
+  .github-stars__count {
+    min-width: 2.5ch;
+  }
+
+  .github-stars__count:empty::before {
+    /* Reserve space with a transparent placeholder to prevent layout shift */
+    content: '\00a0\00a0\00a0';
+    visibility: hidden;
   }
 </style>
