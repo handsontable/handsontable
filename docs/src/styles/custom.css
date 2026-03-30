@@ -1461,6 +1461,7 @@ html {
   inset-inline-start: 0;
   list-style: none;
   margin: 0;
+  max-height: 240px;
   min-width: 100%;
   overflow-y: auto;
   padding: 0;

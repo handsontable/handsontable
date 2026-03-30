@@ -43,8 +43,8 @@ Use the locale selector above the table to see how different locales affect numb
 ::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.html)
-@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.js)
-@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.ts)
+@[code collapse={13-64,70-134}](@/content/guides/cell-types/numeric-cell-type/javascript/example1.js)
+@[code collapse={14-65,71-135}](@/content/guides/cell-types/numeric-cell-type/javascript/example1.ts)
 
 :::
 
@@ -54,8 +54,8 @@ Use the locale selector above the table to see how different locales affect numb
 
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/cell-types/numeric-cell-type/react/example1.jsx)
-@[code](@/content/guides/cell-types/numeric-cell-type/react/example1.tsx)
+@[code collapse={8-30,68-119,159-223}](@/content/guides/cell-types/numeric-cell-type/react/example1.jsx)
+@[code collapse={20-42,80-131,171-235}](@/content/guides/cell-types/numeric-cell-type/react/example1.tsx)
 
 :::
 
@@ -65,7 +65,7 @@ Use the locale selector above the table to see how different locales affect numb
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/numeric-cell-type/angular/example1.ts)
+@[code collapse={58-133,144-208}](@/content/guides/cell-types/numeric-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/numeric-cell-type/angular/example1.html)
 
 :::
