@@ -144,6 +144,7 @@ class HeadersUI extends BaseUI {
    */
   updateRowHeaderWidth(deepestLevel) {
     let deepestLevelIndex = deepestLevel;
+    const previousWidth = this.rowHeaderWidthCache;
 
     if (!deepestLevelIndex) {
       deepestLevelIndex = this.dataManager.cache.levelCount;
@@ -158,6 +159,14 @@ class HeadersUI extends BaseUI {
     this.rowHeaderWidthCache = Math.max(50, completeVerticalPadding + (10 * deepestLevelIndex) + 25);
 
     this.hot.render();
+
+    if (previousWidth !== this.rowHeaderWidthCache && this.hot.view && !this.hot.isDestroyed) {
+      this.hot.rootWindow.requestAnimationFrame(() => {
+        if (this.hot.view && !this.hot.isDestroyed) {
+          this.hot.view.adjustElementsSize(true);
+        }
+      });
+    }
   }
 }
 

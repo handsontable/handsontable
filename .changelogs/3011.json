@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed clipped last column header when nested rows are enabled.",
+  "type": "fixed",
+  "issueOrPR": 3011,
+  "breaking": false,
+  "framework": "none"
+}

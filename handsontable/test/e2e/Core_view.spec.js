@@ -1017,4 +1017,56 @@ describe('Core_view', () => {
 
     expect(wtHiderWidth).toEqual(htCoreWidth);
   });
+
+  it('should display full content of the last column header when nestedRows is enabled', async() => {
+    const nestedData = [
+      {
+        id: 1,
+        name: 'father 1',
+        __children: [
+          {
+            id: 2,
+            name: 'Child 1.1',
+            __children: [
+              {
+                id: 3,
+                name: 'Child 1.1.1',
+                __children: [
+                  {
+                    id: 4,
+                    name: 'Child 1.1.1.1'
+                  }
+                ]
+              },
+            ]
+          },
+        ]
+      },
+    ];
+    const lastHeaderLabel = 'Very long header for the last column';
+
+    handsontable({
+      data: nestedData,
+      colHeaders: ['ID', 'Name', lastHeaderLabel],
+      columns: [
+        { data: 'id', type: 'numeric', width: 80 },
+        { data: 'name', type: 'text', width: 120 },
+        { data: 'name', type: 'text', width: 230 },
+      ],
+      nestedRows: true,
+      rowHeaders: true,
+      width: 420,
+      height: 220,
+      contextMenu: true
+    });
+
+    await waitForNextAnimationFrames(2);
+
+    const topHeaders = spec().$container.find('.ht_clone_top thead tr:last-child th');
+    const lastHeaderCell = topHeaders[topHeaders.length - 1];
+    const lastHeaderSpan = lastHeaderCell.querySelector('.colHeader');
+
+    expect(lastHeaderSpan.textContent.trim()).toBe(lastHeaderLabel);
+    expect(lastHeaderSpan.scrollWidth).toBeLessThanOrEqual(lastHeaderSpan.clientWidth + 1);
+  });
 });
