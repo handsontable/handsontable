@@ -141,6 +141,7 @@ Changes to JavaScript APIs that are **not listed in the public API reference** (
 
 ### General conventions
 
+- **Cognitive complexity**: Keep each function at **15 or below** on the Sonar cognitive-complexity metric (nested conditionals, loops, and boolean operators accumulate). Extract helpers or early-return guards when a function exceeds the limit.
 - **Separate CSS and JS**: Never mix CSS into JavaScript files.
 - **DRY**: Reuse existing helpers and mixins. Extract duplicated code into shared methods.
 - **Method ordering**: Public methods first, then private listeners.

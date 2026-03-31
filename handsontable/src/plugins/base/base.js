@@ -470,38 +470,40 @@ export class BasePlugin {
    * @param {object} newSettings New set of settings passed to the `updateSettings` method.
    */
   onUpdateSettings(newSettings) {
+    if (!this.isEnabled) {
+      return;
+    }
+
     const relevantToSettings = this.#isRelevantToSettings(newSettings);
 
-    if (this.isEnabled) {
-      if (this.enabled && !this.isEnabled()) {
-        this.disablePlugin();
-      }
+    if (this.enabled && !this.isEnabled()) {
+      this.disablePlugin();
+    }
 
-      if (!this.enabled && this.isEnabled()) {
-        if (this.isHardConflictBlocked()) {
-          return;
-        }
-        this.enablePlugin();
-      }
-
-      if (
-        this.enabled &&
-        this.isEnabled() &&
-        this.isHardConflictBlocked()
-      ) {
-        this.disablePlugin();
-
+    if (!this.enabled && this.isEnabled()) {
+      if (this.isHardConflictBlocked()) {
         return;
       }
+      this.enablePlugin();
+    }
 
-      if (
-        this.enabled &&
-        this.isEnabled() &&
-        relevantToSettings
-      ) {
-        this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
-        this.updatePlugin(newSettings);
-      }
+    if (
+      this.enabled &&
+      this.isEnabled() &&
+      this.isHardConflictBlocked()
+    ) {
+      this.disablePlugin();
+
+      return;
+    }
+
+    if (
+      this.enabled &&
+      this.isEnabled() &&
+      relevantToSettings
+    ) {
+      this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
+      this.updatePlugin(newSettings);
     }
   }
 
