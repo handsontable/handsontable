@@ -478,7 +478,7 @@ describe('Core.alter', () => {
 
       await alter('insert_row_above', 2, 1);
 
-      await sleep(20);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterScroll).not.toHaveBeenCalled();
     });

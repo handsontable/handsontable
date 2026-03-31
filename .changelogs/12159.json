@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with main theme hover on menu icon background color",
-  "type": "fixed",
-  "issueOrPR": 12159,
-  "breaking": false,
-  "framework": "none"
-}

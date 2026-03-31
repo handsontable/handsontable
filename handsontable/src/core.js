@@ -3000,6 +3000,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       if (instance.view) {
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
         instance.view._wt.exportSettingsAsClassNames();
+        instance.view.invalidateIndexSizesCache();
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -4990,8 +4991,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     // The plugin's `destroy` method is called as a consequence and it should handle
     // unregistration of plugin's maps. Some unregistered maps reset the cache.
     instance.batchExecution(() => {
-      instance.rowIndexMapper.unregisterAll();
-      instance.columnIndexMapper.unregisterAll();
+      instance.rowIndexMapper.destroy();
+      instance.columnIndexMapper.destroy();
 
       pluginsRegistry
         .getItems()
@@ -5047,9 +5048,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   /**
    * Returns the active editor class instance.
    *
+   * The active editor is the editor instance associated with the currently selected cell.
+   * An editor becomes active when a cell is selected and the editor is prepared (but not
+   * necessarily open). If no cell is selected, the method returns `undefined`.
+   *
    * @memberof Core#
    * @function getActiveEditor
-   * @returns {BaseEditor} The active editor instance.
+   * @returns {BaseEditor | undefined} The active editor instance, or `undefined` if no cell is selected.
    */
   this.getActiveEditor = function() {
     return editorManager.getActiveEditor();

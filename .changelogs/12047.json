@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed scrollbar width calcualtion on Safari >=26.",
-  "type": "fixed",
-  "issueOrPR": 12047,
-  "breaking": false,
-  "framework": "none"
-}

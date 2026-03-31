@@ -54,6 +54,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY]: 'Copier',
   [C.CONTEXTMENU_ITEMS_CUT]: 'Couper',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exporter',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'En CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'En Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Exportation…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Insérer une sous-ligne',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Détacher de la ligne précédente',
 

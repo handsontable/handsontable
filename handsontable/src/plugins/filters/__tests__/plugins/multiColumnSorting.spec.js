@@ -25,7 +25,7 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Greater than');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     // Greater than 12
     document.activeElement.value = '12';
@@ -41,14 +41,14 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Begins with');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     // Begins with 'b'
     document.activeElement.value = 'b';
     await keyUp('b');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(getData().length).toEqual(3);
     expect(getData()[0][0]).toBe(24);
@@ -71,7 +71,7 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Greater than');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     // Greater than 12
     $(conditionSelectRootElements().first).next().find('input')[0].focus();
@@ -90,7 +90,7 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Ends with');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     // Ends with 'e'
     $(conditionSelectRootElements().first).next().find('input')[0].focus();
@@ -111,7 +111,7 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('None');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
@@ -134,7 +134,7 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Greater than');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     // Greater than 12
     $(conditionSelectRootElements().first).next().find('input')[0].focus();
@@ -153,7 +153,7 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Ends with');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     // Ends with 'e'
     $(conditionSelectRootElements().first).next().find('input')[0].focus();
@@ -174,7 +174,7 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is empty');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 

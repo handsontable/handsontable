@@ -5,6 +5,7 @@
 .cache
 .cursor
 .claude
+.playwright-mcp
 dev*.html
 dev*.js
 npm-debug.log

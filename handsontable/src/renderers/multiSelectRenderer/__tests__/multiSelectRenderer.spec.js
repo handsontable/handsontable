@@ -144,7 +144,7 @@ describe('multiSelectRenderer', () => {
           ],
         });
 
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
         renderedChips = chipsContainer.find('.ht-multi-select-chip');
