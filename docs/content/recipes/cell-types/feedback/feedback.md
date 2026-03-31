@@ -18,7 +18,18 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
-[[toc]]
+
+::: only-for javascript vue
+
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
+
+@[code](@/content/recipes/cell-types/feedback/javascript/example1.js)
+@[code](@/content/recipes/cell-types/feedback/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/feedback/javascript/example1.css)
+
+:::
+
+:::
 
 ## Overview
 
@@ -37,20 +48,6 @@ A cell that:
 - Supports keyboard navigation (arrow keys, Tab)
 - Provides click-to-select functionality
 - Works without any external libraries
-
-## Complete Example
-
-::: only-for javascript vue
-
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
-
-@[code](@/content/recipes/cell-types/feedback/javascript/example1.js)
-@[code](@/content/recipes/cell-types/feedback/javascript/example1.ts)
-@[code](@/content/recipes/cell-types/feedback/javascript/example1.css)
-
-:::
-
-:::
 
 ## Prerequisites
 

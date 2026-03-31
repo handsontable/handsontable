@@ -19,7 +19,13 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
-[[toc]]
+
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps numbro
+
+@[code](@/content/recipes/cell-types/numbro/javascript/example1.js)
+@[code](@/content/recipes/cell-types/numbro/javascript/example1.ts)
+
+:::
 
 ## Overview
 
@@ -28,15 +34,6 @@ This guide shows how to create a custom numbro cell type using the [Numbro](http
 **Difficulty:** Beginner
 **Time:** ~15 minutes
 **Libraries:** `numbro`
-
-## Complete Example
-
-::: example #example1 :hot-recipe --js 1 --ts 2 --deps numbro
-
-@[code](@/content/recipes/cell-types/numbro/javascript/example1.js)
-@[code](@/content/recipes/cell-types/numbro/javascript/example1.ts)
-
-:::
 
 ## What You'll Build
 

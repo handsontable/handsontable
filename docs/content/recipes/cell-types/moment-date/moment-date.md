@@ -20,17 +20,6 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
-[[toc]]
-
-## Overview
-
-This guide shows how to create a custom date cell type using the [Moment.js](https://momentjs.com/) library. Users can format dates using the Moment.js API.
-
-**Difficulty:** Beginner
-**Time:** ~25 minutes
-**Libraries:** `moment`, `@handsontable/pikaday`
-
-## Complete Example
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps moment @handsontable/pikaday
 
@@ -39,6 +28,14 @@ This guide shows how to create a custom date cell type using the [Moment.js](htt
 @[code](@/content/recipes/cell-types/moment-date/javascript/example1.css)
 
 :::
+
+## Overview
+
+This guide shows how to create a custom date cell type using the [Moment.js](https://momentjs.com/) library. Users can format dates using the Moment.js API.
+
+**Difficulty:** Beginner
+**Time:** ~25 minutes
+**Libraries:** `moment`, `@handsontable/pikaday`
 
 ## What You'll Build
 

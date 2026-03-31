@@ -18,7 +18,18 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
-[[toc]]
+
+::: only-for javascript vue
+
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
+
+@[code](@/content/recipes/cell-types/rating/javascript/example1.js)
+@[code](@/content/recipes/cell-types/rating/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/rating/javascript/example1.css)
+
+:::
+
+:::
 
 ## Overview
 
@@ -38,20 +49,6 @@ A cell that:
 - Allows keyboard input (1-5 keys, arrow keys)
 - Provides immediate visual feedback
 - Works without any external libraries
-
-## Complete Example
-
-::: only-for javascript vue
-
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
-
-@[code](@/content/recipes/cell-types/rating/javascript/example1.js)
-@[code](@/content/recipes/cell-types/rating/javascript/example1.ts)
-@[code](@/content/recipes/cell-types/rating/javascript/example1.css)
-
-:::
-
-:::
 
 ## Prerequisites
 

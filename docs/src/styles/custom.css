@@ -97,6 +97,12 @@
   width: auto;
 }
 
+/* Override Starlight's `height: auto` on iframes so the HTML attribute works */
+.sl-markdown-content iframe:not(:where(.not-content *)) {
+  height: revert;
+  margin-top: 20px;
+}
+
 /* -------------------------------------------------------------------------
  * Constrain entire page layout to ~1500px on wide viewports
  * ------------------------------------------------------------------------- */
@@ -1051,6 +1057,15 @@ starlight-toc a:not([aria-current='true']):hover {
   margin-bottom: 1rem;
 }
 
+.sl-markdown-content h1:last-child:not(:where(.not-content *)) {
+  margin-bottom: 1rem;
+}
+
+.sl-markdown-content h2:first-child:not(:where(.not-content *)),
+.sl-markdown-content .sl-heading-wrapper:first-child h2:not(:where(.not-content *)) {
+  margin-top: 0.5rem;
+}
+
 .sl-markdown-content h2:not(:where(.not-content *)) {
   letter-spacing: -0.01em;
   margin-top: 2.5rem;
@@ -1059,7 +1074,7 @@ starlight-toc a:not([aria-current='true']):hover {
 
 .sl-markdown-content h2:first-child,
 .sl-markdown-content .sl-heading-wrapper:first-child h2 {
-  margin-top: 0;
+  margin-top: 0.5rem;
 }
 
 .sl-markdown-content :not(h1, h2, h3, h4, h5, h6) + :is(h1, h2, h3, h4, h5, h6):not(:where(.not-content *)) {
@@ -1381,7 +1396,7 @@ html {
   }
 }
 
-:focus-visible {
+:focus-visible:not(.handsontable *, .ht-portal *) {
   outline: 2px solid var(--sl-color-accent);
   outline-offset: 2px;
 }

@@ -18,7 +18,18 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
-[[toc]]
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/cell-types/guide-rating-angular/angular/example1.ts)
+@[code](@/content/recipes/cell-types/guide-rating-angular/angular/example1.html)
+@[code](@/content/recipes/cell-types/guide-rating-angular/angular/example1.css)
+
+:::
+
+:::
 
 ## Overview
 
@@ -40,20 +51,6 @@ A cell that:
 - Provides immediate visual feedback
 - Highlights the current star (accent color) while editing
 - Works without any external libraries
-
-## Complete Example
-
-::: only-for angular
-
-::: example #example1 :angular --ts 1 --html 2 --css 3
-
-@[code](@/content/recipes/cell-types/guide-rating-angular/angular/example1.ts)
-@[code](@/content/recipes/cell-types/guide-rating-angular/angular/example1.html)
-@[code](@/content/recipes/cell-types/guide-rating-angular/angular/example1.css)
-
-:::
-
-:::
 
 ## Step 1: Import Dependencies
 

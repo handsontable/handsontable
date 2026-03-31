@@ -256,26 +256,32 @@ function buildRecipesSidebar(framework, prefix) {
         if (!allowed.includes(framework)) continue;
       }
 
-      const children = entry.children
-        .filter((child) => {
-          if (!child.onlyFor) return true;
+      const children = [];
 
+      // Add the group overview page as the first item if a path is defined.
+      if (entry.path) {
+        const overviewPath = `recipes/${entry.path}`;
+
+        children.push({ label: 'Overview', link: toLink(overviewPath, prefix) });
+      }
+
+      for (const child of entry.children) {
+        if (child.onlyFor) {
           const allowed = Array.isArray(child.onlyFor) ? child.onlyFor : [child.onlyFor];
 
-          return allowed.includes(framework);
-        })
-        .map((child) => {
-          const fullPath = `recipes/${child.path}`;
-          const entry = { label: child.title || getTitle(fullPath), link: toLink(fullPath, prefix) };
-          const badge = tagToBadge(getMenuTag(fullPath));
+          if (!allowed.includes(framework)) continue;
+        }
 
-          if (badge) entry.badge = badge;
+        const fullPath = `recipes/${child.path}`;
+        const item = { label: child.title || getTitle(fullPath), link: toLink(fullPath, prefix) };
+        const badge = tagToBadge(getMenuTag(fullPath));
 
-          return entry;
-        });
+        if (badge) item.badge = badge;
+        children.push(item);
+      }
 
       if (children.length > 0) {
-        items.push({ label: entry.title, collapsed: true, items: children });
+        items.push({ label: entry.title, collapsed: false, items: children });
       }
     }
   }
