@@ -112,7 +112,11 @@ If you’re using the `renderer` option for JavaScript function-based renderers,
 
 Custom editors have changed a lot - they've moved from class-based to function-based components, now using the new `useHotEditor` hook.
 
-#### 3.1. Replace the class declaration with a function:
+<ol class="sl-steps">
+<li>
+
+**Replace the class declaration with a function:**
+
 **`@handsontable/react`:**
 ```jsx
 class EditorComponent extends BaseEditorComponent {
@@ -127,7 +131,11 @@ const EditorComponent = () => {
 };
 ```
 
-#### 3.2. Implement the `useHotEditor` hook
+</li>
+<li>
+
+**Implement the `useHotEditor` hook**
+
 Replace the `BaseEditorComponent` methods with the `useHotEditor` hook:
 ```jsx
 import { useHotEditor } from '@handsontable/react-wrapper';
@@ -146,7 +154,11 @@ const EditorComponent = () => {
 };
 ```
 
-#### 3.3. Update the component structure
+</li>
+<li>
+
+**Update the component structure**
+
 Replace the `render` method with the function component's return statement:
 ```jsx
 return (
@@ -156,7 +168,11 @@ return (
 );
 ```
 
-#### 3.4. Update HotColumn Usage
+</li>
+<li>
+
+**Update HotColumn Usage**
+
 Just like with renderers, custom editors now need to be provided using the `editor` prop on either `HotTable` or `HotColumn`.
 
 **`@handsontable/react`:**
@@ -169,6 +185,9 @@ Just like with renderers, custom editors now need to be provided using the `edit
 ```jsx
 <HotColumn width={250} editor={EditorComponent} />
 ```
+
+</li>
+</ol>
 
 ::: tip  
 If you’re using the `editor` option for JavaScript class-based editors, you can still use them. Just define them under the `hotEditor` key instead of `editor`.  

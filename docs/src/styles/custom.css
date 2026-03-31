@@ -694,11 +694,29 @@ h3 + p {
     font-weight: normal;
     color: var(--sl-color-white);
     max-width: 100%;
+    list-style: none;
   }
 
   starlight-file-tree .directory > details > summary::marker,
   starlight-file-tree .directory > details > summary::-webkit-details-marker {
-    color: var(--sl-color-gray-3);
+    display: none;
+  }
+
+  starlight-file-tree .directory > details > summary::before {
+    content: '';
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-right: 2px solid var(--sl-color-gray-3);
+    border-bottom: 2px solid var(--sl-color-gray-3);
+    transform: rotate(-45deg);
+    transition: transform 0.15s;
+    flex-shrink: 0;
+    margin-right: 0.25rem;
+  }
+
+  starlight-file-tree .directory > details[open] > summary::before {
+    transform: rotate(45deg);
   }
 
   starlight-file-tree .directory > details > summary:hover,
@@ -709,11 +727,11 @@ h3 + p {
   }
 
   starlight-file-tree .directory > details > summary:hover ~ ul {
-    border-color: var(--sl-color-gray-4);
+    border-color: var(--sl-color-accent);
   }
 
   starlight-file-tree ul {
-    margin-inline-start: 0.5rem;
+    margin-inline-start: -0.625rem;
     border-inline-start: 1px solid var(--sl-color-gray-5);
     padding: 0;
     padding-inline-start: 0.125rem;
@@ -741,6 +759,7 @@ h3 + p {
     align-items: flex-start;
     flex-wrap: wrap;
     max-width: calc(100% - 1rem);
+    padding-left: 0.5rem;
   }
 
   @media (min-width: 30em) {
@@ -791,6 +810,8 @@ h3 + p {
  * `* { margin: 0 }` reset and the rapide theme layer. */
 starlight-file-tree {
   border-radius: 0;
+  padding: 1rem;
+  border: 1px solid var(--sl-color-gray-5);
 }
 
 starlight-file-tree .directory > details > summary {
@@ -798,7 +819,7 @@ starlight-file-tree .directory > details > summary {
 }
 
 starlight-file-tree ul {
-  margin-inline-start: 0.5rem;
+  margin-inline-start: -0.625rem;
 }
 
 starlight-file-tree > ul {
@@ -811,6 +832,36 @@ starlight-file-tree li {
 
 starlight-file-tree .file {
   margin-inline-start: calc(var(--x-space) - 0.125rem);
+}
+
+starlight-file-tree .directory > details > summary {
+  list-style: none;
+}
+
+starlight-file-tree .directory > details > summary::marker,
+starlight-file-tree .directory > details > summary::-webkit-details-marker {
+  display: none;
+}
+
+starlight-file-tree .directory > details > summary::before {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid var(--sl-color-gray-3);
+  border-bottom: 2px solid var(--sl-color-gray-3);
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+  margin-right: 0.25rem;
+}
+
+starlight-file-tree .directory > details[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+starlight-file-tree .directory > details > summary:hover ~ ul {
+  border-color: var(--sl-color-accent);
 }
 
 /* -------------------------------------------------------------------------
@@ -1257,13 +1308,13 @@ pre .table-container {
 /* -------------------------------------------------------------------------
  * Collapsible <details> sections
  * ------------------------------------------------------------------------- */
-.sl-markdown-content details {
+.sl-markdown-content details:not(:where(.not-content *)) {
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 0;
   margin: 1rem 0;
 }
 
-.sl-markdown-content details summary {
+.sl-markdown-content details:not(:where(.not-content *)) summary {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1275,27 +1326,34 @@ pre .table-container {
   list-style: none;
 }
 
-.sl-markdown-content details summary::-webkit-details-marker {
+.sl-markdown-content details:not(:where(.not-content *)) summary::-webkit-details-marker {
   display: none;
 }
 
-.sl-markdown-content details summary::before {
+.sl-markdown-content details:not(:where(.not-content *)) summary::before {
   content: '';
   display: inline-block;
-  width: 1rem;
-  height: 1rem;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(0deg);
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid var(--sl-color-gray-3);
+  border-bottom: 2px solid var(--sl-color-gray-3);
+  transform: rotate(-45deg);
   transition: transform 0.15s;
   flex-shrink: 0;
+  margin-right: 0.25rem;
+  /* Reset Starlight's SVG-mask marker that cascades from @layer starlight.content */
+  background-color: transparent;
+  -webkit-mask-image: none;
+  mask-image: none;
+  margin-inline: 0;
+  vertical-align: baseline;
 }
 
-.sl-markdown-content details[open] summary::before {
-  transform: rotate(90deg);
+.sl-markdown-content details[open]:not(:where(.not-content *)) summary::before {
+  transform: rotate(45deg);
 }
 
-.sl-markdown-content details > :not(summary) {
+.sl-markdown-content details:not(:where(.not-content *)) > :not(summary) {
   padding: 0 0.875rem;
 }
 

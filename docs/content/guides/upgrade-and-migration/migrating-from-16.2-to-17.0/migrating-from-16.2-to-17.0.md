@@ -45,13 +45,19 @@ If you were using the legacy styles, migrate to the Classic theme using one of t
 
 The Theme API allows you to register and configure themes programmatically with runtime features like density modes and color schemes.
 
-##### Step 1: Update your CSS imports
+<ol class="sl-steps">
+<li>
+
+**Update your CSS imports**
 
 ```diff
 - import 'handsontable/dist/handsontable.full.min.css';
 ```
 
-##### Step 2: Import and register the Classic theme
+</li>
+<li>
+
+**Import and register the Classic theme**
 
 ::: only-for javascript
 
@@ -103,11 +109,17 @@ export class AppComponent {
 
 :::
 
+</li>
+</ol>
+
 #### Option 2: Using CSS files with theme as string
 
 Alternatively, you can use CSS files and pass the theme name as a string to the `theme` option.
 
-##### Step 1: Update your CSS imports
+<ol class="sl-steps">
+<li>
+
+**Update your CSS imports**
 
 ```diff
 - @import 'handsontable/dist/handsontable.full.min.css';
@@ -138,7 +150,10 @@ Or in `angular.json`:
 
 :::
 
-##### Step 2: Set the theme in Handsontable configuration
+</li>
+<li>
+
+**Set the theme in Handsontable configuration**
 
 ::: only-for javascript
 
@@ -172,6 +187,9 @@ const hot = new Handsontable(container, {
 ```
 
 :::
+
+</li>
+</ol>
 
 ### Why Migrate to Classic?
 
@@ -405,7 +423,10 @@ The numbro.js library added unnecessary bundle size and maintenance overhead. Th
 
 ### How to Migrate
 
-#### Step 1: Update numericFormat Configuration
+<ol class="sl-steps">
+<li>
+
+**Update numericFormat Configuration**
 
 Replace `pattern` and `culture` properties with `Intl.NumberFormat` options.
 
@@ -519,7 +540,10 @@ const hot = new Handsontable(container, {
 
 :::
 
-#### Step 2: Common Migration Patterns
+</li>
+<li>
+
+**Common Migration Patterns**
 
 **Currency Formatting:**
 
@@ -576,9 +600,15 @@ numericFormat: {
 }
 ```
 
-#### Step 3: Using Numbro After Migration
+</li>
+<li>
+
+**Using Numbro After Migration**
 
 If you need numbro.js-specific formatting features that aren't available in `Intl.NumberFormat`, you can create a custom cell type using the numbro library. See the [Numbro cell type recipe](@/recipes/cell-types/numbro/numbro.md) for a complete implementation guide.
+
+</li>
+</ol>
 
 ### What to Expect
 
@@ -613,7 +643,10 @@ Moment.js is in maintenance mode and the legacy `date`/`time` cell types depend 
 
 ### How to Migrate
 
-#### Step 1: Update Date Columns
+<ol class="sl-steps">
+<li>
+
+**Update Date Columns**
 
 Replace the `date` cell type and string `dateFormat` with `intl-date` and an `Intl.DateTimeFormat` options object.
 
@@ -718,7 +751,10 @@ const hot = new Handsontable(container, {
 
 :::
 
-#### Step 2: Update Time Columns
+</li>
+<li>
+
+**Update Time Columns**
 
 Replace the `time` cell type and string `timeFormat` with `intl-time` and an `Intl.DateTimeFormat` options object.
 
@@ -826,7 +862,10 @@ const hot = new Handsontable(container, {
 
 :::
 
-#### Step 3: Common Migration Patterns
+</li>
+<li>
+
+**Common Migration Patterns**
 
 **Short date (e.g. DD/MM/YYYY → locale short):**
 
@@ -885,9 +924,15 @@ locale: 'en-US',
 timeFormat: { timeStyle: 'medium' }
 ```
 
-#### Step 4: Custom Cell Types Using Moment.js
+</li>
+<li>
+
+**Custom Cell Types Using Moment.js**
 
 If you use custom cell types that rely on Moment.js for formatting or parsing (e.g. recipes like the Moment.js date or time cell type), replace Moment formatting with `Intl.DateTimeFormat` in your renderer and editor logic. For a full custom implementation that still uses Moment, see the [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) and [Moment.js time](@/recipes/cell-types/moment-time/moment-time.md) recipes; consider migrating those implementations to Intl to avoid the deprecated path.
+
+</li>
+</ol>
 
 ### What to Expect
 

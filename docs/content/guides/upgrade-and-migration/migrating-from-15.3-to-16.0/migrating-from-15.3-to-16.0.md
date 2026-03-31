@@ -28,7 +28,7 @@ In Handsontable 16.0, we changed how the table is mounted in the DOM. Previously
 
 Here's a side-by-side comparison of the old and new DOM structures:
 
-Old DOM structure:
+**Old DOM structure:**
 
 <starlight-file-tree class="not-content">
 <ul>
@@ -46,7 +46,7 @@ Old DOM structure:
 </ul>
 </starlight-file-tree>
 
-New DOM structure:
+**New DOM structure:**
 
 <starlight-file-tree class="not-content">
 <ul>
