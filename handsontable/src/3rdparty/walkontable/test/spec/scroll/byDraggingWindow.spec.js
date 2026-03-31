@@ -31,7 +31,7 @@ describe('Scrollbar drag optimization (window as scrollable element)', () => {
    * @param {number} [options.scrollTop] Target window scrollY value.
    */
   function simulateScrollbarDrag(wt, { scrollTop } = {}) {
-    document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    document.documentElement.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
 
     if (scrollTop !== undefined) {
       window.scrollTo(0, scrollTop);

@@ -33,7 +33,7 @@ describe('Scrollbar drag optimization', () => {
   function simulateScrollbarDrag(wt, { scrollTop, scrollLeft } = {}) {
     const holder = wt.wtTable.holder;
 
-    document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    holder.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
 
     if (scrollTop !== undefined) {
       holder.scrollTop = scrollTop;
@@ -69,6 +69,29 @@ describe('Scrollbar drag optimization', () => {
       expect(wt.wtTable.spreader.style.position).toBe('sticky');
 
       simulateScrollbarRelease();
+    });
+
+    it('should not activate sticky mode when a child element is clicked and a scroll follows', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      // Simulate clicking a cell (child of holder) — not a scrollbar click
+      const cell = wt.wtTable.getCell(new Walkontable.CellCoords(0, 0));
+
+      cell.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+
+      // Programmatic scroll follows (e.g., from selection logic)
+      wt.wtTable.holder.scrollTop = 500;
+      wt.wtOverlays.syncScrollPositions();
+
+      expect(wt.wtTable.spreader.style.position).toBe('relative');
+
+      document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
     });
 
     it('should not activate sticky mode when scroll happens without mousedown', async() => {

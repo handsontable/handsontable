@@ -27,7 +27,7 @@ describe('Scrollbar drag optimization (RTL mode)', () => {
   function simulateScrollbarDrag(wt, { scrollTop, scrollLeft } = {}) {
     const holder = wt.wtTable.holder;
 
-    document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    holder.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
 
     if (scrollTop !== undefined) {
       holder.scrollTop = scrollTop;

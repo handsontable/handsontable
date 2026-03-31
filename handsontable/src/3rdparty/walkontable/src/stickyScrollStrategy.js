@@ -60,8 +60,8 @@ export class StickyScrollStrategy {
   registerListeners() {
     const { eventManager, domBindings: { rootDocument } } = this.#overlays;
 
-    eventManager.addEventListener(rootDocument, 'mousedown', () => {
-      this.#mouseDown = true;
+    eventManager.addEventListener(rootDocument, 'mousedown', (event) => {
+      this.#mouseDown = this.#isScrollbarTarget(event);
     });
     eventManager.addEventListener(rootDocument, 'mouseup', () => {
       this.#mouseDown = false;
@@ -314,6 +314,25 @@ export class StickyScrollStrategy {
         this.#clearSpreaderInsetStyles(cloneSpreader);
       }
     }
+  }
+
+  /**
+   * Returns whether the mousedown event originated from a native scrollbar.
+   *
+   * When a user clicks a native browser scrollbar, the event target is the
+   * scrollable container itself (the scrollbar is part of the element's
+   * rendering but not a child DOM node). Clicks on child elements (cells,
+   * headers, etc.) set a descendant as the target, so they are excluded.
+   *
+   * @param {MouseEvent} event The mousedown event.
+   * @returns {boolean}
+   */
+  #isScrollbarTarget(event) {
+    if (this.#isWindowScroll()) {
+      return event.target === this.#overlays.domBindings.rootDocument.documentElement;
+    }
+
+    return event.target === this.#overlays.scrollableElement;
   }
 
   /**
