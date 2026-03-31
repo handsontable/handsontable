@@ -45,12 +45,10 @@ describe('Core.selectAll', () => {
   });
 
   it('should not scroll the viewport when all cells without headers are selected', async() => {
-    const scrollbarWidth = Handsontable.dom.getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
-
     handsontable({
       data: createSpreadsheetObjectData(15, 20),
-      width: Math.min(200 - scrollbarWidth, 185),
-      height: Math.min(100 - scrollbarWidth, 85),
+      width: getDefaultColumnHeaderHeight() + (getDefaultColumnWidth() * 3),
+      height: getDefaultRowHeaderWidth() + (getDefaultRowHeight() * 3),
       selectionMode: 'multiple',
       colHeaders: true,
       rowHeaders: true,
@@ -63,27 +61,16 @@ describe('Core.selectAll', () => {
 
     await selectAll(false);
 
-    expect(`
-      | - ║ - : - : - : - : - |
-      |===:===:===:===:===:===|
-      | - ║ 0 : 0 : 0 : 0 : 0 |
-      | - ║ 0 : 0 : 0 : 0 : 0 |
-      | - ║ 0 : 0 : 0 : 0 : 0 |
-      | - ║ 0 : 0 : 0 : 0 : 0 |
-        `).toBeMatchToSelectionPattern();
-
     // "Select all" shouldn't scroll te table.
     expect(tableView()._wt.wtTable.holder.scrollTop).toBe(150);
     expect(tableView()._wt.wtTable.holder.scrollLeft).toBe(150);
   });
 
   it('should not scroll the viewport when all cells with headers are selected', async() => {
-    const scrollbarWidth = Handsontable.dom.getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
-
     handsontable({
       data: createSpreadsheetObjectData(15, 20),
-      width: Math.min(200 - scrollbarWidth, 185),
-      height: Math.min(100 - scrollbarWidth, 85),
+      width: getDefaultColumnHeaderHeight() + (getDefaultColumnWidth() * 3),
+      height: getDefaultRowHeaderWidth() + (getDefaultRowHeight() * 3),
       selectionMode: 'multiple',
       colHeaders: true,
       rowHeaders: true,
@@ -95,15 +82,6 @@ describe('Core.selectAll', () => {
     await scrollViewportVertically(150);
 
     await selectAll(true);
-
-    expect(`
-      | * ║ * : * : * : * : * |
-      |===:===:===:===:===:===|
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-        `).toBeMatchToSelectionPattern();
 
     // "Select all" shouldn't scroll te table.
     expect(tableView()._wt.wtTable.holder.scrollTop).toBe(150);

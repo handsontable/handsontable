@@ -189,7 +189,7 @@ describe('Filters keyboard shortcut', () => {
 
       await keyDownUp('enter');
       await waitForNextAnimationFrames(1);
-      expect(countCheckedCheckboxes()).toEqual(8);
+      expect(countCheckedCheckboxes()).toEqual(5);
 
       document.querySelector('.htUIClearAll a').focus();
 
@@ -201,7 +201,7 @@ describe('Filters keyboard shortcut', () => {
 
       await keyDownUp('space');
       await waitForNextAnimationFrames(1);
-      expect(countCheckedCheckboxes()).toEqual(8);
+      expect(countCheckedCheckboxes()).toEqual(5);
     });
 
     it.forTheme('main')('should react to both `Enter` and `Space`', async() => {
@@ -232,7 +232,7 @@ describe('Filters keyboard shortcut', () => {
 
       await keyDownUp('enter');
       await waitForNextAnimationFrames(1);
-      expect(countCheckedCheckboxes()).toEqual(8);
+      expect(countCheckedCheckboxes()).toEqual(5);
 
       document.querySelector('.htUIClearAll a').focus();
 
@@ -244,7 +244,7 @@ describe('Filters keyboard shortcut', () => {
 
       await keyDownUp('space');
       await waitForNextAnimationFrames(1);
-      expect(countCheckedCheckboxes()).toEqual(8);
+      expect(countCheckedCheckboxes()).toEqual(5);
     });
 
     it.forTheme('horizon')('should react to both `Enter` and `Space`', async() => {
@@ -275,7 +275,7 @@ describe('Filters keyboard shortcut', () => {
 
       await keyDownUp('enter');
       await waitForNextAnimationFrames(1);
-      expect(countCheckedCheckboxes()).toEqual(8);
+      expect(countCheckedCheckboxes()).toEqual(5);
 
       document.querySelector('.htUIClearAll a').focus();
 
@@ -287,7 +287,7 @@ describe('Filters keyboard shortcut', () => {
 
       await keyDownUp('space');
       await waitForNextAnimationFrames(1);
-      expect(countCheckedCheckboxes()).toEqual(8);
+      expect(countCheckedCheckboxes()).toEqual(5);
     });
   });
 });

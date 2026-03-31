@@ -1351,7 +1351,9 @@ describe('manualRowResize', () => {
         rowHeaders: true,
         manualRowResize: true,
         height: 400,
-        width: 200
+        width: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       let $rowHeader = getInlineStartClone().find('tr:eq(2) th:eq(0)');
@@ -1411,7 +1413,9 @@ describe('manualRowResize', () => {
         rowHeaders: true,
         manualRowResize: true,
         width: 200,
-        height: 400
+        height: 400,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportVertically(200);

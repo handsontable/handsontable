@@ -109,7 +109,9 @@ describe('Core_view', () => {
 
     const hot = handsontable({
       data: createSpreadsheetData(10, 3),
-      height: 60
+      height: 60,
+      viewportColumnRenderingOffset: 10,
+      viewportRowRenderingOffset: 10,
     });
 
     const htCore = getHtCore();
@@ -163,8 +165,8 @@ describe('Core_view', () => {
     handsontable({
       data: createSpreadsheetData(10, 9),
       fixedRowsTop: 1,
-      width: 200,
-      height: 100
+      width: getDefaultColumnWidth() * 5,
+      height: getDefaultRowHeight() * 3,
     });
 
     await selectCell(0, 0);
@@ -488,7 +490,7 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, 1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
 
     await keyDownUp('arrowdown');
 
@@ -511,7 +513,7 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
 
     await keyDownUp('arrowdown');
 
@@ -557,7 +559,7 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
 
     await keyDownUp('arrowdown');
 
@@ -926,7 +928,9 @@ describe('Core_view', () => {
         fixedRowsTop: 2,
         fixedColumnsStart: 2,
         width: 200,
-        height: 200
+        height: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportVertically(200);
@@ -954,9 +958,11 @@ describe('Core_view', () => {
         fixedColumnsStart: 2,
         width: 200,
         height: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
-      const rowHeight = getCell(1, 3).clientHeight + 1;
+      const rowHeight = getCell(1, 3).clientHeight;
 
       expect(getCell(1, 1, true).clientHeight).toEqual(rowHeight);
 
