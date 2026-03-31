@@ -235,24 +235,24 @@ describe('settings', () => {
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         // colHeaderHeight + (2 * rowHeight) + 2px (borders)
-        classic.toBe(calcColHeaderHeight('classic') + calcRowHeight('classic') * 2 + 2);
-        main.toBe(calcColHeaderHeight('main') + calcRowHeight('main') * 2 + 2);
-        horizon.toBe(calcColHeaderHeight('horizon') + calcRowHeight('horizon') * 2 + 2);
+        classic.toBe(calcColHeaderHeight('classic') + (calcRowHeight('classic') * 2) + 2);
+        main.toBe(calcColHeaderHeight('main') + (calcRowHeight('main') * 2) + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + (calcRowHeight('horizon') * 2) + 2);
       });
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(calcColHeaderHeight('classic') + calcRowHeight('classic') * 2 + 2);
-        main.toBe(calcColHeaderHeight('main') + calcRowHeight('main') * 2 + 2);
-        horizon.toBe(calcColHeaderHeight('horizon') + calcRowHeight('horizon') * 2 + 2);
+        classic.toBe(calcColHeaderHeight('classic') + (calcRowHeight('classic') * 2) + 2);
+        main.toBe(calcColHeaderHeight('main') + (calcRowHeight('main') * 2) + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + (calcRowHeight('horizon') * 2) + 2);
       });
       expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(calcColHeaderHeight('classic') + calcRowHeight('classic') * 2 + 2);
-        main.toBe(calcColHeaderHeight('main') + calcRowHeight('main') * 2 + 2);
-        horizon.toBe(calcColHeaderHeight('horizon') + calcRowHeight('horizon') * 2 + 2);
+        classic.toBe(calcColHeaderHeight('classic') + (calcRowHeight('classic') * 2) + 2);
+        main.toBe(calcColHeaderHeight('main') + (calcRowHeight('main') * 2) + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + (calcRowHeight('horizon') * 2) + 2);
       });
       expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(calcColHeaderHeight('classic') + calcRowHeight('classic') * 2 + 2);
-        main.toBe(calcColHeaderHeight('main') + calcRowHeight('main') * 2 + 2);
-        horizon.toBe(calcColHeaderHeight('horizon') + calcRowHeight('horizon') * 2 + 2);
+        classic.toBe(calcColHeaderHeight('classic') + (calcRowHeight('classic') * 2) + 2);
+        main.toBe(calcColHeaderHeight('main') + (calcRowHeight('main') * 2) + 2);
+        horizon.toBe(calcColHeaderHeight('horizon') + (calcRowHeight('horizon') * 2) + 2);
       });
       expect(getBottomClone().height()).toBe(0);
     });

@@ -182,7 +182,8 @@ describe('Hook', () => {
 
         spec().$iframe[0].width = '50px';
 
-        await sleep(50);
+        // In iframe runs, ResizeObserver callback can be delayed by one extra frame.
+        await sleep(100);
 
         expect(afterRefreshDimensions.calls.count()).toBe(1);
       });
@@ -202,17 +203,17 @@ describe('Hook', () => {
           // 5 data rows × calcRowHeight(t) + 1px container border
           classic.toHaveBeenCalledWith(
             { width: 500, height: 0 },
-            { width: 35, height: 5 * calcRowHeight('classic') + 1 },
+            { width: 35, height: (5 * calcRowHeight('classic')) + 1 },
             true,
           );
           main.toHaveBeenCalledWith(
             { width: 500, height: 0 },
-            { width: 35, height: 5 * calcRowHeight('main') + 1 },
+            { width: 35, height: (5 * calcRowHeight('main')) + 1 },
             true,
           );
           horizon.toHaveBeenCalledWith(
             { width: 500, height: 0 },
-            { width: 35, height: 5 * calcRowHeight('horizon') + 1 },
+            { width: 35, height: (5 * calcRowHeight('horizon')) + 1 },
             true,
           );
         });

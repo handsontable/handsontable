@@ -69,6 +69,7 @@ From the workspace root:
 - **Lint core**: `pnpm --filter handsontable run eslint` and `pnpm --filter handsontable run stylelint`
 - **Unit tests (core)**: `pnpm --filter handsontable run test:unit` (Jest, ~2200 tests)
 - **E2E tests (core)**: `pnpm --filter handsontable run test:e2e` (Puppeteer/Jasmine, headless Chrome)
+- **Single E2E suite/spec filter**: `cd handsontable && npm run test:e2e.dump --theme=classic && npm run test:e2e.puppeteer -- --spec=DropdownMenu`
 - **Walkontable tests**: `pnpm --filter handsontable run test:walkontable` (separate pipeline)
 - **Wrapper tests**: `pnpm --filter @handsontable/react-wrapper run test`, `pnpm --filter @handsontable/vue3 run test`, `pnpm --filter @handsontable/angular-wrapper run test`
 

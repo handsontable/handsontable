@@ -113,9 +113,9 @@ describe('Core.batch', () => {
     expect(getInlineStartClone().width()).toBe(50);
     expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       // col header row + 5 data rows + 1px container border: 6 × calcRowHeight(t) + 1
-      classic.toBe(6 * calcRowHeight('classic') + 1);
-      main.toBe(6 * calcRowHeight('main') + 1);
-      horizon.toBe(6 * calcRowHeight('horizon') + 1);
+      classic.toBe((6 * calcRowHeight('classic')) + 1);
+      main.toBe((6 * calcRowHeight('main')) + 1);
+      horizon.toBe((6 * calcRowHeight('horizon')) + 1);
     });
 
     await batch(() => {
@@ -177,9 +177,9 @@ describe('Core.batch', () => {
     expect(getInlineStartClone().width()).toBe(50);
     expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       // 5 data rows (no col header) + 2px borders
-      classic.toBe(5 * calcRowHeight('classic') + 2);
-      main.toBe(5 * calcRowHeight('main') + 2);
-      horizon.toBe(5 * calcRowHeight('horizon') + 2);
+      classic.toBe((5 * calcRowHeight('classic')) + 2);
+      main.toBe((5 * calcRowHeight('main')) + 2);
+      horizon.toBe((5 * calcRowHeight('horizon')) + 2);
     });
     expect(getBottomInlineStartClone().width()).toBe(50);
     expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {

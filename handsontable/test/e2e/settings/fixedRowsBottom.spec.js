@@ -247,9 +247,9 @@ describe('settings', () => {
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         // calcColHeaderHeight(t) + 1 border + calcRowHeight(t) * 2 rows + 1 border
-        classic.toBe(calcColHeaderHeight('classic') + 1 + calcRowHeight('classic') * 2 + 1);
-        main.toBe(calcColHeaderHeight('main') + 1 + calcRowHeight('main') * 2 + 1);
-        horizon.toBe(calcColHeaderHeight('horizon') + 1 + calcRowHeight('horizon') * 2 + 1);
+        classic.toBe(calcColHeaderHeight('classic') + 1 + (calcRowHeight('classic') * 2) + 1);
+        main.toBe(calcColHeaderHeight('main') + 1 + (calcRowHeight('main') * 2) + 1);
+        horizon.toBe(calcColHeaderHeight('horizon') + 1 + (calcRowHeight('horizon') * 2) + 1);
       });
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         // calcRowHeight(t) — top clone shows one row
@@ -265,21 +265,21 @@ describe('settings', () => {
       });
       expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         // calcColHeaderHeight(t) + 1 border + calcRowHeight(t) * 2 rows + 1 border
-        classic.toBe(calcColHeaderHeight('classic') + 1 + calcRowHeight('classic') * 2 + 1);
-        main.toBe(calcColHeaderHeight('main') + 1 + calcRowHeight('main') * 2 + 1);
-        horizon.toBe(calcColHeaderHeight('horizon') + 1 + calcRowHeight('horizon') * 2 + 1);
+        classic.toBe(calcColHeaderHeight('classic') + 1 + (calcRowHeight('classic') * 2) + 1);
+        main.toBe(calcColHeaderHeight('main') + 1 + (calcRowHeight('main') * 2) + 1);
+        horizon.toBe(calcColHeaderHeight('horizon') + 1 + (calcRowHeight('horizon') * 2) + 1);
       });
       expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
         // calcRowHeight(t) * 2 rows + 1 bottom border
-        classic.toBe(calcRowHeight('classic') * 2 + 1);
-        main.toBe(calcRowHeight('main') * 2 + 1);
-        horizon.toBe(calcRowHeight('horizon') * 2 + 1);
+        classic.toBe((calcRowHeight('classic') * 2) + 1);
+        main.toBe((calcRowHeight('main') * 2) + 1);
+        horizon.toBe((calcRowHeight('horizon') * 2) + 1);
       });
       expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         // calcRowHeight(t) * 2 rows + 1 bottom border
-        classic.toBe(calcRowHeight('classic') * 2 + 1);
-        main.toBe(calcRowHeight('main') * 2 + 1);
-        horizon.toBe(calcRowHeight('horizon') * 2 + 1);
+        classic.toBe((calcRowHeight('classic') * 2) + 1);
+        main.toBe((calcRowHeight('main') * 2) + 1);
+        horizon.toBe((calcRowHeight('horizon') * 2) + 1);
       });
     });
 

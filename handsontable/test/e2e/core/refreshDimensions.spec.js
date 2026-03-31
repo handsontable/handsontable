@@ -28,17 +28,17 @@ describe('Core.await refreshDimensions()', () => {
       // 5 data rows × calcRowHeight(t) + 1px container border
       classic.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 5 * calcRowHeight('classic') + 1 },
+        { width: 1265, height: (5 * calcRowHeight('classic')) + 1 },
         true,
       );
       main.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 5 * calcRowHeight('main') + 1 },
+        { width: 1265, height: (5 * calcRowHeight('main')) + 1 },
         true,
       );
       horizon.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 5 * calcRowHeight('horizon') + 1 },
+        { width: 1265, height: (5 * calcRowHeight('horizon')) + 1 },
         true,
       );
     });
@@ -46,17 +46,17 @@ describe('Core.await refreshDimensions()', () => {
       // 5 data rows × calcRowHeight(t) + 1px container border
       classic.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 5 * calcRowHeight('classic') + 1 },
+        { width: 1265, height: (5 * calcRowHeight('classic')) + 1 },
         true,
       );
       main.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 5 * calcRowHeight('main') + 1 },
+        { width: 1265, height: (5 * calcRowHeight('main')) + 1 },
         true,
       );
       horizon.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
-        { width: 1265, height: 5 * calcRowHeight('horizon') + 1 },
+        { width: 1265, height: (5 * calcRowHeight('horizon')) + 1 },
         true,
       );
     });

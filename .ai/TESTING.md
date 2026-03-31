@@ -42,6 +42,14 @@ npm run test:e2e.puppeteer
 npm run test:e2e --testPathPattern=filters
 # NOTE: changing the pattern requires re-running test:e2e.dump — the pattern is compiled in.
 
+# Run a single E2E suite/spec at runtime:
+# Step 1: build/rebuild the E2E bundle (you can pin theme):
+npm run test:e2e.dump --theme=classic
+# Step 2: run only matching specs with a runtime pattern:
+npm run test:e2e.puppeteer -- --spec=DropdownMenu
+# You can also match path-like fragments:
+npm run test:e2e.puppeteer -- --spec=hooks/afterRefreshDimensions
+
 # Coverage:
 npm run test:unit -- --coverage
 ```

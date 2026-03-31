@@ -8,9 +8,8 @@ const PORT = 8086;
 const IS_CI = process.env.CI;
 const CI_DOTS_PER_LINE = 120;
 
-const [,, originalPath, ...flagArgs] = process.argv;
-const flags = flagArgs.join(' ');
-let htmlPath = originalPath;
+const args = process.argv.slice(2);
+const originalPath = args.find(a => !a.startsWith('--'));
 let verboseReporting = false;
 
 if (!originalPath) {
@@ -19,26 +18,33 @@ if (!originalPath) {
   process.exit(1);
 }
 
-if (flags) {
-  const seed = flags.match(/(--seed=)\d{1,}/g);
-  const random = flags.includes('random');
-  const hotVersionMatch = flags.match(/--hotVersion=([^\s,]+)/);
-  const params = [];
+// Parse all flags from CLI arguments.
+const flagArgs = args.filter(a => a.startsWith('--'));
+const flagsStr = flagArgs.join(' ');
+const params = [];
 
-  verboseReporting = flags.includes('verbose');
+verboseReporting = flagsStr.includes('verbose');
 
-  if (seed) {
-    params.push(`seed=${seed[0].replace('--seed=', '')}`);
-  }
-  if (seed || random) {
-    params.push('random=true');
-  }
-  if (hotVersionMatch) {
-    params.push(`hotVersion=${hotVersionMatch[1]}`);
-  }
+const seed = flagsStr.match(/(--seed=)\d{1,}/g);
 
-  htmlPath = `${htmlPath}?${params.join('&')}`;
+if (seed) {
+  params.push(`seed=${seed[0].replace('--seed=', '')}`);
 }
+if (seed || flagsStr.includes('random')) {
+  params.push('random=true');
+}
+
+// Support --spec=<pattern> to filter test files at runtime (e.g., --spec=i18n or --spec="i18n/index").
+const specFlag = flagArgs.find(a => a.startsWith('--spec='));
+
+if (specFlag) {
+  const specPattern = specFlag.replace('--spec=', '');
+
+  params.push(`spec=${encodeURIComponent(specPattern)}`);
+  console.log(`Filtering tests with pattern: ${specPattern}`);
+}
+
+const htmlPath = params.length > 0 ? `${originalPath}?${params.join('&')}` : originalPath;
 
 const cleanupFactory = (browser, server) => async(exitCode) => {
   await browser.close();
