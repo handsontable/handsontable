@@ -215,9 +215,14 @@ export class StickyScrollStrategy {
 
     if (this.#isWindowScroll()) {
       const { rootWindow } = overlays.domBindings;
+      // RTL + window-scroll coordinates don't align (getScrollLeft returns 0),
+      // so preserve scrollX in that case to avoid incorrect horizontal jumps.
+      const absoluteLeft = this.#isRtl()
+        ? rootWindow.scrollX
+        : left + overlays.inlineStartOverlay.getTableParentOffset();
 
       rootWindow.scrollTo(
-        rootWindow.scrollX,
+        absoluteLeft,
         top + overlays.topOverlay.getTableParentOffset()
       );
     } else {
