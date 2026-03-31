@@ -17,13 +17,41 @@ angular:
   id: zn7h5m6s
   metaTitle: Server-side data - Angular Data Grid | Handsontable
 searchCategory: Guides
-category: Getting started
+category: Server-side data
 menuTag: new
 ---
 
 # Server-side data
 
 Use the [`dataProvider`](@/api/options.md#dataprovider) option so Handsontable loads row data from your backend instead of keeping the full dataset in the browser. The grid stays aligned with paging, column sorting, and (optionally) column filters that run on the server. The same configuration wires **create**, **update**, and **remove** to your API. When the `dataProvider` object is **complete** (all required keys valid), Handsontable ignores a static [`data`](@/api/options.md#data) array and loads rows only through `fetchRows`. If you still pass a `data` array with a complete provider, Handsontable logs a console warning that `data` is ignored.
+
+## Quick start
+
+Pass a `dataProvider` object with five required keys and enable `pagination`:
+
+```js
+const hot = new Handsontable(container, {
+  columns: [{ data: 'name' }, { data: 'price' }],
+  dataProvider: {
+    rowId: 'id',
+    fetchRows: async (queryParameters, { signal }) => {
+      const res = await fetch(`/api/items?page=${queryParameters.page}`, { signal });
+      const json = await res.json();
+
+      return { rows: json.data, totalRows: json.total };
+    },
+    onRowsCreate: async (payload) => { await fetch('/api/items', { method: 'POST', body: JSON.stringify(payload) }); },
+    onRowsUpdate: async (rows) => { await fetch('/api/items', { method: 'PATCH', body: JSON.stringify(rows) }); },
+    onRowsRemove: async (rowIds) => { await fetch('/api/items', { method: 'DELETE', body: JSON.stringify(rowIds) }); },
+  },
+  pagination: { pageSize: 10 },
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+See [What the DataProvider plugin does](#what-the-dataprovider-plugin-does) for the full breakdown and [Plugins and options that conflict with DataProvider](#plugins-and-options-that-conflict-with-dataprovider) for limitations.
 
 ## Demo
 
@@ -76,6 +104,17 @@ When you pass a **complete** `dataProvider` configuration, Handsontable:
 - Registers a default [`hasExternalDataSource`](@/api/hooks.md#hasexternaldatasource) handler that returns `true` when the configuration is complete, so the [Pagination](@/api/pagination.md) and [Filters](@/api/filters.md) plugins can run in server-driven mode together with [`columnSorting`](@/api/options.md#columnsorting) (single-column sort only; see [Sorting and filtering](#sorting-and-filtering)).
 
 You must supply all of `rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove`. If any callback is missing or invalid, the plugin stays enabled but the affected operations no-op until the configuration is valid. A truthy non-object value (for example `dataProvider: true`) enables the plugin instance but is never a complete configuration. If a key fails validation (for example `rowId` is neither a string nor a function), Handsontable emits a console warning like other plugin settings and keeps the previous stored value for that key.
+
+## Plugins and options that conflict with DataProvider
+
+[`trimRows`](@/api/options.md#trimrows), [`manualRowMove`](@/api/options.md#manualrowmove), [`manualColumnMove`](@/api/options.md#manualcolumnmove), and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) each **block the DataProvider plugin** when the option is truthy. Those row and column features can still enable; DataProvider does not. Handsontable logs a console warning (one message for the first incompatible option the runtime reports). On the **initial** table load, if a conflict applies, your [`dataProvider`](@/api/options.md#dataprovider) setting may be cleared to `false` so the plugin stays off. If a conflict appears later through [`updateSettings`](@/api/core.md#updatesettings), the `dataProvider` object is usually left in settings; the plugin remains disabled until you turn off the incompatible option. Remove or disable the conflicting options if you need server-backed `fetchRows` and CRUD.
+
+| Conflicting option | Why it conflicts |
+| --- | --- |
+| [`trimRows`](@/api/options.md#trimrows) | Client-side row trimming changes physical-to-visual mappings that conflict with server-paged data. |
+| [`manualRowMove`](@/api/options.md#manualrowmove) | Row indices are non-persistent across server-side pages. |
+| [`manualColumnMove`](@/api/options.md#manualcolumnmove) | Column reordering affects `prop` mapping used by `fetchRows` query parameters. |
+| [`multiColumnSorting`](@/api/options.md#multicolumnsorting) | DataProvider supports single-column sort only; use [`columnSorting`](@/api/options.md#columnsorting) instead. |
 
 ## Migrate from client-side data
 
@@ -135,6 +174,17 @@ Respect `signal` so outdated requests abort when the user sorts, filters, or cha
 
 With a complete `dataProvider` configuration, Handsontable sends **create**, **update**, and **remove** operations to your backend through three callbacks. Valid edits appear in the grid immediately; if the server rejects an update (or the mutation promise rejects), or if [`beforeRowsMutation`](@/api/hooks.md#beforerowsmutation) returns `false`, affected cells roll back. **Cell and column validators** run before `onRowsUpdate`; if any cell in the batch fails, Handsontable does not call `onRowsUpdate`, fires [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) with a validation failure, and reverts the edit. If `rowId` resolves to `null` or `undefined` for a row, Handsontable cannot send an update or remove for that row (edits revert; remove from the UI throws). Programmatic [`updateRows`](@/api/dataProvider.md#updaterows) and [`removeRows`](@/api/dataProvider.md#removerows) throw if an id is missing. Row insert from the context menu is skipped when the table already has as many rows as [`maxRows`](@/api/options.md#maxrows).
 
+### Update lifecycle
+
+When a user edits a cell, the update flows through these steps in order:
+
+1. **Cell and column validators** run on the edited cells. If any cell fails validation, the edit is reverted and [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires with a validation failure. The remaining steps do not run.
+2. **[`beforeRowsMutation`](@/api/hooks.md#beforerowsmutation)** fires with `('update', { rows })`. Return `false` to cancel — the optimistic values revert and `onRowsUpdate` is not called.
+3. **Optimistic UI update** — the new cell values appear in the grid immediately.
+4. **`onRowsUpdate`** — your server callback runs with the batch of changes.
+5. **On success**: [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) fires, then Handsontable refetches the current page (with `skipLoading: true` so the loading overlay does not flash).
+6. **On failure**: the optimistic values roll back and [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires. If [`dialog`](@/api/options.md#dialog) is enabled, an error modal appears.
+
 ### `onRowsCreate`
 
 Called when the user inserts rows (for example from the context menu). Payload shape:
@@ -182,10 +232,6 @@ When `onRowsUpdate` is set, Handsontable skips stacking certain edit sources on 
 - Use [`columnSorting`](@/api/options.md#columnsorting) for server-backed sorting. If [`multiColumnSorting`](@/api/options.md#multicolumnsorting) is enabled, the DataProvider plugin does not run (see [Conflicting options](#plugins-and-options-that-conflict-with-dataprovider)); keep it off for server-driven data.
 - Enable [`filters`](@/api/options.md#filters) and export conditions from the UI; when **`fetchRows` is configured**, Handsontable maps those conditions into `queryParameters.filters`, resets to page 1, and refetches (Filters skip client-side row trimming). If Filters are on but `fetchRows` is missing (incomplete `dataProvider` object), filtering stays **client-side** on whatever rows are currently loaded.
 - With a complete `dataProvider` configuration, the column menu does **not** offer **Filter by value** (only the current page is loaded, so value lists would be incomplete). Use condition-based filters (for example text, numeric, or date conditions) for server-side filtering. Programmatic `addCondition(..., 'by_value', ...)` is ignored when server-backed `fetchRows` is active.
-
-## Plugins and options that conflict with DataProvider
-
-[`trimRows`](@/api/options.md#trimrows), [`manualRowMove`](@/api/options.md#manualrowmove), [`manualColumnMove`](@/api/options.md#manualcolumnmove), and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) each **block the DataProvider plugin** when the option is truthy. Those row and column features can still enable; DataProvider does not. Handsontable logs a console warning (one message for the first incompatible option the runtime reports). On the **initial** table load, if a conflict applies, your [`dataProvider`](@/api/options.md#dataprovider) setting may be cleared to `false` so the plugin stays off. If a conflict appears later through [`updateSettings`](@/api/core.md#updatesettings), the `dataProvider` object is usually left in settings; the plugin remains disabled until you turn off the incompatible option. Remove or disable the conflicting options if you need server-backed `fetchRows` and CRUD.
 
 ## Fetch hooks and loading UI
 

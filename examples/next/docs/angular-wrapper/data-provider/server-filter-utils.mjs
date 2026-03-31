@@ -83,7 +83,11 @@ function matchesColumnFilter(row, colFilter) {
   const results = conditions.map((c) => matchesCondition(row, colFilter.prop, c));
   const op = colFilter.operation;
 
-  if (op === 'disjunction' || op === 'disjunctionWithExtraCondition') {
+  if (op === 'disjunctionWithExtraCondition') {
+    return results.slice(0, -1).some(Boolean) && results[results.length - 1];
+  }
+
+  if (op === 'disjunction') {
     return results.some(Boolean);
   }
 
