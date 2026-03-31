@@ -28,7 +28,6 @@ describe('`registerAllRenderers`', () => {
       'html',
       'intl-date',
       'intl-time',
-      'multiselect',
       'numeric',
       'password',
       'select',
