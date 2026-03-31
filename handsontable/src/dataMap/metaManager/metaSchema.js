@@ -1600,6 +1600,46 @@ export default () => {
 
     /**
      * @description
+     * When set, the table loads data from an async provider (e.g. a REST API) instead of a static `data` array.
+     * Use the **object** form with every key defined: **`rowId`**, **`fetchRows`**, **`onRowsCreate`**, **`onRowsUpdate`**,
+     * and **`onRowsRemove`**. All five are required on that object so paging, row identity, and create, update, and remove
+     * map cleanly to your backend. Pair with **`pagination`** for server-side paging.
+     * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
+     *
+     * @since 17.1.0
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * dataProvider: {
+     *   rowId: 'id',
+     *   fetchRows: async (queryParameters, { signal }) => {
+     *     const { page, pageSize, sort, filters } = queryParameters;
+     *     const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+     *
+     *     if (sort) {
+     *       params.set('sortBy', sort.prop);
+     *       params.set('sortDir', sort.order);
+     *     }
+     *
+     *     const res = await fetch(`/api/products?${params}`, { signal });
+     *     const json = await res.json();
+     *
+     *     return { rows: json.data, totalRows: json.total };
+     *   },
+     *   onRowsCreate: async ({ position, referenceRowId, rowsAmount }) => { ... },
+     *   onRowsUpdate: async (rows) => { ... },
+     *   onRowsRemove: async (rowIds) => { ... },
+     * },
+     * ```
+     */
+    dataProvider: undefined,
+
+    /**
+     * @description
      * If `true`, Handsontable will interpret the dots in the columns mapping as a nested object path. If your dataset contains
      * the dots in the object keys and you don't want Handsontable to interpret them as a nested object path, set this option to `false`.
      *
@@ -2353,6 +2393,13 @@ export default () => {
      * | `title`       | `string`        | Title to display in the empty data state overlay.       |
      * | `description` | `string`        | Description to display in the empty data state overlay. |
      * | `buttons`     | `array`         | Buttons to display in the empty data state overlay.     |
+     * | `loading`     | `boolean`       | When `true`, shows a loading spinner (used for server fetch state). |
+     *
+     * If you set the `message` option to a function, the `source` argument can be `"unknown"`, `"filters"`, or `"loading"`.
+     * With [[Options#dataProvider]], the `"loading"` branch follows DataProvider fetch hooks (`beforeDataProviderFetch`,
+     * `afterDataProviderFetch`, and related hooks) using the same rules as server-backed loading in the DataProvider plugin.
+     * Internal refetches (for example after column sort or CRUD) set `skipLoading` on [[Hooks#beforeDataProviderFetch]] so the
+     * EmptyDataState plugin can omit the loading overlay for those requests.
      *
      * If you set the `buttons` option to an array, each item requires following properties:
      *
@@ -2399,6 +2446,11 @@ export default () => {
      *           title: 'No data available',
      *           description: 'There’s nothing to display yet.',
      *           buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+     *         };
+     *       case "loading":
+     *         return {
+     *           title: 'Loading data',
+     *           description: 'Please wait.',
      *         };
      *       default:
      *         return {

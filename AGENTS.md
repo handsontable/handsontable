@@ -141,6 +141,7 @@ Changes to JavaScript APIs that are **not listed in the public API reference** (
 
 ### General conventions
 
+- **Cognitive complexity**: Keep each function at **15 or below** on the Sonar cognitive-complexity metric (nested conditionals, loops, and boolean operators accumulate). Extract helpers or early-return guards when a function exceeds the limit.
 - **Separate CSS and JS**: Never mix CSS into JavaScript files.
 - **DRY**: Reuse existing helpers and mixins. Extract duplicated code into shared methods.
 - **Method ordering**: Public methods first, then private listeners.
@@ -191,6 +192,31 @@ class MyPlugin extends BasePlugin {
 }
 ```
 
+### `SETTING_KEYS` and `updateSettings`
+
+- **Array** (usual case): list every top-level Handsontable option name that should trigger `updatePlugin()` when passed to `updateSettings()` (for example other global keys the plugin reacts to, not only `PLUGIN_KEY`).
+- **`true`**: the plugin always runs `updatePlugin()` after `updateSettings()`, even when the config object is empty.
+- **`false`**: the plugin never auto-updates from `updateSettings()` (you handle changes yourself).
+
+### Plugin class layout (method ordering)
+
+Structure the class so lifecycle and public API stay easy to follow:
+
+1. **Static getters** -- `PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS`, and when needed `DEFAULT_SETTINGS` and `SETTINGS_VALIDATORS` (see below).
+2. **Lifecycle and public instance methods** -- `isEnabled()`, `enablePlugin()`, `updatePlugin()`, `disablePlugin()`, `destroy()`, plus any other **public** methods exposed via `hot.getPlugin(...)`.
+3. **Private hook and DOM listeners** -- private arrow-function class fields (`#onAfterX = () => { ... }`) after those methods, matching the global convention: public methods first, then private listeners.
+
+### Settings defaults and validation
+
+**`DEFAULT_SETTINGS`** (static object, default `{}`) -- Default values merged when reading options through `this.getSetting(name)` or `this.getSetting()` for the whole object. Use it so runtime reads do not duplicate fallback logic. Table-level defaults for new options still belong in `metaSchema.js` ([Configuration rules](#configuration-rules)); keep plugin defaults and schema defaults aligned.
+
+**`SETTINGS_VALIDATORS`** (default `null`) -- Optional validation when settings are applied (`init` / `updateSettings`). Invalid values emit a console warning and are ignored; the previous stored value stays.
+
+- **Object map** -- For the usual `myPlugin: { ... }` shape. Keys are option names. Each value is `(newValue) => boolean`; return `false` to reject. Only keys **present** on the incoming settings object are validated and copied; keys omitted from that object are left unchanged (validators do not run for absent keys).
+- **Single function** -- For a non-object plugin setting (for example a string or boolean at `myPlugin: 'foo'`). The function is `(newSettings) => boolean` and runs when `typeof newSettings !== 'object'`. If it returns `false`, the whole update is skipped.
+
+**Reading settings** -- Prefer `this.getSetting('key')` inside the plugin. Dot notation is supported for nested keys (for example `this.getSetting('ui.width')`). If a stored setting is a **function** and `SETTINGS_VALIDATORS` is an object with a validator for that key, `getSetting` may wrap the function so the **return value** of user callbacks is validated; invalid returns are warned and treated as no return value.
+
 ### Method lifecycle (in order)
 
 1. `constructor(hotInstance)` -- receives HOT instance as `this.hot`
@@ -230,6 +256,8 @@ export { PLUGIN_KEY, PLUGIN_PRIORITY, MyPlugin } from './myPlugin';
 ### Conflict ownership
 
 When a plugin is incompatible with another, the plugin that introduces the conflict owns the disabling/blocking logic. Other plugins should not contain awareness checks.
+
+For **hard** conflicts (a plugin must not enable while another top-level setting is truthy), the feature that introduces the incompatibility calls `registerConflict(blockedTargetKeyOrKeys, incompatibleSettingKeys)` from `src/plugins/base/conflictRegistry.js` at module load. The first parameter is the blocked key or keys (usually `PLUGIN_KEY` values). The second parameter, `incompatibleSettingKeys`, is one top-level setting key or an array of keys; the conflict applies when `!!settings[key]` is true for any registered key. DataProvider and Pagination pass one blocked plugin key and an array of incompatible setting keys. The blocked plugin calls `BasePlugin#isHardConflictBlocked()` at the start of `enablePlugin()` (and may clear its setting when blocked, like Pagination). Soft detection of an external data source uses the `hasExternalDataSource` hook (instance handler added by the DataProvider plugin in `enablePlugin()`).
 
 ### Configuration rules
 

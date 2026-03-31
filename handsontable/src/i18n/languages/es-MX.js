@@ -129,6 +129,15 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'No se encontraron resultados',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Parece que tus filtros actuales están ocultando todos los resultados.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Restablecer filtros',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Cargando datos',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Espere por favor.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'No se pudieron cargar los datos',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'No se pudieron crear las filas',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'No se pudieron actualizar las filas',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'No se pudieron eliminar las filas',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'La solicitud falló',
+  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Cerrar',
 };
 
 export default dictionary;
