@@ -137,6 +137,7 @@ export class NestedHeaders extends BasePlugin {
    */
   #recentlyHighlightCoords = null;
   /**
+  /**
    * Stores the header row level used as context for horizontal navigation when entering
    * and leaving rowspanned headers.
    *
@@ -152,13 +153,22 @@ export class NestedHeaders extends BasePlugin {
    */
   #expectedNextKeyboardHighlightCoords = null;
   /**
+   * Determines if the widths map should be updated.
+   *
+   * @type {boolean}
+   */
+  #updateWidthsMap = false;
+  /**
    * Custom helper for getting widths of the nested headers.
    *
    * @private
    * @type {GhostTable}
    */
   // @TODO This should be changed after refactor handsontable/utils/ghostTable.
-  ghostTable = new GhostTable(this.hot, (row, column) => this.getHeaderSettings(row, column));
+  ghostTable = new GhostTable({
+    hot: this.hot,
+    headersStateManager: this.#stateManager,
+  });
   /**
    * The flag which determines that the nested header settings contains overlapping headers
    * configuration.
@@ -215,6 +225,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeHighlightingColumnHeader', (...args) => this.#onBeforeHighlightingColumnHeader(...args));
     this.addHook('beforeCopy', (...args) => this.#onBeforeCopy(...args));
     this.addHook('beforeSelectColumns', (...args) => this.#onBeforeSelectColumns(...args));
+    this.addHook('beforeViewRender', () => this.#onBeforeViewRender());
     this.addHook(
       'afterViewportColumnCalculatorOverride',
       (...args) => this.#onAfterViewportColumnCalculatorOverride(...args)
@@ -293,9 +304,7 @@ export class NestedHeaders extends BasePlugin {
         });
     }
 
-    this.ghostTable
-      .setLayersCount(this.getLayersCount())
-      .buildWidthsMap();
+    this.#updateWidthsMap = true;
 
     super.updatePlugin();
   }
@@ -551,14 +560,19 @@ export class NestedHeaders extends BasePlugin {
         highlight.row;
       const columnIndex = this.#stateManager.findLeftMostColumnIndex(normalizedHighlightRow, highlight.col);
       const focusHighlight = this.hot.selection.highlight.getFocus();
+      const focusVisualCellRange = focusHighlight.visualCellRange;
+
+      if (focusVisualCellRange === null) {
+        return;
+      }
 
       // Correct the highlight/focus selection to highlight the correct TH element
-      focusHighlight.visualCellRange.highlight.row = normalizedHighlightRow;
-      focusHighlight.visualCellRange.highlight.col = columnIndex;
-      focusHighlight.visualCellRange.from.row = normalizedHighlightRow;
-      focusHighlight.visualCellRange.from.col = columnIndex;
-      focusHighlight.visualCellRange.to.row = normalizedHighlightRow;
-      focusHighlight.visualCellRange.to.col = columnIndex;
+      focusVisualCellRange.highlight.row = normalizedHighlightRow;
+      focusVisualCellRange.highlight.col = columnIndex;
+      focusVisualCellRange.from.row = normalizedHighlightRow;
+      focusVisualCellRange.from.col = columnIndex;
+      focusVisualCellRange.to.row = normalizedHighlightRow;
+      focusVisualCellRange.to.col = columnIndex;
       focusHighlight.commit();
     }
   }
@@ -1335,6 +1349,18 @@ export class NestedHeaders extends BasePlugin {
   #onAfterLoadData(sourceData, initialLoad) {
     if (!initialLoad) {
       this.updatePlugin();
+    }
+  }
+
+  /**
+   * Builds the widths map before the view is rendered.
+   */
+  #onBeforeViewRender() {
+    if (this.#updateWidthsMap) {
+      this.ghostTable
+        .setLayersCount(this.getLayersCount())
+        .buildWidthsMap();
+      this.#updateWidthsMap = false;
     }
   }
 

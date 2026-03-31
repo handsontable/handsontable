@@ -2,10 +2,22 @@
 
 ## Overview
 
-Handsontable is a JavaScript/TypeScript data grid monorepo (pnpm workspace). It contains the core library plus React, Angular, and Vue 3 wrappers. It operates entirely in the browser (frontend-only, no server-side logic) and cannot access the internet unless explicitly configured (air-gapped environment support). There is no built-in telemetry.
+Handsontable is a JavaScript data grid monorepo (pnpm workspace). It contains the core library plus React, Angular, and Vue 3 wrappers. It operates entirely in the browser (frontend-only, no server-side logic) and cannot access the internet unless explicitly configured (air-gapped environment support). There is no built-in telemetry.
 
 Handsontable is a JavaScript/TypeScript data grid monorepo (pnpm workspace). It contains the core library plus React, Angular, and Vue 3 wrappers. It operates entirely in the browser (frontend-only, no server-side logic) and cannot access the internet unless explicitly configured (air-gapped environment support). There is no built-in telemetry.
 **The core package (`handsontable/`) is JavaScript, not TypeScript.** Type definitions are hand-authored `.d.ts` files in `handsontable/types/`. Do not create `.ts` files in the core package.
+
+For deeper context on specific topics, see the `.ai/` directory:
+
+| File | Topic |
+|---|---|
+| `.ai/STACK.md` | Technology stack and dependencies |
+| `.ai/ARCHITECTURE.md` | System architecture and design patterns |
+| `.ai/STRUCTURE.md` | Repository structure and file organization |
+| `.ai/CONVENTIONS.md` | Coding conventions and style guidelines |
+| `.ai/INTEGRATIONS.md` | Framework wrappers and integration details |
+| `.ai/TESTING.md` | Testing strategy and infrastructure |
+| `.ai/CONCERNS.md` | Known issues, technical debt, and constraints |
 
 ---
 
@@ -15,14 +27,17 @@ These are the most frequent mistakes. Read this section first.
 
 | Pitfall | What to do instead |
 |---|---|
-| `throw new Error('...')` | Use `throwWithCause('...', cause)` from `src/helpers/errors.js`. Enforced by ESLint rule `handsontable/no-native-error-throw`. |
-| Using `window`, `document`, `console` as globals | Use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.js`. Enforced by ESLint rule `no-restricted-globals`. |
-| Importing from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`) | Import from the specific submodule path (e.g., `import { HiddenColumns } from '../plugins/hiddenColumns/hiddenColumns'`). Enforced by ESLint rule `handsontable/restricted-module-imports`. The only exception is `src/registry.js`. |
-| Writing `it('should ...', () => { ... })` in spec files | All `it()` callbacks in `*.spec.js` that call HOT rendering APIs **must** be `async` and the API calls must be `await`-ed. Enforced by ESLint rule `handsontable/require-async-in-it`. |
+| `throw new Error('...')` | Use `throwWithCause('...', cause)` from `src/helpers/errors.js`. Enforced by ESLint. |
+| Using `window`, `document`, `console` as globals | Use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.js`. Enforced by ESLint. |
+| Importing from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`) | Import from the specific submodule path (e.g., `import { HiddenColumns } from '../plugins/hiddenColumns/hiddenColumns'`). Only exception: `src/registry.js`. |
+| Writing `it('should ...', () => { ... })` in spec files | All `it()` callbacks in `*.spec.js` that call HOT rendering APIs **must** be `async` and the API calls must be `await`-ed. |
 | `arr.push(...largeArray)` with large arrays | Causes stack overflow with 10k+ elements. Use `forEach` loop instead. |
 | Confusing physical, visual, and renderable coordinates | See [Three coordinate systems](#three-coordinate-systems). |
 | Creating `.ts` files in `handsontable/src/` | Core is JavaScript. TypeScript definitions live in `handsontable/types/` as `.d.ts` files. |
 | Forgetting `super.enablePlugin()` / `super.disablePlugin()` in plugins | See [Plugin lifecycle](#plugin-lifecycle). |
+| Hardcoding user-visible text in source code | Add language constants in `src/i18n/constants.js` and update all language files in `src/i18n/languages/`. |
+| Using `.bind(this)` for hook/event callbacks | Use arrow-function class fields (`#onAfterX = () => { ... }`) instead. |
+| Direct cross-plugin imports | Use hooks for inter-plugin communication or `hot.getPlugin('{Name}')` if API access is required. |
 
 ---
 
@@ -49,58 +64,45 @@ These are the most frequent mistakes. Read this section first.
 
 ## Build, lint, test
 
-**Monorepo-level commands** use `pnpm` from the workspace root:
+From the workspace root:
 
-- **Build core**: `pnpm --filter handsontable run build` (must be done before wrapper tests, since wrappers depend on the built `tmp/` output)
+- **Build core**: `pnpm --filter handsontable run build` (must be done before wrapper tests)
 - **Lint core**: `pnpm --filter handsontable run eslint` and `pnpm --filter handsontable run stylelint`
 - **Unit tests (core)**: `pnpm --filter handsontable run test:unit` (Jest, ~2200 tests)
 - **E2E tests (core)**: `pnpm --filter handsontable run test:e2e` (Puppeteer/Jasmine, headless Chrome)
 - **Walkontable tests**: `pnpm --filter handsontable run test:walkontable` (separate pipeline)
-- **React tests**: `pnpm --filter @handsontable/react-wrapper run test`
-- **Vue3 tests**: `pnpm --filter @handsontable/vue3 run test`
-- **Angular tests**: `pnpm --filter @handsontable/angular-wrapper run test` (uses `--openssl-legacy-provider` automatically)
+- **Wrapper tests**: `pnpm --filter @handsontable/react-wrapper run test`, `pnpm --filter @handsontable/vue3 run test`, `pnpm --filter @handsontable/angular-wrapper run test`
 
-**Inside individual packages** (e.g., `cd handsontable`), use `npm run ...` directly.
+Inside individual packages (e.g., `cd handsontable`), use `npm run ...` directly.
 
 ### Build outputs
-
-The library outputs ES Modules and UMD bundles (UMD as legacy support). Two build variants exist:
-
-- `handsontable.js` — base build, external dependencies not bundled
-- `handsontable.full.js` — includes HyperFormula bundled in
-
-Build scripts require environment variables injected via `env-cmd -f ../hot.config.js`.
 
 | Output | Path |
 |---|---|
 | UMD / minified bundles | `handsontable/dist/` |
-| ES and CJS modules (used by wrappers via workspace linking) | `handsontable/tmp/` |
+| ES and CJS modules (used by wrappers) | `handsontable/tmp/` |
 | Compiled CSS | `handsontable/styles/` |
 
-### CSS themes
-
-Three themes are available: `ht-theme-main`, `ht-theme-classic`, `ht-theme-horizon` (each with `-no-icons` variants). The theme CSS class is applied to the root container element.
+Two build variants: `handsontable.js` (base, external deps) and `handsontable.full.js` (includes HyperFormula).
 
 ---
 
 ## Breaking changes policy
 
-**Agents must try to avoid introducing breaking changes.** This is the single most important constraint. Existing customers depend on API stability. When a solution requires a Breaking Change, it must be stated in **bold**.
-
-### What counts as a breaking change
+**Agents must try to avoid introducing breaking changes.** This is the single most important constraint.
 
 | Change | Why it breaks | What to do instead |
 |---|---|---|
-| Renaming a CSS class produced by Handsontable | Breaks custom stylesheets | Keep the legacy class name in the DOM. Add tests verifying the old name still works. |
-| Renaming APIs (methods, configuration options, hooks) | Breaks customer integrations | Keep the legacy API working and translate it to the new API internally. Legacy APIs do not produce console warnings. |
-| Changing API signatures or behavior | Breaks customer integrations | Keep the deprecated API working until the next stable release. Deprecated APIs produce a console warning (fired only once). |
-| Removing hooks or configuration options | May go completely undetected by customers | Add the hook/option to the list of removed hooks so an error is shown when someone uses it in configuration. |
-| Changing a default setting value | 🚫 **Strictly forbidden** — this is considered a "really bad" breaking change. | Never change defaults. |
+| Renaming a CSS class | Breaks custom stylesheets | Keep the legacy class name in the DOM. Test old name still works. |
+| Renaming APIs (methods, options, hooks) | Breaks customer integrations | Keep the legacy API working. No console warnings for legacy APIs. |
+| Changing API signatures or behavior | Breaks customer integrations | Deprecated API works until next stable release. One-time console warning. |
+| Removing hooks or options | May go undetected by customers | Add to removed hooks list so an error is shown. |
+| Changing a default setting value | **Strictly forbidden** | Never change defaults. |
 
 ### Legacy vs deprecated
 
-- **Legacy**: Old API is kept working forever alongside the new API. No console warnings. Feature set of the legacy API may be frozen. Tests must verify the old name continues to work.
-- **Deprecated**: Old API works until the next stable release, then is removed. Produces a one-time console warning. Tests must verify the old name continues to work until removal.
+- **Legacy**: Old API kept working forever. No console warnings. Tests must verify old name works.
+- **Deprecated**: Old API works until next stable release, then removed. One-time console warning. Tests must verify old name works until removal.
 
 ### What is NOT considered breaking
 
@@ -110,188 +112,72 @@ Changes to JavaScript APIs that are **not listed in the public API reference** (
 
 ## Mandatory checklist for every change
 
-Every code change produced by an agent **must** satisfy all of the following:
-
-1. **Tests are required.** Every change must include both **unit tests** (Jest, `*.unit.js`) and **E2E tests** (Jasmine/Puppeteer, `*.spec.js`). No change is considered complete without test coverage for the new or modified behavior.
-2. **Documentation must be updated.** If a change affects the public API, configuration options, hooks, behavior, or user-facing experience, the corresponding documentation (guides, API reference via JSDoc/Typedoc, migration guide) **must** be updated as part of the same change.
-3. **Update AGENTS.md.** If a change introduces new conventions, patterns, constraints, file locations, or gotchas that future agents should know about, this `AGENTS.md` file **must** be updated to reflect them.
+1. **Tests are required.** Include both **unit tests** (`*.unit.js`) and **E2E tests** (`*.spec.js`).
+2. **Documentation must be updated.** If a change affects public API, hooks, behavior, or UX, update JSDoc/Typedoc comments and guides.
+3. **Update AGENTS.md.** If a change introduces new conventions, constraints, or gotchas.
+4. **Use red-green TDD.** Write a failing test first, then implement the fix.
 
 ---
 
 ## Code style and conventions
 
-### Formatting rules (enforced by ESLint)
+### Formatting (enforced by ESLint)
 
-- **Style base**: Modified [Airbnb JavaScript style](https://github.com/airbnb/javascript)
+- **Style base**: Modified Airbnb JavaScript style
 - **Indentation**: 2 spaces
 - **Quotes**: Single quotes only
 - **Max line length**: 120 characters (ignores comments and long `it()` test names)
-- **JSDoc**: `jsdoc/require-jsdoc` is set to `error` — all exported functions require JSDoc comments
+- **JSDoc**: `jsdoc/require-jsdoc` is set to `error` for all exported functions
 
-### Handsontable-specific ESLint rules
-
-These custom rules are enforced and will cause lint failures if violated:
+### Custom ESLint rules
 
 | Rule | What it enforces |
 |---|---|
-| `handsontable/no-native-error-throw` | Must use `throwWithCause()` from `src/helpers/errors.js`, not `throw new Error()` |
-| `handsontable/restricted-module-imports` | No imports from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`) |
-| `handsontable/require-async-in-it` | All `it()` in `*.spec.js` calling HOT rendering APIs must be `async` |
+| `handsontable/no-native-error-throw` | Must use `throwWithCause()`, not `throw new Error()` |
+| `handsontable/restricted-module-imports` | No imports from barrel index files |
+| `handsontable/require-async-in-it` | All `it()` in `*.spec.js` must be `async` |
 | `handsontable/require-await` | Specific HOT API calls must be `await`-ed |
-| `no-restricted-globals` | `window`, `document`, `console`, `Handsontable` are banned as globals |
-| `compat/compat` | Browser API compatibility enforced against supported browser list |
+| `no-restricted-globals` | `window`, `document`, `console`, `Handsontable` are banned |
+| `compat/compat` | Browser API compatibility against `browser-targets.js` |
 
 ### General conventions
 
-- **Separate CSS and JS**: Do not mix CSS into JavaScript files.
-- **DRY**: Reuse existing helpers and mixins. Do not duplicate code. If a piece of code repeats, create a new helper. Write generic code that can be reused across modules and plugins.
-- **Method ordering**: Public methods first, then `@private` listeners.
+- **Separate CSS and JS**: Never mix CSS into JavaScript files.
+- **DRY**: Reuse existing helpers and mixins. Extract duplicated code into shared methods.
+- **Method ordering**: Public methods first, then private listeners.
 - **Destructors**: Remove all variables in destructors (after `hot.destroy()`).
-- **Browser compatibility**: Ensure chosen CSS and JS APIs are supported in all supported browsers (Chrome, Firefox, Safari — two latest major versions, Edge).
+- **Browser compatibility**: Ensure CSS and JS APIs are supported in all browsers listed in `browser-targets.js`.
+- **Bundle size**: Prefer grammar that produces smaller output in compressed bundles (e.g., `===` over verbose helpers, short-circuit evaluation over full `if` blocks).
+- **Silent `catch` blocks**: Must include a comment explaining why the error is swallowed.
+- **Optional chaining (`?.`)**: Use only when a value is genuinely optional by design, not as a blanket safety net. If a value is guaranteed by the data contract, access it directly without `?.`.
+
+### Private fields and methods
+
+- Use the `#` prefix for private class fields/methods instead of `@private` JSDoc tags.
+- Exception: when `#` is avoided for performance reasons, `@private` JSDoc tag is acceptable.
 
 ### Naming conventions
 
-- Always use `Handsontable` in text, never `HOT`. Exception: instances of the Handsontable class are usually called `hot`.
+- Always use `Handsontable` in text, never `HOT`. Exception: instances are usually called `hot`.
 - Use full names: `row` and `columns` (not `cols`).
+- **Public API names** (options, hooks, methods) must be generic and self-explanatory. Avoid internal jargon or abbreviations. Check for collisions with existing API names before approving.
 
 ### JSDoc / Typedoc
 
-Both public and private APIs must be documented with JSDoc/Typedoc comments. The public API reference is generated automatically from these comments. Allowed custom tags: `@plugin`, `@util`, `@experimental`, `@deprecated`, `@preserve`, `@core`, `@TODO`, `@category`.
+- All public and private APIs must have JSDoc comments.
+- New hooks and configuration options must include a `@since` tag.
+- Allowed custom tags: `@plugin`, `@util`, `@experimental`, `@deprecated`, `@preserve`, `@core`, `@TODO`, `@category`.
+- No HTML tags in descriptions -- use Markdown. Line breaks use empty lines, never `<br>`.
+- Links: `[[MY_LINK]]` syntax, not `{@link MY_LINK}`. End every sentence with a full stop.
 
-#### Typedoc formatting rules
+### TypeScript definitions (`handsontable/types/`)
 
-- Avoid HTML tags (`<strong>`, `<br>`, etc.) inside descriptions — use Markdown instead.
-- For line breaks use an **empty line**, never `<br>`.
-- Links must use `[[MY_LINK]]` syntax, not `{@link MY_LINK}`.
-- End every sentence with a full stop.
-- Comment blocks start with `/**` — do not leave a blank line below the opening.
-- Comment blocks end with `*/` — do not leave a blank line above the closing.
-- Do not hardcode parameter values in descriptions — use `@param` tags.
-- Group tags of the same type on consecutive lines.
-
-#### Typedoc template
-
-```
-/**
- * Brief description of the method.
- *
- * Additional notes if needed.
- *
- * @param {string} paramName - description of the parameter
- * @param {number} anotherParam - description
- *
- * @fires [[eventName]] when triggered
- *
- * @throws [[ErrorType]] when condition is met
- *
- * @returns description of the return value
- *
- * @category CategoryName
- */
-```
+- Avoid bare `object` in `.d.ts` files -- use or import specific types.
+- Do not duplicate type definitions across plugins. Import from their source.
 
 ---
 
-## Documentation rules
-
-### What counts as documentation
-
-Handsontable documentation includes: guides and code examples on the docs portal, the API reference (generated from JSDoc/Typedoc), code comments, changelog entries, release notes, migration guides, and README files across the monorepo.
-
-### When documentation is required
-
-- Any change to a public API (methods, options, hooks, plugins, typings, errors) **must** update the corresponding JSDoc/Typedoc comments and guides.
-- Any change to user-facing behavior or look-and-feel **must** be documented.
-- Any breaking change **must** include a migration guide step (see below).
-- New documentation pages should be included in the changelog (do not use `[skip changelog]` for new pages).
-
-### Documentation branch conventions
-
-- Documentation branches for features: `docs/issue-xxxx` (e.g., `docs/issue-9024`), branched from the feature branch or `develop`.
-- Documentation branches for releases: `release/x.y.z-docs`, branched from `release/x.y.z`.
-- Documentation-only PRs use `[skip changelog]` in the PR description, **unless** the PR adds a new documentation page.
-
-### Writing style rules
-
-All documentation text (guides, JSDoc comments, changelog entries, migration guides, PR descriptions) must follow these rules:
-
-1. **Short sentences.** Split longer sentences in two.
-2. **Active voice.** Never passive. ("Configure the parameters" not "The parameters should be configured.")
-3. **Simple verb syntax.** ("To ensure performance…" not "In order to ensure that the system will be capable of…")
-4. **American English spelling.** (`recognize`, `program`, `behavior`, not `recognise`, `programme`, `behaviour`.)
-5. **Commonized forms.** `frontend`, `backend`, `webhook`, `internet` (not `front-end`, `back end`, `web hook`, `Internet`).
-6. **Use "you" not "we".** ("In this example, you can see…" not "In this example, we can see…")
-7. **Oxford comma.** Use a comma before `and`/`or` in lists of 3+ items. ("berries, apples, and bacon.")
-8. **No evaluative adjectives.** Eliminate "easy", "simple", "obvious", "straightforward" from explanations.
-9. **Do not assume user background knowledge.** Bridge the gap between specialists and non-specialists.
-10. **Max 3 adjectives before a noun.**
-11. **Use en dashes (–) to separate clauses**, not hyphens.
-12. **Consistent 3rd-party naming.** Use official capitalization: `Node.js`, `webpack`, `GitLab`, `TypeScript`.
-13. **PR descriptions**: Use plain, concise language. Avoid literary wording — developers need to parse it quickly.
-
-### Migration guide requirements
-
-A migration guide is required for every major release and some minor releases. Each breaking change must have a separate migration guide step that includes:
-
-1. Who the breaking change affects.
-2. A brief reason for the change (what the user gains).
-3. A brief description of the change itself.
-4. What the user needs to do (step-by-step, with substeps if needed).
-5. Code examples (before/after).
-6. Links to more detailed information (new pages, PRs).
-
-The structure must follow previous migration guides for consistency.
-
-### Trademark rules
-
-- Any documentation page mentioning "Excel" must include the Microsoft/Excel trademark disclaimer.
-- If the page also mentions "Google Sheets", use the expanded disclaimer covering both trademarks.
-- Avoid third-party trademarks in documentation unless practically necessary (e.g., to describe compatibility or integration).
-
-### Documentation file locations
-
-| Content | Location |
-|---|---|
-| Guides and examples | `docs/content/` |
-| API reference source | JSDoc/Typedoc comments in source files |
-| Changelog | `CHANGELOG.md` (root) |
-| Changelog entry mechanism | `.changelogs/README.md` |
-| Changelog CLI | `bin/changelog` |
-| Docs editing guide | `docs/README-EDITING.md` |
-| Docs deployment guide | `docs/README-DEPLOYMENT.md` |
-| Broken link redirects | `docs/netlify/netlify/edge-functions/` |
-| Migration guides | `docs/content/guides/upgrade-and-migration/` |
-
----
-
-## Three coordinate systems
-
-This is fundamental to working with the codebase. Three distinct index spaces exist:
-
-| Coordinate type | Description | Example |
-|---|---|---|
-| **Physical** | Position in the source data array | Row 5 in the original dataset |
-| **Visual** | Position in the DataMap (after trimming) | Row 3 if rows 0-1 were trimmed |
-| **Renderable** | Position in the DOM (after hiding) | Row 2 if one visual row is hidden |
-
-Plugins must correctly translate between these systems using `IndexMapper` (`hot.rowIndexMapper` / `hot.columnIndexMapper`).
-
-### HidingMap vs TrimmingMap
-
-| Map type | Effect |
-|---|---|
-| `HidingMap` | Index stays in DataMap but is **not rendered** in the DOM |
-| `TrimmingMap` | Index is **removed from DataMap** entirely |
-
-Plugins register maps via:
-```js
-hot.rowIndexMapper.registerMap('pluginName', new TrimmingMap());
-hot.columnIndexMapper.registerMap('pluginName', new HidingMap());
-```
-
----
-
-## Plugin lifecycle
+## Plugin architecture
 
 All plugins extend `BasePlugin` from `src/plugins/base/base.js`.
 
@@ -299,58 +185,80 @@ All plugins extend `BasePlugin` from `src/plugins/base/base.js`.
 
 ```js
 class MyPlugin extends BasePlugin {
-  static get PLUGIN_KEY() { return 'myPlugin'; }          // Key in settings
-  static get PLUGIN_PRIORITY() { return 150; }             // Init order (lower = first)
-  static get SETTING_KEYS() { return ['myPlugin']; }       // Keys that trigger updatePlugin()
-  static get PLUGIN_DEPS() { return ['plugin:AutoRowSize']; } // Dependencies
+  static get PLUGIN_KEY() { return 'myPlugin'; }
+  static get PLUGIN_PRIORITY() { return 150; }
+  static get SETTING_KEYS() { return ['myPlugin']; }
+  static get PLUGIN_DEPS() { return ['plugin:AutoRowSize']; }
 }
 ```
 
 ### Method lifecycle (in order)
 
-1. `constructor(hotInstance)` — receives HOT instance as `this.hot`
-2. `isEnabled()` — return truthy/falsy based on `this.hot.getSettings()[PLUGIN_KEY]`
-3. `enablePlugin()` — set up hooks via `this.addHook()`, register IndexMapper maps. **Call `super.enablePlugin()` at the end.**
-4. `updatePlugin()` — typical pattern: `this.disablePlugin(); this.enablePlugin(); super.updatePlugin();`
-5. `disablePlugin()` — **Call `super.disablePlugin()` (clears EventManager and hooks).** Then clean up plugin-specific state.
-6. `destroy()` — final teardown. **Call `super.destroy()` at the end.**
+1. `constructor(hotInstance)` -- receives HOT instance as `this.hot`
+2. `isEnabled()` -- return truthy/falsy based on `this.hot.getSettings()[PLUGIN_KEY]`
+3. `enablePlugin()` -- set up hooks via `this.addHook()`, register IndexMapper maps. **Call `super.enablePlugin()` at the end.**
+4. `updatePlugin()` -- typical: `this.disablePlugin(); this.enablePlugin(); super.updatePlugin();`
+5. `disablePlugin()` -- **Call `super.disablePlugin()` (clears EventManager and hooks).** Then clean up.
+6. `destroy()` -- final teardown. **Call `super.destroy()` at the end.**
 
 ### Hook registration
 
-Plugins that introduce new hooks register them globally **at module level, outside the class**:
+Plugins that introduce new hooks register them at module level, outside the class:
 
 ```js
 import Hooks from '../../core/hooks';
-
 Hooks.getSingleton().register('beforeMyAction');
 Hooks.getSingleton().register('afterMyAction');
-
-export class MyPlugin extends BasePlugin {
-  // ...
-}
 ```
 
-### Important distinction
+**Important:** `this.addHook()` (BasePlugin method) auto-cleans hooks on `disablePlugin()`. `this.hot.addHook()` does not.
 
-`this.addHook()` in a plugin context (BasePlugin) is different from `this.hot.addHook()`. The plugin version auto-cleans hooks on `disablePlugin()`.
+### Plugin registration
 
-### File structure convention
+New plugins must be wired through `src/plugins/index.js` and exported from their own `index.js`:
 
-Each plugin directory exports from an `index.js`:
 ```js
 export { PLUGIN_KEY, PLUGIN_PRIORITY, MyPlugin } from './myPlugin';
 ```
+
+### Plugin decoupling rules
+
+- Plugins must **not** directly import or check for the presence of other plugins. Use hooks (event-driven communication) instead.
+- If access to another plugin's API is required, use `hot.getPlugin('{Name}')`.
+- No circular dependencies between plugins.
+- Do not re-implement another plugin's methods. Listen to hooks and react.
+
+### Conflict ownership
+
+When a plugin is incompatible with another, the plugin that introduces the conflict owns the disabling/blocking logic. Other plugins should not contain awareness checks.
+
+### Configuration rules
+
+- New options should be **disabled by default** in `src/dataMap/metaManager/metaSchema.js`.
+- New options should support the cascading configuration model (`cell` -> `column` -> `global`) when applicable. If table-level only, document this in JSDoc.
+
+---
+
+## Three coordinate systems
+
+| Coordinate type | Description | Example |
+|---|---|---|
+| **Physical** | Position in the source data array | Row 5 in the original dataset |
+| **Visual** | Position in the DataMap (after trimming) | Row 3 if rows 0-1 were trimmed |
+| **Renderable** | Position in the DOM (after hiding) | Row 2 if one visual row is hidden |
+
+Plugins must translate between these systems using `IndexMapper` (`hot.rowIndexMapper` / `hot.columnIndexMapper`).
+
+| Map type | Effect |
+|---|---|
+| `HidingMap` | Index stays in DataMap but is **not rendered** in the DOM |
+| `TrimmingMap` | Index is **removed from DataMap** entirely |
 
 ---
 
 ## Testing requirements
 
-Handsontable uses three test pipelines:
-- **Jest** for unit tests (`*.unit.js` files, `__tests__/` directories next to source files)
-- **Jasmine** (with Puppeteer, headless Chrome) for browser E2E tests (`*.spec.js` files, `handsontable/test/e2e/`)
-- **Walkontable** has its own separate test pipeline (`npm run test:walkontable`)
-
-### Test file naming
+Three test pipelines: **Jest** (unit), **Jasmine/Puppeteer** (E2E), **Walkontable** (separate).
 
 | Type | Pattern | Framework | Location |
 |---|---|---|---|
@@ -382,7 +290,6 @@ describe('MyPlugin', () => {
     });
 
     await selectCell(0, 0);
-
     expect(getDataAtCell(0, 0)).toBe('A1');
   });
 });
@@ -390,122 +297,99 @@ describe('MyPlugin', () => {
 
 ### Global test helpers
 
-`test/helpers/common.js` exposes all HOT API methods as global test functions — **no imports needed** in spec files:
+`test/helpers/common.js` exposes all HOT API methods as globals -- **no imports needed** in spec files: `handsontable()`, `createSpreadsheetData()`, `selectCell()`, `getCell()`, `getDataAtCell()`, `getData()`, `getPlugin()`, `render()`, `destroy()`, `updateSettings()`, `spec()`.
 
-- `handsontable(options)` — creates a HOT instance
-- `createSpreadsheetData(rows, cols)` — generates mock data (`'A1'`, `'B2'`, etc.)
-- `selectCell()`, `getCell()`, `getDataAtCell()`, `getData()`, `getPlugin()`, `render()`, `destroy()`, `updateSettings()`, etc.
-- `spec()` — returns the current test's HOT instance
-
-Additional helpers: `test/helpers/mouseEvents.js`, `test/helpers/keyboardEvents.js` (DOM event simulation), `test/helpers/asciiTable.js` (selection pattern assertions).
+Additional helpers: `mouseEvents.js`, `keyboardEvents.js`, `asciiTable.js`.
 
 ### What to test
 
-- Aim for 100% code coverage of new or modified code.
+- 100% coverage of new or modified code.
 - Test all possible states including edge cases.
-- Plugins, renderers, and editors must be tested against:
-  - `hot.updateSettings()`
-  - `hot.getPlugin('{PluginName}').enablePlugin(); hot.render();`
-  - `hot.getPlugin('{PluginName}').disablePlugin(); hot.render();`
-- Verify no regressions in related functionality.
-- Check that no exceptions are displayed in the console.
+- Plugins must be tested against: `updateSettings()`, programmatic `enablePlugin()`/`disablePlugin()`.
+- Add unit tests with **50k+ rows** when handling data arrays.
+- Test non-consecutive selections and header selections when modifying selection code.
 
-### Large dataset testing
+---
 
-When fixing bugs or adding features that handle data arrays, add unit tests with **50k+ rows** to catch stack overflow and performance issues.
+## Documentation rules
 
-### Selection testing
+### When documentation is required
 
-Test non-consecutive selections (Ctrl/Cmd+click), row/column header selections, and active selection layers when modifying selection-related code.
+- Any change to public API, options, hooks, or user-facing behavior **must** update JSDoc/Typedoc comments and guides.
+- Any breaking change **must** include a migration guide step.
+- New documentation pages should be included in the changelog.
 
-### Visual regression tests
+### Writing style
 
-Playwright visual regression tests are in `visual-tests/`.
+1. Short sentences. Active voice. American English spelling.
+2. Use "you" not "we". Oxford comma.
+3. No evaluative adjectives ("easy", "simple", "obvious").
+4. Use en dashes (-) to separate clauses, not hyphens.
+5. Consistent naming: `Node.js`, `webpack`, `TypeScript`.
+
+### Trademark rules
+
+- Pages mentioning "Excel" must include the Microsoft/Excel trademark disclaimer.
+- Pages also mentioning "Google Sheets" use the expanded disclaimer.
 
 ---
 
 ## Architecture constraints
 
-- **Frontend-only**: No server-side logic. Everything runs in the browser. No network requests unless explicitly configured by the user.
-- **Microkernel plugin system**: All extensions hook into the core through the plugin API. Respect the plugin lifecycle (see [Plugin lifecycle](#plugin-lifecycle)).
-- **Cascading configuration**: All feature configuration must work with Handsontable's cascading configuration model (`cell` → `column` → `global`).
-- **Design system theming**: CSS variables are the public API for theme customization. The design system uses a token hierarchy declared in Figma and exported as CSS variables.
-- **Framework wrapper parity**: Official wrappers (React, Angular, Vue) must be idiomatic for each framework and maintain feature parity.
-- **XSS prevention**: Strict input sanitization on user-facing cell content, custom formulas, and cell scripts. Safe plugin architecture to minimize attack surfaces.
-- **Internationalization**: Must handle RTL layouts, Unicode input (IME), and translations.
-- **No global namespace pollution**: Integration via NPM/CDN must not pollute the global namespace.
-- **Minimal dependencies**: Avoid adding third-party libraries. If you must, discuss with the team first. All dependencies must have permissive open-source licenses (MIT, BSD, Apache, etc.) and be actively maintained. This applies transitively to sub-dependencies.
-- **Functional continuity**: Each release must include no less functionality than its predecessor.
+- **Frontend-only**: No server-side logic. No network requests unless user-configured.
+- **Microkernel plugin system**: All extensions hook into the core through the plugin API.
+- **Cascading configuration**: `cell` -> `column` -> `global`.
+- **Design system theming**: CSS variables are the public API for theme customization.
+- **Framework wrapper parity**: React, Angular, Vue wrappers must be idiomatic and maintain feature parity.
+- **XSS prevention**: Strict input sanitization on user-facing cell content.
+- **Internationalization**: RTL layouts, Unicode input (IME), translations. All user-facing strings go through `src/i18n/`.
+- **No global namespace pollution**.
+- **Minimal dependencies**: Discuss with the team before adding any third-party dependency. Must have permissive licenses (MIT, BSD, Apache). Applies transitively.
 
 ---
 
 ## Performance rules
 
-- **Avoid spread operator with large arrays**: When working with potentially large arrays (10k+ elements), never use `arr.push(...largeArray)`. This causes stack overflow. Use `forEach` loops instead.
-- **Batch scroll events**: Use `requestAnimationFrame` to batch scroll event updates and prevent excessive redraws. Target smooth 60fps with 100k+ row datasets.
-- **Use `batch()` / `batchRender()` / `suspendRender()` / `resumeRender()`** when performing multiple operations that trigger rendering to avoid unnecessary redraws.
-- **Performance must not degrade**: Measured in library size, rendering performance, and memory consumption. Performance should gradually improve over time.
+- **No spread with large arrays**: Never `arr.push(...largeArray)` with 10k+ elements. Use `forEach`.
+- **Batch rendering**: Use `batch()` / `batchRender()` / `suspendRender()` / `resumeRender()` for multiple operations.
+- **Batch scroll events**: Use `requestAnimationFrame`.
+- **No degradation**: Library size, rendering performance, and memory consumption must not degrade.
 
 ---
 
 ## Git and branching
 
-### Branch naming
-
-- Feature branches: `feature/issue-xxxx` (e.g., `feature/issue-9024`)
-- Documentation branches: `docs/issue-xxxx` (e.g., `docs/issue-9024`)
+- Feature branches: `feature/issue-xxxx`
+- Documentation branches: `docs/issue-xxxx`
 - Release branches: `release/x.y.z`
-- LTS branches: `lts/[major].x`
-
-### Git rules
-
-- **Never force-push** to `master`, `develop`, or feature branches bound to Pull Requests. Force-pushing diverges history in other people's clones and makes PR review history incomprehensible.
-- Follow the **Git flow** branching strategy.
-
-### Versioning
-
-- Uses **SemVer**. Patch releases are for critical fixes only.
-- Even-numbered major releases (16, 18, 20, 22) become **LTS releases**.
-- Odd-numbered major releases (17, 19, 21) are **Current-only** (6-month lifecycle).
-- No more than 4 major releases per year (preferably 0). If multiple breaking changes are needed, bulk them into a single major release.
+- **Never force-push** to `master`, `develop`, or PR-bound branches.
+- **SemVer**: Even-numbered majors (16, 18, 20) become LTS.
 
 ---
 
 ## Pull requests and changelog
 
-### PR requirements
-
 - Every PR must be connected to a GitHub issue.
-- Every PR that changes package source code must include a changelog entry.
-- To create a changelog entry, run: `bin/changelog entry` (interactive CLI).
-- To skip changelog (for non-source-code changes only), write `[skip changelog]` in the PR description.
-- PRs are merged using **"Squash and merge"** in the GitHub UI by the PR author after full approval.
-- The PR author is responsible for addressing reviewer comments. The reviewer confirms resolution by clicking **Resolve conversation**.
-
-### Changelog format
-
-Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. See `.changelogs/README.md` for full details.
-
-### Visibility of work
-
-- If a task spans multiple days, create a draft PR and commit daily.
-- All work must be tracked as a GitHub issue. If no issue exists, create one.
+- Every PR that changes source code must include a changelog entry (`bin/changelog entry`).
+- Use `[skip changelog]` only for non-source-code changes.
+- PRs are merged using **"Squash and merge"**.
 
 ---
 
-## API design guidelines
+## Accessibility (a11y)
 
-- Make all necessary methods available in the public API.
-- APIs must be discoverable, documented in guides, and usable in real-world applications.
-- All configuration options must fit into the cascading configuration model.
-- TypeScript typings in `handsontable/types/` must be maintained and accurate.
-- The public API must provide good code completion in IDEs and AI coding assistants.
+- Preserve WCAG 2.1 AA conformance.
+- Do not regress keyboard navigation. Both modes must work:
+  - Spreadsheet mode: `navigableHeaders: false`, `tabNavigation: true`.
+  - Data grid mode: `navigableHeaders: true`, `tabNavigation: false`.
+- Verify ARIA semantics after changes to rendering, selection, headers, frozen areas, or merged cells.
+- New UI elements must use semantic HTML with sufficient color contrast.
 
 ---
 
 ## React wrapper specifics
 
-- When calling `updateSettings()` in the React wrapper, **preserve and restore selection state** using `selection.exportSelection()` and `selection.importSelection()` to maintain non-consecutive selections, active layers, and focus positions across React re-renders.
+When calling `updateSettings()` in the React wrapper, **preserve and restore selection state** using `selection.exportSelection()` and `selection.importSelection()`.
 
 ---
 
@@ -513,32 +397,10 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. See `.c
 
 - Always respect defined column widths as **minimum values**.
 - If a column would shrink below its base width, disable stretching entirely.
-- Different stretching strategies (`'all'`, `'last'`) must behave consistently regarding minimum width handling.
-
----
-
-## Dependency management
-
-- **Discuss with the team before adding any third-party dependency.**
-- All dependencies must have permissive open-source licenses (MIT, BSD, Apache, etc.).
-- All dependencies must be actively maintained.
-- These rules apply transitively to all sub-dependencies.
-- Adding dependencies under non-permissive licenses requires notifying clients through the Sales team.
-
----
-
-## Security
-
-- Strict XSS prevention in user-facing cell content.
-- Input sanitization on custom formulas and cell scripts.
-- Safe plugin architecture to minimize attack surfaces.
-- CLA must be signed before merging external contributions.
 
 ---
 
 ## File locations reference
-
-### Core
 
 | Area | Path |
 |---|---|
@@ -546,92 +408,28 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. See `.c
 | Full entry point | `handsontable/src/index.js` |
 | Base (tree-shakeable) entry | `handsontable/src/base.js` |
 | Module registry | `handsontable/src/registry.js` |
-| TableView (Core ↔ Walkontable bridge) | `handsontable/src/tableView.js` |
-
-### Plugins
-
-| Area | Path |
-|---|---|
+| TableView (Core-Walkontable bridge) | `handsontable/src/tableView.js` |
 | Plugin base class | `handsontable/src/plugins/base/base.js` |
 | Plugin registry | `handsontable/src/plugins/registry.js` |
-| All plugins index | `handsontable/src/plugins/index.js` |
-| Column stretching strategies | `handsontable/src/plugins/stretchColumns/strategies/` |
-
-### Data and meta
-
-| Area | Path |
-|---|---|
-| Data mapping | `handsontable/src/dataMap/` |
-| Cell meta system | `handsontable/src/dataMap/metaManager/` |
-| Index translations (IndexMapper) | `handsontable/src/translations/` |
-
-### Selection
-
-| Area | Path |
-|---|---|
+| Meta schema (defaults) | `handsontable/src/dataMap/metaManager/metaSchema.js` |
+| Index translations | `handsontable/src/translations/` |
 | Selection logic | `handsontable/src/selection/` |
-| Highlight system | `handsontable/src/selection/highlight/` |
-| Selection transformations | `handsontable/src/selection/transformation/` |
-
-### Rendering (Walkontable)
-
-| Area | Path |
-|---|---|
 | Walkontable engine | `handsontable/src/3rdparty/walkontable/src/` |
-| Overlays | `handsontable/src/3rdparty/walkontable/src/overlay/` |
-| Viewport calculators | `handsontable/src/3rdparty/walkontable/src/calculator/` |
-| Scroll handling | `handsontable/src/3rdparty/walkontable/src/scroll.js` |
-| Walkontable tests | `handsontable/src/3rdparty/walkontable/test/` |
-
-### Hooks and helpers
-
-| Area | Path |
-|---|---|
 | Hooks system | `handsontable/src/core/hooks/` |
-| Error helpers (`throwWithCause`) | `handsontable/src/helpers/errors.js` |
+| Error helpers | `handsontable/src/helpers/errors.js` |
 | Console helpers | `handsontable/src/helpers/console.js` |
-| HTML parsing | `handsontable/src/utils/parseTable.js` |
-
-### Types and config
-
-| Area | Path |
-|---|---|
+| i18n constants | `handsontable/src/i18n/constants.js` |
+| i18n language files | `handsontable/src/i18n/languages/` |
 | TypeScript definitions | `handsontable/types/` |
-| Webpack configs | `handsontable/.config/` |
-| Babel config | `handsontable/babel.config.js` |
-| Build env variables | `hot.config.js` (root) |
-| ESLint config | `.eslintrc.js` (root) and `handsontable/.eslintrc.js` |
-
-### Tests
-
-| Area | Path |
-|---|---|
 | E2E tests | `handsontable/test/e2e/` |
 | Test helpers | `handsontable/test/helpers/` |
-| Test bootstrap | `handsontable/test/bootstrap.js` |
-| Type tests | `handsontable/test/types/` |
 | Visual regression tests | `visual-tests/` |
-
-### Wrappers
-
-| Area | Path |
-|---|---|
-| React wrapper core | `wrappers/react-wrapper/src/hotTableInner.tsx` |
-| Angular wrapper core | `wrappers/angular-wrapper/projects/hot-table/src/lib/` |
-| Vue 3 wrapper | `wrappers/vue3/` |
-
-### CI/CD, changelog, and docs
-
-| Area | Path |
-|---|---|
-| CI workflows | `.github/workflows/` |
 | Changelog entries | `.changelogs/` |
 | Changelog CLI | `bin/changelog` |
 | Guides and examples | `docs/content/` |
-| Docs editing guide | `docs/README-EDITING.md` |
-| Docs deployment guide | `docs/README-DEPLOYMENT.md` |
-| Broken link redirects | `docs/netlify/netlify/edge-functions/` |
 | Migration guides | `docs/content/guides/upgrade-and-migration/` |
+| Browser targets | `browser-targets.js` (root) |
+| ESLint config | `.eslintrc.js` (root) and `handsontable/.eslintrc.js` |
 
 ---
 
@@ -852,13 +650,11 @@ Handsontable uses two testing frameworks:
 
 ## Gotchas
 
-- The core build outputs to `handsontable/tmp/` (not `dist/` for wrappers' consumption). The UMD/minified builds go to `handsontable/dist/` and CSS to `handsontable/styles/`. Wrapper packages reference the `tmp/` build via workspace linking.
-- Two Handsontable builds exist: `handsontable.js` (base, external deps) and `handsontable.full.js` (includes HyperFormula). When testing, ensure both variants work.
-- The Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider`; this is already wired into the `test` script.
-- The `pnpm-workspace.yaml` has `ignoredBuiltDependencies` and `onlyBuiltDependencies` lists. If pnpm warns about ignored build scripts (e.g., `less`), this is expected.
-- Root-level `npm run lint` and `npm run test` scripts use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
-- The docs site (`docs/`) uses Node 20 (its own `.nvmrc`) and is not needed for core library development.
-- Walkontable (the rendering engine) lives inside `src/3rdparty/walkontable/` and has its **own test runner** — do not mix Walkontable tests with main E2E tests.
+- Wrappers consume `handsontable/tmp/` (not `dist/`). Build core before running wrapper tests.
+- Two builds: `handsontable.js` (base) and `handsontable.full.js` (includes HyperFormula). Test both.
+- Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider` (already in the `test` script).
+- The docs site (`docs/`) uses Node 20 and is not needed for core development.
+- Walkontable has its **own test runner** -- do not mix with main E2E tests.
 - No Docker, databases, or external services are required.
 
 ---
@@ -878,3 +674,7 @@ Handsontable uses two testing frameworks:
 | Changelog entries | `.changelogs/` |
 | ESLint config | Root monorepo config |
 | Build config | `handsontable/hot.config.js` and `handsontable/.config/` |
+
+### Testing preference
+
+- For bug fixes in `handsontable/`, add both a focused unit test and a focused E2E regression test when practical.

@@ -14,23 +14,6 @@ describe('GhostTable', () => {
         this.data.clear();
       },
     };
-    const hotMock = {
-      rootDocument: document,
-      rootWindow: window,
-      getCurrentThemeName: () => '',
-      countCols: () => 3,
-      toPhysicalColumn: visualColumn => visualColumn,
-      getSettings: () => ({ dropdownMenu: true }),
-      view: {
-        countRenderableColumns: () => 3,
-      },
-      columnIndexMapper: {
-        createAndRegisterIndexMap: () => widthsMapMock,
-        getRenderableIndexesLength: () => 3,
-        getVisualFromRenderableIndex: renderableColumn => renderableColumn,
-        getRenderableFromVisualIndex: visualColumn => visualColumn,
-      },
-    };
     const getHeaderSettings = (row, column) => {
       if (row === 0 && column === 0) {
         return {
@@ -93,7 +76,29 @@ describe('GhostTable', () => {
 
       return undefined;
     };
-    const ghostTable = new GhostTable(hotMock, getHeaderSettings);
+    const headersStateManager = {
+      getHeaderSettings: (row, column) => getHeaderSettings(row, column),
+      getHeaderTreeNode: () => null,
+    };
+    const hotMock = {
+      rootDocument: document,
+      rootWindow: window,
+      getCurrentThemeName: () => '',
+      countCols: () => 3,
+      toPhysicalColumn: visualColumn => visualColumn,
+      getSettings: () => ({ dropdownMenu: true }),
+      view: {
+        countRenderableColumns: () => 3,
+      },
+      columnIndexMapper: {
+        createAndRegisterIndexMap: () => widthsMapMock,
+        getRenderableIndexesLength: () => 3,
+        getVisualFromRenderableIndex: renderableColumn => renderableColumn,
+        getRenderableFromVisualIndex: visualColumn => visualColumn,
+        isHidden: () => false,
+      },
+    };
+    const ghostTable = new GhostTable({ hot: hotMock, headersStateManager });
 
     ghostTable.setLayersCount(2);
     ghostTable.buildWidthsMap();
@@ -137,6 +142,7 @@ describe('GhostTable', () => {
             getRenderableIndexesLength: () => 1,
             getVisualFromRenderableIndex: renderableColumn => renderableColumn,
             getRenderableFromVisualIndex: visualColumn => visualColumn,
+            isHidden: () => false,
           },
         },
         widthsMapMock,
@@ -157,17 +163,21 @@ describe('GhostTable', () => {
 
       return undefined;
     };
+    const headersStateManager = {
+      getHeaderSettings: (row, column) => getHeaderSettings(row, column),
+      getHeaderTreeNode: () => null,
+    };
     const { hot: hotWithoutCollapsible } = createHotMock(false);
     const { hot: hotWithCollapsible } = createHotMock(true);
-    const ghostTableWithoutCollapsible = new GhostTable(hotWithoutCollapsible, getHeaderSettings);
-    const ghostTableWithCollapsible = new GhostTable(hotWithCollapsible, getHeaderSettings);
+    const ghostTableWithoutCollapsible = new GhostTable({ hot: hotWithoutCollapsible, headersStateManager });
+    const ghostTableWithCollapsible = new GhostTable({ hot: hotWithCollapsible, headersStateManager });
     const containerWithoutCollapsible = document.createElement('div');
     const containerWithCollapsible = document.createElement('div');
 
     ghostTableWithoutCollapsible.setLayersCount(1);
     ghostTableWithCollapsible.setLayersCount(1);
-    ghostTableWithoutCollapsible._buildGhostTable(containerWithoutCollapsible);
-    ghostTableWithCollapsible._buildGhostTable(containerWithCollapsible);
+    ghostTableWithoutCollapsible._buildGhostTable(containerWithoutCollapsible, false);
+    ghostTableWithCollapsible._buildGhostTable(containerWithCollapsible, false);
 
     expect(containerWithoutCollapsible.querySelector('button.changeType')).not.toBeNull();
     expect(containerWithoutCollapsible.querySelector('button.collapsibleIndicator')).toBeNull();

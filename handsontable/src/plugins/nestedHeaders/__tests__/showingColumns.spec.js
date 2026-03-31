@@ -1798,7 +1798,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(3, false); // Show column that contains cells D{n}
       await render();
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const hidingMap2 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map2', 'hiding', true);
 
@@ -1841,7 +1841,7 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const hidingMap3 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map3', 'hiding', true);
 

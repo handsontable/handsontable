@@ -28,7 +28,7 @@ export function textRenderer(hotInstance, TD, row, col, prop, value, cellPropert
     escaped = escaped.trim();
   }
 
-  // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
+  // this is faster than innerHTML.
   fastInnerText(TD, escaped);
 }
 
