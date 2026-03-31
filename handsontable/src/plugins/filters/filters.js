@@ -1074,7 +1074,7 @@ export class Filters extends BasePlugin {
   /**
    * After dataProvider fetch listener.
    *
-   * @param {{ filtersConditionsStack?: Array }} [result] Fetch result (filters match the request that just completed).
+   * @param {object} [result] Fetch result (filters match the request that just completed). May include `filtersConditionsStack` (Array).
    */
   #onAfterDataProviderFetch(result) {
     this.importConditions(result?.filtersConditionsStack ?? []);
