@@ -298,35 +298,4 @@ describe('Pagination UI', () => {
 
     expect(document.activeElement).toBe(nextButton);
   });
-
-  it('should apply a 1px horizontal shift to the left caret in LTR mode', async() => {
-    handsontable({
-      data: createSpreadsheetData(50, 10),
-      width: 500,
-      height: 400,
-      pagination: true,
-    });
-
-    const prevButton = getPaginationContainerElement().querySelector('.ht-page-prev');
-    const iconTransform = getComputedStyle(prevButton, '::before').transform;
-
-    expect(prevButton).toHaveClass('ht-page-navigation-section__button--left-caret');
-    expect(iconTransform).toMatch(/-1(?:\.0+)?/);
-  });
-
-  it('should apply a 1px horizontal shift to the left caret in RTL mode', async() => {
-    handsontable({
-      data: createSpreadsheetData(50, 10),
-      width: 500,
-      height: 400,
-      layoutDirection: 'rtl',
-      pagination: true,
-    });
-
-    const nextButton = getPaginationContainerElement().querySelector('.ht-page-next');
-    const iconTransform = getComputedStyle(nextButton, '::before').transform;
-
-    expect(nextButton).toHaveClass('ht-page-navigation-section__button--left-caret');
-    expect(iconTransform).toMatch(/-1(?:\.0+)?/);
-  });
 });

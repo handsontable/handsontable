@@ -145,7 +145,6 @@ export class PaginationUI {
     addClickListener('click', prev, () => this.runLocalHooks('prevPageClick'));
     addClickListener('click', next, () => this.runLocalHooks('nextPageClick'));
     addClickListener('click', last, () => this.runLocalHooks('lastPageClick'));
-    addClass(this.#isRtl ? next : prev, 'ht-page-navigation-section__button--left-caret');
 
     pageSizeSelect.addEventListener('change', () => {
       const value = pageSizeSelect.value === 'auto' ? 'auto' : Number.parseInt(pageSizeSelect.value, 10);
