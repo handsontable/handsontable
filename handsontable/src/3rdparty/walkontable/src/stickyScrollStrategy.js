@@ -227,6 +227,19 @@ export class StickyScrollStrategy {
   }
 
   /**
+   * Clears inset offset inline styles so `position: relative` is not shifted
+   * by leftover `top` / `left` / `right` / `bottom` from sticky mode.
+   *
+   * @param {HTMLElement} element The spreader element.
+   */
+  #clearSpreaderInsetStyles(element) {
+    element.style.top = '';
+    element.style.bottom = '';
+    element.style.left = '';
+    element.style.right = '';
+  }
+
+  /**
    * Applies position styles to the master spreader and (in element-scroll mode)
    * the overlay clone spreaders.
    *
@@ -249,6 +262,9 @@ export class StickyScrollStrategy {
       spreader.style.bottom = '';
       spreader.style[leftProp] = `${stickyLeft}px`;
       spreader.style[isRtl ? 'left' : 'right'] = '';
+
+    } else {
+      this.#clearSpreaderInsetStyles(spreader);
     }
 
     // Overlay clone spreaders — only in element scroll mode.
@@ -265,6 +281,9 @@ export class StickyScrollStrategy {
 
       if (isSticky) {
         cloneSpreader.style.top = `${stickyTop}px`;
+
+      } else {
+        this.#clearSpreaderInsetStyles(cloneSpreader);
       }
     }
 
@@ -276,6 +295,9 @@ export class StickyScrollStrategy {
       if (isSticky) {
         cloneSpreader.style[leftProp] = `${stickyLeft}px`;
         cloneSpreader.style[isRtl ? 'left' : 'right'] = '';
+
+      } else {
+        this.#clearSpreaderInsetStyles(cloneSpreader);
       }
     }
 
@@ -287,6 +309,9 @@ export class StickyScrollStrategy {
       if (isSticky) {
         cloneSpreader.style[leftProp] = `${stickyLeft}px`;
         cloneSpreader.style[isRtl ? 'left' : 'right'] = '';
+
+      } else {
+        this.#clearSpreaderInsetStyles(cloneSpreader);
       }
     }
   }

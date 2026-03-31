@@ -110,13 +110,17 @@ describe('Scrollbar drag optimization', () => {
 
       wt.draw();
 
-      simulateScrollbarDrag(wt, { scrollTop: 500 });
+      simulateScrollbarDrag(wt, { scrollTop: 500, scrollLeft: 100 });
 
-      expect(wt.wtTable.spreader.style.position).toBe('sticky');
+      const spreader = wt.wtTable.spreader;
+
+      expect(spreader.style.position).toBe('sticky');
+      expect(spreader.style.top).not.toBe('');
+      expect(spreader.style.left).not.toBe('');
 
       simulateScrollbarRelease();
 
-      expect(wt.wtTable.spreader.style.position).toBe('relative');
+      expect(spreader.style.position).toBe('relative');
     });
   });
 

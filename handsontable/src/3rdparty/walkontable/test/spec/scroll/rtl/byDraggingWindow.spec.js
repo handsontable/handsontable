@@ -57,6 +57,7 @@ describe('Scrollbar drag optimization - window scroll (RTL mode)', () => {
       simulateScrollbarDrag(wt, { scrollTop: 500 });
 
       expect(spreader.style.position).toBe('sticky');
+      expect(spreader.style.top).not.toBe('');
 
       simulateScrollbarRelease();
 
