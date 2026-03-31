@@ -194,10 +194,11 @@ export class StickyScrollStrategy {
   #getScrollLeft() {
     const { inlineStartOverlay } = this.#overlays;
 
-    // For RTL window scrolling, the parent offset is measured from the left edge
-    // which doesn't match the RTL scroll coordinate system.
+    // For RTL window scrolling, scrollX increases as the user scrolls left (away from
+    // the right-edge origin). getTableParentOffset() returns the left-edge offset which
+    // doesn't apply to the RTL coordinate system, so skip it and return scrollX directly.
     if (this.#isRtl() && this.#isWindowScroll()) {
-      return 0;
+      return Math.abs(inlineStartOverlay.getScrollPosition());
     }
 
     return Math.abs(inlineStartOverlay.getScrollPosition())
@@ -215,10 +216,10 @@ export class StickyScrollStrategy {
 
     if (this.#isWindowScroll()) {
       const { rootWindow } = overlays.domBindings;
-      // RTL + window-scroll coordinates don't align (getScrollLeft returns 0),
-      // so preserve scrollX in that case to avoid incorrect horizontal jumps.
+      // RTL + window-scroll: left is in scrollX coordinates (distance from the right-edge
+      // origin), so pass it directly. LTR: add back the table's left page offset.
       const absoluteLeft = this.#isRtl()
-        ? rootWindow.scrollX
+        ? left
         : left + overlays.inlineStartOverlay.getTableParentOffset();
 
       rootWindow.scrollTo(
@@ -227,7 +228,7 @@ export class StickyScrollStrategy {
       );
     } else {
       overlays.wtTable.holder.scrollTop = top;
-      overlays.wtTable.holder.scrollLeft = left;
+      overlays.wtTable.holder.scrollLeft = this.#isRtl() ? -left : left;
     }
   }
 

@@ -283,4 +283,58 @@ describe('Scrollbar drag optimization - window scroll (RTL mode)', () => {
       expect(firstRowAfter).toBe(firstRowBefore);
     });
   });
+
+  describe('combined vertical and horizontal scroll drag (RTL window scroll)', () => {
+    it('should activate sticky mode and use "right" property when both axes are dragged', async() => {
+      const wt = walkontable({
+        rtlMode: true,
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      const spreader = wt.wtTable.spreader;
+
+      expect(spreader.style.position).toBe('relative');
+
+      // Activate via vertical scroll (horizontal RTL window-scroll cannot be reliably
+      // simulated in headless Chrome, but vertical works fine).
+      simulateScrollbarDrag(wt, { scrollTop: 500 });
+
+      expect(spreader.style.position).toBe('sticky');
+      // In RTL mode the horizontal sticky offset must use "right", not "left".
+      expect(spreader.style.right).not.toBe(undefined);
+      expect(spreader.style.left).toBe('');
+
+      simulateScrollbarRelease();
+
+      expect(spreader.style.position).toBe('relative');
+    });
+
+    it('should keep the same first visible column after releasing the scrollbar in RTL', async() => {
+      const wt = walkontable({
+        rtlMode: true,
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      simulateScrollbarDrag(wt, { scrollTop: 5000 });
+
+      window.scrollTo(0, 3000);
+      wt.wtOverlays.syncScrollPositions();
+
+      const firstColBefore = wt.wtTable.getFirstRenderedColumn();
+
+      simulateScrollbarRelease();
+
+      const firstColAfter = wt.wtTable.getFirstRenderedColumn();
+
+      expect(firstColAfter).toBe(firstColBefore);
+    });
+  });
 });

@@ -874,16 +874,6 @@ class Overlays {
   }
 
   /**
-   * Returns whether the user is currently dragging the native scrollbar.
-   * Delegates to the sticky scroll strategy.
-   *
-   * @returns {boolean}
-   */
-  isScrollbarDragging() {
-    return this.#stickyScroll.isActive();
-  }
-
-  /**
    * Adjust the elements size if needed.
    */
   #adjustElementsSizeIfNeeded() {

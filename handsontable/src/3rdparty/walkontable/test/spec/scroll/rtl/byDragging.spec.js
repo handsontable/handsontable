@@ -331,4 +331,101 @@ describe('Scrollbar drag optimization (RTL mode)', () => {
       expect(wt.wtTable.getFirstRenderedRow()).toBe(0);
     });
   });
+
+  describe('horizontal scroll drag with RTL negative scrollLeft (Chrome convention)', () => {
+    // In Chrome RTL, scrollLeft is 0 at the right edge and negative going left.
+    // These tests verify that #setScrollPosition correctly restores a negative scrollLeft
+    // on deactivation rather than writing a positive value (which would jump to the right edge).
+
+    it('should preserve negative scrollLeft after releasing the scrollbar', async() => {
+      const wt = walkontable({
+        rtlMode: true,
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      const holder = wt.wtTable.holder;
+
+      // Set a negative RTL scrollLeft to simulate scrolling left from the right edge.
+      holder.scrollLeft = -200;
+      wt.draw();
+
+      // Activate sticky mode via vertical scroll.
+      simulateScrollbarDrag(wt, { scrollTop: 500 });
+
+      // Drag to a new horizontal position.
+      holder.scrollLeft = -300;
+      wt.wtOverlays.syncScrollPositions();
+
+      simulateScrollbarRelease();
+
+      // After deactivation, scrollLeft must remain negative (not jump to 0 or positive).
+      // Without the fix, #setScrollPosition writes +left (positive), which Chrome clamps to 0.
+      expect(holder.scrollLeft).toBeLessThan(0);
+    });
+
+    it('should set sticky "right" offset equal to startPosition minus abs(scrollLeft)', async() => {
+      const wt = walkontable({
+        rtlMode: true,
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      const holder = wt.wtTable.holder;
+      const spreader = wt.wtTable.spreader;
+
+      // Scroll left by 200px in RTL Chrome convention (negative scrollLeft).
+      holder.scrollLeft = -200;
+      wt.draw();
+
+      simulateScrollbarDrag(wt, { scrollTop: 500 });
+
+      holder.scrollLeft = -201;
+      wt.wtOverlays.syncScrollPositions();
+
+      const stickyRight = parseInt(spreader.style.right, 10);
+      const startPosition = wt.wtViewport.columnsRenderCalculator.startPosition;
+      const scrollLeft = Math.abs(holder.scrollLeft);
+
+      // Sticky offset compensates the scroll: stickyRight = startPosition - |scrollLeft|.
+      expect(stickyRight).toBe(startPosition - scrollLeft);
+
+      simulateScrollbarRelease();
+    });
+
+    it('should not shift the first visible column after releasing when horizontally scrolled', async() => {
+      const wt = walkontable({
+        rtlMode: true,
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      const holder = wt.wtTable.holder;
+
+      holder.scrollLeft = -200;
+      wt.draw();
+
+      simulateScrollbarDrag(wt, { scrollTop: 5000 });
+
+      holder.scrollLeft = -300;
+      wt.wtOverlays.syncScrollPositions();
+
+      const firstColBefore = wt.wtTable.getFirstRenderedColumn();
+
+      simulateScrollbarRelease();
+
+      const firstColAfter = wt.wtTable.getFirstRenderedColumn();
+
+      expect(firstColAfter).toBe(firstColBefore);
+    });
+  });
 });
