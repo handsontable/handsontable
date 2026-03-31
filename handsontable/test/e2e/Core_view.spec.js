@@ -1018,7 +1018,7 @@ describe('Core_view', () => {
     expect(wtHiderWidth).toEqual(htCoreWidth);
   });
 
-  it('should display full content of the last column header when nestedRows is enabled', async() => {
+  it('should keep header width in sync after nestedRows row-header width updates', async() => {
     const nestedData = [
       {
         id: 1,
@@ -1043,7 +1043,7 @@ describe('Core_view', () => {
         ]
       },
     ];
-    const lastHeaderLabel = 'Very long header for the last column';
+    const lastHeaderLabel = 'Name Name Name Name';
 
     handsontable({
       data: nestedData,
@@ -1051,7 +1051,7 @@ describe('Core_view', () => {
       columns: [
         { data: 'id', type: 'numeric', width: 80 },
         { data: 'name', type: 'text', width: 120 },
-        { data: 'name', type: 'text', width: 230 },
+        { data: 'name', type: 'text', width: 260 },
       ],
       nestedRows: true,
       rowHeaders: true,
@@ -1060,6 +1060,9 @@ describe('Core_view', () => {
       contextMenu: true
     });
 
+    await waitForNextAnimationFrames(2);
+
+    getPlugin('nestedRows').headersUI.updateRowHeaderWidth(10);
     await waitForNextAnimationFrames(2);
 
     const topHeaders = spec().$container.find('.ht_clone_top thead tr:last-child th');
