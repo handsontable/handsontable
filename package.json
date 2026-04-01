@@ -31,9 +31,9 @@
     "examples:start": "http-server ./examples/tmp"
   },
   "devDependencies": {
-    "@actions/core": "^1.2.6",
-    "@actions/github": "^4.0.0",
-    "@angular/compiler": "^17.3.12",
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
+    "@angular/compiler": "^19.2.16",
     "@babel/cli": "^7.8.3",
     "@babel/core": "^7.11.4",
     "@babel/eslint-parser": "^7.13.14",
@@ -72,7 +72,31 @@
   },
   "pnpm": {
     "overrides": {
-      "generic-names@1>loader-utils": "^2.0.0"
+      "generic-names@1>loader-utils": "^2.0.0",
+      "handsontable": "workspace:^",
+      "convict": "^6.2.5",
+      "handlebars": "^4.7.9",
+      "@angular/common": "^19.2.20",
+      "@angular/core": "^19.2.20",
+      "@angular/compiler": "^19.2.20",
+      "nx>minimatch": "^3.1.4",
+      "postcss-url>minimatch": "^3.1.4",
+      "@typescript-eslint/typescript-estree>minimatch": "^9.0.7",
+      "node-forge": "^1.4.0",
+      "path-to-regexp": "^0.1.13",
+      "anymatch>picomatch": "^2.3.2",
+      "readdirp>picomatch": "^2.3.2",
+      "micromatch>picomatch": "^2.3.2",
+      "jest-util>picomatch": "^2.3.2",
+      "@angular-devkit/build-angular>picomatch": "^2.3.2",
+      "@angular-devkit/core>picomatch": "^2.3.2",
+      "@parcel/watcher>picomatch": "^4.0.4",
+      "@rollup/pluginutils>picomatch": "^4.0.4",
+      "serialize-javascript": "^7.0.3",
+      "pacote>tar": "^7.5.11",
+      "node-gyp>tar": "^7.5.11",
+      "cacache>tar": "^7.5.11",
+      "undici": "^6.24.0"
     }
   },
   "license": "SEE LICENSE IN LICENSE.txt",

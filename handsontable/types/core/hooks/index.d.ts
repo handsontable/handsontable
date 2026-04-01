@@ -25,6 +25,12 @@ import {
   Settings as MergeCellsSettings,
 } from '../../plugins/mergeCells';
 import {
+  DataProviderBeforeFetchParameters,
+  DataProviderQueryParameters,
+  DataProviderFetchResult,
+  RowMutationPayload,
+} from '../../plugins/dataProvider';
+import {
   GridSettings,
   CellProperties,
 } from '../../settings';
@@ -166,6 +172,9 @@ export interface Events {
   afterUnmergeCells?: (cellRange: CellRange, auto: boolean) => void;
   afterUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
   afterUpdateData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
+  afterDataProviderFetch?: (result: DataProviderFetchResult) => void;
+  afterDataProviderFetchError?: (error: Error, queryParameters: DataProviderQueryParameters) => void;
+  afterDataProviderFetchAbort?: (queryParameters: DataProviderQueryParameters, reason?: Error) => void;
   afterUpdateSettings?: (newSettings: GridSettings) => void;
   afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number, source: ChangeSource) => void | boolean;
   afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
@@ -178,6 +187,19 @@ export interface Events {
     alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
   beforeChange?: (changes: Array<CellChange | null>, source: ChangeSource) => void | boolean;
   beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
+  /**
+   * Fired before an alter action is applied. Return `false` to cancel the default behavior.
+   */
+  beforeAlter?: (
+    action: 'insert_row_above' | 'insert_row_below' | 'remove_row' | 'insert_col_start' | 'insert_col_end' | 'remove_col',
+    index: number | [number, number][],
+    amount: number,
+    source?: string,
+    keepEmptyRows?: boolean
+  ) => boolean | void;
+  beforeRowsMutation?: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload) => void | boolean;
+  afterRowsMutation?: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload) => void;
+  afterRowsMutationError?: (operation: 'create' | 'update' | 'remove', error: Error, payload: RowMutationPayload) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean) => void | boolean;
   beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
   beforeColumnFreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void | boolean;
@@ -217,6 +239,7 @@ export interface Events {
   beforeOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   beforeOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
   beforeOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  beforeDataProviderFetch?: (queryParameters: DataProviderBeforeFetchParameters) => boolean | void;
   beforePageChange?: (oldPage: number, newPage: number) => void | boolean;
   beforePageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void | boolean;
   beforePaste?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
@@ -261,6 +284,7 @@ export interface Events {
   construct?: () => void;
   dialogFocusNextElement?: () => void;
   dialogFocusPreviousElement?: () => void;
+  hasExternalDataSource?: () => boolean | void;
   init?: () => void;
   modifyAutoColumnSizeSeed?: (seed: string, cellProperties: CellProperties, cellValue: CellValue) => string | void;
   modifyAutofillRange?: (startArea: Array<[number, number, number, number]>, entireArea: Array<[number, number, number, number]>) => void;

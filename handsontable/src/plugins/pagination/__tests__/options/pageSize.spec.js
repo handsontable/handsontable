@@ -509,7 +509,7 @@ describe('Pagination `pageSize` option', () => {
       setCurrentHotInstance(hotInstance);
 
       iframe.css({ height: '400px' });
-      await sleep(100); // wait for the onresize event to trigger a render
+      await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
         classic.toBe('A1');
@@ -540,7 +540,7 @@ describe('Pagination `pageSize` option', () => {
       });
 
       iframe.css({ height: '200px' });
-      await sleep(100); // wait for the onresize event to trigger a render
+      await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
         classic.toBe('A1');
@@ -571,7 +571,7 @@ describe('Pagination `pageSize` option', () => {
       });
 
       iframe.css({ height: '705px' });
-      await sleep(100); // wait for the onresize event to trigger a render
+      await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
         classic.toBe('A1');

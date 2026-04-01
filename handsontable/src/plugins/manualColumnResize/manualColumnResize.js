@@ -94,6 +94,12 @@ export class ManualColumnResize extends BasePlugin {
    */
   #columnWidthsMap;
   /**
+   * Disposer function for the column widths map observer. Called on disable to clean up.
+   *
+   * @type {Function|null}
+   */
+  #disposeMapObserver = null;
+  /**
    * Private pool to save configuration from updateSettings.
    *
    * @type {object}
@@ -137,6 +143,11 @@ export class ManualColumnResize extends BasePlugin {
     this.#columnWidthsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.columnIndexMapper.registerMap(this.pluginName, this.#columnWidthsMap);
 
+    this.#disposeMapObserver = this.hot.columnIndexMapper
+      .observeMapChange(this.#columnWidthsMap, () => {
+        this.hot.view?.invalidateColumnWidthCache();
+      });
+
     this.addHook('modifyColWidth', (...args) => this.#onModifyColWidth(...args), 1);
     this.addHook('beforeStretchingColumnWidth', (...args) => this.#onBeforeStretchingColumnWidth(...args), 1);
     this.addHook('beforeColumnResize', (...args) => this.#onBeforeColumnResize(...args));
@@ -163,6 +174,11 @@ export class ManualColumnResize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    if (this.#disposeMapObserver) {
+      this.#disposeMapObserver();
+      this.#disposeMapObserver = null;
+    }
+
     this.#config = this.#columnWidthsMap.getValues();
     this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     super.disablePlugin();

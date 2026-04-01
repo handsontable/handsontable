@@ -240,6 +240,7 @@ export type TokenKey =
   | 'iconButtonBorderColor'
   | 'iconButtonBackgroundColor'
   | 'iconButtonIconColor'
+  | 'iconButtonHitAreaSize'
   | 'iconButtonHoverBorderColor'
   | 'iconButtonHoverBackgroundColor'
   | 'iconButtonHoverIconColor'

@@ -2266,6 +2266,94 @@ describe('CollapsibleColumns', () => {
         horizon.toBe(107);
       });
     });
+
+    it('should not change the first child column width after collapsing a parent header (#dev-2151)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
+          ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+        ],
+        collapsibleColumns: true,
+      });
+
+      const widthBeforeCollapse = getColWidth(1);
+
+      const plugin = getPlugin('collapsibleColumns');
+
+      plugin.collapseSection({ row: -3, col: 1 });
+
+      expect(getColWidth(1)).toBe(widthBeforeCollapse);
+    });
+
+    it('should not change the first child column width after collapsing a deeply nested header (#dev-2151)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        nestedHeaders: [
+          [{ label: 'A1', colspan: 10 }],
+          [{ label: 'A2', colspan: 5 }, { label: 'F2', colspan: 5 }],
+          ['A3', { label: 'B3', colspan: 4 }, 'F3', 'G3', 'H3', 'I3', 'J3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+        ],
+        collapsibleColumns: true,
+      });
+
+      const widthBeforeCollapse = getColWidth(0);
+
+      const plugin = getPlugin('collapsibleColumns');
+
+      plugin.collapseSection({ row: -4, col: 0 });
+
+      expect(getColWidth(0)).toBe(widthBeforeCollapse);
+    });
+
+    it('should not change the first child column width after collapsing and expanding a header (#dev-2151)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
+          ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+        ],
+        collapsibleColumns: true,
+      });
+
+      const widthBeforeCollapse = getColWidth(1);
+
+      const plugin = getPlugin('collapsibleColumns');
+
+      plugin.collapseSection({ row: -3, col: 1 });
+
+      expect(getColWidth(1)).toBe(widthBeforeCollapse);
+
+      plugin.expandSection({ row: -3, col: 1 });
+
+      expect(getColWidth(1)).toBe(widthBeforeCollapse);
+    });
+
+    it('should not change the first child column width after collapsing a header with a hidden column (#dev-2151)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
+          ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+        ],
+        collapsibleColumns: true,
+        hiddenColumns: {
+          columns: [2],
+        },
+      });
+
+      const widthBeforeCollapse = getColWidth(1);
+
+      const plugin = getPlugin('collapsibleColumns');
+
+      plugin.collapseSection({ row: -3, col: 1 });
+
+      expect(getColWidth(1)).toBe(widthBeforeCollapse);
+    });
   });
 
   describe('expanding headers functionality', () => {

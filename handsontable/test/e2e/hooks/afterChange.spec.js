@@ -31,7 +31,7 @@ describe('Hook', () => {
 
       await setDataAtCell(0, 0, '3,45');
 
-      await sleep(50);
+      await waitForNextAnimationFrames();
 
       expect(dataChanges).toEqual([[0, 0, 1, 3.45]]);
     });
