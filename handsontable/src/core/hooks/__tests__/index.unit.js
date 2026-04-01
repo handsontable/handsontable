@@ -329,9 +329,9 @@ describe('Hooks', () => {
     it('should pass tuple-like autofill ranges through hook callbacks', () => {
       const hooks = new Hooks();
       const modifyAutofillRange = jasmine.createSpy('modifyAutofillRange')
-        .and.callFake((startArea, entireArea) => {
-          expect(Array.isArray(startArea[0])).toBe(false);
+        .and.callFake((entireArea, startArea) => {
           expect(Array.isArray(entireArea[0])).toBe(false);
+          expect(Array.isArray(startArea[0])).toBe(false);
 
           return [0, 0, 2, 0];
         });

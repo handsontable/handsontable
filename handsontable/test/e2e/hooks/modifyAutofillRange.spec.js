@@ -11,9 +11,9 @@ describe('Hook', () => {
   describe('modifyAutofillRange', () => {
     it('should pass tuple coordinates and respect the returned range', async() => {
       const modifyAutofillRange = jasmine.createSpy('modifyAutofillRange')
-        .and.callFake((startArea, entireArea) => {
-          expect(Array.isArray(startArea[0])).toBe(false);
+        .and.callFake((entireArea, startArea) => {
           expect(Array.isArray(entireArea[0])).toBe(false);
+          expect(Array.isArray(startArea[0])).toBe(false);
 
           return [0, 0, 2, 0];
         });
