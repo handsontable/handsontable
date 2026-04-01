@@ -45,15 +45,6 @@ export class StickyScrollStrategy {
   }
 
   /**
-   * Returns whether sticky-scroll mode is currently active.
-   *
-   * @returns {boolean}
-   */
-  isActive() {
-    return this.#active;
-  }
-
-  /**
    * Registers mousedown/mouseup listeners for scrollbar drag detection.
    * Called from `Overlays.registerListeners()`.
    */
