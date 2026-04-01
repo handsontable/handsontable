@@ -69,6 +69,8 @@ From the workspace root:
 - **Lint core**: `pnpm --filter handsontable run eslint` and `pnpm --filter handsontable run stylelint`
 - **Unit tests (core)**: `pnpm --filter handsontable run test:unit` (Jest, ~2200 tests)
 - **E2E tests (core)**: `pnpm --filter handsontable run test:e2e` (Puppeteer/Jasmine, headless Chrome)
+- **Targeted unit test**: `npm_config_testPathPattern=<spec-path-or-regex> pnpm --filter handsontable run test:unit`
+- **Targeted e2e test**: `npm_config_testPathPattern=<spec-path-or-regex> pnpm --filter handsontable run test:e2e`
 - **Walkontable tests**: `pnpm --filter handsontable run test:walkontable` (separate pipeline)
 - **Wrapper tests**: `pnpm --filter @handsontable/react-wrapper run test`, `pnpm --filter @handsontable/vue3 run test`, `pnpm --filter @handsontable/angular-wrapper run test`
 
@@ -468,6 +470,7 @@ When calling `updateSettings()` in the React wrapper, **preserve and restore sel
 - The docs site (`docs/`) uses Node 20 and is not needed for core development.
 - Walkontable has its **own test runner** -- do not mix with main E2E tests.
 - No Docker, databases, or external services are required.
+- For hook signature/behavior fixes, add both a runtime regression (`handsontable/src/**/__tests__/*.spec.js` or `handsontable/test/e2e/hooks/*.spec.js`) and a TypeScript regression (`handsontable/src/__tests__/core/settings.types.ts`) when types are changed.
 
 ### Testing preference
 
