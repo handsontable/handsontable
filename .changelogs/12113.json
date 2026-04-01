@@ -2,7 +2,7 @@
   "issuesOrigin": "public",
   "title": "Fixed the `modifyAutofillRange` hook type signature to match runtime tuple arguments and return value",
   "type": "fixed",
-  "issueOrPR": 11862,
+  "issueOrPR": 12113,
   "breaking": false,
   "framework": "none"
 }
