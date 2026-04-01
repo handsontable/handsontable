@@ -129,6 +129,8 @@ describe('manualColumnMove', () => {
         rowHeaders: true,
         colHeaders: true,
         manualColumnMove: true,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportTo({
@@ -171,7 +173,9 @@ describe('manualColumnMove', () => {
         manualColumnMove: true,
         hiddenColumns: {
           columns: [0, 9]
-        }
+        },
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportTo({

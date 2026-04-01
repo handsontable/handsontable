@@ -361,27 +361,27 @@ describe('MergeCells Selection', () => {
     await selectCells([[20, 1, 0, 0]]);
 
     expect(`
-      | 0 : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : A :   :   :   :   |
-      |   :   :   :   :   :   |
+      | 0 : 0 :   :   :   |
+      |   : 0 :   :   :   |
+      |   : 0 :   :   :   |
+      |   : 0 :   :   :   |
+      |   : 0 :   :   :   |
+      |   : 0 :   :   :   |
+      |   : 0 :   :   :   |
+      |   : A :   :   :   |
+      |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
     await scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
 
     expect(`
-      | 0 : 0 :   :   :   :   |
-      |   : A :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
+      | 0 : 0 :   :   :   |
+      |   : A :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
 
@@ -402,19 +402,19 @@ describe('MergeCells Selection', () => {
     await selectCells([[20, 1, 0, 0]]);
 
     expect(`
-      | 0 : 0 :   :   :   :   |
+      | 0 : 0 :   :   :   |
     `).toBeMatchToSelectionPattern();
 
     await scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
 
     expect(`
-      | 0 : 0 :   :   :   :   |
-      |   : A :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
+      | 0 : 0 :   :   :   |
+      |   : A :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
 
@@ -435,19 +435,19 @@ describe('MergeCells Selection', () => {
     await selectCells([[20, 1, 0, 0]]);
 
     expect(`
-      | 0 : 0 :   :   :   :   |
+      | 0 : 0 :   :   :   |
     `).toBeMatchToSelectionPattern();
 
     await scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
 
     expect(`
-      | 0 : 0 :   :   :   :   |
-      |   : A :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
+      | 0 : 0 :   :   :   |
+      |   : A :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
 

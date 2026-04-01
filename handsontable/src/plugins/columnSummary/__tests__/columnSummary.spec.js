@@ -1071,6 +1071,8 @@ describe('ColumnSummarySpec', () => {
         width: 200,
         rowHeaders: true,
         nestedRows: true,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
         columnSummary: columnSummaryFunction
       });
 

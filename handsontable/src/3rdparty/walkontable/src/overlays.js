@@ -14,6 +14,7 @@ import {
   BottomOverlay,
   BottomInlineStartCornerOverlay,
 } from './overlay';
+import { StickyScrollStrategy } from './stickyScrollStrategy';
 
 /**
  * @class Overlays
@@ -118,6 +119,15 @@ class Overlays {
    * @type {Function}
    */
   #postponedAdjustElementsSize = debounce(this.#adjustElementsSizeIfNeeded.bind(this), 200);
+
+  /**
+   * Strategy that manages the sticky-scroll optimization during native
+   * scrollbar drag. Extracted as a separate class to isolate the sticky
+   * positioning lifecycle from the overlay coordinator.
+   *
+   * @type {StickyScrollStrategy}
+   */
+  #stickyScroll = new StickyScrollStrategy(this);
 
   /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
@@ -334,6 +344,8 @@ class Overlays {
     this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', event => this.onKeyDown(event));
     this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
     this.eventManager.addEventListener(rootDocument, 'visibilitychange', () => this.onKeyUp());
+
+    this.#stickyScroll.registerListeners();
     this.eventManager.addEventListener(
       topOverlayScrollableElement,
       'scroll',
@@ -567,6 +579,8 @@ class Overlays {
     this.lastScrollX = scrollX;
     this.lastScrollY = scrollY;
 
+    this.#stickyScroll.tryActivate(this.verticalScrolling, this.horizontalScrolling);
+
     if (this.horizontalScrolling) {
       topHolder.scrollLeft = scrollX;
 
@@ -582,6 +596,7 @@ class Overlays {
     }
 
     this.refreshAll();
+    this.#stickyScroll.syncOffsets();
   }
 
   /**
@@ -647,6 +662,7 @@ class Overlays {
     }
 
     this.resizeObserver.disconnect();
+    this.#stickyScroll.destroy();
     this.eventManager.destroy();
     // todo, probably all below `destroy` calls has no sense. To analyze
     this.topOverlay.destroy();
@@ -798,6 +814,7 @@ class Overlays {
     }
 
     this.inlineStartOverlay.applyToDOM();
+    this.#stickyScroll.syncOffsets();
   }
 
   /**

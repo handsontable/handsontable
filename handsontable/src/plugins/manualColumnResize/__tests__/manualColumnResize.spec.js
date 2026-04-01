@@ -1129,7 +1129,9 @@ describe('manualColumnResize', () => {
         rowHeaders: true,
         manualColumnResize: true,
         height: 100,
-        width: 400
+        width: 400,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       let $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
@@ -1189,7 +1191,8 @@ describe('manualColumnResize', () => {
         manualColumnResize: true,
         width: 400,
         height: 200,
-        viewportColumnRenderingOffset: 20
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await scrollViewportHorizontally(200);

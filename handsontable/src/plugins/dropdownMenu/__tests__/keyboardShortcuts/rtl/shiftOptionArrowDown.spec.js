@@ -56,7 +56,9 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
           colHeaders: true,
           rowHeaders: true,
           navigableHeaders: true,
-          dropdownMenu: true
+          dropdownMenu: true,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         const lastColumn = countCols() - 1;
