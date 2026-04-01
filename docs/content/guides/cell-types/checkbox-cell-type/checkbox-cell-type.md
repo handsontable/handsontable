@@ -142,6 +142,43 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 
 :::
 
+### Label value as a function
+
+The `value` property of the `label` option can also be a function. The function receives four arguments: `row`, `column`, `prop`, and `value`, where `value` is the current cell value. This lets you generate label text dynamically based on the cell's state.
+
+::: only-for javascript
+
+::: example #example4 --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example4.js)
+@[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/react/example4.jsx)
+@[code](@/content/guides/cell-types/checkbox-cell-type/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example4.ts)
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example4.html)
+
+:::
+
+:::
+
 ## Related keyboard shortcuts
 
 | Windows                  | macOS                    | Action                        |  Excel  | Sheets  |
