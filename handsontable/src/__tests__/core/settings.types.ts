@@ -728,9 +728,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   hasExternalDataSource: () => false,
   init: () => {},
   modifyAutoColumnSizeSeed: (seed, cellProperties, cellValue) => '1',
-  modifyAutofillRange: (startArea, entireArea) => {
-    const _startArea: [number, number, number, number] = startArea;
+  modifyAutofillRange: (entireArea, startArea) => {
     const _entireArea: [number, number, number, number] = entireArea;
+    const _startArea: [number, number, number, number] = startArea;
 
     return _startArea[0] === _entireArea[0] ? _startArea : _entireArea;
   },
