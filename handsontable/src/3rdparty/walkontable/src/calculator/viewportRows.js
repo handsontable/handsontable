@@ -1,3 +1,4 @@
+import { calculateAxis } from './axisCalculation';
 import { ViewportBaseCalculator } from './viewportBase';
 
 /**
@@ -6,9 +7,9 @@ import { ViewportBaseCalculator } from './viewportBase';
  * @property {number} viewportHeight Height of the viewport.
  * @property {number} scrollOffset Current vertical scroll position of the viewport.
  * @property {number} totalRows Total number of rows.
- * @property {Function} rowHeightFn Function that returns the height of the row at a given index (in px).
  * @property {Function} overrideFn Function that allows to adjust the `startRow` and `endRow` parameters.
  * @property {number} horizontalScrollbarHeight The scrollbar height.
+ * @property {PositionCache} rowHeightCache A built prefix sum cache. The single source of truth for row sizes.
  */
 /**
  * Calculates indexes of rows to render OR rows that are visible OR partially visible in the viewport.
@@ -20,13 +21,11 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
   scrollOffset = 0;
   zeroBasedScrollOffset = 0;
   totalRows = 0;
-  rowHeightFn = null;
   rowHeight = 0;
   overrideFn = null;
   horizontalScrollbarHeight = 0;
   innerViewportHeight = 0;
   totalCalculatedHeight = 0;
-  startPositions = [];
   needReverse = true;
 
   /**
@@ -37,21 +36,19 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     viewportHeight,
     scrollOffset,
     totalRows,
-    defaultRowHeight,
-    rowHeightFn,
     overrideFn,
     horizontalScrollbarHeight,
+    rowHeightCache,
   }) {
     super(calculationTypes);
-    this.defaultHeight = defaultRowHeight;
     this.viewportHeight = viewportHeight;
     this.scrollOffset = scrollOffset;
     this.zeroBasedScrollOffset = Math.max(scrollOffset, 0);
     this.totalRows = totalRows;
-    this.rowHeightFn = rowHeightFn;
     this.overrideFn = overrideFn;
     this.horizontalScrollbarHeight = horizontalScrollbarHeight ?? 0;
     this.innerViewportHeight = this.zeroBasedScrollOffset + this.viewportHeight - this.horizontalScrollbarHeight;
+    this.positionCache = rowHeightCache;
 
     this.calculate();
   }
@@ -60,23 +57,15 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
    * Calculates viewport.
    */
   calculate() {
-    this._initialize(this);
-
-    for (let row = 0; row < this.totalRows; row++) {
-      this.rowHeight = this.getRowHeight(row);
-
-      this._process(row, this);
-
-      this.startPositions.push(this.totalCalculatedHeight);
-      this.totalCalculatedHeight += this.rowHeight;
-
-      if (this.totalCalculatedHeight >= this.innerViewportHeight) {
-        this.needReverse = false;
-        break;
-      }
-    }
-
-    this._finalize(this);
+    calculateAxis(this, {
+      totalCount: this.totalRows,
+      zeroBasedScrollOffset: this.zeroBasedScrollOffset,
+      scrollEnd: this.innerViewportHeight,
+      positionCache: this.positionCache,
+      setSizeField: (ctx, size) => { ctx.rowHeight = size; },
+      setTotalCalculated: (ctx, v) => { ctx.totalCalculatedHeight = v; },
+      getTotalCalculated: ctx => ctx.totalCalculatedHeight,
+    });
   }
 
   /**
@@ -86,12 +75,6 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
    * @returns {number}
    */
   getRowHeight(row) {
-    const rowHeight = this.rowHeightFn(row);
-
-    if (isNaN(rowHeight)) {
-      return this.defaultHeight;
-    }
-
-    return rowHeight;
+    return this.positionCache.getSizeAt(row);
   }
 }

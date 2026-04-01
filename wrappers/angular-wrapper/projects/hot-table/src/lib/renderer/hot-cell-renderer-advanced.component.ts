@@ -12,6 +12,7 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'hot-cell-renderer-advanced',
   template: `<!-- This is an abstract component. Extend this component and provide your own template. -->`,
+  standalone: false,
 })
 export abstract class HotCellRendererAdvancedComponent<
   TValue extends string |

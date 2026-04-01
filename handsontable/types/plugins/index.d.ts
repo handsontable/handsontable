@@ -10,6 +10,7 @@ import { Comments } from './comments';
 import { ContextMenu } from './contextMenu';
 import { CopyPaste } from './copyPaste';
 import { CustomBorders } from './customBorders';
+import { DataProvider } from './dataProvider';
 import { DragToScroll } from './dragToScroll';
 import { DropdownMenu } from './dropdownMenu';
 import { ExportFile } from './exportFile';
@@ -50,6 +51,7 @@ export interface Plugins {
   contextMenu: ContextMenu;
   copyPaste: CopyPaste;
   customBorders: CustomBorders;
+  dataProvider: DataProvider;
   dragToScroll: DragToScroll;
   dropdownMenu: DropdownMenu;
   exportFile: ExportFile;
@@ -94,6 +96,7 @@ export {
   ContextMenu,
   CopyPaste,
   CustomBorders,
+  DataProvider,
   DragToScroll,
   DropdownMenu,
   ExportFile,

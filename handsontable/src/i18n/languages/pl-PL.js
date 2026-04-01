@@ -61,6 +61,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopiuj sam nagłówek', 'Kopiuj same nagłówki'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Wytnij',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Eksportuj',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Do CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Do Excela',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Eksportowanie…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Wstaw wiersz podrzędny',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Odłącz od nadrzędnego',
 
@@ -128,6 +133,15 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nie znaleziono wyników',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Wygląda na to, że Twoje obecne filtry ukrywają wszystkie wyniki.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetuj filtry',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Wczytywanie danych',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Proszę czekać.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Nie udało się wczytać danych',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Nie udało się utworzyć wierszy',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nie udało się zaktualizować wierszy',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nie udało się usunąć wierszy',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Żądanie nie powiodło się',
+  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Zamknij',
 };
 
 export default dictionary;

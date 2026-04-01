@@ -58,6 +58,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopēt tikai galveni', 'Kopēt tikai galvenes'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Izgriezt',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Eksportēt',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Kā CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Kā Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Eksportē…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Ievietot pakārtoto rindu',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Atdalīt no vecāka',
 
@@ -122,6 +127,15 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Rezultāti nav atrasti',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Šķiet, ka jūsu pašreizējie filtri paslēpj visus rezultātus.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Atiestatīt filtrus',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Ielādē datus',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Lūdzu, uzgaidiet.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Nevarēja ielādēt datus',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Nevarēja izveidot rindas',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nevarēja atjaunināt rindas',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nevarēja noņemt rindas',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Pieprasījums neizdevās',
+  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Aizvērt',
 };
 
 export default dictionary;

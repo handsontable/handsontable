@@ -2,6 +2,7 @@ import { BaseRenderer } from './_base';
 import { warn } from '../../../../helpers/console';
 import { toSingleLine } from '../../../../helpers/templateLiteralTag';
 import { addClass } from '../../../../helpers/dom/element';
+import { OrderView } from '../utils/orderView';
 
 let performanceWarningAppeared = false;
 
@@ -18,34 +19,29 @@ let performanceWarningAppeared = false;
  * @class {ColGroupRenderer}
  */
 export class ColGroupRenderer extends BaseRenderer {
-  constructor(rootNode) {
-    super(null, rootNode); // NodePool is not implemented for this renderer yet
-  }
-
   /**
-   * Adjusts the number of the rendered elements.
+   * OrderView instance responsible for managing COL elements in the COLGROUP.
+   *
+   * @type {OrderView}
    */
-  adjust() {
-    const { columnsToRender, rowHeadersCount } = this.table;
-    const allColumnsToRender = columnsToRender + rowHeadersCount;
+  orderView;
 
-    while (this.renderedNodes < allColumnsToRender) {
-      this.rootNode.appendChild(this.table.rootDocument.createElement('col'));
-      this.renderedNodes += 1;
-    }
-    while (this.renderedNodes > allColumnsToRender) {
-      this.rootNode.removeChild(this.rootNode.lastChild);
-      this.renderedNodes -= 1;
-    }
+  constructor(rootNode) {
+    super('COL', rootNode);
+
+    this.orderView = new OrderView(
+      rootNode,
+      sourceColumnIndex => this.nodesPool.obtain(sourceColumnIndex),
+      this.nodeType,
+    );
   }
 
   /**
    * Renders the col group elements.
    */
   render() {
-    this.adjust();
-
     const { columnsToRender, rowHeadersCount } = this.table;
+    const allColumnsToRender = columnsToRender + rowHeadersCount;
 
     if (!performanceWarningAppeared && columnsToRender > 1000) {
       performanceWarningAppeared = true;
@@ -54,21 +50,28 @@ export class ColGroupRenderer extends BaseRenderer {
         turning off the "renderAllColumns" option.`);
     }
 
-    // Render column nodes for row headers
-    for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
-      const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
-      const width = this.table.columnUtils.getHeaderWidth(sourceColumnIndex);
+    this.orderView
+      .setSize(allColumnsToRender)
+      .setOffset(0)
+      .start();
 
-      this.rootNode.childNodes[visibleColumnIndex].style.width = `${width}px`;
+    for (let visibleColumnIndex = 0; visibleColumnIndex < allColumnsToRender; visibleColumnIndex++) {
+      this.orderView.render();
+
+      const COL = this.orderView.getCurrentNode();
+
+      if (visibleColumnIndex < rowHeadersCount) {
+        const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
+
+        COL.style.width = `${this.table.columnUtils.getHeaderWidth(sourceColumnIndex)}px`;
+      } else {
+        const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex - rowHeadersCount);
+
+        COL.style.width = `${this.table.columnUtils.getWidth(sourceColumnIndex)}px`;
+      }
     }
 
-    // Render column nodes for cells
-    for (let visibleColumnIndex = 0; visibleColumnIndex < columnsToRender; visibleColumnIndex++) {
-      const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
-      const width = this.table.columnUtils.getWidth(sourceColumnIndex);
-
-      this.rootNode.childNodes[visibleColumnIndex + rowHeadersCount].style.width = `${width}px`;
-    }
+    this.orderView.end();
 
     const firstChild = this.rootNode.firstChild;
 
