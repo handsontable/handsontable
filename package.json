@@ -72,7 +72,8 @@
   },
   "pnpm": {
     "overrides": {
-      "generic-names@1>loader-utils": "^2.0.0"
+      "generic-names@1>loader-utils": "^2.0.0",
+      "handsontable": "workspace:^"
     }
   },
   "license": "SEE LICENSE IN LICENSE.txt",

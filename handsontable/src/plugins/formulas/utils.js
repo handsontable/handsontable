@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { valueGetter as multiSelectValueGetter } from '../../cellTypes/multiSelectType/accessors/valueGetter';
 
 const DEFAULT_DATE_FORMAT_HYPERFORMULA = 'DD/MM/YYYY';
 
@@ -91,4 +92,20 @@ export function getDateFromExcelDate(numericDate, dateFormat) {
   const dateForFormatting = new Date(Date.UTC(0, 0, numericDate + dateOffset));
 
   return moment(dateForFormatting).format(dateFormat);
+}
+
+/**
+ * Converts a Handsontable cell value to a value accepted by HyperFormula.
+ * HyperFormula doesn't accept arrays as direct cell values, so they are converted to a
+ * comma-separated string.
+ *
+ * @param {*} value Value to normalize.
+ * @returns {*} Value normalized for HyperFormula.
+ */
+export function normalizeValueForFormulaEngine(value) {
+  if (Array.isArray(value)) {
+    return multiSelectValueGetter(value);
+  }
+
+  return value;
 }

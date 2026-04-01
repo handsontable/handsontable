@@ -270,6 +270,23 @@ describe('exportFile CSV type', () => {
       expect('\ufeffA1,B1\r\nA2,B2\r\nA3,B3\r\nA4,B4\r\nA5,B5').toBe(csv);
     });
 
+    it('should omit hidden rows when exportHiddenRows is "hide" (not supported for CSV)', async() => {
+      handsontable({
+        data: data(5, 2),
+        height: 396,
+        colHeaders: true,
+        rowHeaders: true,
+        hiddenRows: {
+          indicators: true,
+          rows: [1, 2, 4],
+        },
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { exportHiddenRows: 'hide' }).export();
+
+      expect('\ufeffA1,B1\r\nA4,B4').toBe(csv);
+    });
+
     // exportHiddenColumns
     it('should export with `false` as the default exportHiddenColumns', async() => {
       handsontable({
@@ -303,6 +320,23 @@ describe('exportFile CSV type', () => {
       const csv = getPlugin('exportFile')._createTypeFormatter('csv', { exportHiddenColumns: true }).export();
 
       expect('\ufeffA1,B1,C1,D1,E1\r\nA2,B2,C2,D2,E2').toBe(csv);
+    });
+
+    it('should omit hidden columns when exportHiddenColumns is "hide" (not supported for CSV)', async() => {
+      handsontable({
+        data: data(2, 5),
+        height: 396,
+        colHeaders: true,
+        rowHeaders: true,
+        hiddenColumns: {
+          indicators: true,
+          columns: [1, 2, 4],
+        },
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { exportHiddenColumns: 'hide' }).export();
+
+      expect('\ufeffA1,D1\r\nA2,D2').toBe(csv);
     });
 
     // range

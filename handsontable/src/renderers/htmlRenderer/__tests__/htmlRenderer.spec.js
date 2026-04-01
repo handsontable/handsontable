@@ -44,7 +44,7 @@ describe('HTMLRenderer', () => {
       renderer: 'html'
     });
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getMaster().find('table tr:last-child td:eq(0)').html())
       .toBe('<b>foo <span>zip</span></b>');

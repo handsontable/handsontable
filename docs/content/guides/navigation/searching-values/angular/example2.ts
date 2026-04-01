@@ -18,9 +18,9 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
     <div>
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>`,
-  styles: `.my-custom-search-result-class{
-      color: #ff0000;
-      font-weight: 900;
+  styles: `.ht-theme-main .handsontable .my-class {
+      background: pink;
+      color: red;
     }`,
   encapsulation: ViewEncapsulation.None,
 })
@@ -37,7 +37,7 @@ export class Example2SearchingValuesComponent {
   readonly gridSettings: GridSettings = {
     colHeaders: true,
     search: {
-      searchResultClass: 'my-custom-search-result-class',
+      searchResultClass: 'my-class',
     },
     height: 'auto',
     autoWrapRow: true,

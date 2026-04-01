@@ -183,16 +183,16 @@ describe('Core_render', () => {
 
     await scrollWindowBy(0, 9500);
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const wotRenderSpy = spyOn(tableView()._wt.wtTable.tableRenderer, 'render');
 
     await scrollWindowBy(0, 10);
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
     await scrollWindowBy(0, 10);
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
     await scrollWindowBy(0, 10);
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(wotRenderSpy).toHaveBeenCalledTimes(0);
 
@@ -201,11 +201,11 @@ describe('Core_render', () => {
     wotRenderSpy.calls.reset();
 
     await scrollWindowBy(0, 10);
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
     await scrollWindowBy(0, 10);
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
     await scrollWindowBy(0, 10);
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(wotRenderSpy).toHaveBeenCalledTimes(0);
   });
@@ -223,13 +223,13 @@ describe('Core_render', () => {
     const wotRenderSpy = spyOn(tableView()._wt.wtTable.tableRenderer, 'render');
 
     await scrollWindowBy(0, 10);
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
     await scrollWindowBy(0, 10);
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
     await scrollWindowBy(0, 10);
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
     await scrollWindowBy(0, 2071);
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(wotRenderSpy).toHaveBeenCalledTimes(0);
   });
