@@ -469,5 +469,30 @@ describe('Scrollbar drag optimization', () => {
 
       expect(wt.wtTable.getFirstRenderedRow()).toBe(0);
     });
+
+    it('should reset sticky styles on destroy() when sticky mode is active mid-drag', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      const spreader = wt.wtTable.spreader;
+
+      simulateScrollbarDrag(wt, { scrollTop: 3000 });
+
+      expect(spreader.style.position).toBe('sticky');
+      expect(spreader.style.top).not.toBe('');
+
+      // Destroy while sticky mode is still active (no mouseup fired).
+      wt.destroy();
+
+      expect(spreader.style.position).toBe('relative');
+      expect(spreader.style.top).toBe('');
+      expect(spreader.style.left).toBe('');
+      expect(spreader.style.right).toBe('');
+    });
   });
 });

@@ -118,6 +118,10 @@ export class StickyScrollStrategy {
    * Cleans up on destroy.
    */
   destroy() {
+    if (this.#active) {
+      this.#applySpreaderStyles('relative', 0, 0);
+    }
+
     this.#active = false;
     this.#mouseDown = false;
   }

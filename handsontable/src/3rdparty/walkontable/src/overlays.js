@@ -662,6 +662,7 @@ class Overlays {
     }
 
     this.resizeObserver.disconnect();
+    this.#stickyScroll.destroy();
     this.eventManager.destroy();
     // todo, probably all below `destroy` calls has no sense. To analyze
     this.topOverlay.destroy();
@@ -679,7 +680,6 @@ class Overlays {
       this.bottomInlineStartCornerOverlay.destroy();
     }
 
-    this.#stickyScroll.destroy();
     this.destroyed = true;
   }
 
