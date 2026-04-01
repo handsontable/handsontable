@@ -1,5 +1,29 @@
 import GhostTable from '../ghostTable';
 
+/**
+ * Runs `buildWidthsMap` and returns the ghost container element after it is detached.
+ * The container is still referenced in memory after `buildWidthsMap` removes it from the document.
+ *
+ * @param {GhostTable} ghostTable Ghost table instance.
+ * @param {number} layersCount Layer count for `setLayersCount`.
+ * @returns {HTMLElement}
+ */
+function getDetachedGhostContainerAfterBuild(ghostTable, layersCount) {
+  let captured;
+
+  const spy = jest.spyOn(document.body, 'appendChild').mockImplementation(function mockAppendChild(node) {
+    captured = node;
+
+    return HTMLElement.prototype.appendChild.call(this, node);
+  });
+
+  ghostTable.setLayersCount(layersCount);
+  ghostTable.buildWidthsMap();
+  spy.mockRestore();
+
+  return captured;
+}
+
 describe('GhostTable', () => {
   it('should build widths map for all renderable columns when rowspan placeholders are omitted', () => {
     const widthsMapMock = {
@@ -171,13 +195,8 @@ describe('GhostTable', () => {
     const { hot: hotWithCollapsible } = createHotMock(true);
     const ghostTableWithoutCollapsible = new GhostTable({ hot: hotWithoutCollapsible, headersStateManager });
     const ghostTableWithCollapsible = new GhostTable({ hot: hotWithCollapsible, headersStateManager });
-    const containerWithoutCollapsible = document.createElement('div');
-    const containerWithCollapsible = document.createElement('div');
-
-    ghostTableWithoutCollapsible.setLayersCount(1);
-    ghostTableWithCollapsible.setLayersCount(1);
-    ghostTableWithoutCollapsible._buildGhostTable(containerWithoutCollapsible, false);
-    ghostTableWithCollapsible._buildGhostTable(containerWithCollapsible, false);
+    const containerWithoutCollapsible = getDetachedGhostContainerAfterBuild(ghostTableWithoutCollapsible, 1);
+    const containerWithCollapsible = getDetachedGhostContainerAfterBuild(ghostTableWithCollapsible, 1);
 
     expect(containerWithoutCollapsible.querySelector('button.changeType')).not.toBeNull();
     expect(containerWithoutCollapsible.querySelector('.collapsibleIndicator')).toBeNull();

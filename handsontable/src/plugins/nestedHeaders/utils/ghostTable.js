@@ -89,7 +89,7 @@ class GhostTable {
       this.container.classList.add(currentThemeName);
     }
 
-    this._buildGhostTable(this.container, hasCollapsedGroups);
+    this.#buildGhostTable(this.container, hasCollapsedGroups);
 
     this.hot.rootDocument.body.appendChild(this.container);
 
@@ -193,11 +193,10 @@ class GhostTable {
    * - Rendered: same structure as the main table (colspans, only visible roots), built from renderable
    *   columns with a dedicated measure row (`htGhostHeaderMeasureRow`).
    *
-   * @private
    * @param {HTMLElement} container The element where the DOM nodes are injected.
    * @param {boolean} hasCollapsedGroups Whether any collapsed groups exist.
    */
-  _buildGhostTable(container, hasCollapsedGroups) {
+  #buildGhostTable(container, hasCollapsedGroups) {
     const { rootDocument, columnIndexMapper } = this.hot;
     const isDropdownEnabled = !!this.hot.getSettings().dropdownMenu;
     const isCollapsibleColumnsEnabled = !!this.hot.getSettings().collapsibleColumns;
