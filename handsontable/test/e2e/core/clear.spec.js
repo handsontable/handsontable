@@ -11,14 +11,4 @@ describe('Core.clear', () => {
       this.$container.remove();
     }
   });
-
-  it('should start listening table after call method', async() => {
-    handsontable({});
-
-    expect(isListening()).toBe(false);
-
-    await clear();
-
-    expect(isListening()).toBe(true);
-  });
 });

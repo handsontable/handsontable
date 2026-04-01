@@ -3089,7 +3089,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   this.clear = function() {
     this.selectAll();
     this.emptySelectedCells();
-    this.listen();
   };
 
   /**

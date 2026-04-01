@@ -151,4 +151,50 @@ describe('Core.setDataAtRowProp', () => {
     expect(getDataAtRowProp(0, 'a')).toBe('typed value');
     expect(getDataAtRowProp(0, 'b')).toBe('updated by api');
   });
+
+  it('should close the editor when a programmatic change targets the currently edited cell', async() => {
+    handsontable({
+      data: [
+        { a: 'A1', b: 'B1' },
+      ],
+      columns: [
+        { data: 'a' },
+        { data: 'b' },
+      ]
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
+    expect(getActiveEditor().isOpened()).toBe(true);
+
+    await setDataAtRowProp(0, 'a', 'updated by api');
+
+    expect(getActiveEditor().isOpened()).toBe(false);
+  });
+
+  it('should keep an active editor open when async validation passes for a different prop in the same row', async() => {
+    handsontable({
+      data: [
+        { a: 'A1', b: 1 },
+      ],
+      columns: [
+        { data: 'a' },
+        { data: 'b', type: 'numeric' },
+      ]
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
+    getActiveEditor().setValue('typed value');
+
+    await setDataAtRowProp(0, 'b', 42);
+
+    await sleep(100); // wait for async validation microtask to complete
+
+    expect(getActiveEditor().isOpened()).toBe(true);
+    expect(getActiveEditor().getValue()).toBe('typed value');
+    expect(getDataAtRowProp(0, 'b')).toBe(42);
+  });
 });
