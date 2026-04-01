@@ -138,6 +138,9 @@ export default () => {
      * The `activeHeaderClassName` option lets you add a CSS class name
      * to every currently-active, currently-selected header (when a whole column or row is selected).
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * Read more:
      * - [`currentRowClassName`](#currentRowClassName)
      * - [`currentColClassName`](#currentColClassName)
@@ -181,6 +184,9 @@ export default () => {
      * To use the [`allowEmpty`](#allowempty) option, you need to set the [`validator`](#validator) option (or the [`type`](#type) option).
      * :::
      *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -200,6 +206,13 @@ export default () => {
      *     allowEmpty: true
      *   }
      * ],
+     *
+     * // or, using the `cells` option
+     * cells(row, col) {
+     *   if (col === 2) {
+     *     return { allowEmpty: false };
+     *   }
+     * },
      * ```
      */
     allowEmpty: true,
@@ -248,6 +261,9 @@ export default () => {
      * If set to `true`, the `allowInsertColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
      * - **Insert column left**
      * - **Insert column right**
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
@@ -316,6 +332,9 @@ export default () => {
     /**
      * If set to `true`, the `allowRemoveColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
      * - **Remove column**
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Read more:
      * - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
@@ -511,12 +530,19 @@ export default () => {
      * @description
      * The `bindRowsWithHeaders` option configures the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin.
      *
+     * When enabled, each row stays permanently linked to its row header label, regardless of row sorting or row moving.
+     * Normally, row headers display the visual row index and update as rows are reordered; with this plugin enabled,
+     * the header travels with the data row it was originally assigned to.
+     *
      * You can set the `bindRowsWithHeaders` option to one of the following:
      *
      * | Setting | Description                                                                  |
      * | ------- | ---------------------------------------------------------------------------- |
      * | `false` | Disable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin |
      * | `true`  | Enable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin  |
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Read more:
      * - [Plugins: `BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
@@ -619,6 +645,15 @@ export default () => {
      * | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | `true` (default) | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell is checked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns `true`                  |
      * | A string         | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell is checked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns a string of your choice |
+     *
+     * ::: warning
+     * When you set `checkedTemplate` to a custom string value (e.g. `'Yes'`), using `true` in your data source to
+     * represent a checked state is no longer valid. Only the exact custom string value matches a checked checkbox.
+     * Pair `checkedTemplate` with [`uncheckedTemplate`](#uncheckedTemplate) to define both states explicitly.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Checkbox cell type: Checkbox template](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#checkbox-template)
@@ -748,8 +783,17 @@ export default () => {
      * | `true`               | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin                             |
      * | An array of objects  | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin for selected column headers |
      *
+     * When using an array of objects, specify the header to make collapsible using `row` and `col`.
+     * The `row` value is a negative integer that counts header levels from the bottom of the header area:
+     * `-1` is the header row closest to the data, `-2` is one level above, and so on.
+     * This option requires the [`nestedHeaders`](#nestedHeaders) plugin to be configured.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * Read more:
      * - [Plugins: `CollapsibleColumns`](@/api/collapsibleColumns.md)
+     * - [`nestedHeaders`](#nestedHeaders)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -1566,6 +1610,10 @@ export default () => {
      *
      * If you don't set the `data` option (or set it to `null`), Handsontable renders as an empty 5x5 grid by default.
      *
+     * When used inside the [`columns`](#columns) option, `data` has a different meaning: it acts as a property name
+     * (or a dot-separated path) pointing to the field in each data row object that this column reads from and writes to.
+     * In this context, `data` is not the full dataset but a column accessor string.
+     *
      * Read more:
      * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
      * - [`dataSchema`](#dataSchema)
@@ -1593,6 +1641,12 @@ export default () => {
      *   {id: 3, name: 'Joan Well'},
      *   {id: 4, name: 'Gail Polite'},
      *   {id: 5, name: 'Michael Fair'},
+     * ]
+     *
+     * // as a column accessor inside `columns`
+     * columns: [
+     *   { data: 'id' },
+     *   { data: 'name' }
      * ]
      * ```
      */
@@ -1987,10 +2041,19 @@ export default () => {
     datePickerConfig: undefined,
 
     /**
-     * The `defaultDate` option configures the date displayed
-     * in the editor for an empty [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cell.
+     * The `defaultDate` option configures the date pre-selected in the date picker editor
+     * when opening an empty [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cell for editing.
      *
      * The option accepts a string in ISO 8601 format (`YYYY-MM-DD`).
+     *
+     * ::: tip
+     * `defaultDate` affects only the date picker's initial selection when the cell is empty.
+     * It does not automatically populate empty cells with this date - the cell's value remains empty
+     * until the user confirms a selection.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
@@ -2028,6 +2091,9 @@ export default () => {
      * | `'area'`          | - Show single-cell selection<br>- Don't show range selection<br>- Show header selection             |
      * | `'header'`        | - Show single-cell selection<br>- Show range selection<br>- Don't show header selection             |
      * | An array          | A combination of `'current'`, `'area'`, and/or `'header'`                                           |
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Read more:
      * - [Selection](@/guides/cell-features/selection/selection.md)
@@ -2259,6 +2325,9 @@ export default () => {
      * | `true`    | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Use the [default context menu options](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-default-options)    |
      * | An array  | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Modify [individual context menu options](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options) |
      * | An object | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Apply a custom dropdown menu configuration                                                                                  |
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It is not possible to show or hide the dropdown menu icon for individual columns using this option.
      *
      * Read more:
      * - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
@@ -2858,8 +2927,15 @@ export default () => {
      * The `fixedRowsBottom` option sets the number of [frozen rows](@/guides/rows/row-freezing/row-freezing.md)
      * at the bottom of the grid.
      *
+     * ::: tip
+     * For the bottom frozen rows area to appear with a scroll separator, you must also set the [`height`](#height) option
+     * in Handsontable's configuration. If the grid expands to fill its parent container without a defined height,
+     * no vertical scrollbar is created and the fixed bottom rows area is not displayed.
+     * :::
+     *
      * Read more:
      * - [Row freezing](@/guides/rows/row-freezing/row-freezing.md)
+     * - [`height`](#height)
      *
      * @memberof Options#
      * @type {number}
@@ -2877,8 +2953,15 @@ export default () => {
     /**
      * The `fixedRowsTop` option sets the number of [frozen rows](@/guides/rows/row-freezing/row-freezing.md) at the top of the grid.
      *
+     * ::: tip
+     * For the top frozen rows area to be visually separated from the scrollable body, you must also set the [`height`](#height) option
+     * in Handsontable's configuration. If the grid expands to fill its parent container without a defined height,
+     * no vertical scrollbar is created and the fixed top rows area is not displayed.
+     * :::
+     *
      * Read more:
      * - [Row freezing](@/guides/rows/row-freezing/row-freezing.md)
+     * - [`height`](#height)
      *
      * @memberof Options#
      * @type {number}
@@ -3224,6 +3307,10 @@ export default () => {
      * for checking if a column at a given visual index is empty.
      *
      * The `isEmptyCol` setting overwrites the built-in [`isEmptyCol`](@/api/core.md#isEmptyCol) method.
+     * The function receives a visual column index and must return a `boolean`.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {Function}
@@ -3261,6 +3348,10 @@ export default () => {
      * for checking if a row at a given visual index is empty.
      *
      * The `isEmptyRow` setting overwrites the built-in [`isEmptyRow`](@/api/core.md#isEmptyRow) method.
+     * The function receives a visual row index and must return a `boolean`.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {Function}
@@ -3334,6 +3425,13 @@ export default () => {
 
     /**
      * The `language` option configures Handsontable's [language](@/guides/internationalization/language/language.md) settings.
+     *
+     * This option controls the language used for all built-in UI strings, including context menu labels,
+     * column sorting labels, validation messages, and other user-visible text. It does not affect the locale
+     * used for number or date formatting - use the [`locale`](#locale) option for that.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * You can set the `language` option to one of the following:
      *
@@ -3784,6 +3882,9 @@ export default () => {
      * | `rowspan` | The width (as a number of rows) of the merged section      |
      * | `colspan` | The height (as a number of columns ) of the merged section |
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * Read more:
      * - [Merge cells](@/guides/cell-features/merge-cells/merge-cells.md)
      *
@@ -4095,6 +4196,11 @@ export default () => {
      * | A string      | The header's label                                                                           |
      * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
      *
+     * ::: tip
+     * When `nestedHeaders` is configured, the `label` defined in the [`columns`](#columns) option for the same
+     * column is replaced by the `label` from `nestedHeaders`. The `nestedHeaders` label takes precedence.
+     * :::
+     *
      * Read more:
      * - [Plugins: `NestedHeaders`](@/api/nestedHeaders.md)
      * - [Column groups: Nested headers](@/guides/columns/column-groups/column-groups.md#nested-headers)
@@ -4306,6 +4412,11 @@ export default () => {
      * If the `observeDOMVisibility` option is set to `true`,
      * Handsontable rerenders every time it detects that the grid was made visible in the DOM.
      *
+     * Handsontable uses a `MutationObserver` to watch for CSS changes (such as `display: none` being removed)
+     * on the container element and its ancestors. When visibility is restored after being hidden,
+     * Handsontable automatically triggers a rerender to ensure correct layout and dimensions.
+     * Set this option to `false` if you want to control rendering manually (e.g. by calling `render()` yourself).
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -4472,6 +4583,10 @@ export default () => {
     /**
      * The `preventOverflow` option configures preventing Handsontable
      * from overflowing outside of its parent element.
+     *
+     * When enabled, Handsontable caps its own dimensions to match the parent container's size in the specified direction,
+     * preventing the grid from extending beyond the visible bounds of its parent.
+     * This is useful when the parent element has `overflow: hidden` or a fixed size and you want the grid to fit within it.
      *
      * You can set the `preventOverflow` option to one of the following:
      *
@@ -5381,7 +5496,13 @@ export default () => {
      * @description
      * If the [`data`](#data) option is not set, the `startCols` option sets the initial number of empty columns.
      *
-     * The `startCols` option works only in Handsontable's constructor.
+     * The `startCols` option works only in Handsontable's constructor and only when [`data`](#data) is not provided.
+     *
+     * ::: tip
+     * When [`minSpareCols`](#minSpareCols) is set alongside `startCols`, the `startCols` columns count toward the
+     * minimum number of spare columns. As a result, the total initial column count will be the maximum of
+     * `startCols` and `minSpareCols`.
+     * :::
      *
      * @memberof Options#
      * @type {number}
@@ -5400,7 +5521,13 @@ export default () => {
      * @description
      * If the [`data`](#data) option is not set, the `startRows` option sets the initial number of empty rows.
      *
-     * The `startRows` option works only in Handsontable's constructor.
+     * The `startRows` option works only in Handsontable's constructor and only when [`data`](#data) is not provided.
+     *
+     * ::: tip
+     * When [`minSpareRows`](#minSpareRows) is set alongside `startRows`, the `startRows` rows count toward the
+     * minimum number of spare rows. As a result, the total initial row count will be the maximum of
+     * `startRows` and `minSpareRows`.
+     * :::
      *
      * @memberof Options#
      * @type {number}
@@ -5454,6 +5581,9 @@ export default () => {
      * | ------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
      * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode)         | The end user:<br>- Can only choose one of suggested values<br>- Can't enter a custom value |
      * | `false` | [Flexible mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-flexible-mode)     | The end user:<br>- Can choose one of suggested values<br>- Can enter a custom value        |
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -5739,12 +5869,19 @@ export default () => {
      * The `trimDropdown` option configures the width of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * and [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) lists.
      *
+     * When set to `true` (default), the list is trimmed to match the width of the edited cell,
+     * which can truncate long option labels. When set to `false`, the list expands to fit its
+     * longest option, which may make the list wider than the cell.
+     *
      * You can set the `trimDropdown` option to one of the following:
      *
      * | Setting          | Description                                                                     |
      * | ---------------- | ------------------------------------------------------------------------------- |
      * | `true` (default) | Make the dropdown/autocomplete list's width the same as the edited cell's width |
      * | `false`          | Scale the dropdown/autocomplete list's width to the list's content              |
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -5907,6 +6044,15 @@ export default () => {
      * | `false` (default) | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell is unchecked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns `false`                 |
      * | A string          | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell is unchecked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns a string of your choice |
      *
+     * ::: warning
+     * When you set `uncheckedTemplate` to a custom string value (e.g. `'No'`), using `false` in your data source to
+     * represent an unchecked state is no longer valid. Only the exact custom string value matches an unchecked checkbox.
+     * Pair `uncheckedTemplate` with [`checkedTemplate`](#checkedTemplate) to define both states explicitly.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     *
      * Read more:
      * - [Checkbox cell type: Checkbox template](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#checkbox-template)
      * - [`getDataAtCell()`](@/api/core.md#getDataAtCell)
@@ -5980,6 +6126,9 @@ export default () => {
      * | A string             | A [cell validator alias](@/guides/cell-functions/cell-validator/cell-validator.md)              |
      * | A function           | Your [custom cell validator function](@/guides/cell-functions/cell-validator/cell-validator.md) |
      * | A regular expression | A regular expression used for cell validation                                    |
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * By setting the `validator` option to a string,
      * you can use one of the following [cell validator aliases](@/guides/cell-functions/cell-validator/cell-validator.md):
@@ -6276,6 +6425,14 @@ export default () => {
      *
      * When the number of list options exceeds the `visibleRows` number, a scrollbar appears.
      *
+     * ::: tip
+     * If the grid has a fixed [`height`](#height) set, the dropdown list may be visually constrained by the available
+     * space and show fewer rows than the `visibleRows` value. In such cases, the list is clipped to fit within the grid.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
@@ -6323,6 +6480,12 @@ export default () => {
      * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'`           |
      * | A function that returns a valid number or string                           | `width() { return 500; }` |
      *
+     * ::: tip
+     * For horizontal scrolling to work, you must also set the [`height`](#height) option in Handsontable's configuration.
+     * Setting `width` alone (without `height`) does not activate the scrollable viewport.
+     * Setting the height via inline CSS on the container element is not supported - use the `height` configuration option instead.
+     * :::
+     *
      * Read more:
      * - [Grid size](@/guides/getting-started/grid-size/grid-size.md)
      *
@@ -6358,6 +6521,15 @@ export default () => {
      * | `false`          | Don't wrap content                                      |
      *
      * To style cells that don't wrap content, use the [`noWordWrapClassName`](#noWordWrapClassName) option.
+     *
+     * ::: tip
+     * Word wrapping only applies to content that contains spaces or other soft-wrap opportunities.
+     * A long unbroken string without spaces (e.g. a URL or a continuous number sequence) does not wrap
+     * regardless of this setting.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [`noWordWrapClassName`](#noWordWrapClassName)
