@@ -4,8 +4,8 @@
       <Breadcrumbs />
       <CopyMarkdown />
     </header>
-    <Content class="theme-default-content" />
     <slot name="top" />
+    <Content class="theme-default-content" />
     <PageEdit />
 
     <slot name="bottom" />
