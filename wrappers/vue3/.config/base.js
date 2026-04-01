@@ -21,7 +21,9 @@ export const plugins = {
       isProduction: true
     }
   }),
-  nodeResolve: nodeResolve(),
+  nodeResolve: nodeResolve({
+    extensions: ['.mjs', '.js', '.json', '.node', '.ts', '.vue']
+  }),
   typescript: typescript({
     clean: true
   }),
@@ -31,7 +33,8 @@ export const plugins = {
     exclude: 'node_modules/**',
     extensions: ['.js', '.ts', '.vue'],
     presets: [
-      '@babel/env'
+      '@babel/env',
+      '@babel/preset-typescript'
     ],
   }),
   json: json({

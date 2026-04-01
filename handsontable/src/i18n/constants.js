@@ -29,6 +29,10 @@ export const CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS = `${CM_ALIAS}.cop
 export const CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY = `${CM_ALIAS}.copyHeadersOnly`;
 export const CONTEXTMENU_ITEMS_CUT = `${CM_ALIAS}.cut`;
 
+export const CONTEXTMENU_ITEMS_EXPORT = `${CM_ALIAS}.export`;
+export const CONTEXTMENU_ITEMS_EXPORT_FILE_CSV = `${CM_ALIAS}.exportFileCsv`;
+export const CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX = `${CM_ALIAS}.exportFileXlsx`;
+
 export const CONTEXTMENU_ITEMS_FREEZE_COLUMN = `${CM_ALIAS}.freezeColumn`;
 export const CONTEXTMENU_ITEMS_UNFREEZE_COLUMN = `${CM_ALIAS}.unfreezeColumn`;
 
@@ -123,6 +127,9 @@ export const CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;
 
 export const LOADING_NAMESPACE = 'Loading:';
 export const LOADING_TITLE = `${LOADING_NAMESPACE}title`;
+
+export const EXPORT_FILE_NAMESPACE = 'ExportFile:';
+export const EXPORT_FILE_DIALOG_TITLE = `${EXPORT_FILE_NAMESPACE}dialog.title`;
 
 export const EMPTY_DATA_STATE_NAMESPACE = 'EmptyDataState:';
 export const EMPTY_DATA_STATE_TITLE = `${EMPTY_DATA_STATE_NAMESPACE}title`;

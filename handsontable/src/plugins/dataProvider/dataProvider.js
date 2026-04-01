@@ -53,7 +53,6 @@ import {
   getDataProviderRequestErrorDescription,
   isCompleteDataProviderConfig,
 } from './utils';
-import { Hooks } from '../../core/hooks';
 import { registerConflict } from '../base/conflictRegistry';
 
 registerConflict('dataProvider', [
@@ -62,11 +61,6 @@ registerConflict('dataProvider', [
   'trimRows',
   'multiColumnSorting',
 ]);
-
-Hooks.getSingleton().register('hasExternalDataSource');
-Hooks.getSingleton().add('hasExternalDataSource', function hasExternalDataSourceDefault() {
-  return isCompleteDataProviderConfig(this.getSettings().dataProvider);
-});
 
 /**
  * Sort descriptor in query parameters (`fetchRows` and DataProvider getters).
@@ -131,6 +125,10 @@ export class DataProvider extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get SETTING_KEYS() {
+    return [PLUGIN_KEY];
+  }
+
   static get DEFAULT_SETTINGS() {
     return DEFAULT_SETTINGS;
   }
@@ -160,6 +158,18 @@ export class DataProvider extends BasePlugin {
   #mutationQueue = { tail: Promise.resolve() };
 
   /**
+   * @param {object} hotInstance Handsontable instance.
+   */
+  constructor(hotInstance) {
+    super(hotInstance);
+
+    // Before `enablePlugin()` runs (`afterPluginsInitialized`), core may call `runHooks('hasExternalDataSource')`
+    // (for example during `updateSettings`). `disablePlugin()` clears all `addHook` listeners, so `enablePlugin()`
+    // registers this hook again.
+    this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
+  }
+
+  /**
    * Check if the plugin is enabled in the handsontable settings.
    *
    * @returns {boolean}
@@ -178,6 +188,7 @@ export class DataProvider extends BasePlugin {
 
     this.#applyQueryParametersFromPlugins();
 
+    this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
     this.addHook('afterInit', () => this.#onAfterInit());
     this.addHook('modifyRowHeader', (...args) => this.#onModifyRowHeader(...args));
     this.addHook('beforeColumnSort', (...args) => this.#onBeforeColumnSort(...args));
@@ -208,6 +219,8 @@ export class DataProvider extends BasePlugin {
   /**
    * Disables the plugin, aborts fetch, resets query state.
    * Hook listeners registered with `addHook` are removed by `super.disablePlugin()` via `clearHooks()`.
+   * The constructor registers [[Hooks#hasExternalDataSource]] for the period before the first `enablePlugin()`;
+   * `enablePlugin()` registers it again so it survives each `updatePlugin()` cycle.
    */
   disablePlugin() {
     this.#resetAbortController();
@@ -688,6 +701,15 @@ export class DataProvider extends BasePlugin {
       onSuccess
     );
   }
+
+  /**
+   * Default handler for [[Hooks#hasExternalDataSource]]: `true` when this instance has a complete server-backed
+   * `dataProvider` configuration. Registered in the constructor (early lifecycle) and in `enablePlugin()` after each
+   * `disablePlugin()` clears `addHook` listeners.
+   *
+   * @returns {boolean}
+   */
+  #onHasExternalDataSource = () => isCompleteDataProviderConfig(this.hot.getSettings().dataProvider);
 
   /**
    * @returns {void}

@@ -141,6 +141,7 @@ Changes to JavaScript APIs that are **not listed in the public API reference** (
 
 ### General conventions
 
+- **Cognitive complexity**: Keep each function at **15 or below** on the Sonar cognitive-complexity metric (nested conditionals, loops, and boolean operators accumulate). Extract helpers or early-return guards when a function exceeds the limit.
 - **Separate CSS and JS**: Never mix CSS into JavaScript files.
 - **DRY**: Reuse existing helpers and mixins. Extract duplicated code into shared methods.
 - **Method ordering**: Public methods first, then private listeners.
@@ -256,7 +257,7 @@ export { PLUGIN_KEY, PLUGIN_PRIORITY, MyPlugin } from './myPlugin';
 
 When a plugin is incompatible with another, the plugin that introduces the conflict owns the disabling/blocking logic. Other plugins should not contain awareness checks.
 
-For **hard** conflicts (a plugin must not enable while another top-level setting is truthy), the feature that introduces the incompatibility calls `registerConflict(blockedTargetKeyOrKeys, incompatibleSettingKeys)` from `src/plugins/base/conflictRegistry.js` at module load. The first parameter is the blocked key or keys (usually `PLUGIN_KEY` values). The second parameter, `incompatibleSettingKeys`, is one top-level setting key or an array of keys; the conflict applies when `!!settings[key]` is true for any registered key. DataProvider and Pagination pass one blocked plugin key and an array of incompatible setting keys. The blocked plugin calls `BasePlugin#isHardConflictBlocked()` at the start of `enablePlugin()` (and may clear its setting when blocked, like Pagination). Soft detection of an external data source uses the `hasExternalDataSource` hook (default handler registered by the DataProvider plugin).
+For **hard** conflicts (a plugin must not enable while another top-level setting is truthy), the feature that introduces the incompatibility calls `registerConflict(blockedTargetKeyOrKeys, incompatibleSettingKeys)` from `src/plugins/base/conflictRegistry.js` at module load. The first parameter is the blocked key or keys (usually `PLUGIN_KEY` values). The second parameter, `incompatibleSettingKeys`, is one top-level setting key or an array of keys; the conflict applies when `!!settings[key]` is true for any registered key. DataProvider and Pagination pass one blocked plugin key and an array of incompatible setting keys. The blocked plugin calls `BasePlugin#isHardConflictBlocked()` at the start of `enablePlugin()` (and may clear its setting when blocked, like Pagination). Soft detection of an external data source uses the `hasExternalDataSource` hook (instance handler added by the DataProvider plugin in `enablePlugin()`).
 
 ### Configuration rules
 
@@ -467,3 +468,7 @@ When calling `updateSettings()` in the React wrapper, **preserve and restore sel
 - The docs site (`docs/`) uses Node 20 and is not needed for core development.
 - Walkontable has its **own test runner** -- do not mix with main E2E tests.
 - No Docker, databases, or external services are required.
+
+### Testing preference
+
+- For bug fixes in `handsontable/`, add both a focused unit test and a focused E2E regression test when practical.

@@ -3,6 +3,7 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/demo/demo' },
   { path: 'guides/getting-started/installation/installation' },
   { path: 'guides/getting-started/binding-to-data/binding-to-data' },
+  { path: 'guides/getting-started/server-side-data/server-side-data' },
   { path: 'guides/getting-started/saving-data/saving-data' },
   { path: 'guides/getting-started/configuration-options/configuration-options' },
   { path: 'guides/getting-started/grid-size/grid-size' },
@@ -122,8 +123,8 @@ const accessoriesAndMenusItems = [
   { path: 'guides/accessories-and-menus/undo-redo/undo-redo' },
   { path: 'guides/accessories-and-menus/icon-pack/icon-pack' },
   { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
+  { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
   { path: 'guides/accessories-and-menus/empty-data-state/empty-data-state' },
-  // TODO { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
 ];
 
 const dialogItems = [

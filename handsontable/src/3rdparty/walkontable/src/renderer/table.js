@@ -11,9 +11,9 @@
  *       <col>      /
  *     </colgroup> /
  *     <thead>     \ (root node)
- *       <tr>       \
+ *       <tr>       --- ColumnHeaderRowsRenderer
  *         <th>      \
- *         <th>       \____ ColumnHeadersRenderer
+ *         <th>       \__ ColumnHeadersRenderer
  *         <th>       /
  *         <th>      /
  *       </tr>      /
@@ -62,7 +62,13 @@ export class TableRenderer {
    */
   rowHeaders = null;
   /**
-   * Renderer class responsible for rendering column headers.
+   * Renderer class responsible for rendering column header rows (TR elements in THEAD).
+   *
+   * @type {ColumnHeaderRowsRenderer}
+   */
+  columnHeaderRows = null;
+  /**
+   * Renderer class responsible for rendering column headers (TH elements in TR).
    *
    * @type {ColumnHeadersRenderer}
    */
@@ -230,19 +236,22 @@ export class TableRenderer {
    *
    * @param {renderers} renderers The renderer units.
    * @param {RowHeadersRenderer} renderers.rowHeaders Row headers renderer.
+   * @param {ColumnHeaderRowsRenderer} renderers.columnHeaderRows Column header rows renderer.
    * @param {ColumnHeadersRenderer} renderers.columnHeaders Column headers renderer.
    * @param {ColGroupRenderer} renderers.colGroup Col group renderer.
    * @param {RowsRenderer} renderers.rows Rows renderer.
    * @param {CellsRenderer} renderers.cells Cells renderer.
    */
-  setRenderers({ rowHeaders, columnHeaders, colGroup, rows, cells } = {}) {
+  setRenderers({ rowHeaders, columnHeaderRows, columnHeaders, colGroup, rows, cells } = {}) {
     rowHeaders.setTable(this);
+    columnHeaderRows.setTable(this);
     columnHeaders.setTable(this);
     colGroup.setTable(this);
     rows.setTable(this);
     cells.setTable(this);
 
     this.rowHeaders = rowHeaders;
+    this.columnHeaderRows = columnHeaderRows;
     this.columnHeaders = columnHeaders;
     this.colGroup = colGroup;
     this.rows = rows;
@@ -282,11 +291,7 @@ export class TableRenderer {
    * Renders the table.
    */
   render() {
-    this.colGroup.adjust();
-    this.columnHeaders.adjust();
-    this.rows.adjust();
-    this.rowHeaders.adjust();
-
+    this.columnHeaderRows.render();
     this.columnHeaders.render();
     this.rows.render();
     this.rowHeaders.render();

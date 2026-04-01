@@ -62,7 +62,7 @@ describe('AutoColumnSize', () => {
 
     await setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
     await setDataAtRowProp(0, 'name', 'foo');
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(143);
@@ -256,12 +256,12 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Identifier', 'First Name']
     });
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     spec().$container.css('display', 'block');
     await render();
 
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(64);
@@ -572,7 +572,7 @@ describe('AutoColumnSize', () => {
     });
 
     await setDataAtCell(0, 0, 'LongLongLongLong');
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     expect(colWidth(spec().$container, 0)).toBe(70);
   });
@@ -593,7 +593,7 @@ describe('AutoColumnSize', () => {
     });
 
     await setDataAtCell(0, 0, 'LongLongLongLong');
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     expect(colWidth(spec().$container, 0)).toBe(70);
   });
@@ -651,7 +651,7 @@ describe('AutoColumnSize', () => {
       rowHeaders: true,
     });
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     const cloneTopHider = spec().$container.find('.ht_clone_top .wtHider');
 
@@ -662,7 +662,7 @@ describe('AutoColumnSize', () => {
     });
 
     await selectCell(0, 0);
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     expect(cloneTopHider.width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(129);
@@ -1475,7 +1475,7 @@ describe('AutoColumnSize', () => {
       });
 
       await setDataAtCell(0, 0, 999999999999);
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(123);
@@ -1504,7 +1504,7 @@ describe('AutoColumnSize', () => {
       });
 
       await setDataAtCell(0, 0, 9);
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50);
@@ -1533,7 +1533,7 @@ describe('AutoColumnSize', () => {
       });
 
       await setDataAtCell(0, 0, 'not a number');
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(67);

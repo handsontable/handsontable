@@ -67,6 +67,11 @@ const dictionary = {
   ],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Izreži',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Izvezi',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Kao CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Kao Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Izvoz…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Umetni ugniježđeni redak',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Odvoji ugniježđeni redak',
 

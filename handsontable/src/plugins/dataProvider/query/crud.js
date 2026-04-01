@@ -582,6 +582,62 @@ export function queueCrud(ctx, operation, payload, userPromiseFn, onSuccess) {
 }
 
 /**
+ * @param {object} ctx Same shape as [[handleBeforeAlterForCrud]].
+ * @param {'insert_row_above'|'insert_row_below'} action Insert direction.
+ * @param {number|Array|undefined|null} index Row index or alter grouping.
+ * @param {number} amount Row count when `index` is a number.
+ * @returns {boolean|undefined} `false` when the alter is handled.
+ */
+function handleInsertRowAlterForCrud(ctx, action, index, amount) {
+  const { hot, getOnRowsCreate, getRowId, createRows } = ctx;
+
+  if (!isFunction(getOnRowsCreate())) {
+    return;
+  }
+
+  const n = hot.countSourceRows();
+
+  if (hot.getSettings().maxRows === n) {
+    return;
+  }
+
+  const position = action === 'insert_row_below' ? 'below' : 'above';
+  const visualIndex = index ?? (position === 'below' ? n : 0);
+
+  createRows({
+    position,
+    referenceRowId: visualIndex >= 0 ? getRowId(visualIndex) : undefined,
+    rowsAmount: typeof amount === 'number' && amount >= 1 ? amount : 1,
+  });
+
+  return false;
+}
+
+/**
+ * @param {object} ctx Same shape as [[handleBeforeAlterForCrud]].
+ * @param {number|Array|undefined|null} index Row index or alter grouping.
+ * @param {number} amount Row count when `index` is a number.
+ * @returns {boolean|undefined} `false` when the alter is handled.
+ */
+function handleRemoveRowAlterForCrud(ctx, index, amount) {
+  const { hot, getOnRowsRemove, getRowIdOption, removeRows } = ctx;
+
+  if (!isFunction(getOnRowsRemove())) {
+    return;
+  }
+
+  const rowIds = rowIdsFromAlterRemove(hot, getRowIdOption(), index, amount);
+
+  if (rowIds.length === 0) {
+    return;
+  }
+
+  removeRows(rowIds);
+
+  return false;
+}
+
+/**
  * Handles `beforeAlter` for server-backed row insert/remove when DataProvider CRUD is configured.
  *
  * @param {object} ctx Context.
@@ -598,46 +654,11 @@ export function queueCrud(ctx, operation, payload, userPromiseFn, onSuccess) {
  * @returns {boolean|undefined} False when alter is handled here.
  */
 export function handleBeforeAlterForCrud(ctx, action, index, amount) {
-  const {
-    hot,
-    getOnRowsCreate,
-    getOnRowsRemove,
-    getRowIdOption,
-    getRowId,
-    createRows,
-    removeRows,
-  } = ctx;
-
   if (action === 'insert_row_above' || action === 'insert_row_below') {
-    if (!isFunction(getOnRowsCreate())) {
-      return;
-    }
-
-    const n = hot.countSourceRows();
-
-    if (hot.getSettings().maxRows === n) {
-      return;
-    }
-
-    const position = action === 'insert_row_below' ? 'below' : 'above';
-    const visualIndex = index ?? (position === 'below' ? n : 0);
-
-    createRows({
-      position,
-      referenceRowId: visualIndex >= 0 ? getRowId(visualIndex) : undefined,
-      rowsAmount: typeof amount === 'number' && amount >= 1 ? amount : 1,
-    });
-
-    return false;
+    return handleInsertRowAlterForCrud(ctx, action, index, amount);
   }
 
-  if (action === 'remove_row' && isFunction(getOnRowsRemove())) {
-    const rowIds = rowIdsFromAlterRemove(hot, getRowIdOption(), index, amount);
-
-    if (rowIds.length > 0) {
-      removeRows(rowIds);
-
-      return false;
-    }
+  if (action === 'remove_row') {
+    return handleRemoveRowAlterForCrud(ctx, index, amount);
   }
 }

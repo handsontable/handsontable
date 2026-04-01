@@ -452,7 +452,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(0);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     const firstWidth = $menu.find('.wtHider').width();
 
@@ -460,7 +460,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(0);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     const nextWidth = $menu.find('.wtHider').width();
 
@@ -479,7 +479,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(0);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     const firstWidth = $menu.find('.wtHider').width();
 
@@ -487,7 +487,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(0);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     const nextWidth = $menu.find('.wtHider').width();
 
@@ -506,7 +506,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await openDropdownByConditionMenu();
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     const $conditionalMenu = $('.htFiltersConditionsMenu');
     const firstWidth = $conditionalMenu.find('.wtHider').width();
@@ -517,7 +517,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await openDropdownByConditionMenu();
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     const nextWidth = $conditionalMenu.find('.wtHider').width();
 
@@ -544,7 +544,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(0);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     const $multipleSelect = $('.htUIMultipleSelectHot');
     const wtHolderWidth = $multipleSelect.find('.wtHolder').width();
@@ -569,7 +569,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await openDropdownByConditionMenu();
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     const $conditionalMenu = $('.htFiltersConditionsMenu');
     const $conditionalMenuItems = $conditionalMenu.find('tbody td:not(.htSeparator)');
@@ -1069,7 +1069,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     });
 
     await dropdownMenu(0);
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     {
       const menuShortcutManager = getPlugin('dropdownMenu').menu.hotMenu.getShortcutManager();
@@ -1083,7 +1083,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await updateSettings({ dropdownMenu: true });
     await dropdownMenu(0);
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     {
       const menuShortcutManager = getPlugin('dropdownMenu').menu.hotMenu.getShortcutManager();
