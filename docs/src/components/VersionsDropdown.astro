@@ -86,7 +86,7 @@ const isLatest = currentMinor === latestVersion;
 <div class="versions-dropdown">
   <button
     class="versions-trigger"
-    aria-haspopup="listbox"
+    aria-haspopup="menu"
     aria-expanded="false"
     id="versions-trigger"
     type="button"
@@ -106,15 +106,17 @@ const isLatest = currentMinor === latestVersion;
     <svg class="versions-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
   </button>
 
-  <ul class="versions-menu" role="listbox" aria-labelledby="versions-trigger" hidden>
+  <ul class="versions-menu" role="menu" aria-labelledby="versions-trigger" hidden>
     {versionItems.map(({ minor, display, href, isCurrent }) => (
-      <li role="option" aria-selected={isCurrent ? 'true' : 'false'} tabindex="-1">
+      <li role="none">
         <a
           href={href}
           class:list={['versions-item', { 'versions-item--current': isCurrent }]}
+          role="menuitem"
+          tabindex="-1"
+          aria-current={isCurrent ? 'page' : undefined}
           rel={minor === latestVersion ? undefined : 'nofollow'}
           target="_self"
-          tabindex="-1"
         >
           {display}
           {minor === latestVersion && <span class="versions-tag">latest</span>}
@@ -171,7 +173,7 @@ const isLatest = currentMinor === latestVersion;
     });
 
     attachDropdownKeyboardNav(trigger, menu, {
-      itemSelector: 'li[role="option"]',
+      itemSelector: 'a[role="menuitem"]',
       onOpen: openMenu,
       onClose: closeMenu,
       isOpen: () => !menu.hidden,

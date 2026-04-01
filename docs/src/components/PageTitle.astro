@@ -142,4 +142,11 @@ const pageHref       = pathname;
     pointer-events: none;
   }
 
+  /* Hide breadcrumbs on mobile/tablet — sub-header already shows this info */
+  @media (max-width: 71.99rem) {
+    .hot-breadcrumbs {
+      display: none;
+    }
+  }
+
 </style>

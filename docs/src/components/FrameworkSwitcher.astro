@@ -31,7 +31,7 @@ const items = frameworks.map((fw) => ({
 <div class="fw-dropdown">
   <button
     class="fw-trigger"
-    aria-haspopup="listbox"
+    aria-haspopup="menu"
     aria-expanded="false"
     id="fw-trigger"
     type="button"
@@ -41,13 +41,15 @@ const items = frameworks.map((fw) => ({
     <svg class="fw-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
   </button>
 
-  <ul class="fw-menu" role="listbox" aria-labelledby="fw-trigger" hidden>
+  <ul class="fw-menu" role="menu" aria-labelledby="fw-trigger" hidden>
     {items.map(({ label, href, isCurrent, icon }) => (
-      <li role="option" aria-selected={isCurrent ? 'true' : 'false'} tabindex="-1">
+      <li role="none">
         <a
           href={href}
           class:list={['fw-item', { 'fw-item--current': isCurrent }]}
+          role="menuitem"
           tabindex="-1"
+          aria-current={isCurrent ? 'page' : undefined}
         >
           <span class:list={['fw-icon', icon]} aria-hidden="true"></span>
           {label}
@@ -105,7 +107,7 @@ const items = frameworks.map((fw) => ({
     });
 
     attachDropdownKeyboardNav(trigger, menu, {
-      itemSelector: 'li[role="option"]',
+      itemSelector: 'a[role="menuitem"]',
       onOpen: openMenu,
       onClose: closeMenu,
       isOpen: () => !menu.hidden,

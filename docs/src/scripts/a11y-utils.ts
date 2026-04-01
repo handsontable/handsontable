@@ -51,7 +51,7 @@ export function createFocusTrap(container: HTMLElement): () => void {
 // ── Dropdown keyboard navigation ────────────────────────────────────────
 
 export interface DropdownKeyboardOptions {
-  /** Selector for focusable items within the menu (default: 'a, li[role]') */
+  /** Selector for focusable items within the menu (default: 'a[role="menuitem"], li[role="menuitem"]') */
   itemSelector?: string;
   /** Called to open the menu. Defaults to setting menu.hidden = false */
   onOpen?: () => void;
@@ -71,7 +71,7 @@ export function attachDropdownKeyboardNav(
   options: DropdownKeyboardOptions = {}
 ): void {
   const {
-    itemSelector = 'a, li[role="option"], li[role="menuitem"]',
+    itemSelector = 'a[role="menuitem"], li[role="menuitem"]',
     onOpen,
     onClose,
     isOpen = () => !menu.hidden,
@@ -147,12 +147,13 @@ export function attachDropdownKeyboardNav(
       }
       case 'Enter':
       case ' ': {
-        // Let the default action fire (follows the link or activates the item)
-        // but close the menu afterward for non-link items
         if (e.key === ' ') e.preventDefault();
         const active = document.activeElement as HTMLElement;
-        if (active && active.tagName === 'LI') {
-          // For li[role="option"] items, find the inner <a> and click it
+        if (active?.tagName === 'A') {
+          // Focus is on an <a> menuitem — click it directly
+          active.click();
+        } else if (active?.tagName === 'LI') {
+          // Focus is on a <li> menuitem — find the inner <a> and click it
           const link = active.querySelector('a');
           if (link) {
             link.click();

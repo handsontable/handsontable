@@ -266,6 +266,7 @@ const frameworks = [
     const iconOpen = menuBtn?.querySelector('.mobile-menu-icon-open') as HTMLElement | null;
     const iconClose = menuBtn?.querySelector('.mobile-menu-icon-close') as HTMLElement | null;
     const sidebarPane = document.querySelector('.sidebar-pane') as HTMLElement | null;
+    const mainFrame = document.querySelector('.main-frame') as HTMLElement | null;
 
     let overlayOpen = false;
     let tocOpen = false;
@@ -283,6 +284,13 @@ const frameworks = [
       }
     }
 
+    function setInertBehind(open: boolean, keepSubheader = false) {
+      if (mainFrame) mainFrame.inert = open;
+      if (!keepSubheader && subheader) {
+        (subheader as HTMLElement).inert = open;
+      }
+    }
+
     function setOverlay(open: boolean) {
       overlayOpen = open;
       if (overlay) overlay.hidden = !open;
@@ -293,6 +301,9 @@ const frameworks = [
       if (iconOpen) iconOpen.style.display = open ? 'none' : 'block';
       if (iconClose) iconClose.style.display = open ? 'block' : 'none';
       document.body.style.overflow = open ? 'hidden' : '';
+
+      // Make background content inert (subheader too, since overlay covers it)
+      setInertBehind(open);
 
       // Focus trap + focus first link
       if (open && overlay) {
@@ -310,6 +321,10 @@ const frameworks = [
       tocOpen = open;
       if (tocPanel) tocPanel.hidden = !open;
       if (tocToggle) tocToggle.setAttribute('aria-expanded', String(open));
+
+      // Make background content inert (keep subheader interactive for close button)
+      setInertBehind(open, true);
+
       if (open) {
         populateToc();
         // Focus trap + focus first link
@@ -458,6 +473,7 @@ const frameworks = [
     // --- Initial state ---
     setOverlay(false);
     setToc(false);
+    setInertBehind(false);
     updateBreadcrumbs();
     updateSidebarAriaHidden();
 

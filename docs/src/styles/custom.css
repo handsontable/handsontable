@@ -248,7 +248,7 @@ starlight-toc {
 /* Tablet (50–72rem): subheader visible, collapsible sidebar */
 @media (min-width: 50rem) and (max-width: 71.99rem) {
   :root {
-    --sl-mobile-subheader-height: 2.25rem;
+    --sl-mobile-subheader-height: 2.75rem;
   }
 
   .main-frame {
@@ -292,7 +292,7 @@ starlight-toc {
 @media (max-width: 49.99rem) {
   :root {
     --sl-nav-height: 3.25rem;
-    --sl-mobile-subheader-height: 2.625rem;
+    --sl-mobile-subheader-height: 2.75rem;
   }
 
   .main-frame {
