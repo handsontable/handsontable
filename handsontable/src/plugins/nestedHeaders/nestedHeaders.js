@@ -137,7 +137,6 @@ export class NestedHeaders extends BasePlugin {
    */
   #recentlyHighlightCoords = null;
   /**
-  /**
    * Stores the header row level used as context for horizontal navigation when entering
    * and leaving rowspanned headers.
    *

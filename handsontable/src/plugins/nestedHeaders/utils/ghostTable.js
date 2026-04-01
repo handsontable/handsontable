@@ -238,19 +238,17 @@ class GhostTable {
             headerSettings.isHidden
           )
         ) {
-          let label = headerSettings.label;
           const hasCollapsibleControl = isCollapsibleColumnsEnabled &&
             (headerSettings.origColspan > 1 || headerSettings.colspan > 1);
+          const dropdownHtml = isDropdownEnabled ? '<button class="changeType"></button>' : '';
+          const indicatorHtml = hasCollapsibleControl
+            ? '<div class="collapsibleIndicator expanded">-</div>'
+            : '';
+          const html =
+            `<div class="relative"><span class="colHeader">${headerSettings.label}` +
+            `</span>${dropdownHtml}${indicatorHtml}</div>`;
 
-          if (isDropdownEnabled) {
-            label += '<button class="changeType"></button>';
-          }
-
-          if (hasCollapsibleControl) {
-            label += '<button class="collapsibleIndicator expanded"></button>';
-          }
-
-          fastInnerHTML(th, label, sanitizer);
+          fastInnerHTML(th, html, sanitizer);
           th.colSpan = headerSettings.colspan;
           th.rowSpan = headerSettings.rowspan;
           tr.appendChild(th);

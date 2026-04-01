@@ -180,8 +180,8 @@ describe('GhostTable', () => {
     ghostTableWithCollapsible._buildGhostTable(containerWithCollapsible, false);
 
     expect(containerWithoutCollapsible.querySelector('button.changeType')).not.toBeNull();
-    expect(containerWithoutCollapsible.querySelector('button.collapsibleIndicator')).toBeNull();
+    expect(containerWithoutCollapsible.querySelector('.collapsibleIndicator')).toBeNull();
     expect(containerWithCollapsible.querySelector('button.changeType')).not.toBeNull();
-    expect(containerWithCollapsible.querySelector('button.collapsibleIndicator')).not.toBeNull();
+    expect(containerWithCollapsible.querySelector('.collapsibleIndicator')).not.toBeNull();
   });
 });

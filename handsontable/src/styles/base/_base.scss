@@ -346,27 +346,18 @@
           }
 
           .relative {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
             padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
+            gap: 2px;
 
             .colHeader {
+              flex: 1 1 auto;
+              min-width: 0;
               text-overflow: ellipsis;
               overflow: hidden;
               vertical-align: top;
-              max-width: calc(100% + 1px);
-            }
-
-            // compensates the icon + gap + 1px border size
-            &:has(.collapsibleIndicator, .changeType) {
-              .colHeader {
-                max-width: calc(100% - (var(--ht-icon-size) + var(--ht-gap-size)) - 1px);
-              }
-            }
-
-            // compensates both controls when dropdown and collapsible buttons are present together
-            &:has(.collapsibleIndicator):has(.changeType) {
-              .colHeader {
-                max-width: calc(100% - 2 * (var(--ht-icon-size) + var(--ht-gap-size)) - 1px);
-              }
             }
           }
         }

@@ -2197,10 +2197,9 @@ describe('NestedHeaders', () => {
           hot.rootElement.offsetTop + 5
         );
 
-      expect(
-        topHeaderInTheMiddle.nodeName === 'TH' ||
-        topHeaderInTheMiddle.parentNode.nodeName === 'TH'
-      ).toEqual(true);
+      // Header label lives under th > div.relative > span.colHeader; elementFromPoint often
+      // returns the inner span or div, not the th itself.
+      expect(topHeaderInTheMiddle.closest('th')).not.toBeNull();
 
       hidingMap.setValues([true, true, true, true, true, true]);
       await render();

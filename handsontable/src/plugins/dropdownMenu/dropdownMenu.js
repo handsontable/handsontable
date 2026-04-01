@@ -608,7 +608,19 @@ export class DropdownMenu extends BasePlugin {
       return false;
     };
 
-    TH.firstChild.insertBefore(button, TH.firstChild.firstChild);
+    const relativeContainer = TH.firstChild;
+
+    if (!relativeContainer) {
+      return;
+    }
+
+    const colHeaderSpan = relativeContainer.querySelector('.colHeader');
+
+    if (colHeaderSpan) {
+      relativeContainer.insertBefore(button, colHeaderSpan.nextSibling);
+    } else {
+      relativeContainer.appendChild(button);
+    }
   }
 
   /**
