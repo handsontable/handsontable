@@ -88,7 +88,7 @@ function runFlakyFn(originalFn, description, specDefinitions) {
   return originalFn(`[flaky] ${description}`, async function() {
     const origAddExpectationResult = jasmine.Spec.prototype.addExpectationResult;
 
-    for (let attempt = 1; attempt < FLAKY_MAX_RETRIES; attempt++) {
+    for (let attempt = 1; attempt <= FLAKY_MAX_RETRIES; attempt++) {
       let expectationFailed = false;
       let caughtError = null;
 
