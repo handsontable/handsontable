@@ -51,6 +51,15 @@ export class StickyScrollStrategy {
   registerListeners() {
     const { eventManager, domBindings: { rootDocument } } = this.#overlays;
 
+    // Scrollable elements may have changed (e.g. updateSettings). Discard any
+    // leftover sticky state so a stale deactivate() cannot compute a wrong scroll.
+    if (this.#active) {
+      this.#active = false;
+      this.#applySpreaderStyles('relative', 0, 0);
+    }
+
+    this.#mouseDown = false;
+
     eventManager.addEventListener(rootDocument, 'mousedown', (event) => {
       this.#mouseDown = this.#isScrollbarTarget(event);
     });
