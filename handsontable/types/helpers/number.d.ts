@@ -8,3 +8,7 @@ export function rangeEach(rangeFrom: number, rangeTo: number, iteratee: (index: 
 export function rangeEachReverse(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void;
 export function valueAccordingPercent(value: number, percent: string | number): number;
 export function clamp(value: number, minValue: number, maxValue: number): number;
+export function getParsedNumber(
+  numericData: string,
+  options?: { decimalSeparator?: '.' | ',' }
+): number | null;
