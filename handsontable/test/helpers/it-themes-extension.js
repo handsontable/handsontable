@@ -92,15 +92,12 @@ function runFlakyFn(originalFn, description, specDefinitions) {
       let expectationFailed = false;
       let caughtError = null;
 
-      // Intercept expectation results so failures are swallowed during non-final attempts.
-      jasmine.Spec.prototype.addExpectationResult = function(passed, data, isError) {
+      // Suppress all expectation results during non-final attempts to avoid duplicates
+      // across retries and to keep retry internals invisible to Jasmine's result tracking.
+      jasmine.Spec.prototype.addExpectationResult = function(passed) {
         if (!passed) {
           expectationFailed = true;
-
-          return;
         }
-
-        origAddExpectationResult.call(this, passed, data, isError);
       };
 
       try {
