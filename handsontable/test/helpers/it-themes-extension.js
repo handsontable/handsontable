@@ -52,8 +52,10 @@ function cleanUpBetweenRetries() {
   const container = document.querySelector('#testContainer');
 
   if (container) {
+    const $container = $(container);
+
     try {
-      const instance = $(container).handsontable('getInstance');
+      const instance = $container.data('handsontable');
 
       if (instance && !instance.isDestroyed) {
         instance.destroy();
@@ -62,6 +64,7 @@ function cleanUpBetweenRetries() {
       // No instance to destroy - container may not have a HOT instance.
     }
 
+    $container.removeData();
     container.innerHTML = '';
   }
 }
