@@ -13,7 +13,7 @@ const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
 ---
 <div class="site-title-wrapper">
   <Default {...Astro.props} />
-  {!isProduction && <span class="dev-badge">dev</span>}
+  {!isProduction && <span class="dev-badge" aria-label="Development build">dev</span>}
 </div>
 
 <style>

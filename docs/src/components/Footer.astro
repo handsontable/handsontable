@@ -18,6 +18,7 @@ import Pagination from 'virtual:starlight/components/Pagination';
 // We look for that class to determine operational state, then map to our own
 // palette so the dot matches the sidebar "Updated" badge green (#41a167).
 let statusColor = '#8e99a4'; // gray — unknown / network error
+let statusText = 'status unknown';
 
 try {
   const res = await fetch('https://status.handsontable.com/');
@@ -28,8 +29,10 @@ try {
 
     if (isUp && !isDown) {
       statusColor = '#41a167'; // green — matches sidebar "Updated" badge
+      statusText = 'all systems operational';
     } else if (isDown) {
       statusColor = '#e74c3c'; // red — incident
+      statusText = 'incident detected';
     }
   }
 } catch {
@@ -60,6 +63,7 @@ const year = new Date().getFullYear();
         target="_blank"
         rel="noopener noreferrer"
         class="hot-footer__status-link"
+        aria-label={`Status (opens in new window)`}
       >
         <span
           class="hot-footer__status-dot"
@@ -67,6 +71,7 @@ const year = new Date().getFullYear();
           aria-hidden="true"
         ></span>
         Status
+        <span class="sr-only">({statusText})</span>
       </a>
     </nav>
 
@@ -76,7 +81,7 @@ const year = new Date().getFullYear();
         href="https://github.com/handsontable/handsontable"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="GitHub"
+        aria-label="GitHub (opens in new window)"
         class="hot-footer__cell"
       >
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -87,7 +92,7 @@ const year = new Date().getFullYear();
         href="https://www.linkedin.com/company/handsontable/"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="LinkedIn"
+        aria-label="LinkedIn (opens in new window)"
         class="hot-footer__cell"
       >
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -98,7 +103,7 @@ const year = new Date().getFullYear();
         href="https://twitter.com/handsontable"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="X (Twitter)"
+        aria-label="X (Twitter) (opens in new window)"
         class="hot-footer__cell"
       >
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -215,5 +220,20 @@ const year = new Date().getFullYear();
 
   .hot-footer__copyright p {
     margin: 0;
+  }
+
+  /* ── Responsive footer on mobile ──────────────────────────────────────── */
+  @media (max-width: 49.99rem) {
+    .hot-footer__nav {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .hot-footer__bottom {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .hot-footer__copyright {
+      grid-column: 1 / -1;
+    }
   }
 </style>

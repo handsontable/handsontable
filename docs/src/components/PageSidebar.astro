@@ -91,12 +91,14 @@ if (actions?.claude) {
                   href={action.href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={`${action.label} (opens in new window)`}
                 >
                   <Icon name={action.icon} size="0.875rem" />
                   <span>{action.label}</span>
                 </a>
               )
             )}
+            <div id="copy-status" class="sr-only" aria-live="polite"></div>
           </div>
         )}
       </div>
@@ -108,6 +110,7 @@ if (actions?.claude) {
   const copyButton = document.querySelector(
     '#copy-markdown'
   ) as HTMLButtonElement;
+  const copyStatus = document.getElementById('copy-status');
 
   copyButton?.addEventListener('click', async () => {
     let copyButtonClass: 'copied' | 'error' = 'copied';
@@ -121,15 +124,18 @@ if (actions?.claude) {
       const contentForClipboard = await res.text();
 
       await navigator.clipboard.writeText(contentForClipboard);
+      if (copyStatus) copyStatus.textContent = 'Markdown copied to clipboard';
     } catch (error) {
       console.error(error);
       copyButtonClass = 'error';
+      if (copyStatus) copyStatus.textContent = 'Failed to copy Markdown';
     } finally {
       copyButton.classList.add(copyButtonClass);
       copyButton.disabled = false;
 
       setTimeout(() => {
         copyButton.classList.remove(copyButtonClass);
+        if (copyStatus) copyStatus.textContent = '';
       }, 3000);
     }
   });

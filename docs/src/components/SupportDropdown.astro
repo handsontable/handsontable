@@ -33,8 +33,10 @@ const links = [
           href={href}
           class="support-item"
           role="menuitem"
+          tabindex="-1"
           target="_blank"
           rel="noopener noreferrer"
+          aria-label={`${label} (opens in new window)`}
         >
           {label}
           <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg>
@@ -45,30 +47,50 @@ const links = [
 </div>
 
 <script>
+  import { attachDropdownKeyboardNav } from '../scripts/a11y-utils';
+
   const wrapper = document.querySelector('.support-dropdown') as HTMLElement | null;
   const trigger = document.getElementById('support-trigger') as HTMLButtonElement | null;
   const menu = document.querySelector('.support-menu') as HTMLElement | null;
 
   if (wrapper && trigger && menu) {
+    function openMenu() {
+      menu!.hidden = false;
+      trigger!.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeMenu() {
+      menu!.hidden = true;
+      trigger!.setAttribute('aria-expanded', 'false');
+    }
+
     trigger.addEventListener('click', () => {
       const isOpen = !menu.hidden;
-      menu.hidden = isOpen;
-      trigger.setAttribute('aria-expanded', String(!isOpen));
+      if (isOpen) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
     });
 
     document.addEventListener('click', (e) => {
       if (!wrapper.contains(e.target as Node)) {
-        menu.hidden = true;
-        trigger.setAttribute('aria-expanded', 'false');
+        closeMenu();
       }
     });
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !menu.hidden) {
-        menu.hidden = true;
-        trigger.setAttribute('aria-expanded', 'false');
+        closeMenu();
         trigger.focus();
       }
+    });
+
+    attachDropdownKeyboardNav(trigger, menu, {
+      itemSelector: 'a[role="menuitem"]',
+      onOpen: openMenu,
+      onClose: closeMenu,
+      isOpen: () => !menu.hidden,
     });
   }
 </script>

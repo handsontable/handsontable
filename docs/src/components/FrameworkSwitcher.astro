@@ -43,10 +43,11 @@ const items = frameworks.map((fw) => ({
 
   <ul class="fw-menu" role="listbox" aria-labelledby="fw-trigger" hidden>
     {items.map(({ label, href, isCurrent, icon }) => (
-      <li role="option" aria-selected={isCurrent ? 'true' : 'false'}>
+      <li role="option" aria-selected={isCurrent ? 'true' : 'false'} tabindex="-1">
         <a
           href={href}
           class:list={['fw-item', { 'fw-item--current': isCurrent }]}
+          tabindex="-1"
         >
           <span class:list={['fw-icon', icon]} aria-hidden="true"></span>
           {label}
@@ -56,42 +57,60 @@ const items = frameworks.map((fw) => ({
   </ul>
 </div>
 
-<script is:inline>
-  document.addEventListener('DOMContentLoaded', function () {
-    var wrapper = document.querySelector('.fw-dropdown');
-    var trigger = document.getElementById('fw-trigger');
-    var menu = document.querySelector('.fw-menu');
+<script>
+  import { attachDropdownKeyboardNav } from '../scripts/a11y-utils';
 
-    if (wrapper && trigger && menu) {
-      trigger.addEventListener('click', function (e) {
-        e.stopPropagation();
-        // Close versions dropdown if open
-        var vMenu = document.querySelector('.versions-menu');
-        var vTrigger = document.getElementById('versions-trigger');
-        if (vMenu) vMenu.hidden = true;
-        if (vTrigger) vTrigger.setAttribute('aria-expanded', 'false');
+  const wrapper = document.querySelector('.fw-dropdown') as HTMLElement | null;
+  const trigger = document.getElementById('fw-trigger') as HTMLButtonElement | null;
+  const menu = document.querySelector('.fw-menu') as HTMLElement | null;
 
-        var isOpen = !menu.hidden;
-        menu.hidden = isOpen;
-        trigger.setAttribute('aria-expanded', String(!isOpen));
-      });
+  if (wrapper && trigger && menu) {
+    function openMenu() {
+      // Close versions dropdown if open
+      const vMenu = document.querySelector('.versions-menu') as HTMLElement | null;
+      const vTrigger = document.getElementById('versions-trigger');
+      if (vMenu) vMenu.hidden = true;
+      if (vTrigger) vTrigger.setAttribute('aria-expanded', 'false');
 
-      document.addEventListener('click', function (e) {
-        if (!wrapper.contains(e.target)) {
-          menu.hidden = true;
-          trigger.setAttribute('aria-expanded', 'false');
-        }
-      });
-
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && !menu.hidden) {
-          menu.hidden = true;
-          trigger.setAttribute('aria-expanded', 'false');
-          trigger.focus();
-        }
-      });
+      menu!.hidden = false;
+      trigger!.setAttribute('aria-expanded', 'true');
     }
-  });
+
+    function closeMenu() {
+      menu!.hidden = true;
+      trigger!.setAttribute('aria-expanded', 'false');
+    }
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = !menu.hidden;
+      if (isOpen) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target as Node)) {
+        closeMenu();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !menu.hidden) {
+        closeMenu();
+        trigger.focus();
+      }
+    });
+
+    attachDropdownKeyboardNav(trigger, menu, {
+      itemSelector: 'li[role="option"]',
+      onOpen: openMenu,
+      onClose: closeMenu,
+      isOpen: () => !menu.hidden,
+    });
+  }
 </script>
 
 <style>

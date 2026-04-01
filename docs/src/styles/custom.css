@@ -56,6 +56,9 @@
   --sl-rapide-ui-border-color: oklch(28% 0 0);
   --sl-rapide-ec-marker-bg-color: oklch(27% 0 0);
   --sl-rapide-ec-marker-border-color: oklch(47% 0 0);
+
+  /* Shared bg for tables and code blocks */
+  --sl-color-block-bg: #121212;
 }
 
 /* Light mode accent colours + pure neutral gray palette */
@@ -81,6 +84,9 @@
   --sl-rapide-ui-border-color: oklch(88% 0 0);
   --sl-rapide-ec-marker-bg-color: oklch(93% 0 0);
   --sl-rapide-ec-marker-border-color: oklch(62% 0 0);
+
+  /* Shared bg for tables and code blocks */
+  --sl-color-block-bg: #f5f5f5;
 }
 
 /* Search button: fill wrapper, no border */
@@ -95,6 +101,25 @@
 .site-title img {
   max-height: 24px;
   width: auto;
+}
+
+/* Skip-to-content link: must sit above the header (z-index: 10100) */
+:root {
+  --sl-z-index-skiplink: 10200;
+}
+
+/* Hide Starlight's built-in hamburger and mobile ToC — replaced by custom ones in Header.astro */
+@media (max-width: 49.99rem) {
+  starlight-menu-button {
+    display: none !important;
+  }
+}
+
+/* Hide "On this page" button below 72rem — subheader handles it */
+@media (max-width: 71.99rem) {
+  mobile-starlight-toc {
+    display: none !important;
+  }
 }
 
 /* Override Starlight's `height: auto` on iframes so the HTML attribute works */
@@ -123,12 +148,18 @@ header.header > .header {
   margin-inline: auto;
 }
 
-starlight-theme-select button {
+starlight-theme-select button,
+starlight-theme-select label {
   color: var(--sl-color-gray-1);
 }
 
-starlight-theme-select button:hover {
+starlight-theme-select button:hover,
+starlight-theme-select label:hover {
   color: var(--sl-color-white);
+}
+
+starlight-theme-select :is(:hover, :focus-visible) :is(.moon, .sun) {
+  fill: var(--sl-color-white) !important;
 }
 
 /* Align fixed sidebar with the constrained page */
@@ -198,6 +229,12 @@ starlight-toc {
   padding-top: var(--sl-nav-height) !important;
 }
 
+@media (max-width: 71.99rem) {
+  .right-sidebar {
+    display: none !important;
+  }
+}
+
 .right-sidebar-panel {
   padding-left: 4rem;
 }
@@ -205,6 +242,67 @@ starlight-toc {
 /* Main frame — extra breathing room below fixed header */
 .main-frame {
   padding-top: 8.75rem !important;
+}
+
+/* On mobile: two-row header (main bar + sub-bar) */
+/* Tablet (50–72rem): subheader visible, collapsible sidebar */
+@media (min-width: 50rem) and (max-width: 71.99rem) {
+  :root {
+    --sl-mobile-subheader-height: 2.25rem;
+  }
+
+  .main-frame {
+    padding-top: calc(var(--sl-nav-height) + var(--sl-mobile-subheader-height)) !important;
+  }
+
+  /* Subheader starts after the left sidebar */
+  .mobile-subheader {
+    left: var(--sl-sidebar-width, 18.75rem);
+    transition: left 0.2s ease;
+  }
+
+  /* Sidebar collapses when body has data attribute */
+  body[data-sidebar-collapsed] .sidebar-pane {
+    transform: translateX(-100%);
+  }
+
+  body[data-sidebar-collapsed] .mobile-subheader {
+    left: 0;
+  }
+
+  body[data-sidebar-collapsed] .main-frame {
+    padding-inline-start: 0 !important;
+    transition: padding-inline-start 0.2s ease;
+  }
+
+  /* Remove max-width constraint on tablet — content should use full available space */
+  .sl-container {
+    max-width: none !important;
+  }
+
+  .main-frame {
+    transition: padding-inline-start 0.2s ease;
+  }
+
+  .sidebar-pane {
+    transition: transform 0.2s ease;
+  }
+}
+
+@media (max-width: 49.99rem) {
+  :root {
+    --sl-nav-height: 3.25rem;
+    --sl-mobile-subheader-height: 2.625rem;
+  }
+
+  .main-frame {
+    padding-top: calc(var(--sl-nav-height) + var(--sl-mobile-subheader-height)) !important;
+  }
+
+  /* Remove Starlight's extra header padding for the mobile menu button (we use our own sub-bar) */
+  [data-has-sidebar] .header {
+    padding-inline-end: 0.5rem !important;
+  }
 }
 
 .sl-container > * + * {
@@ -232,9 +330,17 @@ starlight-toc {
   padding: 0 !important;
 }
 
+/* Horizontal padding on mobile/tablet so content doesn't run edge-to-edge */
+@media (max-width: 71.99rem) {
+  .content-panel {
+    padding-inline: 1rem !important;
+  }
+}
+
 /* Page title — extra top margin */
 main h1 {
   margin-top: 2rem !important;
+  font-weight: 500;
 }
 
 main {
@@ -541,26 +647,26 @@ h3 + p {
 /* Override Expressive Code variables — Ion-inspired dark theme */
 .expressive-code {
   /* Code block background & text */
-  --ec-codeBg: #121212;
+  --ec-codeBg: var(--sl-color-block-bg);
   --ec-codeFg: #e1e4e8;
   --ec-codeSelBg: #3392ff44;
   /* Frame backgrounds */
-  --ec-frm-edBg: #121212;
-  --ec-frm-termBg: #121212;
-  --ec-frm-trmTtbBg: #121212;
+  --ec-frm-edBg: var(--sl-color-block-bg);
+  --ec-frm-termBg: var(--sl-color-block-bg);
+  --ec-frm-trmTtbBg: var(--sl-color-block-bg);
   --ec-frm-trmTtbBrdBtmCol: #1b1f23;
   /* Border */
-  --ec-brdCol: #1b1f23;
+  --ec-brdCol: var(--sl-color-gray-5);
   --ec-brdWd: 1px;
   --ec-brdRad: 0;
   /* Tab bar */
   --ec-frm-edTabBarBg: #262626;
-  --ec-frm-edActTabBg: #121212;
+  --ec-frm-edActTabBg: var(--sl-color-block-bg);
   --ec-frm-edTabBarBrdCol: #1b1f23;
   --ec-frm-edTabBarBrdBtmCol: #1b1f23;
   --ec-frm-edActTabIndHt: 1px;
   --ec-frm-edActTabIndTopCol: #f9826c;
-  --ec-frm-edActTabIndBtmCol: #121212;
+  --ec-frm-edActTabIndBtmCol: var(--sl-color-block-bg);
   --ec-frm-edTabBrdRad: 0px;
   /* Gutter / line numbers */
   --ec-gtrFg: #616970;
@@ -601,7 +707,7 @@ h3 + p {
 
 .sl-markdown-content pre {
   border-radius: 0;
-  background-color: #121212 !important;
+  background-color: var(--sl-color-block-bg) !important;
   border: none;
 }
 
@@ -1032,7 +1138,7 @@ nav[aria-label="Main navigation"] a[aria-current='page'] {
 }
 
 starlight-toc a[aria-current='true'] {
-  color: #fff !important;
+  color: var(--sl-color-white) !important;
   border-color: var(--sl-color-accent) !important;
 }
 
@@ -1162,7 +1268,7 @@ kbd kbd {
  * ------------------------------------------------------------------------- */
 .table-container,
 .sl-markdown-content > .table-container:not(:where(.not-content *)) {
-  background-color: var(--sl-color-gray-7);
+  background-color: var(--sl-color-block-bg);
   border-radius: 0;
   border: 1px solid var(--sl-color-gray-5);
 }
@@ -1174,6 +1280,7 @@ pre .table-container {
 
 .table-container table,
 .sl-markdown-content > table:not(:where(.not-content *)) {
+  min-width: 600px;
   width: 100%;
   border-collapse: collapse;
 }
@@ -1391,8 +1498,13 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -1715,6 +1827,7 @@ html {
   background: var(--sl-color-gray-6);
   color: var(--sl-color-white);
   outline: none;
+  box-shadow: inset 0 0 0 1px var(--sl-color-accent);
 }
 
 .theme-dropdown-menu li[aria-selected='true'] {
@@ -1760,6 +1873,11 @@ html {
 
 #filterField::placeholder {
   color: var(--sl-color-gray-3);
+}
+
+#filterField:focus-visible {
+  border-color: var(--sl-color-accent);
+  box-shadow: 0 0 0 1px var(--sl-color-accent);
 }
 
 #filterField:focus {
@@ -1853,6 +1971,7 @@ html {
   background: var(--sl-color-gray-6);
   color: var(--sl-color-white);
   outline: none;
+  box-shadow: inset 0 0 0 1px var(--sl-color-accent);
 }
 
 .filter-dropdown-menu li[aria-selected='true'] {
@@ -1868,4 +1987,328 @@ html {
 
 #exampleParent #example {
   height: 100%;
+}
+
+/* -------------------------------------------------------------------------
+ * Mobile sub-bar (row 2): sidebar toggle | breadcrumbs | ToC toggle
+ * Sits below the main header bar, both fixed.
+ * ------------------------------------------------------------------------- */
+.mobile-subheader {
+  display: none;
+}
+
+@media (max-width: 71.99rem) {
+  .mobile-subheader {
+    display: flex !important;
+    align-items: center;
+    position: fixed;
+    top: var(--sl-nav-height);
+    right: 0;
+    height: var(--sl-mobile-subheader-height);
+    z-index: 10099;
+    background-color: var(--sl-rapide-ui-header-bg-color);
+    -webkit-backdrop-filter: blur(0.5rem);
+    backdrop-filter: blur(0.5rem);
+    border-top: none;
+    border-bottom: 1px solid var(--sl-color-gray-5);
+    padding: 0 0.5rem;
+    gap: 0.25rem;
+  }
+}
+
+/* On mobile subheader goes full width; on tablet starts after sidebar */
+@media (max-width: 49.99rem) {
+  .mobile-subheader {
+    left: 0;
+  }
+
+  /* Ensure header bar compact on mobile — fixed height must match --sl-nav-height */
+  header.header {
+    height: var(--sl-nav-height) !important;
+    padding-block: 0.625rem 0.5rem;
+    box-sizing: border-box;
+  }
+
+  header.header > .header {
+    width: 100%;
+  }
+}
+
+/* Sub-bar buttons — WCAG 2.5.8 minimum 44px touch targets */
+.mobile-sidebar-toggle,
+.mobile-toc-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--sl-color-gray-2);
+  cursor: pointer;
+  padding: 0.25rem 0.375rem;
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.mobile-sidebar-toggle:hover,
+.mobile-toc-toggle:hover {
+  color: var(--sl-color-white);
+}
+
+/* Sidebar toggle icon switching: hamburger on mobile, collapse/expand on tablet */
+.sidebar-icon-collapse,
+.sidebar-icon-expand {
+  display: none;
+}
+
+@media (min-width: 50rem) and (max-width: 71.99rem) {
+  .sidebar-icon-hamburger {
+    display: none;
+  }
+  .sidebar-icon-collapse {
+    display: block;
+  }
+  body[data-sidebar-collapsed] .sidebar-icon-collapse {
+    display: none;
+  }
+  body[data-sidebar-collapsed] .sidebar-icon-expand {
+    display: block;
+  }
+}
+
+/* Breadcrumbs */
+.mobile-breadcrumbs {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: var(--sl-color-gray-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  padding: 0 0.25rem;
+}
+
+/* -------------------------------------------------------------------------
+ * Mobile main nav overlay — full-screen, opened by ≡ hamburger
+ * ------------------------------------------------------------------------- */
+.mobile-nav-overlay {
+  position: fixed;
+  top: calc(var(--sl-nav-height));
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10100;
+  background: var(--sl-color-bg);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-nav-overlay > nav {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.mobile-nav-overlay[hidden] {
+  display: none !important;
+}
+
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--sl-color-gray-2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.mobile-nav-links .mobile-nav-link:first-child {
+  border-top: none;
+}
+
+.mobile-nav-link:hover {
+  color: var(--sl-color-white);
+  background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+}
+
+.mobile-nav-link--active {
+  color: var(--sl-color-white);
+  background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+  border-inline-start: 2px solid var(--sl-color-accent);
+}
+
+.mobile-nav-divider {
+  height: 0;
+  border-top: 1px solid var(--sl-color-gray-5);
+  margin: 0.5rem 0;
+}
+
+/* Framework pills in overlay */
+/* Framework section at bottom of mobile overlay */
+.mobile-nav-frameworks-section {
+  margin-top: auto;
+  border-top: 1px solid var(--sl-color-gray-5);
+}
+
+.mobile-nav-frameworks-label {
+  display: block;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+  padding: 0.5rem 1rem 0.25rem;
+}
+
+.mobile-nav-frameworks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--sl-color-gray-5);
+  gap: 0;
+}
+
+.mobile-nav-fw {
+  font-size: var(--sl-text-xs);
+  font-weight: 500;
+  color: var(--sl-color-gray-2);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  border: 0;
+  border-right: 1px solid var(--sl-color-gray-5);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  transition: color 0.15s, background-color 0.15s;
+  white-space: nowrap;
+}
+
+.mobile-nav-fw:last-child {
+  border-right: 0;
+}
+
+.mobile-nav-fw:hover {
+  color: var(--sl-color-white);
+  background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+}
+
+.mobile-nav-fw--active {
+  color: var(--sl-color-white);
+  border-bottom-color: var(--sl-color-accent);
+  background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+}
+
+/* -------------------------------------------------------------------------
+ * Mobile ToC panel — slides down from sub-bar
+ * ------------------------------------------------------------------------- */
+.mobile-toc-panel {
+  position: fixed;
+  top: calc(var(--sl-nav-height) + var(--sl-mobile-subheader-height));
+  left: 0;
+  right: 0;
+  z-index: 10049;
+  background: var(--sl-color-bg);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  max-height: 60vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.75rem 1rem;
+}
+
+.mobile-toc-panel[hidden] {
+  display: none !important;
+}
+
+.mobile-toc-panel nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mobile-toc-panel nav li {
+  margin: 0;
+}
+
+.mobile-toc-panel nav a {
+  display: block;
+  padding: 0.375rem 0.5rem;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+  text-decoration: none;
+  border-inline-start: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  line-height: 20px;
+}
+
+.mobile-toc-panel nav a:hover {
+  color: var(--sl-color-white);
+  border-inline-start-color: var(--sl-color-gray-4);
+}
+
+.mobile-toc-panel nav a[aria-current='true'] {
+  color: var(--sl-color-white);
+  border-inline-start-color: var(--sl-color-accent);
+}
+
+/* Indent nested ToC levels */
+.mobile-toc-panel nav ul ul {
+  padding-inline-start: 1rem;
+}
+
+/* Hide the "Overview" / #_top link in mobile ToC too */
+.mobile-toc-panel nav a[href='#_top'] {
+  display: none;
+}
+
+/* On tablet, ToC panel starts after left sidebar */
+@media (min-width: 50rem) and (max-width: 71.99rem) {
+  .mobile-toc-panel {
+    left: var(--sl-sidebar-width, 18.75rem);
+    transition: left 0.2s ease;
+  }
+
+  body[data-sidebar-collapsed] .mobile-toc-panel {
+    left: 0;
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * Mobile sidebar pane offset — account for sub-bar height
+ * ------------------------------------------------------------------------- */
+@media (max-width: 49.99rem) {
+  .sidebar-pane {
+    top: calc(var(--sl-nav-height) + var(--sl-mobile-subheader-height)) !important;
+    height: calc(100vh - var(--sl-nav-height) - var(--sl-mobile-subheader-height)) !important;
+  }
+
+  /* Hide Starlight's default GH icon + theme toggle from mobile sidebar bottom */
+  .sidebar-pane .mobile-preferences {
+    display: none !important;
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * Screen-reader-only utility — visually hidden but accessible to AT
+ * ------------------------------------------------------------------------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
