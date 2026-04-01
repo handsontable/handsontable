@@ -914,17 +914,12 @@ export default () => {
      *   }
      * }
      *
-     * // enable the `ColumnSorting` plugin
+     * // enable the `ColumnSorting` plugin with an initial sort order:
+     * // sort column 1 in ascending order at initialization
      * columnSorting: {
-     *   // at initialization, sort column 1 in ascending order
      *   initialConfig: {
      *     column: 1,
      *     sortOrder: 'asc'
-     *   },
-     *   // at initialization, sort column 2 in descending order
-     *   initialConfig: {
-     *     column: 2,
-     *     sortOrder: 'desc'
      *   }
      * }
      * ```
@@ -1602,6 +1597,46 @@ export default () => {
      * ```
      */
     data: undefined,
+
+    /**
+     * @description
+     * When set, the table loads data from an async provider (e.g. a REST API) instead of a static `data` array.
+     * Use the **object** form with every key defined: **`rowId`**, **`fetchRows`**, **`onRowsCreate`**, **`onRowsUpdate`**,
+     * and **`onRowsRemove`**. All five are required on that object so paging, row identity, and create, update, and remove
+     * map cleanly to your backend. Pair with **`pagination`** for server-side paging.
+     * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
+     *
+     * @since 17.1.0
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * dataProvider: {
+     *   rowId: 'id',
+     *   fetchRows: async (queryParameters, { signal }) => {
+     *     const { page, pageSize, sort, filters } = queryParameters;
+     *     const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+     *
+     *     if (sort) {
+     *       params.set('sortBy', sort.prop);
+     *       params.set('sortDir', sort.order);
+     *     }
+     *
+     *     const res = await fetch(`/api/products?${params}`, { signal });
+     *     const json = await res.json();
+     *
+     *     return { rows: json.data, totalRows: json.total };
+     *   },
+     *   onRowsCreate: async ({ position, referenceRowId, rowsAmount }) => { ... },
+     *   onRowsUpdate: async (rows) => { ... },
+     *   onRowsRemove: async (rowIds) => { ... },
+     * },
+     * ```
+     */
+    dataProvider: undefined,
 
     /**
      * @description
@@ -2358,6 +2393,13 @@ export default () => {
      * | `title`       | `string`        | Title to display in the empty data state overlay.       |
      * | `description` | `string`        | Description to display in the empty data state overlay. |
      * | `buttons`     | `array`         | Buttons to display in the empty data state overlay.     |
+     * | `loading`     | `boolean`       | When `true`, shows a loading spinner (used for server fetch state). |
+     *
+     * If you set the `message` option to a function, the `source` argument can be `"unknown"`, `"filters"`, or `"loading"`.
+     * With [[Options#dataProvider]], the `"loading"` branch follows DataProvider fetch hooks (`beforeDataProviderFetch`,
+     * `afterDataProviderFetch`, and related hooks) using the same rules as server-backed loading in the DataProvider plugin.
+     * Internal refetches (for example after column sort or CRUD) set `skipLoading` on [[Hooks#beforeDataProviderFetch]] so the
+     * EmptyDataState plugin can omit the loading overlay for those requests.
      *
      * If you set the `buttons` option to an array, each item requires following properties:
      *
@@ -2404,6 +2446,11 @@ export default () => {
      *           title: 'No data available',
      *           description: 'There’s nothing to display yet.',
      *           buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+     *         };
+     *       case "loading":
+     *         return {
+     *           title: 'Loading data',
+     *           description: 'Please wait.',
      *         };
      *       default:
      *         return {
@@ -3912,7 +3959,7 @@ export default () => {
 
     /**
      * @description
-     * The `multiColumnSorting` option configures the [`MultiColumnSorting`](@/api/columnSorting.md) plugin.
+     * The `multiColumnSorting` option configures the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin.
      *
      * You can set the `multiColumnSorting` option to one of the following:
      *
@@ -3972,18 +4019,13 @@ export default () => {
      *   }
      * }
      *
-     * // enable the `MultiColumnSorting` plugin
+     * // enable the `MultiColumnSorting` plugin with a multi-column initial sort order:
+     * // sort column 1 ascending first, then column 2 descending
      * multiColumnSorting: {
-     *   // at initialization, sort column 1 in ascending order
-     *   initialConfig: {
-     *     column: 1,
-     *     sortOrder: 'asc'
-     *   },
-     *   // at initialization, sort column 2 in descending order
-     *   initialConfig: {
-     *     column: 2,
-     *     sortOrder: 'desc'
-     *   }
+     *   initialConfig: [
+     *     { column: 1, sortOrder: 'asc' },
+     *     { column: 2, sortOrder: 'desc' }
+     *   ]
      * }
      * ```
      */
@@ -4952,28 +4994,35 @@ export default () => {
 
     /**
      * @description
-     * The `search` option configures the [`Search`](@/api/search.md) plugin.
+     * The `search` option enables and configures the [`Search`](@/api/search.md) plugin.
      *
-     * You can set the `search` option to one of the following:
+     * | Setting           | Description                                                                    |
+     * | ----------------- | ------------------------------------------------------------------------------ |
+     * | `false` (default) | Disable the [`Search`](@/api/search.md) plugin                                 |
+     * | `true`            | Enable the [`Search`](@/api/search.md) plugin with the default configuration   |
+     * | An object         | Enable the [`Search`](@/api/search.md) plugin and apply a custom configuration |
      *
-     * | Setting           | Description                                                                          |
-     * | ----------------- | ------------------------------------------------------------------------------------ |
-     * | `false` (default) | Disable the [`Search`](@/api/search.md) plugin                                       |
-     * | `true`            | Enable the [`Search`](@/api/search.md) plugin with the default configuration         |
-     * | An object         | - Enable the [`Search`](@/api/search.md) plugin<br>- Apply your custom configuration |
+     * When set to an object, the following properties are supported:
      *
-     * If you set the `search` option to an object, you can configure the following search options:
+     * | Property            | Type       | Default                          | Description                                                                                                                                                        |
+     * | ------------------- | ---------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `searchResultClass` | `string`   | `'htSearchResult'`               | CSS class name applied to every cell where `isSearchResult === true`.                                                                                              |
+     * | `queryMethod`       | `Function` | Case-insensitive substring match | Tests whether the query string matches a cell value. Signature: `(queryStr: string, value: string\|number\|null, cellProperties: object) => boolean`.              |
+     * | `callback`          | `Function` | Sets `isSearchResult` on cell metadata | Called for every cell after each test. Signature: `(instance: Handsontable, row: number, col: number, data: string\|number\|null, testResult: boolean) => void`. |
      *
-     * | Option              | Possible settings | Description                                                                                          |
-     * | ------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
-     * | `searchResultClass` | A string          | Add a custom CSS class name to search results                                                        |
-     * | `queryMethod`       | A function        | Add a [custom query method](@/guides/navigation/searching-values/searching-values.md#custom-query-method)  |
-     * | `callback`          | A function        | Add a [custom callback function](@/guides/navigation/searching-values/searching-values.md#custom-callback) |
+     * Default `queryMethod` behavior: case-insensitive, locale-aware substring match using `toLocaleLowerCase()` with `cellProperties.locale`.
+     *
+     * Default `callback` behavior: sets `instance.getCellMeta(row, col).isSearchResult = testResult` on every cell.
+     *
+     * **Per-cell overrides:** `queryMethod` and `callback` can also be set on individual cells, columns, or rows
+     * using the cascading configuration model. A cell-level `search.queryMethod` or `search.callback` takes
+     * precedence over the plugin-level setting for that cell. `searchResultClass` does not support per-cell overrides.
      *
      * Read more:
      * - [Searching values](@/guides/navigation/searching-values/searching-values.md)
-     * - [Searching values: Custom query method](@/guides/navigation/searching-values/searching-values.md#custom-query-method)
-     * - [Searching values: Custom callback](@/guides/navigation/searching-values/searching-values.md#custom-callback)
+     * - [Custom query method](@/guides/navigation/searching-values/searching-values.md#custom-query-method)
+     * - [Custom callback](@/guides/navigation/searching-values/searching-values.md#custom-callback)
+     * - [Per-cell overrides](@/guides/navigation/searching-values/searching-values.md#per-cell-querymethod-and-callback)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -4982,22 +5031,42 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable the `Search` plugin with the default configuration
+     * // Enable with the default configuration
      * search: true,
      *
-     * // enable the `Search` plugin with a custom configuration
+     * // Enable with a custom configuration
      * search: {
-     *   // add a `customClass` CSS class name to search results
+     *   // Apply a custom CSS class to matching cells instead of 'htSearchResult'
      *   searchResultClass: 'customClass',
-     *   // add a custom query method
-     *   queryMethod(queryStr, value) {
-     *     ...
+     *   // Replace the built-in substring match with exact matching
+     *   queryMethod(queryStr, value, cellProperties) {
+     *     if (!queryStr || queryStr.length === 0) return false;
+     *     if (value === undefined || value === null) return false;
+     *
+     *     return queryStr.toString() === value.toString();
      *   },
-     *   // add a custom callback function
-     *   callback(instance, row, column, value, result) {
-     *     ...
+     *   // Count results while preserving default highlighting
+     *   callback(instance, row, col, data, testResult) {
+     *     // Preserve the default isSearchResult flag so highlighting still works
+     *     instance.getCellMeta(row, col).isSearchResult = testResult;
+     *
+     *     if (testResult) {
+     *       // Custom logic: e.g., increment a result counter
+     *     }
      *   }
-     * }
+     * },
+     *
+     * // Override queryMethod for a specific column only (per-cell via cascading config)
+     * columns: [
+     *   {},
+     *   {
+     *     search: {
+     *       queryMethod(queryStr, value) {
+     *         return queryStr.toString() === value.toString(); // exact match for column 1
+     *       }
+     *     }
+     *   }
+     * ],
      * ```
      */
     search: false,

@@ -10,6 +10,7 @@ import { Comments } from './comments';
 import { ContextMenu } from './contextMenu';
 import { CopyPaste } from './copyPaste';
 import { CustomBorders } from './customBorders';
+import { DataProvider } from './dataProvider';
 import { DragToScroll } from './dragToScroll';
 import { DropdownMenu } from './dropdownMenu';
 import { ExportFile } from './exportFile';
@@ -55,6 +56,7 @@ export function registerAllPlugins() {
   registerPlugin(ContextMenu);
   registerPlugin(CopyPaste);
   registerPlugin(CustomBorders);
+  registerPlugin(DataProvider);
   registerPlugin(DragToScroll);
   registerPlugin(DropdownMenu);
   registerPlugin(ExportFile);
@@ -96,6 +98,7 @@ export {
   ContextMenu,
   CopyPaste,
   CustomBorders,
+  DataProvider,
   DragToScroll,
   DropdownMenu,
   ExportFile,

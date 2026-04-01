@@ -1,4 +1,4 @@
-.my-custom-search-result-class{
-  color: #ff0000;
-  font-weight: 900;
+.ht-theme-main .handsontable .my-class {
+  background: pink;
+  color: red;
 }

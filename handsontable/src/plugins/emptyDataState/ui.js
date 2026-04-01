@@ -1,6 +1,6 @@
 import { html } from '../../helpers/templateLiteralTag';
-import { addClass, removeClass, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
-import { A11Y_TABINDEX } from '../../helpers/a11y';
+import { addClass, removeClass, removeAttribute, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
+import { A11Y_TABINDEX, A11Y_BUSY } from '../../helpers/a11y';
 import { stripTags } from '../../helpers/string';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
@@ -12,7 +12,13 @@ const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STAT
   </div>
 </div>`;
 
-const templateContent = ({ title, description, buttons }) => `
+const templateContent = ({ title, description, buttons }, isLoading = false) => {
+  const spinnerBlock = isLoading ?
+    `<div class="${EMPTY_DATA_STATE_CLASS_NAME}__spinner" aria-hidden="true"></div>` :
+    '';
+
+  return `
+  ${spinnerBlock}
   <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content">
     ${title ? `<h2 class="${EMPTY_DATA_STATE_CLASS_NAME}__title">${stripTags(title)}</h2>` : ''}
     ${description ? `<p class="${EMPTY_DATA_STATE_CLASS_NAME}__description">${stripTags(description)}</p>` : ''}
@@ -22,10 +28,90 @@ const templateContent = ({ title, description, buttons }) => `
     class="${EMPTY_DATA_STATE_CLASS_NAME}__buttons${buttons?.length > 0 ?
   ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
   : ''}"
-  >${buttons?.length > 0 ?
+  >${!isLoading && buttons?.length > 0 ?
     buttons.map(button =>
       `<button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>`).join('')
     : ''}</div>`;
+};
+
+/**
+ * Creates, updates, or removes the min-height placeholder when there are no renderable rows.
+ *
+ * @param {Document} rootDocument - Root document for creating elements.
+ * @param {View} view - The view instance.
+ * @param {number} rows - Renderable row count.
+ * @param {string} classNamePrefix - Base class name for the empty data state.
+ * @param {{ element: HTMLElement | null }} placeholderState - In/out placeholder element reference.
+ * @returns {void}
+ */
+function syncEmptyDataStatePlaceholder(rootDocument, view, rows, classNamePrefix, placeholderState) {
+  if (rows !== 0) {
+    placeholderState.element?.remove();
+    placeholderState.element = null;
+
+    return;
+  }
+
+  if (!placeholderState.element) {
+    placeholderState.element = rootDocument.createElement('div');
+    placeholderState.element.classList.add(`${classNamePrefix}-placeholder`);
+    view._wt.wtTable.holder.appendChild(placeholderState.element);
+  }
+
+  placeholderState.element.style.width = '100%';
+  placeholderState.element.style.height = `${MIN_HEIGHT}px`;
+}
+
+/**
+ * Resolves the empty-data-state overlay width for the current view and column layout.
+ *
+ * @param {View} view - The view instance.
+ * @param {number} cols - Renderable column count.
+ * @param {boolean} treatAsPopulatedRowsForSizing - When `true`, use viewport width if horizontally window-scrollable.
+ * @returns {number} Width in pixels.
+ */
+function computeEmptyDataStateWidth(view, cols, treatAsPopulatedRowsForSizing) {
+  let width = view.getWorkspaceWidth();
+
+  if (view.isHorizontallyScrollableByWindow()) {
+    if (cols > 0) {
+      width = view.getTotalTableWidth();
+    } else if (treatAsPopulatedRowsForSizing) {
+      width = view.getViewportWidth();
+    }
+  } else if (view.getTableWidth() - view.getRowHeaderWidth() < view.getViewportWidth() && cols > 0) {
+    width = view.getTableWidth();
+  }
+
+  return width;
+}
+
+/**
+ * Resolves the empty-data-state overlay height for the current view and header layout.
+ *
+ * @param {View} view - The view instance.
+ * @param {number} cols - Renderable column count.
+ * @param {number} headerCols - Column header count.
+ * @param {number} scrollbarSize - Horizontal scrollbar thickness when scrollbars are shown.
+ * @returns {number} Height in pixels.
+ */
+function computeEmptyDataStateHeight(view, cols, headerCols, scrollbarSize) {
+  let height = view.getTableHeight();
+
+  if (view.isVerticallyScrollableByWindow() || view.hasVerticalScroll()) {
+    if (cols > 0) {
+      height = view.hot.getTableHeight() - view.getColumnHeaderHeight();
+    } else {
+      height = view.hot.getTableHeight();
+    }
+  } else if (headerCols > 0 && cols > 0) {
+    height = view.getViewportHeight() - scrollbarSize;
+  } else if (headerCols > 0 && cols === 0) {
+    height = view.getWorkspaceHeight() - scrollbarSize;
+  }
+
+  return height;
+}
 
 /**
  * EmptyDataStateUI is a UI component that renders and manages empty data state elements.
@@ -147,9 +233,11 @@ export class EmptyDataStateUI {
    * Updates the content of the emptyDataState element.
    *
    * @param {string | object} message - The message to update.
+   * @param {boolean} isLoading - When `true`, shows a loading spinner.
+   * @returns {void}
    */
-  updateContent(message) {
-    const { emptyDataStateInner } = this.#refs;
+  updateContent(message, isLoading = false) {
+    const { emptyDataStateElement, emptyDataStateInner } = this.#refs;
 
     let content = '';
 
@@ -165,14 +253,24 @@ export class EmptyDataStateUI {
       };
     }
 
-    const template = html`${templateContent(content)}`;
+    const template = html`${templateContent(content, isLoading)}`;
+
+    if (isLoading) {
+      addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--loading`);
+      setAttribute(emptyDataStateInner, [
+        A11Y_BUSY(),
+      ]);
+    } else {
+      removeClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--loading`);
+      removeAttribute(emptyDataStateInner, A11Y_BUSY()[0]);
+    }
 
     this.#refs = { ...this.#refs, ...template.refs };
 
     emptyDataStateInner.innerHTML = '';
     emptyDataStateInner.appendChild(template.fragment);
 
-    if (content.buttons?.length > 0) {
+    if (!isLoading && content.buttons?.length > 0) {
       Array.from(this.#refs.emptyDataStateButtons.children).forEach((button, index) => {
         button.addEventListener('click', content.buttons[index].callback);
       });
@@ -210,8 +308,10 @@ export class EmptyDataStateUI {
    * Updates the size of the emptyDataState element.
    *
    * @param {View} view - The view instance.
+   * @param {boolean} [isLoading] - When `true` and the grid has renderable columns, use the same
+   *   workspace sizing as when renderable rows exist (e.g. DataProvider fetch while a page is still shown).
    */
-  updateSize(view) {
+  updateSize(view, isLoading = false) {
     const { emptyDataStateElement } = this.#refs;
 
     const scrollbarSize = view.hasHorizontalScroll() ? getScrollbarWidth(view.hot.rootDocument) : 0;
@@ -219,50 +319,19 @@ export class EmptyDataStateUI {
     const cols = view.countRenderableColumns();
     const headerCols = view.getColumnHeadersCount();
 
+    const extendLayoutForLoading = isLoading === true && cols > 0;
+    const treatAsPopulatedRowsForSizing = rows > 0 || extendLayoutForLoading;
+
     emptyDataStateElement.style.top = cols > 0 ? `${view.getColumnHeaderHeight()}px` : '0px';
-    emptyDataStateElement.style.insetInlineStart = rows > 0 ? `${view.getRowHeaderWidth()}px` : '0px';
+    emptyDataStateElement.style.insetInlineStart = '0px';
 
-    if (rows === 0) {
-      if (!this.#placeholderElement) {
-        this.#placeholderElement = this.#rootDocument.createElement('div');
-        this.#placeholderElement.classList.add(`${EMPTY_DATA_STATE_CLASS_NAME}-placeholder`);
+    const placeholderState = { element: this.#placeholderElement };
 
-        view._wt.wtTable.holder.appendChild(this.#placeholderElement);
-      }
+    syncEmptyDataStatePlaceholder(this.#rootDocument, view, rows, EMPTY_DATA_STATE_CLASS_NAME, placeholderState);
+    this.#placeholderElement = placeholderState.element;
 
-      this.#placeholderElement.style.width = '100%';
-      this.#placeholderElement.style.height = `${MIN_HEIGHT}px`;
-    } else {
-      this.#placeholderElement?.remove();
-      this.#placeholderElement = null;
-    }
-
-    let width = view.getWorkspaceWidth();
-    let height = view.getTableHeight();
-
-    if (view.isHorizontallyScrollableByWindow()) {
-      if (cols > 0) {
-        width = view.getTotalTableWidth();
-      } else if (rows > 0) {
-        width = view.getViewportWidth();
-      }
-    } else if (rows > 0) {
-      width = view.getViewportWidth();
-    } else if (view.getTableWidth() - view.getRowHeaderWidth() < view.getViewportWidth() && cols > 0) {
-      width = view.getTableWidth();
-    }
-
-    if (view.isVerticallyScrollableByWindow() || view.hasVerticalScroll()) {
-      if (cols > 0) {
-        height = view.hot.getTableHeight() - view.getColumnHeaderHeight();
-      } else {
-        height = view.hot.getTableHeight();
-      }
-    } else if (headerCols > 0 && cols > 0) {
-      height = view.getViewportHeight() - scrollbarSize;
-    } else if (headerCols > 0 && cols === 0) {
-      height = view.getWorkspaceHeight() - scrollbarSize;
-    }
+    const width = computeEmptyDataStateWidth(view, cols, treatAsPopulatedRowsForSizing);
+    const height = computeEmptyDataStateHeight(view, cols, headerCols, scrollbarSize);
 
     emptyDataStateElement.style.width = `${width}px`;
     emptyDataStateElement.style.height = `${height}px`;

@@ -71,6 +71,97 @@ export function sleep(delay = 100) {
 }
 
 /**
+ * Wait for up to the next 2 animation frames.
+ *
+ * @param {number} [framesToWait=1] The number of animation frames to wait for.
+ * @returns {Promise<void>}
+ */
+export function waitForNextAnimationFrames(framesToWait = 1) {
+  const requestedFramesToWait = normalizeLegacyFrameCount(framesToWait);
+  const totalFramesToWait = normalizeFrameCount(framesToWait);
+  const minimumElapsedTime = requestedFramesToWait * 16;
+  const startTime = Date.now();
+
+  return new Promise((resolve) => {
+    const finishWaiting = () => {
+      const elapsedTime = Date.now() - startTime;
+      const missingTime = minimumElapsedTime - elapsedTime;
+
+      if (missingTime > 0) {
+        sleep(missingTime).then(resolve);
+
+        return;
+      }
+
+      resolve();
+    };
+
+    if (totalFramesToWait === 0) {
+      finishWaiting();
+
+      return;
+    }
+
+    let waitedFrames = 0;
+    const requestFrame = window.requestAnimationFrame ?? (callback => window.setTimeout(callback, 16));
+
+    const waitForNextFrame = () => {
+      waitedFrames += 1;
+
+      if (waitedFrames >= totalFramesToWait) {
+        finishWaiting();
+
+        return;
+      }
+
+      requestFrame(waitForNextFrame);
+    };
+
+    requestFrame(waitForNextFrame);
+  });
+}
+
+/**
+ * Wait for the next animation frames.
+ *
+ * @param {number} [framesToWait=1] The number of animation frames to wait for.
+ * @returns {Promise<void>}
+ *
+ * @deprecated Use waitForNextAnimationFrames instead.
+ */
+export async function waitForNameAnimationFrames(framesToWait = 1) {
+  await waitForNextAnimationFrames(framesToWait);
+}
+
+/**
+ * Normalize frame count input.
+ *
+ * @param {number} framesToWait The number of frames to normalize.
+ * @returns {number}
+ */
+function normalizeFrameCount(framesToWait) {
+  if (!Number.isFinite(framesToWait)) {
+    return 1;
+  }
+
+  return Math.min(2, Math.max(0, Math.ceil(framesToWait)));
+}
+
+/**
+ * Normalize frame count input for backward-compatible helper.
+ *
+ * @param {number} framesToWait The number of frames to normalize.
+ * @returns {number}
+ */
+function normalizeLegacyFrameCount(framesToWait) {
+  if (!Number.isFinite(framesToWait)) {
+    return 1;
+  }
+
+  return Math.max(0, Math.ceil(framesToWait));
+}
+
+/**
  * @param {Function} fn The function to convert to Promise.
  * @returns {Promise}
  */

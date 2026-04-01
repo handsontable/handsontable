@@ -27,7 +27,7 @@ describe('Filters UI ActionBar component', () => {
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonCancel input').value)
       .toBe('Cancel');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     // The filter components should be intact after some time. These expectations check whether the GhostTable
     // does not steal the components' element while recalculating column width (PR #5555).
