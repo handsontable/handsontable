@@ -45,9 +45,36 @@ function runOriginalFnUnderConditions(originalFn, themeName, description, specDe
 }
 
 /**
+ * Cleans up the test container between flaky test retries by destroying any existing
+ * Handsontable instance and clearing the container's contents.
+ */
+function cleanUpBetweenRetries() {
+  const container = document.querySelector('#testContainer');
+
+  if (container) {
+    try {
+      const instance = $(container).handsontable('getInstance');
+
+      if (instance && !instance.isDestroyed) {
+        instance.destroy();
+      }
+    } catch (_e) {
+      // No instance to destroy - container may not have a HOT instance.
+    }
+
+    container.innerHTML = '';
+  }
+}
+
+/**
  * Wraps a spec function with retry logic for flaky tests. If the spec fails, it is retried
  * up to {@link FLAKY_MAX_RETRIES} times. Between retries, any existing Handsontable instance
- * is destroyed and the test container is re-created.
+ * is destroyed and the test container is cleared.
+ *
+ * On non-final attempts, Jasmine's `Spec.prototype.addExpectationResult` is intercepted so that
+ * expectation failures are swallowed (not recorded in the spec result) and can be detected for
+ * retry. On the final attempt, the spec runs with standard Jasmine behavior so failures are
+ * reported normally.
  *
  * @param {Function} originalFn - The original Jasmine `it` or `fit` function.
  * @param {string} description - The description of the spec.
@@ -56,38 +83,40 @@ function runOriginalFnUnderConditions(originalFn, themeName, description, specDe
  */
 function runFlakyFn(originalFn, description, specDefinitions) {
   return originalFn(`[flaky] ${description}`, async function() {
-    let lastError;
+    const origAddExpectationResult = jasmine.Spec.prototype.addExpectationResult;
 
-    for (let attempt = 1; attempt <= FLAKY_MAX_RETRIES; attempt++) {
+    for (let attempt = 1; attempt < FLAKY_MAX_RETRIES; attempt++) {
+      let expectationFailed = false;
+      let caughtError = null;
+
+      // Intercept expectation results so failures are swallowed during non-final attempts.
+      jasmine.Spec.prototype.addExpectationResult = function(passed, data, isError) {
+        if (!passed) {
+          expectationFailed = true;
+
+          return;
+        }
+
+        origAddExpectationResult.call(this, passed, data, isError);
+      };
+
       try {
         await specDefinitions.call(this);
-
-        return;
       } catch (error) {
-        lastError = error;
-
-        if (attempt < FLAKY_MAX_RETRIES) {
-          // Clean up between retries by destroying any HOT instance and re-creating the container.
-          const container = document.querySelector('#testContainer');
-
-          if (container) {
-            try {
-              const instance = $(container).handsontable('getInstance');
-
-              if (instance && !instance.isDestroyed) {
-                instance.destroy();
-              }
-            } catch (_e) {
-              // No instance to destroy - container may not have a HOT instance.
-            }
-
-            container.innerHTML = '';
-          }
-        }
+        caughtError = error;
+      } finally {
+        jasmine.Spec.prototype.addExpectationResult = origAddExpectationResult;
       }
+
+      if (!expectationFailed && !caughtError) {
+        return;
+      }
+
+      cleanUpBetweenRetries();
     }
 
-    throw lastError;
+    // Final attempt - run with standard Jasmine behavior so failures are reported normally.
+    await specDefinitions.call(this);
   });
 }
 
