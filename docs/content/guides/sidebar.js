@@ -15,6 +15,10 @@ const gettingStartedItems = [
 
 const serverSideItems = [
   { path: 'guides/getting-started/server-side-data/server-side-data' },
+  { path: 'guides/getting-started/server-side-data/server-side-data-migration' },
+  { path: 'guides/getting-started/server-side-data/server-side-data-configuration' },
+  { path: 'guides/getting-started/server-side-data/server-side-data-crud' },
+  { path: 'guides/getting-started/server-side-data/server-side-data-fetching' },
 ];
 
 const stylingItems = [
