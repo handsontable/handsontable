@@ -78,6 +78,15 @@ describe('NumericCellType', () => {
       })).toBe(100000);
     });
 
+    it('should parse multi-group thousands for dot-decimal numeric formats', () => {
+      expect(valueSetter('1,234,567', 0, 0, {
+        numericFormat: {
+          pattern: '0,0.00',
+          culture: 'en-US',
+        },
+      })).toBe(1234567);
+    });
+
     it('should parse grouped values when only a numbro pattern is set (no locale or culture)', () => {
       expect(valueSetter('100,000', 0, 0, {
         numericFormat: {

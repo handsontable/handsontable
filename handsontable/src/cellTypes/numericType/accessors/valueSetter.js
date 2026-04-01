@@ -1,4 +1,8 @@
-import { isNumericLike, getParsedNumber } from '../../../helpers/number';
+import {
+  isCommaThousandsGroupedInteger,
+  isNumericLike,
+  getParsedNumber,
+} from '../../../helpers/number';
 import { isNullish } from '../../../dataMap/metaManager/utils';
 
 /**
@@ -57,12 +61,18 @@ export function valueSetter(newValue, row, column, cellMeta) {
   void row;
   void column;
 
+  if (typeof newValue !== 'string') {
+    return newValue;
+  }
+
+  const decimalSeparator = getCellDecimalSeparator(cellMeta);
+
   if (
-    typeof newValue === 'string' &&
-    isNumericLike(newValue)
+    isNumericLike(newValue) ||
+    isCommaThousandsGroupedInteger(newValue, decimalSeparator)
   ) {
     const parsedNumber = getParsedNumber(newValue, {
-      decimalSeparator: getCellDecimalSeparator(cellMeta),
+      decimalSeparator,
     });
 
     return isNullish(parsedNumber) ? newValue : parsedNumber;

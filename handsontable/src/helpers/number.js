@@ -60,6 +60,24 @@ export function isNumericLike(value) {
 }
 
 /**
+ * Whether the string is an integer with comma-separated thousands groups only.
+ * This matches the grouping rule used by [[getParsedNumber]] when the cell uses a dot as the
+ * decimal separator. It is not implied by [[isNumericLike]] because `isNumeric` allows at most
+ * one comma-delimited segment.
+ *
+ * @param {string} value The raw string value.
+ * @param {'.'|','|undefined} decimalSeparator Preferred decimal separator from cell meta.
+ * @returns {boolean}
+ */
+export function isCommaThousandsGroupedInteger(value, decimalSeparator) {
+  if (decimalSeparator !== '.' || typeof value !== 'string') {
+    return false;
+  }
+
+  return /^[+-]?[1-9]\d{0,2}(,\d{3})+$/.test(value.trim());
+}
+
+/**
  * A specialized version of `.forEach` defined by ranges.
  *
  * @param {number} rangeFrom The number from start iterate.
@@ -151,7 +169,7 @@ export function getParsedNumber(numericData, options = {}) {
   const { decimalSeparator } = options;
   const normalizedNumericData = numericData.trim();
 
-  if (decimalSeparator === '.' && /^[+-]?[1-9]\d{0,2}(,\d{3})+$/.test(normalizedNumericData)) {
+  if (isCommaThousandsGroupedInteger(numericData, decimalSeparator)) {
     return parseFloat(normalizedNumericData.replace(/,/g, ''));
   }
 

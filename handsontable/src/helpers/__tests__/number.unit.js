@@ -3,6 +3,7 @@ import {
   rangeEachReverse,
   isNumeric,
   isNumericLike,
+  isCommaThousandsGroupedInteger,
   valueAccordingPercent,
   clamp,
   isUnsignedNumber,
@@ -289,6 +290,28 @@ describe('Number helper', () => {
       expect(isNumericLike('   .2e+26   ')).toBeTruthy();
       expect(isNumericLike('   0,2e+26   ')).toBeTruthy();
       expect(isNumericLike('   ,2e+26   ')).toBeTruthy();
+    });
+  });
+
+  //
+  // Handsontable.helper.isCommaThousandsGroupedInteger
+  //
+  describe('isCommaThousandsGroupedInteger', () => {
+    it('should return `true` for multi-group thousands when decimal separator is a dot', () => {
+      expect(isCommaThousandsGroupedInteger('1,234,567', '.')).toBe(true);
+      expect(isCommaThousandsGroupedInteger('  1,234,567  ', '.')).toBe(true);
+      expect(isCommaThousandsGroupedInteger('-12,345,678', '.')).toBe(true);
+    });
+
+    it('should return `false` when decimal separator is not a dot', () => {
+      expect(isCommaThousandsGroupedInteger('1,234,567', ',')).toBe(false);
+      expect(isCommaThousandsGroupedInteger('1,234,567', undefined)).toBe(false);
+    });
+
+    it('should return `false` for values that are not valid grouped integers', () => {
+      expect(isCommaThousandsGroupedInteger('0,001', '.')).toBe(false);
+      expect(isCommaThousandsGroupedInteger('12,34', '.')).toBe(false);
+      expect(isCommaThousandsGroupedInteger('1,234.56', '.')).toBe(false);
     });
   });
 
