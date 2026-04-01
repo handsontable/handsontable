@@ -33,6 +33,14 @@ function getCellDecimalSeparator(cellMeta) {
     if (dotIndex > -1 && commaIndex > -1) {
       return dotIndex > commaIndex ? '.' : ',';
     }
+
+    if (commaIndex > -1 && dotIndex === -1) {
+      return '.';
+    }
+
+    if (dotIndex > -1 && commaIndex === -1) {
+      return '.';
+    }
   }
 }
 

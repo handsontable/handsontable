@@ -412,5 +412,22 @@ describe('Number helper', () => {
       expect(getParsedNumber('abc')).toBe(null);
       expect(getParsedNumber('')).toBe(null);
     });
+
+    it('should parse comma as decimal when dot is the decimal separator and the value is not US-style grouping', () => {
+      const dotDecimal = { decimalSeparator: '.' };
+
+      expect(getParsedNumber('0,001', dotDecimal)).toBe(0.001);
+      expect(getParsedNumber('0,100', dotDecimal)).toBe(0.1);
+      expect(getParsedNumber('0,010', dotDecimal)).toBe(0.01);
+      expect(getParsedNumber('-0,001', dotDecimal)).toBe(-0.001);
+    });
+
+    it('should strip thousands separators when dot is the decimal separator and grouping is valid', () => {
+      const dotDecimal = { decimalSeparator: '.' };
+
+      expect(getParsedNumber('100,000', dotDecimal)).toBe(100000);
+      expect(getParsedNumber('1,234,567', dotDecimal)).toBe(1234567);
+      expect(getParsedNumber('-12,345', dotDecimal)).toBe(-12345);
+    });
   });
 });

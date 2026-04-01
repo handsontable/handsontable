@@ -151,7 +151,7 @@ export function getParsedNumber(numericData, options = {}) {
   const { decimalSeparator } = options;
   const normalizedNumericData = numericData.trim();
 
-  if (decimalSeparator === '.' && /^[+-]?\d{1,3}(,\d{3})+$/.test(normalizedNumericData)) {
+  if (decimalSeparator === '.' && /^[+-]?[1-9]\d{0,2}(,\d{3})+$/.test(normalizedNumericData)) {
     return parseFloat(normalizedNumericData.replace(/,/g, ''));
   }
 
