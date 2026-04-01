@@ -92,6 +92,13 @@ export class StickyScrollStrategy {
 
     const startTop = wtViewport.rowsRenderCalculator.startPosition;
     const startLeft = wtViewport.columnsRenderCalculator.startPosition;
+
+    // startPosition is null when nothing is rendered (empty dataset or trimmed-away rows/columns).
+    // Arithmetic with null produces NaN, which would set "NaNpx" on the style. Skip the update.
+    if (typeof startTop !== 'number' || typeof startLeft !== 'number') {
+      return;
+    }
+
     const stickyTop = startTop - this.#getScrollTop();
     const stickyLeft = startLeft - this.#getScrollLeft();
 
