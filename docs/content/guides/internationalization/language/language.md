@@ -219,18 +219,21 @@ Language files were loaded after loading Handsontable.
 
 Below is a list of features which can be translated:
 
-- Dropdown menu
-- Filtering
-- Hiding columns
-- Hiding rows
-- Nesting rows
+- Alignment
 - Comments
 - Context menu
+- Cut and Copy (along with headers)
 - Custom borders
+- Dropdown menu
+- Filtering
 - Freezing
+- Hiding columns
+- Hiding rows
 - Merge cells
-- Read-only
+- Nesting rows
 - Pagination
+- Read-only
+- Undo and Redo
 - Dialogs (including Loading indicator)
 
 ## List of available languages
