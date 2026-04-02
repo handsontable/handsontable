@@ -32,6 +32,32 @@ try {
   // Fallback: version label omitted from the home crumb.
 }
 
+// ── Version comparison (newer-version banner) ────────────────────────────────
+const currentMinor = hotVersion
+  ? hotVersion.split('.').slice(0, 2).join('.')
+  : '';
+
+interface DocsData {
+  latestVersion: string;
+  versionsWithPatches: [string, string[]][];
+}
+
+let latestVersion = '';
+
+try {
+  const res = await fetch('https://handsontable.com/docs/data/common.json');
+
+  if (res.ok) {
+    const docsData: DocsData = await res.json();
+
+    latestVersion = docsData.latestVersion ?? '';
+  }
+} catch {
+  // Network unavailable — banner will be hidden (graceful degradation).
+}
+
+const showNewerBanner = currentMinor !== '' && latestVersion !== '' && currentMinor !== latestVersion;
+
 // ── Framework labels ──────────────────────────────────────────────────────────
 const FRAMEWORK_LABELS: Record<string, string> = {
   'javascript-data-grid': 'JavaScript Data Grid',
@@ -79,6 +105,15 @@ const pageHref       = pathname;
   </nav>
 
 </div>
+
+{showNewerBanner && (
+  <aside class="starlight-aside starlight-aside--tip hot-newer-version-banner">
+    <p class="starlight-aside__content">
+      There is a newer version of Handsontable available.
+      <a href={`https://handsontable.com/docs/${latestVersion}/`}>Switch to the latest version &rarr;</a>
+    </p>
+  </aside>
+)}
 
 <h1 id="_top">{pageTitle}</h1>
 
@@ -147,6 +182,24 @@ const pageHref       = pathname;
     .hot-breadcrumbs {
       display: none;
     }
+  }
+
+  /* ── Newer-version banner ─────────────────────────────────────────────────── */
+  .hot-newer-version-banner {
+    margin-block: 0.75rem 0.25rem;
+    padding: 0;
+    color: var(--sl-color-gray-3);
+  }
+
+  .hot-newer-version-banner a {
+    color: var(--sl-color-accent);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .hot-newer-version-banner a:hover {
+    text-decoration: underline;
   }
 
 </style>

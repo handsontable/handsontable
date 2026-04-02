@@ -32,6 +32,9 @@ report-check-links.xlsx
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Playwright screenshots (created by Claude Code sessions)
+/*.png
 .astro/
 /public/_md/
 /src/content/docs

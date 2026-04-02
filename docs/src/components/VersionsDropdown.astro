@@ -277,10 +277,9 @@ const isLatest = currentMinor === latestVersion;
 
   .versions-item:hover,
   .versions-item:focus-visible {
-    background: var(--sl-color-gray-6);
+    background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
     color: var(--sl-color-white);
     outline: none;
-    box-shadow: inset 0 0 0 1px var(--sl-color-accent);
   }
 
   .versions-item--current {

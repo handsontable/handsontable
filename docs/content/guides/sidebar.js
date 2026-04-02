@@ -111,6 +111,7 @@ const navigationItems = [
 
 const accessibilityItems = [
   { path: 'guides/accessibility/accessibility/accessibility' },
+  { path: 'guides/accessibility/accessibility-conformance-report/accessibility-conformance-report' },
 ];
 
 const accessoriesAndMenusItems = [

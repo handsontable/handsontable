@@ -31,6 +31,7 @@ interface ActionLink {
   id: string;
   icon: string;
   isButton?: boolean;
+  hasStates?: boolean;
 }
 
 const actionLinks: ActionLink[] = [];
@@ -40,6 +41,15 @@ actionLinks.push({
   label: 'Copy Markdown',
   id: 'copy-markdown',
   icon: 'mdx',
+  isButton: true,
+  hasStates: true,
+});
+
+// Print this page — browser-native print dialog
+actionLinks.push({
+  label: 'Print this page',
+  id: 'print-page',
+  icon: 'document',
   isButton: true,
 });
 
@@ -80,9 +90,9 @@ if (actions?.claude) {
                   id={action.id}
                   data-path={mdPath}
                 >
-                  <Icon name={action.icon} size="0.875rem" class="icon-default" />
-                  <Icon name="approve-check" size="0.875rem" class="icon-success" />
-                  <Icon name="error" size="0.875rem" class="icon-error" />
+                  <Icon name={action.icon} size="0.875rem" class={action.hasStates ? 'icon-default' : undefined} />
+                  {action.hasStates && <Icon name="approve-check" size="0.875rem" class="icon-success" />}
+                  {action.hasStates && <Icon name="error" size="0.875rem" class="icon-error" />}
                   <span>{action.label}</span>
                 </button>
               ) : (
@@ -138,6 +148,12 @@ if (actions?.claude) {
         if (copyStatus) copyStatus.textContent = '';
       }, 3000);
     }
+  });
+</script>
+
+<script>
+  document.getElementById('print-page')?.addEventListener('click', () => {
+    window.print();
   });
 </script>
 

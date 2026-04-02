@@ -95,9 +95,7 @@ You are welcome to join our GitHub community. Discuss new releases, propose feat
 
 <div class="boxes-list">
 
-- [GitHub Discussions](https://github.com/handsontable/handsontable/discussions)
 - [Developers' forum](https://forum.handsontable.com/)
-- [X](https://x.com/handsontable)
 
 </div>
 
