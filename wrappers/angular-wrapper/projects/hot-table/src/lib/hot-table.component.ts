@@ -22,6 +22,7 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
 @Component({
   selector: 'hot-table',
   template: '<div #container></div>',
+  standalone: false,
   encapsulation: ViewEncapsulation.None,
   providers: [HotSettingsResolver],
   styles: [

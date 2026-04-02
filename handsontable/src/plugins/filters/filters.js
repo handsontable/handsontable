@@ -6,7 +6,7 @@ import { rangeEach } from '../../helpers/number';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
-import { createObjectPropListener } from '../../helpers/object';
+import { createObjectPropListener, deepClone } from '../../helpers/object';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
@@ -172,6 +172,21 @@ export class Filters extends BasePlugin {
    */
   #previousConditionStack = [];
 
+  /**
+   * Snapshot of [[#previousConditionStack]] at the start of [[filter]] when the DataProvider plugin is active.
+   * Used to restore filter UI after `fetchRows` fails (the fetch request used the in-collection state; this holds the last committed stack).
+   *
+   * @type {Array}
+   */
+  #dataProviderFilterRollbackStack = [];
+
+  /**
+   * Indicates if the DataProvider plugin is active.
+   *
+   * @type {boolean}
+   */
+  #isDataProviderActive = false;
+
   constructor(hotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
@@ -196,6 +211,8 @@ export class Filters extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
+    this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
 
     this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
@@ -253,6 +270,7 @@ export class Filters extends BasePlugin {
         id: 'filter_by_value',
         name: filterValueLabel,
         searchMode,
+        hiddenWhen: () => this.#isDataProviderActive,
       })));
     }
 
@@ -283,6 +301,8 @@ export class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuShow', () => this.#onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.#onAfterDropdownMenuHide());
     this.addHook('afterChange', changes => this.#onAfterChange(changes));
+    this.addHook('afterDataProviderFetch', result => this.#onAfterDataProviderFetch(result));
+    this.addHook('afterDataProviderFetchError', () => this.#onAfterDataProviderFetchError());
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
@@ -445,6 +465,10 @@ export class Filters extends BasePlugin {
    * \* when `n` is collection size; it's used i.e. for one operation introduced from UI (when choosing from filter's drop-down menu two conditions with OR operator between them, mixed with choosing values from the multiple choice select)
    *
    * **Note**: Mind that you cannot mix different types of operations (for instance, if you use `conjunction`, use it consequently for a particular column).
+   *
+   * **Note**: If the number of conditions added programmatically via `addCondition()` exceeds the capacity of the
+   * filter's dropdown UI (at most 2 regular conditions and 1 `by_value` condition per column), the extra conditions
+   * will be applied to the data but will not be visible or editable in the dropdown menu.
    *
    * @example
    * ::: only-for javascript
@@ -779,6 +803,10 @@ export class Filters extends BasePlugin {
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
   addCondition(column, name, args, operationId = OPERATION_AND) {
+    if (name === CONDITION_BY_VALUE && this.#isDataProviderActive) {
+      return;
+    }
+
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.conditionCollection.addCondition(physicalColumn, { command: { key: name }, args }, operationId);
@@ -867,6 +895,11 @@ export class Filters extends BasePlugin {
     const { navigableHeaders } = this.hot.getSettings();
     const needToFilter = !this.conditionCollection.isEmpty();
     const conditions = this.exportConditions();
+
+    if (this.#isDataProviderActive) {
+      this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack);
+    }
+
     const allowFiltering = this.hot.runHooks(
       'beforeFilter',
       conditions,
@@ -905,6 +938,9 @@ export class Filters extends BasePlugin {
     } else if (allowFiltering !== false && !needToFilter) {
       this.#previousConditionStack = this.exportConditions();
       this.filtersRowsMap.clear();
+
+    } else if (this.#isDataProviderActive) {
+      this.#previousConditionStack = this.exportConditions();
 
     } else {
       this.importConditions(this.#previousConditionStack);
@@ -1040,6 +1076,22 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * After dataProvider fetch listener.
+   *
+   * @param {object} [result] Fetch result (filters match the request that just completed). May include `filtersConditionsStack` (Array).
+   */
+  #onAfterDataProviderFetch(result) {
+    this.importConditions(result?.filtersConditionsStack ?? []);
+  }
+
+  /**
+   * After dataProvider fetch error listener.
+   */
+  #onAfterDataProviderFetchError() {
+    this.importConditions(this.#dataProviderFilterRollbackStack);
+  }
+
+  /**
    * After dropdown menu show listener.
    */
   #onAfterDropdownMenuShow() {
@@ -1156,7 +1208,7 @@ export class Filters extends BasePlugin {
         }
       }
 
-      if (byValueState.command.key !== CONDITION_NONE) {
+      if (byValueState.command.key !== CONDITION_NONE && !this.#isDataProviderActive) {
         this.conditionCollection.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
       }
 
@@ -1300,8 +1352,8 @@ export class Filters extends BasePlugin {
 
     if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
       warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
-        The overall amount of conditions exceed the capability of the dropdown menu.\x20
-        For more details see the documentation.`);
+        The dropdown menu supports at most 2 regular conditions and 1 'filter by value' condition per column,\x20
+        but more were provided. For more details see the documentation.`);
 
     } else {
       const operationType = this.conditionCollection.getOperation(column);

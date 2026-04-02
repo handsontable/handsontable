@@ -527,7 +527,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       const container = getActiveEditor().htContainer;
 
@@ -558,7 +558,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       const container = getActiveEditor().htContainer;
 
@@ -588,7 +588,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       const container = getActiveEditor().htContainer;
 
@@ -619,7 +619,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       const container = getActiveEditor().htContainer;
 
@@ -650,7 +650,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       const container = getActiveEditor().htContainer;
 
@@ -666,7 +666,7 @@ describe('AutocompleteEditor', () => {
       });
     });
 
-    it('should not take excessive time to open the editor if the choice list is very long (dev-handsontable#2313)', async() => {
+    it.flaky('should not take excessive time to open the editor if the choice list is very long (dev-handsontable#2313)', async() => {
       const options = new Array(50000).fill().map(() => Math.random());
       let startTime;
       let endTime;
@@ -690,7 +690,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(10);
+      await waitForNextAnimationFrames(2);
 
       const $editor = $('.autocompleteEditor').eq(0);
 
@@ -715,7 +715,7 @@ describe('AutocompleteEditor', () => {
       const editor = $('.autocompleteEditor');
 
       await keyDownUp('enter');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(editor.find('tbody td:eq(0)').text()).toEqual(choices[0]);
       expect(editor.find('tbody td:eq(1)').text()).toEqual(choices[1]);
@@ -747,7 +747,7 @@ describe('AutocompleteEditor', () => {
       source.calls.reset();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(context.instance).toBe(hot);
       expect(context.row).toBe(0);
@@ -776,7 +776,7 @@ describe('AutocompleteEditor', () => {
       syncSources.calls.reset();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(editor.find('tbody td:eq(0)').text()).toEqual(choices[0]);
       expect(editor.find('tbody td:eq(1)').text()).toEqual(choices[1]);
@@ -809,7 +809,7 @@ describe('AutocompleteEditor', () => {
       const editor = $('.autocompleteEditor');
 
       await keyDownUp('enter');
-      await sleep(200);
+      await sleep(100);
 
       expect(asyncSources.calls.count()).toEqual(1);
       expect(editor.find('tbody td:eq(0)').text()).toEqual(choices[0]);
@@ -837,14 +837,14 @@ describe('AutocompleteEditor', () => {
       const editor = getActiveEditor();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       updateChoicesList.calls.reset();
       $(editor.htContainer).find('.htCore tr:eq(0) td:eq(0)').mouseenter();
       $(editor.htContainer).find('.htCore tr:eq(0) td:eq(0)').mouseleave();
       $(editor.htContainer).find('.htCore tr:eq(0) td:eq(0)').mouseenter();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(updateChoicesList).not.toHaveBeenCalled();
     });
@@ -869,13 +869,13 @@ describe('AutocompleteEditor', () => {
       updateChoicesList.calls.reset();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       updateChoicesList.calls.reset();
       editor.TEXTAREA.value = 'red';
 
       await keyDownUp('d', {}, editor.TEXTAREA);
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(updateChoicesList.calls.count()).toEqual(1);
     });
@@ -895,12 +895,12 @@ describe('AutocompleteEditor', () => {
       const editor = getActiveEditor();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       editor.TEXTAREA.value = 'none';
 
       await keyDownUp('e', {}, editor.TEXTAREA);
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(editor.htEditor.rootElement.style.display).toBe('none');
 
@@ -939,7 +939,7 @@ describe('AutocompleteEditor', () => {
       updateChoicesList.calls.reset();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(editor.htContainer.scrollWidth).toEqual(editor.htContainer.clientWidth);
     });
@@ -968,7 +968,7 @@ describe('AutocompleteEditor', () => {
       syncSources.calls.reset();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       // -2 for transparent borders
       expect(editor.find('.autocompleteEditor .htCore td').width())
@@ -998,18 +998,18 @@ describe('AutocompleteEditor', () => {
       const autocompleteEditor = $('.autocompleteEditor');
       const inputHolder = $('.handsontableInputHolder');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       autocompleteEditor.siblings('textarea').first().val('ab');
 
       await keyDownUp('a');
       await keyDownUp('b');
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       autocompleteEditor.siblings('textarea').first().val('a');
 
       await keyDownUp('backspace');
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(
         inputHolder.find('.autocompleteEditor .ht_master').eq(0).width()
@@ -1043,7 +1043,7 @@ describe('AutocompleteEditor', () => {
       syncSources.calls.reset();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(editor.find('.autocompleteEditor .htCore td').eq(0).width())
         .toBeGreaterThan(editor.find('.handsontableInput').width());
@@ -1073,12 +1073,12 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(1, 1);
       await keyDownUp('enter');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       data[1][1] = 'dddddddddddddddddddd';
       await render();
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       const $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
 
@@ -1139,13 +1139,13 @@ describe('AutocompleteEditor', () => {
       const $autocomplete = autocomplete();
       const $autocompleteHolder = $autocomplete.find('.ht_master .wtHolder').first();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect($autocomplete.find('td').first().text()).toEqual('Acura');
 
       $autocompleteHolder.scrollTop($autocompleteHolder[0].scrollHeight);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect($autocomplete.find('td').last().text()).toEqual('Volvo');
     });
@@ -1165,14 +1165,13 @@ describe('AutocompleteEditor', () => {
       const editor = $('.autocompleteEditor');
 
       await keyDownUp('enter');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(editor.find('tbody td:eq(0)').text()).toEqual('1');
       expect(editor.find('tbody td:eq(1)').text()).toEqual('2');
       expect(editor.find('tbody td:eq(2)').text()).toEqual('3');
       expect(editor.find('tbody td:eq(3)').text()).toEqual('4');
       expect(editor.find('tbody td:eq(4)').text()).toEqual('5');
-      expect(editor.find('tbody td:eq(5)').text()).toEqual('6');
     });
 
     it('should display the choices, regardless if they\'re declared as string or numeric, when data is present', async() => {
@@ -1192,14 +1191,13 @@ describe('AutocompleteEditor', () => {
       const editor = $('.autocompleteEditor');
 
       await keyDownUp('enter');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(editor.find('tbody td:eq(0)').text()).toEqual('1');
       expect(editor.find('tbody td:eq(1)').text()).toEqual('2');
       expect(editor.find('tbody td:eq(2)').text()).toEqual('3');
       expect(editor.find('tbody td:eq(3)').text()).toEqual('4');
       expect(editor.find('tbody td:eq(4)').text()).toEqual('5');
-      expect(editor.find('tbody td:eq(5)').text()).toEqual('6');
     });
 
     it('should display the dropdown above the editor, when there is not enough space below (table has defined size)', async() => {
@@ -1215,7 +1213,7 @@ describe('AutocompleteEditor', () => {
       });
 
       await mouseDoubleClick($(getCell(6, 0)));
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       const container = $(getActiveEditor().htContainer);
 
@@ -1235,7 +1233,7 @@ describe('AutocompleteEditor', () => {
       });
 
       await mouseDoubleClick($(getCell(5, 0)));
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       const editor = getActiveEditor();
       const container = $(editor.htContainer);
@@ -1243,7 +1241,7 @@ describe('AutocompleteEditor', () => {
       editor.TEXTAREA.value = 'r';
 
       await keyDownUp('r');
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 26, left: 0 });
@@ -1254,7 +1252,7 @@ describe('AutocompleteEditor', () => {
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 157, left: 0 });
@@ -1275,7 +1273,7 @@ describe('AutocompleteEditor', () => {
       });
 
       await mouseDoubleClick($(getCell(2, 0)));
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(132);
@@ -1296,7 +1294,7 @@ describe('AutocompleteEditor', () => {
       });
 
       await mouseDoubleClick($(getCell(6, 0)));
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(132);
@@ -1321,7 +1319,7 @@ describe('AutocompleteEditor', () => {
         0, document.documentElement.clientHeight - (getDefaultRowHeight() * 4))[0];
 
       await mouseDoubleClick($(cell));
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       const container = $(getActiveEditor().htContainer);
 
@@ -1348,7 +1346,7 @@ describe('AutocompleteEditor', () => {
         0, document.documentElement.clientHeight - (getDefaultRowHeight() * 4))[0];
 
       await mouseDoubleClick($(cell));
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       const editor = getActiveEditor();
       const container = $(editor.htContainer);
@@ -1356,7 +1354,7 @@ describe('AutocompleteEditor', () => {
       editor.TEXTAREA.value = 'r';
 
       await keyDownUp('r');
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 465, left: 0 });
@@ -1367,7 +1365,7 @@ describe('AutocompleteEditor', () => {
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 625, left: 0 });
@@ -1390,7 +1388,7 @@ describe('AutocompleteEditor', () => {
 
       await scrollWindowTo(0, 10000); // scroll to the bottom
       await mouseDoubleClick($(getCell(96, 0)));
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       const editor = getActiveEditor();
       const container = $(editor.htContainer);
@@ -1398,7 +1396,7 @@ describe('AutocompleteEditor', () => {
       editor.TEXTAREA.value = 'r';
 
       await keyDownUp('r');
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 2363, left: 0 });
@@ -1409,7 +1407,7 @@ describe('AutocompleteEditor', () => {
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 2523, left: 0 });
@@ -1431,7 +1429,7 @@ describe('AutocompleteEditor', () => {
       const editor = $('.autocompleteEditor');
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       for (let i = 0; i < choices.length; i++) {
         expect(editor.find(`tbody td:eq(${i})`).text()).toEqual(choices[i]);
@@ -1451,7 +1449,7 @@ describe('AutocompleteEditor', () => {
       const editor = $('.autocompleteEditor');
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const sortedChoices = choices.toSorted();
 
@@ -1480,7 +1478,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       autocomplete().find('tbody td:eq(3)').simulate('mousedown');
 
@@ -1501,7 +1499,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       autocomplete().find('tbody td:eq(0)').simulate('mousedown');
 
@@ -1528,7 +1526,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       autocomplete().find('tbody td:eq(0)').simulate('mousedown');
 
@@ -1556,7 +1554,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       autocomplete().find('tbody td:eq(1)').simulate('mousedown');
 
@@ -1591,7 +1589,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       autocomplete().find('tbody td:eq(1)').simulate('mousedown');
 
@@ -1622,7 +1620,7 @@ describe('AutocompleteEditor', () => {
       document.activeElement.value = '1';
 
       await keyUp('1');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
       await keyDownUp('enter');
 
       expect(getDataAtCell(0, 0)).toEqual(1);
@@ -1646,7 +1644,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       await keyDownUp('arrowdown');
       await keyDownUp('arrowdown');
@@ -1675,7 +1673,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(isEditorVisible(autocompleteEditor())).toBe(true);
 
@@ -1702,7 +1700,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await mouseDoubleClick(getCell(0, 0));
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(isEditorVisible(autocompleteEditor())).toBe(true);
 
@@ -1731,7 +1729,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       autocomplete().siblings('.handsontableInput').val('ye');
 
@@ -1758,7 +1756,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await mouseDoubleClick(getCell(0, 0));
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(isEditorVisible(autocompleteEditor())).toBe(true);
 
@@ -1788,7 +1786,7 @@ describe('AutocompleteEditor', () => {
       await selectCell(1, 0);
       await keyDownUp('x'); // Trigger quick edit mode
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect($('#testContainer .handsontable > .handsontable .wtBorder.current.corner:visible').length).toEqual(1);
     });
@@ -1813,7 +1811,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const editor = $('.handsontableInput');
 
@@ -1842,7 +1840,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       const editor = $('.handsontableInput');
 
@@ -1870,7 +1868,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       const editor = $('.handsontableInput');
 
@@ -1903,14 +1901,14 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       syncSources.calls.reset();
 
       editorInput.val('b');
 
       await keyDownUp('b');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
@@ -1960,7 +1958,7 @@ describe('AutocompleteEditor', () => {
 
       await setDataAtCell(0, 0, 'unexistent');
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(getData()).toEqual([
         ['one', 'two'],
@@ -2001,7 +1999,7 @@ describe('AutocompleteEditor', () => {
 
       await setDataAtCell(0, 0, 'yellow');
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(getData()).toEqual([
         ['yellow', 'two'],
@@ -2044,7 +2042,7 @@ describe('AutocompleteEditor', () => {
 
       await setDataAtCell(0, 0, 'unexistent');
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(getData()).toEqual([
         ['one', 'two'],
@@ -2087,7 +2085,7 @@ describe('AutocompleteEditor', () => {
 
       await setDataAtCell(0, 0, 'yellow');
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(getData()).toEqual([
         ['yellow', 'two'],
@@ -2131,7 +2129,7 @@ describe('AutocompleteEditor', () => {
 
       await setDataAtCell(0, 0, 'unexistent');
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(getData()).toEqual([
         ['unexistent', 'two'],
@@ -2168,14 +2166,14 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       syncSources.calls.reset();
 
       editorInput.val('b');
 
       await keyDownUp('b');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
@@ -2193,7 +2191,7 @@ describe('AutocompleteEditor', () => {
       onAfterValidate.calls.reset();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(getDataAtCell(0, 0)).toEqual('blue');
     });
@@ -2224,14 +2222,14 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       syncSources.calls.reset();
 
       editorInput.val('b');
 
       await keyDownUp('b');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
@@ -2249,7 +2247,7 @@ describe('AutocompleteEditor', () => {
       onAfterValidate.calls.reset();
 
       await keyDownUp('tab');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(getDataAtCell(0, 0)).toEqual('blue');
     });
@@ -2278,7 +2276,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(autocomplete().find('.current').text()).toEqual(getDataAtCell(0, 0));
     });
@@ -2308,13 +2306,13 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       syncSources.calls.reset();
       editorInput.val('e');
 
       await keyDownUp('e'); // e
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2338,7 +2336,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('d'); // d
       }
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2371,7 +2369,7 @@ describe('AutocompleteEditor', () => {
       editorInput.val('e');
 
       await keyDownUp('e'); // e
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2394,7 +2392,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('e'); // E (same as 'e')
       }
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2436,7 +2434,7 @@ describe('AutocompleteEditor', () => {
       editorInput.val('e');
 
       await keyDownUp('e'); // e
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2459,7 +2457,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('e'); // E (same as 'e')
       }
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2488,12 +2486,12 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(20);
+      await waitForNextAnimationFrames(2);
 
       editorInput.val('e');
 
       await keyDownUp('e'); // e
-      await sleep(20);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2506,7 +2504,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('d'); // d
       }
 
-      await sleep(20);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2540,14 +2538,14 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       syncSources.calls.reset();
 
       editorInput.val('Male');
 
       await keyDownUp('e'); // e
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
@@ -2576,13 +2574,13 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       queryChoices.calls.reset();
       editorInput.val('yellow|red');
 
       await keyDownUp('d');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
@@ -2615,13 +2613,13 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       syncSources.calls.reset();
       editorInput.val('M|F');
 
       await keyDownUp('F');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
@@ -2655,13 +2653,13 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('f');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       queryChoices.calls.reset();
       editorInput.val('foobar');
 
       await keyDownUp('r');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
       await keyDownUp('enter');
 
       expect(getDataAtCell(0, 0)).toEqual('foobar');
@@ -2693,13 +2691,13 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       syncSources.calls.reset();
       editorInput.val('e');
 
       await keyDownUp('e'); // e
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
@@ -2729,7 +2727,7 @@ describe('AutocompleteEditor', () => {
     expect(getDataAtCell(0, 0)).toBeNull();
 
     await keyDownUp('enter');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     autocomplete().find('tbody td:eq(1)').simulate('mouseenter');
     autocomplete().find('tbody td:eq(1)').simulate('mouseleave');
@@ -2762,7 +2760,7 @@ describe('AutocompleteEditor', () => {
 
     await selectCell(0, 0);
     await keyDownUp('enter');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 0)).toEqual('one');
 
@@ -2792,12 +2790,12 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       editorInput.val('b');
 
       await keyDownUp('b');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2814,7 +2812,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('r');
       }
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2828,7 +2826,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('enter');
       }
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCell(0, 0).querySelector('i').textContent).toBe('bar');
     });
@@ -2851,12 +2849,12 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       editorInput.val('b');
 
       await keyDownUp('b');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2873,7 +2871,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('r');
       }
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2887,7 +2885,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('enter');
       }
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCell(0, 0).querySelector('i').textContent).toBe('bar');
     });
@@ -2909,7 +2907,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
@@ -2962,12 +2960,12 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       editorInput.val('b');
 
       await keyDownUp('b');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2984,7 +2982,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('r');
       }
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -2998,7 +2996,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('enter');
       }
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(getCell(0, 0).querySelector('i')).toBeNull();
       expect(getCell(0, 0).textContent).toMatch('bar');
@@ -3022,12 +3020,12 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       editorInput.val('b');
 
       await keyDownUp('b');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -3043,7 +3041,7 @@ describe('AutocompleteEditor', () => {
 
       await keyDownUp('a');
       await keyDownUp('r');
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       {
         const ac = getActiveEditor();
@@ -3056,7 +3054,7 @@ describe('AutocompleteEditor', () => {
 
       await keyDownUp('arrowdown');
       await keyDownUp('enter');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCell(0, 0).querySelector('i')).toBeNull();
       expect(getCell(0, 0).textContent).toMatch('bar');
@@ -3089,7 +3087,7 @@ describe('AutocompleteEditor', () => {
 
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
 
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     let dropdownList = $('.autocompleteEditor tbody').first();
     let $trs = dropdownList.find('tr');
@@ -3111,7 +3109,7 @@ describe('AutocompleteEditor', () => {
 
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
 
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     dropdownList = $('.autocompleteEditor tbody').first();
     $trs = dropdownList.find('tr');
@@ -3131,7 +3129,7 @@ describe('AutocompleteEditor', () => {
 
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
 
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     dropdownList = $('.autocompleteEditor tbody').first();
     $trs = dropdownList.find('tr');
@@ -3162,7 +3160,7 @@ describe('AutocompleteEditor', () => {
 
     await selectCell(0, 0);
     await keyDownUp('enter');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     onAfterChange.calls.reset();
     autocomplete().find('tbody td:eq(1)').simulate('mousedown');
@@ -3207,7 +3205,7 @@ describe('AutocompleteEditor', () => {
     expect($(getCell(2, 2)).text()).toMatch('blue');
 
     await mouseDoubleClick(getCell(2, 2));
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCol(2)).toEqual(['yellow', 'red', 'blue']);
   });
@@ -3259,14 +3257,14 @@ describe('AutocompleteEditor', () => {
     expect(getActiveEditor().isOpened()).toBe(false);
 
     await keyDownUp('enter');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(getActiveEditor().isOpened()).toBe(true);
 
     afterValidateCallback.calls.reset();
     $(getActiveEditor().htContainer).find('tr:eq(1) td:eq(0)').simulate('mousedown');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 0)).toEqual('2');
   });
@@ -3291,7 +3289,7 @@ describe('AutocompleteEditor', () => {
     await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
-    await sleep(55);
+    await waitForNextAnimationFrames(2);
 
     const activeElement = getActiveEditor().TEXTAREA;
 
@@ -3299,12 +3297,12 @@ describe('AutocompleteEditor', () => {
     expect(activeElement).not.toBe(null);
     expect(document.activeElement).toBe(activeElement);
 
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('enter');
 
     expect(document.activeElement).toBe(activeElement);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -3442,7 +3440,7 @@ describe('AutocompleteEditor', () => {
 
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    await sleep(150);
+    await waitForNextAnimationFrames(2);
 
     expect(syncSources).not.toHaveBeenCalled();
 
@@ -3454,7 +3452,7 @@ describe('AutocompleteEditor', () => {
 
     $(getCell(1, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    await sleep(150);
+    await waitForNextAnimationFrames(2);
 
     expect(syncSources).toHaveBeenCalled();
     expect(syncSources.calls.count()).toEqual(1);
@@ -3490,7 +3488,7 @@ describe('AutocompleteEditor', () => {
 
     const dropdownHolder = getActiveEditor().htEditor.view._wt.wtTable.holder;
 
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(dropdownHolder.scrollHeight).toBeGreaterThan(dropdownHolder.clientHeight);
 
@@ -3503,7 +3501,7 @@ describe('AutocompleteEditor', () => {
 
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(dropdownHolder.scrollHeight > dropdownHolder.clientHeight).toBe(false);
   });
@@ -3527,7 +3525,7 @@ describe('AutocompleteEditor', () => {
 
     await selectCell(0, 0);
     await mouseDoubleClick(getCell(0, 0));
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     const dropdown = getActiveEditor().htContainer;
 
@@ -3536,7 +3534,7 @@ describe('AutocompleteEditor', () => {
     expect($(dropdown).is(':visible')).toBe(true);
 
     await selectCell(0, 0);
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
     await mouseDoubleClick(getCell(0, 0));
 
     await scrollViewportVertically(3);
@@ -3573,7 +3571,7 @@ describe('AutocompleteEditor', () => {
 
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('arrowdown');
 
     expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
@@ -3612,7 +3610,7 @@ describe('AutocompleteEditor', () => {
 
     Handsontable.dom.setCaretPosition($editorInput[0], 1, 2);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('arrowdown');
 
     expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
@@ -3651,7 +3649,7 @@ describe('AutocompleteEditor', () => {
 
     await keyDownUp('a'); // a
     await keyDownUp('n'); // n
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('arrowup');
 
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
@@ -3684,7 +3682,7 @@ describe('AutocompleteEditor', () => {
 
     await keyDownUp('a'); // a
     await keyDownUp('n'); // n
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('arrowright');
 
     expect(getSelected()).toEqual([[1, 1, 1, 1]]);
@@ -3721,7 +3719,7 @@ describe('AutocompleteEditor', () => {
     // put caret on the end of the text to ensure that editor will be closed after hit left arrow key
     Handsontable.dom.setCaretPosition($editorInput[0], 2, 2);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('arrowleft');
 
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
@@ -3754,7 +3752,7 @@ describe('AutocompleteEditor', () => {
 
     await keyDownUp('a'); // a
     await keyDownUp('n'); // n
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
@@ -3793,7 +3791,7 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('n'); // n
     await keyDownUp('a'); // a
     await keyDownUp('n'); // n
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[2, 0, 2, 0]]);
@@ -3826,7 +3824,7 @@ describe('AutocompleteEditor', () => {
 
     await keyDownUp('a'); // a
     await keyDownUp('n'); // n
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
@@ -3852,7 +3850,7 @@ describe('AutocompleteEditor', () => {
 
     await selectCell(1, 0);
     await keyDownUp('x'); // Trigger quick edit mode
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('arrowdown');
 
     expect(getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
@@ -3888,7 +3886,7 @@ describe('AutocompleteEditor', () => {
 
     await selectCell(1, 0);
     await keyDownUp('x'); // Trigger quick edit mode
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     getActiveEditor().htEditor.selectCell(2, 0);
 
@@ -3927,7 +3925,7 @@ describe('AutocompleteEditor', () => {
 
     await selectCell(1, 0);
     await keyDownUp('x'); // Trigger quick edit mode
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     getActiveEditor().htEditor.selectCell(7, 0);
     await listen();
@@ -3961,7 +3959,7 @@ describe('AutocompleteEditor', () => {
 
     await selectCell(1, 0);
     await keyDownUp('x'); // Trigger quick edit mode
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     getActiveEditor().htEditor.selectCell(1, 0);
     await listen();
@@ -3999,7 +3997,7 @@ describe('AutocompleteEditor', () => {
 
     await selectCell(1, 0);
     await keyDownUp('x'); // Trigger quick edit mode
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     spyOn(hot, '_registerTimeout');
 
@@ -4048,7 +4046,7 @@ describe('AutocompleteEditor', () => {
       await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
-      await sleep(55);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

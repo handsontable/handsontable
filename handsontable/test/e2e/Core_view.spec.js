@@ -109,7 +109,9 @@ describe('Core_view', () => {
 
     const hot = handsontable({
       data: createSpreadsheetData(10, 3),
-      height: 60
+      height: 60,
+      viewportColumnRenderingOffset: 10,
+      viewportRowRenderingOffset: 10,
     });
 
     const htCore = getHtCore();
@@ -163,8 +165,8 @@ describe('Core_view', () => {
     handsontable({
       data: createSpreadsheetData(10, 9),
       fixedRowsTop: 1,
-      width: 200,
-      height: 100
+      width: getDefaultColumnWidth() * 5,
+      height: getDefaultRowHeight() * 3,
     });
 
     await selectCell(0, 0);
@@ -196,10 +198,10 @@ describe('Core_view', () => {
     expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
     expect(topClone.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
 
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
+    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual('A4');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A5');
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A6');
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A7');
   });
 
   it('should scroll viewport, respecting fixed columns', async() => {
@@ -316,7 +318,7 @@ describe('Core_view', () => {
     await selectCell(1, 40);
     await selectCell(1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('AH1');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('AL1');
 
     await keyDownUp('arrowright');
 
@@ -338,7 +340,7 @@ describe('Core_view', () => {
     await selectCell(1, 40);
     await selectCell(-1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('AH1');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('AL1');
 
     await keyDownUp('arrowright');
 
@@ -442,7 +444,7 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, 1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
 
     await keyDownUp('arrowdown');
 
@@ -465,7 +467,7 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, 1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
 
     await keyDownUp('arrowdown');
 
@@ -488,7 +490,7 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, 1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
 
     await keyDownUp('arrowdown');
 
@@ -511,7 +513,7 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
 
     await keyDownUp('arrowdown');
 
@@ -534,7 +536,7 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
 
     await keyDownUp('arrowdown');
 
@@ -557,7 +559,7 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
 
     await keyDownUp('arrowdown');
 
@@ -593,11 +595,11 @@ describe('Core_view', () => {
       startCols: 10
     });
 
-    await sleep(250);
+    await waitForNextAnimationFrames(2);
 
     const initHeight = spec().$container.height();
 
-    await sleep(250);
+    await waitForNextAnimationFrames(2);
 
     expect(spec().$container.height()).toEqual(initHeight);
 
@@ -847,7 +849,7 @@ describe('Core_view', () => {
         spec().$container.find('.ht_clone_top_inline_start_corner .wtHolder')[0].dispatchEvent(wheelEvt);
       }
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(spy.calls.argsFor(0)[0].defaultPrevented).toBe(true);
       eventManager.destroy();
@@ -885,7 +887,7 @@ describe('Core_view', () => {
         spec().$container.find('.ht_clone_top_inline_start_corner .wtHolder')[0].dispatchEvent(wheelEvt);
       }
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
       const masterHolder = spec().$container.find('.ht_master .wtHolder')[0];
 
       expect(masterHolder.scrollLeft).toBe(800);
@@ -926,7 +928,9 @@ describe('Core_view', () => {
         fixedRowsTop: 2,
         fixedColumnsStart: 2,
         width: 200,
-        height: 200
+        height: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportVertically(200);
@@ -953,19 +957,19 @@ describe('Core_view', () => {
         fixedRowsTop: 2,
         fixedColumnsStart: 2,
         width: 200,
-        height: 200
+        height: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       const rowHeight = getCell(1, 3).clientHeight;
 
-      expect(spec().$container.find('.ht_clone_top_inline_start_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
-        .toEqual(rowHeight);
+      expect(getCell(1, 1, true).clientHeight).toEqual(rowHeight);
 
       await scrollViewportVertically(200);
       await render();
 
-      expect(spec().$container.find('.ht_clone_top_inline_start_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
-        .toEqual(rowHeight);
+      expect(getCell(1, 1, true).clientHeight).toEqual(rowHeight);
     });
   });
 
@@ -1007,7 +1011,7 @@ describe('Core_view', () => {
       contextMenu: true
     });
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const $htCore = spec().$container.find('.ht_master .wtHolder .wtHider .wtSpreader .htCore');
     const $wtHider = spec().$container.find('.ht_master .wtHolder .wtHider');

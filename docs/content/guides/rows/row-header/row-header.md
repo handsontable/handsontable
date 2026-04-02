@@ -43,6 +43,13 @@ You can bind row numbers with row headers. This is used mostly to differentiate 
 
 To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders) property to `true`. Move the rows in the example below to see what this plugin does.
 
+Possible values:
+
+- `true` - Enables the plugin.
+- `strict` - Enables the plugin and the order of indexes is not reorganized after the operation such as hiding or moving rows.
+- `loose` -  Enables the plugin and the order of indexes is re-organized after the operation such as hiding or moving rows.
+
+
 ::: only-for javascript
 
 ::: example #example1 --js 1 --ts 2

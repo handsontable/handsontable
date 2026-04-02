@@ -471,7 +471,7 @@ describe('manualRowResize', () => {
 
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
 
-    await sleep(700);
+    await waitForNextAnimationFrames(44);
 
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
       classic.toEqual(200);
@@ -690,7 +690,7 @@ describe('manualRowResize', () => {
     const resizerPosition = $resizer.position();
 
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     expect(afterRowResizeCallback.calls.count()).toEqual(1);
     expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
@@ -720,7 +720,7 @@ describe('manualRowResize', () => {
     const resizerPosition = $resizer.position();
 
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     expect(afterRowResizeCallback.calls.count()).toEqual(1);
     expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
@@ -750,7 +750,7 @@ describe('manualRowResize', () => {
     const resizerPosition = $resizer.position();
 
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     expect(afterRowResizeCallback.calls.count()).toEqual(1);
     expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
@@ -768,7 +768,7 @@ describe('manualRowResize', () => {
 
     await setDataAtCell(1, 0, 'Longer\ntext');
 
-    await sleep(50);
+    await waitForNextAnimationFrames(4);
 
     await updateSettings({
       rowHeights: [45, 120, 160, 60, 80],
@@ -785,7 +785,7 @@ describe('manualRowResize', () => {
       const resizerPosition = $resizer.position();
 
       await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-      await sleep(1000);
+      await waitForNextAnimationFrames(63);
 
       expect($rowHeaders.eq(0).height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(25);
@@ -806,7 +806,7 @@ describe('manualRowResize', () => {
       const resizerPosition = $resizer.position();
 
       await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-      await sleep(1000);
+      await waitForNextAnimationFrames(63);
 
       expect($rowHeaders.eq(0).height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(25);
@@ -917,7 +917,7 @@ describe('manualRowResize', () => {
     const resizerPosition = $resizer.position();
 
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(23, 3);
@@ -944,7 +944,7 @@ describe('manualRowResize', () => {
     const resizerPosition = $resizer.position();
 
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(26, 1);
@@ -971,9 +971,9 @@ describe('manualRowResize', () => {
     getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').simulate('mousemove');
     getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').simulate('mouseup');
 
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(26);
@@ -1006,10 +1006,10 @@ describe('manualRowResize', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
     getInlineStartClone().find('tr:eq(2) th:eq(0)').simulate('mouseover');
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
 
     expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(26);
@@ -1040,7 +1040,7 @@ describe('manualRowResize', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
 
     $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80 });
@@ -1050,7 +1050,7 @@ describe('manualRowResize', () => {
     expect($rowsHeaders.eq(2).height()).toEqual(80);
     expect($rowsHeaders.eq(3).height()).toEqual(80);
 
-    await sleep(1200);
+    await waitForNextAnimationFrames(75);
 
     $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
@@ -1351,7 +1351,9 @@ describe('manualRowResize', () => {
         rowHeaders: true,
         manualRowResize: true,
         height: 400,
-        width: 200
+        width: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       let $rowHeader = getInlineStartClone().find('tr:eq(2) th:eq(0)');
@@ -1411,7 +1413,9 @@ describe('manualRowResize', () => {
         rowHeaders: true,
         manualRowResize: true,
         width: 200,
-        height: 400
+        height: 400,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportVertically(200);
@@ -1810,7 +1814,9 @@ describe('manualRowResize', () => {
           rowHeaders: true,
           manualRowResize: true,
           height: 100,
-          width: 200
+          width: 200,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
@@ -1881,7 +1887,7 @@ describe('manualRowResize', () => {
 
       $handle.simulate('contextmenu');
 
-      await sleep(0);
+      await waitForNextAnimationFrames(0);
 
       expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
@@ -1907,7 +1913,7 @@ describe('manualRowResize', () => {
 
       $handle.simulate('contextmenu');
 
-      await sleep(0);
+      await waitForNextAnimationFrames(0);
 
       expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
@@ -1933,7 +1939,7 @@ describe('manualRowResize', () => {
 
       $handle.simulate('contextmenu');
 
-      await sleep(0);
+      await waitForNextAnimationFrames(0);
 
       expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
@@ -1958,7 +1964,7 @@ describe('manualRowResize', () => {
       expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([300, 2, false]);
       expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([300, 2, false]);
 
-      await sleep(500);
+      await waitForNextAnimationFrames(32);
       await resizeRow(2, -10);
 
       expect(beforeRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
@@ -1972,13 +1978,13 @@ describe('manualRowResize', () => {
         horizon.toEqual([37, 2, false]);
       });
 
-      await sleep(500);
+      await waitForNextAnimationFrames(32);
       await resizeRow(2, 100);
 
       expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([100, 2, false]);
       expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([100, 2, false]);
 
-      await sleep(500);
+      await waitForNextAnimationFrames(32);
       await resizeRow(2, 5);
 
       expect(beforeRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
@@ -2014,7 +2020,7 @@ describe('manualRowResize', () => {
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(7);
 
       $resizer.simulate('mousedown', { clientY: resizerPosition.top });
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + $resizer.height() - 50 });
@@ -2044,7 +2050,7 @@ describe('manualRowResize', () => {
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(7);
 
       $resizer.simulate('mousedown', { clientY: resizerPosition.top });
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + ($resizer.height() / 2) - 50 });
@@ -2074,7 +2080,7 @@ describe('manualRowResize', () => {
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(7);
 
       $resizer.simulate('mousedown', { clientY: resizerPosition.top });
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + ($resizer.height() / 2) - 50 });
@@ -2107,7 +2113,7 @@ describe('manualRowResize', () => {
         colWidths: 100,
       });
 
-      await sleep(100);
+      await waitForNextAnimationFrames(7);
 
       await updateSettings({
         manualRowResize: [50, 50, 50],

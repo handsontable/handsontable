@@ -11,18 +11,26 @@ import { HotCellEditorAdvancedComponent } from '../editor/hot-cell-editor-advanc
 import { HotCellRendererAdvancedComponent } from '../renderer/hot-cell-renderer-advanced.component';
 import { TextEditor } from 'handsontable/editors';
 
-@Component({})
+@Component({
+  standalone: false,
+})
 class TestRendererComponent extends HotCellRendererComponent {}
 
-@Component({})
+@Component({
+  standalone: false,
+})
 class TestRendererAdvancedComponent extends HotCellRendererAdvancedComponent {}
 
-@Component({})
+@Component({
+  standalone: false,
+})
 class TestEditorComponent extends HotCellEditorComponent<number> {
   onFocus(): void {}
 }
 
-@Component({})
+@Component({
+  standalone: false,
+})
 class TestEditorAdvancedComponent extends HotCellEditorAdvancedComponent<number> {}
 
 class TestClaseBasedEditor extends TextEditor {}

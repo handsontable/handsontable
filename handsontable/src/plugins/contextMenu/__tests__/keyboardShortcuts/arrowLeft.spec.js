@@ -23,7 +23,7 @@ describe('ContextMenu keyboard shortcut', () => {
       await keyDownUp('arrowdown');
       await keyDownUp('arrowleft');
 
-      await sleep(300);
+      await waitForNextAnimationFrames(2);
 
       expect(getPlugin('contextMenu').menu.hotSubMenus.alignment.hotMenu.getSelected()).toEqual([
         [0, 0, 0, 0]
@@ -41,7 +41,7 @@ describe('ContextMenu keyboard shortcut', () => {
       await keyDownUp('arrowdown');
       await keyDownUp('arrowright');
 
-      await sleep(300);
+      await waitForNextAnimationFrames(2);
 
       expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(true);
 

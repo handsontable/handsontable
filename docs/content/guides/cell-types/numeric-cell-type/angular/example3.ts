@@ -1,26 +1,6 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings } from '@handsontable/angular-wrapper';
-import numbro from 'numbro';
-// @ts-ignore: Missing TypeScript declaration file for "numbro" languages files
-import jaJP from 'numbro/languages/ja-JP';
-// @ts-ignore: Missing TypeScript declaration file for "numbro" languages files
-import trTR from 'numbro/languages/tr-TR';
-
-// register the languages you need
-numbro.registerLanguage(jaJP);
-numbro.registerLanguage(trTR);
-
-// define formats
-const formatJP = {
-  pattern: '0,0.00 $',
-  culture: 'ja-JP',
-};
-
-const formatTR = {
-  pattern: '0,0.00 $',
-  culture: 'tr-TR',
-};
 
 @Component({
   selector: 'example3-numeric-cell-type',
@@ -62,13 +42,15 @@ export class Example3NumericCellTypeComponent {
       {
         data: 'JP_price',
         type: 'numeric',
-        numericFormat: formatJP,
+        locale: 'ja-JP',
+        numericFormat: { style: 'decimal', useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 },
         width: '150',
       },
       {
         data: 'TR_price',
         type: 'numeric',
-        numericFormat: formatTR,
+        locale: 'tr-TR',
+        numericFormat: { style: 'decimal', useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 },
         width: '150',
       },
     ]

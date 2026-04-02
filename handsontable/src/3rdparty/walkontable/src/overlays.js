@@ -3,9 +3,9 @@ import {
   getScrollbarWidth,
 } from '../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../helpers/feature';
+import { debounce } from '../../../helpers/function';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
-import { isChrome } from '../../../helpers/browser';
 import { warn } from '../../../helpers/console';
 import {
   InlineStartOverlay,
@@ -14,6 +14,7 @@ import {
   BottomOverlay,
   BottomInlineStartCornerOverlay,
 } from './overlay';
+import { StickyScrollStrategy } from './stickyScrollStrategy';
 
 /**
  * @class Overlays
@@ -110,6 +111,23 @@ class Overlays {
    * @type {number}
    */
   #containerDomResizeCountTimeout = null;
+
+  /**
+   * Debounced `updateLastSpreaderSize` / `adjustElementsSize` used during scroll so rapid
+   * `refresh` calls do not repeat layout work every frame.
+   *
+   * @type {Function}
+   */
+  #postponedAdjustElementsSize = debounce(this.#adjustElementsSizeIfNeeded.bind(this), 200);
+
+  /**
+   * Strategy that manages the sticky-scroll optimization during native
+   * scrollbar drag. Extracted as a separate class to isolate the sticky
+   * positioning lifecycle from the overlay coordinator.
+   *
+   * @type {StickyScrollStrategy}
+   */
+  #stickyScroll = new StickyScrollStrategy(this);
 
   /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
@@ -326,6 +344,8 @@ class Overlays {
     this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', event => this.onKeyDown(event));
     this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
     this.eventManager.addEventListener(rootDocument, 'visibilitychange', () => this.onKeyUp());
+
+    this.#stickyScroll.registerListeners();
     this.eventManager.addEventListener(
       topOverlayScrollableElement,
       'scroll',
@@ -342,19 +362,16 @@ class Overlays {
       );
     }
 
-    const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
     const isScrollOnWindow = this.scrollableElement === rootWindow;
     const preventWheel = this.wtSettings.getSetting('preventWheel');
     const wheelEventOptions = { passive: isScrollOnWindow };
 
-    if (preventWheel || isHighPixelRatio || !isChrome()) {
-      this.eventManager.addEventListener(
-        this.wtTable.wtRootElement,
-        'wheel',
-        event => this.onCloneWheel(event, preventWheel),
-        wheelEventOptions
-      );
-    }
+    this.eventManager.addEventListener(
+      this.wtTable.wtRootElement,
+      'wheel',
+      event => this.onCloneWheel(event, preventWheel),
+      wheelEventOptions
+    );
 
     const overlays = [
       this.topOverlay,
@@ -562,6 +579,8 @@ class Overlays {
     this.lastScrollX = scrollX;
     this.lastScrollY = scrollY;
 
+    this.#stickyScroll.tryActivate(this.verticalScrolling, this.horizontalScrolling);
+
     if (this.horizontalScrolling) {
       topHolder.scrollLeft = scrollX;
 
@@ -577,6 +596,7 @@ class Overlays {
     }
 
     this.refreshAll();
+    this.#stickyScroll.syncOffsets();
   }
 
   /**
@@ -634,7 +654,15 @@ class Overlays {
    *
    */
   destroy() {
+    this.#postponedAdjustElementsSize.cancel();
+
+    if (this.#containerDomResizeCountTimeout !== null) {
+      clearTimeout(this.#containerDomResizeCountTimeout);
+      this.#containerDomResizeCountTimeout = null;
+    }
+
     this.resizeObserver.disconnect();
+    this.#stickyScroll.destroy();
     this.eventManager.destroy();
     // todo, probably all below `destroy` calls has no sense. To analyze
     this.topOverlay.destroy();
@@ -661,10 +689,12 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
+    const isScrollTriggered = this.verticalScrolling || this.horizontalScrolling;
 
-    if (wasSpreaderSizeUpdated) {
-      this.adjustElementsSize();
+    if (isScrollTriggered) {
+      this.#postponedAdjustElementsSize();
+    } else {
+      this.#adjustElementsSizeIfNeeded();
     }
 
     if (this.bottomOverlay.clone) {
@@ -784,6 +814,7 @@ class Overlays {
     }
 
     this.inlineStartOverlay.applyToDOM();
+    this.#stickyScroll.syncOffsets();
   }
 
   /**
@@ -840,6 +871,21 @@ class Overlays {
 
       elem.clone.wtTable.TABLE.className = masterTable.className; // todo demeter
     });
+  }
+
+  /**
+   * Adjust the elements size if needed.
+   */
+  #adjustElementsSizeIfNeeded() {
+    if (this.destroyed) {
+      return;
+    }
+
+    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
+
+    if (wasSpreaderSizeUpdated) {
+      this.adjustElementsSize();
+    }
   }
 }
 

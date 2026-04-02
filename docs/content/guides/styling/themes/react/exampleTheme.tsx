@@ -183,9 +183,10 @@ const ExampleComponent = () => {
           },
           {
             data: 4,
-            type: 'date',
+            type: 'intl-date',
             allowInvalid: false,
-            dateFormat: 'DD/MM/YYYY',
+            locale: 'en-GB',
+            dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' },
             headerClassName: 'htLeft',
           },
           {
@@ -228,7 +229,7 @@ const ExampleComponent = () => {
       >
         <HotColumn data={1} />
         <HotColumn data={3} />
-        <HotColumn data={4} type="date" />
+        <HotColumn data={4} type="intl-date" />
         <HotColumn data={6} type="checkbox" className="htCenter" />
         <HotColumn data={7} type="numeric" />
         <HotColumn data={5} />

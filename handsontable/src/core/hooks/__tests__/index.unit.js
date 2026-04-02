@@ -325,6 +325,24 @@ describe('Hooks', () => {
       expect(fn2).toHaveBeenCalledTimes(0);
       expect(fn3).toHaveBeenCalledTimes(0);
     });
+
+    it('should pass tuple-like autofill ranges through hook callbacks', () => {
+      const hooks = new Hooks();
+      const modifyAutofillRange = jasmine.createSpy('modifyAutofillRange')
+        .and.callFake((entireArea, startArea) => {
+          expect(Array.isArray(entireArea[0])).toBe(false);
+          expect(Array.isArray(startArea[0])).toBe(false);
+
+          return [0, 0, 2, 0];
+        });
+
+      hooks.add('modifyAutofillRange', modifyAutofillRange);
+
+      const result = hooks.run({}, 'modifyAutofillRange', [0, 0, 1, 0], [0, 0, 0, 0]);
+
+      expect(modifyAutofillRange).toHaveBeenCalledWith([0, 0, 1, 0], [0, 0, 0, 0]);
+      expect(result).toEqual([0, 0, 2, 0]);
+    });
   });
 
   describe('destroy()', () => {
