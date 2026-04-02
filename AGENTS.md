@@ -115,10 +115,19 @@ Changes to JavaScript APIs that are **not listed in the public API reference** (
 
 ## Mandatory checklist for every change
 
-1. **Tests are required.** Include both **unit tests** (`*.unit.js`) and **E2E tests** (`*.spec.js`).
-2. **Documentation must be updated.** If a change affects public API, hooks, behavior, or UX, update JSDoc/Typedoc comments and guides.
-3. **Update AGENTS.md.** If a change introduces new conventions, constraints, or gotchas.
-4. **Use red-green TDD.** Write a failing test first, then implement the fix.
+1. **Use red-green TDD — tests come first, always.** Write the failing test(s) before touching any production code. Verify that the tests fail for the right reason, then implement the fix/feature, then confirm the tests pass. **Never write or modify source code before the corresponding tests exist.**
+2. **Tests are required.** Include both **unit tests** (`*.unit.js`) and **E2E tests** (`*.spec.js`).
+3. **Documentation must be updated.** If a change affects public API, hooks, behavior, or UX, update JSDoc/Typedoc comments and guides.
+4. **Update AGENTS.md.** If a change introduces new conventions, constraints, or gotchas.
+
+### TDD workflow (mandatory order)
+
+When fixing a bug or adding a feature, always follow this sequence — **no exceptions**:
+
+1. Write the test(s) that reproduce the bug / describe the desired behavior. Run them and confirm they **fail**.
+2. Implement the fix or feature in production code.
+3. Run the tests again and confirm they now **pass**.
+4. Commit both the tests and the implementation together (or as separate commits, tests-first).
 
 ---
 
@@ -519,9 +528,19 @@ Changes to JavaScript APIs that are **not listed in the public API reference** (
 
 Every code change produced by an agent **must** satisfy all of the following:
 
-1. **Tests are required.** Every change must include both **unit tests** (Jest) and **E2E tests** (Jasmine/Puppeteer). No change is considered complete without test coverage for the new or modified behavior.
-2. **Documentation must be updated.** If a change affects the public API, configuration options, hooks, behavior, or user-facing experience, the corresponding documentation (guides, API reference via JSDoc/Typedoc, migration guide) **must** be updated as part of the same change.
-3. **Update AGENTS.md.** If a change introduces new conventions, patterns, constraints, file locations, or gotchas that future agents should know about, this `AGENTS.md` file **must** be updated to reflect them.
+1. **Use red-green TDD — tests come first, always.** Write the failing test(s) before touching any production code. Verify that the tests fail for the right reason, then implement the fix/feature, then confirm the tests pass. **Never write or modify source code before the corresponding tests exist.**
+2. **Tests are required.** Every change must include both **unit tests** (Jest) and **E2E tests** (Jasmine/Puppeteer). No change is considered complete without test coverage for the new or modified behavior.
+3. **Documentation must be updated.** If a change affects the public API, configuration options, hooks, behavior, or user-facing experience, the corresponding documentation (guides, API reference via JSDoc/Typedoc, migration guide) **must** be updated as part of the same change.
+4. **Update AGENTS.md.** If a change introduces new conventions, patterns, constraints, file locations, or gotchas that future agents should know about, this `AGENTS.md` file **must** be updated to reflect them.
+
+### TDD workflow (mandatory order)
+
+When fixing a bug or adding a feature, always follow this sequence — **no exceptions**:
+
+1. Write the test(s) that reproduce the bug / describe the desired behavior. Run them and confirm they **fail**.
+2. Implement the fix or feature in production code.
+3. Run the tests again and confirm they now **pass**.
+4. Commit both the tests and the implementation together (or as separate commits, tests-first).
 
 ---
 
