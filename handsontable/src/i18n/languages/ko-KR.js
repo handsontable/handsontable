@@ -123,6 +123,15 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: '결과를 찾을 수 없습니다',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: '현재 필터가 모든 결과를 숨기고 있는 것 같습니다.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: '필터 재설정',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: '데이터 로드 중',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: '잠시만 기다려 주세요.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: '데이터를 불러올 수 없습니다',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: '행을 만들 수 없습니다',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: '행을 업데이트할 수 없습니다',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: '행을 제거할 수 없습니다',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '요청이 실패했습니다',
+  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: '닫기',
 };
 
 export default dictionary;

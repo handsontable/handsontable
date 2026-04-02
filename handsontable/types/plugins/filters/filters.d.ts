@@ -5,7 +5,7 @@ import ConditionCollection, {
 } from './conditionCollection';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 
-type _OperationType = 'conjunction' | 'disjunction';
+type _OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
 export type OperationType = _OperationType;
 export type ConditionName = _ConditionName;
 

@@ -343,6 +343,10 @@ module.exports = {
             text: 'Contact support',
             link: 'https://handsontable.com/contact?category=technical_support',
           },
+          {
+            text: 'Book a call',
+            link: 'https://calendly.com/d/cvjc-jkg-v49/30-min-support-call',
+          },
         ],
       },
     ],

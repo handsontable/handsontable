@@ -124,6 +124,15 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nebyly nalezeny žádné výsledky',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Vypadá to, že vaše současné filtry skrývají všechny výsledky.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetovat filtry',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Načítání dat',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Čekejte prosím.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Data se nepodařilo načíst',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Řádky se nepodařilo vytvořit',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Řádky se nepodařilo aktualizovat',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Řádky se nepodařilo odstranit',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Požadavek selhal',
+  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Zavřít',
 };
 
 export default dictionary;

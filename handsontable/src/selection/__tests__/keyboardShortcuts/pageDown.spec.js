@@ -31,7 +31,9 @@ describe('Selection navigation', () => {
         width: 180,
         height: 100, // 100/23 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
         startRows: 15,
-        startCols: 3
+        startCols: 3,
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await selectCell(1, 1);
@@ -43,6 +45,13 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
         |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
         |   :   :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
@@ -59,7 +68,6 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
         |   : # :   |
-        |   :   :   |
         |   :   :   |
         |   :   :   |
         |   :   :   |
@@ -83,7 +91,6 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
         |   : # :   |
-        |   :   :   |
         |   :   :   |
         |   :   :   |
         |   :   :   |
@@ -138,7 +145,9 @@ describe('Selection navigation', () => {
         width: 180,
         height: 126, // 126/29 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
         startRows: 15,
-        startCols: 3
+        startCols: 3,
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await selectCell(1, 1);
@@ -151,6 +160,12 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
         |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
         |   :   :   |
         |   :   :   |
         |   :   :   |
@@ -226,7 +241,9 @@ describe('Selection navigation', () => {
         width: 180,
         height: 161, // 161/37 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
         startRows: 15,
-        startCols: 3
+        startCols: 3,
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await selectCell(1, 1);
@@ -239,6 +256,12 @@ describe('Selection navigation', () => {
         |   :   :   |
         |   :   :   |
         |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
         |   :   :   |
         |   :   :   |
         |   :   :   |

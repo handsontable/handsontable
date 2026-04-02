@@ -189,6 +189,19 @@ export default {
         metaTitle: 'CustomBorders - Angular Data Grid | Handsontable',
       },
     },
+    'DataProvider.md': {
+      id: 'k7d9p2xm',
+      metaTitle: 'DataProvider - JavaScript Data Grid | Handsontable',
+      description: 'Use the DataProvider plugin to load paged rows from a server via fetchRows and to run create, update, and remove through callbacks.',
+      react: {
+        id: 'n8e0q3yn',
+        metaTitle: 'DataProvider - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'm9f1r4zo',
+        metaTitle: 'DataProvider - Angular Data Grid | Handsontable',
+      },
+    },
     'DragToScroll.md': {
       id: 'c3f14467',
       metaTitle: 'DragToScroll - JavaScript Data Grid | Handsontable',
