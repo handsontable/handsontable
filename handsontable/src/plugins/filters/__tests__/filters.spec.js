@@ -835,7 +835,8 @@ describe('Filters', () => {
 
       // Add new row and set data
       await alter('insert_row_below', 1);
-      await setDataAtRowProp(2, 'Sold on', 'Mar 27, 2023');
+      // Set data at the moved column (physical index 0, visual index 2)
+      await setDataAtCell(2, 2, 'Mar 27, 2023');
 
       await sleep(100);
 
