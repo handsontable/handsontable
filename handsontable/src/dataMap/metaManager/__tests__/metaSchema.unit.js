@@ -52,6 +52,15 @@ describe('metaSchema', () => {
       expect(defaults.isEmptyRow.call(hot, 0)).toBe(false);
     });
 
+    it('should return false (without crashing) when a cell contains an object value and no dataSchema is set', () => {
+      // Regression: previously `schema[prop]` was accessed even when schema was null,
+      // causing a TypeError when a cell held an object and no dataSchema was configured.
+      const defaults = metaSchemaFactory();
+      const hot = createHotMockObjects({ data: [{ meta: { type: 'a' } }] });
+
+      expect(defaults.isEmptyRow.call(hot, 0)).toBe(false);
+    });
+
     it('should return true when all cells match their dataSchema default values (GH #671, GH #2409)', () => {
       const defaults = metaSchemaFactory();
       const schema = [false, null];

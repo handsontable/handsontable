@@ -3396,18 +3396,20 @@ export default () => {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
-          const prop = this.colToProp(col);
+          if (hasExplicitSchema) {
+            const prop = this.colToProp(col);
 
-          if (typeof value === 'object') {
-            if (!isObjectEqual(schema[prop], value)) {
-              return false;
+            if (typeof value === 'object') {
+              if (!isObjectEqual(schema[prop], value)) {
+                return false;
+              }
+
+              continue;
             }
 
-            continue;
-          }
-
-          if (hasExplicitSchema && schema[prop] === value) {
-            continue;
+            if (schema[prop] === value) {
+              continue;
+            }
           }
 
           return false;
