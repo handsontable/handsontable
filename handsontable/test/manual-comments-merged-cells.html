@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manual test: Comments on merged cells</title>
+  <link rel="stylesheet" href="../dist/handsontable.full.css">
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h1 { font-size: 18px; }
+    .section { margin-bottom: 40px; }
+    .section h2 { font-size: 14px; margin-bottom: 8px; color: #333; }
+    .instructions { font-size: 13px; color: #555; margin-bottom: 10px; background: #f5f5f5; padding: 10px; border-left: 3px solid #0052cc; }
+    #hot-ltr, #hot-rtl { margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<h1>Comments on merged cells &mdash; manual test</h1>
+<p style="font-size:13px;color:#555;">
+  This page verifies that the comment editor appears flush with the right (or left in RTL) edge
+  of a merged cell. The anchor width is derived from the cell <strong>meta</strong> colspan,
+  not from the DOM element's <code>colSpan</code> attribute.
+</p>
+
+<div class="section">
+  <h2>LTR &mdash; comments + merged cells</h2>
+  <div class="instructions">
+    <strong>How to test:</strong>
+    <ol style="margin:4px 0 0 16px;padding:0;">
+      <li>Right-click on the merged cell <strong>A1:C1</strong> and choose <em>Add/Edit comment</em>.</li>
+      <li>The editor should open immediately to the <strong>right</strong> of the merged cell (not just to the right of column A).</li>
+      <li>Right-click on a regular (non-merged) cell, e.g. <strong>D2</strong>, and add a comment.</li>
+      <li>The editor should open to the right of that single cell.</li>
+      <li>Scroll the table to the right so merged cell partially goes offscreen, then open the comment. The editor should flip to the left of the cell.</li>
+    </ol>
+  </div>
+  <div id="hot-ltr"></div>
+</div>
+
+<div class="section">
+  <h2>RTL &mdash; comments + merged cells</h2>
+  <div class="instructions">
+    <strong>How to test:</strong>
+    <ol style="margin:4px 0 0 16px;padding:0;">
+      <li>Right-click on the merged cell <strong>A1:C1</strong> and choose <em>Add/Edit comment</em>.</li>
+      <li>The editor should open to the <strong>left</strong> of the merged cell's left edge.</li>
+    </ol>
+  </div>
+  <div id="hot-rtl"></div>
+</div>
+
+<script src="../dist/handsontable.full.js"></script>
+<script>
+  const sharedData = [
+    ['Merged A1:C1', null, null, 'D1', 'E1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2'],
+    ['A3', 'B3', 'C3 (merged A3:B3)', null, 'E3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5'],
+  ];
+
+  const sharedMergeCells = [
+    { row: 0, col: 0, rowspan: 1, colspan: 3 },
+    { row: 2, col: 2, rowspan: 1, colspan: 2 },
+  ];
+
+  const sharedComments = [
+    { row: 0, col: 0, comment: { value: 'Comment on a 3-column merge' } },
+    { row: 1, col: 3, comment: { value: 'Comment on a regular cell' } },
+    { row: 2, col: 2, comment: { value: 'Comment on a 2-column merge' } },
+  ];
+
+  // LTR instance
+  new Handsontable(document.getElementById('hot-ltr'), {
+    data: sharedData,
+    mergeCells: sharedMergeCells,
+    comments: true,
+    cell: sharedComments,
+    rowHeaders: true,
+    colHeaders: true,
+    width: 500,
+    height: 200,
+    licenseKey: 'non-commercial-and-evaluation',
+  });
+
+  // RTL instance
+  new Handsontable(document.getElementById('hot-rtl'), {
+    data: sharedData,
+    mergeCells: sharedMergeCells,
+    comments: true,
+    cell: sharedComments,
+    rowHeaders: true,
+    colHeaders: true,
+    width: 500,
+    height: 200,
+    layoutDirection: 'rtl',
+    licenseKey: 'non-commercial-and-evaluation',
+  });
+</script>
+</body>
+</html>

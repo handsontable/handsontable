@@ -4,20 +4,18 @@ describe('Comments', () => {
   describe('getEditorAnchorWidth', () => {
     it('should use the renderable column width for non-merged cells', () => {
       const TD = {
-        colSpan: 1,
-        offsetWidth: 160,
+        offsetWidth: 80,
       };
 
-      expect(getEditorAnchorWidth(TD, 80)).toBe(80);
+      expect(getEditorAnchorWidth(1, TD, 80)).toBe(80);
     });
 
-    it('should use merged TD width for cells with colSpan larger than 1', () => {
+    it('should use merged TD width for cells with meta colspan larger than 1', () => {
       const TD = {
-        colSpan: 3,
         offsetWidth: 160,
       };
 
-      expect(getEditorAnchorWidth(TD, 80)).toBe(160);
+      expect(getEditorAnchorWidth(3, TD, 80)).toBe(160);
     });
   });
 });
