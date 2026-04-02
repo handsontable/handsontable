@@ -264,7 +264,9 @@ describe('Selection', () => {
       colHeaders: true,
       rowHeaders: true,
       fixedRowsTop: 2,
-      fixedColumnsStart: 2
+      fixedColumnsStart: 2,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     const mainHolder = tableView()._wt.wtTable.holder;
@@ -589,7 +591,9 @@ describe('Selection', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 400,
-      height: 200
+      height: 200,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
     let cellVerticalPosition;
     const borderOffsetInPixels = 1;
@@ -830,6 +834,8 @@ describe('Selection', () => {
         selectionMode: 'multiple',
         colHeaders: true,
         rowHeaders: true,
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await mouseDown(getCell(0, 0));

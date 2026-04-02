@@ -1106,7 +1106,9 @@ describe('TextEditor', () => {
     handsontable({
       data: createSpreadsheetData(50, 50),
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await setDataAtCell(2, 2, 'string\nstring\nstring');
@@ -1860,7 +1862,9 @@ describe('TextEditor', () => {
     handsontable({
       data: createSpreadsheetData(16, 8),
       fixedColumnsStart: 2,
-      fixedRowsTop: 2
+      fixedRowsTop: 2,
+      viewportColumnRenderingOffset: 10,
+      viewportRowRenderingOffset: 10,
     });
 
     // corner

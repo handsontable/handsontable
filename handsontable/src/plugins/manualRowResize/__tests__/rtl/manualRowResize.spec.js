@@ -80,7 +80,9 @@ describe('manualRowResize (RTL mode)', () => {
         rowHeaders: true,
         manualRowResize: true,
         height: 400,
-        width: 200
+        width: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       let $rowHeader = getInlineStartClone().find('tr:eq(2) th:eq(0)');
@@ -180,7 +182,9 @@ describe('manualRowResize (RTL mode)', () => {
           rowHeaders: true,
           manualRowResize: true,
           height: 100,
-          width: 200
+          width: 200,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');

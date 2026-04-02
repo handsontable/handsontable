@@ -53,6 +53,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCells([[15, 'prop0']]);
@@ -65,6 +67,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCells([[5, 15]]);
@@ -77,6 +81,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCells([[5, 'prop15']]);
@@ -89,6 +95,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCell(5, 15); // Scroll to the right of the table.
@@ -102,6 +110,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCell(5, 15); // Scroll to the right of the table.
@@ -115,6 +125,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCell(19, 0); // Scroll to the bottom of the table.
@@ -128,6 +140,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCell(19, 0); // Scroll to the bottom of the table.
@@ -141,6 +155,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCells([[15, 0]], false);
@@ -153,6 +169,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 378,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCells([[15, 0]], false);
@@ -165,6 +183,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 482,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCells([[15, 0]], false);
@@ -179,6 +199,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
       afterListen,
     });
 
@@ -194,6 +216,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
       afterListen,
     });
 

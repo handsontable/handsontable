@@ -83,7 +83,6 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -95,7 +94,6 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -107,7 +105,6 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">H3</th>
             <th class="hiddenHeader"></th>
-            <th class="">J3</th>
           </tr>
           <tr>
             <th class="">A4</th>
@@ -119,7 +116,6 @@ describe('NestedHeaders', () => {
             <th class="">G4</th>
             <th class="">H4</th>
             <th class="">I4</th>
-            <th class="">J4</th>
           </tr>
         </thead>
         <tbody>
@@ -133,7 +129,6 @@ describe('NestedHeaders', () => {
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
-            <td class="">J1</td>
           </tr>
         </tbody>
         `);
@@ -618,7 +613,6 @@ describe('NestedHeaders', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="">AK1</th>
             <th class="" colspan="8">AL1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -631,12 +625,8 @@ describe('NestedHeaders', () => {
             <th class="" colspan="8">AU1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="">AK2</th>
             <th class="" colspan="4">AL2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -649,12 +639,8 @@ describe('NestedHeaders', () => {
             <th class="" colspan="4">AU2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="4">AY2</th>
-            <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="">AK3</th>
             <th class="" colspan="2">AL3</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">AN3</th>
@@ -667,12 +653,8 @@ describe('NestedHeaders', () => {
             <th class="" colspan="2">AU3</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">AW3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AY3</th>
-            <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="">AK4</th>
             <th class="">AL4</th>
             <th class="">AM4</th>
             <th class="">AN4</th>
@@ -685,14 +667,10 @@ describe('NestedHeaders', () => {
             <th class="">AU4</th>
             <th class="">AV4</th>
             <th class="">AW4</th>
-            <th class="">AX4</th>
-            <th class="">AY4</th>
-            <th class="">AZ4</th>
           </tr>
         </thead>
         <tbody>
           <tr class="ht__row_odd">
-            <td class="">AK1</td>
             <td class="">AL1</td>
             <td class="">AM1</td>
             <td class="">AN1</td>
@@ -705,9 +683,6 @@ describe('NestedHeaders', () => {
             <td class="">AU1</td>
             <td class="">AV1</td>
             <td class="">AW1</td>
-            <td class="">AX1</td>
-            <td class="">AY1</td>
-            <td class="">AZ1</td>
           </tr>
         </tbody>
         `);
@@ -794,7 +769,6 @@ describe('NestedHeaders', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="">AK1</th>
             <th class="" colspan="8">AL1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -807,12 +781,8 @@ describe('NestedHeaders', () => {
             <th class="" colspan="8">AU1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="">AK2</th>
             <th class="" colspan="4">AL2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -825,12 +795,8 @@ describe('NestedHeaders', () => {
             <th class="" colspan="4">AU2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="4">AY2</th>
-            <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="">AK3</th>
             <th class="" colspan="2">AL3</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">AN3</th>
@@ -843,12 +809,8 @@ describe('NestedHeaders', () => {
             <th class="" colspan="2">AU3</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">AW3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AY3</th>
-            <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="">AK4</th>
             <th class="">AL4</th>
             <th class="">AM4</th>
             <th class="">AN4</th>
@@ -861,14 +823,10 @@ describe('NestedHeaders', () => {
             <th class="">AU4</th>
             <th class="">AV4</th>
             <th class="">AW4</th>
-            <th class="">AX4</th>
-            <th class="">AY4</th>
-            <th class="">AZ4</th>
           </tr>
         </thead>
         <tbody>
           <tr class="ht__row_odd">
-            <td class="">AK1</td>
             <td class="">AL1</td>
             <td class="">AM1</td>
             <td class="">AN1</td>
@@ -881,9 +839,6 @@ describe('NestedHeaders', () => {
             <td class="">AU1</td>
             <td class="">AV1</td>
             <td class="">AW1</td>
-            <td class="">AX1</td>
-            <td class="">AY1</td>
-            <td class="">AZ1</td>
           </tr>
         </tbody>
         `);
@@ -975,7 +930,6 @@ describe('NestedHeaders', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="">AK1</th>
             <th class="" colspan="8">AL1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -987,12 +941,8 @@ describe('NestedHeaders', () => {
             <th class="">AT1</th>
             <th class="" colspan="8">AU1</th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="">AK2</th>
             <th class="" colspan="4">AL2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -1004,12 +954,8 @@ describe('NestedHeaders', () => {
             <th class="">AT2</th>
             <th class="" colspan="4">AU2</th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="4">AY2</th>
           </tr>
           <tr>
-            <th class="">AK3</th>
             <th class="" colspan="2">AL3</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">AN3</th>
@@ -1021,12 +967,8 @@ describe('NestedHeaders', () => {
             <th class="">AT3</th>
             <th class="" colspan="2">AU3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AW3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AY3</th>
           </tr>
           <tr>
-            <th class="">AK4</th>
             <th class="">AL4</th>
             <th class="">AM4</th>
             <th class="">AN4</th>
@@ -1038,14 +980,10 @@ describe('NestedHeaders', () => {
             <th class="">AT4</th>
             <th class="">AU4</th>
             <th class="">AV4</th>
-            <th class="">AW4</th>
-            <th class="">AX4</th>
-            <th class="">AY4</th>
           </tr>
         </thead>
         <tbody>
           <tr class="ht__row_odd">
-            <td class="">AK1</td>
             <td class="">AL1</td>
             <td class="">AM1</td>
             <td class="">AN1</td>
@@ -1057,9 +995,6 @@ describe('NestedHeaders', () => {
             <td class="">AT1</td>
             <td class="">AU1</td>
             <td class="">AV1</td>
-            <td class="">AW1</td>
-            <td class="">AX1</td>
-            <td class="">AY1</td>
           </tr>
         </tbody>
         `);

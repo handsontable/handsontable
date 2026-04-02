@@ -1105,7 +1105,9 @@ describe('TrimRows', () => {
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
-        height: 300
+        height: 300,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await updateSettings({
@@ -1120,7 +1122,9 @@ describe('TrimRows', () => {
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
-        height: 300
+        height: 300,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       getPlugin('trimRows').trimRows([2, 6, 7]);
@@ -1139,7 +1143,9 @@ describe('TrimRows', () => {
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
-        height: 300
+        height: 300,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await updateSettings({
@@ -1155,7 +1161,9 @@ describe('TrimRows', () => {
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
-        height: 300
+        height: 300,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       getPlugin('trimRows').trimRows([2, 6, 7]);

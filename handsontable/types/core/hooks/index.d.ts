@@ -287,7 +287,10 @@ export interface Events {
   hasExternalDataSource?: () => boolean | void;
   init?: () => void;
   modifyAutoColumnSizeSeed?: (seed: string, cellProperties: CellProperties, cellValue: CellValue) => string | void;
-  modifyAutofillRange?: (startArea: Array<[number, number, number, number]>, entireArea: Array<[number, number, number, number]>) => void;
+  modifyAutofillRange?: (
+    entireArea: [number, number, number, number],
+    startArea: [number, number, number, number]
+  ) => [number, number, number, number] | void;
   modifyColHeader?: (column: number) => void;
   modifyColumnHeaderHeight?: () => void;
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
