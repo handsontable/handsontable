@@ -87,6 +87,10 @@ this.#map = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, '
 3. Add default option (disabled) in `src/dataMap/metaManager/metaSchema.js`.
 4. Add TypeScript definitions in `types/`.
 
+## Important Gotchas
+
+- **Merged cells -- read from meta, not DOM**: When working with merged cells, read `colspan`/`rowspan` from `hot.getCellMeta(row, col)` (set by MergeCells via `afterGetCellMeta`), not from DOM element attributes. The meta is authoritative and always available regardless of viewport state.
+
 ## Testing Requirements
 
 - E2E tests (`__tests__/*.spec.js`): all `it()` callbacks must be `async`.

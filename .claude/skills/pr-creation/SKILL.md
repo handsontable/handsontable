@@ -65,6 +65,10 @@ gh pr create --title "DEV-xxx: Short description of the change" --body "..."
 
 Include the ClickUp task ID in the PR title when applicable (e.g. `DEV-627: Fix filter column index mapping`).
 
-## 6. Merge Strategy
+## 6. After PR Creation
+
+When working from a ClickUp task, use the ClickUp MCP tools to update the task status to **"code review"**.
+
+## 7. Merge Strategy
 
 All PRs are merged using **"Squash and merge"**. The squashed commit message becomes the permanent history, so make sure the PR title is clear and descriptive.
