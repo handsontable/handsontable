@@ -485,6 +485,12 @@ When running unit tests for a specific plugin:
 - **Filters plugin visual/physical column index**: When working with the filters plugin in combination with `manualColumnMove`, always ensure proper conversion between visual and physical column indexes. The `conditionCollection` and `conditionUpdateObserver` operate on physical indexes, while `getDataAtCol()` requires visual indexes. See issue #11832 for details.
 - For hook signature/behavior fixes, add both a runtime regression (`handsontable/src/**/__tests__/*.spec.js` or `handsontable/test/e2e/hooks/*.spec.js`) and a TypeScript regression (`handsontable/src/__tests__/core/settings.types.ts`) when types are changed.
 
+### Regression checks for resize + CSS scale
+
+- For fixes around `manualColumnResize` and CSS `transform: scale(...)` (e.g. GH #11838), run both:
+  - `npm_config_testPathPattern=manualColumnResize/__tests__/utils.unit.js pnpm --filter handsontable run test:unit`
+  - `npm_config_testPathPattern=src/plugins/manualColumnResize/__tests__/manualColumnResize.spec.js pnpm --filter handsontable run test:e2e`
+
 ### Testing preference
 
 - For bug fixes in `handsontable/`, add both a focused unit test and a focused E2E regression test when practical.

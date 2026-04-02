@@ -1494,6 +1494,41 @@ describe('manualRowResize', () => {
           horizon.toBe(66);
         });
     });
+
+    it('should display the handle and resize by unscaled height when parent is scaled', async() => {
+      spec().$container.css({
+        transform: 'scale(0.5)',
+        transformOrigin: 'top left',
+      });
+
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        manualRowResize: true,
+      });
+
+      const $rowHeader = getInlineStartClone().find('tbody tr:eq(1) th:eq(0)');
+
+      $rowHeader.simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const handleBox = $resizer[0].getBoundingClientRect();
+      const thBox = $rowHeader[0].getBoundingClientRect();
+
+      expect(handleBox.top).toBeCloseTo(thBox.top + thBox.height - (handleBox.height / 2) - 1, 0);
+
+      $resizer.simulate('mousedown', { clientY: handleBox.top });
+      const guide = spec().$container.find('.manualRowResizerGuide')[0];
+      const guideBoxBeforeMove = guide.getBoundingClientRect();
+
+      $resizer.simulate('mousemove', { clientY: handleBox.top + 25 });
+      const guideBoxAfterMove = guide.getBoundingClientRect();
+
+      $resizer.simulate('mouseup');
+
+      expect(guideBoxAfterMove.top - guideBoxBeforeMove.top).toBeCloseTo(25, 0);
+      expect(rowHeight(spec().$container, 1)).toBeGreaterThan(70);
+    });
   });
 
   describe('contiguous/non-contiguous selected rows resizing in a table', () => {
