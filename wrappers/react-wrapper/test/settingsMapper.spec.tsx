@@ -32,5 +32,157 @@ describe('Settings mapper unit tests', () => {
       expect((result.afterChange as any)()).toEqual('works!');
       expect((result.afterRender as any)()).toEqual('also works!');
     });
+
+    it('should skip deep-equal `dataSchema` and `columns` when updating settings', () => {
+      const prevProps: HotTableProps = {
+        dataSchema: {
+          paymentDivision: '',
+          totals: {
+            quantity: 0,
+            price: 0,
+          },
+        },
+        columns: [
+          {
+            data: 'paymentDivision',
+            type: 'autocomplete',
+            source: ['A', 'B', 'C'],
+            strict: true,
+            allowInvalid: true,
+          },
+          {
+            data: 'totals.quantity',
+            type: 'numeric',
+          },
+        ],
+        readOnly: false,
+      };
+      const nextProps: HotTableProps = {
+        dataSchema: {
+          paymentDivision: '',
+          totals: {
+            quantity: 0,
+            price: 0,
+          },
+        },
+        columns: [
+          {
+            data: 'paymentDivision',
+            type: 'autocomplete',
+            source: ['A', 'B', 'C'],
+            strict: true,
+            allowInvalid: true,
+          },
+          {
+            data: 'totals.quantity',
+            type: 'numeric',
+          },
+        ],
+        readOnly: false,
+      };
+
+      const result = SettingsMapper.getSettings(nextProps, {
+        prevProps,
+        isInit: false,
+      });
+
+      expect(result.dataSchema).toBe(void 0);
+      expect(result.columns).toBe(void 0);
+      expect(result.readOnly).toBe(false);
+    });
+
+    it('should keep `dataSchema` in updated settings when the schema changes', () => {
+      const prevProps: HotTableProps = {
+        dataSchema: {
+          quantity: 0,
+        },
+      };
+      const nextProps: HotTableProps = {
+        dataSchema: {
+          quantity: 1,
+        },
+      };
+
+      const result = SettingsMapper.getSettings(nextProps, {
+        prevProps,
+        isInit: false,
+      });
+
+      expect(result.dataSchema).toEqual({
+        quantity: 1,
+      });
+    });
+
+    it('should keep `columns` in updated settings when a RegExp validator changes', () => {
+      const prevProps: HotTableProps = {
+        columns: [
+          {
+            data: 'quantity',
+            validator: /^\d+$/,
+          }
+        ],
+      };
+      const nextProps: HotTableProps = {
+        columns: [
+          {
+            data: 'quantity',
+            validator: /^[a-z]+$/,
+          }
+        ],
+      };
+
+      const result = SettingsMapper.getSettings(nextProps, {
+        prevProps,
+        isInit: false,
+      });
+
+      expect(result.columns).toEqual(nextProps.columns);
+    });
+
+    it('should keep `dataSchema` in updated settings when a Date value changes', () => {
+      const prevProps: HotTableProps = {
+        dataSchema: {
+          createdAt: new Date(0),
+        },
+      };
+      const nextProps: HotTableProps = {
+        dataSchema: {
+          createdAt: new Date(99999),
+        },
+      };
+
+      const result = SettingsMapper.getSettings(nextProps, {
+        prevProps,
+        isInit: false,
+      });
+
+      expect(result.dataSchema).toEqual(nextProps.dataSchema);
+    });
+
+    it('should keep `columns` in updated settings when a Set value changes', () => {
+      const prevProps: HotTableProps = {
+        columns: [
+          {
+            data: 'type',
+            source: new Set(['A']),
+          },
+        ],
+      };
+      const nextProps: HotTableProps = {
+        columns: [
+          {
+            data: 'type',
+            source: new Set(['B']),
+          },
+        ],
+      };
+
+      const result = SettingsMapper.getSettings(nextProps, {
+        prevProps,
+        isInit: false,
+      });
+
+      expect(result.columns).toEqual(nextProps.columns);
+    });
   });
 });
