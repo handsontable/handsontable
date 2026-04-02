@@ -24,7 +24,7 @@ import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
-import { spreadsheetColumnLabel } from './helpers/data';
+import { spreadsheetColumnLabel, hasChangeForCell } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { DEFAULT_COLUMN_WIDTH } from './3rdparty/walkontable/src';
@@ -700,6 +700,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
      * @param {boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
     alter(action, index, amount = 1, source, keepEmptyRows) {
+      const skipAlter = instance.runHooks('beforeAlter', action, index, amount, source, keepEmptyRows);
+
+      if (skipAlter === false) {
+        return;
+      }
+
       const normalizeIndexesGroup = (indexes) => {
         if (indexes.length === 0) {
           return [];
@@ -1140,6 +1146,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           let skippedColumn = 0;
           let pushData = true;
           let cellMeta;
+          const isAutofillSource = source === 'Autofill.fill' || source === 'autofill.fill';
 
           const getInputValue = function getInputValue(row, col = null) {
             const rowValue = input[row % input.length];
@@ -1165,7 +1172,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               break;
             }
             const visualRow = r - skippedRow;
-            const colInputLength = getInputValue(visualRow).length;
+            const sourceRow = isAutofillSource ? r : visualRow;
+            const colInputLength = getInputValue(sourceRow).length;
             const colSelectionLength = end ? end.col - start.col + 1 : 0;
 
             if (end) {
@@ -1176,10 +1184,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
             current.col = start.col;
             cellMeta = instance.getCellMeta(current.row, current.col);
 
-            if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipRowOnPaste) {
+            if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
+                cellMeta.skipRowOnPaste) {
               skippedRow += 1;
               current.row += 1;
-              rlen += 1;
+
+              if (source === 'CopyPaste.paste') {
+                rlen += 1;
+              }
+
               /* eslint-disable no-continue */
               continue;
             }
@@ -1193,10 +1206,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               }
               cellMeta = instance.getCellMeta(current.row, current.col);
 
-              if ((source === 'CopyPaste.paste' || source === 'Autofill.fill') && cellMeta.skipColumnOnPaste) {
+              if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
+                  cellMeta.skipColumnOnPaste) {
                 skippedColumn += 1;
                 current.col += 1;
-                clen += 1;
+
+                if (source === 'CopyPaste.paste') {
+                  clen += 1;
+                }
+
                 continue;
               }
 
@@ -1207,9 +1225,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               }
 
               const visualColumn = c - skippedColumn;
+              const sourceColumn = isAutofillSource ? c : visualColumn;
               const hasValueSetter = !!cellMeta.valueSetter;
 
-              let value = getInputValue(visualRow, visualColumn);
+              let value = getInputValue(sourceRow, sourceColumn);
               let orgValue = instance.getSourceDataAtCell(current.row, current.col) ?? null;
 
               if (value !== null && typeof value === 'object') {
@@ -1434,6 +1453,20 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
   /**
    * @ignore
+   * @param {Array} changes List of changes in format `[visualRow, prop, oldValue, newValue]`.
+   * @param {BaseEditor|undefined} activeEditor Current editor instance.
+   * @returns {boolean} `true` when the active, opened editor points to a changed cell.
+   */
+  function doesChangeAffectOpenedEditor(changes, activeEditor) {
+    if (!activeEditor?.isOpened()) {
+      return false;
+    }
+
+    return hasChangeForCell(changes, activeEditor.row, activeEditor.prop);
+  }
+
+  /**
+   * @ignore
    * @param {Array} changes The 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of validation.
    * @param {Function} callback The callback function fot async validation.
@@ -1450,7 +1483,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let shouldBeCanceled = true;
 
     waitingForValidator.onQueueEmpty = () => {
-      if (activeEditor && shouldBeCanceled && activeEditor._closeAfterDataChange) {
+      if (
+        activeEditor &&
+        shouldBeCanceled &&
+        activeEditor._closeAfterDataChange &&
+        doesChangeAffectOpenedEditor(changes, activeEditor)
+      ) {
         activeEditor.cancelChanges();
       }
 
@@ -1561,12 +1599,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     const hasChanges = changes.length > 0;
     const activeEditor = editorManager.getActiveEditor();
     const closeEditorAfterDataChange = activeEditor?._closeAfterDataChange;
+    const isOpenedEditorAffectedByChanges = doesChangeAffectOpenedEditor(changes, activeEditor);
 
     if (hasChanges) {
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
 
-      if (activeEditor?.isOpened() && closeEditorAfterDataChange) {
+      if (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) {
         editorManager.closeEditor();
       }
 
@@ -1574,7 +1613,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       instance.render();
 
       if (
-        (activeEditor?.isOpened() && closeEditorAfterDataChange) ||
+        (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) ||
         !activeEditor?.isOpened()
       ) {
         editorManager.prepareEditor();
@@ -1582,7 +1621,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
       instance.runHooks('afterChange', changes, source || 'edit');
 
-      if (activeEditor && isDefined(activeEditor.refreshValue)) {
+      if (
+        activeEditor &&
+        isDefined(activeEditor.refreshValue) &&
+        (!activeEditor.isOpened() || isOpenedEditorAffectedByChanges)
+      ) {
         activeEditor.refreshValue();
       }
 
@@ -2122,9 +2165,17 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
       const topStart = cellRange.getTopStartCorner();
       const bottomEnd = cellRange.getBottomEndCorner();
+      const fromRow = Math.max(topStart.row, 0);
+      const toRow = Math.min(bottomEnd.row, this.countRows() - 1);
+      const fromColumn = Math.max(topStart.col, 0);
+      const toColumn = Math.min(bottomEnd.col, this.countCols() - 1);
 
-      rangeEach(topStart.row, bottomEnd.row, (row) => {
-        rangeEach(topStart.col, bottomEnd.col, (column) => {
+      if (fromRow > toRow || fromColumn > toColumn) {
+        return;
+      }
+
+      rangeEach(fromRow, toRow, (row) => {
+        rangeEach(fromColumn, toColumn, (column) => {
           if (!this.getCellMeta(row, column).readOnly) {
             changes.push([row, column, null]);
           }
@@ -2743,10 +2794,14 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * Since 12.0.0 passing `data` inside `settings` objects no longer results in resetting states corresponding to rows and columns
    * (for example, row/column sequence, column width, row height, frozen columns etc.).
    *
+   * When [[Hooks#hasExternalDataSource]] is true, Handsontable clears and rebinds the placeholder dataset only during
+   * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
+   * If only `columns` changes, the column map is rebuilt without clearing rows.
+   *
    * @memberof Core#
    * @function updateSettings
    * @param {object} settings A settings object (see {@link Options}). Only provide the settings that are changed, not the whole settings object that was used for initialization.
-   * @param {boolean} [init=false] Internally used for in initialization mode.
+   * @param {boolean} [init=false] Internally used during initialization.
    * @example
    * ```js
    * hot.updateSettings({
@@ -2886,7 +2941,27 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     // Load data or create data map
-    if (settings.data === undefined && tableMeta.data === undefined) {
+    if (instance.runHooks('hasExternalDataSource') === true) {
+      // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
+      if (settings.data) {
+        warn('The "data" setting is ignored when "hasExternalDataSource" returns `true`.');
+      }
+
+      // Replace the in-memory placeholder only when the update touches init, `data`, or `dataProvider`. Otherwise
+      // `updateData([], …)` would empty the grid without a refetch, because DataProvider runs `updatePlugin` only when
+      // `dataProvider` is present in this payload.
+      const shouldSyncExternalPlaceholderData = init ||
+        hasOwnProperty(settings, 'data') ||
+        hasOwnProperty(settings, 'dataProvider');
+
+      if (shouldSyncExternalPlaceholderData) {
+        dataUpdateFunction([], 'updateSettings');
+      } else if (settings.columns !== undefined) {
+        datamap.createMap();
+        instance.initIndexMappers();
+      }
+
+    } else if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null, 'updateSettings'); // data source created just now
 
     } else if (settings.data !== undefined) {
@@ -5048,9 +5123,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   /**
    * Returns the active editor class instance.
    *
+   * The active editor is the editor instance associated with the currently selected cell.
+   * An editor becomes active when a cell is selected and the editor is prepared (but not
+   * necessarily open). If no cell is selected, the method returns `undefined`.
+   *
    * @memberof Core#
    * @function getActiveEditor
-   * @returns {BaseEditor} The active editor instance.
+   * @returns {BaseEditor | undefined} The active editor instance, or `undefined` if no cell is selected.
    */
   this.getActiveEditor = function() {
     return editorManager.getActiveEditor();

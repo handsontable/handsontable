@@ -86,7 +86,7 @@ describe('Core_init', () => {
 
     spec().$container.css('display', initialDisplayValue);
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const $topHolderElement = getTopClone().find('.wtHolder');
     const $testTopHeader = $(hot.getCell(-1, 0, true));
@@ -124,7 +124,7 @@ describe('Core_init', () => {
 
     $testParentContainer.css('display', 'block');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const $topHolderElement = getTopClone().find('.wtHolder');
     const $testTopHeader = $(hot.getCell(-1, 0, true));
@@ -160,7 +160,7 @@ describe('Core_init', () => {
 
     spec().$container.css('display', 'block');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const $topHolderElement = getTopClone().find('.wtHolder');
     const $testTopHeader = $(hot.getCell(-1, 0, true));
@@ -199,7 +199,7 @@ describe('Core_init', () => {
 
     $testParentContainer.css('display', 'block');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const $topHolderElement = getTopClone().find('.wtHolder');
     const $testTopHeader = $(hot.getCell(-1, 0, true));

@@ -227,6 +227,8 @@ describe('manualColumnMove', () => {
           manualColumnMove: true,
           rowHeaders: true,
           colHeaders: true,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         await scrollViewportTo({
@@ -276,6 +278,8 @@ describe('manualColumnMove', () => {
           manualColumnMove: true,
           rowHeaders: true,
           colHeaders: true,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         await scrollViewportTo({
@@ -322,6 +326,8 @@ describe('manualColumnMove', () => {
           manualColumnMove: true,
           rowHeaders: true,
           colHeaders: true,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         await scrollViewportTo({
@@ -351,6 +357,8 @@ describe('manualColumnMove', () => {
           manualColumnMove: true,
           rowHeaders: true,
           colHeaders: true,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         await scrollViewportTo({
@@ -398,6 +406,8 @@ describe('manualColumnMove', () => {
           manualColumnMove: true,
           rowHeaders: true,
           colHeaders: true,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         await scrollViewportTo({

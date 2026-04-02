@@ -173,7 +173,7 @@ describe('Selection', () => {
 
     mainHolder.scrollTop = 120;
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(errCount).toEqual(0); // expect no errors to be thrown
 
@@ -196,7 +196,7 @@ describe('Selection', () => {
 
     mainHolder.scrollTop = 100;
 
-    await sleep(20);
+    await waitForNextAnimationFrames(2);
     await selectCell(1, 3);
     await keyDownUp('arrowdown');
 
@@ -204,7 +204,7 @@ describe('Selection', () => {
 
     mainHolder.scrollTop = 100;
 
-    await sleep(20);
+    await waitForNextAnimationFrames(2);
     await selectCell(1, 3);
     await keyDownUp(['shift', 'arrowdown']);
 
@@ -264,7 +264,9 @@ describe('Selection', () => {
       colHeaders: true,
       rowHeaders: true,
       fixedRowsTop: 2,
-      fixedColumnsStart: 2
+      fixedColumnsStart: 2,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     const mainHolder = tableView()._wt.wtTable.holder;
@@ -374,14 +376,14 @@ describe('Selection', () => {
       minSpareRows: 1
     });
 
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
     await selectCell(4, 0);
     await keyDownUp('enter');
 
-    await sleep(90);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('enter');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
     expect(countRows()).toEqual(6);
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
     expect(`
@@ -546,7 +548,7 @@ describe('Selection', () => {
 
     spec().$container.find('.ht_clone_top thead').find('th').eq(0).simulate('mousedown');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterScrollVertically).toHaveBeenCalledTimes(0);
     expect(onAfterScrollHorizontally).toHaveBeenCalledTimes(0);
@@ -589,7 +591,9 @@ describe('Selection', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 400,
-      height: 200
+      height: 200,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
     let cellVerticalPosition;
     const borderOffsetInPixels = 1;
@@ -830,6 +834,8 @@ describe('Selection', () => {
         selectionMode: 'multiple',
         colHeaders: true,
         rowHeaders: true,
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await mouseDown(getCell(0, 0));
@@ -1805,7 +1811,7 @@ describe('Selection', () => {
 
       iframeHot.selectCell(1, 1);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(spec().$iframeContainer.find('.wtBorder.current')[0].style.top).forThemes(({ classic, main, horizon }) => {
         classic.toEqual('26px');

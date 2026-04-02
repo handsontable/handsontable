@@ -55,6 +55,8 @@ describe('manualRowMove', () => {
         rowHeaders: true,
         colHeaders: true,
         manualRowMove: true,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       const rowHeader = $(getCell(1, -1));
@@ -88,6 +90,8 @@ describe('manualRowMove', () => {
         rowHeaders: true,
         colHeaders: true,
         manualRowMove: true,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       const rowHeader = $(getCell(1, -1));
@@ -121,6 +125,8 @@ describe('manualRowMove', () => {
         rowHeaders: true,
         colHeaders: true,
         manualRowMove: true,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       const rowHeader = $(getCell(1, -1));
@@ -156,7 +162,9 @@ describe('manualRowMove', () => {
         manualRowMove: true,
         hiddenRows: {
           rows: [0, 9]
-        }
+        },
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       const rowHeader = $(getCell(1, -1));
@@ -326,8 +334,7 @@ describe('manualRowMove', () => {
       });
     });
 
-    it('should move the table\'s viewport up when the next mouse-overed element is a row that belongs to ' +
-       'the top overlay', async() => {
+    it('should move the table\'s viewport up when the next mouse-overed element is a row that belongs to the top overlay', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -336,6 +343,8 @@ describe('manualRowMove', () => {
         rowHeaders: true,
         colHeaders: true,
         manualRowMove: true,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportTo({
@@ -386,7 +395,9 @@ describe('manualRowMove', () => {
         manualRowMove: true,
         hiddenRows: {
           rows: [0, 9]
-        }
+        },
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportTo({

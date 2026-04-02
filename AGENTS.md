@@ -37,6 +37,7 @@ These are the most frequent mistakes. Read this section first.
 | Hardcoding user-visible text in source code | Add language constants in `src/i18n/constants.js` and update all language files in `src/i18n/languages/`. |
 | Using `.bind(this)` for hook/event callbacks | Use arrow-function class fields (`#onAfterX = () => { ... }`) instead. |
 | Direct cross-plugin imports | Use hooks for inter-plugin communication or `hot.getPlugin('{Name}')` if API access is required. |
+| Confusing the context menu with the column (dropdown) menu | These are two separate plugins. See [Context menu vs column menu](#context-menu-vs-column-menu). |
 
 ---
 
@@ -69,6 +70,8 @@ From the workspace root:
 - **Lint core**: `pnpm --filter handsontable run eslint` and `pnpm --filter handsontable run stylelint`
 - **Unit tests (core)**: `pnpm --filter handsontable run test:unit` (Jest, ~2200 tests)
 - **E2E tests (core)**: `pnpm --filter handsontable run test:e2e` (Puppeteer/Jasmine, headless Chrome)
+- **Targeted unit test**: `npm_config_testPathPattern=<spec-path-or-regex> pnpm --filter handsontable run test:unit`
+- **Targeted e2e test**: `npm_config_testPathPattern=<spec-path-or-regex> pnpm --filter handsontable run test:e2e`
 - **Walkontable tests**: `pnpm --filter handsontable run test:walkontable` (separate pipeline)
 - **Wrapper tests**: `pnpm --filter @handsontable/react-wrapper run test`, `pnpm --filter @handsontable/vue3 run test`, `pnpm --filter @handsontable/angular-wrapper run test`
 
@@ -141,6 +144,7 @@ Changes to JavaScript APIs that are **not listed in the public API reference** (
 
 ### General conventions
 
+- **Cognitive complexity**: Keep each function at **15 or below** on the Sonar cognitive-complexity metric (nested conditionals, loops, and boolean operators accumulate). Extract helpers or early-return guards when a function exceeds the limit.
 - **Separate CSS and JS**: Never mix CSS into JavaScript files.
 - **DRY**: Reuse existing helpers and mixins. Extract duplicated code into shared methods.
 - **Method ordering**: Public methods first, then private listeners.
@@ -191,6 +195,31 @@ class MyPlugin extends BasePlugin {
 }
 ```
 
+### `SETTING_KEYS` and `updateSettings`
+
+- **Array** (usual case): list every top-level Handsontable option name that should trigger `updatePlugin()` when passed to `updateSettings()` (for example other global keys the plugin reacts to, not only `PLUGIN_KEY`).
+- **`true`**: the plugin always runs `updatePlugin()` after `updateSettings()`, even when the config object is empty.
+- **`false`**: the plugin never auto-updates from `updateSettings()` (you handle changes yourself).
+
+### Plugin class layout (method ordering)
+
+Structure the class so lifecycle and public API stay easy to follow:
+
+1. **Static getters** -- `PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS`, and when needed `DEFAULT_SETTINGS` and `SETTINGS_VALIDATORS` (see below).
+2. **Lifecycle and public instance methods** -- `isEnabled()`, `enablePlugin()`, `updatePlugin()`, `disablePlugin()`, `destroy()`, plus any other **public** methods exposed via `hot.getPlugin(...)`.
+3. **Private hook and DOM listeners** -- private arrow-function class fields (`#onAfterX = () => { ... }`) after those methods, matching the global convention: public methods first, then private listeners.
+
+### Settings defaults and validation
+
+**`DEFAULT_SETTINGS`** (static object, default `{}`) -- Default values merged when reading options through `this.getSetting(name)` or `this.getSetting()` for the whole object. Use it so runtime reads do not duplicate fallback logic. Table-level defaults for new options still belong in `metaSchema.js` ([Configuration rules](#configuration-rules)); keep plugin defaults and schema defaults aligned.
+
+**`SETTINGS_VALIDATORS`** (default `null`) -- Optional validation when settings are applied (`init` / `updateSettings`). Invalid values emit a console warning and are ignored; the previous stored value stays.
+
+- **Object map** -- For the usual `myPlugin: { ... }` shape. Keys are option names. Each value is `(newValue) => boolean`; return `false` to reject. Only keys **present** on the incoming settings object are validated and copied; keys omitted from that object are left unchanged (validators do not run for absent keys).
+- **Single function** -- For a non-object plugin setting (for example a string or boolean at `myPlugin: 'foo'`). The function is `(newSettings) => boolean` and runs when `typeof newSettings !== 'object'`. If it returns `false`, the whole update is skipped.
+
+**Reading settings** -- Prefer `this.getSetting('key')` inside the plugin. Dot notation is supported for nested keys (for example `this.getSetting('ui.width')`). If a stored setting is a **function** and `SETTINGS_VALIDATORS` is an object with a validator for that key, `getSetting` may wrap the function so the **return value** of user callbacks is validated; invalid returns are warned and treated as no return value.
+
 ### Method lifecycle (in order)
 
 1. `constructor(hotInstance)` -- receives HOT instance as `this.hot`
@@ -230,6 +259,8 @@ export { PLUGIN_KEY, PLUGIN_PRIORITY, MyPlugin } from './myPlugin';
 ### Conflict ownership
 
 When a plugin is incompatible with another, the plugin that introduces the conflict owns the disabling/blocking logic. Other plugins should not contain awareness checks.
+
+For **hard** conflicts (a plugin must not enable while another top-level setting is truthy), the feature that introduces the incompatibility calls `registerConflict(blockedTargetKeyOrKeys, incompatibleSettingKeys)` from `src/plugins/base/conflictRegistry.js` at module load. The first parameter is the blocked key or keys (usually `PLUGIN_KEY` values). The second parameter, `incompatibleSettingKeys`, is one top-level setting key or an array of keys; the conflict applies when `!!settings[key]` is true for any registered key. DataProvider and Pagination pass one blocked plugin key and an array of incompatible setting keys. The blocked plugin calls `BasePlugin#isHardConflictBlocked()` at the start of `enablePlugin()` (and may clear its setting when blocked, like Pagination). Soft detection of an external data source uses the `hasExternalDataSource` hook (instance handler added by the DataProvider plugin in `enablePlugin()`).
 
 ### Configuration rules
 
@@ -399,6 +430,26 @@ When calling `updateSettings()` in the React wrapper, **preserve and restore sel
 
 ---
 
+## Context menu vs column menu
+
+Handsontable has two distinct menu plugins that are frequently confused. Always use the correct plugin name, option key, and hook prefix.
+
+| | Context menu | Column menu (dropdown menu) |
+|---|---|---|
+| **User-facing name** | Context menu | Column menu / dropdown menu |
+| **Plugin class** | `ContextMenu` | `DropdownMenu` |
+| **PLUGIN_KEY** | `'contextMenu'` | `'dropdownMenu'` |
+| **Config option** | `contextMenu: true\|false\|array\|object` | `dropdownMenu: true\|false\|array\|object` |
+| **Trigger** | Right-click (or `Ctrl+Shift+\` / `Shift+F10`) on any cell or header | Click the button rendered inside a column header (or `Shift+Alt+ArrowDown` when a header is focused) |
+| **Scope** | Cells and headers across rows and columns | Column-specific operations only |
+| **Default items** | Row/column insert and remove, undo, redo, alignment, read-only | Column insert and remove, clear column, alignment, read-only |
+| **Hook prefix** | `beforeContextMenu*`, `afterContextMenu*` | `beforeDropdownMenu*`, `afterDropdownMenu*` |
+| **Source directory** | `src/plugins/contextMenu/` | `src/plugins/dropdownMenu/` |
+
+**Important:** `DropdownMenu` is built on top of the shared `Menu` class from `contextMenu`, so they look similar internally - but they are configured and triggered independently. When a task mentions "column menu", "column header menu", or "dropdown menu", it always refers to `dropdownMenu`, not `contextMenu`.
+
+---
+
 ## File locations reference
 
 | Area | Path |
@@ -432,15 +483,59 @@ When calling `updateSettings()` in the React wrapper, **preserve and restore sel
 
 ---
 
-## Gotchas
+### Testing specific plugins
 
-- Wrappers consume `handsontable/tmp/` (not `dist/`). Build core before running wrapper tests.
-- Two builds: `handsontable.js` (base) and `handsontable.full.js` (includes HyperFormula). Test both.
-- Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider` (already in the `test` script).
-- The docs site (`docs/`) uses Node 20 and is not needed for core development.
-- Walkontable has its **own test runner** -- do not mix with main E2E tests.
+When running E2E tests for a specific plugin (e.g., filters):
+- Use: `pnpm --filter handsontable run test:e2e -- --filter=<plugin-name>`
+- Example: `pnpm --filter handsontable run test:e2e -- --filter=filters`
+- Note: This rebuilds the UMD bundle before running tests, which takes ~1-2 minutes
+
+When running unit tests for a specific plugin:
+- Use: `pnpm --filter handsontable run test:unit -- --testPathPattern=<plugin-name>`
+- Example: `pnpm --filter handsontable run test:unit -- --testPathPattern=filters`
+
+### Gotchas
+
+- **Cross-platform `npm` scripts**: All `scripts` entries in wrapper `package.json` files must work on Linux, macOS, and Windows. Never use bash-only constructs (`if [ ]`, `mv`, `&&` chaining with `||`) directly in script strings. Instead, write a Node.js `.mjs` helper (see `wrappers/react-wrapper/scripts/prepare-types.mjs` as a reference) and invoke it with `node scripts/your-script.mjs`. Use async top-level `await` with `fs/promises` (`readdir`, `rename`, `rm`) rather than their sync counterparts. Use `fs/promises` `rm({ recursive: true, force: true })` instead of `rimraf`/`rm -rf`, and `rename` instead of `mv`.
+- The core build outputs to `handsontable/tmp/` (not `dist/` for wrappers' consumption). The UMD/minified builds go to `handsontable/dist/` and CSS to `handsontable/styles/`. Wrapper packages reference the `tmp/` build via workspace linking.
+- The e2e runner (`handsontable/test/E2ERunner.html`) loads `handsontable/dist/handsontable.js`; after changing `handsontable/src/**`, run `pnpm --filter handsontable run build` before running e2e to test the updated bundle.
+- For targeted e2e runs, set `npm_config_testPathPattern` as an environment variable (for example `npm_config_testPathPattern=plugins/comments/__tests__/comments.spec.js`) before `pnpm --filter handsontable run test:e2e.dump`; passing `--testPathPattern` as a CLI argument to `test:e2e.dump` is forwarded to webpack and fails.
+- Two Handsontable builds exist: `handsontable.js` (base, external deps) and `handsontable.full.js` (includes HyperFormula). When testing, ensure both variants work.
+- The Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider`; this is already wired into the `test` script.
+- The `pnpm-workspace.yaml` has `ignoredBuiltDependencies` and `onlyBuiltDependencies` lists. If pnpm warns about ignored build scripts (e.g., `less`), this is expected.
+- Root-level `npm run lint` and `npm run test` scripts use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
+- The docs site (`docs/`) uses Node 20 (its own `.nvmrc`) and is not needed for core library development.
+- Walkontable (the rendering engine) lives inside `src/3rdparty/walkontable/` and has its **own test runner** — do not mix Walkontable tests with main E2E tests.
+- **Merged cells — read from meta, not DOM**: When working with merged cells, read `colspan`/`rowspan` from `hot.getCellMeta(row, col)` (set by `MergeCells` via `afterGetCellMeta`) rather than from the DOM element's `colSpan`/`rowSpan` attributes. The meta is the authoritative source and is always available regardless of viewport state or rendering.
 - No Docker, databases, or external services are required.
+- **Context menu vs column (dropdown) menu**: "Context menu" (`contextMenu` option, right-click triggered) and "column menu" (`dropdownMenu` option, column header button triggered) are separate plugins with separate hook prefixes and config keys. Never mix them up. See [Context menu vs column menu](#context-menu-vs-column-menu).
+- **Filters plugin visual/physical column index**: When working with the filters plugin in combination with `manualColumnMove`, always ensure proper conversion between visual and physical column indexes. The `conditionCollection` and `conditionUpdateObserver` operate on physical indexes, while `getDataAtCol()` requires visual indexes. See issue #11832 for details.
+- For hook signature/behavior fixes, add both a runtime regression (`handsontable/src/**/__tests__/*.spec.js` or `handsontable/test/e2e/hooks/*.spec.js`) and a TypeScript regression (`handsontable/src/__tests__/core/settings.types.ts`) when types are changed.
+
+### Regression checks for resize + CSS scale
+
+- For fixes around `manualColumnResize` and CSS `transform: scale(...)` (e.g. GH #11838), run both:
+  - `npm_config_testPathPattern=manualColumnResize/__tests__/utils.unit.js pnpm --filter handsontable run test:unit`
+  - `npm_config_testPathPattern=src/plugins/manualColumnResize/__tests__/manualColumnResize.spec.js pnpm --filter handsontable run test:e2e`
 
 ### Testing preference
 
 - For bug fixes in `handsontable/`, add both a focused unit test and a focused E2E regression test when practical.
+
+---
+
+## ClickUp task integration
+
+When working on a task from ClickUp:
+
+- **Extract the task ID** from the ClickUp URL. For example, `https://app.clickup.com/t/9015210959/DEV-627` has task ID `DEV-627`.
+- **Branch naming**: Use `feature/DEV-627_Short-Task-Description` (slugified task title). At minimum the branch must contain `feature/DEV-627`. Example: `feature/DEV-627_Handsontable-Forum-Update`.
+- **Commit messages and PR titles** must include the task ID (e.g. `DEV-627`) so ClickUp automatically links the commit/PR to the task.
+- **Authentication**: Use the ClickUp MCP tools for all ClickUp API interactions (fetching task details, updating status, posting comments). Do not attempt to call the ClickUp REST API directly.
+- **Workflow summary**:
+  1. Parse the task ID from the provided ClickUp URL.
+  2. Use MCP to fetch task details (title, description, acceptance criteria).
+  3. Create a branch: `feature/<TASK-ID>_<Slugified-Title>`.
+  4. Implement the fix/feature, commit with the task ID in the message.
+  5. Push and (when asked) open a PR whose title includes the task ID.
+  6. After the PR is created, use the ClickUp MCP tools to update the task status to **"code review"**.

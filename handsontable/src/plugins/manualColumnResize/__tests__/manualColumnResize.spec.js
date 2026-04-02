@@ -273,7 +273,7 @@ describe('manualColumnResize', () => {
     $resizer.simulate('mousemove', { clientX: spec().$container.find('tr:eq(0) th:eq(1)').position().left + 29 });
     $resizer.simulate('mouseup');
 
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
 
@@ -369,7 +369,7 @@ describe('manualColumnResize', () => {
     $resizer.simulate('mousemove', { clientX: spec().$container.find('tr:eq(0) th:eq(1)').position().left + 150 });
     $resizer.simulate('mouseup');
 
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
 
@@ -417,7 +417,7 @@ describe('manualColumnResize', () => {
 
     await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(220);
@@ -476,7 +476,7 @@ describe('manualColumnResize', () => {
     const resizerPosition = $resizer.position();
 
     await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(22);
@@ -514,7 +514,7 @@ describe('manualColumnResize', () => {
     });
 
     await setDataAtCell(0, 1, 'Longer text');
-    await sleep(50);
+    await waitForNextAnimationFrames(4);
     await updateSettings({
       colWidths: [45, 120, 160, 60, 80],
     });
@@ -530,7 +530,7 @@ describe('manualColumnResize', () => {
       const resizerPosition = $resizer.position();
 
       await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
-      await sleep(1000);
+      await waitForNextAnimationFrames(63);
 
       expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(29);
@@ -556,7 +556,7 @@ describe('manualColumnResize', () => {
 
       await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
-      await sleep(1000);
+      await waitForNextAnimationFrames(63);
 
       expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(29);
@@ -642,7 +642,7 @@ describe('manualColumnResize', () => {
 
     await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
-    await sleep(700);
+    await waitForNextAnimationFrames(44);
 
     expect(colWidth(spec().$container, 0)).toEqual(200);
   });
@@ -729,7 +729,7 @@ describe('manualColumnResize', () => {
 
     await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     expect(afterColumnResizeCallback).toHaveBeenCalledTimes(1);
     expect(afterColumnResizeCallback).forThemes(({ classic, main, horizon }) => {
@@ -763,7 +763,7 @@ describe('manualColumnResize', () => {
 
     await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(29, 3);
@@ -791,7 +791,7 @@ describe('manualColumnResize', () => {
 
     await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(29, 3);
@@ -818,9 +818,9 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
     await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(30);
@@ -851,10 +851,10 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
     await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
     getTopClone().find('tr:eq(0) th:eq(2)').simulate('mouseover');
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(30);
@@ -1129,7 +1129,9 @@ describe('manualColumnResize', () => {
         rowHeaders: true,
         manualColumnResize: true,
         height: 100,
-        width: 400
+        width: 400,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       let $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
@@ -1189,7 +1191,8 @@ describe('manualColumnResize', () => {
         manualColumnResize: true,
         width: 400,
         height: 200,
-        viewportColumnRenderingOffset: 20
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await scrollViewportHorizontally(200);
@@ -1250,6 +1253,41 @@ describe('manualColumnResize', () => {
       expect(getTopClone().find('thead tr:eq(0) th:eq(9)').width()).toBe(79);
       expect(getTopClone().find('thead tr:eq(0) th:eq(10)').width()).toBe(79);
       expect(getTopClone().find('thead tr:eq(0) th:eq(11)').width()).toBe(79);
+    });
+
+    it('should display the handle and resize by unscaled width when parent is scaled', async() => {
+      spec().$container.css({
+        transform: 'scale(0.5)',
+        transformOrigin: 'top left',
+      });
+
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        colHeaders: true,
+        manualColumnResize: true,
+      });
+
+      const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(1)');
+
+      $colHeader.simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualColumnResizer');
+      const handleBox = $resizer[0].getBoundingClientRect();
+      const thBox = $colHeader[0].getBoundingClientRect();
+
+      expect(handleBox.left).toBeCloseTo(thBox.left + thBox.width - (handleBox.width / 2) - 1, 0);
+
+      $resizer.simulate('mousedown', { clientX: handleBox.left });
+      const guide = spec().$container.find('.manualColumnResizerGuide')[0];
+      const guideBoxBeforeMove = guide.getBoundingClientRect();
+
+      $resizer.simulate('mousemove', { clientX: handleBox.left + 25 });
+      const guideBoxAfterMove = guide.getBoundingClientRect();
+
+      $resizer.simulate('mouseup');
+
+      expect(guideBoxAfterMove.left - guideBoxBeforeMove.left).toBeCloseTo(25, 0);
+      expect(colWidth(spec().$container, 1)).toBeGreaterThan(90);
     });
   });
 
@@ -1552,7 +1590,7 @@ describe('manualColumnResize', () => {
 
       $handle.simulate('contextmenu');
 
-      await sleep(0);
+      await waitForNextAnimationFrames(0);
 
       expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
@@ -1577,7 +1615,7 @@ describe('manualColumnResize', () => {
 
       $handle.simulate('contextmenu');
 
-      await sleep(0);
+      await waitForNextAnimationFrames(0);
 
       expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
@@ -1602,7 +1640,7 @@ describe('manualColumnResize', () => {
 
       $handle.simulate('contextmenu');
 
-      await sleep(0);
+      await waitForNextAnimationFrames(0);
 
       expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
@@ -1631,7 +1669,7 @@ describe('manualColumnResize', () => {
         rowHeights: 100,
       });
 
-      await sleep(100);
+      await waitForNextAnimationFrames(7);
 
       await updateSettings({
         manualColumnResize: [50, 50, 50],

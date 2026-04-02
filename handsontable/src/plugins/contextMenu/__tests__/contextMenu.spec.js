@@ -322,7 +322,9 @@ describe('ContextMenu', () => {
         colHeaders: true,
         rowHeaders: true,
         contextMenu: true,
-        height: 100
+        height: 100,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await selectColumns(1, 4);
@@ -350,7 +352,9 @@ describe('ContextMenu', () => {
         colHeaders: true,
         rowHeaders: true,
         contextMenu: true,
-        height: 100
+        height: 100,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await selectRows(1, 3);
@@ -2424,7 +2428,9 @@ describe('ContextMenu', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         contextMenu: true,
-        height: 200
+        height: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await mouseDown(getCell(0, 0));
@@ -2452,7 +2458,9 @@ describe('ContextMenu', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         contextMenu: true,
-        height: 200
+        height: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await mouseDown(getCell(0, 0));
@@ -2480,7 +2488,9 @@ describe('ContextMenu', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         contextMenu: true,
-        height: 200
+        height: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await mouseDown(getCell(0, 0));
