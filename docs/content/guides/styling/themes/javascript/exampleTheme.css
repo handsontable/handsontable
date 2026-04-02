@@ -1,3 +1,8 @@
+#exampleTheme {
+  position: relative;
+  z-index: 0;
+}
+
 /* Theme dropdown */
 .theme-dropdown {
   position: relative;

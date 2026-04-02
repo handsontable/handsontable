@@ -43,11 +43,12 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2 --ts 3
+::: example #example1 --html 1 --js 2 --ts 3 --css 4
 
 @[code](@/content/guides/cell-features/selection/javascript/example1.html)
 @[code](@/content/guides/cell-features/selection/javascript/example1.js)
 @[code](@/content/guides/cell-features/selection/javascript/example1.ts)
+@[code](@/content/guides/cell-features/selection/javascript/example1.css)
 
 :::
 

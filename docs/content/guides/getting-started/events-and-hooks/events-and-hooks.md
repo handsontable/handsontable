@@ -203,7 +203,6 @@ Note that some callbacks are checked on this page by default.
 ::: example-without-tabs #example1
 
 @[code](@/content/guides/getting-started/events-and-hooks/javascript/example1.html)
-@[code](@/content/guides/getting-started/events-and-hooks/javascript/example1.css)
 @[code](@/content/guides/getting-started/events-and-hooks/javascript/example1.js)
 
 :::

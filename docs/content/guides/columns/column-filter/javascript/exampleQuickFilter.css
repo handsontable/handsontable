@@ -26,6 +26,11 @@
   border-color: var(--sl-color-accent);
 }
 
+#filterField:focus-visible {
+  border-color: var(--sl-color-accent);
+  box-shadow: 0 0 0 1px var(--sl-color-accent);
+}
+
 /* Filter dropdown */
 .filter-dropdown {
   position: relative;

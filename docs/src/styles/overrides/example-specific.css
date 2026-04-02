@@ -16,13 +16,6 @@
   border-bottom: 1px solid var(--sl-color-gray-5);
 }
 
-/* ── Selection example: ensure dropdown overlays the grid ─────────── */
-
-#example1 {
-  z-index: 1;
-  position: relative;
-}
-
 /* ── Hooks example: event log ────────────────────────────────────────── */
 
 #example1_events {
@@ -171,12 +164,3 @@
   overflow: auto;
 }
 
-/* ── Grid-size example: parent height for 100% demo ──────────────────── */
-
-#exampleParent {
-  height: 157px;
-}
-
-#exampleParent #example {
-  height: 100%;
-}
