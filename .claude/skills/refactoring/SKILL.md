@@ -3,6 +3,10 @@ name: refactoring
 description: Use when refactoring Handsontable code - applying SOLID principles, Law of Demeter, plugin extraction, performance optimization, code modernization, and API redesign with backward compatibility preservation
 ---
 
+## Convention over Configuration
+
+Prefer conventions that work with zero configuration for the common case. When refactoring, eliminate config that duplicates what naming, location, or type conventions already express. Do not introduce new options or wiring when auto-discovery or lifecycle hooks can handle it.
+
 ## SOLID Principles in Handsontable
 
 - **Single Responsibility:** Each plugin handles one concern. If a plugin is doing two things (e.g. data fetching and rendering), extract the second concern into its own plugin.
