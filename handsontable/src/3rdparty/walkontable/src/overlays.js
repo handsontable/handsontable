@@ -99,6 +99,24 @@ class Overlays {
   #hasRenderingStateChanged = false;
 
   /**
+   * Cached vertical scroll position used to deduplicate `onScrollVertically` callbacks.
+   * Tracks the value returned by `topOverlay.getScrollPosition()` at the time the callback
+   * was last fired so that a second call with an unchanged position is suppressed.
+   *
+   * @type {number | null}
+   */
+  #lastVerticalScrollPositionForCallback = null;
+
+  /**
+   * Cached horizontal scroll position used to deduplicate `onScrollHorizontally` callbacks.
+   * Tracks the value returned by `inlineStartOverlay.getScrollPosition()` at the time the
+   * callback was last fired so that a second call with an unchanged position is suppressed.
+   *
+   * @type {number | null}
+   */
+  #lastHorizontalScrollPositionForCallback = null;
+
+  /**
    * The amount of times the ResizeObserver callback was fired in direct succession.
    *
    * @type {number}
@@ -197,6 +215,7 @@ class Overlays {
     this.scrollableElement = isOverflowClip ? wtTable.holder : getScrollableElement(wtTable.TABLE);
 
     this.initOverlays();
+    this.#cacheScrollCallbackPositions();
 
     this.destroyed = false;
     this.keyPressed = false;
@@ -321,11 +340,11 @@ class Overlays {
     }
     this.wot.draw(true);
 
-    if (this.verticalScrolling) {
+    if (this.verticalScrolling && this.#didVerticalScrollPositionChange()) {
       this.inlineStartOverlay.onScroll(); // todo the inlineStartOverlay.onScroll() fires hook. Why is it needed there, not in any another place?
     }
 
-    if (this.horizontalScrolling) {
+    if (this.horizontalScrolling && this.#didHorizontalScrollPositionChange()) {
       this.topOverlay.onScroll();
     }
 
@@ -621,6 +640,50 @@ class Overlays {
     }
 
     this.#hasRenderingStateChanged = false;
+  }
+
+  /**
+   * Caches the initial vertical and horizontal scroll positions for callback deduplication.
+   */
+  #cacheScrollCallbackPositions() {
+    this.#lastVerticalScrollPositionForCallback = this.topOverlay.getScrollPosition();
+    this.#lastHorizontalScrollPositionForCallback = this.inlineStartOverlay.getScrollPosition();
+  }
+
+  /**
+   * Checks whether the vertical scroll position has changed since the last `onScrollVertically`
+   * callback and updates the cache. Returns `true` when the callback should fire.
+   *
+   * @returns {boolean}
+   */
+  #didVerticalScrollPositionChange() {
+    const current = this.topOverlay.getScrollPosition();
+
+    if (this.#lastVerticalScrollPositionForCallback === current) {
+      return false;
+    }
+
+    this.#lastVerticalScrollPositionForCallback = current;
+
+    return true;
+  }
+
+  /**
+   * Checks whether the horizontal scroll position has changed since the last `onScrollHorizontally`
+   * callback and updates the cache. Returns `true` when the callback should fire.
+   *
+   * @returns {boolean}
+   */
+  #didHorizontalScrollPositionChange() {
+    const current = this.inlineStartOverlay.getScrollPosition();
+
+    if (this.#lastHorizontalScrollPositionForCallback === current) {
+      return false;
+    }
+
+    this.#lastHorizontalScrollPositionForCallback = current;
+
+    return true;
   }
 
   /**

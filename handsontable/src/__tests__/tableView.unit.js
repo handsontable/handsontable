@@ -1,5 +1,4 @@
 import Core from 'handsontable/core';
-import { hasScrollPositionChanged } from 'handsontable/tableView';
 import { registerCellType } from '../cellTypes/registry';
 import { TextCellType } from '../cellTypes/textType/textType';
 import { baseRenderer } from '../renderers/baseRenderer/baseRenderer';
@@ -31,29 +30,7 @@ function spreadsheetData(rows, cols) {
   return data;
 }
 
-describe('hasScrollPositionChanged', () => {
-  it('should return `true` when there is no previous position', () => {
-    expect(hasScrollPositionChanged(null, 0)).toBe(true);
-  });
-
-  it('should return `true` when positions differ', () => {
-    expect(hasScrollPositionChanged(10, 20)).toBe(true);
-  });
-
-  it('should return `false` when positions are equal', () => {
-    expect(hasScrollPositionChanged(20, 20)).toBe(false);
-  });
-
-  it('should return `false` for `0` and `-0` (same numeric scroll position)', () => {
-    expect(hasScrollPositionChanged(0, -0)).toBe(false);
-  });
-
-  it('should return `true` when previous position is `undefined`', () => {
-    expect(hasScrollPositionChanged(undefined, 0)).toBe(true);
-  });
-});
-
-describe('TableView scroll hooks', () => {
+describe('Overlays scroll hook deduplication', () => {
   let container;
   let core;
 
@@ -84,15 +61,18 @@ describe('TableView scroll hooks', () => {
     });
     core.init();
 
-    const topOverlay = core.view._wt.wtOverlays.topOverlay;
+    const overlays = core.view._wt.wtOverlays;
+    const topOverlay = overlays.topOverlay;
 
     spyOn(topOverlay, 'getScrollPosition').and.returnValue(200);
 
-    core.view._wt.wtSettings.getSetting('onScrollVertically');
+    overlays.verticalScrolling = true;
+    overlays.refreshAll();
     expect(onAfterScrollVertically).toHaveBeenCalledTimes(1);
 
     onAfterScrollVertically.calls.reset();
-    core.view._wt.wtSettings.getSetting('onScrollVertically');
+    overlays.verticalScrolling = true;
+    overlays.refreshAll();
 
     expect(onAfterScrollVertically).toHaveBeenCalledTimes(0);
   });
@@ -110,15 +90,18 @@ describe('TableView scroll hooks', () => {
     });
     core.init();
 
-    const inlineStartOverlay = core.view._wt.wtOverlays.inlineStartOverlay;
+    const overlays = core.view._wt.wtOverlays;
+    const inlineStartOverlay = overlays.inlineStartOverlay;
 
     spyOn(inlineStartOverlay, 'getScrollPosition').and.returnValue(200);
 
-    core.view._wt.wtSettings.getSetting('onScrollHorizontally');
+    overlays.horizontalScrolling = true;
+    overlays.refreshAll();
     expect(onAfterScrollHorizontally).toHaveBeenCalledTimes(1);
 
     onAfterScrollHorizontally.calls.reset();
-    core.view._wt.wtSettings.getSetting('onScrollHorizontally');
+    overlays.horizontalScrolling = true;
+    overlays.refreshAll();
 
     expect(onAfterScrollHorizontally).toHaveBeenCalledTimes(0);
   });
@@ -138,17 +121,21 @@ describe('TableView scroll hooks', () => {
     });
     core.init();
 
-    const topOverlay = core.view._wt.wtOverlays.topOverlay;
-    const inlineStartOverlay = core.view._wt.wtOverlays.inlineStartOverlay;
+    const overlays = core.view._wt.wtOverlays;
+    const topOverlay = overlays.topOverlay;
+    const inlineStartOverlay = overlays.inlineStartOverlay;
 
     spyOn(topOverlay, 'getScrollPosition').and.returnValue(150);
     spyOn(inlineStartOverlay, 'getScrollPosition').and.returnValue(250);
 
-    core.view._wt.wtSettings.getSetting('onScrollVertically');
-    core.view._wt.wtSettings.getSetting('onScrollVertically');
+    overlays.verticalScrolling = true;
+    overlays.refreshAll();
+    overlays.verticalScrolling = true;
+    overlays.refreshAll();
     expect(onAfterScrollVertically).toHaveBeenCalledTimes(1);
 
-    core.view._wt.wtSettings.getSetting('onScrollHorizontally');
+    overlays.horizontalScrolling = true;
+    overlays.refreshAll();
     expect(onAfterScrollHorizontally).toHaveBeenCalledTimes(1);
   });
 });

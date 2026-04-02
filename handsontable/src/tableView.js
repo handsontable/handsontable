@@ -29,17 +29,6 @@ import {
 } from './helpers/a11y';
 
 /**
- * Checks whether a scroll position has changed.
- *
- * @param {number | null} previousPosition The previously cached scroll position.
- * @param {number} currentPosition The current scroll position.
- * @returns {boolean}
- */
-export function hasScrollPositionChanged(previousPosition, currentPosition) {
-  return previousPosition === null || previousPosition !== currentPosition;
-}
-
-/**
  * @class TableView
  * @private
  */
@@ -149,19 +138,6 @@ class TableView {
    * @type {{ x: number, y: number } | null}
    */
   #mouseDownLastPos = null;
-  /**
-   * Cached vertical scroll position from the top overlay.
-   *
-   * @type {number | null}
-   */
-  #lastVerticalScrollPosition = null;
-  /**
-   * Cached horizontal scroll position from the inline start overlay.
-   *
-   * @type {number | null}
-   */
-  #lastHorizontalScrollPosition = null;
-
   /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
@@ -1097,18 +1073,10 @@ class TableView {
         return visualColumn;
       },
       onScrollVertically: () => {
-        if (!this.#didVerticalScrollPositionChange()) {
-          return;
-        }
-
         this.hot.runHooks('afterScrollVertically');
         this.hot.runHooks('afterScroll');
       },
       onScrollHorizontally: () => {
-        if (!this.#didHorizontalScrollPositionChange()) {
-          return;
-        }
-
         this.hot.runHooks('afterScrollHorizontally');
         this.hot.runHooks('afterScroll');
       },
@@ -1281,7 +1249,6 @@ class TableView {
 
     this._wt = new Walkontable(walkontableConfig);
     this.activeWt = this._wt;
-    this.#cacheScrollPositions();
 
     const spreader = this._wt.wtTable.spreader;
     // We have to cache width and height after Walkontable initialization.
@@ -1310,42 +1277,6 @@ class TableView {
         }
       }
     });
-  }
-
-  /**
-   * Caches current vertical and horizontal scroll positions from Walkontable overlays.
-   */
-  #cacheScrollPositions() {
-    this.#lastVerticalScrollPosition = this._wt.wtOverlays.topOverlay.getScrollPosition();
-    this.#lastHorizontalScrollPosition = this._wt.wtOverlays.inlineStartOverlay.getScrollPosition();
-  }
-
-  /**
-   * Checks whether the vertical scroll position has changed since the previous callback.
-   *
-   * @returns {boolean}
-   */
-  #didVerticalScrollPositionChange() {
-    const currentVerticalPosition = this._wt.wtOverlays.topOverlay.getScrollPosition();
-    const hasChanged = hasScrollPositionChanged(this.#lastVerticalScrollPosition, currentVerticalPosition);
-
-    this.#lastVerticalScrollPosition = currentVerticalPosition;
-
-    return hasChanged;
-  }
-
-  /**
-   * Checks whether the horizontal scroll position has changed since the previous callback.
-   *
-   * @returns {boolean}
-   */
-  #didHorizontalScrollPositionChange() {
-    const currentHorizontalPosition = this._wt.wtOverlays.inlineStartOverlay.getScrollPosition();
-    const hasChanged = hasScrollPositionChanged(this.#lastHorizontalScrollPosition, currentHorizontalPosition);
-
-    this.#lastHorizontalScrollPosition = currentHorizontalPosition;
-
-    return hasChanged;
   }
 
   /**

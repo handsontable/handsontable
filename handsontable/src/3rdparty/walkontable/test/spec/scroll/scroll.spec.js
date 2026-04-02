@@ -912,8 +912,9 @@ describe('WalkontableScroll', () => {
       inlineStartOverlayHolder.removeEventListener('scroll', inlineStartOverlayCallback);
     });
 
-    // The following cases cover Walkontable axis routing when scroll offsets change. Handsontable deduplicates
-    // `onScrollVertically` / `onScrollHorizontally` when the same offset is reported again (`tableView.js`).
+    // The following cases cover Walkontable axis routing when scroll offsets change.
+    // Walkontable deduplicates `onScrollVertically` / `onScrollHorizontally` in `Overlays#refreshAll()`
+    // when `getScrollPosition()` reports the same offset as the previous callback invocation.
 
     it('should call onScrollVertically hook, if scrollTop was changed (from 0 to N)', async() => {
       createDataArray(100, 100);
