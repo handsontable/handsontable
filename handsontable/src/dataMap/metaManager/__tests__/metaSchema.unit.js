@@ -100,6 +100,40 @@ describe('metaSchema', () => {
 
       expect(defaults.isEmptyRow.call(hot, 0)).toBe(true);
     });
+
+    it('should continue checking remaining columns after an object column matches the schema default', () => {
+      // Regression: the original object branch did `return isObjectEqual(...)`, short-circuiting
+      // the loop. A later column with a non-default value was never checked.
+      const defaults = metaSchemaFactory();
+      const schema = { meta: { type: 'a' }, value: 0 };
+
+      function createHotMockMixed({ data }) {
+        const rows = data;
+        const props = Object.keys(schema);
+
+        return {
+          getSettings: () => ({ dataSchema: schema }),
+          getSchema: () => schema,
+          countCols: () => props.length,
+          getDataAtCell: (row, col) => rows[row][props[col]],
+          getCellMeta: (row, col) => ({ prop: props[col] }),
+        };
+      }
+
+      // Row where the object column matches its default but a later primitive column does NOT
+      const hotNotEmpty = createHotMockMixed({
+        data: [{ meta: { type: 'a' }, value: 99 }],
+      });
+
+      expect(defaults.isEmptyRow.call(hotNotEmpty, 0)).toBe(false);
+
+      // Row where both columns match their defaults
+      const hotEmpty = createHotMockMixed({
+        data: [{ meta: { type: 'a' }, value: 0 }],
+      });
+
+      expect(defaults.isEmptyRow.call(hotEmpty, 0)).toBe(true);
+    });
   });
 
   describe('isEmptyCol()', () => {
