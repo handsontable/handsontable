@@ -541,7 +541,7 @@ When running unit tests for a specific plugin:
 4. Implement the fix/feature.
 5. Commit with the task ID in the message (e.g. `fix(DEV-627): ...`).
 6. Push to the correctly-named branch.
-7. When asked to open a PR, include the task ID in the PR title.
+7. When asked to open a PR, include the task ID in the PR title and a link to the ClickUp task in the body. Also apply the changelog policy: add `[skip changelog]` at the top of the PR body if the change contains **no source code modifications** (docs, config, `AGENTS.md`, etc.); otherwise include a changelog entry via `bin/changelog entry`.
 8. After the PR is created, use ClickUp MCP to update the task status to **"code review"**.
 
 ### Other rules
