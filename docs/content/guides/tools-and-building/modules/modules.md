@@ -615,7 +615,7 @@ The table below lists all of Handsontable's modules:
 
 ## Build weight
 
-The tables below show the minified and gzip sizes of each module when bundled on top of the base module. Measurements were made with esbuild using minification, against Handsontable 17.0.1.
+The tables below show the minified and gzip sizes of each module when bundled on top of the base module. Measurements were made with esbuild using minification, against **Handsontable 17.0.1**. These values are updated with each minor release.
 
 The **gzip** column represents the size after gzip compression - the most relevant metric for network transfer.
 
