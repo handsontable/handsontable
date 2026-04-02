@@ -511,3 +511,4 @@ When working on a task from ClickUp:
   3. Create a branch: `feature/<TASK-ID>_<Slugified-Title>`.
   4. Implement the fix/feature, commit with the task ID in the message.
   5. Push and (when asked) open a PR whose title includes the task ID.
+  6. After the PR is created, use the ClickUp MCP tools to update the task status to **"code review"**.
