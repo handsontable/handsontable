@@ -1007,8 +1007,6 @@ describe('Core_view', () => {
       contextMenu: true
     });
 
-    await sleep(100);
-
     const $htCore = spec().$container.find('.ht_master .wtHolder .wtHider .wtSpreader .htCore');
     const $wtHider = spec().$container.find('.ht_master .wtHolder .wtHider');
 
@@ -1038,8 +1036,6 @@ describe('Core_view', () => {
       nestedRows: true,
       rowHeaders: true
     });
-
-    await sleep(100);
 
     const headerCell = getCell(-1, 1);
     const $htCore = spec().$container.find('.ht_master .wtHolder .wtHider .wtSpreader .htCore');
