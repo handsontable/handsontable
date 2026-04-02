@@ -3332,11 +3332,20 @@ export default () => {
       let rowLen;
       let value;
 
+      const prop = this.colToProp(col);
+      const schemaDefault = this.getSchema()[prop];
+
       for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
-          return false;
+          if (typeof value === 'object') {
+            if (isObjectEqual(schemaDefault, value) === false) {
+              return false;
+            }
+          } else if (value !== schemaDefault) {
+            return false;
+          }
         }
       }
 
@@ -3378,13 +3387,17 @@ export default () => {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
+          meta = this.getCellMeta(row, col);
+
+          const schemaDefault = this.getSchema()[meta.prop];
+
           if (typeof value === 'object') {
-            meta = this.getCellMeta(row, col);
-
-            return isObjectEqual(this.getSchema()[meta.prop], value);
+            if (isObjectEqual(schemaDefault, value) === false) {
+              return false;
+            }
+          } else if (value !== schemaDefault) {
+            return false;
           }
-
-          return false;
         }
       }
 
