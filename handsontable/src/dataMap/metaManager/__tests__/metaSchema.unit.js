@@ -10,7 +10,7 @@ describe('metaSchema', () => {
         getSettings: () => ({ dataSchema }),
         getSchema: () => dataSchema,
         countCols: () => colCount,
-        getDataAtCell: (row, col) => rows[row] ? rows[row][col] : null,
+        getDataAtCell: (row, col) => (rows[row] ? rows[row][col] : null),
         getCellMeta: (row, col) => ({ prop: col }),
       };
     }
@@ -18,13 +18,14 @@ describe('metaSchema', () => {
     function createHotMockObjects({ data, dataSchema } = {}) {
       const rows = data || [];
       const schema = dataSchema;
-      const props = schema ? Object.keys(schema) : (rows[0] ? Object.keys(rows[0]) : []);
+      const propsSource = schema || rows[0];
+      const props = propsSource ? Object.keys(propsSource) : [];
 
       return {
         getSettings: () => ({ dataSchema: schema }),
         getSchema: () => schema,
         countCols: () => props.length,
-        getDataAtCell: (row, col) => rows[row] ? rows[row][props[col]] : null,
+        getDataAtCell: (row, col) => (rows[row] ? rows[row][props[col]] : null),
         getCellMeta: (row, col) => ({ prop: props[col] }),
       };
     }
@@ -105,13 +106,14 @@ describe('metaSchema', () => {
     function createHotMockObjects({ data, dataSchema } = {}) {
       const rows = data || [];
       const schema = dataSchema;
-      const props = schema ? Object.keys(schema) : (rows[0] ? Object.keys(rows[0]) : []);
+      const propsSource = schema || rows[0];
+      const props = propsSource ? Object.keys(propsSource) : [];
 
       return {
         getSettings: () => ({ dataSchema: schema }),
         getSchema: () => schema,
         countRows: () => rows.length,
-        getDataAtCell: (row, col) => rows[row] ? rows[row][props[col]] : null,
+        getDataAtCell: (row, col) => (rows[row] ? rows[row][props[col]] : null),
         getCellMeta: (row, col) => ({ prop: props[col] }),
       };
     }
