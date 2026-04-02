@@ -3342,6 +3342,14 @@ export default () => {
           if (hasExplicitSchema) {
             meta = this.getCellMeta(row, col);
 
+            if (typeof value === 'object') {
+              if (!isObjectEqual(this.getSchema()[meta.prop], value)) {
+                return false;
+              }
+
+              continue;
+            }
+
             if (schema[meta.prop] === value) {
               continue;
             }

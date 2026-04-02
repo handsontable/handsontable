@@ -187,5 +187,27 @@ describe('metaSchema', () => {
 
       expect(defaults.isEmptyCol.call(hot, 0)).toBe(false);
     });
+
+    it('should return true when all cells in a column contain an object matching the dataSchema default (GH #671)', () => {
+      const defaults = metaSchemaFactory();
+      const schema = { meta: { type: 'a' } };
+      const hot = createHotMockObjects({
+        data: [{ meta: { type: 'a' } }, { meta: { type: 'a' } }],
+        dataSchema: schema,
+      });
+
+      expect(defaults.isEmptyCol.call(hot, 0)).toBe(true);
+    });
+
+    it('should return false when any cell in a column contains an object differing from the dataSchema default (GH #671)', () => {
+      const defaults = metaSchemaFactory();
+      const schema = { meta: { type: 'a' } };
+      const hot = createHotMockObjects({
+        data: [{ meta: { type: 'a' } }, { meta: { type: 'b' } }],
+        dataSchema: schema,
+      });
+
+      expect(defaults.isEmptyCol.call(hot, 0)).toBe(false);
+    });
   });
 });
