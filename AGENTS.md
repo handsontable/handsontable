@@ -38,6 +38,7 @@ These are the most frequent mistakes. Read this section first.
 | Hardcoding user-visible text in source code | Add language constants in `src/i18n/constants.js` and update all language files in `src/i18n/languages/`. |
 | Using `.bind(this)` for hook/event callbacks | Use arrow-function class fields (`#onAfterX = () => { ... }`) instead. |
 | Direct cross-plugin imports | Use hooks for inter-plugin communication or `hot.getPlugin('{Name}')` if API access is required. |
+| Confusing the context menu with the column (dropdown) menu | These are two separate plugins. See [Context menu vs column menu](#context-menu-vs-column-menu). |
 
 ---
 
@@ -430,6 +431,26 @@ When calling `updateSettings()` in the React wrapper, **preserve and restore sel
 
 ---
 
+## Context menu vs column menu
+
+Handsontable has two distinct menu plugins that are frequently confused. Always use the correct plugin name, option key, and hook prefix.
+
+| | Context menu | Column menu (dropdown menu) |
+|---|---|---|
+| **User-facing name** | Context menu | Column menu / dropdown menu |
+| **Plugin class** | `ContextMenu` | `DropdownMenu` |
+| **PLUGIN_KEY** | `'contextMenu'` | `'dropdownMenu'` |
+| **Config option** | `contextMenu: true\|false\|array\|object` | `dropdownMenu: true\|false\|array\|object` |
+| **Trigger** | Right-click (or `Ctrl+Shift+\` / `Shift+F10`) on any cell or header | Click the button rendered inside a column header (or `Shift+Alt+ArrowDown` when a header is focused) |
+| **Scope** | Cells and headers across rows and columns | Column-specific operations only |
+| **Default items** | Row/column insert and remove, undo, redo, alignment, read-only | Column insert and remove, clear column, alignment, read-only |
+| **Hook prefix** | `beforeContextMenu*`, `afterContextMenu*` | `beforeDropdownMenu*`, `afterDropdownMenu*` |
+| **Source directory** | `src/plugins/contextMenu/` | `src/plugins/dropdownMenu/` |
+
+**Important:** `DropdownMenu` is built on top of the shared `Menu` class from `contextMenu`, so they look similar internally - but they are configured and triggered independently. When a task mentions "column menu", "column header menu", or "dropdown menu", it always refers to `dropdownMenu`, not `contextMenu`.
+
+---
+
 ## File locations reference
 
 | Area | Path |
@@ -700,6 +721,7 @@ When running unit tests for a specific plugin:
 - The docs site (`docs/`) uses Node 20 and is not needed for core development.
 - Walkontable has its **own test runner** -- do not mix with main E2E tests.
 - No Docker, databases, or external services are required.
+- **Context menu vs column (dropdown) menu**: "Context menu" (`contextMenu` option, right-click triggered) and "column menu" (`dropdownMenu` option, column header button triggered) are separate plugins with separate hook prefixes and config keys. Never mix them up. See [Context menu vs column menu](#context-menu-vs-column-menu).
 - **Filters plugin visual/physical column index**: When working with the filters plugin in combination with `manualColumnMove`, always ensure proper conversion between visual and physical column indexes. The `conditionCollection` and `conditionUpdateObserver` operate on physical indexes, while `getDataAtCol()` requires visual indexes. See issue #11832 for details.
 - For hook signature/behavior fixes, add both a runtime regression (`handsontable/src/**/__tests__/*.spec.js` or `handsontable/test/e2e/hooks/*.spec.js`) and a TypeScript regression (`handsontable/src/__tests__/core/settings.types.ts`) when types are changed.
 
@@ -730,3 +752,20 @@ When running unit tests for a specific plugin:
 ### Testing preference
 
 - For bug fixes in `handsontable/`, add both a focused unit test and a focused E2E regression test when practical.
+
+---
+
+## ClickUp task integration
+
+When working on a task from ClickUp:
+
+- **Extract the task ID** from the ClickUp URL. For example, `https://app.clickup.com/t/9015210959/DEV-627` has task ID `DEV-627`.
+- **Branch naming**: Use `feature/DEV-627_Short-Task-Description` (slugified task title). At minimum the branch must contain `feature/DEV-627`. Example: `feature/DEV-627_Handsontable-Forum-Update`.
+- **Commit messages and PR titles** must include the task ID (e.g. `DEV-627`) so ClickUp automatically links the commit/PR to the task.
+- **Authentication**: Use the ClickUp MCP tools for all ClickUp API interactions (fetching task details, updating status, posting comments). Do not attempt to call the ClickUp REST API directly.
+- **Workflow summary**:
+  1. Parse the task ID from the provided ClickUp URL.
+  2. Use MCP to fetch task details (title, description, acceptance criteria).
+  3. Create a branch: `feature/<TASK-ID>_<Slugified-Title>`.
+  4. Implement the fix/feature, commit with the task ID in the message.
+  5. Push and (when asked) open a PR whose title includes the task ID.
