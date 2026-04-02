@@ -357,6 +357,45 @@ describe('NestedHeaders', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: -2,1']);
     });
 
+    it('should keep rowspan header row context when neighbour header uses colspan', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 4),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [{ label: 'RS', rowspan: 2 }, { label: 'BC', colspan: 2 }, 'E'],
+          ['', 'B2', 'C2', 'D2'],
+        ],
+      });
+
+      await selectCell(-2, 0);
+      await keyDownUp('arrowright');
+
+      let [{ highlight: bcHighlight }] = getSelectedRange();
+
+      expect(bcHighlight.row).toBe(-2);
+      expect(bcHighlight.col).toBeGreaterThanOrEqual(1);
+      expect(bcHighlight.col).toBeLessThanOrEqual(2);
+
+      await keyDownUp('arrowleft');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,0 from: -2,0 to: -2,0']);
+
+      await selectCell(-2, bcHighlight.col);
+      await keyDownUp('arrowright');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: -2,3 from: -2,3 to: -2,3']);
+
+      await keyDownUp('arrowleft');
+
+      [{ highlight: bcHighlight }] = getSelectedRange();
+
+      expect(bcHighlight.row).toBe(-2);
+      expect(bcHighlight.col).toBeGreaterThanOrEqual(1);
+      expect(bcHighlight.col).toBeLessThanOrEqual(2);
+    });
+
     it('should reset rowspan navigation context after updating nested headers settings', async() => {
       const prevOnError = window.onerror;
       const onErrorSpy = jasmine.createSpy('onErrorSpy');

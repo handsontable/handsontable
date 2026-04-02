@@ -230,12 +230,13 @@ describe('StretchColumns', () => {
     });
 
     {
-      const columnWidth = window.innerWidth / 3;
+      const layoutWidth = document.documentElement.clientWidth;
+      const columnWidth = layoutWidth / 3;
 
       expect(getColWidth(0)).toBeAroundValue(columnWidth, 1);
       expect(getColWidth(1)).toBeAroundValue(columnWidth, 1);
       expect(getColWidth(2)).toBeAroundValue(columnWidth, 1);
-      expect(getMaster().find('.wtHider').width()).toBe(window.innerWidth);
+      expect(getMaster().find('.wtHider').width()).toBe(layoutWidth);
     }
 
     await waitForNextAnimationFrames(2);
@@ -243,12 +244,13 @@ describe('StretchColumns', () => {
     await waitForNextAnimationFrames(2);
 
     {
-      const columnWidth = (window.innerWidth - 15) / 3;
+      const layoutWidth = document.documentElement.clientWidth;
+      const columnWidth = layoutWidth / 3;
 
       expect(getColWidth(0)).toBeAroundValue(columnWidth, 1);
       expect(getColWidth(1)).toBeAroundValue(columnWidth, 1);
       expect(getColWidth(2)).toBeAroundValue(columnWidth, 1);
-      expect(getMaster().find('.wtHider').width()).toBe(window.innerWidth - 15);
+      expect(getMaster().find('.wtHider').width()).toBe(layoutWidth);
     }
   });
 
@@ -263,12 +265,13 @@ describe('StretchColumns', () => {
     });
 
     {
-      const columnWidth = (window.innerWidth - 15) / 3;
+      const layoutWidth = document.documentElement.clientWidth;
+      const columnWidth = layoutWidth / 3;
 
       expect(getColWidth(0)).toBeAroundValue(columnWidth, 1);
       expect(getColWidth(1)).toBeAroundValue(columnWidth, 1);
       expect(getColWidth(2)).toBeAroundValue(columnWidth, 1);
-      expect(getMaster().find('.wtHider').width()).toBe(window.innerWidth - 15);
+      expect(getMaster().find('.wtHider').width()).toBe(layoutWidth);
     }
 
     await waitForNextAnimationFrames(2);
@@ -276,12 +279,13 @@ describe('StretchColumns', () => {
     await waitForNextAnimationFrames(2);
 
     {
-      const columnWidth = window.innerWidth / 3;
+      const layoutWidth = document.documentElement.clientWidth;
+      const columnWidth = layoutWidth / 3;
 
       expect(getColWidth(0)).toBeAroundValue(columnWidth, 1);
       expect(getColWidth(1)).toBeAroundValue(columnWidth, 1);
       expect(getColWidth(2)).toBeAroundValue(columnWidth, 1);
-      expect(getMaster().find('.wtHider').width()).toBe(window.innerWidth);
+      expect(getMaster().find('.wtHider').width()).toBe(layoutWidth);
     }
 
     document.body.style.overflowY = 'scroll';

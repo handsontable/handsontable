@@ -1094,80 +1094,83 @@ export class NestedHeaders extends BasePlugin {
       this.#rowspanHeaderNavigationContextRow = null;
     }
 
+    if (isNestedHeadersRange) {
+      const {
+        isRowspanPlaceholder: isCurrentHeaderRowspanPlaceholderForBounds,
+      } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
+      const {
+        isRowspanPlaceholder: isNextHeaderRowspanPlaceholderForBounds,
+      } = this.#stateManager.getHeaderSettings(nextCoords.row, nextCoords.col) ?? {};
+      let visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
+      let visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
+
+      if (isNextHeaderRowspanPlaceholderForBounds) {
+        const renderableNextHeaderRow = this.#findRenderableHeaderRow(nextCoords.row, nextCoords.col);
+
+        visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(renderableNextHeaderRow, nextCoords.col);
+        visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(renderableNextHeaderRow, nextCoords.col);
+      }
+
+      if (isCurrentHeaderRowspanPlaceholderForBounds) {
+        const renderableCurrentHeaderRow = this.#findRenderableHeaderRow(highlight.row, highlight.col);
+
+        visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(renderableCurrentHeaderRow, highlight.col);
+        visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(renderableCurrentHeaderRow, highlight.col);
+
+        if (initialDeltaColumn < 0) {
+          visualColumnIndexStart = Math.max(visualColumnIndexStart, Math.min(highlight.col, nextCoords.col));
+        } else if (initialDeltaColumn > 0) {
+          visualColumnIndexEnd = Math.min(visualColumnIndexEnd, Math.max(highlight.col, nextCoords.col));
+        }
+      }
+
+      if (delta.col < 0) {
+        const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+          visualColumnIndexStart - 1 : visualColumnIndexEnd;
+        const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
+
+        if (notHiddenColumnIndex === null) {
+          // There are no visible columns anymore, so move the selection out of the table edge. This will
+          // be processed by the selection Transformer class as a move selection to the previous row (if autoWrapRow is enabled).
+          delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
+        } else {
+          delta.col = -Math.max(
+            this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1,
+            1,
+          );
+        }
+
+      } else if (delta.col > 0) {
+        const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
+          visualColumnIndexEnd + 1 : visualColumnIndexStart;
+        const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
+
+        if (notHiddenColumnIndex === null) {
+          // There are no visible columns anymore, so move the selection out of the table edge. This will
+          // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
+          delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
+
+          if (isCurrentHeaderRowspanPlaceholderForBounds) {
+            delta.col += 1;
+
+            if (highlight.row < -1) {
+              delta.row = 1;
+              delta.col = -(highlight.col + 1);
+            }
+          }
+        } else {
+          delta.col = Math.max(
+            this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1,
+            1,
+          );
+        }
+      }
+    }
+
     this.#expectedNextKeyboardHighlightCoords = {
       row: highlight.row + delta.row,
       col: highlight.col + delta.col,
     };
-
-    if (!isNestedHeadersRange) {
-      return;
-    }
-
-    const {
-      isRowspanPlaceholder: isCurrentHeaderRowspanPlaceholderForBounds,
-    } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
-    const {
-      isRowspanPlaceholder: isNextHeaderRowspanPlaceholderForBounds,
-    } = this.#stateManager.getHeaderSettings(nextCoords.row, nextCoords.col) ?? {};
-    let visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
-    let visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
-
-    if (isNextHeaderRowspanPlaceholderForBounds) {
-      const renderableNextHeaderRow = this.#findRenderableHeaderRow(nextCoords.row, nextCoords.col);
-
-      visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(renderableNextHeaderRow, nextCoords.col);
-      visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(renderableNextHeaderRow, nextCoords.col);
-    }
-
-    if (isCurrentHeaderRowspanPlaceholderForBounds) {
-      const renderableCurrentHeaderRow = this.#findRenderableHeaderRow(highlight.row, highlight.col);
-
-      visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(renderableCurrentHeaderRow, highlight.col);
-      visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(renderableCurrentHeaderRow, highlight.col);
-
-      if (initialDeltaColumn < 0) {
-        visualColumnIndexStart = Math.max(visualColumnIndexStart, Math.min(highlight.col, nextCoords.col));
-      } else if (initialDeltaColumn > 0) {
-        visualColumnIndexEnd = Math.min(visualColumnIndexEnd, Math.max(highlight.col, nextCoords.col));
-      }
-    }
-
-    if (delta.col < 0) {
-      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
-        visualColumnIndexStart - 1 : visualColumnIndexEnd;
-      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, -1);
-
-      if (notHiddenColumnIndex === null) {
-        // There are no visible columns anymore, so move the selection out of the table edge. This will
-        // be processed by the selection Transformer class as a move selection to the previous row (if autoWrapRow is enabled).
-        delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
-      } else {
-        delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1, 1);
-      }
-
-    } else if (delta.col > 0) {
-      const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
-        visualColumnIndexEnd + 1 : visualColumnIndexStart;
-      const notHiddenColumnIndex = this.hot.columnIndexMapper.getNearestNotHiddenIndex(nextColumn, 1);
-
-      if (notHiddenColumnIndex === null) {
-        // There are no visible columns anymore, so move the selection out of the table edge. This will
-        // be processed by the selection Transformer class as a move selection to the next row (if autoWrapRow is enabled).
-        delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
-
-        if (isCurrentHeaderRowspanPlaceholderForBounds) {
-          delta.col += 1;
-
-          if (highlight.row < -1) {
-            delta.row = 1;
-            delta.col = -(highlight.col + 1);
-          }
-        }
-      } else {
-        delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
-      }
-    }
-
   }
 
   /**
