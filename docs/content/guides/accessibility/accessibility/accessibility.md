@@ -262,6 +262,15 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
 - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [What's new in Handsontable 14: Improvements to accessibility](https://handsontable.com/blog/whats-new-in-handsontable-14-improvements-to-accessibility)
+- [Handsontable 14.0.0: Prioritizing accessibility](https://handsontable.com/blog/handsontable-14-0-0-prioritizing-accessibility)
+
+</div>
+
 ## Troubleshooting
 
 Try the following links if you didn't find what you need:

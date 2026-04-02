@@ -92,6 +92,14 @@ Here's the list of all unsupported features:
 | <kbd>**Ctrl**</kbd>+<kbd>**Y**</kbd>                        | <kbd>**Cmd**</kbd>+<kbd>**Y**</kbd>                        | Redo the last action | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd> | Redo the last action | &check; | &check; |
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 14.6.0: Easier styling and enhanced Undo/Redo](https://handsontable.com/blog/handsontable-14-6-0-easier-styling-and-enhanced-undo-redo)
+
+</div>
+
 ## Related API reference
 
 - Configuration options:

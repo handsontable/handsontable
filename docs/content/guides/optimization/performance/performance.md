@@ -159,6 +159,10 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 - [Modules](@/guides/tools-and-building/modules/modules.md)
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
 
+### Related blog articles
+
+- [Handsontable 10.0.0: Improved performance and consistency](https://handsontable.com/blog/handsontable-10.0.0-improved-performance-and-consistency)
+
 ### Related API reference
 
 - Configuration options:

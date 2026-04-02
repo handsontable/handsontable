@@ -194,6 +194,10 @@ When working with object-based MultiSelect data, you can use methods like [`getS
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
 - [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
 
+### Related blog articles
+
+- [Handsontable 17.0.0: Multiselect Cell Type, Simpler Custom Cells, and a New Themes API](https://handsontable.com/blog/handsontable-17.0.0-multiselect-cell-type-simpler-custom-cells-and-a-new-themes-api)
+
 ### Related API reference
 
 - Configuration options:
