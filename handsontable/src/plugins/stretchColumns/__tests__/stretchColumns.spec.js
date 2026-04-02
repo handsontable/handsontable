@@ -343,6 +343,19 @@ describe('StretchColumns', () => {
     expect(getColWidth(4)).toBe(50);
   });
 
+  it('should stretch the last column to fill the viewport when stretchH is "last"', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 3),
+      width: 300,
+      height: 200,
+      stretchH: 'last',
+    });
+
+    expect(getColWidth(0)).toBe(50);
+    expect(getColWidth(1)).toBe(50);
+    expect(getColWidth(2)).toBe(200);
+  });
+
   it('should not stretch the columns when the sum of columns widths is wider than the viewport (stretch "last")', async() => {
     handsontable({
       data: createSpreadsheetData(5, 6),
