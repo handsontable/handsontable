@@ -34,8 +34,8 @@ const GLOB_MAP = {
   'coordinate-systems': ['handsontable/src/translations/**', 'handsontable/src/plugins/**'],
   'i18n-translations': ['handsontable/src/i18n/**'],
   'theme-css-dev': ['handsontable/src/styles/**', 'handsontable/src/themes/**'],
-  'linting': ['handsontable/.eslintrc.js', 'handsontable/.config/plugin/eslint/**', '.eslintrc.js'],
-  'refactoring': null, // no globs -- too broad
+  linting: ['handsontable/.eslintrc.js', 'handsontable/.config/plugin/eslint/**', '.eslintrc.js'],
+  refactoring: null, // no globs -- too broad
   'pr-creation': null,
   'changelog-creation': ['.changelogs/**'],
   'code-quality-review': null, // review skills: no globs, loaded via BUGBOT.md
@@ -44,6 +44,12 @@ const GLOB_MAP = {
   'node-scripts-dev': ['scripts/**/*.mjs', 'wrappers/*/scripts/**/*.mjs', 'handsontable/scripts/**/*.mjs'],
 };
 
+/**
+ * Parses YAML frontmatter from a SKILL.md file.
+ *
+ * @param {string} content The raw file content.
+ * @returns {object} Parsed name, description, and body.
+ */
 function parseFrontmatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
 
@@ -60,6 +66,15 @@ function parseFrontmatter(content) {
   return { name, description, body };
 }
 
+/**
+ * Builds a Cursor .mdc rule file from skill metadata.
+ *
+ * @param {string} name The skill name.
+ * @param {string} description The skill description.
+ * @param {string[]|null} globs Glob patterns for file matching.
+ * @param {string} body The skill body content.
+ * @returns {string} The .mdc file content.
+ */
 function buildMdc(name, description, globs, body) {
   const lines = ['---'];
 
@@ -75,13 +90,16 @@ function buildMdc(name, description, globs, body) {
   lines.push(`# ${name}`);
   lines.push('');
   lines.push(`> Auto-generated from \`.claude/skills/${name}/SKILL.md\`. Do not edit manually.`);
-  lines.push(`> Run \`node scripts/sync-skills-to-cursor.mjs\` to regenerate.`);
+  lines.push('> Run `node scripts/sync-skills-to-cursor.mjs` to regenerate.');
   lines.push('');
   lines.push(body);
 
   return lines.join('\n');
 }
 
+/**
+ * Main entry point. Reads skills and generates Cursor rule files.
+ */
 async function main() {
   const dryRun = process.argv.includes('--dry-run');
 
@@ -140,12 +158,12 @@ async function main() {
   console.log(`\nGenerated: ${generated.length} rules`);
 
   if (generated.length > 0) {
-    console.log(generated.map((f) => `  .cursor/rules/${f}`).join('\n'));
+    console.log(generated.map(f => `  .cursor/rules/${f}`).join('\n'));
   }
 
   if (skipped.length > 0) {
     console.log(`\nSkipped: ${skipped.length}`);
-    console.log(skipped.map((s) => `  ${s}`).join('\n'));
+    console.log(skipped.map(s => `  ${s}`).join('\n'));
   }
 
   if (!dryRun) {
