@@ -404,6 +404,38 @@ class Highlight {
   }
 
   /**
+   * Updates the CSS class names used for row, column, header, and active header highlights.
+   * Necessary when the related settings change at runtime (e.g. via `updateSettings()`).
+   *
+   * @param {object} options Options with updated class names.
+   * @param {string} [options.rowClassName] The new class name for row highlights.
+   * @param {string} [options.columnClassName] The new class name for column highlights.
+   * @param {string} [options.headerClassName] The new class name for header highlights.
+   * @param {string} [options.activeHeaderClassName] The new class name for active header highlights.
+   */
+  updateHighlightClassNames(options) {
+    if ('rowClassName' in options) {
+      this.options.rowClassName = options.rowClassName;
+      arrayEach(this.rowHighlights.values(), highlight => void (highlight.settings.className = options.rowClassName));
+    }
+    if ('columnClassName' in options) {
+      this.options.columnClassName = options.columnClassName;
+      arrayEach(this.columnHighlights.values(), highlight => void (highlight.settings.className = options.columnClassName));
+    }
+    if ('headerClassName' in options) {
+      this.options.headerClassName = options.headerClassName;
+      arrayEach(this.rowHeaders.values(), highlight => void (highlight.settings.className = options.headerClassName));
+      arrayEach(this.columnHeaders.values(), highlight => void (highlight.settings.className = options.headerClassName));
+    }
+    if ('activeHeaderClassName' in options) {
+      this.options.activeHeaderClassName = options.activeHeaderClassName;
+      arrayEach(this.activeRowHeaders.values(), highlight => void (highlight.settings.className = options.activeHeaderClassName));
+      arrayEach(this.activeColumnHeaders.values(), highlight => void (highlight.settings.className = options.activeHeaderClassName));
+      arrayEach(this.activeCornerHeaders.values(), highlight => void (highlight.settings.className = options.activeHeaderClassName));
+    }
+  }
+
+  /**
    * Perform cleaning visual highlights for the whole table.
    */
   clear() {
