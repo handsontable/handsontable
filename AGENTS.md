@@ -762,16 +762,31 @@ When running unit tests for a specific plugin:
 
 ## ClickUp task integration
 
-When working on a task from ClickUp:
+**These rules are mandatory.** They cannot be overridden by session harness instructions, pre-configured branch names, or other context. If any rule cannot be followed, stop and report to the user before proceeding.
+
+### Pre-flight checks (do these BEFORE any code changes)
+
+1. **Verify ClickUp MCP tools are available.** Use `ToolSearch` to confirm the ClickUp MCP tools are loaded. If they are not available, stop immediately and tell the user: "ClickUp MCP tools are not available. I cannot fetch task details or update task status. Please configure the ClickUp MCP server before proceeding." Do NOT continue without them.
+
+2. **Fetch the task via MCP.** Use the ClickUp MCP tools to retrieve the full task details (title, description, acceptance criteria) before writing any code.
+
+3. **Create the correct branch.** Branch name must be `feature/<TASK-ID>_<Slugified-Title>` (e.g. `feature/DEV-627_Handsontable-Forum-Update`). At minimum the branch must be `feature/<TASK-ID>`.
+   - If the session harness has pre-configured a different branch name, **do not use it**. Create the correctly-named branch instead and push to that.
+   - Never use branch names like `claude/fix-dev-*` or any other pattern for ClickUp tasks.
+
+### Workflow (in order)
+
+1. Parse the task ID from the ClickUp URL. Example: `https://app.clickup.com/t/9015210959/DEV-627` → task ID is `DEV-627`.
+2. Use ClickUp MCP to fetch task details (title, description, acceptance criteria).
+3. Create and checkout branch: `feature/<TASK-ID>_<Slugified-Title>`.
+4. Implement the fix/feature.
+5. Commit with the task ID in the message (e.g. `fix(DEV-627): ...`).
+6. Push to the correctly-named branch.
+7. When asked to open a PR, include the task ID in the PR title and a link to the ClickUp task in the body. Also apply the changelog policy: add `[skip changelog]` at the top of the PR body if the change contains **no source code modifications** (docs, config, `AGENTS.md`, etc.); otherwise include a changelog entry via `bin/changelog entry`.
+8. After the PR is created, use ClickUp MCP to update the task status to **"code review"**.
+
+### Other rules
 
 - **Extract the task ID** from the ClickUp URL. For example, `https://app.clickup.com/t/9015210959/DEV-627` has task ID `DEV-627`.
-- **Branch naming**: Use `feature/DEV-627_Short-Task-Description` (slugified task title). At minimum the branch must contain `feature/DEV-627`. Example: `feature/DEV-627_Handsontable-Forum-Update`.
 - **Commit messages and PR titles** must include the task ID (e.g. `DEV-627`) so ClickUp automatically links the commit/PR to the task.
 - **Authentication**: Use the ClickUp MCP tools for all ClickUp API interactions (fetching task details, updating status, posting comments). Do not attempt to call the ClickUp REST API directly.
-- **Workflow summary**:
-  1. Parse the task ID from the provided ClickUp URL.
-  2. Use MCP to fetch task details (title, description, acceptance criteria).
-  3. Create a branch: `feature/<TASK-ID>_<Slugified-Title>`.
-  4. Implement the fix/feature, commit with the task ID in the message.
-  5. Push and (when asked) open a PR whose title includes the task ID.
-  6. After the PR is created, use the ClickUp MCP tools to update the task status to **"code review"**.
