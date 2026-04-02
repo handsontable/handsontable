@@ -63,7 +63,9 @@ Use the GitHub CLI to create the PR:
 gh pr create --title "DEV-xxx: Short description of the change" --body "..."
 ```
 
-Include the ClickUp task ID in the PR title when applicable (e.g. `DEV-627: Fix filter column index mapping`).
+- Include the ClickUp task ID in the PR title when applicable (e.g. `DEV-627: Fix filter column index mapping`).
+- Start the description with "The PR fixes/adds/changes/..." -- be direct, no filler.
+- If the PR introduces a breaking change, require the `Breaking change` label and include a migration section with before/after examples. Update migration guides in `docs/content/guides/upgrade-and-migration/`.
 
 ## 6. After PR Creation
 

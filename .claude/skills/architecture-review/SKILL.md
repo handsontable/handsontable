@@ -30,7 +30,11 @@ No deep property chains like `this.hot.view.wt.wtTable`. Each architectural laye
 
 ## Conflict Ownership
 
-The plugin that introduces an incompatibility owns the blocking logic. Other plugins must not contain awareness checks for that conflict. For hard conflicts, use `registerConflict()` from `src/plugins/base/conflictRegistry.js` at module load time.
+The plugin that introduces an incompatibility owns the blocking logic. Other plugins must NOT contain awareness checks like `if (dataProviderEnabled) return;` -- that logic belongs in the conflicting plugin. Compatibility tests also belong with the owning plugin, not the affected one. For hard conflicts, use `registerConflict()` from `src/plugins/base/conflictRegistry.js` at module load time.
+
+## Configuration Compatibility
+
+New options should support Handsontable's cascading configuration model (`cell` -> `column` -> `global`) when applicable. Some options are intentionally table-level only (e.g., `data`, `colHeaders`) -- document this limitation in JSDoc when so.
 
 ## Coordinate System Correctness
 

@@ -49,6 +49,18 @@ Review staged or changed code for compliance with Handsontable coding convention
 10. **DRY:**
     - No duplicated logic. Reuse existing helpers and mixins from `src/helpers/`. Extract shared code into utility functions.
 
+11. **Core language boundary:**
+    - No TypeScript files in `handsontable/src/`. Core is JavaScript only. Type definitions go in `handsontable/types/` as `.d.ts` files.
+
+12. **Documentation and AGENTS.md updates:**
+    - If the change introduces new conventions, constraints, or gotchas, require an `AGENTS.md` update.
+    - User-facing behavior or UX changes require matching docs updates in `docs/content/`.
+
+13. **Public API naming:**
+    - New option, hook, and method names must be generic, self-explanatory, and free of internal jargon.
+    - Check for collisions with existing API names (options, hooks, methods, plugin keys, CSS classes) before approving.
+    - Public API names carry long-term maintenance weight -- once released, they must be maintained indefinitely.
+
 ## Output Format
 
 List findings numbered by severity. Use these levels:

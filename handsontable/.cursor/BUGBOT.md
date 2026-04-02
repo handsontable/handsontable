@@ -73,6 +73,12 @@ All coding rules and conventions are in `/AGENTS.md`. Apply those rules to every
 - **ARIA semantics**: Verify that ARIA attributes (`role`, `aria-label`, `aria-selected`, `aria-colspan`, etc.) remain correct after rendering or selection changes. Screen readers (NVDA, JAWS, VoiceOver) rely on these.
 - **Tag existence**: New UI elements (buttons, icons, overlays) must use semantic HTML. Verify sufficient color contrast and no flashing/blinking content.
 
+## Code complexity and design
+
+- **Cognitive complexity**: Each function must stay at 15 or below on the Sonar cognitive-complexity metric. Extract helpers or add early-return guards when exceeded.
+- **SOLID / Law of Demeter**: No deep property chains like `this.hot.view.wt.wtTable`. Each layer has its own API surface -- use it. Follow SOLID principles: single responsibility per plugin, extend via hooks not modification, honor BasePlugin contract, narrow APIs, depend on hooks not concrete plugins.
+- **Memory management**: Plugins must clean up all references in `disablePlugin()` and `destroy()`. Verify no memory leaks in enable/disable cycles.
+
 ## Testing
 
 - **Test coverage**:
