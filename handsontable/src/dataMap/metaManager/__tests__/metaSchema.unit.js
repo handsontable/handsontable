@@ -11,7 +11,7 @@ describe('metaSchema', () => {
         getSchema: () => dataSchema,
         countCols: () => colCount,
         getDataAtCell: (row, col) => (rows[row] ? rows[row][col] : null),
-        getCellMeta: (row, col) => ({ prop: col }),
+        colToProp: col => col,
       };
     }
 
@@ -26,7 +26,7 @@ describe('metaSchema', () => {
         getSchema: () => schema,
         countCols: () => props.length,
         getDataAtCell: (row, col) => (rows[row] ? rows[row][props[col]] : null),
-        getCellMeta: (row, col) => ({ prop: props[col] }),
+        colToProp: col => props[col],
       };
     }
 
@@ -116,7 +116,7 @@ describe('metaSchema', () => {
           getSchema: () => schema,
           countCols: () => props.length,
           getDataAtCell: (row, col) => rows[row][props[col]],
-          getCellMeta: (row, col) => ({ prop: props[col] }),
+          colToProp: col => props[col],
         };
       }
 
@@ -148,7 +148,7 @@ describe('metaSchema', () => {
         getSchema: () => schema,
         countRows: () => rows.length,
         getDataAtCell: (row, col) => (rows[row] ? rows[row][props[col]] : null),
-        getCellMeta: (row, col) => ({ prop: props[col] }),
+        colToProp: col => props[col],
       };
     }
 

@@ -3331,26 +3331,24 @@ export default () => {
       let row;
       let rowLen;
       let value;
-      let meta;
       const hasExplicitSchema = !!this.getSettings().dataSchema;
       const schema = hasExplicitSchema ? this.getSchema() : null;
+      const prop = hasExplicitSchema ? this.colToProp(col) : null;
 
       for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
           if (hasExplicitSchema) {
-            meta = this.getCellMeta(row, col);
-
             if (typeof value === 'object') {
-              if (!isObjectEqual(this.getSchema()[meta.prop], value)) {
+              if (!isObjectEqual(schema[prop], value)) {
                 return false;
               }
 
               continue;
             }
 
-            if (schema[meta.prop] === value) {
+            if (schema[prop] === value) {
               continue;
             }
           }
@@ -3391,7 +3389,6 @@ export default () => {
       let col;
       let colLen;
       let value;
-      let meta;
       const hasExplicitSchema = !!this.getSettings().dataSchema;
       const schema = hasExplicitSchema ? this.getSchema() : null;
 
@@ -3399,17 +3396,17 @@ export default () => {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
-          meta = this.getCellMeta(row, col);
+          const prop = this.colToProp(col);
 
           if (typeof value === 'object') {
-            if (!isObjectEqual(this.getSchema()[meta.prop], value)) {
+            if (!isObjectEqual(schema[prop], value)) {
               return false;
             }
 
             continue;
           }
 
-          if (hasExplicitSchema && schema[meta.prop] === value) {
+          if (hasExplicitSchema && schema[prop] === value) {
             continue;
           }
 
