@@ -305,7 +305,9 @@ describe('AutoRowSize', () => {
       colHeaders: true,
       colWidths: 50,
       height: 300,
-      autoRowSize: true
+      autoRowSize: true,
+      viewportColumnRenderingOffset: 10,
+      viewportRowRenderingOffset: 10,
     });
 
     await selectCell(4, 0);

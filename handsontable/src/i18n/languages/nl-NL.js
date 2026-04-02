@@ -129,6 +129,15 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Geen resultaten gevonden',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Het lijkt erop dat uw huidige filters alle resultaten verbergen.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Filters resetten',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Gegevens laden',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Even geduld.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Gegevens konden niet worden geladen',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Rijen konden niet worden aangemaakt',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Rijen konden niet worden bijgewerkt',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Rijen konden niet worden verwijderd',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Verzoek mislukt',
+  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Sluiten',
 };
 
 export default dictionary;

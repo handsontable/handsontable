@@ -643,6 +643,10 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 :::
 
+## Server-side loading
+
+When the full dataset lives on a server, use [`dataProvider`](@/api/options.md#dataprovider) instead of binding a large local array. See [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).
+
 ## Related API reference
 
 **Configuration options**
@@ -650,6 +654,7 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 <div class="boxes-list">
 
 - [data](@/api/options.md#data)
+- [dataProvider](@/api/options.md#dataprovider)
 - [dataSchema](@/api/options.md#dataschema)
 
 </div>

@@ -370,6 +370,22 @@ export const REGISTERED_HOOKS = [
   'afterCreateRow',
 
   /**
+   * Fired before an alter action is applied (e.g. `insert_row_above`, `insert_row_below`, `remove_row`).
+   * Return `false` to cancel the default alter behavior (e.g. so a plugin can handle it via server-side CRUD).
+   *
+   * @event Hooks#beforeAlter
+   * @since 17.1.0
+   * @param {string} action The alter action: `'insert_row_above'`, `'insert_row_below'`, `'remove_row'`,
+   *                        `'insert_col_start'`, `'insert_col_end'`, `'remove_col'`.
+   * @param {number|Array} index Visual row/column index, or for remove actions an array of `[[index, amount], ...]`.
+   * @param {number} amount Number of rows/columns to insert or remove (default 1).
+   * @param {string} [source] Source of the alter call (e.g. `'ContextMenu.rowAbove'`).
+   * @param {boolean} [keepEmptyRows] Whether to keep empty rows (remove_row only).
+   * @returns {*|boolean} Return `false` to cancel the alter; the table will not be modified locally.
+   */
+  'beforeAlter',
+
+  /**
    * Fired after all selected cells are deselected.
    *
    * @event Hooks#afterDeselect
@@ -492,6 +508,78 @@ export const REGISTERED_HOOKS = [
    * @param {string} source The source of the call
    */
   'afterUpdateData',
+
+  /**
+   * Fired after the dataProvider has fetched and loaded data.
+   *
+   * @event Hooks#afterDataProviderFetch
+   * @since 17.1.0
+   * @param {object} result Result object: `{ rows, totalRows, queryParameters, columnSortConfig, filtersConditionsStack }`.
+   */
+  'afterDataProviderFetch',
+
+  /**
+   * Fired when the dataProvider fetch throws an error (e.g. network error).
+   *
+   * @event Hooks#afterDataProviderFetchError
+   * @since 17.1.0
+   * @param {Error} error The thrown error.
+   * @param {object} queryParameters The query parameters that were used for the request.
+   */
+  'afterDataProviderFetchError',
+
+  /**
+   * Fired after a dataProvider `fetchRows` request ends without loading data because it was aborted
+   * (superseded by a newer fetch, `AbortSignal`, or plugin disable/destroy).
+   *
+   * @event Hooks#afterDataProviderFetchAbort
+   * @since 17.1.0
+   * @param {object} queryParameters The query parameters that were used for the aborted request.
+   * @param {Error|undefined} reason Abort reason when available (e.g. `AbortError`).
+   */
+  'afterDataProviderFetchAbort',
+
+  /**
+   * Queried to determine if the instance uses an external data source (complete [[Options#dataProvider]] configuration).
+   * When the DataProvider plugin is enabled, it adds an instance handler in `enablePlugin()`. Callbacks may return
+   * `true`, `false`, or `undefined`; the value propagates through the hook chain like other [[Hooks#run]] hooks.
+   *
+   * @event Hooks#hasExternalDataSource
+   * @since 17.1.0
+   * @returns {boolean|void}
+   */
+  'hasExternalDataSource',
+
+  /**
+   * Fired before rows mutation (create, update, remove) is sent to the server. Return `false` to cancel.
+   *
+   * @event Hooks#beforeRowsMutation
+   * @since 17.1.0
+   * @param {string} operation One of `'create'`, `'update'`, `'remove'`.
+   * @param {object} payload Operation-specific payload (`{ rowsCreate }`, `{ rows: [...] }`, or `{ rowsRemove: [...] }`).
+   */
+  'beforeRowsMutation',
+
+  /**
+   * Fired after rows mutation (create, update, remove) succeeds on the server.
+   *
+   * @event Hooks#afterRowsMutation
+   * @since 17.1.0
+   * @param {string} operation One of `'create'`, `'update'`, `'remove'`.
+   * @param {object} payload Operation-specific payload.
+   */
+  'afterRowsMutation',
+
+  /**
+   * Fired when rows mutation (create, update, remove) fails on the server.
+   *
+   * @event Hooks#afterRowsMutationError
+   * @since 17.1.0
+   * @param {string} operation One of `'create'`, `'update'`, `'remove'`.
+   * @param {Error} error The thrown error.
+   * @param {object} payload Operation-specific payload.
+   */
+  'afterRowsMutationError',
 
   /**
    * Fired after a scroll event, which is identified as a momentum scroll (e.g. on an iPad).
@@ -1488,6 +1576,17 @@ export const REGISTERED_HOOKS = [
    * @returns {Array} The returned array will be used as Handsontable's new dataset.
    */
   'beforeUpdateData',
+
+  /**
+   * Fired before the dataProvider fetches data. Return `false` to cancel the fetch.
+   *
+   * @event Hooks#beforeDataProviderFetch
+   * @since 17.1.0
+   * @param {object} queryParameters Current query parameters: `{ page, pageSize, sort, filters }`. May include
+   * `skipLoading` when the fetch was triggered internally (for example after column sort or CRUD); not sent to `fetchRows`.
+   * @returns {*|boolean} Return `false` to cancel the fetch; otherwise the fetch proceeds.
+   */
+  'beforeDataProviderFetch',
 
   /**
    * Hook fired before `keydown` event is handled. It can be used to stop default key bindings.
@@ -2634,7 +2733,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page. This hook is fired when
-   * {@link Options#pagination} option is enabled.
+   * {@link Options#pagination} option is enabled. When a complete [[Options#dataProvider]] configuration
+   * handles paging, {@link DataProvider} loads the requested page via `fetchRows`. {@link Pagination} then aligns its
+   * UI from [[Hooks#afterDataProviderFetch]].
    *
    * @since 16.1.0
    * @event Hooks#afterPageChange
@@ -2657,7 +2758,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page size. This hook is fired when
-   * {@link Options#pagination} option is enabled.
+   * {@link Options#pagination} option is enabled. When a complete [[Options#dataProvider]] configuration
+   * handles paging, {@link DataProvider} loads page 1 for the new size via `fetchRows`. {@link Pagination} then aligns
+   * its UI from [[Hooks#afterDataProviderFetch]].
    *
    * @since 16.1.0
    * @event Hooks#afterPageSizeChange

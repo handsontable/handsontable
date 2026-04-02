@@ -1,8 +1,17 @@
 import { BasePlugin } from '../base';
-import { addClass, closest, hasClass, removeClass, outerHeight, isDetached } from '../../helpers/dom/element';
+import {
+  addClass,
+  closest,
+  hasClass,
+  removeClass,
+  outerHeight,
+  outerWidth,
+  isDetached
+} from '../../helpers/dom/element';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { getElementScaleFactor, normalizeVisualDelta } from './utils';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
@@ -63,6 +72,10 @@ export class ManualColumnResize extends BasePlugin {
    * @type {number}
    */
   #startOffset = null;
+  /**
+   * @type {number}
+   */
+  #horizontalScaleFactor = 1;
   /**
    * @type {HTMLElement}
    */
@@ -260,7 +273,6 @@ export class ManualColumnResize extends BasePlugin {
     }
 
     const headerHeight = outerHeight(this.#currentTH);
-    const box = this.#currentTH.getBoundingClientRect();
     // Read "fixedColumnsStart" through the Walkontable as in that context, the fixed columns
     // are modified (reduced by the number of hidden columns) by TableView module.
     const fixedColumn = col < wt.getSetting('fixedColumnsStart');
@@ -310,7 +322,8 @@ export class ManualColumnResize extends BasePlugin {
     }
 
     this.#startOffset = relativeHeaderPosition.start - 6;
-    this.#startWidth = parseInt(box.width, 10);
+    this.#startWidth = outerWidth(this.#currentTH);
+    this.#horizontalScaleFactor = getElementScaleFactor(this.#currentTH);
 
     this.#handle.style.top = `${relativeHeaderPosition.top}px`;
     this.#handle.style[this.inlineDir] = `${this.#startOffset + this.#startWidth}px`;
@@ -516,7 +529,8 @@ export class ManualColumnResize extends BasePlugin {
    */
   #onMouseMove(event) {
     if (this.#pressed) {
-      const change = (event.pageX - this.startX) * this.hot.getDirectionFactor();
+      const visualChange = (event.pageX - this.startX) * this.hot.getDirectionFactor();
+      const change = normalizeVisualDelta(visualChange, this.#horizontalScaleFactor);
 
       this.#currentWidth = this.#startWidth + change;
 

@@ -324,6 +324,8 @@ describe('manualColumnMove (RTL mode)', () => {
           manualColumnMove: true,
           rowHeaders: true,
           colHeaders: true,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         await scrollViewportTo({
@@ -371,6 +373,8 @@ describe('manualColumnMove (RTL mode)', () => {
           manualColumnMove: true,
           rowHeaders: true,
           colHeaders: true,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         await scrollViewportTo({

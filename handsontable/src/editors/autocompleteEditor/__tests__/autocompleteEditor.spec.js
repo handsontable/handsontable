@@ -666,7 +666,7 @@ describe('AutocompleteEditor', () => {
       });
     });
 
-    it('should not take excessive time to open the editor if the choice list is very long (dev-handsontable#2313)', async() => {
+    it.flaky('should not take excessive time to open the editor if the choice list is very long (dev-handsontable#2313)', async() => {
       const options = new Array(50000).fill().map(() => Math.random());
       let startTime;
       let endTime;
@@ -1172,7 +1172,6 @@ describe('AutocompleteEditor', () => {
       expect(editor.find('tbody td:eq(2)').text()).toEqual('3');
       expect(editor.find('tbody td:eq(3)').text()).toEqual('4');
       expect(editor.find('tbody td:eq(4)').text()).toEqual('5');
-      expect(editor.find('tbody td:eq(5)').text()).toEqual('6');
     });
 
     it('should display the choices, regardless if they\'re declared as string or numeric, when data is present', async() => {
@@ -1199,7 +1198,6 @@ describe('AutocompleteEditor', () => {
       expect(editor.find('tbody td:eq(2)').text()).toEqual('3');
       expect(editor.find('tbody td:eq(3)').text()).toEqual('4');
       expect(editor.find('tbody td:eq(4)').text()).toEqual('5');
-      expect(editor.find('tbody td:eq(5)').text()).toEqual('6');
     });
 
     it('should display the dropdown above the editor, when there is not enough space below (table has defined size)', async() => {

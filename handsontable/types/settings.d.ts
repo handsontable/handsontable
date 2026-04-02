@@ -22,6 +22,7 @@ import { Settings as CommentsSettings, CommentObject } from './plugins/comments'
 import { Settings as ContextMenuSettings } from './plugins/contextMenu';
 import { Settings as CopyPasteSettings } from './plugins/copyPaste';
 import { Settings as CustomBordersSettings } from './plugins/customBorders';
+import { Settings as DataProviderSettings } from './plugins/dataProvider';
 import { Settings as DragToScrollSettings } from './plugins/dragToScroll';
 import { Settings as DropdownMenuSettings } from './plugins/dropdownMenu';
 import { Settings as FiltersSettings } from './plugins/filters';
@@ -139,6 +140,7 @@ export interface GridSettings extends Events {
   customBorders?: CustomBordersSettings;
   data?: CellValue[][] | RowObject[];
   dataDotNotation?: boolean;
+  dataProvider?: DataProviderSettings;
   dataSchema?: RowObject | CellValue[] | ((row: number) => RowObject | CellValue[]);
   dateFormat?: string;
   datePickerConfig?: PikadayOptions;

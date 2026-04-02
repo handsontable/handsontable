@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed filters plugin applying conditions to wrong columns after using manualColumnMove",
+  "type": "fixed",
+  "issueOrPR": 11832,
+  "breaking": false,
+  "framework": "none"
+}
