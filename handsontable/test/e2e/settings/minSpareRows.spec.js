@@ -96,24 +96,24 @@ describe('settings', () => {
     });
 
     describe('with dataSchema having non-null default values', () => {
-      it('should not add extra rows when the spare row already contains the dataSchema defaults (GH #671, GH #2409)', async() => {
+      it('should recognize the spare row as empty when it contains dataSchema default values (GH #671, GH #2409)', async() => {
         handsontable({
-          data: [{ active: false }],
+          data: [{ active: true }],
           dataSchema: { active: false },
           columns: [{ data: 'active', type: 'checkbox' }],
           minSpareRows: 1,
         });
 
-        // 1 data row + 1 spare row
+        // 1 real data row (active: true) + 1 spare row (active: false = schema default)
         expect(countRows()).toBe(2);
 
-        // Changing a value should not trigger an extra row being appended
-        await setDataAtCell(0, 0, true);
+        // Changing row 0 does not add an extra row — row 1 (schema default) is still recognized as spare
+        await setDataAtCell(0, 0, false);
 
         expect(countRows()).toBe(2);
       });
 
-      it('should count spare rows correctly when all cells match the dataSchema defaults (GH #671)', async() => {
+      it('should count all rows with dataSchema default values as empty (GH #671)', async() => {
         handsontable({
           data: [{ active: false }, { active: false }],
           dataSchema: { active: false },
@@ -121,24 +121,24 @@ describe('settings', () => {
           minSpareRows: 1,
         });
 
-        // Both rows have only schema-default values - they are all "empty"
-        // minSpareRows: 1 is already satisfied at initialization (row 1 is spare)
+        // Both rows have only schema-default values — both count as empty.
+        // minSpareRows: 1 is satisfied by the initial data, no extra row is appended.
         expect(countEmptyRows()).toBe(2);
         expect(countRows()).toBe(2);
       });
 
-      it('should add a spare row when a value is changed to differ from the dataSchema default (GH #671)', async() => {
+      it('should add a spare row when the spare row value is changed to differ from the dataSchema default (GH #671)', async() => {
         handsontable({
-          data: [{ active: false }],
+          data: [{ active: true }],
           dataSchema: { active: false },
           columns: [{ data: 'active', type: 'checkbox' }],
           minSpareRows: 1,
         });
 
+        // 1 data row (active: true) + 1 spare row (active: false = schema default) = 2
         expect(countRows()).toBe(2);
 
-        // Row 0 now differs from schema default — row 1 becomes the only spare row
-        // Changing row 1 should trigger a new spare row
+        // Changing the spare row to a non-default value triggers a new spare row
         await setDataAtCell(1, 0, true);
 
         expect(countRows()).toBe(3);
@@ -146,15 +146,17 @@ describe('settings', () => {
 
       it('should work with numeric dataSchema default values (GH #671)', async() => {
         handsontable({
-          data: [{ value: 0 }],
+          data: [{ value: 42 }],
           dataSchema: { value: 0 },
           columns: [{ data: 'value' }],
           minSpareRows: 1,
         });
 
+        // 1 data row (value: 42) + 1 spare row (value: 0 = schema default) = 2
         expect(countRows()).toBe(2);
 
-        await setDataAtCell(0, 0, 42);
+        // Changing the data row to the schema default: both rows are now "empty", no extra row added
+        await setDataAtCell(0, 0, 0);
 
         expect(countRows()).toBe(2);
       });
