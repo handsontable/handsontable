@@ -1033,10 +1033,11 @@ export class Filters extends BasePlugin {
     if (changes) {
       arrayEach(changes, (change) => {
         const [, prop] = change;
-        const columnIndex = this.hot.propToCol(prop);
+        const visualColumnIndex = this.hot.propToCol(prop);
+        const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
 
-        if (this.conditionCollection.hasConditions(columnIndex)) {
-          this.updateValueComponentCondition(columnIndex);
+        if (this.conditionCollection.hasConditions(physicalColumnIndex)) {
+          this.updateValueComponentCondition(physicalColumnIndex);
         }
       });
     }
@@ -1046,10 +1047,11 @@ export class Filters extends BasePlugin {
    * Update the condition of ValueComponent, based on the handled changes.
    *
    * @private
-   * @param {number} columnIndex Column index of handled ValueComponent condition.
+   * @param {number} columnIndex Physical column index of handled ValueComponent condition.
    */
   updateValueComponentCondition(columnIndex) {
-    const dataAtCol = this.hot.getDataAtCol(columnIndex);
+    const visualColumnIndex = this.hot.toVisualColumn(columnIndex);
+    const dataAtCol = this.hot.getDataAtCol(visualColumnIndex);
     const selectedValues = unifyColumnValues(dataAtCol);
 
     this.conditionUpdateObserver.updateStatesAtColumn(columnIndex, selectedValues);

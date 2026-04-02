@@ -462,7 +462,18 @@ When calling `updateSettings()` in the React wrapper, **preserve and restore sel
 
 ---
 
-## Gotchas
+### Testing specific plugins
+
+When running E2E tests for a specific plugin (e.g., filters):
+- Use: `pnpm --filter handsontable run test:e2e -- --filter=<plugin-name>`
+- Example: `pnpm --filter handsontable run test:e2e -- --filter=filters`
+- Note: This rebuilds the UMD bundle before running tests, which takes ~1-2 minutes
+
+When running unit tests for a specific plugin:
+- Use: `pnpm --filter handsontable run test:unit -- --testPathPattern=<plugin-name>`
+- Example: `pnpm --filter handsontable run test:unit -- --testPathPattern=filters`
+
+### Gotchas
 
 - **Cross-platform `npm` scripts**: All `scripts` entries in wrapper `package.json` files must work on Linux, macOS, and Windows. Never use bash-only constructs (`if [ ]`, `mv`, `&&` chaining with `||`) directly in script strings. Instead, write a Node.js `.mjs` helper (see `wrappers/react-wrapper/scripts/prepare-types.mjs` as a reference) and invoke it with `node scripts/your-script.mjs`. Use async top-level `await` with `fs/promises` (`readdir`, `rename`, `rm`) rather than their sync counterparts. Use `fs/promises` `rm({ recursive: true, force: true })` instead of `rimraf`/`rm -rf`, and `rename` instead of `mv`.
 - Wrappers consume `handsontable/tmp/` (not `dist/`). Build core before running wrapper tests.
@@ -471,6 +482,7 @@ When calling `updateSettings()` in the React wrapper, **preserve and restore sel
 - The docs site (`docs/`) uses Node 20 and is not needed for core development.
 - Walkontable has its **own test runner** -- do not mix with main E2E tests.
 - No Docker, databases, or external services are required.
+- **Filters plugin visual/physical column index**: When working with the filters plugin in combination with `manualColumnMove`, always ensure proper conversion between visual and physical column indexes. The `conditionCollection` and `conditionUpdateObserver` operate on physical indexes, while `getDataAtCol()` requires visual indexes. See issue #11832 for details.
 - For hook signature/behavior fixes, add both a runtime regression (`handsontable/src/**/__tests__/*.spec.js` or `handsontable/test/e2e/hooks/*.spec.js`) and a TypeScript regression (`handsontable/src/__tests__/core/settings.types.ts`) when types are changed.
 
 ### Testing preference
