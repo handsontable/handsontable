@@ -3332,25 +3332,23 @@ export default () => {
       let rowLen;
       let value;
       const hasExplicitSchema = !!this.getSettings().dataSchema;
-      const schema = hasExplicitSchema ? this.getSchema() : null;
-      const prop = hasExplicitSchema ? this.colToProp(col) : null;
+      const schema = this.getSchema();
+      const prop = this.colToProp(col);
 
       for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
-          if (hasExplicitSchema) {
-            if (typeof value === 'object') {
-              if (!isObjectEqual(schema[prop], value)) {
-                return false;
-              }
-
-              continue;
+          if (typeof value === 'object') {
+            if (!isObjectEqual(schema[prop], value)) {
+              return false;
             }
 
-            if (schema[prop] === value) {
-              continue;
-            }
+            continue;
+          }
+
+          if (hasExplicitSchema && schema[prop] === value) {
+            continue;
           }
 
           return false;
@@ -3390,26 +3388,24 @@ export default () => {
       let colLen;
       let value;
       const hasExplicitSchema = !!this.getSettings().dataSchema;
-      const schema = hasExplicitSchema ? this.getSchema() : null;
+      const schema = this.getSchema();
 
       for (col = 0, colLen = this.countCols(); col < colLen; col++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
-          if (hasExplicitSchema) {
-            const prop = this.colToProp(col);
+          const prop = this.colToProp(col);
 
-            if (typeof value === 'object') {
-              if (!isObjectEqual(schema[prop], value)) {
-                return false;
-              }
-
-              continue;
+          if (typeof value === 'object') {
+            if (!isObjectEqual(schema[prop], value)) {
+              return false;
             }
 
-            if (schema[prop] === value) {
-              continue;
-            }
+            continue;
+          }
+
+          if (hasExplicitSchema && schema[prop] === value) {
+            continue;
           }
 
           return false;

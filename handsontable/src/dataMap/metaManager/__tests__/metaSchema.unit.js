@@ -5,10 +5,12 @@ describe('metaSchema', () => {
     function createHotMock({ data, dataSchema } = {}) {
       const rows = data || [];
       const colCount = rows[0] ? rows[0].length : 0;
+      // getSchema() in the real implementation always returns non-null (falls back to duckSchema)
+      const duckSchema = rows[0] ? rows[0].map(() => null) : [];
 
       return {
         getSettings: () => ({ dataSchema }),
-        getSchema: () => dataSchema,
+        getSchema: () => dataSchema ?? duckSchema,
         countCols: () => colCount,
         getDataAtCell: (row, col) => (rows[row] ? rows[row][col] : null),
         colToProp: col => col,
@@ -20,10 +22,12 @@ describe('metaSchema', () => {
       const schema = dataSchema;
       const propsSource = schema || rows[0];
       const props = propsSource ? Object.keys(propsSource) : [];
+      // getSchema() in the real implementation always returns non-null (falls back to duckSchema)
+      const duckSchema = rows[0] ? Object.fromEntries(props.map(p => [p, null])) : {};
 
       return {
         getSettings: () => ({ dataSchema: schema }),
-        getSchema: () => schema,
+        getSchema: () => schema ?? duckSchema,
         countCols: () => props.length,
         getDataAtCell: (row, col) => (rows[row] ? rows[row][props[col]] : null),
         colToProp: col => props[col],
@@ -52,13 +56,24 @@ describe('metaSchema', () => {
       expect(defaults.isEmptyRow.call(hot, 0)).toBe(false);
     });
 
-    it('should return false (without crashing) when a cell contains an object value and no dataSchema is set', () => {
-      // Regression: previously `schema[prop]` was accessed even when schema was null,
-      // causing a TypeError when a cell held an object and no dataSchema was configured.
+    it('should return false when a cell contains an object value differing from the duck-schema default', () => {
+      // The duck-schema for { meta: { type: 'a' } } has { meta: null }.
+      // { type: 'a' } !== null so the row is non-empty.
       const defaults = metaSchemaFactory();
       const hot = createHotMockObjects({ data: [{ meta: { type: 'a' } }] });
 
       expect(defaults.isEmptyRow.call(hot, 0)).toBe(false);
+    });
+
+    it('should return true when all object cells match the duck-schema (spare row with null leaves)', () => {
+      // Regression (DEV-345): nested object data without an explicit dataSchema.
+      // Spare rows have the duck-schema shape with null leaves — they must be treated as empty
+      // so that minSpareRows does not keep appending rows indefinitely.
+      const defaults = metaSchemaFactory();
+      // Duck schema derived from first row: { meta: null }. A spare row is also { meta: null }.
+      const hot = createHotMockObjects({ data: [{ meta: null }] });
+
+      expect(defaults.isEmptyRow.call(hot, 0)).toBe(true);
     });
 
     it('should return true when all cells match their dataSchema default values (GH #671, GH #2409)', () => {
@@ -151,10 +166,12 @@ describe('metaSchema', () => {
       const schema = dataSchema;
       const propsSource = schema || rows[0];
       const props = propsSource ? Object.keys(propsSource) : [];
+      // getSchema() in the real implementation always returns non-null (falls back to duckSchema)
+      const duckSchema = rows[0] ? Object.fromEntries(props.map(p => [p, null])) : {};
 
       return {
         getSettings: () => ({ dataSchema: schema }),
-        getSchema: () => schema,
+        getSchema: () => schema ?? duckSchema,
         countRows: () => rows.length,
         getDataAtCell: (row, col) => (rows[row] ? rows[row][props[col]] : null),
         colToProp: col => props[col],
@@ -217,6 +234,15 @@ describe('metaSchema', () => {
       });
 
       expect(defaults.isEmptyCol.call(hot, 0)).toBe(false);
+    });
+
+    it('should return true when all cells in a column match the duck-schema (spare rows with null leaves)', () => {
+      // Regression (DEV-345): without an explicit dataSchema, object-typed columns from duck-schema
+      // spare rows have null leaves — these must be treated as empty.
+      const defaults = metaSchemaFactory();
+      const hot = createHotMockObjects({ data: [{ meta: null }, { meta: null }] });
+
+      expect(defaults.isEmptyCol.call(hot, 0)).toBe(true);
     });
   });
 });
