@@ -35,7 +35,7 @@ An Input Method Editor (IME) is a component of the operating system (OS) that en
 
 Handsontable supports IME (Input Method Editor) input through the same mechanisms provided by the operating system. When you switch your input source to a language that requires IME (such as Korean, Japanese, or Chinese), you can use it in cell editors just like in any standard text field.
 
-By default, IME support works when editing a cell through the standard edit mode (for example, pressing Enter, F2, or double-clicking a cell).
+By default, IME support works when editing a cell through the standard edit mode (for example, pressing <kbd>**Enter**</kbd>, <kbd>**F2**</kbd>, or double-clicking a cell).
 If you want to start typing immediately into a selected cell without explicitly opening the editor, you need to enable the imeFastEdit option.
 
 ## The [`imeFastEdit`](@/api/options.md#imefastedit) option
@@ -44,7 +44,7 @@ Handsontable includes a configuration option called imeFastEdit, which controls 
 - Default value: false
 - Type: boolean
 
-When imeFastEdit is disabled (default), IME users start editing a cell only after explicitly activating the editor (e.g., pressing Enter, F2, or double-clicking the cell).
+When imeFastEdit is disabled (default), IME users start editing a cell only after explicitly activating the editor (e.g., pressing <kbd>**Enter**</kbd>, <kbd>**F2**</kbd>, or double-clicking the cell).
 When imeFastEdit is enabled, users can start editing immediately by typing directly into the selected cell.
 
 <div class="custom-block tip"><p class="custom-block-title">TIP</p> <p><strong>Note:</strong> Enabling imeFastEdit can improve input speed for some IME users but may conflict with certain accessibility tools.</p></div>

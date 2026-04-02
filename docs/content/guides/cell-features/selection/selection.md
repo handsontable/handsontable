@@ -176,8 +176,8 @@ To enable jumping across the left and right edges:
 
 To jump across a vertical edge:
 
-- When cell selection is on a row's first cell, press the left arrow key.
-- When cell selection is on a row's last cell, press the right arrow key, or press <kbd>**Tab**</kbd>.
+- When cell selection is on a row's first cell, press <kbd>**←**</kbd>.
+- When cell selection is on a row's last cell, press <kbd>**→**</kbd>, or press <kbd>**Tab**</kbd>.
 
 #### Jump across horizontal edges
 
@@ -187,8 +187,8 @@ To enable jumping across the top and bottom edges:
 
 To jump across a horizontal edge:
 
-- When cell selection is on a column's first cell, press the up arrow key.
-- When cell selection is on a column's last cell, press the down arrow key, or press <kbd>**Enter**</kbd>.
+- When cell selection is on a column's first cell, press <kbd>**↑**</kbd>.
+- When cell selection is on a column's last cell, press <kbd>**↓**</kbd>, or press <kbd>**Enter**</kbd>.
 
 ## Related keyboard shortcuts
 

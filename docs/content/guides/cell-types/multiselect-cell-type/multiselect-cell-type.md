@@ -119,10 +119,10 @@ The MultiSelect editor is a dropdown with selectable items. You can select items
 
 When the dropdown opens, the initial focus depends on the [**`searchInput`**](@/api/options.md#searchinput) option: if filtering is enabled, the search input is focused by default; if filtering is disabled, the first item in the list is focused.
 
-- **Arrow keys** – Move the focus between items in the dropdown list. When the search input is visible, use the **down** arrow to move focus from the search input into the list, and the **up** arrow to move focus back into the search input.
-- **SPACE or ENTER** – Toggle the selection of the focused item. The behavior depends on the [**`enterCommits`**](@/api/options.md#entercommits) option:
-  - When `enterCommits` is `true` (default): **ENTER** closes the editor and commits the selection; **SPACE** toggles the focused item's selection.
-  - When `enterCommits` is `false`: **ENTER** toggles the focused item's selection; **SPACE** has no effect.
+- <kbd>**↑**</kbd><kbd>**↓**</kbd> – Move the focus between items in the dropdown list. When the search input is visible, use <kbd>**↓**</kbd> to move focus from the search input into the list, and <kbd>**↑**</kbd> to move focus back into the search input.
+- <kbd>**Space**</kbd> or <kbd>**Enter**</kbd> – Toggle the selection of the focused item. The behavior depends on the [**`enterCommits`**](@/api/options.md#entercommits) option:
+  - When `enterCommits` is `true` (default): <kbd>**Enter**</kbd> closes the editor and commits the selection; <kbd>**Space**</kbd> toggles the focused item's selection.
+  - When `enterCommits` is `false`: <kbd>**Enter**</kbd> toggles the focused item's selection; <kbd>**Space**</kbd> has no effect.
 
 Each selection (or deselection) immediately updates the underlying cell data.
 
@@ -135,7 +135,7 @@ The MultiSelect cell type provides several configuration options to tailor its b
 - [**`visibleRows`**](@/api/options.md#visiblerows) – Defines the maximum number of visible rows in the dropdown menu.
 - [**`maxSelections`**](@/api/options.md#maxselections) – Determines the maximum number of items that can be selected.
 - [**`sourceSortFunction`**](@/api/options.md#sourcesortfunction) – A custom sort function to order the dropdown entries.
-- [**`enterCommits`**](@/api/options.md#entercommits) – Controls whether pressing the ENTER key closes the editor and commits the selection.
+- [**`enterCommits`**](@/api/options.md#entercommits) – Controls whether pressing the <kbd>**Enter**</kbd> key closes the editor and commits the selection.
 - [**`searchInput`**](@/api/options.md#searchinput) – Toggles the visibility of the search input inside the dropdown.
 - [**`filteringCaseSensitive`**](@/api/options.md#filteringcasesensitive) – When set to `true`, the dropdown's search filtering is case sensitive.
 

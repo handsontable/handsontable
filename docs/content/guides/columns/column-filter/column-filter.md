@@ -228,7 +228,7 @@ useful items in the menu such as **Clear column**.
 
 ### Enable filtering within already filtered results
 
-To apply filters based on the search input, set `searchMode` to `'apply'`. You can then apply the filter by either pressing the `Enter` key while the search input is focused or by clicking the `OK` button.
+To apply filters based on the search input, set `searchMode` to `'apply'`. You can then apply the filter by either pressing the <kbd>**Enter**</kbd> key while the search input is focused or by clicking the `OK` button.
 
 ::: only-for javascript
 
