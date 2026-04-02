@@ -494,3 +494,20 @@ When running unit tests for a specific plugin:
 ### Testing preference
 
 - For bug fixes in `handsontable/`, add both a focused unit test and a focused E2E regression test when practical.
+
+---
+
+## ClickUp task integration
+
+When working on a task from ClickUp:
+
+- **Extract the task ID** from the ClickUp URL. For example, `https://app.clickup.com/t/9015210959/DEV-627` has task ID `DEV-627`.
+- **Branch naming**: Use `feature/DEV-627_Short-Task-Description` (slugified task title). At minimum the branch must contain `feature/DEV-627`. Example: `feature/DEV-627_Handsontable-Forum-Update`.
+- **Commit messages and PR titles** must include the task ID (e.g. `DEV-627`) so ClickUp automatically links the commit/PR to the task.
+- **Authentication**: Use the ClickUp MCP tools for all ClickUp API interactions (fetching task details, updating status, posting comments). Do not attempt to call the ClickUp REST API directly.
+- **Workflow summary**:
+  1. Parse the task ID from the provided ClickUp URL.
+  2. Use MCP to fetch task details (title, description, acceptance criteria).
+  3. Create a branch: `feature/<TASK-ID>_<Slugified-Title>`.
+  4. Implement the fix/feature, commit with the task ID in the message.
+  5. Push and (when asked) open a PR whose title includes the task ID.
