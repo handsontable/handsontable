@@ -44,3 +44,14 @@ To work with an array of objects for the `hot-column` component, you need to pro
 @[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example2.js)
 
 :::
+
+## Declare a custom editor as a component
+
+You can declare a custom editor by creating a class that extends `TextEditor` and passing it to a `hot-column` via the `editor` prop. The editor's input element uses a `placeholder` attribute to display a hint when the cell value is empty.
+
+::: example #example3 :vue3 --html 1 --js 2
+
+@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example3.html)
+@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example3.js)
+
+:::
