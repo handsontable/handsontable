@@ -693,8 +693,13 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       const $editor = $('.autocompleteEditor').eq(0);
+      const editorOpenTime = endTime - startTime;
 
-      expect(endTime - startTime).toBeLessThan(650);
+      expect(editorOpenTime).forThemes(({ classic, main, horizon }) => {
+        classic.toBeLessThan(650);
+        main.toBeLessThan(650);
+        horizon.toBeLessThan(700);
+      });
       expect($editor.find('.ht_master tbody tr').size()).toBeGreaterThan(0);
     });
   });

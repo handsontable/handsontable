@@ -332,7 +332,9 @@ export class AppComponent {
       filters: true,
       contextMenu: true,
       emptyDataState: true,
-      dialog: true,
+      dialog: {
+        animation: false,
+      },
       beforeDataProviderFetch: (params) => {
         this.setFetchStatus(
           params.skipLoading
