@@ -4194,7 +4194,7 @@ export default () => {
      * | Array element | Description                                                                                  |
      * | ------------- | -------------------------------------------------------------------------------------------- |
      * | A string      | The header's label                                                                           |
-     * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
+     * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): number of data columns the header spans<br>`rowspan` (integer): number of header rows the header spans<br>`headerClassName` (string): optional space-separated CSS class names |
      *
      * ::: tip
      * When `nestedHeaders` is configured, the `label` defined in the [`columns`](#columns) option for the same

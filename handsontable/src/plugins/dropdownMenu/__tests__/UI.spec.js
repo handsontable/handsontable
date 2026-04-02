@@ -25,7 +25,7 @@ describe('DropdownMenu', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it('should render the dropdown button on the right side of the header', async() => {
+      it('should place the dropdown control after the header label in the DOM', async() => {
         handsontable({
           layoutDirection,
           dropdownMenu: true,
@@ -33,9 +33,10 @@ describe('DropdownMenu', () => {
           height: 100
         });
 
-        const dropdownButton = $(getCell(-1, 2));
+        const relative = getCell(-1, 2).querySelector('.relative');
 
-        expect(dropdownButton.find('.changeType').css('float')).toBe('right');
+        expect(relative.children[0].classList.contains('colHeader')).toBe(true);
+        expect(relative.children[1].classList.contains('changeType')).toBe(true);
       });
     });
 
