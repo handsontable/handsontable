@@ -497,11 +497,16 @@ When running unit tests for a specific plugin:
 ### Gotchas
 
 - **Cross-platform `npm` scripts**: All `scripts` entries in wrapper `package.json` files must work on Linux, macOS, and Windows. Never use bash-only constructs (`if [ ]`, `mv`, `&&` chaining with `||`) directly in script strings. Instead, write a Node.js `.mjs` helper (see `wrappers/react-wrapper/scripts/prepare-types.mjs` as a reference) and invoke it with `node scripts/your-script.mjs`. Use async top-level `await` with `fs/promises` (`readdir`, `rename`, `rm`) rather than their sync counterparts. Use `fs/promises` `rm({ recursive: true, force: true })` instead of `rimraf`/`rm -rf`, and `rename` instead of `mv`.
-- Wrappers consume `handsontable/tmp/` (not `dist/`). Build core before running wrapper tests.
-- Two builds: `handsontable.js` (base) and `handsontable.full.js` (includes HyperFormula). Test both.
-- Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider` (already in the `test` script).
-- The docs site (`docs/`) uses Node 20 and is not needed for core development.
-- Walkontable has its **own test runner** -- do not mix with main E2E tests.
+- The core build outputs to `handsontable/tmp/` (not `dist/` for wrappers' consumption). The UMD/minified builds go to `handsontable/dist/` and CSS to `handsontable/styles/`. Wrapper packages reference the `tmp/` build via workspace linking.
+- The e2e runner (`handsontable/test/E2ERunner.html`) loads `handsontable/dist/handsontable.js`; after changing `handsontable/src/**`, run `pnpm --filter handsontable run build` before running e2e to test the updated bundle.
+- For targeted e2e runs, set `npm_config_testPathPattern` as an environment variable (for example `npm_config_testPathPattern=plugins/comments/__tests__/comments.spec.js`) before `pnpm --filter handsontable run test:e2e.dump`; passing `--testPathPattern` as a CLI argument to `test:e2e.dump` is forwarded to webpack and fails.
+- Two Handsontable builds exist: `handsontable.js` (base, external deps) and `handsontable.full.js` (includes HyperFormula). When testing, ensure both variants work.
+- The Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider`; this is already wired into the `test` script.
+- The `pnpm-workspace.yaml` has `ignoredBuiltDependencies` and `onlyBuiltDependencies` lists. If pnpm warns about ignored build scripts (e.g., `less`), this is expected.
+- Root-level `npm run lint` and `npm run test` scripts use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
+- The docs site (`docs/`) uses Node 20 (its own `.nvmrc`) and is not needed for core library development.
+- Walkontable (the rendering engine) lives inside `src/3rdparty/walkontable/` and has its **own test runner** — do not mix Walkontable tests with main E2E tests.
+- **Merged cells — read from meta, not DOM**: When working with merged cells, read `colspan`/`rowspan` from `hot.getCellMeta(row, col)` (set by `MergeCells` via `afterGetCellMeta`) rather than from the DOM element's `colSpan`/`rowSpan` attributes. The meta is the authoritative source and is always available regardless of viewport state or rendering.
 - No Docker, databases, or external services are required.
 - **Context menu vs column (dropdown) menu**: "Context menu" (`contextMenu` option, right-click triggered) and "column menu" (`dropdownMenu` option, column header button triggered) are separate plugins with separate hook prefixes and config keys. Never mix them up. See [Context menu vs column menu](#context-menu-vs-column-menu).
 - **Filters plugin visual/physical column index**: When working with the filters plugin in combination with `manualColumnMove`, always ensure proper conversion between visual and physical column indexes. The `conditionCollection` and `conditionUpdateObserver` operate on physical indexes, while `getDataAtCol()` requires visual indexes. See issue #11832 for details.
@@ -533,3 +538,4 @@ When working on a task from ClickUp:
   3. Create a branch: `feature/<TASK-ID>_<Slugified-Title>`.
   4. Implement the fix/feature, commit with the task ID in the message.
   5. Push and (when asked) open a PR whose title includes the task ID.
+  6. After the PR is created, use the ClickUp MCP tools to update the task status to **"code review"**.
