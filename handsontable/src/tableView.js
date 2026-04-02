@@ -138,7 +138,6 @@ class TableView {
    * @type {{ x: number, y: number } | null}
    */
   #mouseDownLastPos = null;
-
   /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
