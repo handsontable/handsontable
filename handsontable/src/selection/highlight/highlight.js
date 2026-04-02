@@ -416,22 +416,22 @@ class Highlight {
   updateHighlightClassNames(options) {
     if ('rowClassName' in options) {
       this.options.rowClassName = options.rowClassName;
-      arrayEach(this.rowHighlights.values(), highlight => void (highlight.settings.className = options.rowClassName));
+      arrayEach(this.rowHighlights.values(), (h) => { h.settings.className = options.rowClassName; });
     }
     if ('columnClassName' in options) {
       this.options.columnClassName = options.columnClassName;
-      arrayEach(this.columnHighlights.values(), highlight => void (highlight.settings.className = options.columnClassName));
+      arrayEach(this.columnHighlights.values(), (h) => { h.settings.className = options.columnClassName; });
     }
     if ('headerClassName' in options) {
       this.options.headerClassName = options.headerClassName;
-      arrayEach(this.rowHeaders.values(), highlight => void (highlight.settings.className = options.headerClassName));
-      arrayEach(this.columnHeaders.values(), highlight => void (highlight.settings.className = options.headerClassName));
+      arrayEach(this.rowHeaders.values(), (h) => { h.settings.className = options.headerClassName; });
+      arrayEach(this.columnHeaders.values(), (h) => { h.settings.className = options.headerClassName; });
     }
     if ('activeHeaderClassName' in options) {
       this.options.activeHeaderClassName = options.activeHeaderClassName;
-      arrayEach(this.activeRowHeaders.values(), highlight => void (highlight.settings.className = options.activeHeaderClassName));
-      arrayEach(this.activeColumnHeaders.values(), highlight => void (highlight.settings.className = options.activeHeaderClassName));
-      arrayEach(this.activeCornerHeaders.values(), highlight => void (highlight.settings.className = options.activeHeaderClassName));
+      arrayEach(this.activeRowHeaders.values(), (h) => { h.settings.className = options.activeHeaderClassName; });
+      arrayEach(this.activeColumnHeaders.values(), (h) => { h.settings.className = options.activeHeaderClassName; });
+      arrayEach(this.activeCornerHeaders.values(), (h) => { h.settings.className = options.activeHeaderClassName; });
     }
   }
 
