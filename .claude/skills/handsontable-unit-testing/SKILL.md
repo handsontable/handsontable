@@ -7,9 +7,11 @@ description: Use when writing Jest unit tests (*.unit.js) for Handsontable core,
 
 ## When to Use Unit Tests vs E2E
 
-- **Unit tests (`*.unit.js`):** Pure logic, utility functions, data transformations, calculations, state machines, data structures, and configuration processing.
-- **E2E tests (`*.spec.js`):** DOM interaction, rendering verification, browser events, visual behavior, and user-facing workflows.
-- **Anti-pattern:** Do not write unit tests for rendering or DOM interaction. Use E2E tests for anything that touches the DOM.
+**Favor E2E tests over unit tests.** The key rule: if a unit test requires mocking a module, write an E2E test instead. Mocking couples tests tightly to internal module shape, making code resistant to refactoring and extension -- every internal restructure forces test updates even when behavior hasn't changed.
+
+- **Good unit test candidates:** Pure logic, utility functions, data transformations, calculations -- anything that needs **no mocking**.
+- **Use E2E instead for:** DOM interaction, rendering, browser events, visual behavior, and anything that would require mocking modules to test in isolation.
+- **Anti-pattern:** Unit tests that mock internal modules just to achieve isolation. This creates brittle tests that resist refactoring.
 
 ## Conventions
 

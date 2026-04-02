@@ -51,6 +51,10 @@ Always use `getEditedCellRect()` for viewport-, scroll-, and overlay-aware posit
 - `src/editors/selectEditor/selectEditor.js` -- Dropdown selection pattern.
 - `src/editors/baseEditor/baseEditor.js` -- Base class defining all lifecycle methods and state transitions.
 
+## IME (Input Method Editor) gotcha
+
+For CJK languages, `compositionstart`/`compositionend` events have timing issues that affect when to read the editor value. Do not read or commit the value between `compositionstart` and `compositionend` -- the composition is still in progress and the value is intermediate. The BaseEditor handles this, but custom editors that override key event handling must respect composition state.
+
 ## Common mistakes
 
 - Forgetting to clean up DOM elements and event listeners in `close()`.

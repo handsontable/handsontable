@@ -68,10 +68,14 @@ node bin/changelog entry
 
 This walks you through each field and writes the JSON file for you. You can also create the file manually -- the format is simple enough.
 
+## One Entry Per PR
+
+Create **one changelog entry per PR**, even if the PR fixes multiple issues. The title should describe the overall change, not list individual issues.
+
 ## Checklist
 
 1. Pick the correct `type` from the table above.
 2. Write a clear, user-facing `title` ending with a period.
 3. Set `breaking` to `true` only if the change breaks existing behavior.
 4. Set `framework` to match the affected package, or `"none"` for core.
-5. Name the file after the GitHub issue or PR number.
+5. Name the file after the GitHub PR number (ask the user, never infer).

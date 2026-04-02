@@ -52,9 +52,16 @@ Walkontable has its own dedicated test runner. Do NOT mix Walkontable tests with
 | `src/3rdparty/walkontable/src/overlay/` | Overlay system |
 | `src/3rdparty/walkontable/src/renderer/` | DOM rendering |
 
+## DOM abstraction rule
+
+**No code in `handsontable/src/` (plugins, core, etc.) should manipulate Walkontable DOM elements directly.** Go through TableView or the public Core API.
+
+Even within Walkontable itself, prefer wrapping DOM logic in abstract modules rather than manipulating elements inline. Direct DOM manipulation makes the code hard to change and maintain. The goal is to keep DOM access behind well-defined abstractions so the rendering strategy can evolve independently.
+
 ## Common mistakes
 
-- Accessing Walkontable internals from plugins instead of going through TableView.
+- Accessing or modifying Walkontable DOM elements from plugins or core code instead of going through TableView.
+- Manipulating DOM directly inside Walkontable instead of wrapping it in an abstraction module.
 - Running Walkontable tests through the main E2E pipeline instead of the dedicated runner.
 - Not testing with frozen rows and columns, which misses overlay edge cases.
 - Forgetting `requestAnimationFrame` for scroll-related changes, causing layout thrashing.

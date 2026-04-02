@@ -55,22 +55,27 @@ The repository has a PR template at `.github/PULL_REQUEST_TEMPLATE.md`. Fill in 
 - **Affected project(s)** -- Check every package your change touches: `handsontable`, `@handsontable/react-wrapper`, `@handsontable/angular-wrapper`, `@handsontable/vue3`.
 - **Checklist** -- Confirm code style, CLA signature, and whether documentation needs updating.
 
-## 5. Create the PR
+## 5. Target Branch
+
+All PRs target the **develop** branch. Cherry-picks to `release/*` or `lts/*` branches are handled separately by maintainers.
+
+## 6. Create the PR
 
 Use the GitHub CLI to create the PR:
 
 ```bash
-gh pr create --title "DEV-xxx: Short description of the change" --body "..."
+gh pr create --base develop --title "DEV-xxx: Short description" --body "..."
 ```
 
-- Include the ClickUp task ID in the PR title when applicable (e.g. `DEV-627: Fix filter column index mapping`).
+- **Commit messages:** Descriptive, max 80 characters. Include task ID (e.g. `DEV-627: Fix filter column index`).
+- Include the ClickUp task ID in the PR title when applicable.
 - Start the description with "The PR fixes/adds/changes/..." -- be direct, no filler.
 - If the PR introduces a breaking change, require the `Breaking change` label and include a migration section with before/after examples. Update migration guides in `docs/content/guides/upgrade-and-migration/`.
 
-## 6. After PR Creation
+## 7. After PR Creation
 
 When working from a ClickUp task, use the ClickUp MCP tools to update the task status to **"code review"**.
 
-## 7. Merge Strategy
+## 8. Merge Strategy
 
 All PRs are merged using **"Squash and merge"**. The squashed commit message becomes the permanent history, so make sure the PR title is clear and descriptive.

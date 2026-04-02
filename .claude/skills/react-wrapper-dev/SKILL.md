@@ -46,6 +46,10 @@ A `useRef()` hook holds the live Handsontable instance. It is exposed to parent 
 | `src/hotColumn.tsx` | Declarative column config component |
 | `src/hotEditor.tsx` | Custom editor portal component |
 
+## React StrictMode gotcha
+
+React StrictMode causes a double mount (mount -> unmount -> mount). This means Handsontable gets initialized twice. The wrapper must correctly destroy the instance on unmount and create a fresh one on the second mount. If cleanup is incomplete, the second mount can fail or leak memory. Always verify that `destroy()` is called on unmount and that no stale references persist.
+
 ## Rules
 
 - No business logic in wrappers. Data transformation, validation, and grid behavior belong in `handsontable/src/`.

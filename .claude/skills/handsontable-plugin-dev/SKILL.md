@@ -74,6 +74,17 @@ this.#map = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, '
 
 **Strategy pattern** -- Use for swappable logic (e.g., `autoPageSize` vs `fixedPageSize`).
 
+**Batch rendering** -- When making multiple data/render changes, wrap them to avoid redundant render cycles:
+```js
+this.hot.batch(() => {
+  // multiple operations here -- only one render at the end
+});
+// Or for render-only batching:
+this.hot.suspendRender();
+// ... operations ...
+this.hot.resumeRender();
+```
+
 ## Decoupling Rules
 
 - No direct cross-plugin imports. Use hooks or `hot.getPlugin('{Name}')`.
@@ -86,6 +97,16 @@ this.#map = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, '
 2. Wire into `src/plugins/index.js`.
 3. Add default option (disabled) in `src/dataMap/metaManager/metaSchema.js`.
 4. Add TypeScript definitions in `types/`.
+
+## Focus Management
+
+If your plugin provides UI elements (buttons, inputs, navigation bars), you must integrate with the focus manager (`src/focusManager/`).
+
+- **Register a focus scope** with a unique name for your plugin's UI region.
+- **Implement focus entry logic** -- when the scope is activated, focus the first or last focusable element depending on the navigation direction (Tab = first, Shift+Tab = last).
+- The focus manager listens to Tab/Shift+Tab keyboard events and blocks or allows them to ensure the correct UI module is focused during normal focus navigation.
+- **Scopes switch automatically** based on which element the user clicks or focuses. The Core switches the active scope and sets the listen mode so the user can interact with either the grid or another module (e.g., pagination bar).
+- See the Pagination plugin for a reference implementation (`#registerFocusScope` / `#unregisterFocusScope`).
 
 ## Important Gotchas
 

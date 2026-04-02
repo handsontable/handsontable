@@ -9,16 +9,20 @@ Handsontable uses three coordinate systems because the position of a row or colu
 
 ## The three systems
 
-| System | What it represents | Changes when | Example |
-|---|---|---|---|
-| **Physical** | Position in the source data array | Data is inserted or removed | Row 5 in the original dataset stays physical 5 regardless of sorting, filtering, or hiding |
-| **Visual** | Position in the DataMap after trimming | A `TrimmingMap` adds or removes indexes | If rows 0-1 are trimmed, former physical row 2 becomes visual row 0 |
-| **Renderable** | Position in the DOM after hiding | A `HidingMap` adds or removes indexes | If visual row 1 is hidden, visual row 2 becomes renderable row 1 |
+| System | What it represents | Key behavior |
+|---|---|---|
+| **Physical** | Position in the source data array (0 to N) | **Never changes** regardless of filtering, sorting, trimming, hiding, or moving. Always 0 to N. |
+| **Visual** | Position in what Handsontable has processed | Changes when data is filtered, sorted, trimmed, or columns/rows are moved. **Hidden columns/rows still have visual indexes** -- hiding does not remove from visual space. |
+| **Renderable** | Position in the DOM | Only matters for Walkontable. Very rarely used in public API and Handsontable. |
+
+**The public Handsontable API mainly uses visual indexes**, sometimes physical, and very rarely renderable (if any).
+
+**In Walkontable** (the rendering engine), the data is already filtered, sorted, trimmed (etc.) by Handsontable, so Walkontable renders it as-is from 0 to N. Walkontable also uses "source index" and "render index" internally for virtualization -- calculating what needs to be rendered at the current scroll position.
 
 ## HidingMap vs TrimmingMap
 
-- **HidingMap** - The index stays in the DataMap (visual space) but is not rendered in the DOM. Used by `HiddenColumns` and `HiddenRows`. The data is still accessible via `getDataAtCell()` with visual coordinates.
-- **TrimmingMap** - The index is removed from the DataMap entirely. Used by `TrimRows` and `Filters`. Trimmed rows do not exist in visual space at all.
+- **HidingMap** -- The index stays in the DataMap (visual space) but is not rendered in the DOM. Used by `HiddenColumns` and `HiddenRows`. **Important: hidden columns/rows still have visual indexes.** The data is still accessible via `getDataAtCell()` with visual coordinates.
+- **TrimmingMap** -- The index is removed from the DataMap entirely. Used by `TrimRows` and `Filters`. Trimmed rows do not exist in visual space at all.
 
 ## IndexMapper API
 

@@ -50,6 +50,14 @@ registerRenderer('myRenderer', myRenderer);
 - `src/renderers/htmlRenderer/htmlRenderer.js` -- Renders raw HTML (use with caution).
 - `src/renderers/numericRenderer/numericRenderer.js` -- Formatting with numeral.js.
 
+## Performance
+
+Renderers are called **for every cell in the viewport on every render cycle** (both fast and slow renders). They must be highly optimized:
+- Keep logic minimal -- avoid DOM-heavy operations
+- Never read layout properties inside a renderer (`getBoundingClientRect`, `offsetWidth`) -- causes layout thrashing
+- Avoid object allocations and complex string concatenations in the hot path
+- The simpler the renderer, the better
+
 ## Common mistakes
 
 - Forgetting to call `baseRenderer` first, which skips readonly/invalid CSS and ARIA setup.
