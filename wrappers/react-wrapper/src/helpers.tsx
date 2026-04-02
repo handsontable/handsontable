@@ -251,19 +251,13 @@ export function areEquivalentSettingsValue(previousValue: unknown, currentValue:
       previousValue.flags === currentValue.flags;
   }
 
-  const previousIsArray = isArray(previousValue);
-  const currentIsArray = isArray(currentValue);
-
-  if (previousIsArray && currentIsArray) {
-    const previousEntries = previousValue as unknown as unknown[];
-    const currentEntries = currentValue as unknown as unknown[];
-
-    if (previousEntries.length !== currentEntries.length) {
+  if (isArray(previousValue) && isArray(currentValue)) {
+    if (previousValue.length !== currentValue.length) {
       return false;
     }
 
-    for (let index = 0; index < previousEntries.length; index++) {
-      if (!areEquivalentSettingsValue(previousEntries[index], currentEntries[index])) {
+    for (let index = 0; index < previousValue.length; index++) {
+      if (!areEquivalentSettingsValue(previousValue[index], currentValue[index])) {
         return false;
       }
     }
@@ -271,7 +265,7 @@ export function areEquivalentSettingsValue(previousValue: unknown, currentValue:
     return true;
   }
 
-  if (previousIsArray || currentIsArray) {
+  if (isArray(previousValue) || isArray(currentValue)) {
     return false;
   }
 

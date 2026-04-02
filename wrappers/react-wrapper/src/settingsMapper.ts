@@ -2,6 +2,12 @@ import Handsontable from 'handsontable/base';
 import { HotTableProps } from './types';
 import { areEquivalentSettingsValue } from './helpers';
 
+/**
+ * Only `dataSchema` and `columns` use deep comparison when diffing props for `updateSettings(false)`.
+ * Other object settings (for example `mergeCells`, `cell`, `nestedHeaders`, hooks) stay on strict
+ * reference equality so we avoid expensive deep walks and accidental false positives where functions
+ * or class instances would not compare meaningfully by keys alone.
+ */
 const DEEP_COMPARABLE_SETTINGS: Array<keyof Handsontable.GridSettings> = ['dataSchema', 'columns'];
 
 export class SettingsMapper {
