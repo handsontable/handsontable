@@ -7,7 +7,6 @@ import {
   getDateInHotFormat,
   getDateInHfFormat,
   getDateFromExcelDate,
-  omitAutofillDataForSkippedPasteCells,
   normalizeValueForFormulaEngine,
 } from '../utils';
 
@@ -96,45 +95,6 @@ describe('Formulas utils', () => {
       expect(getDateFromExcelDate(366, 'DD/MM/YYYY')).toEqual('31/12/1900');
       // Values are the same for GS, Excel and HF.
       expect(getDateFromExcelDate(366, 'YYYY-MM-DD')).toEqual('1900-12-31');
-    });
-  });
-
-  describe('omitAutofillDataForSkippedPasteCells', () => {
-    it('should omit cells marked by `skipRowOnPaste` and `skipColumnOnPaste`', () => {
-      const fillData = [
-        ['=B1', '=C1', '=D1'],
-      ];
-      const metaFactory = (...args) => ({
-        skipRowOnPaste: false,
-        skipColumnOnPaste: [1, 2].includes(args[1]),
-      });
-
-      expect(omitAutofillDataForSkippedPasteCells(fillData, 0, 1, metaFactory)).toEqual([['=D1']]);
-    });
-
-    it('should return a no-op shape when all cells in target range are skipped', () => {
-      const fillData = [
-        ['=B1', '=C1'],
-      ];
-      const metaFactory = () => ({
-        skipRowOnPaste: false,
-        skipColumnOnPaste: true,
-      });
-
-      expect(omitAutofillDataForSkippedPasteCells(fillData, 0, 1, metaFactory)).toEqual([[]]);
-    });
-
-    it('should omit rows marked by `skipRowOnPaste`', () => {
-      const fillData = [
-        ['=A2'],
-        ['=A3'],
-      ];
-      const metaFactory = row => ({
-        skipRowOnPaste: row === 1,
-        skipColumnOnPaste: false,
-      });
-
-      expect(omitAutofillDataForSkippedPasteCells(fillData, 1, 0, metaFactory)).toEqual([['=A3']]);
     });
   });
 

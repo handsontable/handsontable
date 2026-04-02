@@ -95,44 +95,6 @@ export function getDateFromExcelDate(numericDate, dateFormat) {
 }
 
 /**
- * Excludes cells from autofill data if they are marked as skipped on paste.
- *
- * @param {Array[]} fillData The autofill data returned by HyperFormula.
- * @param {number} startRow The visual row index where the target range starts.
- * @param {number} startColumn The visual column index where the target range starts.
- * @param {Function} cellMetaFactory The factory function that returns cell meta by visual coordinates.
- * @returns {Array[]}
- */
-export function omitAutofillDataForSkippedPasteCells(fillData, startRow, startColumn, cellMetaFactory) {
-  const filteredData = [];
-
-  fillData.forEach((rowData, rowOffset) => {
-    const rowValues = [];
-
-    rowData.forEach((cellValue, columnOffset) => {
-      const {
-        skipRowOnPaste = false,
-        skipColumnOnPaste = false,
-      } = cellMetaFactory(startRow + rowOffset, startColumn + columnOffset);
-
-      if (!skipRowOnPaste && !skipColumnOnPaste) {
-        rowValues.push(cellValue);
-      }
-    });
-
-    if (rowValues.length) {
-      filteredData.push(rowValues);
-    }
-  });
-
-  if (filteredData.length === 0) {
-    return [[]];
-  }
-
-  return filteredData;
-}
-
-/**
  * Converts a Handsontable cell value to a value accepted by HyperFormula.
  * HyperFormula doesn't accept arrays as direct cell values, so they are converted to a
  * comma-separated string.
