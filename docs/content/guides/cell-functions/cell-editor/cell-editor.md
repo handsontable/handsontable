@@ -131,10 +131,12 @@ Handsontable separates rendering (displaying cell values) from editing (changing
 | --- | --- | --- |
 | **Select editor** | Cell is selected | Looks up the editor class from the `editor` config option |
 | **Prepare** | Cell is selected | Calls `prepare()` to configure the editor for the selected cell |
-| **Open** | User triggers editing | Calls `beginEditing()` → `open()` |
+| **Open** | User triggers editing | Fires `beforeBeginEditing` (return `false` to cancel), then calls `beginEditing()` → `open()` |
 | **Close** | User confirms or cancels | Calls `finishEditing()` → `close()` or `focus()` |
 
 **Editing opens on:** <kbd>**Enter**</kbd>, <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>, <kbd>**F2**</kbd>, double-click.
+
+**Preventing the editor from opening:** Use the [`beforeBeginEditing`](@/api/hooks.md#beforebeginediting) hook to conditionally cancel editor opening. Return `false` from the hook callback to prevent the editor from opening. Returning `undefined` (or any non-boolean value) applies the default behavior, which disallows opening for non-contiguous selections (Ctrl/Cmd+click) and multi-cell selections (Shift+click). Returning `true` removes those restrictions.
 
 **Editing closes on:**
 
