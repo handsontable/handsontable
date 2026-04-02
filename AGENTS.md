@@ -464,6 +464,7 @@ When calling `updateSettings()` in the React wrapper, **preserve and restore sel
 
 ## Gotchas
 
+- **Cross-platform `npm` scripts**: All `scripts` entries in wrapper `package.json` files must work on Linux, macOS, and Windows. Never use bash-only constructs (`if [ ]`, `mv`, `&&` chaining with `||`) directly in script strings. Instead, write a Node.js `.mjs` helper (see `wrappers/react-wrapper/scripts/prepare-types.mjs` as a reference) and invoke it with `node scripts/your-script.mjs`. Use async top-level `await` with `fs/promises` (`readdir`, `rename`, `rm`) rather than their sync counterparts. Use `fs/promises` `rm({ recursive: true, force: true })` instead of `rimraf`/`rm -rf`, and `rename` instead of `mv`.
 - Wrappers consume `handsontable/tmp/` (not `dist/`). Build core before running wrapper tests.
 - Two builds: `handsontable.js` (base) and `handsontable.full.js` (includes HyperFormula). Test both.
 - Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider` (already in the `test` script).
