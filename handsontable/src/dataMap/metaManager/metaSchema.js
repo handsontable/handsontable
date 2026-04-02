@@ -3331,11 +3331,22 @@ export default () => {
       let row;
       let rowLen;
       let value;
+      let meta;
+      const hasExplicitSchema = !!this.getSettings().dataSchema;
+      const schema = hasExplicitSchema ? this.getSchema() : null;
 
       for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
+          if (hasExplicitSchema) {
+            meta = this.getCellMeta(row, col);
+
+            if (schema[meta.prop] === value) {
+              continue;
+            }
+          }
+
           return false;
         }
       }
@@ -3373,15 +3384,21 @@ export default () => {
       let colLen;
       let value;
       let meta;
+      const hasExplicitSchema = !!this.getSettings().dataSchema;
+      const schema = hasExplicitSchema ? this.getSchema() : null;
 
       for (col = 0, colLen = this.countCols(); col < colLen; col++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
-          if (typeof value === 'object') {
-            meta = this.getCellMeta(row, col);
+          meta = this.getCellMeta(row, col);
 
+          if (typeof value === 'object') {
             return isObjectEqual(this.getSchema()[meta.prop], value);
+          }
+
+          if (hasExplicitSchema && schema[meta.prop] === value) {
+            continue;
           }
 
           return false;

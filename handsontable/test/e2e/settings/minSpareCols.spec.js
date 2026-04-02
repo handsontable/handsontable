@@ -175,6 +175,24 @@ describe('settings', () => {
       });
     });
 
+    describe('with dataSchema having non-null default values', () => {
+      it('should not add extra columns when the spare column already contains the dataSchema defaults (GH #671)', async() => {
+        handsontable({
+          data: [[false, null]],
+          dataSchema: [false, null],
+          minSpareCols: 1,
+        });
+
+        // 1 data column (index 0) + 1 spare column (index 1)
+        expect(countCols()).toBe(2);
+
+        // Changing a value should not trigger an extra column being appended
+        await setDataAtCell(0, 0, true);
+
+        expect(countCols()).toBe(2);
+      });
+    });
+
     describe('cell meta', () => {
       it('should be rendered as is without shifting the cell meta objects', async() => {
         handsontable({

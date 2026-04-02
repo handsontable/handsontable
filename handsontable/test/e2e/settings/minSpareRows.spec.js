@@ -95,6 +95,71 @@ describe('settings', () => {
       });
     });
 
+    describe('with dataSchema having non-null default values', () => {
+      it('should not add extra rows when the spare row already contains the dataSchema defaults (GH #671, GH #2409)', async() => {
+        handsontable({
+          data: [{ active: false }],
+          dataSchema: { active: false },
+          columns: [{ data: 'active', type: 'checkbox' }],
+          minSpareRows: 1,
+        });
+
+        // 1 data row + 1 spare row
+        expect(countRows()).toBe(2);
+
+        // Changing a value should not trigger an extra row being appended
+        await setDataAtCell(0, 0, true);
+
+        expect(countRows()).toBe(2);
+      });
+
+      it('should count spare rows correctly when all cells match the dataSchema defaults (GH #671)', async() => {
+        handsontable({
+          data: [{ active: false }, { active: false }],
+          dataSchema: { active: false },
+          columns: [{ data: 'active', type: 'checkbox' }],
+          minSpareRows: 1,
+        });
+
+        // Both rows have only schema-default values - they are all "empty"
+        // minSpareRows: 1 is already satisfied at initialization (row 1 is spare)
+        expect(countEmptyRows()).toBe(2);
+        expect(countRows()).toBe(2);
+      });
+
+      it('should add a spare row when a value is changed to differ from the dataSchema default (GH #671)', async() => {
+        handsontable({
+          data: [{ active: false }],
+          dataSchema: { active: false },
+          columns: [{ data: 'active', type: 'checkbox' }],
+          minSpareRows: 1,
+        });
+
+        expect(countRows()).toBe(2);
+
+        // Row 0 now differs from schema default — row 1 becomes the only spare row
+        // Changing row 1 should trigger a new spare row
+        await setDataAtCell(1, 0, true);
+
+        expect(countRows()).toBe(3);
+      });
+
+      it('should work with numeric dataSchema default values (GH #671)', async() => {
+        handsontable({
+          data: [{ value: 0 }],
+          dataSchema: { value: 0 },
+          columns: [{ data: 'value' }],
+          minSpareRows: 1,
+        });
+
+        expect(countRows()).toBe(2);
+
+        await setDataAtCell(0, 0, 42);
+
+        expect(countRows()).toBe(2);
+      });
+    });
+
     describe('cell meta', () => {
       it('should be rendered as is without shifting the cell meta objects', async() => {
         handsontable({
