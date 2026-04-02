@@ -56,6 +56,17 @@ Review every change against these rules:
 - **Changed a default setting value?** This is **strictly forbidden**. Never change defaults.
 - **Removed a hook or option?** Add it to the removed hooks list so an error is shown at runtime.
 
+## Convention over Configuration
+
+New features should work correctly with zero configuration for the common case. Configuration should only be required when the user explicitly wants to deviate from the established convention.
+
+**Red flags -- fail the review if present:**
+- A new option whose value is always the same in all usages (should be the default)
+- A new directory that breaks the existing folder taxonomy without architectural justification
+- Logic that requires explicit wiring where auto-discovery or a lifecycle hook could handle it
+- A workaround or duplicated logic caused by not following the naming/location convention
+- Config options that encode what a file name, directory location, or type string already expresses
+
 ## Gold Standard Reference
 
 The Pagination plugin (`src/plugins/pagination/`) demonstrates the expected patterns for plugin structure, lifecycle management, settings validation, and conflict registration. Use it as a reference when reviewing new or modified plugins.

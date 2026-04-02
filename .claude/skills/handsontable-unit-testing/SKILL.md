@@ -67,10 +67,6 @@ describe('calculateSomething', () => {
 });
 ```
 
-## Coverage Target
-
-100% of new or modified code.
-
 ## Common Mistakes
 
 - Writing unit tests for DOM or rendering behavior (use E2E instead).
