@@ -1351,7 +1351,9 @@ describe('manualRowResize', () => {
         rowHeaders: true,
         manualRowResize: true,
         height: 400,
-        width: 200
+        width: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       let $rowHeader = getInlineStartClone().find('tr:eq(2) th:eq(0)');
@@ -1411,7 +1413,9 @@ describe('manualRowResize', () => {
         rowHeaders: true,
         manualRowResize: true,
         width: 200,
-        height: 400
+        height: 400,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportVertically(200);
@@ -1489,6 +1493,41 @@ describe('manualRowResize', () => {
           main.toBe(58);
           horizon.toBe(66);
         });
+    });
+
+    it('should display the handle and resize by unscaled height when parent is scaled', async() => {
+      spec().$container.css({
+        transform: 'scale(0.5)',
+        transformOrigin: 'top left',
+      });
+
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        manualRowResize: true,
+      });
+
+      const $rowHeader = getInlineStartClone().find('tbody tr:eq(1) th:eq(0)');
+
+      $rowHeader.simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const handleBox = $resizer[0].getBoundingClientRect();
+      const thBox = $rowHeader[0].getBoundingClientRect();
+
+      expect(handleBox.top).toBeCloseTo(thBox.top + thBox.height - (handleBox.height / 2) - 1, 0);
+
+      $resizer.simulate('mousedown', { clientY: handleBox.top });
+      const guide = spec().$container.find('.manualRowResizerGuide')[0];
+      const guideBoxBeforeMove = guide.getBoundingClientRect();
+
+      $resizer.simulate('mousemove', { clientY: handleBox.top + 25 });
+      const guideBoxAfterMove = guide.getBoundingClientRect();
+
+      $resizer.simulate('mouseup');
+
+      expect(guideBoxAfterMove.top - guideBoxBeforeMove.top).toBeCloseTo(25, 0);
+      expect(rowHeight(spec().$container, 1)).toBeGreaterThan(70);
     });
   });
 
@@ -1810,7 +1849,9 @@ describe('manualRowResize', () => {
           rowHeaders: true,
           manualRowResize: true,
           height: 100,
-          width: 200
+          width: 200,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');

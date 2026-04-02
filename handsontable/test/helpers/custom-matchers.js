@@ -252,12 +252,16 @@ beforeEach(function() {
     toBeVisibleInViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view._wt.wtTable.holder;
-          const verticalPosition = actual.offsetTop - viewport.scrollTop + scrollbarWidth + actual.clientHeight;
-          const horizontalPosition = actual.offsetLeft - viewport.scrollLeft + scrollbarWidth + actual.clientWidth;
+          let pass = false;
 
-          const pass = verticalPosition < viewport.offsetHeight && verticalPosition > 0
-            && horizontalPosition < viewport.offsetWidth && horizontalPosition > 0;
+          if (actual) {
+            const viewport = hot().view._wt.wtTable.holder;
+            const verticalPosition = actual.offsetTop - viewport.scrollTop + scrollbarWidth + actual.clientHeight;
+            const horizontalPosition = actual.offsetLeft - viewport.scrollLeft + scrollbarWidth + actual.clientWidth;
+
+            pass = verticalPosition < viewport.offsetHeight && verticalPosition > 0
+              && horizontalPosition < viewport.offsetWidth && horizontalPosition > 0;
+          }
 
           return {
             pass,
@@ -274,11 +278,17 @@ beforeEach(function() {
     toBeVisibleAtTopOfViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view._wt.wtTable.holder;
-          const verticalPosition = actual.offsetTop - viewport.scrollTop - 1;
+          let pass = false;
+
+          if (actual) {
+            const viewport = hot().view._wt.wtTable.holder;
+            const verticalPosition = actual.offsetTop - viewport.scrollTop - 1;
+
+            pass = verticalPosition === 0;
+          }
 
           return {
-            pass: verticalPosition === 0,
+            pass,
             message: 'Expected the element to be scrolled to the top of the Handsontable viewport'
           };
         }
@@ -292,11 +302,17 @@ beforeEach(function() {
     toBeVisibleAtBottomOfViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view._wt.wtTable.holder;
-          const verticalPosition = actual.offsetTop - viewport.scrollTop + scrollbarWidth + actual.clientHeight + 1;
+          let pass = false;
+
+          if (actual) {
+            const viewport = hot().view._wt.wtTable.holder;
+            const verticalPosition = actual.offsetTop - viewport.scrollTop + scrollbarWidth + actual.clientHeight + 1;
+
+            pass = verticalPosition === viewport.offsetHeight;
+          }
 
           return {
-            pass: verticalPosition === viewport.offsetHeight,
+            pass,
             message: 'Expected the element to be scrolled to the bottom of the Handsontable viewport'
           };
         }
@@ -310,10 +326,16 @@ beforeEach(function() {
     toBeVisibleAtLeftOfViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view._wt.wtTable.holder;
+          let pass = false;
+
+          if (actual) {
+            const viewport = hot().view._wt.wtTable.holder;
+
+            pass = viewport.getBoundingClientRect().x === actual.getBoundingClientRect().x;
+          }
 
           return {
-            pass: viewport.getBoundingClientRect().x === actual.getBoundingClientRect().x,
+            pass,
             message: 'Expected the element to be scrolled to the left of the Handsontable viewport'
           };
         }

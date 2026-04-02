@@ -123,6 +123,15 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Keine Ergebnisse gefunden',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Es scheint, als würden Ihre aktuellen Filter alle Ergebnisse ausblenden.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Filter zurücksetzen',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Daten werden geladen',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Bitte warten.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Daten konnten nicht geladen werden',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Zeilen konnten nicht erstellt werden',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Zeilen konnten nicht aktualisiert werden',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Zeilen konnten nicht entfernt werden',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Anfrage fehlgeschlagen',
+  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Schließen',
 };
 
 export default dictionary;

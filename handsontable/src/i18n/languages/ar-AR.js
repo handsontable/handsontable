@@ -125,6 +125,15 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'لم يتم العثور على نتائج',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'يبدو أن المرشحات الحالية تخفي جميع النتائج.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'إعادة تعيين المرشحات',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'جارٍ تحميل البيانات',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'يرجى الانتظار.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'تعذر تحميل البيانات',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'تعذر إنشاء الصفوف',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'تعذر تحديث الصفوف',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'تعذر إزالة الصفوف',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'فشل الطلب',
+  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'إغلاق',
 };
 
 export default dictionary;

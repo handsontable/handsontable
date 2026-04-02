@@ -123,6 +123,15 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Ingen resultater funnet',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Det ser ut til at dine nåværende filtre skjuler alle resultater.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Tilbakestill filtre',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Laster inn data',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Vennligst vent.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Kunne ikke laste inn data',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Kunne ikke opprette rader',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Kunne ikke oppdatere rader',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Kunne ikke fjerne rader',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Forespørselen mislyktes',
+  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Lukk',
 };
 
 export default dictionary;

@@ -30,8 +30,15 @@ const run = async() => {
     process.exit(0);
   }
 
+  // @actions/github@6 uses octokit.rest.* while older versions exposed octokit.pulls.*.
+  const listPullFiles = octokit.rest?.pulls?.listFiles ?? octokit.pulls?.listFiles;
+
+  if (!listPullFiles) {
+    return core.setFailed('Could not resolve Octokit pull file listing API method.');
+  }
+
   // https://octokit.github.io/rest.js/v18#pagination
-  const files = await octokit.paginate(octokit.pulls.listFiles, {
+  const files = await octokit.paginate(listPullFiles, {
     owner,
     repo,
     pull_number: pr.number

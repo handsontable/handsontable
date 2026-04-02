@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed manual column resizing in scaled containers by aligning the guide and normalizing drag width changes.",
+  "type": "fixed",
+  "issueOrPR": 11838,
+  "breaking": false,
+  "framework": "none"
+}

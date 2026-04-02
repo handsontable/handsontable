@@ -314,7 +314,6 @@ describe('CollapsibleColumns API', () => {
             <th class="">AB1</th>
             <th class="collapsibleIndicator collapsed">AC1</th>
             <th class="">AK1</th>
-            <th class="collapsibleIndicator collapsed">AL1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -326,7 +325,6 @@ describe('CollapsibleColumns API', () => {
             <th class="">AB2</th>
             <th class="collapsibleIndicator collapsed">AC2</th>
             <th class="">AK2</th>
-            <th class="collapsibleIndicator collapsed">AL2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -338,7 +336,6 @@ describe('CollapsibleColumns API', () => {
             <th class="">AB3</th>
             <th class="collapsibleIndicator collapsed">AC3</th>
             <th class="">AK3</th>
-            <th class="collapsibleIndicator collapsed">AL3</th>
           </tr>
           <tr>
             <th class="">A4</th>
@@ -350,7 +347,6 @@ describe('CollapsibleColumns API', () => {
             <th class="">AB4</th>
             <th class="">AC4</th>
             <th class="">AK4</th>
-            <th class="">AL4</th>
           </tr>
           <tr>
             <th class="">A5</th>
@@ -362,7 +358,6 @@ describe('CollapsibleColumns API', () => {
             <th class="">AB5</th>
             <th class="">AC5</th>
             <th class="">AK5</th>
-            <th class="">AL5</th>
           </tr>
         </thead>
         <tbody>
@@ -376,7 +371,6 @@ describe('CollapsibleColumns API', () => {
             <td class="">AB1</td>
             <td class="">AC1</td>
             <td class="">AK1</td>
-            <td class="">AL1</td>
           </tr>
         </tbody>
         `);
@@ -391,8 +385,6 @@ describe('CollapsibleColumns API', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="collapsibleIndicator collapsed">B1</th>
-            <th class="">J1</th>
             <th class="collapsibleIndicator collapsed">K1</th>
             <th class="">S1</th>
             <th class="collapsibleIndicator collapsed">T1</th>
@@ -415,8 +407,6 @@ describe('CollapsibleColumns API', () => {
             <th class="">CV1</th>
           </tr>
           <tr>
-            <th class="collapsibleIndicator collapsed">B2</th>
-            <th class="">J2</th>
             <th class="collapsibleIndicator collapsed">K2</th>
             <th class="">S2</th>
             <th class="collapsibleIndicator collapsed">T2</th>
@@ -439,8 +429,6 @@ describe('CollapsibleColumns API', () => {
             <th class="">CV2</th>
           </tr>
           <tr>
-            <th class="collapsibleIndicator collapsed">B3</th>
-            <th class="">J3</th>
             <th class="collapsibleIndicator collapsed">K3</th>
             <th class="">S3</th>
             <th class="collapsibleIndicator collapsed">T3</th>
@@ -463,8 +451,6 @@ describe('CollapsibleColumns API', () => {
             <th class="">CV3</th>
           </tr>
           <tr>
-            <th class="">B4</th>
-            <th class="">J4</th>
             <th class="">K4</th>
             <th class="">S4</th>
             <th class="">T4</th>
@@ -487,8 +473,6 @@ describe('CollapsibleColumns API', () => {
             <th class="">CV4</th>
           </tr>
           <tr>
-            <th class="">B5</th>
-            <th class="">J5</th>
             <th class="">K5</th>
             <th class="">S5</th>
             <th class="">T5</th>
@@ -513,8 +497,6 @@ describe('CollapsibleColumns API', () => {
         </thead>
         <tbody>
           <tr class="ht__row_odd">
-            <td class="">B1</td>
-            <td class="">J1</td>
             <td class="">K1</td>
             <td class="">S1</td>
             <td class="">T1</td>

@@ -186,6 +186,7 @@ export class ColumnSorting extends BasePlugin {
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterInit', () => this.#loadOrSortBySettings());
     this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
+    this.addHook('afterDataProviderFetch', (...args) => this.#onAfterDataProviderFetch(...args), -1);
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {
@@ -757,6 +758,16 @@ export class ColumnSorting extends BasePlugin {
       }
     }
   }
+
+  /**
+   * Callback for the `afterDataProviderFetch` hook.
+   * Keeps header sort state in sync with query `sort` after server-backed `loadData` (same timing as Pagination).
+   *
+   * @param {object} result [[Hooks#afterDataProviderFetch]] payload; reads `columnSortConfig` only.
+   */
+  #onAfterDataProviderFetch = (result) => {
+    this.setSortConfig(result?.columnSortConfig ?? []);
+  };
 
   /**
    * Indicates if clickable header was clicked.

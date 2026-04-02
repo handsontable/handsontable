@@ -54,6 +54,7 @@ describe('`registerAllPlugins`', () => {
       'Dialog',
       'EmptyDataState',
       'Pagination',
+      'DataProvider',
       'UndoRedo',
     ]);
     expect(getRegisteredRendererNames()).toEqual([

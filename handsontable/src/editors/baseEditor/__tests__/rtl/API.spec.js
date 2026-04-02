@@ -38,6 +38,8 @@ describe('BaseEditor API (RTL mode)', () => {
               height: 200,
               editor: 'my-editor',
               fixedRowsTop: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await selectCell(0, 0);
@@ -76,6 +78,8 @@ describe('BaseEditor API (RTL mode)', () => {
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedRowsTop: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await selectCell(0, 0);
@@ -118,6 +122,8 @@ describe('BaseEditor API (RTL mode)', () => {
               height: 200,
               editor: 'my-editor',
               fixedRowsTop: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await scrollViewportTo({
@@ -168,6 +174,8 @@ describe('BaseEditor API (RTL mode)', () => {
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedRowsTop: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await scrollViewportTo({
@@ -219,6 +227,8 @@ describe('BaseEditor API (RTL mode)', () => {
               editor: 'my-editor',
               fixedColumnsStart: 2,
               fixedRowsTop: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await selectCell(0, 0);
@@ -258,6 +268,8 @@ describe('BaseEditor API (RTL mode)', () => {
               editor: 'my-editor',
               fixedColumnsStart: 2,
               fixedRowsTop: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await selectCell(0, 0);
@@ -301,6 +313,8 @@ describe('BaseEditor API (RTL mode)', () => {
               editor: 'my-editor',
               fixedColumnsStart: 2,
               fixedRowsTop: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await scrollViewportTo({
@@ -346,6 +360,8 @@ describe('BaseEditor API (RTL mode)', () => {
               editor: 'my-editor',
               fixedColumnsStart: 2,
               fixedRowsTop: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await scrollViewportTo({
@@ -394,6 +410,8 @@ describe('BaseEditor API (RTL mode)', () => {
               height: 200,
               editor: 'my-editor',
               fixedColumnsStart: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await selectCell(0, 0);
@@ -432,6 +450,8 @@ describe('BaseEditor API (RTL mode)', () => {
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await selectCell(0, 0);
@@ -474,6 +494,8 @@ describe('BaseEditor API (RTL mode)', () => {
               height: 200,
               editor: 'my-editor',
               fixedColumnsStart: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await scrollViewportTo({
@@ -518,6 +540,8 @@ describe('BaseEditor API (RTL mode)', () => {
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await scrollViewportTo({
@@ -567,6 +591,8 @@ describe('BaseEditor API (RTL mode)', () => {
               editor: 'my-editor',
               fixedColumnsStart: 2,
               fixedRowsBottom: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await selectCell(8, 0);
@@ -606,6 +632,8 @@ describe('BaseEditor API (RTL mode)', () => {
               editor: 'my-editor',
               fixedColumnsStart: 2,
               fixedRowsBottom: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await selectCell(countRows() - 2, 0);
@@ -649,6 +677,8 @@ describe('BaseEditor API (RTL mode)', () => {
               editor: 'my-editor',
               fixedColumnsStart: 2,
               fixedRowsBottom: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await scrollViewportTo({
@@ -694,6 +724,8 @@ describe('BaseEditor API (RTL mode)', () => {
               editor: 'my-editor',
               fixedColumnsStart: 2,
               fixedRowsBottom: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await scrollViewportTo({
@@ -742,6 +774,8 @@ describe('BaseEditor API (RTL mode)', () => {
               height: 200,
               editor: 'my-editor',
               fixedRowsBottom: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await selectCell(countRows() - 2, 0);
@@ -780,6 +814,8 @@ describe('BaseEditor API (RTL mode)', () => {
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedRowsBottom: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await selectCell(countRows() - 2, 0);
@@ -822,6 +858,8 @@ describe('BaseEditor API (RTL mode)', () => {
               height: 200,
               editor: 'my-editor',
               fixedRowsBottom: 2,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await scrollViewportTo({
@@ -874,7 +912,9 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsBottom: 2,
               // Disabling `autoColumnSize` to prevent pixel-length differences in the spreader width dependent
               // on window size
-              autoColumnSize: false
+              autoColumnSize: false,
+              viewportColumnRenderingOffset: 10,
+              viewportRowRenderingOffset: 10,
             });
 
             await scrollViewportTo({
