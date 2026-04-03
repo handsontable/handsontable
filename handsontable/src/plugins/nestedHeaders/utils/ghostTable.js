@@ -230,13 +230,7 @@ class GhostTable {
         const th = rootDocument.createElement('th');
         const headerSettings = this.headersStateManager.getHeaderSettings(row, visualColumnsIndex);
 
-        if (
-          headerSettings &&
-          (
-            (!headerSettings.isPlaceholder && !headerSettings.isCollapsed) ||
-            headerSettings.isHidden
-          )
-        ) {
+        if (headerSettings && !headerSettings.isPlaceholder && !headerSettings.isHidden) {
           const hasCollapsibleControl = isCollapsibleColumnsEnabled &&
             (headerSettings.origColspan > 1 || headerSettings.colspan > 1);
           const dropdownHtml = isDropdownEnabled ? '<button class="changeType"></button>' : '';
@@ -351,13 +345,7 @@ class GhostTable {
     for (let row = 0; row < this.layersCount; row++) {
       const headerSettings = this.headersStateManager.getHeaderSettings(row, visualColumnIndex);
 
-      if (
-        headerSettings &&
-        (
-          (!headerSettings.isPlaceholder && !headerSettings.isCollapsed) ||
-          headerSettings.isHidden
-        )
-      ) {
+      if (headerSettings && !headerSettings.isPlaceholder && !headerSettings.isHidden) {
         return true;
       }
     }
