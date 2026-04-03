@@ -319,7 +319,7 @@ Examples of how to use them are provided in their descriptions.
 
 <div class="boxes-list gray">
 
-- [Handsontable 12.3.0: Copying cells with headers](https://handsontable.com/blog/articles/2022/12/handsontable-12-3-0-copying-cells-with-headers)
+- [Handsontable 12.3.0: Copying cells with headers](https://handsontable.com/blog/handsontable-12-3-0-copying-cells-with-headers)
 
 </div>
 
