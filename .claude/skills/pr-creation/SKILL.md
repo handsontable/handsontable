@@ -29,10 +29,10 @@ npm run stylelint --prefix handsontable
 npm run build --prefix handsontable
 
 # Unit tests for the area you changed
-npm run test:unit --testPathPattern=<area> --prefix handsontable
+npm run test:unit --testPathPattern=<regex> --prefix handsontable
 
 # E2E tests for the area you changed
-npm run test:e2e --testPathPattern=<plugin-name> --prefix handsontable
+npm run test:e2e --testPathPattern=<regex> --prefix handsontable
 
 # If you touched a wrapper, test it too
 npm run test --prefix wrappers/react-wrapper

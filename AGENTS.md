@@ -97,9 +97,9 @@ All commands use `npm run` with `--prefix` to target the right package from the 
 - **Lint core**: `npm run eslint --prefix handsontable` and `npm run stylelint --prefix handsontable`
 - **Unit tests (core)**: `npm run test:unit --prefix handsontable` (Jest, ~2200 tests)
 - **E2E tests (core)**: `npm run test:e2e --prefix handsontable` (Puppeteer/Jasmine, headless Chrome)
-- **Targeted unit test**: `npm run test:unit --testPathPattern=<path> --prefix handsontable`
-- **Targeted e2e test**: `npm run test:e2e --testPathPattern=<plugin> --prefix handsontable`
-- **E2E with theme**: `npm run test:e2e --testPathPattern=<plugin> --theme=horizon --prefix handsontable` (themes: `classic`, `main`, `horizon`)
+- **Targeted unit test**: `npm run test:unit --testPathPattern=<regex> --prefix handsontable` (regex matched against file paths, e.g. `filters`, `ghostTable.unit`, `metaManager`)
+- **Targeted e2e test**: `npm run test:e2e --testPathPattern=<regex> --prefix handsontable` (e.g. `collapsibleColumns`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- **E2E with theme**: `npm run test:e2e --testPathPattern=<regex> --theme=horizon --prefix handsontable` (themes: `classic`, `main`, `horizon`)
 - **Walkontable tests**: `npm run test:walkontable --prefix handsontable` (separate pipeline)
 - **Wrapper tests**: `npm run test --prefix wrappers/react-wrapper`, `npm run test --prefix wrappers/vue3`, `npm run test --prefix wrappers/angular-wrapper`
 

@@ -69,8 +69,8 @@ Use `it.flaky()` for timing-sensitive tests (auto-retries up to 3 times).
 ## Run commands
 
 - **All:** `npm run test:e2e --prefix handsontable`
-- **Targeted:** `npm run test:e2e --testPathPattern=pluginName --prefix handsontable`
-- **With theme:** `npm run test:e2e --testPathPattern=pluginName --theme=horizon --prefix handsontable` (available themes: `classic`, `main`, `horizon`)
+- **Targeted:** `npm run test:e2e --testPathPattern=<regex> --prefix handsontable` -- the pattern is matched against test file paths (e.g. `collapsibleColumns`, `ghostTable`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- **With theme:** `npm run test:e2e --testPathPattern=<regex> --theme=horizon --prefix handsontable` (available themes: `classic`, `main`, `horizon`)
 - **Rebuild first:** The E2E runner loads `dist/handsontable.js`. After changing `src/**`, run `npm run build --prefix handsontable` before running E2E tests.
 
 ## Test location
