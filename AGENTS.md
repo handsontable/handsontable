@@ -145,9 +145,10 @@ Changes to JavaScript APIs that are **not listed in the public API reference** (
 
 Every code change **must** satisfy all of the following:
 
-1. **Tests are required.** Include both **unit tests** (`*.unit.js`) and/or **E2E tests** (`*.spec.js`). Favor E2E tests -- if a unit test requires mocking a module, write an E2E test instead.
-2. **Documentation must be updated.** If a change affects public API, hooks, behavior, or UX, update JSDoc/Typedoc comments and guides.
-3. **Update AGENTS.md and skills.** If a change introduces new conventions, constraints, or gotchas, update this file and the relevant skill in `.claude/skills/`. Run `node scripts/sync-skills-to-cursor.mjs` to sync Cursor rules.
+1. **Use red-green TDD -- tests come first, always.** Write the failing test(s) before touching any production code. Confirm they fail, implement the fix/feature, then confirm they pass. **Never write or modify source code before the corresponding tests exist.**
+2. **Tests are required.** Include both **unit tests** (`*.unit.js`) and/or **E2E tests** (`*.spec.js`). Favor E2E tests -- if a unit test requires mocking a module, write an E2E test instead.
+3. **Documentation must be updated.** If a change affects public API, hooks, behavior, or UX, update JSDoc/Typedoc comments and guides.
+4. **Update AGENTS.md and skills.** If a change introduces new conventions, constraints, or gotchas, update this file and the relevant skill in `.claude/skills/`. Run `node scripts/sync-skills-to-cursor.mjs` to sync Cursor rules.
 
 ---
 
