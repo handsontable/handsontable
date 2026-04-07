@@ -19,9 +19,6 @@ searchCategory: Guides
 category: Tools and building
 menuTag: updated
 ---
-
-# Custom builds
-
 Handsontable's building process transforms the source files located in the code repository into dedicated packages.
 
 [[toc]]
@@ -301,7 +298,7 @@ From the `/wrappers/vue3` directory, you can also run individual Vue `build` tas
 
 ## Related guides
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 ::: only-for javascript
 

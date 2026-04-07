@@ -7,6 +7,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      height="auto"
       data={[
         ['Tesla', 2017, 'black', 'black'],
         ['Nissan', 2018, 'blue', 'blue'],

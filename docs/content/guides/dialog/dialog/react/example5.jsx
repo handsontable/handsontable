@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
@@ -28,8 +28,16 @@ const data = [
   { model: 'Carbon Handlebar', price: 603.96, sellDate: '2025-09-13', sellTime: '04:10', inStock: false },
 ];
 
+const backgroundOptions = [
+  { value: 'solid', label: 'Solid' },
+  { value: 'semi-transparent', label: 'Semi-transparent' },
+];
+
 const ExampleComponent = () => {
   const hotTableRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selected, setSelected] = useState('solid');
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const hotInstance = hotTableRef.current?.hotInstance;
@@ -41,33 +49,68 @@ const ExampleComponent = () => {
     hotInstance.getPlugin('dialog').show();
   }, []);
 
-  const onBackgroundChange = (event) => {
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
+
+  const handleSelect = (value) => {
+    setSelected(value);
+    setIsOpen(false);
+
     const hotInstance = hotTableRef.current?.hotInstance;
 
     if (!hotInstance) {
       return;
     }
 
-    const background = event.target.value;
     const content =
-      background === 'solid'
+      value === 'solid'
         ? 'This dialog uses a solid background (default).'
         : 'This dialog uses a semi-transparent background.';
 
-    hotInstance.getPlugin('dialog').update({ content, background });
+    hotInstance.getPlugin('dialog').update({ content, background: value });
   };
 
   return (
     <>
-      <div className="example-controls-container" style={{ paddingBottom: '16px' }}>
-        <div className="controlsQuickFilter">
-          <label htmlFor="background-select" className="selectColumn">
-            Select a background:
-            <select id="background-select" onChange={onBackgroundChange}>
-              <option value="solid">Solid</option>
-              <option value="semi-transparent">Semi-transparent</option>
-            </select>
-          </label>
+      <div className="example-controls-container">
+        <div className="controls">
+          <div className="theme-dropdown" ref={dropdownRef}>
+            <button
+              className="theme-dropdown-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={isOpen}
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              <span>{backgroundOptions.find((o) => o.value === selected)?.label}</span>
+              <svg className="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+            </button>
+            {isOpen && (
+              <ul className="theme-dropdown-menu" role="listbox">
+                {backgroundOptions.map((opt) => (
+                  <li key={opt.value} role="option" aria-selected={selected === opt.value} onClick={() => handleSelect(opt.value)}>
+                    {opt.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
       <HotTable

@@ -28,6 +28,7 @@ const colors = [
 const container = document.querySelector('#example7');
 
 new Handsontable(container, {
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['Black', 'Black'],

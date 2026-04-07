@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -32,7 +33,7 @@ const defaultValueRenderer = (instance, td, row, col, prop, value, cellPropertie
     td.style.color = '';
   }
 
-  Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
+  textRenderer(instance, td, row, col, prop, value, cellProperties);
 };
 
 const container = document.querySelector('#example1');

@@ -19,9 +19,17 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Color Picker Cell Type - Step-by-Step Guide (React)
+::: only-for react
 
-[[toc]]
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps react-colorful
+
+@[code](@/content/recipes/cell-types/colorful-picker/react/example1.css)
+@[code](@/content/recipes/cell-types/colorful-picker/react/example1.jsx)
+@[code](@/content/recipes/cell-types/colorful-picker/react/example1.tsx)
+
+:::
+
+:::
 
 ## Overview
 
@@ -40,20 +48,6 @@ A cell that:
 - Validates input so only valid hex values (e.g. `#RRGGBB`) are accepted
 - Works with React's component-based architecture
 - Uses `hotRenderer` to display color swatches in cells
-
-## Complete Example
-
-::: only-for react
-
-::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps react-colorful
-
-@[code](@/content/recipes/cell-types/colorful-picker/react/example1.css)
-@[code](@/content/recipes/cell-types/colorful-picker/react/example1.jsx)
-@[code](@/content/recipes/cell-types/colorful-picker/react/example1.tsx)
-
-:::
-
-:::
 
 ## Prerequisites
 
