@@ -397,6 +397,7 @@ export class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
     this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
     this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
+    this.eventManager.addEventListener(editorElement, 'keydown', event => this.#onEditorKeyDown(event));
 
     this.eventManager.addEventListener(
       this.getEditorInputElement(),
@@ -835,6 +836,30 @@ export class Comments extends BasePlugin {
     this.#commentValueBeforeSave = this.getComment();
     this.hot.listen();
     this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+  }
+
+  /**
+   * Stops keyboard events from propagating to the grid's shortcut system while the comment
+   * textarea is focused. Without this, keys like Ctrl+A trigger grid-level actions (e.g.
+   * "select all cells") instead of native textarea behavior. Shortcuts registered in the
+   * `plugin:comments` context (Escape, Ctrl+Enter, Tab) are allowed through.
+   *
+   * @param {KeyboardEvent} event The keydown event from the comment textarea.
+   */
+  #onEditorKeyDown(event) {
+    if (!this.#editor.isVisible()) {
+      return;
+    }
+
+    const { key, ctrlKey, metaKey } = event;
+
+    const isEscape = key === 'Escape';
+    const isCtrlEnter = (ctrlKey || metaKey) && key === 'Enter';
+    const isTab = key === 'Tab';
+
+    if (!isEscape && !isCtrlEnter && !isTab) {
+      event.stopPropagation();
+    }
   }
 
   /**
