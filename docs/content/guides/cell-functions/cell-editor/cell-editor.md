@@ -324,9 +324,13 @@ new Handsontable(container, {
 
 ::: tip
 
-Registering an editor with `registerEditor` and referencing it by a string alias works for **class-based editors only**. Component-based editors (those using `useHotEditor`) cannot be registered this way, because they depend on React's rendering lifecycle to function.
+Registering an editor with `registerEditor` and referencing it by a string alias works for class-based editors only. Component-based editors (those using `useHotEditor`) cannot be registered this way, because they depend on React's rendering lifecycle to function.
 
-For component-based editors, pass the component directly to the `editor` prop of `HotTable` or `HotColumn` — no registration step is needed. To reuse the same editor component across multiple columns, import and pass it wherever it is needed:
+For component-based editors, pass the component directly to the `editor` prop of `HotTable` or `HotColumn` — no registration step is needed.
+
+:::
+
+To reuse the same editor component across multiple columns, import and pass it wherever it is needed:
 
 ```jsx
 import { MySelectEditor } from './MySelectEditor';
@@ -336,8 +340,6 @@ import { MySelectEditor } from './MySelectEditor';
   <HotColumn editor={MySelectEditor} />
 </HotTable>
 ```
-
-:::
 
 :::
 
