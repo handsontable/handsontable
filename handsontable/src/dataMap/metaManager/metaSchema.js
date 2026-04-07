@@ -3383,13 +3383,15 @@ export default () => {
       let value;
       let meta;
 
+      const schema = this.getSchema();
+
       for (col = 0, colLen = this.countCols(); col < colLen; col++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
           meta = this.getCellMeta(row, col);
 
-          const schemaDefault = this.getSchema()[meta.prop];
+          const schemaDefault = schema[meta.prop];
 
           if (typeof value === 'object') {
             if (isObjectEqual(schemaDefault, value) === false) {
