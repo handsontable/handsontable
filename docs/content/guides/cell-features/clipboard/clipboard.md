@@ -18,9 +18,6 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Clipboard
-
 Copy data from selected cells to the system clipboard.
 
 [[toc]]
@@ -165,13 +162,13 @@ You can let the end user copy the contents of column headers, by enabling additi
 
 <span class="img-light">
 
-![copy_with_headers_light]({{$basePath}}/img/pages/clipboard/copy-with-headers-light.png)
+![copy_with_headers_light](/img/pages/clipboard/copy-with-headers-light.png)
 
 </span>
 
 <span class="img-dark">
 
-![copy_with_headers_dark]({{$basePath}}/img/pages/clipboard/copy-with-headers-dark.png)
+![copy_with_headers_dark](/img/pages/clipboard/copy-with-headers-dark.png)
 
 </span>
 
@@ -325,23 +322,46 @@ Examples of how to use them are provided in their descriptions.
 
 ## Related API reference
 
-- Configuration options:
-  - [`copyPaste`](@/api/options.md#copypaste)
-  - [`copyable`](@/api/options.md#copyable)
-  - [`parsePastedValue`](@/api/options.md#parsepastedvalue)
-  - [`skipColumnOnPaste`](@/api/options.md#skipcolumnonpaste)
-  - [`skipRowOnPaste`](@/api/options.md#skiprowonpaste)
-- Core methods:
-  - [`getCopyableData()`](@/api/core.md#getcopyabledata)
-  - [`getCopyableText()`](@/api/core.md#getcopyabletext)
-- Hooks:
-  - [`afterCopy`](@/api/hooks.md#aftercopy)
-  - [`afterCopyLimit`](@/api/hooks.md#aftercopylimit)
-  - [`afterCut`](@/api/hooks.md#aftercut)
-  - [`afterPaste`](@/api/hooks.md#afterpaste)
-  - [`beforeCopy`](@/api/hooks.md#beforecopy)
-  - [`beforeCut`](@/api/hooks.md#beforecut)
-  - [`beforePaste`](@/api/hooks.md#beforepaste)
-  - [`modifyCopyableRange`](@/api/hooks.md#modifycopyablerange)
-- Plugins:
-  - [`CopyPaste`](@/api/copyPaste.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [copyPaste](@/api/options.md#copypaste)
+- [copyable](@/api/options.md#copyable)
+- [parsePastedValue](@/api/options.md#parsepastedvalue)
+- [skipColumnOnPaste](@/api/options.md#skipcolumnonpaste)
+- [skipRowOnPaste](@/api/options.md#skiprowonpaste)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCopyableData()](@/api/core.md#getcopyabledata)
+- [getCopyableText()](@/api/core.md#getcopyabletext)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterCopy](@/api/hooks.md#aftercopy)
+- [afterCopyLimit](@/api/hooks.md#aftercopylimit)
+- [afterCut](@/api/hooks.md#aftercut)
+- [afterPaste](@/api/hooks.md#afterpaste)
+- [beforeCopy](@/api/hooks.md#beforecopy)
+- [beforeCut](@/api/hooks.md#beforecut)
+- [beforePaste](@/api/hooks.md#beforepaste)
+- [modifyCopyableRange](@/api/hooks.md#modifycopyablerange)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [CopyPaste](@/api/copyPaste.md)
+
+</div>

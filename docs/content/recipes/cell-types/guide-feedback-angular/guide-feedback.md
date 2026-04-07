@@ -19,9 +19,17 @@ searchCategory: Recipes
 category: Cells
 ---
 
-# Feedback Editor Cell - Step-by-Step Guide (Angular)
+::: only-for angular
 
-[[toc]]
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/cell-types/guide-feedback-angular/angular/example1.ts)
+@[code](@/content/recipes/cell-types/guide-feedback-angular/angular/example1.html)
+@[code](@/content/recipes/cell-types/guide-feedback-angular/angular/example1.css)
+
+:::
+
+:::
 
 ## Overview
 
@@ -42,20 +50,6 @@ A cell that:
 - Provides click-to-select functionality
 - Works with Angular's component-based architecture
 - Supports per-column configuration
-
-## Complete Example
-
-::: only-for angular
-
-::: example #example1 :angular --ts 1 --html 2 --css 3
-
-@[code](@/content/recipes/cell-types/guide-feedback-angular/angular/example1.ts)
-@[code](@/content/recipes/cell-types/guide-feedback-angular/angular/example1.html)
-@[code](@/content/recipes/cell-types/guide-feedback-angular/angular/example1.css)
-
-:::
-
-:::
 
 ## Prerequisites
 

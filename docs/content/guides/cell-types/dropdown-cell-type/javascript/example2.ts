@@ -42,6 +42,7 @@ const airportKVData = [
 ];
 
 new Handsontable(container, {
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   data: shipmentKVData,
   columns: [

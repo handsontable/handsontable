@@ -17,9 +17,6 @@ angular:
 searchCategory: Guides
 category: Accessories and menus
 ---
-
-# Icon pack
-
 Create toolbars, menu bars, and context menus with our set of icons, designed specifically for tables, spreadsheets, and data-rich components.
 
 [[toc]]

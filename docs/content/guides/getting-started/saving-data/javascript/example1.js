@@ -29,7 +29,7 @@ const hot = new Handsontable(container, {
       return;
     }
 
-    fetch('{{$basePath}}/scripts/json/save.json', {
+    fetch('/docs/scripts/json/save.json', {
       method: 'POST',
       mode: 'no-cors',
       headers: {
@@ -46,7 +46,7 @@ const hot = new Handsontable(container, {
 });
 
 load.addEventListener('click', () => {
-  fetch('{{$basePath}}/scripts/json/load.json').then((response) => {
+  fetch('/docs/scripts/json/load.json').then((response) => {
     response.json().then((data) => {
       hot.loadData(data.data);
       // or, use `updateData()` to replace `data` without resetting states
@@ -56,7 +56,7 @@ load.addEventListener('click', () => {
 });
 save.addEventListener('click', () => {
   // save all cell's data
-  fetch('{{$basePath}}/scripts/json/save.json', {
+  fetch('/docs/scripts/json/save.json', {
     method: 'POST',
     mode: 'no-cors',
     headers: {

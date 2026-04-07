@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Getting started
 ---
-
-# License key
-
 Activate Handsontable, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 
 [[toc]]
@@ -183,5 +180,9 @@ To get a commercial license key for your Handsontable copy, contact our [Sales T
 
 ### Related API reference
 
+<div class="boxes-list gray">
+
 - Configuration options:
   - [`licenseKey`](@/api/options.md#licensekey)
+
+</div>
