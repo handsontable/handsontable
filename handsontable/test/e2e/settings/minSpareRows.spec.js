@@ -175,7 +175,7 @@ describe('settings', () => {
 
       it('should not add infinite rows when dataSchema uses object schema with non-null default values', async() => {
         handsontable({
-          data: [{ id: 0, name: null }],
+          data: [{ id: 42, name: 'Alice' }],
           dataSchema: { id: 0, name: null },
           columns: [
             { data: 'id' },
@@ -185,6 +185,7 @@ describe('settings', () => {
         });
 
         expect(countRows()).toBe(2);
+        expect(countEmptyRows()).toBe(1);
 
         await setDataAtRowProp(0, 'id', 1);
 

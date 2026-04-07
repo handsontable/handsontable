@@ -3381,7 +3381,6 @@ export default () => {
       let col;
       let colLen;
       let value;
-      let meta;
 
       const schema = this.getSchema();
 
@@ -3389,9 +3388,7 @@ export default () => {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
-          meta = this.getCellMeta(row, col);
-
-          const schemaDefault = schema[meta.prop];
+          const schemaDefault = schema[this.colToProp(col)];
 
           if (typeof value === 'object') {
             if (isObjectEqual(schemaDefault, value) === false) {
