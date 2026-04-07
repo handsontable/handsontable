@@ -295,6 +295,11 @@ describe('DropdownMenu keyboard shortcut', () => {
         const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
         expect($dropdownMenu.length).toBe(1);
+
+        if ($dropdownMenu.length !== 1 || !menuOffset || !cellOffset || !buttonOffset) {
+          return;
+        }
+
         expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
           main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);

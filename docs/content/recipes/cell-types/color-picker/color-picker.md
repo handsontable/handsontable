@@ -19,9 +19,17 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Color Picker Cell Type - Step-by-Step Guide
+::: only-for javascript vue
 
-[[toc]]
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps @simonwep/pickr
+
+@[code collapse={11-196}](@/content/recipes/cell-types/color-picker/javascript/example1.js)
+@[code collapse={11-198}](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/color-picker/javascript/example1.css)
+
+:::
+
+:::
 
 ## Overview
 
@@ -30,20 +38,6 @@ This guide shows how to create a custom color picker cell using the [Pickr](http
 **Difficulty:** Beginner
 **Time:** ~15 minutes
 **Libraries:** `@simonwep/pickr`
-
-## Complete Example
-
-::: only-for javascript vue
-
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps @simonwep/pickr
-
-@[code](@/content/recipes/cell-types/color-picker/javascript/example1.js)
-@[code](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
-@[code](@/content/recipes/cell-types/color-picker/javascript/example1.css)
-
-:::
-
-:::
 
 ## What You'll Build
 

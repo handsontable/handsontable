@@ -3332,11 +3332,20 @@ export default () => {
       let rowLen;
       let value;
 
+      const prop = this.colToProp(col);
+      const schemaDefault = this.getSchema()[prop];
+
       for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
-          return false;
+          if (typeof value === 'object') {
+            if (isObjectEqual(schemaDefault, value) === false) {
+              return false;
+            }
+          } else if (value !== schemaDefault) {
+            return false;
+          }
         }
       }
 
@@ -3372,19 +3381,22 @@ export default () => {
       let col;
       let colLen;
       let value;
-      let meta;
+
+      const schema = this.getSchema();
 
       for (col = 0, colLen = this.countCols(); col < colLen; col++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
+          const schemaDefault = schema[this.colToProp(col)];
+
           if (typeof value === 'object') {
-            meta = this.getCellMeta(row, col);
-
-            return isObjectEqual(this.getSchema()[meta.prop], value);
+            if (isObjectEqual(schemaDefault, value) === false) {
+              return false;
+            }
+          } else if (value !== schemaDefault) {
+            return false;
           }
-
-          return false;
         }
       }
 
@@ -4194,7 +4206,7 @@ export default () => {
      * | Array element | Description                                                                                  |
      * | ------------- | -------------------------------------------------------------------------------------------- |
      * | A string      | The header's label                                                                           |
-     * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
+     * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): number of data columns the header spans<br>`rowspan` (integer): number of header rows the header spans<br>`headerClassName` (string): optional space-separated CSS class names |
      *
      * ::: tip
      * When `nestedHeaders` is configured, the `label` defined in the [`columns`](#columns) option for the same

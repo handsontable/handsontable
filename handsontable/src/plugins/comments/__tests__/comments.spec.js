@@ -1342,6 +1342,27 @@ describe('Comments', () => {
     });
   });
 
+  describe('merge cells integration', () => {
+    it('should display the comment editor at the merged cell border', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+        comments: true,
+        mergeCells: [
+          { row: 1, col: 1, rowspan: 1, colspan: 3 },
+        ],
+      });
+
+      const plugin = getPlugin('comments');
+      const $editor = $(plugin.getEditorInputElement().parentNode);
+      const $mergedCell = $(getCell(1, 1));
+
+      plugin.showAtCell(1, 1);
+
+      expect($editor.offset().top).toBeCloseTo($mergedCell.offset().top, 0);
+      expect($editor.offset().left).toBeCloseTo($mergedCell.offset().left + $mergedCell.outerWidth() - 1, 0);
+    });
+  });
+
   describe('hidden row an column integration', () => {
     it('should display the comment editor in the correct place, when the active cell is past hidden rows/columns', async() => {
       const hot = handsontable({
