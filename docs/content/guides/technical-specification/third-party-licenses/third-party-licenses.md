@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Technical specification
 menuTag: updated
 ---
-
-# Third-party licenses
-
 Learn about the licensing terms of Handsontable's software dependencies.
 
 [[toc]]

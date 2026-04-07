@@ -28,9 +28,6 @@ searchCategory: Guides
 category: Columns
 menuTag: updated
 ---
-
-# Column filter
-
 Filter data by values or by a set of conditions, using Handsontable's intuitive user interface or
 flexible API.
 
@@ -902,17 +899,24 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to filtering, see the
 following API reference pages:
 
-- [`Filters`](@/api/filters.md)
-- [`DropdownMenu`](@/api/dropdownMenu.md)
+**Plugins**
+
+<div class="boxes-list">
+
+- [Filters](@/api/filters.md)
+- [DropdownMenu](@/api/dropdownMenu.md)
+
+</div>
 
 ## Troubleshooting
 
 Didn't find what you need? Try this:
 
+<div class="boxes-list">
+
 - [View related topics](https://github.com/handsontable/handsontable/labels/Filtering) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's
-  forum
-- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to
-  get help
+- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
+
+</div>

@@ -15,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 9.0 to 10.0
-
 Migrate from Handsontable 9.0 to Handsontable 10.0, released on September 29, 2021.
 
 More information about this release can be found in the [`10.0.0` release blog post](https://handsontable.com/blog/handsontable-10.0.0-improved-performance-and-consistency).<br/>

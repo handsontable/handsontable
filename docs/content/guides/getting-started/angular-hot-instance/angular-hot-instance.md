@@ -16,9 +16,6 @@ onlyFor: angular
 category: Getting started
 menuTag: updated
 ---
-
-# Instance methods
-
 Reference a Handsontable instance from within a Angular component, to programmatically perform actions.
 
 [[toc]]

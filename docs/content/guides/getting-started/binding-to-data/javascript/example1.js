@@ -7,7 +7,7 @@ registerAllModules();
 const container = document.querySelector('#example1');
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-  ['2017', 10, 11, 12, 13, 15, 16],
+  ['2017', 110, 11, 12, 13, 15, 16],
   ['2018', 10, 11, 12, 13, 15, 16],
   ['2019', 10, 11, 12, 13, 15, 16],
   ['2020', 10, 11, 12, 13, 15, 16],
