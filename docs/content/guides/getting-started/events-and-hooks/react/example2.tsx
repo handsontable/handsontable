@@ -18,8 +18,8 @@ const ExampleComponent = () => {
 
         if (!selection) return;
 
-        // Ignore header and corner selections (row index < 0)
-        if (selection[0] < 0) return;
+        // Ignore header and corner selections (row or column index < 0)
+        if (selection[0] < 0 || selection[1] < 0) return;
 
         console.log(selection);
 
