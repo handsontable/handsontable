@@ -39,7 +39,7 @@ These issues are documented in `.ai/CONCERNS.md`:
 
 Walkontable has its own dedicated test runner. Do NOT mix Walkontable tests with the main E2E test pipeline.
 
-- **Run tests**: `pnpm --filter handsontable run test:walkontable`
+- **Run tests**: `npm run test:walkontable --prefix handsontable`
 - **Test location**: `src/3rdparty/walkontable/test/`
 - Always test with frozen rows and columns enabled to cover overlay edge cases.
 

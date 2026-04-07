@@ -68,10 +68,10 @@ Use `it.flaky()` for timing-sensitive tests (auto-retries up to 3 times).
 
 ## Run commands
 
-- **All:** `pnpm --filter handsontable run test:e2e`
-- **Targeted:** `pnpm --filter handsontable run test:e2e -- --filter=pluginName`
-- **Targeted (dump runner):** Set `npm_config_testPathPattern` as an env var: `npm_config_testPathPattern=plugins/comments/__tests__/comments.spec.js pnpm --filter handsontable run test:e2e.dump`. Do NOT pass `--testPathPattern` as a CLI arg -- it gets forwarded to webpack and fails.
-- **Rebuild first:** The E2E runner loads `dist/handsontable.js`. After changing `src/**`, run `pnpm --filter handsontable run build` before running E2E tests.
+- **All:** `npm run test:e2e --prefix handsontable`
+- **Targeted:** `npm run test:e2e --testPathPattern=pluginName --prefix handsontable`
+- **With theme:** `npm run test:e2e --testPathPattern=pluginName --theme=horizon --prefix handsontable` (available themes: `classic`, `main`, `horizon`)
+- **Rebuild first:** The E2E runner loads `dist/handsontable.js`. After changing `src/**`, run `npm run build --prefix handsontable` before running E2E tests.
 
 ## Test location
 

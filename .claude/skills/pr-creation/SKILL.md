@@ -22,22 +22,22 @@ Run these **before** opening the PR. Fix any failures first.
 
 ```bash
 # Lint
-pnpm --filter handsontable run eslint
-pnpm --filter handsontable run stylelint
+npm run eslint --prefix handsontable
+npm run stylelint --prefix handsontable
 
 # Build (wrappers depend on this output)
-pnpm --filter handsontable run build
+npm run build --prefix handsontable
 
 # Unit tests for the area you changed
-pnpm --filter handsontable run test:unit -- --testPathPattern=<area>
+npm run test:unit --testPathPattern=<area> --prefix handsontable
 
 # E2E tests for the area you changed
-pnpm --filter handsontable run test:e2e -- --filter=<plugin-name>
+npm run test:e2e --testPathPattern=<plugin-name> --prefix handsontable
 
 # If you touched a wrapper, test it too
-pnpm --filter @handsontable/react-wrapper run test
-pnpm --filter @handsontable/vue3 run test
-pnpm --filter @handsontable/angular-wrapper run test
+npm run test --prefix wrappers/react-wrapper
+npm run test --prefix wrappers/vue3
+npm run test --prefix wrappers/angular-wrapper
 ```
 
 ## 3. Changelog Entry

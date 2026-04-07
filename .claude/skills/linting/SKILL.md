@@ -8,8 +8,8 @@ description: Use when fixing ESLint or Stylelint violations in Handsontable, und
 ## Running linters
 
 ```bash
-pnpm --filter handsontable run eslint      # ESLint (JS)
-pnpm --filter handsontable run stylelint   # Stylelint (CSS/SCSS)
+npm run eslint --prefix handsontable      # ESLint (JS)
+npm run stylelint --prefix handsontable   # Stylelint (CSS/SCSS)
 ```
 
 ## Custom ESLint rules

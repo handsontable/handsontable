@@ -39,9 +39,9 @@ For custom mocking, use `jest.fn()` for stubs and `jest.spyOn(object, 'method')`
 
 ## Run Commands
 
-- **All unit tests:** `pnpm --filter handsontable run test:unit`
-- **Targeted:** `pnpm --filter handsontable run test:unit -- --testPathPattern=pluginName`
-- **Example:** `pnpm --filter handsontable run test:unit -- --testPathPattern=filters`
+- **All unit tests:** `npm run test:unit --prefix handsontable`
+- **Targeted:** `npm run test:unit --testPathPattern=pluginName --prefix handsontable`
+- **Example:** `npm run test:unit --testPathPattern=filters --prefix handsontable`
 
 ## Large Dataset Testing
 
