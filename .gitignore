@@ -4,7 +4,10 @@
 .vscode
 .cache
 .cursor
-.claude
+.claude/*
+!.claude/skills/
+!.claude/agents/
+!.claude/settings.json
 .playwright-mcp
 dev*.html
 dev*.js
