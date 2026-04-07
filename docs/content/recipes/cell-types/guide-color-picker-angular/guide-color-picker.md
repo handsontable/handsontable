@@ -19,20 +19,6 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Color Picker Cell - Step-by-Step Guide
-
-[[toc]]
-
-## Overview
-
-This guide shows how to create a custom color picker cell in Angular using the native HTML5 color input. Users can click a cell to open a color picker, select a color, and see it rendered with a colored circle swatch. No external libraries are required.
-
-**Difficulty:** Beginner
-**Time:** ~15 minutes
-**Libraries:** None (uses native HTML5 `<input type="color">`)
-
-## Complete Example
-
 ::: only-for angular
 
 ::: example #example1 :angular --ts 1 --html 2
@@ -43,6 +29,14 @@ This guide shows how to create a custom color picker cell in Angular using the n
 :::
 
 :::
+
+## Overview
+
+This guide shows how to create a custom color picker cell in Angular using the native HTML5 color input. Users can click a cell to open a color picker, select a color, and see it rendered with a colored circle swatch. No external libraries are required.
+
+**Difficulty:** Beginner
+**Time:** ~15 minutes
+**Libraries:** None (uses native HTML5 `<input type="color">`)
 
 ## What You'll Build
 

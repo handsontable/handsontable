@@ -22,9 +22,6 @@ angular:
 searchCategory: Guides
 category: Accessories and menus
 ---
-
-# Undo and redo
-
 Revert and restore your changes, using the undo and redo features.
 
 [[toc]]
@@ -92,24 +89,55 @@ Here's the list of all unsupported features:
 | <kbd>**Ctrl**</kbd>+<kbd>**Y**</kbd>                        | <kbd>**Cmd**</kbd>+<kbd>**Y**</kbd>                        | Redo the last action | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd> | Redo the last action | &check; | &check; |
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 14.6.0: Easier styling and enhanced Undo/Redo](https://handsontable.com/blog/handsontable-14-6-0-easier-styling-and-enhanced-undo-redo)
+
+</div>
+
 ## Related API reference
 
-- Configuration options:
-  - [`undo`](@/api/options.md#undo)
-- Core methods:
-  - [`clearUndo()`](@/api/core.md#clearundo)
-  - [`isRedoAvailable()`](@/api/core.md#isredoavailable)
-  - [`isUndoAvailable()`](@/api/core.md#isundoavailable)
-  - [`redo()`](@/api/core.md#redo)
-  - [`undo()`](@/api/core.md#undo)
-- Hooks:
-  - [`afterRedo`](@/api/hooks.md#afterredo)
-  - [`afterRedoStackChange`](@/api/hooks.md#afterredostackchange)
-  - [`afterUndo`](@/api/hooks.md#afterundo)
-  - [`afterUndoStackChange`](@/api/hooks.md#afterundostackchange)
-  - [`beforeRedo`](@/api/hooks.md#beforeredo)
-  - [`beforeRedoStackChange`](@/api/hooks.md#beforeredostackchange)
-  - [`beforeUndo`](@/api/hooks.md#beforeundo)
-  - [`beforeUndoStackChange`](@/api/hooks.md#beforeundostackchange)
-- Plugins:
-  - [`UndoRedo`](@/api/undoRedo.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [undo](@/api/options.md#undo)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [clearUndo()](@/api/core.md#clearundo)
+- [isRedoAvailable()](@/api/core.md#isredoavailable)
+- [isUndoAvailable()](@/api/core.md#isundoavailable)
+- [redo()](@/api/core.md#redo)
+- [undo()](@/api/core.md#undo)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterRedo](@/api/hooks.md#afterredo)
+- [afterRedoStackChange](@/api/hooks.md#afterredostackchange)
+- [afterUndo](@/api/hooks.md#afterundo)
+- [afterUndoStackChange](@/api/hooks.md#afterundostackchange)
+- [beforeRedo](@/api/hooks.md#beforeredo)
+- [beforeRedoStackChange](@/api/hooks.md#beforeredostackchange)
+- [beforeUndo](@/api/hooks.md#beforeundo)
+- [beforeUndoStackChange](@/api/hooks.md#beforeundostackchange)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [UndoRedo](@/api/undoRedo.md)
+
+</div>

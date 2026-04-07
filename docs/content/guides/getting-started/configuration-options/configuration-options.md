@@ -19,9 +19,6 @@ searchCategory: Guides
 category: Getting started
 menuTag: updated
 ---
-
-# Configuration options
-
 Configure your grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
 
 [[toc]]
@@ -163,9 +160,13 @@ For more details on Handsontable's cascading configuration, see the [MetaManager
 
 Configuration options can come from:
 
-- Handsontable's [Core](@/api/core.md)
-- Handsontable's [plugins](@/api/plugins.md)
-- Handsontable's [hooks](@/api/hooks.md)
+<div class="boxes-list">
+
+- [Core](@/api/core.md)
+- [Plugins](@/api/plugins.md)
+- [Hooks](@/api/hooks.md)
+
+</div>
 
 If you use Handsontable through [modules](@/guides/tools-and-building/modules/modules.md): to use an option that comes from a Handsontable plugin, you need to import and register that plugin when initializing your Handsontable instance.
 
@@ -1062,22 +1063,39 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 
 ## Related API reference
 
-- Configuration options:
-  - [List of all options](@/api/options.md)
-  - [`cell`](@/api/options.md#cell)
-  - [`cells`](@/api/options.md#cells)
-  - [`columns`](@/api/options.md#columns)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-  - [`getSettings()`](@/api/core.md#getsettings)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-  - [`updateSettings()`](@/api/core.md#updatesettings)
-  - [`spliceCellsMeta()`](@/api/core.md#splicecellsmeta)
-- Hooks:
-  - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
-  - [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [List of all options](@/api/options.md)
+- [cell](@/api/options.md#cell)
+- [cells](@/api/options.md#cells)
+- [columns](@/api/options.md#columns)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+- [getSettings()](@/api/core.md#getsettings)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+- [updateSettings()](@/api/core.md#updatesettings)
+- [spliceCellsMeta()](@/api/core.md#splicecellsmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterCellMetaReset](@/api/hooks.md#aftercellmetareset)
+- [afterUpdateSettings](@/api/hooks.md#afterupdatesettings)
+
+</div>

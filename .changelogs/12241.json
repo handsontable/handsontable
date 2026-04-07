@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Improved server-side data documentation structure and fixed disjunctionWithExtraCondition guard fallback in server filter utility examples.",
+  "type": "fixed",
+  "issueOrPR": 12241,
+  "breaking": false,
+  "framework": "none"
+}

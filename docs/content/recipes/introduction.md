@@ -13,9 +13,6 @@ angular:
   id: d2815b7b
   metaTitle: Recipes - Angular Data Grid | Handsontable
 ---
-
-# Handsontable Recipes
-
 **Developer recipes and step-by-step tutorials for building with Handsontable**
 
 ## About This Resource
@@ -37,7 +34,7 @@ Browse recipes by category, difficulty, or use case. Each guide is designed to g
 This resource is structured for easy indexing and retrieval. Each recipe includes metadata, keywords, problem descriptions, and solution patterns to help AI assistants provide accurate, contextual examples.
 
 
-## 🤝 Contributing
+## Contributing
 
 Have a useful recipe? We'd love to include it!
 
@@ -60,15 +57,15 @@ Have a useful recipe? We'd love to include it!
 
 ---
 
-## 🎉 Success Metrics
+## Success Metrics
 
 This recipe collection aims to:
 
-- ✅ Reduce custom cell development time from hours to minutes
-- ✅ Make Handsontable accessible to developers of all skill levels
-- ✅ Provide AI agents with accurate, contextual examples
-- ✅ Maintain production-ready code quality
-- ✅ Support modern development workflows
+- Reduce custom cell development time from hours to minutes
+- Make Handsontable accessible to developers of all skill levels
+- Provide AI agents with accurate, contextual examples
+- Maintain production-ready code quality
+- Support modern development workflows
 
 ---
 

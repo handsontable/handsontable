@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell types
 menuTag: new
 ---
-
-# MultiSelect cell type
-
 Collect user input with a list of multiple-selection choices, by using the MultiSelect cell type.
 
 [[toc]]
@@ -187,34 +184,61 @@ When working with object-based MultiSelect data, you can use methods like [`getS
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
 - [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`allowEmpty`](@/api/options.md#allowempty)
-  - [`placeholder`](@/api/options.md#placeholder)
-  - [`visibleRows`](@/api/options.md#visiblerows)
-  - [`maxSelections`](@/api/options.md#maxselections)
-  - [`sourceSortFunction`](@/api/options.md#sourcesortfunction)
-  - [`enterCommits`](@/api/options.md#entercommits)
-  - [`searchInput`](@/api/options.md#searchinput)
-  - [`filteringCaseSensitive`](@/api/options.md#filteringcasesensitive)
-- Core methods:
-  - [`getData()`](@/api/core.md#getdata)
-  - [`getSourceData()`](@/api/core.md#getsourcedata)
-  - [`getDataAtCell()`](@/api/core.md#getdataatcell)
-  - [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+**Related blog articles**
+
+<div class="boxes-list gray">
+
+- [Handsontable 17.0.0: Multiselect Cell Type, Simpler Custom Cells, and a New Themes API](https://handsontable.com/blog/handsontable-17.0.0-multiselect-cell-type-simpler-custom-cells-and-a-new-themes-api)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [allowEmpty](@/api/options.md#allowempty)
+- [placeholder](@/api/options.md#placeholder)
+- [visibleRows](@/api/options.md#visiblerows)
+- [maxSelections](@/api/options.md#maxselections)
+- [sourceSortFunction](@/api/options.md#sourcesortfunction)
+- [enterCommits](@/api/options.md#entercommits)
+- [searchInput](@/api/options.md#searchinput)
+- [filteringCaseSensitive](@/api/options.md#filteringcasesensitive)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getData()](@/api/core.md#getdata)
+- [getSourceData()](@/api/core.md#getsourcedata)
+- [getDataAtCell()](@/api/core.md#getdataatcell)
+- [getSourceDataAtCell()](@/api/core.md#getsourcedataatcell)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

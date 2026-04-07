@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row moving
-
 Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 
 [[toc]]
@@ -87,7 +84,7 @@ The [`dragRows`](@/api/manualRowMove.md#dragrows) method has a `dropIndex` param
 
 <span class="img-invert">
 
-![dragRows method]({{$basePath}}/img/drag_action.svg)
+![dragRows method](/img/drag_action.svg)
 
 </span>
 
@@ -96,7 +93,7 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) method has a `finalIndex` para
 
 <span class="img-invert">
 
-![moveRows method]({{$basePath}}/img/move_action.svg)
+![moveRows method](/img/move_action.svg)
 
 </span>
 
@@ -104,12 +101,35 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some a
 
 ## Related API reference
 
-- Options:
-  - [`manualRowMove`](@/api/options.md#manualrowmove)
-- Core methods:
-  - [`toVisualRow`](@/api/core.md#tovisualrow)
-- Hooks:
-  - [`afterRowMove`](@/api/hooks.md#afterrowmove)
-  - [`beforeRowMove`](@/api/hooks.md#beforerowmove)
-- Plugins:
-  - [`ManualRowMove`](@/api/manualRowMove.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [manualRowMove](@/api/options.md#manualrowmove)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [toVisualRow](@/api/core.md#tovisualrow)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterRowMove](@/api/hooks.md#afterrowmove)
+- [beforeRowMove](@/api/hooks.md#beforerowmove)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ManualRowMove](@/api/manualRowMove.md)
+
+</div>

@@ -20,10 +20,9 @@ searchCategory: Guides
 category: Getting started
 menuTag: new
 ---
-
-# Server-side data
-
 Use the [`dataProvider`](@/api/options.md#dataprovider) option so Handsontable loads row data from your backend instead of keeping the full dataset in the browser. The grid stays aligned with paging, column sorting, and (optionally) column filters that run on the server. The same configuration wires **create**, **update**, and **remove** to your API. When the `dataProvider` object is **complete** (all required keys valid), Handsontable ignores a static [`data`](@/api/options.md#data) array and loads rows only through `fetchRows`. If you still pass a `data` array with a complete provider, Handsontable logs a console warning that `data` is ignored.
+
+[[toc]]
 
 ## Demo
 
@@ -62,8 +61,6 @@ The example below splits **in-memory server logic** (catalog, simulated latency,
 :::
 
 :::
-
-[[toc]]
 
 ## What the DataProvider plugin does
 
@@ -236,12 +233,44 @@ Each folder includes the same Express servers (`server-rest.mjs`, `server-graphq
 
 ## Related guides
 
+<div class="boxes-list">
+
 - [Rows pagination](@/guides/rows/rows-pagination/rows-pagination.md)
 - [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)
 - [Column filter](@/guides/columns/column-filter/column-filter.md)
 
+</div>
+
 ## Related API reference
 
-- Option: [`dataProvider`](@/api/options.md#dataprovider)
-- Plugin: [`DataProvider`](@/api/dataProvider.md)
-- Hooks: [`beforeDataProviderFetch`](@/api/hooks.md#beforedataproviderfetch), [`afterDataProviderFetch`](@/api/hooks.md#afterdataproviderfetch), [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror), [`afterDataProviderFetchAbort`](@/api/hooks.md#afterdataproviderfetchabort), [`hasExternalDataSource`](@/api/hooks.md#hasexternaldatasource), [`modifyRowHeader`](@/api/hooks.md#modifyrowheader) (global row index with pagination), [`beforeRowsMutation`](@/api/hooks.md#beforerowsmutation), [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation), [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror)
+**Options**
+
+<div class="boxes-list">
+
+- [`dataProvider`](@/api/options.md#dataprovider)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [`DataProvider`](@/api/dataProvider.md)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [`beforeDataProviderFetch`](@/api/hooks.md#beforedataproviderfetch)
+- [`afterDataProviderFetch`](@/api/hooks.md#afterdataproviderfetch)
+- [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror)
+- [`afterDataProviderFetchAbort`](@/api/hooks.md#afterdataproviderfetchabort)
+- [`hasExternalDataSource`](@/api/hooks.md#hasexternaldatasource)
+- [`modifyRowHeader`](@/api/hooks.md#modifyrowheader)
+- [`beforeRowsMutation`](@/api/hooks.md#beforerowsmutation)
+- [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation)
+- [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror)
+
+</div>
