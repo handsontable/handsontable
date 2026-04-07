@@ -159,6 +159,23 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button onClick={handleFirstPage} disabled={isFirstPage}>First page</button>
+          <button onClick={handlePrevPage} disabled={isFirstPage}>Previous page</button>
+          <button onClick={handleNextPage} disabled={isLastPage}>Next page</button>
+          <button onClick={handleLastPage} disabled={isLastPage}>Last page</button>
+          <label htmlFor="pageNumber">Page:
+            <input
+              type="number"
+              id="pageNumber"
+              value={paginationData.currentPage}
+              onChange={handlePageNumberChange}
+            />
+          </label>
+          <output>{paginationData.firstVisibleRowIndex + 1} - {paginationData.lastVisibleRowIndex + 1} of {paginationData.totalRenderedRows} rows</output>
+        </div>
+      </div>
       <HotTable
         ref={hotTableRef}
         pagination={{
@@ -210,40 +227,6 @@ const ExampleComponent = () => {
         />
         <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
       </HotTable>
-
-      <div className="example-controls-container">
-        <div className="controls-row">
-          <button className="pagination-btn" onClick={handleFirstPage} disabled={isFirstPage}>
-            First page
-          </button>
-          <button className="pagination-btn" onClick={handlePrevPage} disabled={isFirstPage}>
-            Previous page
-          </button>
-          <button className="pagination-btn" onClick={handleNextPage} disabled={isLastPage}>
-            Next page
-          </button>
-          <button className="pagination-btn" onClick={handleLastPage} disabled={isLastPage}>
-            Last page
-          </button>
-        </div>
-        <div className="status-row">
-          <div className="page-input-group">
-            <label htmlFor="pageNumber">Page:</label>
-            <input
-              type="number"
-              id="pageNumber"
-              value={paginationData.currentPage}
-              onChange={handlePageNumberChange}
-              className="page-input"
-            />
-          </div>
-          <div className="page-stats">
-            <span>{paginationData.firstVisibleRowIndex + 1}</span> -{' '}
-            <span>{paginationData.lastVisibleRowIndex + 1}</span> of <span>{paginationData.totalRenderedRows}</span>{' '}
-            rows
-          </div>
-        </div>
-      </div>
     </>
   );
 };

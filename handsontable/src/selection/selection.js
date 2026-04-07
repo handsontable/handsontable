@@ -189,6 +189,19 @@ class Selection {
   }
 
   /**
+   * Updates the CSS class names used for row, column, header, and active header highlights based on
+   * the current settings. Call this after settings change via `updateSettings()`.
+   */
+  updateHighlightClassNames() {
+    this.highlight.updateHighlightClassNames({
+      rowClassName: this.settings.currentRowClassName,
+      columnClassName: this.settings.currentColClassName,
+      headerClassName: this.settings.currentHeaderClassName,
+      activeHeaderClassName: this.settings.activeHeaderClassName,
+    });
+  }
+
+  /**
    * Gets all selection range layers of the selection.
    *
    * @returns {SelectionRange}

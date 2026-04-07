@@ -19,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Cell types
 ---
-
-# Autocomplete cell type
-
 Collect user input with a list of choices, by using the autocomplete cell type.
 
 [[toc]]
@@ -316,34 +313,53 @@ The left column uses the default case-insensitive behavior. The right column has
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
 - [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`allowHtml`](@/api/options.md#allowhtml)
-  - [`filter`](@/api/options.md#filter)
-  - [`filteringCaseSensitive`](@/api/options.md#filteringcasesensitive)
-  - [`sortByRelevance`](@/api/options.md#sortbyrelevance)
-  - [`source`](@/api/options.md#source)
-  - [`strict`](@/api/options.md#strict)
-  - [`trimDropdown`](@/api/options.md#trimdropdown)
-  - [`type`](@/api/options.md#type)
-  - [`visibleRows`](@/api/options.md#visiblerows)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [allowHtml](@/api/options.md#allowhtml)
+- [filter](@/api/options.md#filter)
+- [filteringCaseSensitive](@/api/options.md#filteringcasesensitive)
+- [sortByRelevance](@/api/options.md#sortbyrelevance)
+- [source](@/api/options.md#source)
+- [strict](@/api/options.md#strict)
+- [trimDropdown](@/api/options.md#trimdropdown)
+- [type](@/api/options.md#type)
+- [visibleRows](@/api/options.md#visiblerows)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

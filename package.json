@@ -22,6 +22,7 @@
     "freeze": "node scripts/freeze.mjs",
     "release": "node scripts/release.mjs",
     "changelog": "bin/changelog",
+    "sync-skills": "node scripts/sync-skills-to-cursor.mjs",
     "publish-all": "npm run all publish-package -- -e=examples",
     "pre-release": "node scripts/pre-release.mjs && npm run all build -- -e=examples visual-tests && npm run publish-all --tag experimental",
     "examples:version": "node examples/scripts/code-examples.mjs version",

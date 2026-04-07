@@ -417,17 +417,15 @@ class ExtendedSelectEditor extends MySelectEditor {
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Custom editor in React](@/react/guides/cell-functions/cell-editor/cell-editor.md)
 - [Custom editor in Angular](@/angular/guides/cell-functions/cell-editor/cell-editor.md)
 - [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md)
 
 </div>
-
-### Related API reference
 
 :::
 
@@ -443,24 +441,47 @@ class ExtendedSelectEditor extends MySelectEditor {
 
 :::
 
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`editor`](@/api/options.md#editor)
-  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
-  - [`imeFastEdit`](@/api/options.md#imefastedit)
-- Core methods:
-  - [`destroyEditor()`](@/api/core.md#destroyeditor)
-  - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
-  - [`getCellEditor()`](@/api/core.md#getcelleditor)
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`beforeBeginEditing`](@/api/hooks.md#beforebeginediting)
-  - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+**APIs**
+
+<div class="boxes-list">
+
+- [BasePlugin](@/api/basePlugin.md)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [editor](@/api/options.md#editor)
+- [enterBeginsEditing](@/api/options.md#enterbeginsediting)
+- [imeFastEdit](@/api/options.md#imefastedit)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [destroyEditor()](@/api/core.md#destroyeditor)
+- [getActiveEditor()](@/api/core.md#getactiveeditor)
+- [getCellEditor()](@/api/core.md#getcelleditor)
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [beforeBeginEditing](@/api/hooks.md#beforebeginediting)
+- [afterBeginEditing](@/api/hooks.md#afterbeginediting)
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+
+</div>

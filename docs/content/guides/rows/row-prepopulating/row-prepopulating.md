@@ -19,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row pre-populating
-
 Populate newly-added rows with predefined template values, using cell renderers.
 
 [[toc]]
@@ -65,5 +62,10 @@ The example below shows how cell renderers can be used to populate the template 
 
 ## Related API reference
 
-- Hooks:
-  - [`beforeChange`](@/api/hooks.md#beforechange)
+**Hooks**
+
+<div class="boxes-list">
+
+- [beforeChange](@/api/hooks.md#beforechange)
+
+</div>

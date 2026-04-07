@@ -20,9 +20,6 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Disabled cells
-
 Make specified cells read-only to protect them from unwanted changes but still allow navigation and copying of data.
 
 [[toc]]
@@ -233,6 +230,11 @@ The following example shows the table with non-editable cells containing the wor
 
 ## Related API reference
 
-- Configuration options:
-  - [`readOnly`](@/api/options.md#readonly)
-  - [`readOnlyCellClassName`](@/api/options.md#readonlycellclassname)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [readOnly](@/api/options.md#readonly)
+- [readOnlyCellClassName](@/api/options.md#readonlycellclassname)
+
+</div>
