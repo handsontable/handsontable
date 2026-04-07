@@ -162,7 +162,7 @@ const Table = memo(({ hotTableRef, data }) => {
 
 const DebugInfo = memo(({ debugInfo }) => (
   <>
-    <h4>Debug Information:</h4>
+    <strong>Debug information:</strong>
     <table className="debug-table">
       <colgroup>
         <col />

@@ -17,9 +17,6 @@ searchCategory: Guides
 category: Tools and building
 menuTag: updated
 ---
-
-# Modules
-
 Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
 
 [[toc]]
@@ -135,33 +132,50 @@ Each cell type module contains a different cell type:
 
 #### Import a cell type module
 
-1. Make sure you import the [base module](#base-module):
-    ```js
-    import Handsontable from 'handsontable/base';
-    ```
-2. Import the registering function and a cell type module of your choice. For example:
-    ```js
-    import {
-      registerCellType,
-      NumericCellType,
-    } from 'handsontable/cellTypes';
-    ```
-3. Register your cell type module, to let Handsontable recognize it. For example:
-    ```js
-    registerCellType(NumericCellType);
-    ```
+<ol class="sl-steps">
+<li>
 
-    A full example:
+Make sure you import the [base module](#base-module):
 
-    ```js
-    import Handsontable from 'handsontable/base';
-    import {
-      registerCellType,
-      NumericCellType,
-    } from 'handsontable/cellTypes';
+```js
+import Handsontable from 'handsontable/base';
+```
 
-    registerCellType(NumericCellType);
-    ```
+</li>
+<li>
+
+Import the registering function and a cell type module of your choice. For example:
+
+```js
+import {
+  registerCellType,
+  NumericCellType,
+} from 'handsontable/cellTypes';
+```
+
+</li>
+<li>
+
+Register your cell type module, to let Handsontable recognize it. For example:
+
+```js
+registerCellType(NumericCellType);
+```
+
+A full example:
+
+```js
+import Handsontable from 'handsontable/base';
+import {
+  registerCellType,
+  NumericCellType,
+} from 'handsontable/cellTypes';
+
+registerCellType(NumericCellType);
+```
+
+</li>
+</ol>
 
 #### Renderer, editor, and validator modules
 
@@ -477,34 +491,50 @@ Each plugin module contains a different plugin:
 
 #### Import a plugin module
 
-1. Make sure you import the [base module](#base-module):
-    ```js
-    import Handsontable from 'handsontable/base';
-    ```
-2. Import registering function and a plugin module of your choice. For example:
-    ```js
-    import {
-      registerPlugin,
-      ContextMenu,
-    } from 'handsontable/plugins';
-    ```
-3. Register your plugin module, to let Handsontable recognize it. For example:
+<ol class="sl-steps">
+<li>
 
-    ```js
-    registerPlugin(ContextMenu);
-    ```
+Make sure you import the [base module](#base-module):
 
-    A full example:
+```js
+import Handsontable from 'handsontable/base';
+```
 
-    ```js
-    import Handsontable from 'handsontable/base';
-    import {
-      registerPlugin,
-      ContextMenu,
-    } from 'handsontable/plugins';
+</li>
+<li>
 
-    registerPlugin(ContextMenu);
-    ```
+Import the registering function and a plugin module of your choice. For example:
+
+```js
+import {
+  registerPlugin,
+  ContextMenu,
+} from 'handsontable/plugins';
+```
+
+</li>
+<li>
+
+Register your plugin module, to let Handsontable recognize it. For example:
+
+```js
+registerPlugin(ContextMenu);
+```
+
+A full example:
+
+```js
+import Handsontable from 'handsontable/base';
+import {
+  registerPlugin,
+  ContextMenu,
+} from 'handsontable/plugins';
+
+registerPlugin(ContextMenu);
+```
+
+</li>
+</ol>
 
 ### Translation modules
 
@@ -571,34 +601,50 @@ Each translation module contains a different translation package:
 
 #### Import a translation module
 
-1. Make sure you import the [base module](#base-module):
-    ```js
-    import Handsontable from 'handsontable/base';
-    ```
-2. Import the registering function and and a translation module of your choice. For example:
-    ```js
-    import {
-      registerLanguageDictionary,
-      plPL,
-    } from 'handsontable/i18n';
-    ```
-3. Register your translation module, to let Handsontable recognize it. For example:
+<ol class="sl-steps">
+<li>
 
-    ```js
-    registerLanguageDictionary(plPL);
-    ```
+Make sure you import the [base module](#base-module):
 
-    A full example:
+```js
+import Handsontable from 'handsontable/base';
+```
 
-    ```js
-    import Handsontable from 'handsontable/base';
-    import {
-      registerLanguageDictionary,
-      plPL,
-    } from 'handsontable/i18n';
+</li>
+<li>
 
-    registerLanguageDictionary(plPL);
-    ```
+Import the registering function and a translation module of your choice. For example:
+
+```js
+import {
+  registerLanguageDictionary,
+  plPL,
+} from 'handsontable/i18n';
+```
+
+</li>
+<li>
+
+Register your translation module, to let Handsontable recognize it. For example:
+
+```js
+registerLanguageDictionary(plPL);
+```
+
+A full example:
+
+```js
+import Handsontable from 'handsontable/base';
+import {
+  registerLanguageDictionary,
+  plPL,
+} from 'handsontable/i18n';
+
+registerLanguageDictionary(plPL);
+```
+
+</li>
+</ol>
 
 ## List of all modules
 
@@ -1132,9 +1178,9 @@ You can also use modules with Handsontable's framework wrappers:
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
 - [Installation](@/guides/getting-started/installation/installation.md)
@@ -1149,7 +1195,7 @@ You can also use modules with Handsontable's framework wrappers:
 
 </div>
 
-### Related blog articles
+**Related blog articles**
 
 <div class="boxes-list">
 

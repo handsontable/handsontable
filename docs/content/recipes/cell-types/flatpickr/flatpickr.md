@@ -19,11 +19,17 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Flatpickr Cell Type - Step-by-Step Guide
+::: only-for javascript vue
 
-[[toc]]
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps date-fns flatpickr
 
+@[code](@/content/recipes/cell-types/flatpickr/javascript/example1.js)
+@[code](@/content/recipes/cell-types/flatpickr/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/flatpickr/javascript/example1.css)
 
+:::
+
+:::
 
 ## Overview
 
@@ -48,21 +54,6 @@ A cell that:
 ```bash
 npm install flatpickr date-fns
 ```
-
-## Complete Example
-
-::: only-for javascript vue
-
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps date-fns flatpickr
-
-@[code](@/content/recipes/cell-types/flatpickr/javascript/example1.js)
-@[code](@/content/recipes/cell-types/flatpickr/javascript/example1.ts)
-@[code](@/content/recipes/cell-types/flatpickr/javascript/example1.css)
-
-:::
-
-:::
-
 
 ## Step 1: Import Dependencies
 

@@ -158,7 +158,7 @@ const ExampleComponent = () => {
         </button>
       </div>
       <div style={{ marginTop: '16px' }}>
-        <p style={{ padding: 0 }}>
+        <p style={{ padding: 0, fontSize: 'var(--sl-text-xs)', color: 'var(--sl-color-gray-3)' }}>
           This is a demonstration of how to use the Loading plugin with pagination in external container. You need to
           create pagination overlay manually, after that you can use the <code>afterLoadingShow</code> and{' '}
           <code>afterLoadingHide</code> hooks to show and hide the pagination container overlay.
