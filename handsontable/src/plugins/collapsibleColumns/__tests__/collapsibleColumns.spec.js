@@ -2161,6 +2161,104 @@ describe('CollapsibleColumns', () => {
 
       expect(getColWidth(1)).toBe(widthBeforeCollapse);
     });
+
+    it('should not change the first child column width after repeatedly collapsing and expanding' +
+      ' deeply nested multi-level headers', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          [
+            'H',
+            { label: 'There is a header', colspan: 2 },
+            { label: 'J', colspan: 2 },
+            { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 },
+            'M',
+          ],
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
+        ],
+        collapsibleColumns: true,
+      });
+
+      const plugin = getPlugin('collapsibleColumns');
+
+      const widthCol1 = getColWidth(1);
+      const widthCol5 = getColWidth(5);
+
+      // Collapse E (row -4, col 1, colspan 4) -- hides columns 2-4.
+      plugin.collapseSection({ row: -3, col: 1 });
+
+      expect(getColWidth(1)).toBe(widthCol1);
+
+      // Expand E back.
+      plugin.expandSection({ row: -3, col: 1 });
+
+      expect(getColWidth(1)).toBe(widthCol1);
+      expect(getColWidth(5)).toBe(widthCol5);
+
+      // Collapse F (row -3, col 5, colspan 4) -- hides columns 6-8.
+      plugin.collapseSection({ row: -3, col: 5 });
+
+      expect(getColWidth(5)).toBe(widthCol5);
+
+      // Expand F and collapse the top-level B header.
+      plugin.expandSection({ row: -3, col: 5 });
+      plugin.collapseSection({ row: -4, col: 1 });
+
+      expect(getColWidth(1)).toBe(widthCol1);
+
+      // Expand B -- all widths should return to the original values.
+      plugin.expandSection({ row: -4, col: 1 });
+
+      expect(getColWidth(1)).toBe(widthCol1);
+      expect(getColWidth(5)).toBe(widthCol5);
+    });
+
+    it('should not change the first child column width after collapsing and expanding' +
+      ' when dropdownMenu is enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          [
+            'H',
+            { label: 'There is a header', colspan: 2 },
+            { label: 'J', colspan: 2 },
+            { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 },
+            'M',
+          ],
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
+        ],
+        collapsibleColumns: true,
+        dropdownMenu: true,
+      });
+
+      const plugin = getPlugin('collapsibleColumns');
+
+      const widthCol1 = getColWidth(1);
+      const widthCol5 = getColWidth(5);
+
+      plugin.collapseSection({ row: -3, col: 1 });
+
+      expect(getColWidth(1)).toBe(widthCol1);
+
+      plugin.expandSection({ row: -3, col: 1 });
+
+      expect(getColWidth(1)).toBe(widthCol1);
+      expect(getColWidth(5)).toBe(widthCol5);
+
+      plugin.collapseSection({ row: -3, col: 5 });
+
+      expect(getColWidth(5)).toBe(widthCol5);
+
+      plugin.expandSection({ row: -3, col: 5 });
+
+      expect(getColWidth(5)).toBe(widthCol5);
+    });
   });
 
   describe('expanding headers functionality', () => {
