@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "docs:api": "node scripts/generate-hooks-api-from-jsdoc.mjs",
+    "build": "npm run docs:api && astro build",
     "preview": "astro preview",
     "docs:lint": "eslint --ext .js,.mjs,.ts,.astro src content",
     "docs:lint:fix": "eslint --ext .js,.mjs,.ts,.astro src content --fix",
