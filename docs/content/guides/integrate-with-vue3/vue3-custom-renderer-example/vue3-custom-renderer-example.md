@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Custom renderer in Vue 3
-
 Create a custom cell renderer, and use it in your Vue 3 data grid by declaring it as a function.
 
 [[toc]]
@@ -40,32 +37,53 @@ The following example is an implementation of `@handsontable/vue3` with a custom
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
 
 </div>
 
-### Related API reference
+**APIs**
 
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`renderer`](@/api/options.md#renderer)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
-  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
-  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)
+<div class="boxes-list">
+
+- [BasePlugin](@/api/basePlugin.md)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [renderer](@/api/options.md#renderer)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getCellRenderer()](@/api/core.md#getcellrenderer)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterGetColumnHeaderRenderers](@/api/hooks.md#aftergetcolumnheaderrenderers)
+- [afterGetRowHeaderRenderers](@/api/hooks.md#aftergetrowheaderrenderers)
+- [afterRenderer](@/api/hooks.md#afterrenderer)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeRenderer](@/api/hooks.md#beforerenderer)
+
+</div>

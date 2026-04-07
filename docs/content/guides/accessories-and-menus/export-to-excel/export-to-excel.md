@@ -18,10 +18,8 @@ angular:
   metaTitle: Export to Excel - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
+menuTag: new
 ---
-
-# Export to Excel
-
 Export your grid data to an Excel (`.xlsx`) file, preserving cell types, styling, formulas, merged cells, and more.
 
 [[toc]]
@@ -292,8 +290,13 @@ Read-only cells (`readOnly: true`) receive a light-gray fill and gray font color
 
 ## Related API reference
 
-- Plugins:
-  - [`ExportFile`](@/api/exportFile.md)
+**Plugins**
+
+<div class="boxes-list">
+
+- [`ExportFile`](@/api/exportFile.md)
+
+</div>
 
 ---
 

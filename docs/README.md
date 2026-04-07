@@ -6,7 +6,7 @@ View the documentation's latest production version at [handsontable.com/docs](ht
 
 We update the documentation:
 - With every Handsontable version release.
-- Whenever there's something new to add to improve.
+- Whenever there's something new to add or improve.
 
 **See also:**
 
@@ -17,106 +17,55 @@ We update the documentation:
 
 To start a local Handsontable documentation server:
 
-1. From the root directory, build the Handsontable and wrapper packages:
-    ```bash
-    npm run build
-    ```
-2. From the `docs` directory, install the documentation dependencies:
+1. From the `docs` directory, install the documentation dependencies:
     ```bash
     npm install
     ```
-
-    > **Note:** If `npm install` fails with an `ERESOLVE` peer dependency conflict (e.g., due to Vue 2/Vue 3 wrapper packages in the monorepo), run:
-    >
-    > ```bash
-    > npm install --legacy-peer-deps
-    > ```
-    
-3. Generate the API reference:
+2. Start your local documentation server:
    ```bash
-   npm run docs:api
+   npm run dev
    ```
-4. Start your local documentation server:
-   ```bash
-   npm run docs:watch:no-cache
-   ```
-5. In your browser, go to: http://localhost:8080/docs/.
+3. In your browser, go to: http://localhost:4321/docs/.
 
-## Handsontable documentation code examples
+> **Note:** Content collection files (`.md` in `content/`) are cached by Astro's data store. After editing `.md` content files, restart the dev server with `npm run dev -- --force` to see changes. CSS and JS changes are picked up by HMR automatically.
 
-Most code examples in the `content/guides` directory are kept in 2 versions: TS/TSX and JS/JSX. When modifying the code example or adding a new one, you should always update the TS/TSX version and then generate the JS/JSX version:
-
-E.g.:
-1. Modify `content/guides/some/example.ts` file.
-2. Run `npm run docs:code-examples:generate-js content/guides/some/example.ts` to generate `content/guides/some/example.js`.
-3. Commit both `content/guides/some/example.ts` and `content/guides/some/example.js`.
-
-In `watch` mode, running local server with `npm run docs:watch:no-cache` or `npm run docs:watch` steps above are executed automatically. 
-
-In case of TSX file, the script will generate JSX version of the code example, so the workflow is the same as above.
-
-## Documentation npm scripts:
+## Documentation npm scripts
 
 From the `docs` directory, you can run the following npm scripts:
 
-* `npm run docs:start` – Starts a local documentation server at `localhost:8080/docs/`.
-* `npm run docs:start:no-cache` – Starts a local documentation server without cache.
-* `npm run docs:api` – Generates the Handsontable API reference into `/content/api`.
-* `npm run docs:build` – Builds the documentation output into `/.vuepress/dist`.
-* `npm run docs:docker:build` – Builds a Docker image for the staging environment (includes the docs for the `next` version).
-* `npm run docs:docker:build:staging` – Builds a Docker image for the staging environment (includes the docs for the `next` version).
-* `npm run docs:docker:build:production` – Builds a Docker image for the production environment (excludes the docs for the `next` version).
-* `npm run docs:check-links` – Checks for broken links (first, run `npm run docs:build`). You can also run it for a specific URL (e.g. `npm run docs:check-links https://handsontable.com`).
-* `npm run docs:lint` – Runs ESLint on the `/next/` directory's content.
-* `npm run docs:lint:fix` – Runs ESLint on the `/next/` directory's content and auto-fixes problems.
-* `npm run docs:scripts:link-assets` – Prepares the `next` documentation version's CSS and JavaScript.
-* `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
-* `npm run docs:test:example-checker` – Runs the tests that checks if all Docs examples work.
-* `npm run docs:code-examples:generate-js content/guides/path/to/example.ts` – Generate JS/JSX version of the code example (needs to be run before commiting any change to TS/TSX code example)
-* `npm run docs:code-examples:generate-all-js` – Generate all JS/JSX versions of the TS/TSX code examples in content/guides/ directory (ignores the angular examples)
-* `npm run docs:code-examples:format-all-ts"` – Runs the autoformatter on all TS and TSX example files in the content/guides/ directory (ignores the angular examples)
+* `npm run dev` - Starts a local documentation server at `localhost:4321/docs/`.
+* `npm run start` - Alias for `npm run dev`.
+* `npm run build` - Builds the documentation output into `dist/`.
+* `npm run preview` - Previews the built documentation locally.
+* `npm run docs:lint` - Runs ESLint on `src/` and `content/` directories.
+* `npm run docs:lint:fix` - Runs ESLint on `src/` and `content/` directories and auto-fixes problems.
+* `npm run docs:visual-test` - Runs Playwright visual regression tests.
+* `npm run docs:visual-test:update-screenshot` - Updates Playwright visual regression screenshots.
 
 ## Handsontable documentation directory structure
 
 ```bash
 docs                            # All documentation files
-├── .vuepress                   # All VuePress files
-│   ├── components              # Vue components
-│   ├── containers              # Markdown containers
-│   │   ├── examples            # Code examples container
-│   │   └── sourceCodeLink.js   # `source-code-link` container.
-│   ├── handsontable-manager    # A module that runs Handsontable examples in different Handsontable versions and frameworks
-│   ├── plugins                 # VuePress plugins
-|   |   ├── active-header-links                # Plugin responsible for updating the URL with hash after scrolling the page to the nearest anchor
-|   |   ├── dump-docs-data                     # Plugin responsible for generating the all available Docs version and canonical URLs to the JSON file. Then, the file is consumed by other Docs Docker images as source of true about Docs versions and canonicals.
-|   |   ├── extend-page-data                   # Plugin responsible for extending `$page` object and rewriting some properties to add framework ID/name
-|   |   ├── generate-nginx-redirects           # Plugin responsible for generating nginx redirects
-|   |   ├── generate-nginx-variables           # Plugin responsible for generating nginx variables
-|   |   ├── markdown-it-header-injection       # Plugin responsible for injecting `<FRAMEWORK NAME> Data Grid` string before the first header
-|   |   ├── markdown-it-conditional-container  # Plugin responsible for creating conditional containers used for displaying/hiding blocks of content relevant to specific frameworks
-│   ├── public                  # The documentation's public (static) assets
-│   ├── theme                   # Theme overwrites and customizations
-│   ├── tools                   # Our custom documentation tools
-│   │   ├── build.mjs           # Builds the documentation for staging or production
-│   │   ├── check-links.js      # The documentation's link checker
-│   │   ├── jsdoc-convert       # JSDoc-to-Markdown converter
-│   │   ├── utils.js            # Tools utilities
-│   │   ├── watch.mjs           # Watch script for running local server
-│   ├── config.js               # VuePress configuration
-│   ├── docs-links.js           # Lets us link within the currently-selected docs version and framework with `@` (e.g. [link](@/guides/path/file/file.md).)
-│   ├── enhanceApp.js           # VuePress app-level enhancements
-│   ├── helpers.js              # Common helpers that set up sidebars and the documentation version and framework picker
-│   └── highlight.js            # Code highlight configuration
-├── docker                      # Docker configuration
-│   ├── ...                     # Docker configuration files
-│   └── redirects.conf          # File that allows create custom redirects for documentation
+├── src                         # Astro/Starlight source files
+│   ├── assets                  # Static assets (images, etc.)
+│   ├── components              # Astro components (Header, Footer, Sidebar, etc.)
+│   ├── content                 # Starlight content configuration
+│   ├── plugins                 # Custom plugins (framework-loader, vuepress-preprocessor, rehype plugins)
+│   ├── scripts                 # Build and utility scripts
+│   ├── styles                  # CSS stylesheets (custom.css, interactive-example.css)
+│   ├── content.config.ts       # Content collection configuration
+│   └── sidebar.mjs             # Sidebar configuration
 ├── content                     # The documentation content files
-│   ├── api                     # The API reference output, generated automatically from JSDoc. Do not edit for "next" Docs version!
-│   ├── guides                  # The guides' source files: Markdown content
-│   └── sidebars.js             # Sidebars configuration
-├── .build-tmp                  # Temporary directory created for storing symlinked directories, containing .MD files. It's needed for generating multi-frameworked Docs content.
-│   ├── javascript-data-grid    # Symbolic link to content directory. Do not edit! Make changes in the source content directory.
-│   └── react-data-grid         # As above
+│   ├── api                     # The API reference output, generated automatically from JSDoc
+│   ├── guides                  # The guides' source files: Markdown content
+│   ├── recipes                 # Recipe pages
+│   └── sidebars.js             # Legacy sidebars configuration
+├── public                      # Static assets served as-is (images, fonts, etc.)
+├── netlify                     # Netlify deployment configuration and build scripts
+├── tests                       # Playwright visual test specs
+├── astro.config.mjs            # Astro configuration
+├── tsconfig.json               # TypeScript configuration
+├── playwright.config.ts        # Playwright test configuration
 ├── README-DEPLOYMENT.md        # Documentation deployment guidelines
 ├── README-EDITING.md           # Documentation editing guidelines
 └── README.md                   # The file you're looking at right now!
@@ -138,22 +87,22 @@ The documentation branches are created and updated automatically by the `stable-
 
 The prod-docs/latest branch is automatically recreated by the CI/CD pipeline whenever a patch or release update is applied to the latest documentation version. This branch triggers a GitHub workflow that initiates a rebuild and deploys to Netlify on each push or when a new branch `prod-docs/<MAJOR.MINOR>` is created.
 
-Committing directly to the Documentation production branch triggers GitHub workflow that deploys the changes to the server. The exception is the `develop` branch that holds the changes for the "next" version. The staging version can be deployed only [manually](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment).
+Committing directly to the Documentation production branch triggers GitHub workflow that deploys the changes to Netlify. The exception is the `develop` branch that holds the changes for the "next" version. The staging version can be deployed only [manually](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment).
 
 ```bash
 [branch] `prod-docs/12.0`       # All documentation files related to documentation 12.0
   docs
-  ├── .vuepress                 # All VuePress files
+  ├── src                       # Astro/Starlight source files
   ├── content                   # The documentation content files
-  └── docker                    # Docker configuration
+  └── netlify                   # Netlify deployment configuration
 [branch] `prod-docs/12.1`       # All documentation files related to documentation 12.1
   docs
-  ├── .vuepress                 # All VuePress files
+  ├── src                       # Astro/Starlight source files
   ├── content                   # The documentation content files
-  └── docker                    # Docker configuration
+  └── netlify                   # Netlify deployment configuration
 [branch] `develop`              # All documentation files related to the "next" documentation version
   docs
-  ├── .vuepress                 # All VuePress files
+  ├── src                       # Astro/Starlight source files
   ├── content                   # The documentation content files
-  └── docker                    # Docker configuration
+  └── netlify                   # Netlify deployment configuration
 ```

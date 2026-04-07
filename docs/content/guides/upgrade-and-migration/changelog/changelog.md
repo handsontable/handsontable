@@ -21,9 +21,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Changelog
-
 See the full history of changes made to Handsontable in each major, minor, and patch release.
 
 [[toc]]

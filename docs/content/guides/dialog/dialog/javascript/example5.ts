@@ -99,16 +99,50 @@ const dialogPlugin = hot.getPlugin('dialog');
 
 dialogPlugin.show();
 
-// Add event listeners for select
-(document.getElementById('background-select') as HTMLSelectElement).addEventListener('change', (event) => {
-  const background = (event.target as HTMLSelectElement).value;
-  const content =
-    background === 'solid'
-      ? 'This dialog uses a solid background (default).'
-      : 'This dialog uses a semi-transparent background.';
+// Custom dropdown logic
+const dropdown = document.getElementById('backgroundDropdown')!;
+const trigger = document.getElementById('backgroundTrigger')!;
+const menu = document.getElementById('backgroundMenu')!;
+const label = document.getElementById('backgroundLabel')!;
 
-  dialogPlugin.update({
-    content,
-    background,
-  });
+trigger.addEventListener('click', () => {
+  const isOpen = !menu.hidden;
+
+  menu.hidden = isOpen;
+  trigger.setAttribute('aria-expanded', String(!isOpen));
+});
+
+menu.addEventListener('click', (e: MouseEvent) => {
+  const item = (e.target as HTMLElement).closest('li[data-value]') as HTMLElement | null;
+
+  if (item) {
+    label.textContent = item.textContent!.trim();
+    menu.querySelectorAll('li').forEach((li) => li.setAttribute('aria-selected', 'false'));
+    item.setAttribute('aria-selected', 'true');
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+
+    const background = item.dataset.value!;
+    const content =
+      background === 'solid'
+        ? 'This dialog uses a solid background (default).'
+        : 'This dialog uses a semi-transparent background.';
+
+    dialogPlugin.update({ content, background });
+  }
+});
+
+document.addEventListener('click', (e: MouseEvent) => {
+  if (!dropdown.contains(e.target as Node)) {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+});
+
+document.addEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && !menu.hidden) {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.focus();
+  }
 });

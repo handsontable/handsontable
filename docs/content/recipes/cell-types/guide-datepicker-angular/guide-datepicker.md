@@ -19,9 +19,16 @@ searchCategory: Recipes
 category: Cells
 ---
 
-# Native Date Picker Cell - Step-by-Step Guide
+::: only-for angular
 
-[[toc]]
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.ts)
+@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.html)
+
+:::
+
+:::
 
 ## Overview
 
@@ -49,19 +56,6 @@ npm install date-fns
 ```
 
 Ensure you have `@handsontable/angular-wrapper` installed in your Angular project.
-
-## Complete Example
-
-::: only-for angular
-
-::: example #example1 :angular --ts 1 --html 2
-
-@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.ts)
-@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.html)
-
-:::
-
-:::
 
 ## Step 1: Import Dependencies
 

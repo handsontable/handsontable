@@ -1,12 +1,69 @@
-import { useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
+const localeOptions = [
+  { value: 'ar-AR', label: 'Arabic (Global)' },
+  { value: 'cs-CZ', label: 'Czech (Czechia)' },
+  { value: 'de-CH', label: 'German (Switzerland)' },
+  { value: 'de-DE', label: 'German (Germany)' },
+  { value: 'en-US', label: 'English (United States)' },
+  { value: 'es-MX', label: 'Spanish (Mexico)' },
+  { value: 'fa-IR', label: 'Persian (Iran)' },
+  { value: 'fr-FR', label: 'French (France)' },
+  { value: 'hr-HR', label: 'Croatian (Croatia)' },
+  { value: 'it-IT', label: 'Italian (Italy)' },
+  { value: 'ja-JP', label: 'Japanese (Japan)' },
+  { value: 'ko-KR', label: 'Korean (Korea)' },
+  { value: 'lv-LV', label: 'Latvian (Latvia)' },
+  { value: 'nb-NO', label: 'Norwegian Bokmal (Norway)' },
+  { value: 'nl-NL', label: 'Dutch (Netherlands)' },
+  { value: 'pl-PL', label: 'Polish (Poland)' },
+  { value: 'pt-BR', label: 'Portuguese (Brazil)' },
+  { value: 'ru-RU', label: 'Russian (Russia)' },
+  { value: 'sr-SP', label: 'Serbian Latin (Serbia)' },
+  { value: 'zh-CN', label: 'Chinese (Simplified, China)' },
+  { value: 'zh-TW', label: 'Chinese (Traditional, Taiwan)' },
+];
+
 const ExampleComponent = () => {
+  const hotRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
   const [locale, setLocale] = useState('en-US');
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleOutsideClick);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
+
+  const handleSelect = (value) => {
+    setLocale(value);
+    setIsOpen(false);
+    hotRef.current?.hotInstance?.updateSettings({ locale: value });
+  };
+
+  const selectedLabel = localeOptions.find((o) => o.value === locale)?.label;
+
   const data = [
     {
       car: 'Mercedes A 160',
@@ -40,78 +97,41 @@ const ExampleComponent = () => {
     },
   ];
 
-  const handleLocaleChange = (event) => {
-    setLocale(event.target.value);
-  };
-
   return (
     <>
       <div className="example-controls-container">
         <div className="controls">
-          <label>
-            Select locale:
-            <select id="localeSelect" value={locale} onChange={handleLocaleChange}>
-              <option value="ar-AR">Arabic (Global)</option>
-              <option value="cs-CZ">Czech (Czechia)</option>
-              <option value="de-CH">German (Switzerland)</option>
-              <option value="de-DE">German (Germany)</option>
-              <option value="en-US">English (United States)</option>
-              <option value="es-MX">Spanish (Mexico)</option>
-              <option value="fa-IR">Persian (Iran)</option>
-              <option value="fr-FR">French (France)</option>
-              <option value="hr-HR">Croatian (Croatia)</option>
-              <option value="it-IT">Italian (Italy)</option>
-              <option value="ja-JP">Japanese (Japan)</option>
-              <option value="ko-KR">Korean (Korea)</option>
-              <option value="lv-LV">Latvian (Latvia)</option>
-              <option value="nb-NO">Norwegian Bokmal (Norway)</option>
-              <option value="nl-NL">Dutch (Netherlands)</option>
-              <option value="pl-PL">Polish (Poland)</option>
-              <option value="pt-BR">Portuguese (Brazil)</option>
-              <option value="ru-RU">Russian (Russia)</option>
-              <option value="sr-SP">Serbian Latin (Serbia)</option>
-              <option value="zh-CN">Chinese (Simplified, China)</option>
-              <option value="zh-TW">Chinese (Traditional, Taiwan)</option>
-            </select>
-          </label>
+          <div className="theme-dropdown" ref={dropdownRef}>
+            <button
+              className="theme-dropdown-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={isOpen}
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              <span>{selectedLabel}</span>
+              <svg className="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+            </button>
+            {isOpen && (
+              <ul className="theme-dropdown-menu" role="listbox">
+                {localeOptions.map((opt) => (
+                  <li
+                    key={opt.value}
+                    role="option"
+                    aria-selected={locale === opt.value}
+                    onClick={() => handleSelect(opt.value)}
+                  >
+                    {opt.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
 
-      <style>{`
-        .example-controls-container .controls {
-          padding-top: 0;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .example-controls-container .controls label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 14px;
-        }
-
-        .example-controls-container .controls select {
-          padding: 6px 12px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          font-size: 14px;
-          cursor: pointer;
-        }
-
-        .example-controls-container .controls select:hover {
-          border-color: #999;
-        }
-
-        .example-controls-container .controls select:focus {
-          outline: none;
-          border-color: #0066cc;
-          box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
-        }
-      `}</style>
-
       <HotTable
+        ref={hotRef}
         data={data}
         colHeaders={['Car', 'Product date', 'Payment date', 'Registration date']}
         locale={locale}

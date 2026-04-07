@@ -67,26 +67,39 @@ const ExampleComponent = defineComponent({
         autoWrapCol: true,
         licenseKey: 'non-commercial-and-evaluation'
       },
-      language: 'en-US'
+      language: 'en-US',
+      isOpen: false,
+      languages: [],
     };
   },
   mounted() {
-    this.getAllLanguageOptions();
+    this.languages = getLanguagesDictionaries().map((d) => d.languageCode);
+
+    document.addEventListener('click', this.handleClickOutside);
+    document.addEventListener('keydown', this.handleEscape);
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', this.handleClickOutside);
+    document.removeEventListener('keydown', this.handleEscape);
   },
   methods: {
-    getAllLanguageOptions() {
-      const allDictionaries = getLanguagesDictionaries();
-      const langSelect = document.querySelector('#languages');
-
-      langSelect.innerHTML = '';
-
-      for (const language of allDictionaries) {
-        langSelect.innerHTML += `<option value="${language.languageCode}">${language.languageCode}</option>`;
+    toggleDropdown() {
+      this.isOpen = !this.isOpen;
+    },
+    selectLanguage(lang) {
+      this.language = lang;
+      this.isOpen = false;
+    },
+    handleClickOutside(e) {
+      if (this.$refs.dropdown && !this.$refs.dropdown.contains(e.target)) {
+        this.isOpen = false;
       }
     },
-    updateHotLanguage(event) {
-      this.language = event.target.value;
-    }
+    handleEscape(e) {
+      if (e.key === 'Escape') {
+        this.isOpen = false;
+      }
+    },
   },
   components: {
     HotTable,
