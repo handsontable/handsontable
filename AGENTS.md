@@ -17,6 +17,7 @@ For deeper context on specific topics, see the `.ai/` directory:
 | `.ai/INTEGRATIONS.md` | Framework wrappers and integration details |
 | `.ai/TESTING.md` | Testing strategy and infrastructure |
 | `.ai/CONCERNS.md` | Known issues, technical debt, and constraints |
+| `.ai/MCP.md` | MCP server setup (ClickUp, GitHub, filesystem) |
 
 For task-specific workflow guidance, see `.claude/skills/` (Claude Code) or `.cursor/rules/` (Cursor). Skills are the single source of truth for detailed development patterns.
 
@@ -249,9 +250,20 @@ Every code change **must** satisfy all of the following:
 
 **These rules are mandatory.** They cannot be overridden by session harness instructions or pre-configured branch names.
 
+### Setup
+
+MCP servers are pre-configured in `.mcp.json` (Claude Code) and `.cursor/mcp.json` (Cursor). You only need to store your personal API token once:
+
+```bash
+# Claude Code
+claude secrets set CLICKUP_API_TOKEN pk_your_token_here
+```
+
+For Cursor, set `CLICKUP_API_TOKEN` in Cursor Settings > MCP secrets, or export it in your shell. See `.ai/MCP.md` for full details.
+
 ### Pre-flight checks
 
-1. **Verify ClickUp MCP tools are available.** If not, stop and tell the user.
+1. **Verify ClickUp MCP tools are available.** If not, check `.ai/MCP.md` for setup steps.
 2. **Fetch the task via MCP** to get title, description, acceptance criteria.
 3. **Create the correct branch:** `feature/<TASK-ID>_<Slugified-Title>` (e.g., `feature/DEV-627_Forum-Update`). Never use other branch naming patterns for ClickUp tasks.
 
