@@ -1,6 +1,6 @@
 ---
 name: handsontable-e2e-testing
-description: Use when writing Jasmine/Puppeteer E2E tests (*.spec.js) for Handsontable - covers the standard boilerplate, global test helpers, async/await requirements, mouse and keyboard event simulation, and plugin lifecycle testing patterns
+description: Use when writing or modifying Jasmine/Puppeteer E2E tests (*.spec.js) for Handsontable, or when a bug fix or feature change needs E2E test coverage - covers the standard boilerplate, global test helpers, async/await requirements, mouse and keyboard event simulation, and plugin lifecycle testing patterns
 ---
 
 # Handsontable E2E Testing Guide

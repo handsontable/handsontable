@@ -1,6 +1,6 @@
 ---
 name: pr-creation
-description: Use when creating a pull request for the Handsontable monorepo - covers branch naming conventions, pre-flight checks (lint and tests), changelog entry, and filling the PR template with context, test plan, and affected projects
+description: Use when creating or updating a pull request for the Handsontable monorepo, or when asked to commit and push changes - covers branch naming conventions, pre-flight checks (lint and tests), changelog entry, and filling the PR template with context, test plan, and affected projects
 ---
 
 ## 1. Branch Naming

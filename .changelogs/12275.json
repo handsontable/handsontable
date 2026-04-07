@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed collapsible column width jumping and first-render instability with nested headers.",
+  "type": "fixed",
+  "issueOrPR": 12275,
+  "breaking": false,
+  "framework": "none"
+}

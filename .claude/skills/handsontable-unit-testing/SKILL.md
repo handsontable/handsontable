@@ -1,6 +1,6 @@
 ---
 name: handsontable-unit-testing
-description: Use when writing Jest unit tests (*.unit.js) for Handsontable core, plugins, or utilities - covers Jest setup, test location conventions, mocking patterns, module aliases, and when to choose unit tests over E2E tests
+description: Use when writing or modifying Jest unit tests (*.unit.js) for Handsontable core, plugins, or utilities, or when a bug fix or internal refactor needs unit test coverage - covers Jest setup, test location conventions, mocking patterns, module aliases, and when to choose unit tests over E2E tests
 ---
 
 # Writing Jest Unit Tests for Handsontable

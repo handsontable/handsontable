@@ -1,6 +1,6 @@
 ---
 name: linting
-description: Use when fixing ESLint or Stylelint violations in Handsontable, understanding custom lint rules, or when writing new code that must pass linting - covers all custom Handsontable ESLint rules with rationale and fix patterns
+description: Use when fixing ESLint or Stylelint violations in Handsontable, understanding custom lint rules, or before committing any new or modified code to ensure it passes linting - covers all custom Handsontable ESLint rules with rationale and fix patterns
 ---
 
 # Linting in Handsontable
