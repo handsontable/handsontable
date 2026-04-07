@@ -11,6 +11,7 @@ Any PR that changes source code needs a changelog entry. This includes bug fixes
 - Test-only changes (no production code touched)
 - Documentation-only changes
 - CI/tooling changes
+- Fixing a bug that was introduced but **not yet released** (the regression never reached users, so there is nothing to document)
 
 Add `[skip changelog]` in the PR description to explicitly skip.
 
