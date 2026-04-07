@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Basic example in Vue 3
-
 Start with a basic example of the Vue 3 data grid, using component props for configuration and external control.
 
 [[toc]]

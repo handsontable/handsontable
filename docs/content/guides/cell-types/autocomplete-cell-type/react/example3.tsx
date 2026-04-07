@@ -7,6 +7,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      height="auto"
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
@@ -21,7 +22,7 @@ const ExampleComponent = () => {
         {
           type: 'autocomplete',
           source(_query, process) {
-            fetch('{{$basePath}}/scripts/json/autocomplete.json')
+            fetch('/docs/scripts/json/autocomplete.json')
               .then((response) => response.json())
               .then((response) => process(response.data));
           },

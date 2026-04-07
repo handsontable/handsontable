@@ -31,9 +31,6 @@ searchCategory: Guides
 category: Styling
 menuTag: updated
 ---
-
-# Themes
-
 Use Handsontable's built-in themes or customize its look using the Theme API or CSS variables.
 
 [[toc]]
@@ -55,15 +52,17 @@ The `classic` theme is a replacement for the old legacy style. It retains the fa
 Keep in mind that starting from version `15.0`, importing a theme is required.
 
 ::: tip Default theme
+
 If you want to use the `main` theme without any modifications, you don't need to configure anything. Handsontable will automatically use the `main` theme with default settings.
+
 :::
 
 ::: only-for javascript
 
 ::: example #exampleTheme --html 1 --js 2 --ts 3 --css 4
 @[code](@/content/guides/styling/themes/javascript/exampleTheme.html)
-@[code](@/content/guides/styling/themes/javascript/exampleTheme.js)
-@[code](@/content/guides/styling/themes/javascript/exampleTheme.ts)
+@[code collapse={9-110}](@/content/guides/styling/themes/javascript/exampleTheme.js)
+@[code collapse={9-111}](@/content/guides/styling/themes/javascript/exampleTheme.ts)
 @[code](@/content/guides/styling/themes/javascript/exampleTheme.css)
 :::
 
@@ -72,8 +71,8 @@ If you want to use the `main` theme without any modifications, you don't need to
 ::: only-for react
 
 ::: example #exampleTheme .disable-auto-theme :react --js 1 --ts 2 --css 3
-@[code](@/content/guides/styling/themes/react/exampleTheme.jsx)
-@[code](@/content/guides/styling/themes/react/exampleTheme.tsx)
+@[code collapse={13-114}](@/content/guides/styling/themes/react/exampleTheme.jsx)
+@[code collapse={14-115}](@/content/guides/styling/themes/react/exampleTheme.tsx)
 @[code](@/content/guides/styling/themes/react/exampleTheme.css)
 :::
 
@@ -229,7 +228,7 @@ There are two ways to apply a theme. The recommended approach is to use the Them
 
 The Theme API allows you to import and register themes programmatically. This approach provides runtime access to theme customization features.
 
-#### Import and use theme
+#### Step 1. Import a theme
 
 ::: only-for javascript
 
@@ -243,7 +242,50 @@ const hot = new Handsontable(container, {
 });
 ```
 
+:::
+
+::: only-for react
+
+```jsx
+import { HotTable } from '@handsontable/react-wrapper';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+function App() {
+  return (
+    <HotTable
+      theme={mainTheme}
+      // ... other options
+    />
+  );
+}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+// In your component
+@Component({
+  template: `<hot-table [settings]="hotSettings"></hot-table>`
+})
+export class AppComponent {
+  hotSettings = {
+    theme: mainTheme,
+    // ... other options
+  };
+}
+```
+
+:::
+
+#### Step 2. Configure the theme
+
 You can configure the theme before creating the instance using the builder pattern:
+
+::: only-for javascript
 
 ```js
 import { mainTheme, registerTheme } from 'handsontable/themes';
@@ -271,7 +313,7 @@ getTheme('main')
   ?.setDensityType('comfortable');
 ```
 
-#### UMD build (script tags)
+**UMD build (script tags)**
 
 When using Handsontable via CDN or script tags, load the theme script after the main Handsontable script. The theme auto-registers itself, and you can retrieve it using `getTheme()`:
 
@@ -486,8 +528,11 @@ In some cases, global styles enforced by the browser or operating system can imp
 
 Didn't find what you need? Try this:
 
+<div class="boxes-list">
+
 - [View related topics](https://github.com/handsontable/handsontable/issues/) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
 - [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
+
+</div>

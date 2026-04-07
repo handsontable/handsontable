@@ -6,9 +6,11 @@ import {ColumnSorting} from 'handsontable/plugins';
 @Component({
   selector: 'app-example9',
   template: `
-    <div class="controls">
-      <button (click)="sortAscBrand()" class="button">Sort by the "Brand" column, in ascending order</button>
-      <button (click)="unsort()" class="button">Go back to the original order</button>
+    <div class="example-controls-container">
+      <div class="controls">
+        <button (click)="sortAscBrand()">Sort by the "Brand" column, in ascending order</button>
+        <button (click)="unsort()">Go back to the original order</button>
+      </div>
     </div>
 
     <hot-table

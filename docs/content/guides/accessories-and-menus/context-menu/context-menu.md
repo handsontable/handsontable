@@ -19,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Accessories and menus
 ---
-
-# Context menu
-
 Quickly access contextual actions such as removing rows, inserting columns or copying data, by opening the context menu.
 
 [[toc]]
@@ -237,10 +234,10 @@ To see the context menu, right-click on a cell:
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
- 
+<div class="boxes-list">
+
 - [Adding comments via the context menu](@/guides/cell-features/comments/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack/icon-pack.md)
@@ -253,7 +250,7 @@ To see the context menu, right-click on a cell:
 
 </div>
 
-### Related blog articles
+**Related blog articles**
 
 <div class="boxes-list">
 
@@ -261,27 +258,42 @@ To see the context menu, right-click on a cell:
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`allowInsertColumn`](@/api/options.md#allowinsertcolumn)
-  - [`allowInsertRow`](@/api/options.md#allowinsertrow)
-  - [`allowRemoveColumn`](@/api/options.md#allowremovecolumn)
-  - [`allowRemoveRow`](@/api/options.md#allowremoverow)
-  - [`contextMenu`](@/api/options.md#contextmenu)
-  - [`dropdownMenu`](@/api/options.md#dropdownmenu)
-- Hooks:
-  - [`afterContextMenuDefaultOptions`](@/api/hooks.md#aftercontextmenudefaultoptions)
-  - [`afterContextMenuHide`](@/api/hooks.md#aftercontextmenuhide)
-  - [`afterContextMenuShow`](@/api/hooks.md#aftercontextmenushow)
-  - [`afterDropdownMenuDefaultOptions`](@/api/hooks.md#afterdropdownmenudefaultoptions)
-  - [`afterDropdownMenuHide`](@/api/hooks.md#afterdropdownmenuhide)
-  - [`afterDropdownMenuShow`](@/api/hooks.md#afterdropdownmenushow)
-  - [`afterOnCellContextMenu`](@/api/hooks.md#afteroncellcontextmenu)
-  - [`beforeContextMenuSetItems`](@/api/hooks.md#beforecontextmenusetitems)
-  - [`beforeContextMenuShow`](@/api/hooks.md#beforecontextmenushow)
-  - [`beforeDropdownMenuSetItems`](@/api/hooks.md#beforedropdownmenusetitems)
-  - [`beforeDropdownMenuShow`](@/api/hooks.md#beforedropdownmenushow)
-  - [`beforeOnCellContextMenu`](@/api/hooks.md#beforeoncellcontextmenu)
-- Plugins:
-  - [`ContextMenu`](@/api/contextMenu.md)
+<div class="boxes-list">
+
+- [allowInsertColumn](@/api/options.md#allowinsertcolumn)
+- [allowInsertRow](@/api/options.md#allowinsertrow)
+- [allowRemoveColumn](@/api/options.md#allowremovecolumn)
+- [allowRemoveRow](@/api/options.md#allowremoverow)
+- [contextMenu](@/api/options.md#contextmenu)
+- [dropdownMenu](@/api/options.md#dropdownmenu)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterContextMenuDefaultOptions](@/api/hooks.md#aftercontextmenudefaultoptions)
+- [afterContextMenuHide](@/api/hooks.md#aftercontextmenuhide)
+- [afterContextMenuShow](@/api/hooks.md#aftercontextmenushow)
+- [afterDropdownMenuDefaultOptions](@/api/hooks.md#afterdropdownmenudefaultoptions)
+- [afterDropdownMenuHide](@/api/hooks.md#afterdropdownmenuhide)
+- [afterDropdownMenuShow](@/api/hooks.md#afterdropdownmenushow)
+- [afterOnCellContextMenu](@/api/hooks.md#afteroncellcontextmenu)
+- [beforeContextMenuSetItems](@/api/hooks.md#beforecontextmenusetitems)
+- [beforeContextMenuShow](@/api/hooks.md#beforecontextmenushow)
+- [beforeDropdownMenuSetItems](@/api/hooks.md#beforedropdownmenusetitems)
+- [beforeDropdownMenuShow](@/api/hooks.md#beforedropdownmenushow)
+- [beforeOnCellContextMenu](@/api/hooks.md#beforeoncellcontextmenu)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ContextMenu](@/api/contextMenu.md)
+
+</div>

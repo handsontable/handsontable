@@ -34,7 +34,7 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
       />
 
       <div class="debug-info">
-        <h4>Debug Information:</h4>
+        <strong>Debug information:</strong>
         <table class="debug-table">
           <colgroup>
             <col>
