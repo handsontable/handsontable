@@ -184,5 +184,49 @@ describe('Settings mapper unit tests', () => {
 
       expect(result.columns).toEqual(nextProps.columns);
     });
+
+    it('should always skip init-only settings when not initializing, even if the value changed', () => {
+      const prevProps: HotTableProps = {
+        renderAllRows: false,
+        renderAllColumns: false,
+        layoutDirection: 'ltr',
+        ariaTags: true,
+        width: 300,
+      };
+      const nextProps: HotTableProps = {
+        renderAllRows: true,
+        renderAllColumns: true,
+        layoutDirection: 'rtl',
+        ariaTags: false,
+        width: 500,
+      };
+
+      const result = SettingsMapper.getSettings(nextProps, {
+        prevProps,
+        isInit: false,
+        initOnlySettingKeys: ['renderAllRows', 'renderAllColumns', 'layoutDirection', 'ariaTags'] as any,
+      });
+
+      expect(result.renderAllRows).toBe(void 0);
+      expect(result.renderAllColumns).toBe(void 0);
+      expect(result.layoutDirection).toBe(void 0);
+      expect(result.ariaTags).toBe(void 0);
+      expect(result.width).toBe(500);
+    });
+
+    it('should include init-only settings during initialization', () => {
+      const nextProps: HotTableProps = {
+        renderAllRows: true,
+        width: 300,
+      };
+
+      const result = SettingsMapper.getSettings(nextProps, {
+        isInit: true,
+        initOnlySettingKeys: ['renderAllRows'] as any,
+      });
+
+      expect(result.renderAllRows).toBe(true);
+      expect(result.width).toBe(300);
+    });
   });
 });
