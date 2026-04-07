@@ -19,9 +19,17 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Pikaday Cell Type - Step-by-Step Guide
+::: only-for javascript vue
 
-[[toc]]
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps moment @handsontable/pikaday
+
+@[code](@/content/recipes/cell-types/pikaday/javascript/example1.js)
+@[code](@/content/recipes/cell-types/pikaday/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/pikaday/javascript/example1.css)
+
+:::
+
+:::
 
 ## Overview
 
@@ -40,20 +48,6 @@ A cell that:
 - Handles keyboard navigation (arrow keys to navigate dates)
 - Auto-closes and saves when a date is selected
 - Works with portal positioning for better z-index handling
-
-## Complete Example
-
-::: only-for javascript vue
-
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps moment @handsontable/pikaday
-
-@[code](@/content/recipes/cell-types/pikaday/javascript/example1.js)
-@[code](@/content/recipes/cell-types/pikaday/javascript/example1.ts)
-@[code](@/content/recipes/cell-types/pikaday/javascript/example1.css)
-
-:::
-
-:::
 
 ## Prerequisites
 

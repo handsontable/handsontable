@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell types
 menuTag: updated
 ---
-
-# Numeric cell type
-
 Display, format, sort, and filter numbers correctly by using the numeric cell type.
 
 [[toc]]
@@ -46,8 +43,8 @@ Use the locale selector above the table to see how different locales affect numb
 ::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.html)
-@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.js)
-@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.ts)
+@[code collapse={13-64,70-134}](@/content/guides/cell-types/numeric-cell-type/javascript/example1.js)
+@[code collapse={14-65,71-135}](@/content/guides/cell-types/numeric-cell-type/javascript/example1.ts)
 
 :::
 
@@ -57,8 +54,8 @@ Use the locale selector above the table to see how different locales affect numb
 
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/cell-types/numeric-cell-type/react/example1.jsx)
-@[code](@/content/guides/cell-types/numeric-cell-type/react/example1.tsx)
+@[code collapse={8-30,68-119,159-223}](@/content/guides/cell-types/numeric-cell-type/react/example1.jsx)
+@[code collapse={20-42,80-131,171-235}](@/content/guides/cell-types/numeric-cell-type/react/example1.tsx)
 
 :::
 
@@ -68,7 +65,7 @@ Use the locale selector above the table to see how different locales affect numb
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/numeric-cell-type/angular/example1.ts)
+@[code collapse={58-133,144-208}](@/content/guides/cell-types/numeric-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/numeric-cell-type/angular/example1.html)
 
 :::
@@ -406,28 +403,47 @@ you edit a numeric cell:
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 - [Migrating from 16.2 to 17.0](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#1-migrate-from-numbro-format-to-intlnumberformat) - Migration guide for Intl.NumberFormat
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`numericFormat`](@/api/options.md#numericformat)
-  - [`locale`](@/api/options.md#locale)
-  - [`type`](@/api/options.md#type)
-  - [`valueFormatter`](@/api/options.md#valueformatter)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [numericFormat](@/api/options.md#numericformat)
+- [locale](@/api/options.md#locale)
+- [type](@/api/options.md#type)
+- [valueFormatter](@/api/options.md#valueformatter)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

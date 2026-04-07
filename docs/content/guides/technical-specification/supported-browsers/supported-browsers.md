@@ -16,9 +16,6 @@ angular:
 searchCategory: Guides
 category: Technical specification
 ---
-
-# Supported browsers
-
 Handsontable supports all the most popular desktop and mobile browsers.
 
 [[toc]]

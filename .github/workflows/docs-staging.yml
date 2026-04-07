@@ -94,7 +94,7 @@ jobs:
 
       - name: Install the documentation dependencies
         run: |
-          npm ci
+          npm ci --legacy-peer-deps
 
       - name: Install the monorepo dependencies and build the packages
         run: |
@@ -102,49 +102,19 @@ jobs:
           pnpm install
           npm run all build -- --e examples visual-tests
 
-          mkdir -p docs/.vuepress/public/@handsontable
-
-          # cp -r ./wrappers/angular-wrapper docs/.vuepress/public/@handsontable
-          # cp -r ./wrappers/react-wrapper docs/.vuepress/public/@handsontable
-          # cp -r ./wrappers/vue3 docs/.vuepress/public/@handsontable
-
-          cp -r ./wrappers/angular-wrapper/dist/hot-table docs/.vuepress/public/@handsontable/
-          mv docs/.vuepress/public/@handsontable/hot-table docs/.vuepress/public/@handsontable/angular-wrapper
-
-          ls -la  docs/.vuepress/public/@handsontable/angular-wrapper
-
-      - name: Generate API references
-        run: |
-          npm run docs:api
-
       - name: Build docs (for staging preview)
         run: |
-          npm run docs:build:preview
+          npm run build
 
       - name: Build and deploy the preview to Netlify
         run: |
           cd netlify
-          mkdir -p docs/docs
+          mkdir -p deploy/docs
 
-          mv ../.vuepress/dist/docs docs
+          cp -r ../dist/. deploy/docs/
 
-          ./build_previous_versions.sh
-          echo "Building the documentation..." >> docs/index.html
-          cp _dev_headers docs/_headers
-          cp _redirects docs/_redirects
-          cp docs/docs/404.html docs/404.html
-
-          rm -rf ../../handsontable/node_modules
-          rm -rf ../../handsontable/tmp
-          cp -r ../../handsontable docs/docs
-
-          mkdir -p docs/docs/@handsontable
-          #rm -rf ../../@handsontable/angular-wrapper/node_modules
-          rm -rf ../../@handsontable/react-wrapper/node_modules
-          rm -rf ../../@handsontable/vue3/node_modules
-          #cp -r ../../wrappers/angular-wrapper docs/docs/@handsontable/
-          cp -r ../../wrappers/react-wrapper docs/docs/@handsontable/
-          cp -r ../../wrappers/vue3 docs/docs/@handsontable/
+          cp _dev_headers deploy/_headers
+          cp _redirects deploy/_redirects
 
       - name: Publish preview to Netlify
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # https://github.com/nick-fields/retry/releases/tag/v3.0.2
@@ -153,9 +123,8 @@ jobs:
           max_attempts: 3
           retry_on: error
           command: |
-            cd docs
-            cd netlify
-            netlify deploy --prod --build --context production
+            cd docs/netlify
+            netlify deploy --prod --dir deploy
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}

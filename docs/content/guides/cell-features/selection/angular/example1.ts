@@ -1,22 +1,33 @@
 /* file: app.component.ts */
-import {Component, ViewChild, ViewEncapsulation} from '@angular/core';
+import {Component, ViewChild, ViewEncapsulation, HostListener, ElementRef} from '@angular/core';
 import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example1-selection',
   standalone: false,
   template: ` <div class="controls">
-      <label>
-        <select
-          id="selectOption"
-          (change)="selectOptionChange($event)"
-          [value]="'multiple'"
+      <div class="theme-dropdown" #dropdownRef>
+        <button
+          class="theme-dropdown-trigger"
+          type="button"
+          aria-haspopup="listbox"
+          [attr.aria-expanded]="isOpen"
+          (click)="toggleDropdown()"
         >
-          <option value="single">Single selection</option>
-          <option value="range">Range selection</option>
-          <option value="multiple">Multiple ranges selection</option>
-        </select>
-      </label>
+          <span>{{ selectedLabel }}</span>
+          <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+        </button>
+        <ul class="theme-dropdown-menu" role="listbox" *ngIf="isOpen">
+          <li
+            *ngFor="let opt of options"
+            role="option"
+            [attr.aria-selected]="selected === opt.value"
+            (click)="selectOption(opt.value)"
+          >
+            {{ opt.label }}
+          </li>
+        </ul>
+      </div>
     </div>
     <div>
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
@@ -25,6 +36,15 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 })
 export class Example1SelectionComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+
+  isOpen = false;
+  selected = 'multiple';
+
+  readonly options = [
+    { value: 'single', label: 'Single selection' },
+    { value: 'range', label: 'Range selection' },
+    { value: 'multiple', label: 'Multiple ranges selection' },
+  ];
 
   readonly data = [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
@@ -49,13 +69,36 @@ export class Example1SelectionComponent {
     autoWrapCol: true
   };
 
-  selectOptionChange(event: Event): void {
-    const hot = this.hotTable?.hotInstance;
-    type selection = 'multiple' | 'single' | 'range' | undefined;
-    const value = (event.target as HTMLSelectElement).value;
-    const first = value.split(' ')[0].toLowerCase() as selection;
+  get selectedLabel(): string {
+    return this.options.find((o) => o.value === this.selected)?.label || '';
+  }
 
-    hot?.updateSettings({ selectionMode: first });
+  constructor(private elementRef: ElementRef) {}
+
+  toggleDropdown(): void {
+    this.isOpen = !this.isOpen;
+  }
+
+  selectOption(value: string): void {
+    this.selected = value;
+    this.isOpen = false;
+    type selection = 'multiple' | 'single' | 'range' | undefined;
+
+    this.hotTable?.hotInstance?.updateSettings({ selectionMode: value as selection });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.elementRef.nativeElement.querySelector('.theme-dropdown')?.contains(event.target)) {
+      this.isOpen = false;
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      this.isOpen = false;
+    }
   }
 }
 /* end-file */

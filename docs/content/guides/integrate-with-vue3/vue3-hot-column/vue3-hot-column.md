@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Using the `HotColumn` component in Vue 3
-
 Configure the Vue 3 data grid's columns, using the props of the `HotColumn` component. Define a custom cell editor or a custom cell renderer.
 
 [[toc]]

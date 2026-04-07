@@ -19,9 +19,17 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Feedback Cell Type - Step-by-Step Guide (React)
+::: only-for react
 
-[[toc]]
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/cell-types/feedback-react/react/example1.css)
+@[code](@/content/recipes/cell-types/feedback-react/react/example1.jsx)
+@[code](@/content/recipes/cell-types/feedback-react/react/example1.tsx)
+
+:::
+
+:::
 
 ## Overview
 
@@ -40,20 +48,6 @@ A cell that:
 - Provides click-to-select and closes the editor on choice
 - Uses React's `EditorComponent` with render prop and external CSS (e.g. `feedback-editor` class)
 - Reads per-column options from `cellProperties.config` in `onPrepare`
-
-## Complete Example
-
-::: only-for react
-
-::: example #example1 :react-advanced --css 1 --js 2 --ts 3
-
-@[code](@/content/recipes/cell-types/feedback-react/react/example1.css)
-@[code](@/content/recipes/cell-types/feedback-react/react/example1.jsx)
-@[code](@/content/recipes/cell-types/feedback-react/react/example1.tsx)
-
-:::
-
-:::
 
 ## Prerequisites
 
