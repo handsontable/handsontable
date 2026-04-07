@@ -360,63 +360,105 @@ function commonJsonIntegration() {
   /**
    * Scans all .md files in content/ and collects their permalink values.
    * Returns an array of `[url-path, ""]` tuples (empty string = still live).
+   *
+   * When `distDir` is provided the function first tries to derive URLs from
+   * the built HTML files (which include auto-generated API pages that are
+   * not committed to the content/ directory). The content/ scan is used as
+   * a fallback when `distDir` is omitted (e.g. dev-server startup).
+   *
+   * @param {string|null} distDir - Optional path to the Astro dist output.
    */
-  function collectUrls() {
+  function collectUrls(distDir = null) {
     const seen = new Set();
     const urls = [];
 
-    function scanDir(dir) {
-      for (const entry of readdirSync(dir, { withFileTypes: true })) {
-        const full = join(dir, entry.name);
+    if (distDir) {
+      // Build mode: derive URLs from the generated HTML files in dist/.
+      // Each HTML page lives at dist/{path}/index.html → URL path is {path}.
+      function scanDist(dir, base) {
+        for (const entry of readdirSync(dir, { withFileTypes: true })) {
+          const full = join(dir, entry.name);
 
-        if (entry.isDirectory()) {
-          scanDir(full);
-          continue;
-        }
+          if (entry.isDirectory()) {
+            scanDist(full, base);
+            continue;
+          }
 
-        if (!entry.name.endsWith('.md')) continue;
+          if (entry.name !== 'index.html') continue;
 
-        let raw;
+          // Derive the relative URL path from the directory path.
+          const relDir = dir.slice(base.length).replace(/^\//, '');
 
-        try {
-          raw = readFileSync(full, 'utf-8');
-        } catch {
-          continue;
-        }
+          if (!relDir) continue;
 
-        const { data } = matter(raw);
+          // Only include framework-prefixed paths.
+          const matchedPrefix = PREFIXES.find((p) => relDir === p || relDir.startsWith(`${p}/`));
 
-        if (!data.permalink) continue;
+          if (!matchedPrefix) continue;
 
-        const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '');
-
-        for (const prefix of PREFIXES) {
-          const urlPath = slug ? `${prefix}/${slug}` : prefix;
-
-          if (!seen.has(urlPath)) {
-            seen.add(urlPath);
-            urls.push([urlPath, '']);
+          if (!seen.has(relDir)) {
+            seen.add(relDir);
+            urls.push([relDir, '']);
           }
         }
       }
-    }
 
-    // Also add bare prefix entries (e.g. "javascript-data-grid") for root pages.
-    for (const prefix of PREFIXES) {
-      if (!seen.has(prefix)) {
-        seen.add(prefix);
-        urls.push([prefix, '']);
+      scanDist(distDir, distDir);
+    } else {
+      // Dev mode: scan .md files in content/ for their permalink values.
+      function scanContent(dir) {
+        for (const entry of readdirSync(dir, { withFileTypes: true })) {
+          const full = join(dir, entry.name);
+
+          if (entry.isDirectory()) {
+            scanContent(full);
+            continue;
+          }
+
+          if (!entry.name.endsWith('.md')) continue;
+
+          let raw;
+
+          try {
+            raw = readFileSync(full, 'utf-8');
+          } catch {
+            continue;
+          }
+
+          const { data } = matter(raw);
+
+          if (!data.permalink) continue;
+
+          const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '');
+
+          for (const prefix of PREFIXES) {
+            const urlPath = slug ? `${prefix}/${slug}` : prefix;
+
+            if (!seen.has(urlPath)) {
+              seen.add(urlPath);
+              urls.push([urlPath, '']);
+            }
+          }
+        }
       }
-    }
 
-    scanDir(contentDir);
+      // Add bare prefix entries (e.g. "javascript-data-grid") for root pages.
+      for (const prefix of PREFIXES) {
+        if (!seen.has(prefix)) {
+          seen.add(prefix);
+          urls.push([prefix, '']);
+        }
+      }
+
+      scanContent(contentDir);
+    }
 
     return urls;
   }
 
   // ── Main build function ───────────────────────────────────────────────────
 
-  async function buildAndWrite(outDir) {
+  async function buildAndWrite(outDir, distDir = null) {
     const localPatch = getLocalVersion(); // e.g. "17.0.1"
     const localMinor = localPatch ? toMinor(localPatch) : null;
 
@@ -454,7 +496,7 @@ function commonJsonIntegration() {
 
     const latestVersion = minors[0] ?? localMinor ?? 'next';
     const versionsWithPatches = minors.map((m) => [m, minorMap.get(m) ?? []]);
-    const urls = collectUrls();
+    const urls = collectUrls(distDir);
 
     const payload = {
       versions: minors,
@@ -480,7 +522,9 @@ function commonJsonIntegration() {
       'astro:build:done': async ({ dir }) => {
         const outDir = fileURLToPath(dir);
 
-        await buildAndWrite(outDir);
+        // Pass distDir so collectUrls() can scan built HTML files, which
+        // includes auto-generated API pages not present in content/.
+        await buildAndWrite(outDir, outDir);
       },
     },
   };
