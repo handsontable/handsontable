@@ -15,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 8.4 to 9.0
-
 Migrate from Handsontable 8.4 to Handsontable 9.0, released on June 1, 2021.
 
 More information about this release can be found in the [`9.0.0` release blog post](https://handsontable.com/blog/handsontable-9.0.0-new-formula-plugin).<br/>

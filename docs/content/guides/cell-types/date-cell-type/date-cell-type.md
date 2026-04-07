@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell types
 menuTag: updated
 ---
-
-# Date cell type
-
 Display, format, sort, and filter dates correctly by using the date cell type.
 
 [[toc]]
@@ -37,8 +34,8 @@ In the following demo, multiple columns use the date cell type with different fo
 ::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-types/date-cell-type/javascript/example1.html)
-@[code](@/content/guides/cell-types/date-cell-type/javascript/example1.js)
-@[code](@/content/guides/cell-types/date-cell-type/javascript/example1.ts)
+@[code collapse={12-43,48-79}](@/content/guides/cell-types/date-cell-type/javascript/example1.js)
+@[code collapse={12-43,48-79}](@/content/guides/cell-types/date-cell-type/javascript/example1.ts)
 
 :::
 :::
@@ -46,8 +43,8 @@ In the following demo, multiple columns use the date cell type with different fo
 ::: only-for react
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/cell-types/date-cell-type/react/example1.jsx)
-@[code](@/content/guides/cell-types/date-cell-type/react/example1.tsx)
+@[code collapse={8-30,67-98,138-167}](@/content/guides/cell-types/date-cell-type/react/example1.jsx)
+@[code collapse={9-31,68-99,139-168}](@/content/guides/cell-types/date-cell-type/react/example1.tsx)
 
 :::
 :::
@@ -55,7 +52,7 @@ In the following demo, multiple columns use the date cell type with different fo
 ::: only-for angular
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/date-cell-type/angular/example1.ts)
+@[code collapse={54-109,114-149}](@/content/guides/cell-types/date-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/date-cell-type/angular/example1.html)
 
 :::
@@ -340,33 +337,52 @@ The [`dateFormat`](@/api/options.md#dateformat) option controls how dates are di
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`dateFormat`](@/api/options.md#dateformat)
-  - [`locale`](@/api/options.md#locale)
-  - [`type`](@/api/options.md#type)
-  - [`correctFormat`](@/api/options.md#correctformat)
-  - [`datePickerConfig`](@/api/options.md#datepickerconfig)
-  - [`defaultDate`](@/api/options.md#defaultdate)
-  - [`valueFormatter`](@/api/options.md#valueformatter)
-  - [`valueParser`](@/api/options.md#valueparser)
-  - [`valueSetter`](@/api/options.md#valuesetter)
-  - [`valueGetter`](@/api/options.md#valuegetter)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [dateFormat](@/api/options.md#dateformat)
+- [locale](@/api/options.md#locale)
+- [type](@/api/options.md#type)
+- [correctFormat](@/api/options.md#correctformat)
+- [datePickerConfig](@/api/options.md#datepickerconfig)
+- [defaultDate](@/api/options.md#defaultdate)
+- [valueFormatter](@/api/options.md#valueformatter)
+- [valueParser](@/api/options.md#valueparser)
+- [valueSetter](@/api/options.md#valuesetter)
+- [valueGetter](@/api/options.md#valuegetter)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

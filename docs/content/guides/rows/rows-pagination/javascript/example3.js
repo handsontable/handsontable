@@ -184,9 +184,7 @@ const prevPageElement = document.querySelector('#prevPage');
 const nextPageElement = document.querySelector('#nextPage');
 const lastPageElement = document.querySelector('#lastPage');
 const pageNumberElement = document.querySelector('#pageNumber');
-const firstVisibleRowElement = document.querySelector('#firstVisibleRow');
-const lastVisibleRowElement = document.querySelector('#lastVisibleRow');
-const totalRowsElement = document.querySelector('#totalRows');
+const pageStatsElement = document.querySelector('#pageStats');
 const paginationPlugin = hot.getPlugin('pagination');
 
 function updateUI() {
@@ -213,9 +211,7 @@ function updateUI() {
   }
 
   pageNumberElement.value = currentPage;
-  firstVisibleRowElement.textContent = firstVisibleRowIndex + 1;
-  lastVisibleRowElement.textContent = lastVisibleRowIndex + 1;
-  totalRowsElement.textContent = totalRenderedRows;
+  pageStatsElement.textContent = `${firstVisibleRowIndex + 1} - ${lastVisibleRowIndex + 1} of ${totalRenderedRows} rows`;
 }
 
 updateUI();

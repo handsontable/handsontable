@@ -15,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 12.4 to 13.0
-
 Migrate from Handsontable 12.4 to Handsontable 13.0, released on June 22, 2023.
 
 More information about this release can be found in the [`13.0.0` release blog post](https://handsontable.com/blog/handsontable-13-0-0-support-for-angular-16-and-new-frameworks-support-policy).<br/>
