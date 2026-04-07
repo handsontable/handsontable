@@ -16,9 +16,6 @@ angular:
 searchCategory: Guides
 category: Optimization
 ---
-
-# Bundle size
-
 Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules and Moment.js locales.
 
 [[toc]]
@@ -193,4 +190,8 @@ export class ExampleComponent {
 
 ## Related guides
 
+<div class="boxes-list">
+
 - [Modules](@/guides/tools-and-building/modules/modules.md)
+
+</div>

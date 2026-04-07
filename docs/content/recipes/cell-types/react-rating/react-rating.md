@@ -19,9 +19,17 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Star Rating Cell Type - Step-by-Step Guide (React)
+::: only-for react
 
-[[toc]]
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps react-star-rating-component
+
+@[code](@/content/recipes/cell-types/react-rating/react/example1.css)
+@[code](@/content/recipes/cell-types/react-rating/react/example1.jsx)
+@[code](@/content/recipes/cell-types/react-rating/react/example1.tsx)
+
+:::
+
+:::
 
 ## Overview
 
@@ -41,20 +49,6 @@ A cell that:
 - Validates rating range (e.g., 0–100)
 - Provides click-to-select functionality
 - Works with React's component-based architecture
-
-## Complete Example
-
-::: only-for react
-
-::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps react-star-rating-component
-
-@[code](@/content/recipes/cell-types/react-rating/react/example1.css)
-@[code](@/content/recipes/cell-types/react-rating/react/example1.jsx)
-@[code](@/content/recipes/cell-types/react-rating/react/example1.tsx)
-
-:::
-
-:::
 
 ## Prerequisites
 

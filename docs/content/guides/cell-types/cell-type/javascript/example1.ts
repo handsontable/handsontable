@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 import { BaseRenderer } from 'handsontable/renderers';
 
 // Register all Handsontable's modules.
@@ -8,12 +9,12 @@ registerAllModules();
 const colors: string[] = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
 
 const yellowRenderer: BaseRenderer = (instance, td, ...rest) => {
-  Handsontable.renderers.TextRenderer(instance, td, ...rest);
+  textRenderer(instance, td, ...rest);
   td.style.backgroundColor = 'yellow';
 };
 
 const greenRenderer: BaseRenderer = (instance, td, ...rest) => {
-  Handsontable.renderers.TextRenderer(instance, td, ...rest);
+  textRenderer(instance, td, ...rest);
 
   td.style.backgroundColor = 'green';
 };

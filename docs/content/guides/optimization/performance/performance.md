@@ -16,9 +16,6 @@ angular:
 searchCategory: Guides
 category: Optimization
 ---
-
-# Performance
-
 Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 
 [[toc]]
@@ -96,6 +93,18 @@ For more information, see our documentation for [rows](@/api/options.md#viewport
 
 Changing your background, font colors, etc., shouldn't lower the performance. However, adding too many CSS animations, transitions, and other calculation-consuming attributes may impact the performance, so keep them at a reasonable level.
 
+## Avoid the `cells` option when possible
+
+The [`cells`](@/api/options.md#cells) option is a function invoked before each of Handsontable's [rendering cycles](@/guides/optimization/batch-operations/batch-operations.md). Because it runs on every render for every visible cell, even a small amount of work inside it adds up quickly and can noticeably slow down the grid.
+
+Prefer lighter alternatives when they meet your needs:
+
+- [`cell`](@/api/options.md#cell) - a static array of per-cell options, evaluated once.
+- [`columns`](@/api/options.md#columns) - a static array of per-column options, evaluated once.
+- [`setCellMeta()`](@/api/core.md#setcellmeta) - updates a single cell's metadata imperatively, without re-evaluating every cell.
+
+Use the [`cells`](@/api/options.md#cells) option only if the above alternatives can't express the logic you need.
+
 ## Suspend rendering
 
 By default, Handsontable will call the render after each CRUD operation. Usually, this is expected behavior, but you may find it slightly excessive in some use cases. By using one of the batching methods, you can suspend rendering and call it just once at the end. For example:
@@ -152,6 +161,8 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 
 ### Related guides
 
+<div class="boxes-list">
+
 - [Batch operations](@/guides/optimization/batch-operations/batch-operations.md)
 - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
@@ -159,12 +170,30 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 - [Modules](@/guides/tools-and-building/modules/modules.md)
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
 
+</div>
+
 ### Related API reference
 
-- Configuration options:
-  - [`pagination`](@/api/options.md#pagination)
-  - [`autoColumnSize`](@/api/options.md#autocolumnsize)
-  - [`autoRowSize`](@/api/options.md#autorowsize)
-  - [`colWidths`](@/api/options.md#colwidths)
-  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
-  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
+**Configuration options:**
+
+<div class="boxes-list">
+
+- [`pagination`](@/api/options.md#pagination)
+- [`autoColumnSize`](@/api/options.md#autocolumnsize)
+- [`autoRowSize`](@/api/options.md#autorowsize)
+- [`cell`](@/api/options.md#cell)
+- [`cells`](@/api/options.md#cells)
+- [`colWidths`](@/api/options.md#colwidths)
+- [`columns`](@/api/options.md#columns)
+- [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
+- [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
+
+</div>
+
+**Core methods:**
+
+<div class="boxes-list">
+
+- [`setCellMeta()`](@/api/core.md#setcellmeta)
+
+</div>

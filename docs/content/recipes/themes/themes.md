@@ -15,9 +15,6 @@ angular:
   id: c5f6d93e
   metaTitle: Theme Recipes - Angular Data Grid | Handsontable
 ---
-
-# Theme Recipes
-
 [[toc]]
 
 ## Overview

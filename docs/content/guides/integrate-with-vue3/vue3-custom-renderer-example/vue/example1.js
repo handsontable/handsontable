@@ -11,8 +11,8 @@ const ExampleComponent = defineComponent({
       hotSettings: {
         data:
           [
-            ['A1', '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-            ['A2', '{{$basePath}}/img/examples/javascript-the-good-parts.jpg']
+            ['A1', '/docs/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+            ['A2', '/docs/img/examples/javascript-the-good-parts.jpg']
           ],
         columns: [
           {},

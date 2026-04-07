@@ -15,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 11.1 to 12.0
-
 Migrate from Handsontable 11.1 to Handsontable 12.0, released on April 28, 2022.
 
 More information about this release can be found in the [`12.0.0` release blog post](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api).<br/>
