@@ -17,9 +17,6 @@ searchCategory: Guides
 category: Getting started
 menuTag: updated
 ---
-
-# Installation
-
 ::: only-for angular
 
 Install Handsontable through your preferred package manager, and control your grid through the `HotTableComponent` props.
@@ -446,23 +443,36 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Modules](@/guides/tools-and-building/modules/modules.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`maxCols`](@/api/options.md#maxcols)
-  - [`maxRows`](@/api/options.md#maxrows)
-  - [`minCols`](@/api/options.md#mincols)
-  - [`minRows`](@/api/options.md#minrows)
-  - [`minSpareCols`](@/api/options.md#minsparecols)
-  - [`minSpareRows`](@/api/options.md#minsparerows)
-  - [`startCols`](@/api/options.md#startcols)
-  - [`startRows`](@/api/options.md#startrows)
-- Hooks:
-  - [`afterInit`](@/api/hooks.md#afterinit)
-  - [`beforeInit`](@/api/hooks.md#beforeinit)
-  - [`beforeInitWalkontable`](@/api/hooks.md#beforeinitwalkontable)
-  - [`construct`](@/api/hooks.md#construct)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [maxCols](@/api/options.md#maxcols)
+- [maxRows](@/api/options.md#maxrows)
+- [minCols](@/api/options.md#mincols)
+- [minRows](@/api/options.md#minrows)
+- [minSpareCols](@/api/options.md#minsparecols)
+- [minSpareRows](@/api/options.md#minsparerows)
+- [startCols](@/api/options.md#startcols)
+- [startRows](@/api/options.md#startrows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterInit](@/api/hooks.md#afterinit)
+- [beforeInit](@/api/hooks.md#beforeinit)
+- [beforeInitWalkontable](@/api/hooks.md#beforeinitwalkontable)
+- [construct](@/api/hooks.md#construct)
+
+</div>

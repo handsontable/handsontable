@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Referencing the Handsontable instance in Vue 3
-
 Reference the Handsontable instance from a Vue 3 component to programmatically perform actions such as reloading the data in your data grid.
 
 [[toc]]

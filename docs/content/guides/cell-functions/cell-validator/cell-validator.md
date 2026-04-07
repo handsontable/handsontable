@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Cell functions
 ---
-
-# Cell validator
-
 Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 
 [[toc]]
@@ -207,8 +204,8 @@ Callback console log:
 ::: example #example1 --js 2 --ts 3 --html 1
 
 @[code](@/content/guides/cell-functions/cell-validator/javascript/example1.html)
-@[code](@/content/guides/cell-functions/cell-validator/javascript/example1.js)
-@[code](@/content/guides/cell-functions/cell-validator/javascript/example1.ts)
+@[code collapse={24-89}](@/content/guides/cell-functions/cell-validator/javascript/example1.js)
+@[code collapse={25-90}](@/content/guides/cell-functions/cell-validator/javascript/example1.ts)
 
 :::
 
@@ -218,8 +215,8 @@ Callback console log:
 
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/cell-functions/cell-validator/react/example1.jsx)
-@[code](@/content/guides/cell-functions/cell-validator/react/example1.tsx)
+@[code collapse={32-97}](@/content/guides/cell-functions/cell-validator/react/example1.jsx)
+@[code collapse={34-99}](@/content/guides/cell-functions/cell-validator/react/example1.tsx)
 
 :::
 
@@ -229,7 +226,7 @@ Callback console log:
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-functions/cell-validator/angular/example1.ts)
+@[code collapse={33-98}](@/content/guides/cell-functions/cell-validator/angular/example1.ts)
 @[code](@/content/guides/cell-functions/cell-validator/angular/example1.html)
 
 :::
@@ -242,27 +239,50 @@ Mind that changes in table are applied after running all validators (both synchr
 
 ## Related API reference
 
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`allowEmpty`](@/api/options.md#allowempty)
-  - [`allowInvalid`](@/api/options.md#allowinvalid)
-  - [`invalidCellClassName`](@/api/options.md#invalidcellclassname)
-  - [`validator`](@/api/options.md#validator)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getCellValidator()`](@/api/core.md#getcellvalidator)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-  - [`validateCell()`](@/api/core.md#validatecell)
-  - [`validateCells()`](@/api/core.md#validatecells)
-  - [`validateColumns()`](@/api/core.md#validatecolumns)
-  - [`validateRows()`](@/api/core.md#validaterows)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterValidate`](@/api/hooks.md#aftervalidate)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeValidate`](@/api/hooks.md#beforevalidate)
+**APIs**
+
+<div class="boxes-list">
+
+- [BasePlugin](@/api/basePlugin.md)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [allowEmpty](@/api/options.md#allowempty)
+- [allowInvalid](@/api/options.md#allowinvalid)
+- [invalidCellClassName](@/api/options.md#invalidcellclassname)
+- [validator](@/api/options.md#validator)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getCellValidator()](@/api/core.md#getcellvalidator)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+- [validateCell()](@/api/core.md#validatecell)
+- [validateCells()](@/api/core.md#validatecells)
+- [validateColumns()](@/api/core.md#validatecolumns)
+- [validateRows()](@/api/core.md#validaterows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterValidate](@/api/hooks.md#aftervalidate)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeValidate](@/api/hooks.md#beforevalidate)
+
+</div>

@@ -15,9 +15,6 @@ angular:
   id: e149d2af
   metaTitle: Cell Recipes - Angular Data Grid | Handsontable
 ---
-
-# Cell Types Recipes
-
 [[toc]]
 
 ## Overview

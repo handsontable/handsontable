@@ -24,9 +24,6 @@ angular:
 searchCategory: Guides
 category: Formulas
 ---
-
-# Formula calculation
-
 Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400
 functions, custom functions, named expressions, and more.
 
@@ -69,8 +66,8 @@ Double click on a cell to open the editor and preview the formula.
 
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.html)
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.css)
-@[code](@/content/guides/formulas/formula-calculation/javascript/example1.js)
-@[code](@/content/guides/formulas/formula-calculation/javascript/example1.ts)
+@[code collapse={8-22}](@/content/guides/formulas/formula-calculation/javascript/example1.js)
+@[code collapse={8-22}](@/content/guides/formulas/formula-calculation/javascript/example1.ts)
 
 :::
 
@@ -81,8 +78,8 @@ Double click on a cell to open the editor and preview the formula.
 ::: example #example1 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/formulas/formula-calculation/react/example1.css)
-@[code](@/content/guides/formulas/formula-calculation/react/example1.jsx)
-@[code](@/content/guides/formulas/formula-calculation/react/example1.tsx)
+@[code collapse={9-23}](@/content/guides/formulas/formula-calculation/react/example1.jsx)
+@[code collapse={9-23}](@/content/guides/formulas/formula-calculation/react/example1.tsx)
 
 :::
 
@@ -92,7 +89,7 @@ Double click on a cell to open the editor and preview the formula.
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/formulas/formula-calculation/angular/example1.ts)
+@[code collapse={37-64}](@/content/guides/formulas/formula-calculation/angular/example1.ts)
 @[code](@/content/guides/formulas/formula-calculation/angular/example1.html)
 
 :::
@@ -108,8 +105,8 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 ::: example #example-data-grid --js 1 --ts 2
 
-@[code](@/content/guides/formulas/formula-calculation/javascript/example-data-grid.js)
-@[code](@/content/guides/formulas/formula-calculation/javascript/example-data-grid.ts)
+@[code collapse={8-111}](@/content/guides/formulas/formula-calculation/javascript/example-data-grid.js)
+@[code collapse={8-111}](@/content/guides/formulas/formula-calculation/javascript/example-data-grid.ts)
 
 :::
 
@@ -119,8 +116,8 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 ::: example #example-data-grid :react --js 1 --ts 2
 
-@[code](@/content/guides/formulas/formula-calculation/react/example-data-grid.jsx)
-@[code](@/content/guides/formulas/formula-calculation/react/example-data-grid.tsx)
+@[code collapse={9-112}](@/content/guides/formulas/formula-calculation/react/example-data-grid.jsx)
+@[code collapse={9-112}](@/content/guides/formulas/formula-calculation/react/example-data-grid.tsx)
 
 :::
 
@@ -130,7 +127,7 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 ::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/formulas/formula-calculation/angular/example2.ts)
+@[code collapse={17-126}](@/content/guides/formulas/formula-calculation/angular/example2.ts)
 @[code](@/content/guides/formulas/formula-calculation/angular/example2.html)
 
 :::
@@ -749,7 +746,7 @@ For more information about named expressions, refer to the
 
 ## View the explainer video
 
-<iframe width="100%" height="425px" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
+<iframe width="100%" src="https://www.youtube.com/embed/JJXUmACTDdk" style="border:0"></iframe>
 
 ## Known limitations
 
@@ -788,34 +785,49 @@ details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 
 ## Related articles
 
-### HyperFormula documentation
+**HyperFormula documentation**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [HyperFormula guides](https://handsontable.github.io/hyperformula/)
 - [HyperFormula API reference](https://handsontable.github.io/hyperformula/api/)
 
 </div>
 
-### Related blog articles
+**Related blog articles**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Handsontable 9.0.0: New formula plugin](https://handsontable.com/blog/handsontable-9.0.0-new-formula-plugin)
 - [8 examples of useful Excel functions in HyperFormula](https://handsontable.com/blog/8-examples-of-useful-excel-functions-in-hyperformula)
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`formulas`](@/api/options.md#formulas)
-- Hooks:
-  - [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate)
-  - [`afterNamedExpressionAdded`](@/api/hooks.md#afternamedexpressionadded)
-  - [`afterNamedExpressionRemoved`](@/api/hooks.md#afternamedexpressionremoved)
-  - [`afterSheetAdded`](@/api/hooks.md#aftersheetadded)
-  - [`afterSheetRemoved`](@/api/hooks.md#aftersheetremoved)
-  - [`afterSheetRenamed`](@/api/hooks.md#aftersheetrenamed)
-- Plugins:
-  - [`Formulas`](@/api/formulas.md)
+<div class="boxes-list">
+
+- [formulas](@/api/options.md#formulas)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterFormulasValuesUpdate](@/api/hooks.md#afterformulasvaluesupdate)
+- [afterNamedExpressionAdded](@/api/hooks.md#afternamedexpressionadded)
+- [afterNamedExpressionRemoved](@/api/hooks.md#afternamedexpressionremoved)
+- [afterSheetAdded](@/api/hooks.md#aftersheetadded)
+- [afterSheetRemoved](@/api/hooks.md#aftersheetremoved)
+- [afterSheetRenamed](@/api/hooks.md#aftersheetrenamed)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [Formulas](@/api/formulas.md)
+
+</div>

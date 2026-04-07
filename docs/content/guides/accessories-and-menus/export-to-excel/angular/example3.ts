@@ -6,7 +6,9 @@ import ExcelJS from 'exceljs';
 @Component({
   selector: 'app-example3',
   template: `
-    <p>Right-click any cell to open the context menu.</p>
+    <div class="example-controls-container">
+      <p>Right-click any cell to open the context menu.</p>
+    </div>
     <hot-table [settings]="hotSettings" [data]="hotData"></hot-table>
   `,
   standalone: false,

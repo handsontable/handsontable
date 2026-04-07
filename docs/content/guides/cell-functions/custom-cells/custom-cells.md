@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell functions
 menuTag: new
 ---
-
-# Simplified Custom Cell Definitions
-
 [[toc]]
 
 ## Overview
@@ -930,7 +927,7 @@ Just use the parameters you need.
 
 ---
 
-# Using `editorFactory`
+## Using `editorFactory`
 
 The `editorFactory` helper is the **recommended approach** for creating custom editors. It handles container creation, positioning, lifecycle management, and shortcuts automatically, allowing you to focus on your editor's unique functionality.
 
