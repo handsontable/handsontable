@@ -2,10 +2,13 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/introduction/introduction' },
   { path: 'guides/getting-started/demo/demo' },
   { path: 'guides/getting-started/installation/installation' },
+  { path: 'guides/getting-started/binding-to-data/binding-to-data' },
+  { path: 'guides/getting-started/saving-data/saving-data' },
   { path: 'guides/getting-started/configuration-options/configuration-options' },
   { path: 'guides/getting-started/grid-size/grid-size' },
   { path: 'guides/getting-started/react-methods/react-methods', onlyFor: ['react'] },
   { path: 'guides/getting-started/angular-hot-instance/angular-hot-instance', onlyFor: ['angular'] },
+  { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
   { path: 'guides/getting-started/license-key/license-key' },
   { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
 ];
@@ -26,9 +29,6 @@ const serverSideItems = [
 ];
 
 const dataManagementItems = [
-  { path: 'guides/getting-started/binding-to-data/binding-to-data' },
-  { path: 'guides/getting-started/saving-data/saving-data' },
-  { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
   { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
   { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
   { path: 'guides/cell-features/clipboard/clipboard' },
