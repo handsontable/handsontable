@@ -16,9 +16,6 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Comments
-
 Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
 
 [[toc]]
@@ -275,6 +272,11 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 
 ## Related API reference
 
-- Configuration options:
-  - [`commentedCellClassName`](@/api/options.md#commentedcellclassname)
-  - [`comments`](@/api/options.md#comments)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [commentedCellClassName](@/api/options.md#commentedcellclassname)
+- [comments](@/api/options.md#comments)
+
+</div>

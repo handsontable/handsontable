@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell types
 menuTag: updated
 ---
-
-# Time cell type
-
 Display, format, sort, and filter time values correctly by using the time cell type. Edit times via the cell editor.
 
 [[toc]]
@@ -34,8 +31,8 @@ In the following demo, the **Start**, **Break start**, and **End** columns use t
 ::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-types/time-cell-type/javascript/example1.html)
-@[code](@/content/guides/cell-types/time-cell-type/javascript/example1.js)
-@[code](@/content/guides/cell-types/time-cell-type/javascript/example1.ts)
+@[code collapse={12-18,23-53}](@/content/guides/cell-types/time-cell-type/javascript/example1.js)
+@[code collapse={12-18,23-53}](@/content/guides/cell-types/time-cell-type/javascript/example1.ts)
 
 :::
 :::
@@ -43,8 +40,8 @@ In the following demo, the **Start**, **Break start**, and **End** columns use t
 ::: only-for react
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/cell-types/time-cell-type/react/example1.jsx)
-@[code](@/content/guides/cell-types/time-cell-type/react/example1.tsx)
+@[code collapse={8-30,67-73,113-143}](@/content/guides/cell-types/time-cell-type/react/example1.jsx)
+@[code collapse={9-31,68-74,114-144}](@/content/guides/cell-types/time-cell-type/react/example1.tsx)
 
 :::
 :::
@@ -52,7 +49,7 @@ In the following demo, the **Start**, **Break start**, and **End** columns use t
 ::: only-for angular
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/time-cell-type/angular/example1.ts)
+@[code collapse={54-84,89-126}](@/content/guides/cell-types/time-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/time-cell-type/angular/example1.html)
 
 :::
@@ -335,31 +332,50 @@ The [`timeFormat`](@/api/options.md#timeformat) option controls how times are di
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`timeFormat`](@/api/options.md#timeformat)
-  - [`locale`](@/api/options.md#locale)
-  - [`type`](@/api/options.md#type)
-  - [`correctFormat`](@/api/options.md#correctformat)
-  - [`valueFormatter`](@/api/options.md#valueformatter)
-  - [`valueParser`](@/api/options.md#valueparser)
-  - [`valueSetter`](@/api/options.md#valuesetter)
-  - [`valueGetter`](@/api/options.md#valuegetter)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [timeFormat](@/api/options.md#timeformat)
+- [locale](@/api/options.md#locale)
+- [type](@/api/options.md#type)
+- [correctFormat](@/api/options.md#correctformat)
+- [valueFormatter](@/api/options.md#valueformatter)
+- [valueParser](@/api/options.md#valueparser)
+- [valueSetter](@/api/options.md#valuesetter)
+- [valueGetter](@/api/options.md#valuegetter)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

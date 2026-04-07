@@ -18,9 +18,6 @@ angular:
 searchCategory: Guides
 category: Optimization
 ---
-
-# Batch operations
-
 Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid's performance.
 
 [[toc]]
@@ -100,7 +97,7 @@ Suspending the render results in better performance, which is especially noticea
 
 <span class="img-invert">
 
-![batch_operations_comparison]({{$basePath}}/img/batch_operations_comparison.png)
+![batch_operations_comparison](/img/batch_operations_comparison.png)
 
 </span>
 
@@ -251,15 +248,15 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Performance](@/guides/optimization/performance/performance.md)
 
 </div>
 
-### Related blog articles
+**Related blog articles**
 
 <div class="boxes-list">
 
@@ -267,28 +264,43 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`maxCols`](@/api/options.md#maxcols)
-  - [`maxRows`](@/api/options.md#maxrows)
-  - [`observeDOMVisibility`](@/api/options.md#observedomvisibility)
-  - [`renderAllColumns`](@/api/options.md#renderallcolumns)
-  - [`renderAllRows`](@/api/options.md#renderallrows)
-- Core methods:
-  - [`batch()`](@/api/core.md#batch)
-  - [`batchExecution()`](@/api/core.md#batchexecution)
-  - [`batchRender()`](@/api/core.md#batchrender)
-  - [`isExecutionSuspended()`](@/api/core.md#isexecutionsuspended)
-  - [`suspendExecution()`](@/api/core.md#suspendexecution)
-  - [`isRenderSuspended()`](@/api/core.md#isrendersuspended)
-  - [`render()`](@/api/core.md#render)
-  - [`resumeExecution()`](@/api/core.md#resumeexecution)
-  - [`resumeRender()`](@/api/core.md#render)
-  - [`suspendRender()`](@/api/core.md#suspendrender)
-- Hooks:
-  - [`afterRender`](@/api/hooks.md#afterrender)
-  - [`afterViewRender`](@/api/hooks.md#afterviewrender)
-  - [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
-  - [`beforeRender`](@/api/hooks.md#beforerender)
-  - [`beforeViewRender`](@/api/hooks.md#beforeviewrender)
+<div class="boxes-list">
+
+- [maxCols](@/api/options.md#maxcols)
+- [maxRows](@/api/options.md#maxrows)
+- [observeDOMVisibility](@/api/options.md#observedomvisibility)
+- [renderAllColumns](@/api/options.md#renderallcolumns)
+- [renderAllRows](@/api/options.md#renderallrows)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [batch()](@/api/core.md#batch)
+- [batchExecution()](@/api/core.md#batchexecution)
+- [batchRender()](@/api/core.md#batchrender)
+- [isExecutionSuspended()](@/api/core.md#isexecutionsuspended)
+- [suspendExecution()](@/api/core.md#suspendexecution)
+- [isRenderSuspended()](@/api/core.md#isrendersuspended)
+- [render()](@/api/core.md#render)
+- [resumeExecution()](@/api/core.md#resumeexecution)
+- [resumeRender()](@/api/core.md#render)
+- [suspendRender()](@/api/core.md#suspendrender)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterRender](@/api/hooks.md#afterrender)
+- [afterViewRender](@/api/hooks.md#afterviewrender)
+- [beforeChangeRender](@/api/hooks.md#beforechangerender)
+- [beforeRender](@/api/hooks.md#beforerender)
+- [beforeViewRender](@/api/hooks.md#beforeviewrender)
+
+</div>

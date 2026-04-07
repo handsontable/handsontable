@@ -13,9 +13,6 @@ angular:
   id: 48gjbys8
   metaTitle: API reference - Angular Data Grid | Handsontable
 ---
-
-# Handsontable API reference
-
 [[toc]]
 
 Welcome to Handsontable's API reference. Our goal is to make it easy to dive in and start coding from day one.

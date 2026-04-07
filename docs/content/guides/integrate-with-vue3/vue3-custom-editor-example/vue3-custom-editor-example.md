@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Custom editor  in Vue 3
-
 Create a custom cell editor, and use it in your Vue 3 data grid by declaring it as a class.
 
 [[toc]]
@@ -40,32 +37,53 @@ The following example implements the `@handsontable/vue3` component with a custo
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
 
 </div>
 
-### Related API reference
+**APIs**
 
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`editor`](@/api/options.md#editor)
-  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
-- Core methods:
-  - [`destroyEditor()`](@/api/core.md#destroyeditor)
-  - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
-  - [`getCellEditor()`](@/api/core.md#getcelleditor)
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+<div class="boxes-list">
+
+- [BasePlugin](@/api/basePlugin.md)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [editor](@/api/options.md#editor)
+- [enterBeginsEditing](@/api/options.md#enterbeginsediting)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [destroyEditor()](@/api/core.md#destroyeditor)
+- [getActiveEditor()](@/api/core.md#getactiveeditor)
+- [getCellEditor()](@/api/core.md#getcelleditor)
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterBeginEditing](@/api/hooks.md#afterbeginediting)
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+
+</div>

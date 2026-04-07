@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { BaseRenderer } from 'handsontable/renderers';
+import { BaseRenderer, registerRenderer } from 'handsontable/renderers';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -13,14 +14,14 @@ const data: (string | number)[][] = [
 ];
 
 const firstRowRenderer: BaseRenderer = (instance, td, ...rest) => {
-  Handsontable.renderers.TextRenderer(instance, td, ...rest);
+  textRenderer(instance, td, ...rest);
   td.style.fontWeight = 'bold';
   td.style.color = 'green';
   td.style.background = '#CEC';
 };
 
 const negativeValueRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
-  Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
+  textRenderer(instance, td, row, col, prop, value, cellProperties);
 
   // if the row contains a negative number
   if (parseInt(value, 10) < 0) {
@@ -40,7 +41,7 @@ const negativeValueRenderer: BaseRenderer = (instance, td, row, col, prop, value
 };
 
 // maps function to a lookup string
-Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
+registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
 const container = document.querySelector('#example1')!;
 
