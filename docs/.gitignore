@@ -17,7 +17,7 @@ report-check-links.xlsx
 
 /.vuepress/public/handsontable
 /.vuepress/public/@handsontable
-/.vuepress/public/data/
+/.vuepress/public/data/canonicals-raw.json
 /.vuepress/public/scripts/prebuilt-umd/
 /.build-tmp/
 
