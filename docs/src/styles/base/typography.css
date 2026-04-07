@@ -43,7 +43,7 @@
 }
 
 kbd {
-  display: inline;
+  display: inline-block;
   padding: 0.15em 0.5em;
   font-family: var(--sl-font);
   font-size: var(--sl-text-xs);
@@ -52,8 +52,10 @@ kbd {
   color: var(--sl-color-white);
   background: var(--sl-color-gray-6);
   border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0;
+  border-radius: 4px;
+  box-shadow: 0 2px 0 var(--sl-color-gray-5);
   white-space: nowrap;
+  vertical-align: middle;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
@@ -62,6 +64,7 @@ kbd kbd {
   padding: 0;
   background: none;
   border: none;
+  box-shadow: none;
   font-size: inherit;
 }
 
