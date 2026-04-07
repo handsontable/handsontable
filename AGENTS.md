@@ -266,16 +266,18 @@ For Cursor, set `CLICKUP_API_TOKEN` in Cursor Settings > MCP secrets, or export 
 
 1. **Verify ClickUp MCP tools are available.** If not, check `.ai/MCP.md` for setup steps.
 2. **Fetch the task via MCP** to get title, description, acceptance criteria.
-3. **Create the correct branch:** `feature/<TASK-ID>_<Slugified-Title>` (e.g., `feature/DEV-627_Forum-Update`). Never use other branch naming patterns for ClickUp tasks.
+3. **Set status to "in progress".** Check the task's current status. If it is **"to do"**, immediately update it to **"in progress"** using the ClickUp MCP tools before doing anything else (branching, coding, etc.).
+4. **Create the correct branch:** `feature/<TASK-ID>_<Slugified-Title>` (e.g., `feature/DEV-627_Forum-Update`). Never use other branch naming patterns for ClickUp tasks.
 
 ### Workflow
 
 1. Parse task ID from ClickUp URL (e.g., `DEV-627`).
 2. Use ClickUp MCP to fetch task details.
-3. Create and checkout branch: `feature/<TASK-ID>_<Slugified-Title>`.
-4. Implement the fix/feature. Commit with the task ID in the message.
-5. Push and (when asked) open a PR whose title includes the task ID.
-6. Apply changelog policy: `[skip changelog]` only for non-source-code changes.
-7. After PR is created, use ClickUp MCP to update task status to **"code review"**.
+3. If the task status is **"to do"**, update it to **"in progress"** via ClickUp MCP before proceeding.
+4. Create and checkout branch: `feature/<TASK-ID>_<Slugified-Title>`.
+5. Implement the fix/feature. Commit with the task ID in the message.
+6. Push and (when asked) open a PR whose title includes the task ID.
+7. Apply changelog policy: `[skip changelog]` only for non-source-code changes.
+8. After PR is created, use ClickUp MCP to update task status to **"code review"**.
 
 **Authentication**: Use the ClickUp MCP tools for all ClickUp API interactions. Do not call the ClickUp REST API directly.
