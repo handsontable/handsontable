@@ -244,12 +244,8 @@ class GhostTable {
         const headerSettings = this.headersStateManager.getHeaderTreeNodeData(row, col);
 
         if (headerSettings && headerSettings.isRoot) {
-          const reachesBottomRow = row + (headerSettings.origRowspan ?? 1) - 1 >= this.layersCount - 1;
-
           cellsHTML += `<th data-column="${col}" colspan="${headerSettings.origColspan}">${
-            this.#buildHeaderLabelHTML(
-              headerSettings, isDropdownEnabled && reachesBottomRow, isCollapsibleEnabled, sanitizer
-            )
+            this.#buildHeaderLabelHTML(headerSettings, isDropdownEnabled, isCollapsibleEnabled, sanitizer)
           }</th>`;
         }
       }
@@ -287,12 +283,8 @@ class GhostTable {
             ? ` rowspan="${headerSettings.rowspan}"`
             : '';
 
-          const reachesBottomRow = row + (headerSettings.rowspan ?? 1) - 1 >= this.layersCount - 1;
-
           cellsHTML += `<th data-column="${col}" colspan="${headerSettings.colspan}"${rowspanAttr}>${
-            this.#buildHeaderLabelHTML(
-              headerSettings, isDropdownEnabled && reachesBottomRow, isCollapsibleEnabled, sanitizer
-            )
+            this.#buildHeaderLabelHTML(headerSettings, isDropdownEnabled, isCollapsibleEnabled, sanitizer)
           }</th>`;
         }
       }

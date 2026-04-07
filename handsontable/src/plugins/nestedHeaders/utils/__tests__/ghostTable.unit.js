@@ -132,7 +132,7 @@ describe('GhostTable', () => {
     expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeDefined();
   });
 
-  it('should render the dropdown button only in the bottom-most header row of the rendered ghost table', () => {
+  it('should render the dropdown button in all header rows of the rendered ghost table', () => {
     const widthsMapMock = {
       data: new Map(),
       setValueAtIndex(index, value) {
@@ -214,10 +214,12 @@ describe('GhostTable', () => {
     const renderedTable = container.querySelector('[data-ghost-table="rendered"]');
     const rows = renderedTable.querySelectorAll('tr');
 
-    // Row 0 (parent header) should NOT have a dropdown button.
-    expect(rows[0].querySelector('button.changeType')).toBeNull();
+    // Row 0 (parent header) SHOULD have a dropdown button. The ghost table includes
+    // the button on all rows to account for the width it adds to spanning headers, ensuring
+    // child columns are wide enough.
+    expect(rows[0].querySelector('button.changeType')).not.toBeNull();
 
-    // Row 1 (leaf/bottom row) SHOULD have dropdown buttons.
+    // Row 1 (leaf/bottom row) SHOULD also have dropdown buttons.
     const bottomRowButtons = rows[1].querySelectorAll('button.changeType');
 
     expect(bottomRowButtons.length).toBe(2);
