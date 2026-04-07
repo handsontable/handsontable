@@ -16,7 +16,7 @@ const HOOKS_SOURCE_PATH = resolve(
 const OUTPUT_PATH = resolve(DOCS_DIR, 'content', 'api', 'hooks.md');
 
 function escapeTableCell(value) {
-  return value.replace(/\|/g, '\\|').replace(/\n/g, '<br>');
+  return value.replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\n/g, '<br>');
 }
 
 function normalizeDescription(lines) {
