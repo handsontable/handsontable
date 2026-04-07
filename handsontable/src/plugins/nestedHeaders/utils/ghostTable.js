@@ -98,15 +98,22 @@ class GhostTable {
     const renderedTable = this.container.querySelector('[data-ghost-table="rendered"]');
     const allColumns = renderedTable.querySelectorAll('th[data-column]');
 
-    // Build a map of visual column → last TH element. When rowspan is used, a column's TH
-    // may appear only in an upper row, so "tr:last-of-type th" would miss it. By iterating
-    // all THs and keeping the last one per column, we ensure every column is measured.
+    // Build a map of visual column → last TH element with colspan=1. When rowspan is
+    // used, a column's TH may appear only in an upper row, so "tr:last-of-type th"
+    // would miss it. By iterating all THs and keeping the last colspan=1 entry per
+    // column, we ensure every individual column is measured at its own width.
     const columnElementByVisual = new Map();
 
     for (let i = 0; i < allColumns.length; i++) {
-      const visCol = Number.parseInt(allColumns[i].dataset.column, 10);
+      const th = allColumns[i];
 
-      columnElementByVisual.set(visCol, allColumns[i]);
+      if (th.colSpan > 1) {
+        continue; // eslint-disable-line no-continue
+      }
+
+      const visCol = Number.parseInt(th.dataset.column, 10);
+
+      columnElementByVisual.set(visCol, th);
     }
 
     this.widthsMap.clear();
