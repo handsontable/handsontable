@@ -22,7 +22,7 @@ angular:
   id: iifvbgu0
   metaTitle: Events and hooks - Angular Data Grid | Handsontable
 searchCategory: Guides
-category: Getting started
+category: Data management
 ---
 Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
 
