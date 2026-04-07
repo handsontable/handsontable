@@ -118,5 +118,79 @@ describe('settings', () => {
         expect(getCellMeta(6, 0).test).toBeUndefined();
       });
     });
+
+    describe('with dataSchema', () => {
+      it('should not add infinite rows when dataSchema has non-null default values (checkbox column)', async() => {
+        handsontable({
+          data: [{ active: false, name: 'Alice' }],
+          dataSchema: { active: false, name: null },
+          columns: [
+            { data: 'active', type: 'checkbox' },
+            { data: 'name' },
+          ],
+          minSpareRows: 1,
+        });
+
+        expect(countRows()).toBe(2);
+
+        await setDataAtRowProp(0, 'active', true);
+
+        expect(countRows()).toBe(2);
+      });
+
+      it('should add a spare row when dataSchema has non-null default values and all rows are non-empty', async() => {
+        handsontable({
+          data: [{ active: true, name: 'Alice' }],
+          dataSchema: { active: false, name: null },
+          columns: [
+            { data: 'active', type: 'checkbox' },
+            { data: 'name' },
+          ],
+          minSpareRows: 1,
+        });
+
+        expect(countRows()).toBe(2);
+        expect(countEmptyRows()).toBe(1);
+      });
+
+      it('should maintain correct spare rows count when dataSchema default is false for boolean column', async() => {
+        handsontable({
+          data: [],
+          dataSchema: { active: false, name: null },
+          columns: [
+            { data: 'active', type: 'checkbox' },
+            { data: 'name' },
+          ],
+          minSpareRows: 2,
+        });
+
+        expect(countRows()).toBe(2);
+        expect(countEmptyRows()).toBe(2);
+
+        await setDataAtRowProp(0, 'name', 'Bob');
+
+        expect(countRows()).toBe(3);
+        expect(countEmptyRows()).toBe(2);
+      });
+
+      it('should not add infinite rows when dataSchema uses object schema with non-null default values', async() => {
+        handsontable({
+          data: [{ id: 42, name: 'Alice' }],
+          dataSchema: { id: 0, name: null },
+          columns: [
+            { data: 'id' },
+            { data: 'name' },
+          ],
+          minSpareRows: 1,
+        });
+
+        expect(countRows()).toBe(2);
+        expect(countEmptyRows()).toBe(1);
+
+        await setDataAtRowProp(0, 'id', 1);
+
+        expect(countRows()).toBe(2);
+      });
+    });
   });
 });

@@ -449,6 +449,7 @@ const colHeaders = ['Product', 'SKU', 'Category', 'Unit price', 'In stock'];
  * update refetches. Skipping redundant HotTable renders avoids a fetch → setStatus → render loop.
  */
 const InventoryServerTable = memo(function InventoryServerTable({
+  status,
   beforeDataProviderFetch,
   afterDataProviderFetch,
   afterDataProviderFetchError,
@@ -486,20 +487,16 @@ const InventoryServerTable = memo(function InventoryServerTable({
 
   return (
     <>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '8px',
-          marginBottom: '10px',
-        }}
-      >
-        <button type="button" onClick={() => runFetch(true)}>
-          Reload data
-        </button>
-        <button type="button" onClick={() => runFetch(false)}>
-          Simulate failed fetch
-        </button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button type="button" onClick={() => runFetch(true)}>
+            Reload data
+          </button>
+          <button type="button" onClick={() => runFetch(false)}>
+            Simulate failed fetch
+          </button>
+        </div>
+        <output id="example1-status">{status}</output>
       </div>
       <div id="example1">
         <HotTable
@@ -517,7 +514,9 @@ const InventoryServerTable = memo(function InventoryServerTable({
           filters
           contextMenu
           emptyDataState
-          dialog
+          dialog={{
+            animation: false,
+          }}
           beforeDataProviderFetch={beforeDataProviderFetch}
           afterDataProviderFetch={afterDataProviderFetch}
           afterDataProviderFetchError={afterDataProviderFetchError}
@@ -543,19 +542,8 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div
-        style={{
-          border: '1px solid #ccc',
-          padding: '10px',
-          borderRadius: '4px',
-          marginBottom: '10px',
-        }}
-      >
-        <p id="example1-status" style={{ padding: 0, margin: 0 }}>
-          {status}
-        </p>
-      </div>
       <InventoryServerTable
+        status={status}
         beforeDataProviderFetch={beforeDataProviderFetch}
         afterDataProviderFetch={afterDataProviderFetch}
         afterDataProviderFetchError={afterDataProviderFetchError}

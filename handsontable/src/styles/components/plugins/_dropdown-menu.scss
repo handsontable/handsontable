@@ -104,12 +104,6 @@
             var(--ht-header-active-background-color),
             var(--ht-header-filter-background-color) 20%
           );
-
-          .changeType {
-            &::after {
-              background-color: var(--ht-header-active-foreground-color);
-            }
-          }
         }
       }
     }

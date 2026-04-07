@@ -15,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrating from 10.0 to 11.0
-
 Migrate from Handsontable 10.0 to Handsontable 11.0, released on November 17, 2021.
 
 More information about this release can be found in the [`11.0.0` release blog post](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue).<br/>

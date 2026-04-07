@@ -17,9 +17,6 @@ angular:
 searchCategory: Guides
 category: Accessories and menus
 ---
-
-# Export to CSV
-
 Export your grid's raw data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
 
 [[toc]]
@@ -199,5 +196,10 @@ Each method takes two parameters. The first, `format`, is required. The second, 
 
 ## Related API reference
 
-- Plugins:
-  - [`ExportFile`](@/api/exportFile.md)
+**Plugins**
+
+<div class="boxes-list">
+
+- [ExportFile](@/api/exportFile.md)
+
+</div>

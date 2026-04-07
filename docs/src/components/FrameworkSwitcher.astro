@@ -1,0 +1,239 @@
+---
+/**
+ * Framework switcher for the site header.
+ *
+ * Renders a dropdown showing the current framework with icon. Each item
+ * in the dropdown has a framework icon. Clicking switches the URL prefix.
+ */
+const pathname = Astro.url.pathname;
+
+const currentPrefix = pathname.includes('/react-data-grid/')
+  ? 'react-data-grid'
+  : pathname.includes('/angular-data-grid/')
+    ? 'angular-data-grid'
+    : 'javascript-data-grid';
+
+const frameworks = [
+  { id: 'javascript-data-grid', label: 'JS', icon: 'i-javascript' },
+  { id: 'react-data-grid', label: 'React', icon: 'i-react' },
+  { id: 'angular-data-grid', label: 'Angular', icon: 'i-angular' },
+];
+
+const current = frameworks.find((f) => f.id === currentPrefix)!;
+
+const items = frameworks.map((fw) => ({
+  ...fw,
+  href: pathname.replace(currentPrefix, fw.id),
+  isCurrent: fw.id === currentPrefix,
+}));
+---
+
+<div class="fw-dropdown">
+  <button
+    class="fw-trigger"
+    aria-haspopup="menu"
+    aria-expanded="false"
+    id="fw-trigger"
+    type="button"
+  >
+    <span class:list={['fw-icon', current.icon]} aria-hidden="true"></span>
+    {current.label}
+    <svg class="fw-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+  </button>
+
+  <ul class="fw-menu" role="menu" aria-labelledby="fw-trigger" hidden>
+    {items.map(({ label, href, isCurrent, icon }) => (
+      <li role="none">
+        <a
+          href={href}
+          class:list={['fw-item', { 'fw-item--current': isCurrent }]}
+          role="menuitem"
+          tabindex="-1"
+          aria-current={isCurrent ? 'page' : undefined}
+        >
+          <span class:list={['fw-icon', icon]} aria-hidden="true"></span>
+          {label}
+        </a>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<script>
+  import { attachDropdownKeyboardNav } from '../scripts/a11y-utils';
+
+  const wrapper = document.querySelector('.fw-dropdown') as HTMLElement | null;
+  const trigger = document.getElementById('fw-trigger') as HTMLButtonElement | null;
+  const menu = document.querySelector('.fw-menu') as HTMLElement | null;
+
+  if (wrapper && trigger && menu) {
+    function openMenu() {
+      // Close versions dropdown if open
+      const vMenu = document.querySelector('.versions-menu') as HTMLElement | null;
+      const vTrigger = document.getElementById('versions-trigger');
+      if (vMenu) vMenu.hidden = true;
+      if (vTrigger) vTrigger.setAttribute('aria-expanded', 'false');
+
+      menu!.hidden = false;
+      trigger!.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeMenu() {
+      menu!.hidden = true;
+      trigger!.setAttribute('aria-expanded', 'false');
+    }
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = !menu.hidden;
+      if (isOpen) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target as Node)) {
+        closeMenu();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !menu.hidden) {
+        closeMenu();
+        trigger.focus();
+      }
+    });
+
+    attachDropdownKeyboardNav(trigger, menu, {
+      itemSelector: 'a[role="menuitem"]',
+      onOpen: openMenu,
+      onClose: closeMenu,
+      isOpen: () => !menu.hidden,
+    });
+  }
+</script>
+
+<style>
+  .fw-dropdown {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .fw-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: none;
+    border-left: 1px solid var(--sl-color-gray-5);
+    border-right: 1px solid var(--sl-color-gray-5);
+    color: var(--sl-color-gray-2);
+    cursor: pointer;
+    font-size: var(--sl-text-sm);
+    font-weight: 500;
+    padding: 0.5rem 0.625rem;
+    transition: color 0.15s, background-color 0.15s;
+    white-space: nowrap;
+  }
+
+  .fw-trigger:hover {
+    color: var(--sl-color-white);
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+  }
+
+  .fw-chevron {
+    flex-shrink: 0;
+    margin-inline-start: 0.1rem;
+    transition: transform 0.15s;
+  }
+
+  .fw-trigger[aria-expanded='true'] .fw-chevron {
+    transform: rotate(180deg);
+  }
+
+  .fw-menu {
+    background: var(--sl-color-bg-nav);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0;
+    box-shadow: none;
+    inset-inline-end: 0;
+    list-style: none !important;
+    margin: 0;
+    min-width: 8rem;
+    overflow-y: auto;
+    padding: 0 !important;
+    position: absolute;
+    top: 100%;
+    z-index: 100;
+  }
+
+  .fw-menu li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .fw-menu[hidden] {
+    display: none;
+  }
+
+  .fw-item {
+    align-items: center;
+    color: var(--sl-color-text);
+    display: flex;
+    font-size: var(--sl-text-sm);
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+    border-bottom: 1px solid var(--sl-color-gray-5);
+    transition: background 0.1s, color 0.1s;
+    white-space: nowrap;
+  }
+
+  .fw-item:last-child {
+    border-bottom: none;
+  }
+
+  .fw-item:hover,
+  .fw-item:focus-visible {
+    background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+    color: var(--sl-color-white);
+    outline: none;
+  }
+
+  .fw-item--current {
+    color: var(--sl-color-white);
+    box-shadow: inset 0 0 0 1px var(--sl-color-accent);
+  }
+
+  /* Framework icons */
+  .fw-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    background-color: currentColor;
+    display: inline-block;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+
+  .i-javascript {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M20 4l-2 14.5l-6 2l-6 -2l-2 -14.5l16 0'/%3E%3Cpath d='M7.5 8h3v8l-2 -1'/%3E%3Cpath d='M16.5 8h-2.5a.5 .5 0 0 0 -.5 .5v3a.5 .5 0 0 0 .5 .5h1.423a.5 .5 0 0 1 .495 .57l-.418 2.93l-2 .5'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M20 4l-2 14.5l-6 2l-6 -2l-2 -14.5l16 0'/%3E%3Cpath d='M7.5 8h3v8l-2 -1'/%3E%3Cpath d='M16.5 8h-2.5a.5 .5 0 0 0 -.5 .5v3a.5 .5 0 0 0 .5 .5h1.423a.5 .5 0 0 1 .495 .57l-.418 2.93l-2 .5'/%3E%3C/svg%3E");
+  }
+
+  .i-react {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M6.306 8.711c-2.602 .723 -4.306 1.926 -4.306 3.289c0 2.21 4.477 4 10 4c.773 0 1.526 -.035 2.248 -.102'/%3E%3Cpath d='M17.692 15.289c2.603 -.722 4.308 -1.926 4.308 -3.289c0 -2.21 -4.477 -4 -10 -4c-.773 0 -1.526 .035 -2.25 .102'/%3E%3Cpath d='M6.305 15.287c-.676 2.615 -.485 4.693 .695 5.373c1.913 1.105 5.703 -1.877 8.464 -6.66c.387 -.67 .733 -1.339 1.036 -2'/%3E%3Cpath d='M17.694 8.716c.677 -2.616 .487 -4.696 -.694 -5.376c-1.913 -1.105 -5.703 1.877 -8.464 6.66c-.387 .67 -.733 1.34 -1.037 2'/%3E%3Cpath d='M12 5.424c-1.925 -1.892 -3.82 -2.766 -5 -2.084c-1.913 1.104 -1.226 5.877 1.536 10.66c.386 .67 .793 1.304 1.212 1.896'/%3E%3Cpath d='M12 18.574c1.926 1.893 3.821 2.768 5 2.086c1.913 -1.104 1.226 -5.877 -1.536 -10.66c-.375 -.65 -.78 -1.283 -1.212 -1.897'/%3E%3Cpath d='M11.5 12.866a1 1 0 1 0 1 -1.732a1 1 0 0 0 -1 1.732'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M6.306 8.711c-2.602 .723 -4.306 1.926 -4.306 3.289c0 2.21 4.477 4 10 4c.773 0 1.526 -.035 2.248 -.102'/%3E%3Cpath d='M17.692 15.289c2.603 -.722 4.308 -1.926 4.308 -3.289c0 -2.21 -4.477 -4 -10 -4c-.773 0 -1.526 .035 -2.25 .102'/%3E%3Cpath d='M6.305 15.287c-.676 2.615 -.485 4.693 .695 5.373c1.913 1.105 5.703 -1.877 8.464 -6.66c.387 -.67 .733 -1.339 1.036 -2'/%3E%3Cpath d='M17.694 8.716c.677 -2.616 .487 -4.696 -.694 -5.376c-1.913 -1.105 -5.703 1.877 -8.464 6.66c-.387 .67 -.733 1.34 -1.037 2'/%3E%3Cpath d='M12 5.424c-1.925 -1.892 -3.82 -2.766 -5 -2.084c-1.913 1.104 -1.226 5.877 1.536 10.66c.386 .67 .793 1.304 1.212 1.896'/%3E%3Cpath d='M12 18.574c1.926 1.893 3.821 2.768 5 2.086c1.913 -1.104 1.226 -5.877 -1.536 -10.66c-.375 -.65 -.78 -1.283 -1.212 -1.897'/%3E%3Cpath d='M11.5 12.866a1 1 0 1 0 1 -1.732a1 1 0 0 0 -1 1.732'/%3E%3C/svg%3E");
+  }
+
+  .i-angular {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M5.428 17.245l6.076 3.471a1 1 0 0 0 .992 0l6.076 -3.471a1 1 0 0 0 .495 -.734l1.323 -9.704a1 1 0 0 0 -.658 -1.078l-7.4 -2.612a1 1 0 0 0 -.665 0l-7.399 2.613a1 1 0 0 0 -.658 1.078l1.323 9.704a1 1 0 0 0 .495 .734l0 -.001'/%3E%3Cpath d='M9 15l3 -8l3 8'/%3E%3Cpath d='M10 13h4'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M5.428 17.245l6.076 3.471a1 1 0 0 0 .992 0l6.076 -3.471a1 1 0 0 0 .495 -.734l1.323 -9.704a1 1 0 0 0 -.658 -1.078l-7.4 -2.612a1 1 0 0 0 -.665 0l-7.399 2.613a1 1 0 0 0 -.658 1.078l1.323 9.704a1 1 0 0 0 .495 .734l0 -.001'/%3E%3Cpath d='M9 15l3 -8l3 8'/%3E%3Cpath d='M10 13h4'/%3E%3C/svg%3E");
+  }
+</style>

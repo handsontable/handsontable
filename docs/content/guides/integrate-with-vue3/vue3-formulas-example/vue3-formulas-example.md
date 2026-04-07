@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Integrate with Vue 3
 menuTag: new
 ---
-
-# Formulas integration in Vue 3
-
 Integrate the Formulas plugin with your Vue 3 data grid.
 
 [[toc]]
