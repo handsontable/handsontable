@@ -1,19 +1,19 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { textRenderer, registerRenderer } from 'handsontable/renderers';
 import { BaseRenderer } from 'handsontable/renderers';
 
-// Register all Handsontable's modules.
+// register Handsontable's modules
 registerAllModules();
 
 const customStylesRenderer: BaseRenderer = (hotInstance, TD, ...rest) => {
-  Handsontable.renderers.TextRenderer(hotInstance, TD, ...rest);
-
+  textRenderer(hotInstance, TD, ...rest);
   TD.style.fontWeight = 'bold';
   TD.style.color = 'green';
   TD.style.background = '#d7f1e1';
 };
 
-Handsontable.renderers.registerRenderer('customStylesRenderer', customStylesRenderer);
+registerRenderer('customStylesRenderer', customStylesRenderer);
 
 const container = document.querySelector('#example2')!;
 

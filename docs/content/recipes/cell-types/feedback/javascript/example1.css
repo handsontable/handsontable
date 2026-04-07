@@ -15,6 +15,7 @@
 }
 
 .feedback-editor button {
+  display: block;
   background: var(--ht-background-color, #ffffff);
   color: var(--ht-foreground-color, #000000);
   border: 1px solid var(--ht-border-color, #e0e0e0);

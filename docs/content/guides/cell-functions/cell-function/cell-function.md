@@ -333,9 +333,9 @@ export class AppComponent implements AfterViewInit {
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
 - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
@@ -344,7 +344,7 @@ export class AppComponent implements AfterViewInit {
 
 </div>
 
-### Related API reference
+**Configuration options**
 
 - Configuration options:
   - [`editor`](@/api/options.md#editor)

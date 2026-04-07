@@ -15,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 13.1 to 14.0
-
 Migrate from Handsontable 13.1 to Handsontable 14.0, released on November 30th, 2023.
 
 More information about this release can be found in the [`14.0.0` release blog post](https://handsontable.com/blog/whats-new-in-handsontable-14-improvements-to-accessibility).<br/>

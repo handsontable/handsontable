@@ -20,9 +20,6 @@ angular:
 searchCategory: Guides
 category: Internationalization
 ---
-
-# IME support
-
 Convert keystrokes to characters not available on the keyboard, using the Input Method Editor. This feature is always enabled and available for cell editors.
 
 [[toc]]
@@ -47,7 +44,9 @@ Handsontable includes a configuration option called imeFastEdit, which controls 
 When imeFastEdit is disabled (default), IME users start editing a cell only after explicitly activating the editor (e.g., pressing Enter, F2, or double-clicking the cell).
 When imeFastEdit is enabled, users can start editing immediately by typing directly into the selected cell.
 
-<div class="custom-block tip"><p class="custom-block-title">TIP</p> <p><strong>Note:</strong> Enabling imeFastEdit can improve input speed for some IME users but may conflict with certain accessibility tools.</p></div>
+::: tip
+Enabling `imeFastEdit` can improve input speed for some IME users but may conflict with certain accessibility tools.
+:::
 
 ## Known limitations
 - Accessibility impact:
@@ -61,20 +60,21 @@ To test the IME support, you will need to change your language preferences for y
 
 ## Watch IME in action
 
-<video controls loop v-bind:src="'/docs/'+ $page.currentVersion + '/img/pages/ime-support/ime-support-in-handsontable.mp4'" width="100%"></video>
+<video controls loop src="/docs/img/pages/ime-support/ime-support-in-handsontable.mp4" width="100%"></video>
 
 ## Related API reference
 
-- Configuration options:
-  - [`language`](@/api/options.md#language)
-  - [`layoutDirection`](@/api/options.md#layoutdirection)
-  - [`locale`](@/api/options.md#locale)
-  - [`imeFastEdit`](@/api/options.md#imefastedit)
-- Core methods:
-  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
-  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
-  - [`isLtr()`](@/api/core.md#isltr)
-  - [`isRtl()`](@/api/core.md#isrtl)
-- Hooks:
-  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
-  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)
+<div class="boxes-list">
+
+- [Options: `language`](@/api/options.md#language)
+- [Options: `layoutDirection`](@/api/options.md#layoutdirection)
+- [Options: `locale`](@/api/options.md#locale)
+- [Options: `imeFastEdit`](@/api/options.md#imefastedit)
+- [Core: `getDirectionFactor()`](@/api/core.md#getdirectionfactor)
+- [Core: `getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
+- [Core: `isLtr()`](@/api/core.md#isltr)
+- [Core: `isRtl()`](@/api/core.md#isrtl)
+- [Hooks: `afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
+- [Hooks: `beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)
+
+</div>

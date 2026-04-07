@@ -22,9 +22,6 @@ searchCategory: Guides
 category: Tools and building
 menuTag: updated
 ---
-
-# Testing
-
 Run one or multiple tests, using Handsontable's ready-made commands for Jasmine and Puppeteer.
 
 [[toc]]
@@ -90,7 +87,7 @@ Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/dev
 
 ## Related guides
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Building](@/guides/tools-and-building/custom-builds/custom-builds.md)
 
