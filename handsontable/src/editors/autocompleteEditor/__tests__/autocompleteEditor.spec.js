@@ -1827,7 +1827,7 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toEqual('foo');
     });
 
-    it('should not save the value in non strict mode, when closing the editor by clicking on the table', async() => {
+    it('should save the value in non strict mode when closing the editor by clicking on the table', async() => {
       const syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
@@ -1852,10 +1852,10 @@ describe('AutocompleteEditor', () => {
       editor.val('foo');
       spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mousedown');
 
-      expect(getDataAtCell(0, 0)).toEqual(null);
+      expect(getDataAtCell(0, 0)).toEqual('foo');
     });
 
-    it('should not save the value in non strict mode, when closing the editor by clicking outside of the table', async() => {
+    it('should save the value in non strict mode when closing the editor by clicking outside of the table', async() => {
       const syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
@@ -1880,7 +1880,7 @@ describe('AutocompleteEditor', () => {
       editor.val('foo');
       $('body').simulate('mousedown');
 
-      expect(getDataAtCell(0, 0)).toEqual(null);
+      expect(getDataAtCell(0, 0)).toEqual('foo');
     });
 
     it('should save the value from textarea after hitting ENTER', async() => {
@@ -2014,6 +2014,74 @@ describe('AutocompleteEditor', () => {
       expect(syncSources.calls.count()).toEqual(1);
       expect(onAfterValidate.calls.count()).toEqual(1);
       expect(onAfterChange.calls.count()).toEqual(2); // 1 for loadData and 1 for setDataAtCell
+    });
+
+    it('should save an invalid value with strict mode and allowInvalid when closing by clicking on the table', async() => {
+      handsontable({
+        data: [
+          ['Yellow', 'two'],
+          ['Red', 'four']
+        ],
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['Yellow', 'Red', 'Orange', 'Green', 'Blue'],
+            strict: true,
+            allowInvalid: true
+          },
+          {}
+        ]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await waitForNextAnimationFrames(2);
+
+      const editor = $('.handsontableInput');
+
+      editor.val('Purple');
+      await keyDownUp('e');
+      await waitForNextAnimationFrames(2);
+
+      spec().$container.find('tbody tr:eq(1) td:eq(1)').simulate('mousedown');
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getDataAtCell(0, 0)).toEqual('Purple');
+    });
+
+    it('should save an invalid value with strict mode and allowInvalid when closing by clicking outside of the table', async() => {
+      handsontable({
+        data: [
+          ['Yellow', 'two'],
+          ['Red', 'four']
+        ],
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['Yellow', 'Red', 'Orange', 'Green', 'Blue'],
+            strict: true,
+            allowInvalid: true
+          },
+          {}
+        ]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await waitForNextAnimationFrames(2);
+
+      const editor = $('.handsontableInput');
+
+      editor.val('Purple');
+      await keyDownUp('e');
+      await waitForNextAnimationFrames(2);
+
+      $('body').simulate('mousedown');
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getDataAtCell(0, 0)).toEqual('Purple');
     });
 
     it('strict mode should NOT use value if it DOES NOT match the list (async response is empty)', async() => {
@@ -2711,7 +2779,7 @@ describe('AutocompleteEditor', () => {
     });
   });
 
-  it('should restore the old value when hovered over a autocomplete menu item and then clicked outside of the table', async() => {
+  it('should save the editor value when hovered over an autocomplete menu item and then clicked outside of the table', async() => {
     const syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
@@ -2739,7 +2807,7 @@ describe('AutocompleteEditor', () => {
 
     spec().$container.simulate('mousedown');
 
-    expect(getDataAtCell(0, 0)).toEqual(null);
+    expect(getDataAtCell(0, 0)).toEqual('');
   });
 
   it('should be able to use empty value ("")', async() => {
