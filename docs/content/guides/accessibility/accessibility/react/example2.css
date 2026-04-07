@@ -1,50 +1,59 @@
 .checkbox-container {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 0 !important;
-}
-
-.checkbox-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin: 0 -1rem 0 !important;
+  padding: 0 1rem 0.75rem;
+  border-bottom: 1px solid var(--sl-color-gray-5);
 }
 
-.checkbox-group > div {
+.checkbox-container > div {
   display: flex;
 }
 
-.checkbox-group > div > label {
+.checkbox-container > div > label {
   display: flex;
-  gap: 0.2rem;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .external-link {
   margin-left: 0.5rem;
   position: relative;
   top: 2px;
-  color: black;
+  color: var(--sl-color-text);
 }
 
 .external-link:hover {
-  color: #0000ee;
+  color: var(--sl-color-accent);
 }
 
 .placeholder-input {
   max-width: 20rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  padding: 0.4rem 0.625rem;
+  font-size: var(--sl-text-sm);
   line-height: 1.25rem;
-  color: black;
-  border: 1px solid #e4e4e7;
-  border-radius: 6px;
+  color: var(--sl-color-text);
+  background: none;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  outline: none;
+}
+
+.placeholder-input::placeholder {
+  color: var(--sl-color-gray-3);
+}
+
+.placeholder-input:focus {
+  border-color: var(--sl-color-accent);
 }
 
 .option-label {
-  align-items: flex-start;
+  color: var(--sl-color-text);
+  font-size: var(--sl-text-sm);
 }
 
-/* 
+/*
   We want the focus to be around input and label, in order to achieve this,
   we remove focus from the input and add it to the label (wrapper in this case)
   we then use the :focus-within pseudo class plus native focus styles
@@ -57,11 +66,6 @@
 
 .option-label > input:focus {
   outline: none;
-}
-
-/* fixes dark theme conflicting with text color */
-html.theme-dark .option-label {
-  color: #e5ebf1 !important;
 }
 
 .example-container {

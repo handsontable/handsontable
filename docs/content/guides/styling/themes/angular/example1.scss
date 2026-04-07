@@ -1,47 +1,24 @@
-.theme-examples-controls .example-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.theme-examples-controls .color-select {
+/* Color dots badge next to the select */
+.color-select {
   position: relative;
   display: inline-flex;
-  gap: 10px;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.theme-examples-controls .color-select:after {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%) rotate(45deg);
-  right: 20px;
-}
-
-.theme-examples-controls .color-select select {
-  padding: 8px 70px 8px 16px;
-  border-radius: 8px;
-  appearance: none;
-}
-
-.theme-examples-controls .color-box {
-  position: absolute;
+.color-box {
   display: flex;
   align-items: center;
-  gap: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  right: 10px;
-  border-radius: 12px;
-  background: grey;
-  padding: 5px;
+  gap: 3px;
+  padding: 3px 5px;
+  border-radius: 10px;
+  background: var(--sl-color-gray-5);
   pointer-events: none;
 }
 
-.theme-examples-controls .color-box .color {
-  width: 10px;
-  height: 10px;
-  background-color: grey;
+.color-box .color {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  border: 1px solid grey;
+  border: 1px solid var(--sl-color-gray-4);
 }

@@ -26,9 +26,6 @@ searchCategory: Guides
 category: Styling
 menuTag: updated
 ---
-
-# Theme Customization
-
 Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
 
 [[toc]]

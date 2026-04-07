@@ -3078,6 +3078,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         instance.view.invalidateIndexSizesCache();
       }
 
+      selection.updateHighlightClassNames();
       instance.runHooks('afterUpdateSettings', settings);
     }
 
