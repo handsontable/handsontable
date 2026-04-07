@@ -14,7 +14,9 @@ const hotData = [
 
 const ExampleComponent = () => (
   <>
-    <p>Right-click any cell to open the context menu.</p>
+    <div className="example-controls-container">
+      <p>Right-click any cell to open the context menu.</p>
+    </div>
     <HotTable
       data={hotData}
       columns={[

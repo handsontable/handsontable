@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { GridSettings } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 import { registerRenderer } from 'handsontable/renderers';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 const firstRowRenderer = (
   instance: Handsontable,
@@ -13,7 +14,7 @@ const firstRowRenderer = (
   value: any,
   cellProperties: any
 ) => {
-  Handsontable.renderers.TextRenderer(
+  textRenderer(
     instance,
     td,
     row,
@@ -36,7 +37,7 @@ const negativeValueRenderer = (
   value: any,
   cellProperties: any
 ) => {
-  Handsontable.renderers.TextRenderer(
+  textRenderer(
     instance,
     td,
     row,

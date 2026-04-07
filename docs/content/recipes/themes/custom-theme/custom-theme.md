@@ -26,9 +26,9 @@ searchCategory: Recipes
 category: Themes
 ---
 
-# Handsontable with shadcn/ui
+<iframe src="https://4y8dv9-3000.csb.app/" title="Handsontable with shadcn/ui demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px; min-height: 500px;"></iframe>
 
-[[toc]]
+[**Open in CodeSandbox**](https://codesandbox.io/p/devbox/github/handsontable/examples/tree/master/examples/next-shadcn.js)
 
 ## Overview
 
@@ -37,12 +37,6 @@ This recipe shows how to integrate Handsontable into a Next.js that uses [shadcn
 **Difficulty:** Beginner  
 **Time:** ~15 minutes  
 **Stack:** Next.js, shadcn/ui (Tailwind CSS), Handsontable, `@handsontable/react-wrapper`
-
-## Complete Example
-
-<iframe src="https://4y8dv9-3000.csb.app/" title="Handsontable with shadcn/ui demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px;"></iframe>
-
-[**Open in CodeSandbox**](https://codesandbox.io/p/devbox/github/handsontable/examples/tree/master/examples/next-shadcn.js)
 
 ## What You'll Get
 

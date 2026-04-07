@@ -5,7 +5,10 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const container = document.querySelector('#example1');
-const localeSelect = document.querySelector('#localeSelect');
+const dropdown = document.querySelector('#localeDropdown');
+const trigger = document.querySelector('#localeTrigger');
+const menu = document.querySelector('#localeMenu');
+const label = document.querySelector('#localeLabel');
 // Sample data with various numeric types
 const data = [
   {
@@ -138,9 +141,41 @@ const hot = new Handsontable(container, {
   autoWrapCol: true,
 });
 
-// Handle locale change
-localeSelect.addEventListener('change', (event) => {
-  hot.updateSettings({
-    locale: event.target.value,
-  });
+// Handle dropdown toggle
+trigger.addEventListener('click', () => {
+  const isOpen = !menu.hidden;
+
+  menu.hidden = isOpen;
+  trigger.setAttribute('aria-expanded', String(!isOpen));
+});
+
+// Handle locale selection
+menu.addEventListener('click', (e) => {
+  const item = e.target.closest('li[data-value]');
+
+  if (item) {
+    label.textContent = item.textContent.trim();
+    menu.querySelectorAll('li').forEach((li) => li.setAttribute('aria-selected', 'false'));
+    item.setAttribute('aria-selected', 'true');
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    hot.updateSettings({ locale: item.dataset.value });
+  }
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  if (!dropdown.contains(e.target)) {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+});
+
+// Close dropdown on Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !menu.hidden) {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.focus();
+  }
 });

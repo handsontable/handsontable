@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Technical specification
 ---
-
-# Documentation license
-
 Learn about the licensing terms of Handsontable's documentation.
 
 [[toc]]

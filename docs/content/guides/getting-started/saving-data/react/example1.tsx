@@ -27,7 +27,7 @@ const ExampleComponent: React.FC = () => {
   const loadClickCallback = (event: MouseEvent<HTMLButtonElement>) => {
     const hot = hotRef.current?.hotInstance;
 
-    fetch('{{$basePath}}/scripts/json/load.json').then((response) => {
+    fetch('/docs/scripts/json/load.json').then((response) => {
       response.json().then((data) => {
         hot?.loadData(data.data);
         // or, use `updateData()` to replace `data` without resetting states
@@ -40,7 +40,7 @@ const ExampleComponent: React.FC = () => {
     const hot = hotRef.current?.hotInstance;
 
     // save all cell's data
-    fetch('{{$basePath}}/scripts/json/save.json', {
+    fetch('/docs/scripts/json/save.json', {
       method: 'POST',
       mode: 'no-cors',
       headers: {
@@ -91,7 +91,7 @@ const ExampleComponent: React.FC = () => {
             return;
           }
 
-          fetch('{{$basePath}}/scripts/json/save.json', {
+          fetch('/docs/scripts/json/save.json', {
             method: 'POST',
             mode: 'no-cors',
             headers: {

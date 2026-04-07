@@ -79,7 +79,7 @@ These are the most frequent mistakes. Read this section first.
 | `@handsontable/vue3` | `wrappers/vue3/` | Vue 3 wrapper |
 | `handsontable-visual-tests` | `visual-tests/` | Playwright visual regression tests |
 | `handsontable-examples-internal` | `examples/` | Code examples |
-| `handsontable-documentation` | `docs/` | VuePress docs site (requires Node 20) |
+| `handsontable-documentation` | `docs/` | Astro Starlight docs site (requires Node 20) |
 
 ---
 

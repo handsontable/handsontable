@@ -1,6 +1,6 @@
 # Documentation Site
 
-VuePress-based documentation. **Requires Node 20** (separate from core's Node 22).
+Astro Starlight-based documentation. **Requires Node 20** (separate from core's Node 22).
 
 ## Writing Style
 
