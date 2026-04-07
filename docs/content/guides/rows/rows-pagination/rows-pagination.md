@@ -392,6 +392,14 @@ When pagination is enabled:
 - The [`height`](@/api/options.md#height) option set as `auto` is not supported when the `pageSize: 'auto'` is set.
 - Pagination always displays a fixed number of rows per page (default is `10`), regardless of data changes such as hiding, trimming, filtering, removing, adding, or pasting rows - unless `pageSize: 'auto'` is set.
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 16.1: Row Pagination, Loading Plugin, and Long-Term Support Policy](https://handsontable.com/blog/handsontable-16.1-row-pagination-loading-plugin-and-long-term-support-policy)
+
+</div>
+
 ## Related API reference
 
 **Configuration options**

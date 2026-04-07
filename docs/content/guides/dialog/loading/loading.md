@@ -191,6 +191,14 @@ Translate default loading dialog labels using the global translations mechanism.
 
 To learn more about the translation mechanism, see the [Languages guide](@/guides/internationalization/language/language.md).
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 16.1: Row Pagination, Loading Plugin, and Long-Term Support Policy](https://handsontable.com/blog/handsontable-16.1-row-pagination-loading-plugin-and-long-term-support-policy)
+
+</div>
+
 ## Related API reference
 
 <div class="boxes-list">

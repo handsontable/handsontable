@@ -172,6 +172,10 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 
 </div>
 
+### Related blog articles
+
+- [Handsontable 10.0.0: Improved performance and consistency](https://handsontable.com/blog/handsontable-10.0.0-improved-performance-and-consistency)
+
 ### Related API reference
 
 **Configuration options:**
