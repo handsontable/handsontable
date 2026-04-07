@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { BaseRenderer } from 'handsontable/renderers';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -10,7 +11,7 @@ const exampleContainer = document.querySelector('#exampleContainer5')!;
 const container = document.querySelector('#example5')!;
 
 const customRenderer: BaseRenderer = (instance, td, ...rest) => {
-  Handsontable.renderers.TextRenderer(instance, td, ...rest);
+  textRenderer(instance, td, ...rest);
 
   if (isChecked) {
     td.style.backgroundColor = 'yellow';

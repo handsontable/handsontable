@@ -268,12 +268,12 @@ function createInventoryDemoServer(): InventoryDemoServer {
 @Component({
   selector: 'app-example1',
   template: `
-    <div style="border: 1px solid #ccc; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
-      <p id="example1-status" style="padding: 0; margin: 0;">{{ fetchStatus }}</p>
-    </div>
-    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
-      <button type="button" (click)="reloadFetch()">Reload data</button>
-      <button type="button" (click)="simulateFailedFetch()">Simulate failed fetch</button>
+    <div class="example-controls-container">
+      <div class="controls">
+        <button type="button" (click)="reloadFetch()">Reload data</button>
+        <button type="button" (click)="simulateFailedFetch()">Simulate failed fetch</button>
+      </div>
+      <output id="example1-status">{{ fetchStatus }}</output>
     </div>
     <div id="example1">
       <hot-table

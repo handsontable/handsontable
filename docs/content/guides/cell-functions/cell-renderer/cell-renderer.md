@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell functions
 menuTag: updated
 ---
-
-# Cell renderer
-
 Create a custom cell renderer function, to have full control over how a cell looks.
 
 [[toc]]
@@ -616,9 +613,9 @@ If you only need to format the displayed value (e.g., add units, format dates, o
 
 ::: only-for javascript
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Custom renderer in React](@/react/guides/cell-functions/cell-renderer/cell-renderer.md)
 - [Custom renderer in Angular](@/angular/guides/cell-functions/cell-renderer/cell-renderer.md)
@@ -629,26 +626,47 @@ If you only need to format the displayed value (e.g., add units, format dates, o
 
 :::
 
-### Related API reference
+**APIs**
 
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`renderer`](@/api/options.md#renderer)
-  - [`valueFormatter`](@/api/options.md#valueformatter)
-  - [`sanitizer`](@/api/options.md#sanitizer)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
-  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
-  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)
+<div class="boxes-list">
+
+- [BasePlugin](@/api/basePlugin.md)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [renderer](@/api/options.md#renderer)
+- [valueFormatter](@/api/options.md#valueformatter)
+- [sanitizer](@/api/options.md#sanitizer)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getCellRenderer()](@/api/core.md#getcellrenderer)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterGetColumnHeaderRenderers](@/api/hooks.md#aftergetcolumnheaderrenderers)
+- [afterGetRowHeaderRenderers](@/api/hooks.md#aftergetrowheaderrenderers)
+- [afterRenderer](@/api/hooks.md#afterrenderer)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeRenderer](@/api/hooks.md#beforerenderer)
+
+</div>

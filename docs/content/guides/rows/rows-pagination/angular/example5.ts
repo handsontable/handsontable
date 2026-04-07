@@ -6,24 +6,15 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
 @Component({
   selector: 'app-example5',
   template: `
-    <div class="example-modify-pagedata-container">
-      <button (click)="clearColumn()" class="pagination-btn">Clear the second column of the current page</button>
+    <div class="example-controls-container">
+      <div class="controls">
+        <button (click)="clearColumn()">Clear the second column of the current page</button>
+      </div>
     </div>
     <hot-table
       #hotTable
       [settings]="hotSettings!" [data]="hotData">
     </hot-table>
-  `,
-  styles: `
-    .example-modify-pagedata-container {
-      display: flex;
-      flex-direction: column;
-      align-items: self-start;
-      background: transparent;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      padding: 12px 30px;
-    }
   `,
   standalone: false
 })

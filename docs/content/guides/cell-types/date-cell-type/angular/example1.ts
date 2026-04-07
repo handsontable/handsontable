@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, ViewEncapsulation, HostListener, ElementRef } from '@angular/core';
 import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 interface CarData {
@@ -12,79 +12,68 @@ interface CarData {
 @Component({
   selector: 'example1-date-cell-type',
   standalone: false,
-  styles: [`
-    .example-controls-container .controls {
-      padding-top: 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .example-controls-container .controls label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-    }
-
-    .example-controls-container .controls select {
-      padding: 6px 12px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .example-controls-container .controls select:hover {
-      border-color: #999;
-    }
-
-    .example-controls-container .controls select:focus {
-      outline: none;
-      border-color: #0066cc;
-      box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
-    }
-  `],
   template: `
     <div class="example-controls-container">
       <div class="controls">
-        <label>
-          Select locale:
-          <select [value]="locale" (change)="updateLocale($event)">
-            <option value="ar-AR">Arabic (Global)</option>
-            <option value="cs-CZ">Czech (Czechia)</option>
-            <option value="de-CH">German (Switzerland)</option>
-            <option value="de-DE">German (Germany)</option>
-            <option value="en-US">English (United States)</option>
-            <option value="es-MX">Spanish (Mexico)</option>
-            <option value="fa-IR">Persian (Iran)</option>
-            <option value="fr-FR">French (France)</option>
-            <option value="hr-HR">Croatian (Croatia)</option>
-            <option value="it-IT">Italian (Italy)</option>
-            <option value="ja-JP">Japanese (Japan)</option>
-            <option value="ko-KR">Korean (Korea)</option>
-            <option value="lv-LV">Latvian (Latvia)</option>
-            <option value="nb-NO">Norwegian Bokmal (Norway)</option>
-            <option value="nl-NL">Dutch (Netherlands)</option>
-            <option value="pl-PL">Polish (Poland)</option>
-            <option value="pt-BR">Portuguese (Brazil)</option>
-            <option value="ru-RU">Russian (Russia)</option>
-            <option value="sr-SP">Serbian Latin (Serbia)</option>
-            <option value="zh-CN">Chinese (Simplified, China)</option>
-            <option value="zh-TW">Chinese (Traditional, Taiwan)</option>
-          </select>
-        </label>
+        <div class="theme-dropdown" #dropdownRef>
+          <button
+            class="theme-dropdown-trigger"
+            type="button"
+            aria-haspopup="listbox"
+            [attr.aria-expanded]="isOpen"
+            (click)="toggleDropdown()"
+          >
+            <span>{{ selectedLabel }}</span>
+            <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+          </button>
+          <ul class="theme-dropdown-menu" role="listbox" *ngIf="isOpen">
+            <li
+              *ngFor="let opt of localeOptions"
+              role="option"
+              [attr.aria-selected]="locale === opt.value"
+              (click)="selectLocale(opt.value)"
+            >
+              {{ opt.label }}
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
     <div>
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>
   `,
+  encapsulation: ViewEncapsulation.None
 })
 export class Example1DateCellTypeComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
+  isOpen = false;
   locale = 'en-US';
+
+  readonly localeOptions = [
+    { value: 'ar-AR', label: 'Arabic (Global)' },
+    { value: 'cs-CZ', label: 'Czech (Czechia)' },
+    { value: 'de-CH', label: 'German (Switzerland)' },
+    { value: 'de-DE', label: 'German (Germany)' },
+    { value: 'en-US', label: 'English (United States)' },
+    { value: 'es-MX', label: 'Spanish (Mexico)' },
+    { value: 'fa-IR', label: 'Persian (Iran)' },
+    { value: 'fr-FR', label: 'French (France)' },
+    { value: 'hr-HR', label: 'Croatian (Croatia)' },
+    { value: 'it-IT', label: 'Italian (Italy)' },
+    { value: 'ja-JP', label: 'Japanese (Japan)' },
+    { value: 'ko-KR', label: 'Korean (Korea)' },
+    { value: 'lv-LV', label: 'Latvian (Latvia)' },
+    { value: 'nb-NO', label: 'Norwegian Bokmal (Norway)' },
+    { value: 'nl-NL', label: 'Dutch (Netherlands)' },
+    { value: 'pl-PL', label: 'Polish (Poland)' },
+    { value: 'pt-BR', label: 'Portuguese (Brazil)' },
+    { value: 'ru-RU', label: 'Russian (Russia)' },
+    { value: 'sr-SP', label: 'Serbian Latin (Serbia)' },
+    { value: 'zh-CN', label: 'Chinese (Simplified, China)' },
+    { value: 'zh-TW', label: 'Chinese (Traditional, Taiwan)' },
+  ];
 
   readonly data: CarData[] = [
     {
@@ -160,9 +149,34 @@ export class Example1DateCellTypeComponent {
     autoWrapCol: true,
   };
 
-  updateLocale(event: Event): void {
-    this.locale = (event.target as HTMLSelectElement).value;
+  get selectedLabel(): string {
+    return this.localeOptions.find((o) => o.value === this.locale)?.label || '';
+  }
+
+  constructor(private elementRef: ElementRef) {}
+
+  toggleDropdown(): void {
+    this.isOpen = !this.isOpen;
+  }
+
+  selectLocale(value: string): void {
+    this.locale = value;
+    this.isOpen = false;
     this.hotTable?.hotInstance?.updateSettings({ locale: this.locale });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.elementRef.nativeElement.querySelector('.theme-dropdown')?.contains(event.target)) {
+      this.isOpen = false;
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      this.isOpen = false;
+    }
   }
 }
 /* end-file */
