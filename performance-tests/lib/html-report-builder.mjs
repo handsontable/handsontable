@@ -551,6 +551,10 @@ function buildScript() {
   let sortKey = 'name';
   let sortAsc = true;
 
+  // --- Tooltip (created once, outside render cycle) ---
+  const tooltip = buildTooltip();
+  document.body.appendChild(tooltip);
+
   // --- Render ---
   function render() {
     app.innerHTML = '';
@@ -558,7 +562,6 @@ function buildScript() {
     app.appendChild(buildDashboard());
     app.appendChild(buildControls());
     app.appendChild(buildScenarioList());
-    document.body.appendChild(buildTooltip());
   }
 
   function buildHeader() {
