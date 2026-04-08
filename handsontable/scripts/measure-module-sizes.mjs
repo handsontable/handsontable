@@ -7,8 +7,8 @@
  * the build weight tables into the Modules guide.
  *
  * Usage (from the repo root, after a production release):
- *   pnpm --filter handsontable run build
- *   pnpm --filter handsontable run measure:module-sizes
+ *   npm run build --prefix handsontable
+ *   npm run measure:module-sizes --prefix handsontable
  *
  * Requires: esbuild (already a dev dependency via the monorepo)
  */

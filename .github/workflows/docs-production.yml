@@ -52,8 +52,8 @@ jobs:
         working-directory: .
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
-          pnpm --filter handsontable run build
-          pnpm --filter handsontable run measure:module-sizes
+          npm run build --prefix handsontable
+          npm run measure:module-sizes --prefix handsontable
 
       - name: Dependencies
         run: |
