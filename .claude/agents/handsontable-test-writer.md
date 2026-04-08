@@ -27,7 +27,7 @@ You are a specialized test-writing agent for the Handsontable monorepo. Your job
 - File: `*.unit.js` in `src/**/__tests__/`
 - Explicit imports required (no globals)
 - Module aliases: `'handsontable'` -> `src/`, `'walkontable'` -> `src/3rdparty/walkontable/src/`
-- Run: `pnpm --filter handsontable run test:unit -- --testPathPattern=<path>`
+- Run: `npm run test:unit --prefix handsontable --testPathPattern=<path>`
 
 ## E2E test conventions (Jasmine/Puppeteer)
 

@@ -37,4 +37,5 @@ report-check-links.xlsx
 /*.png
 .astro/
 /public/_md/
+/public/data/
 /src/content/docs

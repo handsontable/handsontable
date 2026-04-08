@@ -1,6 +1,6 @@
 ---
 name: handsontable-e2e-testing
-description: Use when writing Jasmine/Puppeteer E2E tests (*.spec.js) for Handsontable - covers the standard boilerplate, global test helpers, async/await requirements, mouse and keyboard event simulation, and plugin lifecycle testing patterns
+description: Use when writing or modifying Jasmine/Puppeteer E2E tests (*.spec.js) for Handsontable, or when a bug fix or feature change needs E2E test coverage - covers the standard boilerplate, global test helpers, async/await requirements, mouse and keyboard event simulation, and plugin lifecycle testing patterns
 ---
 
 # Handsontable E2E Testing Guide
@@ -68,10 +68,10 @@ Use `it.flaky()` for timing-sensitive tests (auto-retries up to 3 times).
 
 ## Run commands
 
-- **All:** `pnpm --filter handsontable run test:e2e`
-- **Targeted:** `pnpm --filter handsontable run test:e2e -- --filter=pluginName`
-- **Targeted (dump runner):** Set `npm_config_testPathPattern` as an env var: `npm_config_testPathPattern=plugins/comments/__tests__/comments.spec.js pnpm --filter handsontable run test:e2e.dump`. Do NOT pass `--testPathPattern` as a CLI arg -- it gets forwarded to webpack and fails.
-- **Rebuild first:** The E2E runner loads `dist/handsontable.js`. After changing `src/**`, run `pnpm --filter handsontable run build` before running E2E tests.
+- **All:** `npm run test:e2e --prefix handsontable`
+- **Targeted:** `npm run test:e2e --testPathPattern=<regex> --prefix handsontable` -- the pattern is matched against test file paths (e.g. `collapsibleColumns`, `ghostTable`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- **With theme:** `npm run test:e2e --testPathPattern=<regex> --theme=horizon --prefix handsontable` (available themes: `classic`, `main`, `horizon`; default when `--theme` is omitted: `main`)
+- **Rebuild first:** The E2E runner loads `dist/handsontable.js`. After changing `src/**`, run `npm run build --prefix handsontable` before running E2E tests.
 
 ## Test location
 

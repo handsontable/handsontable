@@ -92,19 +92,17 @@ These are the most frequent mistakes. Read this section first.
 
 ## Build, lint, test
 
-From the workspace root:
+All commands use `npm run` with `--prefix` to target the right package from the workspace root:
 
-- **Build core**: `pnpm --filter handsontable run build` (must be done before wrapper tests)
-- **Lint core**: `pnpm --filter handsontable run eslint` and `pnpm --filter handsontable run stylelint`
-- **Unit tests (core)**: `pnpm --filter handsontable run test:unit` (Jest, ~2200 tests)
-- **E2E tests (core)**: `pnpm --filter handsontable run test:e2e` (Puppeteer/Jasmine, headless Chrome)
-- **Targeted unit test**: `pnpm --filter handsontable run test:unit -- --testPathPattern=<path>`
-- **Targeted e2e test**: `pnpm --filter handsontable run test:e2e -- --filter=<plugin>`
-- **Targeted e2e (dump runner)**: `npm_config_testPathPattern=<path> pnpm --filter handsontable run test:e2e.dump` (use env var, NOT CLI arg)
-- **Walkontable tests**: `pnpm --filter handsontable run test:walkontable` (separate pipeline)
-- **Wrapper tests**: `pnpm --filter @handsontable/react-wrapper run test`, `pnpm --filter @handsontable/vue3 run test`, `pnpm --filter @handsontable/angular-wrapper run test`
-
-Inside individual packages (e.g., `cd handsontable`), use `npm run ...` directly.
+- **Build core**: `npm run build --prefix handsontable` (must be done before wrapper tests)
+- **Lint core**: `npm run eslint --prefix handsontable` and `npm run stylelint --prefix handsontable`
+- **Unit tests (core)**: `npm run test:unit --prefix handsontable` (Jest, ~2200 tests)
+- **E2E tests (core)**: `npm run test:e2e --prefix handsontable` (Puppeteer/Jasmine, headless Chrome)
+- **Targeted unit test**: `npm run test:unit --testPathPattern=<regex> --prefix handsontable` (regex matched against file paths, e.g. `filters`, `ghostTable.unit`, `metaManager`)
+- **Targeted e2e test**: `npm run test:e2e --testPathPattern=<regex> --prefix handsontable` (e.g. `collapsibleColumns`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- **E2E with theme**: `npm run test:e2e --testPathPattern=<regex> --theme=horizon --prefix handsontable` (themes: `classic`, `main`, `horizon`; default: `main`)
+- **Walkontable tests**: `npm run test:walkontable --prefix handsontable` (separate pipeline)
+- **Wrapper tests**: `npm run test --prefix wrappers/react-wrapper`, `npm run test --prefix wrappers/vue3`, `npm run test --prefix wrappers/angular-wrapper`
 
 ### Build outputs
 
@@ -266,16 +264,18 @@ For Cursor, set `CLICKUP_API_TOKEN` in Cursor Settings > MCP secrets, or export 
 
 1. **Verify ClickUp MCP tools are available.** If not, check `.ai/MCP.md` for setup steps.
 2. **Fetch the task via MCP** to get title, description, acceptance criteria.
-3. **Create the correct branch:** `feature/<TASK-ID>_<Slugified-Title>` (e.g., `feature/DEV-627_Forum-Update`). Never use other branch naming patterns for ClickUp tasks.
+3. **Set status to "in progress".** Check the task's current status. If it is **"to do"**, immediately update it to **"in progress"** using the ClickUp MCP tools before doing anything else (branching, coding, etc.).
+4. **Create the correct branch:** `feature/<TASK-ID>_<Slugified-Title>` (e.g., `feature/DEV-627_Forum-Update`). Never use other branch naming patterns for ClickUp tasks.
 
 ### Workflow
 
 1. Parse task ID from ClickUp URL (e.g., `DEV-627`).
 2. Use ClickUp MCP to fetch task details.
-3. Create and checkout branch: `feature/<TASK-ID>_<Slugified-Title>`.
-4. Implement the fix/feature. Commit with the task ID in the message.
-5. Push and (when asked) open a PR whose title includes the task ID.
-6. Apply changelog policy: `[skip changelog]` only for non-source-code changes.
-7. After PR is created, use ClickUp MCP to update task status to **"code review"**.
+3. If the task status is **"to do"**, update it to **"in progress"** via ClickUp MCP before proceeding.
+4. Create and checkout branch: `feature/<TASK-ID>_<Slugified-Title>`.
+5. Implement the fix/feature. Commit with the task ID in the message.
+6. Push and (when asked) open a PR whose title includes the task ID.
+7. Apply changelog policy: `[skip changelog]` only for non-source-code changes.
+8. After PR is created, use ClickUp MCP to update task status to **"code review"**.
 
 **Authentication**: Use the ClickUp MCP tools for all ClickUp API interactions. Do not call the ClickUp REST API directly.
