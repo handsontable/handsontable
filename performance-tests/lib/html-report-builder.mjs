@@ -1036,6 +1036,7 @@ function buildScript() {
   }
 
   // --- Init ---
+  document.body.appendChild(buildTooltip());
   render();
 })();
 <${'/' + 'script'}>`; // eslint-disable-line no-useless-concat

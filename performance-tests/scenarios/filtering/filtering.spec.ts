@@ -21,7 +21,7 @@ test(config.name, async({ page }) => {
     warmupRuns: config.warmupRuns,
     iterations: config.iterations,
     outputDir,
-    actionFn: async() => {
+    actionFn: async(isMeasured) => {
       // Apply a filter on column 0: contains "1"
       await page.evaluate(() => {
         const hot = (window as any).__hot;
@@ -31,11 +31,13 @@ test(config.name, async({ page }) => {
         filtersPlugin.filter();
       });
 
-      // Capture hook timing
-      const timing = await getHookTiming(page, 'beforeFilter', 'afterFilter');
+      // Capture hook timing only during measured iterations
+      if (isMeasured) {
+        const timing = await getHookTiming(page, 'beforeFilter', 'afterFilter');
 
-      if (timing.deltaMs != null) {
-        hookDeltas.push(timing.deltaMs);
+        if (timing.deltaMs != null) {
+          hookDeltas.push(timing.deltaMs);
+        }
       }
     },
     resetFn: async() => {
