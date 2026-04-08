@@ -372,8 +372,8 @@ describe('settings', () => {
       portalChild.className = 'test-portal-child';
       spec().hot.rootPortalElement.appendChild(portalChild);
 
-      triggerTouchEvent('touchstart', portalChild);
-      triggerTouchEvent('touchend', portalChild);
+      await triggerTouchEvent('touchstart', portalChild);
+      await triggerTouchEvent('touchend', portalChild);
       $(portalChild).simulate('mousedown');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
