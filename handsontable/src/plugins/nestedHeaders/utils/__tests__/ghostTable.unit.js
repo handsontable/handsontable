@@ -132,6 +132,99 @@ describe('GhostTable', () => {
     expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeDefined();
   });
 
+  it('should render the dropdown button in all header rows of the rendered ghost table', () => {
+    const widthsMapMock = {
+      data: new Map(),
+      setValueAtIndex(index, value) {
+        this.data.set(index, value);
+      },
+      getValueAtIndex(index) {
+        return this.data.get(index);
+      },
+      clear() {
+        this.data.clear();
+      },
+    };
+    const getHeaderSettings = (row, column) => {
+      // Row 0: parent header spanning 2 columns
+      if (row === 0 && column === 0) {
+        return {
+          label: 'Parent',
+          colspan: 2,
+          rowspan: 1,
+          origColspan: 2,
+          isPlaceholder: false,
+          isHidden: false,
+          isRowspanPlaceholder: false,
+        };
+      }
+
+      if (row === 0 && column === 1) {
+        return {
+          label: '',
+          isPlaceholder: true,
+          isHidden: false,
+          isRowspanPlaceholder: false,
+        };
+      }
+
+      // Row 1: two leaf columns
+      if (row === 1 && column === 0) {
+        return {
+          label: 'A',
+          colspan: 1,
+          rowspan: 1,
+          isPlaceholder: false,
+          isHidden: false,
+          isRowspanPlaceholder: false,
+        };
+      }
+
+      if (row === 1 && column === 1) {
+        return {
+          label: 'B',
+          colspan: 1,
+          rowspan: 1,
+          isPlaceholder: false,
+          isHidden: false,
+          isRowspanPlaceholder: false,
+        };
+      }
+
+      return undefined;
+    };
+    const headersStateManager = {
+      getHeaderSettings: (row, column) => getHeaderSettings(row, column),
+      getHeaderTreeNode: () => null,
+    };
+    const hotMock = {
+      rootDocument: document,
+      rootWindow: window,
+      getCurrentThemeName: () => '',
+      countCols: () => 2,
+      toPhysicalColumn: visualColumn => visualColumn,
+      getSettings: () => ({ dropdownMenu: true }),
+      columnIndexMapper: {
+        createAndRegisterIndexMap: () => widthsMapMock,
+        isHidden: () => false,
+      },
+    };
+    const ghostTable = new GhostTable({ hot: hotMock, headersStateManager });
+    const container = getDetachedGhostContainerAfterBuild(ghostTable, 2);
+    const renderedTable = container.querySelector('[data-ghost-table="rendered"]');
+    const rows = renderedTable.querySelectorAll('tr');
+
+    // Row 0 (parent header) SHOULD have a dropdown button. The ghost table includes
+    // the button on all rows to account for the width it adds to spanning headers, ensuring
+    // child columns are wide enough.
+    expect(rows[0].querySelector('button.changeType')).not.toBeNull();
+
+    // Row 1 (leaf/bottom row) SHOULD also have dropdown buttons.
+    const bottomRowButtons = rows[1].querySelectorAll('button.changeType');
+
+    expect(bottomRowButtons.length).toBe(2);
+  });
+
   it('should add both dropdown and collapsible controls to ghost headers when needed', () => {
     const createHotMock = (isCollapsibleColumnsEnabled) => {
       const widthsMapMock = {
@@ -188,13 +281,19 @@ describe('GhostTable', () => {
       return undefined;
     };
     const headersStateManager = {
-      getHeaderSettings: (row, column) => getHeaderSettings(row, column),
+      getHeaderSettings,
       getHeaderTreeNode: () => null,
     };
     const { hot: hotWithoutCollapsible } = createHotMock(false);
     const { hot: hotWithCollapsible } = createHotMock(true);
-    const ghostTableWithoutCollapsible = new GhostTable({ hot: hotWithoutCollapsible, headersStateManager });
-    const ghostTableWithCollapsible = new GhostTable({ hot: hotWithCollapsible, headersStateManager });
+    const ghostTableWithoutCollapsible = new GhostTable({
+      hot: hotWithoutCollapsible,
+      headersStateManager,
+    });
+    const ghostTableWithCollapsible = new GhostTable({
+      hot: hotWithCollapsible,
+      headersStateManager,
+    });
     const containerWithoutCollapsible = getDetachedGhostContainerAfterBuild(ghostTableWithoutCollapsible, 1);
     const containerWithCollapsible = getDetachedGhostContainerAfterBuild(ghostTableWithCollapsible, 1);
 

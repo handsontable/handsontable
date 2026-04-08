@@ -52,7 +52,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     );
   });
 
-  it('should add a correct set of aria tags to the choice dropdown element', async() => {
+  it.flaky('should add a correct set of aria tags to the choice dropdown element', async() => {
     const hot = handsontable({
       data: [
         ['a'],

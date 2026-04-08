@@ -276,6 +276,14 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 
 </div>
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
+
+</div>
+
 ## Troubleshooting
 
 Didn't find what you need? Try this:

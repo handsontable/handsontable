@@ -264,6 +264,273 @@ function resolveMonorepoPackages() {
 }
 
 /**
+ * Astro integration that generates /data/common.json during the build.
+ *
+ * The file is consumed by version-switcher dropdowns in all deployed doc
+ * versions (current and previous). It lists every published release and all
+ * live page URLs so that older builds can redirect removed pages to the
+ * correct replacement.
+ *
+ * Shape:
+ *   {
+ *     versions: string[],                      // minor versions, newest first
+ *     versionsWithPatches: [string, string[]][], // [[minor, [patch, ...]], ...]
+ *     latestVersion: string,                   // e.g. "17.0"
+ *     urls: [string, string][]                 // [url-path, max-version]
+ *   }
+ *
+ * Version data is fetched from the GitHub Releases API at build time and
+ * supplemented with the local handsontable package.json. Network failures
+ * are tolerated -- the file is written with only the local version.
+ *
+ * The file is written to:
+ *   - public/data/common.json  (dev server)
+ *   - dist/data/common.json    (build output)
+ */
+function commonJsonIntegration() {
+  const matter = _require('gray-matter');
+  const semver = _require('semver');
+  const contentDir = resolve(__dirname, 'content');
+  const PREFIXES = ['javascript-data-grid', 'react-data-grid', 'angular-data-grid'];
+  const MIN_DOCS_VERSION = '9.0';
+
+  // ── Version helpers ──────────────────────────────────────────────────────
+
+  function toMinor(patchVersion) {
+    const parsed = semver.parse(patchVersion);
+
+    return parsed ? `${parsed.major}.${parsed.minor}` : null;
+  }
+
+  function getLocalVersion() {
+    try {
+      const pkg = _require(join(__dirname, '..', 'handsontable', 'package.json'));
+
+      return pkg.version ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Fetches release tags from GitHub and returns version data.
+   * Returns null on network error so callers can fall back gracefully.
+   */
+  async function fetchGitHubVersions() {
+    const url =
+      'https://api.github.com/repos/handsontable/handsontable/releases?per_page=100';
+
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'handsontable-docs-build' },
+    });
+
+    if (!res.ok) return null;
+
+    const releases = await res.json();
+
+    // Collect all stable patch tags, sort newest-first.
+    const patchTags = releases
+      .map((r) => r.tag_name)
+      .filter((tag) => !semver.prerelease(tag) && semver.valid(tag))
+      .sort((a, b) => semver.rcompare(a, b));
+
+    // Group by minor version.
+    const minorMap = new Map(); // minor -> [patch, ...]
+
+    for (const tag of patchTags) {
+      const minor = toMinor(tag);
+
+      if (!minor) continue;
+
+      if (!minorMap.has(minor)) minorMap.set(minor, []);
+
+      minorMap.get(minor).push(tag);
+    }
+
+    // Build list of minor versions, newest-first, capped at MIN_DOCS_VERSION.
+    const minors = [...minorMap.keys()].sort((a, b) => semver.rcompare(`${a}.0`, `${b}.0`));
+    const minIdx = minors.indexOf(MIN_DOCS_VERSION);
+    const cappedMinors = minIdx === -1 ? minors : minors.slice(0, minIdx + 1);
+
+    return { minors: cappedMinors, minorMap };
+  }
+
+  // ── URL collection ────────────────────────────────────────────────────────
+
+  /**
+   * Scans all .md files in content/ and collects their permalink values.
+   * Returns an array of `[url-path, ""]` tuples (empty string = still live).
+   *
+   * When `distDir` is provided the function first tries to derive URLs from
+   * the built HTML files (which include auto-generated API pages that are
+   * not committed to the content/ directory). The content/ scan is used as
+   * a fallback when `distDir` is omitted (e.g. dev-server startup).
+   *
+   * @param {string|null} distDir - Optional path to the Astro dist output.
+   */
+  function collectUrls(distDir = null) {
+    const seen = new Set();
+    const urls = [];
+
+    if (distDir) {
+      // Build mode: derive URLs from the generated HTML files in dist/.
+      // Each HTML page lives at dist/{path}/index.html → URL path is {path}.
+      function scanDist(dir, base) {
+        for (const entry of readdirSync(dir, { withFileTypes: true })) {
+          const full = join(dir, entry.name);
+
+          if (entry.isDirectory()) {
+            scanDist(full, base);
+            continue;
+          }
+
+          if (entry.name !== 'index.html') continue;
+
+          // Derive the relative URL path from the directory path.
+          const relDir = dir.slice(base.length).replace(/^\//, '');
+
+          if (!relDir) continue;
+
+          // Only include framework-prefixed paths.
+          const matchedPrefix = PREFIXES.find((p) => relDir === p || relDir.startsWith(`${p}/`));
+
+          if (!matchedPrefix) continue;
+
+          if (!seen.has(relDir)) {
+            seen.add(relDir);
+            urls.push([relDir, '']);
+          }
+        }
+      }
+
+      scanDist(distDir, distDir);
+    } else {
+      // Dev mode: scan .md files in content/ for their permalink values.
+      function scanContent(dir) {
+        for (const entry of readdirSync(dir, { withFileTypes: true })) {
+          const full = join(dir, entry.name);
+
+          if (entry.isDirectory()) {
+            scanContent(full);
+            continue;
+          }
+
+          if (!entry.name.endsWith('.md')) continue;
+
+          let raw;
+
+          try {
+            raw = readFileSync(full, 'utf-8');
+          } catch {
+            continue;
+          }
+
+          const { data } = matter(raw);
+
+          if (!data.permalink) continue;
+
+          const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '');
+
+          for (const prefix of PREFIXES) {
+            const urlPath = slug ? `${prefix}/${slug}` : prefix;
+
+            if (!seen.has(urlPath)) {
+              seen.add(urlPath);
+              urls.push([urlPath, '']);
+            }
+          }
+        }
+      }
+
+      // Add bare prefix entries (e.g. "javascript-data-grid") for root pages.
+      for (const prefix of PREFIXES) {
+        if (!seen.has(prefix)) {
+          seen.add(prefix);
+          urls.push([prefix, '']);
+        }
+      }
+
+      scanContent(contentDir);
+    }
+
+    return urls;
+  }
+
+  // ── Main build function ───────────────────────────────────────────────────
+
+  async function buildAndWrite(outDir, distDir = null) {
+    const localPatch = getLocalVersion(); // e.g. "17.0.1"
+    const localMinor = localPatch ? toMinor(localPatch) : null;
+
+    let minors = localMinor ? [localMinor] : [];
+    let minorMap = new Map();
+
+    if (localMinor && localPatch) {
+      minorMap.set(localMinor, [localPatch]);
+    }
+
+    // Attempt to augment with the full release history from GitHub.
+    try {
+      const gh = await fetchGitHubVersions();
+
+      if (gh) {
+        // GitHub has the complete list of patches per minor version.
+        // Prefer GitHub data for any minor that already appears there.
+        // Keep the local version as fallback for brand-new minors not yet
+        // in GitHub (e.g. a pre-release build on the dev site).
+        for (const [minor, patches] of gh.minorMap) {
+          minorMap.set(minor, patches);
+        }
+
+        // Build merged minor list, newest-first, deduped.
+        const allMinors = new Set([
+          ...(localMinor ? [localMinor] : []),
+          ...gh.minors,
+        ]);
+
+        minors = [...allMinors].sort((a, b) => semver.rcompare(`${a}.0`, `${b}.0`));
+      }
+    } catch {
+      // Network failure -- continue with local version only.
+    }
+
+    const latestVersion = minors[0] ?? localMinor ?? 'next';
+    const versionsWithPatches = minors.map((m) => [m, minorMap.get(m) ?? []]);
+    const urls = collectUrls(distDir);
+
+    const payload = {
+      versions: minors,
+      versionsWithPatches,
+      latestVersion,
+      urls,
+    };
+
+    mkdirSync(resolve(outDir, 'data'), { recursive: true });
+    writeFileSync(
+      resolve(outDir, 'data', 'common.json'),
+      JSON.stringify(payload),
+      'utf-8'
+    );
+  }
+
+  // Write to public/data/ at startup so the dev server can serve it.
+  buildAndWrite(resolve(__dirname, 'public')).catch(() => {});
+
+  return {
+    name: 'common-json',
+    hooks: {
+      'astro:build:done': async ({ dir }) => {
+        const outDir = fileURLToPath(dir);
+
+        // Pass distDir so collectUrls() can scan built HTML files, which
+        // includes auto-generated API pages not present in content/.
+        await buildAndWrite(outDir, outDir);
+      },
+    },
+  };
+}
+
+/**
  * Astro integration that generates clean Markdown files for the
  * starlight-page-actions "View in Markdown" / "Copy Markdown" features.
  *
@@ -499,6 +766,10 @@ export default defineConfig({
     // Serves clean Markdown at *.md URLs for the "View in Markdown" button
     // added by starlight-page-actions.
     markdownRoutesIntegration(),
+
+    // Generates /docs/data/common.json consumed by the version dropdown in
+    // all deployed doc versions (current and previous).
+    commonJsonIntegration(),
 
     // Generate sitemap.xml during build.
     sitemap(),

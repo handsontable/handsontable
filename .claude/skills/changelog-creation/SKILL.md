@@ -1,6 +1,6 @@
 ---
 name: changelog-creation
-description: Use when a source code change needs a changelog entry - detecting when entries are required, categorizing changes correctly (added/changed/fixed/deprecated/removed/security), writing user-facing titles, and creating the JSON entry in .changelogs/
+description: Use when a source code change needs a changelog entry, or before committing and pushing any bug fix, feature, or behavior change to source code - detecting when entries are required, categorizing changes correctly (added/changed/fixed/deprecated/removed/security), writing user-facing titles, and creating the JSON entry in .changelogs/
 ---
 
 ## When a Changelog Entry Is Required
@@ -11,6 +11,7 @@ Any PR that changes source code needs a changelog entry. This includes bug fixes
 - Test-only changes (no production code touched)
 - Documentation-only changes
 - CI/tooling changes
+- Fixing a bug that was introduced but **not yet released** (the regression never reached users, so there is nothing to document)
 
 Add `[skip changelog]` in the PR description to explicitly skip.
 
