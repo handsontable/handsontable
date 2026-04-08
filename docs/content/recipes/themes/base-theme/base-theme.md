@@ -25,6 +25,10 @@ searchCategory: Recipes
 category: Themes
 ---
 
+<iframe src="https://codesandbox.io/p/sandbox/qr6x9m" title="Handsontable with Base Web demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px; min-height: 500px;"></iframe>
+
+[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/qr6x9m)
+
 ## Overview
 
 This recipe shows how to integrate Handsontable into a React app that uses [Base Web](https://baseweb.design/). You register a custom Handsontable theme that maps Base Web design tokens to Handsontable colors and tokens, so the grid follows your system styles.
@@ -50,7 +54,7 @@ This recipe shows how to integrate Handsontable into a React app that uses [Base
 Install Handsontable and the React wrapper in your project root:
 
 ```bash
-pnpm add handsontable @handsontable/react-wrapper
+pnpm add handsontable@0.0.0-next-deba76c-20260408 @handsontable/react-wrapper@0.0.0-next-deba76c-20260408
 ```
 
 If you are creating a new Base setup, install Base Web and Styletron as well:
