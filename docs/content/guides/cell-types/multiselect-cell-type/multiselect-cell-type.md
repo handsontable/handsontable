@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell types
 menuTag: new
 ---
-
-# MultiSelect cell type
-
 Collect user input with a list of multiple-selection choices, by using the MultiSelect cell type.
 
 [[toc]]
@@ -33,6 +30,12 @@ The list of selectable options (`source` property) can be provided in two format
 
 - An array of values
 - An array of objects with `key` and `value` properties
+
+## Integration with formulas
+
+When you use the MultiSelect cell type together with the [Formulas](@/api/options.md#formulas) plugin, Handsontable keeps MultiSelect values in source data as arrays.
+
+HyperFormula doesn't accept arrays as direct cell values. Because of that, Handsontable converts MultiSelect arrays to comma-separated strings before passing values to HyperFormula. This behavior keeps the original array format in source data, and allows formula cells to reference MultiSelect values as text (for example, `"Frontend, Backend"`).
 
 ## The `source` option
 
@@ -181,34 +184,61 @@ When working with object-based MultiSelect data, you can use methods like [`getS
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
 - [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`allowEmpty`](@/api/options.md#allowempty)
-  - [`placeholder`](@/api/options.md#placeholder)
-  - [`visibleRows`](@/api/options.md#visiblerows)
-  - [`maxSelections`](@/api/options.md#maxselections)
-  - [`sourceSortFunction`](@/api/options.md#sourcesortfunction)
-  - [`enterCommits`](@/api/options.md#entercommits)
-  - [`searchInput`](@/api/options.md#searchinput)
-  - [`filteringCaseSensitive`](@/api/options.md#filteringcasesensitive)
-- Core methods:
-  - [`getData()`](@/api/core.md#getdata)
-  - [`getSourceData()`](@/api/core.md#getsourcedata)
-  - [`getDataAtCell()`](@/api/core.md#getdataatcell)
-  - [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+**Related blog articles**
+
+<div class="boxes-list gray">
+
+- [Handsontable 17.0.0: Multiselect Cell Type, Simpler Custom Cells, and a New Themes API](https://handsontable.com/blog/handsontable-17.0.0-multiselect-cell-type-simpler-custom-cells-and-a-new-themes-api)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [allowEmpty](@/api/options.md#allowempty)
+- [placeholder](@/api/options.md#placeholder)
+- [visibleRows](@/api/options.md#visiblerows)
+- [maxSelections](@/api/options.md#maxselections)
+- [sourceSortFunction](@/api/options.md#sourcesortfunction)
+- [enterCommits](@/api/options.md#entercommits)
+- [searchInput](@/api/options.md#searchinput)
+- [filteringCaseSensitive](@/api/options.md#filteringcasesensitive)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getData()](@/api/core.md#getdata)
+- [getSourceData()](@/api/core.md#getsourcedata)
+- [getDataAtCell()](@/api/core.md#getdataatcell)
+- [getSourceDataAtCell()](@/api/core.md#getsourcedataatcell)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

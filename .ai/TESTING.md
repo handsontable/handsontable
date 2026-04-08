@@ -183,7 +183,7 @@ describe('CellMeta', () => {
 ## Async Testing
 
 **E2E Tests Must Be `async`:**
-Enforced by ESLint rule `handsontable/require-async-in-it` in `*.spec.js`:
+Enforced by ESLint rule `handsontable/require-async-in-it` in `*.spec.js` (applies to `it()`, `it.flaky()`, and `fit.flaky()` calls):
 
 ```javascript
 // CORRECT
@@ -200,6 +200,19 @@ it('should do something', () => {
   render(); // Must be await-ed
 });
 ```
+
+**Flaky Test Retries:**
+Use `it.flaky()` (or `fit.flaky()`) to mark tests that fail intermittently due to timing or environment issues. The test is retried up to 3 times before reporting a failure. Between retries, any existing Handsontable instance is destroyed and the container is cleaned up.
+
+```javascript
+it.flaky('should handle a timing-sensitive operation', async() => {
+  handsontable({ data: createSpreadsheetData(5, 5) });
+  await selectCell(0, 0);
+  expect(getDataAtCell(0, 0)).toBe('A1');
+});
+```
+
+The test description is prefixed with `[flaky]` in CI output for visibility. Defined in `test/helpers/it-themes-extension.js`.
 
 **HOT Methods Requiring `await` (from `handsontable/.eslintrc.js`):**
 
@@ -329,7 +342,7 @@ export function getColumnsForFilters() { /* ... */ }
 - `test/helpers/utils.js` -- `waitOnScroll()` decorator and utilities
 - `test/helpers/focusNavigator.js` -- Focus navigation helpers
 - `test/helpers/htmlNormalize.js` -- HTML normalization for assertions
-- `test/helpers/it-themes-extension.js` -- Theme-specific test extensions
+- `test/helpers/it-themes-extension.js` -- Theme-specific and flaky test extensions
 - `src/plugins/{name}/__tests__/helpers/` -- Plugin-specific test data and utilities
 
 ## Custom Matchers

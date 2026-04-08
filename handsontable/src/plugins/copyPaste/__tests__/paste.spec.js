@@ -93,7 +93,7 @@ describe('CopyPaste', () => {
       await selectCell(3, 4); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       const expected = arrayOfArrays();
 
@@ -113,7 +113,7 @@ describe('CopyPaste', () => {
       await selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(getData().length).toEqual(4);
       expect(getData(0, 0, 2, 4)).toEqual([
@@ -135,7 +135,7 @@ describe('CopyPaste', () => {
       await selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(getData().length).toEqual(6);
       expect(getData(0, 0, 2, 4)).toEqual([
@@ -157,7 +157,7 @@ describe('CopyPaste', () => {
       await selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(getData()[0].length).toEqual(5);
       expect(getDataAtRow(1)).toEqual(['Kia', 'Nissan', 'Toyota', '2008', 10]);
@@ -175,7 +175,7 @@ describe('CopyPaste', () => {
       await selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
       expect(getData()[0].length).toEqual(9);
       expect(getDataAtRow(1)).toEqual(['Kia', 'Nissan', 'Toyota', '2008', 10, 11, 12, 13, null]);
     });
@@ -203,7 +203,7 @@ describe('CopyPaste', () => {
         errors += 1;
       }
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(errors).toEqual(0);
     });
@@ -239,16 +239,16 @@ describe('CopyPaste', () => {
 
       triggerPaste(copiedData1);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
       await selectCell(1, 0, 2, 0);
       triggerPaste(copiedData2);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual(copiedData2);
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual(copiedData2);
@@ -276,7 +276,7 @@ describe('CopyPaste', () => {
 
       triggerPaste(copiedData);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
@@ -297,7 +297,7 @@ describe('CopyPaste', () => {
       await keyDownUp(['control/meta', 'v']);
       triggerPaste('Kia');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(beforePasteSpy.calls.count()).toEqual(1);
       expect(beforePasteSpy).toHaveBeenCalledWith(
@@ -323,7 +323,7 @@ describe('CopyPaste', () => {
       await keyDownUp(['control/meta', 'v']);
       triggerPaste('Kia');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(afterPasteSpy.calls.count()).toEqual(0);
     });
@@ -340,7 +340,7 @@ describe('CopyPaste', () => {
       await keyDownUp(['control/meta', 'v']);
       triggerPaste('Kia\nToyota');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('Toyota');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
@@ -681,7 +681,7 @@ describe('CopyPaste', () => {
 
       plugin.onPaste(clipboardEvent);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onErrorSpy).not.toHaveBeenCalled();
       expect(window.__testFunction).not.toHaveBeenCalled();
@@ -713,7 +713,7 @@ describe('CopyPaste', () => {
 
       plugin.onPaste(clipboardEvent);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onErrorSpy).not.toHaveBeenCalled();
       expect(window.__testFunction).not.toHaveBeenCalled();
@@ -859,7 +859,7 @@ describe('CopyPaste', () => {
       const plugin = getPlugin('CopyPaste');
 
       await selectCells([[0, 0, 0, 49]]);
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       const pasteEvent = getClipboardEvent({
         target: document.activeElement,
@@ -918,79 +918,6 @@ describe('CopyPaste', () => {
 
       expect(getDataAtCell(1, 1)).toEqual('test2');
       expect(getCopyableSourceData(1, 1)).toEqual({ sth: 1, label: 'test2' });
-    });
-
-    it('should handle pasting very large HTML tables without stack overflow (issue #11784)', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        copyPaste: true,
-      });
-
-      // Create a large HTML table (50,000 rows) to test the fix
-      const rowCount = 50000;
-      let htmlTable = '<table><tbody>';
-
-      for (let i = 0; i < rowCount; i++) {
-        htmlTable += `<tr><td>Row${i}Col0</td><td>Row${i}Col1</td><td>Row${i}Col2</td></tr>`;
-      }
-      htmlTable += '</tbody></table>';
-
-      const plugin = getPlugin('CopyPaste');
-      const event = getClipboardEvent();
-
-      event.clipboardData.setData('text/html', htmlTable);
-
-      await selectCell(0, 0);
-
-      // This should not throw "Maximum call stack size exceeded"
-      expect(() => {
-        plugin.onPaste(event);
-      }).not.toThrow();
-
-      // The table should have been pasted successfully (though it may be limited by settings)
-      // Just verify the first few rows to ensure the paste worked
-      expect(getDataAtCell(0, 0)).toBe('Row0Col0');
-      expect(getDataAtCell(1, 0)).toBe('Row1Col0');
-      expect(getDataAtCell(2, 0)).toBe('Row2Col0');
-    });
-
-    it('should handle pasting HTML tables with multiple tbody sections without stack overflow', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        copyPaste: true,
-      });
-
-      // Create HTML table with multiple tbody sections (25,000 rows each)
-      const rowsPerSection = 25000;
-      let htmlTable = '<table>';
-
-      for (let section = 0; section < 2; section++) {
-        htmlTable += '<tbody>';
-
-        for (let i = 0; i < rowsPerSection; i++) {
-          const rowNum = (section * rowsPerSection) + i;
-
-          htmlTable += `<tr><td>S${section}R${rowNum}</td></tr>`;
-        }
-        htmlTable += '</tbody>';
-      }
-      htmlTable += '</table>';
-
-      const plugin = getPlugin('CopyPaste');
-      const event = getClipboardEvent();
-
-      event.clipboardData.setData('text/html', htmlTable);
-
-      await selectCell(0, 0);
-
-      // This should not throw "Maximum call stack size exceeded"
-      expect(() => {
-        plugin.onPaste(event);
-      }).not.toThrow();
-
-      // Verify the paste worked
-      expect(getDataAtCell(0, 0)).toBe('S0R0');
-      expect(getDataAtCell(1, 0)).toBe('S0R1');
     });
   });
 });

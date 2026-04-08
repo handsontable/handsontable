@@ -17,9 +17,6 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Selection
-
 Select a single cell, a range of adjacent cells, or multiple non-adjacent ranges of cells.
 
 [[toc]]
@@ -50,11 +47,12 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2 --ts 3
+::: example #example1 --html 1 --js 2 --ts 3 --css 4
 
 @[code](@/content/guides/cell-features/selection/javascript/example1.html)
 @[code](@/content/guides/cell-features/selection/javascript/example1.js)
 @[code](@/content/guides/cell-features/selection/javascript/example1.ts)
+@[code](@/content/guides/cell-features/selection/javascript/example1.css)
 
 :::
 
@@ -296,34 +294,57 @@ To jump across a horizontal edge:
 
 ## Related API reference
 
-- Configuration options:
-  - [`autoWrapCol`](@/api/options.md#autowrapcol)
-  - [`autoWrapRow`](@/api/options.md#autowraprow)
-  - [`fragmentSelection`](@/api/options.md#fragmentselection)
-  - [`disableVisualSelection`](@/api/options.md#disablevisualselection)
-  - [`dragToScroll`](@/api/options.md#dragtoscroll)
-  - [`selectionMode`](@/api/options.md#selectionmode)
-  - [`outsideClickDeselects`](@/api/options.md#outsideclickdeselects)
-- Core methods:
-  - [`deselectCell()`](@/api/core.md#deselectcell)
-  - [`getSelected()`](@/api/core.md#getselected)
-  - [`getSelectedLast()`](@/api/core.md#getselectedlast)
-  - [`getSelectedRange()`](@/api/core.md#getselectedrange)
-  - [`getSelectedRangeLast()`](@/api/core.md#getselectedrangelast)
-  - [`selectAll()`](@/api/core.md#selectall)
-  - [`selectCell()`](@/api/core.md#selectcell)
-  - [`selectCells()`](@/api/core.md#selectcells)
-  - [`selectColumns()`](@/api/core.md#selectcolumns)
-  - [`selectRows()`](@/api/core.md#selectrows)
-- Hooks:
-  - [`afterDeselect`](@/api/hooks.md#afterdeselect)
-  - [`afterDrawSelection`](@/api/hooks.md#afterdrawselection)
-  - [`afterModifyTransformEnd`](@/api/hooks.md#aftermodifytransformend)
-  - [`afterModifyTransformStart`](@/api/hooks.md#aftermodifytransformstart)
-  - [`afterSelection`](@/api/hooks.md#afterselection)
-  - [`afterSelectionByProp`](@/api/hooks.md#afterselectionbyprop)
-  - [`afterSelectionEnd`](@/api/hooks.md#afterselectionend)
-  - [`afterSelectionEndByProp`](@/api/hooks.md#afterselectionendbyprop)
-  - [`modifyTransformStart`](@/api/hooks.md#modifytransformstart)
-- Plugins:
-  - [`DragToScroll`](@/api/dragToScroll.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [autoWrapCol](@/api/options.md#autowrapcol)
+- [autoWrapRow](@/api/options.md#autowraprow)
+- [fragmentSelection](@/api/options.md#fragmentselection)
+- [disableVisualSelection](@/api/options.md#disablevisualselection)
+- [dragToScroll](@/api/options.md#dragtoscroll)
+- [selectionMode](@/api/options.md#selectionmode)
+- [outsideClickDeselects](@/api/options.md#outsideclickdeselects)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [deselectCell()](@/api/core.md#deselectcell)
+- [getSelected()](@/api/core.md#getselected)
+- [getSelectedLast()](@/api/core.md#getselectedlast)
+- [getSelectedRange()](@/api/core.md#getselectedrange)
+- [getSelectedRangeLast()](@/api/core.md#getselectedrangelast)
+- [selectAll()](@/api/core.md#selectall)
+- [selectCell()](@/api/core.md#selectcell)
+- [selectCells()](@/api/core.md#selectcells)
+- [selectColumns()](@/api/core.md#selectcolumns)
+- [selectRows()](@/api/core.md#selectrows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterDeselect](@/api/hooks.md#afterdeselect)
+- [afterDrawSelection](@/api/hooks.md#afterdrawselection)
+- [afterModifyTransformEnd](@/api/hooks.md#aftermodifytransformend)
+- [afterModifyTransformStart](@/api/hooks.md#aftermodifytransformstart)
+- [afterSelection](@/api/hooks.md#afterselection)
+- [afterSelectionByProp](@/api/hooks.md#afterselectionbyprop)
+- [afterSelectionEnd](@/api/hooks.md#afterselectionend)
+- [afterSelectionEndByProp](@/api/hooks.md#afterselectionendbyprop)
+- [modifyTransformStart](@/api/hooks.md#modifytransformstart)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [DragToScroll](@/api/dragToScroll.md)
+
+</div>

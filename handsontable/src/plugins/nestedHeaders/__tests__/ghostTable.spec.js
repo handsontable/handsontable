@@ -360,5 +360,6 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
     });
+
   });
 });

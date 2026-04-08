@@ -1738,7 +1738,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(3, true); // Hide column that contains cells D{n}
       await render();
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const hidingMap2 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map2', 'hiding');
 
@@ -1798,7 +1798,7 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const hidingMap3 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map3', 'hiding');
 
@@ -1848,7 +1848,7 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const hidingMap4 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map4', 'hiding');
 
@@ -1906,14 +1906,14 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(3, true); // Hide column that contains cells D{n}
       await render();
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const hidingMap2 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map2', 'hiding');
 
       hidingMap2.setValueAtIndex(6, true); // Hide column that contains cells G{n}
       hidingMap2.setValueAtIndex(9, true); // Hide column that contains cells J{n}
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const hidingMap3 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map3', 'hiding');
 
@@ -1923,7 +1923,7 @@ describe('NestedHeaders', () => {
       hidingMap3.setValueAtIndex(9, true); // Hide column that contains cells J{n}
       await render();
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const hidingMap4 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map4', 'hiding');
 
@@ -2197,10 +2197,9 @@ describe('NestedHeaders', () => {
           hot.rootElement.offsetTop + 5
         );
 
-      expect(
-        topHeaderInTheMiddle.nodeName === 'TH' ||
-        topHeaderInTheMiddle.parentNode.nodeName === 'TH'
-      ).toEqual(true);
+      // Header label lives under th > div.relative > span.colHeader; elementFromPoint often
+      // returns the inner span or div, not the th itself.
+      expect(topHeaderInTheMiddle.closest('th')).not.toBeNull();
 
       hidingMap.setValues([true, true, true, true, true, true]);
       await render();

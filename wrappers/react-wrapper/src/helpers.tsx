@@ -212,6 +212,91 @@ export function isCSR(): boolean {
   return typeof window !== 'undefined';
 }
 
+function isObjectLike(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (!isObjectLike(value)) {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  return prototype === Object.prototype || prototype === null;
+}
+
+function isArray(value: unknown): value is unknown[] {
+  return Array.isArray(value);
+}
+
+/**
+ * Deep-compare plain objects and arrays used by wrapper settings.
+ *
+ * @param {unknown} previousValue Previous value.
+ * @param {unknown} currentValue Current value.
+ * @returns {boolean} `true` if values are equivalent.
+ */
+export function areEquivalentSettingsValue(previousValue: unknown, currentValue: unknown): boolean {
+  if (previousValue === currentValue) {
+    return true;
+  }
+
+  if (previousValue instanceof RegExp || currentValue instanceof RegExp) {
+    if (!(previousValue instanceof RegExp) || !(currentValue instanceof RegExp)) {
+      return false;
+    }
+
+    return previousValue.source === currentValue.source &&
+      previousValue.flags === currentValue.flags;
+  }
+
+  if (isArray(previousValue) && isArray(currentValue)) {
+    if (previousValue.length !== currentValue.length) {
+      return false;
+    }
+
+    for (let index = 0; index < previousValue.length; index++) {
+      if (!areEquivalentSettingsValue(previousValue[index], currentValue[index])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  if (isArray(previousValue) || isArray(currentValue)) {
+    return false;
+  }
+
+  if (!isObjectLike(previousValue) || !isObjectLike(currentValue)) {
+    return false;
+  }
+
+  if (!isPlainObject(previousValue) || !isPlainObject(currentValue)) {
+    return false;
+  }
+
+  const previousKeys = Object.keys(previousValue);
+  const currentKeys = Object.keys(currentValue);
+
+  if (previousKeys.length !== currentKeys.length) {
+    return false;
+  }
+
+  for (const key of previousKeys) {
+    if (!Object.prototype.hasOwnProperty.call(currentValue, key)) {
+      return false;
+    }
+
+    if (!areEquivalentSettingsValue(previousValue[key], currentValue[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /**
  * A variant of useEffect hook that does not trigger on initial mount, only updates
  *

@@ -1,0 +1,10 @@
+
+# Playwright
+node_modules/
+/blob-report/
+/playwright/.cache/
+output
+!output/.gitkeep
+# Playwright
+/playwright/.auth/
+.DS_Store

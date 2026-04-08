@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Merge cells
-
 Merge adjacent cells, using the <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> shortcut or the context menu. Control merged cells, using Handsontable's API.
 
 [[toc]]
@@ -168,16 +165,33 @@ The example below uses virtualized merged cells. It's also recommended to increa
 
 ## Related API reference
 
-- Configuration options:
-  - [`mergeCells`](@/api/options.md#mergecells)
-  - [`viewportColumnRenderingThreshold`](@/api/options.md#viewportcolumnrenderingthreshold)
-  - [`viewportRowRenderingThreshold`](@/api/options.md#viewportrowrenderingthreshold)
-  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
-  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
-- Hooks:
-  - [`afterMergeCells`](@/api/hooks.md#aftermergecells)
-  - [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
-  - [`beforeMergeCells`](@/api/hooks.md#beforemergecells)
-  - [`beforeUnmergeCells`](@/api/hooks.md#beforeunmergecells)
-- Plugins:
-  - [`MergeCells`](@/api/mergeCells.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [mergeCells](@/api/options.md#mergecells)
+- [viewportColumnRenderingThreshold](@/api/options.md#viewportcolumnrenderingthreshold)
+- [viewportRowRenderingThreshold](@/api/options.md#viewportrowrenderingthreshold)
+- [viewportColumnRenderingOffset](@/api/options.md#viewportcolumnrenderingoffset)
+- [viewportRowRenderingOffset](@/api/options.md#viewportrowrenderingoffset)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterMergeCells](@/api/hooks.md#aftermergecells)
+- [afterUnmergeCells](@/api/hooks.md#afterunmergecells)
+- [beforeMergeCells](@/api/hooks.md#beforemergecells)
+- [beforeUnmergeCells](@/api/hooks.md#beforeunmergecells)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [MergeCells](@/api/mergeCells.md)
+
+</div>

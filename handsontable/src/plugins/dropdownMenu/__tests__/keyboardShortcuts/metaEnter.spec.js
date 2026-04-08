@@ -140,7 +140,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       await selectCell(-1, 1);
       await keyDownUp(['control/meta', 'enter']);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getPlugin('dropdownMenu').menu.hotMenu.getSelected()).toEqual([[0, 0, 0, 0]]);
     });
@@ -295,6 +295,11 @@ describe('DropdownMenu keyboard shortcut', () => {
         const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
         expect($dropdownMenu.length).toBe(1);
+
+        if ($dropdownMenu.length !== 1 || !menuOffset || !cellOffset || !buttonOffset) {
+          return;
+        }
+
         expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
           main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);

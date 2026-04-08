@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with mobile select handles styles",
-  "type": "fixed",
-  "issueOrPR": 12083,
-  "breaking": false,
-  "framework": "none"
-}

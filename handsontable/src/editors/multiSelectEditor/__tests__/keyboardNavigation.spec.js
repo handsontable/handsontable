@@ -45,7 +45,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const searchInput = $dropdown.find('.ht-multi-select-editor-search-input')[0];
@@ -70,7 +70,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         const $dropdown = $('.ht-multi-select-editor');
         const checkbox1 = $dropdown.find('input[type="checkbox"]').first()[0];
@@ -95,13 +95,13 @@ describe('MultiSelectEditor keyboard navigation', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         const editor = getActiveEditor();
         const $dropdown = $('.ht-multi-select-editor');
 
         await keyDownUp('ArrowDown');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         const checkbox1 = $dropdown.find('input[type="checkbox"]').first()[0];
 
@@ -110,7 +110,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
         expect(checkbox1.dataset.value).toBe('yellow');
 
         await keyDownUp('ArrowDown');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         let activeElement = document.activeElement;
 
@@ -119,7 +119,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
         expect(activeElement.dataset.value).toBe('red');
 
         await keyDownUp('ArrowUp');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         activeElement = document.activeElement;
 
@@ -128,7 +128,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
         expect(activeElement.dataset.value).toBe('yellow');
 
         await keyDownUp('ArrowUp');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         activeElement = document.activeElement;
 
@@ -152,9 +152,9 @@ describe('MultiSelectEditor keyboard navigation', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getDataAtCell(0, 0)).toBe('yellow, red');
         expect(getSourceDataAtCell(0, 0)).toEqual(getSampleInitialCellValue('yellow', 'red'));
@@ -178,7 +178,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
 
         await selectCell(0, 0);
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         const editor = getActiveEditor();
         const $dropdown = $('.ht-multi-select-editor');
@@ -190,7 +190,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
         expect(checkbox1.checked).toBe(false);
 
         await keyDownUp('enter');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(checkbox1.checked).toBe(true);
         expect(getSourceDataAtCell(0, 0)).toEqual(getSampleInitialCellValue('yellow'));
@@ -214,7 +214,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
 
         await selectCell(0, 0);
         await keyDownUp('E');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         const editor = getActiveEditor();
         const $dropdown = $('.ht-multi-select-editor');
@@ -224,7 +224,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
         expect(document.activeElement).toBe(editor.getInputElement());
 
         await keyDownUp('ArrowDown');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         let activeCheckbox = $dropdown.find('input[type="checkbox"]:visible').first()[0];
 
@@ -232,7 +232,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
         expect(activeCheckbox.dataset.value).toBe('yellow');
 
         await keyDownUp('ArrowDown');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         activeCheckbox = $dropdown.find('input[type="checkbox"]:visible').eq(1)[0];
 
@@ -256,7 +256,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
 
         await selectCell(0, 0);
         await keyDownUp('E');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         const editor = getActiveEditor();
         const $dropdown = $('.ht-multi-select-editor');
@@ -269,7 +269,7 @@ describe('MultiSelectEditor keyboard navigation', () => {
         expect(activeCheckbox.dataset.value).toBe('yellow');
 
         await keyDownUp('ArrowDown');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         activeCheckbox = $dropdown.find('input[type="checkbox"]').eq(1)[0];
         expect(document.activeElement).toBe(activeCheckbox);

@@ -7,6 +7,7 @@ import {
   getFractionalScalingCompensation,
   hasClass,
   isInput,
+  isBottomMostColumnHeader,
   removeAttribute,
   removeClass,
   selectElementIfAllowed,
@@ -37,6 +38,44 @@ describe('DomElement helper', () => {
       div.contentEditable = 'true';
 
       expect(isInput(div)).toBe(true);
+    });
+  });
+
+  describe('isBottomMostColumnHeader', () => {
+    it('should return true for header spanning to the bottom-most row', () => {
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const firstRow = document.createElement('tr');
+      const secondRow = document.createElement('tr');
+      const rowspannedHeader = document.createElement('th');
+
+      rowspannedHeader.setAttribute('rowspan', '2');
+      firstRow.appendChild(rowspannedHeader);
+      secondRow.appendChild(document.createElement('th'));
+      thead.appendChild(firstRow);
+      thead.appendChild(secondRow);
+      table.appendChild(thead);
+
+      expect(isBottomMostColumnHeader(rowspannedHeader)).toBe(true);
+    });
+
+    it('should return false for hidden or missing header elements', () => {
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const row = document.createElement('tr');
+      const hiddenHeader = document.createElement('th');
+      const hiddenByDisplayHeader = document.createElement('th');
+
+      hiddenHeader.classList.add('hiddenHeader');
+      hiddenByDisplayHeader.style.display = 'none';
+      row.appendChild(hiddenHeader);
+      row.appendChild(hiddenByDisplayHeader);
+      thead.appendChild(row);
+      table.appendChild(thead);
+
+      expect(isBottomMostColumnHeader(hiddenHeader)).toBe(false);
+      expect(isBottomMostColumnHeader(hiddenByDisplayHeader)).toBe(false);
+      expect(isBottomMostColumnHeader(null)).toBe(false);
     });
   });
 

@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "17.0.0",
+  "version": "17.0.1",
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
@@ -127,6 +127,7 @@
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-compat": "^4.2.0",
     "eslint-plugin-jsdoc": "^32.3.3",
+    "exceljs": "^4.4.0",
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2",
     "glob": "^7.1.2",
