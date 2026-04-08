@@ -188,68 +188,68 @@ export const REGISTERED_HOOKS = [
   'afterChange',
 
   /**
-   * Fired each time user opens {@link ContextMenu} and after setting up the Context Menu's default options. These options are a collection
+   * Fired each time user opens {@link ContextMenu} and after setting up the context menu's default options. These options are a collection
    * which user can select by setting an array of keys or an array of objects in {@link Options#contextMenu} option.
    *
    * @event Hooks#afterContextMenuDefaultOptions
-   * @param {Array} predefinedItems An array of objects containing information about the pre-defined Context Menu items.
+   * @param {Array} predefinedItems An array of objects containing information about the pre-defined context menu items.
    */
   'afterContextMenuDefaultOptions',
 
   /**
-   * Fired each time user opens {@link ContextMenu} plugin before setting up the Context Menu's items but after filtering these options by
+   * Fired each time user opens {@link ContextMenu} plugin before setting up the context menu's items but after filtering these options by
    * user ([`contextMenu`](@/api/options.md#contextmenu) option). This hook can by helpful to determine if user use specified menu item or to set up
    * one of the menu item to by always visible.
    *
    * @event Hooks#beforeContextMenuSetItems
-   * @param {object[]} menuItems An array of objects containing information about to generated Context Menu items.
+   * @param {object[]} menuItems An array of objects containing information about to generated context menu items.
    */
   'beforeContextMenuSetItems',
 
   /**
-   * Fired by {@link DropdownMenu} plugin after setting up the Dropdown Menu's default options. These options are a
+   * Fired by {@link DropdownMenu} plugin after setting up the dropdown menu's default options. These options are a
    * collection which user can select by setting an array of keys or an array of objects in {@link Options#dropdownMenu}
    * option.
    *
    * @event Hooks#afterDropdownMenuDefaultOptions
-   * @param {object[]} predefinedItems An array of objects containing information about the pre-defined Context Menu items.
+   * @param {object[]} predefinedItems An array of objects containing information about the pre-defined dropdown menu items.
    */
   'afterDropdownMenuDefaultOptions',
 
   /**
-   * Fired by {@link DropdownMenu} plugin before setting up the Dropdown Menu's items but after filtering these options
+   * Fired by {@link DropdownMenu} plugin before setting up the dropdown menu's items but after filtering these options
    * by user ([`dropdownMenu`](@/api/options.md#dropdownmenu) option). This hook can by helpful to determine if user use specified menu item or to set
    * up one of the menu item to by always visible.
    *
    * @event Hooks#beforeDropdownMenuSetItems
-   * @param {object[]} menuItems An array of objects containing information about to generated Dropdown Menu items.
+   * @param {object[]} menuItems An array of objects containing information about to generated dropdown menu items.
    */
   'beforeDropdownMenuSetItems',
 
   /**
-   * Fired by {@link ContextMenu} plugin after hiding the Context Menu. This hook is fired when {@link Options#contextMenu}
+   * Fired by {@link ContextMenu} plugin after hiding the context menu. This hook is fired when {@link Options#contextMenu}
    * option is enabled.
    *
    * @event Hooks#afterContextMenuHide
-   * @param {object} context The Context Menu plugin instance.
+   * @param {object} context The {@link ContextMenu} plugin instance.
    */
   'afterContextMenuHide',
 
   /**
-   * Fired by {@link ContextMenu} plugin before opening the Context Menu. This hook is fired when {@link Options#contextMenu}
+   * Fired by {@link ContextMenu} plugin before opening the context menu. This hook is fired when {@link Options#contextMenu}
    * option is enabled.
    *
    * @event Hooks#beforeContextMenuShow
-   * @param {object} context The Context Menu instance.
+   * @param {object} context The {@link ContextMenu} instance.
    */
   'beforeContextMenuShow',
 
   /**
-   * Fired by {@link ContextMenu} plugin after opening the Context Menu. This hook is fired when {@link Options#contextMenu}
+   * Fired by {@link ContextMenu} plugin after opening the context menu. This hook is fired when {@link Options#contextMenu}
    * option is enabled.
    *
    * @event Hooks#afterContextMenuShow
-   * @param {object} context The Context Menu plugin instance.
+   * @param {object} context The {@link ContextMenu} plugin instance.
    */
   'afterContextMenuShow',
 
@@ -2829,7 +2829,7 @@ export const REGISTERED_HOOKS = [
   'afterFormulasValuesUpdate',
 
   /**
-   * Fired when a named expression is added to the Formulas' engine instance.
+   * Fired by the {@link Formulas} plugin when a named expression is added to the engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionAdded
@@ -2839,7 +2839,7 @@ export const REGISTERED_HOOKS = [
   'afterNamedExpressionAdded',
 
   /**
-   * Fired when a named expression is removed from the Formulas' engine instance.
+   * Fired by the {@link Formulas} plugin when a named expression is removed from the engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionRemoved
@@ -2849,7 +2849,7 @@ export const REGISTERED_HOOKS = [
   'afterNamedExpressionRemoved',
 
   /**
-   * Fired when a new sheet is added to the Formulas' engine instance.
+   * Fired by the {@link Formulas} plugin when a new sheet is added to the engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterSheetAdded
@@ -2858,7 +2858,7 @@ export const REGISTERED_HOOKS = [
   'afterSheetAdded',
 
   /**
-   * Fired when a sheet in the Formulas' engine instance is renamed.
+   * Fired by the {@link Formulas} plugin when a sheet in the engine instance is renamed.
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRenamed
@@ -2868,7 +2868,7 @@ export const REGISTERED_HOOKS = [
   'afterSheetRenamed',
 
   /**
-   * Fired when a sheet is removed from the Formulas' engine instance.
+   * Fired by the {@link Formulas} plugin when a sheet is removed from the engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRemoved
@@ -3223,7 +3223,7 @@ export const REGISTERED_HOOKS = [
   'beforeDropdownMenuShow',
 
   /**
-   * Fired by {@link DropdownMenu} plugin after opening the Dropdown Menu. This hook is fired when {@link Options#dropdownMenu}
+   * Fired by {@link DropdownMenu} plugin after opening the dropdown menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
    * @event Hooks#afterDropdownMenuShow
@@ -3232,7 +3232,7 @@ export const REGISTERED_HOOKS = [
   'afterDropdownMenuShow',
 
   /**
-   * Fired by {@link DropdownMenu} plugin after hiding the Dropdown Menu. This hook is fired when {@link Options#dropdownMenu}
+   * Fired by {@link DropdownMenu} plugin after hiding the dropdown menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
    * @event Hooks#afterDropdownMenuHide
