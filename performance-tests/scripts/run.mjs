@@ -16,6 +16,8 @@ const ROOT = join(import.meta.dirname, '..');
 const HOT_DIR = join(ROOT, '..', 'handsontable');
 const FIXTURES_DIR = join(ROOT, 'fixtures');
 
+const WORKSPACE_ROOT = join(ROOT, '..');
+
 const exists = p => access(p).then(() => true, () => false);
 
 async function run(cmd, opts = {}) {
@@ -26,12 +28,20 @@ async function run(cmd, opts = {}) {
   if (stderr) { console.error(stderr); }
 }
 
-// 1. Build Handsontable UMD + languages
+// 1. Install workspace dependencies (provides cross-env-shell, webpack, etc.)
+console.log('\n=== Installing workspace dependencies ===\n');
+await run('PUPPETEER_SKIP_DOWNLOAD=true pnpm install', { cwd: WORKSPACE_ROOT });
+
+// 2. Install performance-tests own dependencies
+console.log('\n=== Installing performance-tests dependencies ===\n');
+await run('npm install', { cwd: ROOT });
+
+// 3. Build Handsontable UMD + languages
 console.log('\n=== Building Handsontable UMD ===\n');
 await run('npm run build:umd', { cwd: HOT_DIR });
 await run('npm run build:languages', { cwd: HOT_DIR });
 
-// 2. Copy dist + styles into fixtures/
+// 4. Copy dist + styles into fixtures/
 console.log('\n=== Copying build artifacts to fixtures/ ===\n');
 await mkdir(FIXTURES_DIR, { recursive: true });
 
@@ -53,15 +63,15 @@ if (await exists(stylesDir)) {
   }
 }
 
-// 3. Install Playwright chromium (idempotent)
+// 5. Install Playwright chromium (idempotent)
 console.log('\n=== Installing Playwright Chromium ===\n');
 await run('npx playwright install chromium', { cwd: ROOT });
 
-// 4. Run Playwright tests
+// 6. Run Playwright tests
 console.log('\n=== Running performance scenarios ===\n');
 await run('npx playwright test', { cwd: ROOT });
 
-// 5. If golden mode, copy snapshots
+// 7. If golden mode, copy snapshots
 const mode = process.env.PERF_MODE;
 
 if (mode === 'golden') {
