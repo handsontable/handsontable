@@ -1,2 +1,4 @@
 *.js
-*.min.js
+*.css
+*.map
+!.gitkeep

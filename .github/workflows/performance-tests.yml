@@ -1,6 +1,13 @@
 name: Performance tests
 
 on:
+  push:
+    branches:
+      - 'develop'
+    paths:
+      - 'handsontable/src/**'
+      - 'performance-tests/**'
+      - '.github/workflows/performance-tests.yml'
   pull_request:
     types:
       - opened
@@ -14,12 +21,15 @@ concurrency:
 permissions:
   contents: read
   pull-requests: write
+  actions: read
 
 jobs:
   performance-tests:
     name: Performance tests
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      PERF_MODE: ${{ github.event_name == 'push' && 'golden' || 'compare' }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -36,19 +46,42 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - name: Run performance test setup
+      - name: Fetch golden snapshots
+        if: env.PERF_MODE == 'compare'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/performance-tests.yml/runs?branch=develop&status=success&per_page=1" \
+            --jq '.workflow_runs[0].id' 2>/dev/null || echo "")
+          if [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+            ARTIFACT_URL=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" \
+              --jq '.artifacts[] | select(.name=="perf-golden-snapshots") | .archive_download_url' 2>/dev/null || echo "")
+            if [ -n "$ARTIFACT_URL" ]; then
+              mkdir -p performance-tests/golden
+              gh api "$ARTIFACT_URL" > /tmp/golden.zip
+              unzip -o /tmp/golden.zip -d performance-tests/golden/
+              echo "Golden snapshots restored from run $RUN_ID"
+            else
+              echo "No golden artifact in run $RUN_ID"
+            fi
+          else
+            echo "No successful develop run found -- running without baseline"
+          fi
+
+      - name: Run performance tests
         working-directory: performance-tests
-        run: bash test.sh
+        env:
+          CI: true
+        run: node scripts/run.mjs
 
-      # - name: Install Playwright system dependencies
-      #   working-directory: performance-tests
-      #   run: npx playwright install-deps chromium
-
-      # - name: Run Playwright performance tests
-      #   working-directory: performance-tests
-      #   env:
-      #     CI: true
-      #   run: npx playwright test
+      - name: Upload golden snapshots
+        if: env.PERF_MODE == 'golden'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: perf-golden-snapshots
+          path: performance-tests/golden/snapshots.json
+          retention-days: 90
+          if-no-files-found: warn
 
       - name: Upload performance-tests output
         if: always()
@@ -60,7 +93,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Ensure PR comment body exists
-        if: always()
+        if: always() && github.event_name == 'pull_request'
         run: |
           mkdir -p performance-tests/output
           if [ ! -f performance-tests/output/result.md ]; then
@@ -72,7 +105,7 @@ jobs:
           fi
 
       - name: Compose pull request comment body
-        if: always()
+        if: always() && github.event_name == 'pull_request'
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
@@ -87,7 +120,7 @@ jobs:
           } > performance-tests/output/pr-comment.md
 
       - name: Post performance summary to pull request
-        if: always()
+        if: always() && github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.9.4
         with:
           header: performance-tests

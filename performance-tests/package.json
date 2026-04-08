@@ -1,18 +1,18 @@
 {
-  "name": "performance-test",
+  "name": "handsontable-performance-tests",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "test": "tests"
+  "description": "Performance measurement suite for Handsontable using Playwright + CDP traces",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint --ext .js,.mjs,.ts --ignore-pattern fixtures .",
+    "test": "node scripts/run.mjs"
   },
-  "scripts": {},
-  "keywords": [],
-  "author": "",
+  "author": "Handsoncode <hello@handsontable.com>",
   "license": "ISC",
-  "type": "commonjs",
   "devDependencies": {
-    "@playwright/test": "^1.58.2",
-    "@types/node": "^25.5.0"
+    "@playwright/test": "~1.58.2",
+    "@types/node": "^22.0.0",
+    "typescript": "~5.1.3"
   }
 }
