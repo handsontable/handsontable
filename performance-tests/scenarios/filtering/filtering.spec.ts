@@ -53,5 +53,8 @@ test(config.name, async({ page }) => {
     },
   });
 
-  await saveHookTimings(outputDir, hookDeltas);
+  // Discard warmup deltas -- actionFn runs during warmup too
+  const measuredDeltas = hookDeltas.slice(config.warmupRuns);
+
+  await saveHookTimings(outputDir, measuredDeltas);
 });
