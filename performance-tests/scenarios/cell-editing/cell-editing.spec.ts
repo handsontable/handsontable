@@ -41,7 +41,11 @@ test(config.name, async({ page }) => {
 
         hot.loadData((window as any).Handsontable.helper.createSpreadsheetData(5000, 10));
       });
-      await page.waitForTimeout(200);
+      await page.waitForFunction(() => {
+        const hot = (window as any).__hot;
+
+        return hot.countRenderedRows() > 0;
+      });
     },
   });
 });

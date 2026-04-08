@@ -1,12 +1,13 @@
 // Golden snapshot I/O -- save, load, and compare performance baselines.
 
-import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+
+import { exists } from './fs-utils.mjs';
+import { pctChange } from './thresholds.mjs';
 
 const GOLDEN_DIR = join(import.meta.dirname, '..', 'golden');
 const GOLDEN_PATH = join(GOLDEN_DIR, 'snapshots.json');
-
-const exists = p => access(p).then(() => true, () => false);
 
 /**
  * @param {Record<string, object>} scenarioResults -- keyed by scenario name
@@ -34,9 +35,15 @@ export async function loadSnapshots() {
     return null;
   }
 
-  const raw = await readFile(GOLDEN_PATH, 'utf8');
+  try {
+    const raw = await readFile(GOLDEN_PATH, 'utf8');
 
-  return JSON.parse(raw);
+    return JSON.parse(raw);
+  } catch (err) {
+    console.warn(`Warning: failed to parse golden snapshots (${err.message}) -- running without baseline`);
+
+    return null;
+  }
 }
 
 /**
@@ -112,12 +119,4 @@ function computeDeltas(golden, current) {
   }
 
   return deltas;
-}
-
-function pctChange(baseline, current) {
-  if (baseline == null || current == null || baseline === 0) {
-    return null;
-  }
-
-  return ((current - baseline) / baseline) * 100;
 }

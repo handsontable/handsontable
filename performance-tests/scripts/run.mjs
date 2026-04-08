@@ -5,10 +5,12 @@
 //   PERF_MODE=golden  node scripts/run.mjs  # run scenarios, save golden snapshots
 //   PERF_MODE=compare node scripts/run.mjs  # run scenarios, compare to golden
 
-import { exec } from 'node:child_process';
-import { readdir, mkdir, copyFile, access } from 'node:fs/promises';
+import { exec, spawn } from 'node:child_process';
+import { readdir, mkdir, copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
+
+import { exists } from '../lib/fs-utils.mjs';
 
 const execAsync = promisify(exec);
 
@@ -17,8 +19,6 @@ const HOT_DIR = join(ROOT, '..', 'handsontable');
 const FIXTURES_DIR = join(ROOT, 'fixtures');
 
 const WORKSPACE_ROOT = join(ROOT, '..');
-
-const exists = p => access(p).then(() => true, () => false);
 
 async function run(cmd, opts = {}) {
   console.log(`> ${cmd}`);
@@ -30,7 +30,10 @@ async function run(cmd, opts = {}) {
 
 // 1. Install workspace dependencies (provides cross-env-shell, webpack, etc.)
 console.log('\n=== Installing workspace dependencies ===\n');
-await run('PUPPETEER_SKIP_DOWNLOAD=true pnpm install', { cwd: WORKSPACE_ROOT });
+await run('pnpm install', {
+  cwd: WORKSPACE_ROOT,
+  env: { ...process.env, PUPPETEER_SKIP_DOWNLOAD: 'true' },
+});
 
 // 2. Install performance-tests own dependencies
 console.log('\n=== Installing performance-tests dependencies ===\n');
@@ -67,9 +70,25 @@ if (await exists(stylesDir)) {
 console.log('\n=== Installing Playwright Chromium ===\n');
 await run('npx playwright install chromium', { cwd: ROOT });
 
-// 6. Run Playwright tests
+// 6. Run Playwright tests (stream output so GH Actions logs show progress)
 console.log('\n=== Running performance scenarios ===\n');
-await run('npx playwright test', { cwd: ROOT });
+await new Promise((resolve, reject) => {
+  const child = spawn('npx', ['playwright', 'test'], {
+    cwd: ROOT,
+    stdio: 'inherit',
+    shell: true,
+  });
+
+  child.on('close', (code) => {
+    if (code === 0) {
+      resolve();
+    } else {
+      reject(new Error(`Playwright exited with code ${code}`));
+    }
+  });
+
+  child.on('error', reject);
+});
 
 // 7. If golden mode, copy snapshots
 const mode = process.env.PERF_MODE;

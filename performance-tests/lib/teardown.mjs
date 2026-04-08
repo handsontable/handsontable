@@ -1,17 +1,16 @@
 // Playwright globalTeardown -- parse all trace files, average per scenario,
 // build the markdown report, and optionally save/compare golden snapshots.
 
-import { readdir, readFile, writeFile, mkdir, copyFile, access } from 'node:fs/promises';
+import { readdir, readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { parseTrace, averageParsedTraces } from '../trace-parser.mjs';
+import { exists } from './fs-utils.mjs';
 import { saveSnapshots, loadSnapshots } from './snapshot-store.mjs';
 import { buildReport } from './report-builder.mjs';
 import { buildHtmlReport } from './html-report-builder.mjs';
 
 const OUTPUT_DIR = join(import.meta.dirname, '..', 'output');
-
-const exists = p => access(p).then(() => true, () => false);
 
 async function collectScenarioResults() {
   if (!await exists(OUTPUT_DIR)) {
@@ -33,6 +32,8 @@ async function collectScenarioResults() {
 
     if (traceFiles.length === 0) { continue; }
 
+    process.stdout.write(`  Parsing ${entry.name} (${traceFiles.length} iterations)...`);
+
     // Parse each iteration
     const parsedResults = [];
 
@@ -40,7 +41,10 @@ async function collectScenarioResults() {
       const text = await readFile(fp, 'utf8');
 
       parsedResults.push(parseTrace(JSON.parse(text)));
+      process.stdout.write('.');
     }
+
+    console.log(' done');
 
     // Collect per-iteration values for CV% calculation
     const iterationValues = collectIterationValues(parsedResults);
@@ -91,6 +95,16 @@ function collectIterationValues(parsedResults) {
   return values;
 }
 
+function stripInternalFields(results) {
+  return Object.fromEntries(
+    Object.entries(results).map(([name, data]) => {
+      const { _iterationValues, _debug, ...rest } = data;
+
+      return [name, rest];
+    })
+  );
+}
+
 /** Playwright globalTeardown entry point */
 export default async function teardown() {
   console.log('\n=== Performance teardown: processing traces ===\n');
@@ -110,16 +124,7 @@ export default async function teardown() {
 
   // Save golden snapshots
   if (mode === 'golden') {
-    // Strip _iterationValues before saving (internal-only)
-    const cleanResults = {};
-
-    for (const [name, data] of Object.entries(scenarioResults)) {
-      const { _iterationValues, ...rest } = data;
-
-      cleanResults[name] = rest;
-    }
-
-    const savedPath = await saveSnapshots(cleanResults);
+    const savedPath = await saveSnapshots(stripInternalFields(scenarioResults));
 
     console.log(`Golden snapshots saved to ${savedPath}`);
 
@@ -142,15 +147,10 @@ export default async function teardown() {
       // Self-compare: use current results as golden so charts always render
       console.log('No golden baseline found -- self-comparing for chart preview');
 
-      const selfBaseline = {};
-
-      for (const [name, data] of Object.entries(scenarioResults)) {
-        const { _iterationValues, ...rest } = data;
-
-        selfBaseline[name] = rest;
-      }
-
-      golden = { timestamp: new Date().toISOString(), scenarios: selfBaseline };
+      golden = {
+        timestamp: new Date().toISOString(),
+        scenarios: stripInternalFields(scenarioResults),
+      };
     }
   }
 

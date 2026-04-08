@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
 import path from 'node:path';
 import { runTracedScenario } from '../../lib/trace-runner.mjs';
+import { scrollToColumn } from '../../lib/scroll-utils.mjs';
 import config from './scenario.config.mjs';
 
 const fixturePath = path.resolve(import.meta.dirname, 'fixture.html');
@@ -10,10 +11,7 @@ test(config.name, async({ page }) => {
   await page.waitForFunction(() => (window as any).__hot);
 
   // Scroll to far right first (pre-trace setup)
-  await page.evaluate(() => {
-    (window as any).__hot.scrollViewportTo({ row: 0, col: 4999 });
-  });
-  await page.waitForTimeout(500);
+  await scrollToColumn(page, 4999);
 
   const holder = page.locator('.ht_master .wtHolder');
 
@@ -30,10 +28,7 @@ test(config.name, async({ page }) => {
       }
     },
     resetFn: async() => {
-      await page.evaluate(() => {
-        (window as any).__hot.scrollViewportTo({ row: 0, col: 4999 });
-      });
-      await page.waitForTimeout(300);
+      await scrollToColumn(page, 4999);
     },
   });
 });

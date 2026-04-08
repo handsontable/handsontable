@@ -1,8 +1,7 @@
 import { test } from '@playwright/test';
 import path from 'node:path';
-import { writeFile } from 'node:fs/promises';
 import { runTracedScenario } from '../../lib/trace-runner.mjs';
-import { injectHookTimer, getHookTiming } from '../../lib/hook-timing.mjs';
+import { injectHookTimer, getHookTiming, saveHookTimings } from '../../lib/hook-timing.mjs';
 import config from './scenario.config.mjs';
 
 const fixturePath = path.resolve(import.meta.dirname, 'fixture.html');
@@ -54,14 +53,5 @@ test(config.name, async({ page }) => {
     },
   });
 
-  // Save hook timing data alongside traces
-  if (hookDeltas.length > 0) {
-    const avgDelta = hookDeltas.reduce((a, b) => a + b, 0) / hookDeltas.length;
-
-    await writeFile(
-      path.join(outputDir, 'hook-timing.json'),
-      JSON.stringify({ deltas: hookDeltas, averageDeltaMs: avgDelta }, null, 2),
-      'utf8',
-    );
-  }
+  await saveHookTimings(outputDir, hookDeltas);
 });

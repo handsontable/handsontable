@@ -2,7 +2,7 @@
 
 Automated performance measurement suite for Handsontable using [Playwright](https://playwright.dev/) and Chrome DevTools Protocol (CDP) traces.
 
-The system traces real user interactions (scrolling, filtering, sorting, editing), parses the CDP trace into the same categories shown by the DevTools Performance panel, and produces a markdown report with Mermaid charts comparing against a golden baseline from `develop`.
+The system traces real user interactions (scrolling, filtering, sorting, editing), parses the CDP trace into the same categories shown by the DevTools Performance panel, and produces a compact markdown PR comment plus a self-contained interactive HTML report comparing against a golden baseline from `develop`.
 
 ## Prerequisites
 
@@ -22,7 +22,8 @@ node scripts/run.mjs
 
 This takes approximately 3-4 minutes and produces:
 - Trace JSON files in `output/<scenario>/iteration-{1,2,3}.json`
-- A markdown report at `output/result.md`
+- A compact markdown report at `output/result.md`
+- An interactive HTML report at `output/report.html`
 
 ### Running a single scenario
 
@@ -42,10 +43,11 @@ PERF_MODE=golden node scripts/run.mjs
 PERF_MODE=compare node scripts/run.mjs
 ```
 
-### Linting
+### Linting and type checking
 
 ```bash
 npm run lint
+npm run typecheck
 ```
 
 ## Scenarios
@@ -75,19 +77,24 @@ performance-tests/
   .eslintrc.js                 # ESLint config (extends root)
   lib/
     trace-runner.mjs           # CDP Tracing.start/stop + warmup/iteration loop
-    hook-timing.mjs            # performance.now() on before/after hook pairs
+    hook-timing.mjs            # performance.now() on before/after hook pairs + save
     snapshot-store.mjs         # Golden baseline save/load/compare
-    chart-generator.mjs        # Mermaid xychart-beta horizontal charts
-    report-builder.mjs         # Markdown report assembly with detail tables
+    thresholds.mjs             # Shared classification (regression/improvement %)
+    chart-generator.mjs        # Inline SVG bar charts for reports
+    report-builder.mjs         # Compact markdown PR comment
+    html-report-builder.mjs    # Self-contained interactive HTML report
+    build-history-index.mjs    # gh-pages history listing for develop runs
     teardown.mjs               # Playwright globalTeardown: traces -> report
+    fs-utils.mjs               # Shared filesystem helpers (exists)
+    scroll-utils.mjs           # Scroll-and-wait helpers for scroll scenarios
   scenarios/
     <name>/
       scenario.config.mjs      # { name, warmupRuns, iterations }
       fixture.html              # Standalone HTML loading HOT UMD
       <name>.spec.ts            # Playwright test using runTracedScenario()
   fixtures/                     # Built JS/CSS (gitignored, copied by run.mjs)
-  golden/                       # Golden snapshots (gitignored, from CI artifacts)
-  output/                       # Trace JSONs + result.md (gitignored)
+  golden/                       # Golden snapshots (gitignored, from gh-pages)
+  output/                       # Trace JSONs + result.md + report.html (gitignored)
 ```
 
 ## How it works
@@ -102,21 +109,19 @@ performance-tests/
 
 4. Results are **averaged** across iterations with per-iteration values retained for CV% (coefficient of variation) calculation.
 
-5. The **report builder** assembles a markdown report with:
-   - Per-scenario summary lines
-   - Mermaid `xychart-beta horizontal` bar charts (golden vs current)
-   - Collapsible detail tables with all metrics and CV%
-   - Hook timing deltas for filtering/sorting scenarios
+5. Two **report builders** produce output:
+   - **Markdown** (`report-builder.mjs`): compact summary table with regression callouts, posted as a sticky PR comment.
+   - **HTML** (`html-report-builder.mjs`): self-contained interactive page with inline SVG bar charts, sortable tables, and scenario detail views. Deployed to GitHub Pages per branch.
 
 ### Golden baseline workflow
 
 The CI workflow (`.github/workflows/performance-tests.yml`) operates in two modes:
 
-- **On push to `develop`** (`PERF_MODE=golden`): Runs all scenarios, saves the averaged results as `golden/snapshots.json`, and uploads it as the `perf-golden-snapshots` GitHub Actions artifact (90-day retention).
+- **On push to `develop`** (`PERF_MODE=golden`): Runs all scenarios, saves the averaged results as `golden/snapshots.json`, and deploys them to the `gh-pages` branch under `performance-reports/develop/<timestamp>/`. A `latest.json` pointer is updated for PR comparisons. A history index page lists all past runs.
 
-- **On pull request** (`PERF_MODE=compare`): Fetches the latest golden artifact from the most recent successful `develop` run via `gh api`, runs all scenarios, and generates a delta report. The report is posted as a sticky PR comment with Mermaid charts comparing golden vs current.
+- **On pull request** (`PERF_MODE=compare`): Fetches `latest.json` from the `gh-pages` branch, runs all scenarios, and generates a delta report. The markdown summary is posted as a sticky PR comment; the full HTML report is deployed to GitHub Pages at `performance-reports/<branch-slug>/`.
 
-If no golden baseline exists (first run, or artifact expired), the report shows raw metrics with "No baseline available".
+If no golden baseline exists (first run, or `gh-pages` branch not yet created), the report shows raw metrics in self-compare mode.
 
 ### Metrics
 
@@ -216,7 +221,17 @@ test(config.name, async({ page }) => {
 
 ### Adding hook timing
 
-For scenarios that measure a specific Handsontable hook pair (like filtering or sorting), use `injectHookTimer` and `getHookTiming` from `lib/hook-timing.mjs`. See the `filtering` or `sorting` scenario specs for the complete pattern.
+For scenarios that measure a specific Handsontable hook pair (like filtering or sorting):
+
+1. Call `injectHookTimer(page, beforeHook, afterHook)` once before `runTracedScenario`. It is idempotent -- safe to call again in `resetFn` to reset the timer store.
+2. Inside `actionFn`, call `getHookTiming(page, beforeHook, afterHook)` and push `timing.deltaMs` to a deltas array.
+3. After `runTracedScenario`, call `saveHookTimings(outputDir, deltas)` to persist the data.
+
+All three functions are exported from `lib/hook-timing.mjs`. See the `filtering` or `sorting` scenario specs for the complete pattern.
+
+### Scroll helpers
+
+For scenarios that need to scroll the grid before or between iterations, use `scrollToRow(page, row)` and `scrollToColumn(page, col)` from `lib/scroll-utils.mjs`. These combine `scrollViewportTo` with a deterministic wait (no `waitForTimeout`) that verifies the target index is renderable.
 
 ## Trace parser
 
@@ -238,23 +253,24 @@ node trace-parser.mjs trace.json --debug
 
 ## Sample report output
 
-When running in compare mode with a golden baseline, the PR comment looks like:
+When running in compare mode with a golden baseline, the **PR comment** shows a compact summary:
 
 ```
-### Scroll Down
-> JS Execution +12.3% slower, Rendering -2.1% faster, Painting +5.0% slower, Cumulative +8.0% slower
+## ⚡ Performance Results
 
-[Mermaid bar chart comparing golden vs current]
+| Scenario    | Scripting | Rendering | Painting | Total  | Δ         |
+|-------------|-----------|-----------|----------|--------|-----------|
+| Scroll Down | 3472 ms   | 1721 ms   | 89 ms    | 5282 ms | +8.0% 🟡 |
+| Filtering   | 245 ms    | 112 ms    | 15 ms    | 372 ms  | -1.2% 🔵 |
 
-<details><summary>All metrics</summary>
+### Regressions
 
-| Metric    | Golden   | Current  | Change | CV%  |
-|-----------|----------|----------|--------|------|
-| Scripting | 3100 ms  | 3472 ms  | +12.0% | 3.2% |
-| Rendering | 1758 ms  | 1721 ms  | -2.1%  | 1.8% |
-| ...       |          |          |        |      |
+> ⚠️ **Scroll Down** regressed +8.0%
+> Scripting +12.0% slower, Rendering -2.1% faster, Painting +5.0% slower
 
-</details>
+📊 **[Full interactive report →](https://handsontable.github.io/handsontable/performance-reports/my-branch/)**
 ```
 
-Without a golden baseline, the report shows raw metrics only.
+The **HTML report** (linked from the PR comment) includes inline SVG bar charts, sortable detail tables, CV% stability indicators, and per-category breakdowns.
+
+Without a golden baseline, the report shows raw metrics in self-compare mode.

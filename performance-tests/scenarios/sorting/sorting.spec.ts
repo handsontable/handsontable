@@ -1,8 +1,7 @@
 import { test } from '@playwright/test';
 import path from 'node:path';
-import { writeFile } from 'node:fs/promises';
 import { runTracedScenario } from '../../lib/trace-runner.mjs';
-import { injectHookTimer, getHookTiming } from '../../lib/hook-timing.mjs';
+import { injectHookTimer, getHookTiming, saveHookTimings } from '../../lib/hook-timing.mjs';
 import config from './scenario.config.mjs';
 
 const fixturePath = path.resolve(import.meta.dirname, 'fixture.html');
@@ -16,6 +15,7 @@ test(config.name, async({ page }) => {
 
   const hookDeltas: number[] = [];
   const outputDir = path.resolve('output', config.name);
+  let sortAscending = true;
 
   await runTracedScenario({
     page,
@@ -23,13 +23,17 @@ test(config.name, async({ page }) => {
     iterations: config.iterations,
     outputDir,
     actionFn: async() => {
-      // Sort column 0 ascending
-      await page.evaluate(() => {
+      const sortOrder = sortAscending ? 'asc' : 'desc';
+
+      // Alternate sort direction across iterations
+      await page.evaluate((order) => {
         const hot = (window as any).__hot;
         const sortPlugin = hot.getPlugin('columnSorting');
 
-        sortPlugin.sort({ column: 0, sortOrder: 'asc' });
-      });
+        sortPlugin.sort({ column: 0, sortOrder: order });
+      }, sortOrder);
+
+      sortAscending = !sortAscending;
 
       // Capture hook timing
       const timing = await getHookTiming(page, 'beforeColumnSort', 'afterColumnSort');
@@ -47,19 +51,10 @@ test(config.name, async({ page }) => {
         sortPlugin.clearSort();
       });
 
-      // Re-inject hook timer
+      // Reset hook timer store for next iteration
       await injectHookTimer(page, 'beforeColumnSort', 'afterColumnSort');
     },
   });
 
-  // Save hook timing data alongside traces
-  if (hookDeltas.length > 0) {
-    const avgDelta = hookDeltas.reduce((a, b) => a + b, 0) / hookDeltas.length;
-
-    await writeFile(
-      path.join(outputDir, 'hook-timing.json'),
-      JSON.stringify({ deltas: hookDeltas, averageDeltaMs: avgDelta }, null, 2),
-      'utf8',
-    );
-  }
+  await saveHookTimings(outputDir, hookDeltas);
 });

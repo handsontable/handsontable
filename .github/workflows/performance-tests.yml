@@ -123,8 +123,20 @@ jobs:
             echo "No changes to deploy"
           else
             git commit -m "perf: golden baseline ${TIMESTAMP}"
-            git push origin gh-pages
-            echo "Deployed golden to ${DEPLOY_DIR}/"
+            pushed=false
+            for attempt in 1 2 3; do
+              if git push origin gh-pages; then
+                echo "Deployed golden to ${DEPLOY_DIR}/"
+                pushed=true
+                break
+              fi
+              echo "Push attempt $attempt failed, pulling and retrying..."
+              git pull --rebase origin gh-pages
+            done
+            if [ "$pushed" = false ]; then
+              echo "ERROR: all push attempts failed"
+              exit 1
+            fi
           fi
 
           cd -
@@ -160,8 +172,20 @@ jobs:
             echo "No changes to deploy"
           else
             git commit -m "perf: update report for ${BRANCH_SLUG}"
-            git push origin gh-pages
-            echo "Deployed to ${DEPLOY_DIR}/"
+            pushed=false
+            for attempt in 1 2 3; do
+              if git push origin gh-pages; then
+                echo "Deployed to ${DEPLOY_DIR}/"
+                pushed=true
+                break
+              fi
+              echo "Push attempt $attempt failed, pulling and retrying..."
+              git pull --rebase origin gh-pages
+            done
+            if [ "$pushed" = false ]; then
+              echo "ERROR: all push attempts failed"
+              exit 1
+            fi
           fi
 
           cd -

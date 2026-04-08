@@ -22,7 +22,6 @@ export default defineConfig({
         browserName: 'chromium',
         launchOptions: {
           args: [
-            '--disable-gpu',
             '--disable-extensions',
             '--disable-background-networking',
             '--disable-default-apps',

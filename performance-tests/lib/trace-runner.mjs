@@ -83,12 +83,16 @@ export async function runTracedScenario({
 
   // Run setup once (e.g., scrollViewportTo for scroll-up)
   if (setupFn) {
+    process.stdout.write('  Setup...');
     await setupFn();
+    console.log(' done');
   }
 
   // Warmup runs (no tracing)
   for (let w = 0; w < warmupRuns; w++) {
+    process.stdout.write(`  Warmup ${w + 1}/${warmupRuns}...`);
     await actionFn();
+    console.log(' done');
 
     if (resetFn) {
       await resetFn();
@@ -97,15 +101,23 @@ export async function runTracedScenario({
 
   // Measured iterations
   for (let i = 1; i <= iterations; i++) {
+    process.stdout.write(`  Iteration ${i}/${iterations}: tracing`);
+
     const cdp = await startTracing(page);
 
+    // Heartbeat: print dots during actionFn to keep GH Actions log alive
+    const heartbeat = setInterval(() => process.stdout.write('.'), 5000);
+
     await actionFn();
+    clearInterval(heartbeat);
+
+    process.stdout.write(' stopping');
     const traceJson = await stopTracing(cdp);
 
     const outPath = join(outputDir, `iteration-${i}.json`);
 
     await writeFile(outPath, traceJson);
-    console.log(`  Iteration ${i}: trace saved (${(traceJson.length / 1024).toFixed(0)} KB)`);
+    console.log(` saved (${(traceJson.length / 1024).toFixed(0)} KB)`);
 
     if (resetFn && i < iterations) {
       await resetFn();
