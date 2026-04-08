@@ -157,7 +157,7 @@ export default async function teardown() {
   // Build reports
   const meta = {
     prNumber: process.env.PR_NUMBER || null,
-    branch: process.env.GITHUB_HEAD_REF || 'unknown',
+    branch: process.env.GITHUB_HEAD_REF || (mode === 'golden' ? 'develop' : 'unknown'),
     baseBranch: 'develop',
     pagesUrl: process.env.PAGES_URL || null,
   };

@@ -46,26 +46,16 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - name: Fetch golden snapshots
+      - name: Fetch golden snapshots from GitHub Pages
         if: env.PERF_MODE == 'compare'
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/performance-tests.yml/runs?branch=develop&status=success&per_page=1" \
-            --jq '.workflow_runs[0].id' 2>/dev/null || echo "")
-          if [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
-            ARTIFACT_URL=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" \
-              --jq '.artifacts[] | select(.name=="perf-golden-snapshots") | .archive_download_url' 2>/dev/null || echo "")
-            if [ -n "$ARTIFACT_URL" ]; then
-              mkdir -p performance-tests/golden
-              gh api "$ARTIFACT_URL" > /tmp/golden.zip
-              unzip -o /tmp/golden.zip -d performance-tests/golden/
-              echo "Golden snapshots restored from run $RUN_ID"
-            else
-              echo "No golden artifact in run $RUN_ID"
-            fi
+          git fetch origin gh-pages:gh-pages 2>/dev/null || true
+          mkdir -p performance-tests/golden
+          if git show gh-pages:performance-reports/develop/latest.json > performance-tests/golden/snapshots.json 2>/dev/null; then
+            echo "Golden baseline restored from gh-pages"
           else
-            echo "No successful develop run found -- running without baseline"
+            echo "No golden baseline found on gh-pages -- running without baseline"
+            rm -f performance-tests/golden/snapshots.json
           fi
 
       - name: Compute report URL
@@ -86,15 +76,6 @@ jobs:
           GITHUB_HEAD_REF: ${{ github.head_ref || '' }}
         run: node scripts/run.mjs
 
-      - name: Upload golden snapshots
-        if: env.PERF_MODE == 'golden'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
-        with:
-          name: perf-golden-snapshots
-          path: performance-tests/golden/snapshots.json
-          retention-days: 90
-          if-no-files-found: warn
-
       - name: Upload performance-tests output
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
@@ -104,7 +85,52 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
-      - name: Deploy report to GitHub Pages
+      - name: Deploy golden to GitHub Pages
+        if: always() && env.PERF_MODE == 'golden'
+        run: |
+          if [ ! -f performance-tests/output/snapshots.json ]; then
+            echo "No snapshots.json to deploy"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin gh-pages:gh-pages 2>/dev/null || true
+
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
+          DEPLOY_DIR="performance-reports/develop/${TIMESTAMP}"
+
+          WORK_DIR=$(mktemp -d)
+          git worktree add "$WORK_DIR" gh-pages
+
+          # Deploy timestamped snapshot + report
+          mkdir -p "${WORK_DIR}/${DEPLOY_DIR}"
+          cp performance-tests/output/snapshots.json "${WORK_DIR}/${DEPLOY_DIR}/snapshots.json"
+          if [ -f performance-tests/output/report.html ]; then
+            cp performance-tests/output/report.html "${WORK_DIR}/${DEPLOY_DIR}/index.html"
+          fi
+
+          # Update latest.json pointer
+          cp performance-tests/output/snapshots.json "${WORK_DIR}/performance-reports/develop/latest.json"
+
+          # Build history index
+          node performance-tests/lib/build-history-index.mjs "${WORK_DIR}/performance-reports/develop"
+
+          cd "$WORK_DIR"
+          git add performance-reports/develop/
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "perf: golden baseline ${TIMESTAMP}"
+            git push origin gh-pages
+            echo "Deployed golden to ${DEPLOY_DIR}/"
+          fi
+
+          cd -
+          git worktree remove "$WORK_DIR" --force
+
+      - name: Deploy PR report to GitHub Pages
         if: always() && github.event_name == 'pull_request'
         env:
           BRANCH_SLUG: ${{ steps.report-url.outputs.branch_slug }}
@@ -121,7 +147,6 @@ jobs:
 
           DEPLOY_DIR="performance-reports/${BRANCH_SLUG}"
 
-          # Use a temporary worktree to avoid disrupting the main checkout
           WORK_DIR=$(mktemp -d)
           git worktree add "$WORK_DIR" gh-pages
 
