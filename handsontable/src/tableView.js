@@ -305,7 +305,7 @@ class TableView {
    * @private
    */
   registerEvents() {
-    const { rootWrapperElement, rootElement, rootDocument, selection, rootWindow } = this.hot;
+    const { rootWrapperElement, rootElement, rootDocument, rootPortalElement, selection, rootWindow } = this.hot;
     const documentElement = rootDocument.documentElement;
 
     this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
@@ -403,8 +403,8 @@ class TableView {
             // click on something that was a row but now is detached (possibly because your click triggered a rerender)
             return;
           }
-          if (next === rootElement) {
-            // click inside container
+          if (next === rootElement || next === rootPortalElement) {
+            // click inside container or portal (e.g. date picker popup)
             return;
           }
           next = next.parentNode;

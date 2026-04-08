@@ -339,6 +339,48 @@ describe('settings', () => {
       textarea.remove();
     });
 
+    it('should not deselect the currently selected cell after clicking on an element inside the portal element', async() => {
+      handsontable({
+        outsideClickDeselects: true,
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+
+      const portalChild = document.createElement('div');
+
+      portalChild.className = 'test-portal-child';
+      spec().hot.rootPortalElement.appendChild(portalChild);
+
+      $(portalChild).simulate('mousedown');
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+      portalChild.remove();
+    });
+
+    it('should not deselect the currently selected cell after touching an element inside the portal element', async() => {
+      handsontable({
+        outsideClickDeselects: true,
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+
+      const portalChild = document.createElement('div');
+
+      portalChild.className = 'test-portal-child';
+      spec().hot.rootPortalElement.appendChild(portalChild);
+
+      triggerTouchEvent('touchstart', portalChild);
+      triggerTouchEvent('touchend', portalChild);
+      $(portalChild).simulate('mousedown');
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+      portalChild.remove();
+    });
+
     it('should not re-render all the rows when outsideClickDeselects is set as false and the user toggles the visibility' +
     'of the table with an outside button (dev-handsontable#1610)', async() => {
       const onAfterRenderer = jasmine.createSpy('onAfterRenderer');

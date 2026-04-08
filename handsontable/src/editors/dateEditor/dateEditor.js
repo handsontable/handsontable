@@ -85,6 +85,10 @@ export class DateEditor extends TextEditor {
 
       event.stopPropagation();
     });
+
+    this.eventManager.addEventListener(this.datePicker, 'touchstart', (event) => {
+      event.stopPropagation();
+    });
   }
 
   /**

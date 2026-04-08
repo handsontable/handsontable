@@ -270,6 +270,10 @@ export const editorFactory = ({
         editor.eventManager.addEventListener(editor.preventCloseElement, 'mousedown', (event) => {
           event.stopPropagation();
         });
+
+        editor.eventManager.addEventListener(editor.preventCloseElement, 'touchstart', (event) => {
+          event.stopPropagation();
+        });
       }
 
       editor.addHook('afterScrollHorizontally', () => editor.refreshDimensions());
