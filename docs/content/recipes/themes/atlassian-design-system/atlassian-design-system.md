@@ -24,7 +24,12 @@ searchCategory: Recipes
 category: Themes
 ---
 
-<iframe src="https://codesandbox.io/p/sandbox/2hnsy8" title="Handsontable with Atlassian Design System demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px; min-height: 500px;"></iframe>
+<iframe src="https://codesandbox.io/embed/2hnsy8?view=preview"
+     style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
+     title="Handsontable with Atlassian Design System recipe"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
 
 [**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/2hnsy8)
 
