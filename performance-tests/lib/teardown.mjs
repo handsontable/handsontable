@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { parseTrace, averageParsedTraces } from '../trace-parser.mjs';
 import { saveSnapshots, loadSnapshots } from './snapshot-store.mjs';
 import { buildReport } from './report-builder.mjs';
+import { buildHtmlReport } from './html-report-builder.mjs';
 
 const OUTPUT_DIR = join(import.meta.dirname, '..', 'output');
 
@@ -153,13 +154,22 @@ export default async function teardown() {
     }
   }
 
-  // Build report
-  const report = buildReport(scenarioResults, golden);
+  // Build reports
+  const meta = {
+    prNumber: process.env.PR_NUMBER || null,
+    branch: process.env.GITHUB_HEAD_REF || 'unknown',
+    baseBranch: 'develop',
+    runUrl: process.env.RUN_URL || null,
+  };
+
+  const report = buildReport(scenarioResults, golden, meta);
+  const htmlReport = buildHtmlReport(scenarioResults, golden, meta);
 
   // Write to output/
   await mkdir(OUTPUT_DIR, { recursive: true });
   await writeFile(join(OUTPUT_DIR, 'result.md'), report, 'utf8');
+  await writeFile(join(OUTPUT_DIR, 'report.html'), htmlReport, 'utf8');
 
-  console.log('\nReport written to output/result.md\n');
+  console.log('\nReports written to output/result.md and output/report.html\n');
   console.log(report);
 }

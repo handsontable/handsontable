@@ -1,67 +1,58 @@
-// Markdown report assembly -- builds the performance comparison report.
+// Compact markdown report builder -- produces a summary table with regression
+// callouts and a collapsible raw-details section. The heavy lifting (charts,
+// interactive tables) lives in the HTML report instead.
 
-import { generateChart } from './chart-generator.mjs';
+import {
+  REGRESSION_CALLOUT_THRESHOLD,
+  pctChange,
+  sumActive,
+  fmtMs,
+  fmtPct,
+  fmtPctWithEmoji,
+  fmtCv,
+  formatTitle,
+} from './thresholds.mjs';
 
 /**
  * @param {Record<string, object>} allScenarioResults -- keyed by scenario name
  * @param {object | null} goldenSnapshots -- golden baseline (or null to self-compare)
+ * @param {object} [meta] -- { runUrl }
  * @returns {string} full markdown report
  */
-export function buildReport(allScenarioResults, goldenSnapshots) {
+export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
   const goldenScenarios = goldenSnapshots?.scenarios || {};
   const hasGolden = Object.keys(goldenScenarios).length > 0;
   const sections = [];
 
-  // Summary table at the top
+  // Summary table
   sections.push(buildSummaryTable(allScenarioResults, goldenScenarios, hasGolden));
 
-  // Per-scenario details (each collapsed)
-  for (const [name, current] of Object.entries(allScenarioResults)) {
-    const golden = goldenScenarios[name] || current;
-    const title = formatTitle(name);
-
-    const scenarioSections = [];
-
-    // Chart
-    scenarioSections.push(generateChart(title, golden, current));
-
-    // Hook timing
-    if (current.hookTiming != null) {
-      if (hasGolden && golden.hookTiming != null) {
-        const pct = pctChange(golden.hookTiming, current.hookTiming);
-        const pctStr = pct != null ? ` (${fmtPctWithEmoji(pct)})` : '';
-        const gHook = Math.round(golden.hookTiming);
-        const cHook = Math.round(current.hookTiming);
-
-        scenarioSections.push(`> Hook timing: ${gHook} ms -> ${cHook} ms${pctStr}`);
-      } else {
-        scenarioSections.push(`> Hook timing: ${Math.round(current.hookTiming)} ms`);
-      }
-    }
-
-    // Metrics table
-    scenarioSections.push(buildDetailsTable(golden, current, hasGolden));
-
-    sections.push(wrapDetails(
-      `<strong>${title}</strong>`,
-      scenarioSections.join('\n'),
-    ));
+  // Regression callouts (only for scenarios > threshold)
+  if (hasGolden) {
+    sections.push(buildRegressionCallouts(allScenarioResults, goldenScenarios));
   }
 
-  return sections.join('\n');
+  // Link to full HTML report (artifact)
+  if (meta.runUrl) {
+    sections.push(`\u{1F4CA} **[Full interactive report \u2192](${meta.runUrl})**`);
+  }
+
+  // Collapsible raw details (all scenarios)
+  sections.push(buildRawDetails(allScenarioResults, goldenScenarios, hasGolden));
+
+  return sections.join('\n\n');
 }
 
 // --- summary table ---
 
 function buildSummaryTable(results, goldenScenarios, hasGolden) {
   const headers = hasGolden
-    ? ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', 'Change']
+    ? ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', '\u0394']
     : ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total'];
 
   const rows = [];
 
   for (const [name, current] of Object.entries(results)) {
-    const title = formatTitle(name);
     const cats = current.categories || {};
     const total = sumActive(cats);
 
@@ -70,16 +61,106 @@ function buildSummaryTable(results, goldenScenarios, hasGolden) {
       const goldenTotal = golden ? sumActive(golden.categories || {}) : null;
       const change = fmtPctWithEmoji(pctChange(goldenTotal, total));
 
-      rows.push([title, fmtMs(cats.scripting), fmtMs(cats.rendering), fmtMs(cats.painting), fmtMs(total), change]);
+      rows.push([
+        formatTitle(name), fmtMs(cats.scripting), fmtMs(cats.rendering),
+        fmtMs(cats.painting), fmtMs(total), change,
+      ]);
     } else {
-      rows.push([title, fmtMs(cats.scripting), fmtMs(cats.rendering), fmtMs(cats.painting), fmtMs(total)]);
+      rows.push([
+        formatTitle(name), fmtMs(cats.scripting), fmtMs(cats.rendering),
+        fmtMs(cats.painting), fmtMs(total),
+      ]);
     }
   }
 
-  return formatMarkdownTable(headers, rows);
+  return `## \u26A1 Performance Results\n\n${formatMarkdownTable(headers, rows)}`;
 }
 
-// --- details table ---
+// --- regression callouts ---
+
+function buildRegressionCallouts(results, goldenScenarios) {
+  const callouts = [];
+
+  for (const [name, current] of Object.entries(results)) {
+    const golden = goldenScenarios[name];
+
+    if (!golden) {
+      continue;
+    }
+
+    const currentTotal = sumActive(current.categories || {});
+    const goldenTotal = sumActive(golden.categories || {});
+    const totalPct = pctChange(goldenTotal, currentTotal);
+
+    if (totalPct == null || totalPct <= REGRESSION_CALLOUT_THRESHOLD) {
+      continue;
+    }
+
+    const title = formatTitle(name);
+    const parts = [];
+
+    for (const key of ['scripting', 'rendering', 'painting']) {
+      const g = golden.categories?.[key];
+      const c = current.categories?.[key];
+      const p = pctChange(g, c);
+
+      if (p != null) {
+        const direction = p >= 0 ? 'slower' : 'faster';
+
+        parts.push(`${categoryLabel(key)} ${fmtPct(p)} ${direction}`);
+      }
+    }
+
+    callouts.push(`> \u26A0\uFE0F **${title}** regressed ${fmtPct(totalPct)}\n> ${parts.join(', ')}`);
+  }
+
+  if (callouts.length === 0) {
+    return 'All scenarios within tolerance \u2705';
+  }
+
+  return `### Regressions\n\n${callouts.join('\n\n')}`;
+}
+
+// --- collapsible raw details ---
+
+function buildRawDetails(results, goldenScenarios, hasGolden) {
+  const parts = [];
+
+  for (const [name, current] of Object.entries(results)) {
+    const golden = goldenScenarios[name] || current;
+    const title = formatTitle(name);
+
+    const scenarioParts = [];
+
+    // Hook timing
+    if (current.hookTiming != null) {
+      if (hasGolden && golden.hookTiming != null) {
+        const pct = pctChange(golden.hookTiming, current.hookTiming);
+        const pctStr = pct != null ? ` (${fmtPctWithEmoji(pct)})` : '';
+
+        const gHook = Math.round(golden.hookTiming);
+        const cHook = Math.round(current.hookTiming);
+
+        scenarioParts.push(
+          `> Hook timing: ${gHook} ms \u2192 ${cHook} ms${pctStr}`
+        );
+      } else {
+        scenarioParts.push(`> Hook timing: ${Math.round(current.hookTiming)} ms`);
+      }
+    }
+
+    // Metrics table
+    scenarioParts.push(buildDetailsTable(golden, current, hasGolden));
+
+    parts.push(`### ${title}\n\n${scenarioParts.join('\n\n')}`);
+  }
+
+  const header = '<details><summary><strong>Detailed metrics'
+    + ' (all scenarios)</strong></summary>';
+  const body = parts.join('\n\n---\n\n');
+
+  return `${header}\n\n${body}\n\n</details>`;
+}
 
 function buildDetailsTable(golden, current, hasGolden) {
   const rows = [];
@@ -88,7 +169,9 @@ function buildDetailsTable(golden, current, hasGolden) {
   const allKeys = new Set([...Object.keys(gCats), ...Object.keys(cCats)]);
 
   for (const key of ['scripting', 'rendering', 'painting', 'loading', 'other', 'experience', 'idle']) {
-    if (!allKeys.has(key)) { continue; }
+    if (!allKeys.has(key)) {
+      continue;
+    }
 
     const g = gCats[key];
     const c = cCats[key];
@@ -102,7 +185,7 @@ function buildDetailsTable(golden, current, hasGolden) {
     ]);
   }
 
-  // Total active time (scripting + rendering + painting)
+  // Total active time
   const gTotal = sumActive(gCats);
   const cTotal = sumActive(cCats);
 
@@ -114,7 +197,7 @@ function buildDetailsTable(golden, current, hasGolden) {
     '',
   ]);
 
-  // Range end (full trace window including idle)
+  // Trace window
   rows.push([
     'Trace window',
     hasGolden ? fmtMs(golden.rangeEnd) : '',
@@ -141,7 +224,9 @@ function buildDetailsTable(golden, current, hasGolden) {
       const gDisplay = gUc?.[displayKey];
       const cDisplay = cUc[displayKey];
 
-      if (gDisplay == null && cDisplay == null) { continue; }
+      if (gDisplay == null && cDisplay == null) {
+        continue;
+      }
 
       rows.push([
         label,
@@ -163,18 +248,7 @@ function buildDetailsTable(golden, current, hasGolden) {
   return formatMarkdownTable(['Metric', 'Baseline', 'Current', 'Change', 'CV%'], rows);
 }
 
-// --- formatting helpers ---
-
-function sumActive(categories) {
-  return (categories.scripting || 0) + (categories.rendering || 0) + (categories.painting || 0);
-}
-
-function formatTitle(name) {
-  return name
-    .split('-')
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ');
-}
+// --- helpers ---
 
 function categoryLabel(key) {
   const labels = {
@@ -188,48 +262,6 @@ function categoryLabel(key) {
   };
 
   return labels[key] || key;
-}
-
-function fmtMs(v) {
-  if (v == null || !Number.isFinite(v)) { return '--'; }
-
-  return `${Math.round(v)} ms`;
-}
-
-function fmtPctWithEmoji(pct) {
-  if (pct == null) { return '--'; }
-
-  const sign = pct >= 0 ? '+' : '';
-  const text = `${sign}${pct.toFixed(1)}%`;
-
-  if (Math.abs(pct) < 1) { return `${text}`; }
-  if (pct > 10) { return `${text} \u{1F534}`; } // red circle -- significant regression
-  if (pct > 0) { return `${text} \u{1F7E1}`; } // yellow circle -- minor regression
-  if (pct < -10) { return `${text} \u{1F7E2}`; } // green circle -- significant improvement
-  if (pct < 0) { return `${text} \u{1F535}`; } // blue circle -- minor improvement
-
-  return text;
-}
-
-function pctChange(baseline, current) {
-  if (baseline == null || current == null || baseline === 0) { return null; }
-
-  return ((current - baseline) / baseline) * 100;
-}
-
-function fmtCv(values) {
-  if (!values || values.length < 2) { return ''; }
-
-  const mean = values.reduce((a, b) => a + b, 0) / values.length;
-
-  if (mean === 0) { return ''; }
-
-  const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
-  const stddev = Math.sqrt(variance);
-  const cv = (stddev / Math.abs(mean)) * 100;
-  const warning = cv > 15 ? ' !!!' : '';
-
-  return `${cv.toFixed(1)}%${warning}`;
 }
 
 function formatMarkdownTable(headers, rows) {
@@ -246,8 +278,4 @@ function formatMarkdownTable(headers, rows) {
   );
 
   return [headerLine, sepLine, ...dataLines].join('\n');
-}
-
-function wrapDetails(summary, content) {
-  return `\n<details><summary>${summary}</summary>\n\n${content}\n\n</details>\n`;
 }

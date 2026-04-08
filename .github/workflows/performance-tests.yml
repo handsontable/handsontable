@@ -72,6 +72,9 @@ jobs:
         working-directory: performance-tests
         env:
           CI: true
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_HEAD_REF: ${{ github.head_ref || '' }}
         run: node scripts/run.mjs
 
       - name: Upload golden snapshots
