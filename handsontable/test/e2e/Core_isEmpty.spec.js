@@ -36,7 +36,7 @@ describe('Core.isEmpty*', () => {
       expect(check(0)).toEqual(true); // this may be change in future when we switch to define isEmptyCol in prototype
     });
 
-    it('should return true when all cells contain the dataSchema default values (GH #671, GH #2409)', async() => {
+    it('should return true when all cells contain the dataSchema default primitive values (GH #671, GH #2409)', async() => {
       handsontable({
         data: [{ active: false, name: null }],
         dataSchema: { active: false, name: null },
@@ -45,11 +45,12 @@ describe('Core.isEmpty*', () => {
           { data: 'name' },
         ],
       });
+      const hot = getInstance();
 
-      expect(getInstance().isEmptyRow(0)).toBe(true);
+      expect(hot.isEmptyRow(0)).toEqual(true);
     });
 
-    it('should return false when a cell has a value different from the dataSchema default (GH #671)', async() => {
+    it('should return false when a cell has a value different from the dataSchema default primitive value (GH #671)', async() => {
       handsontable({
         data: [{ active: true, name: null }],
         dataSchema: { active: false, name: null },
@@ -58,8 +59,23 @@ describe('Core.isEmpty*', () => {
           { data: 'name' },
         ],
       });
+      const hot = getInstance();
 
-      expect(getInstance().isEmptyRow(0)).toBe(false);
+      expect(hot.isEmptyRow(0)).toEqual(false);
+    });
+
+    it('should treat a row with only dataSchema default object values as empty', async() => {
+      handsontable({
+        data: [{ meta: { checked: false }, name: null }],
+        dataSchema: { meta: { checked: false }, name: null },
+        columns: [
+          { data: 'meta' },
+          { data: 'name' },
+        ],
+      });
+      const hot = getInstance();
+
+      expect(hot.isEmptyRow(0)).toEqual(true);
     });
 
     it('should return true when all array cells contain the dataSchema default values', async() => {
@@ -67,16 +83,18 @@ describe('Core.isEmpty*', () => {
         data: [[false, null]],
         dataSchema: [false, null],
       });
+      const hot = getInstance();
 
-      expect(getInstance().isEmptyRow(0)).toBe(true);
+      expect(hot.isEmptyRow(0)).toEqual(true);
     });
 
     it('should return false for a non-null value when no dataSchema is explicitly defined', async() => {
       handsontable({
         data: [[false, null]],
       });
+      const hot = getInstance();
 
-      expect(getInstance().isEmptyRow(0)).toBe(false);
+      expect(hot.isEmptyRow(0)).toEqual(false);
     });
   });
 
@@ -108,20 +126,26 @@ describe('Core.isEmpty*', () => {
       handsontable({
         data: [{ active: false }, { active: false }],
         dataSchema: { active: false },
-        columns: [{ data: 'active', type: 'checkbox' }],
+        columns: [
+          { data: 'active', type: 'checkbox' },
+        ],
       });
+      const hot = getInstance();
 
-      expect(getInstance().isEmptyCol(0)).toBe(true);
+      expect(hot.isEmptyCol(0)).toEqual(true);
     });
 
     it('should return false when any cell in a column differs from the dataSchema default', async() => {
       handsontable({
         data: [{ active: false }, { active: true }],
         dataSchema: { active: false },
-        columns: [{ data: 'active', type: 'checkbox' }],
+        columns: [
+          { data: 'active', type: 'checkbox' },
+        ],
       });
+      const hot = getInstance();
 
-      expect(getInstance().isEmptyCol(0)).toBe(false);
+      expect(hot.isEmptyCol(0)).toEqual(false);
     });
   });
 });

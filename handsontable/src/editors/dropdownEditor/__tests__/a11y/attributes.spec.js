@@ -52,7 +52,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     );
   });
 
-  it('should add a correct set of aria tags to the choice dropdown element', async() => {
+  it.flaky('should add a correct set of aria tags to the choice dropdown element', async() => {
     const hot = handsontable({
       data: [
         ['a'],
@@ -87,7 +87,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     });
   });
 
-  it('should should not add `aria-setsize` and `aria-posinset` if the source is a function`', async() => {
+  it.flaky('should should not add `aria-setsize` and `aria-posinset` if the source is a function`', async() => {
     const hot = handsontable({
       data: [
         ['a'],

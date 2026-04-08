@@ -16,8 +16,6 @@ category: Cell functions
 menuTag: updated
 ---
 
-# Cell editor
-
 Create custom cell editors to fully control how values are entered in your data grid.
 
 Each cell can have one editor — a class that manages the editor's DOM element, its value, and the lifecycle from opening to saving. Handsontable's [`EditorManager`](@/api/baseEditor.md) selects and drives the editor automatically. You create editors by extending [`BaseEditor`](@/api/baseEditor.md) or any of the [built-in editor classes](#built-in-editors).
@@ -131,10 +129,12 @@ Handsontable separates rendering (displaying cell values) from editing (changing
 | --- | --- | --- |
 | **Select editor** | Cell is selected | Looks up the editor class from the `editor` config option |
 | **Prepare** | Cell is selected | Calls `prepare()` to configure the editor for the selected cell |
-| **Open** | User triggers editing | Calls `beginEditing()` → `open()` |
+| **Open** | User triggers editing | Fires `beforeBeginEditing` (return `false` to cancel), then calls `beginEditing()` → `open()` |
 | **Close** | User confirms or cancels | Calls `finishEditing()` → `close()` or `focus()` |
 
 **Editing opens on:** <kbd>**Enter**</kbd>, <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>, <kbd>**F2**</kbd>, double-click.
+
+**Preventing the editor from opening:** Use the [`beforeBeginEditing`](@/api/hooks.md#beforebeginediting) hook to conditionally cancel editor opening. Return `false` from the hook callback to prevent the editor from opening. Returning `undefined` (or any non-boolean value) applies the default behavior, which disallows opening for non-contiguous selections (Ctrl/Cmd+click) and multi-cell selections (Shift+click). Returning `true` removes those restrictions.
 
 **Editing closes on:**
 
@@ -143,13 +143,13 @@ Handsontable separates rendering (displaying cell values) from editing (changing
 | Click another cell | Saves changes |
 | <kbd>**Enter**</kbd> / <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | Saves and moves selection down / up |
 | <kbd>**Tab**</kbd> / <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | Saves and moves selection right / left |
-| <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd> or <kbd>**Alt**</kbd>/<kbd>**Option**</kbd>+<kbd>**Enter**</kbd> | Inserts a line break |
+| <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> or <kbd>**Alt**</kbd>/<kbd>⌥</kbd>+<kbd>**Enter**</kbd> | Inserts a line break |
 | <kbd>**Page Up**</kbd> / <kbd>**Page Down**</kbd> | Saves and scrolls one screen |
 | <kbd>**Escape**</kbd> | Cancels without saving |
 
 ::: tip
 
-**IME support:** For Chinese, Japanese, or Korean input, enable [`imeFastEdit`](@/api/options.md#imefastedit) to let users start typing immediately without pressing <kbd>**Enter**</kbd> or <kbd>**F2**</kbd>. See the [IME support](@/guides/internationalization/ime-support/ime-support.md) guide.
+**IME support:** For Chinese, Japanese, or Korean input, enable [`imeFastEdit`](@/api/options.md#imefastedit) to let users start typing immediately without pressing <kbd>Enter</kbd> or <kbd>F2</kbd>. See the [IME support](@/guides/internationalization/ime-support/ime-support.md) guide.
 
 :::
 
@@ -322,6 +322,25 @@ new Handsontable(container, {
 <HotTable columns={[{ editor: 'myEditor' }]} />
 ```
 
+::: tip
+
+Registering an editor with `registerEditor` and referencing it by a string alias works for class-based editors only. Component-based editors (those using `useHotEditor`) cannot be registered this way, because they depend on React's rendering lifecycle to function.
+
+For component-based editors, pass the component directly to the `editor` prop of `HotTable` or `HotColumn` — no registration step is needed.
+
+:::
+
+To reuse the same editor component across multiple columns, import and pass it wherever it is needed:
+
+```jsx
+import { MySelectEditor } from './MySelectEditor';
+
+<HotTable>
+  <HotColumn editor={MySelectEditor} />
+  <HotColumn editor={MySelectEditor} />
+</HotTable>
+```
+
 :::
 
 ::: only-for angular
@@ -379,19 +398,19 @@ class ExtendedSelectEditor extends MySelectEditor {
 | Arrow keys | Arrow keys | Move the cursor through the text | &check; | &check; |
 | Alphanumeric keys | Alphanumeric keys | Enter the pressed key's value into the cell | &check; | &check; |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Complete the cell entry and move to the cell below | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | Complete the cell entry and move to the cell above | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Complete the cell entry and move to the cell above | &check; | &check; |
 | <kbd>**Tab**</kbd> | <kbd>**Tab**</kbd> | Complete the cell entry and move to the next cell<sup>\*</sup> | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | Complete the cell entry and move to the previous cell<sup>\*</sup> | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | Complete the cell entry and move to the previous cell<sup>\*</sup> | &check; | &check; |
 | <kbd>**Delete**</kbd> | <kbd>**Delete**</kbd> | Delete one character after the cursor<sup>\*</sup> | &check; | &check; |
 | <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Delete one character before the cursor<sup>\*</sup> | &check; | &check; |
 | <kbd>**Home**</kbd> | <kbd>**Home**</kbd> | Move the cursor to the beginning of the text<sup>\*</sup> | &check; | &check; |
 | <kbd>**End**</kbd> | <kbd>**End**</kbd> | Move the cursor to the end of the text<sup>\*</sup> | &check; | &check; |
-| <kbd>**Ctrl**</kbd> + Arrow keys | <kbd>**Cmd**</kbd> + Arrow keys | Move the cursor to the beginning or to the end of the text | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd> + Arrow keys | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd> + Arrow keys | Extend the selection to the beginning or to the end of the text | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + Arrow keys | <kbd>⌘</kbd> + Arrow keys | Move the cursor to the beginning or to the end of the text | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd> + Arrow keys | <kbd>⌘</kbd>+<kbd>⇧</kbd> + Arrow keys | Extend the selection to the beginning or to the end of the text | &check; | &check; |
 | <kbd>**Page Up**</kbd> | <kbd>**Page Up**</kbd> | Complete the cell entry and move one screen up | &check; | &check; |
 | <kbd>**Page Down**</kbd> | <kbd>**Page Down**</kbd> | Complete the cell entry and move one screen down | &check; | &check; |
-| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Option**</kbd>+<kbd>**Enter**</kbd> | Insert a line break | &cross; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd> | Insert a line break | &cross; | &check; |
+| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌥</kbd>+<kbd>**Enter**</kbd> | Insert a line break | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break | &cross; | &check; |
 | <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | Cancel the cell entry and exit the editing mode | &check; | &check; |
 
 <sup>\*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md).
@@ -400,17 +419,15 @@ class ExtendedSelectEditor extends MySelectEditor {
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Custom editor in React](@/react/guides/cell-functions/cell-editor/cell-editor.md)
 - [Custom editor in Angular](@/angular/guides/cell-functions/cell-editor/cell-editor.md)
 - [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md)
 
 </div>
-
-### Related API reference
 
 :::
 
@@ -426,24 +443,47 @@ class ExtendedSelectEditor extends MySelectEditor {
 
 :::
 
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`editor`](@/api/options.md#editor)
-  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
-  - [`imeFastEdit`](@/api/options.md#imefastedit)
-- Core methods:
-  - [`destroyEditor()`](@/api/core.md#destroyeditor)
-  - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
-  - [`getCellEditor()`](@/api/core.md#getcelleditor)
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`beforeBeginEditing`](@/api/hooks.md#beforebeginediting)
-  - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+**APIs**
+
+<div class="boxes-list">
+
+- [BasePlugin](@/api/basePlugin.md)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [editor](@/api/options.md#editor)
+- [enterBeginsEditing](@/api/options.md#enterbeginsediting)
+- [imeFastEdit](@/api/options.md#imefastedit)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [destroyEditor()](@/api/core.md#destroyeditor)
+- [getActiveEditor()](@/api/core.md#getactiveeditor)
+- [getCellEditor()](@/api/core.md#getcelleditor)
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [beforeBeginEditing](@/api/hooks.md#beforebeginediting)
+- [afterBeginEditing](@/api/hooks.md#afterbeginediting)
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+
+</div>

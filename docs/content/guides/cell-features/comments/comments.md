@@ -16,9 +16,6 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Comments
-
 Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
 
 [[toc]]
@@ -269,12 +266,17 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 
 | Windows                                                 | macOS                                                      | Action                                  |  Excel  | Sheets  |
 | ------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**M**</kbd> | <kbd>**Ctrl**</kbd>+<kbd>**Option**</kbd>+<kbd>**M**</kbd> | Add or edit a comment                   | &cross; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd>                    | Save and exit the current comment       | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>⌥</kbd>+<kbd>**M**</kbd> | Add or edit a comment                   | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                    | Save and exit the current comment       | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                      | Exit the current comment without saving | &cross; | &cross; |
 
 ## Related API reference
 
-- Configuration options:
-  - [`commentedCellClassName`](@/api/options.md#commentedcellclassname)
-  - [`comments`](@/api/options.md#comments)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [commentedCellClassName](@/api/options.md#commentedcellclassname)
+- [comments](@/api/options.md#comments)
+
+</div>

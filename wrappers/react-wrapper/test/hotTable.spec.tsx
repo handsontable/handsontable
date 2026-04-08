@@ -123,8 +123,18 @@ describe('Updating the Handsontable settings', () => {
     expect(JSON.stringify(hotInstance.getSettings().data)).toEqual('[[2]]');
   });
 
-  it('should throw an error when trying to update init-only settings after inializing the component', async () => {
-    console.error = jest.fn();
+  it('should NOT throw an error when trying to update init-only settings after initializing the component', async () => {
+    const errorMock = jest.fn();
+    const originalError = console.error;
+
+    console.error = (...args: unknown[]) => {
+      const message = args[0];
+
+      if (typeof message === 'string' && message.includes('Could not parse CSS stylesheet')) {
+        return;
+      }
+      errorMock(...args);
+    };
 
     let updateState = null;
 
@@ -150,11 +160,11 @@ describe('Updating the Handsontable settings', () => {
 
     const updateStateAndRender = () => act(() => (updateState as any)(true));
 
-    await expect(updateStateAndRender).toThrowError(
-      'The `renderAllRows` option can not be updated after the Handsontable is initialized.'
-    );
+    await expect(updateStateAndRender).not.toThrowError();
 
-    expect(console.error).toHaveBeenCalled();
+    expect(errorMock).not.toHaveBeenCalled();
+
+    console.error = originalError;
   });
 
   it('should NOT throw an error when trying to update settings after inializing the component if the other settings' +

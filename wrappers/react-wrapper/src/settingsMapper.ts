@@ -36,9 +36,8 @@ export class SettingsMapper {
         return areEquivalentSettingsValue(prevProps[key], properties[key]);
       }
 
-      // Omit settings that can be set only during initialization and are intentionally modified.
       if (!isInit && initOnlySettingKeys.includes(key)) {
-        return prevProps[key] === properties[key];
+        return true;
       }
       return false;
     };

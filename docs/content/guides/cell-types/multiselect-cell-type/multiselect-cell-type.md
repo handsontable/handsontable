@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell types
 menuTag: new
 ---
-
-# MultiSelect cell type
-
 Collect user input with a list of multiple-selection choices, by using the MultiSelect cell type.
 
 [[toc]]
@@ -119,10 +116,10 @@ The MultiSelect editor is a dropdown with selectable items. You can select items
 
 When the dropdown opens, the initial focus depends on the [**`searchInput`**](@/api/options.md#searchinput) option: if filtering is enabled, the search input is focused by default; if filtering is disabled, the first item in the list is focused.
 
-- **Arrow keys** – Move the focus between items in the dropdown list. When the search input is visible, use the **down** arrow to move focus from the search input into the list, and the **up** arrow to move focus back into the search input.
-- **SPACE or ENTER** – Toggle the selection of the focused item. The behavior depends on the [**`enterCommits`**](@/api/options.md#entercommits) option:
-  - When `enterCommits` is `true` (default): **ENTER** closes the editor and commits the selection; **SPACE** toggles the focused item's selection.
-  - When `enterCommits` is `false`: **ENTER** toggles the focused item's selection; **SPACE** has no effect.
+- <kbd>**↑**</kbd><kbd>**↓**</kbd> – Move the focus between items in the dropdown list. When the search input is visible, use <kbd>**↓**</kbd> to move focus from the search input into the list, and <kbd>**↑**</kbd> to move focus back into the search input.
+- <kbd>**Space**</kbd> or <kbd>**Enter**</kbd> – Toggle the selection of the focused item. The behavior depends on the [**`enterCommits`**](@/api/options.md#entercommits) option:
+  - When `enterCommits` is `true` (default): <kbd>**Enter**</kbd> closes the editor and commits the selection; <kbd>**Space**</kbd> toggles the focused item's selection.
+  - When `enterCommits` is `false`: <kbd>**Enter**</kbd> toggles the focused item's selection; <kbd>**Space**</kbd> has no effect.
 
 Each selection (or deselection) immediately updates the underlying cell data.
 
@@ -135,7 +132,7 @@ The MultiSelect cell type provides several configuration options to tailor its b
 - [**`visibleRows`**](@/api/options.md#visiblerows) – Defines the maximum number of visible rows in the dropdown menu.
 - [**`maxSelections`**](@/api/options.md#maxselections) – Determines the maximum number of items that can be selected.
 - [**`sourceSortFunction`**](@/api/options.md#sourcesortfunction) – A custom sort function to order the dropdown entries.
-- [**`enterCommits`**](@/api/options.md#entercommits) – Controls whether pressing the ENTER key closes the editor and commits the selection.
+- [**`enterCommits`**](@/api/options.md#entercommits) – Controls whether pressing the <kbd>**Enter**</kbd> key closes the editor and commits the selection.
 - [**`searchInput`**](@/api/options.md#searchinput) – Toggles the visibility of the search input inside the dropdown.
 - [**`filteringCaseSensitive`**](@/api/options.md#filteringcasesensitive) – When set to `true`, the dropdown's search filtering is case sensitive.
 
@@ -187,34 +184,61 @@ When working with object-based MultiSelect data, you can use methods like [`getS
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
 - [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`allowEmpty`](@/api/options.md#allowempty)
-  - [`placeholder`](@/api/options.md#placeholder)
-  - [`visibleRows`](@/api/options.md#visiblerows)
-  - [`maxSelections`](@/api/options.md#maxselections)
-  - [`sourceSortFunction`](@/api/options.md#sourcesortfunction)
-  - [`enterCommits`](@/api/options.md#entercommits)
-  - [`searchInput`](@/api/options.md#searchinput)
-  - [`filteringCaseSensitive`](@/api/options.md#filteringcasesensitive)
-- Core methods:
-  - [`getData()`](@/api/core.md#getdata)
-  - [`getSourceData()`](@/api/core.md#getsourcedata)
-  - [`getDataAtCell()`](@/api/core.md#getdataatcell)
-  - [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+**Related blog articles**
+
+<div class="boxes-list gray">
+
+- [Handsontable 17.0.0: Multiselect Cell Type, Simpler Custom Cells, and a New Themes API](https://handsontable.com/blog/handsontable-17.0.0-multiselect-cell-type-simpler-custom-cells-and-a-new-themes-api)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [allowEmpty](@/api/options.md#allowempty)
+- [placeholder](@/api/options.md#placeholder)
+- [visibleRows](@/api/options.md#visiblerows)
+- [maxSelections](@/api/options.md#maxselections)
+- [sourceSortFunction](@/api/options.md#sourcesortfunction)
+- [enterCommits](@/api/options.md#entercommits)
+- [searchInput](@/api/options.md#searchinput)
+- [filteringCaseSensitive](@/api/options.md#filteringcasesensitive)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getData()](@/api/core.md#getdata)
+- [getSourceData()](@/api/core.md#getsourcedata)
+- [getDataAtCell()](@/api/core.md#getdataatcell)
+- [getSourceDataAtCell()](@/api/core.md#getsourcedataatcell)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

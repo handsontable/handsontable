@@ -3340,7 +3340,7 @@ export default () => {
 
         if (isEmpty(value) === false) {
           if (typeof value === 'object') {
-            if (!isObjectEqual(schema[prop], value)) {
+            if (isObjectEqual(schema[prop], value) === false) {
               return false;
             }
 
@@ -3397,7 +3397,7 @@ export default () => {
           const prop = this.colToProp(col);
 
           if (typeof value === 'object') {
-            if (!isObjectEqual(schema[prop], value)) {
+            if (isObjectEqual(schema[prop], value) === false) {
               return false;
             }
 

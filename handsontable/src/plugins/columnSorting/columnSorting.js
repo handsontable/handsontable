@@ -375,7 +375,7 @@ export class ColumnSorting extends BasePlugin {
    *
    *   // const newData = ... // Calculated data set, ie. from an AJAX call.
    *
-   *   this.loadData(newData); // Load new data set and re-render the table.
+   *   this.updateData(newData); // Update data set and re-render the table.
    *
    *   return false; // The blockade for the default sort action.
    * }
