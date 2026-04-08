@@ -24,14 +24,14 @@ searchCategory: Recipes
 category: Themes
 ---
 
-<iframe src="https://codesandbox.io/embed/2hnsy8?view=preview"
+<iframe src="https://codesandbox.io/embed/6vfmwm?view=preview"
      style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
      title="Handsontable with Atlassian Design System recipe"
      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
    ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/2hnsy8)
+[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/6vfmwm)
 
 ## Overview
 
@@ -158,11 +158,10 @@ export default function DataGrid() {
 
 ## Step 5 - Add required CSS imports
 
-Import Handsontable styles, plus ADS reset and light token CSS.
+Import Handsontable styles and ADS reset.
 
 ```tsx
 import '@atlaskit/css-reset';
-import '@atlaskit/tokens/css/atlassian-light.css';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 ```
