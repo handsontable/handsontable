@@ -2064,13 +2064,12 @@ export const REGISTERED_HOOKS = [
   'afterColumnSort',
 
   /**
-   * Fired by {@link Autofill} plugin to allow modifying the autofill range. This hook is fired when {@link Options#fillHandle}
+   * Fired by {@link Autofill} plugin after setting range of autofill. This hook is fired when {@link Options#fillHandle}
    * option is enabled.
    *
    * @event Hooks#modifyAutofillRange
-   * @param {number[]} entireArea Visual coordinates of the entire area of the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
-   * @param {number[]} startArea Visual coordinates of the starting point for the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
-   * @returns {number[]} The modified autofill range (`[startRow, startColumn, endRow, endColumn]`).
+   * @param {Array} entireArea Array of visual coordinates of the entire area of the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
+   * @param {Array} startArea Array of visual coordinates of the starting point for the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
    */
   'modifyAutofillRange',
 
