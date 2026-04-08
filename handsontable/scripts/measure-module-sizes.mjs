@@ -23,11 +23,18 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOT_TMP = resolve(__dirname, '..', 'tmp');
 const DIST = resolve(__dirname, '..', 'dist');
 const TMP_DIR = '/tmp/hot-module-sizes';
-const JSON_OUT = resolve(__dirname, '..', '..', 'docs', 'content', 'guides', 'tools-and-building', 'modules', 'module-sizes.json');
+const JSON_OUT = resolve(
+  __dirname, '..', '..', 'docs', 'content', 'guides', 'tools-and-building', 'modules',
+  'module-sizes.json'
+);
 
 mkdirSync(TMP_DIR, { recursive: true });
 
-// Locate esbuild binary in the pnpm store
+/**
+ * Locates the esbuild binary in the monorepo's pnpm node_modules.
+ *
+ * @returns {string} Absolute path to the esbuild binary.
+ */
 function findEsbuild() {
   const root = resolve(__dirname, '..', '..');
   const candidates = [
@@ -38,6 +45,7 @@ function findEsbuild() {
   for (const c of candidates) {
     try {
       execFileSync(c, ['--version'], { stdio: 'pipe' });
+
       return c;
     } catch {
       // not found, try next
@@ -52,12 +60,22 @@ function findEsbuild() {
       '-path', '*/esbuild/bin/esbuild',
     ], { encoding: 'utf8' }).split('\n').filter(Boolean)[0];
 
-    if (result) return result.trim();
+    if (result) {
+      return result.trim();
+    }
   } catch { /* ignore */ }
 
-  throw new Error('Could not locate esbuild binary. Run: pnpm install');
+  console.error('Could not locate esbuild binary. Run: pnpm install');
+  process.exit(1);
 }
 
+/**
+ * Bundles the given entry code with esbuild and returns its minified + gzip sizes.
+ *
+ * @param {string} esbuild Path to the esbuild binary.
+ * @param {string} entryCode ESM source code to bundle.
+ * @returns {{ raw: number, gzip: number }} Byte sizes before and after gzip.
+ */
 function bundle(esbuild, entryCode) {
   const entryFile = join(TMP_DIR, `entry-${Date.now()}.mjs`);
 
@@ -76,10 +94,20 @@ function bundle(esbuild, entryCode) {
   return { raw: output.length, gzip: gzipped.length };
 }
 
+/**
+ * Returns the size difference between two bundle measurements.
+ *
+ * @param {{ raw: number, gzip: number }} current Size of the bundle with the module.
+ * @param {{ raw: number, gzip: number }} base Size of the base bundle.
+ * @returns {{ raw: number, gzip: number }} Delta in bytes.
+ */
 function delta(current, base) {
   return { raw: current.raw - base.raw, gzip: current.gzip - base.gzip };
 }
 
+/**
+ * Entry point: measures all module sizes and writes module-sizes.json.
+ */
 async function main() {
   const esbuild = findEsbuild();
 
@@ -186,7 +214,7 @@ async function main() {
     plugins: pluginResults,
   };
 
-  writeFileSync(JSON_OUT, JSON.stringify(output, null, 2) + '\n', 'utf8');
+  writeFileSync(JSON_OUT, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
   console.error(`\nWrote ${JSON_OUT}`);
   console.error('Commit the updated module-sizes.json to the repository.');
 }
