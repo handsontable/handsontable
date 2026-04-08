@@ -1,10 +1,6 @@
-/**
- * Mermaid xychart-beta chart generation for performance comparison.
- */
+// Mermaid xychart-beta chart generation for performance comparison.
 
 /**
- * Generate a Mermaid xychart comparing golden vs current metrics.
- *
  * @param {string} scenarioName
  * @param {object} goldenMetrics -- { categories, rangeEnd }
  * @param {object} currentMetrics -- { categories, rangeEnd }
@@ -18,31 +14,8 @@ export function generateChart(scenarioName, goldenMetrics, currentMetrics) {
   return `${summary}\n\n${chart}`;
 }
 
-/**
- * Generate a summary-only line (no chart) for scenarios without a golden baseline.
- *
- * @param {string} scenarioName
- * @param {object} currentMetrics
- * @returns {string}
- */
-export function generateNoBaselineSummary(scenarioName, currentMetrics) {
-  const cats = currentMetrics.categories || {};
-  const lines = [
-    `JS Execution: ${round(cats.scripting)} ms`,
-    `Rendering: ${round(cats.rendering)} ms`,
-    `Painting: ${round(cats.painting)} ms`,
-    `Cumulative: ${round(currentMetrics.rangeEnd)} ms`,
-  ];
-
-  return `> No baseline available. Current: ${lines.join(', ')}`;
-}
-
 // --- internals ---
 
-/**
- * @param golden
- * @param current
- */
 function buildPrimaryMetrics(golden, current) {
   const gCats = golden.categories || {};
   const cCats = current.categories || {};
@@ -71,9 +44,6 @@ function buildPrimaryMetrics(golden, current) {
   ];
 }
 
-/**
- * @param metrics
- */
 function buildSummaryLine(metrics) {
   const parts = metrics.map((m) => {
     if (m.golden === 0 || m.golden == null) {
@@ -90,10 +60,6 @@ function buildSummaryLine(metrics) {
   return `> ${parts.join(', ')}`;
 }
 
-/**
- * @param scenarioName
- * @param metrics
- */
 function buildMermaidChart(scenarioName, metrics) {
   const labels = metrics.map(m => `"${m.label}"`).join(', ');
   const goldenValues = metrics.map(m => m.golden).join(', ');
@@ -102,17 +68,14 @@ function buildMermaidChart(scenarioName, metrics) {
   return [
     '```mermaid',
     'xychart-beta horizontal',
-    `  title "${scenarioName} - Primary Metrics (ms)"`,
+    `  title "${scenarioName} (ms)"`,
     `  x-axis [${labels}]`,
-    `  bar "Golden (develop)" [${goldenValues}]`,
-    `  bar "Current (PR)" [${currentValues}]`,
+    `  bar "Baseline" [${goldenValues}]`,
+    `  bar "Current" [${currentValues}]`,
     '```',
   ].join('\n');
 }
 
-/**
- * @param v
- */
 function round(v) {
   return v != null && Number.isFinite(v) ? Math.round(v) : 0;
 }

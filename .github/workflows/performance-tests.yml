@@ -110,11 +110,7 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           {
-            echo '## Performance tests results'
-            echo
-            echo "Artifacts: **[performance-tests-output](${RUN_URL})** (open the workflow run, then download **performance-tests-output**)."
-            echo
-            echo '---'
+            echo "Artifacts: **[performance-tests-output](${RUN_URL})**"
             echo
             cat performance-tests/output/result.md
           } > performance-tests/output/pr-comment.md

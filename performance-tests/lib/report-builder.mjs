@@ -1,72 +1,100 @@
-/**
- * Markdown report assembly -- builds the full performance comparison report.
- */
+// Markdown report assembly -- builds the performance comparison report.
 
-import { generateChart, generateNoBaselineSummary } from './chart-generator.mjs';
+import { generateChart } from './chart-generator.mjs';
 
 /**
- * Build a full markdown performance report.
- *
- * @param {Record<string, object>} allScenarioResults -- keyed by scenario name, each with averaged trace data
- * @param {object | null} goldenSnapshots -- golden baseline (or null if unavailable)
+ * @param {Record<string, object>} allScenarioResults -- keyed by scenario name
+ * @param {object | null} goldenSnapshots -- golden baseline (or null to self-compare)
  * @returns {string} full markdown report
  */
 export function buildReport(allScenarioResults, goldenSnapshots) {
   const goldenScenarios = goldenSnapshots?.scenarios || {};
+  const hasGolden = Object.keys(goldenScenarios).length > 0;
   const sections = [];
 
-  sections.push('## Performance tests results\n');
+  // Summary table at the top
+  sections.push(buildSummaryTable(allScenarioResults, goldenScenarios, hasGolden));
 
+  // Per-scenario details (each collapsed)
   for (const [name, current] of Object.entries(allScenarioResults)) {
-    const golden = goldenScenarios[name];
+    const golden = goldenScenarios[name] || current;
     const title = formatTitle(name);
 
-    sections.push(`### ${title}`);
+    const scenarioSections = [];
 
-    if (golden) {
-      // Comparison mode
-      const chartBlock = generateChart(title, golden, current);
+    // Chart
+    const chartBlock = generateChart(title, golden, current);
 
-      sections.push(chartBlock);
+    scenarioSections.push(chartBlock);
 
-      // Hook timing line (filtering/sorting)
-      if (golden.hookTiming != null && current.hookTiming != null) {
+    // Hook timing
+    if (current.hookTiming != null) {
+      if (hasGolden && golden.hookTiming != null) {
         const pct = pctChange(golden.hookTiming, current.hookTiming);
         const pctStr = pct != null ? ` (${fmtPct(pct)})` : '';
-
         const gHook = Math.round(golden.hookTiming);
         const cHook = Math.round(current.hookTiming);
 
-        sections.push(`> Hook timing: ${gHook} ms → ${cHook} ms${pctStr}`);
+        scenarioSections.push(`> Hook timing: ${gHook} ms → ${cHook} ms${pctStr}`);
+      } else {
+        scenarioSections.push(`> Hook timing: ${Math.round(current.hookTiming)} ms`);
       }
-
-      // Details table
-      sections.push(buildDetailsTable(name, golden, current));
-    } else {
-      // No baseline mode
-      sections.push(generateNoBaselineSummary(title, current));
-
-      if (current.hookTiming != null) {
-        sections.push(`> Hook timing: ${Math.round(current.hookTiming)} ms`);
-      }
-
-      sections.push(buildRawMetricsTable(name, current));
     }
 
-    sections.push('');
+    // Metrics table
+    scenarioSections.push(buildDetailsTable(golden, current, hasGolden));
+
+    sections.push(wrapDetails(
+      `<strong>${title}</strong>`,
+      scenarioSections.join('\n'),
+    ));
   }
 
   return sections.join('\n');
 }
 
-// --- details table with golden comparison ---
+// --- summary table ---
 
-/**
- * @param name
- * @param golden
- * @param current
- */
-function buildDetailsTable(name, golden, current) {
+function buildSummaryTable(results, goldenScenarios, hasGolden) {
+  const headers = hasGolden
+    ? ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Cumulative', 'Change']
+    : ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Cumulative'];
+
+  const rows = [];
+
+  for (const [name, current] of Object.entries(results)) {
+    const title = formatTitle(name);
+    const cats = current.categories || {};
+
+    if (hasGolden) {
+      const golden = goldenScenarios[name];
+      const cumChange = golden ? fmtPct(pctChange(golden.rangeEnd, current.rangeEnd)) : '--';
+
+      rows.push([
+        title,
+        fmtMs(cats.scripting),
+        fmtMs(cats.rendering),
+        fmtMs(cats.painting),
+        fmtMs(current.rangeEnd),
+        cumChange,
+      ]);
+    } else {
+      rows.push([
+        title,
+        fmtMs(cats.scripting),
+        fmtMs(cats.rendering),
+        fmtMs(cats.painting),
+        fmtMs(current.rangeEnd),
+      ]);
+    }
+  }
+
+  return formatMarkdownTable(headers, rows);
+}
+
+// --- details table ---
+
+function buildDetailsTable(golden, current, hasGolden) {
   const rows = [];
   const gCats = golden.categories || {};
   const cCats = current.categories || {};
@@ -78,119 +106,71 @@ function buildDetailsTable(name, golden, current) {
     const g = gCats[key];
     const c = cCats[key];
 
-    rows.push({
-      label: categoryLabel(key),
-      golden: fmtMs(g),
-      current: fmtMs(c),
-      change: fmtPct(pctChange(g, c)),
-      cv: fmtCv(current._iterationValues?.categories?.[key]),
-    });
+    rows.push([
+      categoryLabel(key),
+      hasGolden ? fmtMs(g) : '',
+      fmtMs(c),
+      hasGolden ? fmtPct(pctChange(g, c)) : '',
+      fmtCv(current._iterationValues?.categories?.[key]),
+    ]);
   }
 
-  // Cumulative (rangeEnd)
-  rows.push({
-    label: 'Cumulative',
-    golden: fmtMs(golden.rangeEnd),
-    current: fmtMs(current.rangeEnd),
-    change: fmtPct(pctChange(golden.rangeEnd, current.rangeEnd)),
-    cv: fmtCv(current._iterationValues?.rangeEnd),
-  });
+  // Cumulative
+  rows.push([
+    'Cumulative',
+    hasGolden ? fmtMs(golden.rangeEnd) : '',
+    fmtMs(current.rangeEnd),
+    hasGolden ? fmtPct(pctChange(golden.rangeEnd, current.rangeEnd)) : '',
+    fmtCv(current._iterationValues?.rangeEnd),
+  ]);
 
-  // UpdateCounters if present
+  // UpdateCounters
   const gUc = golden.updateCounters;
   const cUc = current.updateCounters;
 
-  if (gUc && cUc) {
-    rows.push(...buildUpdateCounterRows(gUc, cUc));
-  }
-
-  return wrapDetails('All metrics', formatMarkdownTable(
-    ['Metric', 'Golden', 'Current', 'Change', 'CV%'],
-    rows.map(r => [r.label, r.golden, r.current, r.change, r.cv]),
-  ));
-}
-
-// --- raw metrics table (no golden) ---
-
-/**
- * @param name
- * @param current
- */
-function buildRawMetricsTable(name, current) {
-  const rows = [];
-  const cCats = current.categories || {};
-
-  for (const key of ['scripting', 'rendering', 'painting', 'loading', 'other', 'experience', 'idle']) {
-    if (cCats[key] == null) { continue; }
-
-    rows.push({
-      label: categoryLabel(key),
-      value: fmtMs(cCats[key]),
-      cv: fmtCv(current._iterationValues?.categories?.[key]),
-    });
-  }
-
-  rows.push({
-    label: 'Cumulative',
-    value: fmtMs(current.rangeEnd),
-    cv: fmtCv(current._iterationValues?.rangeEnd),
-  });
-
-  const cUc = current.updateCounters;
-
   if (cUc) {
-    if (cUc.jsHeapMinLabel) { rows.push({ label: 'Min JS heap', value: cUc.jsHeapMinLabel, cv: '' }); }
-    if (cUc.jsHeapMaxLabel) { rows.push({ label: 'Max JS heap', value: cUc.jsHeapMaxLabel, cv: '' }); }
-    if (cUc.nodesMin != null) { rows.push({ label: 'Min Nodes', value: String(cUc.nodesMin), cv: '' }); }
-    if (cUc.nodesMax != null) { rows.push({ label: 'Max Nodes', value: String(cUc.nodesMax), cv: '' }); }
+    const ucPairs = [
+      ['Min JS heap', 'jsHeapMinLabel', 'jsHeapMinBytes'],
+      ['Max JS heap', 'jsHeapMaxLabel', 'jsHeapMaxBytes'],
+      ['Min Nodes', 'nodesMin', 'nodesMin'],
+      ['Max Nodes', 'nodesMax', 'nodesMax'],
+      ['Min Listeners', 'listenersMin', 'listenersMin'],
+      ['Max Listeners', 'listenersMax', 'listenersMax'],
+    ];
+
+    for (const [label, displayKey, numKey] of ucPairs) {
+      const gDisplay = gUc?.[displayKey];
+      const cDisplay = cUc[displayKey];
+
+      if (gDisplay == null && cDisplay == null) { continue; }
+
+      rows.push([
+        label,
+        hasGolden && gDisplay != null ? String(gDisplay) : '',
+        cDisplay != null ? String(cDisplay) : '--',
+        hasGolden ? fmtPct(pctChange(gUc?.[numKey], cUc[numKey])) : '',
+        '',
+      ]);
+    }
   }
 
-  return wrapDetails('All metrics', formatMarkdownTable(
-    ['Metric', 'Value', 'CV%'],
-    rows.map(r => [r.label, r.value, r.cv]),
-  ));
-}
+  const headers = hasGolden
+    ? ['Metric', 'Golden', 'Current', 'Change', 'CV%']
+    : ['Metric', '', 'Value', '', 'CV%'];
 
-// --- UpdateCounters rows ---
+  // Filter out empty columns when no golden
+  if (!hasGolden) {
+    const filteredHeaders = ['Metric', 'Value', 'CV%'];
+    const filteredRows = rows.map(r => [r[0], r[2], r[4]]);
 
-/**
- * @param golden
- * @param current
- */
-function buildUpdateCounterRows(golden, current) {
-  const rows = [];
-  const pairs = [
-    ['Min JS heap', 'jsHeapMinLabel', 'jsHeapMinBytes'],
-    ['Max JS heap', 'jsHeapMaxLabel', 'jsHeapMaxBytes'],
-    ['Min Nodes', 'nodesMin', 'nodesMin'],
-    ['Max Nodes', 'nodesMax', 'nodesMax'],
-    ['Min Listeners', 'listenersMin', 'listenersMin'],
-    ['Max Listeners', 'listenersMax', 'listenersMax'],
-  ];
-
-  for (const [label, displayKey, numKey] of pairs) {
-    const gDisplay = golden[displayKey];
-    const cDisplay = current[displayKey];
-
-    if (gDisplay == null && cDisplay == null) { continue; }
-
-    rows.push({
-      label,
-      golden: gDisplay != null ? String(gDisplay) : '--',
-      current: cDisplay != null ? String(cDisplay) : '--',
-      change: fmtPct(pctChange(golden[numKey], current[numKey])),
-      cv: '',
-    });
+    return formatMarkdownTable(filteredHeaders, filteredRows);
   }
 
-  return rows;
+  return formatMarkdownTable(headers, rows);
 }
 
 // --- formatting helpers ---
 
-/**
- * @param name
- */
 function formatTitle(name) {
   return name
     .split('-')
@@ -198,9 +178,6 @@ function formatTitle(name) {
     .join(' ');
 }
 
-/**
- * @param key
- */
 function categoryLabel(key) {
   const labels = {
     scripting: 'Scripting',
@@ -215,18 +192,12 @@ function categoryLabel(key) {
   return labels[key] || key;
 }
 
-/**
- * @param v
- */
 function fmtMs(v) {
   if (v == null || !Number.isFinite(v)) { return '--'; }
 
   return `${Math.round(v)} ms`;
 }
 
-/**
- * @param pct
- */
 function fmtPct(pct) {
   if (pct == null) { return '--'; }
 
@@ -235,11 +206,6 @@ function fmtPct(pct) {
   return `${sign}${pct.toFixed(1)}%`;
 }
 
-/**
- * Compute CV% (coefficient of variation) from an array of per-iteration values.
- *
- * @param values
- */
 function fmtCv(values) {
   if (!values || values.length < 2) { return ''; }
 
@@ -255,20 +221,12 @@ function fmtCv(values) {
   return `${cv.toFixed(1)}%${warning}`;
 }
 
-/**
- * @param baseline
- * @param current
- */
 function pctChange(baseline, current) {
   if (baseline == null || current == null || baseline === 0) { return null; }
 
   return ((current - baseline) / baseline) * 100;
 }
 
-/**
- * @param headers
- * @param rows
- */
 function formatMarkdownTable(headers, rows) {
   const allRows = [headers, ...rows];
   const colWidths = headers.map((_, i) =>
@@ -285,10 +243,6 @@ function formatMarkdownTable(headers, rows) {
   return [headerLine, sepLine, ...dataLines].join('\n');
 }
 
-/**
- * @param summary
- * @param content
- */
 function wrapDetails(summary, content) {
-  return `\n<details><summary>${summary}</summary>\n\n${content}\n\n</details>`;
+  return `\n<details><summary>${summary}</summary>\n\n${content}\n\n</details>\n`;
 }

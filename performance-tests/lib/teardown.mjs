@@ -138,7 +138,18 @@ export default async function teardown() {
 
       console.log(`Golden baseline loaded (${goldenCount} scenarios from ${golden.timestamp})`);
     } else if (mode === 'compare') {
-      console.log('No golden baseline found -- report will show raw metrics only');
+      // Self-compare: use current results as golden so charts always render
+      console.log('No golden baseline found -- self-comparing for chart preview');
+
+      const selfBaseline = {};
+
+      for (const [name, data] of Object.entries(scenarioResults)) {
+        const { _iterationValues, ...rest } = data;
+
+        selfBaseline[name] = rest;
+      }
+
+      golden = { timestamp: new Date().toISOString(), scenarios: selfBaseline };
     }
   }
 
