@@ -22,9 +22,9 @@ searchCategory: Recipes
 category: Themes
 ---
 
-<iframe src="https://codesandbox.io/p/sandbox/72nz56" title="Handsontable with MUI demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px; min-height: 500px;"></iframe>
+<iframe src="https://codesandbox.io/p/sandbox/y6llzl" title="Handsontable with MUI demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px; min-height: 500px;"></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/72nz56)
+[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/y6llzl)
 
 ## Overview
 
