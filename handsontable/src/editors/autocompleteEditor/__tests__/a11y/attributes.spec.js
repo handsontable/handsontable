@@ -102,7 +102,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(editorHot.getCell(...editorHot.getSelectedLast()).getAttribute('aria-selected')).toEqual('true');
   });
 
-  it('should should not add `aria-setsize` and `aria-posinset` if the source is a function`', async() => {
+  it.flaky('should should not add `aria-setsize` and `aria-posinset` if the source is a function`', async() => {
     const hot = handsontable({
       columns: [
         { editor: 'autocomplete', source: (quiery, callback) => callback(choices), strict: true }

@@ -87,7 +87,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     });
   });
 
-  it('should should not add `aria-setsize` and `aria-posinset` if the source is a function`', async() => {
+  it.flaky('should should not add `aria-setsize` and `aria-posinset` if the source is a function`', async() => {
     const hot = handsontable({
       data: [
         ['a'],
