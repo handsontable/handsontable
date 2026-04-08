@@ -28,7 +28,7 @@ category: Themes
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
    ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/z89zf5)
+[**Open in CodeSandbox**](https://codesandbox.io/s/z89zf5)
 
 ## Overview
 
