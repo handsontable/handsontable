@@ -24,6 +24,15 @@ searchCategory: Recipes
 category: Themes
 ---
 
+<iframe src="https://codesandbox.io/embed/ylxwyx?view=preview"
+  style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
+  title="Handsontable with Ant Design recipe (icons fixed)"
+  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+></iframe>
+
+[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/ylxwyx)
+
 ## Overview
 
 This recipe shows how to integrate Handsontable into a React app that uses [Ant Design](https://ant.design/) by registering a custom theme. You map Handsontable theme colors and tokens to Ant Design tokens, so the grid follows your UI system.
@@ -34,7 +43,7 @@ This recipe shows how to integrate Handsontable into a React app that uses [Ant 
 
 ## What You'll Get
 
-- A Handsontable grid with a custom theme registered through `registerTheme('ant-data-grid', ...)`.
+- A Handsontable grid with a custom theme registered through `registerTheme('ant-data-grid', { icons, colors, tokens })`.
 - Theme colors based on Handsontable's built-in Ant palette (`colors/ant`) with token-based overrides.
 - Spacing, typography, and border radius aligned with Ant Design tokens.
 
@@ -48,7 +57,7 @@ This recipe shows how to integrate Handsontable into a React app that uses [Ant 
 In your project root:
 
 ```bash
-pnpm add handsontable @handsontable/react-wrapper antd
+npm install handsontable@0.0.0-next-deba76c-20260408 @handsontable/react-wrapper@0.0.0-next-deba76c-20260408 antd
 ```
 
 (or `npm install` / `yarn add`).
@@ -61,11 +70,13 @@ Create a shared theme module, and register all Handsontable modules.
 import { registerAllModules } from 'handsontable/registry';
 import { registerTheme } from 'handsontable/themes';
 import colorsAnt from 'handsontable/themes/static/variables/colors/ant';
+import iconsHorizon from 'handsontable/themes/static/variables/icons/horizon';
 import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
 
 registerAllModules();
 
 export const antDataGridTheme = registerTheme('ant-data-grid', {
+  icons: iconsHorizon,
   colors: colorsAnt,
   tokens: tokensHorizon,
 }).params({
