@@ -13,7 +13,7 @@ import {
 /**
  * @param {Record<string, object>} scenarioResults -- keyed by scenario name
  * @param {object | null} goldenSnapshots -- golden baseline
- * @param {object} [meta] -- { prNumber, branch, baseBranch, runUrl }
+ * @param {object} [meta] -- { prNumber, branch, baseBranch, pagesUrl }
  * @returns {string} self-contained HTML document
  */
 export function buildHtmlReport(scenarioResults, goldenSnapshots, meta = {}) {
@@ -100,7 +100,7 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta) {
       prNumber: meta.prNumber || null,
       branch: meta.branch || 'unknown',
       baseBranch: meta.baseBranch || 'develop',
-      runUrl: meta.runUrl || null,
+      pagesUrl: meta.pagesUrl || null,
       generatedAt: new Date().toISOString(),
     },
     summary: {

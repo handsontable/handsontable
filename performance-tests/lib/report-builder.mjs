@@ -32,9 +32,11 @@ export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
     sections.push(buildRegressionCallouts(allScenarioResults, goldenScenarios));
   }
 
-  // Link to full HTML report (artifact)
-  if (meta.runUrl) {
-    sections.push(`\u{1F4CA} **[Full interactive report \u2192](${meta.runUrl})**`);
+  // Link to full HTML report on GitHub Pages
+  if (meta.pagesUrl) {
+    sections.push(
+      `\u{1F4CA} **[Full interactive report \u2192](${meta.pagesUrl})**`
+    );
   }
 
   // Collapsible raw details (all scenarios)
