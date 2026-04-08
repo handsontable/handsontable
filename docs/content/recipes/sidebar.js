@@ -18,6 +18,7 @@ const cellTypesItems = [
 
 const themesItems = [
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
 ];
 
 module.exports = {
