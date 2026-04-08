@@ -33,3 +33,6 @@ Our recipes cover common use cases and demonstrate best practices for:
 - **Theme API** – Register and configure themes with colors, density, and dark mode
 
 Each recipe includes complete code examples, configuration options, and troubleshooting tips to help you integrate Handsontable with your app's look and feel.
+
+- [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md)
+- [Handsontable with Material Design 3](@/recipes/themes/material-design/material-design.md)
