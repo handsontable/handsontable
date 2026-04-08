@@ -3431,6 +3431,46 @@ export const REGISTERED_HOOKS = [
   'afterEmptyDataStateHide',
 
   /**
+   * Fired by {@link Notification} plugin before a toast is shown. This hook is fired when {@link Options#notification}
+   * option is enabled. Return `false` to cancel the toast.
+   *
+   * @since 17.1.0
+   * @event Hooks#beforeNotificationShow
+   * @param {object} options Normalized toast options including `id`, `variant`, `message`, `duration`, `position`, `closable`, and `actions`.
+   * @returns {boolean | undefined} If returns `false`, the toast is not shown (or queued).
+   */
+  'beforeNotificationShow',
+
+  /**
+   * Fired by {@link Notification} plugin after a toast is shown.
+   *
+   * @since 17.1.0
+   * @event Hooks#afterNotificationShow
+   * @param {string} id Toast id.
+   * @param {object} options Normalized toast options.
+   */
+  'afterNotificationShow',
+
+  /**
+   * Fired by {@link Notification} plugin before a toast is hidden. Return `false` to keep it visible.
+   *
+   * @since 17.1.0
+   * @event Hooks#beforeNotificationHide
+   * @param {string} id Toast id.
+   * @returns {boolean | undefined} If returns `false`, the toast stays visible.
+   */
+  'beforeNotificationHide',
+
+  /**
+   * Fired by {@link Notification} plugin after a toast is hidden.
+   *
+   * @since 17.1.0
+   * @event Hooks#afterNotificationHide
+   * @param {string} id Toast id.
+   */
+  'afterNotificationHide',
+
+  /**
    * Fired after the editor is opened and rendered.
    *
    * @event Hooks#afterBeginEditing

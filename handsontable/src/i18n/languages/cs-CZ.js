@@ -118,6 +118,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Přejít na poslední stránku',
 
   [C.LOADING_TITLE]: 'Načítání...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zavřít',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Žádná data nejsou k dispozici',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Zatím není co zobrazit.',

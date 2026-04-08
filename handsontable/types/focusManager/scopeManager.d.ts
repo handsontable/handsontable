@@ -6,6 +6,7 @@ type FocusScopeOptions = {
   type?: FocusScopeType;
   contains?: (target: HTMLElement) => boolean;
   runOnlyIf?: () => boolean;
+  enableFocusCatchers?: boolean;
   onActivate?: (focusSource: FocusScopeActivationSource) => void;
   onDeactivate?: () => void;
 };

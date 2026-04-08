@@ -128,6 +128,9 @@ export const CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;
 export const LOADING_NAMESPACE = 'Loading:';
 export const LOADING_TITLE = `${LOADING_NAMESPACE}title`;
 
+export const NOTIFICATION_NAMESPACE = 'Notification:';
+export const NOTIFICATION_BUTTONS_CLOSE = `${NOTIFICATION_NAMESPACE}buttons.close`;
+
 export const EXPORT_FILE_NAMESPACE = 'ExportFile:';
 export const EXPORT_FILE_DIALOG_TITLE = `${EXPORT_FILE_NAMESPACE}dialog.title`;
 

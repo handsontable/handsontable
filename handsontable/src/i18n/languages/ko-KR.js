@@ -117,6 +117,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: '마지막 페이지로 이동',
 
   [C.LOADING_TITLE]: '로딩 중...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: '닫기',
 
   [C.EMPTY_DATA_STATE_TITLE]: '사용 가능한 데이터가 없습니다',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: '아직 표시할 내용이 없습니다.',

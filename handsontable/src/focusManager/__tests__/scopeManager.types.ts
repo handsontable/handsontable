@@ -28,6 +28,7 @@ focusScopeManager.registerScope('test', element, {
 focusScopeManager.registerScope('test', element, {
   shortcutsContextName: 'test',
   type: 'inline',
+  enableFocusCatchers: false,
 });
 
 focusScopeManager.unregisterScope('test');
