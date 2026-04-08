@@ -684,6 +684,8 @@ Measurements were made with esbuild using minification, against **Handsontable 1
 | `DateCellType` | +87.2 kB | +28.2 kB |
 | `DropdownCellType` | +15.5 kB | +4.3 kB |
 | `HandsontableCellType` | +6.5 kB | +1.5 kB |
+| `IntlDateCellType` | +1.7 kB | +0.7 kB |
+| `IntlTimeCellType` | +1.8 kB | +0.7 kB |
 | `MultiSelectCellType` | +24.0 kB | +6.2 kB |
 | `NumericCellType` | +44.1 kB | +17.1 kB |
 | `PasswordCellType` | +1.4 kB | +0.3 kB |
@@ -708,13 +710,16 @@ Measurements were made with esbuild using minification, against **Handsontable 1
 | `ContextMenu` | +42.7 kB | +10.9 kB |
 | `CopyPaste` | +27.4 kB | +7.9 kB |
 | `CustomBorders` | +16.8 kB | +4.8 kB |
+| `Dialog` | +19.4 kB | +5.7 kB |
 | `DragToScroll` | +9.5 kB | +2.8 kB |
 | `DropdownMenu` | +45.9 kB | +11.7 kB |
+| `EmptyDataState` | +18.4 kB | +5.2 kB |
 | `ExportFile` | +39.9 kB | +12.5 kB |
 | `Filters` | +155.4 kB | +42.7 kB |
 | `Formulas` | +96.1 kB | +28.6 kB |
 | `HiddenColumns` | +22.9 kB | +5.8 kB |
 | `HiddenRows` | +22.6 kB | +5.7 kB |
+| `Loading` | +9.9 kB | +3.1 kB |
 | `ManualColumnFreeze` | +9.5 kB | +2.8 kB |
 | `ManualColumnMove` | +16.6 kB | +4.7 kB |
 | `ManualColumnResize` | +14.9 kB | +4.2 kB |
@@ -725,6 +730,7 @@ Measurements were made with esbuild using minification, against **Handsontable 1
 | `MultipleSelectionHandles` | +10.9 kB | +3.0 kB |
 | `NestedHeaders` | +42.8 kB | +11.6 kB |
 | `NestedRows` | +35.1 kB | +8.1 kB |
+| `Pagination` | +28.9 kB | +7.5 kB |
 | `Search` | +10.0 kB | +2.8 kB |
 | `StretchColumns` | +13.4 kB | +3.8 kB |
 | `TouchScroll` | +9.3 kB | +2.7 kB |

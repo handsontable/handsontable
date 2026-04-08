@@ -32,6 +32,14 @@
       "raw": 6502,
       "gzip": 1549
     },
+    "IntlDateCellType": {
+      "raw": 1747,
+      "gzip": 742
+    },
+    "IntlTimeCellType": {
+      "raw": 1761,
+      "gzip": 740
+    },
     "MultiSelectCellType": {
       "raw": 24036,
       "gzip": 6160
@@ -102,6 +110,10 @@
       "raw": 16786,
       "gzip": 4836
     },
+    "Dialog": {
+      "raw": 19403,
+      "gzip": 5672
+    },
     "DragToScroll": {
       "raw": 9547,
       "gzip": 2752
@@ -109,6 +121,10 @@
     "DropdownMenu": {
       "raw": 45898,
       "gzip": 11706
+    },
+    "EmptyDataState": {
+      "raw": 18366,
+      "gzip": 5156
     },
     "ExportFile": {
       "raw": 39868,
@@ -129,6 +145,10 @@
     "HiddenRows": {
       "raw": 22567,
       "gzip": 5726
+    },
+    "Loading": {
+      "raw": 9901,
+      "gzip": 3061
     },
     "ManualColumnFreeze": {
       "raw": 9510,
@@ -169,6 +189,10 @@
     "NestedRows": {
       "raw": 35073,
       "gzip": 8082
+    },
+    "Pagination": {
+      "raw": 28903,
+      "gzip": 7547
     },
     "Search": {
       "raw": 9953,

@@ -33,6 +33,60 @@ const MD_END = '<!-- module-sizes:end -->';
 
 mkdirSync(TMP_DIR, { recursive: true });
 
+const SRC_DIR = resolve(__dirname, '..', 'src');
+
+/**
+ * Reads an index.js barrel file and returns all imported class names that pass
+ * the given filter. Handles both single-line and multi-line import blocks.
+ *
+ * @param {string} indexPath Absolute path to the index.js barrel file.
+ * @param {Function} filter Predicate to include a name.
+ * @returns {string[]} Sorted list of matching names.
+ */
+function parseImportNames(indexPath, filter) {
+  const content = readFileSync(indexPath, 'utf8');
+  const names = [];
+
+  for (const match of content.matchAll(/import\s*\{([^}]+)\}/gs)) {
+    for (const part of match[1].split(',')) {
+      const name = part.split(' as ')[0].trim();
+
+      if (name && filter(name)) {
+        names.push(name);
+      }
+    }
+  }
+
+  return [...new Set(names)].sort();
+}
+
+/**
+ * Auto-detects cell type class names from src/cellTypes/index.js.
+ *
+ * @returns {string[]} Sorted list of cell type class names.
+ */
+function detectCellTypes() {
+  return parseImportNames(
+    resolve(SRC_DIR, 'cellTypes', 'index.js'),
+    name => /^[A-Z]\w+CellType$/.test(name)
+  );
+}
+
+/**
+ * Auto-detects plugin class names from src/plugins/index.js.
+ * Excludes the base class and internal non-plugin exports.
+ *
+ * @returns {string[]} Sorted list of plugin class names.
+ */
+function detectPlugins() {
+  const EXCLUDE = new Set(['BasePlugin', 'DataProvider']);
+
+  return parseImportNames(
+    resolve(SRC_DIR, 'plugins', 'index.js'),
+    name => /^[A-Z]/.test(name) && !EXCLUDE.has(name)
+  );
+}
+
 /**
  * Locates the esbuild binary in the monorepo's pnpm node_modules.
  *
@@ -193,57 +247,8 @@ async function main() {
   const fullRaw = readFileSync(join(DIST, 'handsontable.min.js')).length;
   const fullGzip = gzipSync(readFileSync(join(DIST, 'handsontable.min.js'))).length;
 
-  // Cell types to measure
-  const cellTypes = [
-    'AutocompleteCellType',
-    'CheckboxCellType',
-    'DateCellType',
-    'DropdownCellType',
-    'HandsontableCellType',
-    'MultiSelectCellType',
-    'NumericCellType',
-    'PasswordCellType',
-    'SelectCellType',
-    'TextCellType',
-    'TimeCellType',
-  ];
-
-  // Plugins to measure
-  const plugins = [
-    'AutoColumnSize',
-    'AutoRowSize',
-    'Autofill',
-    'BindRowsWithHeaders',
-    'CollapsibleColumns',
-    'ColumnSorting',
-    'ColumnSummary',
-    'Comments',
-    'ContextMenu',
-    'CopyPaste',
-    'CustomBorders',
-    'DragToScroll',
-    'DropdownMenu',
-    'ExportFile',
-    'Filters',
-    'Formulas',
-    'HiddenColumns',
-    'HiddenRows',
-    'ManualColumnFreeze',
-    'ManualColumnMove',
-    'ManualColumnResize',
-    'ManualRowMove',
-    'ManualRowResize',
-    'MergeCells',
-    'MultiColumnSorting',
-    'MultipleSelectionHandles',
-    'NestedHeaders',
-    'NestedRows',
-    'Search',
-    'StretchColumns',
-    'TouchScroll',
-    'TrimRows',
-    'UndoRedo',
-  ];
+  const cellTypes = detectCellTypes();
+  const plugins = detectPlugins();
 
   const cellTypeResults = {};
   const pluginResults = {};
