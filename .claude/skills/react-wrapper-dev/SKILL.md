@@ -33,8 +33,8 @@ A `useRef()` hook holds the live Handsontable instance. It is exposed to parent 
 
 - **Build system:** Rollup 4 producing CommonJS, ES module, UMD, and minified outputs.
 - **Tests:** Jest with React Testing Library.
-- **Run tests:** `pnpm --filter @handsontable/react-wrapper run test`
-- **Important:** Build core first with `pnpm --filter handsontable run build`. Wrappers consume `handsontable/tmp/`, not `dist/`.
+- **Run tests:** `npm run test --prefix wrappers/react-wrapper`
+- **Important:** Build core first with `npm run build --prefix handsontable`. Wrappers consume `handsontable/tmp/`, not `dist/`.
 
 ## Key files
 

@@ -278,6 +278,14 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 
 </div>
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [What's new in Handsontable 14: Improvements to accessibility](https://handsontable.com/blog/whats-new-in-handsontable-14-improvements-to-accessibility)
+
+</div>
+
 ## Troubleshooting
 
 Didn't find what you need? Try this:

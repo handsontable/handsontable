@@ -30,8 +30,8 @@ Parent-child communication uses Vue's `provide()` / `inject()` pattern. The HotT
 
 - **Build system:** Rollup 4.
 - **Tests:** Jest with `@vue/test-utils`.
-- **Run tests:** `pnpm --filter @handsontable/vue3 run test`
-- **Important:** Build core first with `pnpm --filter handsontable run build`. Wrappers consume `handsontable/tmp/`, not `dist/`.
+- **Run tests:** `npm run test --prefix wrappers/vue3`
+- **Important:** Build core first with `npm run build --prefix handsontable`. Wrappers consume `handsontable/tmp/`, not `dist/`.
 
 ## Key files
 

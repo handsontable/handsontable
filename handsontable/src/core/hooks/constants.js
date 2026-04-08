@@ -673,6 +673,11 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after one or more columns are removed.
    *
+   * When consecutive columns are removed, this hook is fired once with the `amount` reflecting
+   * the total number of removed columns. When non-consecutive columns are removed (for example,
+   * by selecting columns with Ctrl/Cmd held), this hook is fired separately for each removed
+   * column, with `amount` equal to `1` each time. This is by design.
+   *
    * @event Hooks#afterRemoveCol
    * @param {number} index Visual index of starter column.
    * @param {number} amount An amount of removed columns.
@@ -684,6 +689,11 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired after one or more rows are removed.
+   *
+   * When consecutive rows are removed, this hook is fired once with the `amount` reflecting
+   * the total number of removed rows. When non-consecutive rows are removed (for example,
+   * by selecting rows with Ctrl/Cmd held), this hook is fired separately for each removed
+   * row, with `amount` equal to `1` each time. This is by design.
    *
    * @event Hooks#afterRemoveRow
    * @param {number} index Visual index of starter row.

@@ -1,0 +1,26 @@
+{{setLevel this 0~}}
+{{#if (descendants min=(option 'memberIndex.minDescendants'))~}}
+{{#if isExported~}}
+{{#if (equal (depth) 0)}}
+{{#if (optionEquals "member-index-format" "list")}}
+
+{{>member-index-list}}
+
+{{else~}}
+
+{{>member-index-grouped}}
+
+{{/if~}}
+{{/if~}}
+{{else~}}
+{{#if (optionEquals "member-index-format" "list")}}
+
+{{>member-index-list}}
+
+{{else}}
+
+{{>member-index-grouped}}
+
+{{/if~}}
+{{/if~}}
+{{/if}}
