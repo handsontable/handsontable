@@ -23,10 +23,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOT_TMP = resolve(__dirname, '..', 'tmp');
 const DIST = resolve(__dirname, '..', 'dist');
 const TMP_DIR = '/tmp/hot-module-sizes';
-const JSON_OUT = resolve(
-  __dirname, '..', '..', 'docs', 'content', 'guides', 'tools-and-building', 'modules',
-  'module-sizes.json'
+const DOCS_MODULES_DIR = resolve(
+  __dirname, '..', '..', 'docs', 'content', 'guides', 'tools-and-building', 'modules'
 );
+const JSON_OUT = resolve(DOCS_MODULES_DIR, 'module-sizes.json');
+const MODULES_MD = resolve(DOCS_MODULES_DIR, 'modules.md');
+const MD_START = '<!-- module-sizes:start -->';
+const MD_END = '<!-- module-sizes:end -->';
 
 mkdirSync(TMP_DIR, { recursive: true });
 
@@ -103,6 +106,77 @@ function bundle(esbuild, entryCode) {
  */
 function delta(current, base) {
   return { raw: current.raw - base.raw, gzip: current.gzip - base.gzip };
+}
+
+/**
+ * Formats a byte count as a kB string with one decimal place.
+ *
+ * @param {number} bytes Raw byte count.
+ * @returns {string} Formatted string, e.g. "141.2 kB".
+ */
+function kB(bytes) {
+  return `${(bytes / 1000).toFixed(1)} kB`;
+}
+
+/**
+ * Builds the Markdown table content to be injected between the
+ * module-sizes markers in modules.md.
+ *
+ * @param {{ version: string, measuredAt: string, base: object, cellTypes: object, plugins: object }} data
+ *   Measurement data as written to module-sizes.json.
+ * @returns {string} Markdown string (no leading/trailing blank lines).
+ */
+function buildMarkdownTables(data) {
+  const lines = [];
+
+  // eslint-disable-next-line max-len
+  lines.push(`Measurements were made with esbuild using minification, against **Handsontable ${data.version}** (${data.measuredAt}).`);
+  lines.push('');
+  lines.push('**Base module sizes:**');
+  lines.push('');
+  lines.push('| Package | Minified | Gzip |');
+  lines.push('| ------- | -------- | ---- |');
+  lines.push(`| \`handsontable\` (full, no tree shaking) | ${kB(data.base.full.raw)} | ${kB(data.base.full.gzip)} |`);
+  lines.push(`| \`handsontable/base\` | ${kB(data.base.base.raw)} | ${kB(data.base.base.gzip)} |`);
+  lines.push('');
+  lines.push('**Size added by each optional module (on top of `handsontable/base`):**');
+  lines.push('');
+  lines.push('::: details Cell type modules');
+  lines.push('');
+  lines.push('| Module | Minified | Gzip |');
+  lines.push('| ------ | -------- | ---- |');
+
+  for (const [name, d] of Object.entries(data.cellTypes)) {
+    if (d.raw < 100) {
+      lines.push(`| \`${name}\` | included in base | included in base |`);
+    } else {
+      lines.push(`| \`${name}\` | +${kB(d.raw)} | +${kB(d.gzip)} |`);
+    }
+  }
+
+  lines.push('');
+  lines.push(':::');
+  lines.push('');
+  lines.push('::: details Plugin modules');
+  lines.push('');
+  lines.push('| Module | Minified | Gzip |');
+  lines.push('| ------ | -------- | ---- |');
+
+  for (const [name, d] of Object.entries(data.plugins)) {
+    lines.push(`| \`${name}\` | +${kB(d.raw)} | +${kB(d.gzip)} |`);
+  }
+
+  lines.push('');
+  lines.push(':::');
+  lines.push('');
+  lines.push('::: tip');
+  lines.push('');
+  // eslint-disable-next-line max-len
+  lines.push('The `Formulas` module requires the external [`hyperformula`](https://hyperformula.handsontable.com/) package. Its size is not included in the measurements above.');
+  lines.push('');
+  lines.push(':::');
+
+  return lines.join('\n');
 }
 
 /**
@@ -202,10 +276,12 @@ async function main() {
   const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
   const version = pkg.version;
 
-  // Write JSON output
+  const measuredAt = new Date().toISOString().slice(0, 10);
+
+  // Write JSON output (machine-readable source of truth)
   const output = {
     version,
-    measuredAt: new Date().toISOString().slice(0, 10),
+    measuredAt,
     base: {
       full: { raw: fullRaw, gzip: fullGzip },
       base: { raw: base.raw, gzip: base.gzip },
@@ -216,7 +292,23 @@ async function main() {
 
   writeFileSync(JSON_OUT, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
   console.error(`\nWrote ${JSON_OUT}`);
-  console.error('Commit the updated module-sizes.json to the repository.');
+
+  // Inject generated tables into modules.md between marker comments
+  const tables = buildMarkdownTables(output);
+  const mdContent = readFileSync(MODULES_MD, 'utf8');
+  const startIdx = mdContent.indexOf(MD_START);
+  const endIdx = mdContent.indexOf(MD_END);
+
+  if (startIdx === -1 || endIdx === -1) {
+    console.error(`Warning: markers not found in ${MODULES_MD} — skipping markdown update.`);
+  } else {
+    const updated = `${mdContent.slice(0, startIdx + MD_START.length)}\n${tables}\n${mdContent.slice(endIdx)}`;
+
+    writeFileSync(MODULES_MD, updated, 'utf8');
+    console.error(`Wrote ${MODULES_MD}`);
+  }
+
+  console.error('\nCommit both updated files to the repository.');
 }
 
 main().catch((err) => {

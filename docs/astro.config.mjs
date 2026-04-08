@@ -6,7 +6,6 @@ import sitemap from '@astrojs/sitemap';
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
-import { moduleSizesPlugin } from './src/plugins/vite-module-sizes.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { buildAllSidebars } from './src/sidebar.mjs';
@@ -592,11 +591,6 @@ export default defineConfig({
     },
 
     plugins: [
-      // Injects build weight tables from module-sizes.json into modules.md.
-      // Must run before vuepressPreprocessor so the injected ::: containers
-      // are converted to HTML by the preprocessor.
-      moduleSizesPlugin(),
-
       // Runs BEFORE Astro's markdown processor.
       // Converts VuePress-specific syntax to Astro/CommonMark-compatible syntax.
       // Note: the only-for filtering in this plugin is redundant for content
