@@ -24,14 +24,14 @@ searchCategory: Recipes
 category: Themes
 ---
 
-<iframe src="https://codesandbox.io/embed/6vfmwm?view=preview"
+<iframe src="https://codesandbox.io/embed/5jyfxn?view=preview"
      style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
      title="Handsontable with Atlassian Design System recipe"
      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
    ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/6vfmwm)
+[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/5jyfxn)
 
 ## Overview
 
@@ -156,9 +156,9 @@ export default function DataGrid() {
 }
 ```
 
-## Step 5 - Add required CSS imports
+## Step 5 - Add required CSS imports and Atlassian-like hover
 
-Import Handsontable styles and ADS reset.
+Import Handsontable styles and ADS reset, then add an Atlassian-like row hover background.
 
 ```tsx
 import '@atlaskit/css-reset';
@@ -166,12 +166,42 @@ import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 ```
 
-## Step 6 - Verify the result
+```css
+.ht-theme-main .ht_master tbody tr:hover > td {
+  background-color: var(--ds-background-neutral-subtle-hovered, #0515240f);
+}
+```
+
+## Step 6 - Align font and cell paddings
+
+Apply Atlassian-like text and spacing through theme tokens:
+
+```tsx
+const atlassianDataGridTheme = registerTheme('atlassian-data-grid', {
+  icons: iconsHorizon,
+  colors: colorsAtlassian,
+  tokens: tokensHorizon,
+}).params({
+  tokens: {
+    wrapperBorderRadius: ds('border.radius.100', '3px'),
+    fontFamily: '"Charlie Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontSize: '14px',
+    lineHeight: '20px',
+    cellHorizontalPadding: '12px',
+    cellVerticalPadding: '10px',
+    headerFontWeight: '600',
+  },
+});
+```
+
+## Step 7 - Verify the result
 
 Check these states in your running app:
 
 - Header, cell background, and text colors.
+- Row hover color (`--ds-background-neutral-subtle-hovered`).
 - Selection, hover, and focus contrast.
+- Font family, font size, and cell paddings.
 - Borders and radius around the grid wrapper.
 
 ## Related
