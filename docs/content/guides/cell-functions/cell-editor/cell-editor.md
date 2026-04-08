@@ -16,8 +16,6 @@ category: Cell functions
 menuTag: updated
 ---
 
-# Cell editor
-
 Create custom cell editors to fully control how values are entered in your data grid.
 
 Each cell can have one editor — a class that manages the editor's DOM element, its value, and the lifecycle from opening to saving. Handsontable's [`EditorManager`](@/api/baseEditor.md) selects and drives the editor automatically. You create editors by extending [`BaseEditor`](@/api/baseEditor.md) or any of the [built-in editor classes](#built-in-editors).
@@ -143,13 +141,13 @@ Handsontable separates rendering (displaying cell values) from editing (changing
 | Click another cell | Saves changes |
 | <kbd>**Enter**</kbd> / <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | Saves and moves selection down / up |
 | <kbd>**Tab**</kbd> / <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | Saves and moves selection right / left |
-| <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd> or <kbd>**Alt**</kbd>/<kbd>**Option**</kbd>+<kbd>**Enter**</kbd> | Inserts a line break |
+| <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> or <kbd>**Alt**</kbd>/<kbd>⌥</kbd>+<kbd>**Enter**</kbd> | Inserts a line break |
 | <kbd>**Page Up**</kbd> / <kbd>**Page Down**</kbd> | Saves and scrolls one screen |
 | <kbd>**Escape**</kbd> | Cancels without saving |
 
 ::: tip
 
-**IME support:** For Chinese, Japanese, or Korean input, enable [`imeFastEdit`](@/api/options.md#imefastedit) to let users start typing immediately without pressing <kbd>**Enter**</kbd> or <kbd>**F2**</kbd>. See the [IME support](@/guides/internationalization/ime-support/ime-support.md) guide.
+**IME support:** For Chinese, Japanese, or Korean input, enable [`imeFastEdit`](@/api/options.md#imefastedit) to let users start typing immediately without pressing <kbd>Enter</kbd> or <kbd>F2</kbd>. See the [IME support](@/guides/internationalization/ime-support/ime-support.md) guide.
 
 :::
 
@@ -379,19 +377,19 @@ class ExtendedSelectEditor extends MySelectEditor {
 | Arrow keys | Arrow keys | Move the cursor through the text | &check; | &check; |
 | Alphanumeric keys | Alphanumeric keys | Enter the pressed key's value into the cell | &check; | &check; |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Complete the cell entry and move to the cell below | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | Complete the cell entry and move to the cell above | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Complete the cell entry and move to the cell above | &check; | &check; |
 | <kbd>**Tab**</kbd> | <kbd>**Tab**</kbd> | Complete the cell entry and move to the next cell<sup>\*</sup> | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | Complete the cell entry and move to the previous cell<sup>\*</sup> | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | Complete the cell entry and move to the previous cell<sup>\*</sup> | &check; | &check; |
 | <kbd>**Delete**</kbd> | <kbd>**Delete**</kbd> | Delete one character after the cursor<sup>\*</sup> | &check; | &check; |
 | <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Delete one character before the cursor<sup>\*</sup> | &check; | &check; |
 | <kbd>**Home**</kbd> | <kbd>**Home**</kbd> | Move the cursor to the beginning of the text<sup>\*</sup> | &check; | &check; |
 | <kbd>**End**</kbd> | <kbd>**End**</kbd> | Move the cursor to the end of the text<sup>\*</sup> | &check; | &check; |
-| <kbd>**Ctrl**</kbd> + Arrow keys | <kbd>**Cmd**</kbd> + Arrow keys | Move the cursor to the beginning or to the end of the text | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd> + Arrow keys | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd> + Arrow keys | Extend the selection to the beginning or to the end of the text | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + Arrow keys | <kbd>⌘</kbd> + Arrow keys | Move the cursor to the beginning or to the end of the text | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd> + Arrow keys | <kbd>⌘</kbd>+<kbd>⇧</kbd> + Arrow keys | Extend the selection to the beginning or to the end of the text | &check; | &check; |
 | <kbd>**Page Up**</kbd> | <kbd>**Page Up**</kbd> | Complete the cell entry and move one screen up | &check; | &check; |
 | <kbd>**Page Down**</kbd> | <kbd>**Page Down**</kbd> | Complete the cell entry and move one screen down | &check; | &check; |
-| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Option**</kbd>+<kbd>**Enter**</kbd> | Insert a line break | &cross; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd> | Insert a line break | &cross; | &check; |
+| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌥</kbd>+<kbd>**Enter**</kbd> | Insert a line break | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break | &cross; | &check; |
 | <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | Cancel the cell entry and exit the editing mode | &check; | &check; |
 
 <sup>\*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md).

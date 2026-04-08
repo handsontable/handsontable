@@ -891,7 +891,7 @@ At the moment, filtering comes with the following limitations:
 
 | Windows                             | macOS                                  | Action            |  Excel  | Sheets  |
 | ----------------------------------- | -------------------------------------- | ----------------- | :-----: | :-----: |
-| <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>**Option**</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |
+| <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>⌥</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |
 
 ## API reference
 

@@ -29,7 +29,7 @@ Selection enables you to select a single cell or ranges of cells within Handsont
 
 With this feature, you can select single cells or ranges of cells across a grid. Easily retrieve the coordinates of the selected cells to clear or change the cells' content.
 
-Use <kbd>**Cmd**</kbd> on Mac or <kbd>**Ctrl**</kbd> on Windows to select non-adjacent ranges of cells.
+Use <kbd>⌘</kbd> on Mac or <kbd>**Ctrl**</kbd> on Windows to select non-adjacent ranges of cells.
 
 ## Select ranges
 
@@ -192,20 +192,20 @@ To jump across a horizontal edge:
 
 | Windows                                                       | macOS                                                        | Action                                                                           |  Excel  | Sheets  |
 | ------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd>                        | <kbd>**Cmd**</kbd>+<kbd>**A**</kbd>                        | Select all cells | &check; | &check; |
-|<kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> |<kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> | Select all cells and headers                                                      | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                    | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                   | Select the entire column                                                         | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                   | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                  | Select the entire row                                                            | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd> | Extend the selection to the first cell of the current column<sup>**</sup>        | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd> | Extend the selection to the last cell of the current column<sup>**</sup>         | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**←**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**←**</kbd> | Extend the selection to the leftmost cell of the current row<sup>**</sup>        | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**→**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**→**</kbd> | Extend the selection to the rightmost cell of the current row<sup>**</sup>       | &check; | &check; |
-| <kbd>**Shift**</kbd> + Arrow keys                             | <kbd>**Shift**</kbd> + Arrow keys                            | Extend the selection by one cell                                                 | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Home**</kbd>                    | <kbd>**Shift**</kbd>+<kbd>**Home**</kbd>                   | Extend the selection to the first non-frozen cell of the current row<sup>*</sup> | &check; | &cross; |
-| <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                     | <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                    | Extend the selection to the last non-frozen cell of the current row<sup>*</sup>  | &cross; | &cross; |
-| <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                 | <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                | Extend the selection by one screen up                                            | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>               | <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>              | Extend the selection by one screen down                                          | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                    | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd>                    | Fill the selected range of cells with the value of the active cell               | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd>                        | <kbd>⌘</kbd>+<kbd>**A**</kbd>                        | Select all cells | &check; | &check; |
+|<kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> |<kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**Space**</kbd> | Select all cells and headers                                                      | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                    | <kbd>⌃</kbd>+<kbd>**Space**</kbd>                   | Select the entire column                                                         | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                   | <kbd>⇧</kbd>+<kbd>**Space**</kbd>                  | Select the entire row                                                            | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**↑**</kbd> | Extend the selection to the first cell of the current column<sup>**</sup>        | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**↓**</kbd> | Extend the selection to the last cell of the current column<sup>**</sup>         | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**←**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**←**</kbd> | Extend the selection to the leftmost cell of the current row<sup>**</sup>        | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**→**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**→**</kbd> | Extend the selection to the rightmost cell of the current row<sup>**</sup>       | &check; | &check; |
+| <kbd>**Shift**</kbd> + Arrow keys                             | <kbd>⇧</kbd> + Arrow keys                            | Extend the selection by one cell                                                 | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Home**</kbd>                    | <kbd>⇧</kbd>+<kbd>**Home**</kbd>                   | Extend the selection to the first non-frozen cell of the current row<sup>*</sup> | &check; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                     | <kbd>⇧</kbd>+<kbd>**End**</kbd>                    | Extend the selection to the last non-frozen cell of the current row<sup>*</sup>  | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                 | <kbd>⇧</kbd>+<kbd>**Page Up**</kbd>                | Extend the selection by one screen up                                            | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>               | <kbd>⇧</kbd>+<kbd>**Page Down**</kbd>              | Extend the selection by one screen down                                          | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                    | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                    | Fill the selected range of cells with the value of the active cell               | &cross; | &check; |
 | <kbd>**Delete**</kbd>                                         | <kbd>**Delete**</kbd>                                        | Clear the contents of the selected cells                                         | &check; | &check; |
 | <kbd>**Backspace**</kbd>                                      | <kbd>**Backspace**</kbd>                                     | Clear the contents of the selected cells                                         | &check; | &check; |
 
