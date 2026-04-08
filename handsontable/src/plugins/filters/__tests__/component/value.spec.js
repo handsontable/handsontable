@@ -422,6 +422,61 @@ describe('Filters UI Value component', () => {
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
   });
 
+  it('should keep the menu open and not intercept Space key in the search input (#12227)', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    await dropdownMenu(1);
+    await sleep(208);
+
+    const searchInput = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+    $(searchInput).simulate('mousedown').simulate('mouseup').simulate('click');
+    searchInput.focus();
+
+    await sleep(208);
+
+    await keyDownUp('space');
+
+    expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
+    expect(document.activeElement).toBe(searchInput);
+  });
+
+  it('should keep the menu open and not intercept Space key in the search input' +
+    ' with searchMode `apply` (#12227)', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: {
+        searchMode: 'apply'
+      },
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    await dropdownMenu(1);
+    await sleep(208);
+
+    const searchInput = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+    $(searchInput).simulate('mousedown').simulate('mouseup').simulate('click');
+    searchInput.focus();
+
+    await sleep(208);
+
+    await keyDownUp('space');
+
+    expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
+    expect(document.activeElement).toBe(searchInput);
+  });
+
   it('should disappear after hitting ESC key (focused items box)', async() => {
     handsontable({
       data: getDataForFilters(),

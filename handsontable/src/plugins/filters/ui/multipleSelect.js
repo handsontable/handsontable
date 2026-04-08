@@ -375,6 +375,10 @@ export class MultipleSelectUI extends BaseUI {
       this.#itemsBox.listen();
       this.#itemsBox.selectCell(0, 0);
     }
+
+    if (isKeyCode('SPACE')) {
+      stopImmediatePropagation(event);
+    }
   }
 
   /**

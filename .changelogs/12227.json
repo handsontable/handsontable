@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed Space key being intercepted in the column filter search input, preventing spaces from being typed in search terms.",
+  "type": "fixed",
+  "issueOrPR": 12227,
+  "breaking": false,
+  "framework": "none"
+}
