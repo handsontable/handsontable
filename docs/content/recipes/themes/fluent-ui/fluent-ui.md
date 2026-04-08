@@ -2,7 +2,7 @@
 id: p7f3k9d2
 title: Handsontable with Fluent UI
 metaTitle: Handsontable with Fluent UI - React Data Grid | Handsontable
-description: Integrate Handsontable into a Fluent UI React app by registering a custom theme that uses Fluent tokens for colors, typography, spacing, and border radius.
+description: Integrate Handsontable into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing.
 permalink: /recipes/themes/fluent-ui
 canonicalUrl: /recipes/themes/fluent-ui
 tags:
@@ -21,31 +21,42 @@ searchCategory: Recipes
 category: Themes
 ---
 
+<iframe src="https://codesandbox.io/p/sandbox/z89zf5" title="Handsontable with Fluent UI demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px; min-height: 500px;"></iframe>
+
+[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/z89zf5)
+
 ## Overview
 
-This recipe shows how to integrate Handsontable into a React app that uses Fluent UI. You register a custom Handsontable theme, map its colors and tokens to Fluent UI CSS variables, and apply the theme to your grid.
+This recipe shows how to integrate Handsontable into a React app that uses [Fluent UI](https://react.fluentui.dev/) by registering a custom theme with Theme API colors and tokens. The grid follows your Fluent design language.
 
-## What you'll build
+**Difficulty:** Beginner  
+**Time:** ~15 minutes  
+**Stack:** React, Fluent UI, Handsontable, `@handsontable/react-wrapper`
 
-- A Handsontable theme registered as `fluent-data-grid`.
-- Theme colors mapped to Fluent variables such as `--colorNeutralBackground1`, `--colorNeutralForeground1`, and `--colorBrandBackground`.
-- Theme tokens aligned with Fluent typography and radius tokens.
+## What You'll Get
+
+- A reusable Handsontable theme (`registerTheme('fluent-data-grid', { icons, colors, tokens })`) that maps to Fluent UI colors.
+- A React grid component that applies the custom theme and keeps Fluent typography and spacing.
+- A working baseline you can extend with dark mode and custom icon overrides.
 
 ## Prerequisites
 
-- A React application with Fluent UI installed and configured.
-- Handsontable and `@handsontable/react-wrapper` installed.
-- A root component wrapped with `FluentProvider` so Fluent variables are available in the DOM.
+- A React app with Fluent UI configured.
+- Handsontable and the React wrapper installed.
+- A `FluentProvider` at your app root.
 
-## Step 1: Install dependencies
+## Step 1: Install dependencies with pinned Handsontable versions
 
 ```bash
-npm install handsontable @handsontable/react-wrapper @fluentui/react-components
+npm install \
+  handsontable@0.0.0-next-deba76c-20260408 \
+  @handsontable/react-wrapper@0.0.0-next-deba76c-20260408 \
+  @fluentui/react-components
 ```
 
 ## Step 2: Wrap your app in FluentProvider
 
-Fluent UI provides design tokens through the provider. Use either `webLightTheme`, `webDarkTheme`, or your own custom theme.
+Fluent UI tokens are available through the provider. Use `webLightTheme`, `webDarkTheme`, or your own custom theme.
 
 ```tsx
 import { FluentProvider, webLightTheme } from '@fluentui/react-components';
@@ -59,9 +70,9 @@ export function AppRoot() {
 }
 ```
 
-## Step 3: Define a Fluent UI color map for Handsontable
+## Step 3: Create Fluent color mapping for Theme API
 
-Create a color map that follows Handsontable's Theme API shape.
+Handsontable's Theme API expects the `palette`, `primary`, `white`, `black`, and `transparent` structure.
 
 **File: `src/theme/colorsFluent.ts`**
 
@@ -96,69 +107,97 @@ const colorsFluent = {
 export default colorsFluent;
 ```
 
-## Step 4: Register and apply your Fluent theme
+## Step 4: Register your Fluent Handsontable theme
 
-Register all Handsontable modules, define the theme, and pass it to `HotTable`.
+Import `icons` together with `colors` and `tokens`. `registerTheme()` requires `icons` - if omitted, ThemeBuilder throws an error.
 
 ```tsx
-import { HotTable } from '@handsontable/react-wrapper';
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
 import { registerTheme } from 'handsontable/themes';
-
-import iconsMain from 'handsontable/themes/static/variables/icons/main';
+import iconsHorizon from 'handsontable/themes/static/variables/icons/horizon';
 import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
-
 import colorsFluent from './theme/colorsFluent';
 
-registerAllModules();
-
-const fluentDataGridTheme = registerTheme('fluent-data-grid', {
+export const fluentDataGridTheme = registerTheme('fluent-data-grid', {
+  icons: iconsHorizon,
   colors: colorsFluent,
-  icons: iconsMain,
   tokens: tokensHorizon,
 }).params({
   tokens: {
-    fontFamily: 'var(--fontFamilyBase)',
-    wrapperBorderRadius: 'var(--borderRadiusMedium)',
-    headerBackgroundColor: 'var(--colorNeutralBackground3)',
-    headerForegroundColor: 'var(--colorNeutralForeground1)',
-    cellSelectionBorderColor: 'var(--colorBrandStroke1)',
-    cellSelectionBackgroundColor: 'var(--colorBrandBackground2)',
+    fontFamily: "'Segoe UI', 'Segoe UI Web (West European)', system-ui, sans-serif",
+    wrapperBorderRadius: '4px',
   },
 });
+```
 
-const data = Handsontable.helper.createSpreadsheetData(20, 8);
+## Step 5: Build a themed grid component
 
-export function FluentGrid() {
+Register modules, apply the theme, import Handsontable CSS, and render a minimal table.
+
+**File: `src/components/FluentHotTable.tsx`**
+
+```tsx
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.min.css';
+import 'handsontable/styles/ht-theme-horizon.min.css';
+
+import { fluentDataGridTheme } from '../theme/fluentDataGridTheme';
+
+registerAllModules();
+
+const data = [
+  { team: 'Design', owner: 'Ava', status: 'In progress', priority: 'High' },
+  { team: 'Platform', owner: 'Noah', status: 'Blocked', priority: 'Medium' },
+  { team: 'Docs', owner: 'Liam', status: 'Done', priority: 'Low' },
+];
+
+export default function FluentHotTable() {
   return (
     <HotTable
+      theme={fluentDataGridTheme}
       data={data}
-      colHeaders={true}
+      colHeaders={['Team', 'Owner', 'Status', 'Priority']}
       rowHeaders={true}
       width="100%"
       height="auto"
-      theme={fluentDataGridTheme}
+      dropdownMenu={true}
+      filters={true}
       licenseKey="non-commercial-and-evaluation"
-    />
+    >
+      <HotColumn data="team" width={180} />
+      <HotColumn data="owner" width={140} />
+      <HotColumn data="status" width={160} />
+      <HotColumn data="priority" width={140} />
+    </HotTable>
   );
 }
 ```
 
-## Step 5: Tune density and interaction styling
+## Step 6: Render inside FluentProvider
 
-After the first integration, tune density and control tokens for your Fluent UI sizing scale:
+Wrap your app with Fluent's provider, then render the table component.
 
-- `cellHorizontalPadding`
-- `cellVerticalPadding`
-- `menuBorderRadius`
-- `inputBorderRadius`
-- `buttonBorderRadius`
+```tsx
+import { FluentProvider, webLightTheme } from '@fluentui/react-components';
+import FluentHotTable from './components/FluentHotTable';
 
-Use `.params({ tokens: { ... } })` to iterate without creating another theme object.
+export default function App() {
+  return (
+    <FluentProvider theme={webLightTheme}>
+      <FluentHotTable />
+    </FluentProvider>
+  );
+}
+```
+
+## Optional enhancements
+
+- Switch to `webDarkTheme` and tune Theme API token overrides for dark mode.
+- Override additional Theme API tokens (for example, header colors, cell selection, and spacing).
+- Replace `iconsHorizon` with your own icon set while keeping all required icon keys.
 
 ## Related
 
-- [Themes](/themes) - Built-in themes and Theme API.
-- [Theme customization](/theme-customization) - Theme API parameters and CSS variable reference.
-- [Handsontable Design System](/handsontable-design-system) - Design tokens and component styles.
+- [Themes](@/guides/styling/themes/themes.md) - Built-in themes and Theme API.
+- [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Theme API parameters and CSS variable reference.
+- [Theme Recipes](/recipes/themes) - Practical design-system recipes for Handsontable.
