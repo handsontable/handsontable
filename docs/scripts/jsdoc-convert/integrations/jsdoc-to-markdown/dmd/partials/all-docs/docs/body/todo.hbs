@@ -1,0 +1,22 @@
+{{#if todoList~}}
+**Todo**
+
+{{#if (option "no-gfm")~}}
+
+{{#each todoList~}}
+{{#if done}}- {{{inlineLinks task}}} ✓
+{{else}}- {{{inlineLinks task}}}
+{{/if~}}
+{{/each~}}
+
+{{else~}}
+
+{{#each todoList~}}
+{{#if done}}- [x] {{{inlineLinks task}}}
+{{else}}- [ ] {{{inlineLinks task}}}
+{{/if~}}
+{{/each~}}
+
+{{/if}}
+
+{{/if~}}

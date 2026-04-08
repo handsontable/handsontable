@@ -23,6 +23,7 @@ module.exports = {
     '**/*.astro',
     '**/scripts/**/*.ts',
     '**/content/config.ts',
+    '**/content.config.ts',
   ],
   rules: {
     'no-restricted-globals': 'off',
