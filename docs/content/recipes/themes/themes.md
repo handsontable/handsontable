@@ -32,4 +32,9 @@ Our recipes cover common use cases and demonstrate best practices for:
 - **Design system integration** – Match the grid to shadcn/ui, Tailwind, or other design systems
 - **Theme API** – Register and configure themes with colors, density, and dark mode
 
+Current recipes:
+
+- [Handsontable with shadcn/ui](/recipes/themes/custom-theme)
+- [Handsontable with MUI](/recipes/themes/mui-theme)
+
 Each recipe includes complete code examples, configuration options, and troubleshooting tips to help you integrate Handsontable with your app's look and feel.

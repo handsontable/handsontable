@@ -312,6 +312,14 @@ Examples of how to use them are provided in their descriptions.
 | <kbd>**Ctrl**</kbd>+<kbd>**C**</kbd> | <kbd>⌘</kbd>+<kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**V**</kbd> | <kbd>⌘</kbd>+<kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 12.3.0: Copying cells with headers](https://handsontable.com/blog/handsontable-12-3-0-copying-cells-with-headers)
+
+</div>
+
 ## Related API reference
 
 **Configuration options**

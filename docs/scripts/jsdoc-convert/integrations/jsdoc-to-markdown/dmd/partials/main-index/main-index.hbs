@@ -1,0 +1,6 @@
+{{! a main index is only shown if at least 2 global or modules exist ~}}
+
+{{#if (showMainIndex)~}}
+{{>module-index~}}
+{{>global-index~}}
+{{/if~}}

@@ -129,10 +129,12 @@ Handsontable separates rendering (displaying cell values) from editing (changing
 | --- | --- | --- |
 | **Select editor** | Cell is selected | Looks up the editor class from the `editor` config option |
 | **Prepare** | Cell is selected | Calls `prepare()` to configure the editor for the selected cell |
-| **Open** | User triggers editing | Calls `beginEditing()` → `open()` |
+| **Open** | User triggers editing | Fires `beforeBeginEditing` (return `false` to cancel), then calls `beginEditing()` → `open()` |
 | **Close** | User confirms or cancels | Calls `finishEditing()` → `close()` or `focus()` |
 
 **Editing opens on:** <kbd>**Enter**</kbd>, <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>, <kbd>**F2**</kbd>, double-click.
+
+**Preventing the editor from opening:** Use the [`beforeBeginEditing`](@/api/hooks.md#beforebeginediting) hook to conditionally cancel editor opening. Return `false` from the hook callback to prevent the editor from opening. Returning `undefined` (or any non-boolean value) applies the default behavior, which disallows opening for non-contiguous selections (Ctrl/Cmd+click) and multi-cell selections (Shift+click). Returning `true` removes those restrictions.
 
 **Editing closes on:**
 
@@ -318,6 +320,25 @@ new Handsontable(container, {
 
 ```jsx
 <HotTable columns={[{ editor: 'myEditor' }]} />
+```
+
+::: tip
+
+Registering an editor with `registerEditor` and referencing it by a string alias works for class-based editors only. Component-based editors (those using `useHotEditor`) cannot be registered this way, because they depend on React's rendering lifecycle to function.
+
+For component-based editors, pass the component directly to the `editor` prop of `HotTable` or `HotColumn` — no registration step is needed.
+
+:::
+
+To reuse the same editor component across multiple columns, import and pass it wherever it is needed:
+
+```jsx
+import { MySelectEditor } from './MySelectEditor';
+
+<HotTable>
+  <HotColumn editor={MySelectEditor} />
+  <HotColumn editor={MySelectEditor} />
+</HotTable>
 ```
 
 :::

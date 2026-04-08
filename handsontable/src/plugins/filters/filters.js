@@ -435,27 +435,39 @@ export class Filters extends BasePlugin {
    * Adds condition to the conditions collection at specified column index.
    *
    * Possible predefined conditions:
-   *  * `begins_with` - Begins with
-   *  * `between` - Between
-   *  * `by_value` - By value
-   *  * `contains` - Contains
-   *  * `date_after` - After a date
-   *  * `date_before` - Before a date
-   *  * `date_today` - Today
-   *  * `date_tomorrow` - Tomorrow
-   *  * `date_yesterday` - Yesterday
-   *  * `empty` - Empty
-   *  * `ends_with` - Ends with
-   *  * `eq` - Equal
-   *  * `gt` - Greater than
-   *  * `gte` - Greater than or equal
-   *  * `lt` - Less than
-   *  * `lte` - Less than or equal
-   *  * `none` - None (no filter)
-   *  * `not_between` - Not between
-   *  * `not_contains` - Not contains
-   *  * `not_empty` - Not empty
-   *  * `neq` - Not equal.
+   *
+   * | Condition | Description | Expected `args` |
+   * |---|---|---|
+   * | `begins_with` | Begins with | `[value: string]`, e.g. `['de']` |
+   * | `between` | Between | `[from: number\|string, to: number\|string]`, e.g. `[10, 50]` |
+   * | `by_value` | By value | `[[...values: Array]]`, e.g. `[['ing', 'ed', 'as']]`. The outer array wraps a single inner array that contains all values to **keep** (show) after filtering. |
+   * | `contains` | Contains | `[value: string]`, e.g. `['ing']` |
+   * | `date_after` | After a date | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
+   * | `date_before` | Before a date | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
+   * | `date_today` | Today | `[]` |
+   * | `date_tomorrow` | Tomorrow | `[]` |
+   * | `date_yesterday` | Yesterday | `[]` |
+   * | `empty` | Empty | `[]` |
+   * | `ends_with` | Ends with | `[value: string]`, e.g. `['ing']` |
+   * | `eq` | Equal | `[value: string\|number]`, e.g. `['John']` |
+   * | `gt` | Greater than | `[value: number]`, e.g. `[95]` |
+   * | `gte` | Greater than or equal | `[value: number]`, e.g. `[95]` |
+   * | `intl_date_after` | After a date (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
+   * | `intl_date_before` | Before a date (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
+   * | `intl_date_between` | Between dates (locale-aware) | `[fromDateString: string, toDateString: string]`, e.g. `['2023-01-01', '2023-12-31']` |
+   * | `intl_date_today` | Today (locale-aware) | `[]` |
+   * | `intl_date_tomorrow` | Tomorrow (locale-aware) | `[]` |
+   * | `intl_date_yesterday` | Yesterday (locale-aware) | `[]` |
+   * | `intl_time_after` | After a time (locale-aware) | `[timeString: string]`, e.g. `['12:00']` |
+   * | `intl_time_before` | Before a time (locale-aware) | `[timeString: string]`, e.g. `['08:00']` |
+   * | `intl_time_between` | Between times (locale-aware) | `[fromTimeString: string, toTimeString: string]`, e.g. `['08:00', '12:00']` |
+   * | `lt` | Less than | `[value: number]`, e.g. `[10]` |
+   * | `lte` | Less than or equal | `[value: number]`, e.g. `[10]` |
+   * | `none` | None (no filter) | `[]` |
+   * | `not_between` | Not between | `[from: number\|string, to: number\|string]`, e.g. `[10, 50]` |
+   * | `not_contains` | Not contains | `[value: string]`, e.g. `['ing']` |
+   * | `not_empty` | Not empty | `[]` |
+   * | `neq` | Not equal | `[value: string\|number]`, e.g. `['John']` |
    *
    * Possible operations on collection of conditions:
    *  * `conjunction` - [**Conjunction**](https://en.wikipedia.org/wiki/Logical_conjunction) on conditions collection (by default), i.e. for such operation: <br/> c1 AND c2 AND c3 AND c4 ... AND cn === TRUE, where c1 ... cn are conditions.
@@ -798,7 +810,7 @@ export class Filters extends BasePlugin {
    *
    * @param {number} column Visual column index.
    * @param {string} name Condition short name.
-   * @param {Array} args Condition arguments.
+   * @param {Array} args Condition arguments. The expected format depends on the condition - see the table above for details.
    * @param {string} [operationId=conjunction] `id` of operation which is performed on the column.
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */

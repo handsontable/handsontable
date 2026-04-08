@@ -195,6 +195,14 @@ When working with object-based MultiSelect data, you can use methods like [`getS
 
 </div>
 
+**Related blog articles**
+
+<div class="boxes-list gray">
+
+- [Handsontable 17.0.0: Multiselect Cell Type, Simpler Custom Cells, and a New Themes API](https://handsontable.com/blog/handsontable-17.0.0-multiselect-cell-type-simpler-custom-cells-and-a-new-themes-api)
+
+</div>
+
 **Configuration options**
 
 <div class="boxes-list">

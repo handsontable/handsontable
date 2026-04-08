@@ -1,6 +1,6 @@
 ---
 name: pr-creation
-description: Use when creating a pull request for the Handsontable monorepo - covers branch naming conventions, pre-flight checks (lint and tests), changelog entry, and filling the PR template with context, test plan, and affected projects
+description: Use when creating or updating a pull request for the Handsontable monorepo, or when asked to commit and push changes - covers branch naming conventions, pre-flight checks (lint and tests), changelog entry, and filling the PR template with context, test plan, and affected projects
 ---
 
 ## 1. Branch Naming
@@ -22,22 +22,22 @@ Run these **before** opening the PR. Fix any failures first.
 
 ```bash
 # Lint
-pnpm --filter handsontable run eslint
-pnpm --filter handsontable run stylelint
+npm run eslint --prefix handsontable
+npm run stylelint --prefix handsontable
 
 # Build (wrappers depend on this output)
-pnpm --filter handsontable run build
+npm run build --prefix handsontable
 
 # Unit tests for the area you changed
-pnpm --filter handsontable run test:unit -- --testPathPattern=<area>
+npm run test:unit --testPathPattern=<regex> --prefix handsontable
 
 # E2E tests for the area you changed
-pnpm --filter handsontable run test:e2e -- --filter=<plugin-name>
+npm run test:e2e --testPathPattern=<regex> --prefix handsontable
 
 # If you touched a wrapper, test it too
-pnpm --filter @handsontable/react-wrapper run test
-pnpm --filter @handsontable/vue3 run test
-pnpm --filter @handsontable/angular-wrapper run test
+npm run test --prefix wrappers/react-wrapper
+npm run test --prefix wrappers/vue3
+npm run test --prefix wrappers/angular-wrapper
 ```
 
 ## 3. Changelog Entry

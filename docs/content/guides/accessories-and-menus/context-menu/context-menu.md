@@ -164,26 +164,60 @@ To see the context menu, right-click on a cell:
 
 ## Context menu with a fully custom configuration
 
-This example shows how to:
+To fully customize the context menu, set `contextMenu` to an object with an `items` property. Each key in `items` identifies one menu entry. The value can be:
 
-- Add common callback for all options
-- Dynamically disable option
-- Set custom text for predefined option
-- Add own custom option
-- Add callback for specific option
+- A predefined item key string such as `'row_above'` — includes the built-in item unchanged.
+- The string `'---------'` — inserts a horizontal separator line.
+- A configuration object — defines a custom item or overrides a predefined one.
 
-Here are the API options for the custom context menu:
+This means you can freely mix built-in items with custom ones in the same menu:
 
-| Option                                                      | Description                                                |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`                     | The label displayed in the menu. Can be a string or a function returning a string. Supports HTML.                                                                                                                                          |
-| `disabled`                  | Whether the item is grayed out and non-clickable. Can be a boolean or a function returning a boolean. this refers to the Handsontable instance.                                                                                                                                          |
-| `hidden`                  | Whether the item is grayed out and non-clickable. Can be a boolean or a function returning a boolean. this refers to the Handsontable instance.                                                                                                                                          |
-| `callback`                  | A function called when the item is clicked. Receives key, selection, and clickEvent as arguments.                                                                                                                                          |
-| `submenu`                  | Defines a nested submenu. Takes an object with an items array. Each item's key must be prefixed with the parent key followed by a colon, e.g. parent:child.                                                                                                                                          |
-| `renderer`                  | A custom function for rendering the item's HTML content.                                                                                                                                          |
-| `disableSelection`                  | A boolean. When true, hovering over the item does not highlight it.                                                                                                                                          |
-| `isCommand`                  | A boolean. When false, clicking the item neither executes a command nor closes the menu.                                                                                                                                         |
+```js
+contextMenu: {
+  // Optional: a shared callback fired on every item click.
+  callback(key, selection, clickEvent) {
+    console.log(key, selection, clickEvent);
+  },
+  items: {
+    row_above: {},                   // predefined item, unchanged
+    sp1: '---------',               // separator
+    row_below: {
+      name: 'Click to add row below', // override a predefined item's label
+    },
+    myOption: {                      // fully custom item
+      name: 'My custom action',
+      callback() { /* ... */ },
+    },
+  },
+},
+```
+
+The top-level object also accepts a `uiContainer` property (an `HTMLElement`) to control which DOM element the context menu is appended to.
+
+### Menu item configuration options
+
+Each configuration object in `items` can have these properties:
+
+| Option | Description |
+| ------ | ----------- |
+| `key` | The unique identifier for the item. For top-level items, this is the key of the `items` object (for example `'row_above'` or `'myOption'`). For submenu items, it must follow the `parent_key:child_key` format (for example `'colors:red'`). |
+| `name` | The label shown in the menu. Can be a `string` or a function returning a string. Supports HTML. When a function, `this` refers to the Handsontable instance. |
+| `disabled` | Whether the item is grayed out and non-clickable. Can be a `boolean` or a function returning a boolean. When a function, `this` refers to the Handsontable instance. |
+| `hidden` | Whether the item is hidden from the menu entirely. Can be a `boolean` or a function returning a boolean. When a function, `this` refers to the Handsontable instance. |
+| `callback` | A function called when the item is clicked. Receives `key`, `selection`, and `clickEvent` as arguments. |
+| `submenu` | Defines a nested submenu. Takes an object with an `items` array. Each submenu item's `key` must follow the `parent_key:child_key` format. |
+| `renderer` | A custom function for rendering the item's HTML. Must return an `HTMLElement`. |
+| `disableSelection` | When `true`, hovering over the item does not highlight it. |
+| `isCommand` | When `false`, clicking the item does not execute a command or close the menu. |
+
+The following example shows how to:
+
+- Add a shared callback for all options
+- Dynamically disable an option
+- Override the label of a predefined option
+- Add a fully custom option with its own callback
+- Add a custom option with a submenu
+- Use a custom renderer
 
 
 To see the context menu, right-click on a cell:

@@ -1,0 +1,1 @@
+{{#unless (equal defaultvalue undefined)}}<code>{{#if equals}} = {{/if}}{{#if (equal type.names.[0] "string")}}{{json-stringify defaultvalue}}{{else}}{{#if (equal defaultvalue null)}}null{{/if}}{{defaultvalue}}{{/if}}</code>{{/unless}}
