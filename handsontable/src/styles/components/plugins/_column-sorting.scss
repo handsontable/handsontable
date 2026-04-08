@@ -8,11 +8,8 @@
       position: relative;
 
       &.sortAction {
-        min-width: calc(var(--ht-icon-size, 16px) + 8px);
-
         &.ascending, &.descending {
           padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
-          max-width: calc(100% - calc(var(--ht-icon-size, 16px) * 2 + var(--ht-gap-size, 4px) + 3px)) !important;
         }
 
         &:hover {

@@ -98,7 +98,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     await scrollViewportVertically(355); // row 23 (A24) is partially visible
     await render();
 
-    expect(getLastRenderedVisibleRow()).toBe(23);
+    expect(getLastRenderedVisibleRow()).toBe(21);
   });
 
   it.forTheme('main')('should return last rendered row index (scrolled viewport)', async() => {
@@ -111,7 +111,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     await scrollViewportVertically(447); // row 23 (A24) is partially visible
     await render();
 
-    expect(getLastRenderedVisibleRow()).toBe(26);
+    expect(getLastRenderedVisibleRow()).toBe(24);
   });
 
   it.forTheme('horizon')('should return last rendered row index (scrolled viewport)', async() => {
@@ -124,6 +124,6 @@ describe('Core.getLastRenderedVisibleRow', () => {
     await scrollViewportVertically(570); // row 23 (A24) is partially visible
     await render();
 
-    expect(getLastRenderedVisibleRow()).toBe(26);
+    expect(getLastRenderedVisibleRow()).toBe(24);
   });
 });

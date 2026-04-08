@@ -1,80 +1,32 @@
 # Handsontable core review notes
 
-Apply these checks when changed files are in `/handsontable/**`.
+All coding rules and conventions are in `/AGENTS.md`. Apply those rules to every review. This file adds **review-specific context** for files under `/handsontable/**`.
 
----
+## Review skills (single source of truth)
 
-## Browser compatibility
+Read and apply the review checklists from these files:
 
-- Generate modern code that targets our supported browsers. The list of supported browsers is defined in `/browser-targets.js` at the repository root. Do not use deprecated or legacy APIs when modern alternatives exist and are supported by all target browsers.
+- @.claude/skills/code-quality-review/SKILL.md -- ESLint rules, JSDoc, naming, cognitive complexity, bundle size
+- @.claude/skills/architecture-review/SKILL.md -- SOLID, Law of Demeter, plugin decoupling, breaking changes, convention over configuration
+- @.claude/skills/performance-a11y-review/SKILL.md -- large arrays, render batching, WCAG 2.1 AA, keyboard navigation
 
-## Language and code style
+## Core-specific context
+
+For core development rules, read:
+
+- @handsontable/CLAUDE.md -- core package cheat sheet (coordinate systems, plugin lifecycle, testing patterns)
+- @.claude/skills/handsontable-plugin-dev/SKILL.md -- plugin architecture patterns (when reviewing plugin code)
+- @.claude/skills/coordinate-systems/SKILL.md -- coordinate system correctness (when reviewing index usage)
+
+## Additional core-specific rules
 
 - **Core language boundary**: Core source is JavaScript. Do not add TypeScript files under `/handsontable/src/`.
-- **Code style**:
-  - For hook/event callbacks, use arrow-function class fields (`#onAfterX = () => { ... }`) instead of `.bind(this)` references — avoids the extra bound field.
-  - Extract duplicated code blocks into shared methods — do not repeat logic across the same file or plugin.
-  - Silent `catch` blocks must include a comment explaining why the error is swallowed.
-- **Optional chaining (`?.`) usage**:
-  - Use optional chaining only when a value is genuinely optional by design — not as a blanket safety net for values that should always exist.
-  - If a value is guaranteed by the data contract (e.g., parallel arrays built by the same iterator, or APIs like `getCellMeta()` that always return an object), access it directly without `?.`.
-  - Unnecessary optional chaining silently swallows errors, hides broken assumptions, and misleads future contributors into thinking a value can be null when it cannot.
-- **Bundle size awareness**:
-  - Where possible, prefer JavaScript grammar that produces smaller output in compressed (minified/gzipped) bundles. For example, prefer `===` over verbose truthiness helpers, use short-circuit evaluation instead of full `if` blocks for simple assignments, and avoid unnecessary intermediate variables.
-
-## Internationalization (i18n)
-
-- When working with user-facing strings (UI text, labels, tooltips, error messages — anything the user sees), always add a language constant in `/handsontable/src/i18n/constants.js` and update all language files in `/handsontable/src/i18n/languages/` accordingly. Do not hardcode user-visible text directly in source code.
-
-## Plugin architecture
-
-- **Plugin registration**: New plugins must be wired through `/handsontable/src/plugins/index.js` and exported from their own `index.js`.
-- **Plugin decoupling**:
-  - Plugins must not directly import or check for the presence of other plugins. Use hooks (event-driven communication) instead of direct cross-plugin calls. If access to another plugin's API is required, use the `hot.getPlugin('{PluginName}')` method.
-  - No circular dependencies between plugins — dependency flow must be one-directional.
-  - Do not re-implement another plugin's methods (e.g., `goToPage`, `setSort`). Instead, listen to that plugin's hooks and react accordingly.
-  - _Why_: Direct cross-plugin imports prevent tree-shaking and create bundle bloat for users who don't use both features.
-- **Conflict ownership**:
-  - When a plugin is incompatible with another, the plugin that introduces the conflict must own the disabling/blocking logic.
-  - Other plugins should not contain awareness checks like `if (dataProviderEnabled) return;` — that logic belongs in the conflicting plugin.
-  - Compatibility tests belong with the plugin that owns the conflict, not the affected plugin.
-  - _Why_: Spreading conflict checks across many plugins creates hidden coupling and makes removal/refactoring harder.
-
-## Configuration and API
-
-- **Default safety**:
-  - New options should be disabled by default in `/handsontable/src/dataMap/metaManager/metaSchema.js`.
-- **Cascading config compatibility**:
-  - New configuration options should be designed to support Handsontable's cascading configuration model (`cell` → `column` → `global`) when applicable.
-  - This is not a strict requirement — some options are intentionally designed to work only at the table level (e.g., `data`, `colHeaders`).
-  - When an option supports only the table level, document this limitation explicitly in JSDoc.
-- **Naming for public API (options and hooks)**:
-  - Names for new configuration options and hooks must be as generic and self-explanatory as possible — understandable to a first-time user of the library.
-  - Avoid internal jargon, abbreviations, or implementation-specific terms in public-facing names.
-  - Both options and hooks are part of the public API. Once released, they must be maintained indefinitely (see breaking changes policy), so naming decisions carry long-term weight. Review names carefully before approving.
-  - Before approving a new name, check for collisions with existing public API names (options, hooks, methods, plugin keys, and CSS classes).
-
-## Documentation and types
-
-- **API documentation**:
-  - New public methods/options require JSDoc and matching type updates in `/handsontable/types/**`.
-  - New hooks and configuration options must include a `@since` tag.
-  - Do not add `@private` JSDoc tags — use the `#` prefix for private fields/methods instead. Exception: when `#` is avoided for performance reasons, `@private` JSDoc tag is acceptable.
-- **Type definitions**:
-  - Do not duplicate type definitions across plugins. Import types from their source plugin (e.g., filter condition types come from Filters, not redefined in DataProvider).
-  - Avoid bare `object` in `.d.ts` files — use or import specific types.
-
-## Accessibility
-
-- **WCAG conformance**: Changes to DOM rendering, selection, headers, frozen areas, hidden rows/columns, or merged cells must preserve WCAG 2.1 AA conformance.
-- **Keyboard navigation**: Do not regress keyboard-only navigation. Both navigation modes must keep working:
-  - Spreadsheet mode (default): `navigableHeaders: false`, `tabNavigation: true`.
-  - Data grid mode: `navigableHeaders: true`, `tabNavigation: false`.
-- **ARIA semantics**: Verify that ARIA attributes (`role`, `aria-label`, `aria-selected`, `aria-colspan`, etc.) remain correct after rendering or selection changes. Screen readers (NVDA, JAWS, VoiceOver) rely on these.
-- **Tag existence**: New UI elements (buttons, icons, overlays) must use semantic HTML. Verify sufficient color contrast and no flashing/blinking content.
+- **Optional chaining (`?.`)**: Use only when a value is genuinely optional by design. If guaranteed by data contract (e.g., `getCellMeta()` always returns an object), access directly without `?.`.
+- **Conflict ownership**: Other plugins must NOT contain awareness checks like `if (dataProviderEnabled) return;` -- that logic belongs in the conflicting plugin. Compatibility tests belong with the owning plugin.
+- **Public API naming**: Names carry long-term weight (maintained indefinitely). Check for collisions with existing API names before approving.
+- **Cascading config**: New options should support `cell` -> `column` -> `global` when applicable. Table-level-only options (e.g., `data`, `colHeaders`) must document this in JSDoc.
 
 ## Testing
 
-- **Test coverage**:
-  - Behavior changes should include both `.unit.js` and/or `.spec.js` tests in plugin or feature `__tests__` directories.
-  - Some `.spec.js` files may be added under `/handsontable/test/e2e/` directories.
+- Behavior changes should include both `.unit.js` and/or `.spec.js` tests.
+- Favor E2E tests over unit tests. If a unit test would require mocking, write an E2E test instead.

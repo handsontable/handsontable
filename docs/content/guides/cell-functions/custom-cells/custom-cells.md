@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell functions
 menuTag: new
 ---
-
-# Simplified Custom Cell Definitions
-
 [[toc]]
 
 ## Overview
@@ -930,7 +927,7 @@ Just use the parameters you need.
 
 ---
 
-# Using `editorFactory`
+## Using `editorFactory`
 
 The `editorFactory` helper is the **recommended approach** for creating custom editors. It handles container creation, positioning, lifecycle management, and shortcuts automatically, allowing you to focus on your editor's unique functionality.
 
@@ -1235,7 +1232,7 @@ Handsontable has default keyboard behaviors that control how editors open, close
 - Clicking on another cell (saves changes)
 - Pressing <kbd>Enter</kbd> (saves changes and moves selection one cell down)
 - Pressing <kbd>Shift</kbd>+<kbd>Enter</kbd> (saves changes and moves selection one cell up)
-- Pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Enter</kbd> or <kbd>Alt</kbd>/<kbd>Option</kbd>+<kbd>Enter</kbd> (adds a new line inside the cell)
+- Pressing <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd> or <kbd>Alt</kbd>/<kbd>⌥</kbd>+<kbd>Enter</kbd> (adds a new line inside the cell)
 - Pressing <kbd>Escape</kbd> (aborts changes)
 - Pressing <kbd>Tab</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction))
 - Pressing <kbd>Shift</kbd>+<kbd>Tab</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction))

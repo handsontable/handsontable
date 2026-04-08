@@ -19,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Getting started
 ---
-
-# Grid size
-
 Set the width and height of the grid, using either absolute values or values relative to the parent container.
 
 [[toc]]
@@ -326,25 +323,42 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 
 ## Related articles
 
-<div class="boxes-list gray">
+**Related guides**
+
+<div class="boxes-list">
 
 - [Column widths](@/guides/columns/column-width/column-width.md)
 - [Row heights](@/guides/rows/row-height/row-height.md)
 
 </div>
 
-**Related API reference**
+**Configuration options**
 
-- Configuration options:
-  - [`height`](@/api/options.md#height)
-  - [`layoutDirection`](@/api/options.md#layoutdirection)
-  - [`preventOverflow`](@/api/options.md#preventoverflow)
-  - [`width`](@/api/options.md#width)
-- Core methods:
-  - [`refreshDimensions()`](@/api/core.md#refreshdimensions)
-  - [`updateSettings()`](@/api/core.md#updatesettings)
-- Hooks:
-  - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
-  - [`afterRefreshDimensions`](@/api/hooks.md#afterrefreshdimensions)
-  - [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings)
-  - [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions)
+<div class="boxes-list">
+
+- [height](@/api/options.md#height)
+- [layoutDirection](@/api/options.md#layoutdirection)
+- [preventOverflow](@/api/options.md#preventoverflow)
+- [width](@/api/options.md#width)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [refreshDimensions()](@/api/core.md#refreshdimensions)
+- [updateSettings()](@/api/core.md#updatesettings)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterCellMetaReset](@/api/hooks.md#aftercellmetareset)
+- [afterRefreshDimensions](@/api/hooks.md#afterrefreshdimensions)
+- [afterUpdateSettings](@/api/hooks.md#afterupdatesettings)
+- [beforeRefreshDimensions](@/api/hooks.md#beforerefreshdimensions)
+
+</div>

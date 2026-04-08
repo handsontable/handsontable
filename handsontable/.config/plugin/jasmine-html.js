@@ -20,6 +20,9 @@ function JasmineWebpackPlugin(options) {
     jasmineCssFiles: toRelativeFiles(jasminePath, jasmineFiles.cssFiles),
     externalJsFiles: options.externalJsFiles || [],
     externalCssFiles: options.externalCssFiles || [],
+    hotJsFiles: options.hotJsFiles || [],
+    hotCssFiles: options.hotCssFiles || [],
+    hotTheme: options.hotTheme || '',
     minify: false,
   });
 }

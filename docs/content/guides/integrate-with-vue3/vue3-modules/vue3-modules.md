@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Modules in Vue 3
-
 Reduce the size of your Vue 3 app by importing only the modules that you need and use.
 
 [[toc]]

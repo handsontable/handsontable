@@ -111,7 +111,7 @@ describe('settings', () => {
 
       expect(document.activeElement).toBe(textarea[0]);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(textarea[0]);
 
@@ -132,7 +132,7 @@ describe('settings', () => {
 
       expect(document.activeElement).toBe(textarea[0]);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(textarea[0]);
 
@@ -153,7 +153,7 @@ describe('settings', () => {
 
       expect(document.activeElement).toBe(textarea[0]);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(textarea[0]);
 
@@ -174,7 +174,7 @@ describe('settings', () => {
 
       expect(document.activeElement).toBe(textarea[0]);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(textarea[0]);
 

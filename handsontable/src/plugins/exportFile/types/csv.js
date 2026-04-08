@@ -1,5 +1,5 @@
-import { arrayEach, arrayMap } from '../../../helpers/array';
 import { stringify } from '../../../helpers/mixed';
+import { extend } from '../../../helpers/object';
 import BaseType from './_base';
 
 const CHAR_CARRIAGE_RETURN = String.fromCharCode(13);
@@ -32,6 +32,30 @@ class Csv extends BaseType {
   }
 
   /**
+   * Merge options, normalizing XLSX-only values that are not applicable to CSV.
+   *
+   * The `'hide'` value for `exportHiddenRows` and `exportHiddenColumns` is only
+   * meaningful for Excel exports (it marks rows/columns as hidden in the workbook).
+   * For CSV the only sensible fallback is `false` — omit those rows/columns entirely.
+   *
+   * @param {object} options User-supplied options.
+   * @returns {object}
+   */
+  _mergeOptions(options) {
+    const merged = super._mergeOptions(options);
+    const overrides = {};
+
+    if (merged.exportHiddenRows === 'hide') {
+      overrides.exportHiddenRows = false;
+    }
+    if (merged.exportHiddenColumns === 'hide') {
+      overrides.exportHiddenColumns = false;
+    }
+
+    return Object.keys(overrides).length > 0 ? extend(merged, overrides) : merged;
+  }
+
+  /**
    * Create string body in desired format.
    *
    * @returns {string}
@@ -46,8 +70,7 @@ class Csv extends BaseType {
     let result = options.bom ? String.fromCharCode(0xFEFF) : '';
 
     if (hasColumnHeaders) {
-      columnHeaders = arrayMap(
-        columnHeaders,
+      columnHeaders = columnHeaders.map(
         value => this._escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues })
       );
 
@@ -58,7 +81,7 @@ class Csv extends BaseType {
       result += options.rowDelimiter;
     }
 
-    arrayEach(data, (value, index) => {
+    data.forEach((value, index) => {
       if (index > 0) {
         result += options.rowDelimiter;
       }
