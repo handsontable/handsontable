@@ -24,14 +24,14 @@ searchCategory: Recipes
 category: Themes
 ---
 
-<iframe src="https://codesandbox.io/embed/5jyfxn?view=preview"
+<iframe src="https://codesandbox.io/embed/hk4mch?view=preview"
      style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
      title="Handsontable with Atlassian Design System recipe"
      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
    ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/5jyfxn)
+[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/hk4mch)
 
 ## Overview
 
@@ -190,18 +190,41 @@ const atlassianDataGridTheme = registerTheme('atlassian-data-grid', {
     cellHorizontalPadding: '12px',
     cellVerticalPadding: '10px',
     headerFontWeight: '600',
+    cellEditorBackgroundColor: ds('color.background.selected', '#E9F2FF'),
   },
 });
 ```
 
-## Step 7 - Verify the result
+## Step 7 - Add row hover, edit-cell color, and max width
+
+Apply row hover and edit-state background colors, and cap the table width at 600px.
+
+```css
+.app-shell {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.ht-theme-main .ht_master tbody tr:hover > td {
+  background-color: var(--ds-background-neutral-subtle-hovered, #0515240f);
+}
+
+.ht-theme-main .ht_editor_visible,
+.ht-theme-main .handsontableInputHolder {
+  background-color: var(--ds-background-selected, #E9F2FF);
+}
+```
+
+## Step 8 - Verify the result
 
 Check these states in your running app:
 
 - Header, cell background, and text colors.
 - Row hover color (`--ds-background-neutral-subtle-hovered`).
+- Cell edit background color (`--ds-background-selected`).
 - Selection, hover, and focus contrast.
 - Font family, font size, and cell paddings.
+- Table width stays within 600px.
 - Borders and radius around the grid wrapper.
 
 ## Related
