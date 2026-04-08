@@ -8,7 +8,8 @@ import { ColumnSorting } from 'handsontable/plugins';
   template: `
     <div class="example-controls-container">
       <div class="controls">
-        <button (click)="sort()" class="button">Sort</button>
+        <button (click)="sort()">Sort</button>
+        <button (click)="unsort()">Go back to the original order</button>
       </div>
     </div>
 
@@ -132,6 +133,10 @@ export class AppComponent {
         sortOrder: 'desc',
       },
     ]);
+  }
+
+  unsort() {
+    this.getMultiColumnSortingPlugin().clearSort();
   }
 }
 /* end-file */

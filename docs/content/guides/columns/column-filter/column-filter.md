@@ -28,9 +28,6 @@ searchCategory: Guides
 category: Columns
 menuTag: updated
 ---
-
-# Column filter
-
 Filter data by values or by a set of conditions, using Handsontable's intuitive user interface or
 flexible API.
 
@@ -228,7 +225,7 @@ useful items in the menu such as **Clear column**.
 
 ### Enable filtering within already filtered results
 
-To apply filters based on the search input, set `searchMode` to `'apply'`. You can then apply the filter by either pressing the `Enter` key while the search input is focused or by clicking the `OK` button.
+To apply filters based on the search input, set `searchMode` to `'apply'`. You can then apply the filter by either pressing the <kbd>**Enter**</kbd> key while the search input is focused or by clicking the `OK` button.
 
 ::: only-for javascript
 
@@ -894,7 +891,7 @@ At the moment, filtering comes with the following limitations:
 
 | Windows                             | macOS                                  | Action            |  Excel  | Sheets  |
 | ----------------------------------- | -------------------------------------- | ----------------- | :-----: | :-----: |
-| <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>**Option**</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |
+| <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>⌥</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |
 
 ## API reference
 
@@ -902,17 +899,24 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to filtering, see the
 following API reference pages:
 
-- [`Filters`](@/api/filters.md)
-- [`DropdownMenu`](@/api/dropdownMenu.md)
+**Plugins**
+
+<div class="boxes-list">
+
+- [Filters](@/api/filters.md)
+- [DropdownMenu](@/api/dropdownMenu.md)
+
+</div>
 
 ## Troubleshooting
 
 Didn't find what you need? Try this:
 
+<div class="boxes-list">
+
 - [View related topics](https://github.com/handsontable/handsontable/labels/Filtering) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's
-  forum
-- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to
-  get help
+- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
+
+</div>

@@ -109,6 +109,7 @@ const data = [
 
 const ExampleComponent = () => {
   return (
+    <div className="pagination-resize-demo">
     <HotTable
       pagination={{
         pageSize: 'auto',
@@ -165,6 +166,7 @@ const ExampleComponent = () => {
       />
       <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
     </HotTable>
+    </div>
   );
 };
 

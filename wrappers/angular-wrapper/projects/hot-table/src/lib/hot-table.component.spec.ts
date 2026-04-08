@@ -149,6 +149,32 @@ describe('HotTableComponent', () => {
       component.ngOnChanges(changes);
       expect(updateDataSpy).not.toHaveBeenCalledWith(newData);
     });
+
+    it('should not pass init-only settings to updateSettings after initialization', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {
+        renderAllRows: false,
+        width: 300,
+      };
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      const updateSettingsSpy = jest.spyOn(component.hotInstance, 'updateSettings');
+
+      const changes: SimpleChanges = {
+        settings: new SimpleChange(
+          { renderAllRows: false, width: 300 },
+          { renderAllRows: true, width: 500 },
+          false
+        ),
+      };
+
+      component.ngOnChanges(changes);
+
+      const passedSettings = updateSettingsSpy.mock.calls[0][0];
+
+      expect(passedSettings.renderAllRows).toBe(void 0);
+      expect(passedSettings.width).toBe(500);
+    });
   });
 
   describe('ngOnDestroy', () => {

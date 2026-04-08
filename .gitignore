@@ -24,3 +24,7 @@ docs/.env
 .netlify
 
 *.nupkg
+
+# Playwright screenshots (created by Claude Code sessions)
+/*.png
+/docs/*.png

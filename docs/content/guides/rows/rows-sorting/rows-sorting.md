@@ -790,7 +790,7 @@ The [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin extends [`ColumnS
 **Key differences from `ColumnSorting`:**
 
 - Sort by multiple columns at once. The column clicked first has the highest sort priority.
-- Hold <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> and click a column header to add it to the active sort criteria without replacing the existing sort.
+- Hold <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd> and click a column header to add it to the active sort criteria without replacing the existing sort.
 - Press <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> with a column header focused to append that column to the active sort criteria.
 - `initialConfig` accepts an **array** of sort config objects to define a multi-column initial order.
 
@@ -901,13 +901,13 @@ const configurationOptions: GridSettings = {
 
 ### Sort by multiple columns
 
-To sort by multiple columns interactively, hold <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> and click column headers in the desired priority order.
+To sort by multiple columns interactively, hold <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd> and click column headers in the desired priority order.
 
 Try the following demo:
 
 1. Click **Brand**. The rows sort by brand.
-2. Hold <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> and click **Model**. The rows sort by model within each brand.
-3. Hold <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> and click **Price**. The rows sort by price within each model.
+2. Hold <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd> and click **Model**. The rows sort by model within each brand.
+3. Hold <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd> and click **Price**. The rows sort by price within each model.
 
 ::: only-for javascript
 
@@ -1234,7 +1234,7 @@ registerPlugin(ColumnSorting);
 | Windows | macOS | Action | Excel | Sheets |
 | --- | --- | --- | :---: | :---: |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Sort by the focused column, cycling through ascending, descending, and original order | &cross; | &cross; |
-| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | Append the focused column to the active sort criteria. Requires the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin. | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Append the focused column to the active sort criteria. Requires the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin. | &cross; | &cross; |
 
 ## API reference
 
@@ -1247,11 +1247,10 @@ For the full list of options, methods, and hooks related to sorting, see the fol
 
 Didn't find what you need? Try this:
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [View related topics](https://github.com/handsontable/handsontable/labels/Column%20sorting) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
 - [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 

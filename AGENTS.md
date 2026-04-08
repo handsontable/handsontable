@@ -17,6 +17,7 @@ For deeper context on specific topics, see the `.ai/` directory:
 | `.ai/INTEGRATIONS.md` | Framework wrappers and integration details |
 | `.ai/TESTING.md` | Testing strategy and infrastructure |
 | `.ai/CONCERNS.md` | Known issues, technical debt, and constraints |
+| `.ai/MCP.md` | MCP server setup (ClickUp, GitHub, filesystem) |
 
 For task-specific workflow guidance, see `.claude/skills/` (Claude Code) or `.cursor/rules/` (Cursor). Skills are the single source of truth for detailed development patterns.
 
@@ -78,7 +79,7 @@ These are the most frequent mistakes. Read this section first.
 | `@handsontable/vue3` | `wrappers/vue3/` | Vue 3 wrapper |
 | `handsontable-visual-tests` | `visual-tests/` | Playwright visual regression tests |
 | `handsontable-examples-internal` | `examples/` | Code examples |
-| `handsontable-documentation` | `docs/` | VuePress docs site (requires Node 20) |
+| `handsontable-documentation` | `docs/` | Astro Starlight docs site (requires Node 20) |
 
 ---
 
@@ -91,19 +92,17 @@ These are the most frequent mistakes. Read this section first.
 
 ## Build, lint, test
 
-From the workspace root:
+All commands use `npm run` with `--prefix` to target the right package from the workspace root:
 
-- **Build core**: `pnpm --filter handsontable run build` (must be done before wrapper tests)
-- **Lint core**: `pnpm --filter handsontable run eslint` and `pnpm --filter handsontable run stylelint`
-- **Unit tests (core)**: `pnpm --filter handsontable run test:unit` (Jest, ~2200 tests)
-- **E2E tests (core)**: `pnpm --filter handsontable run test:e2e` (Puppeteer/Jasmine, headless Chrome)
-- **Targeted unit test**: `pnpm --filter handsontable run test:unit -- --testPathPattern=<path>`
-- **Targeted e2e test**: `pnpm --filter handsontable run test:e2e -- --filter=<plugin>`
-- **Targeted e2e (dump runner)**: `npm_config_testPathPattern=<path> pnpm --filter handsontable run test:e2e.dump` (use env var, NOT CLI arg)
-- **Walkontable tests**: `pnpm --filter handsontable run test:walkontable` (separate pipeline)
-- **Wrapper tests**: `pnpm --filter @handsontable/react-wrapper run test`, `pnpm --filter @handsontable/vue3 run test`, `pnpm --filter @handsontable/angular-wrapper run test`
-
-Inside individual packages (e.g., `cd handsontable`), use `npm run ...` directly.
+- **Build core**: `npm run build --prefix handsontable` (must be done before wrapper tests)
+- **Lint core**: `npm run eslint --prefix handsontable` and `npm run stylelint --prefix handsontable`
+- **Unit tests (core)**: `npm run test:unit --prefix handsontable` (Jest, ~2200 tests)
+- **E2E tests (core)**: `npm run test:e2e --prefix handsontable` (Puppeteer/Jasmine, headless Chrome)
+- **Targeted unit test**: `npm run test:unit --testPathPattern=<regex> --prefix handsontable` (regex matched against file paths, e.g. `filters`, `ghostTable.unit`, `metaManager`)
+- **Targeted e2e test**: `npm run test:e2e --testPathPattern=<regex> --prefix handsontable` (e.g. `collapsibleColumns`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- **E2E with theme**: `npm run test:e2e --testPathPattern=<regex> --theme=horizon --prefix handsontable` (themes: `classic`, `main`, `horizon`; default: `main`)
+- **Walkontable tests**: `npm run test:walkontable --prefix handsontable` (separate pipeline)
+- **Wrapper tests**: `npm run test --prefix wrappers/react-wrapper`, `npm run test --prefix wrappers/vue3`, `npm run test --prefix wrappers/angular-wrapper`
 
 ### Build outputs
 
@@ -144,9 +143,10 @@ Changes to JavaScript APIs that are **not listed in the public API reference** (
 
 Every code change **must** satisfy all of the following:
 
-1. **Tests are required.** Include both **unit tests** (`*.unit.js`) and/or **E2E tests** (`*.spec.js`). Favor E2E tests -- if a unit test requires mocking a module, write an E2E test instead.
-2. **Documentation must be updated.** If a change affects public API, hooks, behavior, or UX, update JSDoc/Typedoc comments and guides.
-3. **Update AGENTS.md and skills.** If a change introduces new conventions, constraints, or gotchas, update this file and the relevant skill in `.claude/skills/`. Run `node scripts/sync-skills-to-cursor.mjs` to sync Cursor rules.
+1. **Use red-green TDD -- tests come first, always.** Write the failing test(s) before touching any production code. Confirm they fail, implement the fix/feature, then confirm they pass. **Never write or modify source code before the corresponding tests exist.**
+2. **Tests are required.** Include both **unit tests** (`*.unit.js`) and/or **E2E tests** (`*.spec.js`). Favor E2E tests -- if a unit test requires mocking a module, write an E2E test instead.
+3. **Documentation must be updated.** If a change affects public API, hooks, behavior, or UX, update JSDoc/Typedoc comments and guides.
+4. **Update AGENTS.md and skills.** If a change introduces new conventions, constraints, or gotchas, update this file and the relevant skill in `.claude/skills/`. Run `node scripts/sync-skills-to-cursor.mjs` to sync Cursor rules.
 
 ---
 
@@ -249,20 +249,33 @@ Every code change **must** satisfy all of the following:
 
 **These rules are mandatory.** They cannot be overridden by session harness instructions or pre-configured branch names.
 
+### Setup
+
+MCP servers are pre-configured in `.mcp.json` (Claude Code) and `.cursor/mcp.json` (Cursor). You only need to store your personal API token once:
+
+```bash
+# Claude Code
+claude secrets set CLICKUP_API_TOKEN pk_your_token_here
+```
+
+For Cursor, set `CLICKUP_API_TOKEN` in Cursor Settings > MCP secrets, or export it in your shell. See `.ai/MCP.md` for full details.
+
 ### Pre-flight checks
 
-1. **Verify ClickUp MCP tools are available.** If not, stop and tell the user.
+1. **Verify ClickUp MCP tools are available.** If not, check `.ai/MCP.md` for setup steps.
 2. **Fetch the task via MCP** to get title, description, acceptance criteria.
-3. **Create the correct branch:** `feature/<TASK-ID>_<Slugified-Title>` (e.g., `feature/DEV-627_Forum-Update`). Never use other branch naming patterns for ClickUp tasks.
+3. **Set status to "in progress".** Check the task's current status. If it is **"to do"**, immediately update it to **"in progress"** using the ClickUp MCP tools before doing anything else (branching, coding, etc.).
+4. **Create the correct branch:** `feature/<TASK-ID>_<Slugified-Title>` (e.g., `feature/DEV-627_Forum-Update`). Never use other branch naming patterns for ClickUp tasks.
 
 ### Workflow
 
 1. Parse task ID from ClickUp URL (e.g., `DEV-627`).
 2. Use ClickUp MCP to fetch task details.
-3. Create and checkout branch: `feature/<TASK-ID>_<Slugified-Title>`.
-4. Implement the fix/feature. Commit with the task ID in the message.
-5. Push and (when asked) open a PR whose title includes the task ID.
-6. Apply changelog policy: `[skip changelog]` only for non-source-code changes.
-7. After PR is created, use ClickUp MCP to update task status to **"code review"**.
+3. If the task status is **"to do"**, update it to **"in progress"** via ClickUp MCP before proceeding.
+4. Create and checkout branch: `feature/<TASK-ID>_<Slugified-Title>`.
+5. Implement the fix/feature. Commit with the task ID in the message.
+6. Push and (when asked) open a PR whose title includes the task ID.
+7. Apply changelog policy: `[skip changelog]` only for non-source-code changes.
+8. After PR is created, use ClickUp MCP to update task status to **"code review"**.
 
 **Authentication**: Use the ClickUp MCP tools for all ClickUp API interactions. Do not call the ClickUp REST API directly.

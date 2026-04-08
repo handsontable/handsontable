@@ -38,7 +38,7 @@ Never mix CSS into JavaScript files. CSS and JS are always in separate files. Th
 
 - `build:styles` - Compile SCSS to CSS.
 - `build:themes-*` - Build theme-specific assets.
-- Stylelint validates all CSS/SCSS (`pnpm --filter handsontable run stylelint`).
+- Stylelint validates all CSS/SCSS (`npm run stylelint --prefix handsontable`).
 
 ## Browser Compatibility
 

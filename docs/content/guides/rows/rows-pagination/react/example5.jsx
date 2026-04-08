@@ -135,12 +135,11 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="example-modify-pagedata-container">
-        <button className="pagination-btn" onClick={handleClearData}>
-          Clear the second column of the current page
-        </button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button onClick={handleClearData}>Clear the second column of the current page</button>
+        </div>
       </div>
-
       <HotTable
         ref={hotTableRef}
         pagination={true}

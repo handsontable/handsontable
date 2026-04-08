@@ -21,7 +21,7 @@ handsontable-develop/
 │   ├── react-wrapper/          # @handsontable/react-wrapper
 │   ├── angular-wrapper/        # @handsontable/angular-wrapper
 │   └── vue3/                   # @handsontable/vue3
-├── docs/                       # VuePress documentation site (Node 20)
+├── docs/                       # Astro Starlight documentation site (Node 20)
 ├── examples/                   # Code examples
 ├── visual-tests/               # Playwright visual regression tests
 ├── .changelogs/                # Changelog entry mechanism

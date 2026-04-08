@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Versioning policy
-
 Handsontable follows the principles of [Semantic Versioning](https://semver.org/) (SemVer).
 
 [[toc]]

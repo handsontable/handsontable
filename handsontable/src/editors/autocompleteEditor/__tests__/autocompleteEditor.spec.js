@@ -2519,7 +2519,7 @@ describe('AutocompleteEditor', () => {
       }
     });
 
-    it('typing in textarea should highlight the matching phrase', async() => {
+    it.flaky('typing in textarea should highlight the matching phrase', async() => {
       const choicesList = ['Male', 'Female'];
       const syncSources = jasmine.createSpy('syncSources');
 

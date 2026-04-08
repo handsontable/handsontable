@@ -28,6 +28,7 @@ const fruits: string[] = [
 const container = document.querySelector('#example6')!;
 
 new Handsontable(container, {
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['Apple', 'Apple'],

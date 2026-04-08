@@ -39,8 +39,8 @@ The main `HotTableComponent` uses Angular `@Component` with individual `@Input()
 - **Build system:** ng-packagr 16.
 - **Tests:** Jest with `jest-preset-angular`.
 - **Gotcha:** Tests require `NODE_OPTIONS=--openssl-legacy-provider` (already configured in the test script).
-- **Run tests:** `pnpm --filter @handsontable/angular-wrapper run test`
-- **Important:** Build core first with `pnpm --filter handsontable run build`. Wrappers consume `handsontable/tmp/`, not `dist/`.
+- **Run tests:** `npm run test --prefix wrappers/angular-wrapper`
+- **Important:** Build core first with `npm run build --prefix handsontable`. Wrappers consume `handsontable/tmp/`, not `dist/`.
 
 ## Key files
 

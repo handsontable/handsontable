@@ -21,9 +21,12 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Moment.js date Cell Type - Step-by-Step Guide
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps moment @handsontable/pikaday
 
-[[toc]]
+@[code](@/content/recipes/cell-types/moment-time/javascript/example1.js)
+@[code](@/content/recipes/cell-types/moment-time/javascript/example1.ts)
+
+:::
 
 ## Overview
 
@@ -32,15 +35,6 @@ This guide shows how to create a custom time cell type using the [Moment.js](htt
 **Difficulty:** Beginner
 **Time:** ~15 minutes
 **Libraries:** `moment`
-
-## Complete Example
-
-::: example #example1 :hot-recipe --js 1 --ts 2 --deps moment @handsontable/pikaday
-
-@[code](@/content/recipes/cell-types/moment-time/javascript/example1.js)
-@[code](@/content/recipes/cell-types/moment-time/javascript/example1.ts)
-
-:::
 
 ## What You'll Build
 

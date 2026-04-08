@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Technical specification
 ---
-
-# Software license
-
 Learn about the licensing terms of the Handsontable data grid.
 
 [[toc]]
@@ -88,7 +85,7 @@ For many years Handsontable was available as an open-source software, and releas
 
 ### Related guides
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [License key](@/guides/getting-started/license-key/license-key.md)
 
@@ -96,5 +93,10 @@ For many years Handsontable was available as an open-source software, and releas
 
 ### Related API reference
 
-- Options:
-  - [`licenseKey`](@/api/options.md#licensekey)
+**Options:**
+
+<div class="boxes-list">
+
+- [`licenseKey`](@/api/options.md#licensekey)
+
+</div>

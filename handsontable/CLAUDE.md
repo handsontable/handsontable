@@ -39,15 +39,15 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 
 | Type | Pattern | Framework | Run |
 |------|---------|-----------|-----|
-| Unit | `*.unit.js` | Jest (jsdom) | `pnpm --filter handsontable run test:unit` |
-| E2E | `*.spec.js` | Jasmine (Puppeteer) | `pnpm --filter handsontable run test:e2e` |
+| Unit | `*.unit.js` | Jest (jsdom) | `npm run test:unit` |
+| E2E | `*.spec.js` | Jasmine (Puppeteer) | `npm run test:e2e` |
 
 - ALL `it()` callbacks in spec files MUST be `async`
 - HOT API calls MUST be `await`-ed
 - E2E helpers are globals (no imports): `handsontable()`, `selectCell()`, `getDataAtCell()`, `createSpreadsheetData()`
-- Targeted unit: `pnpm --filter handsontable run test:unit -- --testPathPattern=<path>`
-- Targeted e2e: `pnpm --filter handsontable run test:e2e -- --filter=<plugin>`
-- Targeted e2e (dump): use env var `npm_config_testPathPattern=<path>` (do NOT pass as CLI arg)
+- Targeted unit: `npm run test:unit --testPathPattern=<regex>` (regex matched against file paths, e.g. `filters`, `ghostTable.unit`)
+- Targeted e2e: `npm run test:e2e --testPathPattern=<regex>` (e.g. `collapsibleColumns`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- E2E with theme: `npm run test:e2e --testPathPattern=<regex> --theme=horizon` (themes: `classic`, `main`, `horizon`; default: `main`)
 - **Rebuild before E2E:** E2E runner loads `dist/handsontable.js` - rebuild after changing `src/`
 
 ## Merged Cells Gotcha
@@ -56,7 +56,7 @@ Read `colspan`/`rowspan` from `hot.getCellMeta(row, col)`, NOT from DOM element 
 
 ## Build
 
-`pnpm --filter handsontable run build`
+`npm run build`
 
 Outputs: `dist/` (UMD), `tmp/` (ES/CJS, used by wrappers), `styles/` (CSS)
 
