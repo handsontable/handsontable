@@ -9,7 +9,6 @@ import {
   fmtMs,
   fmtPct,
   fmtPctWithEmoji,
-  fmtCv,
   formatTitle,
 } from './thresholds.mjs';
 
@@ -38,9 +37,6 @@ export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
       `\u{1F4CA} **[Full interactive report \u2192](${meta.pagesUrl})**`
     );
   }
-
-  // Collapsible raw details (all scenarios)
-  sections.push(buildRawDetails(allScenarioResults, goldenScenarios, hasGolden));
 
   return sections.join('\n\n');
 }
@@ -121,133 +117,6 @@ function buildRegressionCallouts(results, goldenScenarios) {
   }
 
   return `### Regressions\n\n${callouts.join('\n\n')}`;
-}
-
-// --- collapsible raw details ---
-
-function buildRawDetails(results, goldenScenarios, hasGolden) {
-  const parts = [];
-
-  for (const [name, current] of Object.entries(results)) {
-    const golden = goldenScenarios[name] || current;
-    const title = formatTitle(name);
-
-    const scenarioParts = [];
-
-    // Hook timing
-    if (current.hookTiming != null) {
-      if (hasGolden && golden.hookTiming != null) {
-        const pct = pctChange(golden.hookTiming, current.hookTiming);
-        const pctStr = pct != null ? ` (${fmtPctWithEmoji(pct)})` : '';
-
-        const gHook = Math.round(golden.hookTiming);
-        const cHook = Math.round(current.hookTiming);
-
-        scenarioParts.push(
-          `> Hook timing: ${gHook} ms \u2192 ${cHook} ms${pctStr}`
-        );
-      } else {
-        scenarioParts.push(`> Hook timing: ${Math.round(current.hookTiming)} ms`);
-      }
-    }
-
-    // Metrics table
-    scenarioParts.push(buildDetailsTable(golden, current, hasGolden));
-
-    parts.push(`### ${title}\n\n${scenarioParts.join('\n\n')}`);
-  }
-
-  const header = '<details><summary><strong>Detailed metrics'
-    + ' (all scenarios)</strong></summary>';
-  const body = parts.join('\n\n---\n\n');
-
-  return `${header}\n\n${body}\n\n</details>`;
-}
-
-function buildDetailsTable(golden, current, hasGolden) {
-  const rows = [];
-  const gCats = golden.categories || {};
-  const cCats = current.categories || {};
-  const allKeys = new Set([...Object.keys(gCats), ...Object.keys(cCats)]);
-
-  for (const key of ['scripting', 'rendering', 'painting', 'loading', 'other', 'experience', 'idle']) {
-    if (!allKeys.has(key)) {
-      continue;
-    }
-
-    const g = gCats[key];
-    const c = cCats[key];
-
-    rows.push([
-      categoryLabel(key),
-      hasGolden ? fmtMs(g) : '',
-      fmtMs(c),
-      hasGolden ? fmtPctWithEmoji(pctChange(g, c)) : '',
-      fmtCv(current._iterationValues?.categories?.[key]),
-    ]);
-  }
-
-  // Total active time
-  const gTotal = sumActive(gCats);
-  const cTotal = sumActive(cCats);
-
-  rows.push([
-    '**Total active**',
-    hasGolden ? fmtMs(gTotal) : '',
-    fmtMs(cTotal),
-    hasGolden ? fmtPctWithEmoji(pctChange(gTotal, cTotal)) : '',
-    '',
-  ]);
-
-  // Trace window
-  rows.push([
-    'Trace window',
-    hasGolden ? fmtMs(golden.rangeEnd) : '',
-    fmtMs(current.rangeEnd),
-    hasGolden ? fmtPctWithEmoji(pctChange(golden.rangeEnd, current.rangeEnd)) : '',
-    fmtCv(current._iterationValues?.rangeEnd),
-  ]);
-
-  // UpdateCounters
-  const gUc = golden.updateCounters;
-  const cUc = current.updateCounters;
-
-  if (cUc) {
-    const ucPairs = [
-      ['Min JS heap', 'jsHeapMinLabel', 'jsHeapMinBytes'],
-      ['Max JS heap', 'jsHeapMaxLabel', 'jsHeapMaxBytes'],
-      ['Min Nodes', 'nodesMin', 'nodesMin'],
-      ['Max Nodes', 'nodesMax', 'nodesMax'],
-      ['Min Listeners', 'listenersMin', 'listenersMin'],
-      ['Max Listeners', 'listenersMax', 'listenersMax'],
-    ];
-
-    for (const [label, displayKey, numKey] of ucPairs) {
-      const gDisplay = gUc?.[displayKey];
-      const cDisplay = cUc[displayKey];
-
-      if (gDisplay == null && cDisplay == null) {
-        continue;
-      }
-
-      rows.push([
-        label,
-        hasGolden && gDisplay != null ? String(gDisplay) : '',
-        cDisplay != null ? String(cDisplay) : '--',
-        hasGolden ? fmtPctWithEmoji(pctChange(gUc?.[numKey], cUc[numKey])) : '',
-        '',
-      ]);
-    }
-  }
-
-  if (!hasGolden) {
-    const filteredHeaders = ['Metric', 'Value', 'CV%'];
-    const filteredRows = rows.map(r => [r[0], r[2], r[4]]);
-
-    return formatMarkdownTable(filteredHeaders, filteredRows);
-  }
-
-  return formatMarkdownTable(['Metric', 'Baseline', 'Current', 'Change', 'CV%'], rows);
 }
 
 // --- helpers ---
