@@ -29,17 +29,21 @@ Selection enables you to select a single cell or ranges of cells within Handsont
 
 With this feature, you can select single cells or ranges of cells across a grid. Easily retrieve the coordinates of the selected cells to clear or change the cells' content.
 
+Use <kbd>**Shift**</kbd> to extend the selection to a range of adjacent cells.
+
 Use <kbd>**Cmd**</kbd> on Mac or <kbd>**Ctrl**</kbd> on Windows to select non-adjacent ranges of cells.
+
+Click a column header to select all cells in that column. Click a row header to select all cells in that row. Both require [`colHeaders`](@/api/options.md#colheaders) or [`rowHeaders`](@/api/options.md#rowheaders) to be enabled.
 
 ## Select ranges
 
-There are different modes in which you can use this plugin. Choose between selecting a single cell, a range of adjacent cells, and multiple non-adjacent ranges of cells.
+There are different modes in which you can use this plugin. Choose between selecting a single cell, a range of adjacent cells, and multiple ranges of non-contiguous cells.
 
 Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 - [`single`](@/api/options.md#selectionmode) - You can select a single cell.
 - [`range`](@/api/options.md#selectionmode) - You can select multiple cells within a single rangeselected.
-- [`multiple`](@/api/options.md#selectionmode) - You can select multiple, non-adjacent ranges of cells.
+- [`multiple`](@/api/options.md#selectionmode) - Multiple non-contiguous ranges of cells can be selected.
 
 ::: only-for javascript
 
@@ -156,11 +160,87 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 
 ## Style the selection area
 
-You can easily change the background color, using CSS styles. The main, light blue background color is defined in the `.area` class.
+You can change the background color of selected cells using CSS. The base selection color is defined in the `.area` class.
 
-For non-adjacent selection, multiple classes are making each level a bit darker. These classes are called `area-1`, `area-2`, etc.
+When using multiple non-adjacent selections (<kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click), each additional selection layer receives a numbered class: `area-1` for the second layer, `area-2` for the third, and so on. Each class is cumulative — a cell in the second layer has both `area` and `area-1`.
+
+The example below customizes the color of each selection layer using these CSS classes.
+
+::: only-for javascript
+
+::: example #example4 --html 1 --css 2 --js 3 --ts 4
+
+@[code](@/content/guides/cell-features/selection/javascript/example4.html)
+@[code](@/content/guides/cell-features/selection/javascript/example4.css)
+@[code](@/content/guides/cell-features/selection/javascript/example4.js)
+@[code](@/content/guides/cell-features/selection/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --css 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-features/selection/react/example4.css)
+@[code](@/content/guides/cell-features/selection/react/example4.jsx)
+@[code](@/content/guides/cell-features/selection/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/selection/angular/example4.ts)
+@[code](@/content/guides/cell-features/selection/angular/example4.html)
+
+:::
+
+:::
 
 Unfortunately, there is no easy way to change the border color of the selection.
+
+## Select cells programmatically
+
+Use [`selectCell()`](@/api/core.md#selectcell) to select a single cell or a range of cells from code. Pass the start and end row/column indices to define a range. Use [`deselectCell()`](@/api/core.md#deselectcell) to clear the selection.
+
+::: only-for javascript
+
+::: example #example5 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-features/selection/javascript/example5.html)
+@[code](@/content/guides/cell-features/selection/javascript/example5.js)
+@[code](@/content/guides/cell-features/selection/javascript/example5.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/selection/react/example5.jsx)
+@[code](@/content/guides/cell-features/selection/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/selection/angular/example5.ts)
+@[code](@/content/guides/cell-features/selection/angular/example5.html)
+
+:::
+
+:::
 
 ## Jump across the grid's edges
 
