@@ -96,7 +96,6 @@ function findEsbuild() {
   const root = resolve(__dirname, '..', '..');
   const candidates = [
     join(root, 'node_modules', '.bin', 'esbuild'),
-    join(root, 'node_modules', '.pnpm', 'esbuild@0.25.12', 'node_modules', 'esbuild', 'bin', 'esbuild'),
   ];
 
   for (const c of candidates) {
