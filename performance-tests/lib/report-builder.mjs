@@ -23,19 +23,17 @@ export function buildReport(allScenarioResults, goldenSnapshots) {
     const scenarioSections = [];
 
     // Chart
-    const chartBlock = generateChart(title, golden, current);
-
-    scenarioSections.push(chartBlock);
+    scenarioSections.push(generateChart(title, golden, current));
 
     // Hook timing
     if (current.hookTiming != null) {
       if (hasGolden && golden.hookTiming != null) {
         const pct = pctChange(golden.hookTiming, current.hookTiming);
-        const pctStr = pct != null ? ` (${fmtPct(pct)})` : '';
+        const pctStr = pct != null ? ` (${fmtPctWithEmoji(pct)})` : '';
         const gHook = Math.round(golden.hookTiming);
         const cHook = Math.round(current.hookTiming);
 
-        scenarioSections.push(`> Hook timing: ${gHook} ms → ${cHook} ms${pctStr}`);
+        scenarioSections.push(`> Hook timing: ${gHook} ms -> ${cHook} ms${pctStr}`);
       } else {
         scenarioSections.push(`> Hook timing: ${Math.round(current.hookTiming)} ms`);
       }
@@ -57,35 +55,24 @@ export function buildReport(allScenarioResults, goldenSnapshots) {
 
 function buildSummaryTable(results, goldenScenarios, hasGolden) {
   const headers = hasGolden
-    ? ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Cumulative', 'Change']
-    : ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Cumulative'];
+    ? ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', 'Change']
+    : ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total'];
 
   const rows = [];
 
   for (const [name, current] of Object.entries(results)) {
     const title = formatTitle(name);
     const cats = current.categories || {};
+    const total = sumActive(cats);
 
     if (hasGolden) {
       const golden = goldenScenarios[name];
-      const cumChange = golden ? fmtPct(pctChange(golden.rangeEnd, current.rangeEnd)) : '--';
+      const goldenTotal = golden ? sumActive(golden.categories || {}) : null;
+      const change = fmtPctWithEmoji(pctChange(goldenTotal, total));
 
-      rows.push([
-        title,
-        fmtMs(cats.scripting),
-        fmtMs(cats.rendering),
-        fmtMs(cats.painting),
-        fmtMs(current.rangeEnd),
-        cumChange,
-      ]);
+      rows.push([title, fmtMs(cats.scripting), fmtMs(cats.rendering), fmtMs(cats.painting), fmtMs(total), change]);
     } else {
-      rows.push([
-        title,
-        fmtMs(cats.scripting),
-        fmtMs(cats.rendering),
-        fmtMs(cats.painting),
-        fmtMs(current.rangeEnd),
-      ]);
+      rows.push([title, fmtMs(cats.scripting), fmtMs(cats.rendering), fmtMs(cats.painting), fmtMs(total)]);
     }
   }
 
@@ -110,17 +97,29 @@ function buildDetailsTable(golden, current, hasGolden) {
       categoryLabel(key),
       hasGolden ? fmtMs(g) : '',
       fmtMs(c),
-      hasGolden ? fmtPct(pctChange(g, c)) : '',
+      hasGolden ? fmtPctWithEmoji(pctChange(g, c)) : '',
       fmtCv(current._iterationValues?.categories?.[key]),
     ]);
   }
 
-  // Cumulative
+  // Total active time (scripting + rendering + painting)
+  const gTotal = sumActive(gCats);
+  const cTotal = sumActive(cCats);
+
   rows.push([
-    'Cumulative',
+    '**Total active**',
+    hasGolden ? fmtMs(gTotal) : '',
+    fmtMs(cTotal),
+    hasGolden ? fmtPctWithEmoji(pctChange(gTotal, cTotal)) : '',
+    '',
+  ]);
+
+  // Range end (full trace window including idle)
+  rows.push([
+    'Trace window',
     hasGolden ? fmtMs(golden.rangeEnd) : '',
     fmtMs(current.rangeEnd),
-    hasGolden ? fmtPct(pctChange(golden.rangeEnd, current.rangeEnd)) : '',
+    hasGolden ? fmtPctWithEmoji(pctChange(golden.rangeEnd, current.rangeEnd)) : '',
     fmtCv(current._iterationValues?.rangeEnd),
   ]);
 
@@ -148,17 +147,12 @@ function buildDetailsTable(golden, current, hasGolden) {
         label,
         hasGolden && gDisplay != null ? String(gDisplay) : '',
         cDisplay != null ? String(cDisplay) : '--',
-        hasGolden ? fmtPct(pctChange(gUc?.[numKey], cUc[numKey])) : '',
+        hasGolden ? fmtPctWithEmoji(pctChange(gUc?.[numKey], cUc[numKey])) : '',
         '',
       ]);
     }
   }
 
-  const headers = hasGolden
-    ? ['Metric', 'Golden', 'Current', 'Change', 'CV%']
-    : ['Metric', '', 'Value', '', 'CV%'];
-
-  // Filter out empty columns when no golden
   if (!hasGolden) {
     const filteredHeaders = ['Metric', 'Value', 'CV%'];
     const filteredRows = rows.map(r => [r[0], r[2], r[4]]);
@@ -166,10 +160,14 @@ function buildDetailsTable(golden, current, hasGolden) {
     return formatMarkdownTable(filteredHeaders, filteredRows);
   }
 
-  return formatMarkdownTable(headers, rows);
+  return formatMarkdownTable(['Metric', 'Baseline', 'Current', 'Change', 'CV%'], rows);
 }
 
 // --- formatting helpers ---
+
+function sumActive(categories) {
+  return (categories.scripting || 0) + (categories.rendering || 0) + (categories.painting || 0);
+}
 
 function formatTitle(name) {
   return name
@@ -198,12 +196,25 @@ function fmtMs(v) {
   return `${Math.round(v)} ms`;
 }
 
-function fmtPct(pct) {
+function fmtPctWithEmoji(pct) {
   if (pct == null) { return '--'; }
 
   const sign = pct >= 0 ? '+' : '';
+  const text = `${sign}${pct.toFixed(1)}%`;
 
-  return `${sign}${pct.toFixed(1)}%`;
+  if (Math.abs(pct) < 1) { return `${text}`; }
+  if (pct > 10) { return `${text} \u{1F534}`; } // red circle -- significant regression
+  if (pct > 0) { return `${text} \u{1F7E1}`; } // yellow circle -- minor regression
+  if (pct < -10) { return `${text} \u{1F7E2}`; } // green circle -- significant improvement
+  if (pct < 0) { return `${text} \u{1F535}`; } // blue circle -- minor improvement
+
+  return text;
+}
+
+function pctChange(baseline, current) {
+  if (baseline == null || current == null || baseline === 0) { return null; }
+
+  return ((current - baseline) / baseline) * 100;
 }
 
 function fmtCv(values) {
@@ -219,12 +230,6 @@ function fmtCv(values) {
   const warning = cv > 15 ? ' !!!' : '';
 
   return `${cv.toFixed(1)}%${warning}`;
-}
-
-function pctChange(baseline, current) {
-  if (baseline == null || current == null || baseline === 0) { return null; }
-
-  return ((current - baseline) / baseline) * 100;
 }
 
 function formatMarkdownTable(headers, rows) {
