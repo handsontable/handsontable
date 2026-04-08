@@ -1891,7 +1891,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       changeSource = prop;
     }
 
-    const processedChanges = processChanges(changes, source);
+    const processedChanges = processChanges(changes, changeSource);
 
     instance.runHooks('afterSetDataAtRowProp', processedChanges, changeSource);
 
