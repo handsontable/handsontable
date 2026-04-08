@@ -21,7 +21,7 @@ searchCategory: Recipes
 category: Themes
 ---
 
-<iframe src="https://codesandbox.io/embed/z89zf5?view=preview"
+<iframe src="https://codesandbox.io/s/handsontable-fluent-ui-recipe-z89zf5?view=preview"
      style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
      title="Handsontable with Fluent UI recipe"
      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
