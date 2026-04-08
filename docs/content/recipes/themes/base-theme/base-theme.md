@@ -25,14 +25,14 @@ searchCategory: Recipes
 category: Themes
 ---
 
-<iframe src="https://codesandbox.io/embed/2mmgyv?view=preview"
+<iframe src="https://codesandbox.io/embed/k3vmf8?view=preview"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
   title="Handsontable with Base Web recipe"
   allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/2mmgyv)
+[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/k3vmf8)
 
 ## Overview
 
