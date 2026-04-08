@@ -558,7 +558,6 @@ function buildScript() {
     app.appendChild(buildDashboard());
     app.appendChild(buildControls());
     app.appendChild(buildScenarioList());
-    document.body.appendChild(buildTooltip());
   }
 
   function buildHeader() {
@@ -1033,6 +1032,7 @@ function buildScript() {
   }
 
   // --- Init ---
+  document.body.appendChild(buildTooltip());
   render();
 })();
 <${'/' + 'script'}>`; // eslint-disable-line no-useless-concat

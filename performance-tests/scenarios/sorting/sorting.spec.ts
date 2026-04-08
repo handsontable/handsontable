@@ -22,7 +22,7 @@ test(config.name, async({ page }) => {
     warmupRuns: config.warmupRuns,
     iterations: config.iterations,
     outputDir,
-    actionFn: async() => {
+    actionFn: async(isMeasured) => {
       const sortOrder = sortAscending ? 'asc' : 'desc';
 
       // Alternate sort direction across iterations
@@ -35,11 +35,13 @@ test(config.name, async({ page }) => {
 
       sortAscending = !sortAscending;
 
-      // Capture hook timing
-      const timing = await getHookTiming(page, 'beforeColumnSort', 'afterColumnSort');
+      // Capture hook timing only during measured iterations
+      if (isMeasured) {
+        const timing = await getHookTiming(page, 'beforeColumnSort', 'afterColumnSort');
 
-      if (timing.deltaMs != null) {
-        hookDeltas.push(timing.deltaMs);
+        if (timing.deltaMs != null) {
+          hookDeltas.push(timing.deltaMs);
+        }
       }
     },
     resetFn: async() => {
@@ -53,6 +55,9 @@ test(config.name, async({ page }) => {
 
       // Reset hook timer store for next iteration
       await injectHookTimer(page, 'beforeColumnSort', 'afterColumnSort');
+
+      // Reset sort direction to ensure consistent starting state for measured iterations
+      sortAscending = true;
     },
   });
 

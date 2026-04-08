@@ -22,7 +22,7 @@ test(config.name, async({ page }) => {
     warmupRuns: config.warmupRuns,
     iterations: config.iterations,
     outputDir: path.resolve('output', config.name),
-    actionFn: async() => {
+    actionFn: async(isMeasured) => {
       for (let i = 0; i < 500; i++) {
         await page.mouse.wheel(-350, 0);
       }

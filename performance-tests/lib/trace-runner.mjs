@@ -63,7 +63,7 @@ export async function stopTracing(cdp) {
 /**
  * @param {object} options
  * @param {import('@playwright/test').Page} options.page
- * @param {() => Promise<void>} options.actionFn -- the traced action
+ * @param {(isMeasured: boolean) => Promise<void>} options.actionFn -- the traced action; receives true during measured iterations, false during warmup
  * @param {() => Promise<void>} [options.setupFn] -- pre-trace setup (run once before warmup)
  * @param {() => Promise<void>} [options.resetFn] -- reset state between iterations
  * @param {number} [options.warmupRuns=1]
@@ -91,7 +91,7 @@ export async function runTracedScenario({
   // Warmup runs (no tracing)
   for (let w = 0; w < warmupRuns; w++) {
     process.stdout.write(`  Warmup ${w + 1}/${warmupRuns}...`);
-    await actionFn();
+    await actionFn(false);
     console.log(' done');
 
     if (resetFn) {
@@ -108,7 +108,7 @@ export async function runTracedScenario({
     // Heartbeat: print dots during actionFn to keep GH Actions log alive
     const heartbeat = setInterval(() => process.stdout.write('.'), 5000);
 
-    await actionFn();
+    await actionFn(true);
     clearInterval(heartbeat);
 
     process.stdout.write(' stopping');
