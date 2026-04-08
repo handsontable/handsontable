@@ -36,3 +36,4 @@ Each recipe includes complete code examples, configuration options, and troubles
 
 - [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md)
 - [Handsontable with Material Design 3](@/recipes/themes/material-design/material-design.md)
+- [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md)
