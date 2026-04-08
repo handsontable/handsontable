@@ -1647,7 +1647,6 @@ Released on May 11, 2021.
 For more information on this release, see:
 
 - [Blog post](https://handsontable.com/blog/whats-new-in-handsontable-8-4-0)
-- [Documentation (8.4.0)](https://handsontable.com/docs/8.4.0/)
 
 #### Added
 
@@ -1727,7 +1726,6 @@ Released on March 16, 2021.
 For more information on this release, see:
 
 - [Blog post](https://handsontable.com/blog/handsontable-8-3-2-introducing-monorepo)
-- [Documentation (8.3.2)](https://handsontable.com/docs/8.3.2/)
 
 #### Added
 
@@ -1778,10 +1776,6 @@ For more information on this release, see:
 
 Released on February 10, 2021.
 
-For more information on this release, see:
-
-- [Documentation (8.3.1)](https://handsontable.com/docs/8.3.1/)
-
 #### Fixed
 
 - Fixed an issue where the CSS files could be eliminated during tree-shaking.
@@ -1794,7 +1788,6 @@ Released on January 28, 2021.
 For more information on this release, see:
 
 - [Blog post](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)
-- [Documentation (8.3.0)](https://handsontable.com/docs/8.3.0/)
 
 #### Added
 
@@ -1846,7 +1839,6 @@ Released on November 12, 2020.
 For more information on this release, see:
 
 - [Blog post](https://handsontable.com/blog/handsontable-8.2.0-has-been-released)
-- [Documentation (8.2.0)](https://handsontable.com/docs/8.2.0/)
 
 #### Added
 
@@ -1887,7 +1879,6 @@ Released on October 1, 2020.
 For more information on this release, see:
 
 - [Blog post](https://handsontable.com/blog/handsontable-8.1.0-has-been-released)
-- [Documentation (8.1.0)](https://handsontable.com/docs/8.1.0/)
 
 #### Added
 
@@ -1946,7 +1937,6 @@ Released on August 5, 2020.
 For more information on this release, see:
 
 - [Blog post](https://handsontable.com/blog/the-new-handsontable-8-is-now-available)
-- [Documentation (8.0.0)](https://handsontable.com/docs/8.0.0/)
 - [Migration guide (7.4 → 8.0)](@/guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0.md)
 
 #### Major changes
@@ -1969,7 +1959,6 @@ methods and hooks were added and there are few depreciations and removals, too.
   methods, such as `populateFromArray` or `setDataAtCell`.
 - The `modifyRow`, `modifyCol`, `unmodifyRow`, `unmodifyCol` hooks are no longer needed and were
   removed. Their functionality can be achived by using API.
-  [More information in the 8.0.0 migration guide](https://handsontable.com/docs/8.0.0/tutorial-migration-guide.html).
 - `skipLengthCache` hook was removed, `indexMapper` is now responsible for the cache and length.
 - The `ManualColumnFreeze` plugin doesn't use the `ManualColumnMove` plugin anymore.
 - The `CollapsibleColumns` plugin doesn't use the `HiddenColumns` plugin anymore.
@@ -2583,7 +2572,6 @@ Released on February 19, 2020.
 For more information on this release, see:
 
 - [Blog post](https://handsontable.com/blog/handsontable-7-4-2-released)
-- [Documentation (7.4.2)](https://handsontable.com/docs/7.4.2/)
 - [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/7.4.2)
 
 #### Changes
@@ -2611,7 +2599,6 @@ Released on February 12, 2020.
 For more information on this release, see:
 
 - [Blog post](https://handsontable.com/blog/handsontable-7-4-0-released)
-- [Documentation (7.4.0)](https://handsontable.com/docs/7.4.0/)
 - [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/7.4.0)
 
 #### Changes
