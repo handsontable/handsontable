@@ -9,7 +9,7 @@ description: Use when writing tests for the Walkontable rendering engine - has i
 
 Walkontable has its own dedicated test runner. Do NOT run Walkontable tests through the main `test:e2e` or `test:unit` commands -- they will not be picked up.
 
-- **Run command:** `pnpm --filter handsontable run test:walkontable`
+- **Run command:** `npm run test:walkontable --prefix handsontable`
 - **Test location:** `src/3rdparty/walkontable/test/`
 
 The directory contains two sub-pipelines:

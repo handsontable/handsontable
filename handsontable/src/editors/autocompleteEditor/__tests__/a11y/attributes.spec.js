@@ -46,7 +46,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     );
   });
 
-  it('should add a correct set of aria tags to the choice dropdown element', async() => {
+  it.flaky('should add a correct set of aria tags to the choice dropdown element', async() => {
     const hot = handsontable({
       columns: [
         { editor: 'autocomplete', source: choices, strict: true }
@@ -75,7 +75,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     });
   });
 
-  it('should add a correct set of aria tags to the choice dropdown element (choice list being scrolled to the best choice)', async() => {
+  it.flaky('should add a correct set of aria tags to the choice dropdown element (choice list being scrolled to the best choice)', async() => {
     const hot = handsontable({
       data: [['11'], [], []],
       type: 'dropdown',

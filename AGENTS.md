@@ -92,19 +92,17 @@ These are the most frequent mistakes. Read this section first.
 
 ## Build, lint, test
 
-From the workspace root:
+All commands use `npm run` with `--prefix` to target the right package from the workspace root:
 
-- **Build core**: `pnpm --filter handsontable run build` (must be done before wrapper tests)
-- **Lint core**: `pnpm --filter handsontable run eslint` and `pnpm --filter handsontable run stylelint`
-- **Unit tests (core)**: `pnpm --filter handsontable run test:unit` (Jest, ~2200 tests)
-- **E2E tests (core)**: `pnpm --filter handsontable run test:e2e` (Puppeteer/Jasmine, headless Chrome)
-- **Targeted unit test**: `pnpm --filter handsontable run test:unit -- --testPathPattern=<path>`
-- **Targeted e2e test**: `pnpm --filter handsontable run test:e2e -- --filter=<plugin>`
-- **Targeted e2e (dump runner)**: `npm_config_testPathPattern=<path> pnpm --filter handsontable run test:e2e.dump` (use env var, NOT CLI arg)
-- **Walkontable tests**: `pnpm --filter handsontable run test:walkontable` (separate pipeline)
-- **Wrapper tests**: `pnpm --filter @handsontable/react-wrapper run test`, `pnpm --filter @handsontable/vue3 run test`, `pnpm --filter @handsontable/angular-wrapper run test`
-
-Inside individual packages (e.g., `cd handsontable`), use `npm run ...` directly.
+- **Build core**: `npm run build --prefix handsontable` (must be done before wrapper tests)
+- **Lint core**: `npm run eslint --prefix handsontable` and `npm run stylelint --prefix handsontable`
+- **Unit tests (core)**: `npm run test:unit --prefix handsontable` (Jest, ~2200 tests)
+- **E2E tests (core)**: `npm run test:e2e --prefix handsontable` (Puppeteer/Jasmine, headless Chrome)
+- **Targeted unit test**: `npm run test:unit --testPathPattern=<regex> --prefix handsontable` (regex matched against file paths, e.g. `filters`, `ghostTable.unit`, `metaManager`)
+- **Targeted e2e test**: `npm run test:e2e --testPathPattern=<regex> --prefix handsontable` (e.g. `collapsibleColumns`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- **E2E with theme**: `npm run test:e2e --testPathPattern=<regex> --theme=horizon --prefix handsontable` (themes: `classic`, `main`, `horizon`; default: `main`)
+- **Walkontable tests**: `npm run test:walkontable --prefix handsontable` (separate pipeline)
+- **Wrapper tests**: `npm run test --prefix wrappers/react-wrapper`, `npm run test --prefix wrappers/vue3`, `npm run test --prefix wrappers/angular-wrapper`
 
 ### Build outputs
 

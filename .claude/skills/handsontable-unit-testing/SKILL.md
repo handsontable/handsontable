@@ -1,6 +1,6 @@
 ---
 name: handsontable-unit-testing
-description: Use when writing Jest unit tests (*.unit.js) for Handsontable core, plugins, or utilities - covers Jest setup, test location conventions, mocking patterns, module aliases, and when to choose unit tests over E2E tests
+description: Use when writing or modifying Jest unit tests (*.unit.js) for Handsontable core, plugins, or utilities, or when a bug fix or internal refactor needs unit test coverage - covers Jest setup, test location conventions, mocking patterns, module aliases, and when to choose unit tests over E2E tests
 ---
 
 # Writing Jest Unit Tests for Handsontable
@@ -39,9 +39,9 @@ For custom mocking, use `jest.fn()` for stubs and `jest.spyOn(object, 'method')`
 
 ## Run Commands
 
-- **All unit tests:** `pnpm --filter handsontable run test:unit`
-- **Targeted:** `pnpm --filter handsontable run test:unit -- --testPathPattern=pluginName`
-- **Example:** `pnpm --filter handsontable run test:unit -- --testPathPattern=filters`
+- **All unit tests:** `npm run test:unit --prefix handsontable`
+- **Targeted:** `npm run test:unit --testPathPattern=<regex> --prefix handsontable` -- the pattern is matched against test file paths (e.g. `filters`, `ghostTable.unit`, `metaManager`)
+- **Example:** `npm run test:unit --testPathPattern=filters --prefix handsontable`
 
 ## Large Dataset Testing
 
