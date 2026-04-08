@@ -22,9 +22,9 @@ searchCategory: Recipes
 category: Themes
 ---
 
-<iframe src="https://codesandbox.io/p/sandbox/y6llzl" title="Handsontable with MUI demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px; min-height: 500px;"></iframe>
+<iframe src="https://codesandbox.io/p/sandbox/y4vsfq" title="Handsontable with MUI demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px; min-height: 500px;"></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/y6llzl)
+[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/y4vsfq)
 
 ## Overview
 
@@ -36,7 +36,7 @@ This recipe shows how to integrate Handsontable into a React app that uses [MUI]
 
 ## What You'll Get
 
-- A reusable Handsontable theme (`registerTheme('mui-data-grid', { colors, tokens })`) that maps to your MUI palette.
+- A reusable Handsontable theme (`registerTheme('mui-data-grid', { icons, colors, tokens })`) that maps to your MUI palette.
 - A React grid component that uses the custom theme and keeps your MUI typography and spacing.
 - A base setup you can extend with dark mode and custom icons.
 
@@ -112,11 +112,13 @@ Register a custom Handsontable theme that uses your mapped colors and Horizon to
 ```ts
 import type { Theme } from '@mui/material/styles';
 import { registerTheme } from 'handsontable/themes';
+import iconsHorizon from 'handsontable/themes/static/variables/icons/horizon';
 import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
 import { createHandsontableMuiColors } from './handsontableMuiColors';
 
 export function createMuiDataGridTheme(theme: Theme) {
   return registerTheme('mui-data-grid', {
+    icons: iconsHorizon,
     colors: createHandsontableMuiColors(theme),
     tokens: tokensHorizon,
   }).params({
