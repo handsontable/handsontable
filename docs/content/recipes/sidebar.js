@@ -19,6 +19,7 @@ const cellTypesItems = [
 const themesItems = [
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/atlassian-design-system/atlassian-design-system', title: 'Handsontable with Atlassian Design System', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react'] },
 ];
 
 module.exports = {

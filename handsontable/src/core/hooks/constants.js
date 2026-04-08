@@ -1824,7 +1824,7 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before applying selection coordinates to the renderable coordinates for Walkontable (rendering engine).
    * It occurs even when cell coordinates remain unchanged and activates during cell selection and drag selection.
-   * The behavior of Shift+Tab differs from Arrow Left when there's no further movement possible.
+   * The behavior of <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> differs from <kbd>**←**</kbd> when there's no further movement possible.
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectionHighlightSet
@@ -2074,12 +2074,13 @@ export const REGISTERED_HOOKS = [
   'afterColumnSort',
 
   /**
-   * Fired by {@link Autofill} plugin after setting range of autofill. This hook is fired when {@link Options#fillHandle}
+   * Fired by {@link Autofill} plugin to allow modifying the autofill range. This hook is fired when {@link Options#fillHandle}
    * option is enabled.
    *
    * @event Hooks#modifyAutofillRange
-   * @param {Array} entireArea Array of visual coordinates of the entire area of the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
-   * @param {Array} startArea Array of visual coordinates of the starting point for the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
+   * @param {number[]} entireArea Visual coordinates of the entire area of the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
+   * @param {number[]} startArea Visual coordinates of the starting point for the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
+   * @returns {number[]} The modified autofill range (`[startRow, startColumn, endRow, endColumn]`).
    */
   'modifyAutofillRange',
 
@@ -3295,9 +3296,9 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} fullEditMode `true` if the editor is opened in full edit mode, `false` otherwise.
    * Editor opened in full edit mode does not close after pressing Arrow keys.
    * @returns {boolean | undefined} If the callback returns `false,` the editor won't be opened after
-   * the mouse double click or after pressing the Enter key. Returning `undefined` (or other value
+   * the mouse double click or after pressing the <kbd>**Enter**</kbd> key. Returning `undefined` (or other value
    * than boolean) will result in default behavior, which disallows opening an editor for non-contiguous
-   * selection (while pressing Ctrl/Cmd) and for multiple selected cells (while pressing SHIFT).
+   * selection (while pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>) and for multiple selected cells (while pressing <kbd>**Shift**</kbd>).
    * Returning `true` removes those restrictions.
    */
   'beforeBeginEditing',
