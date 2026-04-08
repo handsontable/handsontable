@@ -22,6 +22,10 @@ searchCategory: Recipes
 category: Themes
 ---
 
+<iframe src="https://codesandbox.io/p/sandbox/72nz56" title="Handsontable with MUI demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px; min-height: 500px;"></iframe>
+
+[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/72nz56)
+
 ## Overview
 
 This recipe shows how to integrate Handsontable into a React app that uses [MUI](https://mui.com/) by registering a custom theme with Theme API colors and tokens. The grid follows your Material UI design language.
