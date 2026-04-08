@@ -9,11 +9,11 @@
  */
 export async function scrollToRow(page, row) {
   await page.evaluate((r) => {
-    (window as any).__hot.scrollViewportTo({ row: r, col: 0 });
+    /** @type {any} */ (window).__hot.scrollViewportTo({ row: r, col: 0 });
   }, row);
 
   await page.waitForFunction((r) => {
-    const hot = (window as any).__hot;
+    const hot = /** @type {any} */ (window).__hot;
 
     return hot.rowIndexMapper.getRenderableFromVisualIndex(r) !== null;
   }, row);
@@ -27,11 +27,11 @@ export async function scrollToRow(page, row) {
  */
 export async function scrollToColumn(page, col) {
   await page.evaluate((c) => {
-    (window as any).__hot.scrollViewportTo({ row: 0, col: c });
+    /** @type {any} */ (window).__hot.scrollViewportTo({ row: 0, col: c });
   }, col);
 
   await page.waitForFunction((c) => {
-    const hot = (window as any).__hot;
+    const hot = /** @type {any} */ (window).__hot;
 
     return hot.columnIndexMapper.getRenderableFromVisualIndex(c) !== null;
   }, col);
