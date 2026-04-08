@@ -1,11 +1,14 @@
 /**
  * Measures the minified and gzip sizes added by each optional Handsontable module
- * on top of `handsontable/base`. Outputs a Markdown table ready to paste into
- * docs/content/guides/tools-and-building/modules/modules.md.
+ * on top of `handsontable/base`. Writes results to:
+ *   docs/content/guides/tools-and-building/modules/module-sizes.json
  *
- * Usage (from the repo root):
+ * The JSON is read at docs build time by the vite-module-sizes plugin to inject
+ * the build weight tables into the Modules guide.
+ *
+ * Usage (from the repo root, after a production release):
  *   pnpm --filter handsontable run build
- *   node handsontable/scripts/measure-module-sizes.mjs
+ *   pnpm --filter handsontable run measure:module-sizes
  *
  * Requires: esbuild (already a dev dependency via the monorepo)
  */
@@ -20,6 +23,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOT_TMP = resolve(__dirname, '..', 'tmp');
 const DIST = resolve(__dirname, '..', 'dist');
 const TMP_DIR = '/tmp/hot-module-sizes';
+const JSON_OUT = resolve(__dirname, '..', '..', 'docs', 'content', 'guides', 'tools-and-building', 'modules', 'module-sizes.json');
 
 mkdirSync(TMP_DIR, { recursive: true });
 
@@ -70,10 +74,6 @@ function bundle(esbuild, entryCode) {
   const gzipped = gzipSync(output);
 
   return { raw: output.length, gzip: gzipped.length };
-}
-
-function kB(bytes) {
-  return (bytes / 1000).toFixed(1);
 }
 
 function delta(current, base) {
@@ -174,51 +174,21 @@ async function main() {
   const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
   const version = pkg.version;
 
-  // Output Markdown
-  const lines = [];
+  // Write JSON output
+  const output = {
+    version,
+    measuredAt: new Date().toISOString().slice(0, 10),
+    base: {
+      full: { raw: fullRaw, gzip: fullGzip },
+      base: { raw: base.raw, gzip: base.gzip },
+    },
+    cellTypes: cellTypeResults,
+    plugins: pluginResults,
+  };
 
-  lines.push(`<!-- Build weight measured against Handsontable ${version} -->`);
-  lines.push('');
-  lines.push('**Base module sizes:**');
-  lines.push('');
-  lines.push('| Package | Minified | Gzip |');
-  lines.push('| ------- | -------- | ---- |');
-  lines.push(`| \`handsontable\` (full, no tree shaking) | ${kB(fullRaw)} kB | ${kB(fullGzip)} kB |`);
-  lines.push(`| \`handsontable/base\` | ${kB(base.raw)} kB | ${kB(base.gzip)} kB |`);
-  lines.push('');
-  lines.push('**Size added by each optional module (on top of `handsontable/base`):**');
-  lines.push('');
-  lines.push('::: details Cell type modules');
-  lines.push('');
-  lines.push('| Module | Minified | Gzip |');
-  lines.push('| ------ | -------- | ---- |');
-  for (const [name, d] of Object.entries(cellTypeResults)) {
-    if (d.raw < 100) {
-      lines.push(`| \`${name}\` | included in base | included in base |`);
-    } else {
-      lines.push(`| \`${name}\` | +${kB(d.raw)} kB | +${kB(d.gzip)} kB |`);
-    }
-  }
-  lines.push('');
-  lines.push(':::');
-  lines.push('');
-  lines.push('::: details Plugin modules');
-  lines.push('');
-  lines.push('| Module | Minified | Gzip |');
-  lines.push('| ------ | -------- | ---- |');
-  for (const [name, d] of Object.entries(pluginResults)) {
-    lines.push(`| \`${name}\` | +${kB(d.raw)} kB | +${kB(d.gzip)} kB |`);
-  }
-  lines.push('');
-  lines.push(':::');
-  lines.push('');
-  lines.push('::: tip');
-  lines.push('');
-  lines.push('The `Formulas` module requires the external [`hyperformula`](https://hyperformula.handsontable.com/) package. Its size is not included in the measurements above.');
-  lines.push('');
-  lines.push(':::');
-
-  console.log(lines.join('\n'));
+  writeFileSync(JSON_OUT, JSON.stringify(output, null, 2) + '\n', 'utf8');
+  console.error(`\nWrote ${JSON_OUT}`);
+  console.error('Commit the updated module-sizes.json to the repository.');
 }
 
 main().catch((err) => {

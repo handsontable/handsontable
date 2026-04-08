@@ -661,93 +661,9 @@ The table below lists all of Handsontable's modules:
 
 ## Build weight
 
-The tables below show the minified and gzip sizes of each module when bundled on top of the base module. Measurements were made with esbuild using minification, against **Handsontable 17.0.1**.
+The tables below show the minified and gzip sizes of each module when bundled on top of the base module. The **gzip** column represents the size after gzip compression - the most relevant metric for network transfer.
 
-The **gzip** column represents the size after gzip compression - the most relevant metric for network transfer.
-
-::: tip Regenerating measurements
-
-To regenerate these numbers after a release, run from the repository root:
-
-```bash
-pnpm --filter handsontable run build
-node handsontable/scripts/measure-module-sizes.mjs
-```
-
-:::
-
-**Base module sizes:**
-
-| Package | Minified | Gzip |
-| ------- | -------- | ---- |
-| `handsontable` (full, no tree shaking) | 1,420.3 kB | 316.0 kB |
-| `handsontable/base` | 631.1 kB | 141.0 kB |
-
-**Size added by each optional module (on top of `handsontable/base`):**
-
-::: details Cell type modules
-
-| Module | Minified | Gzip |
-| ------ | -------- | ---- |
-| `AutocompleteCellType` | +15.1 kB | +4.1 kB |
-| `CheckboxCellType` | +6.0 kB | +1.9 kB |
-| `DateCellType` | +87.2 kB | +28.0 kB |
-| `DropdownCellType` | +15.5 kB | +4.2 kB |
-| `HandsontableCellType` | +6.5 kB | +1.5 kB |
-| `MultiSelectCellType` | +24.0 kB | +6.1 kB |
-| `NumericCellType` | +44.1 kB | +16.9 kB |
-| `PasswordCellType` | +1.4 kB | +0.3 kB |
-| `SelectCellType` | +3.1 kB | +0.6 kB |
-| `TextCellType` | included in base | included in base |
-| `TimeCellType` | +64.2 kB | +20.8 kB |
-
-:::
-
-::: details Plugin modules
-
-| Module | Minified | Gzip |
-| ------ | -------- | ---- |
-| `AutoColumnSize` | +22.1 kB | +5.8 kB |
-| `AutoRowSize` | +22.7 kB | +5.8 kB |
-| `Autofill` | +15.5 kB | +4.4 kB |
-| `BindRowsWithHeaders` | +9.3 kB | +2.7 kB |
-| `CollapsibleColumns` | +14.3 kB | +4.1 kB |
-| `ColumnSorting` | +85.4 kB | +26.4 kB |
-| `ColumnSummary` | +20.2 kB | +5.1 kB |
-| `Comments` | +32.5 kB | +7.9 kB |
-| `ContextMenu` | +42.7 kB | +10.7 kB |
-| `CopyPaste` | +27.4 kB | +7.6 kB |
-| `CustomBorders` | +16.8 kB | +4.8 kB |
-| `DragToScroll` | +9.5 kB | +2.7 kB |
-| `DropdownMenu` | +45.9 kB | +11.6 kB |
-| `ExportFile` | +39.9 kB | +12.4 kB |
-| `Filters` | +155.4 kB | +42.5 kB |
-| `Formulas` | +96.1 kB | +28.4 kB |
-| `HiddenColumns` | +22.9 kB | +5.7 kB |
-| `HiddenRows` | +22.6 kB | +5.6 kB |
-| `ManualColumnFreeze` | +9.5 kB | +2.7 kB |
-| `ManualColumnMove` | +16.6 kB | +4.7 kB |
-| `ManualColumnResize` | +14.9 kB | +4.2 kB |
-| `ManualRowMove` | +15.6 kB | +4.4 kB |
-| `ManualRowResize` | +14.6 kB | +4.2 kB |
-| `MergeCells` | +52.2 kB | +12.3 kB |
-| `MultiColumnSorting` | +88.2 kB | +26.9 kB |
-| `MultipleSelectionHandles` | +10.9 kB | +2.9 kB |
-| `NestedHeaders` | +42.8 kB | +11.5 kB |
-| `NestedRows` | +35.1 kB | +8.0 kB |
-| `Search` | +10.0 kB | +2.8 kB |
-| `StretchColumns` | +13.4 kB | +3.7 kB |
-| `TouchScroll` | +9.3 kB | +2.6 kB |
-| `TrimRows` | +9.6 kB | +2.7 kB |
-| `UndoRedo` | +29.3 kB | +6.1 kB |
-
-:::
-
-::: tip
-
-The `Formulas` module requires the external [`hyperformula`](https://hyperformula.handsontable.com/) package. Its size is not included in the measurements above.
-
-:::
+<!-- module-sizes -->
 
 ## List of all module imports
 
