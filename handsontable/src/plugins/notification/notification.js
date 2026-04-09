@@ -931,6 +931,8 @@ export class Notification extends BasePlugin {
    * When the user clicks a toast control, `outsideClickDeselects` can clear the selection. In that case
    * `focusOnHighlightedCell()` has no highlight to focus, so we fall back to `#focusBeforeRegion` (set when entering
    * the region with **F6** or when focus moves from the grid into the host).
+   *
+   * Clears `#focusBeforeRegion` after moving focus so a later click into a toast stores a new prior for **Escape**.
    */
   #onTabForwardExitNotificationRegionToGrid() {
     this.#clearNotificationRegionTabOrder();
@@ -940,15 +942,11 @@ export class Notification extends BasePlugin {
 
     if (this.#hasActiveSelectionHighlight()) {
       focusManager.focusOnHighlightedCell();
-
-      return;
+    } else if (!this.#tryFocusPriorElementBeforeNotificationRegion()) {
+      focusManager.focusOnHighlightedCell();
     }
 
-    if (this.#tryFocusPriorElementBeforeNotificationRegion()) {
-      return;
-    }
-
-    focusManager.focusOnHighlightedCell();
+    this.#focusBeforeRegion = null;
   }
 
   /**

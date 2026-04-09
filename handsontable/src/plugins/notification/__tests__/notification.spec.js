@@ -1068,6 +1068,41 @@ describe('Notification', () => {
     expect(document.activeElement).toBe(highlightedCell);
   });
 
+  it('should return focus to the cell active before re-entry after Tab exit from the region then click and Escape', async() => {
+    await handsontable({
+      data: createSpreadsheetData(3, 3),
+      notification: true,
+    });
+
+    await selectCell(1, 1);
+    await spec();
+
+    const plugin = getPlugin('notification');
+
+    plugin.showMessage({ message: 'Toast' });
+    await spec();
+
+    await keyDownUp('f6');
+    await spec();
+
+    await keyDownUp('tab');
+    await spec();
+
+    await selectCell(2, 2);
+    await spec();
+
+    const cellBeforeClickIntoToast = document.activeElement;
+    const closeBtn = document.querySelector('.ht-notification__toast .ht-notification__close');
+
+    await simulateClick(closeBtn);
+    await spec();
+
+    await keyDownUp('esc');
+    await spec();
+
+    expect(document.activeElement).toBe(cellBeforeClickIntoToast);
+  });
+
   it('should move Tab from the last remaining toast to the grid after closing another toast', async() => {
     await handsontable({
       data: createSpreadsheetData(3, 3),
