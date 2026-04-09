@@ -417,13 +417,10 @@ class TableView {
       // Clear the flag after the browser's synthetic mouse event sequence completes.
       // Android dispatches mousedown/mouseup/click asynchronously after touchend,
       // so the flag must survive across multiple event loop ticks.
-      this.#recentTouchEndTimeout = setTimeout(() => {
+      this.#recentTouchEndTimeout = this.hot._registerTimeout(() => {
         this.#recentTouchEnd = false;
         this.#recentTouchEndTimeout = null;
       }, 400);
-
-      // Register the timeout for auto-cleanup on destroy().
-      this.hot._registerTimeout(this.#recentTouchEndTimeout);
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
