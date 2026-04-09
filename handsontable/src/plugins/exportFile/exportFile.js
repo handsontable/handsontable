@@ -103,7 +103,7 @@ export const PLUGIN_PRIORITY = 240;
  * ```ts
  * import ExcelJS from 'exceljs';
  *
- * &#64;Component({
+ * @Component({
  *   template: `<hot-table [settings]="settings"></hot-table>`,
  * })
  * export class AppComponent {
@@ -112,7 +112,7 @@ export const PLUGIN_PRIORITY = 240;
  *     exportFile: { engines: { xlsx: ExcelJS } },
  *   };
  *
- *   &#64;ViewChild(HotTableComponent) hotTableComponent!: HotTableComponent;
+ *   @ViewChild(HotTableComponent) hotTableComponent!: HotTableComponent;
  *
  *   async exportXlsx() {
  *     const hot = this.hotTableComponent.hotInstance;
