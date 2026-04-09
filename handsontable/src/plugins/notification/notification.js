@@ -236,6 +236,8 @@ export class Notification extends BasePlugin {
     super.disablePlugin();
     this.#ui?.destroy();
     this.#ui = null;
+    this.#focusBeforeRegion = null;
+    this.#regionTabOrderActive = false;
     this.#lastEffectiveNotificationOptions = null;
   }
 

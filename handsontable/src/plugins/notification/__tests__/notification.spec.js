@@ -781,6 +781,48 @@ describe('Notification', () => {
     expect(document.activeElement).toBe(focusedBefore);
   });
 
+  it('should return focus to the correct cell after F6, notification rebuild, click into toast, and Escape', async() => {
+    await handsontable({
+      data: createSpreadsheetData(3, 3),
+      notification: true,
+    });
+
+    const plugin = getPlugin('notification');
+
+    await selectCell(1, 1);
+    await spec();
+
+    plugin.showMessage({ message: 'Before rebuild' });
+    await spec();
+
+    await keyDownUp('f6');
+    await spec();
+
+    await updateSettings({
+      notification: {
+        stackLimit: 5,
+      },
+    });
+    await spec();
+
+    plugin.showMessage({ message: 'After rebuild' });
+    await spec();
+
+    await selectCell(2, 2);
+    await spec();
+
+    const focusedCellAfterSecondSelect = document.activeElement;
+    const closeBtn = document.querySelector('.ht-notification__toast .ht-notification__close');
+
+    await simulateClick(closeBtn);
+    await spec();
+
+    await keyDownUp('esc');
+    await spec();
+
+    expect(document.activeElement).toBe(focusedCellAfterSecondSelect);
+  });
+
   it('should return focus to the grid after F6 and closing the last toast, matching Escape', async() => {
     await handsontable({
       data: createSpreadsheetData(3, 3),
