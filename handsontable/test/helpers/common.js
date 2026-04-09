@@ -1,4 +1,5 @@
 import { waitOnScroll } from './utils';
+import { themeLayoutFromTokens } from './themeLayoutFromTokens';
 /**
  * When `true` the test suite will not scroll to the top of the page before each test and
  * the spec will be not cleared which allows calling test helpers (`selectCell()` etc.) from
@@ -179,6 +180,16 @@ export function getLoadedTheme() {
 }
 
 /**
+ * Returns the resolved theme layout metrics for the currently loaded theme.
+ * Use this in specs to get data-driven expected values instead of hard-coding per-theme numbers.
+ *
+ * @returns {object} Layout metrics from themeLayoutFromTokens.
+ */
+export function getThemeLayout() {
+  return themeLayoutFromTokens(getLoadedTheme());
+}
+
+/**
  * Calls a method in current Handsontable instance, returns its output.
  *
  * @param {string} method The method to compose.
@@ -346,15 +357,7 @@ export const validateRows = handsontableMethodFactory('validateRows');
  * @returns {number} Returns the default row height based on the current theme.
  */
 export function getDefaultRowHeight() {
-  switch (getLoadedTheme()) {
-    case 'classic':
-      return 26;
-    case 'horizon':
-      return 37;
-    case 'main':
-    default:
-      return 29; // default theme is 'main' when HOT_THEME is falsy
-  }
+  return getThemeLayout().defaultDataRowHeight;
 }
 
 /**
@@ -365,47 +368,24 @@ export function getFirstRenderedRowDefaultHeight() {
 }
 
 /**
- * @returns {number} Returns the default row height based on the current theme.
+ * @returns {number} Returns the default column width based on the current theme.
  */
 export function getDefaultColumnWidth() {
-  switch (getLoadedTheme()) {
-    case 'classic':
-    case 'main':
-    case 'horizon':
-      return 50;
-    default:
-      return 50; // default theme is 'main' when HOT_THEME is falsy
-  }
+  return getThemeLayout().defaultColumnWidth;
 }
 
 /**
  * @returns {number} Returns the default column header height based on the current theme.
  */
 export function getDefaultColumnHeaderHeight() {
-  switch (getLoadedTheme()) {
-    case 'classic':
-      return 25;
-    case 'horizon':
-      return 36;
-    case 'main':
-    default:
-      return 28; // default theme is 'main' when HOT_THEME is falsy
-  }
+  return getThemeLayout().defaultColumnHeaderHeight;
 }
 
 /**
- * @returns {number} Returns the default column header height based on the current theme.
+ * @returns {number} Returns the default row header width based on the current theme.
  */
 export function getDefaultRowHeaderWidth() {
-  switch (getLoadedTheme()) {
-    case 'classic':
-      return 50;
-    case 'horizon':
-      return 49;
-    case 'main':
-    default:
-      return 49; // default theme is 'main' when HOT_THEME is falsy
-  }
+  return getThemeLayout().defaultRowHeaderWidth;
 }
 
 /**

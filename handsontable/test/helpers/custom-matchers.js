@@ -531,11 +531,12 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
             };
           }
 
-          // If no expectation for the current theme was provided, skip the test.
           if (expectationMatchers.length === 0) {
             return {
-              pass: true,
-              message: 'No expectation provided for the current theme.',
+              pass: false,
+              message: `forThemes: no expectation provided for the "${currentTheme}" theme. ` +
+                'All themes must have an explicit expectation branch, or the test should ' +
+                'be rewritten to use data-driven assertions via getThemeLayout().',
             };
           }
 
