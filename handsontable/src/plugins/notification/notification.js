@@ -16,6 +16,7 @@ export const PLUGIN_KEY = 'notification';
 export const PLUGIN_PRIORITY = 375;
 
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
+const SHORTCUTS_GLOBAL_CONTEXT_NAME = `plugin:${PLUGIN_KEY}:global`;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 const POSITION_SET = new Set(NOTIFICATION_POSITIONS);
@@ -139,7 +140,8 @@ export class Notification extends BasePlugin {
   }
 
   /**
-   * Installs the notification host, focus listeners, shortcuts (F6, Escape, Tab, Shift+Tab), and the focus scope.
+   * Installs the notification host, focus listeners, shortcuts (**F6** via grid + global shortcut contexts, Escape, Tab,
+   * Shift+Tab), and the focus scope.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -163,13 +165,6 @@ export class Notification extends BasePlugin {
       this.eventManager.addEventListener(host, 'focusin', this.#onNotificationHostFocusIn, true);
       this.eventManager.addEventListener(host, 'focusout', this.#onNotificationHostFocusOut, true);
     }
-
-    this.eventManager.addEventListener(
-      this.hot.rootDocument.documentElement,
-      'keydown',
-      this.#onDocumentKeyDownCaptureForF6,
-      true
-    );
 
     this.eventManager.addEventListener(
       this.hot.rootDocument,
@@ -690,6 +685,24 @@ export class Notification extends BasePlugin {
     const manager = this.hot.getShortcutManager();
     const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
       manager.addContext(SHORTCUTS_CONTEXT_NAME);
+    const globalContext = manager.getOrCreateContext(SHORTCUTS_GLOBAL_CONTEXT_NAME, 'global');
+    const gridContext = manager.getContext(GRID_SCOPE);
+
+    const f6Shortcut = {
+      keys: [['f6']],
+      preventDefault: true,
+      callback: () => {
+        this.#enterNotificationRegion();
+      },
+      runOnlyIf: event => this.#shouldRunNotificationF6Shortcut(event),
+      group: SHORTCUTS_GROUP,
+    };
+
+    globalContext.addShortcut(f6Shortcut);
+
+    if (gridContext) {
+      gridContext.addShortcut(f6Shortcut);
+    }
 
     pluginContext.addShortcut({
       keys: [['Escape']],
@@ -719,9 +732,11 @@ export class Notification extends BasePlugin {
    * Unregisters notification shortcut group from the plugin context.
    */
   #unregisterNotificationShortcuts() {
-    const pluginContext = this.hot.getShortcutManager().getContext(SHORTCUTS_CONTEXT_NAME);
+    const sm = this.hot.getShortcutManager();
 
-    pluginContext?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    sm.getContext(SHORTCUTS_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    sm.getContext(SHORTCUTS_GLOBAL_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    sm.getContext(GRID_SCOPE)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -1075,45 +1090,40 @@ export class Notification extends BasePlugin {
   }
 
   /**
-   * Handles **F6** in the capture phase so the shortcut works while Handsontable is not listening (focus outside the
-   * grid), matching screen reader navigation expectations for the notification region.
+   * `runOnlyIf` guard for **F6** shortcuts on the grid and `scope: 'global'` contexts (see {@link ShortcutManager}).
    *
    * @param {KeyboardEvent} event Keydown event.
+   * @returns {boolean}
    */
-  #onDocumentKeyDownCaptureForF6 = (event) => {
+  #shouldRunNotificationF6Shortcut(event) {
+    if (!this.enabled || this.#toasts.size === 0) {
+      return false;
+    }
+
     const key = typeof event.key === 'string' ? event.key.toLowerCase() : '';
 
     if (key !== 'f6' && event.code !== 'F6') {
-      return;
+      return false;
     }
 
     if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) {
-      return;
-    }
-
-    if (!this.enabled || this.#toasts.size === 0) {
-      return;
+      return false;
     }
 
     const host = this.#ui?.getHost();
 
     if (!host) {
-      return;
+      return false;
     }
 
     const active = this.hot.rootDocument.activeElement;
 
     if (active instanceof this.hot.rootWindow.HTMLElement && host.contains(active)) {
-      return;
+      return false;
     }
 
-    if (!this.#shouldThisInstanceHandleF6ForActiveElement(active)) {
-      return;
-    }
-
-    event.preventDefault();
-    this.#enterNotificationRegion();
-  };
+    return this.#shouldThisInstanceHandleF6ForActiveElement(active);
+  }
 
   /**
    * If focus is still on notification chrome but not inside any remaining toast (for example an empty stack), moves it

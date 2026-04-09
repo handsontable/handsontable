@@ -3,6 +3,7 @@ import { normalizeEventKey } from './utils';
 import { isImmediatePropagationStopped } from '../helpers/dom/event';
 import { getParentWindow } from '../helpers/dom/element';
 import { isMacOS } from '../helpers/browser';
+import { isFunction } from '../helpers/function';
 
 const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
 const modifierKeysObserver = createKeysObserver();
@@ -19,9 +20,20 @@ let instanceCounter = 0;
  * @param {Function} beforeKeyDown A hook fired before the `keydown` event is handled.
  * @param {Function} afterKeyDown A hook fired after the `keydown` event is handled
  * @param {Function} callback `KeyEvent`'s listener's callback function
+ * @param {Function} [dispatchGlobalShortcutsWhenTableBlocked] When `handleEvent` blocks the normal shortcut pipeline,
+ *   if set, it is called as `(event, pressedKeys)` after the same IME / `key` guards as the table path, so
+ *   `scope: 'global'` shortcut contexts can still run (for example **F6** into the Notification region while the
+ *   instance is not listening).
  * @returns {object}
  */
-export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDown, callback) {
+export function useRecorder(
+  ownerWindow,
+  handleEvent,
+  beforeKeyDown,
+  afterKeyDown,
+  callback,
+  dispatchGlobalShortcutsWhenTableBlocked = null,
+) {
   /**
    * Check if a pressed key is tracked or not.
    *
@@ -78,17 +90,49 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
    * @param {KeyboardEvent} event The event object
    */
   const onkeydown = (event) => {
-    if (handleEvent(event) === false) {
+    const tableShortcutsAllowed = handleEvent(event) !== false;
+
+    if (tableShortcutsAllowed) {
+      const result = beforeKeyDown(event);
+
+      // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is
+      // produced when unfinished character is entering using the IME editor. It is fired on macOS,
+      // Windows and linux (ubuntu) with installed ibus-pinyin package.
+      if (
+        result === false ||
+        event.keyCode === 229 ||
+        typeof event.key !== 'string' ||
+        isImmediatePropagationStopped(event)
+      ) {
+        return;
+      }
+
+      const pressedKey = normalizeEventKey(event);
+      let extraModifierKeys = [];
+
+      if (!isModifierKey(pressedKey)) {
+        extraModifierKeys = getPressedModifierKeys(event);
+      }
+
+      const pressedKeys = [pressedKey].concat(extraModifierKeys);
+      let isExecutionCancelled = callback(event, pressedKeys);
+
+      if (!isExecutionCancelled &&
+        (isMacOS() && extraModifierKeys.includes('meta') || !isMacOS() && extraModifierKeys.includes('control'))) {
+        // Trigger the callback for the virtual OS-dependent "control/meta" key
+        isExecutionCancelled = callback(event, [pressedKey].concat(getPressedModifierKeys(event, true)));
+      }
+
+      afterKeyDown(event);
+
       return;
     }
 
-    const result = beforeKeyDown(event);
+    if (isFunction(dispatchGlobalShortcutsWhenTableBlocked) === false) {
+      return;
+    }
 
-    // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is
-    // produced when unfinished character is entering using the IME editor. It is fired on macOS,
-    // Windows and linux (ubuntu) with installed ibus-pinyin package.
     if (
-      result === false ||
       event.keyCode === 229 ||
       typeof event.key !== 'string' ||
       isImmediatePropagationStopped(event)
@@ -104,12 +148,14 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
     }
 
     const pressedKeys = [pressedKey].concat(extraModifierKeys);
-    const isExecutionCancelled = callback(event, pressedKeys);
+    let isExecutionCancelled = dispatchGlobalShortcutsWhenTableBlocked(event, pressedKeys);
 
     if (!isExecutionCancelled &&
       (isMacOS() && extraModifierKeys.includes('meta') || !isMacOS() && extraModifierKeys.includes('control'))) {
-      // Trigger the callback for the virtual OS-dependent "control/meta" key
-      callback(event, [pressedKey].concat(getPressedModifierKeys(event, true)));
+      isExecutionCancelled = dispatchGlobalShortcutsWhenTableBlocked(
+        event,
+        [pressedKey].concat(getPressedModifierKeys(event, true)),
+      );
     }
 
     afterKeyDown(event);

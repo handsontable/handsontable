@@ -950,6 +950,7 @@ describe('Notification', () => {
     externalInput.type = 'text';
     externalInput.id = 'notification-test-f6-external';
     document.body.appendChild(externalInput);
+    /* Focus outside the grid: isListening() is false; F6 must run via global shortcut contexts. */
     externalInput.focus();
     await waitForNextAnimationFrames(1);
 
