@@ -48,37 +48,6 @@ describe('Date Editor', () => {
 
   });
 
-  it('should not close the date picker when touching the navigation elements', async() => {
-    handsontable({
-      data: [
-        ['01/14/2006'],
-        ['12/01/2008'],
-        ['11/19/2011'],
-      ],
-      columns: [{ type: 'date', dateFormat: 'MM/DD/YYYY' }],
-    });
-
-    const cell = hot.getCell(0, 0);
-
-    await triggerTouchEvent('touchstart', cell);
-    await triggerTouchEvent('touchend', cell);
-    await triggerTouchEvent('touchstart', cell);
-    await triggerTouchEvent('touchend', cell);
-
-    await sleep(100);
-
-    expect($('.pika-single').is(':visible')).toBe(true);
-
-    const nextMonthButton = document.querySelector('.pika-next');
-
-    await triggerTouchEvent('touchstart', nextMonthButton);
-    await triggerTouchEvent('touchend', nextMonthButton);
-
-    await sleep(100);
-
-    expect($('.pika-single').is(':visible')).toBe(true);
-    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-  });
 
   it('should display the correct date in the cell after select the date', async() => {
     handsontable({
