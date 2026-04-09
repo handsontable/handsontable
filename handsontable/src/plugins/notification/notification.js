@@ -121,11 +121,6 @@ export class Notification extends BasePlugin {
   #focusScopeActive = false;
 
   /**
-   * @type {number}
-   */
-  #toastOrder = 0;
-
-  /**
    * Effective {@link Notification.DEFAULT_SETTINGS} after the last full enable or rebuild, used to skip tearing down
    * the UI when `updateSettings` includes `notification` but those options did not change (for example a spread of
    * `getSettings()` with unrelated keys).
@@ -503,8 +498,6 @@ export class Notification extends BasePlugin {
 
     const durationMs = normalized.duration;
 
-    this.#toastOrder += 1;
-    const order = this.#toastOrder;
     const state = {
       id: normalized.id,
       options: normalized,
@@ -512,7 +505,6 @@ export class Notification extends BasePlugin {
       durationMs,
       remainingMs: durationMs,
       paused: false,
-      order,
     };
 
     this.#toasts.set(normalized.id, state);
@@ -809,7 +801,7 @@ export class Notification extends BasePlugin {
   };
 
   /**
-   * Lists focusable controls in host DOM order (stack positions, then toast order).
+   * Lists focusable controls in host DOM order (stack positions, then toasts in document order).
    *
    * @returns {HTMLElement[]}
    */
