@@ -12,6 +12,18 @@ describe('AutoRowSize', () => {
       destroy();
       this.$container.remove();
     }
+    if (this.$container2) {
+      try {
+        if (this.$container2.handsontable('getInstance')) {
+          this.$container2.handsontable('getInstance').destroy();
+        }
+      } catch (e) {
+        if (!e.message.includes('instance has been destroyed')) {
+          throw e;
+        }
+      }
+      this.$container2.remove();
+    }
   });
 
   /**
@@ -1055,6 +1067,70 @@ describe('AutoRowSize', () => {
 
       expect(getPlugin('autoRowSize').ghostTable.addRow).toHaveBeenCalledTimes(1);
       Handsontable.hooks.remove('beforeInit', beforeInit);
+    });
+
+    it('should not throw when two tables with different layouts share a HyperFormula engine (#12301)', async() => {
+      spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
+
+      const hot1 = handsontable({
+        data: [['a', 'b']],
+        autoRowSize: true,
+        autoColumnSize: true,
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+      });
+
+      spec().$container2.handsontable({
+        data: [['c'], ['d']],
+        autoRowSize: true,
+        autoColumnSize: true,
+        formulas: {
+          engine: hot1.getPlugin('formulas').engine,
+          sheetName: 'Sheet2',
+        },
+      });
+
+      const hot2 = spec().$container2.handsontable('getInstance');
+
+      expect(() => {
+        hot2.setDataAtCell(0, 0, 'test');
+      }).not.toThrow();
+
+      expect(() => {
+        hot1.setDataAtCell(0, 0, 'test2');
+      }).not.toThrow();
+    });
+
+    it('should only refresh rows belonging to the current sheet after formula values update (#12301)', async() => {
+      spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
+
+      const hot1 = handsontable({
+        data: [['a', '=A1']],
+        autoRowSize: true,
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+      });
+
+      spec().$container2.handsontable({
+        data: [['c'], ['d'], ['e']],
+        autoRowSize: true,
+        formulas: {
+          engine: hot1.getPlugin('formulas').engine,
+          sheetName: 'Sheet2',
+        },
+      });
+
+      const hot2 = spec().$container2.handsontable('getInstance');
+
+      const addRowSpy = spyOn(hot1.getPlugin('autoRowSize').ghostTable, 'addRow').and.callThrough();
+
+      hot2.setDataAtCell(2, 0, 'new value');
+
+      expect(addRowSpy).not.toHaveBeenCalled();
     });
   });
 });
