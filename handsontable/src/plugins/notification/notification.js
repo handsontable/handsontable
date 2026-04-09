@@ -840,6 +840,38 @@ export class Notification extends BasePlugin {
   }
 
   /**
+   * @returns {boolean}
+   */
+  #hasActiveSelectionHighlight() {
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+    return highlight !== undefined && highlight !== null;
+  }
+
+  /**
+   * Focuses `#focusBeforeRegion` when it is a safe fallback after leaving the notification region (still in the table, not inside the host).
+   *
+   * @returns {boolean} True if focus was moved to the prior element.
+   */
+  #tryFocusPriorElementBeforeNotificationRegion() {
+    const prior = this.#focusBeforeRegion;
+    const host = this.#ui?.getHost();
+
+    if (
+      !(prior instanceof this.hot.rootWindow.HTMLElement) ||
+      !prior.isConnected ||
+      !this.hot.rootWrapperElement.contains(prior) ||
+      host?.contains(prior)
+    ) {
+      return false;
+    }
+
+    prior.focus({ preventScroll: true });
+
+    return true;
+  }
+
+  /**
    * The notification host sits after the grid in the DOM; default **Tab** from the last control would leave the table.
    *
    * When the user clicks a toast control, `outsideClickDeselects` can clear the selection. In that case
@@ -851,26 +883,14 @@ export class Notification extends BasePlugin {
     this.hot.listen();
 
     const focusManager = this.hot.getFocusManager();
-    const highlight = this.hot.getSelectedRangeActive()?.highlight;
-    const hasHighlight = highlight !== undefined && highlight !== null;
 
-    if (hasHighlight) {
+    if (this.#hasActiveSelectionHighlight()) {
       focusManager.focusOnHighlightedCell();
 
       return;
     }
 
-    const prior = this.#focusBeforeRegion;
-    const host = this.#ui?.getHost();
-
-    if (
-      prior instanceof this.hot.rootWindow.HTMLElement &&
-      prior.isConnected &&
-      this.hot.rootWrapperElement.contains(prior) &&
-      (!host || !host.contains(prior))
-    ) {
-      prior.focus({ preventScroll: true });
-
+    if (this.#tryFocusPriorElementBeforeNotificationRegion()) {
       return;
     }
 
