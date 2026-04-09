@@ -717,11 +717,15 @@ describe('Core_view', () => {
     rowMapper.setValueAtIndex(3, true);
     await render();
 
-    expect(getTopClone().width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(200);
-      main.toBe(185);
-      horizon.toBe(185);
-    });
+    const layout = getThemeLayout();
+    // After trimming 4 of 10 rows, 6 remain. If the content fits within the 200px
+    // container the vertical scrollbar disappears and the top overlay uses the full
+    // container width; otherwise the scrollbar takes some space.
+    const contentHeight = layout.defaultColumnHeaderHeight + layout.overlayHeight({ rows: 6 });
+    const scrollbarSize = tableView()._wt.wtOverlays.scrollbarSize;
+    const expectedWidth = contentHeight <= 200 ? 200 : 200 - scrollbarSize;
+
+    expect(getTopClone().width()).toBe(expectedWidth);
   });
 
   it.forTheme('classic')('should not extend the selection to the cell under the mouse pointer ' +
