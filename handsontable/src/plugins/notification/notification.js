@@ -986,8 +986,11 @@ export class Notification extends BasePlugin {
   #isElementInsideNotificationHost(node) {
     const host = this.#ui?.getHost();
 
+    if (!host) {
+      return false;
+    }
+
     return (
-      host !== null &&
       node instanceof this.hot.rootWindow.HTMLElement &&
       host.contains(node)
     );
