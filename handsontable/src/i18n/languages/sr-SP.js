@@ -121,7 +121,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Idi na poslednju stranicu',
 
   [C.LOADING_TITLE]: 'Učitavanje...',
-  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Затвори',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zatvori',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Nema dostupnih podataka',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Još uvek nema ništa za prikaz.',
