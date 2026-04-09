@@ -150,6 +150,15 @@ class TableView {
    */
   #recentTouchEnd = false;
   /**
+   * Timeout ID for the `#recentTouchEnd` flag reset. Stored so it can be
+   * cleared on rapid successive touches, preventing an earlier timeout
+   * from prematurely resetting the flag while a later touch's synthetic
+   * mouse events haven't arrived yet.
+   *
+   * @type {number|null}
+   */
+  #recentTouchEndTimeout = null;
+  /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
   constructor(hotInstance) {
@@ -398,12 +407,23 @@ class TableView {
       this.#mouseDown = false;
       this.#recentTouchEnd = true;
 
+      // Cancel any pending reset from a previous touch so rapid successive
+      // touches don't prematurely clear the flag while the latest touch's
+      // synthetic mouse events are still in flight.
+      if (this.#recentTouchEndTimeout !== null) {
+        clearTimeout(this.#recentTouchEndTimeout);
+      }
+
       // Clear the flag after the browser's synthetic mouse event sequence completes.
       // Android dispatches mousedown/mouseup/click asynchronously after touchend,
       // so the flag must survive across multiple event loop ticks.
-      this.hot._registerTimeout(() => {
+      this.#recentTouchEndTimeout = setTimeout(() => {
         this.#recentTouchEnd = false;
+        this.#recentTouchEndTimeout = null;
       }, 400);
+
+      // Register the timeout for auto-cleanup on destroy().
+      this.hot._registerTimeout(this.#recentTouchEndTimeout);
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
