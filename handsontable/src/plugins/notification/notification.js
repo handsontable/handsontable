@@ -126,6 +126,15 @@ export class Notification extends BasePlugin {
   #toastOrder = 0;
 
   /**
+   * Effective {@link Notification.DEFAULT_SETTINGS} after the last full enable or rebuild, used to skip tearing down
+   * the UI when `updateSettings` includes `notification` but those options did not change (for example a spread of
+   * `getSettings()` with unrelated keys).
+   *
+   * @type {{ stackLimit: number, animation: boolean } | null}
+   */
+  #lastEffectiveNotificationOptions = null;
+
+  /**
    * Returns whether the `notification` setting is enabled for this instance.
    *
    * @returns {boolean}
@@ -182,12 +191,31 @@ export class Notification extends BasePlugin {
     });
 
     super.enablePlugin();
+    this.#lastEffectiveNotificationOptions = this.#captureEffectiveNotificationOptions();
   }
 
   /**
-   * Rebuilds the plugin after settings change.
+   * Rebuilds the plugin after settings change when notification options actually change.
+   *
+   * @param {object} [newSettings] Settings object passed to `updateSettings` (partial).
    */
-  updatePlugin() {
+  updatePlugin(newSettings) {
+    const nextEffective = this.#captureEffectiveNotificationOptions();
+    const notificationKeyPresent =
+      newSettings &&
+      typeof newSettings === 'object' &&
+      Object.prototype.hasOwnProperty.call(newSettings, PLUGIN_KEY);
+
+    if (
+      notificationKeyPresent &&
+      this.#lastEffectiveNotificationOptions !== null &&
+      this.#effectiveNotificationOptionsEqual(this.#lastEffectiveNotificationOptions, nextEffective)
+    ) {
+      super.updatePlugin();
+
+      return;
+    }
+
     this.disablePlugin();
     this.enablePlugin();
 
@@ -208,6 +236,7 @@ export class Notification extends BasePlugin {
     super.disablePlugin();
     this.#ui?.destroy();
     this.#ui = null;
+    this.#lastEffectiveNotificationOptions = null;
   }
 
   /**
@@ -340,8 +369,28 @@ export class Notification extends BasePlugin {
     this.#ui = null;
     this.#focusBeforeRegion = null;
     this.#regionTabOrderActive = false;
+    this.#lastEffectiveNotificationOptions = null;
 
     super.destroy();
+  }
+
+  /**
+   * @returns {{ stackLimit: number, animation: boolean }}
+   */
+  #captureEffectiveNotificationOptions() {
+    return {
+      stackLimit: this.getSetting('stackLimit'),
+      animation: this.getSetting('animation'),
+    };
+  }
+
+  /**
+   * @param {{ stackLimit: number, animation: boolean }} a First snapshot.
+   * @param {{ stackLimit: number, animation: boolean }} b Second snapshot.
+   * @returns {boolean}
+   */
+  #effectiveNotificationOptionsEqual(a, b) {
+    return a.stackLimit === b.stackLimit && a.animation === b.animation;
   }
 
   /**

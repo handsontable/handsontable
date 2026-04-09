@@ -174,6 +174,47 @@ describe('Notification', () => {
     expect(host.getAttribute('dir')).toBe('rtl');
   });
 
+  it('should keep visible toasts when updateSettings repeats the same notification option (e.g. spread of getSettings)', async() => {
+    await handsontable({
+      data: createSpreadsheetData(3, 3),
+      notification: true,
+    });
+
+    getPlugin('notification').showMessage({ message: 'Still here', duration: 0 });
+    await spec();
+
+    expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
+
+    await updateSettings({
+      ...getSettings(),
+      readOnly: true,
+    });
+    await spec();
+
+    expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
+    expect(document.querySelector('.ht-notification__message').textContent).toContain('Still here');
+  });
+
+  it('should still rebuild notification UI when notification stackLimit changes', async() => {
+    await handsontable({
+      data: createSpreadsheetData(3, 3),
+      notification: { stackLimit: 10 },
+    });
+
+    getPlugin('notification').showMessage({ message: 'Toast', duration: 0 });
+    await spec();
+
+    expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
+
+    await updateSettings({
+      ...getSettings(),
+      notification: { stackLimit: 5 },
+    });
+    await spec();
+
+    expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
+  });
+
   it('should return empty string from showMessage when the plugin is not enabled', async() => {
     await handsontable({
       data: createSpreadsheetData(3, 3),
