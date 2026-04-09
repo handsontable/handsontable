@@ -36,7 +36,9 @@ const TICK_MS = 200;
  * @description
  * The Notification plugin shows non-blocking toast messages anchored to the Handsontable root.
  * Enable it with the {@link Options#notification} option. Toasts are exposed to assistive technologies with
- * `aria-live` and do not take keyboard focus when they appear; use **F6** to move focus into the notification region,
+ * `aria-live` and do not take keyboard focus when they appear; use **F6** to move focus into the notification region
+ * for the grid that currently contains keyboard focus (with several instances on one page, each grid only handles **F6**
+ * for its own focus scope, except when a single grid is on the page and focus is outside every grid).
  * **Tab** / **Shift+Tab** between controls, **Escape** to leave, and programmatic `hide` restores focus like **Escape**
  * when the last toast closes while focus is in the region.
  *
@@ -1003,6 +1005,31 @@ export class Notification extends BasePlugin {
   }
 
   /**
+   * Whether this instance should handle document-level **F6** for the current `activeElement`.
+   * When focus is inside a grid, only that instance's plugin may move focus into its notification region.
+   * When focus is outside every `.ht-root-wrapper`, only a single Handsontable on the page may claim **F6** so
+   * multi-instance pages do not all activate at once; with multiple roots, **F6** does nothing until focus is in a grid.
+   *
+   * @param {Element | null} active `document.activeElement`.
+   * @returns {boolean}
+   */
+  #shouldThisInstanceHandleF6ForActiveElement(active) {
+    if (!(active instanceof this.hot.rootWindow.HTMLElement)) {
+      return false;
+    }
+
+    const ownerWrapper = active.closest('.ht-root-wrapper');
+
+    if (ownerWrapper !== null) {
+      return ownerWrapper === this.hot.rootWrapperElement;
+    }
+
+    const roots = this.hot.rootDocument.querySelectorAll('.ht-root-wrapper');
+
+    return roots.length <= 1;
+  }
+
+  /**
    * Handles **F6** in the capture phase so the shortcut works while Handsontable is not listening (focus outside the
    * grid), matching screen reader navigation expectations for the notification region.
    *
@@ -1032,6 +1059,10 @@ export class Notification extends BasePlugin {
     const active = this.hot.rootDocument.activeElement;
 
     if (active instanceof this.hot.rootWindow.HTMLElement && host.contains(active)) {
+      return;
+    }
+
+    if (!this.#shouldThisInstanceHandleF6ForActiveElement(active)) {
       return;
     }
 

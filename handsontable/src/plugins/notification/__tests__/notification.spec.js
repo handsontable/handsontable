@@ -987,4 +987,57 @@ describe('Notification', () => {
     expect(toastEl.tabIndex).toBe(0);
     expect(document.activeElement).toBe(toastEl);
   });
+
+  describe('multiple Handsontable instances', () => {
+    beforeEach(function() {
+      this.$container2 = $('<div id="testContainer2"></div>').appendTo('body');
+    });
+
+    afterEach(function() {
+      this.$container2?.data('handsontable')?.destroy();
+      this.$container2?.remove();
+    });
+
+    it('should move F6 focus only into the notification region for the instance that owns the focused grid', async function() {
+      const hot1 = handsontable({
+        data: createSpreadsheetData(2, 2),
+        notification: true,
+      }, false, this.$container);
+
+      const hot2 = handsontable({
+        data: createSpreadsheetData(2, 2),
+        notification: true,
+      }, false, this.$container2);
+
+      setCurrentHotInstance(hot1);
+      hot1.selectCell(0, 0);
+      await spec();
+
+      hot1.getPlugin('notification').showMessage({ message: 'Toast A' });
+      hot2.getPlugin('notification').showMessage({ message: 'Toast B' });
+      await spec();
+
+      const close1 = hot1.rootWrapperElement.querySelector('.ht-notification__toast .ht-notification__close');
+      const close2 = hot2.rootWrapperElement.querySelector('.ht-notification__toast .ht-notification__close');
+
+      expect(close1).not.toBe(null);
+      expect(close2).not.toBe(null);
+
+      await keyDownUp('f6');
+      await spec();
+
+      expect(document.activeElement).toBe(close1);
+      expect(document.activeElement).not.toBe(close2);
+
+      setCurrentHotInstance(hot2);
+      hot2.selectCell(0, 0);
+      await spec();
+
+      await keyDownUp('f6');
+      await spec();
+
+      expect(document.activeElement).toBe(close2);
+      expect(document.activeElement).not.toBe(close1);
+    });
+  });
 });
