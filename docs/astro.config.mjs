@@ -798,7 +798,7 @@ export default defineConfig({
 
   vite: {
     server: {
-      allowedHosts: true,
+      allowedHosts: ['.trycloudflare.com'],
     },
     // Expose BUILD_MODE to Astro components via import.meta.env.PUBLIC_BUILD_MODE.
     // The deployment pipeline sets BUILD_MODE; this bridges it into the Vite/Astro

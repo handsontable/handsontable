@@ -52,7 +52,7 @@ For Vite-based dev servers (like Astro docs), tunnel hostnames get blocked by de
 ```js
 vite: {
   server: {
-    allowedHosts: true,
+    allowedHosts: ['.trycloudflare.com'],
   },
 }
 ```
