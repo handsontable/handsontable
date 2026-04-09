@@ -182,6 +182,7 @@ Every code change **must** satisfy all of the following:
 - Release branches: `release/x.y.z`
 - LTS branches: `lts/[major].x`
 - **Never force-push** to `master`, `develop`, or PR-bound branches.
+- **Never commit directly to `develop` or `master`.** Always create a feature branch and open a PR. This applies to all changes, including skills, docs, and config files.
 - **SemVer**: Even-numbered majors (16, 18, 20) become LTS. No more than 4 major releases per year.
 - All PRs target **develop**. Cherry-picks to release/lts handled separately by maintainers.
 
