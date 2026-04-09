@@ -59,6 +59,40 @@ describe('Notification', () => {
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
   });
 
+  it('should fire beforeNotificationShow once per showMessage and not again when a queued toast mounts', async() => {
+    const beforeShow = jasmine.createSpy('beforeNotificationShow');
+
+    await handsontable({
+      data: createSpreadsheetData(3, 3),
+      notification: {
+        stackLimit: 1,
+      },
+      beforeNotificationShow: beforeShow,
+    });
+
+    const plugin = getPlugin('notification');
+    const firstId = plugin.showMessage({ message: 'First' });
+    const queuedId = plugin.showMessage({ message: 'Queued' });
+
+    await spec();
+
+    expect(beforeShow).toHaveBeenCalledTimes(2);
+    expect(beforeShow.calls.argsFor(0)[0]).toEqual(jasmine.objectContaining({
+      id: firstId,
+      message: 'First',
+    }));
+    expect(beforeShow.calls.argsFor(1)[0]).toEqual(jasmine.objectContaining({
+      id: queuedId,
+      message: 'Queued',
+    }));
+
+    plugin.hide(firstId);
+    await spec();
+
+    expect(beforeShow).toHaveBeenCalledTimes(2);
+    expect(document.querySelector('.ht-notification__message').textContent).toContain('Queued');
+  });
+
   it('should queue toasts when stackLimit is reached', async() => {
     await handsontable({
       data: createSpreadsheetData(3, 3),

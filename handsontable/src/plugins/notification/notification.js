@@ -1219,6 +1219,7 @@ export class Notification extends BasePlugin {
 
   /**
    * Mounts queued toasts for one corner when a slot opens after `hide` or `stackLimit` changes.
+   * `beforeNotificationShow` already ran for each queued entry in {@link Notification#showMessage}.
    *
    * @param {string} position Stack key.
    */
@@ -1227,10 +1228,6 @@ export class Notification extends BasePlugin {
 
     while (this.#queues[position].length > 0 && this.#countVisibleAt(position) < limit) {
       const next = this.#queues[position].shift();
-
-      if (this.hot.runHooks('beforeNotificationShow', next) === false) {
-        continue;
-      }
 
       this.#mountToast(next);
     }

@@ -3442,13 +3442,14 @@ export const REGISTERED_HOOKS = [
   'afterEmptyDataStateHide',
 
   /**
-   * Fired by {@link Notification} plugin before a toast is shown. This hook is fired when {@link Options#notification}
-   * option is enabled. Return `false` to cancel the toast.
+   * Fired by {@link Notification} plugin before a toast is shown or enqueued. This hook is fired when {@link Options#notification}
+   * option is enabled. Return `false` to cancel {@link Notification#showMessage} (no id returned, nothing enqueued).
+   * Queued toasts already passed this hook once when {@link Notification#showMessage} ran; it is not fired again when a slot opens.
    *
    * @since 17.1.0
    * @event Hooks#beforeNotificationShow
    * @param {object} options Normalized toast options including `id`, `variant`, `message`, `duration`, `position`, `closable`, and `actions`.
-   * @returns {boolean | undefined} If returns `false`, the toast is not shown (or queued).
+   * @returns {boolean | undefined} If returns `false`, the toast is not shown and not queued.
    */
   'beforeNotificationShow',
 

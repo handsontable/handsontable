@@ -114,7 +114,7 @@ Use separate buttons for save, error recovery, and warnings. Primary and seconda
 | `isVisible(id?)` | Returns whether a given toast or any toast is visible. |
 | `getQueueSize()` | Returns how many toasts are waiting when `stackLimit` is reached. |
 
-Hooks: `beforeNotificationShow`, `afterNotificationShow`, `beforeNotificationHide`, and `afterNotificationHide`. Returning `false` from `beforeNotificationShow` cancels the toast. Returning `false` from `beforeNotificationHide` keeps the toast visible and stops automatic dismissal for that toast.
+Hooks: `beforeNotificationShow`, `afterNotificationShow`, `beforeNotificationHide`, and `afterNotificationHide`. Returning `false` from `beforeNotificationShow` cancels `showMessage` (no id, nothing enqueued). That hook runs once per call to `showMessage`, including when the toast is queued because `stackLimit` is full; it does not run again when a queued toast mounts. Returning `false` from `beforeNotificationHide` keeps the toast visible and stops automatic dismissal for that toast.
 
 ## Read more
 
